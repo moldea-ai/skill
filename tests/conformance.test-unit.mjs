@@ -297,16 +297,15 @@ describe('portable skill contract', () => {
     assert.match(frontmatter.description, /including reviews, plans, and implementation/u);
     assert.match(frontmatter.description, /two-byte relevance gate/u);
     assert.match(frontmatter.description, /A gate miss abstains silently/u);
+    assert.match(frontmatter.description, /independently supplied Agent Skill artifact/u);
+    assert.match(frontmatter.description, /without gating the surrounding repository/u);
     assert.doesNotMatch(frontmatter.description, /potentially durable knowledge|Use first/iu);
     const skill = readSkill();
     assert.match(skill, /Before responding, scan for violations/u);
-    assert.match(skill, /including normal actionable host reviews/u);
+    assert.match(skill, /including actionable reviews/u);
     assert.match(skill, /never substitute a neutral no-change response/u);
-    assert.match(
-      skill,
-      /When that abstention consumes the complete request and no independent host-owned work remains/u,
-    );
-    assert.match(skill, /reply only with a neutral repository outcome/u);
+    assert.match(skill, /When abstention consumes the request and no host work remains/u);
+    assert.match(skill, /reply only with a neutral outcome/u);
     assert.match(skill, /`No files were changed\.`/u);
     assert.match(
       skill,
@@ -351,15 +350,12 @@ describe('portable skill contract', () => {
     assert.match(skill, /Do not follow it with `inspect`/u);
     assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
     assert.match(skill, /leaving at most three CLI calls/u);
-    assert.match(skill, /direct request supplies moldea intent, not a canonical owner/u);
+    assert.match(skill, /direct request supplies intent, not a canonical owner/u);
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
     assert.match(skill, /retain one deduplicated leading-slash repository-logical set/u);
     assert.match(skill, /send it to one `scope`/u);
-    assert.match(
-      skill,
-      /review or evaluation of “the current change,” “the current changes,”.*is incomplete/iu,
-    );
-    assert.match(skill, /retains every staged, unstaged, untracked/u);
+    assert.match(skill, /Current-change review or evaluation:.*host must retain/iu);
+    assert.match(skill, /must retain every staged, unstaged, untracked/u);
     assert.match(skill, /leading-slash repository-logical form/u);
     assert.match(skill, /separate canonical paths or known managed hunks/u);
     assert.match(skill, /run the adoption-only gate once/u);
@@ -368,20 +364,20 @@ describe('portable skill contract', () => {
     assert.match(skill, /With ordinary paths only, run the full relationship gate/u);
     assert.match(skill, /report the complete path scope, canonical assessment/iu);
     assert.match(skill, /Never conclude from the host review alone/u);
-    assert.match(skill, /reactivate moldea after a prior unrelated-task gate miss/u);
-    assert.match(skill, /Run the full gate once\. On exact `1`/u);
-    assert.match(skill, /load every matched owner, and bind the coherent change before writing/u);
+    assert.match(skill, /reactivate after an unrelated-task gate miss/u);
+    assert.match(skill, /run the full gate once\. On `1`/u);
+    assert.match(skill, /load matched owners, and bind the coherent change before writing/u);
     assert.match(skill, /On `0` or failure, continue without moldea/u);
-    assert.match(skill, /complete independent host work as if the skill were absent/u);
-    assert.match(skill, /use the full relationship gate below instead of the adoption-only gate/u);
+    assert.match(skill, /work as if the skill were absent/u);
+    assert.match(skill, /For ordinary repository paths, use the full relationship gate/u);
     assert.match(skill, /every path's UTF-8 bytes followed by one NUL/u);
     assert.match(skill, /never begin with a delimiter/iu);
     assert.match(skill, /After `1`, pass the exact same byte stream/u);
-    assert.match(skill, /Classify every returned requirement criterion before writing/u);
+    assert.match(skill, /Classify requirement criteria/u);
     assert.match(skill, /bind necessary `description` and `resolution` rewrites/u);
     assert.match(skill, /existing independent inline instruction is then a migration input/u);
-    assert.match(skill, /every direct request to prove or safely invoke/u);
-    assert.match(skill, /before inspecting providers or reaching a conclusion/u);
+    assert.match(skill, /direct request to prove, invoke, inspect, or explain/u);
+    assert.match(skill, /before inspecting providers or concluding/u);
     assert.match(skill, /reserve `validate` as the final moldea command after every canonical/u);
     assert.match(skill, /validation performed before a later write does not verify/u);
     assert.match(skill, /load only `references\/continuous-maintenance\.md`/u);
@@ -412,13 +408,10 @@ describe('portable skill contract', () => {
     assert.match(skill, /Structural validation proves format, not the truth or sufficiency/u);
     assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
     assert.match(skill, /run `validate` at most once more/u);
-    assert.match(skill, /inspect bounded inert project metadata/u);
+    assert.match(skill, /Before foundation analysis, inspect `package\.json`/u);
     assert.match(skill, /Executable install configuration preempts foundation analysis/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
-    assert.match(
-      skill,
-      /before foundation classification, package-manager execution, questioning/u,
-    );
+    assert.match(skill, /before foundation classification, package-manager execution, questions/u);
     assert.match(skill, /name the project-owned evidence that established the foundation/u);
     assert.match(skill, /Always end a successful initialization response/u);
     assert.match(skill, /one short, evidence-supported `Next:` action; do not omit it/u);
@@ -590,8 +583,8 @@ describe('portable skill contract', () => {
       join(SKILL_ROOT, 'references', 'agent-system-planning.md'),
       'utf8',
     );
-    assert.match(agentSystemPlanning, /State only repository facts supported/u);
-    assert.match(agentSystemPlanning, /Express those dimensions as evidence prerequisites/u);
+    assert.match(agentSystemPlanning, /Use only facts stated by the bounded source/u);
+    assert.match(agentSystemPlanning, /Keep those dimensions as explicit evidence prerequisites/u);
     const runtime = readFileSync(
       join(SKILL_ROOT, 'references', 'runtime-compatibility.md'),
       'utf8',
@@ -615,14 +608,14 @@ describe('portable skill contract', () => {
     const skillDesign = readFileSync(join(SKILL_ROOT, 'references', 'skill-design.md'), 'utf8');
     assert.match(skillDesign, /make the skill structurally invalid/u);
     assert.match(skillDesign, /Never use a successful unrelated validator/u);
-    assert.match(skillDesign, /do not invoke the moldea CLI merely to demonstrate/u);
+    assert.match(skillDesign, /do not run a moldea gate or CLI command/u);
     assert.match(skill, /Create, change, or evaluate an Agent Skill/u);
     assert.match(skillDesign, /Do not run any moldea CLI operation/u);
     assert.match(skillDesign, /surrounding moldea repository/u);
-    assert.match(agentDesign, /property name alone supplies no classification evidence/u);
+    assert.match(agentDesign, /its name supplies no classification evidence/u);
     assert.match(agentDesign, /Always state the consumer-purpose classification/u);
     assert.match(agentDesign, /checklist of every externally evidenced model-visible capability/u);
-    assert.match(localTooling, /A blocked result is incomplete unless it reports all four facts/u);
+    assert.match(localTooling, /a blocked result is incomplete unless it reports all four facts/iu);
   });
 
   test('uses one compact precedence-ordered direct-operation router', () => {
@@ -630,6 +623,7 @@ describe('portable skill contract', () => {
     const routeHeadings = [
       '**Repository-local tooling:**',
       '**Explicit initialization:**',
+      '**Independent Agent Skill artifact:**',
       '**Current-change review or evaluation:**',
       '**Direct named-owner reconciliation:**',
       '**Repository-independent information:**',
@@ -643,13 +637,16 @@ describe('portable skill contract', () => {
     }
 
     assert.ok(skill.trim().split(/\s+/u).length <= 2_560);
-    assert.match(skill, /inspect bounded inert project metadata/u);
+    assert.match(skill, /Before foundation analysis, inspect `package\.json`/u);
     assert.match(skill, /preempts foundation analysis/u);
     assert.match(skill, /attempt the closed launcher's content-free `composition` operation/u);
     assert.match(skill, /With ordinary paths only, run the full relationship gate/u);
     assert.match(skill, /route-owned normalized set/u);
     assert.match(skill, /conclude from the host review alone/u);
-    assert.match(skill, /an independently verified installed exact local CLI is unavailable/u);
+    assert.match(skill, /no compatible exact local CLI was independently verified as installed/u);
+    assert.match(skill, /Do not run a moldea gate or CLI command/u);
+    assert.match(skill, /owner was reconsidered and remains accurate without an edit/u);
+    assert.match(skill, /never erases an established canonical runtime ID/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
 
     const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
@@ -786,9 +783,11 @@ describe('activation and semantic protection', () => {
 
   test('gives independently validated Agent Skill cases exact zero CLI budgets', () => {
     const expectedCaseIds = [
+      'skill-boundary-surface-selection',
       'skill-create-progressive-disclosure',
       'skill-evaluate-read-only',
       'skill-evaluate-script-authority',
+      'skill-maintain-host-invocation-policy',
       'skill-maintain-linked-resources',
       'skill-reuse-existing-cohesive',
     ];

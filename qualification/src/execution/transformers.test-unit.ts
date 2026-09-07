@@ -71,7 +71,7 @@ describe('qualification result transformation', () => {
     });
     const provenance: IQualificationExecutionProvenance = {
       model: 'gpt-5.6-sol',
-      reasoningEffort: 'medium',
+      reasoningEffort: 'high',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',

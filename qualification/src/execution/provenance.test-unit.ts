@@ -10,7 +10,7 @@ import {
 
 const executionEnvironment: IQualificationExecutionEnvironment = {
   model: 'gpt-5.6-sol',
-  reasoningEffort: 'medium',
+  reasoningEffort: 'high',
   codexVersion: 'codex-cli test',
   nodeVersion: 'v24.15.0',
   pnpmVersion: '11.9.0',
@@ -29,7 +29,7 @@ const createRepositoryState = (commit: string, fingerprint: string): IGitReposit
 });
 
 describe('qualification execution provenance', () => {
-  test('uses the qualification-owned five-minute host timeout by default', async () => {
+  test('uses the qualification-owned ten-minute host timeout by default', async () => {
     const originalTimeout = process.env['MOLDEA_EVAL_HOST_TIMEOUT_MS'];
 
     try {
@@ -40,7 +40,7 @@ describe('qualification execution provenance', () => {
         runJudge: () => Promise.reject(new Error('Judge must not run during identity inspection.')),
       });
 
-      expect(inspectedEnvironment.hostTimeoutMs).toBe(300_000);
+      expect(inspectedEnvironment.hostTimeoutMs).toBe(600_000);
     } finally {
       if (originalTimeout === undefined) {
         delete process.env['MOLDEA_EVAL_HOST_TIMEOUT_MS'];

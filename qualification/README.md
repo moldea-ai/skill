@@ -43,7 +43,7 @@ The CLI, runtime packages, auxiliary types, and TypeScript compiler are download
 
 ## Model boundary
 
-Official semantic stages use `gpt-5.6-sol` with `medium` reasoning effort. Actors and judges run in separate disposable homes and separate workspaces through the shared isolated host.
+Official semantic stages use `gpt-5.6-sol` with `high` reasoning effort. Actors and judges run in separate disposable homes and separate workspaces through the shared isolated host.
 
 The actor receives a natural task and the portable skill. The judge receives declared semantic requirements, deterministic results, workspace assertions, projected execution facts, and the actor response. Neither role receives hidden credentials or unrelated host state.
 
@@ -165,7 +165,7 @@ Every checkpoint write also replaces an 8,192-byte-bounded local status sidecar.
 
 Cache keys bind the role, protocol, environment, candidate, runner, skill, target, case, trial, project fingerprint, prompt, and output schema. Cached actor evidence includes its exact post-actor workspace. Confirmation trials never use cross-attempt cache entries.
 
-Operational provider, proxy, and timeout failures may retry within the configured retry policy. Deterministic failures, changed identities, cancellation, and exhausted retries stop the attempt clearly.
+Each model stage has a finite ten-minute timeout so `high` reasoning can complete without treating an ordinary long response as an operational failure. Operational provider, proxy, and timeout failures may retry within the configured retry policy. Deterministic failures, changed identities, cancellation, and exhausted retries stop the attempt clearly.
 
 The packages repository contributes only the immutable `HEAD:compatibility/runtimes.yaml` artifact. Qualification records its commit and content fingerprint, so live worktree changes cannot alter or interrupt an active run. Qualification-engine source and the portable skill remain independently fingerprinted and must be clean before publication.
 

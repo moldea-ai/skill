@@ -122,16 +122,16 @@ test('host configuration accepts a workflow-owned default timeout', () => {
   try {
     delete process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
 
-    assert.equal(CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS, 300_000);
+    assert.equal(CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS, 600_000);
     assert.equal(
       identifyCodexEvaluationHostConfiguration().hostTimeoutMs,
       CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
     );
     assert.equal(
       identifyCodexEvaluationHostConfiguration({
-        defaultHostTimeoutMs: 300_000,
+        defaultHostTimeoutMs: 600_000,
       }).hostTimeoutMs,
-      300_000,
+      600_000,
     );
     assert.throws(
       () => identifyCodexEvaluationHostConfiguration({ defaultHostTimeoutMs: 0 }),
@@ -145,17 +145,17 @@ test('host configuration accepts a workflow-owned default timeout', () => {
 
 test('host commands use the runner-owned model and reasoning effort', () => {
   assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-5.6-sol');
-  assert.equal(identifyConfiguredReasoningEffort(SAFE_HOST_COMMAND), 'medium');
+  assert.equal(identifyConfiguredReasoningEffort(SAFE_HOST_COMMAND), 'high');
   assert.throws(
     () =>
       validateCodexEvaluationHostCommand(
         SAFE_HOST_COMMAND.map((commandPart) =>
-          commandPart === 'model_reasoning_effort=medium'
-            ? 'model_reasoning_effort=high'
+          commandPart === 'model_reasoning_effort=high'
+            ? 'model_reasoning_effort=medium'
             : commandPart,
         ),
       ),
-    /must use medium reasoning effort/,
+    /must use high reasoning effort/,
   );
 });
 

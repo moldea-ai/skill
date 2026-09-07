@@ -858,7 +858,7 @@ test('reports the clean 74-case paid execution boundary without reusable predece
     model: 'gpt-5.6-sol',
     operationalRetryInclusiveInvocationLimit: 888,
     paidInitialStageCount: 148,
-    reasoningEffort: 'medium',
+    reasoningEffort: 'high',
     reusedCaseCount: 0,
     reusedStageCount: 0,
     stageReservationTokenCount: 2_097_152,

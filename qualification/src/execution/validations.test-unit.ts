@@ -100,7 +100,7 @@ const createPassingOutput = (): IJudgeOutput => ({
 
 const executionEnvironment: IQualificationExecutionEnvironment = {
   model: 'gpt-5.6-sol',
-  reasoningEffort: 'medium',
+  reasoningEffort: 'high',
   codexVersion: 'codex-cli 1',
   nodeVersion: 'v24.15.0',
   pnpmVersion: '11.9.0',

@@ -236,8 +236,11 @@ const CandidatePackageSchema = z.object({
   tarballName: z.string().trim().min(1),
   sha256: Sha256Schema,
 });
+
+// recorded evidence remains readable until the final high-only corpus replaces it
+const QualificationRecordedReasoningEffortSchema = z.enum(['high', 'medium']);
 const QualificationProvenanceShape = {
-  reasoningEffort: z.literal('medium'),
+  reasoningEffort: QualificationRecordedReasoningEffortSchema,
   codexVersion: z.string().trim().min(1),
   nodeVersion: z.string().trim().min(1),
   pnpmVersion: z.string().trim().min(1),

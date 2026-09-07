@@ -24,7 +24,7 @@ const createEvidence = (id, passed, updatedAt) => ({
   hostContract: {
     model: 'gpt-5.6-sol',
     name: 'codex',
-    reasoningEffort: 'medium',
+    reasoningEffort: 'high',
   },
   results: [
     {
@@ -41,7 +41,7 @@ const createEvidence = (id, passed, updatedAt) => ({
       actorHost: {
         model: 'gpt-5.6-sol',
         name: 'codex',
-        reasoningEffort: 'medium',
+        reasoningEffort: 'high',
         version: 'codex-cli test',
       },
       actorUsage: {
@@ -56,7 +56,7 @@ const createEvidence = (id, passed, updatedAt) => ({
       judgeHost: {
         model: 'gpt-5.6-sol',
         name: 'codex',
-        reasoningEffort: 'medium',
+        reasoningEffort: 'high',
         version: 'codex-cli test',
       },
       judgeUsage: {

@@ -10,7 +10,7 @@ const SHA256 = 'a'.repeat(64);
 const HOST = {
   model: 'gpt-5.6-sol',
   name: 'codex',
-  reasoningEffort: 'medium',
+  reasoningEffort: 'high',
   version: 'codex-cli test',
 };
 const UPDATED_HOST = { ...HOST, version: 'codex-cli updated' };
@@ -357,7 +357,7 @@ test('semantic attempt summaries reject missing or incompatible trial evidence',
     () =>
       createSemanticAttemptRecord({
         ...options,
-        evidence: createEvidence([{ ...trial, actorHost: { ...HOST, reasoningEffort: 'high' } }]),
+        evidence: createEvidence([{ ...trial, actorHost: { ...HOST, reasoningEffort: 'xhigh' } }]),
       }),
     /invalid trial host provenance/,
   );

@@ -2685,11 +2685,24 @@
         }
       ],
       "hostInstructions": "# Evaluation coding instructions\n\nRepository-wide JavaScript naming uses camelCase. Protected coding instructions own this rule and must not be modified during evaluation.\n",
+      "skillEvidence": {
+        "activationScenarios": [],
+        "artifacts": [
+          {
+            "role": "authoritative-source",
+            "root": "skills/javascript-naming"
+          },
+          {
+            "role": "authoritative-source",
+            "root": "skills/checksum-generation"
+          }
+        ]
+      },
       "resourceBudget": {
         "activation": "direct",
-        "minimumMoldeaCommands": 1,
-        "maximumMoldeaCommands": 4,
-        "maximumMoldeaOutputBytes": 262144
+        "minimumMoldeaCommands": 0,
+        "maximumMoldeaCommands": 0,
+        "maximumMoldeaOutputBytes": 0
       }
     },
     {
@@ -3099,9 +3112,9 @@
       ],
       "resourceBudget": {
         "activation": "direct",
-        "minimumMoldeaCommands": 1,
-        "maximumMoldeaCommands": 4,
-        "maximumMoldeaOutputBytes": 262144
+        "minimumMoldeaCommands": 0,
+        "maximumMoldeaCommands": 0,
+        "maximumMoldeaOutputBytes": 0
       }
     },
     {

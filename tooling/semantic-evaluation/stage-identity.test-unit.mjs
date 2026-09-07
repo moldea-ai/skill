@@ -11,7 +11,7 @@ const digest = 'a'.repeat(64);
 const host = {
   model: 'gpt-5.6-sol',
   name: 'codex',
-  reasoningEffort: 'medium',
+  reasoningEffort: 'high',
   version: 'codex-cli 0.153.4',
 };
 const repositoryControlBefore = {

@@ -93,7 +93,7 @@ describe('qualification command runner', () => {
             maximumTokenCount: 251_658_240,
             maximumTokensPerCall: 2_097_152,
             model: 'gpt-5.6-sol',
-            reasoningEffort: 'medium',
+            reasoningEffort: 'high',
           }),
         ).resolves.toBe(true);
         await options.onProgress?.({
@@ -192,7 +192,7 @@ describe('qualification command runner', () => {
             maximumTokenCount: 8_388_608,
             maximumTokensPerCall: 2_097_152,
             model: 'gpt-5.6-sol',
-            reasoningEffort: 'medium',
+            reasoningEffort: 'high',
           }),
         ).resolves.toBe(true);
         return {

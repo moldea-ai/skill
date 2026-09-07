@@ -114,7 +114,7 @@ Reach complete current 74-case semantic evidence without returning to open-ended
 
 ### Scope and implementation
 
-- Change the shared semantic and qualification Codex-host reasoning contract from `medium` to `high`, including exact command construction, provenance, identity, typings, focused tests, and current execution documentation. Do not create a runtime override or mixed-effort reuse path.
+- Change the shared semantic and qualification Codex-host reasoning contract from `medium` to `high`, including exact command construction, provenance, identity, typings, focused tests, and current execution documentation. Raise the shared finite default model-stage timeout from 300,000 to 600,000 milliseconds so ordinary `high` responses have ten minutes to complete, while preserving cancellation, one bounded operational retry, terminal-stop accounting, output bounds, and token ceilings. Do not create a reasoning override or mixed-effort reuse path.
 - Change only the stale `skill-boundary-surface-selection` and `skill-maintain-host-invocation-policy` resource budgets to require zero moldea calls, preserving their semantic criteria and every absolute ceiling.
 - Make one coherent simplification generation for the six confirmed skill defects in `moldea/SKILL.md` and only their owning references, focused conformance tests, and directly affected documentation: relevant no-change reporting, independent Agent Skill evaluation abstention, evidence-bounded runtime planning, preservation of established local runtime identity when publication is unavailable, consumer-semantic description classification, and exact local-CLI proof before blocked Yarn installation reporting.
 - Reduce overlapping routing and brittle phrase locks instead of appending case-specific exceptions. Preserve every other case, criterion, safety boundary, resource budget, canonical ownership rule, and evaluator contract.
@@ -126,6 +126,7 @@ Reach complete current 74-case semantic evidence without returning to open-ended
 
 - Run skill validation, complete conformance, root unit/integration, docs, path, resource, attempt, preflight, type/lint/format, candidate-package, and website checks.
 - No semantic criterion, privacy boundary, repository control, or absolute resource ceiling is weakened; only the two proven stale minimum-call fixture budgets change.
+- Semantic and qualification host configuration, provenance, tests, and documentation agree on the finite 600,000-millisecond default stage timeout.
 - Current evidence reports `74/74` only from one verified complete `high` attempt and distinguishes direct, recovered, and reused work truthfully.
 - Active semantic schemas, evidence, and public pages accept only the `high` release contract after replacement; no obsolete `medium` attempt remains in active source.
 - Review is ready and every required semantic code/evidence commit is signed, signed off, and pushed.

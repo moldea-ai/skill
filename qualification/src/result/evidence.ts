@@ -25,7 +25,7 @@ import {
   WorkspaceAssertionResultSchema,
   type IActorOutput,
   type IDeterministicVerificationArtifact,
-  type IQualificationAttemptResult,
+  type IQualificationRecordedAttemptResult,
   type IJudgeOutput,
   type IQualificationCaseResult,
   type IQualificationCaseScenario,
@@ -83,7 +83,7 @@ const requireUniqueMembers = (members: readonly string[], label: string): void =
 
 const requireArtifact = async <TResult>(
   attemptDirectory: string,
-  result: IQualificationAttemptResult,
+  result: IQualificationRecordedAttemptResult,
   relativePath: string,
   schema: IBoundarySchema<TResult>,
 ): Promise<TResult> => {
@@ -114,7 +114,7 @@ const readOptionalArtifact = async <TResult>(
 /** Validates every JSON and JSON Lines artifact against the current protocol schema. */
 const validateArtifactSchemas = async (
   attemptDirectory: string,
-  result: IQualificationAttemptResult,
+  result: IQualificationRecordedAttemptResult,
 ): Promise<void> => {
   const trialRootPattern = /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\//u;
   const storage = await readQualificationAttemptStorage(attemptDirectory);
@@ -611,7 +611,7 @@ const deriveRequirementAssessments = (options: {
 const assertCurrentTrialEvidence = async (options: {
   attemptDirectory: string;
   caseId: string;
-  result: IQualificationAttemptResult;
+  result: IQualificationRecordedAttemptResult;
   resourceProfile: IQualificationResourceProfile;
   scenario: IQualificationCaseScenario;
   stages: ReadonlyMap<string, IQualificationStageCheckpoint>;
@@ -926,7 +926,7 @@ const assertCurrentTrialEvidence = async (options: {
 const assertCurrentCaseEvidence = async (options: {
   attemptDirectory: string;
   caseResult: IQualificationCaseResult;
-  result: IQualificationAttemptResult;
+  result: IQualificationRecordedAttemptResult;
   resourceProfile: IQualificationResourceProfile;
   scenario: IQualificationCaseScenario;
   stages: ReadonlyMap<string, IQualificationStageCheckpoint>;
@@ -992,7 +992,7 @@ const assertCurrentCaseEvidence = async (options: {
 
 const validateCurrentTerminalAttempt = async (
   attemptDirectory: string,
-  result: IQualificationAttemptResult,
+  result: IQualificationRecordedAttemptResult,
   resultsRoot: string,
 ): Promise<void> => {
   const profilesRoot = await resolveQualificationProfilesRootForResults(resultsRoot);
@@ -1188,7 +1188,7 @@ const validateCurrentTerminalAttempt = async (
 /** Validates the public artifacts and status contract for one committed attempt. */
 export const validateQualificationAttemptEvidence = async (options: {
   attemptDirectory: string;
-  result: IQualificationAttemptResult;
+  result: IQualificationRecordedAttemptResult;
   resultsRoot: string;
 }): Promise<void> => {
   await verifyQualificationAttemptStorage({

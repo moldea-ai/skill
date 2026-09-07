@@ -370,7 +370,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     summary: options.isRecovered ? 'Qualification recovered.' : 'Qualification passed.',
     provenance: {
       model: 'gpt-5.6-sol',
-      reasoningEffort: 'medium',
+      reasoningEffort: 'high',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',

@@ -52,11 +52,11 @@ Describe the principal inputs, outputs, events, service and tool contracts, and 
 
 ## Treat runtime compatibility honestly
 
+Use only facts stated by the bounded source or projected evidence actually inspected. A claim that an injected client is opaque establishes an evidence gap, not that tools, schemas, state, persistence, retries, or other behaviors are absent. Keep those dimensions as explicit evidence prerequisites and name the source contract, closed wiring, source-owned documentation, or focused integration test that must prove them.
+
 Runtime selection is optional unless requested or material. Keep four conclusions separate: the canonical declared runtime identity; the repository's actual wiring and behavioral fit; launcher-verified local adapter composition; and the validated packages website publication's current target support and maturity. Missing evidence in one layer withholds only that layer's conclusion and never erases a fact established by another.
 
 Composition establishes availability only. Publication establishes current technical support and maturity only. Neither establishes repository use or behavioral fit. When fit is incomplete, name the material facts still required for the repository, such as model API and control flow, instruction loading, tools and schemas, continuation, state or handoffs, error and retry semantics, lifecycle, and persistence. Name reliable resolvers such as current source contracts, closed runtime wiring, source-owned target documentation, and focused integration tests. Preserve an existing `runtime.id`; for a new plan, leave it undecided until the required evidence exists rather than defaulting to `custom` or inferring from a package name.
-
-State only repository facts supported by the bounded source or projected evidence actually inspected. Do not turn an opaque client or missing proof into claims that tools, schemas, state, persistence, retries, or other behaviors are absent. Express those dimensions as evidence prerequisites and specify what a reliable source or focused integration test must prove.
 
 ## Produce one actionable recommendation
 

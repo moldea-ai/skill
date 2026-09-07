@@ -3,10 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
-import {
-  CODEX_EVALUATION_MODEL,
-  CODEX_EVALUATION_REASONING_EFFORT,
-} from '../codex-evaluation-host/index.mjs';
+import { CODEX_EVALUATION_MODEL } from '../codex-evaluation-host/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
 
@@ -20,6 +17,7 @@ const ATTEMPT_SCHEMA_VERSION = 4;
 const EVIDENCE_SCHEMA_VERSION = 7;
 const LATEST_SCHEMA_VERSION = 1;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
+const RECORDED_REASONING_EFFORT_VALUES = new Set(['high', 'medium']);
 const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
 const STOP_REASON_VALUES = new Set([
   'case-failure',
@@ -75,7 +73,7 @@ const hasHostContract = (hostContract) =>
   isPlainRecord(hostContract) &&
   hostContract.model === CODEX_EVALUATION_MODEL &&
   hostContract.name === 'codex' &&
-  hostContract.reasoningEffort === CODEX_EVALUATION_REASONING_EFFORT;
+  RECORDED_REASONING_EFFORT_VALUES.has(hostContract.reasoningEffort);
 
 const hasValidHostIdentity = (host, hostContract) =>
   isPlainRecord(host) &&

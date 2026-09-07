@@ -1,6 +1,6 @@
 # Agent Skill design
 
-Read this reference after moldea relevance is established when creating, evaluating, or materially changing a moldea-owned Agent Skill or its registered relationship.
+Read this reference after selecting independent Agent Skill artifact work or establishing moldea relevance for a registered relationship.
 
 ## Establish ownership
 
@@ -8,7 +8,7 @@ An Agent Skill is a portable, reusable behavior contract. Before editing it, est
 
 Keep skill-owned activation and workflow in the skill. Keep repository policy, product truth, build commands, and host command contracts in their established owners, then route to them without copying. Do not claim installation, discovery, or runtime consumption merely because source files exist.
 
-When independent skill-artifact evidence fully establishes structure and behavior and the operation does not change `/moldea/**`, do not invoke the moldea CLI merely to demonstrate that this skill was selected. Use the independent validator and focused behavioral evidence; a repository manifest check adds no relevant fact.
+Independent Agent Skill work is artifact-owned before repository gating. When supplied artifact or host evidence establishes the skill boundary and the operation does not separately change `/moldea/**` or a declared relationship, do not run a moldea gate or CLI command. Use the independent validator and focused behavioral evidence; a surrounding repository manifest adds no relevant fact.
 
 For a read-only Agent Skill evaluation, this reference owns the operation. Do not run any moldea CLI operation or inspect or validate the surrounding moldea repository. Report structural validity only from the evaluated artifact and its linked resources.
 

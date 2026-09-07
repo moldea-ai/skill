@@ -5,7 +5,7 @@ export type ISemanticAttemptStatus = 'failed' | 'incomplete' | 'passed';
 export interface ISemanticEvaluationHostContract {
   model: 'gpt-5.6-sol';
   name: 'codex';
-  reasoningEffort: 'medium';
+  reasoningEffort: 'high' | 'medium';
 }
 
 // exact non-sensitive provenance for one Codex role execution

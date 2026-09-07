@@ -28,7 +28,7 @@ Preserve valid behavior during refinement. Prefer local edits while organization
 
 Every registered agent has one lowercase ASCII kebab-case ID, one `/moldea/agents/{agent-id}/` directory, mandatory `description.md` and `instruction.md`, and optional `handoff-description.md`. The instruction begins with the exact agent ID under the active format contract.
 
-Routing-facing metadata uses the target handoff description when present and valid, otherwise the agent description. General-only metadata uses the agent description. Classify the consumer from runtime documentation, compatibility, adapter evidence, guidance, implementation, and developer direction before considering its property name; the property name alone supplies no classification evidence. A property called `description` may be shared or routing-facing. Preserve an established shared-property contract and do not create a handoff description merely because such a property exists.
+Classify the consumer from runtime documentation, compatibility, adapter evidence, guidance, implementation, and developer direction before reading meaning into its property name. A runtime property literally named `description` can still be routing-facing; its name supplies no classification evidence. Routing-facing metadata uses the target handoff description when present and valid, otherwise the agent description. General-only metadata uses the agent description. Preserve an established shared-property contract and do not create a handoff description merely because such a property exists.
 
 Before changing a mapping, establish:
 

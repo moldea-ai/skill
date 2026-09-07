@@ -49,6 +49,10 @@ For an authorized relevant change:
 
 Before the first write, retain one complete change set containing the authorized implementation paths, every matched canonical owner, every declared mirror, and each affected requirement criterion. Never edit implementation before this set is bound. An implementation-only edit is incomplete when the established owner or mirror expresses the changed behavior. Apply the coherent set before validation, then compare the final state with it before claiming completion.
 
+## Requirements and removal
+
+Before the first write, compare every affected requirement criterion with the authorized requested outcome and classify it as satisfied, outstanding, or evidence-blocked. A matched implementation change authorizes its necessary requirement-state update. When one criterion becomes satisfied, bind the canonical rewrite with the implementation and rewrite both `description` and `resolution` so neither still claims that condition, while retaining every outstanding or evidence-blocked condition. A direction to leave one condition for later preserves that condition and the requirement, not satisfied wording. Remove the requirement only when every criterion is established and the current operation authorizes the removal. Remove superseded declarations and stale relationships made unnecessary by the change; do not retain compatibility paths without an established supported consumer.
+
 A relationship requires reconsideration, not an automatic edit. If implementation remains aligned, leave canonical state byte-identical and report no more than one line identifying the canonical owner reconsidered, stating that behavior or contracts remain unchanged, and concluding that the owner remains accurate without an edit.
 
 Keep one owner for each fact. Link an existing authority instead of copying its policy into another canonical asset. Synchronize a declared mirror from its source; do not create undeclared distributed copies or cross-repository paths.
@@ -77,9 +81,5 @@ Canonical moldea project state lives under `/moldea/**`; start at `/moldea/proje
 Do not add duplicated project context, tool versions, CLI commands, or other workflow rules to the block.
 
 Never rewrite README outside the markers as part of moldea maintenance. If the block is malformed, duplicated, or ambiguous, stop before editing it and report the exact structural issue.
-
-## Requirements and removal
-
-Classify every affected requirement criterion as satisfied, outstanding, or evidence-blocked. A matched implementation change authorizes its necessary requirement-state update. When one criterion becomes satisfied, rewrite both `description` and `resolution` so neither still claims that condition, while retaining every outstanding or evidence-blocked condition. A direction to leave one condition for later preserves that condition and the requirement, not satisfied wording. Remove the requirement only when every criterion is established and the current operation authorizes the removal. Remove superseded declarations and stale relationships made unnecessary by the change; do not retain compatibility paths without an established supported consumer.
 
 After every canonical and mirror write is complete, validate schema-4 metadata as the final moldea command. A validation performed before a later repair does not verify the resulting state and cannot support completion. Inspect only the changed canonical owners, and do not run full-project content inspection.

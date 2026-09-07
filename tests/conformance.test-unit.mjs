@@ -324,11 +324,8 @@ describe('portable skill contract', () => {
     }
     assert.match(skill, /Never read every reference by default/u);
     assert.match(skill, /read only what the selected operation needs/u);
-    assert.match(
-      skill,
-      /Before the host reads, edits, tests, or completes a developer-named path/u,
-    );
-    assert.match(skill, /complete deduplicated leading-slash repository-logical set/u);
+    assert.match(skill, /Before host work on named paths/u);
+    assert.match(skill, /deduplicated leading-slash repository-logical set/u);
     assert.match(skill, /named paths may be changed or unchanged/u);
     assert.match(skill, /host-established changed paths/u);
     assert.match(
@@ -356,8 +353,8 @@ describe('portable skill contract', () => {
     assert.match(skill, /leaving at most three CLI calls/u);
     assert.match(skill, /direct request supplies moldea intent, not a canonical owner/u);
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
-    assert.match(skill, /form and retain the complete deduplicated/u);
-    assert.match(skill, /pass that same set to one `scope`/u);
+    assert.match(skill, /retain one deduplicated leading-slash repository-logical set/u);
+    assert.match(skill, /send it to one `scope`/u);
     assert.match(
       skill,
       /review or evaluation of “the current change,” “the current changes,”.*is incomplete/iu,
@@ -374,12 +371,14 @@ describe('portable skill contract', () => {
     assert.match(skill, /reactivate moldea after a prior unrelated-task gate miss/u);
     assert.match(skill, /Run the full gate once\. On exact `1`/u);
     assert.match(skill, /load every matched owner, and bind the coherent change before writing/u);
-    assert.match(skill, /On `0` or failure, continue the host task without moldea/u);
+    assert.match(skill, /On `0` or failure, continue without moldea/u);
     assert.match(skill, /complete independent host work as if the skill were absent/u);
     assert.match(skill, /use the full relationship gate below instead of the adoption-only gate/u);
     assert.match(skill, /every path's UTF-8 bytes followed by one NUL/u);
     assert.match(skill, /never begin with a delimiter/iu);
     assert.match(skill, /After `1`, pass the exact same byte stream/u);
+    assert.match(skill, /Classify every returned requirement criterion before writing/u);
+    assert.match(skill, /bind necessary `description` and `resolution` rewrites/u);
     assert.match(skill, /existing independent inline instruction is then a migration input/u);
     assert.match(skill, /every direct request to prove or safely invoke/u);
     assert.match(skill, /before inspecting providers or reaching a conclusion/u);
@@ -493,6 +492,14 @@ describe('portable skill contract', () => {
     assert.match(maintenance, /Never edit implementation before this set is bound/u);
     assert.match(maintenance, /rewrite both `description` and `resolution`/u);
     assert.match(maintenance, /neither still claims that condition/u);
+    assert.match(
+      maintenance,
+      /compare every affected requirement criterion with the authorized requested outcome/u,
+    );
+    assert.ok(
+      maintenance.indexOf('## Requirements and removal') <
+        maintenance.indexOf('## README marker ownership'),
+    );
     assert.match(
       maintenance,
       /identifying the canonical owner reconsidered, stating that behavior or contracts remain unchanged/u,

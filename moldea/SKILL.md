@@ -16,108 +16,95 @@ Always spell the human-facing product name `moldea`, including at the start of a
 
 ## Establish the entry state first
 
-Classify the request before loading a reference or running the CLI:
+Classify the request in this order and use the first matching route. Do not combine routes or return to an earlier route later.
 
-1. **Information:** When the developer asks what moldea is or how it works without asking to inspect or change a repository, answer concisely from this entrypoint and stop. Do not inspect the repository, load a reference, or run a moldea command.
-2. **Initialization:** Continue only when the developer explicitly asks to initialize or adopt moldea in the current repository. Initialization is the sole repository-dependent operation allowed before adoption. If supplied evidence already establishes that the exact local CLI is absent and installation would load executable package-manager configuration, immediately load `references/local-tooling.md`, inspect only the exact `.pnpmfile.cjs` or `.yarnrc.yml` declaration and any exact repository plugin path it names, and apply its stop contract before foundation classification, package-manager execution, questioning, or writes.
-3. **Other repository work:** Require an initialized repository and choose exactly one gate below. Reuse matching adoption evidence already established by the host. Never run the adoption-only gate before an ordinary relationship gate; the relationship gate proves both adoption and relevance.
+1. **Repository-local tooling:** Apply this route to every direct request to prove or safely invoke the current repository's moldea CLI, including a request to inspect or explain it and wording such as “how.” Reuse adoption evidence or run the adoption-only gate once. On `1`, load only `references/local-tooling.md`, attempt the closed launcher's content-free `composition` operation, and follow that reference before inspecting providers or reaching a conclusion. Never invoke Yarn, pnpm, a global binary, a transient download, or an unverified `.bin` provider to prove the CLI.
+2. **Explicit initialization:** Continue only when the developer explicitly asks to initialize or adopt moldea. Before foundation analysis, inspect bounded inert project metadata to decide whether an exact compatible repository-local `@moldea.ai/cli` is declared and installed. Read only `package.json`, its exact lockfile entry when needed, and the declared root package metadata when present; never execute the package manager or enumerate a dependency tree. If installation is required, inspect `.pnpmfile.cjs` when pnpm declares it or `.yarnrc.yml` plus each exact repository plugin path it declares. Executable install configuration preempts foundation analysis: load only `references/local-tooling.md`, name the configuration and exact hook or plugin, state that the local CLI is unavailable, and stop before foundation classification, package-manager execution, questioning, or writes. Give the removal-or-disable prerequisite. Otherwise load only `references/continuous-maintenance.md` and apply its foundation decision.
+3. **Direct current-change evaluation:** A direct evaluation of “the current changes” has one mandatory route; the same route applies to “the current uncommitted changes.” Run the host's safe read-only Git scope discovery and establish the complete HEAD-relative path set, including staged, unstaged, untracked, rename-source, rename-destination, and deleted paths. For that exact set, run the full relationship gate, run one `scope`, read only the matched canonical owners needed for the conclusion, and explicitly report that the evaluation changed no repository files. Do not stop after inventorying paths. This direct route does not reactivate moldea after an implicit unrelated-task gate miss.
+4. **Direct named-owner reconciliation:** A request to reconcile one named moldea agent or canonical owner with no ordinary path set uses the adoption-only gate once. On `1`, load only `references/evaluate-and-reconcile.md` and request that owner's `content` directly. Use at most one canonical `content` call total. Inspect only exact implementation paths named by the task or a bounded host search keyed to the named owner or domain. When canonical and implementation claims conflict consequentially, do not read project context or a second canonical body, run validation, or write. State both claims, state that the operation is blocked pending the answer, confirm that no files changed, and ask one focused question that resolves the authority.
+5. **Repository-independent information:** When the developer asks what moldea is or how it works without asking about the current repository, answer concisely from this entrypoint and stop. Do not inspect the repository, load a reference, or run a moldea command.
+6. **Every other repository task:** Use the activation rules and full relationship gate below. Generic knowledge, ordinary host commands, and ordinary repository work never activate moldea by wording alone.
 
-Every use of “abstain” below applies only to moldea work. Continue the developer's host-owned request normally without moldea. Never refuse, block, defer, or reframe that request because adoption or relevance is absent.
-
-A direct evaluation of “the current changes” has one mandatory route. Have the explicitly requested host evaluation establish the complete HEAD-relative path set, including staged, unstaged, untracked, rename-source, rename-destination, and deleted paths. Then run the full relationship gate, run one `scope` for that same set, assess only its matched canonical owners, and explicitly report that the read-only evaluation changed no files. Do not stop after inventorying paths. This route does not reactivate moldea after an implicit unrelated-task gate miss.
-
-After adoption is established, every direct request to prove or safely invoke the repository-local moldea CLI must load `references/local-tooling.md` before inspecting providers or reaching a conclusion, then attempt the closed launcher's `composition --json` operation exactly as that reference requires.
-
-For every repository-dependent request that is not information, initialization, a direct moldea request, a known canonical path, or a known managed-block hunk, the full deterministic gate is the mandatory first moldea action. Run it from the complete bounded task-path evidence already known to the host before reading the manifest or any canonical document for moldea purposes. This evidence is the union of exact repository paths explicitly named or targeted by the current developer request and the complete changed-path set already established by the host when applicable. Never replace the gate by inspecting canonical state directly, inferring a relationship yourself, or reporting canonical alignment from ungated evidence.
-
-Before adoption, every repository-dependent request other than explicit initialization abstains silently, including explicit validation, canonical-looking paths, host commands, and repositories whose names or partial files resemble moldea. Do not load a reference, run a moldea or package command, recommend initialization, change files, or mention moldea in progress or final reporting.
+Every use of “abstain” below applies only to moldea work. Continue any independent host-owned request normally. Before adoption, every repository-dependent request other than explicit initialization abstains silently, including explicit validation, canonical-looking paths, host commands, and repositories whose names or partial files resemble moldea. Do not load a reference, run a moldea or package command, recommend initialization, change files, or mention moldea in progress or final reporting.
 
 When that abstention consumes the complete request and no independent host-owned work remains, reply only with a neutral repository outcome such as `No files were changed.` Do not name moldea, describe the unavailable operation or result, or recommend initialization.
 
 ## Choose one repository gate
 
-Classify the task from the developer request and the path or hunk evidence already established by the host:
+Use only these activation classes:
 
-- **Direct request:** the developer explicitly names `moldea` and requests one of its repository-dependent operations. Generic phrases such as project context, outdated context, durable knowledge, canonical alignment, documentation, or maintenance do not name `moldea` and never create a direct request. They remain host-owned unless a known task path establishes canonical, managed-block, or relationship relevance.
-- **Canonical change:** a known task path is under `/moldea/**`.
-- **Managed README change:** a known changed hunk intersects content strictly between the exact markers. A README path or hunk outside the block is not direct relevance.
-- **Declared relationship:** another known task path matches an exact binding or `affectedBy` declaration.
+- **Direct:** the developer explicitly names `moldea` and requests a repository-dependent operation. Generic phrases such as project context, outdated context, durable knowledge, canonical alignment, documentation, or maintenance do not name `moldea` and never create a direct request.
+- **Canonical:** an already known task path is under `/moldea/**`.
+- **Managed README:** an already known changed hunk intersects content strictly between the exact moldea markers. A README path or outside hunk is not relevant.
+- **Relationship:** another already known task path matches an exact binding or `affectedBy` declaration.
 
-For a canonical or managed-block change, reuse matching adoption evidence or run the adoption-only gate exactly once. Use the same path for a direct create or design request that has no ordinary repository path set to match:
+For a canonical or managed-block change, reuse matching adoption evidence or run the adoption-only gate exactly once. Use it for a direct create, plan, design, validate, or evaluate request with no ordinary task path and no earlier dedicated route:
 
 ```text
 node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root> --adoption-only
 ```
 
-Continue directly without `scope` only when complete stdout is exactly `1`. Otherwise abstain silently.
+Continue only when complete stdout is exactly `1`; otherwise abstain silently.
 
-A direct request supplies moldea intent, not a canonical owner. When its actual scope is an ordinary repository path set, use the full relationship gate below instead of the adoption-only gate, then run `scope`. For “the current changes,” follow the mandatory direct-evaluation route above. Use exactly one gate: direct wording establishes why moldea may act, while the relationship result establishes which canonical owners the ordinary paths require.
+A direct request supplies moldea intent, not a canonical owner. When it names or targets ordinary repository paths, use the full relationship gate below instead of the adoption-only gate, then run `scope`.
 
-For every other repository task, including a request to verify canonical alignment for an ordinary source or documentation path, do not run the adoption-only gate. Build the gate input only from every exact repository path explicitly named or targeted by the current developer request, whether changed or unchanged, plus the complete changed-path set already established by the host when applicable. Deduplicate their union and pass it once as NUL-delimited UTF-8 input to the full deterministic gate. Do not require an explicitly named target to appear in a diff, and never run Git or broaden repository inspection solely to discover gate paths. When neither source provides a path, abstain silently even if the developer supplies durable facts, calls existing project context outdated, or describes a correction; do not search for a canonical destination. That abstention is final for the current request: paths discovered later by the host cannot reactivate `moldea`, and the host workflow must not open, read, search for, or edit `/moldea/**` as an invented destination for the generic handoff. When the request only supplies facts and names no host-owned target or action, acknowledge it without inventing persistence. The gate accepts ordinary Git-style repository-relative paths such as `src/example.ts` and leading-slash repository-logical paths such as `/src/example.ts`; it normalizes only this task-path boundary and rejects drive-relative paths, UNC paths, traversal, invalid logical paths, and malformed input.
+For ordinary host work, the full deterministic gate is the mandatory first moldea action. Its input is the deduplicated union of exact repository paths explicitly named or targeted by the developer, whether changed or unchanged, and the complete changed-path set already established by the host when applicable. For moldea, never run Git or broaden repository inspection solely to discover gate paths. Never replace the gate by inspecting canonical state directly. When no such path exists, abstain silently even if the developer supplies durable facts or calls existing project context outdated; do not search for a canonical destination. For this route, abstention is final for the current request: paths discovered later by the host cannot reactivate `moldea`, and the host must not open, read, search for, or edit `/moldea/**` as an invented destination. When a generic fact handoff is the complete request, acknowledge it without inventing persistence.
+
+Pass the complete path set once as NUL-delimited UTF-8 input:
 
 ```text
 node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root>
 ```
 
-Continue only when its complete stdout is exactly `1`. `0`, any other output, or any failure means silent abstention. Both gate modes prove adoption. The full gate additionally reads exact repository-local package metadata, the manifest, and the supplied path set to establish relationship relevance. It invokes Core directly and never runs the moldea CLI.
+The gate normalizes repository-relative and leading-slash repository-logical paths and rejects drive-relative paths, UNC paths, traversal, malformed input, and paths outside the repository. Continue only when complete stdout is exactly `1`; `0`, other output, or failure means silent abstention. The gate proves adoption and relevance through repository-local metadata and Core without invoking the CLI.
 
-After `1`, run one bounded relationship query through the installed skill's closed launcher to recover the matching canonical owners:
+After `1`, pass the same normalized set to one bounded relationship query:
 
 ```text
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- scope --paths-stdin --json --max-output-bytes 65536
 ```
 
-Before `scope`, convert any Git-style path to its leading-slash repository-logical form, then pass the same complete normalized task-path set used by the gate. Interpret only a completed compatible CLI 7/schema-4 envelope with `status: "valid"`, `result.valid: true`, and `result.relevant: true`. The envelope version must equal the exact stable repository-local CLI version selected by the project declaration and lockfile. Do not follow a cursor merely to search for relevance; the first result establishes all matching owners for the bounded input. A missing compatible local CLI, malformed input or envelope, operational error, invalid result, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
+Accept only a completed compatible CLI 7 envelope using schema 4 whose exact stable CLI version matches the repository-local version selected by its declaration and lockfile and satisfies `^7.0.0`, whose `status` is `valid`, whose `result.valid` is true, and whose `result.relevant` is true. Do not follow a cursor merely to search for relevance. Missing or invalid tooling, malformed input or output, operational failure, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
 
-Treat this successful `scope` result as the complete relationship inventory for the task. Do not follow it with `inspect`. The scope call counts toward the ordinary four-command limit, leaving at most three CLI calls: `content` only for the explicitly selected canonical owners needed to review the relationship, plus one `validate` when structural status can affect the conclusion.
+Treat the first successful `scope` page as the complete relationship inventory. Do not follow it with `inspect`. The scope call counts toward the ordinary four-command limit, leaving at most three CLI calls: only selected `content` needed for the relationship, plus one final `validate` when structure or a write requires it. For writes, reserve `validate` as the final moldea command after every canonical, relationship, requirement, runtime, and mirror write. A validation performed before a later write does not verify the resulting state. Omit unused calls and never exceed four.
 
-The complete relationship sequence is `scope`, only the necessary selected `content` calls, then `validate` when required. For a write-capable operation, reserve `validate` as the final moldea command after every canonical, relationship, requirement, runtime, and mirror write. A validation performed before a later write does not verify the resulting state and cannot support completion. Omit unused steps, never add `inspect`, and stop after four total CLI calls including `scope`.
+## Select one operation and reference
 
-Do not discover paths merely for moldea, run both gate modes, repeat a gate, or load a reference before the full deterministic gate matches and `scope` confirms its owners. Unrelated work runs zero moldea CLI commands. On abstention, make no moldea progress update or final-report mention.
+After adoption and relevance are established, select one operation and read only what it needs:
 
-Host planning, review, implementation, package-manager, Git, commit, and publication workflows always retain ownership. Their names never activate moldea. When a relevant path is found inside one of those workflows, perform only the bounded canonical operation and return control to the host.
+- Initialize or maintain canonical truth: `references/continuous-maintenance.md`
+- Prove CLI provenance or interpret machine envelopes: `references/local-tooling.md`
+- Gather canonical evidence or explicit content: `references/context-gathering.md`
+- Plan an explicitly requested agent system: `references/agent-system-planning.md`
+- Compress explicitly selected context: `references/context-compression.md`
+- Create or change an agent or runtime: `references/agent-design.md`
+- Create or change an Agent Skill: `references/skill-design.md`
+- Evaluate or reconcile: `references/evaluate-and-reconcile.md`
+- Assess current adapter-target compatibility: `references/runtime-compatibility.md`
 
-## Select one operation
+Never read every reference by default; read only what the selected operation needs. Read a second reference only when the active operation reaches its boundary.
 
-- **Initialize:** create the minimum valid project-owned foundation after explicit adoption intent.
-- **Plan:** design an agent-and-software system only after an explicit moldea agent-system request.
-- **Maintain:** synchronize directly affected canonical truth, agents, relationships, requirements, or mirrors.
-- **Compress:** consolidate an explicitly selected canonical context scope without losing unique current truth.
-- **Design:** create or materially change a moldea agent, runtime declaration, or Agent Skill. A direct request to create, register, and make an existing runtime agent ready authorizes the smallest coherent runtime and test changes needed to establish canonical instruction provenance when the supplied repository source and tests establish the current behavior. The existing independent inline instruction is then a migration input, not a reason to stop before creating the canonical owner.
-- **Evaluate:** inspect scoped structural and semantic alignment without writing. Apply the mandatory current-change sequence above when applicable.
-- **Reconcile:** repair established drift under explicit write authority.
-- **Validate:** run scoped deterministic structural checks without writing.
-- **Tooling:** prove or explain repository-local CLI availability and invocation safety without treating a declaration, shim, or package-manager provider as executable provenance. Apply the mandatory direct-tooling route above.
+Host planning, review, implementation, package-manager, Git, commit, and publication workflows always retain ownership. Their names never activate moldea. When one contains a relevant path, perform only the bounded canonical operation and return control to the host.
 
-Zero agents, relationships, runtimes, mirrors, decisions, and unresolved requirements are valid states.
+For direct agent creation, the existing independent inline instruction is then a migration input, not a reason to stop when repository source and tests establish the behavior and the requested runtime integration authorizes the coherent canonical, runtime, relationship, test, and final-validation change.
 
-## Load only the owning reference
+For direct runtime identity or production-readiness evaluation, establish `composition` once before publication evidence, then read only the named agent content needed to confirm the declaration. Keep canonical identity, repository wiring and behavioral fit, local composition, and current publication support as independent conclusions.
 
-After relevance is established, read only what the selected operation needs:
+## Initialize minimally
 
-- initialization or ordinary synchronization: `references/continuous-maintenance.md`
-- CLI establishment, provenance, and machine envelopes: `references/local-tooling.md`
-- canonical evidence or explicit content selection: `references/context-gathering.md`
-- agent-system planning: `references/agent-system-planning.md`
-- context compression: `references/context-compression.md`
-- agent and runtime design: `references/agent-design.md`
-- Agent Skill design: `references/skill-design.md`
-- evaluation or reconciliation: `references/evaluate-and-reconcile.md`
-- current adapter-target compatibility: `references/runtime-compatibility.md`
+When the executable-configuration preflight does not stop initialization, load only `references/continuous-maintenance.md` and apply its foundation-evidence decision before any dependency, canonical-state, or managed README write.
 
-Never read every reference by default. Read a second reference only when the active operation reaches that boundary.
+Insufficient evidence and partial evidence with a material unresolved boundary are pre-write stop conditions. Preserve existing files; say the project is not adopted by `moldea` because the complete adoption contract is absent; identify the exact evidence inspected and the highest-value missing fact; and ask one focused question. Do not substitute an indirect status such as paused or incomplete. For partial adoption, name the present and missing elements among `/moldea/moldea.yaml`, `/moldea/project.md`, and the owned README awareness block. When no meaningful foundation exists, explain that moldea keeps durable repository context so coding agents understand the project consistently, then ask what the project does and who or what it serves. Structural validation proves format, not the truth or sufficiency of the foundation.
 
-For initialization, apply the early executable-configuration preflight above first. When it does not stop the operation, load only `references/continuous-maintenance.md`, then apply its foundation-evidence decision before any dependency, canonical-state, or managed README write. Insufficient evidence and partial evidence with a material unresolved boundary are pre-write stop conditions: preserve existing files, say explicitly that the project is not adopted by `moldea` because the complete adoption contract is absent, identify the exact evidence inspected and the highest-value missing fact, and ask one focused question. Do not substitute an indirect status such as paused or incomplete for that explicit adoption result. When partial adoption artifacts exist, name the present and missing elements among `/moldea/moldea.yaml`, `/moldea/project.md`, and the owned README awareness block. When no meaningful foundation exists, explain that `moldea` keeps durable repository context so coding agents can understand the project consistently over time, state that the inspected sources do not establish what the project is for, and ask what the project does and who or what it serves. Proceed to the complete three-file write and validation only when evidence supports a useful foundation without a material ambiguity that would change its meaning. Structural validation proves format, not the truth or sufficiency of the foundation.
+When evidence is sufficient and no relationship is established, the complete manifest is `version: 1` followed by one LF. Write the complete three-file foundation before the first CLI call, then invoke exactly one launcher-backed `validate`. On success, stop without `inspect`; name the project-owned evidence that established the foundation, changed files, validation result, and material diagnostics. Always end a successful initialization response with one short, evidence-supported `Next:` action; do not omit it. When no project-specific gap remains, tell the developer to continue normal repository work and add durable context only when a new project fact or agent design needs an owner. Do not steer the developer toward agent creation without a separate goal. On structural failure, repair from bounded diagnostics and run `validate` at most once more.
 
-When the foundation is sufficient and no explicit relationship is established, write the manifest exactly as `version: 1` followed by one LF; never invent project metadata, empty mappings, or placeholder relationships. Write the complete three-file foundation before the first CLI call, then invoke exactly one launcher-backed `validate` for final validation. On success, stop without `inspect` or another moldea command. Report that the project is adopted, name the project-owned evidence that established the foundation, identify the changed foundation files, and state the validation result and material diagnostics. Always end a successful initialization response with one short, evidence-supported `Next:` action; do not omit it. When no project-specific gap remains, tell the developer to continue normal repository work and add durable context only when a new project fact or agent design needs an owner. Do not steer the developer toward agent creation without a separate goal that requires one. On structural failure, use its bounded diagnostics to repair the foundation and run `validate` at most once more. When the launcher succeeds, do not inspect dependency trees, CLI package internals, executable links, global installations, transient tools, or package-manager configuration. Load `references/local-tooling.md` only when the launcher reports that repository tooling is unavailable or invalid and the authorized operation can establish it. Before any package-manager invocation after such a failure, inspect the exact supplied package-manager configuration for executable hooks or plugins and apply that reference's pre-execution stop.
+When the launcher succeeds, do not inspect dependency trees, CLI package internals, executable links, global installations, transient tools, or package-manager configuration. Load `references/local-tooling.md` only when the launcher reports that repository tooling is unavailable or invalid and the authorized operation can establish it. Before any package-manager invocation, inspect the exact package-manager configuration and apply its pre-execution stop contract.
 
 ## Use bounded canonical evidence
 
-Keep host evidence bounded before invoking moldea. Read exact task-owned files first. Every recursive search or listing must exclude VCS internals, dependency trees, generated output, caches, and package stores, including `.git`, `node_modules`, `.pnpm-store`, `.yarn`, `dist`, `build`, `.next`, `.turbo`, and `coverage`. Never dump a complete lockfile, dependency inventory, generated tree, or package-store listing when repository metadata, a targeted lockfile entry, and the trusted launcher are sufficient. Narrow or page any host command that could emit more than 65,536 model-visible bytes.
+Read exact task-owned files first. Every recursive search or listing must exclude VCS internals, dependency trees, generated output, caches, and package stores, including `.git`, `node_modules`, `.pnpm-store`, `.yarn`, `dist`, `build`, `.next`, `.turbo`, and `coverage`. Never dump a complete lockfile, dependency inventory, generated tree, or package-store listing. Narrow or page any host command that could emit more than 65,536 model-visible bytes.
 
-When a direct task identifies one canonical owner by exact path, stable agent ID, or an unambiguous agent name that maps to its standard path, request that owner's `content` directly. Do not spend a call on `inspect`. When supplied implementation evidence already establishes a conflict with that named owner, use at most one canonical `content` call total before asking the authority question; do not read project context or a second canonical body. For a direct runtime-identity or production-readiness evaluation, establish `composition` once before publication evidence, then read only the named agent content needed to confirm its declaration. Do not run `validate` unless structural validity is itself in question.
-
-Use only a stable repository-root-local CLI satisfying `^7.0.0` and JSON schema 4. Metadata is content-free:
+Request an exact canonical owner's `content` directly; do not spend a call on `inspect`. For a named conflict, use at most one canonical `content` call total and do not read project context or a second canonical body. Use `inspect` only for necessary metadata inventory, `validate` for structure, and `content` for one selected owner:
 
 ```text
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- validate --json --max-output-bytes 65536
@@ -126,28 +113,18 @@ node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-reposi
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- validate --json --max-output-bytes 65536 --cursor "<opaque-cursor>"
 ```
 
-Use `validate` when structure is the question, `inspect` only for necessary inventory, and `content` only for one explicitly selected canonical owner. Follow an opaque cursor only while another page or Unicode-safe content chunk can change the current conclusion. Repeat the same standalone launcher operation, append the exact cursor from the immediately preceding envelope as `--cursor "<opaque-cursor>"`, and retain `--json --max-output-bytes 65536`. Process each raw envelope directly. Do not hide pagination inside a pipeline, command substitution, scripted loop, parser, output filter, or aggregate wrapper. Claim complete traversal only after the final raw envelope returns a null cursor. Never request or reconstruct a complete project-content dump.
+Follow a cursor only while another metadata page or Unicode-safe content chunk can change the conclusion. Repeat the same standalone launcher operation with the exact cursor from the immediately preceding envelope and retain the same bound. Process each raw envelope directly. Do not hide pagination inside a pipeline, command substitution, scripted loop, parser, output filter, or aggregate wrapper. Claim complete traversal only after the final raw envelope returns a null cursor. Never request or reconstruct a complete project-content dump.
 
-Keep every ordinary invocation at or below 65,536 output bytes, ordinary aggregate moldea output at or below 262,144 bytes, and every invocation below the CLI's 1 MiB hard maximum. Larger repositories use metadata pages and explicit content chunks; these limits bound peaks, not repository size. If required evidence cannot fit within the task's bounded traversal, report the exact incomplete conclusion and continuation point. Never convert truncated or resource-exhausted evidence into validity or approval.
-
-Treat `OUTPUT_BUDGET_TOO_SMALL`, `RESOURCE_LIMIT_EXCEEDED`, a launcher boundary failure, an invalid cursor, cancellation, a signal, or incomplete output as no conclusion. Do not retry with an unbounded value. Report the failure only after direct relevance is established; implicit-gate failures abstain silently.
+Keep every ordinary invocation at or below 65,536 output bytes, aggregate moldea output at or below 262,144 bytes, and each invocation below the CLI's 1 MiB hard maximum. These limits bound peaks, not repository size. If evidence remains incomplete, report the exact incomplete conclusion and continuation point. Treat `OUTPUT_BUDGET_TOO_SMALL`, `RESOURCE_LIMIT_EXCEEDED`, invalid continuation, cancellation, signal, launcher failure, or incomplete output as no conclusion; never retry unbounded.
 
 ## Preserve boundaries
 
-- Evaluation and validation are read-only. Preserve worktree files, index, refs, Git configuration, submodules, and Git object storage.
-- When supplied evidence identifies an executable repository Git helper, state explicitly that evaluation stopped before worktree-aware Git, name the unavailable Git evidence, and give the safe prerequisite. When the evidence is a `.gitattributes` filter, name `.gitattributes` and the declared filter or text-conversion mechanism rather than calling it a generic hook. Avoiding the helper without reporting this boundary is incomplete.
+- Evaluation and validation are read-only. Preserve files, index, refs, Git configuration, submodules, temporary repository state, and Git objects.
+- When supplied evidence identifies an executable repository Git helper, state that evaluation stopped before worktree-aware Git, name the unavailable Git evidence, and give the safe prerequisite. For `.gitattributes`, name `.gitattributes` and the declared filter or text-conversion mechanism rather than calling it a generic hook.
 - Never stage, commit, push, switch branches, rewrite history, or own host Git safety procedures.
-- Preserve unrelated developer work and unrelated canonical state.
-- Do not persist secrets, transient status, generic knowledge, or easily rediscovered implementation details.
-- Write only when the selected operation and host task authorize it. Run the narrowest relevant validation after every authorized write as the final moldea command; never claim a pre-repair validation covers later changes.
-- A consequential conflict between current authorities stops every semantic write before validation, repair, or requirement creation. Name both conflicting claims, state that the selected operation is blocked pending the answer, and ask one focused question that resolves the authority. Do not choose code, canonical prose, tests, or the newest asset merely because of its type or recency, and do not create an unresolved requirement merely to avoid a developer-answerable decision.
-- Before an authorized canonical write, enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path in the developer's request.
-- Before reporting completion, compare the final state and diff with that list. Satisfy every outcome, record each remaining unresolved fact under its exact canonical owner with resolution criteria and related paths, and confirm that every changed path is authorized. Continue correcting instead of claiming completion while an item is missing.
-
-## Report proportionally
-
-- Information requests receive a concise answer.
-- Abstention is completely silent.
-- Relevant no-change work gets at most one moldea line unless detail was requested. That line identifies the canonical state reconsidered, states that behavior or contracts remain unchanged, and concludes that the canonical owner remains accurate without an edit.
-- Material canonical work reports the activation path, owner, changes, diagnostics, limits, unresolved facts, and checks.
-- Never use moldea-derived commit wording or status reporting for unrelated work.
+- Preserve unrelated developer work and unrelated canonical state. Do not persist secrets, transient status, generic knowledge, or easily rediscovered implementation detail.
+- Write only when the selected operation and host task authorize it. Run the narrowest validation after every authorized write as the final moldea command.
+- A consequential authority conflict stops semantic writes. Do not choose code, canonical prose, tests, or the newest asset because of type or recency. State both claims, state that the selected operation is blocked pending the answer, and ask one focused question that resolves the authority.
+- Before a write, enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path. Before completion, compare the final state and diff with that list, record each remaining unresolved fact under its exact canonical owner with resolution criteria and related paths, and confirm every changed path is authorized. Continue correcting instead of claiming completion while an item is missing.
+- Information gets a concise answer; abstention is silent. Relevant no-change work gets at most one moldea line identifying the canonical owner reconsidered and stating that behavior or contracts remain unchanged, so the owner remains accurate without an edit. Material canonical work reports activation, owner, changes, diagnostics, limits, unresolved facts, and checks.
+- Never use moldea-derived commentary, commit wording, or status reporting for unrelated work.

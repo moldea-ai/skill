@@ -10,7 +10,7 @@ Do not recommend initialization during unrelated work. Do not treat generic know
 
 Create the smallest foundation that accurately represents established current truth. Zero agents, relationships, runtimes, and requirements are valid. Never create placeholder agents or speculative bindings to make a project appear complete.
 
-An already evidenced executable-installation hazard preempts foundation classification. When explicit initialization supplies both an absent exact local CLI and a `.pnpmfile.cjs` hook or `.yarnrc.yml` plugin that installation would load, read the exact local-tooling stop contract and configuration only. Stop before invoking the package manager, asking for project purpose, or writing any adoption artifact; report the unavailable exact local CLI, executable mechanism, and removal-or-disable prerequisite.
+An executable-installation hazard preempts foundation classification. Before reading project-purpose sources, use bounded inert package metadata to establish whether the exact compatible local CLI is present. When it is absent, inspect the exact `.pnpmfile.cjs` hook or `.yarnrc.yml` plugin declaration that installation would load, then read only the local-tooling stop contract. Stop before invoking the package manager, asking for project purpose, or writing any adoption artifact; report the unavailable exact local CLI, executable mechanism, and removal-or-disable prerequisite. This preflight does not depend on the developer naming the hazard.
 
 ## Decide whether foundation evidence is sufficient
 

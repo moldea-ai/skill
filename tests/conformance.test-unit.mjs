@@ -388,7 +388,9 @@ describe('portable skill contract', () => {
     assert.match(skill, /Structural validation proves format, not the truth or sufficiency/u);
     assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
     assert.match(skill, /run `validate` at most once more/u);
-    assert.match(skill, /inspect the exact supplied package-manager configuration/u);
+    assert.match(skill, /inspect bounded inert project metadata/u);
+    assert.match(skill, /Executable install configuration preempts foundation analysis/u);
+    assert.doesNotMatch(skill, /supplied evidence already establishes/u);
     assert.match(
       skill,
       /before foundation classification, package-manager execution, questioning/u,
@@ -563,6 +565,38 @@ describe('portable skill contract', () => {
     const skillDesign = readFileSync(join(SKILL_ROOT, 'references', 'skill-design.md'), 'utf8');
     assert.match(skillDesign, /make the skill structurally invalid/u);
     assert.match(skillDesign, /Never use a successful unrelated validator/u);
+  });
+
+  test('uses one compact precedence-ordered direct-operation router', () => {
+    const skill = readSkill();
+    const routeHeadings = [
+      '**Repository-local tooling:**',
+      '**Explicit initialization:**',
+      '**Direct current-change evaluation:**',
+      '**Direct named-owner reconciliation:**',
+      '**Repository-independent information:**',
+      '**Every other repository task:**',
+    ];
+    let previousIndex = -1;
+    for (const routeHeading of routeHeadings) {
+      const routeIndex = skill.indexOf(routeHeading);
+      assert.ok(routeIndex > previousIndex, `${routeHeading} must retain router precedence.`);
+      previousIndex = routeIndex;
+    }
+
+    assert.ok(skill.trim().split(/\s+/u).length <= 2_560);
+    assert.match(skill, /inspect bounded inert project metadata/u);
+    assert.match(skill, /preempts foundation analysis/u);
+    assert.match(skill, /attempt the closed launcher's content-free `composition` operation/u);
+    assert.doesNotMatch(skill, /supplied evidence already establishes/u);
+
+    const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
+    const maintenance = readFileSync(
+      join(SKILL_ROOT, 'references', 'continuous-maintenance.md'),
+      'utf8',
+    );
+    assert.match(localTooling, /does not depend on the developer naming the hazard/u);
+    assert.match(maintenance, /does not depend on the developer naming the hazard/u);
   });
 
   test('defines silent abstention, host ownership, and bounded schema-4 evidence', () => {

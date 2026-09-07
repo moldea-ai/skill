@@ -2,60 +2,64 @@
 
 ## Completed foundation
 
-Milestones 1 through 35 are complete, reviewed, signed, and published. They established clean package generations, the lazy GitHub reader, bounded PR Assurance, paired public/private fixtures, repository-bound skill activation, calibrated resource profiles, the evidence-pin foundation, the exact 74-case semantic inventory, 12-plus-2 qualification ownership, the bounded Project evidence view, explicit semantic execution modes, content-free repository-test projection, permanent diagnose-first semantic and adapter workflows, and the first two residual-correction generations.
+Milestones 1 through 36 are complete, reviewed, signed, and published. They established clean package generations, the lazy GitHub reader, bounded PR Assurance, paired public/private fixtures, repository-bound skill activation, calibrated resource profiles, the evidence-pin foundation, the exact 74-case semantic inventory, 12-plus-2 qualification ownership, the bounded Project evidence view, explicit semantic execution modes, content-free repository-test projection, permanent diagnose-first semantic and adapter workflows, and three residual-correction generations.
 
-Seven immutable 74-case attempts remain unchanged. The diagnostic history progressed from the 47-case discovery sweep, to 5 passes and 11 failures after Milestone 33, to 2 passes and 9 failures after Milestone 34, and to 4 passes and 5 failures after published Milestone 35 commit `3df0f8b404fccd569242f4ee2afb702e737ddb65`. The exact five residuals and three shared routing causes are recorded in `plan.md` problem 66.
+Seven immutable 74-case attempts remain unchanged. The diagnostic history progressed from the 47-case discovery sweep, to 5 passes and 11 failures after Milestone 33, to 2 passes and 9 failures after Milestone 34, to 4 passes and 5 failures after Milestone 35, and finally to 0 passes and 5 failures after published Milestone 36 commit `f46dfa033c9d7a276e1a0e4bf394f0761c93b3f6`. The actor-only `yarn-plugin-install-blocked` trace in `plan.md` problem 67 proves that overlapping route prose, rather than the fixture or evaluator, is now the controlling defect.
 
-## Milestone 36: Correct the final five semantic routing residuals
+## Milestone 37: Replace accumulated routing with one compact router
 
 ### Objective
 
-Publish one focused portable-skill correction that resolves the three shared routing defects behind the exact five residual cases.
+Publish one clean portable-skill routing replacement that makes the five residual operations deterministic while reducing root instruction competition.
 
 ### Dependencies
 
-- Published Milestone 35 at `3df0f8b404fccd569242f4ee2afb702e737ddb65`.
-- The complete 4-pass/5-fail diagnostic ledger in `plan.md` problem 66.
+- Published Milestone 36 at `f46dfa033c9d7a276e1a0e4bf394f0761c93b3f6`.
+- The complete 0-pass/5-fail ledger and actor-only Yarn trace in `plan.md` problem 67.
 - Unchanged official semantic attempts and latest pointer.
 
 ### Scope
 
 - `moldea/SKILL.md`
+- `moldea/references/continuous-maintenance.md`
 - `moldea/references/evaluate-and-reconcile.md`
 - `moldea/references/local-tooling.md`
-- Only another directly owning reference if the implementation exposes a real contradiction
+- Only another directly owning reference if deduplication exposes a real contradiction
 - Focused static conformance assertions
+- Directly affected semantic or qualification operator documentation only if the new router changes its maintained procedure
 - Current `plan.md` and this breakdown
 
 ### Implementation work
 
-1. Move direct current-change evaluation into an early mandatory sequence: establish the complete path set through the explicitly requested host evaluation, run the full relationship gate, run one scope, assess only matched canonical owners, and explicitly report that the read-only operation changed no files.
-2. Preserve silent abstention after an implicit unrelated-task gate miss and keep Git discovery owned by the direct host evaluation rather than moldea.
-3. Cap direct named-agent reconciliation with supplied implementation evidence at one canonical `content` call total. Prohibit project-context, inventory, structural, or second-owner reads that cannot resolve the already established authority conflict.
-4. Route every direct request to prove or safely invoke the local CLI to `local-tooling.md` before inspecting providers or reaching a conclusion. Require one closed-launcher composition attempt without permitting Yarn, pnpm, global, transient, or conflicting provider execution.
-5. During explicit initialization with supplied absent-CLI and executable Yarn-configuration evidence, select the local-tooling stop contract before foundation classification. Read and name `.yarnrc.yml` plus its exact declared repository plugin path, stop before Yarn and every write, report the unavailable exact CLI, and give the removal-or-disable prerequisite.
-6. Add focused non-brittle assertions for the three shared contracts without editing cases, criteria, fixtures, budgets, evaluators, evidence projection, or already passing skill behavior.
+1. Replace overlapping entry, gate, operation, and exception prose with one mutually exclusive decision table ordered as Tooling, Initialization, direct current-change Evaluate, direct named-owner Reconcile, repository-independent Information, then implicit ordinary-work relevance.
+2. Keep only activation, bounded command recipes, universal safety/resource limits, reference selection, and proportional reporting in the root. Remove superseded duplicate rules and place detailed procedure in exactly one owning reference.
+3. Classify repository-local CLI proof or invocation as Tooling before generic information. Require adoption proof, `local-tooling.md`, and one content-free closed-launcher `composition` attempt before interpreting Plug'n'Play or conflicting-provider evidence.
+4. Make Initialization perform a bounded inert check of project metadata and exact local CLI presence without package-manager execution. When installation is required, inspect only the exact executable `.pnpmfile.cjs` or `.yarnrc.yml` declaration and any exact named repository hook/plugin before foundation analysis. Stop with the unavailable-CLI, exact mechanism, no-execution, no-write, and remediation report when executable configuration is present.
+5. Make direct current-change Evaluate execute the host-owned complete HEAD-relative path inventory, then the full gate, one scope, only selected owner content, and an explicit no-write result.
+6. Make direct named-owner Reconcile use adoption proof, the owning reference, at most one named canonical content call, and only exact task-named implementation evidence or a bounded owner/domain search. Ask the focused authority question before another canonical call or write when claims conflict.
+7. Add focused non-brittle assertions for route precedence, reference ownership, removed duplicate conditions, total call limits, lowercase product naming, and preserved silent abstention without changing semantic cases, criteria, fixtures, budgets, evaluator behavior, evidence projections, or already passing contracts.
 
 ### Verification
 
 - Run focused portable conformance tests and the complete root correctness suite.
 - Run documentation, path, release-identity, semantic-attempt integrity, website, formatting, and skill validation checks affected by the portable skill.
+- Confirm the root word count falls materially and every retained instruction has one clear owner.
 - Verify the latest pointer and attempt `20260906T224421589Z-semantic-0d23e8b2` remain byte-identical.
 - Perform read-only `review`, correct in-scope findings, repeat until ready, then create one signed and signed-off commit and push it explicitly to `origin/new_skill`.
 
 ### Acceptance criteria
 
-- The three shared routing causes are corrected without case-specific response scripts.
-- Direct current-change evaluation cannot stop after host inventory and cannot broaden implicit activation.
-- Named-agent ambiguity remains within one total canonical content call.
-- Direct CLI and unsafe Yarn initialization routes load the owning stop/provenance contract before a conclusion.
+- The root has one unambiguous operation router and no earlier generic route can capture the five direct operations.
+- Missing executable-configuration evidence is discovered through bounded inert reads instead of assumed to be developer-supplied.
+- Tooling, initialization, dirty-tree evaluation, and named ambiguity preserve their exact command and safety boundaries.
+- The portable root is materially smaller without losing the already passing activation, resource, continuation, runtime, and reporting contracts.
 - No official evidence or clean-slate protocol identity changes.
 
 ### Review checkpoint
 
-Inspect activation boundaries, ordered operation selection, total moldea command budgets, exact Yarn reporting, no-write conclusions, and absence of fixture or evaluator weakening.
+Inspect route precedence, reference ownership, missing-CLI discovery, call budgets, silent abstention, no-write boundaries, root size, and absence of case-specific response scripting or evaluator weakening.
 
-## Milestone 37: Prove five residuals and record all 74 semantic scenarios
+## Milestone 38: Prove five residuals and record all 74 semantic scenarios
 
 ### Objective
 
@@ -63,11 +67,11 @@ Require the exact five residual diagnostics to pass, batch any complete newly ex
 
 ### Dependencies
 
-- Published Milestone 36 with a clean deterministic boundary.
+- Published Milestone 37 with a clean deterministic boundary.
 
 ### Scope
 
-- Non-recording diagnostics for exactly the five case IDs in `plan.md` problem 66
+- Non-recording diagnostics for exactly the five case IDs in `plan.md` problem 67
 - Residual plan and portable-skill correction only if the complete targeted set exposes another shared defect
 - One final `npm run eval:semantic -- --record --restart` attempt
 - Its immutable attempt, latest pointer, and directly derived active website/release state
@@ -97,7 +101,7 @@ Require the exact five residual diagnostics to pass, batch any complete newly ex
 
 Verify diagnostics were not promoted, no partial attempt appears passing, predecessor evidence did not return, and every public count resolves to the immutable current attempt.
 
-## Milestone 38: Re-establish the Custom qualification baseline
+## Milestone 39: Re-establish the Custom qualification baseline
 
 ### Objective
 
@@ -105,7 +109,7 @@ Produce one exact-current passing Custom attempt for the finalized skill so ever
 
 ### Dependencies
 
-- Published passing Milestone 37 semantic evidence.
+- Published passing Milestone 38 semantic evidence.
 - Valid registry package and candidate identities.
 
 ### Scope
@@ -134,7 +138,7 @@ Produce one exact-current passing Custom attempt for the finalized skill so ever
 
 Inspect identity, recovered cases, resource peaks, repository preservation, and downstream baseline binding.
 
-## Milestone 39: Complete the sequential adapter profile sweep
+## Milestone 40: Complete the sequential adapter profile sweep
 
 ### Objective
 
@@ -142,7 +146,7 @@ Qualify every official adapter through its two variance projects while inheritin
 
 ### Dependencies
 
-- Published Milestone 38 baseline.
+- Published Milestone 39 baseline.
 - Available exact registry tarballs and runtime references.
 
 ### Scope
@@ -175,7 +179,7 @@ Qualify every official adapter through its two variance projects while inheritin
 
 Inspect adapter static boundaries, packages, confirmations and outliers, baseline binding, complete failure-ledger handling, and absence of duplicated universal execution or unsupported readiness claims.
 
-## Milestone 40: Publish skill 5.0.0 and close the clean slate
+## Milestone 41: Publish skill 5.0.0 and close the clean slate
 
 ### Objective
 
@@ -183,7 +187,7 @@ Record release evidence, integrate into `main`, publish skill 5.0.0, remove auth
 
 ### Dependencies
 
-- Published passing semantic and qualification evidence from Milestones 37 through 39.
+- Published passing semantic and qualification evidence from Milestones 38 through 40.
 - Registry package majors and exact release inputs available to the trusted workflow.
 
 ### Scope
@@ -221,4 +225,4 @@ Inspect release provenance, current-main integration, public registry/website st
 
 ## Execution scope
 
-Preserve completed and published Milestones 1 through 35, every immutable current 74-case attempt, the published Cloudflare qualification failure, and the complete diagnostic history. Correct and publish only the three shared routing causes behind the five residual cases, then rerun only those five diagnostics and collect the full result before any further edit. Start one official 74-case recording only after the targeted gate is green. Re-establish Custom once, qualify all adapters sequentially with complete failure collection and targeted residual reruns, publish clean skill 5.0.0, remove authorized obsolete release surfaces, and complete the active cross-repository audit. Do not weaken cases, criteria, budgets, activation, privacy, evidence identity, or safety boundaries; revive legacy 18-case or 4.0.x compatibility paths; overlap model-bearing processes without measured source-controlled capacity; edit protected instructions; or include unrelated concurrent work.
+Preserve completed and published Milestones 1 through 36, every immutable current 74-case attempt, the published Cloudflare qualification failure, and the complete diagnostic history. Replace and publish the accumulated routing prose as one compact precedence-ordered router, then rerun only the exact five residual diagnostics and collect the full result before any further edit. Start one official 74-case recording only after the targeted gate is green. Re-establish Custom once, qualify all adapters sequentially with complete failure collection and targeted residual reruns, publish clean skill 5.0.0, remove authorized obsolete release surfaces, and complete the active cross-repository audit. Do not weaken cases, criteria, budgets, activation, privacy, evidence identity, or safety boundaries; revive legacy 18-case or 4.0.x compatibility paths; overlap model-bearing processes without measured source-controlled capacity; append isolated routing exceptions; edit protected instructions; or include unrelated concurrent work.

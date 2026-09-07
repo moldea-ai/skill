@@ -50,7 +50,7 @@ A direct request supplies moldea intent, not a canonical owner. When it names or
 
 For any ordinary-path route, use the retained route-owned normalized set; named paths may be changed or unchanged. Never run Git or broaden repository inspection solely to discover gate paths. Never replace the gate by inspecting canonical state directly. With no path set, abstain silently even if the developer supplies durable facts or calls existing project context outdated; do not search for a canonical destination. For this route, abstention is final for the current request: paths discovered later by the host cannot reactivate `moldea`, and the host must not open, read, search for, or edit `/moldea/**` as an invented destination. When a generic fact handoff is the complete request, acknowledge it without inventing persistence.
 
-Pass that normalized set once as NUL-delimited UTF-8 input:
+Encode every path's UTF-8 bytes followed by one NUL; never begin with a delimiter. Pass that byte stream once:
 
 ```text
 node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root>
@@ -58,7 +58,7 @@ node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-re
 
 The gate rejects drive-relative paths, UNC paths, traversal, malformed input, and paths outside the repository. Continue only when complete stdout is exactly `1`; `0`, other output, or failure means silent abstention. The gate proves adoption and relevance through repository-local metadata and Core without invoking the CLI.
 
-After `1`, pass the exact same set to one bounded relationship query:
+After `1`, pass the exact same byte stream to one bounded relationship query:
 
 ```text
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- scope --paths-stdin --json --max-output-bytes 65536

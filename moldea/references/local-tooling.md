@@ -32,7 +32,7 @@ node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-reposi
 
 `scope` is the single pre-reference relationship query, `validate` returns structural diagnostics, `inspect` returns content-free inventory, `content` reads one explicit canonical asset, and `composition` is used only when installed package composition matters. The launcher's fixed 65,536-byte composition boundary replaces a caller-supplied page budget.
 
-Repository-logical paths begin with `/`. The stdin scope form accepts one complete NUL-delimited UTF-8 path set. Never call `scope` separately per path.
+Repository-logical paths begin with `/`. For stdin scope, encode each path's UTF-8 bytes followed by one NUL, never put a delimiter before the first path, and pass the complete stream once. Never call `scope` separately per path.
 
 ## Envelope verification
 

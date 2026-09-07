@@ -377,7 +377,9 @@ describe('portable skill contract', () => {
     assert.match(skill, /On `0` or failure, continue the host task without moldea/u);
     assert.match(skill, /complete independent host work as if the skill were absent/u);
     assert.match(skill, /use the full relationship gate below instead of the adoption-only gate/u);
-    assert.match(skill, /After `1`, pass the exact same set/u);
+    assert.match(skill, /every path's UTF-8 bytes followed by one NUL/u);
+    assert.match(skill, /never begin with a delimiter/iu);
+    assert.match(skill, /After `1`, pass the exact same byte stream/u);
     assert.match(skill, /existing independent inline instruction is then a migration input/u);
     assert.match(skill, /every direct request to prove or safely invoke/u);
     assert.match(skill, /before inspecting providers or reaching a conclusion/u);
@@ -830,6 +832,7 @@ describe('activation and semantic protection', () => {
       for (const [input, expected] of [
         ['/src/project-state.js\0', '1\n'],
         ['src/project-state.js\0', '1\n'],
+        ['\0/src/project-state.js\0', '0\n'],
         ['/src/unrelated.js\0', '0\n'],
         ['./src/project-state.js\0', '0\n'],
         ['C:src/project-state.js\0', '0\n'],

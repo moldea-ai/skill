@@ -2981,6 +2981,16 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
       await seedInlineInstructionRuntime(repositoryPath);
       break;
     case 'evaluate-dirty-working-tree':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Evaluation project\n\nThe source tree under `/src/**` contains the implementation state assessed against this canonical project context.\n',
+      );
       for (const relativePath of [
         'src/staged.js',
         'src/unstaged.js',

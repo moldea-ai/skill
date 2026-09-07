@@ -2,103 +2,98 @@
 
 ## Completed foundation
 
-Milestones 1 through 37 are complete, reviewed, signed, and published. They established the clean package generations, bounded repository reader and PR Assurance contracts, paired public/private fixtures, repository-bound activation, content-free CLI protocol, realistic resource profiles, clean 74-case semantic generation, 12-plus-2 qualification ownership, bounded evidence presentation, release-evidence pinning, and permanent diagnose-first semantic and adapter workflows.
+Milestones 1 through 38 are complete, reviewed, signed, and published. They established the clean package generations, bounded repository reader and PR Assurance contracts, paired public/private fixtures, repository-bound activation, content-free CLI protocol, realistic resource profiles, clean 74-case semantic generation, 12-plus-2 qualification ownership, bounded evidence presentation, release-evidence pinning, and permanent diagnose-first semantic and adapter workflows.
 
-Milestone 37 is published at `e8044587d4bfa8a36b9b4f04655f8c63c76649a3`. Its compact 2,521-word router passes every deterministic repository and website check. The subsequent five-case sequential diagnostic sweep passed `reconcile-material-ambiguity` and failed the four cases recorded in `plan.md` problem 68, with zero operational failures and no repository or official-evidence write.
+Milestone 38 is published at `82e588f0f4824c8c8a1135821c52b95d663b7f19`. Its deterministic checks passed with 201 unit tests, 64 integration tests, a valid 73-page website build, and unchanged official evidence. The subsequent four-case sequential diagnostic sweep passed both CLI-provider cases and blocked Yarn initialization. Only dirty-tree evaluation failed because its fixture claims `/src/**` while materializing `/src/project-state.js`; a model-free full-gate reproduction returned exact stdout `0` for the complete six-path change set.
 
-## Milestone 38: Correct the four-case semantic residual
+## Milestone 39: Correct the dirty-tree fixture relationship
 
 ### Objective
 
-Publish one bounded correction that makes the two CLI-provider fixtures truthfully adopted and makes the remaining direct-evaluation and blocked-initialization contracts unambiguous.
+Publish one deterministic fixture correction that makes dirty-tree evaluation materialize the exact canonical relationship and owner description its scenario claims.
 
 ### Dependencies
 
-- Published Milestone 37.
-- The complete 1-pass/4-fail diagnostic ledger and actor-only dirty-tree trace in `plan.md` problem 68.
-- Byte-identical current semantic attempt history and latest pointer.
+- Published Milestone 38.
+- The complete 3-pass/1-fail ledger and model-free gate reproduction in `plan.md` problem 69.
+- Unchanged official semantic attempts, latest pointer, and ignored candidate.
 
 ### Scope
 
 - `tests/semantic-evaluation-runner.mjs`
-- Its colocated unit or integration tests needed to prove scenario materialization
-- `moldea/SKILL.md`
-- `tests/conformance.test-unit.mjs`
+- `tests/semantic-evaluation-runner.test-integration.mjs`
 - Current `plan.md` and this breakdown
-- Only directly affected semantic operator documentation if the maintained procedure changes
 
 ### Implementation work
 
-1. Extract the existing adopted README, manifest, project context, and related source setup from the default published-tooling path into one focused scenario helper.
-2. Reuse that helper after the pnpm Plug'n'Play and conflicting-Yarn tooling layouts are materialized. Preserve each layout, package-manager configuration, conflicting provider, sentinels, and developer-facing case definition exactly.
-3. Expose only the smallest test seam needed to materialize those two cases. Add focused integration coverage that executes the bundled adoption-only gate, requires exact stdout `1`, and proves no package-manager sentinel or repository mutation occurred.
-4. Make direct current-change evaluation explicitly incomplete until host scope discovery, the full relationship gate, one scope call, matched-owner assessment, and the no-write report have all completed. Keep Git discovery host-owned and keep the four-command moldea limit.
-5. Require blocked executable-configuration reporting to use the exact supported conclusion: an independently verified installed exact local CLI is unavailable. Do not infer that a compatible CLI is undeclared when only installation provenance is unavailable.
-6. Extend focused static conformance without changing prompts, criteria, budgets, provider layouts, command projection, evidence schemas, or already passing routes.
+1. During `evaluate-dirty-working-tree` setup, replace only that scenario's default `/src/project-state.js` relationship and owner description with the claimed `/src/**` relationship and source-tree role before its baseline commit.
+2. Extend the existing scenario-materialization integration boundary to invoke the installed full relevance gate with the complete staged, unstaged, untracked, rename-source, rename-destination, and deleted path set.
+3. Require exact gate stdout `1`, a zero exit status, empty stderr, and byte-identical intentionally dirty status before and after the read-only gate.
+4. Preserve the default adopted foundation for every other case and do not change the portable skill, prompt, criteria, budget, command projection, evaluator, or evidence schema.
 
 ### Verification
 
-- Run focused scenario-materialization integration tests and portable-skill conformance first.
-- Run the complete root unit and integration suites, documentation, path, resource, release-identity, semantic-attempt integrity, formatting, skill validation, and website checks.
-- Prove the PnP and conflicting-Yarn adoption gates return `1` without invoking pnpm, Yarn, a conflicting binary, or repository plugin code.
+- Run the focused dirty-tree full-gate integration test first.
+- Run the complete root unit and integration suites, documentation, path, resource, release-identity, semantic-attempt integrity, and formatting checks.
 - Verify all seven official attempts, the latest pointer, and the ignored candidate remain unchanged.
 - Perform read-only `review`, correct in-scope findings, repeat until ready, then create one signed and signed-off commit and push explicitly to `origin/new_skill`.
 
 ### Acceptance criteria
 
-- Both claimed-adopted CLI cases contain all three adoption markers before actor execution.
-- Their unsupported PnP and conflicting-provider conditions remain intact and fail closed through the launcher contract.
-- Dirty-tree evaluation cannot conclude from host review alone.
-- Blocked Yarn initialization reports the exact unavailable proof state and safe prerequisite without executing or writing.
+- The fixture's manifest contains `/src/**` and its owner describes the source-tree role before actor execution.
+- Its complete changed-path set returns exact full-gate stdout `1` without a CLI or package-manager call.
+- Its intentionally dirty status remains byte-identical across the gate.
+- No other scenario input or active evidence changes.
 - No semantic model execution occurs in this milestone.
 
 ### Review checkpoint
 
-Inspect the fixture refactor for accidental provider execution or broad setup coupling, confirm the root adds completion clarity rather than another competing route, and require unchanged semantic evidence before publication.
+Inspect the fixture override for scenario leakage, confirm the test uses every required HEAD-relative path including both rename sides and deletion, and require unchanged semantic evidence before publication.
 
-## Milestone 39: Prove four residuals and record all 74 semantic scenarios
+## Milestone 40: Prove the final residual and record all 74 scenarios
 
 ### Objective
 
-Require the exact four residual diagnostics to pass, then create one complete official current 74-case attempt.
+Require the dirty-tree diagnostic to pass, then create one complete official current 74-case semantic attempt.
 
 ### Dependencies
 
-- Published Milestone 38 with a clean exact correction tree.
+- Published Milestone 39 with a clean exact fixture correction.
+- The three passing diagnostics from the post-Milestone-38 sweep.
 
 ### Scope
 
-- Non-recording diagnostics for the four case IDs in `plan.md` problem 68
-- Residual plan and correction only if the complete targeted set exposes another shared defect
+- One non-recording `evaluate-dirty-working-tree` diagnostic
+- Residual plan and correction only if that exact case exposes another material defect
 - One final `npm run eval:semantic -- --record --restart` execution
 - Its immutable attempt, latest pointer, ignored checkpoint lifecycle, and directly derived website/release state
 
 ### Implementation work
 
-1. Run all four diagnostics sequentially and collect every compact result before editing.
-2. If failures remain, revise and challenge the current plan, regenerate this breakdown, correct the complete newly exposed set as one batch, publish it, and rerun only the residual failures.
-3. Once all four pass, run semantic preflight and confirm the exact 74-case, paid-stage, resource-profile, and zero predecessor-suite-reuse boundary.
+1. Run only `evaluate-dirty-working-tree` diagnostically and preserve its compact result without repeating the three passing cases.
+2. If it fails, revise and challenge the current plan, regenerate this breakdown, and correct only the newly established root cause before another targeted run.
+3. Once it passes, run semantic preflight and confirm the exact 74-case, paid-stage, resource-profile, and zero predecessor-suite-reuse boundary.
 4. Replace the stale ignored candidate with `--record --restart`, preserve every stage checkpoint safely, and record one official attempt only after the run reaches a valid terminal state.
 5. Update only current active result state. Never restore an 18-case artifact, compatibility route, or false passing pointer.
 
 ### Verification
 
-- Confirm targeted diagnostics create no attempt, pointer, result, or checkpoint change.
+- Confirm the targeted diagnostic creates no attempt, pointer, result, or checkpoint change.
 - Verify the official attempt, 74/74 current coverage, lowercase output, command policy, privacy, resources, provenance, interruption recovery, and immutable hashes.
 - Run affected root and website correctness tests, typechecking, linting, formatting, builds, and release-identity checks.
 - Review and publish the exact evidence state through a signed and signed-off commit.
 
 ### Acceptance criteria
 
-- Every targeted residual passes before official recording starts.
+- The final targeted residual passes before official recording starts.
 - One complete current attempt passes all 74 scenarios and every deterministic, semantic, privacy, resource, and repository-control contract.
 - Public loading exposes only truthful current-generation assurance and immutable historical attempts.
 
 ### Review checkpoint
 
-Verify diagnostics were not promoted, no partial attempt appears passing, predecessor evidence did not return, and every public count and provenance field resolves to the immutable current attempt.
+Verify the diagnostic was not promoted, no partial attempt appears passing, predecessor evidence did not return, and every public count and provenance field resolves to the immutable current attempt.
 
-## Milestone 40: Re-establish the Custom qualification baseline
+## Milestone 41: Re-establish the Custom qualification baseline
 
 ### Objective
 
@@ -106,7 +101,7 @@ Create one current Custom qualification baseline before spending on adapter-spec
 
 ### Dependencies
 
-- Published passing semantic evidence from Milestone 39.
+- Published passing semantic evidence from Milestone 40.
 - Final portable skill, CLI closure, qualification protocol, and resource profiles.
 
 ### Scope
@@ -139,7 +134,7 @@ Create one current Custom qualification baseline before spending on adapter-spec
 
 Inspect identity reuse, failed-attempt preservation, command/output peaks, and the absence of duplicate universal behavior in adapter-specific profiles.
 
-## Milestone 41: Qualify every adapter with one collect-first sweep
+## Milestone 42: Qualify every adapter with one collect-first sweep
 
 ### Objective
 
@@ -147,7 +142,7 @@ Produce exact-current passing evidence for every adapter profile without repeate
 
 ### Dependencies
 
-- Published Custom baseline from Milestone 40.
+- Published Custom baseline from Milestone 41.
 - Final registry-published adapter/package generations and profile index.
 
 ### Scope
@@ -181,7 +176,7 @@ Produce exact-current passing evidence for every adapter profile without repeate
 
 Inspect the full failure ledger, targeted rerun selection, exact identity decisions, resource peaks, inherited/direct ownership, and public evidence clarity before release selection.
 
-## Milestone 42: Release the clean skill and complete the cross-repository audit
+## Milestone 43: Release the clean skill and complete the cross-repository audit
 
 ### Objective
 
@@ -227,4 +222,4 @@ Perform the final cross-repository contradiction, secret, signature, branch, reg
 
 ## Execution scope
 
-Complete Milestones 38 through 42 sequentially. First publish the four-case semantic correction, then require all four targeted diagnostics to pass before one official 74-case recording. Re-establish Custom, qualify every adapter through the documented sequential collect-first funnel, rerun only failed or exact-identity-invalidated work, select fresh release evidence, publish clean skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and finish the active cross-repository audit. Preserve failed evidence, unrelated concurrent work, protected coding instructions, resource ceilings, privacy boundaries, exact identity, and one-model-process execution throughout.
+Complete Milestones 39 through 43 sequentially. First publish the dirty-tree fixture relationship and owner correction, then rerun only that residual before one official 74-case recording. Re-establish Custom, qualify every adapter through the documented sequential collect-first funnel, rerun only failed or exact-identity-invalidated work, select fresh release evidence, publish clean skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and finish the active cross-repository audit. Preserve failed evidence, unrelated concurrent work, protected coding instructions, resource ceilings, privacy boundaries, exact identity, and one-model-process execution throughout.

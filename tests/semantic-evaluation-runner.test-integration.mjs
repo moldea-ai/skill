@@ -282,6 +282,63 @@ test('claimed-adopted custom CLI scenarios pass the inert adoption gate', async 
   }
 });
 
+test('dirty-tree scenario passes its complete changed-path set to the full gate', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-dirty-tree-gate-'));
+  const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'evaluate-dirty-working-tree');
+  assert.ok(caseDefinition);
+
+  try {
+    const { repositoryPath } = await createActorRepository(evaluationRoot, caseDefinition);
+    const readStatus = () =>
+      spawnSync('git', ['status', '--porcelain=v2', '-z', '--untracked-files=all'], {
+        cwd: repositoryPath,
+        encoding: 'buffer',
+      });
+    const beforeStatus = readStatus();
+    assert.equal(beforeStatus.status, 0, beforeStatus.stderr.toString('utf8'));
+    assert.notEqual(beforeStatus.stdout.length, 0);
+    assert.match(
+      readFileSync(join(repositoryPath, 'moldea', 'moldea.yaml'), 'utf8'),
+      /affectedBy:\n      - \/src\/\*\*/u,
+    );
+    assert.match(
+      readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8'),
+      /source tree under `\/src\/\*\*`/u,
+    );
+
+    const changedPaths = [
+      'src/staged.js',
+      'src/unstaged.js',
+      'src/untracked.js',
+      'src/renamed-before.js',
+      'src/renamed-after.js',
+      'src/deleted.js',
+    ];
+    const gate = spawnSync(
+      process.execPath,
+      [
+        join(repositoryPath, '.agents', 'skills', 'moldea', 'scripts', 'relevance-gate.mjs'),
+        '--repository',
+        repositoryPath,
+      ],
+      {
+        cwd: repositoryPath,
+        encoding: 'utf8',
+        input: `${changedPaths.join('\0')}\0`,
+      },
+    );
+    assert.equal(gate.status, 0, gate.stderr);
+    assert.equal(gate.stderr, '');
+    assert.equal(gate.stdout, '1\n');
+
+    const afterStatus = readStatus();
+    assert.equal(afterStatus.status, 0, afterStatus.stderr.toString('utf8'));
+    assert.deepEqual(afterStatus.stdout, beforeStatus.stdout);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
 test('the exact-binding semantic baseline is structurally valid before review', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-exact-binding-'));
   const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'exact-binding-relevance');

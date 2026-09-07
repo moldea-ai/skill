@@ -2,85 +2,84 @@
 
 ## Completed foundation
 
-Milestones 1 through 41 are complete and published. They established the clean Repository 2, repository-fs 2, Core 3, CLI 7/schema 4, adapter major generation, bounded GitHub fixtures and PR Assurance contracts, repository-bound skill activation, content-free CLI operations, exact semantic-stage reuse, clean 74-case coverage, understandable evidence pages, calibrated resource controls, the evidence-pin release path, permanent diagnose-first semantic and adapter workflows, and valid direct-scope resource accounting. Milestone 41 is published at signed commit `d48b8cd018457394d600e64050f4ddb89cb69b41`. Its deterministic and website checks passed, and the corrected dirty-tree diagnostic passed with two bounded moldea calls and unchanged repository controls.
+Milestones 1 through 42 are complete and published. They established the clean Repository 2, repository-fs 2, Core 3, CLI 7/schema 4, adapter major generation, bounded GitHub fixtures and PR Assurance contracts, repository-bound skill activation, content-free CLI operations, exact semantic-stage reuse, clean 74-case coverage, understandable evidence pages, calibrated resource controls, the evidence-pin release path, permanent collect-first semantic and adapter workflows, and the complete correction from the 51-pass/23-failure ledger. Milestone 42 is published at signed commit `7dfa219e73d641104b3b75cdf7e01e28e2669e05`. Its complete deterministic verification passed, and the exact 23-case sequential diagnostic sweep established a 14-pass/9-failure residual ledger with no operational failure or evidence write.
 
-## Milestone 42: Correct the complete 23-case semantic ledger
-
-### Objective
-
-Publish one coherent portable-skill and semantic-budget correction for every failure established by the complete post-Milestone-41 sweep.
-
-### Dependencies
-
-- Published Milestone 41.
-- Immutable failed attempt `20260907T041912769Z-semantic-c6c41618` and latest pointer.
-- The exact 51-pass/23-failure diagnostic ledger in `plan.md` problem 72.
-
-### Scope
-
-- `moldea/SKILL.md`
-- Only the owning files under `moldea/references/` for initialization/maintenance, evaluation/reconciliation, runtime compatibility, Agent Skill design, and local tooling
-- `fixtures/conformance-cases.json`
-- Focused conformance, resource-budget, fixture, and integration tests required by the changed contracts
-- Directly affected semantic/operator documentation
-- Immutable attempt `fixtures/semantic-evaluation-results/attempts/20260907T041912769Z-semantic-c6c41618/**` and `fixtures/semantic-evaluation-results/latest.json`
-- Current `plan.md` and this breakdown
-
-### Implementation work
-
-1. Preserve the failed official attempt and its failed latest pointer exactly; do not relabel its diagnostic or pending state.
-2. Keep the root router compact while making pre-adoption host-work continuation, root-relative canonical-path recognition, and final lowercase product-name checking unambiguous.
-3. In the owning references, require explicit adopted/no-write/stop reporting, coherent owner/mirror/requirement synchronization, preservation of unresolved durable-truth gaps, runtime/publication evidence separation, capability retention, consumer-semantics-first routing, and exact unsafe-tool prerequisites.
-4. Give exactly `skill-create-progressive-disclosure`, `skill-maintain-linked-resources`, `skill-reuse-existing-cohesive`, `skill-evaluate-read-only`, and `skill-evaluate-script-authority` zero-command and zero-output moldea budgets because independent skill-artifact evidence owns their correctness. Preserve their direct activation and semantic criteria.
-5. Add focused non-brittle regressions for each shared correction cluster and prove no unrelated budget, criterion, evaluator, evidence, repository-control, or absolute resource boundary changed.
-6. Synchronize only directly affected documentation. Keep the permanent semantic and adapter collect-first workflow intact.
-
-### Verification
-
-- Run focused conformance and semantic budget tests first.
-- Run the complete root unit and integration suites, documentation, path, resource, release-identity, semantic-attempt integrity, formatting, and installed-skill validation checks.
-- Run the complete website unit, type, lint, format, build, and artifact-integration boundary because portable skill and semantic evidence are public.
-- Verify all eight official attempts, including the newly preserved failed attempt, remain valid and immutable after they enter the commit.
-- Perform read-only `review`, correct only in-scope findings, repeat until ready, then create one signed and signed-off commit and push explicitly to `origin/new_skill`.
-
-### Acceptance criteria
-
-- Every correction cluster has a direct deterministic regression without brittle full-prose matching.
-- The five Agent Skill cases accept no moldea calls or bytes and retain all independent structural/semantic requirements.
-- All other case budgets, criteria, activation labels, privacy boundaries, and resource ceilings remain unchanged.
-- The failed official attempt and pointer are truthful, immutable, and website-loadable.
-- No model-bearing evaluation runs in this milestone.
-
-### Review checkpoint
-
-Inspect the compact router for new overlap, verify operation detail has one owner, prove exact budget selection for only five cases, and ensure no semantic criterion was weakened to convert a failure into a pass.
-
-## Milestone 43: Prove the residual set and record all 74 scenarios
+## Milestone 43: Correct the exact nine-case semantic residual
 
 ### Objective
 
-Pass every case from the complete 23-case ledger diagnostically, then create one complete official current 74-case semantic attempt.
+Publish one compact portable-skill correction for the five shared defects established by the complete post-Milestone-42 targeted sweep.
 
 ### Dependencies
 
 - Published Milestone 42.
-- The exact failed-case list in `plan.md` problem 72.
+- Immutable failed attempt `20260907T041912769Z-semantic-c6c41618` and latest pointer.
+- The exact 14-pass/9-failure diagnostic ledger in `plan.md` problem 73.
+
+### Scope
+
+- `moldea/SKILL.md`
+- Only the owning files under `moldea/references/` for maintenance, Agent Skill design, runtime compatibility, and routing
+- Focused conformance and deterministic regression tests required by the changed contracts
+- Directly affected semantic/operator documentation only when the correction would otherwise make it stale
+- Immutable official attempts and latest pointer as read-only verification inputs
+- Current `plan.md` and this breakdown
+
+### Implementation work
+
+1. Preserve the 14 passing diagnostics, every official attempt, and the latest pointer exactly.
+2. Keep the root skill below the existing 2,560-word ceiling by replacing or compressing instructions. Make a failed adoption gate end moldea-specific reasoning while allowing an independently requested host review to finish without adoption, tooling, or moldea-status commentary, and recognize singular or plural current-change wording for direct canonical evaluation.
+3. Before an ordinary related implementation write, require the relationship gate and bind every affected canonical owner, mirror, and requirement condition. Update coherent authorities before completion and retain every still-unsatisfied requirement condition.
+4. Route Agent Skill creation, maintenance, and evaluation to `skill-design.md`. Require independent Agent Skill evaluation to use artifact evidence without moldea CLI calls, surrounding-repository inspection, or repository-validity claims about the evaluated artifact.
+5. In the runtime-owning references, preserve established canonical runtime facts when publication is unavailable, distinguish supported publication from local installation, state exact official-release and repository-wiring prerequisites, and preserve externally evidenced model-visible capabilities during runtime migration.
+6. Make routing guidance explicitly classify the consumer-facing purpose before reporting dynamic selection as unresolved.
+7. Add focused, non-brittle regressions for these contracts without changing any semantic case, fixture, criterion, activation label, budget, evaluator, evidence schema, repository control, privacy boundary, or absolute resource ceiling.
+
+### Verification
+
+- Run focused portable-skill conformance and semantic resource tests first.
+- Run the complete root unit and integration suites, documentation, path, resource, release-identity, semantic-attempt integrity, formatting, and installed-skill validation checks.
+- Run the complete website unit, type, lint, format, build, and artifact-integration boundary when the public portable skill or semantic documentation changes.
+- Verify every official attempt and pointer remains byte-identical.
+- Perform read-only `review`, correct only in-scope findings, repeat until ready, then create one signed and signed-off commit and push explicitly to `origin/new_skill`.
+
+### Acceptance criteria
+
+- Each of the five shared residual causes has a direct deterministic regression.
+- The root skill remains at or below 2,560 words and gains no parallel or overlapping route.
+- All nine semantic cases, fixtures, criteria, activation labels, budgets, evaluators, evidence schemas, and resource ceilings remain unchanged.
+- Official evidence remains immutable and no model-bearing evaluation runs in this milestone.
+
+### Review checkpoint
+
+Inspect the root for instruction competition, verify each detailed rule has one owning reference, prove Agent Skill evaluation is independently bounded, and confirm runtime facts and capabilities cannot be discarded by a publication or migration report.
+
+## Milestone 44: Prove the nine-case correction and record all 74 scenarios
+
+### Objective
+
+Pass every case in the exact nine-case residual ledger, then create one complete official current 74-case semantic attempt.
+
+### Dependencies
+
+- Published Milestone 43.
+- The exact failed-case list in `plan.md` problem 73.
 - Unchanged semantic protocol, evaluator, repository controls, privacy rules, and absolute resource ceilings.
 
 ### Scope
 
-- One sequential non-recording diagnostic run for each of the exact 23 failed case IDs
+- One sequential non-recording diagnostic run for each exact residual case ID
 - Residual plan and correction only if the complete targeted sweep exposes another material defect
 - One final `npm run eval:semantic -- --record --restart` execution after the targeted gate is green
 - Its immutable attempt, latest pointer, ignored checkpoint lifecycle, and directly derived website/release state
 
 ### Implementation work
 
-1. Run all 23 failed IDs sequentially with compact diagnostic output, one model-bearing process at a time, and collect the complete result before any edit.
-2. If any case fails, preserve every passing result, revise and challenge the current plan from the complete residual set, regenerate this breakdown, and correct the shared causes before rerunning only residual or identity-invalidated cases.
-3. Once all 23 pass, run semantic preflight and confirm the exact 74-case, paid-stage, resource-profile, and zero predecessor-suite-reuse boundary.
-4. Start one official recording with `--record --restart`, preserve every stage checkpoint safely, and record an official attempt only after the run reaches a valid terminal state.
-5. Update only current active result state. Never restore an 18-case artifact, compatibility route, or false passing pointer.
+1. Run all nine residual IDs sequentially with compact diagnostic output and one model-bearing process at a time. Collect the complete result before any edit.
+2. If any case fails, preserve every pass, revise and challenge the current plan from the complete residual set, regenerate this breakdown, correct shared causes, and rerun only failed or identity-invalidated cases.
+3. Once all nine pass, run semantic preflight and confirm the exact 74-case paid-stage, resource-profile, privacy, repository-control, and zero predecessor-suite-reuse boundary.
+4. Start one official recording with `--record --restart`, preserve stage checkpoints safely, and record an official attempt only after a valid terminal state.
+5. Update only current active result state. Never restore an 18-case artifact, compatibility route, diagnostic-as-evidence path, or false passing pointer.
 
 ### Verification
 
@@ -91,7 +90,7 @@ Pass every case from the complete 23-case ledger diagnostically, then create one
 
 ### Acceptance criteria
 
-- All 23 targeted cases pass before official recording starts.
+- All nine targeted cases pass before official recording starts.
 - One complete current attempt passes all 74 scenarios and every deterministic, semantic, privacy, resource, and repository-control contract.
 - Public loading exposes only truthful current-generation assurance and immutable historical attempts.
 
@@ -99,7 +98,7 @@ Pass every case from the complete 23-case ledger diagnostically, then create one
 
 Verify the diagnostic ledger has no omitted, duplicated, or prematurely retried case; no diagnostic was promoted; no partial attempt appears passing; and every public count and provenance field resolves to the immutable current attempt.
 
-## Milestone 44: Re-establish the Custom qualification baseline
+## Milestone 45: Re-establish the Custom qualification baseline
 
 ### Objective
 
@@ -107,7 +106,7 @@ Create one exact-current Custom qualification baseline before spending on adapte
 
 ### Dependencies
 
-- Published passing semantic evidence from Milestone 43.
+- Published passing semantic evidence from Milestone 44.
 - Final portable skill, CLI closure, qualification protocol, and resource profiles.
 
 ### Scope
@@ -140,7 +139,7 @@ Create one exact-current Custom qualification baseline before spending on adapte
 
 Inspect identity reuse, failed-attempt preservation, command/output peaks, and the absence of duplicate universal behavior in adapter-specific profiles.
 
-## Milestone 45: Qualify every adapter with one collect-first sweep
+## Milestone 46: Qualify every adapter with one collect-first sweep
 
 ### Objective
 
@@ -148,29 +147,29 @@ Produce exact-current passing evidence for every adapter profile without repeate
 
 ### Dependencies
 
-- Published Custom baseline from Milestone 44.
+- Published Custom baseline from Milestone 45.
 - Final registry-published adapter/package generations and profile index.
 
 ### Scope
 
 - Every adapter profile in `qualification/profiles/index.yaml`
 - Their 12 inherited and 2 adapter-specific journeys
-- Immutable attempts, latest pointers, failure ledger, resource summaries, website presentation, and release selection
+- Immutable attempts, latest pointers, complete failure ledger, resource summaries, website presentation, and release selection
 
 ### Implementation work
 
 1. Complete deterministic preflight, verify existing Anthropic and Claude evidence and every remaining target against exact identity, and reuse only exact-current passing evidence.
 2. Run every invalid or missing adapter profile sequentially, one model-bearing process at a time, continuing after profile failures whenever the host remains operationally safe.
-3. Preserve every attempt and finish the complete cross-profile failure ledger before changing shared skill, runner, package, profile, or documentation behavior.
+3. Preserve every failed or passing attempt and finish the complete cross-profile failure ledger before changing shared skill, runner, package, profile, or documentation behavior.
 4. Group failures by shared cause, revise and challenge the plan when implementation changes are required, correct coherent batches, and use the existing `diagnose --case` operation for targeted proof.
 5. Rerun only failed or exact-identity-invalidated profiles, then run the final complete qualification verifier. Do not rerun a passing exact-current profile merely for symmetry.
-6. Keep the permanent operator documentation aligned with this collect-first workflow and do not promise an aggregate runner, non-recording official attempt, parallel execution, or an unrealistically small repository ceiling.
+6. Keep permanent operator documentation aligned with this collect-first workflow. Do not promise an aggregate runner, a non-recording official attempt, parallel paid execution, or an unrealistically small repository ceiling.
 
 ### Verification
 
 - Require every target to expose 12 inherited and 2 direct passing journeys with truthful execution/reuse provenance.
 - Verify command, output, token, disk, memory, and duration evidence stays within calibrated profiles without imposing a repository-size ceiling.
-- Confirm the failure ledger has no duplicate, omitted, or prematurely retried target and that every retry has an identity reason.
+- Confirm the failure ledger has no duplicate, omitted, or prematurely retried target and every retry has an identity reason.
 - Run complete qualification, website, root release, formatting, documentation, and immutable-evidence checks.
 - Review and publish each cohesive correction or evidence batch before continuing.
 
@@ -185,7 +184,7 @@ Produce exact-current passing evidence for every adapter profile without repeate
 
 Inspect the complete failure ledger, targeted rerun selection, exact identity decisions, resource peaks, inherited/direct ownership, and public evidence clarity before release selection.
 
-## Milestone 46: Release the clean skill and complete the cross-repository audit
+## Milestone 47: Release the clean skill and complete the cross-repository audit
 
 ### Objective
 
@@ -231,4 +230,4 @@ Perform the final cross-repository contradiction, secret, signature, branch, reg
 
 ## Execution scope
 
-Complete Milestones 42 through 46 sequentially. First preserve the failed official attempt and publish one consolidated 23-case correction, including exact zero-call budgets for five independently validated Agent Skill cases. Rerun only those 23 cases, collect any residual before another edit, and create one official 74-case recording only after the targeted gate passes. Re-establish Custom, qualify every adapter through the documented sequential collect-first funnel, complete the full profile ledger before shared fixes, and rerun only failed or exact-identity-invalidated work. Select fresh release evidence, publish clean skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and finish the active cross-repository audit. Preserve failed evidence, unrelated concurrent work, protected coding instructions, resource ceilings, privacy boundaries, exact identity, and one-model-process execution throughout.
+Complete Milestones 43 through 47 sequentially. First publish one compact correction for the exact nine-case residual ledger without changing semantic cases, criteria, budgets, fixtures, evaluators, evidence schemas, repository controls, privacy boundaries, or resource ceilings. Rerun only those nine cases, collect any later residual before another edit, and create one official 74-case recording only after the targeted gate passes. Re-establish Custom, qualify every adapter through the documented sequential collect-first funnel, finish the complete cross-profile failure ledger before shared fixes, and rerun only failed or exact-identity-invalidated work. Select fresh release evidence, publish clean skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and finish the active cross-repository audit. Preserve failed evidence, unrelated concurrent work, protected coding instructions, exact identity, and one-model-process execution throughout.

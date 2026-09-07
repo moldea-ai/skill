@@ -10,6 +10,8 @@ Keep skill-owned activation and workflow in the skill. Keep repository policy, p
 
 When independent skill-artifact evidence fully establishes structure and behavior and the operation does not change `/moldea/**`, do not invoke the moldea CLI merely to demonstrate that this skill was selected. Use the independent validator and focused behavioral evidence; a repository manifest check adds no relevant fact.
 
+For a read-only Agent Skill evaluation, this reference owns the operation. Do not run any moldea CLI operation or inspect or validate the surrounding moldea repository. Report structural validity only from the evaluated artifact and its linked resources.
+
 ## Design the entrypoint
 
 Use valid YAML frontmatter with a stable lowercase name and a short description that states both capability and precise activation conditions. The description is the primary implicit-activation contract; remove broad catchalls and adjacent tasks the skill must ignore.

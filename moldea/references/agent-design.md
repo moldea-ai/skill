@@ -38,6 +38,8 @@ Before changing a mapping, establish:
 
 A required source does not prove selection. Under dynamic wiring, state conditional outcomes and identify resolving wiring or tests; never call a candidate current, effective, absent, or wrong. Prove a mismatch before editing. Tests confirm a correction but do not justify it.
 
+Always state the consumer-purpose classification, including when dynamic wiring leaves the currently selected source unknown.
+
 ## Select the runtime honestly
 
 Every registered agent declares one `runtime.id`. Use `composition --json` when installed adapter inventory matters. Load `runtime-compatibility.md` when published target compatibility or maturity matters. Complete this gate before editing runtime state:
@@ -50,6 +52,8 @@ Every registered agent declares one `runtime.id`. Use `composition --json` when 
 6. Without behavioral evidence, preserve the runtime and map every material unknown invocation, instruction-loading, capability, schema, routing, or variable fact to its smallest reliable resolving artifact, established owner, and required proof. Never invent a path, identity, or owner.
 7. Reconcile runtime identity and semantic surfaces together. Update every affected surface as one coherent change. A `runtime.id`-only edit is incomplete when reliable evidence establishes model-visible or project-specific integration behavior.
 8. Report evidence paths, repository states, canonical inspection limits, and remaining unknowns.
+
+Before a runtime write, retain a checklist of every externally evidenced model-visible capability. Do not validate or claim completion until each capability remains represented in canonical instruction or runtime guidance.
 
 If the required adapter is absent from this release, report a tooling prerequisite and stop without selecting another CLI version or replacement runtime. Composition establishes availability, not integration identity, target support, or maturity.
 

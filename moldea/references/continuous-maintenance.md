@@ -47,7 +47,7 @@ For an authorized relevant change:
 5. Preserve unrelated canonical content and developer work.
 6. After every canonical and mirror write is complete, run the narrowest structural validation as the final moldea command, then run any required project-native checks.
 
-Before the first write, retain one complete change set containing the authorized implementation paths, every matched canonical owner, every declared mirror, and each affected requirement criterion. An implementation-only edit is incomplete when the established owner or mirror expresses the changed behavior. Apply the coherent set before validation, then compare the final state with it before claiming completion.
+Before the first write, retain one complete change set containing the authorized implementation paths, every matched canonical owner, every declared mirror, and each affected requirement criterion. Never edit implementation before this set is bound. An implementation-only edit is incomplete when the established owner or mirror expresses the changed behavior. Apply the coherent set before validation, then compare the final state with it before claiming completion.
 
 A relationship requires reconsideration, not an automatic edit. If implementation remains aligned, leave canonical state byte-identical and report no more than one line identifying the canonical owner reconsidered, stating that behavior or contracts remain unchanged, and concluding that the owner remains accurate without an edit.
 

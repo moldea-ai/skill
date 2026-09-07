@@ -27,13 +27,14 @@ When the publication cannot establish a required fact, the final report must:
 
 - state which current published compatibility or maturity fact remains unavailable
 - include the literal resolver URL `https://packages.moldea.ai/compatibility/runtimes.json`
-- keep the canonical declaration, repository behavior, and local composition separate from the publication gap
+- state the exact canonical `runtime.id` when established and never relabel it unconfirmed because publication is unavailable
+- keep repository behavior and local composition separate from the publication gap
 - withhold only publication-dependent conclusions; an independently evidenced blocker may still support a negative readiness conclusion
 
 ## Make runtime claims precisely
 
 - An installed adapter without a matching published target is executable availability, not published behavioral support.
-- A published `supported` target whose adapter is absent from local composition is not executable through that local CLI. State that migration remains blocked until an official skill release selects an exact CLI closure containing that adapter.
+- A published `supported` target whose adapter is absent from local composition is not executable through that local CLI. Name the current canonical runtime and state that migration remains blocked until an official skill release selects an exact CLI closure containing that adapter and the repository wires the target.
 - A published `experimental` target may inform explicit experimentation, but it does not support a production-readiness claim. Name the grounded runtime target and its published `experimental` maturity as the reason readiness is withheld.
 - A published target and local adapter still require repository evidence to establish the project's actual target and wiring.
 - `custom` is a deliberate project-specific runtime, not a fallback for missing evidence or an unavailable official adapter.

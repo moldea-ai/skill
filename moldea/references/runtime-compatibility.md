@@ -8,7 +8,7 @@ Keep four conclusions independent even when one repository supplies evidence for
 
 1. Canonical moldea declarations establish the currently declared `runtime.id` and registered relationships.
 2. Repository source, configuration, closed wiring, source-owned contracts, and focused integration tests establish actual behavior and behavioral fit.
-3. Root-local `composition --json --max-output-bytes 65536` establishes only the exact installed executable: CLI and package versions, active adapter IDs, repository-format versions, and Node.js and Git requirements.
+3. Root-local `composition --json` establishes only the exact installed executable: CLI and package versions, active adapter IDs, repository-format versions, and Node.js and Git requirements.
 4. [`https://packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json) establishes the current published technical targets, implementation status, target maturity, package ranges, patterns, provider limits, runtime-guidance expectations, and verification dates.
 
 Neither installed adapter presence nor a package name proves a published target, behavioral fit, or maturity. The public publication does not prove that the repository uses a target or that the installed CLI can inspect it.
@@ -42,4 +42,4 @@ For behavioral fit, identify which material model API and control flow, instruct
 
 State canonical runtime identity, repository behavior and fit, local composition, published technical compatibility, and maturity separately in plans and reports. When they disagree, preserve the disagreement rather than collapsing it into one compatibility claim or describing an established fact as absent.
 
-Plan the minimum evidence operations before invoking the CLI. For one already identified agent and target, use at most one composition call, only the canonical content needed for that agent, and existing content-free metadata already available. Do not add `inspect` after the owner is known or run `validate` when structural status cannot change the runtime conclusion. Direct relevant work remains inside the ordinary four-command moldea limit.
+Plan the minimum evidence operations before invoking the CLI. For one already identified agent and target, invoke composition first and retain its conclusion, then use only the canonical content needed for that agent and current publication when required. Do not add `inspect` after the owner is known or run `validate` when structural status cannot change the runtime conclusion. A publication result cannot retroactively replace or erase the completed composition result. Direct relevant work remains inside the ordinary four-command moldea limit.

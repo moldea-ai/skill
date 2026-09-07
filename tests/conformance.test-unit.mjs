@@ -355,18 +355,18 @@ describe('portable skill contract', () => {
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
     assert.match(
       skill,
-      /direct review or evaluation of “the current change,” “the current changes,”.*has one mandatory route/u,
+      /review or evaluation of “the current change,” “the current changes,”.*is incomplete/iu,
     );
-    assert.match(skill, /retain every staged, unstaged, untracked/u);
+    assert.match(skill, /retains every staged, unstaged, untracked/u);
     assert.match(skill, /leading-slash repository-logical form/u);
-    assert.match(skill, /complete normalized set to the full relationship gate/u);
-    assert.match(skill, /one `scope` with that exact same normalized set/u);
-    assert.match(skill, /report the complete path scope, canonical assessment/u);
-    assert.match(
-      skill,
-      /Do not stop after inventorying paths or conclude from the host review alone/u,
-    );
-    assert.match(skill, /does not reactivate moldea after an implicit unrelated-task gate miss/u);
+    assert.match(skill, /separate canonical paths or known managed hunks/u);
+    assert.match(skill, /run the adoption-only gate once/u);
+    assert.match(skill, /run one `scope` only when ordinary paths remain/u);
+    assert.match(skill, /`relevant: false` adds no owner and never cancels direct relevance/u);
+    assert.match(skill, /With ordinary paths only, run the full relationship gate/u);
+    assert.match(skill, /report the complete path scope, canonical assessment/iu);
+    assert.match(skill, /Never conclude from the host review alone/u);
+    assert.match(skill, /reactivate moldea after a prior unrelated-task gate miss/u);
     assert.match(skill, /Gate every developer-named path before the host reads, edits, tests/u);
     assert.match(skill, /bind the coherent change set before writing/u);
     assert.match(skill, /complete independent host work as if the skill were absent/u);
@@ -482,7 +482,8 @@ describe('portable skill contract', () => {
       /retain one complete change set containing the authorized implementation paths/u,
     );
     assert.match(maintenance, /Never edit implementation before this set is bound/u);
-    assert.match(maintenance, /update the existing requirement to remove only that condition/u);
+    assert.match(maintenance, /rewrite both `description` and `resolution`/u);
+    assert.match(maintenance, /neither still claims that condition/u);
     assert.match(
       maintenance,
       /identifying the canonical owner reconsidered, stating that behavior or contracts remain unchanged/u,
@@ -544,12 +545,13 @@ describe('portable skill contract', () => {
     assert.match(evaluation, /stop before worktree-aware Git can execute it/u);
     assert.match(evaluation, /executable Git filter, text conversion, external diff, fsmonitor/u);
     assert.match(evaluation, /canonical owner or declared relationship actually assessed/u);
-    assert.match(evaluation, /direct evaluation of current uncommitted changes/u);
-    assert.match(evaluation, /must complete this sequence/u);
+    assert.match(evaluation, /current-change review or evaluation must retain/u);
+    assert.match(evaluation, /partition direct canonical paths or known managed hunks/u);
+    assert.match(evaluation, /irrelevant ordinary subset adds no owner/u);
     assert.match(evaluation, /A path inventory alone is not a moldea evaluation/u);
     assert.match(
       evaluation,
-      /report explicitly that evaluation is read-only and changed no files/u,
+      /report the complete path scope, canonical assessment, and explicitly that the operation is read-only and changed no files/iu,
     );
     assert.match(evaluation, /without running `scope` or `inspect`/u);
     assert.match(evaluation, /name the supplied `.gitattributes` declaration/u);
@@ -612,7 +614,7 @@ describe('portable skill contract', () => {
     const routeHeadings = [
       '**Repository-local tooling:**',
       '**Explicit initialization:**',
-      '**Direct current-change evaluation:**',
+      '**Current-change review or evaluation:**',
       '**Direct named-owner reconciliation:**',
       '**Repository-independent information:**',
       '**Every other repository task:**',
@@ -628,7 +630,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /inspect bounded inert project metadata/u);
     assert.match(skill, /preempts foundation analysis/u);
     assert.match(skill, /attempt the closed launcher's content-free `composition` operation/u);
-    assert.match(skill, /incomplete until four steps finish/u);
+    assert.match(skill, /With ordinary paths only, run the full relationship gate/u);
     assert.match(skill, /conclude from the host review alone/u);
     assert.match(skill, /an independently verified installed exact local CLI is unavailable/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);

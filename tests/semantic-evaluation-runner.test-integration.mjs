@@ -375,6 +375,67 @@ test('dirty-tree scenario passes one complete normalized path set to the gate an
   }
 });
 
+test('canonical current-change scope uses adoption proof instead of relationship matching', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-canonical-gate-'));
+  const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'direct-canonical-relevance');
+  assert.ok(caseDefinition);
+
+  try {
+    const { repositoryPath } = await createActorRepository(evaluationRoot, caseDefinition);
+    const gatePath = join(
+      repositoryPath,
+      '.agents',
+      'skills',
+      'moldea',
+      'scripts',
+      'relevance-gate.mjs',
+    );
+    const canonicalPathInput = '/moldea/project.md\0';
+    const readStatus = () =>
+      spawnSync('git', ['status', '--porcelain=v2', '-z', '--untracked-files=all'], {
+        cwd: repositoryPath,
+        encoding: 'buffer',
+      });
+    const beforeStatus = readStatus();
+    assert.equal(beforeStatus.status, 0, beforeStatus.stderr.toString('utf8'));
+
+    const adoption = spawnSync(
+      process.execPath,
+      [gatePath, '--repository', repositoryPath, '--adoption-only'],
+      { cwd: repositoryPath, encoding: 'utf8' },
+    );
+    assert.equal(adoption.status, 0, adoption.stderr);
+    assert.equal(adoption.stdout, '1\n');
+
+    const relationship = spawnSync(process.execPath, [gatePath, '--repository', repositoryPath], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+      input: canonicalPathInput,
+    });
+    assert.equal(relationship.status, 0, relationship.stderr);
+    assert.equal(relationship.stdout, '0\n');
+
+    const scope = JSON.parse(
+      runCli(
+        repositoryPath,
+        ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+        canonicalPathInput,
+      ),
+    );
+    assert.equal(scope.status, 'valid');
+    assert.equal(scope.result.valid, true);
+    assert.equal(scope.result.relevant, false);
+    assert.equal(scope.result.counts.matchedOwners, 0);
+    assert.equal(scope.result.counts.matches, 0);
+
+    const afterStatus = readStatus();
+    assert.equal(afterStatus.status, 0, afterStatus.stderr.toString('utf8'));
+    assert.deepEqual(afterStatus.stdout, beforeStatus.stdout);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
 test('the exact-binding semantic baseline is structurally valid before review', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-exact-binding-'));
   const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'exact-binding-relevance');

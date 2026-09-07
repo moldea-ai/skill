@@ -32,7 +32,7 @@ When a new claim materially conflicts with established context, its format or ba
 
 An impact path, explicit knowledge-maintenance request, or semantic relationship means “inspect this surface,” not “edit this file.” If supplied information is not suitable for persistence or existing project context and declared behavior remain accurate, the right result is no `/moldea/**` change.
 
-The same scope rule applies to unresolved requirements. Discovering a referenced path is not enough: before changing it, the coding agent reads the requirement and every resolution criterion. After the authorized work, it reports which criteria are satisfied or outstanding. It does not complete additional work merely to close the requirement, and the requirement remains until current evidence satisfies every criterion.
+The same scope rule applies to unresolved requirements. Discovering a referenced path is not enough: before changing it, the coding agent reads the requirement and every resolution criterion. After the authorized work, it removes each satisfied condition from both the current-state description and resolution text while retaining every outstanding or evidence-blocked condition. It does not complete additional work merely to close the requirement, and the requirement remains until current evidence satisfies every criterion.
 
 The completion report identifies the canonical state reconsidered, explicitly states that no canonical change was required, and explains why it remains correct. This avoids noisy documentation churn while still preventing silent drift.
 

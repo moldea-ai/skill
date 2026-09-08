@@ -236,12 +236,11 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     ).toBe(true);
     expect(model.hasAttempt).toBe(model.attempts.length > 0);
     expect(model.latest === null || model.attempts.includes(model.latest)).toBe(true);
-    expect(model.lastPassing).toBeNull();
-    expect(model.latestPointer === null || model.latestPointer.lastPassingAttemptId === null).toBe(
-      true,
-    );
+    expect(model.latest?.result.status).toBe('passed');
+    expect(model.lastPassing).toBe(model.latest);
+    expect(model.latestPointer?.lastPassingAttemptId).toBe(model.latest?.result.attemptId);
     expect(existsSync(join(REPOSITORY_ROOT, 'fixtures/semantic-evaluation-result.json'))).toBe(
-      false,
+      true,
     );
   });
 

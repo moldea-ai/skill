@@ -44,7 +44,7 @@ Publish complete `high` attempt `20260907T234444692Z-semantic-3ca2b298` unchange
 
 ### Status
 
-In progress. The two case corrections and deterministic Git fixture are implemented locally. Pre-publication verification also exposed the stale `medium` website boundary described by problem 88, so the already-planned high-only active-evidence cutover now belongs to this pre-execution correction.
+Implementation and evidence complete; awaiting this milestone's read-only review and publication. The evaluator and high-only cutover are published at signed commit `d5d94062ca002e63897a0f2590be081a74b7b149`. Official attempt `20260908T011710794Z-semantic-c30fe287` passed all four paid cases on their first trials and promoted complete 74-case evidence.
 
 ### Objective
 

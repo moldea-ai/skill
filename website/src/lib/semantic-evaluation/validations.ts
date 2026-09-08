@@ -15,7 +15,7 @@ const AttemptStatusSchema = z.enum(['failed', 'incomplete', 'passed']);
 const SemanticHostSchema = z.object({
   model: z.literal('gpt-5.6-sol'),
   name: z.literal('codex'),
-  reasoningEffort: z.literal('medium'),
+  reasoningEffort: z.literal('high'),
   version: z.string().trim().min(1),
 });
 const SemanticHostContractSchema = SemanticHostSchema.omit({ version: true });

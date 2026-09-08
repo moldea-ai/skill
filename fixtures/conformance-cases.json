@@ -1228,7 +1228,7 @@
         },
         {
           "label": "report-no-meaningful-project-context",
-          "criterion": "The actor response explicitly reports no meaningful project context, with the supplied workspace evidence remaining consistent with that report."
+          "criterion": "From the identified inspected evidence, the actor concludes that the repository does not establish a meaningful project purpose or who or what it serves. Semantically equivalent wording or an explicit synthesis of the cited evidence is acceptable."
         },
         {
           "label": "identify-inspected-evidence",
@@ -1236,7 +1236,7 @@
         },
         {
           "label": "ask-focused-foundation-question",
-          "criterion": "The actor explains that moldea keeps durable repository context so coding agents can understand the project consistently over time, states that the README and source do not establish what the project is for, and asks one focused question: what the project does and who or what it serves."
+          "criterion": "The actor explains that moldea keeps durable repository context so coding agents can understand the project consistently over time and asks one focused question about what the project does and who or what it serves."
         },
         {
           "label": "avoid-speculative-canonical-truth",
@@ -3878,6 +3878,22 @@
         "developerDirection": "Use moldea to complete this repository task. Plan the smallest agent system and identify the runtime only if current evidence supports that decision.",
         "repositoryEvidence": [
           {
+            "claim": "The README routes runtime planning to the exact repository evidence.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "README.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The package manifest declares only the repository-local moldea CLI as development tooling and no runtime adapter dependency.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "package.json",
+              "expectedType": "file"
+            }
+          },
+          {
             "claim": "Source invokes an opaque injected model client.",
             "source": {
               "kind": "workspace-path",
@@ -3894,10 +3910,26 @@
             }
           },
           {
-            "claim": "The project is adopted.",
+            "claim": "The project is adopted and its manifest declares no agents or runtimes.",
             "source": {
               "kind": "workspace-path",
               "path": "moldea/moldea.yaml",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "Canonical project context describes only the bounded synthetic evaluation project.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/project.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The adopted baseline source exposes deterministic project state and no agent behavior.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/project-state.js",
               "expectedType": "file"
             }
           }

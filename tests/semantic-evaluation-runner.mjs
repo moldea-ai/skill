@@ -125,6 +125,12 @@ const RESOURCE_PROFILE_DIGEST = createHash('sha256')
   .update(readFileSync(RESOURCE_PROFILE_PATH))
   .digest('hex');
 const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
+// fixed commit metadata keeps generated Git fixtures reproducible across hosts and runs
+const EVALUATION_GIT_COMMIT_ENV = {
+  ...process.env,
+  GIT_AUTHOR_DATE: '2000-01-01T00:00:00+00:00',
+  GIT_COMMITTER_DATE: '2000-01-01T00:00:00+00:00',
+};
 
 const getSemanticForbiddenLabels = (caseDefinition) => [
   ...getSemanticCriterionLabels(caseDefinition.forbidden),
@@ -3116,6 +3122,27 @@ const seedInventoryOnlyRuntimeEvidence = async (repositoryPath) => {
   );
 };
 
+/** Adds a bounded repository-owned route to the runtime evidence used by planning. */
+const seedRuntimePlanningEvidenceRoute = async (repositoryPath) => {
+  await writeScenarioFile(
+    repositoryPath,
+    'README.md',
+    [
+      '# Evaluation repository',
+      '',
+      'Ordinary repository guidance lives here.',
+      '',
+      'For runtime planning, inspect [`src/model-runtime.js`](src/model-runtime.js) and [`docs/runtime-candidates.md`](docs/runtime-candidates.md).',
+      '',
+      '<!-- moldea:start -->',
+      'For every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.',
+      'Canonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.',
+      '<!-- moldea:end -->',
+      '',
+    ].join('\n'),
+  );
+};
+
 /** Seeds repository-owned OpenAI Responses API evidence for compatibility scenarios. */
 const seedOpenAiRuntimeEvidence = async (repositoryPath) => {
   await seedRefundAgent(
@@ -3773,6 +3800,7 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
       break;
     case 'plan-runtime-inventory-insufficient-evidence':
       await seedInventoryOnlyRuntimeEvidence(repositoryPath);
+      await seedRuntimePlanningEvidenceRoute(repositoryPath);
       break;
     case 'plan-existing-project-one-agent':
       await writeScenarioFile(
@@ -4206,7 +4234,7 @@ const createRelatedApplicationRepository = async (root) => {
   );
 
   for (const args of [
-    ['init', '--quiet'],
+    ['init', '--quiet', '--initial-branch=main'],
     ['add', '--all'],
     [
       '-c',
@@ -4222,11 +4250,23 @@ const createRelatedApplicationRepository = async (root) => {
     const result = spawnSync('git', args, {
       cwd: repositoryPath,
       encoding: 'utf8',
+      env: EVALUATION_GIT_COMMIT_ENV,
     });
     if (result.error) throw result.error;
     if (result.status !== 0) {
       throw new Error(`Unable to initialize related application: ${result.stderr.trim()}`);
     }
+  }
+
+  await unlink(join(repositoryPath, '.git', 'index'));
+  const indexResult = spawnSync('git', ['read-tree', 'HEAD'], {
+    cwd: repositoryPath,
+    encoding: 'utf8',
+    env: EVALUATION_GIT_COMMIT_ENV,
+  });
+  if (indexResult.error) throw indexResult.error;
+  if (indexResult.status !== 0) {
+    throw new Error(`Unable to normalize related application index: ${indexResult.stderr.trim()}`);
   }
 
   return repositoryPath;
@@ -4254,7 +4294,7 @@ export const createActorRepository = async (root, caseDefinition) => {
   }
   await seedScenarioRepository(repositoryPath, caseDefinition);
 
-  const gitCommands = [['init', '--quiet']];
+  const gitCommands = [['init', '--quiet', '--initial-branch=main']];
   if (caseDefinition.id !== 'evaluate-unborn-repository') {
     gitCommands.push(
       ['add', '--all'],
@@ -4275,6 +4315,7 @@ export const createActorRepository = async (root, caseDefinition) => {
     const result = spawnSync('git', args, {
       cwd: repositoryPath,
       encoding: 'utf8',
+      env: EVALUATION_GIT_COMMIT_ENV,
     });
     if (result.error) throw result.error;
     if (result.status !== 0) {
@@ -5164,14 +5205,19 @@ const main = async () => {
       generatedAt: new Date().toISOString(),
       reusePlan,
     });
+    const reusedCaseIds = new Set(reusePlan.reusableResults.map(({ id }) => id));
+    const paidCaseIds = caseDefinitions
+      .filter(({ id }) => !reusedCaseIds.has(id))
+      .map(({ id }) => id);
     process.stderr.write(
-      `[semantic-evaluation] preflight passed ${JSON.stringify(
-        createSemanticEvaluationCostEstimate(
+      `[semantic-evaluation] preflight passed ${JSON.stringify({
+        ...createSemanticEvaluationCostEstimate(
           caseDefinitions.length,
           reusePlan.reusableResults.length,
           reusePlan.reusableConfirmations.length,
         ),
-      )}\n`,
+        paidCaseIds,
+      })}\n`,
     );
     return;
   }

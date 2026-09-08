@@ -15,6 +15,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 
 import {
+  captureReadOnlyMountControlState,
   collectScenarioEvidence,
   hasValidScenarioEvidence,
 } from '../tooling/semantic-evaluation/index.mjs';
@@ -346,7 +347,7 @@ test('one complete fake-host batch collects all 74 semantic failures before retu
   }
 });
 
-test('preflight rejects medium stage reuse for the current high contract', () => {
+test('preflight reuses only exact current high stages', () => {
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
   const hostCommand = createFakeCodexHost(hostRoot, true, 'codex-cli 0.153.4');
   const beforeCandidate = readCandidateState();
@@ -373,9 +374,15 @@ test('preflight rejects medium stage reuse for the current high contract', () =>
       result.stderr.slice(result.stderr.indexOf('{'), result.stderr.lastIndexOf('}') + 1),
     );
     assert.equal(estimate.caseCount, 74);
-    assert.equal(estimate.reusedCaseCount, 0);
-    assert.equal(estimate.reusedStageCount, 0);
-    assert.equal(estimate.paidInitialStageCount, 148);
+    assert.equal(estimate.reusedCaseCount, 70);
+    assert.equal(estimate.reusedStageCount, 156);
+    assert.equal(estimate.paidInitialStageCount, 8);
+    assert.deepEqual(estimate.paidCaseIds, [
+      'initialize-insufficient-context',
+      'dedicated-repository-single-side-change',
+      'plan-runtime-inventory-insufficient-evidence',
+      'dedicated-repository-runtime-selection',
+    ]);
     assert.equal(readCandidateState(), beforeCandidate);
     assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
   } finally {
@@ -428,6 +435,89 @@ test('all clean-slate semantic cases materialize their declared repository evide
     } finally {
       rmSync(evaluationRoot, { force: true, recursive: true });
     }
+  }
+});
+
+test('runtime planning receives a bounded route and complete independent evidence', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-runtime-planning-'));
+  const caseDefinition = SEMANTIC_CASES.find(
+    ({ id }) => id === 'plan-runtime-inventory-insufficient-evidence',
+  );
+  assert.ok(caseDefinition);
+
+  try {
+    const { readOnlyMounts, repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      caseDefinition,
+    );
+    const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
+    assert.match(readme, /\[`src\/model-runtime\.js`\]\(src\/model-runtime\.js\)/u);
+    assert.match(readme, /\[`docs\/runtime-candidates\.md`\]\(docs\/runtime-candidates\.md\)/u);
+
+    const evidence = await collectScenarioEvidence({
+      caseDefinition,
+      readOnlyMounts,
+      repositoryPath,
+    });
+    assert.equal(hasValidScenarioEvidence(evidence, caseDefinition), true);
+    assert.equal(evidence.length, 7);
+    assert.ok(
+      evidence.every(
+        ({ observation }) =>
+          observation.type !== 'file' || Buffer.byteLength(observation.content, 'utf8') <= 4096,
+      ),
+    );
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('dedicated repository mounts have stable identities and detect complete-tree mutation', async () => {
+  for (const caseId of [
+    'dedicated-repository-single-side-change',
+    'dedicated-repository-runtime-selection',
+  ]) {
+    const states = [];
+    const roots = [];
+    try {
+      for (let index = 0; index < 2; index += 1) {
+        const root = mkdtempSync(join(tmpdir(), `moldea-related-${caseId}-`));
+        roots.push(root);
+        const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === caseId);
+        assert.ok(caseDefinition);
+        const { readOnlyMounts } = await createActorRepository(root, caseDefinition);
+        states.push(await captureReadOnlyMountControlState(readOnlyMounts[0]));
+      }
+      assert.deepEqual(states[0], states[1]);
+    } finally {
+      for (const root of roots) rmSync(root, { force: true, recursive: true });
+    }
+  }
+
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-related-mutation-'));
+  try {
+    const caseDefinition = SEMANTIC_CASES.find(
+      ({ id }) => id === 'dedicated-repository-runtime-selection',
+    );
+    assert.ok(caseDefinition);
+    const { readOnlyMounts } = await createActorRepository(evaluationRoot, caseDefinition);
+    const mount = readOnlyMounts[0];
+    const baseline = await captureReadOnlyMountControlState(mount);
+    for (const relativePath of [
+      'src/refund-agent.ts',
+      '.git/config',
+      '.git/refs/heads/main',
+      '.git/objects/fixture-mutation',
+      '.git/index',
+    ]) {
+      const path = join(mount.source, relativePath);
+      const content = existsSync(path) ? readFileSync(path) : Buffer.alloc(0);
+      writeFileSync(path, Buffer.concat([content, Buffer.from('\nmutation\n')]));
+      const mutated = await captureReadOnlyMountControlState(mount);
+      assert.notEqual(mutated.treeDigest, baseline.treeDigest, relativePath);
+    }
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
   }
 });
 

@@ -16,7 +16,7 @@ import {
 const HOST = {
   model: 'gpt-5.6-sol',
   name: 'codex',
-  reasoningEffort: 'medium',
+  reasoningEffort: 'high',
   version: 'codex-cli test',
 } as const;
 const MODEL_USAGE = {

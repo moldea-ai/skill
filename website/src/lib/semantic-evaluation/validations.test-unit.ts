@@ -33,7 +33,7 @@ const createAttemptRecord = (
           actorHost: {
             model: 'gpt-5.6-sol',
             name: 'codex',
-            reasoningEffort: 'medium',
+            reasoningEffort: 'high',
             version: 'codex-cli test',
           },
           confirmationIndex: null,
@@ -43,7 +43,7 @@ const createAttemptRecord = (
           judgeHost: {
             model: 'gpt-5.6-sol',
             name: 'codex',
-            reasoningEffort: 'medium',
+            reasoningEffort: 'high',
             version: 'codex-cli test',
           },
           kind: 'initial',
@@ -77,7 +77,7 @@ const createAttemptRecord = (
   hostContract: {
     model: 'gpt-5.6-sol',
     name: 'codex',
-    reasoningEffort: 'medium',
+    reasoningEffort: 'high',
   },
   passedCaseCount: 1,
   pendingCaseCount: 0,

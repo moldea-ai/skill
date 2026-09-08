@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -63,6 +64,10 @@ const CASE = {
   expected: [{ label: 'abstain', criterion: 'The actor does not activate moldea.' }],
   forbidden: [{ label: 'activate', criterion: 'The actor activates moldea.' }],
 };
+
+const SEMANTIC_CASES = JSON.parse(
+  readFileSync(new URL('../fixtures/conformance-cases.json', import.meta.url), 'utf8'),
+).semanticCases;
 
 test('requires an explicit semantic model-execution mode', () => {
   assert.throws(
@@ -727,6 +732,47 @@ test('rebinds reuse provenance without accepting changed source content', () => 
 
 test('keeps evaluator criteria out of the actor prompt', () => {
   assert.equal(buildActorPrompt(CASE), 'Review docs/example.md.');
+});
+
+test('judges insufficient initialization context without duplicate phrase requirements', () => {
+  const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'initialize-insufficient-context');
+  assert.ok(caseDefinition);
+
+  const expectedByLabel = new Map(
+    caseDefinition.expected.map(({ criterion, label }) => [label, criterion]),
+  );
+  assert.match(
+    expectedByLabel.get('report-no-meaningful-project-context'),
+    /Semantically equivalent wording or an explicit synthesis/u,
+  );
+  assert.doesNotMatch(
+    expectedByLabel.get('ask-focused-foundation-question'),
+    /README and source do not establish/u,
+  );
+  assert.match(
+    expectedByLabel.get('ask-focused-foundation-question'),
+    /what the project does and who or what it serves/u,
+  );
+});
+
+test('projects every bounded runtime-planning fact the judge may verify', () => {
+  const caseDefinition = SEMANTIC_CASES.find(
+    ({ id }) => id === 'plan-runtime-inventory-insufficient-evidence',
+  );
+  assert.ok(caseDefinition);
+
+  assert.deepEqual(
+    caseDefinition.input.repositoryEvidence.map(({ source }) => source.path),
+    [
+      'README.md',
+      'package.json',
+      'src/model-runtime.js',
+      'docs/runtime-candidates.md',
+      'moldea/moldea.yaml',
+      'moldea/project.md',
+      'src/project-state.js',
+    ],
+  );
 });
 
 test('keeps runner-enforced moldea budgets outside semantic judgment', () => {

@@ -33,7 +33,7 @@ const temporaryRoots: string[] = [];
 const HOST = {
   model: 'gpt-5.6-sol',
   name: 'codex',
-  reasoningEffort: 'medium',
+  reasoningEffort: 'high',
   version: 'codex-cli test',
 } as const;
 const UPDATED_HOST = { ...HOST, version: 'codex-cli updated' } as const;

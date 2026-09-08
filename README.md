@@ -188,6 +188,8 @@ Run semantic preflight without a model call:
 npm run eval:semantic:preflight
 ```
 
+Preflight reports the ordered paid case IDs with the exact reuse and resource boundary so source invalidation is visible before any model stage starts.
+
 Run one non-recording diagnostic when a specific case needs investigation:
 
 ```bash

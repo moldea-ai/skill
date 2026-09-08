@@ -50,7 +50,7 @@ const isOfficialSemanticHost = (host: {
 }): boolean =>
   host.model === 'gpt-5.6-sol' &&
   host.name === 'codex' &&
-  host.reasoningEffort === 'medium' &&
+  host.reasoningEffort === 'high' &&
   (host.version === undefined ||
     (host.version.trim().length > 0 && host.version !== 'unavailable'));
 

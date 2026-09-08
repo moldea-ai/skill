@@ -18,7 +18,7 @@ export type ISemanticEvidenceMatch = 'exact';
 export interface ISemanticEvaluationHostModel {
   model: 'gpt-5.6-sol';
   name: string;
-  reasoningEffort: 'medium';
+  reasoningEffort: 'high';
   version: string;
 }
 

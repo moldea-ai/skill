@@ -31,7 +31,7 @@ const { releaseEvidence } = loadWebsiteModel();
 const basePath = import.meta.env.BASE_URL;
 const latestAttempt = profile.currentLatest;
 const isCustomProfile = profile.adapterId === 'custom' && profile.implementationId === 'custom';
-const journeyCount = profile.inheritedCases.length + profile.cases.length;
+const journeyCount = profile.sharedCases.length + profile.cases.length;
 const latestAttemptLinkLabel =
   latestAttempt === null
     ? null
@@ -42,8 +42,8 @@ const latestAttemptLinkLabel =
         : 'Inspect the execution-error attempt';
 const renderedCases = await Promise.all(
   [
-    ...profile.inheritedCases.map((profileCase) => ({
-      ownership: 'Inherited Custom baseline',
+    ...profile.sharedCases.map((profileCase) => ({
+      ownership: 'Shared Custom baseline',
       profileCase,
     })),
     ...profile.cases.map((profileCase) => ({
@@ -199,8 +199,8 @@ const breadcrumbs = [
                   </p>
                 ) : (
                   <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
-                    The current result combines {profile.inheritedCases.length} inherited journeys
-                    from Custom attempt{' '}
+                    The current result combines {profile.sharedCases.length} shared journeys from
+                    Custom attempt{' '}
                     <code>{profile.currentAssurance.baselineAttempt?.result.attemptId}</code> with{' '}
                     {profile.cases.length} journeys executed directly by this adapter attempt.
                   </p>
@@ -223,7 +223,7 @@ const breadcrumbs = [
                       class="inline-flex items-center gap-2 font-semibold text-link hover:underline"
                       href={withBase(profile.currentAssurance.baselineAttempt.route, basePath)}
                     >
-                      Inspect the inherited Custom attempt
+                      Inspect the shared Custom evidence
                       <ArrowRight
                         class="size-4"
                         aria-hidden="true"
@@ -253,7 +253,7 @@ const breadcrumbs = [
           {
             isCustomProfile
               ? `These ${journeyCount} universal projects execute once as the Custom baseline.`
-              : `${profile.inheritedCases.length} projects come from the exact Custom prerequisite and ${profile.cases.length} execute directly for this adapter.`
+              : `${profile.sharedCases.length} projects come from the exact shared Custom prerequisite and ${profile.cases.length} execute directly for this adapter.`
           }{' '}
           Each project publishes its purpose, adversarial challenge, natural task, expected state, and
           judge requirements before any attempt runs.

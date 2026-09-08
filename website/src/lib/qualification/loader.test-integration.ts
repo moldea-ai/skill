@@ -565,7 +565,7 @@ describe('loadQualificationWebsiteModel', () => {
 
     expect(model.profiles).toHaveLength(14);
     expect(model.uniqueJourneyCount).toBe(38);
-    expect(attempts.every(({ result }) => result.protocolVersion === 8)).toBe(true);
+    expect(attempts).toStrictEqual([]);
     expect(customProfile?.cases.map(({ id }) => id)).toStrictEqual([...universalCaseIds]);
     expect(
       model.profiles
@@ -575,52 +575,93 @@ describe('loadQualificationWebsiteModel', () => {
     expect(
       model.profiles
         .filter(({ adapterId }) => adapterId !== 'custom')
-        .every(({ cases, inheritedCases }) => inheritedCases.length === 12 && cases.length === 2),
+        .every(({ cases, sharedCases }) => sharedCases.length === 12 && cases.length === 2),
     ).toBe(true);
-
-    const anthropicProfile = model.profiles.find(({ adapterId }) => adapterId === 'anthropic');
-    expect(anthropicProfile?.currentStatus).toBe('passed');
-    expect(anthropicProfile?.currentAssurance?.baselineAttempt?.result.attemptId).toBe(
-      anthropicProfile?.currentLatest?.result.provenance.baselineAttemptId,
-    );
-    expect(anthropicProfile?.currentAssurance?.baselineAttempt).toBe(customProfile?.currentLatest);
-
-    const failedCloudflareProfile = model.profiles.find(
-      ({ adapterId, implementationId }) =>
-        adapterId === 'cloudflare-agents' &&
-        implementationId === 'typescript-ai-chat-agent-0-10-ai-sdk-7',
-    );
-    expect(failedCloudflareProfile?.currentStatus).toBe('failed');
-    expect(failedCloudflareProfile?.currentAssurance).toBeNull();
+    expect(
+      model.profiles.every(
+        ({ attempts, currentAssurance, currentLatest, currentStatus, latest }) =>
+          attempts.length === 0 &&
+          currentAssurance === null &&
+          currentLatest === null &&
+          currentStatus === 'not-recorded' &&
+          latest === null,
+      ),
+    ).toBe(true);
+    expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
 
     const serializedModel = JSON.stringify(model);
     expect(serializedModel).not.toContain(canonicalRepositoryRoot);
     expect(serializedModel).not.toContain('file://');
   });
 
-  test('does not present a passing adapter attempt with a stale Custom baseline as current', () => {
-    const model = loadQualificationWebsiteModel(canonicalRepositoryRoot);
-    const customProfile = model.profiles.find(({ adapterId }) => adapterId === 'custom');
-    const anthropicProfile = model.profiles.find(({ adapterId }) => adapterId === 'anthropic');
-    const staleDirectAttempt = anthropicProfile?.attempts[0];
+  test('rejects pre-clean-slate medium-reasoning evidence', async () => {
+    const root = createTemporaryRoot();
+    await seedCurrentQualificationAttempt(root, 'medium-attempt');
+    const attempt = readAttemptFixture(root, 'medium-attempt');
+    const provenance = attempt['provenance'];
 
-    if (
-      customProfile === undefined ||
-      anthropicProfile === undefined ||
-      staleDirectAttempt === undefined
-    ) {
-      throw new Error('Canonical qualification evidence is incomplete.');
+    if (typeof provenance !== 'object' || provenance === null) {
+      throw new Error('Missing qualification provenance fixture.');
     }
 
-    const staleProfile = composeQualificationProfile(
-      { ...anthropicProfile, currentLatest: staleDirectAttempt },
-      customProfile,
-    );
+    (provenance as Record<string, unknown>)['reasoningEffort'] = 'medium';
+    writeAttemptFixture(root, 'medium-attempt', attempt);
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
+  });
+
+  test('does not present a passing adapter attempt with a stale Custom baseline as current', async () => {
+    const root = createTemporaryRoot();
+    await seedCurrentQualificationAttempt(root, 'baseline-old');
+    const model = loadQualificationWebsiteModel(root);
+    const customProfile = model.profiles.find(({ adapterId }) => adapterId === 'custom');
+    const boundBaseline = customProfile?.currentLatest;
+
+    if (customProfile === undefined || boundBaseline === null || boundBaseline === undefined) {
+      throw new Error('Synthetic qualification evidence is incomplete.');
+    }
+
+    const currentBaseline = {
+      ...boundBaseline,
+      result: { ...boundBaseline.result, attemptId: 'baseline-current' },
+    };
+    const currentCustomProfile = {
+      ...customProfile,
+      attempts: [boundBaseline, currentBaseline],
+      currentLastPassing: currentBaseline,
+      currentLatest: currentBaseline,
+    };
+    const staleDirectAttempt = {
+      ...boundBaseline,
+      result: {
+        ...boundBaseline.result,
+        attemptId: 'adapter-direct',
+        selection: { adapterId: 'adapter', implementationId: 'implementation' },
+        provenance: {
+          ...boundBaseline.result.provenance,
+          baselineAttemptId: boundBaseline.result.attemptId,
+        },
+      },
+    };
+    const adapterProfile = {
+      ...customProfile,
+      adapterId: 'adapter',
+      attempts: [staleDirectAttempt],
+      boundBaseline: null,
+      cases: [],
+      currentAssurance: null,
+      currentLastPassing: staleDirectAttempt,
+      currentLatest: staleDirectAttempt,
+      implementationId: 'implementation',
+      sharedCases: [],
+    };
+
+    const staleProfile = composeQualificationProfile(adapterProfile, currentCustomProfile);
 
     expect(staleProfile.boundBaseline?.result.attemptId).toBe(
       staleDirectAttempt.result.provenance.baselineAttemptId,
     );
-    expect(staleProfile.boundBaseline).not.toBe(customProfile.currentLatest);
+    expect(staleProfile.boundBaseline).not.toBe(currentCustomProfile.currentLatest);
     expect(staleProfile.currentAssurance).toBeNull();
     expect(staleProfile.currentStatus).toBe('incomplete');
   });

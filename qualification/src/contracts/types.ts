@@ -1122,19 +1122,8 @@ export const QualificationAttemptResultDraftSchema = z.strictObject({
 
 export type IQualificationAttemptResult = z.infer<typeof QualificationAttemptResultDraftSchema>;
 
-// readable evidence history while the current high-reasoning evidence replaces medium attempts
-const QualificationRecordedAttemptResultDraftSchema = QualificationAttemptResultDraftSchema.extend({
-  provenance: QualificationProvenanceSchema.extend({
-    reasoningEffort: z.enum(['high', 'medium']),
-  }),
-});
-
-type IQualificationAttemptResultValidationInput = z.infer<
-  typeof QualificationRecordedAttemptResultDraftSchema
->;
-
 const validateQualificationAttemptResult = (
-  result: IQualificationAttemptResultValidationInput,
+  result: IQualificationAttemptResult,
   context: z.RefinementCtx,
 ): void => {
   if (
@@ -1186,7 +1175,7 @@ const validateQualificationAttemptResult = (
 };
 
 const validateCurrentQualificationAttemptResult = (
-  result: IQualificationAttemptResultValidationInput,
+  result: IQualificationAttemptResult,
   context: z.RefinementCtx,
 ): void => {
   validateQualificationAttemptResult(result, context);
@@ -1248,16 +1237,6 @@ const validateCurrentQualificationAttemptResult = (
 export const QualificationAttemptResultSchema = QualificationAttemptResultDraftSchema.superRefine(
   validateCurrentQualificationAttemptResult,
 );
-
-// complete readable history for the evidence currently being replaced
-export const QualificationRecordedAttemptResultSchema =
-  QualificationRecordedAttemptResultDraftSchema.superRefine(
-    validateCurrentQualificationAttemptResult,
-  );
-
-export type IQualificationRecordedAttemptResult = z.infer<
-  typeof QualificationRecordedAttemptResultSchema
->;
 
 // latest always names the newest attempt while preserving the newest passing baseline separately
 export const QualificationLatestResultSchema = z.strictObject({

@@ -15,10 +15,8 @@ import {
 import {
   QualificationAttemptResultSchema,
   QualificationLatestResultSchema,
-  QualificationRecordedAttemptResultSchema,
   QualificationRecordedLatestResultSchema,
   type IQualificationAttemptResult,
-  type IQualificationRecordedAttemptResult,
   type IQualificationRecordedLatestResult,
 } from '../contracts/index.ts';
 import { createQualificationCompatibilityIdentity } from '../evidence-identity/index.ts';
@@ -152,7 +150,7 @@ const writeSanitizedArtifacts = async (
 const readRecordedAttempts = async (
   targetRoot: string,
   expectedSelection: { adapterId: string; implementationId: string },
-): Promise<IQualificationRecordedAttemptResult[]> => {
+): Promise<IQualificationAttemptResult[]> => {
   const attemptsRoot = path.join(targetRoot, 'attempts');
 
   if (!(await pathExists(attemptsRoot))) {
@@ -160,7 +158,7 @@ const readRecordedAttempts = async (
   }
 
   const entries = await readdir(attemptsRoot, { withFileTypes: true });
-  const attempts: IQualificationRecordedAttemptResult[] = [];
+  const attempts: IQualificationAttemptResult[] = [];
 
   for (const entry of entries) {
     if (!entry.isDirectory() || !/^a-[a-f0-9]{32}$/u.test(entry.name)) {
@@ -170,7 +168,7 @@ const readRecordedAttempts = async (
     const attemptDirectory = path.join(attemptsRoot, entry.name);
     const result = await readJsonFile(
       path.join(attemptDirectory, 'attempt.json'),
-      QualificationRecordedAttemptResultSchema,
+      QualificationAttemptResultSchema,
     );
 
     if (
@@ -349,7 +347,7 @@ export const recordQualificationResult = async (
 
 const verifyAttemptArtifacts = async (
   attemptDirectory: string,
-  result: IQualificationRecordedAttemptResult,
+  result: IQualificationAttemptResult,
   issues: IQualificationResultVerificationIssue[],
   resultsRoot: string,
 ): Promise<void> => {

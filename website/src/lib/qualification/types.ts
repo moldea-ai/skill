@@ -237,10 +237,8 @@ const CandidatePackageSchema = z.object({
   sha256: Sha256Schema,
 });
 
-// recorded evidence remains readable until the final high-only corpus replaces it
-const QualificationRecordedReasoningEffortSchema = z.enum(['high', 'medium']);
 const QualificationProvenanceShape = {
-  reasoningEffort: QualificationRecordedReasoningEffortSchema,
+  reasoningEffort: z.literal('high'),
   codexVersion: z.string().trim().min(1),
   nodeVersion: z.string().trim().min(1),
   pnpmVersion: z.string().trim().min(1),
@@ -865,7 +863,7 @@ export interface IQualificationProfileModel {
   currentStatus: IQualificationStatus | 'not-recorded';
   description: string;
   implementationId: string;
-  inheritedCases: IQualificationProfileCaseModel[];
+  sharedCases: IQualificationProfileCaseModel[];
   latest: IQualificationLatestResult | null;
   probes: z.infer<typeof QualificationProbesSchema>['probes'];
   probesSourceUrl: string;

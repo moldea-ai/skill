@@ -17,7 +17,7 @@ vi.mock('../qualification/index.ts', () => {
           currentStatus: 'not-recorded',
           description: 'Exercises universal behavior.',
           implementationId: 'custom',
-          inheritedCases: [],
+          sharedCases: [],
           latest: {
             adapterId: 'custom',
             implementationId: 'custom',

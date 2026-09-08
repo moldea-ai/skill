@@ -892,7 +892,7 @@ const loadProfile = (
     currentStatus: currentAttemptModels.at(-1)?.result.status ?? 'not-recorded',
     description: profile.description,
     implementationId: profile.implementationId,
-    inheritedCases: [],
+    sharedCases: [],
     latest,
     probes: probes.probes,
     probesSourceUrl: createSourceUrl(getRepositoryRelativePath(repositoryRoot, probesPath)),
@@ -949,7 +949,7 @@ export const composeQualificationProfile = (
     boundBaseline,
     currentAssurance,
     currentStatus,
-    inheritedCases: customProfile.cases,
+    sharedCases: customProfile.cases,
   };
 };
 
@@ -1070,10 +1070,10 @@ export const assertPublishableQualificationEvidence = (
       profile.currentAssurance !== null &&
       (profile.currentAssurance.baselineAttempt !== profile.boundBaseline ||
         profile.currentAssurance.directAttempt !== profile.currentLatest ||
-        profile.inheritedCases.length === 0)
+        profile.sharedCases.length === 0)
     ) {
       throw new Error(
-        `Qualification profile ${profile.adapterId}/${profile.implementationId} has invalid inherited assurance evidence.`,
+        `Qualification profile ${profile.adapterId}/${profile.implementationId} has invalid shared Custom assurance evidence.`,
       );
     }
   }

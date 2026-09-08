@@ -68,6 +68,7 @@ import {
   sanitizeEvidenceValue,
 } from '../result/index.ts';
 import { getLocalAttemptDirectory } from './attempts.ts';
+import { cleanupQualificationAttemptRuntime } from './attempt-runtime.ts';
 import {
   calculatePackagesQualificationDigest,
   calculateQualificationExecutionDigest,
@@ -556,6 +557,7 @@ export const runQualification = async (
         summary:
           'Qualification stopped before candidate construction because official evidence requires clean source inputs and the trusted execution-host boundary.',
       });
+      checkpoint = finalState.checkpoint;
 
       const wasRecorded = checkpoint.mode === 'official';
       const result = wasRecorded
@@ -608,6 +610,7 @@ export const runQualification = async (
         summary:
           'Qualification failed because the profile does not cover the current matrix claims.',
       });
+      checkpoint = finalState.checkpoint;
       const wasRecorded = checkpoint.mode === 'official';
       let result = finalState.result;
 
@@ -715,6 +718,7 @@ export const runQualification = async (
         status: 'failed',
         summary: `Qualification stopped because its Custom baseline is unavailable or incompatible: ${baseline.failures.join(' ')}`,
       });
+      checkpoint = finalState.checkpoint;
       const wasRecorded = checkpoint.mode === 'official';
       let result = finalState.result;
 
@@ -1345,6 +1349,7 @@ export const runQualification = async (
                 ? `Qualification passed with ${recoveredCaseCount} recovered case(s).`
                 : 'Qualification passed every deterministic and semantic case.',
     });
+    checkpoint = finalState.checkpoint;
     const wasRecorded = checkpoint.mode === 'official';
     let result = finalState.result;
 
@@ -1411,6 +1416,7 @@ export const runQualification = async (
           : 'Qualification was interrupted and can be resumed from its last atomic checkpoint.'
         : `Qualification stopped with an execution error: ${safeError}`,
     });
+    checkpoint = finalState.checkpoint;
     const wasRecorded = checkpoint.mode === 'official' && !isInterrupted;
     let result = finalState.result;
 
@@ -1426,5 +1432,11 @@ export const runQualification = async (
     }
 
     return { attemptDirectory, result, wasRecorded };
+  } finally {
+    await cleanupQualificationAttemptRuntime(
+      attemptDirectory,
+      (checkpoint.status === 'incomplete' || checkpoint.status === 'running') &&
+        checkpoint.recordedAt === null,
+    );
   }
 };

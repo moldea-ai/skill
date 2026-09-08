@@ -309,7 +309,7 @@ export const validateModelStageCalibrationArtifact = (input) => {
     'model-stage calibration artifact',
   );
   if (
-    artifact.schemaVersion !== 2 ||
+    artifact.schemaVersion !== 3 ||
     artifact.minimumHeadroomPercent !== CALIBRATION_MINIMUM_HEADROOM_PERCENT
   ) {
     throw new Error('The model-stage calibration contract version or headroom is unsupported.');
@@ -328,7 +328,7 @@ export const validateModelStageCalibrationArtifact = (input) => {
   );
   const commandOutputQualificationAttempt = requireRecord(
     artifact.commandOutputQualificationAttempt,
-    ['id', 'sha256', 'targetKey'],
+    ['id', 'sha256'],
     'model-stage calibration commandOutputQualificationAttempt',
   );
   requireAttemptId(
@@ -339,11 +339,6 @@ export const validateModelStageCalibrationArtifact = (input) => {
     commandOutputQualificationAttempt.sha256,
     'model-stage calibration commandOutputQualificationAttempt.sha256',
   );
-  if (!/^t[1-9][0-9]*$/u.test(commandOutputQualificationAttempt.targetKey)) {
-    throw new Error(
-      'model-stage calibration commandOutputQualificationAttempt.targetKey must be a qualification target key.',
-    );
-  }
   requireSha256(
     artifact.commandOutputObservationsSha256,
     'model-stage calibration commandOutputObservationsSha256',

@@ -29,7 +29,7 @@ const FAILED_BASELINE_RESULT = {
   summary: 'Qualification stopped because its Custom baseline is incompatible.',
   provenance: {
     model: 'gpt-5.6-sol',
-    reasoningEffort: 'medium',
+    reasoningEffort: 'high',
     codexVersion: 'codex-cli test',
     nodeVersion: 'v24.15.0',
     pnpmVersion: '11.9.0',

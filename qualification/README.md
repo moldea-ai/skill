@@ -23,7 +23,7 @@ Every non-Custom profile owns only adapter-specific probes and cases. The profil
 
 The index at `profiles/index.yaml` declares 14 current targets: Custom and 13 published adapter implementations.
 
-This produces 38 unique executions: 12 universal Custom projects and 26 direct adapter projects. Public evidence for an adapter composes its exact bound Custom attempt with its 2 direct projects, showing 12 inherited plus 2 direct journeys without claiming that the universal projects ran again. The effective adapter status passes only when the direct attempt and its bound Custom attempt are both current and passing.
+This produces 38 unique executions: 12 universal Custom projects and 26 direct adapter projects. Public evidence for an adapter composes its exact bound Custom attempt with its 2 direct projects, showing 12 shared plus 2 direct journeys without claiming that the universal projects ran again. The effective adapter status passes only when the direct attempt and its bound Custom attempt are both current and passing.
 
 ## Deterministic boundary
 
@@ -66,7 +66,7 @@ Protocol 8 classifies actual operations instead of matching security vocabulary 
 
 The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,144 bytes of aggregate `moldea` output. It also requires exact or bounded host discovery that excludes dependency, VCS, generated, cache, and package-store trees. Large repositories remain supported through paginated metadata and explicit content chunks. A budget failure states which observed value exceeded which limit; it never silently truncates evidence into an apparently valid result.
 
-`fixtures/model-stage-resource-calibration.json` preserves calibration inputs without transcripts. Its strict source-controlled shape contains trial and evidence identity, pass states, aggregate counts, and input, cached-input, output, and total token categories. It separately records the 76,312-byte deterministic/workspace-valid command-output observation accepted for calibration and the 449,948-byte dump that remains rejected. `npm run resource:check` verifies their digests, internal arithmetic, output safety, containment, and minimum profile headroom.
+`fixtures/model-stage-resource-calibration.json` preserves self-contained safety-calibration inputs without transcripts or an active result-directory dependency. It is not current qualification assurance. Its strict source-controlled shape contains trial and evidence identity, pass states, aggregate counts, and input, cached-input, output, and total token categories. It separately records the 76,312-byte deterministic/workspace-valid command-output observation accepted for calibration and the 449,948-byte dump that remains rejected. `npm run resource:check` verifies their digests, internal arithmetic, output safety, containment, and minimum profile headroom.
 
 ## Current-only evidence
 
@@ -145,7 +145,7 @@ npm run qualification -- verify
 
 Use `--json` for machine-readable output. `status` returns only content-free attempt and latest-result metadata. Its default scope contains unrecorded incomplete attempts, unavailable checkpoint summaries, and committed latest pointers; `--all` selects complete local history. Each page contains at most 64 records and 65,536 UTF-8 bytes. Continue with the returned opaque cursor and the same scope options. A cursor is bound to the exact summary snapshot and is rejected after the selected status state changes. Complete checkpoints, candidates, package manifests, stages, prompts, workspace paths, commands, model output, and repository content are never included.
 
-Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in attempt storage for explicit inspection. Paid `run`, `diagnose`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first uncached model call. Cache hits and the model-free dry run require no paid confirmation.
+Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in bounded attempt storage for explicit inspection. Terminal attempts remove disposable workspaces, installed runtime trees, snapshots, and attempt-local package stores. Interrupted attempts preserve internal snapshots only while they remain eligible for explicit resume. Paid `run`, `diagnose`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first uncached model call. Cache hits and the model-free dry run require no paid confirmation.
 
 Immediately before paid execution, the CLI reports planned stages, the maximum including one bounded operational retry per stage, the 2,097,152-token stage ceiling, and its aggregate maximum. The ceiling contains a complete tool-using Codex stage and is not a consumption target. It retains more than 25 percent headroom above the observed 1,264,666-token qualification stage that invalidated the earlier ceiling. Token totals count input plus output while reporting cached input separately without adding it twice.
 
@@ -173,7 +173,7 @@ The packages repository contributes only the immutable `HEAD:compatibility/runti
 
 `results/<target-key>/attempts/a-<digest>/` contains the current attempt and numbered artifacts. `storage.json` binds logical artifact paths to physical files and verifies every SHA-256 digest. `latest.json` points to the latest attempt and current passing attempt when one exists.
 
-Current protocol-8 attempts are revalidated against the profile, probes, scenarios, and resource calibration stored at their recorded qualification source commit. Inactive diagnostic attempts that predate the final protocol-8 field set are retained unchanged under `diagnostics/`; they are not current evidence and no compatibility reader interprets them.
+Current protocol-8 attempts are revalidated against the profile, probes, scenarios, and resource calibration stored at their recorded qualification source commit. Earlier attempts remain available only through Git history; active source and local runtime storage contain no compatibility corpus or reader.
 
 Fresh release verification reads only this current storage. Every indexed target must have one compatible passing attempt. An explicit release evidence pin instead validates the original immutable source tag and its compact artifact manifests without copying source attempts into the new release.
 

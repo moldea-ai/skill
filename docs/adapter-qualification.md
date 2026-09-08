@@ -18,7 +18,7 @@ Each published adapter profile owns only its adapter-specific probes and repair 
 
 The profile index contains 14 current targets: Custom plus 13 published adapter implementations.
 
-The suite therefore executes 38 unique projects: 12 universal Custom projects plus 2 direct projects for each adapter. Public evidence composes the exact current passing Custom attempt bound by an adapter attempt with that adapter's 2 direct projects. An adapter page reports 14 effective journeys, split into 12 inherited and 2 direct, only while both attempts are current and passing. A missing, stale, failed, or mismatched baseline leaves the effective result incomplete or failed instead of presenting a false pass.
+The suite therefore executes 38 unique projects: 12 universal Custom projects plus 2 direct projects for each adapter. Public evidence composes the exact current passing Custom attempt bound by an adapter attempt with that adapter's 2 direct projects. An adapter page reports 14 effective journeys, split into 12 shared and 2 direct, only while both attempts are current and passing. A missing, stale, failed, or mismatched baseline leaves the effective result incomplete or failed instead of presenting a false pass.
 
 ## What one case exercises
 
@@ -52,7 +52,7 @@ Every scenario declares `ordinary` or `largeTraversal`. Both profiles permit at 
 
 The profile token limits contain a complete tool-using Codex stage rather than one internal model turn, and they are not consumption targets. Before the first uncached model call, the CLI reports the planned stages, the maximum stages including one operational retry per stage, the 2,097,152-token absolute ceiling per stage, and the corresponding aggregate maximum. The selected scenario profile is enforced against every completed actor and judge stage in the final verdict. Cached input remains visible in evidence but is not added to input a second time.
 
-The operating limits and higher absolute ceilings are imported from the same source-controlled profile used by semantic evaluation and host execution. Deterministic boundary tests prove exact acceptance and over-limit failure for every dimension. The deterministic calibration corpus measures CLI and repository-operation behavior. Accepted qualification trials are the authority for complete model-stage consumption; duration and memory remain diagnostic observations. The strict `fixtures/model-stage-resource-calibration.json` artifact retains only trial identity, evidence digests, pass states, aggregate counts, and token categories. It excludes commands, paths, prompts, output bodies, repository content, credentials, and hidden reasoning.
+The operating limits and higher absolute ceilings are imported from the same source-controlled profile used by semantic evaluation and host execution. Deterministic boundary tests prove exact acceptance and over-limit failure for every dimension. The deterministic calibration corpus measures CLI and repository-operation behavior. Accepted qualification trials are the authority for complete model-stage consumption; duration and memory remain diagnostic observations. The strict `fixtures/model-stage-resource-calibration.json` artifact is a self-contained safety-calibration record, not current qualification assurance. It retains only trial identity, evidence digests, pass states, aggregate counts, and token categories, without loading an active result directory. It excludes commands, paths, prompts, output bodies, repository content, credentials, and hidden reasoning.
 
 Qualification results retain these numeric aggregates but never raw command text, raw command output, credentials, hidden reasoning, or arbitrary workspace content.
 
@@ -71,7 +71,7 @@ Qualification protocol 8 accepts only evidence matching the current:
 - Custom baseline relationship
 - scenario resource profile and privacy-safe command-policy reason counts
 
-Every current target must have a fresh passing attempt for its exact current inputs. Active protocol-8 history is revalidated against the contracts at each attempt's recorded source commit. Protocol-7 and pre-final-field diagnostic attempts remain outside active loading and release selection; there is no compatibility reader or converter.
+Every current target must have a fresh passing attempt for its exact current inputs. Active protocol-8 history is revalidated against the contracts at each attempt's recorded source commit. Attempts from earlier protocols, incomplete field sets, or other reasoning efforts remain available only through Git history; there is no compatibility reader or converter.
 
 This is the normal release path. An explicit release evidence pin may reuse the original passing qualification evidence from an earlier immutable release when a maintainer has established that the new release does not affect evaluated behavior. The pin is disclosed publicly and does not relabel the source attempt as current. See [Release evidence](/docs/release-evidence/).
 
@@ -105,7 +105,7 @@ npm run qualification:lint
 npm run qualification:format:check
 ```
 
-Machine-readable run output is intentionally compact: it reports terminal case states, counts, and the checkpoint directory. Complete evidence stays in attempt storage and is loaded only when a human or tool explicitly inspects it.
+Machine-readable run output is intentionally compact: it reports terminal case states, counts, and the checkpoint directory. Complete evidence stays in bounded attempt storage and is loaded only when a human or tool explicitly inspects it. Terminal runs remove disposable workspaces, installed runtime trees, snapshots, and attempt-local package stores. Interrupted runs preserve only the state required for explicit resume.
 
 Machine-readable `status` output is a separate content-free contract. The default scope contains unrecorded incomplete attempts, unavailable checkpoint summaries, and committed latest pointers; `--all` selects complete local history. A page contains at most 64 records and 65,536 UTF-8 bytes. Its opaque continuation cursor is bound to the exact summary snapshot and must be restarted when that snapshot changes. Each checkpoint write maintains a separate 8,192-byte-bounded status sidecar. Status reads only that sidecar and checkpoint file metadata, so checkpoint bodies, candidates, manifests, stages, prompts, workspace paths, commands, model output, and repository content never enter status inspection or its output. Missing or invalid sidecars remain unavailable rather than activating a legacy checkpoint reader.
 

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
@@ -130,11 +130,15 @@ describe('qualification incomplete attempt recording', () => {
       attemptDirectory,
       attemptId,
     });
+    await ensureDirectory(path.join(attemptDirectory, 'internal'));
+    await ensureDirectory(path.join(attemptDirectory, 'workspaces'));
 
     const recordedResult = await recordIncompleteAttempt(attemptId, resultsRoot);
 
     expect(recordedResult.status).toBe('incomplete');
     expect((await readAttemptCheckpoint(attemptDirectory)).recordedAt).not.toBeNull();
+    await expect(access(path.join(attemptDirectory, 'internal'))).rejects.toThrow();
+    await expect(access(path.join(attemptDirectory, 'workspaces'))).rejects.toThrow();
     expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
       passed: true,
       attempts: 1,
@@ -151,11 +155,15 @@ describe('qualification incomplete attempt recording', () => {
       attemptId,
       hasMalformedArtifact: true,
     });
+    await ensureDirectory(path.join(attemptDirectory, 'internal'));
+    await ensureDirectory(path.join(attemptDirectory, 'runtime'));
 
     await expect(
       recordIncompleteAttempt(attemptId, path.join(temporaryRoot, 'results')),
     ).rejects.toThrow();
     expect((await readAttemptCheckpoint(attemptDirectory)).recordedAt).not.toBeNull();
+    await expect(access(path.join(attemptDirectory, 'internal'))).rejects.toThrow();
+    await expect(access(path.join(attemptDirectory, 'runtime'))).rejects.toThrow();
   });
 
   test('rejects diagnostic attempts before public recording', async () => {

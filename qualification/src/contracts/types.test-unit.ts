@@ -5,6 +5,7 @@ import {
   QualificationCaseResultSchema,
   QualificationCaseScenarioSchema,
   QualificationCommandPolicyEvidenceSchema,
+  QualificationExecutionEnvironmentSchema,
   ModelUsageSchema,
   QualificationProfileSchema,
   QualificationStageCheckpointSchema,
@@ -55,6 +56,29 @@ const createScenario = (pathPattern: string) => ({
       evaluation: { kind: 'runner', checks: ['workspace-assertions'] },
     },
   ],
+});
+
+test('accepts only high reasoning for current qualification execution', () => {
+  const environment = {
+    model: 'gpt-5.6-sol',
+    reasoningEffort: 'high',
+    codexVersion: 'codex-cli test',
+    nodeVersion: process.version,
+    pnpmVersion: '11.9.0',
+    gitVersion: 'git version test',
+    allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
+    hostTimeoutMs: 600_000,
+    modelEndpoint: null,
+    sslCertificateFileSha256: null,
+  };
+
+  expect(QualificationExecutionEnvironmentSchema.safeParse(environment).success).toBe(true);
+  expect(
+    QualificationExecutionEnvironmentSchema.safeParse({
+      ...environment,
+      reasoningEffort: 'medium',
+    }).success,
+  ).toBe(false);
 });
 
 test('validates model usage structure independently from source-committed resource profiles', () => {

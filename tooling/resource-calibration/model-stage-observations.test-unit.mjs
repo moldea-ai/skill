@@ -111,13 +111,6 @@ test('rejects unapproved content fields and invalid evidence identity', async ()
     () => validateModelStageCalibrationArtifact(artifactWithInvalidCommandOutputIdentity),
     /must be a SHA-256 digest/u,
   );
-
-  const artifactWithInvalidCommandOutputTarget = await readArtifact();
-  artifactWithInvalidCommandOutputTarget.commandOutputQualificationAttempt.targetKey = '../t5';
-  assert.throws(
-    () => validateModelStageCalibrationArtifact(artifactWithInvalidCommandOutputTarget),
-    /must be a qualification target key/u,
-  );
 });
 
 test('requires internally consistent token categories', async () => {

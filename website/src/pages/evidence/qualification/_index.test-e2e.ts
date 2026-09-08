@@ -40,7 +40,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
       String(profile.attempts.length),
     );
     await expect(profileLink.getByText('Journeys', { exact: true }).locator('..')).toContainText(
-      String(profile.inheritedCases.length + profile.cases.length),
+      String(profile.sharedCases.length + profile.cases.length),
     );
   }
 
@@ -174,7 +174,7 @@ test('presents profile definitions and the exact current evidence state', async 
     await expect(page.getByRole('heading', { level: 1, name: profile.title })).toBeVisible();
     await expect(
       page.getByRole('heading', {
-        name: `${profile.inheritedCases.length + profile.cases.length} realistic journey${profile.inheritedCases.length + profile.cases.length === 1 ? '' : 's'}`,
+        name: `${profile.sharedCases.length + profile.cases.length} realistic journey${profile.sharedCases.length + profile.cases.length === 1 ? '' : 's'}`,
       }),
     ).toBeVisible();
     await expect(page.locator('[data-evidence-status]').first()).toHaveAttribute(
@@ -186,8 +186,8 @@ test('presents profile definitions and the exact current evidence state', async 
         profile.cases.length,
       );
     } else {
-      await expect(page.getByText('Inherited Custom baseline', { exact: true })).toHaveCount(
-        profile.inheritedCases.length,
+      await expect(page.getByText('Shared Custom baseline', { exact: true })).toHaveCount(
+        profile.sharedCases.length,
       );
       await expect(page.getByText('Direct adapter project', { exact: true })).toHaveCount(
         profile.cases.length,

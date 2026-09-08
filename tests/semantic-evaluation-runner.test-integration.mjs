@@ -347,7 +347,7 @@ test('one complete fake-host batch collects all 74 semantic failures before retu
   }
 });
 
-test('preflight reuses only exact current high stages', () => {
+test('preflight reuses every exact current high stage', () => {
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
   const hostCommand = createFakeCodexHost(hostRoot, true, 'codex-cli 0.153.4');
   const beforeCandidate = readCandidateState();
@@ -374,15 +374,10 @@ test('preflight reuses only exact current high stages', () => {
       result.stderr.slice(result.stderr.indexOf('{'), result.stderr.lastIndexOf('}') + 1),
     );
     assert.equal(estimate.caseCount, 74);
-    assert.equal(estimate.reusedCaseCount, 70);
-    assert.equal(estimate.reusedStageCount, 156);
-    assert.equal(estimate.paidInitialStageCount, 8);
-    assert.deepEqual(estimate.paidCaseIds, [
-      'initialize-insufficient-context',
-      'dedicated-repository-single-side-change',
-      'plan-runtime-inventory-insufficient-evidence',
-      'dedicated-repository-runtime-selection',
-    ]);
+    assert.equal(estimate.reusedCaseCount, 74);
+    assert.equal(estimate.reusedStageCount, 164);
+    assert.equal(estimate.paidInitialStageCount, 0);
+    assert.deepEqual(estimate.paidCaseIds, []);
     assert.equal(readCandidateState(), beforeCandidate);
     assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
   } finally {

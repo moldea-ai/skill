@@ -2,10 +2,7 @@ import { Buffer } from 'node:buffer';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
-import type {
-  IQualificationAttemptResult,
-  IQualificationRecordedAttemptResult,
-} from '../contracts/index.ts';
+import type { IQualificationAttemptResult } from '../contracts/index.ts';
 import {
   calculateFileSha256,
   calculateSha256,
@@ -112,7 +109,7 @@ export const resolveQualificationArtifactPath = (
 /** Verifies manifest identity, containment, artifact inventory, and exact stored bytes. */
 export const verifyQualificationAttemptStorage = async (options: {
   attemptDirectory: string;
-  result: IQualificationRecordedAttemptResult;
+  result: IQualificationAttemptResult;
   storage?: IQualificationAttemptStorage;
 }): Promise<IQualificationAttemptStorage> => {
   const storage =

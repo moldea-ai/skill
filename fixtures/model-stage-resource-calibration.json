@@ -1,13 +1,12 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "qualificationAttempt": {
     "id": "20260906T001339470Z-custom-custom-a5849f5a",
     "sha256": "b140be764f6c12c6ca897ae56936676507f2110d6b1a3fdbd72b1c90764089a6"
   },
   "commandOutputQualificationAttempt": {
     "id": "20260906T020821962Z-custom-custom-a87c791d",
-    "sha256": "7b65e60942d076c735ef6e103a12d515dab292036bda854e588f9d8e7a9d4097",
-    "targetKey": "t5"
+    "sha256": "7b65e60942d076c735ef6e103a12d515dab292036bda854e588f9d8e7a9d4097"
   },
   "commandOutputObservations": [
     {

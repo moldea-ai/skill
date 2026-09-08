@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test, vi } from 'vitest';
@@ -47,6 +47,10 @@ const emptyCommandPolicy: IQualificationCommandPolicyEvidence = {
     indeterminateCount: 0,
     reasons: [],
   },
+};
+
+const expectPathToBeMissing = async (candidatePath: string): Promise<void> => {
+  await expect(access(candidatePath)).rejects.toThrow();
 };
 
 describe('qualification execution', () => {
@@ -147,6 +151,9 @@ describe('qualification execution', () => {
       requiresCleanInputs: true,
       skillRepositoryDirty: true,
     });
+    for (const relativeDirectory of ['internal', 'pnpm-store', 'runtime', 'workspaces']) {
+      await expectPathToBeMissing(path.join(outcome.attemptDirectory, relativeDirectory));
+    }
     expect(
       await readJsonFile(
         path.join(
@@ -269,6 +276,12 @@ describe('qualification execution', () => {
         ({ id }) => id === 'case:initialize-grounded-project:trial:initial:actor',
       )?.status,
     ).toBe('pending');
+    await access(path.join(interruptedOutcome.attemptDirectory, 'internal'));
+    for (const relativeDirectory of ['pnpm-store', 'runtime', 'workspaces']) {
+      await expectPathToBeMissing(
+        path.join(interruptedOutcome.attemptDirectory, relativeDirectory),
+      );
+    }
 
     let resumedActorCalls = 0;
     let resumedJudgeCalls = 0;
@@ -319,6 +332,9 @@ describe('qualification execution', () => {
     expect(resumedOutcome.wasRecorded).toBe(false);
     expect(resumedActorCalls).toBe(11);
     expect(resumedJudgeCalls).toBe(0);
+    for (const relativeDirectory of ['internal', 'pnpm-store', 'runtime', 'workspaces']) {
+      await expectPathToBeMissing(path.join(resumedOutcome.attemptDirectory, relativeDirectory));
+    }
 
     await rm(interruptedOutcome.attemptDirectory, { force: true, recursive: true });
     await copyDirectory(attemptBackup, interruptedOutcome.attemptDirectory);

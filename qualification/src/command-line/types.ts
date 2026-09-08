@@ -1,4 +1,5 @@
 import type { IQualificationSelection } from '../contracts/index.ts';
+import type { IQualificationDiagnosticSelectorInput } from '../diagnostic-batch/index.ts';
 
 export type IQualificationCommand =
   | {
@@ -7,7 +8,17 @@ export type IQualificationCommand =
       caseId: string;
       packagesRepository?: string;
       skillRepository?: string;
-      useCache: boolean;
+      hasConfirmedPaidExecution: boolean;
+      isJson: boolean;
+    }
+  | {
+      kind: 'diagnose-batch';
+      selection: IQualificationSelection;
+      selector: IQualificationDiagnosticSelectorInput;
+      packagesRepository?: string;
+      skillRepository?: string;
+      restart: boolean;
+      resumeStoppedStage: boolean;
       hasConfirmedPaidExecution: boolean;
       isJson: boolean;
     }
@@ -21,6 +32,7 @@ export type IQualificationCommand =
       kind: 'resume';
       attemptId: string;
       hasConfirmedPaidExecution: boolean;
+      resumeStoppedStage: boolean;
       isJson: boolean;
     }
   | {
@@ -35,7 +47,7 @@ export type IQualificationCommand =
       packagesRepository?: string;
       skillRepository?: string;
       isDryRun: boolean;
-      useCache: boolean;
+      reuseEvidence: boolean;
       hasConfirmedPaidExecution: boolean;
       isJson: boolean;
     }

@@ -362,7 +362,11 @@ const getArtifactLabel = (artifactPath: string): string =>
                 </time>
               </dd>
               <dd class="mt-2 font-mono text-xs break-all">
-                {result.actorCacheSourceAttemptId ?? 'Fresh evidence'}
+                {
+                  result.actorReuseSourceAttemptId === null
+                    ? 'Direct evidence'
+                    : `Reused from ${result.actorReuseSourceAttemptId}`
+                }
               </dd>
               <dd class="mt-1 text-xs text-muted-foreground">
                 Tokens / limit:{' '}
@@ -402,8 +406,11 @@ const getArtifactLabel = (artifactPath: string): string =>
               </dd>
               <dd class="mt-2 font-mono text-xs break-all">
                 {
-                  result.judgeCacheSourceAttemptId ??
-                    (judge === null ? 'Skipped' : 'Fresh evidence')
+                  result.judgeReuseSourceAttemptId === null
+                    ? judge === null
+                      ? 'Skipped'
+                      : 'Direct evidence'
+                    : `Reused from ${result.judgeReuseSourceAttemptId}`
                 }
               </dd>
               <dd class="mt-1 text-xs text-muted-foreground">

@@ -126,8 +126,8 @@ const seedFreshEvidence = (
   const qualificationAttemptKey = createQualificationAttemptKey(qualificationAttemptId);
   const qualificationAttemptRoot = `qualification/results/t1/attempts/${qualificationAttemptKey}`;
   const actorEvidence = `${JSON.stringify({
-    cacheKey: '0'.repeat(64),
-    cacheSourceAttemptId: null,
+    stageIdentity: '0'.repeat(64),
+    reuseSourceAttemptId: null,
     commandPolicy: {
       completedCommandCount: 1,
       credentialExposure: { observedCount: 0, reasons: [], status: 'not-observed' },

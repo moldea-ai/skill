@@ -63,6 +63,7 @@ describe('qualification execution provenance', () => {
       }),
     ).toStrictEqual({
       ...executionEnvironment,
+      candidateFingerprint: null,
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'a'.repeat(64),
       packagesRepositoryDirty: false,

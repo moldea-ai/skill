@@ -773,27 +773,27 @@ cases:
       recoveredCase?.trials.map(({ result: trial }) => ({
         trialId: trial.trialId,
         passed: trial.passed,
-        actorCacheSourceAttemptId: trial.actorCacheSourceAttemptId,
-        judgeCacheSourceAttemptId: trial.judgeCacheSourceAttemptId,
+        actorReuseSourceAttemptId: trial.actorReuseSourceAttemptId,
+        judgeReuseSourceAttemptId: trial.judgeReuseSourceAttemptId,
       })),
     ).toStrictEqual([
       {
         trialId: 'initial',
         passed: false,
-        actorCacheSourceAttemptId: null,
-        judgeCacheSourceAttemptId: null,
+        actorReuseSourceAttemptId: null,
+        judgeReuseSourceAttemptId: null,
       },
       {
         trialId: 'confirmation-1',
         passed: true,
-        actorCacheSourceAttemptId: null,
-        judgeCacheSourceAttemptId: null,
+        actorReuseSourceAttemptId: null,
+        judgeReuseSourceAttemptId: null,
       },
       {
         trialId: 'confirmation-2',
         passed: true,
-        actorCacheSourceAttemptId: null,
-        judgeCacheSourceAttemptId: null,
+        actorReuseSourceAttemptId: null,
+        judgeReuseSourceAttemptId: null,
       },
     ]);
     expect(recoveredCase?.trials.map(({ workspacePatch }) => workspacePatch.content)).toStrictEqual(

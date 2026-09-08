@@ -4,17 +4,22 @@ const VALUE_OPTIONS = new Set([
   '--adapter',
   '--attempt',
   '--case',
+  '--cases',
+  '--claims',
   '--cursor',
   '--implementation',
   '--packages-repository',
   '--skill-repository',
+  '--unresolved-from',
 ]);
 const BOOLEAN_OPTIONS = new Set([
   '--all',
   '--confirm-paid-execution',
   '--dry-run',
   '--json',
-  '--no-cache',
+  '--no-reuse',
+  '--restart',
+  '--resume-stopped-stage',
 ]);
 
 type IParsedOptions = {
@@ -114,10 +119,21 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
       rejectOptions(options, new Set(['--attempt', '--json']));
       return { kind: 'record', attemptId: requireValue(options, '--attempt'), isJson };
     case 'resume':
+      rejectOptions(
+        options,
+        new Set(['--attempt', '--confirm-paid-execution', '--json', '--resume-stopped-stage']),
+      );
+      return {
+        kind: 'resume',
+        attemptId: requireValue(options, '--attempt'),
+        hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
+        resumeStoppedStage: options.booleans.has('--resume-stopped-stage'),
+        isJson,
+      };
     case 'retry':
       rejectOptions(options, new Set(['--attempt', '--confirm-paid-execution', '--json']));
       return {
-        kind: commandName,
+        kind: 'retry',
         attemptId: requireValue(options, '--attempt'),
         hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
         isJson,
@@ -131,7 +147,7 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           '--dry-run',
           '--implementation',
           '--json',
-          '--no-cache',
+          '--no-reuse',
           '--packages-repository',
           '--skill-repository',
         ]),
@@ -149,7 +165,7 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           ? { skillRepository: requireValue(options, '--skill-repository') }
           : {}),
         isDryRun: options.booleans.has('--dry-run'),
-        useCache: !options.booleans.has('--no-cache'),
+        reuseEvidence: !options.booleans.has('--no-reuse'),
         hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
         isJson,
       };
@@ -162,7 +178,6 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           '--confirm-paid-execution',
           '--implementation',
           '--json',
-          '--no-cache',
           '--packages-repository',
           '--skill-repository',
         ]),
@@ -180,10 +195,73 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
         ...(options.values.has('--skill-repository')
           ? { skillRepository: requireValue(options, '--skill-repository') }
           : {}),
-        useCache: !options.booleans.has('--no-cache'),
         hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
         isJson,
       };
+    case 'diagnose-batch': {
+      rejectOptions(
+        options,
+        new Set([
+          '--adapter',
+          '--all',
+          '--cases',
+          '--claims',
+          '--confirm-paid-execution',
+          '--implementation',
+          '--json',
+          '--packages-repository',
+          '--restart',
+          '--resume-stopped-stage',
+          '--skill-repository',
+          '--unresolved-from',
+        ]),
+      );
+      if (options.booleans.has('--restart') && options.booleans.has('--resume-stopped-stage')) {
+        throw new Error('--restart and --resume-stopped-stage cannot be combined.');
+      }
+      const selectors = [
+        ...(options.booleans.has('--all') ? [{ kind: 'all' as const, value: null }] : []),
+        ...(options.values.has('--cases')
+          ? [{ kind: 'cases' as const, value: requireValue(options, '--cases') }]
+          : []),
+        ...(options.values.has('--claims')
+          ? [{ kind: 'claims' as const, value: requireValue(options, '--claims') }]
+          : []),
+        ...(options.values.has('--unresolved-from')
+          ? [
+              {
+                kind: 'unresolved-from' as const,
+                value: requireValue(options, '--unresolved-from'),
+              },
+            ]
+          : []),
+      ];
+      if (selectors.length !== 1) {
+        throw new Error('diagnose-batch requires exactly one diagnostic selector.');
+      }
+      const selector = selectors[0];
+      if (selector === undefined) {
+        throw new Error('diagnose-batch requires exactly one diagnostic selector.');
+      }
+      return {
+        kind: 'diagnose-batch',
+        selection: {
+          adapterId: requireValue(options, '--adapter'),
+          implementationId: requireValue(options, '--implementation'),
+        },
+        selector,
+        ...(options.values.has('--packages-repository')
+          ? { packagesRepository: requireValue(options, '--packages-repository') }
+          : {}),
+        ...(options.values.has('--skill-repository')
+          ? { skillRepository: requireValue(options, '--skill-repository') }
+          : {}),
+        restart: options.booleans.has('--restart'),
+        resumeStoppedStage: options.booleans.has('--resume-stopped-stage'),
+        hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
+        isJson,
+      };
+    }
     default:
       throw new Error(`Unknown qualification command: ${commandName}`);
   }

@@ -220,7 +220,16 @@ npm run eval:semantic:verify
 
 Official recording also completes all missing initial cases before confirmations and records one complete attempt even when semantic failures remain. Independently passing or recovered case groups from a valid committed failed attempt may be reused only when their complete actor and judge stage identities still match. Reused stages retain their original provenance and do not count as new model work. Before every paid stage, the runner reserves the 2,097,152-token per-invocation maximum and refuses to exceed the 32,000,000-token direct-work ceiling for one candidate. A stage that exhausts its one automatic retry is persisted as terminally stopped before the command exits. An ordinary rerun refuses to repeat it; use `--resume-stopped-stage` to authorize exactly one additional attempt without discarding the candidate. Every failed invocation is charged conservatively against the same ceiling.
 
-Run free qualification preflight and Custom first, then execute each published adapter profile sequentially. Continue across failed profiles when the host remains operationally safe, preserve their attempts, and collect the complete profile failure ledger before changing shared behavior. Use targeted `diagnose --case` runs to prove the consolidated correction, then rerun only failed or exact-identity-invalidated profiles. Every official run records evidence for the current protocol, exact skill bytes, CLI closure, evaluator, target, and environment. Keep one model-bearing process active at a time unless measured capacity supports a stricter source-controlled concurrency contract.
+Run free qualification preflight and Custom first, then execute each published adapter profile sequentially. Continue across failed profiles when the host remains operationally safe, preserve their attempts, and collect the complete profile failure ledger before changing shared behavior. Use the bounded non-publishing batch for complete or targeted diagnosis:
+
+```bash
+npm run qualification -- diagnose-batch --adapter custom --implementation custom --all
+npm run qualification -- diagnose-batch --adapter <adapter> --implementation <implementation> --cases <comma-separated-case-ids>
+npm run qualification -- diagnose-batch --adapter <adapter> --implementation <implementation> --claims <comma-separated-claim-ids>
+npm run qualification -- diagnose-batch --adapter <adapter> --implementation <implementation> --unresolved-from <attempt-id>
+```
+
+The batch keeps one active attempt, writes a content-free completed ledger, and never changes official evidence. Each private state file is limited to 1 MiB and final output is limited to 16 KiB. Correct the consolidated failure set, rerun only unresolved cases, then rerun only failed or exact-identity-invalidated official profiles. Every official run records evidence for the current protocol, exact skill bytes, CLI closure, evaluator, target, and environment. Keep one model-bearing process active at a time unless measured capacity supports a stricter source-controlled concurrency contract.
 
 After current semantic and qualification evidence passes, record the compact fresh release envelope:
 

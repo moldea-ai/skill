@@ -2,7 +2,7 @@ import { rm } from 'node:fs/promises';
 
 import { resolveContainedPath } from '../filesystem/index.ts';
 
-// disposable trees can always be reconstructed from committed inputs and the shared candidate cache
+// disposable trees can always be reconstructed from committed inputs and verified package artifacts
 const RECONSTRUCTIBLE_ATTEMPT_DIRECTORIES = ['pnpm-store', 'runtime', 'workspaces'] as const;
 
 /** Removes attempt-owned runtime trees while retaining only state required for explicit resume. */

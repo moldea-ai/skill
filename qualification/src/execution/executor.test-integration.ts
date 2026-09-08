@@ -15,18 +15,11 @@ import { DEFAULT_SKILL_REPOSITORY, QUALIFICATION_ROOT } from '../constants/index
 import {
   QualificationAttemptResultSchema,
   QualificationJudgeSkippedSchema,
-  QualificationModelStageEvidenceSchema,
   QualificationSourceStateResultSchema,
-  QualificationTrialResultSchema,
 } from '../contracts/index.ts';
 import type { IQualificationCommandPolicyEvidence } from '../contracts/index.ts';
-import {
-  copyDirectory,
-  ensureDirectory,
-  readJsonFile,
-  writeJsonFileAtomically,
-} from '../filesystem/index.ts';
-import { readAttemptCheckpoint, writeAttemptCheckpoint } from '../checkpoint/index.ts';
+import { copyDirectory, ensureDirectory, readJsonFile } from '../filesystem/index.ts';
+import { readAttemptCheckpoint } from '../checkpoint/index.ts';
 import { executeProcess } from '../process/index.ts';
 import * as repositoryState from '../repository-state/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
@@ -270,6 +263,11 @@ describe('qualification execution', () => {
       interruptedOutcome.result.stages.find(
         ({ id }) => id === 'case:evaluate-aligned-project:result',
       )?.status,
+    ).toBe('pending');
+    expect(
+      interruptedOutcome.result.stages.find(
+        ({ id }) => id === 'case:evaluate-aligned-project:trial:initial:actor',
+      )?.status,
     ).toBe('passed');
     expect(
       interruptedOutcome.result.stages.find(
@@ -490,8 +488,8 @@ describe('qualification execution', () => {
     ).toBe(true);
   }, 120_000);
 
-  test('resumes a cache-derived dry-run actor stage without invoking a judge', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-cache-resume-'));
+  test('requires one explicit resume for a terminally stopped model stage', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-stop-resume-'));
     const skillRepository = path.join(temporaryRoot, 'skill-repository');
     const resultsRoot = path.join(temporaryRoot, 'results');
     await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
@@ -512,7 +510,117 @@ describe('qualification execution', () => {
         'user.email=qualification@moldea.local',
         'commit',
         '-m',
-        'test: establish cached recovery fixture',
+        'test: establish stopped-stage fixture',
+      ],
+      cwd: skillRepository,
+    });
+    const createStoppedHost = (onActorCall: () => void) =>
+      new FakeCodexHost({
+        actor: () => {
+          onActorCall();
+          return Promise.reject(
+            new CodexEvaluationHostError(
+              CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
+              'Retryable actor timeout.',
+            ),
+          );
+        },
+      });
+    let initialActorCalls = 0;
+    const stoppedOutcome = await runQualification({
+      host: createStoppedHost(() => {
+        initialActorCalls += 1;
+      }),
+      selection: { adapterId: 'custom', implementationId: 'custom' },
+      skillRepository,
+      isDryRun: true,
+      operationalRetry: {
+        now: () => '2026-08-28T12:00:00.000Z',
+        random: () => 1,
+        wait: () => Promise.resolve(),
+      },
+      resultsRoot,
+    });
+    temporaryAttemptDirectory = stoppedOutcome.attemptDirectory;
+    const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
+
+    expect(stoppedOutcome.result.status).toBe('incomplete');
+    expect(stoppedOutcome.wasRecorded).toBe(false);
+    expect(initialActorCalls).toBe(2);
+    expect(stoppedOutcome.result.stages.find(({ id }) => id === actorStageId)).toMatchObject({
+      status: 'stopped',
+      hasUsedOperationalStopResume: false,
+      operationalRetries: [{ category: 'timed-out', failureCount: 1 }],
+      operationalStops: [{ category: 'timed-out', failureCount: 2 }],
+    });
+
+    await expect(
+      runQualification({
+        host: new FakeCodexHost(),
+        resumeAttemptId: stoppedOutcome.result.attemptId,
+        resultsRoot,
+      }),
+    ).rejects.toThrow('resume requires --resume-stopped-stage');
+
+    let resumedActorCalls = 0;
+    const restoppedOutcome = await runQualification({
+      host: createStoppedHost(() => {
+        resumedActorCalls += 1;
+      }),
+      resumeAttemptId: stoppedOutcome.result.attemptId,
+      resumeStoppedStage: true,
+      operationalRetry: {
+        now: () => '2026-08-28T12:01:00.000Z',
+        random: () => 1,
+        wait: () => Promise.reject(new Error('Explicit resume cannot schedule a new retry.')),
+      },
+      resultsRoot,
+    });
+
+    expect(restoppedOutcome.result.status).toBe('incomplete');
+    expect(resumedActorCalls).toBe(1);
+    expect(restoppedOutcome.result.stages.find(({ id }) => id === actorStageId)).toMatchObject({
+      status: 'stopped',
+      hasUsedOperationalStopResume: true,
+      operationalStops: [
+        { category: 'timed-out', failureCount: 2 },
+        { category: 'timed-out', failureCount: 2 },
+      ],
+    });
+
+    await expect(
+      runQualification({
+        host: new FakeCodexHost(),
+        resumeAttemptId: stoppedOutcome.result.attemptId,
+        resumeStoppedStage: true,
+        resultsRoot,
+      }),
+    ).rejects.toThrow('already used its one explicit resume');
+  }, 120_000);
+
+  test('resumes a completed dry-run actor stage without invoking a judge', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-stage-resume-'));
+    const skillRepository = path.join(temporaryRoot, 'skill-repository');
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+    await executeProcess({
+      command: 'git',
+      args: ['init', '--initial-branch=main'],
+      cwd: skillRepository,
+    });
+    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+    await executeProcess({
+      command: 'git',
+      args: [
+        '-c',
+        'commit.gpgsign=false',
+        '-c',
+        'user.name=moldea qualification',
+        '-c',
+        'user.email=qualification@moldea.local',
+        'commit',
+        '-m',
+        'test: establish stage recovery fixture',
       ],
       cwd: skillRepository,
     });
@@ -554,7 +662,7 @@ describe('qualification execution', () => {
           progress.trialId === 'initial' &&
           progress.status === 'completed'
         ) {
-          abortController.abort(new Error('Stop after the initial cached trial.'));
+          abortController.abort(new Error('Stop after the initial completed trial.'));
           abortController.signal.throwIfAborted();
         } else if (abortController.signal.aborted) {
           abortController.signal.throwIfAborted();
@@ -569,52 +677,7 @@ describe('qualification execution', () => {
     expect(interruptedActorCalls).toBe(1);
     expect(interruptedJudgeCalls).toBe(0);
 
-    const sourceAttemptId = 'cached-source-attempt';
-    const caseRoot = path.join(
-      interruptedOutcome.attemptDirectory,
-      'public',
-      'cases',
-      'evaluate-aligned-project',
-      'trials',
-      'initial',
-    );
-    const actorEvidencePath = path.join(caseRoot, 'actor-evidence.json');
-    const trialResultPath = path.join(caseRoot, 'trial-result.json');
-    const actorEvidence = await readJsonFile(
-      actorEvidencePath,
-      QualificationModelStageEvidenceSchema,
-    );
-    const trialResult = await readJsonFile(trialResultPath, QualificationTrialResultSchema);
-    await Promise.all([
-      writeJsonFileAtomically(actorEvidencePath, {
-        ...actorEvidence,
-        sourceAttemptId,
-        cacheSourceAttemptId: sourceAttemptId,
-      }),
-      writeJsonFileAtomically(trialResultPath, {
-        ...trialResult,
-        actorCacheSourceAttemptId: sourceAttemptId,
-      }),
-    ]);
-    const checkpoint = await readAttemptCheckpoint(interruptedOutcome.attemptDirectory);
     const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
-    const actorStage = checkpoint.stages[actorStageId];
-
-    if (actorStage === undefined) {
-      throw new Error('Missing completed initial actor stage.');
-    }
-
-    await writeAttemptCheckpoint(interruptedOutcome.attemptDirectory, {
-      ...checkpoint,
-      stages: {
-        ...checkpoint.stages,
-        [actorStageId]: {
-          ...actorStage,
-          status: 'cached',
-          cacheSourceAttemptId: sourceAttemptId,
-        },
-      },
-    });
 
     const resumedActorCallsByCase = new Map<string, number>();
     let resumedJudgeCalls = 0;
@@ -658,24 +721,24 @@ describe('qualification execution', () => {
     });
     expect(
       resumedCase?.trials.map(
-        ({ actorCacheSourceAttemptId, judgeCacheSourceAttemptId, trialId }) => ({
-          actorCacheSourceAttemptId,
-          judgeCacheSourceAttemptId,
+        ({ actorReuseSourceAttemptId, judgeReuseSourceAttemptId, trialId }) => ({
+          actorReuseSourceAttemptId,
+          judgeReuseSourceAttemptId,
           trialId,
         }),
       ),
     ).toStrictEqual([
       {
-        actorCacheSourceAttemptId: sourceAttemptId,
-        judgeCacheSourceAttemptId: null,
+        actorReuseSourceAttemptId: null,
+        judgeReuseSourceAttemptId: null,
         trialId: 'initial',
       },
     ]);
     expect(resumedActorCallsByCase.get('evaluate-aligned-project')).toBeUndefined();
     expect(resumedJudgeCalls).toBe(0);
     expect(resumedOutcome.result.stages.find(({ id }) => id === actorStageId)).toMatchObject({
-      status: 'cached',
-      cacheSourceAttemptId: sourceAttemptId,
+      status: 'passed',
+      reuseSourceAttemptId: null,
     });
     expect(
       resumedOutcome.result.stages
@@ -842,7 +905,7 @@ describe('qualification execution', () => {
         resultsRoot,
         selection: { adapterId: 'custom', implementationId: 'custom' },
         skillRepository,
-        useCache: false,
+        reuseEvidence: false,
       });
 
       return { actorCalls, judgeCalls, outcome };
@@ -963,7 +1026,7 @@ describe('qualification execution', () => {
 
     expect(outcome.result.status).toBe('failed');
     expect(outcome.wasRecorded).toBe(false);
-    expect(actorCalls).toBe(2);
+    expect(actorCalls).toBe(24);
     expect(judgeCalls).toBe(0);
     expect(failedCase).toMatchObject({
       caseId: 'evaluate-aligned-project',
@@ -1045,7 +1108,7 @@ describe('qualification execution', () => {
 
     expect(outcome.result.status).toBe('failed');
     expect(outcome.wasRecorded).toBe(false);
-    expect(actorCalls).toBe(2);
+    expect(actorCalls).toBe(24);
     expect(judgeCalls).toBe(0);
     expect(
       outcome.result.stages

@@ -18,13 +18,19 @@ export {
   listLocalAttemptCheckpoints,
   recordIncompleteAttempt,
 } from './attempts.ts';
-export { runQualification } from './executor.ts';
+export { inspectQualificationInputState, runQualification } from './executor.ts';
+export { inspectQualificationExecutionEnvironment } from './provenance.ts';
 
 // cost and stage accounting
 export {
+  assertQualificationCandidateTokenReservation,
   createQualificationStageIds,
   createQualificationTrialStageIds,
   getQualificationMaximumCallCount,
+  getQualificationModelUsageTokenCount,
   getQualificationMaximumTokenCount,
   getQualificationPlannedCallCount,
+  QualificationCandidateTokenLimitError,
+  reserveQualificationCandidateTokens,
+  settleQualificationCandidateTokens,
 } from './stages.ts';

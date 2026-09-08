@@ -72,9 +72,9 @@ The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,
 
 Qualification protocol 8 is the sole accepted contract. A passing attempt must match the current skill bytes, CLI closure, evaluator, host, resource profile, probes, cases, target, execution environment, and package closure. Protocol-7 artifacts have no active reader, converter, release selection path, or website surface.
 
-Results are reusable only while all behavior-bearing identities remain exact.
+An official run may reuse a passed or recovered case group from a committed failed attempt only while every behavior-bearing identity, source commit, artifact digest, Custom baseline, and package closure remains exact. Failed and incomplete case groups, diagnostic attempts, uncommitted evidence, chained reuse, and tampered artifacts are never eligible.
 
-Adapter qualification requires a current passing Custom baseline. Custom itself requires no baseline. Every target must produce fresh evidence for this release.
+Adapter qualification requires a current passing Custom baseline. Custom itself requires no baseline. Every target must produce one current passing attempt for this release. That attempt identifies direct and exactly reused case groups separately instead of claiming that reused model work ran again.
 
 ## Input layout
 
@@ -127,7 +127,18 @@ npm run qualification -- run --adapter anthropic --implementation typescript-mes
 npm run qualification -- diagnose --adapter anthropic --implementation typescript-messages-api-0-117 --case repair-anthropic-tool-registration
 ```
 
-For a correction sweep, run free deterministic checks and Custom first, then run every adapter profile sequentially even when an earlier profile fails, provided the host remains operationally safe. Preserve every failed attempt and collect the complete cross-profile failure ledger before editing shared behavior. Use `diagnose --case` for the residual cases, publish one consolidated correction, and rerun only failed or exact-identity-invalidated profiles. Keep one model-bearing process active at a time unless measured host, provider, memory, disk, quota, and token capacity supports a source-controlled concurrency limit.
+Collect a complete non-publishing diagnostic ledger with exactly one selector:
+
+```bash
+npm run qualification -- diagnose-batch --adapter custom --implementation custom --all
+npm run qualification -- diagnose-batch --adapter custom --implementation custom --cases <comma-separated-case-ids>
+npm run qualification -- diagnose-batch --adapter anthropic --implementation typescript-messages-api-0-117 --claims <comma-separated-claim-ids>
+npm run qualification -- diagnose-batch --adapter custom --implementation custom --unresolved-from <attempt-id>
+```
+
+Re-running the exact command resumes its current batch. Use `--restart` to discard only that exact matching diagnostic state. If one model stage exhausts its automatic retry, use `--resume-stopped-stage` to authorize its single additional attempt.
+
+For a correction sweep, use `diagnose-batch` to collect the complete selected failure set before editing behavior. After one consolidated correction, diagnose only the unresolved cases, then create one official evidence-producing run. Across adapter profiles, continue sequentially after semantic failures while the host remains operationally safe. Keep one model-bearing process active at a time unless measured host, provider, memory, disk, quota, and token capacity supports a source-controlled concurrency limit.
 
 Resume or retry:
 
@@ -145,9 +156,9 @@ npm run qualification -- verify
 
 Use `--json` for machine-readable output. `status` returns only content-free attempt and latest-result metadata. Its default scope contains unrecorded incomplete attempts, unavailable checkpoint summaries, and committed latest pointers; `--all` selects complete local history. Each page contains at most 64 records and 65,536 UTF-8 bytes. Continue with the returned opaque cursor and the same scope options. A cursor is bound to the exact summary snapshot and is rejected after the selected status state changes. Complete checkpoints, candidates, package manifests, stages, prompts, workspace paths, commands, model output, and repository content are never included.
 
-Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in bounded attempt storage for explicit inspection. Terminal attempts remove disposable workspaces, installed runtime trees, snapshots, and attempt-local package stores. Interrupted attempts preserve internal snapshots only while they remain eligible for explicit resume. Paid `run`, `diagnose`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first uncached model call. Cache hits and the model-free dry run require no paid confirmation.
+Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in bounded attempt storage for explicit inspection. Terminal attempts remove disposable workspaces, installed runtime trees, snapshots, and attempt-local package stores. Interrupted attempts preserve internal snapshots only while they remain eligible for explicit resume. Paid `run`, `diagnose`, `diagnose-batch`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first direct model call. Exact evidence reuse and the model-free dry run require no paid confirmation.
 
-Immediately before paid execution, the CLI reports planned stages, the maximum including one bounded operational retry per stage, the 2,097,152-token stage ceiling, and its aggregate maximum. The ceiling contains a complete tool-using Codex stage and is not a consumption target. It retains more than 25 percent headroom above the observed 1,264,666-token qualification stage that invalidated the earlier ceiling. Token totals count input plus output while reporting cached input separately without adding it twice.
+Immediately before paid execution, the CLI reports direct and reused cases, planned calls, the maximum calls including one bounded operational retry per stage, the 2,097,152-token stage ceiling, prior candidate consumption, and the 32,000,000-token candidate stop-loss. The per-stage ceiling contains a complete tool-using Codex stage and is not a consumption target. It retains more than 25 percent headroom above the observed 1,264,666-token qualification stage that invalidated the earlier ceiling. Token totals count input plus output while reporting provider-cached input separately without adding it twice. The candidate boundary accepts an exact fit and refuses the next stage before one full reservation would exceed it.
 
 ## Model-free dry run
 
@@ -157,13 +168,15 @@ npm run qualification:dry-run
 
 The dry run constructs the exact candidate, prepares every Custom project, applies transparent expected state, and executes runner-owned validation. It does not call an actor or judge, publish evidence, or satisfy a release gate.
 
-## Checkpoints and cache integrity
+## Checkpoints and exact evidence reuse
 
-Every stage writes an atomic checkpoint. Resume continues the exact compatible stage. Retry creates a new linked attempt and never rewrites prior evidence.
+Every stage writes an atomic checkpoint. Resume continues the exact compatible stage. Retry creates a new linked attempt and never rewrites prior evidence. A stage that exhausts its single automatic operational retry is persisted as stopped. Ordinary resume refuses to repeat it; `--resume-stopped-stage` authorizes exactly one additional attempt without resetting token charges. A second exhaustion is terminal.
 
 Every checkpoint write also replaces an 8,192-byte-bounded local status sidecar. Status and the guided resume menu read only these sidecars plus checkpoint file metadata, never checkpoint bodies. A missing, stale, malformed, unreadable, or oversized sidecar is reported as unavailable metadata and is not interpreted through a legacy checkpoint reader.
 
-Cache keys bind the role, protocol, environment, candidate, runner, skill, target, case, trial, project fingerprint, prompt, and output schema. Cached actor evidence includes its exact post-actor workspace. Confirmation trials never use cross-attempt cache entries.
+The runner has no free-floating model-output cache. Model stages always execute directly unless the official runner materializes a complete eligible case group from one verified committed failed attempt. The reused case retains its source attempt, source commit, source attempt digest, stage identities, trial results, and artifacts. Independent result verification reloads that direct source and rejects identity drift, chained reuse, missing files, or changed bytes.
+
+`diagnose-batch` runs one selected case at a time without confirmations or evidence reuse. It keeps one private checkpoint and one separate content-free completed ledger under `.runtime-qualification/diagnostic-batch/`; each file is limited to 1 MiB and replaced atomically. The ledger retains only case status, requirement IDs, deterministic explanation, duration, model and token totals, operational-failure count, and attempt identity. It never retains prompts, model rationale, commands, output bodies, repository content, or workspace paths. Final JSON output is limited to 16 KiB. Successful completion deletes the private checkpoint, terminal diagnostic attempts are deleted after projection, and official results and pointers are never changed.
 
 Each model stage has a finite ten-minute timeout so `high` reasoning can complete without treating an ordinary long response as an operational failure. Operational provider, proxy, and timeout failures may retry within the configured retry policy. Deterministic failures, changed identities, cancellation, and exhausted retries stop the attempt clearly.
 

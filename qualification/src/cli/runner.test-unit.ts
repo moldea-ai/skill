@@ -88,12 +88,15 @@ describe('qualification command runner', () => {
       async (options: IRunQualificationOptions) => {
         await expect(
           options.requestPaidExecutionApproval?.({
+            candidateTokensConsumed: 0,
+            directCaseCount: 10,
             plannedCallCount: 60,
             maximumCallCount: 120,
-            maximumTokenCount: 251_658_240,
+            maximumTokenCount: 32_000_000,
             maximumTokensPerCall: 2_097_152,
             model: 'gpt-5.6-sol',
             reasoningEffort: 'high',
+            reusedCaseCount: 2,
           }),
         ).resolves.toBe(true);
         await options.onProgress?.({
@@ -119,7 +122,7 @@ describe('qualification command runner', () => {
         kind: 'run',
         selection: { adapterId: 'custom', implementationId: 'custom' },
         isDryRun: true,
-        useCache: true,
+        reuseEvidence: true,
         hasConfirmedPaidExecution: true,
         isJson: true,
       }),
@@ -153,7 +156,7 @@ describe('qualification command runner', () => {
       wasRecorded: false,
     });
     expect(stderr).toBe(
-      'Qualification paid boundary: 60 planned calls, 120 maximum calls, 2097152 tokens per call, 251658240 maximum tokens.\n' +
+      'Qualification paid boundary: 60 planned calls, 120 maximum calls, 2097152 tokens per call, 32000000 candidate tokens; 2 reused cases, 10 direct cases, 0 tokens already consumed.\n' +
         'Qualification evaluate-aligned-project initial judge retry 1: timed-out; waiting 5000 ms.\n',
     );
     expect(stdout).not.toContain('retry 1');
@@ -183,16 +186,19 @@ describe('qualification command runner', () => {
           caseId: 'stop-on-material-ambiguity',
           mode: 'diagnostic',
           selection: { adapterId: 'custom', implementationId: 'custom' },
-          useCache: false,
+          reuseEvidence: false,
         });
         await expect(
           options.requestPaidExecutionApproval?.({
+            candidateTokensConsumed: 0,
+            directCaseCount: 1,
             plannedCallCount: 2,
             maximumCallCount: 4,
             maximumTokenCount: 8_388_608,
             maximumTokensPerCall: 2_097_152,
             model: 'gpt-5.6-sol',
             reasoningEffort: 'high',
+            reusedCaseCount: 0,
           }),
         ).resolves.toBe(true);
         return {
@@ -209,7 +215,6 @@ describe('qualification command runner', () => {
         kind: 'diagnose',
         selection: { adapterId: 'custom', implementationId: 'custom' },
         caseId: 'stop-on-material-ambiguity',
-        useCache: false,
         hasConfirmedPaidExecution: true,
         isJson: true,
       }),

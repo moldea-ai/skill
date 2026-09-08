@@ -49,6 +49,7 @@ const createResult = (attemptId: string, artifactDigest: string): IQualification
       hostTimeoutMs: 120_000,
       modelEndpoint: null,
       sslCertificateFileSha256: null,
+      candidateFingerprint: null,
       packagesRepositoryCommit: 'a'.repeat(40),
       packagesRepositoryFingerprint: 'a'.repeat(64),
       packagesRepositoryDirty: false,

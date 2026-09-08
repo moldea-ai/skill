@@ -67,6 +67,7 @@ export const createQualificationExecutionProvenance = (options: {
 }): IQualificationExecutionProvenance => {
   return {
     ...options.executionEnvironment,
+    candidateFingerprint: null,
     packagesRepositoryCommit: options.packagesState.commit,
     packagesRepositoryFingerprint: options.packagesState.fingerprint,
     packagesRepositoryDirty: options.packagesState.isDirty,

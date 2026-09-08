@@ -22,7 +22,7 @@ describe('parseQualificationCommand', () => {
       selection: { adapterId: 'custom', implementationId: 'custom' },
       packagesRepository: '/work/packages',
       isDryRun: true,
-      useCache: true,
+      reuseEvidence: true,
       hasConfirmedPaidExecution: false,
       isJson: true,
     });
@@ -38,7 +38,6 @@ describe('parseQualificationCommand', () => {
         'custom',
         '--case',
         'stop-on-material-ambiguity',
-        '--no-cache',
         '--confirm-paid-execution',
         '--json',
       ]),
@@ -46,9 +45,59 @@ describe('parseQualificationCommand', () => {
       kind: 'diagnose',
       selection: { adapterId: 'custom', implementationId: 'custom' },
       caseId: 'stop-on-material-ambiguity',
-      useCache: false,
       hasConfirmedPaidExecution: true,
       isJson: true,
+    });
+  });
+
+  test.each([
+    [
+      ['diagnose-batch', '--adapter', 'custom', '--implementation', 'custom', '--all'],
+      { kind: 'all', value: null },
+    ],
+    [
+      [
+        'diagnose-batch',
+        '--adapter',
+        'custom',
+        '--implementation',
+        'custom',
+        '--cases',
+        'case-one,case-two',
+      ],
+      { kind: 'cases', value: 'case-one,case-two' },
+    ],
+    [
+      [
+        'diagnose-batch',
+        '--adapter',
+        'custom',
+        '--implementation',
+        'custom',
+        '--claims',
+        'claim-one',
+        '--restart',
+      ],
+      { kind: 'claims', value: 'claim-one' },
+    ],
+    [
+      [
+        'diagnose-batch',
+        '--adapter',
+        'custom',
+        '--implementation',
+        'custom',
+        '--unresolved-from',
+        'attempt-one',
+        '--resume-stopped-stage',
+      ],
+      { kind: 'unresolved-from', value: 'attempt-one' },
+    ],
+  ] as const)('parses one diagnose-batch selector from %o', (args, selector) => {
+    expect(parseQualificationCommand(args)).toMatchObject({
+      kind: 'diagnose-batch',
+      selection: { adapterId: 'custom', implementationId: 'custom' },
+      selector,
     });
   });
 
@@ -70,6 +119,17 @@ describe('parseQualificationCommand', () => {
         kind: 'resume',
         attemptId: 'attempt-1',
         hasConfirmedPaidExecution: true,
+        resumeStoppedStage: false,
+        isJson: false,
+      },
+    ],
+    [
+      ['resume', '--attempt', 'attempt-1', '--resume-stopped-stage'],
+      {
+        kind: 'resume',
+        attemptId: 'attempt-1',
+        hasConfirmedPaidExecution: false,
+        resumeStoppedStage: true,
         isJson: false,
       },
     ],
@@ -95,6 +155,53 @@ describe('parseQualificationCommand', () => {
     [['run', '--adapter', 'custom', '--adapter', 'custom'], 'Duplicate option: --adapter'],
     [['verify', '--dry-run'], 'Option --dry-run is not valid for this command'],
     [['verify', '--cursor', 'opaque-cursor'], 'Option --cursor is not valid for this command'],
+    [
+      ['retry', '--attempt', 'attempt-1', '--resume-stopped-stage'],
+      'Option --resume-stopped-stage is not valid for this command',
+    ],
+    [
+      [
+        'diagnose',
+        '--adapter',
+        'custom',
+        '--implementation',
+        'custom',
+        '--case',
+        'one',
+        '--no-reuse',
+      ],
+      'Option --no-reuse is not valid for this command',
+    ],
+    [
+      ['diagnose-batch', '--adapter', 'custom', '--implementation', 'custom'],
+      'diagnose-batch requires exactly one diagnostic selector',
+    ],
+    [
+      [
+        'diagnose-batch',
+        '--adapter',
+        'custom',
+        '--implementation',
+        'custom',
+        '--all',
+        '--cases',
+        'one',
+      ],
+      'diagnose-batch requires exactly one diagnostic selector',
+    ],
+    [
+      [
+        'diagnose-batch',
+        '--adapter',
+        'custom',
+        '--implementation',
+        'custom',
+        '--all',
+        '--restart',
+        '--resume-stopped-stage',
+      ],
+      '--restart and --resume-stopped-stage cannot be combined',
+    ],
     [['list', '--unknown'], 'Unknown qualification option: --unknown'],
   ])('parseQualificationCommand(%o) rejects invalid input', (args, expectedMessage) => {
     expect(() => parseQualificationCommand(args)).toThrow(expectedMessage);

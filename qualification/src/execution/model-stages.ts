@@ -4,16 +4,10 @@ import { z } from 'zod';
 
 import {
   runCodexEvaluationOperationalStage,
+  type ICodexEvaluationOperationalExhaustion,
   type ICodexEvaluationOperationalRetry,
 } from '../../../tooling/codex-evaluation-host/index.mjs';
 
-import {
-  calculateModelCacheKey,
-  readActorCache,
-  readJudgeCache,
-  writeActorCache,
-  writeJudgeCache,
-} from '../cache/index.ts';
 import type { ICodexHost } from '../codex-host/index.ts';
 import {
   ActorOutputSchema,
@@ -52,6 +46,7 @@ import {
 } from '../project-fixture/index.ts';
 import { buildActorPrompt, buildJudgePrompt } from '../prompts/index.ts';
 import { sanitizeEvidenceText, sanitizeEvidenceValue } from '../result/index.ts';
+import { calculateModelStageIdentity } from './model-stage-identity.ts';
 import { validateJudgeOutput } from './validations.ts';
 import { prepareJudgeWorkspace } from './workspaces.ts';
 import type { IQualificationOperationalRetryOptions } from './types.ts';
@@ -71,10 +66,11 @@ export type IJudgeStageResult = {
 type ISharedModelStageOptions = {
   adapterId: string;
   approvePaidExecution: () => Promise<void>;
+  reservePaidExecution?: () => Promise<void>;
+  settlePaidExecution?: (usage: IModelUsage | null) => Promise<void>;
   attemptId: string;
   attemptDirectory: string;
   candidate: ICandidateClosure;
-  cacheRoot?: string;
   caseArtifactDirectory: string;
   executionEnvironment: IQualificationExecutionEnvironment;
   host: ICodexHost;
@@ -83,6 +79,8 @@ type ISharedModelStageOptions = {
   modelHostDigest: string;
   packagesRepository: string;
   profileDigest: string;
+  qualificationDigest: string;
+  baselineAttemptId: string | null;
   project: IPreparedQualificationProject;
   signal?: AbortSignal | undefined;
   skillDigest: string;
@@ -90,10 +88,10 @@ type ISharedModelStageOptions = {
   skillRepository: string;
   task: string;
   trialId: IQualificationTrialResult['trialId'];
-  useCache: boolean;
   initialOperationalFailureCount?: number;
-  onCacheKey?: (cacheKey: string) => Promise<void>;
+  onStageIdentity?: (stageIdentity: string) => Promise<void>;
   onOperationalRetry?: (retry: ICodexEvaluationOperationalRetry) => Promise<void>;
+  onOperationalStop?: (stop: ICodexEvaluationOperationalExhaustion) => Promise<void>;
   operationalRetry?: IQualificationOperationalRetryOptions;
   verifyExecutionInputs: () => Promise<void>;
 };
@@ -161,18 +159,10 @@ export const executeActorModelStage = async (
     snapshotDirectory: string;
   },
 ): Promise<IActorStageResult> => {
-  if (options.trialId !== 'initial' && options.useCache) {
-    throw new Error('Confirmation actor stages cannot use cross-attempt model caches.');
-  }
-
-  if (!options.isDryRun && options.useCache) {
-    await options.verifyExecutionInputs();
-  }
-
   const prompt = buildActorPrompt({
     task: options.task,
   });
-  const cacheKey = calculateModelCacheKey({
+  const stageIdentity = calculateModelStageIdentity({
     protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     role: 'actor',
     executionEnvironment: options.executionEnvironment,
@@ -180,6 +170,8 @@ export const executeActorModelStage = async (
     modelHostDigest: options.modelHostDigest,
     outputSchema: z.toJSONSchema(ActorOutputSchema),
     profileDigest: options.profileDigest,
+    qualificationDigest: options.qualificationDigest,
+    baselineAttemptId: options.baselineAttemptId,
     skillDigest: options.skillDigest,
     targetDigest: options.targetDigest,
     caseId: options.project.scenario.id,
@@ -187,50 +179,35 @@ export const executeActorModelStage = async (
     projectFingerprint: await getProjectFingerprint(options.project),
     prompt,
   });
-  await options.onCacheKey?.(cacheKey);
-  const cacheHit =
-    options.useCache && (options.initialOperationalFailureCount ?? 0) === 0 && !options.isDryRun
-      ? await readActorCache(cacheKey, options.project.workspaceDirectory, options.cacheRoot)
-      : null;
-  let output: IActorOutput;
-  let usage: IModelUsage | null;
-  let durationMs: number;
-  let events: string;
-  let createdAt: string;
-  let sourceAttemptId: string;
-  let cacheSourceAttemptId: string | null;
-  let commandPolicy: IQualificationCommandPolicyEvidence;
+  await options.onStageIdentity?.(stageIdentity);
+  const execution = await runCodexEvaluationOperationalStage({
+    initialFailureCount: options.initialOperationalFailureCount ?? 0,
+    maximumRetryCount: QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT,
+    ...(options.operationalRetry?.now === undefined ? {} : { now: options.operationalRetry.now }),
+    onRetry: options.onOperationalRetry ?? (() => Promise.resolve()),
+    onExhausted: options.onOperationalStop ?? (() => Promise.resolve()),
+    operation: async () => {
+      if (!options.isDryRun) {
+        await options.verifyExecutionInputs();
+      }
+      await options.restorePreActorState?.();
+      let dryRunChangedFiles: string[] | undefined;
 
-  if (cacheHit !== null) {
-    output = cacheHit.output;
-    usage = cacheHit.metadata.usage;
-    durationMs = cacheHit.metadata.durationMs;
-    events = cacheHit.events;
-    createdAt = cacheHit.metadata.createdAt;
-    sourceAttemptId = cacheHit.metadata.sourceAttemptId;
-    cacheSourceAttemptId = cacheHit.metadata.sourceAttemptId;
-    commandPolicy = cacheHit.metadata.commandPolicy;
-  } else {
-    const execution = await runCodexEvaluationOperationalStage({
-      initialFailureCount: options.initialOperationalFailureCount ?? 0,
-      maximumRetryCount: QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT,
-      ...(options.operationalRetry?.now === undefined ? {} : { now: options.operationalRetry.now }),
-      onRetry: options.onOperationalRetry ?? (() => Promise.resolve()),
-      operation: async () => {
-        if (!options.isDryRun) {
-          await options.verifyExecutionInputs();
-        }
-        await options.restorePreActorState?.();
-        let dryRunChangedFiles: string[] | undefined;
+      if (options.isDryRun) {
+        await applyExpectedDryRunState(options.project);
+        dryRunChangedFiles = (await inspectWorkspaceAssertions(options.project)).changedPaths;
+      } else {
+        await options.approvePaidExecution();
+      }
 
-        if (options.isDryRun) {
-          await applyExpectedDryRunState(options.project);
-          dryRunChangedFiles = (await inspectWorkspaceAssertions(options.project)).changedPaths;
-        } else {
-          await options.approvePaidExecution();
-        }
+      let actorExecution;
 
-        const actorExecution = await options.host.runActor({
+      if (!options.isDryRun) {
+        await options.reservePaidExecution?.();
+      }
+
+      try {
+        actorExecution = await options.host.runActor({
           caseId: options.project.scenario.id,
           ...(dryRunChangedFiles === undefined ? {} : { dryRunChangedFiles }),
           prompt,
@@ -239,54 +216,46 @@ export const executeActorModelStage = async (
           signal: options.signal,
           workspaceDirectory: options.project.workspaceDirectory,
         });
-
+      } catch (error) {
         if (!options.isDryRun) {
-          await options.verifyExecutionInputs();
+          await options.settlePaidExecution?.(null);
         }
+        throw error;
+      }
 
-        return actorExecution;
-      },
-      ...(options.operationalRetry?.random === undefined
-        ? {}
-        : { random: options.operationalRetry.random }),
-      ...(options.signal === undefined ? {} : { signal: options.signal }),
-      ...(options.operationalRetry?.wait === undefined
-        ? {}
-        : { wait: options.operationalRetry.wait }),
-    });
+      if (!options.isDryRun) {
+        await options.settlePaidExecution?.(actorExecution.usage);
+      }
 
-    output = ActorOutputSchema.parse(
-      sanitizeEvidenceValue(execution.output, {
-        attemptDirectory: options.attemptDirectory,
-        packagesRepository: options.packagesRepository,
-        skillRepository: options.skillRepository,
-        workspaceDirectory: options.project.workspaceDirectory,
-      }),
-    );
-    usage = execution.usage;
-    durationMs = execution.durationMs;
-    events = execution.events;
-    createdAt = new Date().toISOString();
-    sourceAttemptId = options.attemptId;
-    cacheSourceAttemptId = null;
-    commandPolicy = execution.commandPolicy;
-  }
+      if (!options.isDryRun) {
+        await options.verifyExecutionInputs();
+      }
+
+      return actorExecution;
+    },
+    ...(options.operationalRetry?.random === undefined
+      ? {}
+      : { random: options.operationalRetry.random }),
+    ...(options.signal === undefined ? {} : { signal: options.signal }),
+    ...(options.operationalRetry?.wait === undefined
+      ? {}
+      : { wait: options.operationalRetry.wait }),
+  });
+  const output = ActorOutputSchema.parse(
+    sanitizeEvidenceValue(execution.output, {
+      attemptDirectory: options.attemptDirectory,
+      packagesRepository: options.packagesRepository,
+      skillRepository: options.skillRepository,
+      workspaceDirectory: options.project.workspaceDirectory,
+    }),
+  );
+  const usage = execution.usage;
+  const durationMs = execution.durationMs;
+  const events = execution.events;
+  const createdAt = new Date().toISOString();
+  const commandPolicy = execution.commandPolicy;
 
   await assertQualificationProjectInputIntegrity(options.project);
-
-  if (cacheHit === null && options.useCache && !options.isDryRun) {
-    await writeActorCache({
-      cacheKey,
-      sourceAttemptId: options.attemptId,
-      output,
-      durationMs,
-      commandPolicy,
-      events,
-      usage,
-      workspaceDirectory: options.project.workspaceDirectory,
-      ...(options.cacheRoot === undefined ? {} : { cacheRoot: options.cacheRoot }),
-    });
-  }
 
   await rm(options.snapshotDirectory, { force: true, recursive: true });
   await captureQualificationProjectSnapshot(options.project, options.snapshotDirectory);
@@ -295,9 +264,9 @@ export const executeActorModelStage = async (
     createdAt,
     durationMs,
     usage,
-    cacheKey,
-    sourceAttemptId,
-    cacheSourceAttemptId,
+    stageIdentity,
+    sourceAttemptId: options.attemptId,
+    reuseSourceAttemptId: null,
     trialId: options.trialId,
     commandPolicy,
   }) as IActorStageResult['evidence'];
@@ -341,14 +310,6 @@ export const executeJudgeModelStage = async (
     workspaceAssertions: IWorkspaceAssertionResult;
   },
 ): Promise<IJudgeStageResult> => {
-  if (options.trialId !== 'initial' && options.useCache) {
-    throw new Error('Confirmation judge stages cannot use cross-attempt model caches.');
-  }
-
-  if (!options.isDryRun && options.useCache) {
-    await options.verifyExecutionInputs();
-  }
-
   const prompt = buildJudgePrompt({
     actorCommandPolicy: options.actorCommandPolicy,
     actorOutput: options.actorOutput,
@@ -359,7 +320,7 @@ export const executeJudgeModelStage = async (
     task: options.task,
     workspaceAssertions: options.workspaceAssertions,
   });
-  const cacheKey = calculateModelCacheKey({
+  const stageIdentity = calculateModelStageIdentity({
     protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     role: 'judge',
     executionEnvironment: options.executionEnvironment,
@@ -367,6 +328,8 @@ export const executeJudgeModelStage = async (
     modelHostDigest: options.modelHostDigest,
     outputSchema: z.toJSONSchema(JudgeOutputSchema),
     profileDigest: options.profileDigest,
+    qualificationDigest: options.qualificationDigest,
+    baselineAttemptId: options.baselineAttemptId,
     skillDigest: options.skillDigest,
     targetDigest: options.targetDigest,
     caseId: options.project.scenario.id,
@@ -374,49 +337,31 @@ export const executeJudgeModelStage = async (
     projectFingerprint: await getProjectFingerprint(options.project),
     prompt,
   });
-  await options.onCacheKey?.(cacheKey);
-  const cacheHit =
-    options.useCache && (options.initialOperationalFailureCount ?? 0) === 0 && !options.isDryRun
-      ? await readJudgeCache(cacheKey, options.cacheRoot)
-      : null;
-  let output: IJudgeOutput;
-  let usage: IModelUsage | null;
-  let durationMs: number;
-  let events: string;
-  let createdAt: string;
-  let sourceAttemptId: string;
-  let cacheSourceAttemptId: string | null;
-  let commandPolicy: IQualificationCommandPolicyEvidence;
+  await options.onStageIdentity?.(stageIdentity);
+  const execution = await runCodexEvaluationOperationalStage({
+    initialFailureCount: options.initialOperationalFailureCount ?? 0,
+    maximumRetryCount: QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT,
+    ...(options.operationalRetry?.now === undefined ? {} : { now: options.operationalRetry.now }),
+    onRetry: options.onOperationalRetry ?? (() => Promise.resolve()),
+    onExhausted: options.onOperationalStop ?? (() => Promise.resolve()),
+    operation: async () => {
+      if (!options.isDryRun) {
+        await options.verifyExecutionInputs();
+      }
+      const judgeWorkspaceFingerprint = await prepareJudgeWorkspace(
+        options.project.workspaceDirectory,
+        options.judgeWorkspaceDirectory,
+      );
 
-  if (cacheHit !== null) {
-    output = validateJudgeOutput(options.project.scenario, cacheHit.output);
-    usage = cacheHit.metadata.usage;
-    durationMs = cacheHit.metadata.durationMs;
-    events = cacheHit.events;
-    createdAt = cacheHit.metadata.createdAt;
-    sourceAttemptId = cacheHit.metadata.sourceAttemptId;
-    cacheSourceAttemptId = cacheHit.metadata.sourceAttemptId;
-    commandPolicy = cacheHit.metadata.commandPolicy;
-  } else {
-    const execution = await runCodexEvaluationOperationalStage({
-      initialFailureCount: options.initialOperationalFailureCount ?? 0,
-      maximumRetryCount: QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT,
-      ...(options.operationalRetry?.now === undefined ? {} : { now: options.operationalRetry.now }),
-      onRetry: options.onOperationalRetry ?? (() => Promise.resolve()),
-      operation: async () => {
-        if (!options.isDryRun) {
-          await options.verifyExecutionInputs();
-        }
-        const judgeWorkspaceFingerprint = await prepareJudgeWorkspace(
-          options.project.workspaceDirectory,
-          options.judgeWorkspaceDirectory,
-        );
+      if (!options.isDryRun) {
+        await options.approvePaidExecution();
+      }
 
-        if (!options.isDryRun) {
-          await options.approvePaidExecution();
-        }
+      await options.reservePaidExecution?.();
+      let judgeExecution;
 
-        const judgeExecution = await options.host.runJudge({
+      try {
+        judgeExecution = await options.host.runJudge({
           caseId: options.project.scenario.id,
           prompt,
           scenario: options.project.scenario,
@@ -424,70 +369,60 @@ export const executeJudgeModelStage = async (
           signal: options.signal,
           workspaceDirectory: options.judgeWorkspaceDirectory,
         });
+      } catch (error) {
+        await options.settlePaidExecution?.(null);
+        throw error;
+      }
 
-        if (!options.isDryRun) {
-          await options.verifyExecutionInputs();
-        }
+      await options.settlePaidExecution?.(judgeExecution.usage);
 
-        const postJudgeWorkspaceFingerprint = await calculateDirectoryFingerprint(
-          options.judgeWorkspaceDirectory,
-        );
+      if (!options.isDryRun) {
+        await options.verifyExecutionInputs();
+      }
 
-        if (postJudgeWorkspaceFingerprint !== judgeWorkspaceFingerprint) {
-          throw new Error('The read-only judge modified its independent workspace.');
-        }
+      const postJudgeWorkspaceFingerprint = await calculateDirectoryFingerprint(
+        options.judgeWorkspaceDirectory,
+      );
 
-        return judgeExecution;
-      },
-      ...(options.operationalRetry?.random === undefined
-        ? {}
-        : { random: options.operationalRetry.random }),
-      ...(options.signal === undefined ? {} : { signal: options.signal }),
-      ...(options.operationalRetry?.wait === undefined
-        ? {}
-        : { wait: options.operationalRetry.wait }),
-    });
-    output = validateJudgeOutput(
-      options.project.scenario,
-      JudgeOutputSchema.parse(
-        sanitizeEvidenceValue(execution.output, {
-          attemptDirectory: options.attemptDirectory,
-          packagesRepository: options.packagesRepository,
-          skillRepository: options.skillRepository,
-          workspaceDirectory: options.project.workspaceDirectory,
-        }),
-      ),
-    );
-    usage = execution.usage;
-    durationMs = execution.durationMs;
-    events = execution.events;
-    createdAt = new Date().toISOString();
-    sourceAttemptId = options.attemptId;
-    cacheSourceAttemptId = null;
-    commandPolicy = execution.commandPolicy;
+      if (postJudgeWorkspaceFingerprint !== judgeWorkspaceFingerprint) {
+        throw new Error('The read-only judge modified its independent workspace.');
+      }
 
-    if (options.useCache && !options.isDryRun) {
-      await writeJudgeCache({
-        cacheKey,
-        sourceAttemptId: options.attemptId,
-        output,
-        durationMs,
-        commandPolicy,
-        events,
-        usage,
-        ...(options.cacheRoot === undefined ? {} : { cacheRoot: options.cacheRoot }),
-      });
-    }
-  }
+      return judgeExecution;
+    },
+    ...(options.operationalRetry?.random === undefined
+      ? {}
+      : { random: options.operationalRetry.random }),
+    ...(options.signal === undefined ? {} : { signal: options.signal }),
+    ...(options.operationalRetry?.wait === undefined
+      ? {}
+      : { wait: options.operationalRetry.wait }),
+  });
+  const output = validateJudgeOutput(
+    options.project.scenario,
+    JudgeOutputSchema.parse(
+      sanitizeEvidenceValue(execution.output, {
+        attemptDirectory: options.attemptDirectory,
+        packagesRepository: options.packagesRepository,
+        skillRepository: options.skillRepository,
+        workspaceDirectory: options.project.workspaceDirectory,
+      }),
+    ),
+  );
+  const usage = execution.usage;
+  const durationMs = execution.durationMs;
+  const events = execution.events;
+  const createdAt = new Date().toISOString();
+  const commandPolicy = execution.commandPolicy;
 
   const evidence = QualificationModelStageEvidenceSchema.parse({
     role: 'judge',
     createdAt,
     durationMs,
     usage,
-    cacheKey,
-    sourceAttemptId,
-    cacheSourceAttemptId,
+    stageIdentity,
+    sourceAttemptId: options.attemptId,
+    reuseSourceAttemptId: null,
     trialId: options.trialId,
     commandPolicy,
   }) as IJudgeStageResult['evidence'];

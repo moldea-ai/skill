@@ -8,7 +8,10 @@ import type {
   IQualificationSelection,
   IQualificationTrialResult,
 } from '../contracts/index.ts';
-import type { ICodexEvaluationOperationalRetry } from '../../../tooling/codex-evaluation-host/index.mjs';
+import type {
+  ICodexEvaluationOperationalExhaustion,
+  ICodexEvaluationOperationalRetry,
+} from '../../../tooling/codex-evaluation-host/index.mjs';
 import type { ICodexHost } from '../codex-host/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 
@@ -17,13 +20,16 @@ export type IRunQualificationOptions = {
   host: ICodexHost;
   selection?: IQualificationSelection;
   caseId?: string;
+  initialCandidateTokensConsumed?: number;
   mode?: 'diagnostic' | 'dry-run' | 'official';
+  newAttemptId?: string;
   packagesRepository?: string;
   skillRepository?: string;
   isDryRun?: boolean;
-  useCache?: boolean;
+  reuseEvidence?: boolean;
   parentAttemptId?: string | null;
   resumeAttemptId?: string;
+  resumeStoppedStage?: boolean;
   resultsRoot?: string;
   requestPaidExecutionApproval?: (request: IQualificationPaidExecutionRequest) => Promise<boolean>;
   onProgress?: (progress: IQualificationProgress) => Promise<void> | void;
@@ -31,12 +37,15 @@ export type IRunQualificationOptions = {
   signal?: AbortSignal | undefined;
 };
 
-// exact cost boundary presented immediately before the first uncached model call
+// exact cost boundary presented immediately before the first direct model call
 export type IQualificationPaidExecutionRequest = {
+  candidateTokensConsumed: number;
+  directCaseCount: number;
   maximumCallCount: number;
   maximumTokenCount: number;
   maximumTokensPerCall: number;
   plannedCallCount: number;
+  reusedCaseCount: number;
   model: IQualificationExecutionEnvironment['model'];
   reasoningEffort: IQualificationExecutionEnvironment['reasoningEffort'];
 };
@@ -50,6 +59,14 @@ export type IQualificationOperationalRetryOptions = {
 
 // safe operator progress emitted independently from JSON stdout
 export type IQualificationProgress =
+  | {
+      kind: 'operational-stop';
+      caseId: string;
+      role: 'actor' | 'judge';
+      stageId: string;
+      stop: ICodexEvaluationOperationalExhaustion;
+      trialId: IQualificationTrialResult['trialId'];
+    }
   | {
       kind: 'operational-retry';
       caseId: string;

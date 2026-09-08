@@ -289,8 +289,8 @@ export const QualificationTrialResultSchema = z
     judgeUsage: ModelUsageSchema.nullable(),
     actorEvidenceCreatedAt: z.iso.datetime(),
     judgeEvidenceCreatedAt: z.iso.datetime().nullable(),
-    actorCacheSourceAttemptId: z.string().nullable(),
-    judgeCacheSourceAttemptId: z.string().nullable(),
+    actorReuseSourceAttemptId: z.string().nullable(),
+    judgeReuseSourceAttemptId: z.string().nullable(),
     requirementAssessments: z
       .array(
         z.object({
@@ -319,14 +319,10 @@ export const QualificationTrialResultSchema = z
       });
     }
 
-    if (
-      trial.passed !== (trial.failures.length === 0) ||
-      (trial.kind === 'confirmation' &&
-        (trial.actorCacheSourceAttemptId !== null || trial.judgeCacheSourceAttemptId !== null))
-    ) {
+    if (trial.passed !== (trial.failures.length === 0)) {
       context.addIssue({
         code: 'custom',
-        message: 'Trial verdict and cache provenance are contradictory.',
+        message: 'Trial verdict and failures are contradictory.',
         path: ['failures'],
       });
     }
@@ -340,6 +336,13 @@ export const QualificationCurrentCaseResultSchema = z
     durationMs: z.number().int().nonnegative(),
     trials: z.array(QualificationTrialResultSchema).min(1).max(3),
     failures: z.array(z.string()),
+    reuse: z
+      .object({
+        sourceAttemptId: z.string().trim().min(1),
+        sourceCommit: z.string().regex(/^[a-f0-9]{40}$/u),
+        sourceAttemptDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+      })
+      .nullable(),
   })
   .superRefine((caseResult, context) => {
     const [initial, confirmation1, confirmation2] = caseResult.trials;
@@ -359,16 +362,23 @@ export const QualificationCurrentCaseResultSchema = z
             : caseResult.trials.length === 2 &&
               caseResult.status === 'failed' &&
               caseResult.confirmationStatus === 'rejected'));
+    const expectedReuseSourceAttemptId = caseResult.reuse?.sourceAttemptId ?? null;
+    const reuseSourceAttemptIds = caseResult.trials.flatMap((trial) => [
+      trial.actorReuseSourceAttemptId,
+      ...(trial.judgeStatus === 'completed' ? [trial.judgeReuseSourceAttemptId] : []),
+    ]);
 
     if (
       !hasValidHistory ||
       new Set(caseResult.trials.map(({ trialId }) => trialId)).size !== caseResult.trials.length ||
-      (caseResult.status === 'failed') !== caseResult.failures.length > 0
+      (caseResult.status === 'failed') !== caseResult.failures.length > 0 ||
+      (caseResult.reuse !== null && caseResult.status === 'failed') ||
+      reuseSourceAttemptIds.some((attemptId) => attemptId !== expectedReuseSourceAttemptId)
     ) {
       context.addIssue({
         code: 'custom',
-        message: 'Case verdict contradicts its ordered trial history.',
-        path: ['trials'],
+        message: 'Case verdict, ordered trials, and reuse source are contradictory.',
+        path: ['reuse'],
       });
     }
   });
@@ -389,13 +399,23 @@ const QualificationAttemptResultShape = {
 };
 const QualificationStageSchema = z.object({
   id: z.string().trim().min(1),
-  status: z.enum(['cached', 'errored', 'failed', 'passed', 'pending', 'running', 'skipped']),
+  status: z.enum([
+    'reused',
+    'errored',
+    'failed',
+    'passed',
+    'pending',
+    'running',
+    'skipped',
+    'stopped',
+  ]),
   startedAt: z.iso.datetime().nullable(),
   completedAt: z.iso.datetime().nullable(),
   durationMs: z.number().int().nonnegative().nullable(),
-  cacheKey: Sha256Schema.nullable(),
-  cacheSourceAttemptId: z.string().nullable(),
+  stageIdentity: Sha256Schema.nullable(),
+  reuseSourceAttemptId: z.string().nullable(),
   error: z.string().nullable(),
+  hasUsedOperationalStopResume: z.boolean(),
 });
 const QualificationOperationalRetrySchema = z
   .object({
@@ -417,6 +437,16 @@ const QualificationOperationalRetrySchema = z
   });
 const QualificationCurrentStageSchema = QualificationStageSchema.extend({
   operationalRetries: z.array(QualificationOperationalRetrySchema).max(1),
+  operationalStops: z
+    .array(
+      z.object({
+        category: z.enum(['execution-failed', 'proxy-unavailable', 'timed-out']),
+        failedAt: z.iso.datetime(),
+        failureCount: z.literal(2),
+        maximumRetryCount: z.literal(1),
+      }),
+    )
+    .max(2),
 }).superRefine((stage, context) => {
   const isModelStage = /:trial:(?:initial|confirmation-[12]):(?:actor|judge)$/u.test(stage.id);
 
@@ -431,14 +461,32 @@ const QualificationCurrentStageSchema = QualificationStageSchema.extend({
   }
 
   if (
-    (stage.operationalRetries.length > 0 && !isModelStage) ||
-    (stage.operationalRetries.length > 0 &&
-      (stage.status === 'cached' || stage.status === 'skipped'))
+    ((stage.operationalRetries.length > 0 ||
+      stage.operationalStops.length > 0 ||
+      stage.hasUsedOperationalStopResume) &&
+      !isModelStage) ||
+    ((stage.operationalRetries.length > 0 || stage.operationalStops.length > 0) &&
+      (stage.status === 'reused' || stage.status === 'skipped'))
   ) {
     context.addIssue({
       code: 'custom',
       message: 'Operational retry evidence is invalid for this stage.',
       path: ['operationalRetries'],
+    });
+  }
+
+  const hasValidStopState = stage.hasUsedOperationalStopResume
+    ? stage.operationalStops.length >= 1 &&
+      (stage.status !== 'stopped' || stage.operationalStops.length === 2)
+    : stage.status === 'stopped'
+      ? stage.operationalStops.length === 1
+      : stage.operationalStops.length === 0;
+
+  if (!hasValidStopState) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Operational stop history contradicts the explicit resume state.',
+      path: ['operationalStops'],
     });
   }
 });
@@ -718,9 +766,9 @@ export const QualificationModelStageEvidenceSchema = z.strictObject({
   createdAt: z.iso.datetime(),
   durationMs: z.number().int().nonnegative(),
   usage: ModelUsageSchema.nullable(),
-  cacheKey: Sha256Schema,
+  stageIdentity: Sha256Schema,
   sourceAttemptId: z.string().trim().min(1),
-  cacheSourceAttemptId: z.string().trim().min(1).nullable(),
+  reuseSourceAttemptId: z.string().trim().min(1).nullable(),
   commandPolicy: QualificationCommandPolicyEvidenceSchema,
 });
 export const QualificationProjectedExecutionEventSchema = z.strictObject({

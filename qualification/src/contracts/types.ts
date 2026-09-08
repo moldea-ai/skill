@@ -6,6 +6,7 @@ import { calculateCodexEvaluationOperationalRetryDelay } from '../../../tooling/
 import {
   DEFAULT_PACKAGES_REPOSITORY,
   QUALIFICATION_ALLOWED_EGRESS_HOSTS,
+  QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
   QUALIFICATION_CONFIRMATION_POLICY,
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
   QUALIFICATION_MODEL,
@@ -574,9 +575,9 @@ export const QualificationModelStageEvidenceSchema = z.strictObject({
   createdAt: z.string().datetime(),
   durationMs: z.number().int().nonnegative(),
   usage: ModelUsageSchema.nullable(),
-  cacheKey: z.string().regex(/^[a-f0-9]{64}$/u),
+  stageIdentity: z.string().regex(/^[a-f0-9]{64}$/u),
   sourceAttemptId: z.string().trim().min(1),
-  cacheSourceAttemptId: z.string().trim().min(1).nullable(),
+  reuseSourceAttemptId: z.string().trim().min(1).nullable(),
   commandPolicy: QualificationCommandPolicyEvidenceSchema,
 });
 
@@ -765,13 +766,14 @@ export type IQualificationJudgeSkipped = z.infer<typeof QualificationJudgeSkippe
 
 // durable stage state written atomically after every execution boundary
 export const QualificationStageStatusSchema = z.enum([
-  'cached',
+  'reused',
   'errored',
   'failed',
   'passed',
   'pending',
   'running',
   'skipped',
+  'stopped',
 ]);
 
 const QualificationStageCheckpointShape = {
@@ -780,12 +782,13 @@ const QualificationStageCheckpointShape = {
   startedAt: z.string().datetime().nullable(),
   completedAt: z.string().datetime().nullable(),
   durationMs: z.number().int().nonnegative().nullable(),
-  cacheKey: z
+  stageIdentity: z
     .string()
     .regex(/^[a-f0-9]{64}$/u)
     .nullable(),
-  cacheSourceAttemptId: z.string().nullable(),
+  reuseSourceAttemptId: z.string().nullable(),
   error: z.string().nullable(),
+  hasUsedOperationalStopResume: z.boolean(),
 };
 
 // stable safe evidence for one retryable Codex host failure
@@ -809,6 +812,14 @@ export const QualificationOperationalRetrySchema = z
     }
   });
 
+// safe terminal marker for one retryable stage that exhausted its bounded calls
+export const QualificationOperationalStopSchema = z.strictObject({
+  category: z.enum(['execution-failed', 'proxy-unavailable', 'timed-out']),
+  failedAt: z.string().datetime(),
+  failureCount: z.literal(QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT + 1),
+  maximumRetryCount: z.literal(QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT),
+});
+
 // current checkpoint stage with append-only operational retry evidence
 export const QualificationStageCheckpointSchema = z
   .strictObject({
@@ -816,6 +827,7 @@ export const QualificationStageCheckpointSchema = z
     operationalRetries: z
       .array(QualificationOperationalRetrySchema)
       .max(QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT),
+    operationalStops: z.array(QualificationOperationalStopSchema).max(2),
   })
   .superRefine((stage, context) => {
     const isModelStage = /:trial:(?:initial|confirmation-[12]):(?:actor|judge)$/u.test(stage.id);
@@ -830,28 +842,49 @@ export const QualificationStageCheckpointSchema = z
       }
     }
 
-    if (stage.operationalRetries.length > 0 && !isModelStage) {
+    if (
+      (stage.operationalRetries.length > 0 ||
+        stage.operationalStops.length > 0 ||
+        stage.hasUsedOperationalStopResume) &&
+      !isModelStage
+    ) {
       context.addIssue({
         code: 'custom',
-        message: 'Only actor and judge trial stages may record operational retries.',
-        path: ['operationalRetries'],
+        message: 'Only actor and judge trial stages may record operational recovery state.',
+        path: ['operationalStops'],
       });
     }
 
     if (
-      stage.operationalRetries.length > 0 &&
-      (stage.status === 'cached' || stage.status === 'skipped')
+      (stage.operationalRetries.length > 0 || stage.operationalStops.length > 0) &&
+      (stage.status === 'reused' || stage.status === 'skipped')
     ) {
       context.addIssue({
         code: 'custom',
-        message: 'Cached and skipped stages cannot record operational retries.',
+        message: 'Reused and skipped stages cannot record operational retries.',
         path: ['operationalRetries'],
+      });
+    }
+
+    const hasValidStopState = stage.hasUsedOperationalStopResume
+      ? stage.operationalStops.length >= 1 &&
+        (stage.status !== 'stopped' || stage.operationalStops.length === 2)
+      : stage.status === 'stopped'
+        ? stage.operationalStops.length === 1
+        : stage.operationalStops.length === 0;
+
+    if (!hasValidStopState) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Operational stop history contradicts the explicit resume state.',
+        path: ['operationalStops'],
       });
     }
   });
 
 export type IQualificationStageCheckpoint = z.infer<typeof QualificationStageCheckpointSchema>;
 export type IQualificationOperationalRetry = z.infer<typeof QualificationOperationalRetrySchema>;
+export type IQualificationOperationalStop = z.infer<typeof QualificationOperationalStopSchema>;
 
 export const QualificationAttemptStatusSchema = z.enum([
   'errored',
@@ -872,7 +905,10 @@ export const QualificationAttemptCheckpointSchema = z
     isDryRun: z.boolean(),
     mode: z.enum(['diagnostic', 'dry-run', 'official']).default('official'),
     selectedCaseId: StableIdSchema.nullable().default(null),
-    useCache: z.boolean(),
+    reuseEvidence: z.boolean(),
+    candidateTokenLimit: z.literal(QUALIFICATION_CANDIDATE_TOKEN_LIMIT),
+    candidateTokensConsumed: z.number().int().nonnegative(),
+    candidateTokensReserved: z.number().int().nonnegative(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
     completedAt: z.string().datetime().nullable(),
@@ -899,6 +935,17 @@ export const QualificationAttemptCheckpointSchema = z
     workspaceDirectories: z.record(z.string(), z.string()),
   })
   .superRefine((checkpoint, context) => {
+    if (
+      checkpoint.candidateTokensConsumed + checkpoint.candidateTokensReserved >
+      checkpoint.candidateTokenLimit
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Candidate token consumption and reservations exceed the stop-loss.',
+        path: ['candidateTokensConsumed'],
+      });
+    }
+
     if (checkpoint.isDryRun !== (checkpoint.mode === 'dry-run')) {
       context.addIssue({
         code: 'custom',
@@ -941,8 +988,8 @@ export const QualificationTrialResultSchema = z
     judgeUsage: ModelUsageSchema.nullable(),
     actorEvidenceCreatedAt: z.string().datetime(),
     judgeEvidenceCreatedAt: z.string().datetime().nullable(),
-    actorCacheSourceAttemptId: z.string().nullable(),
-    judgeCacheSourceAttemptId: z.string().nullable(),
+    actorReuseSourceAttemptId: z.string().nullable(),
+    judgeReuseSourceAttemptId: z.string().nullable(),
     requirementAssessments: z.array(QualificationRequirementAssessmentSchema).min(1),
     failures: z.array(z.string()),
   })
@@ -983,20 +1030,18 @@ export const QualificationTrialResultSchema = z
         path: ['requirementAssessments'],
       });
     }
-
-    if (
-      trial.kind === 'confirmation' &&
-      (trial.actorCacheSourceAttemptId !== null || trial.judgeCacheSourceAttemptId !== null)
-    ) {
-      context.addIssue({
-        code: 'custom',
-        message: 'Confirmation trials must contain fresh actor and judge evidence.',
-        path: ['actorCacheSourceAttemptId'],
-      });
-    }
   });
 
 export type IQualificationTrialResult = z.infer<typeof QualificationTrialResultSchema>;
+
+// exact immutable source for one reused passing or recovered case group
+export const QualificationCaseReuseSchema = z.strictObject({
+  sourceAttemptId: z.string().trim().min(1),
+  sourceCommit: z.string().regex(/^[a-f0-9]{40}$/u),
+  sourceAttemptDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+});
+
+export type IQualificationCaseReuse = z.infer<typeof QualificationCaseReuseSchema>;
 
 // terminal protocol 8 case history preserving the original trial and every confirmation
 export const QualificationCaseResultSchema = z
@@ -1008,6 +1053,7 @@ export const QualificationCaseResultSchema = z
     durationMs: z.number().int().nonnegative(),
     trials: z.array(QualificationTrialResultSchema).min(1).max(3),
     failures: z.array(z.string()),
+    reuse: QualificationCaseReuseSchema.nullable(),
   })
   .superRefine((caseResult, context) => {
     const trialIds = caseResult.trials.map(({ trialId }) => trialId);
@@ -1061,6 +1107,23 @@ export const QualificationCaseResultSchema = z
         path: ['failures'],
       });
     }
+
+    const reuseSourceAttemptIds = caseResult.trials.flatMap((trial) => [
+      trial.actorReuseSourceAttemptId,
+      ...(trial.judgeStatus === 'completed' ? [trial.judgeReuseSourceAttemptId] : []),
+    ]);
+    const expectedReuseSourceAttemptId = caseResult.reuse?.sourceAttemptId ?? null;
+
+    if (
+      (caseResult.reuse !== null && caseResult.status === 'failed') ||
+      reuseSourceAttemptIds.some((attemptId) => attemptId !== expectedReuseSourceAttemptId)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Case reuse must cover every model stage from one exact passing source.',
+        path: ['reuse'],
+      });
+    }
   });
 
 export type IQualificationCaseResult = z.infer<typeof QualificationCaseResultSchema>;
@@ -1068,6 +1131,10 @@ export type IQualificationCaseResult = z.infer<typeof QualificationCaseResultSch
 // public provenance is content-addressed and intentionally contains no host-absolute paths
 export const QualificationProvenanceSchema = z.strictObject({
   ...QualificationExecutionEnvironmentSchema.shape,
+  candidateFingerprint: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/u)
+    .nullable(),
   packagesRepositoryCommit: z.string().trim().min(1),
   packagesRepositoryFingerprint: z.string().regex(/^[a-f0-9]{64}$/u),
   packagesRepositoryDirty: z.boolean(),
@@ -1126,6 +1193,14 @@ const validateQualificationAttemptResult = (
   result: IQualificationAttemptResult,
   context: z.RefinementCtx,
 ): void => {
+  if (result.cases.length > 0 && result.provenance.candidateFingerprint === null) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Case evidence requires an exact candidate fingerprint.',
+      path: ['provenance', 'candidateFingerprint'],
+    });
+  }
+
   if (
     result.status === 'passed' &&
     (result.provenance.packagesRepositoryDirty ||

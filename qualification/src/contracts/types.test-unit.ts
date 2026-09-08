@@ -337,8 +337,8 @@ const createTrial = (
     judgeUsage: null,
     actorEvidenceCreatedAt: '2026-08-27T16:00:00.000Z',
     judgeEvidenceCreatedAt: '2026-08-27T16:00:01.000Z',
-    actorCacheSourceAttemptId: null,
-    judgeCacheSourceAttemptId: null,
+    actorReuseSourceAttemptId: null,
+    judgeReuseSourceAttemptId: null,
     requirementAssessments: [
       {
         id: 'test-requirement',
@@ -392,15 +392,16 @@ describe('protocol 8 qualification contracts', () => {
           durationMs: trials.length,
           trials,
           failures,
+          reuse: null,
         }).success,
       ).toBe(true);
     },
   );
 
-  test('rejects incomplete and cache-derived confirmation histories', () => {
-    const cachedConfirmation = {
+  test('rejects incomplete and partially reused confirmation histories', () => {
+    const partiallyReusedConfirmation = {
       ...createTrial('confirmation-1', true),
-      actorCacheSourceAttemptId: 'prior-attempt',
+      actorReuseSourceAttemptId: 'prior-attempt',
     };
 
     expect(
@@ -412,9 +413,25 @@ describe('protocol 8 qualification contracts', () => {
         durationMs: 1,
         trials: [createTrial('initial', false)],
         failures: ['initial failed.'],
+        reuse: null,
       }).success,
     ).toBe(false);
-    expect(QualificationTrialResultSchema.safeParse(cachedConfirmation).success).toBe(false);
+    expect(
+      QualificationCaseResultSchema.safeParse({
+        caseId: 'test-case',
+        title: 'Test case',
+        status: 'recovered',
+        confirmationStatus: 'passed',
+        durationMs: 3,
+        trials: [
+          createTrial('initial', false),
+          partiallyReusedConfirmation,
+          createTrial('confirmation-2', true),
+        ],
+        failures: [],
+        reuse: null,
+      }).success,
+    ).toBe(false);
   });
 
   test('accepts contiguous model retries and rejects unsafe retry state', () => {
@@ -430,11 +447,19 @@ describe('protocol 8 qualification contracts', () => {
       startedAt: '2026-08-27T16:00:00.000Z',
       completedAt: null,
       durationMs: null,
-      cacheKey: 'a'.repeat(64),
-      cacheSourceAttemptId: null,
+      stageIdentity: 'a'.repeat(64),
+      reuseSourceAttemptId: null,
       error: null,
+      hasUsedOperationalStopResume: false,
       operationalRetries: [retry],
+      operationalStops: [],
     };
+    const stop = {
+      category: 'timed-out',
+      failedAt: '2026-08-27T16:01:00.000Z',
+      failureCount: 2,
+      maximumRetryCount: 1,
+    } as const;
 
     expect(QualificationStageCheckpointSchema.safeParse(stage).success).toBe(true);
     expect(
@@ -452,9 +477,41 @@ describe('protocol 8 qualification contracts', () => {
     expect(
       QualificationStageCheckpointSchema.safeParse({
         ...stage,
-        status: 'cached',
+        status: 'reused',
       }).success,
     ).toBe(false);
+    expect(
+      QualificationStageCheckpointSchema.safeParse({
+        ...stage,
+        status: 'stopped',
+        operationalStops: [stop],
+      }).success,
+    ).toBe(true);
+    expect(
+      QualificationStageCheckpointSchema.safeParse({
+        ...stage,
+        status: 'pending',
+        startedAt: null,
+        hasUsedOperationalStopResume: true,
+        operationalStops: [stop],
+      }).success,
+    ).toBe(true);
+    expect(
+      QualificationStageCheckpointSchema.safeParse({
+        ...stage,
+        status: 'stopped',
+        hasUsedOperationalStopResume: true,
+        operationalStops: [stop],
+      }).success,
+    ).toBe(false);
+    expect(
+      QualificationStageCheckpointSchema.safeParse({
+        ...stage,
+        status: 'stopped',
+        hasUsedOperationalStopResume: true,
+        operationalStops: [stop, { ...stop, failedAt: '2026-08-27T16:02:00.000Z' }],
+      }).success,
+    ).toBe(true);
     expect(
       QualificationStageCheckpointSchema.safeParse({
         ...stage,

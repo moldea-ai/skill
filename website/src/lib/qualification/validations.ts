@@ -559,23 +559,22 @@ export const assertQualificationTrialModelEvidence = (options: {
       : options.trial.judgeEvidenceCreatedAt;
   const expectedUsage =
     options.role === 'actor' ? options.trial.actorUsage : options.trial.judgeUsage;
-  const expectedCacheSourceAttemptId =
+  const expectedReuseSourceAttemptId =
     options.role === 'actor'
-      ? options.trial.actorCacheSourceAttemptId
-      : options.trial.judgeCacheSourceAttemptId;
-  const isCached = expectedCacheSourceAttemptId !== null;
+      ? options.trial.actorReuseSourceAttemptId
+      : options.trial.judgeReuseSourceAttemptId;
+  const isReused = expectedReuseSourceAttemptId !== null;
 
   if (
     options.evidence.role !== options.role ||
     options.evidence.trialId !== options.trial.trialId ||
     options.evidence.createdAt !== expectedCreatedAt ||
     JSON.stringify(options.evidence.usage) !== JSON.stringify(expectedUsage) ||
-    options.evidence.cacheSourceAttemptId !== expectedCacheSourceAttemptId ||
-    options.evidence.sourceAttemptId !== (expectedCacheSourceAttemptId ?? options.attemptId) ||
-    options.stage.cacheKey !== options.evidence.cacheKey ||
-    options.stage.cacheSourceAttemptId !== expectedCacheSourceAttemptId ||
-    options.stage.status !== (isCached ? 'cached' : 'passed') ||
-    (options.trial.kind === 'confirmation' && isCached)
+    options.evidence.reuseSourceAttemptId !== expectedReuseSourceAttemptId ||
+    options.evidence.sourceAttemptId !== (expectedReuseSourceAttemptId ?? options.attemptId) ||
+    options.stage.stageIdentity !== options.evidence.stageIdentity ||
+    options.stage.reuseSourceAttemptId !== expectedReuseSourceAttemptId ||
+    options.stage.status !== (isReused ? 'reused' : 'passed')
   ) {
     throw new Error(
       `Qualification trial ${options.trial.trialId} has contradictory ${options.role} provenance.`,
@@ -637,26 +636,27 @@ const hasValidNonModelStage = (
   >['stages'][number]['status'][],
 ): boolean =>
   hasCompletedStageState(stage, allowedStatuses) &&
-  stage?.cacheKey === null &&
-  stage.cacheSourceAttemptId === null &&
-  stage.operationalRetries.length === 0;
+  stage?.stageIdentity === null &&
+  stage.reuseSourceAttemptId === null &&
+  !stage.hasUsedOperationalStopResume &&
+  stage.operationalRetries.length === 0 &&
+  stage.operationalStops.length === 0;
 
 const hasValidModelStage = (
   stage: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>['stages'][number] | undefined,
-  isConfirmation: boolean,
 ): boolean => {
-  if (
-    stage === undefined ||
-    !hasCompletedStageState(stage, isConfirmation ? ['passed'] : ['cached', 'passed'])
-  ) {
+  if (stage === undefined || !hasCompletedStageState(stage, ['reused', 'passed'])) {
     return false;
   }
 
   return (
-    stage.cacheKey !== null &&
-    (stage.status === 'cached'
-      ? stage.cacheSourceAttemptId !== null && stage.operationalRetries.length === 0
-      : stage.cacheSourceAttemptId === null)
+    stage.stageIdentity !== null &&
+    (stage.status === 'reused'
+      ? stage.reuseSourceAttemptId !== null &&
+        !stage.hasUsedOperationalStopResume &&
+        stage.operationalRetries.length === 0 &&
+        stage.operationalStops.length === 0
+      : stage.reuseSourceAttemptId === null)
   );
 };
 
@@ -674,10 +674,12 @@ const hasValidUnusedCurrentStage = (
     stage !== undefined &&
     stage.status === expectedStatus &&
     hasExpectedTiming &&
-    stage.cacheKey === null &&
-    stage.cacheSourceAttemptId === null &&
+    stage.stageIdentity === null &&
+    stage.reuseSourceAttemptId === null &&
     stage.error === null &&
-    stage.operationalRetries.length === 0
+    !stage.hasUsedOperationalStopResume &&
+    stage.operationalRetries.length === 0 &&
+    stage.operationalStops.length === 0
   );
 };
 
@@ -733,16 +735,15 @@ const hasValidCurrentStages = (
       const trial = caseResult.trials.find(
         ({ trialId: candidateTrialId }) => candidateTrialId === trialId,
       );
-      const isConfirmation = trialId !== 'initial';
       return (
         trial !== undefined &&
         hasValidNonModelStage(stages.get(`${prefix}:prepare`), ['passed']) &&
         hasValidNonModelStage(stages.get(`${prefix}:deterministic-before`), ['passed']) &&
-        hasValidModelStage(actor, isConfirmation) &&
+        hasValidModelStage(actor) &&
         hasValidNonModelStage(stages.get(`${prefix}:deterministic-after`), ['failed', 'passed']) &&
         hasValidNonModelStage(stages.get(`${prefix}:assertions`), ['failed', 'passed']) &&
         (trial.judgeStatus === 'completed'
-          ? hasValidModelStage(judge, isConfirmation)
+          ? hasValidModelStage(judge)
           : hasValidNonModelStage(judge, ['skipped']))
       );
     });

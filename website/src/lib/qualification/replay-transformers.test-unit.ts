@@ -200,8 +200,8 @@ const createTrial = (
       judgeUsage: null,
       actorEvidenceCreatedAt: '2026-08-29T12:00:00.000Z',
       judgeEvidenceCreatedAt: '2026-08-29T12:01:00.000Z',
-      actorCacheSourceAttemptId: null,
-      judgeCacheSourceAttemptId: null,
+      actorReuseSourceAttemptId: null,
+      judgeReuseSourceAttemptId: null,
       requirementAssessments: [
         {
           id: 'complete-evidence',
@@ -233,6 +233,7 @@ const createCaseResult = (
   durationMs: trials.reduce((total, trial) => total + trial.result.durationMs, 0),
   trials: trials.map(({ result }) => result),
   failures: [],
+  reuse: null,
 });
 
 describe('createQualificationReplay', () => {

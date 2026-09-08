@@ -113,6 +113,7 @@ const createResult = (
       hostTimeoutMs: 120_000,
       modelEndpoint: null,
       sslCertificateFileSha256: null,
+      candidateFingerprint: null,
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'a'.repeat(64),
       packagesRepositoryDirty: false,

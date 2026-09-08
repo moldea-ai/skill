@@ -259,6 +259,8 @@ describe('qualification model stages', () => {
       isDryRun: true,
       packagesRepository: '/packages',
       profileDigest: 'd'.repeat(64),
+      qualificationDigest: '9'.repeat(64),
+      baselineAttemptId: null,
       modelHostDigest: 'e'.repeat(64),
       project,
       skillDigest: 'f'.repeat(64),
@@ -267,7 +269,6 @@ describe('qualification model stages', () => {
       snapshotDirectory,
       task: 'Record the static-analysis boundary.',
       trialId: 'initial',
-      useCache: false,
       verifyExecutionInputs: () => Promise.resolve(),
     } satisfies Parameters<typeof executeActorModelStage>[0];
     const result = await executeActorModelStage(actorStageOptions);
@@ -376,6 +377,8 @@ describe('qualification model stages', () => {
         judgeWorkspaceDirectory: path.join(temporaryRoot, 'judge-workspace'),
         packagesRepository: '/packages',
         profileDigest: 'd'.repeat(64),
+        qualificationDigest: '9'.repeat(64),
+        baselineAttemptId: null,
         modelHostDigest: 'e'.repeat(64),
         project,
         skillDigest: 'f'.repeat(64),
@@ -383,7 +386,6 @@ describe('qualification model stages', () => {
         skillRepository: '/skill',
         task: 'Complete the test task.',
         trialId: 'initial',
-        useCache: false,
         verifyExecutionInputs: () => {
           callOrder.push('verify');
           return Promise.resolve();
@@ -405,9 +407,9 @@ describe('qualification model stages', () => {
         createdAt: '2026-08-20T00:00:00.000Z',
         durationMs: 0,
         usage: null,
-        cacheKey: '0'.repeat(64),
+        stageIdentity: '0'.repeat(64),
         sourceAttemptId: 'attempt',
-        cacheSourceAttemptId: null,
+        reuseSourceAttemptId: null,
         trialId: 'initial',
         commandPolicy: emptyCommandPolicy,
       }),
@@ -515,6 +517,8 @@ describe('qualification model stages', () => {
         isDryRun: false,
         packagesRepository: '/packages',
         profileDigest: 'd'.repeat(64),
+        qualificationDigest: '9'.repeat(64),
+        baselineAttemptId: null,
         modelHostDigest: 'e'.repeat(64),
         project,
         skillDigest: 'f'.repeat(64),
@@ -523,7 +527,6 @@ describe('qualification model stages', () => {
         snapshotDirectory: path.join(temporaryRoot, 'snapshot'),
         task: 'Complete the test task.',
         trialId: 'initial',
-        useCache: false,
         verifyExecutionInputs: () => {
           callOrder.push('verify');
           return Promise.resolve();
@@ -664,6 +667,8 @@ describe('qualification model stages', () => {
       },
       packagesRepository: '/packages',
       profileDigest: 'd'.repeat(64),
+      qualificationDigest: '9'.repeat(64),
+      baselineAttemptId: null,
       modelHostDigest: 'e'.repeat(64),
       project,
       restorePreActorState: () =>
@@ -674,7 +679,6 @@ describe('qualification model stages', () => {
       snapshotDirectory: postActorSnapshotDirectory,
       task: 'Complete the test task.',
       trialId: 'initial',
-      useCache: false,
       verifyExecutionInputs: () => Promise.resolve(),
     };
     const result = await executeActorModelStage(actorStageOptions);
@@ -683,6 +687,7 @@ describe('qualification model stages', () => {
     expect(observedStates).toStrictEqual(['pristine\n', 'pristine\n']);
     expect(retryFailureCounts).toStrictEqual([1]);
     expect(retryDelays).toStrictEqual([5_000]);
+    const operationalStops: unknown[] = [];
 
     await expect(
       executeActorModelStage({
@@ -698,12 +703,24 @@ describe('qualification model stages', () => {
             ),
         }),
         initialOperationalFailureCount: 1,
+        onOperationalStop: (stop) => {
+          operationalStops.push(stop);
+          return Promise.resolve();
+        },
         onOperationalRetry: () =>
           Promise.reject(new Error('Retry exhaustion must not schedule another call.')),
       }),
     ).rejects.toThrow(
       'Codex evaluation timed-out failure exhausted 1 operational retry after 2 failures.',
     );
+    expect(operationalStops).toStrictEqual([
+      {
+        category: 'timed-out',
+        failedAt: '2026-08-27T16:00:00.000Z',
+        failureCount: 2,
+        maximumRetryCount: 1,
+      },
+    ]);
   });
 
   test('recreates the independent judge workspace before retrying a safe host failure', async () => {
@@ -849,6 +866,8 @@ describe('qualification model stages', () => {
       },
       packagesRepository: '/packages',
       profileDigest: 'd'.repeat(64),
+      qualificationDigest: '9'.repeat(64),
+      baselineAttemptId: null,
       modelHostDigest: 'e'.repeat(64),
       project,
       skillDigest: 'f'.repeat(64),
@@ -856,7 +875,6 @@ describe('qualification model stages', () => {
       skillRepository: '/skill',
       task: 'Complete the test task.',
       trialId: 'initial',
-      useCache: false,
       verifyExecutionInputs: () => Promise.resolve(),
       workspaceAssertions,
     });
@@ -868,13 +886,12 @@ describe('qualification model stages', () => {
     expect(retryDelays).toStrictEqual([5_000]);
   });
 
-  test('restores failed initial model evidence from cache while keeping confirmations fresh', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-model-stage-cache-recovery-'));
+  test('executes matching attempts and confirmations as fresh model stages', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-model-stage-direct-'));
     const workspaceDirectory = path.join(temporaryRoot, 'workspace');
-    const cacheRoot = path.join(temporaryRoot, 'cache');
     const changedHostArtifactDirectory = path.join(temporaryRoot, 'changed-host-artifacts');
     const sourceArtifactDirectory = path.join(temporaryRoot, 'source-artifacts');
-    const cachedArtifactDirectory = path.join(temporaryRoot, 'cached-artifacts');
+    const repeatedArtifactDirectory = path.join(temporaryRoot, 'repeated-artifacts');
     const confirmationArtifactDirectory = path.join(temporaryRoot, 'confirmation-artifacts');
     const runtimeDirectory = path.join(temporaryRoot, 'runtime');
     const candidateDirectory = path.join(workspaceDirectory, 'node_modules', 'candidate');
@@ -884,7 +901,7 @@ describe('qualification model stages', () => {
       ensureDirectory(candidateDirectory),
       ensureDirectory(changedHostArtifactDirectory),
       ensureDirectory(sourceArtifactDirectory),
-      ensureDirectory(cachedArtifactDirectory),
+      ensureDirectory(repeatedArtifactDirectory),
       ensureDirectory(confirmationArtifactDirectory),
       ensureDirectory(internalDirectory),
       ensureDirectory(runtimeDirectory),
@@ -950,13 +967,14 @@ describe('qualification model stages', () => {
       adapterId: 'custom',
       approvePaidExecution: () => Promise.resolve(),
       attemptDirectory: temporaryRoot,
-      cacheRoot,
       candidate,
       executionEnvironment,
       implementationId: 'custom',
       isDryRun: false,
       packagesRepository: '/packages',
       profileDigest: 'd'.repeat(64),
+      qualificationDigest: '9'.repeat(64),
+      baselineAttemptId: null,
       modelHostDigest: 'e'.repeat(64),
       project,
       skillDigest: 'f'.repeat(64),
@@ -989,7 +1007,7 @@ describe('qualification model stages', () => {
         return Promise.resolve({
           output: {
             verdict: 'fail',
-            summary: 'The cached initial semantic decision failed.',
+            summary: 'The restored initial semantic decision failed.',
             requirements: input.scenario.judgeRequirements.map(({ id }) => ({
               id,
               verdict: 'fail',
@@ -1011,7 +1029,6 @@ describe('qualification model stages', () => {
       host: sourceHost,
       snapshotDirectory: path.join(temporaryRoot, 'source-actor-snapshot'),
       trialId: 'initial',
-      useCache: true,
     });
     const sourceJudge = await executeJudgeModelStage({
       ...commonOptions,
@@ -1023,40 +1040,65 @@ describe('qualification model stages', () => {
       host: sourceHost,
       judgeWorkspaceDirectory: path.join(temporaryRoot, 'source-judge-workspace'),
       trialId: 'initial',
-      useCache: true,
       workspaceAssertions,
     });
-    let unexpectedCachedCalls = 0;
-    const cachedHost = new FakeCodexHost({
-      actor: () => {
-        unexpectedCachedCalls += 1;
-        return Promise.reject(new Error('Cached initial actor evidence should avoid execution.'));
+    let repeatedActorCalls = 0;
+    let repeatedJudgeCalls = 0;
+    const repeatedHost = new FakeCodexHost({
+      actor: (input) => {
+        repeatedActorCalls += 1;
+        return Promise.resolve({
+          output: {
+            outcome: input.scenario.expectedActorOutcome,
+            summary: 'Completed the repeated initial trial.',
+            changedFiles: [],
+            observations: [],
+            unresolved: [],
+          },
+          usage: null,
+          durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
+          events: '',
+        });
       },
-      judge: () => {
-        unexpectedCachedCalls += 1;
-        return Promise.reject(new Error('Cached initial judge evidence should avoid execution.'));
+      judge: (input) => {
+        repeatedJudgeCalls += 1;
+        return Promise.resolve({
+          output: {
+            verdict: 'fail',
+            summary: 'The repeated initial semantic decision failed.',
+            requirements: input.scenario.judgeRequirements.map(({ id }) => ({
+              id,
+              verdict: 'fail',
+              evidence: 'The repeated initial trial intentionally failed.',
+            })),
+            failures: ['The repeated initial trial intentionally failed.'],
+          },
+          usage: null,
+          durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
+          events: '',
+        });
       },
     });
-    const cachedActor = await executeActorModelStage({
+    const repeatedActor = await executeActorModelStage({
       ...commonOptions,
       attemptId: 'current-attempt',
-      caseArtifactDirectory: cachedArtifactDirectory,
-      host: cachedHost,
-      snapshotDirectory: path.join(temporaryRoot, 'cached-actor-snapshot'),
+      caseArtifactDirectory: repeatedArtifactDirectory,
+      host: repeatedHost,
+      snapshotDirectory: path.join(temporaryRoot, 'repeated-actor-snapshot'),
       trialId: 'initial',
-      useCache: true,
     });
-    const cachedJudge = await executeJudgeModelStage({
+    const repeatedJudge = await executeJudgeModelStage({
       ...commonOptions,
       actorCommandPolicy: emptyCommandPolicy,
-      actorOutput: cachedActor.output,
+      actorOutput: repeatedActor.output,
       attemptId: 'current-attempt',
-      caseArtifactDirectory: cachedArtifactDirectory,
+      caseArtifactDirectory: repeatedArtifactDirectory,
       deterministicAfter: { ...deterministicAfter, durationMs: 10_000 },
-      host: cachedHost,
-      judgeWorkspaceDirectory: path.join(temporaryRoot, 'cached-judge-workspace'),
+      host: repeatedHost,
+      judgeWorkspaceDirectory: path.join(temporaryRoot, 'repeated-judge-workspace'),
       trialId: 'initial',
-      useCache: true,
       workspaceAssertions,
     });
     let changedHostCalls = 0;
@@ -1085,7 +1127,6 @@ describe('qualification model stages', () => {
       modelHostDigest: '2'.repeat(64),
       snapshotDirectory: path.join(temporaryRoot, 'changed-host-actor-snapshot'),
       trialId: 'initial',
-      useCache: true,
     });
     let confirmationActorCalls = 0;
     let confirmationJudgeCalls = 0;
@@ -1133,7 +1174,6 @@ describe('qualification model stages', () => {
       host: confirmationHost,
       snapshotDirectory: path.join(temporaryRoot, 'confirmation-actor-snapshot'),
       trialId: 'confirmation-1',
-      useCache: false,
     });
     const confirmationJudge = await executeJudgeModelStage({
       ...commonOptions,
@@ -1145,22 +1185,22 @@ describe('qualification model stages', () => {
       host: confirmationHost,
       judgeWorkspaceDirectory: path.join(temporaryRoot, 'confirmation-judge-workspace'),
       trialId: 'confirmation-1',
-      useCache: false,
       workspaceAssertions,
     });
 
     expect(sourceActorCalls).toBe(1);
     expect(sourceJudgeCalls).toBe(1);
     expect(sourceJudge.output.verdict).toBe('fail');
-    expect(unexpectedCachedCalls).toBe(0);
-    expect(cachedActor.evidence.cacheSourceAttemptId).toBe('source-attempt');
-    expect(cachedJudge.evidence.cacheSourceAttemptId).toBe('source-attempt');
-    expect(cachedJudge.output.verdict).toBe('fail');
+    expect(repeatedActorCalls).toBe(1);
+    expect(repeatedJudgeCalls).toBe(1);
+    expect(repeatedActor.evidence.reuseSourceAttemptId).toBeNull();
+    expect(repeatedJudge.evidence.reuseSourceAttemptId).toBeNull();
+    expect(repeatedJudge.output.verdict).toBe('fail');
     expect(changedHostCalls).toBe(1);
     expect(confirmationActorCalls).toBe(1);
     expect(confirmationJudgeCalls).toBe(1);
-    expect(confirmationActor.evidence.cacheSourceAttemptId).toBeNull();
-    expect(confirmationJudge.evidence.cacheSourceAttemptId).toBeNull();
+    expect(confirmationActor.evidence.reuseSourceAttemptId).toBeNull();
+    expect(confirmationJudge.evidence.reuseSourceAttemptId).toBeNull();
     expect(confirmationJudge.output.verdict).toBe('pass');
   });
 
@@ -1217,9 +1257,9 @@ describe('qualification model stages', () => {
         createdAt: '2026-08-20T00:00:00.000Z',
         durationMs: 10,
         usage: null,
-        cacheKey: '0'.repeat(64),
+        stageIdentity: '0'.repeat(64),
         sourceAttemptId: 'attempt',
-        cacheSourceAttemptId: null,
+        reuseSourceAttemptId: null,
         commandPolicy: emptyCommandPolicy,
       }),
     ]);

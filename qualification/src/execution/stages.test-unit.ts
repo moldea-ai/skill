@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
+import { QUALIFICATION_CANDIDATE_TOKEN_LIMIT } from '../constants/index.ts';
 import {
+  assertQualificationCandidateTokenReservation,
   createQualificationStageIds,
   getQualificationMaximumCallCount,
   getQualificationMaximumTokenCount,
@@ -37,6 +39,23 @@ describe('qualification stage planning', () => {
     expect(() => getQualificationMaximumTokenCount(-1)).toThrow(
       'Qualification maximum call count must be a non-negative integer.',
     );
+  });
+
+  test('accepts an exact candidate reservation boundary and refuses one token over', () => {
+    const reservation = getQualificationMaximumTokenCount(1);
+
+    expect(() =>
+      assertQualificationCandidateTokenReservation(
+        QUALIFICATION_CANDIDATE_TOKEN_LIMIT - reservation,
+        0,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      assertQualificationCandidateTokenReservation(
+        QUALIFICATION_CANDIDATE_TOKEN_LIMIT - reservation + 1,
+        0,
+      ),
+    ).toThrow('Qualification candidate token stop reached');
   });
 
   test('plans every trial stage before the terminal case result', () => {

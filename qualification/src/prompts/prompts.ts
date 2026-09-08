@@ -6,7 +6,7 @@ import type {
   IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
 
-/** Excludes wall-clock telemetry that has no bearing on judge criteria or cache identity. */
+/** Excludes wall-clock telemetry that has no bearing on judge criteria or stage identity. */
 const createJudgeDeterministicEvidence = (
   verification: IDeterministicVerification,
 ): Omit<IDeterministicVerification, 'durationMs'> => ({

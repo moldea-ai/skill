@@ -24,7 +24,7 @@ const createCheckpoint = async (options: {
     isDryRun: false,
     mode: 'official',
     selectedCaseId: null,
-    useCache: false,
+    reuseEvidence: false,
     packagesRepository: '/private/packages',
     skillRepository: '/private/skill',
     profileDigest: 'a'.repeat(64),

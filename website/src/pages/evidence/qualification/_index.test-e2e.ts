@@ -551,7 +551,7 @@ test(
         );
       }
 
-      await expect(caseEvidence.getByText('Fresh evidence', { exact: true })).toHaveCount(5);
+      await expect(caseEvidence.getByText('Direct evidence', { exact: true })).toHaveCount(5);
       const retryDisclosure = initialTrial.getByText(
         'Operational retries (1) and committed trial artifacts',
         { exact: true },

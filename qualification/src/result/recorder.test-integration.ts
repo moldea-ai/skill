@@ -388,7 +388,9 @@ describe('qualification result recording', () => {
     expect(verification.attempts).toBe(0);
     expect(verification.issues).toHaveLength(1);
     expect(verification.issues[0]?.path).toBe(TARGET_KEY);
-    expect(verification.issues[0]?.message).toContain('Invalid input: expected 9');
+    expect(verification.issues[0]?.message).toContain(
+      `Invalid input: expected ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION}`,
+    );
   });
 
   test.each([

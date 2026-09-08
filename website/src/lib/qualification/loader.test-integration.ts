@@ -289,7 +289,7 @@ const seedCurrentQualificationAttempt = async (
   writeText(
     root,
     'qualification/profiles/t1/cases/c1/README.md',
-    '# Release case\n\nThis fixture exercises protocol 9 evidence.\n',
+    '# Release case\n\nThis fixture exercises protocol 10 evidence.\n',
   );
   writeText(
     root,
@@ -404,7 +404,7 @@ const convertCurrentAttemptToFailed = (root: string, attemptId: string): void =>
   updatedAttempt.cases = attempt.cases;
   writeAttemptFixture(root, attemptId, updatedAttempt);
   writeJson(root, 'qualification/results/t1/latest.json', {
-    protocolVersion: 9,
+    protocolVersion: 10,
     adapterId: 'custom',
     implementationId: 'custom',
     latestAttemptId: attemptId,
@@ -475,7 +475,7 @@ const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: stri
   updatedAttempt.cases = attempt.cases;
   writeAttemptFixture(root, attemptId, updatedAttempt);
   writeJson(root, 'qualification/results/t1/latest.json', {
-    protocolVersion: 9,
+    protocolVersion: 10,
     adapterId: 'custom',
     implementationId: 'custom',
     latestAttemptId: attemptId,
@@ -645,7 +645,7 @@ describe('loadQualificationWebsiteModel', () => {
     writeText(
       root,
       'qualification/profiles/t1/cases/c1/README.md',
-      '# Release case\n\nThis fixture exercises recovered protocol 9 evidence.\n',
+      '# Release case\n\nThis fixture exercises recovered protocol 10 evidence.\n',
     );
     const result = await seedPassingQualificationEvidenceFixture({
       artifactDirectory,
@@ -696,7 +696,7 @@ cases:
 
     expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
     expect(profile?.currentLatest?.result).toMatchObject({
-      protocolVersion: 9,
+      protocolVersion: 10,
       status: 'passed',
     });
     expect(recoveredCase?.result).toMatchObject({
@@ -928,7 +928,7 @@ cases:
     });
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
-      'Qualification evidence has an incomplete protocol 9 artifact inventory.',
+      'Qualification evidence has an incomplete protocol 10 artifact inventory.',
     );
   });
 

@@ -9,7 +9,9 @@ export {
 // actor execution evidence
 export {
   createMoldeaResourceEvidence,
+  hasPassingMoldeaActivation,
   hasPassingMoldeaResourceBudget,
+  hasPassingMoldeaResourceContainment,
   hasValidActorExecutionEvidence,
   hasValidMoldeaResourceEvidence,
   projectActorExecutionEvidenceEvent,

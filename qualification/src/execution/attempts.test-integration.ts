@@ -281,8 +281,7 @@ describe('qualification attempt discovery', () => {
       {
         attemptId: unsupportedAttemptId,
         kind: 'unsupported-protocol',
-        message:
-          'Checkpoint protocol version 7 is not supported by protocol version 9 and was left unchanged.',
+        message: `Checkpoint protocol version 7 is not supported by protocol version ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION} and was left unchanged.`,
         protocolVersion: 7,
       },
     ]);

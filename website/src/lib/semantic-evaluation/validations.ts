@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-import { hasPassingCodexEvaluationCommandPolicy } from '../../../../tooling/codex-evaluation-host/index.mjs';
+import {
+  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
+  hasPassingCodexEvaluationCommandPolicy,
+} from '../../../../tooling/codex-evaluation-host/index.mjs';
 import {
   hasValidActorExecutionEvidence,
   type ISemanticActorExecutionEvidenceOptions,
@@ -14,6 +17,7 @@ const AttemptStatusSchema = z.enum(['failed', 'incomplete', 'passed']);
 
 // website read models select the current evidence fields rendered by public pages
 const SemanticActorHostSchema = z.strictObject({
+  developerInstructionsSha256: z.literal(CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256),
   model: z.literal('gpt-5.6-sol'),
   name: z.literal('codex'),
   reasoningEffort: z.literal('high'),
@@ -21,6 +25,7 @@ const SemanticActorHostSchema = z.strictObject({
   version: z.string().trim().min(1),
 });
 const SemanticJudgeHostSchema = z.strictObject({
+  developerInstructionsSha256: z.literal(CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256),
   model: z.literal('gpt-5.6-sol'),
   name: z.literal('codex'),
   reasoningEffort: z.literal('xhigh'),
@@ -361,7 +366,7 @@ const SemanticAttemptEvidenceReferenceBaseSchema = z.strictObject({
 });
 const SemanticAttemptEvidenceReferenceSchema = SemanticAttemptEvidenceReferenceBaseSchema.extend({
   evaluationProtocolVersion: z.literal(SEMANTIC_EVALUATION_PROTOCOL_VERSION),
-  schemaVersion: z.literal(8),
+  schemaVersion: z.literal(9),
 });
 
 const SemanticReplayMoldeaOutputFactSchema = z.object({
@@ -549,7 +554,7 @@ export const SemanticReplayCandidateSchema = z.object({
   confirmations: z.array(SemanticReplayConfirmationTrialSchema),
   evaluationProtocolVersion: z.literal(SEMANTIC_EVALUATION_PROTOCOL_VERSION),
   results: z.array(SemanticReplayInitialTrialSchema),
-  schemaVersion: z.literal(8),
+  schemaVersion: z.literal(9),
 });
 
 /**
@@ -661,7 +666,7 @@ export const SemanticAttemptRecordSchema = z
     recoveredCaseCount: z.number().int().nonnegative(),
     reusedStageCount: z.number().int().nonnegative(),
     reusedTrialCount: z.number().int().nonnegative(),
-    schemaVersion: z.literal(5),
+    schemaVersion: z.literal(6),
     status: AttemptStatusSchema,
     stopReason: z.enum([
       'case-failure',

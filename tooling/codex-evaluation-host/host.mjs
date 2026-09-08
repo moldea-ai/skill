@@ -15,6 +15,20 @@ export const CODEX_EVALUATION_MODEL = 'gpt-5.6-sol';
 export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
 export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT = 'high';
 export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT = 'xhigh';
+const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
+  'You are running inside a closed local evaluation workspace. Do not use network clients, ' +
+  'perform Git network operations, invoke package managers or installers, call providers or ' +
+  'models, use subagents, inspect environment variables or authentication state, access the ' +
+  'evaluator home, or access filesystem paths outside the current workspace. Required ' +
+  'dependencies and fixtures are already present. Use only local workspace files and direct ' +
+  'local executables. When repository tests are needed, invoke Node directly with explicit ' +
+  'repository-relative test paths.';
+const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG = JSON.stringify(
+  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS,
+);
+export const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 = createHash('sha256')
+  .update(CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS)
+  .digest('hex');
 
 export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS = 900_000;
 export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS = [
@@ -182,8 +196,9 @@ const validateBaseHostCommand = (command) => {
   }
 };
 
-/** Returns one command-level Codex configuration assignment when present. */
-const identifyConfiguredValue = (command, key) => {
+/** Returns every command-level Codex configuration assignment for one exact key. */
+const identifyConfiguredValues = (command, key) => {
+  const configuredValues = [];
   for (const [index, commandPart] of command.entries()) {
     const assignment =
       commandPart === '-c' || commandPart === '--config'
@@ -197,12 +212,15 @@ const identifyConfiguredValue = (command, key) => {
     if (separatorIndex === -1) continue;
     if (assignment.slice(0, separatorIndex).trim() !== key) continue;
 
-    const configuredValue = assignment.slice(separatorIndex + 1).trim();
-    if (configuredValue) return configuredValue;
+    configuredValues.push(assignment.slice(separatorIndex + 1).trim());
   }
 
-  return undefined;
+  return configuredValues;
 };
+
+/** Returns the first non-empty command-level Codex configuration value when present. */
+const identifyConfiguredValue = (command, key) =>
+  identifyConfiguredValues(command, key).find((configuredValue) => configuredValue !== '');
 
 /**
  * Returns the explicit Codex model in one host command.
@@ -264,6 +282,11 @@ export const buildCodexEvaluationHostCommand = (command, role) => {
       'The evaluation host command must not override the runner-owned reasoning effort.',
     );
   }
+  if (identifyConfiguredValues(command, 'developer_instructions').length > 0) {
+    throw new Error(
+      'The evaluation host command must not override the runner-owned developer instructions.',
+    );
+  }
 
   const effectiveCommand = [
     ...command.slice(0, -1),
@@ -271,6 +294,8 @@ export const buildCodexEvaluationHostCommand = (command, role) => {
     CODEX_EVALUATION_MODEL,
     '-c',
     `model_reasoning_effort=${reasoningEffort}`,
+    '-c',
+    `developer_instructions=${CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG}`,
     '-',
   ];
   validateCodexEvaluationHostCommand(effectiveCommand, role);
@@ -279,7 +304,7 @@ export const buildCodexEvaluationHostCommand = (command, role) => {
 };
 
 /**
- * Requires the complete sandbox, model, and reasoning contract.
+ * Requires the complete sandbox, model, reasoning, and developer-policy contract.
  * @param command The complete Codex command.
  * @param role The closed evaluation role that owns reasoning effort.
  */
@@ -291,6 +316,13 @@ export const validateCodexEvaluationHostCommand = (command, role) => {
   }
   if (identifyConfiguredReasoningEffort(command) !== reasoningEffort) {
     throw new Error(`Codex evaluation ${role} must use ${reasoningEffort} reasoning effort.`);
+  }
+  const developerInstructions = identifyConfiguredValues(command, 'developer_instructions');
+  if (
+    developerInstructions.length !== 1 ||
+    developerInstructions[0] !== CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG
+  ) {
+    throw new Error('Codex evaluation must use the runner-owned developer instructions.');
   }
 };
 
@@ -344,6 +376,7 @@ export const identifyCodexEvaluationHost = (command, role) => {
   });
 
   return {
+    developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
     model: identifyConfiguredModel(command),
     name: basename(command[0]),
     reasoningEffort: identifyConfiguredReasoningEffort(command),

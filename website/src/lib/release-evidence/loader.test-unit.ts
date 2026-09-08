@@ -37,7 +37,7 @@ describe('loadReleaseEvidenceModel', () => {
       serializeReleaseEvidenceEnvelope({
         mode: 'fresh',
         qualification: {
-          protocolVersion: 9,
+          protocolVersion: 10,
           resourceStatus: 'passed',
           targets: [
             {

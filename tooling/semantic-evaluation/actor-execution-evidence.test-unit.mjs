@@ -5,7 +5,9 @@ import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles
 
 import {
   createMoldeaResourceEvidence,
+  hasPassingMoldeaActivation,
   hasPassingMoldeaResourceBudget,
+  hasPassingMoldeaResourceContainment,
   hasValidActorExecutionEvidence,
   hasValidMoldeaResourceEvidence,
   projectActorExecutionEvidenceEvent,
@@ -241,6 +243,49 @@ test('separates valid resource evidence from a case-budget miss', () => {
   assert.equal(hasValidMoldeaResourceEvidence({ ...resource, operations: ['unsupported'] }), false);
 });
 
+test('classifies activation and upper resource containment independently', () => {
+  const relationshipBudget = {
+    activation: 'relationship',
+    minimumMoldeaCommands: 1,
+    maximumMoldeaCommands: 4,
+    maximumMoldeaOutputBytes: 262_144,
+  };
+  const zeroCommandEvidence = createMoldeaResourceEvidence([], OPTIONS);
+  assert.equal(hasPassingMoldeaActivation(zeroCommandEvidence, relationshipBudget), false);
+  assert.equal(hasPassingMoldeaResourceContainment(zeroCommandEvidence, relationshipBudget), true);
+  assert.equal(hasPassingMoldeaResourceBudget(zeroCommandEvidence, relationshipBudget), false);
+
+  const createResourceEvidence = (operations, stdoutByteCount = operations.length) => ({
+    commandCount: operations.length,
+    maximumInvocationByteCount: operations.length === 0 ? 0 : 1,
+    modelVisibleToolOutputByteCount: stdoutByteCount,
+    operations,
+    stdoutByteCount,
+  });
+  const wrongOrderEvidence = createResourceEvidence(['content', 'scope']);
+  assert.equal(hasPassingMoldeaActivation(wrongOrderEvidence, relationshipBudget), false);
+  assert.equal(hasPassingMoldeaResourceContainment(wrongOrderEvidence, relationshipBudget), true);
+
+  const blockedBudget = { ...relationshipBudget, activation: 'blocked' };
+  assert.equal(hasPassingMoldeaActivation(createResourceEvidence(['scope']), blockedBudget), false);
+  assert.equal(
+    hasPassingMoldeaActivation(createResourceEvidence(['content']), blockedBudget),
+    true,
+  );
+
+  const excessiveCommandEvidence = createResourceEvidence([
+    'content',
+    'content',
+    'content',
+    'content',
+    'content',
+  ]);
+  const directBudget = { ...relationshipBudget, activation: 'direct' };
+  assert.equal(hasPassingMoldeaActivation(excessiveCommandEvidence, directBudget), true);
+  assert.equal(hasPassingMoldeaResourceContainment(excessiveCommandEvidence, directBudget), false);
+  assert.equal(hasPassingMoldeaResourceBudget(excessiveCommandEvidence, directBudget), false);
+});
+
 test('rejects inspect output that contains canonical document bodies', () => {
   assert.throws(() =>
     projectActorExecutionEvidenceEvent(
@@ -386,15 +431,15 @@ test('projects only the passing totals from a recognized repository test', () =>
   });
 });
 
-test('recognizes a passing npm correctness-test summary without retaining its preamble', () => {
+test('does not project a passing summary from a prohibited package-manager command', () => {
   const output = `\n> fixture@1.0.0 test:integration\n> node --test src/support-agent.test-integration.js\n\n${createNodeTestOutput()}`;
   const evidence = projectActorExecutionEvidenceEvent(
     createEvent('/home/evaluator/bin/npm run test:integration', output),
     OPTIONS,
   );
 
-  assert.equal(evidence.item.outputEvidence.disposition, 'projected');
-  assert.equal(evidence.item.outputEvidence.facts[0].kind, 'node-test-summary');
+  assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
+  assert.deepEqual(evidence.item.outputEvidence.facts, []);
   assert.equal(JSON.stringify(evidence).includes('fixture@1.0.0'), false);
 });
 

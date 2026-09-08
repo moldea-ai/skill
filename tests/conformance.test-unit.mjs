@@ -691,7 +691,8 @@ describe('portable skill contract', () => {
       'utf8',
     );
 
-    assert.match(readme, /fixed repository-root Node or npm correctness-test invocation/u);
+    assert.match(readme, /fixed repository-root direct Node correctness-test invocation/u);
+    assert.match(readme, /Package-manager commands cannot contribute correctness evidence/u);
     assert.match(
       readme,
       /never retains test names, assertions, paths, durations, or output bodies/u,

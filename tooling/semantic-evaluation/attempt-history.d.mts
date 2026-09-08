@@ -3,6 +3,7 @@ export type ISemanticAttemptStatus = 'failed' | 'incomplete' | 'passed';
 
 // behavior-bearing semantic execution contract
 export interface ISemanticEvaluationActorHostContract {
+  developerInstructionsSha256: string;
   model: 'gpt-5.6-sol';
   name: 'codex';
   reasoningEffort: 'high';
@@ -10,6 +11,7 @@ export interface ISemanticEvaluationActorHostContract {
 }
 
 export interface ISemanticEvaluationJudgeHostContract {
+  developerInstructionsSha256: string;
   model: 'gpt-5.6-sol';
   name: 'codex';
   reasoningEffort: 'xhigh';
@@ -55,10 +57,10 @@ export interface ISemanticAttemptCliIdentity {
 
 // immutable evidence reference for the current semantic contract
 export interface ISemanticAttemptEvidenceReference {
-  evaluationProtocolVersion: 24;
+  evaluationProtocolVersion: 25;
   kind: 'candidate';
   path: 'evidence.json';
-  schemaVersion: 8;
+  schemaVersion: 9;
   sha256: string;
 }
 
@@ -151,7 +153,7 @@ export interface ISemanticAttemptRecord {
   recoveredCaseCount: number;
   reusedStageCount: number;
   reusedTrialCount: number;
-  schemaVersion: 5;
+  schemaVersion: 6;
   status: ISemanticAttemptStatus;
   stopReason:
     | 'case-failure'

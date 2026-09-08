@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../codex-evaluation-host/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
 
 import { createSemanticAttemptRecord } from './attempt-history.mjs';
@@ -8,6 +9,7 @@ import { createSemanticStageReuseRecord } from './stage-reuse.mjs';
 
 const SHA256 = 'a'.repeat(64);
 const ACTOR_HOST = {
+  developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   model: 'gpt-5.6-sol',
   name: 'codex',
   reasoningEffort: 'high',
@@ -23,12 +25,14 @@ const UPDATED_ACTOR_HOST = { ...ACTOR_HOST, version: 'codex-cli updated' };
 const UPDATED_JUDGE_HOST = { ...JUDGE_HOST, version: 'codex-cli updated' };
 const HOST_CONTRACT = {
   actor: {
+    developerInstructionsSha256: ACTOR_HOST.developerInstructionsSha256,
     model: ACTOR_HOST.model,
     name: ACTOR_HOST.name,
     reasoningEffort: ACTOR_HOST.reasoningEffort,
     role: ACTOR_HOST.role,
   },
   judge: {
+    developerInstructionsSha256: JUDGE_HOST.developerInstructionsSha256,
     model: JUDGE_HOST.model,
     name: JUDGE_HOST.name,
     reasoningEffort: JUDGE_HOST.reasoningEffort,
@@ -137,7 +141,7 @@ const createEvidence = (results, confirmations = []) => ({
     judgeUsage: MODEL_USAGE,
     ...result,
   })),
-  schemaVersion: 8,
+  schemaVersion: 9,
   updatedAt: '2026-08-25T01:00:00.000Z',
 });
 
@@ -283,7 +287,7 @@ test('semantic attempt summaries preserve mixed per-trial host provenance', () =
     totalCaseCount: 1,
   });
 
-  assert.equal(attempt.schemaVersion, 5);
+  assert.equal(attempt.schemaVersion, 6);
   assert.deepEqual(attempt.hostContract, HOST_CONTRACT);
   assert.equal(attempt.actorHost, undefined);
   assert.equal(attempt.cases[0].trials[0].actorHost.version, ACTOR_HOST.version);
@@ -301,7 +305,7 @@ test('semantic attempt summaries record Sol provenance and command policy', () =
     totalCaseCount: 1,
   });
 
-  assert.equal(attempt.schemaVersion, 5);
+  assert.equal(attempt.schemaVersion, 6);
   assert.deepEqual(attempt.hostContract, HOST_CONTRACT);
   assert.equal(attempt.cases[0].trials[0].actorHost.model, ACTOR_HOST.model);
   assert.deepEqual(attempt.cases[0].trials[0].actorCommandPolicyEvidence, COMMAND_POLICY_EVIDENCE);

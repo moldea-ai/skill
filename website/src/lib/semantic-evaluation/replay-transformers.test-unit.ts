@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
+import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../../../../tooling/codex-evaluation-host/index.mjs';
 import { createSemanticCaseDefinitionDigest } from '../../../../tooling/semantic-evaluation/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../../../../tooling/release-identity/constants.mjs';
 
@@ -14,6 +15,7 @@ import {
 } from './validations.ts';
 
 const ACTOR_HOST = {
+  developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   model: 'gpt-5.6-sol',
   name: 'codex',
   reasoningEffort: 'high',
@@ -216,7 +218,7 @@ const parseCandidate = (
     confirmations,
     evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     results: [initial],
-    schemaVersion: 8,
+    schemaVersion: 9,
   });
 
 describe('createSemanticEvaluationReplay', () => {

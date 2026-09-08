@@ -20,10 +20,12 @@ import {
   createSemanticDiagnosticBatchRecord,
   createSemanticDiagnosticOutput,
   createSemanticEvaluationCostEstimate,
+  createSemanticResultDimensions,
   getNextSemanticTrial,
   getSemanticCandidatePaidTokenCount,
   hasMatchingSemanticReusedSourceTrial,
   isSemanticActiveTrialOperationallyStopped,
+  isSemanticConfirmationEligible,
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
   readSemanticDiagnosticState,
@@ -99,6 +101,18 @@ const createCommandPolicyEvidence = (completedCommandCount = 0) => ({
   },
 });
 
+const createRepositoryControlEvidence = () => {
+  const state = {
+    gitDigest: 'a'.repeat(64),
+    head: { commit: 'b'.repeat(40), symbolicRef: 'refs/heads/main' },
+    indexDigest: 'c'.repeat(64),
+    installedSkillDigest: 'd'.repeat(64),
+    localConfigDigest: 'e'.repeat(64),
+    refs: [{ name: 'refs/heads/main', oid: 'b'.repeat(40) }],
+  };
+  return { after: state, before: state, violations: [] };
+};
+
 test('requires an explicit semantic model-execution mode', () => {
   assert.throws(
     () => parseSemanticEvaluationArguments([]),
@@ -134,6 +148,45 @@ test('requires an explicit semantic model-execution mode', () => {
   assert.throws(() =>
     parseSemanticEvaluationArguments(['--record', '--restart', '--resume-stopped-stage']),
   );
+});
+
+test('keeps a contained activation miss eligible for semantic confirmation', () => {
+  const caseDefinition = {
+    ...CASE,
+    resourceBudget: {
+      activation: 'relationship',
+      minimumMoldeaCommands: 1,
+      maximumMoldeaCommands: 4,
+      maximumMoldeaOutputBytes: 262_144,
+    },
+  };
+  const dimensions = createSemanticResultDimensions(
+    caseDefinition,
+    {
+      actorCommandPolicyEvidence: createCommandPolicyEvidence(),
+      actorResourceEvidence: {
+        commandCount: 0,
+        maximumInvocationByteCount: 0,
+        modelVisibleToolOutputByteCount: 0,
+        operations: [],
+        stdoutByteCount: 0,
+      },
+      judgeCommandPolicyEvidence: createCommandPolicyEvidence(),
+      readOnlyMountControlEvidence: [],
+      repositoryControlEvidence: createRepositoryControlEvidence(),
+    },
+    true,
+  );
+
+  assert.deepEqual(dimensions, {
+    semantic: false,
+    resource: true,
+    commandPolicy: true,
+    repositoryControl: true,
+    mountIntegrity: true,
+    operational: true,
+  });
+  assert.equal(isSemanticConfirmationEligible(dimensions), true);
 });
 
 test('parses one diagnostic case without authorizing recording', () => {
@@ -286,7 +339,7 @@ test('creates one bounded content-free semantic diagnostic', () => {
 
   assert.deepEqual(diagnostic, {
     schemaVersion: 2,
-    evaluationProtocolVersion: 24,
+    evaluationProtocolVersion: 25,
     caseId: 'bounded-diagnostic',
     confirmationEligible: true,
     dimensions: SEMANTIC_FAILURE_DIMENSIONS,
@@ -840,10 +893,11 @@ test('keeps runner-enforced moldea budgets outside semantic judgment', () => {
 
   assert.match(
     prompt,
-    /runner independently evaluated\s+the\s+declared moldea activation order and resource budget/u,
+    /runner independently evaluated the\s+declared moldea activation mode, minimum command count, and operation order/u,
   );
-  assert.match(prompt, /deterministic result is\s+passed/u);
-  assert.match(prompt, /Do not compare the total\s+completed-command count/u);
+  assert.match(prompt, /deterministic\s+activation check passed/u);
+  assert.match(prompt, /deterministic resource-containment check passed/u);
+  assert.match(prompt, /Do not compare the\s+total completed-command count/u);
   assert.match(prompt, /Judge only the remaining semantic\s+clauses/u);
   assert.match(prompt, /spell the human-facing product name as lowercase `moldea`/u);
   assert.match(
@@ -874,7 +928,8 @@ test('passes case-budget misses to semantic judgment as a deterministic failure'
     },
   );
 
-  assert.match(prompt, /deterministic result is\s+did not pass/u);
+  assert.match(prompt, /deterministic\s+activation check did not pass/u);
+  assert.match(prompt, /deterministic resource-containment check did not pass/u);
 });
 
 test('prevents a green judge result from carrying incorrect product casing', () => {

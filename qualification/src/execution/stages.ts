@@ -135,7 +135,7 @@ export const createQualificationTrialStageIds = (
     (stageName) => `case:${caseId}:trial:${trialId}:${stageName}`,
   );
 
-/** Returns the exact protocol 9 stage inventory for the selected cases. */
+/** Returns the exact protocol 10 stage inventory for the selected cases. */
 export const createQualificationStageIds = (
   caseIds: readonly string[],
   includeConfirmations = true,

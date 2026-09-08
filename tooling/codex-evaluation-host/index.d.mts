@@ -3,6 +3,7 @@ export const CODEX_EVALUATION_MODEL: 'gpt-5.6-sol';
 export const CODEX_EVALUATION_NPM_VERSION: '11.12.1';
 export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT: 'high';
 export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT: 'xhigh';
+export const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256: string;
 export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS: readonly string[];
 export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS: number;
 export const CODEX_EVALUATION_HOST_FAILURE_KINDS: {
@@ -138,6 +139,7 @@ export type ICodexEvaluationHostConfigurationOptions = {
 };
 
 export type ICodexEvaluationHostIdentity = {
+  developerInstructionsSha256: string;
   model: string;
   name: string;
   reasoningEffort: string;

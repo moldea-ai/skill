@@ -31,6 +31,8 @@ const requireSha256 = (value, label) => {
 const requireHostIdentity = (host, label, role) => {
   if (
     !isPlainRecord(host) ||
+    typeof host.developerInstructionsSha256 !== 'string' ||
+    !SHA256_PATTERN.test(host.developerInstructionsSha256) ||
     typeof host.model !== 'string' ||
     typeof host.name !== 'string' ||
     typeof host.reasoningEffort !== 'string' ||

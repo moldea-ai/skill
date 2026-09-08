@@ -23,6 +23,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import {
   CODEX_EVALUATION_ACTOR_REASONING_EFFORT,
+  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
   CODEX_EVALUATION_MODEL,
@@ -61,7 +62,8 @@ import {
   createSemanticCoverageDigest,
   enforceMoldeaProductNameCasing,
   getSemanticCriterionLabels,
-  hasPassingMoldeaResourceBudget,
+  hasPassingMoldeaActivation,
+  hasPassingMoldeaResourceContainment,
   hasValidReadOnlyMountControlEvidence,
   hasValidActorExecutionEvidence,
   hasValidMoldeaResourceEvidence,
@@ -148,7 +150,7 @@ const SEMANTIC_MAXIMUM_CHARGED_OPERATIONAL_FAILURE_COUNT = Math.floor(
   SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT /
     MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
 );
-const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 8;
+const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 9;
 const SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION = 2;
 const SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1;
 const SEMANTIC_MODEL_CALLS_PER_TRIAL = 2;
@@ -620,6 +622,7 @@ export const createSemanticDiagnosticBatchOutput = (ledger) => {
 
 /** Returns the behavior-bearing portion of one Codex evaluation host identity. */
 export const createSemanticEvaluationHostContract = (host) => ({
+  developerInstructionsSha256: host?.developerInstructionsSha256,
   model: host?.model,
   name: host?.name,
   reasoningEffort: host?.reasoningEffort,
@@ -629,6 +632,7 @@ export const createSemanticEvaluationHostContract = (host) => ({
 /** Checks whether a host contract preserves the fixed semantic execution boundary. */
 const hasValidSemanticEvaluationHostContract = (hostContract, role) =>
   isPlainRecord(hostContract) &&
+  hostContract.developerInstructionsSha256 === CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 &&
   hostContract.model === CODEX_EVALUATION_MODEL &&
   hostContract.name === 'codex' &&
   hostContract.reasoningEffort ===
@@ -740,9 +744,13 @@ const hasValidWorkspaceChanges = (workspaceChanges) =>
       isWorkspaceSnapshotState(entry.after),
   );
 
-/** Enforces one semantic case's explicit moldea command and output budget. */
-const hasPassingCaseMoldeaResourceBudget = (caseDefinition, actorResourceEvidence) =>
-  hasPassingMoldeaResourceBudget(actorResourceEvidence, caseDefinition.resourceBudget);
+/** Enforces one semantic case's required moldea activation and operation order. */
+const hasPassingCaseMoldeaActivation = (caseDefinition, actorResourceEvidence) =>
+  hasPassingMoldeaActivation(actorResourceEvidence, caseDefinition.resourceBudget);
+
+/** Enforces one semantic case's upper moldea command and output limits. */
+const hasPassingCaseMoldeaResourceContainment = (caseDefinition, actorResourceEvidence) =>
+  hasPassingMoldeaResourceContainment(actorResourceEvidence, caseDefinition.resourceBudget);
 
 const SEMANTIC_RESULT_DIMENSION_NAMES = [
   'semantic',
@@ -754,9 +762,14 @@ const SEMANTIC_RESULT_DIMENSION_NAMES = [
 ];
 
 /** Creates the independently attributable outcome dimensions for one completed trial. */
-const createSemanticResultDimensions = (caseDefinition, actorEvidence, isSemanticPass) => ({
-  semantic: isSemanticPass,
-  resource: hasPassingCaseMoldeaResourceBudget(caseDefinition, actorEvidence.actorResourceEvidence),
+export const createSemanticResultDimensions = (caseDefinition, actorEvidence, isSemanticPass) => ({
+  semantic:
+    isSemanticPass &&
+    hasPassingCaseMoldeaActivation(caseDefinition, actorEvidence.actorResourceEvidence),
+  resource: hasPassingCaseMoldeaResourceContainment(
+    caseDefinition,
+    actorEvidence.actorResourceEvidence,
+  ),
   commandPolicy:
     hasPassingCodexEvaluationCommandPolicy(actorEvidence.actorCommandPolicyEvidence) &&
     hasPassingCodexEvaluationCommandPolicy(actorEvidence.judgeCommandPolicyEvidence),
@@ -782,7 +795,7 @@ const hasPassingSemanticResultDimensions = (dimensions) =>
   SEMANTIC_RESULT_DIMENSION_NAMES.every((dimension) => dimensions[dimension]);
 
 /** Limits confirmations to semantic uncertainty with every deterministic dimension passing. */
-const isSemanticConfirmationEligible = (dimensions) =>
+export const isSemanticConfirmationEligible = (dimensions) =>
   hasValidSemanticResultDimensions(dimensions) &&
   !dimensions.semantic &&
   SEMANTIC_RESULT_DIMENSION_NAMES.filter((dimension) => dimension !== 'semantic').every(
@@ -2511,7 +2524,10 @@ export const buildJudgePrompt = (
       `Judge input requires valid bounded moldea resource evidence: ${JSON.stringify(actorResourceEvidence)}`,
     );
   }
-  const resourceBudgetStatus = hasPassingCaseMoldeaResourceBudget(
+  const activationStatus = hasPassingCaseMoldeaActivation(caseDefinition, actorResourceEvidence)
+    ? 'passed'
+    : 'did not pass';
+  const resourceContainmentStatus = hasPassingCaseMoldeaResourceContainment(
     caseDefinition,
     actorResourceEvidence,
   )
@@ -2543,11 +2559,13 @@ text or canonical document bodies. A completed execution item with commandKind \
 only for the fixed portable launcher targeting the evaluated repository at \`/mnt\`; together with
 its projected result fact, it establishes repository-bound CLI execution and that result without
 retaining the command. Before this prompt was built, the runner independently evaluated the
-declared moldea activation order and resource budget; its deterministic result is
-${resourceBudgetStatus}. Do not compare the total completed-command count or output from non-moldea
-commands with the moldea budget, reinterpret that result, or infer extra work from the actor's
-prose. A projected \`node-test-summary\` fact is emitted only when one recognized repository-root
-Node or npm correctness-test command exits successfully with a complete native summary in which
+declared moldea activation mode, minimum command count, and operation order; its deterministic
+activation check ${activationStatus}. It independently evaluated the upper moldea command and
+output limits; its deterministic resource-containment check ${resourceContainmentStatus}. Do not compare the
+total completed-command count or output from non-moldea commands with the moldea limits, reinterpret
+either result, or infer extra work from the actor's prose. A projected \`node-test-summary\` fact is
+emitted only when one recognized repository-root direct Node correctness-test command exits
+successfully with a complete native summary in which
 every discovered test passed and none failed, was cancelled, skipped, or marked todo. Its
 \`testKind\` establishes the recognized test level. The fact proves only those bounded totals and
 the completed test level; it does not expose or prove individual test names, assertions, paths,

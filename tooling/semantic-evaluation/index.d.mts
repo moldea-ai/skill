@@ -105,7 +105,17 @@ export const createMoldeaResourceEvidence: (
 
 export const hasValidMoldeaResourceEvidence: (evidence: unknown) => boolean;
 
+export const hasPassingMoldeaActivation: (
+  evidence: unknown,
+  budget: IMoldeaResourceBudget,
+) => boolean;
+
 export const hasPassingMoldeaResourceBudget: (
+  evidence: unknown,
+  budget: IMoldeaResourceBudget,
+) => boolean;
+
+export const hasPassingMoldeaResourceContainment: (
   evidence: unknown,
   budget: IMoldeaResourceBudget,
 ) => boolean;

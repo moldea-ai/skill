@@ -1,6 +1,7 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { once } from 'node:events';
 import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -11,6 +12,7 @@ import {
   buildCodexEvaluationBwrapArguments,
   buildCodexEvaluationHostCommand,
   CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
+  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CodexEvaluationHostError,
   identifyCodexEvaluationHostConfiguration,
@@ -164,7 +166,31 @@ test('host commands use the runner-owned model and role-specific reasoning effor
   );
 });
 
-test('host commands reject caller-owned model and reasoning overrides', () => {
+test('host commands carry one neutral runner-owned developer policy and exact digest', () => {
+  const assignments = SAFE_HOST_COMMAND.flatMap((commandPart, index) =>
+    commandPart === '-c' || commandPart === '--config' ? [SAFE_HOST_COMMAND[index + 1]] : [],
+  ).filter((assignment) => assignment?.startsWith('developer_instructions='));
+
+  assert.equal(assignments.length, 1);
+  const instruction = JSON.parse(assignments[0].slice('developer_instructions='.length));
+  assert.match(instruction, /closed local evaluation workspace/u);
+  assert.match(instruction, /Do not use network clients/u);
+  assert.match(instruction, /invoke package managers or installers/u);
+  assert.match(instruction, /access filesystem paths outside the current workspace/u);
+  assert.doesNotMatch(instruction, /moldea|scenario|criterion|adapter/u);
+  assert.equal(
+    createHash('sha256').update(instruction).digest('hex'),
+    CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
+  );
+  assert.deepEqual(
+    buildCodexEvaluationHostCommand(BASE_HOST_COMMAND, 'judge').filter((commandPart) =>
+      commandPart.startsWith('developer_instructions='),
+    ),
+    assignments,
+  );
+});
+
+test('host commands reject caller-owned model, reasoning, and developer-policy overrides', () => {
   assert.throws(
     () =>
       buildCodexEvaluationHostCommand(
@@ -188,6 +214,31 @@ test('host commands reject caller-owned model and reasoning overrides', () => {
         'actor',
       ),
     /must not override the runner-owned reasoning effort/,
+  );
+  for (const configuredValue of ['"Different policy."', '']) {
+    assert.throws(
+      () =>
+        buildCodexEvaluationHostCommand(
+          [
+            ...BASE_HOST_COMMAND.slice(0, -1),
+            '-c',
+            `developer_instructions=${configuredValue}`,
+            '-',
+          ],
+          'actor',
+        ),
+      /must not override the runner-owned developer instructions/,
+    );
+  }
+  const duplicatedPolicyCommand = [
+    ...SAFE_HOST_COMMAND.slice(0, -1),
+    '-c',
+    SAFE_HOST_COMMAND.find((commandPart) => commandPart.startsWith('developer_instructions=')),
+    '-',
+  ];
+  assert.throws(
+    () => validateCodexEvaluationHostCommand(duplicatedPolicyCommand, 'actor'),
+    /must use the runner-owned developer instructions/,
   );
 });
 

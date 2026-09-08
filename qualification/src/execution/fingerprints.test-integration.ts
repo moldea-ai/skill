@@ -125,7 +125,7 @@ describe('qualification input fingerprint', () => {
       Object.values(paths).map((filePath) => ensureDirectory(path.dirname(filePath))),
     );
     await Promise.all([
-      writeFile(paths.evaluationHost, 'export const evaluationHostVersion = 1;\n'),
+      writeFile(paths.evaluationHost, "export const developerInstructions = 'policy-a';\n"),
       writeFile(paths.modelHost, 'export const modelHostVersion = 1;\n'),
       writeFile(paths.orchestration, 'export const orchestrationVersion = 1;\n'),
       writeFile(paths.packageCandidate, 'export const packageCandidateVersion = 1;\n'),
@@ -145,7 +145,7 @@ describe('qualification input fingerprint', () => {
     const changedModelHostDigest = await calculateQualificationModelHostDigest(roots);
     expect(changedModelHostDigest).not.toBe(initialDigest);
 
-    await writeFile(paths.evaluationHost, 'export const evaluationHostVersion = 2;\n');
+    await writeFile(paths.evaluationHost, "export const developerInstructions = 'policy-b';\n");
     const changedHostDigest = await calculateQualificationModelHostDigest(roots);
     expect(changedHostDigest).not.toBe(changedModelHostDigest);
 

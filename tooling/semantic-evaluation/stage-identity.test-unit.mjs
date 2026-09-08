@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
+import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../codex-evaluation-host/index.mjs';
+
 import {
   createSemanticActorStageIdentity,
   createSemanticJudgeStageIdentity,
@@ -9,6 +11,7 @@ import {
 
 const digest = 'a'.repeat(64);
 const actorHost = {
+  developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   model: 'gpt-5.6-sol',
   name: 'codex',
   reasoningEffort: 'high',
@@ -33,7 +36,7 @@ const createActor = (overrides = {}) =>
     artifactDigest: digest,
     caseDefinitionDigest: digest,
     cli: { integrity: 'sha512-example', version: '7.0.1' },
-    evaluationProtocolVersion: 24,
+    evaluationProtocolVersion: 25,
     readOnlyMountControlEvidence: [],
     repositoryControlBefore,
     resourceProfileDigest: digest,
@@ -58,7 +61,13 @@ describe('semantic stage identity', () => {
       { cli: { integrity: 'sha512-other', version: '7.0.1' } },
       { actorHost: { ...actorHost, version: 'codex-cli 0.154.0' } },
       { actorHost: { ...actorHost, reasoningEffort: 'xhigh' } },
-      { evaluationProtocolVersion: 25 },
+      { evaluationProtocolVersion: 26 },
+      {
+        actorHost: {
+          ...actorHost,
+          developerInstructionsSha256: 'b'.repeat(64),
+        },
+      },
       {
         readOnlyMountControlEvidence: [
           {
@@ -96,7 +105,7 @@ describe('semantic stage identity', () => {
           actorEvidence: { actorResponse: 'Valid.', workspaceChanges: [] },
           actorIdentitySha256: createActor().sha256,
           caseDefinitionDigest: digest,
-          evaluationProtocolVersion: 24,
+          evaluationProtocolVersion: 25,
           judgeHost: actorHost,
           judgePrompt: 'Assess this exact evidence.',
         }),
@@ -132,7 +141,7 @@ describe('semantic stage identity', () => {
       actorEvidence: { actorResponse: 'Valid.', workspaceChanges: [] },
       actorIdentitySha256: actor.sha256,
       caseDefinitionDigest: digest,
-      evaluationProtocolVersion: 24,
+      evaluationProtocolVersion: 25,
       judgeHost,
       judgePrompt: 'Assess this exact evidence.',
     });
@@ -140,7 +149,7 @@ describe('semantic stage identity', () => {
       actorEvidence: { actorResponse: 'Invalid.', workspaceChanges: [] },
       actorIdentitySha256: actor.sha256,
       caseDefinitionDigest: digest,
-      evaluationProtocolVersion: 24,
+      evaluationProtocolVersion: 25,
       judgeHost,
       judgePrompt: 'Assess this exact evidence.',
     });
@@ -159,8 +168,22 @@ describe('semantic stage identity', () => {
         actorEvidence: { actorResponse: 'Valid.', workspaceChanges: [] },
         actorIdentitySha256: actor.sha256,
         caseDefinitionDigest: digest,
-        evaluationProtocolVersion: 24,
+        evaluationProtocolVersion: 25,
         judgeHost: { ...judgeHost, reasoningEffort: 'high' },
+        judgePrompt: 'Assess this exact evidence.',
+      }).sha256,
+      baseline.sha256,
+    );
+    assert.notEqual(
+      createSemanticJudgeStageIdentity({
+        actorEvidence: { actorResponse: 'Valid.', workspaceChanges: [] },
+        actorIdentitySha256: actor.sha256,
+        caseDefinitionDigest: digest,
+        evaluationProtocolVersion: 25,
+        judgeHost: {
+          ...judgeHost,
+          developerInstructionsSha256: 'b'.repeat(64),
+        },
         judgePrompt: 'Assess this exact evidence.',
       }).sha256,
       baseline.sha256,

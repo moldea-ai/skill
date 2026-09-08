@@ -17,6 +17,7 @@ export type ISemanticEvidenceMatch = 'exact';
 
 // exact actor or judge host shown with one trial
 export interface ISemanticEvaluationActorHostModel {
+  developerInstructionsSha256: string;
   model: 'gpt-5.6-sol';
   name: string;
   reasoningEffort: 'high';
@@ -26,6 +27,7 @@ export interface ISemanticEvaluationActorHostModel {
 
 // exact independent judge host shown with one trial
 export interface ISemanticEvaluationJudgeHostModel {
+  developerInstructionsSha256: string;
   model: 'gpt-5.6-sol';
   name: string;
   reasoningEffort: 'xhigh';

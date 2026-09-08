@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
+import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../codex-evaluation-host/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
 
 import {
@@ -44,12 +45,14 @@ const createEvidence = (id, passed, updatedAt) => ({
   generatedAt: updatedAt,
   hostContract: {
     actor: {
+      developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
       model: 'gpt-5.6-sol',
       name: 'codex',
       reasoningEffort: 'high',
       role: 'actor',
     },
     judge: {
+      developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
       model: 'gpt-5.6-sol',
       name: 'codex',
       reasoningEffort: 'xhigh',
@@ -67,6 +70,7 @@ const createEvidence = (id, passed, updatedAt) => ({
         stdoutByteCount: 0,
       },
       actorHost: {
+        developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
         model: 'gpt-5.6-sol',
         name: 'codex',
         reasoningEffort: 'high',
@@ -94,6 +98,7 @@ const createEvidence = (id, passed, updatedAt) => ({
       failureClassifications: passed ? [] : ['semantic'],
       judgeCommandPolicyEvidence: EMPTY_COMMAND_POLICY_EVIDENCE,
       judgeHost: {
+        developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
         model: 'gpt-5.6-sol',
         name: 'codex',
         reasoningEffort: 'xhigh',
@@ -113,7 +118,7 @@ const createEvidence = (id, passed, updatedAt) => ({
       stageReuse: null,
     },
   ],
-  schemaVersion: 8,
+  schemaVersion: 9,
   updatedAt,
 });
 

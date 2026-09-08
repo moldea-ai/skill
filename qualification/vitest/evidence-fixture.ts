@@ -184,7 +184,7 @@ const createScenarioSource = (caseId: string, title: string): string =>
     '',
   ].join('\n');
 
-/** Seeds one complete protocol 9 Custom profile and its engine-verifiable public evidence. */
+/** Seeds one complete protocol 10 Custom profile and its engine-verifiable public evidence. */
 export const seedPassingQualificationEvidenceFixture = async (options: {
   artifactDirectory: string;
   attemptId: string;

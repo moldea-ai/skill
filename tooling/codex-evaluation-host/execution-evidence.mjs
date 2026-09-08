@@ -734,16 +734,6 @@ const isRepositoryTestPath = (candidate) => {
 /** Identifies one exact repository-root correctness-test command word sequence. */
 const identifyRepositoryTestCommandKindFromWords = (words) => {
   if (
-    ['npm', `${EVALUATOR_HOME_PATH}/bin/npm`].includes(words[0]) &&
-    (words.length === 2 || words.length === 3)
-  ) {
-    if (words.length === 2 && words[1] === 'test') return 'correctness';
-    if (words.length === 3 && words[1] === 'run' && words[2] === 'test:integration') {
-      return 'integration';
-    }
-    return null;
-  }
-  if (
     !isTrustedLocalExecutable(words[0], 'node') ||
     words[1] !== '--test' ||
     words.length < 3 ||

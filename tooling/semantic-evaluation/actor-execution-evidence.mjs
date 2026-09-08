@@ -421,16 +421,10 @@ export const hasValidMoldeaResourceEvidence = (evidence) =>
   (evidence.commandCount > 0 ||
     (evidence.maximumInvocationByteCount === 0 && evidence.stdoutByteCount === 0));
 
-/** Checks measured moldea consumption against one scenario's explicit resource budget. */
-export const hasPassingMoldeaResourceBudget = (evidence, budget) => {
+/** Checks one scenario's required moldea activation and operation order. */
+export const hasPassingMoldeaActivation = (evidence, budget) => {
   if (!hasValidMoldeaResourceEvidence(evidence)) return false;
-  const withinBudget =
-    evidence.commandCount >= budget.minimumMoldeaCommands &&
-    evidence.commandCount <= budget.maximumMoldeaCommands &&
-    evidence.stdoutByteCount <= budget.maximumMoldeaOutputBytes &&
-    evidence.modelVisibleToolOutputByteCount <= budget.maximumMoldeaOutputBytes &&
-    evidence.maximumInvocationByteCount <= MAX_MOLDEA_OUTPUT_BYTES;
-  if (!withinBudget) return false;
+  if (evidence.commandCount < budget.minimumMoldeaCommands) return false;
   if (budget.activation === 'abstain' || budget.activation === 'informational') {
     return evidence.commandCount === 0;
   }
@@ -440,3 +434,16 @@ export const hasPassingMoldeaResourceBudget = (evidence, budget) => {
   if (budget.activation === 'direct') return true;
   return evidence.operations[0] !== 'scope';
 };
+
+/** Checks one scenario's upper moldea command and output containment limits. */
+export const hasPassingMoldeaResourceContainment = (evidence, budget) =>
+  hasValidMoldeaResourceEvidence(evidence) &&
+  evidence.commandCount <= budget.maximumMoldeaCommands &&
+  evidence.stdoutByteCount <= budget.maximumMoldeaOutputBytes &&
+  evidence.modelVisibleToolOutputByteCount <= budget.maximumMoldeaOutputBytes &&
+  evidence.maximumInvocationByteCount <= MAX_MOLDEA_OUTPUT_BYTES;
+
+/** Checks measured moldea activation and containment against one complete scenario budget. */
+export const hasPassingMoldeaResourceBudget = (evidence, budget) =>
+  hasPassingMoldeaActivation(evidence, budget) &&
+  hasPassingMoldeaResourceContainment(evidence, budget);

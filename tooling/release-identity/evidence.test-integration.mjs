@@ -167,7 +167,7 @@ const seedFreshEvidence = (
     attemptId: qualificationAttemptId,
     cases: [{ caseId: 'case-1', status: 'passed' }],
     mode: 'official',
-    protocolVersion: 9,
+    protocolVersion: 10,
     provenance: {
       packagesRepositoryDirty: false,
       qualificationRepositoryDirty: false,
@@ -198,7 +198,7 @@ const seedFreshEvidence = (
     latestAttemptId: qualificationAttemptId,
     latestStatus: 'passed',
     lastPassingAttemptId: qualificationAttemptId,
-    protocolVersion: 9,
+    protocolVersion: 10,
   });
   writeText(
     root,

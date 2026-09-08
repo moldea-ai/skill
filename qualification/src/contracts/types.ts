@@ -989,7 +989,7 @@ const QualificationFailureClassificationSchema = z.enum([
   'operational',
 ]);
 
-// one protocol 9 initial or confirmation trial and its complete artifact references
+// one protocol 10 initial or confirmation trial and its complete artifact references
 export const QualificationTrialResultSchema = z
   .strictObject({
     trialId: z.enum(QUALIFICATION_TRIAL_IDS),
@@ -1089,7 +1089,7 @@ export const QualificationCaseReuseSchema = z.strictObject({
 
 export type IQualificationCaseReuse = z.infer<typeof QualificationCaseReuseSchema>;
 
-// terminal protocol 9 case history preserving the original trial and every confirmation
+// terminal protocol 10 case history preserving the original trial and every confirmation
 export const QualificationCaseResultSchema = z
   .strictObject({
     caseId: StableIdSchema,
@@ -1224,7 +1224,7 @@ const QualificationAttemptResultSharedShape = {
   artifactDigests: z.record(RelativePathSchema, z.string().regex(/^[a-f0-9]{64}$/u)),
 };
 
-// fixed protocol 9 confirmation policy committed with every current attempt
+// fixed protocol 10 confirmation policy committed with every current attempt
 export const QualificationConfirmationPolicySchema = z.strictObject({
   version: z.literal(QUALIFICATION_CONFIRMATION_POLICY.version),
   requiredPassingConfirmations: z.literal(
@@ -1232,7 +1232,7 @@ export const QualificationConfirmationPolicySchema = z.strictObject({
   ),
 });
 
-// local protocol 9 result draft shared by dry runs and official result publication
+// local protocol 10 result draft shared by dry runs and official result publication
 export const QualificationAttemptResultDraftSchema = z.strictObject({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationAttemptResultSharedShape,

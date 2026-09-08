@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 
 import {
   CODEX_EVALUATION_ACTOR_REASONING_EFFORT,
+  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
   CODEX_EVALUATION_MODEL,
   hasPassingCodexEvaluationCommandPolicy,
@@ -18,8 +19,8 @@ import { hasValidSemanticStageReuseRecord } from './stage-reuse.mjs';
 
 const ATTEMPT_EVIDENCE_FILENAME = 'evidence.json';
 const ATTEMPT_RECORD_FILENAME = 'attempt.json';
-const ATTEMPT_SCHEMA_VERSION = 5;
-const EVIDENCE_SCHEMA_VERSION = 8;
+const ATTEMPT_SCHEMA_VERSION = 6;
+const EVIDENCE_SCHEMA_VERSION = 9;
 const LATEST_SCHEMA_VERSION = 1;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
@@ -83,6 +84,7 @@ const createAttemptId = (updatedAt, evidenceSha256) => {
 
 const hasRoleHostContract = (hostContract, role, reasoningEffort) =>
   isPlainRecord(hostContract) &&
+  hostContract.developerInstructionsSha256 === CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 &&
   hostContract.model === CODEX_EVALUATION_MODEL &&
   hostContract.name === 'codex' &&
   hostContract.reasoningEffort === reasoningEffort &&
@@ -95,6 +97,7 @@ const hasHostContract = (hostContract) =>
 
 const hasValidHostIdentity = (host, hostContract) =>
   isPlainRecord(host) &&
+  host.developerInstructionsSha256 === hostContract.developerInstructionsSha256 &&
   host.model === hostContract.model &&
   host.name === hostContract.name &&
   host.reasoningEffort === hostContract.reasoningEffort &&

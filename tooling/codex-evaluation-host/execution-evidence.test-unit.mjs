@@ -563,8 +563,6 @@ test('repository test identification accepts only static bounded correctness com
   for (const command of [
     'node --test src/support-agent.test-integration.js',
     'node --test ./src/a.test-unit.mjs src/b.test-e2e.cjs',
-    'npm test',
-    '/home/evaluator/bin/npm run test:integration',
     "/bin/bash -lc 'node --test src/support-agent.test-integration.js'",
   ]) {
     assert.equal(isRepositoryTestCommand(command), true, command);
@@ -579,15 +577,14 @@ test('repository test identification accepts only static bounded correctness com
     identifyRepositoryTestCommandKind('node --test src/example.test-unit.mjs src/ui.test-e2e.js'),
     'correctness',
   );
-  assert.equal(identifyRepositoryTestCommandKind('npm test'), 'correctness');
-  assert.equal(identifyRepositoryTestCommandKind('npm run test:integration'), 'integration');
-
   for (const command of [
     'node --test',
     'node --test src/support-agent.js',
     'node --test ../outside.test-integration.js',
     'node --test /mnt/src/support-agent.test-integration.js',
     'node --test src/support-agent.test-integration.ts',
+    'npm test',
+    '/home/evaluator/bin/npm run test:integration',
     'npm run test:unit',
     'npm test -- --watch',
     'pnpm test',

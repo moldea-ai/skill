@@ -64,7 +64,9 @@ Every scenario declares `ordinary` or `largeTraversal`. Every actor and judge st
 
 Both profiles permit at most 128 KiB from one completed host command, 64 completed commands, 16 moldea calls, and 1,625,000 model tokens. This is distinct from the portable skill's unchanged 64 KiB limit for one moldea CLI response page. The `ordinary` profile also permits 256 KiB of moldea output and 1 MiB of aggregate model-visible tool output. `largeTraversal` also permits 1 MiB of moldea output and 4 MiB of aggregate model-visible tool output. Every dimension remains an independent final failure. An actor that exceeds only completed-command, moldea-call, or total-token limits may reach the judge while inside absolute containment so a semantic verdict can establish calibration eligibility. The trial still fails the active profile. Missing token usage and maximum-command, aggregate model-visible, or aggregate moldea output overages skip judging, as do deterministic, workspace, runner-owned, and observed command-policy failures. Higher absolute host ceilings remain failure containment, not recommended operating volumes.
 
-Protocol 9 classifies actual operations instead of matching security vocabulary in repository searches. Evidence retains only bounded sorted reason codes and counts for network, sensitive, credential, or indeterminate operations. It never retains raw commands, paths, patterns, outputs, or credentials. Indeterminate evidence is not a safety attestation; official runs accept it only alongside independently established read-only filesystem and restricted-egress sandbox boundaries.
+Semantic and qualification stages receive the same evaluator-owned closed-host developer instruction before the natural task. It prohibits network, package-manager, provider, model, subagent, environment, authentication, evaluator-home, and outside-workspace access. The host rejects caller overrides, and the qualification model-host digest changes whenever the instruction changes. Scenario prompts retain only qualification-specific task, evidence, workspace, Git, ambiguity, and result-schema guidance.
+
+Protocol 10 classifies actual operations instead of matching security vocabulary in repository searches. Evidence retains only bounded sorted reason codes and counts for network, sensitive, credential, or indeterminate operations. It never retains raw commands, paths, patterns, outputs, or credentials. Indeterminate evidence is not a safety attestation; official runs accept it only alongside independently established read-only filesystem and restricted-egress sandbox boundaries.
 
 The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,144 bytes of aggregate `moldea` output. It also requires exact or bounded host discovery that excludes dependency, VCS, generated, cache, and package-store trees. Large repositories remain supported through paginated metadata and explicit content chunks. A budget failure states which observed value exceeded which limit; it never silently truncates evidence into an apparently valid result.
 
@@ -72,7 +74,7 @@ The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,
 
 ## Current-only evidence
 
-Qualification protocol 9 is the sole accepted contract. A passing attempt must match the current skill bytes, CLI closure, evaluator, role-specific actor and judge hosts, resource profile, probes, cases, target, execution environment, and package closure.
+Qualification protocol 10 is the sole accepted contract. A passing attempt must match the current skill bytes, CLI closure, evaluator, role-specific actor and judge hosts, resource profile, probes, cases, target, execution environment, and package closure.
 
 An official run may reuse a passed or recovered case group from a committed failed attempt only while every behavior-bearing identity, source commit, artifact digest, Custom baseline, and package closure remains exact. Failed and incomplete case groups, diagnostic attempts, uncommitted evidence, chained reuse, and tampered artifacts are never eligible.
 
@@ -190,7 +192,7 @@ The packages repository contributes only the immutable `HEAD:compatibility/runti
 
 `results/<target-key>/attempts/a-<digest>/` contains the current attempt and numbered artifacts. `storage.json` binds logical artifact paths to physical files and verifies every SHA-256 digest. `latest.json` points to the latest attempt and current passing attempt when one exists.
 
-Current protocol-9 attempts are revalidated against the profile, probes, scenarios, and resource calibration stored at their recorded qualification source commit. Earlier attempts remain available only through Git history; active source and local runtime storage contain no compatibility corpus or reader.
+Current protocol-10 attempts are revalidated against the profile, probes, scenarios, and resource calibration stored at their recorded qualification source commit. Earlier attempts remain available only through Git history; active source and local runtime storage contain no compatibility corpus or reader.
 
 Fresh release verification reads only this current storage. Every indexed target must have one compatible passing attempt. An explicit release evidence pin instead validates the original immutable source tag and its compact artifact manifests without copying source attempts into the new release.
 

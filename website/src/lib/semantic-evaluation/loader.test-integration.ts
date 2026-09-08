@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, test } from 'vitest';
 
+import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../../../../tooling/codex-evaluation-host/index.mjs';
 import {
   createPortableSkillDigest,
   createSemanticCaseDefinitionDigest,
@@ -31,6 +32,7 @@ import type { ISemanticCaseDefinition } from './types.ts';
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const temporaryRoots: string[] = [];
 const ACTOR_HOST = {
+  developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   model: 'gpt-5.6-sol',
   name: 'codex',
   reasoningEffort: 'high',
@@ -123,12 +125,14 @@ const createCandidate = (
   generatedAt: updatedAt,
   hostContract: {
     actor: {
+      developerInstructionsSha256: ACTOR_HOST.developerInstructionsSha256,
       model: ACTOR_HOST.model,
       name: ACTOR_HOST.name,
       reasoningEffort: ACTOR_HOST.reasoningEffort,
       role: ACTOR_HOST.role,
     },
     judge: {
+      developerInstructionsSha256: JUDGE_HOST.developerInstructionsSha256,
       model: JUDGE_HOST.model,
       name: JUDGE_HOST.name,
       reasoningEffort: JUDGE_HOST.reasoningEffort,
@@ -230,7 +234,7 @@ const createCandidate = (
       workspaceChanges: { created: [], deleted: [], modified: [] },
     };
   }),
-  schemaVersion: 8,
+  schemaVersion: 9,
   updatedAt,
 });
 
@@ -384,7 +388,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
     const model = loadSemanticEvaluationWebsiteModel(root);
 
-    expect(model.latest?.result.schemaVersion).toBe(5);
+    expect(model.latest?.result.schemaVersion).toBe(6);
     expect(
       model.latest?.cases.find(({ id }) => id === cases[0]?.id)?.trials[0]
         ?.actorCommandPolicyEvidence,

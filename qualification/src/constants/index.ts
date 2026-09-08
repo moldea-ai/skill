@@ -12,7 +12,7 @@ import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibr
 
 // immutable protocol and evaluator identity for committed qualification evidence
 export const QUALIFICATION_PROTOCOL_VERSION = 2 as const;
-export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 9 as const;
+export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 10 as const;
 export const QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1 as const;
 // finite candidate-wide stop-loss; calibrated initials fit with confirmation headroom
 export const QUALIFICATION_CANDIDATE_TOKEN_LIMIT = 32_000_000 as const;

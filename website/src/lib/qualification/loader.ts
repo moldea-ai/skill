@@ -12,10 +12,7 @@ import {
   type IQualificationAttemptStorage,
   type IQualificationProfileIndexTarget,
 } from '../../../../qualification/src/storage/index.ts';
-import {
-  CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
-  CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
-} from '../../../../tooling/codex-evaluation-host/index.mjs';
+import { buildActorPrompt } from '../../../../qualification/src/prompts/index.ts';
 
 import {
   ActorOutputSchema,
@@ -69,29 +66,25 @@ import {
 } from './validations.ts';
 
 const QUALIFICATION_ROUTE = '/evidence/qualification/';
-// immutable protocol 9 actor-prompt boundary retained by current evidence
-const QUALIFICATION_ACTOR_PROMPT_PREFIX =
-  'Complete the project task below in the current Git working tree:\n\n';
-const QUALIFICATION_ACTOR_PROMPT_SUFFIX = `
+const QUALIFICATION_ACTOR_TASK_SENTINEL = 'moldea-qualification-recorded-task-boundary';
 
-Execution rules:
+/** Derives the immutable protocol 10 task boundary from the authoritative actor prompt builder. */
+const createQualificationActorPromptBoundary = (): readonly [string, string] => {
+  const prompt = buildActorPrompt({ task: QUALIFICATION_ACTOR_TASK_SENTINEL });
+  const taskStartIndex = prompt.indexOf(QUALIFICATION_ACTOR_TASK_SENTINEL);
 
-- Use applicable project-local tooling and follow Agent Skill guidance discovered in the workspace.
-- Do not call a provider, run an agent, invoke another model, use subagents, or use network access.
-- Dependencies are already installed. Do not invoke npm, npx, pnpm, pnpx, yarn, yarnpkg, corepack, or any package installer; run repository-local binaries directly.
-- Preserve all unrelated pre-existing changes and untracked files.
-- Treat runner-mounted Agent Skill and qualification inputs as read-only.
-- Treat ambiguous or unsupported runtime behavior conservatively. Record it explicitly instead of inventing evidence.
-- Inspect the final Git diff and run the relevant local validation before finishing.
-- Return only the structured result required by the output schema.
+  if (taskStartIndex === -1) {
+    throw new Error('Qualification actor prompt does not retain its task boundary.');
+  }
 
-Git inspection:
+  return [
+    prompt.slice(0, taskStartIndex),
+    prompt.slice(taskStartIndex + QUALIFICATION_ACTOR_TASK_SENTINEL.length),
+  ];
+};
 
-- Use only the evaluator-approved forms below. Do not inspect evaluator-owned wrapper files or home paths to discover alternatives.
-- Status: \`env GIT_ATTR_NOSYSTEM=1 git ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')}\`
-- Diff (replace the final placeholder; do not type the angle brackets): \`env GIT_ATTR_NOSYSTEM=1 git ${CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.join(' ')} <one-or-more-repository-relative-paths>\`
-
-`;
+const [QUALIFICATION_ACTOR_PROMPT_PREFIX, QUALIFICATION_ACTOR_PROMPT_SUFFIX] =
+  createQualificationActorPromptBoundary();
 
 type ICaseCatalogEntry = ReturnType<typeof QualificationCaseCatalogSchema.parse>['cases'][number];
 type IProfile = ReturnType<typeof QualificationProfileSchema.parse>;
@@ -162,7 +155,7 @@ const createExpectedCurrentArtifactPaths = (
   ].sort((left, right) => left.localeCompare(right, 'en'));
 
 const assertCurrentArtifactInventory = (
-  result: Extract<IQualificationAttemptResult, { protocolVersion: 9 }>,
+  result: Extract<IQualificationAttemptResult, { protocolVersion: 10 }>,
 ): void => {
   const expectedPaths = createExpectedCurrentArtifactPaths(result.cases);
   const actualPaths = Object.keys(result.artifactDigests).sort((left, right) =>
@@ -170,7 +163,7 @@ const assertCurrentArtifactInventory = (
   );
 
   if (JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)) {
-    throw new Error('Qualification evidence has an incomplete protocol 9 artifact inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 10 artifact inventory.');
   }
 };
 
@@ -379,7 +372,7 @@ const readRecordedDeveloperTask = (
 
 const loadCurrentAttemptCase = (
   readArtifact: IReadAttemptArtifact,
-  attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 9 }>,
+  attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 10 }>,
   result: IQualificationCurrentCaseResult,
   artifacts: IQualificationArtifactModel[],
   profileCase: Pick<IQualificationProfileCaseModel, 'id' | 'scenario'>,

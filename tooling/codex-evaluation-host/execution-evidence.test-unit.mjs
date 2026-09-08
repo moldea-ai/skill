@@ -9,6 +9,10 @@ import {
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
 } from './execution-evidence.mjs';
+import {
+  CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
+  CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+} from './git-command-policy-boundary.mjs';
 
 const createCommandEvent = (command, aggregatedOutput = '', overrides = {}) =>
   JSON.stringify({
@@ -151,11 +155,17 @@ test('execution evidence recognizes exact evaluator-owned local tooling checks',
       createCommandEvent(
         'GIT_ATTR_NOSYSTEM=1 git -C /mnt -c core.fsmonitor=false -c core.pager=cat -c diff.external= --no-pager diff --no-ext-diff --no-textconv',
       ),
+      createCommandEvent(
+        `env GIT_ATTR_NOSYSTEM=1 git ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')}`,
+      ),
+      createCommandEvent(
+        `env GIT_ATTR_NOSYSTEM=1 git ${CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.join(' ')} README.md`,
+      ),
     ].join('\n'),
   );
 
   assertCommandPolicy(result.commandPolicy, {
-    completedCommandCount: 10,
+    completedCommandCount: 12,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
       status: 'not-observed',

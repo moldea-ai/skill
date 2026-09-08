@@ -42,7 +42,11 @@ export {
 } from './execution-evidence.mjs';
 
 // Git command-policy boundary
-export { prepareGitCommandPolicyBoundary } from './git-command-policy-boundary.mjs';
+export {
+  CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
+  CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+  prepareGitCommandPolicyBoundary,
+} from './git-command-policy-boundary.mjs';
 
 // restricted proxy
 export { isPublicIpAddress, parseConnectAuthority, runCodexEvaluationProxy } from './proxy.mjs';

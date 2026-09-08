@@ -158,6 +158,8 @@ Use `--json` for machine-readable output. `status` returns only content-free att
 
 Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in bounded attempt storage for explicit inspection. Terminal attempts remove disposable workspaces, installed runtime trees, snapshots, and attempt-local package stores. Interrupted attempts preserve internal snapshots only while they remain eligible for explicit resume. Paid `run`, `diagnose`, `diagnose-batch`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first direct model call. Exact evidence reuse and the model-free dry run require no paid confirmation.
 
+Actor and judge prompts provide the exact bounded Git status and path-scoped diff forms accepted by the isolated host. Evaluation agents must use those forms instead of probing evaluator-owned wrappers or home paths.
+
 Immediately before paid execution, the CLI reports direct and reused cases, planned calls, the maximum calls including one bounded operational retry per stage, the 2,097,152-token stage ceiling, prior candidate consumption, and the 32,000,000-token candidate stop-loss. The per-stage ceiling contains a complete tool-using Codex stage and is not a consumption target. It retains more than 25 percent headroom above the observed 1,264,666-token qualification stage that invalidated the earlier ceiling. Token totals count input plus output while reporting provider-cached input separately without adding it twice. The candidate boundary accepts an exact fit and refuses the next stage before one full reservation would exceed it.
 
 ## Model-free dry run
@@ -170,7 +172,7 @@ The dry run constructs the exact candidate, prepares every Custom project, appli
 
 ## Checkpoints and exact evidence reuse
 
-Every stage writes an atomic checkpoint. Resume continues the exact compatible stage. Retry creates a new linked attempt and never rewrites prior evidence. A stage that exhausts its single automatic operational retry is persisted as stopped. Ordinary resume refuses to repeat it; `--resume-stopped-stage` authorizes exactly one additional attempt without resetting token charges. A second exhaustion is terminal.
+Every stage writes an atomic checkpoint. Resume continues the exact compatible stage. After resume identity is revalidated, the runner removes the superseded interruption marker; a later interruption writes the current marker again. Retry creates a new linked attempt and never rewrites prior evidence. A stage that exhausts its single automatic operational retry is persisted as stopped. Ordinary resume refuses to repeat it; `--resume-stopped-stage` authorizes exactly one additional attempt without resetting token charges. A second exhaustion is terminal.
 
 Every checkpoint write also replaces an 8,192-byte-bounded local status sidecar. Status and the guided resume menu read only these sidecars plus checkpoint file metadata, never checkpoint bodies. A missing, stale, malformed, unreadable, or oversized sidecar is reported as unavailable metadata and is not interpreted through a legacy checkpoint reader.
 

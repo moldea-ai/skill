@@ -2,6 +2,43 @@ import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+const HARDENED_GIT_COMMON_CONFIGURATIONS = [
+  'core.attributesFile=/dev/null',
+  'core.fsmonitor=false',
+  'core.pager=cat',
+  'filter.lfs.clean=',
+  'filter.lfs.process=',
+  'filter.lfs.required=false',
+  'filter.lfs.smudge=',
+];
+const HARDENED_GIT_DIFF_CONFIGURATION = 'diff.external=';
+
+const createGitConfigurationArguments = (configurations) =>
+  configurations.flatMap((configuration) => ['-c', configuration]);
+
+// exact status arguments accepted by the evaluator-owned Git boundary
+export const CODEX_EVALUATION_GIT_STATUS_ARGUMENTS = Object.freeze([
+  ...createGitConfigurationArguments(HARDENED_GIT_COMMON_CONFIGURATIONS),
+  '--no-pager',
+  'status',
+  '--porcelain=v2',
+  '-z',
+  '--ignore-submodules=all',
+]);
+
+// exact prefix for a bounded diff followed by one or more repository-relative paths
+export const CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX = Object.freeze([
+  ...createGitConfigurationArguments([
+    ...HARDENED_GIT_COMMON_CONFIGURATIONS,
+    HARDENED_GIT_DIFF_CONFIGURATION,
+  ]),
+  '--no-pager',
+  'diff',
+  '--no-ext-diff',
+  '--no-textconv',
+  '--ignore-submodules=all',
+  '--',
+]);
 
 /**
  * Validates evaluator-owned top-level directories that the sandbox mounts read-only.
@@ -45,16 +82,8 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   'const MAX_GIT_FILE_BYTES = 32_768;',
   'const MAX_GIT_INSPECTION_BYTES = 32_768;',
   "const SAFE_GIT_ARGUMENTS = ['-c', 'log.showSignature=false'];",
-  'const HARDENED_GIT_COMMON_CONFIGURATIONS = new Set([',
-  "  'core.attributesFile=/dev/null',",
-  "  'core.fsmonitor=false',",
-  "  'core.pager=cat',",
-  "  'filter.lfs.clean=',",
-  "  'filter.lfs.process=',",
-  "  'filter.lfs.required=false',",
-  "  'filter.lfs.smudge=',",
-  ']);',
-  "const HARDENED_GIT_DIFF_CONFIGURATION = 'diff.external=';",
+  `const HARDENED_GIT_COMMON_CONFIGURATIONS = new Set(${JSON.stringify(HARDENED_GIT_COMMON_CONFIGURATIONS)});`,
+  `const HARDENED_GIT_DIFF_CONFIGURATION = ${JSON.stringify(HARDENED_GIT_DIFF_CONFIGURATION)};`,
   'const GIT_OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;',
   'const RELEASE_CLI_GIT_PREFIX = [',
   "  '--no-pager',",

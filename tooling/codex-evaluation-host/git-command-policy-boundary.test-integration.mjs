@@ -6,24 +6,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { prepareGitCommandPolicyBoundary } from './git-command-policy-boundary.mjs';
-
-const COMMON_GIT_OPTIONS = [
-  '-c',
-  'core.fsmonitor=false',
-  '-c',
-  'core.pager=cat',
-  '-c',
-  'core.attributesFile=/dev/null',
-  '-c',
-  'filter.lfs.clean=',
-  '-c',
-  'filter.lfs.process=',
-  '-c',
-  'filter.lfs.smudge=',
-  '-c',
-  'filter.lfs.required=false',
-];
+import {
+  CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
+  CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+  prepareGitCommandPolicyBoundary,
+} from './git-command-policy-boundary.mjs';
 const RELEASE_CLI_GIT_OPTIONS = [
   '--no-pager',
   '-c',
@@ -71,14 +58,7 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
     ]);
 
     const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'));
-    const statusArguments = [
-      ...COMMON_GIT_OPTIONS,
-      '--no-pager',
-      'status',
-      '--porcelain=v2',
-      '-z',
-      '--ignore-submodules=all',
-    ];
+    const statusArguments = [...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS];
     const safeResult = runWrappedGit(wrapperPath, repositoryPath, statusArguments);
 
     assert.equal(safeResult.status, 0, safeResult.stderr);
@@ -202,18 +182,7 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
     runSystemGit(repositoryPath, ['config', 'filter.execution-trap.clean', './git-filter.sh']);
     writeFileSync(join(repositoryPath, 'project-state.js'), 'export const state = "changed";\n');
 
-    const diffArguments = [
-      ...COMMON_GIT_OPTIONS,
-      '-c',
-      'diff.external=',
-      '--no-pager',
-      'diff',
-      '--no-ext-diff',
-      '--no-textconv',
-      '--ignore-submodules=all',
-      '--',
-      'project-state.js',
-    ];
+    const diffArguments = [...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX, 'project-state.js'];
     const blockedResult = runWrappedGit(wrapperPath, repositoryPath, diffArguments);
 
     assert.equal(blockedResult.status, 2);
@@ -236,14 +205,7 @@ test('Git command-policy boundary budgets trusted read-only top-level dependenci
   const testRoot = mkdtempSync(join(tmpdir(), 'moldea-git-read-only-dependencies-test-'));
   const repositoryPath = join(testRoot, 'repository');
   const dependencyDirectoryPath = join(repositoryPath, 'node_modules');
-  const statusArguments = [
-    ...COMMON_GIT_OPTIONS,
-    '--no-pager',
-    'status',
-    '--porcelain=v2',
-    '-z',
-    '--ignore-submodules=all',
-  ];
+  const statusArguments = [...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS];
 
   try {
     mkdirSync(dependencyDirectoryPath, { recursive: true });
@@ -372,15 +334,7 @@ test('Git command-policy boundary refuses linked-worktree common attributes', as
 
     const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'));
     const blockedResult = runWrappedGit(wrapperPath, linkedWorktreePath, [
-      ...COMMON_GIT_OPTIONS,
-      '-c',
-      'diff.external=',
-      '--no-pager',
-      'diff',
-      '--no-ext-diff',
-      '--no-textconv',
-      '--ignore-submodules=all',
-      '--',
+      ...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
       'project-state.js',
     ]);
 

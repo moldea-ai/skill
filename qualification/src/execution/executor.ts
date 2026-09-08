@@ -584,6 +584,13 @@ export const runQualification = async (
     checkpoint = await settleQualificationCandidateTokens(attemptDirectory, checkpoint, usage);
   };
 
+  if (preparedAttempt.isResume) {
+    await Promise.all([
+      rm(path.join(publicDirectory, 'error.json'), { force: true }),
+      rm(path.join(publicDirectory, 'interruption.json'), { force: true }),
+    ]);
+  }
+
   try {
     const sourceStateStageId = 'source-state';
     const sourceStatePath = path.join(publicDirectory, 'source-state.json');

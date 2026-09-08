@@ -543,6 +543,8 @@ describe('qualification execution', () => {
     });
     temporaryAttemptDirectory = stoppedOutcome.attemptDirectory;
     const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
+    const stoppedAttemptBackup = path.join(temporaryRoot, 'stopped-attempt-backup');
+    await copyDirectory(stoppedOutcome.attemptDirectory, stoppedAttemptBackup);
 
     expect(stoppedOutcome.result.status).toBe('incomplete');
     expect(stoppedOutcome.wasRecorded).toBe(false);
@@ -561,6 +563,21 @@ describe('qualification execution', () => {
         resultsRoot,
       }),
     ).rejects.toThrow('resume requires --resume-stopped-stage');
+
+    const resumedOutcome = await runQualification({
+      host: new FakeCodexHost(),
+      resumeAttemptId: stoppedOutcome.result.attemptId,
+      resumeStoppedStage: true,
+      resultsRoot,
+    });
+
+    expect(resumedOutcome.result.status).toBe('passed');
+    await expectPathToBeMissing(
+      path.join(resumedOutcome.attemptDirectory, 'public', 'interruption.json'),
+    );
+
+    await rm(stoppedOutcome.attemptDirectory, { force: true, recursive: true });
+    await copyDirectory(stoppedAttemptBackup, stoppedOutcome.attemptDirectory);
 
     let resumedActorCalls = 0;
     const restoppedOutcome = await runQualification({

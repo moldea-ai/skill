@@ -210,6 +210,8 @@ export const prepareGitCommandPolicyBoundary: (
     trustedReadOnlyDirectoryNames?: readonly string[];
   },
 ) => Promise<string>;
+export const CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX: readonly string[];
+export const CODEX_EVALUATION_GIT_STATUS_ARGUMENTS: readonly string[];
 export const runCodexEvaluationOperationalStage: <T>(options: {
   initialFailureCount?: number;
   maximumRetryCount?: number;

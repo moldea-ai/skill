@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
+import { CODEX_EVALUATION_GIT_STATUS_ARGUMENTS } from './git-command-policy-boundary.mjs';
 import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CodexEvaluationHostError,
@@ -37,29 +38,6 @@ const HOST_COMMAND = buildCodexEvaluationHostCommand([
   'shell_environment_policy.inherit=none',
   '-',
 ]);
-
-// exact helper-suppressed status shape accepted by the evaluator Git boundary
-const APPROVED_GIT_STATUS_ARGUMENTS = [
-  '-c',
-  'core.fsmonitor=false',
-  '-c',
-  'core.pager=cat',
-  '-c',
-  'core.attributesFile=/dev/null',
-  '-c',
-  'filter.lfs.clean=',
-  '-c',
-  'filter.lfs.process=',
-  '-c',
-  'filter.lfs.smudge=',
-  '-c',
-  'filter.lfs.required=false',
-  '--no-pager',
-  'status',
-  '--porcelain=v2',
-  '-z',
-  '--ignore-submodules=all',
-];
 
 const runSystemGit = (repositoryPath, argumentsList) => {
   const result = spawnSync('/usr/bin/git', argumentsList, {
@@ -133,7 +111,7 @@ test('qualification actor PATH enforces the Git boundary over repository helpers
         command: [
           'codex',
           '-c',
-          `test "$(command -v git)" = "/home/evaluator/bin/git" && git ${APPROVED_GIT_STATUS_ARGUMENTS.join(' ')}`,
+          `test "$(command -v git)" = "/home/evaluator/bin/git" && git ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')}`,
         ],
         cwd: repositoryPath,
         hostExecutable: realpathSync('/bin/sh'),
@@ -151,7 +129,7 @@ test('qualification actor PATH enforces the Git boundary over repository helpers
     const blockedResult = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
-        command: ['codex', '-c', `git ${APPROVED_GIT_STATUS_ARGUMENTS.join(' ')}`],
+        command: ['codex', '-c', `git ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')}`],
         cwd: repositoryPath,
         hostExecutable: realpathSync('/bin/sh'),
         includeWorkspaceBinaryDirectory: true,
@@ -185,7 +163,7 @@ test('shared host aligns the Git traversal budget with its read-only dependency 
   }
   writeFileSync(
     codexPath,
-    `#!/bin/sh\ngit ${APPROVED_GIT_STATUS_ARGUMENTS.join(' ')} >/dev/null\nprintf "host success\\n"\n`,
+    `#!/bin/sh\ngit ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')} >/dev/null\nprintf "host success\\n"\n`,
   );
   writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
   chmodSync(codexPath, 0o755);

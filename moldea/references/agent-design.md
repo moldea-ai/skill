@@ -53,6 +53,8 @@ Every registered agent declares one `runtime.id`. Use `composition --json` when 
 7. Reconcile runtime identity and semantic surfaces together. Update every affected surface as one coherent change. A `runtime.id`-only edit is incomplete when reliable evidence establishes model-visible or project-specific integration behavior.
 8. Report evidence paths, repository states, canonical inspection limits, and remaining unknowns.
 
+For a runtime-alignment review, report the declared runtime ID, the exact runtime-guidance path and its role, and the bound implementation path and symbol whenever those facts are established.
+
 Before a runtime write, retain a checklist of every externally evidenced model-visible capability. Do not validate or claim completion until each capability remains represented in canonical instruction or runtime guidance.
 
 If the required adapter is absent from this release, report a tooling prerequisite and stop without selecting another CLI version or replacement runtime. Composition establishes availability, not integration identity, target support, or maturity.
@@ -62,6 +64,44 @@ Create runtime guidance only for material project-specific behavior or limitatio
 ## Register real relationships
 
 Use only properties supported by repository format version `1` under the active CLI/Core contract.
+
+Use the established version `1` shapes directly instead of guessing alternate nesting or logical paths. Runtime guidance is a root-owned Markdown asset under `/moldea/runtimes/`; an agent references it from `runtime.guidance`, binds the real invocation from `bindings.runtimeAgent`, and declares material source impact through `affectedBy`. The example uses `custom` only for an integration already established as Custom; complete runtime selection before applying it.
+
+```yaml
+version: 1
+agents:
+  order-triage:
+    runtime:
+      id: custom
+      guidance: /moldea/runtimes/custom.md
+    bindings:
+      runtimeAgent:
+        path: /src/order-triage-agent.ts
+        symbol: createOrderTriageAgent
+    affectedBy:
+      - /src/order-triage-agent.ts
+```
+
+Register shared context by its complete `/moldea/context/*.md` logical path and let agents select that same path. Record an agent-owned unresolved requirement under the agent, with traceability expressed as `related` path records:
+
+```yaml
+context:
+  /moldea/context/billing.md:
+    affectedBy:
+      - /src/billing.ts
+agents:
+  support:
+    context:
+      - /moldea/context/billing.md
+    unresolved:
+      dynamic-tool-registration:
+        category: tool-registration
+        effect: warning
+        description: The final tool registry cannot be proven from static repository evidence.
+        resolution: Establish the runtime registration through explicit source or supported adapter evidence.
+        related:
+          - path: /src/dynamic-tools.ts
+```
 
 Register repository-root-absolute logical paths and symbols only for material implementation relationships that cannot be derived reliably, including runtime agents, executable schemas, instruction loaders, variable providers, capability implementation or registration, context, decisions, runtime guidance, and broader `affectedBy` paths.
 

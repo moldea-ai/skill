@@ -971,7 +971,7 @@ describe('qualification execution', () => {
     ).toBe(true);
   }, 120_000);
 
-  test('fails every trial after an observed actor command-policy violation', async () => {
+  test('terminates after an observed actor command-policy violation', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-actor-policy-'));
     const skillRepository = path.join(temporaryRoot, 'skill-repository');
     const resultsRoot = path.join(temporaryRoot, 'results');
@@ -1043,18 +1043,22 @@ describe('qualification execution', () => {
 
     expect(outcome.result.status).toBe('failed');
     expect(outcome.wasRecorded).toBe(false);
-    expect(actorCalls).toBe(24);
+    expect(actorCalls).toBe(12);
     expect(judgeCalls).toBe(0);
     expect(failedCase).toMatchObject({
       caseId: 'evaluate-aligned-project',
       status: 'failed',
-      confirmationStatus: 'rejected',
+      confirmationStatus: 'not-applicable',
     });
-    expect(failedCase?.trials).toHaveLength(2);
+    expect(failedCase?.trials).toHaveLength(1);
     expect(
       failedCase?.trials.every(
-        ({ failures, judgeStatus, passed }) =>
+        ({ confirmationEligible, dimensions, failures, judgeStatus, passed }) =>
           !passed &&
+          !confirmationEligible &&
+          !dimensions.commandPolicy &&
+          dimensions.repositoryControl &&
+          dimensions.mountIntegrity &&
           judgeStatus === 'skipped' &&
           failures.includes(
             'Actor command policy observed prohibited credential, network, or sensitive evaluator access.',
@@ -1125,8 +1129,19 @@ describe('qualification execution', () => {
 
     expect(outcome.result.status).toBe('failed');
     expect(outcome.wasRecorded).toBe(false);
-    expect(actorCalls).toBe(24);
+    expect(actorCalls).toBe(12);
     expect(judgeCalls).toBe(0);
+    expect(
+      outcome.result.cases.every(
+        ({ confirmationStatus, trials }) =>
+          confirmationStatus === 'not-applicable' &&
+          trials.length === 1 &&
+          trials.every(
+            ({ confirmationEligible, dimensions }) =>
+              !confirmationEligible && !dimensions.mountIntegrity,
+          ),
+      ),
+    ).toBe(true);
     expect(
       outcome.result.stages
         .filter(

@@ -70,9 +70,15 @@ const { scenarioId, trials } = Astro.props;
               </div>
             )}
             <div>
-              <dt class="text-muted-foreground">Completed commands</dt>
+              <dt class="text-muted-foreground">Actor commands</dt>
               <dd class="mt-1 font-mono text-xs break-all">
                 {trial.actorCommandPolicyEvidence.completedCommandCount}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-muted-foreground">Judge commands</dt>
+              <dd class="mt-1 font-mono text-xs break-all">
+                {trial.judgeCommandPolicyEvidence.completedCommandCount}
               </dd>
             </div>
             <div>

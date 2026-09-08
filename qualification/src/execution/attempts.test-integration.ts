@@ -51,7 +51,8 @@ const createIncompleteAttemptFixture = async (options: {
     targetDigest: 'f'.repeat(64),
     executionEnvironment: {
       model: 'gpt-5.6-sol',
-      reasoningEffort: 'high',
+      actorReasoningEffort: 'high',
+      judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',
@@ -217,7 +218,8 @@ describe('qualification attempt discovery', () => {
       targetDigest: 'f'.repeat(64),
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        reasoningEffort: 'high',
+        actorReasoningEffort: 'high',
+        judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,
         pnpmVersion: '11.9.0',
@@ -280,7 +282,7 @@ describe('qualification attempt discovery', () => {
         attemptId: unsupportedAttemptId,
         kind: 'unsupported-protocol',
         message:
-          'Checkpoint protocol version 7 is not supported by protocol version 8 and was left unchanged.',
+          'Checkpoint protocol version 7 is not supported by protocol version 9 and was left unchanged.',
         protocolVersion: 7,
       },
     ]);

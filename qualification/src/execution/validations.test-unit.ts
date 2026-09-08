@@ -100,7 +100,8 @@ const createPassingOutput = (): IJudgeOutput => ({
 
 const executionEnvironment: IQualificationExecutionEnvironment = {
   model: 'gpt-5.6-sol',
-  reasoningEffort: 'high',
+  actorReasoningEffort: 'high',
+  judgeReasoningEffort: 'xhigh',
   codexVersion: 'codex-cli 1',
   nodeVersion: 'v24.15.0',
   pnpmVersion: '11.9.0',
@@ -708,6 +709,21 @@ describe('qualification resume identity validation', () => {
   test('rejects changed host tooling while accepting the exact checkpoint identity', () => {
     expect(
       haveQualificationExecutionInputsChanged(executionEnvironment, executionEnvironment),
+    ).toBe(false);
+    expect(
+      haveQualificationExecutionInputsChanged(executionEnvironment, {
+        actorReasoningEffort: executionEnvironment.actorReasoningEffort,
+        judgeReasoningEffort: executionEnvironment.judgeReasoningEffort,
+        model: executionEnvironment.model,
+        codexVersion: executionEnvironment.codexVersion,
+        nodeVersion: executionEnvironment.nodeVersion,
+        pnpmVersion: executionEnvironment.pnpmVersion,
+        gitVersion: executionEnvironment.gitVersion,
+        allowedEgressHosts: executionEnvironment.allowedEgressHosts,
+        hostTimeoutMs: executionEnvironment.hostTimeoutMs,
+        modelEndpoint: executionEnvironment.modelEndpoint,
+        sslCertificateFileSha256: executionEnvironment.sslCertificateFileSha256,
+      }),
     ).toBe(false);
     for (const environmentChange of [
       { codexVersion: 'codex-cli 2' },

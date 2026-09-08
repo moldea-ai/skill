@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import {
   hasPassingCodexEvaluationCommandPolicy,
+  hasValidCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
   identifyRepositoryTestCommandKind,
   isRepositoryTestCommand,
@@ -455,6 +456,29 @@ test('command-policy verdict treats uncertainty as diagnostic evidence', () => {
   assert.equal(indeterminateEvidence.networkAccess.status, 'indeterminate');
   assert.equal(indeterminateEvidence.sensitiveAccess.status, 'indeterminate');
   assert.equal(hasPassingCodexEvaluationCommandPolicy(indeterminateEvidence), true);
+  assert.equal(hasValidCodexEvaluationCommandPolicy(indeterminateEvidence), true);
+});
+
+test('command-policy validation rejects incomplete and contradictory aggregates', () => {
+  const evidence = projectCodexEvaluationExecutionEvidence('').commandPolicy;
+
+  assert.equal(hasValidCodexEvaluationCommandPolicy(evidence), true);
+  assert.equal(
+    hasValidCodexEvaluationCommandPolicy({ ...evidence, completedCommandCount: 129 }),
+    false,
+  );
+  assert.equal(hasValidCodexEvaluationCommandPolicy({ ...evidence, moldeaCommandCount: 1 }), false);
+  assert.equal(
+    hasValidCodexEvaluationCommandPolicy({
+      ...evidence,
+      networkAccess: { ...evidence.networkAccess, status: 'observed' },
+    }),
+    false,
+  );
+  assert.equal(
+    hasValidCodexEvaluationCommandPolicy({ ...evidence, command: 'retained command' }),
+    false,
+  );
 });
 
 test('command-policy verdict fails every observed violation category', () => {

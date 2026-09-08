@@ -33,6 +33,7 @@ export type ISemanticActorExecutionOutputFact =
       cliVersion: string;
       command: 'composition' | 'content' | 'inspect' | 'scope' | 'validate';
       containsContent: boolean;
+      errorCode: string | null;
       errorPresent: boolean;
       hasNextPage: boolean;
       pageRecordCount: number;
@@ -108,23 +109,6 @@ export const hasPassingMoldeaResourceBudget: (
   evidence: unknown,
   budget: IMoldeaResourceBudget,
 ) => boolean;
-
-export type ISemanticActorCommandClassification = 'completed';
-
-// strict aggregate retained after raw actor command text is discarded
-export interface ISemanticActorCommandPolicyEvidence {
-  completedCommandCount: number;
-}
-
-export const classifyActorCommandPolicyEvent: (
-  event: unknown,
-) => ISemanticActorCommandClassification | null;
-
-export const createActorCommandPolicyEvidence: (
-  classifications: ISemanticActorCommandClassification[],
-) => ISemanticActorCommandPolicyEvidence;
-
-export const hasValidActorCommandPolicyEvidence: (evidence: unknown) => boolean;
 
 export type ISemanticGitStateFact =
   | 'has-deleted-paths'

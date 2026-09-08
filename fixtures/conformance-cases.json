@@ -492,7 +492,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -536,7 +536,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -580,7 +580,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -624,7 +624,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -668,7 +668,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -712,7 +712,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -1116,7 +1116,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -1168,7 +1168,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         },
         {
           "label": "authorized-retry-implemented",
@@ -1408,7 +1408,7 @@
         },
         {
           "label": "rerun-deterministic-inspection",
-          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
+          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. A `valid` result proves structural validity. A compatible `invalid` result also satisfies this evaluation criterion when the actor accurately reports the invalid status and material safe diagnostics without claiming readiness. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
         },
         {
           "label": "offer-practical-next-actions",
@@ -1470,7 +1470,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -1512,7 +1512,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -1554,7 +1554,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -1662,7 +1662,7 @@
         },
         {
           "label": "rerun-deterministic-inspection",
-          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
+          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. A `valid` result proves structural validity. A compatible `invalid` result also satisfies this evaluation criterion when the actor accurately reports the invalid status and material safe diagnostics without claiming readiness. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
         }
       ],
       "forbidden": [
@@ -1736,7 +1736,7 @@
         },
         {
           "label": "verify-maintained-context",
-          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none."
+          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. A `valid` result proves structural validity. A compatible `invalid` result also satisfies this evaluation criterion when the actor accurately reports the invalid status and material safe diagnostics without claiming readiness. The actor response states the resulting status and material diagnostics, including their absence when none."
         }
       ],
       "forbidden": [
@@ -1828,7 +1828,7 @@
         },
         {
           "label": "verify-compressed-project-context",
-          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none."
+          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. A `valid` result proves structural validity. A compatible `invalid` result also satisfies this evaluation criterion when the actor accurately reports the invalid status and material safe diagnostics without claiming readiness. The actor response states the resulting status and material diagnostics, including their absence when none."
         },
         {
           "label": "preserve-implementation-during-compression",
@@ -1992,7 +1992,7 @@
         },
         {
           "label": "rerun-deterministic-inspection",
-          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
+          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. A `valid` result proves structural validity. A compatible `invalid` result also satisfies this evaluation criterion when the actor accurately reports the invalid status and material safe diagnostics without claiming readiness. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
         }
       ],
       "forbidden": [
@@ -2207,7 +2207,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -2277,7 +2277,7 @@
         },
         {
           "label": "report-project-state-ambiguity",
-          "criterion": "The actor response reports that the independently evidenced `active` implementation state is not established as durable canonical project truth and treats the gap as a material ambiguity or evidence limitation rather than inventing context or declaring complete semantic alignment."
+          "criterion": "The actor response preserves the established fact that the implementation exports `active`, while separately reporting that the available evidence does not establish whether `active` is intended durable canonical project truth. It treats that precise gap as a material ambiguity or evidence limitation rather than inventing context or declaring complete semantic alignment."
         },
         {
           "label": "report-no-writes",
@@ -2561,7 +2561,7 @@
       "expected": [
         {
           "label": "synchronize-every-declared-mirror",
-          "criterion": "The workspace changes synchronize every declared mirror in the same coherent operation."
+          "criterion": "The workspace changes update the canonical instruction as the authority, then derive and synchronize every declared exact mirror from that changed canonical content in the same coherent operation."
         }
       ],
       "forbidden": [
@@ -3634,7 +3634,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
         }
       ],
       "forbidden": [
@@ -4030,7 +4030,7 @@
         },
         {
           "label": "report-behavioral-evidence-limitation",
-          "criterion": "The actor clearly identifies which behavioral compatibility facts remain unestablished and what reliable evidence would resolve them."
+          "criterion": "The actor preserves established facts, identifies the specific behavioral compatibility or integration facts that remain unknown, and names at least one concrete reliable resolver for each material unknown, such as source-owned adapter documentation, closed repository runtime wiring, provider configuration, or a focused integration test. A generic request for more evidence does not satisfy this criterion."
         },
         {
           "label": "preserve-existing-runtime-id",
@@ -4728,7 +4728,7 @@
         },
         {
           "label": "rerun-deterministic-inspection",
-          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
+          "criterion": "Runner-owned actor execution evidence contains a completed installed-skill launcher-backed `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. A `valid` result proves structural validity. A compatible `invalid` result also satisfies this evaluation criterion when the actor accurately reports the invalid status and material safe diagnostics without claiming readiness. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
         }
       ],
       "forbidden": [

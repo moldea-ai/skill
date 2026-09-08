@@ -1,7 +1,8 @@
 // shared fixed-model evaluation host contracts consumed by TypeScript development tooling
 export const CODEX_EVALUATION_MODEL: 'gpt-5.6-sol';
 export const CODEX_EVALUATION_NPM_VERSION: '11.12.1';
-export const CODEX_EVALUATION_REASONING_EFFORT: 'high';
+export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT: 'high';
+export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT: 'xhigh';
 export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS: readonly string[];
 export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS: number;
 export const CODEX_EVALUATION_HOST_FAILURE_KINDS: {
@@ -140,6 +141,7 @@ export type ICodexEvaluationHostIdentity = {
   model: string;
   name: string;
   reasoningEffort: string;
+  role: 'actor' | 'judge';
   version: string;
 };
 
@@ -164,9 +166,13 @@ export const buildCodexEvaluationBwrapArguments: (options: {
   workspaceAccess?: ICodexEvaluationWorkspaceAccess;
 }) => string[];
 
-export const buildCodexEvaluationHostCommand: (command: readonly string[]) => string[];
+export const buildCodexEvaluationHostCommand: (
+  command: readonly string[],
+  role: 'actor' | 'judge',
+) => string[];
 export const identifyCodexEvaluationHost: (
   command: readonly string[],
+  role: 'actor' | 'judge',
 ) => ICodexEvaluationHostIdentity;
 export const identifyCodexEvaluationHostConfiguration: (
   options?: ICodexEvaluationHostConfigurationOptions,
@@ -188,11 +194,15 @@ export const runCodexEvaluationHost: (options: {
   prompt: string;
   readOnlyMounts?: readonly ICodexEvaluationReadOnlyMount[];
   readOnlyWorkspacePaths?: readonly string[];
+  role: 'actor' | 'judge';
   sandboxHome: string;
   signal?: AbortSignal;
   workspaceAccess?: ICodexEvaluationWorkspaceAccess;
 }) => Promise<string>;
-export const validateCodexEvaluationHostCommand: (command: readonly string[]) => void;
+export const validateCodexEvaluationHostCommand: (
+  command: readonly string[],
+  role: 'actor' | 'judge',
+) => void;
 
 export const calculateCodexEvaluationOperationalRetryDelay: (
   failureCount: number,
@@ -204,6 +214,9 @@ export const projectCodexEvaluationExecutionEvidence: (
 export const hasPassingCodexEvaluationCommandPolicy: (
   evidence: ICodexEvaluationCommandPolicyEvidence,
 ) => boolean;
+export const hasValidCodexEvaluationCommandPolicy: (
+  evidence: unknown,
+) => evidence is ICodexEvaluationCommandPolicyEvidence;
 export const prepareGitCommandPolicyBoundary: (
   directoryPath: string,
   options?: {

@@ -124,7 +124,19 @@ export const haveQualificationInputsChanged = (
 export const haveQualificationExecutionInputsChanged = (
   expected: IQualificationExecutionEnvironment,
   current: IQualificationExecutionEnvironment,
-): boolean => JSON.stringify(expected) !== JSON.stringify(current);
+): boolean =>
+  expected.model !== current.model ||
+  expected.actorReasoningEffort !== current.actorReasoningEffort ||
+  expected.judgeReasoningEffort !== current.judgeReasoningEffort ||
+  expected.codexVersion !== current.codexVersion ||
+  expected.nodeVersion !== current.nodeVersion ||
+  expected.pnpmVersion !== current.pnpmVersion ||
+  expected.gitVersion !== current.gitVersion ||
+  JSON.stringify(expected.allowedEgressHosts) !== JSON.stringify(current.allowedEgressHosts) ||
+  expected.hostTimeoutMs !== current.hostTimeoutMs ||
+  expected.modelEndpoint?.origin !== current.modelEndpoint?.origin ||
+  expected.modelEndpoint?.sha256 !== current.modelEndpoint?.sha256 ||
+  expected.sslCertificateFileSha256 !== current.sslCertificateFileSha256;
 
 /** Returns whether reconstructed candidate artifacts differ from the checkpointed closure. */
 export const haveCandidateClosuresChanged = (

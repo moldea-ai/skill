@@ -9,7 +9,7 @@ import type {
 import { z } from 'zod';
 
 const QUALIFICATION_PROTOCOL_VERSION = 2;
-const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 8;
+const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 9;
 const INITIAL_OPERATIONAL_RETRY_DELAY_MS = 5_000;
 const MAXIMUM_OPERATIONAL_RETRY_DELAY_MS = 60_000;
 const StableIdSchema = z
@@ -238,7 +238,8 @@ const CandidatePackageSchema = z.object({
 });
 
 const QualificationProvenanceShape = {
-  reasoningEffort: z.literal('high'),
+  actorReasoningEffort: z.literal('high'),
+  judgeReasoningEffort: z.literal('xhigh'),
   codexVersion: z.string().trim().min(1),
   nodeVersion: z.string().trim().min(1),
   pnpmVersion: z.string().trim().min(1),
@@ -252,6 +253,7 @@ const QualificationProvenanceShape = {
     })
     .nullable(),
   sslCertificateFileSha256: Sha256Schema.nullable(),
+  candidateFingerprint: Sha256Schema.nullable(),
   packagesRepositoryCommit: z.string().trim().min(1),
   packagesRepositoryFingerprint: Sha256Schema,
   packagesRepositoryDirty: z.boolean(),
@@ -266,15 +268,34 @@ const QualificationProvenanceShape = {
   baselineAttemptId: z.string().trim().min(1).nullable(),
   packages: z.array(CandidatePackageSchema).min(1),
 };
-const QualificationCurrentProvenanceSchema = z.object({
+const QualificationCurrentProvenanceSchema = z.strictObject({
   model: z.literal('gpt-5.6-sol'),
   ...QualificationProvenanceShape,
 });
+const QualificationTrialDimensionsSchema = z.strictObject({
+  semantic: z.boolean(),
+  resource: z.boolean(),
+  commandPolicy: z.boolean(),
+  repositoryControl: z.boolean(),
+  mountIntegrity: z.boolean(),
+  operational: z.boolean(),
+});
+const QualificationFailureClassificationSchema = z.enum([
+  'semantic',
+  'resource',
+  'commandPolicy',
+  'repositoryControl',
+  'mountIntegrity',
+  'operational',
+]);
 export const QualificationTrialResultSchema = z
-  .object({
+  .strictObject({
     trialId: z.enum(['initial', 'confirmation-1', 'confirmation-2']),
     kind: z.enum(['confirmation', 'initial']),
     confirmationIndex: z.number().int().min(1).max(2).nullable(),
+    confirmationEligible: z.boolean(),
+    dimensions: QualificationTrialDimensionsSchema,
+    failureClassifications: z.array(QualificationFailureClassificationSchema),
     passed: z.boolean(),
     durationMs: z.number().int().nonnegative(),
     deterministicBeforePath: RelativePathSchema,
@@ -319,16 +340,52 @@ export const QualificationTrialResultSchema = z
       });
     }
 
-    if (trial.passed !== (trial.failures.length === 0)) {
+    if (
+      (trial.passed && trial.failures.length > 0) ||
+      (!trial.passed && trial.failures.length === 0)
+    ) {
       context.addIssue({
         code: 'custom',
-        message: 'Trial verdict and failures are contradictory.',
+        message: 'Trial pass state must agree with its recorded failures.',
         path: ['failures'],
+      });
+    }
+
+    const dimensionEntries = Object.entries(trial.dimensions);
+    const isPassing = dimensionEntries.every(([, passed]) => passed);
+    const failureClassifications = dimensionEntries
+      .filter(([, passed]) => !passed)
+      .map(([dimension]) => dimension);
+    const isConfirmationEligible =
+      !trial.dimensions.semantic &&
+      dimensionEntries
+        .filter(([dimension]) => dimension !== 'semantic')
+        .every(([, passed]) => passed);
+    if (
+      trial.passed !== isPassing ||
+      trial.confirmationEligible !== isConfirmationEligible ||
+      JSON.stringify(trial.failureClassifications) !== JSON.stringify(failureClassifications)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Trial verdict and confirmation eligibility must derive from its dimensions.',
+        path: ['dimensions'],
+      });
+    }
+
+    if (
+      new Set(trial.requirementAssessments.map(({ id }) => id)).size !==
+      trial.requirementAssessments.length
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Trial requirement assessments must have unique ids.',
+        path: ['requirementAssessments'],
       });
     }
   });
 export const QualificationCurrentCaseResultSchema = z
-  .object({
+  .strictObject({
     caseId: StableIdSchema,
     title: z.string().trim().min(1),
     status: z.enum(['failed', 'passed', 'recovered']),
@@ -337,7 +394,7 @@ export const QualificationCurrentCaseResultSchema = z
     trials: z.array(QualificationTrialResultSchema).min(1).max(3),
     failures: z.array(z.string()),
     reuse: z
-      .object({
+      .strictObject({
         sourceAttemptId: z.string().trim().min(1),
         sourceCommit: z.string().regex(/^[a-f0-9]{40}$/u),
         sourceAttemptDigest: z.string().regex(/^[a-f0-9]{64}$/u),
@@ -352,16 +409,20 @@ export const QualificationCurrentCaseResultSchema = z
         ? caseResult.trials.length === 1 &&
           caseResult.status === 'passed' &&
           caseResult.confirmationStatus === 'not-required'
-        : confirmation1?.trialId === 'confirmation-1' &&
-          (confirmation1.passed
-            ? confirmation2?.trialId === 'confirmation-2' &&
-              caseResult.trials.length === 3 &&
-              (confirmation2.passed
-                ? caseResult.status === 'recovered' && caseResult.confirmationStatus === 'passed'
-                : caseResult.status === 'failed' && caseResult.confirmationStatus === 'rejected')
-            : caseResult.trials.length === 2 &&
-              caseResult.status === 'failed' &&
-              caseResult.confirmationStatus === 'rejected'));
+        : !initial.confirmationEligible
+          ? caseResult.trials.length === 1 &&
+            caseResult.status === 'failed' &&
+            caseResult.confirmationStatus === 'not-applicable'
+          : confirmation1?.trialId === 'confirmation-1' &&
+            (confirmation1.passed
+              ? confirmation2?.trialId === 'confirmation-2' &&
+                caseResult.trials.length === 3 &&
+                (confirmation2.passed
+                  ? caseResult.status === 'recovered' && caseResult.confirmationStatus === 'passed'
+                  : caseResult.status === 'failed' && caseResult.confirmationStatus === 'rejected')
+              : caseResult.trials.length === 2 &&
+                caseResult.status === 'failed' &&
+                caseResult.confirmationStatus === 'rejected'));
     const expectedReuseSourceAttemptId = caseResult.reuse?.sourceAttemptId ?? null;
     const reuseSourceAttemptIds = caseResult.trials.flatMap((trial) => [
       trial.actorReuseSourceAttemptId,
@@ -386,7 +447,7 @@ export const QualificationCaseResultSchema = QualificationCurrentCaseResultSchem
 const QualificationAttemptResultShape = {
   attemptId: z.string().trim().min(1),
   parentAttemptId: z.string().trim().min(1).nullable(),
-  selection: z.object({
+  selection: z.strictObject({
     adapterId: StableIdSchema,
     implementationId: StableIdSchema,
   }),
@@ -397,7 +458,7 @@ const QualificationAttemptResultShape = {
   summary: z.string().trim().min(1),
   artifactDigests: z.record(RelativePathSchema, Sha256Schema),
 };
-const QualificationStageSchema = z.object({
+const QualificationStageSchema = z.strictObject({
   id: z.string().trim().min(1),
   status: z.enum([
     'reused',
@@ -418,7 +479,7 @@ const QualificationStageSchema = z.object({
   hasUsedOperationalStopResume: z.boolean(),
 });
 const QualificationOperationalRetrySchema = z
-  .object({
+  .strictObject({
     category: z.enum(['execution-failed', 'proxy-unavailable', 'timed-out']),
     failedAt: z.iso.datetime(),
     failureCount: z.number().int().positive(),
@@ -439,7 +500,7 @@ const QualificationCurrentStageSchema = QualificationStageSchema.extend({
   operationalRetries: z.array(QualificationOperationalRetrySchema).max(1),
   operationalStops: z
     .array(
-      z.object({
+      z.strictObject({
         category: z.enum(['execution-failed', 'proxy-unavailable', 'timed-out']),
         failedAt: z.iso.datetime(),
         failureCount: z.literal(2),
@@ -490,10 +551,10 @@ const QualificationCurrentStageSchema = QualificationStageSchema.extend({
     });
   }
 });
-export const QualificationAttemptResultSchema = z.object({
+export const QualificationAttemptResultSchema = z.strictObject({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationAttemptResultShape,
-  confirmationPolicy: z.object({
+  confirmationPolicy: z.strictObject({
     version: z.literal(1),
     requiredPassingConfirmations: z.literal(2),
   }),
@@ -739,6 +800,7 @@ const QualificationCommandPolicyEvidenceSchema = z
       });
     }
     if (
+      evidence.moldeaCommandCount > evidence.completedCommandCount ||
       (evidence.moldeaCommandCount === 0 && evidence.moldeaOutputByteCount !== 0) ||
       evidence.moldeaOutputByteCount > evidence.modelVisibleToolOutputByteCount
     ) {

@@ -2,16 +2,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+  CODEX_EVALUATION_ACTOR_REASONING_EFFORT,
   CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS,
   CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
+  CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
   CODEX_EVALUATION_MODEL,
-  CODEX_EVALUATION_REASONING_EFFORT,
 } from '../../../tooling/codex-evaluation-host/index.mjs';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
 
 // immutable protocol and evaluator identity for committed qualification evidence
 export const QUALIFICATION_PROTOCOL_VERSION = 2 as const;
-export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 8 as const;
+export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 9 as const;
 export const QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1 as const;
 // finite candidate-wide stop-loss; calibrated initials fit with confirmation headroom
 export const QUALIFICATION_CANDIDATE_TOKEN_LIMIT = 32_000_000 as const;
@@ -21,7 +22,8 @@ export const QUALIFICATION_CONFIRMATION_POLICY = {
 } as const;
 export const QUALIFICATION_TRIAL_IDS = ['initial', 'confirmation-1', 'confirmation-2'] as const;
 export const QUALIFICATION_MODEL = CODEX_EVALUATION_MODEL;
-export const QUALIFICATION_REASONING_EFFORT = CODEX_EVALUATION_REASONING_EFFORT;
+export const QUALIFICATION_ACTOR_REASONING_EFFORT = CODEX_EVALUATION_ACTOR_REASONING_EFFORT;
+export const QUALIFICATION_JUDGE_REASONING_EFFORT = CODEX_EVALUATION_JUDGE_REASONING_EFFORT;
 export const QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS = CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS;
 export const QUALIFICATION_ALLOWED_EGRESS_HOSTS = [
   ...CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS,

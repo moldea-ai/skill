@@ -58,16 +58,17 @@ const createScenario = (pathPattern: string) => ({
   ],
 });
 
-test('accepts only high reasoning for current qualification execution', () => {
+test('accepts only high actors and xhigh judges for current qualification execution', () => {
   const environment = {
     model: 'gpt-5.6-sol',
-    reasoningEffort: 'high',
+    actorReasoningEffort: 'high',
+    judgeReasoningEffort: 'xhigh',
     codexVersion: 'codex-cli test',
     nodeVersion: process.version,
     pnpmVersion: '11.9.0',
     gitVersion: 'git version test',
     allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
-    hostTimeoutMs: 600_000,
+    hostTimeoutMs: 900_000,
     modelEndpoint: null,
     sslCertificateFileSha256: null,
   };
@@ -76,7 +77,7 @@ test('accepts only high reasoning for current qualification execution', () => {
   expect(
     QualificationExecutionEnvironmentSchema.safeParse({
       ...environment,
-      reasoningEffort: 'medium',
+      judgeReasoningEffort: 'high',
     }).success,
   ).toBe(false);
 });
@@ -185,6 +186,13 @@ test('requires privacy-safe command-policy reasons to be counted, unique, and so
       completedCommandCount: 0,
       maximumCommandOutputByteCount: 1,
       modelVisibleToolOutputByteCount: 1,
+    }).success,
+  ).toBe(false);
+  expect(
+    QualificationCommandPolicyEvidenceSchema.safeParse({
+      ...evidence,
+      completedCommandCount: 0,
+      moldeaCommandCount: 1,
     }).success,
   ).toBe(false);
 });
@@ -323,6 +331,16 @@ const createTrial = (
     trialId,
     kind: trialId === 'initial' ? 'initial' : 'confirmation',
     confirmationIndex,
+    confirmationEligible: !passed,
+    dimensions: {
+      semantic: passed,
+      resource: true,
+      commandPolicy: true,
+      repositoryControl: true,
+      mountIntegrity: true,
+      operational: true,
+    },
+    failureClassifications: passed ? [] : ['semantic'],
     passed,
     durationMs: 1,
     deterministicBeforePath: `${trialRoot}/deterministic-before.json`,
@@ -351,7 +369,18 @@ const createTrial = (
   });
 };
 
-describe('protocol 8 qualification contracts', () => {
+const createTerminalNonSemanticTrial = (): IQualificationTrialResult => {
+  const trial = createTrial('initial', false);
+
+  return QualificationTrialResultSchema.parse({
+    ...trial,
+    confirmationEligible: false,
+    dimensions: { ...trial.dimensions, semantic: true, repositoryControl: false },
+    failureClassifications: ['repositoryControl'],
+  });
+};
+
+describe('protocol 9 qualification contracts', () => {
   test.each([
     ['passed', 'not-required', [createTrial('initial', true)], []],
     [
@@ -380,6 +409,8 @@ describe('protocol 8 qualification contracts', () => {
       ],
       ['confirmation-2 failed.'],
     ],
+    ['failed', 'not-applicable', [createTerminalNonSemanticTrial()], ['initial failed.']],
+    ['failed', 'not-run', [createTrial('initial', false)], ['initial failed.']],
   ] as const)(
     'accepts the %s terminal confirmation decision',
     (status, confirmationStatus, trials, failures) => {
@@ -410,6 +441,18 @@ describe('protocol 8 qualification contracts', () => {
         title: 'Test case',
         status: 'failed',
         confirmationStatus: 'rejected',
+        durationMs: 1,
+        trials: [createTrial('initial', false)],
+        failures: ['initial failed.'],
+        reuse: null,
+      }).success,
+    ).toBe(false);
+    expect(
+      QualificationCaseResultSchema.safeParse({
+        caseId: 'test-case',
+        title: 'Test case',
+        status: 'failed',
+        confirmationStatus: 'not-applicable',
         durationMs: 1,
         trials: [createTrial('initial', false)],
         failures: ['initial failed.'],

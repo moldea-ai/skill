@@ -69,6 +69,36 @@ const SEMANTIC_CASES = JSON.parse(
   readFileSync(new URL('../fixtures/conformance-cases.json', import.meta.url), 'utf8'),
 ).semanticCases;
 
+const PASSING_DIMENSIONS = {
+  semantic: true,
+  resource: true,
+  commandPolicy: true,
+  repositoryControl: true,
+  mountIntegrity: true,
+  operational: true,
+};
+const SEMANTIC_FAILURE_DIMENSIONS = { ...PASSING_DIMENSIONS, semantic: false };
+const createCommandPolicyEvidence = (completedCommandCount = 0) => ({
+  completedCommandCount,
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
+  networkAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+});
+
 test('requires an explicit semantic model-execution mode', () => {
   assert.throws(
     () => parseSemanticEvaluationArguments([]),
@@ -217,7 +247,7 @@ test('resolves explicit and coverage-claim diagnostic selections deterministical
 test('creates one bounded content-free semantic diagnostic', () => {
   const diagnostic = JSON.parse(
     createSemanticDiagnosticOutput({
-      actorCommandPolicyEvidence: { completedCommandCount: 3 },
+      actorCommandPolicyEvidence: createCommandPolicyEvidence(3),
       actorExecutionEvidence: [{ command: 'secret command' }],
       actorResourceEvidence: {
         commandCount: 1,
@@ -234,7 +264,11 @@ test('creates one bounded content-free semantic diagnostic', () => {
         private: 'actor token body',
       },
       forbidden: ['forbidden-behavior'],
+      confirmationEligible: true,
+      dimensions: SEMANTIC_FAILURE_DIMENSIONS,
+      failureClassifications: ['semantic'],
       id: 'bounded-diagnostic',
+      judgeCommandPolicyEvidence: createCommandPolicyEvidence(),
       judgeUsage: {
         cachedInputTokens: 3,
         inputTokens: 8,
@@ -251,9 +285,12 @@ test('creates one bounded content-free semantic diagnostic', () => {
   );
 
   assert.deepEqual(diagnostic, {
-    schemaVersion: 1,
-    evaluationProtocolVersion: 23,
+    schemaVersion: 2,
+    evaluationProtocolVersion: 24,
     caseId: 'bounded-diagnostic',
+    confirmationEligible: true,
+    dimensions: SEMANTIC_FAILURE_DIMENSIONS,
+    failureClassifications: ['semantic'],
     verdict: 'failed',
     criteria: {
       observed: ['expected-behavior'],
@@ -262,7 +299,10 @@ test('creates one bounded content-free semantic diagnostic', () => {
     rationale: 'The expected behavior was not demonstrated.',
     rationaleTruncated: false,
     resources: {
-      actorCommands: { completedCommandCount: 3 },
+      commandPolicy: {
+        actor: createCommandPolicyEvidence(3),
+        judge: createCommandPolicyEvidence(),
+      },
       moldea: {
         commandCount: 1,
         maximumInvocationByteCount: 128,
@@ -286,7 +326,7 @@ test('truncates only semantic rationale on UTF-8 code-point boundaries', () => {
   const observed = Array.from({ length: 64 }, (_, index) => `expected-${index}`);
   const forbidden = Array.from({ length: 64 }, (_, index) => `forbidden-${index}`);
   const output = createSemanticDiagnosticOutput({
-    actorCommandPolicyEvidence: { completedCommandCount: 64 },
+    actorCommandPolicyEvidence: createCommandPolicyEvidence(64),
     actorResourceEvidence: {
       commandCount: 1,
       maximumInvocationByteCount: 65_536,
@@ -300,7 +340,11 @@ test('truncates only semantic rationale on UTF-8 code-point boundaries', () => {
       outputTokens: 256,
     },
     forbidden,
+    confirmationEligible: false,
+    dimensions: PASSING_DIMENSIONS,
+    failureClassifications: [],
     id: 'large-multibyte-rationale',
+    judgeCommandPolicyEvidence: createCommandPolicyEvidence(),
     judgeUsage: { cachedInputTokens: 256, inputTokens: 512, outputTokens: 128 },
     observed,
     passed: true,
@@ -321,7 +365,7 @@ test('truncates only semantic rationale on UTF-8 code-point boundaries', () => {
 
 test('projects bounded batch records and a compact all-case summary', () => {
   const record = createSemanticDiagnosticBatchRecord({
-    actorCommandPolicyEvidence: { completedCommandCount: 3 },
+    actorCommandPolicyEvidence: createCommandPolicyEvidence(3),
     actorExecutionEvidence: [{ command: 'private command' }],
     actorResourceEvidence: {
       commandCount: 1,
@@ -333,7 +377,11 @@ test('projects bounded batch records and a compact all-case summary', () => {
     actorResponse: 'private actor output',
     actorUsage: { cachedInputTokens: 5, inputTokens: 13, outputTokens: 8 },
     forbidden: ['forbidden-behavior'],
+    confirmationEligible: true,
+    dimensions: SEMANTIC_FAILURE_DIMENSIONS,
+    failureClassifications: ['semantic'],
     id: 'bounded-diagnostic',
+    judgeCommandPolicyEvidence: createCommandPolicyEvidence(),
     judgeUsage: { cachedInputTokens: 3, inputTokens: 8, outputTokens: 5 },
     observed: ['expected-behavior'],
     operationalRetries: {
@@ -352,10 +400,7 @@ test('projects bounded batch records and a compact all-case summary', () => {
     scenarioEvidence: [{ private: 'scenario body' }],
     workspaceChanges: { private: 'workspace body' },
   });
-  assert.equal(
-    record.rationale,
-    'The case failed because at least one forbidden criterion was triggered.',
-  );
+  assert.equal(record.rationale, 'Failed dimensions: semantic.');
   assert.ok(
     Buffer.byteLength(record.rationale, 'utf8') <= SEMANTIC_DIAGNOSTIC_RATIONALE_MAXIMUM_BYTE_COUNT,
   );
@@ -477,7 +522,7 @@ test('selects every missing initial before any confirmation', () => {
   const candidate = {
     activeTrial: null,
     confirmations: [],
-    results: [{ id: 'failed-first', passed: false }],
+    results: [{ id: 'failed-first', passed: false, confirmationEligible: true }],
   };
   assert.deepEqual(getNextSemanticTrial(candidate, caseDefinitions), {
     caseDefinition: caseDefinitions[1],
@@ -783,7 +828,7 @@ test('keeps runner-enforced moldea budgets outside semantic judgment', () => {
     [],
     [],
     null,
-    { completedCommandCount: 128 },
+    createCommandPolicyEvidence(128),
     {
       commandCount: 0,
       maximumInvocationByteCount: 0,
@@ -819,7 +864,7 @@ test('passes case-budget misses to semantic judgment as a deterministic failure'
     [],
     [],
     null,
-    { completedCommandCount: 1 },
+    createCommandPolicyEvidence(1),
     {
       commandCount: 1,
       maximumInvocationByteCount: 512,
@@ -880,7 +925,7 @@ test('reports safe resource aggregates when malformed judge input is rejected', 
         [],
         [],
         null,
-        { completedCommandCount: 1 },
+        createCommandPolicyEvidence(1),
         {
           commandCount: 1,
           maximumInvocationByteCount: 512,
@@ -904,7 +949,8 @@ test('reports the clean 74-case paid execution boundary without reusable predece
     model: 'gpt-5.6-sol',
     operationalRetryInclusiveInvocationLimit: 888,
     paidInitialStageCount: 148,
-    reasoningEffort: 'high',
+    actorReasoningEffort: 'high',
+    judgeReasoningEffort: 'xhigh',
     reusedCaseCount: 0,
     reusedStageCount: 0,
     stageReservationTokenCount: 2_097_152,
@@ -921,6 +967,7 @@ test('extracts final response and zero moldea consumption from host JSONL', () =
     jsonSchemaVersion: 4,
   });
   assert.equal(result.response, 'No findings.');
+  assert.deepEqual(result.commandPolicyEvidence, createCommandPolicyEvidence());
   assert.deepEqual(result.actorResourceEvidence, {
     commandCount: 0,
     maximumInvocationByteCount: 0,
@@ -928,4 +975,35 @@ test('extracts final response and zero moldea consumption from host JSONL', () =
     operations: [],
     stdoutByteCount: 0,
   });
+});
+
+test('retains observed command-policy failures without command text', () => {
+  const output = [
+    {
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command: 'curl https://example.com',
+        aggregated_output: '',
+        exit_code: 0,
+        status: 'completed',
+      },
+    },
+    {
+      type: 'item.completed',
+      item: { type: 'agent_message', text: 'Finished.' },
+    },
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+  const result = parseSemanticEvaluationHostOutput(`${output}\n`, {
+    cliVersion: '7.0.0',
+    jsonSchemaVersion: 4,
+  });
+
+  assert.equal(result.commandPolicyEvidence.networkAccess.status, 'observed');
+  assert.deepEqual(result.commandPolicyEvidence.networkAccess.reasons, [
+    { code: 'network-client', count: 1 },
+  ]);
+  assert.doesNotMatch(JSON.stringify(result.commandPolicyEvidence), /curl|example\.com/u);
 });

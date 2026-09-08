@@ -244,7 +244,8 @@ describe('qualification model stages', () => {
       caseArtifactDirectory,
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        reasoningEffort: 'high',
+        actorReasoningEffort: 'high',
+        judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli fake',
         nodeVersion: process.version,
         pnpmVersion: '11.9.0',
@@ -360,7 +361,8 @@ describe('qualification model stages', () => {
         caseArtifactDirectory,
         executionEnvironment: {
           model: 'gpt-5.6-sol',
-          reasoningEffort: 'high',
+          actorReasoningEffort: 'high',
+          judgeReasoningEffort: 'xhigh',
           codexVersion: 'codex-cli test',
           nodeVersion: process.version,
           pnpmVersion: '11.9.0',
@@ -502,7 +504,8 @@ describe('qualification model stages', () => {
         caseArtifactDirectory,
         executionEnvironment: {
           model: 'gpt-5.6-sol',
-          reasoningEffort: 'high',
+          actorReasoningEffort: 'high',
+          judgeReasoningEffort: 'xhigh',
           codexVersion: 'codex-cli test',
           nodeVersion: process.version,
           pnpmVersion: '11.9.0',
@@ -640,7 +643,8 @@ describe('qualification model stages', () => {
       caseArtifactDirectory,
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        reasoningEffort: 'high',
+        actorReasoningEffort: 'high',
+        judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,
         pnpmVersion: '11.9.0',
@@ -838,7 +842,8 @@ describe('qualification model stages', () => {
       deterministicAfter,
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        reasoningEffort: 'high',
+        actorReasoningEffort: 'high',
+        judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,
         pnpmVersion: '11.9.0',
@@ -953,7 +958,8 @@ describe('qualification model stages', () => {
     };
     const executionEnvironment: IQualificationExecutionEnvironment = {
       model: 'gpt-5.6-sol',
-      reasoningEffort: 'high',
+      actorReasoningEffort: 'high',
+      judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',

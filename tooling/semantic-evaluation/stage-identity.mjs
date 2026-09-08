@@ -28,12 +28,13 @@ const requireSha256 = (value, label) => {
   return value;
 };
 
-const requireHostIdentity = (host, label) => {
+const requireHostIdentity = (host, label, role) => {
   if (
     !isPlainRecord(host) ||
     typeof host.model !== 'string' ||
     typeof host.name !== 'string' ||
     typeof host.reasoningEffort !== 'string' ||
+    host.role !== role ||
     typeof host.version !== 'string' ||
     [host.model, host.name, host.reasoningEffort, host.version].some(
       (part) => part.trim().length === 0,
@@ -111,7 +112,7 @@ export const createSemanticActorStageIdentity = ({
   }
 
   const contract = {
-    actorHost: requireHostIdentity(actorHost, 'Actor host'),
+    actorHost: requireHostIdentity(actorHost, 'Actor host', 'actor'),
     actorPromptSha256: createSemanticStageValueDigest(actorPrompt),
     artifactDigest: requireSha256(artifactDigest, 'Portable skill artifact'),
     caseDefinitionDigest: requireSha256(caseDefinitionDigest, 'Semantic case definition'),
@@ -154,7 +155,7 @@ export const createSemanticJudgeStageIdentity = ({
     actorIdentitySha256: requireSha256(actorIdentitySha256, 'Semantic actor identity'),
     caseDefinitionDigest: requireSha256(caseDefinitionDigest, 'Semantic case definition'),
     evaluationProtocolVersion: requireProtocolVersion(evaluationProtocolVersion),
-    judgeHost: requireHostIdentity(judgeHost, 'Judge host'),
+    judgeHost: requireHostIdentity(judgeHost, 'Judge host', 'judge'),
     judgePromptSha256: createSemanticStageValueDigest(judgePrompt),
     schemaVersion: 1,
     stage: 'judge',

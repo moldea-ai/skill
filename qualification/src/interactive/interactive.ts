@@ -1,7 +1,11 @@
 import { confirm, select } from '@inquirer/prompts';
 
 import { listQualificationImplementations } from '../compatibility/index.ts';
-import { QUALIFICATION_MODEL, QUALIFICATION_REASONING_EFFORT } from '../constants/index.ts';
+import {
+  QUALIFICATION_ACTOR_REASONING_EFFORT,
+  QUALIFICATION_JUDGE_REASONING_EFFORT,
+  QUALIFICATION_MODEL,
+} from '../constants/index.ts';
 import { listLocalQualificationStatusAttempts } from '../status/index.ts';
 
 export type IInteractiveQualificationAction =
@@ -78,6 +82,6 @@ export const confirmPaidQualificationExecution = async (
   maximumTokenCount: number,
 ): Promise<boolean> =>
   confirm({
-    message: `This attempt plans up to ${plannedCallCount} paid frontier-model calls and can make at most ${maximumCallCount} calls including bounded operational retries, with at most ${maximumTokenCount} total tokens across that envelope (${QUALIFICATION_MODEL}, ${QUALIFICATION_REASONING_EFFORT} reasoning effort). Continue?`,
+    message: `This attempt plans up to ${plannedCallCount} paid frontier-model calls and can make at most ${maximumCallCount} calls including bounded operational retries, with at most ${maximumTokenCount} total tokens across that envelope (${QUALIFICATION_MODEL}, ${QUALIFICATION_ACTOR_REASONING_EFFORT} actors, ${QUALIFICATION_JUDGE_REASONING_EFFORT} judges). Continue?`,
     default: false,
   });

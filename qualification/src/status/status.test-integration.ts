@@ -35,7 +35,8 @@ const createCheckpoint = async (options: {
     targetDigest: 'f'.repeat(64),
     executionEnvironment: {
       model: 'gpt-5.6-sol',
-      reasoningEffort: 'high',
+      actorReasoningEffort: 'high',
+      judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',

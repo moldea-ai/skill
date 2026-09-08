@@ -19,6 +19,7 @@ import {
   collectScenarioEvidence,
   hasValidScenarioEvidence,
 } from '../tooling/semantic-evaluation/index.mjs';
+import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../tooling/release-identity/index.mjs';
 
 import {
   createActorRepository,
@@ -50,6 +51,26 @@ const SEMANTIC_DIAGNOSTIC_ROOT = join(process.cwd(), 'fixtures', 'semantic-evalu
 const SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH = join(SEMANTIC_DIAGNOSTIC_ROOT, 'checkpoint.json');
 const SEMANTIC_DIAGNOSTIC_LEDGER_PATH = join(SEMANTIC_DIAGNOSTIC_ROOT, 'ledger.json');
 const SEMANTIC_RESULT_PATH = join(process.cwd(), 'fixtures', 'semantic-evaluation-result.json');
+const EMPTY_COMMAND_POLICY_EVIDENCE = {
+  completedCommandCount: 0,
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
+  networkAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+};
 
 /** Creates an isolated no-network Codex substitute for runner boundary tests. */
 const createFakeCodexHost = (root, isJudgePassing = true, hostVersion = 'codex-fake 1.0.0') => {
@@ -116,11 +137,14 @@ const readCandidateState = () =>
 const readOfficialResult = () =>
   existsSync(SEMANTIC_RESULT_PATH) ? readFileSync(SEMANTIC_RESULT_PATH, 'utf8') : null;
 
+const readAttemptEntries = () =>
+  existsSync(SEMANTIC_ATTEMPTS_PATH) ? readdirSync(SEMANTIC_ATTEMPTS_PATH).sort() : [];
+
 test('semantic model execution requires an explicit mode before host discovery', () => {
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
   const hostCommand = createFakeCodexHost(hostRoot);
   const beforeCandidate = readCandidateState();
-  const beforeAttempts = readdirSync(SEMANTIC_ATTEMPTS_PATH).sort();
+  const beforeAttempts = readAttemptEntries();
 
   try {
     const result = spawnSync(
@@ -142,7 +166,7 @@ test('semantic model execution requires an explicit mode before host discovery',
     assert.match(result.stderr, /requires --record, --case <id>, or --diagnose-batch/u);
     assert.equal(existsSync(join(hostRoot, 'version-called')), false);
     assert.equal(readCandidateState(), beforeCandidate);
-    assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
+    assert.deepEqual(readAttemptEntries(), beforeAttempts);
   } finally {
     rmSync(hostRoot, { force: true, recursive: true });
   }
@@ -152,7 +176,7 @@ test('one targeted fake-host evaluation emits only its bounded diagnostic', () =
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
   const hostCommand = createFakeCodexHost(hostRoot);
   const beforeCandidate = readCandidateState();
-  const beforeAttempts = readdirSync(SEMANTIC_ATTEMPTS_PATH).sort();
+  const beforeAttempts = readAttemptEntries();
 
   try {
     const result = spawnSync(
@@ -180,16 +204,29 @@ test('one targeted fake-host evaluation emits only its bounded diagnostic', () =
       Buffer.byteLength(result.stdout, 'utf8') <= SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT,
     );
     assert.deepEqual(JSON.parse(result.stdout), {
-      schemaVersion: 1,
-      evaluationProtocolVersion: 23,
+      schemaVersion: 2,
+      evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
       caseId: 'unrelated-documentation-review',
+      confirmationEligible: false,
+      dimensions: {
+        semantic: true,
+        resource: true,
+        commandPolicy: true,
+        repositoryControl: true,
+        mountIntegrity: true,
+        operational: true,
+      },
+      failureClassifications: [],
       verdict: 'passed',
       criteria: { observed: ['host-workflow-only'], forbidden: [] },
       rationale:
         'The response completed the requested documentation review without unrelated activity.',
       rationaleTruncated: false,
       resources: {
-        actorCommands: { completedCommandCount: 0 },
+        commandPolicy: {
+          actor: EMPTY_COMMAND_POLICY_EVIDENCE,
+          judge: EMPTY_COMMAND_POLICY_EVIDENCE,
+        },
         moldea: {
           commandCount: 0,
           maximumInvocationByteCount: 0,
@@ -204,7 +241,7 @@ test('one targeted fake-host evaluation emits only its bounded diagnostic', () =
       },
     });
     assert.equal(readCandidateState(), beforeCandidate);
-    assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
+    assert.deepEqual(readAttemptEntries(), beforeAttempts);
   } finally {
     rmSync(hostRoot, { force: true, recursive: true });
   }
@@ -216,7 +253,7 @@ test('one fake-host batch completes every selected case without changing officia
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
   const hostCommand = createFakeCodexHost(hostRoot);
   const beforeCandidate = readCandidateState();
-  const beforeAttempts = readdirSync(SEMANTIC_ATTEMPTS_PATH).sort();
+  const beforeAttempts = readAttemptEntries();
   const beforeOfficialResult = readOfficialResult();
 
   try {
@@ -245,8 +282,16 @@ test('one fake-host batch completes every selected case without changing officia
     assert.equal(result.status, 0, result.stderr);
     const summary = JSON.parse(result.stdout);
     assert.deepEqual(summary.results, [
-      { caseId: 'unrelated-documentation-review', verdict: 'passed' },
-      { caseId: 'unrelated-source-review', verdict: 'passed' },
+      {
+        caseId: 'unrelated-documentation-review',
+        failureClassifications: [],
+        verdict: 'passed',
+      },
+      {
+        caseId: 'unrelated-source-review',
+        failureClassifications: [],
+        verdict: 'passed',
+      },
     ]);
     assert.equal(summary.selectedCount, 2);
     assert.equal(summary.passedCount, 2);
@@ -286,7 +331,7 @@ test('one fake-host batch completes every selected case without changing officia
     assert.match(mismatchedResume.stderr, /does not match the current batch identity/u);
     assert.deepEqual(readFileSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), ledgerBytes);
     assert.equal(readCandidateState(), beforeCandidate);
-    assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
+    assert.deepEqual(readAttemptEntries(), beforeAttempts);
     assert.equal(readOfficialResult(), beforeOfficialResult);
   } finally {
     rmSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH, { force: true });
@@ -301,7 +346,7 @@ test('one complete fake-host batch collects all 74 semantic failures before retu
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
   const hostCommand = createFakeCodexHost(hostRoot, false);
   const beforeCandidate = readCandidateState();
-  const beforeAttempts = readdirSync(SEMANTIC_ATTEMPTS_PATH).sort();
+  const beforeAttempts = readAttemptEntries();
   const beforeOfficialResult = readOfficialResult();
 
   try {
@@ -338,7 +383,7 @@ test('one complete fake-host batch collects all 74 semantic failures before retu
     assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH), false);
     assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), true);
     assert.equal(readCandidateState(), beforeCandidate);
-    assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
+    assert.deepEqual(readAttemptEntries(), beforeAttempts);
     assert.equal(readOfficialResult(), beforeOfficialResult);
   } finally {
     rmSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH, { force: true });
@@ -347,11 +392,11 @@ test('one complete fake-host batch collects all 74 semantic failures before retu
   }
 });
 
-test('preflight reuses every exact current high stage', () => {
+test('preflight reports every clean-slate case as a fresh initial stage', () => {
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
   const hostCommand = createFakeCodexHost(hostRoot, true, 'codex-cli 0.153.4');
   const beforeCandidate = readCandidateState();
-  const beforeAttempts = readdirSync(SEMANTIC_ATTEMPTS_PATH).sort();
+  const beforeAttempts = readAttemptEntries();
 
   try {
     const result = spawnSync(
@@ -374,12 +419,15 @@ test('preflight reuses every exact current high stage', () => {
       result.stderr.slice(result.stderr.indexOf('{'), result.stderr.lastIndexOf('}') + 1),
     );
     assert.equal(estimate.caseCount, 74);
-    assert.equal(estimate.reusedCaseCount, 74);
-    assert.equal(estimate.reusedStageCount, 164);
-    assert.equal(estimate.paidInitialStageCount, 0);
-    assert.deepEqual(estimate.paidCaseIds, []);
+    assert.equal(estimate.reusedCaseCount, 0);
+    assert.equal(estimate.reusedStageCount, 0);
+    assert.equal(estimate.paidInitialStageCount, 148);
+    assert.deepEqual(
+      estimate.paidCaseIds,
+      SEMANTIC_CASES.map(({ id }) => id),
+    );
     assert.equal(readCandidateState(), beforeCandidate);
-    assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
+    assert.deepEqual(readAttemptEntries(), beforeAttempts);
   } finally {
     rmSync(hostRoot, { force: true, recursive: true });
   }

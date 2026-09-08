@@ -3,22 +3,34 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
-import { CODEX_EVALUATION_MODEL } from '../codex-evaluation-host/index.mjs';
+import {
+  CODEX_EVALUATION_ACTOR_REASONING_EFFORT,
+  CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
+  CODEX_EVALUATION_MODEL,
+  hasPassingCodexEvaluationCommandPolicy,
+  hasValidCodexEvaluationCommandPolicy,
+} from '../codex-evaluation-host/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
 
-import { hasValidActorCommandPolicyEvidence } from './actor-command-policy-evidence.mjs';
 import { hasValidMoldeaResourceEvidence } from './actor-execution-evidence.mjs';
 import { hasValidSemanticStageReuseRecord } from './stage-reuse.mjs';
 
 const ATTEMPT_EVIDENCE_FILENAME = 'evidence.json';
 const ATTEMPT_RECORD_FILENAME = 'attempt.json';
-const ATTEMPT_SCHEMA_VERSION = 4;
-const EVIDENCE_SCHEMA_VERSION = 7;
+const ATTEMPT_SCHEMA_VERSION = 5;
+const EVIDENCE_SCHEMA_VERSION = 8;
 const LATEST_SCHEMA_VERSION = 1;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
-const RECORDED_REASONING_EFFORT_VALUES = new Set(['high', 'medium']);
 const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
+const RESULT_DIMENSION_NAMES = [
+  'semantic',
+  'resource',
+  'commandPolicy',
+  'repositoryControl',
+  'mountIntegrity',
+  'operational',
+];
 const STOP_REASON_VALUES = new Set([
   'case-failure',
   'complete',
@@ -69,17 +81,24 @@ const createAttemptId = (updatedAt, evidenceSha256) => {
   return `${timestamp}-semantic-${evidenceSha256.slice(0, 8)}`;
 };
 
-const hasHostContract = (hostContract) =>
+const hasRoleHostContract = (hostContract, role, reasoningEffort) =>
   isPlainRecord(hostContract) &&
   hostContract.model === CODEX_EVALUATION_MODEL &&
   hostContract.name === 'codex' &&
-  RECORDED_REASONING_EFFORT_VALUES.has(hostContract.reasoningEffort);
+  hostContract.reasoningEffort === reasoningEffort &&
+  hostContract.role === role;
+
+const hasHostContract = (hostContract) =>
+  isPlainRecord(hostContract) &&
+  hasRoleHostContract(hostContract.actor, 'actor', CODEX_EVALUATION_ACTOR_REASONING_EFFORT) &&
+  hasRoleHostContract(hostContract.judge, 'judge', CODEX_EVALUATION_JUDGE_REASONING_EFFORT);
 
 const hasValidHostIdentity = (host, hostContract) =>
   isPlainRecord(host) &&
   host.model === hostContract.model &&
   host.name === hostContract.name &&
   host.reasoningEffort === hostContract.reasoningEffort &&
+  host.role === hostContract.role &&
   typeof host.version === 'string' &&
   host.version.trim().length > 0 &&
   host.version !== 'unavailable';
@@ -96,6 +115,25 @@ const hasValidModelUsage = (usage) =>
   usage.inputTokens + usage.outputTokens <=
     MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
 
+const hasValidResultDimensions = (dimensions) =>
+  isPlainRecord(dimensions) &&
+  Object.keys(dimensions).length === RESULT_DIMENSION_NAMES.length &&
+  RESULT_DIMENSION_NAMES.every((dimension) => typeof dimensions[dimension] === 'boolean');
+
+const hasPassingResultDimensions = (dimensions) =>
+  hasValidResultDimensions(dimensions) &&
+  RESULT_DIMENSION_NAMES.every((dimension) => dimensions[dimension]);
+
+const isConfirmationEligible = (dimensions) =>
+  hasValidResultDimensions(dimensions) &&
+  !dimensions.semantic &&
+  RESULT_DIMENSION_NAMES.filter((dimension) => dimension !== 'semantic').every(
+    (dimension) => dimensions[dimension],
+  );
+
+const getFailureClassifications = (dimensions) =>
+  RESULT_DIMENSION_NAMES.filter((dimension) => !dimensions[dimension]);
+
 /** Compares actor and judge provenance for one shared source trial. */
 const hasMatchingStageReuseSource = (actorSource, judgeSource) =>
   actorSource.attemptId === judgeSource.attemptId &&
@@ -111,6 +149,11 @@ const createTrialSummary = (result, kind, confirmationIndex, hostContract) => {
     !isPlainRecord(result) ||
     typeof result.id !== 'string' ||
     typeof result.passed !== 'boolean' ||
+    !hasValidResultDimensions(result.dimensions) ||
+    result.passed !== hasPassingResultDimensions(result.dimensions) ||
+    result.confirmationEligible !== isConfirmationEligible(result.dimensions) ||
+    JSON.stringify(result.failureClassifications) !==
+      JSON.stringify(getFailureClassifications(result.dimensions)) ||
     !Array.isArray(result.observed) ||
     !Array.isArray(result.forbidden) ||
     typeof result.rationale !== 'string'
@@ -120,22 +163,31 @@ const createTrialSummary = (result, kind, confirmationIndex, hostContract) => {
 
   const summary = {
     confirmationIndex,
+    confirmationEligible: result.confirmationEligible,
+    dimensions: result.dimensions,
     evaluatedAt: requireIsoDate(result.evaluatedAt, `Trial ${result.id} evaluation date`),
     forbidden: result.forbidden,
+    failureClassifications: result.failureClassifications,
     kind,
     observed: result.observed,
     passed: result.passed,
     rationale: result.rationale,
   };
   if (
-    !hasValidHostIdentity(result.actorHost, hostContract) ||
-    !hasValidHostIdentity(result.judgeHost, hostContract) ||
+    !hasValidHostIdentity(result.actorHost, hostContract.actor) ||
+    !hasValidHostIdentity(result.judgeHost, hostContract.judge) ||
     !hasValidModelUsage(result.actorUsage) ||
     !hasValidModelUsage(result.judgeUsage)
   ) {
     throw new Error('Semantic attempt evidence contains invalid trial host provenance.');
   }
-  if (!hasValidActorCommandPolicyEvidence(result.actorCommandPolicyEvidence)) {
+  if (
+    !hasValidCodexEvaluationCommandPolicy(result.actorCommandPolicyEvidence) ||
+    !hasValidCodexEvaluationCommandPolicy(result.judgeCommandPolicyEvidence) ||
+    result.dimensions.commandPolicy !==
+      (hasPassingCodexEvaluationCommandPolicy(result.actorCommandPolicyEvidence) &&
+        hasPassingCodexEvaluationCommandPolicy(result.judgeCommandPolicyEvidence))
+  ) {
     throw new Error('Semantic attempt evidence contains invalid trial command-policy evidence.');
   }
   if (!hasValidMoldeaResourceEvidence(result.actorResourceEvidence)) {
@@ -173,6 +225,7 @@ const createTrialSummary = (result, kind, confirmationIndex, hostContract) => {
     actorCommandPolicyEvidence: result.actorCommandPolicyEvidence,
     actorResourceEvidence: result.actorResourceEvidence,
     ...summary,
+    judgeCommandPolicyEvidence: result.judgeCommandPolicyEvidence,
     judgeHost: result.judgeHost,
   };
 };
@@ -205,7 +258,11 @@ const collectCaseTrials = (evidence) => {
       throw new Error('Semantic attempt contains an invalid confirmation identity.');
     }
     const trials = trialsByCaseId.get(confirmation.id);
-    if (trials === undefined || trials[0]?.passed !== false) {
+    if (
+      trials === undefined ||
+      trials[0]?.passed !== false ||
+      trials[0]?.confirmationEligible !== true
+    ) {
       throw new Error(`Semantic confirmation for ${confirmation.id} has no failed initial trial.`);
     }
     if (
@@ -254,6 +311,14 @@ const deriveCaseResult = (id, trials) => {
   let confirmationStatus = 'not-required';
   let status = 'passed';
   if (!initialTrial.passed) {
+    if (!initialTrial.confirmationEligible) {
+      return {
+        confirmationStatus: 'not-applicable',
+        id,
+        status: 'failed',
+        trials: [initialTrial],
+      };
+    }
     const hasFailedConfirmation = sortedConfirmations.some(({ passed }) => !passed);
     const hasTwoPassingConfirmations =
       sortedConfirmations.length === 2 && sortedConfirmations.every(({ passed }) => passed);

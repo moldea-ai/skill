@@ -10,6 +10,7 @@ import { test } from 'node:test';
 import { createQualificationAttemptKey } from '../../qualification/src/storage/index.ts';
 import { loadReleaseEvidenceModel } from '../../website/src/lib/release-evidence/index.ts';
 
+import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from './constants.mjs';
 import {
   clearPinnedReleaseEvidence,
   inspectReleaseEvidence,
@@ -117,7 +118,7 @@ const seedFreshEvidence = (
     lastPassingAttemptId: semanticAttemptId,
   });
   writeJson(root, 'fixtures/semantic-evaluation-result.json', {
-    evaluationProtocolVersion: 23,
+    evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     semanticAttemptId,
     cases: [{ actorResourceEvidence: resourceEvidence, id: 'semantic-case', passed: !isFailed }],
   });
@@ -166,7 +167,7 @@ const seedFreshEvidence = (
     attemptId: qualificationAttemptId,
     cases: [{ caseId: 'case-1', status: 'passed' }],
     mode: 'official',
-    protocolVersion: 8,
+    protocolVersion: 9,
     provenance: {
       packagesRepositoryDirty: false,
       qualificationRepositoryDirty: false,
@@ -197,7 +198,7 @@ const seedFreshEvidence = (
     latestAttemptId: qualificationAttemptId,
     latestStatus: 'passed',
     lastPassingAttemptId: qualificationAttemptId,
-    protocolVersion: 8,
+    protocolVersion: 9,
   });
   writeText(
     root,

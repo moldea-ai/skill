@@ -60,8 +60,9 @@ const getPublicPackageIdentity = (
 const selectExecutionEnvironment = (
   environment: IQualificationExecutionEnvironment,
 ): IQualificationExecutionEnvironment => ({
+  actorReasoningEffort: environment.actorReasoningEffort,
+  judgeReasoningEffort: environment.judgeReasoningEffort,
   model: environment.model,
-  reasoningEffort: environment.reasoningEffort,
   codexVersion: environment.codexVersion,
   nodeVersion: environment.nodeVersion,
   pnpmVersion: environment.pnpmVersion,

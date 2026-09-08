@@ -13,9 +13,10 @@ import { prepareGitCommandPolicyBoundary } from './git-command-policy-boundary.m
 // fixed model contract shared by local evaluation workflows
 export const CODEX_EVALUATION_MODEL = 'gpt-5.6-sol';
 export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
-export const CODEX_EVALUATION_REASONING_EFFORT = 'high';
+export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT = 'high';
+export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT = 'xhigh';
 
-export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS = 600_000;
+export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS = 900_000;
 export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS = [
   'api.openai.com',
   'auth.openai.com',
@@ -49,6 +50,13 @@ const REQUIRED_CODEX_FLAGS = [
 const REQUIRED_CODEX_CONFIG = ['shell_environment_policy.inherit=none'];
 const SAFE_HOST_ENVIRONMENT_NAMES = ['OPENAI_API_KEY', 'OPENAI_BASE_URL', 'SSL_CERT_FILE'];
 const EXCLUDED_WORKSPACE_PATH_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+
+/** Resolves the runner-owned effort for one closed evaluation role. */
+const getCodexEvaluationReasoningEffort = (role) => {
+  if (role === 'actor') return CODEX_EVALUATION_ACTOR_REASONING_EFFORT;
+  if (role === 'judge') return CODEX_EVALUATION_JUDGE_REASONING_EFFORT;
+  throw new Error(`Unsupported Codex evaluation role: ${role}.`);
+};
 
 /** Identifies one controlled evaluation-host failure without exposing provider diagnostics. */
 export class CodexEvaluationHostError extends Error {
@@ -232,10 +240,12 @@ export const identifyConfiguredReasoningEffort = (command) => {
 /**
  * Adds the runner-owned model contract to one validated base command.
  * @param command The caller-provided base Codex command.
+ * @param role The closed evaluation role that owns reasoning effort.
  * @returns The complete executable command.
  */
-export const buildCodexEvaluationHostCommand = (command) => {
+export const buildCodexEvaluationHostCommand = (command, role) => {
   validateBaseHostCommand(command);
+  const reasoningEffort = getCodexEvaluationReasoningEffort(role);
   const hasModelOverride = command.some(
     (commandPart) =>
       commandPart === '--model' ||
@@ -260,10 +270,10 @@ export const buildCodexEvaluationHostCommand = (command) => {
     '--model',
     CODEX_EVALUATION_MODEL,
     '-c',
-    `model_reasoning_effort=${CODEX_EVALUATION_REASONING_EFFORT}`,
+    `model_reasoning_effort=${reasoningEffort}`,
     '-',
   ];
-  validateCodexEvaluationHostCommand(effectiveCommand);
+  validateCodexEvaluationHostCommand(effectiveCommand, role);
 
   return effectiveCommand;
 };
@@ -271,16 +281,16 @@ export const buildCodexEvaluationHostCommand = (command) => {
 /**
  * Requires the complete sandbox, model, and reasoning contract.
  * @param command The complete Codex command.
+ * @param role The closed evaluation role that owns reasoning effort.
  */
-export const validateCodexEvaluationHostCommand = (command) => {
+export const validateCodexEvaluationHostCommand = (command, role) => {
   validateBaseHostCommand(command);
+  const reasoningEffort = getCodexEvaluationReasoningEffort(role);
   if (identifyConfiguredModel(command) !== CODEX_EVALUATION_MODEL) {
     throw new Error(`Codex evaluation must use ${CODEX_EVALUATION_MODEL}.`);
   }
-  if (identifyConfiguredReasoningEffort(command) !== CODEX_EVALUATION_REASONING_EFFORT) {
-    throw new Error(
-      `Codex evaluation must use ${CODEX_EVALUATION_REASONING_EFFORT} reasoning effort.`,
-    );
+  if (identifyConfiguredReasoningEffort(command) !== reasoningEffort) {
+    throw new Error(`Codex evaluation ${role} must use ${reasoningEffort} reasoning effort.`);
   }
 };
 
@@ -324,9 +334,11 @@ export const resolveCodeModeHostPath = (hostExecutable) => {
 /**
  * Returns non-sensitive identity metadata for one configured Codex host.
  * @param command The complete Codex command.
+ * @param role The closed evaluation role represented by the command.
  * @returns The host identity recorded with evaluation evidence.
  */
-export const identifyCodexEvaluationHost = (command) => {
+export const identifyCodexEvaluationHost = (command, role) => {
+  validateCodexEvaluationHostCommand(command, role);
   const versionResult = spawnSync(command[0], ['--version'], {
     encoding: 'utf8',
   });
@@ -335,6 +347,7 @@ export const identifyCodexEvaluationHost = (command) => {
     model: identifyConfiguredModel(command),
     name: basename(command[0]),
     reasoningEffort: identifyConfiguredReasoningEffort(command),
+    role,
     version:
       versionResult.status === 0
         ? versionResult.stdout.trim() || versionResult.stderr.trim()
@@ -852,11 +865,12 @@ export const runCodexEvaluationHost = async ({
   prompt,
   readOnlyMounts = [],
   readOnlyWorkspacePaths = [],
+  role,
   sandboxHome,
   signal,
   workspaceAccess = 'read-write',
 }) => {
-  validateCodexEvaluationHostCommand(command);
+  validateCodexEvaluationHostCommand(command, role);
   if (!['read-only', 'read-write'].includes(workspaceAccess)) {
     throw new Error(`Unsupported evaluation workspace access: ${workspaceAccess}`);
   }

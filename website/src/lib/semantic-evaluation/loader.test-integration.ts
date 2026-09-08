@@ -30,18 +30,45 @@ import type { ISemanticCaseDefinition } from './types.ts';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const temporaryRoots: string[] = [];
-const HOST = {
+const ACTOR_HOST = {
   model: 'gpt-5.6-sol',
   name: 'codex',
   reasoningEffort: 'high',
+  role: 'actor',
   version: 'codex-cli test',
 } as const;
-const UPDATED_HOST = { ...HOST, version: 'codex-cli updated' } as const;
+const JUDGE_HOST = {
+  ...ACTOR_HOST,
+  reasoningEffort: 'xhigh',
+  role: 'judge',
+} as const;
+const UPDATED_ACTOR_HOST = { ...ACTOR_HOST, version: 'codex-cli updated' } as const;
+const UPDATED_JUDGE_HOST = { ...JUDGE_HOST, version: 'codex-cli updated' } as const;
 const MODEL_USAGE = {
   cachedInputTokens: 0,
   inputTokens: 1,
   outputTokens: 1,
 } as const;
+const createCommandPolicyEvidence = (completedCommandCount: number) => ({
+  completedCommandCount,
+  credentialExposure: { status: 'not-observed' as const, observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
+  networkAccess: {
+    status: 'not-observed' as const,
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+  sensitiveAccess: {
+    status: 'not-observed' as const,
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+});
 
 interface IMutableReplayCommand {
   item: {
@@ -95,9 +122,18 @@ const createCandidate = (
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt: updatedAt,
   hostContract: {
-    model: HOST.model,
-    name: HOST.name,
-    reasoningEffort: HOST.reasoningEffort,
+    actor: {
+      model: ACTOR_HOST.model,
+      name: ACTOR_HOST.name,
+      reasoningEffort: ACTOR_HOST.reasoningEffort,
+      role: ACTOR_HOST.role,
+    },
+    judge: {
+      model: JUDGE_HOST.model,
+      name: JUDGE_HOST.name,
+      reasoningEffort: JUDGE_HOST.reasoningEffort,
+      role: JUDGE_HOST.role,
+    },
   },
   results: evaluatedCaseIds.map((id, index) => {
     const caseDefinition = caseDefinitions.find(({ id: caseId }) => caseId === id);
@@ -112,9 +148,7 @@ const createCandidate = (
           : 'inspect';
     const moldeaOutputByteCount = moldeaOperation === null ? 0 : 128;
     return {
-      actorCommandPolicyEvidence: {
-        completedCommandCount: 1,
-      },
+      actorCommandPolicyEvidence: createCommandPolicyEvidence(1),
       actorExecutionEvidence: [
         {
           eventType: 'item.completed',
@@ -132,6 +166,7 @@ const createCandidate = (
                         cliVersion: createSemanticCliIdentity(root).version,
                         command: moldeaOperation,
                         containsContent: false,
+                        errorCode: null,
                         errorPresent: false,
                         hasNextPage: false,
                         kind: 'moldea-cli-envelope',
@@ -155,16 +190,27 @@ const createCandidate = (
         operations: moldeaOperation === null ? [] : [moldeaOperation],
         stdoutByteCount: moldeaOutputByteCount,
       },
-      actorHost: index === 0 ? HOST : UPDATED_HOST,
+      actorHost: index === 0 ? ACTOR_HOST : UPDATED_ACTOR_HOST,
       actorUsage: MODEL_USAGE,
       actorResponse: `Recorded actor replay for ${id}.`,
       caseDefinitionDigest: createSemanticCaseDefinitionDigest(caseDefinition),
       caseId: id,
+      confirmationEligible: !passed,
+      dimensions: {
+        semantic: passed,
+        resource: true,
+        commandPolicy: true,
+        repositoryControl: true,
+        mountIntegrity: true,
+        operational: true,
+      },
       evaluatedAt: updatedAt,
       executionOrigin: 'executed',
       forbidden: [],
+      failureClassifications: passed ? [] : ['semantic'],
       id,
-      judgeHost: index === 0 ? HOST : UPDATED_HOST,
+      judgeCommandPolicyEvidence: createCommandPolicyEvidence(0),
+      judgeHost: index === 0 ? JUDGE_HOST : UPDATED_JUDGE_HOST,
       judgeUsage: MODEL_USAGE,
       observed: passed ? getSemanticCriterionLabels(caseDefinition.expected) : [],
       passed,
@@ -184,7 +230,7 @@ const createCandidate = (
       workspaceChanges: { created: [], deleted: [], modified: [] },
     };
   }),
-  schemaVersion: 7,
+  schemaVersion: 8,
   updatedAt,
 });
 
@@ -218,29 +264,17 @@ afterEach(() => {
 });
 
 describe('loadSemanticEvaluationWebsiteModel', () => {
-  test('loads only attempts that match the current 74-case evidence generation', () => {
+  test('publishes the transparent empty state before current 74-case evidence exists', () => {
     const model = loadSemanticEvaluationWebsiteModel(REPOSITORY_ROOT);
 
     expect(model.caseCount).toBe(74);
-    expect(model.attempts.every(({ result }) => result.totalCaseCount === 74)).toBe(true);
-    expect(
-      model.attempts.every(({ result }) =>
-        result.cases.every(({ trials }) =>
-          trials.every(
-            ({ executionOrigin, stageReuse }) =>
-              (executionOrigin === 'executed' && stageReuse === null) ||
-              (executionOrigin === 'reused' && stageReuse !== null),
-          ),
-        ),
-      ),
-    ).toBe(true);
-    expect(model.hasAttempt).toBe(model.attempts.length > 0);
-    expect(model.latest === null || model.attempts.includes(model.latest)).toBe(true);
-    expect(model.latest?.result.status).toBe('passed');
-    expect(model.lastPassing).toBe(model.latest);
-    expect(model.latestPointer?.lastPassingAttemptId).toBe(model.latest?.result.attemptId);
+    expect(model.attempts).toStrictEqual([]);
+    expect(model.hasAttempt).toBe(false);
+    expect(model.latest).toBeNull();
+    expect(model.lastPassing).toBeNull();
+    expect(model.latestPointer).toBeNull();
     expect(existsSync(join(REPOSITORY_ROOT, 'fixtures/semantic-evaluation-result.json'))).toBe(
-      true,
+      false,
     );
   });
 
@@ -350,17 +384,21 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
     const model = loadSemanticEvaluationWebsiteModel(root);
 
-    expect(model.latest?.result.schemaVersion).toBe(4);
+    expect(model.latest?.result.schemaVersion).toBe(5);
     expect(
       model.latest?.cases.find(({ id }) => id === cases[0]?.id)?.trials[0]
         ?.actorCommandPolicyEvidence,
-    ).toStrictEqual({ completedCommandCount: 1 });
+    ).toStrictEqual(createCommandPolicyEvidence(1));
+    expect(
+      model.latest?.cases.find(({ id }) => id === cases[0]?.id)?.trials[0]
+        ?.judgeCommandPolicyEvidence,
+    ).toStrictEqual(createCommandPolicyEvidence(0));
     expect(
       model.latest?.cases.find(({ id }) => id === cases[0]?.id)?.trials[0]?.actorHost.version,
-    ).toBe(HOST.version);
+    ).toBe(ACTOR_HOST.version);
     expect(
       model.latest?.cases.find(({ id }) => id === cases[1]?.id)?.trials[0]?.actorHost.version,
-    ).toBe(UPDATED_HOST.version);
+    ).toBe(UPDATED_ACTOR_HOST.version);
   });
 
   test('publishes confirmation replay in immutable trial order', async () => {
@@ -382,8 +420,18 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
       {
         ...initialResult,
         actorResponse: 'Confirmation one passed.',
+        confirmationEligible: false,
         confirmationIndex: 1,
+        dimensions: {
+          semantic: true,
+          resource: true,
+          commandPolicy: true,
+          repositoryControl: true,
+          mountIntegrity: true,
+          operational: true,
+        },
         evaluatedAt: '2026-08-25T13:01:00.000Z',
+        failureClassifications: [],
         observed: getSemanticCriterionLabels(caseDefinition.expected),
         passed: true,
         rationale: 'Confirmation one satisfied every criterion.',
@@ -391,8 +439,18 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
       {
         ...initialResult,
         actorResponse: 'Confirmation two passed.',
+        confirmationEligible: false,
         confirmationIndex: 2,
+        dimensions: {
+          semantic: true,
+          resource: true,
+          commandPolicy: true,
+          repositoryControl: true,
+          mountIntegrity: true,
+          operational: true,
+        },
         evaluatedAt: '2026-08-25T13:02:00.000Z',
+        failureClassifications: [],
         observed: getSemanticCriterionLabels(caseDefinition.expected),
         passed: true,
         rationale: 'Confirmation two satisfied every criterion.',
@@ -440,6 +498,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
             cliVersion: '999.0.0',
             command: 'inspect',
             containsContent: false,
+            errorCode: null,
             errorPresent: false,
             hasNextPage: false,
             kind: 'moldea-cli-envelope',
@@ -462,6 +521,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
             cliVersion: cli.version,
             command: 'inspect',
             containsContent: false,
+            errorCode: null,
             errorPresent: false,
             hasNextPage: false,
             kind: 'moldea-cli-envelope',

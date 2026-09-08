@@ -87,6 +87,20 @@ const createTrialResult = (
     trialId,
     kind: trialId === 'initial' ? 'initial' : 'confirmation',
     confirmationIndex,
+    confirmationEligible: !passed && !isJudgeSkipped,
+    dimensions: {
+      semantic: passed,
+      resource: true,
+      commandPolicy: true,
+      repositoryControl: true,
+      mountIntegrity: !isJudgeSkipped,
+      operational: true,
+    },
+    failureClassifications: passed
+      ? []
+      : isJudgeSkipped
+        ? ['semantic', 'mountIntegrity']
+        : ['semantic'],
     passed,
     durationMs: 1_000,
     deterministicBeforePath: `${trialRoot}/deterministic-before.json`,
@@ -170,7 +184,7 @@ const createScenarioSource = (caseId: string, title: string): string =>
     '',
   ].join('\n');
 
-/** Seeds one complete protocol 8 Custom profile and its engine-verifiable public evidence. */
+/** Seeds one complete protocol 9 Custom profile and its engine-verifiable public evidence. */
 export const seedPassingQualificationEvidenceFixture = async (options: {
   artifactDirectory: string;
   attemptId: string;
@@ -420,21 +434,31 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     ],
     failures: ['Fixture failure.'],
   };
-  const trials = options.isRecovered
-    ? [
-        createTrialResult(CASE_ID, 'initial', false, options.hasSkippedInitialJudge),
-        createTrialResult(CASE_ID, 'confirmation-1', true),
-        createTrialResult(CASE_ID, 'confirmation-2', true),
-      ]
-    : [createTrialResult(CASE_ID, 'initial', true)];
+  const trials = options.hasSkippedInitialJudge
+    ? [createTrialResult(CASE_ID, 'initial', false, true)]
+    : options.isRecovered
+      ? [
+          createTrialResult(CASE_ID, 'initial', false),
+          createTrialResult(CASE_ID, 'confirmation-1', true),
+          createTrialResult(CASE_ID, 'confirmation-2', true),
+        ]
+      : [createTrialResult(CASE_ID, 'initial', true)];
   const caseResult: IQualificationAttemptResult['cases'][number] = {
     caseId: CASE_ID,
     title: CASE_TITLE,
-    status: options.isRecovered ? 'recovered' : 'passed',
-    confirmationStatus: options.isRecovered ? 'passed' : 'not-required',
+    status: options.hasSkippedInitialJudge
+      ? 'failed'
+      : options.isRecovered
+        ? 'recovered'
+        : 'passed',
+    confirmationStatus: options.hasSkippedInitialJudge
+      ? 'not-applicable'
+      : options.isRecovered
+        ? 'passed'
+        : 'not-required',
     durationMs: trials.reduce((total, trial) => total + trial.durationMs, 0),
     trials,
-    failures: [],
+    failures: options.hasSkippedInitialJudge ? (trials[0]?.failures ?? []) : [],
     reuse: null,
   };
   const failedCompanionTrials = [
@@ -479,25 +503,31 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     attemptId: options.attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
-    status: options.hasFailedCompanionCase === true ? 'failed' : 'passed',
+    status:
+      options.hasFailedCompanionCase === true || options.hasSkippedInitialJudge === true
+        ? 'failed'
+        : 'passed',
     createdAt: CREATED_AT,
     completedAt: COMPLETED_AT,
     evidenceGeneratedAt: ACTOR_CREATED_AT,
     summary:
       options.hasFailedCompanionCase === true
         ? 'Qualification completed with one confirmed failure.'
-        : options.isRecovered
-          ? 'Qualification recovered.'
-          : 'Qualification passed.',
+        : options.hasSkippedInitialJudge
+          ? 'Qualification completed with one terminal non-semantic failure.'
+          : options.isRecovered
+            ? 'Qualification recovered.'
+            : 'Qualification passed.',
     provenance: {
       model: 'gpt-5.6-sol',
-      reasoningEffort: 'high',
+      actorReasoningEffort: 'high',
+      judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',
       gitVersion: 'git version test',
       allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
-      hostTimeoutMs: 120_000,
+      hostTimeoutMs: 900_000,
       modelEndpoint: null,
       sslCertificateFileSha256: null,
       candidateFingerprint: options.candidateFingerprint ?? 'f'.repeat(64),

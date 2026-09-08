@@ -1,9 +1,9 @@
 # Semantic evaluation results
 
-This directory stores protocol 23 attempts for the active 74-case semantic evaluation. Every terminal recorded run appends one immutable attempt directory containing:
+This directory stores protocol 24 attempts for the active 74-case semantic evaluation. Every terminal recorded run appends one immutable attempt directory containing:
 
 - `attempt.json`: the derived status, cases, confirmations, command-policy and resource aggregates, exact actor and judge provenance, and execution-origin counts when the attempt supports exact stage reuse
-- `evidence.json`: the exact schema-7 checkpoint that produced the summary
+- `evidence.json`: the exact schema-8 checkpoint that produced the summary
 - `identity.json`: the attempt and evidence digests bound to the clean source commit, relevant-source digest, portable-skill digest, CLI closure, semantic input digest, and invocation arguments
 
 `latest.json` is created with the first attempt and identifies the newest attempt and last passing attempt independently. A newer failure remains visible and cannot be hidden by an older pass.

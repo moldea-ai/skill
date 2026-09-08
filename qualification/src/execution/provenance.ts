@@ -1,9 +1,10 @@
 import { identifyCodexEvaluationHostConfiguration } from '../../../tooling/codex-evaluation-host/index.mjs';
 
 import {
+  QUALIFICATION_ACTOR_REASONING_EFFORT,
   QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS,
+  QUALIFICATION_JUDGE_REASONING_EFFORT,
   QUALIFICATION_MODEL,
-  QUALIFICATION_REASONING_EFFORT,
 } from '../constants/index.ts';
 import type { ICodexHost } from '../codex-host/index.ts';
 import type { IQualificationExecutionEnvironment } from '../contracts/index.ts';
@@ -45,8 +46,9 @@ export const inspectQualificationExecutionEnvironment = async (
   ]);
 
   return {
+    actorReasoningEffort: QUALIFICATION_ACTOR_REASONING_EFFORT,
+    judgeReasoningEffort: QUALIFICATION_JUDGE_REASONING_EFFORT,
     model: QUALIFICATION_MODEL,
-    reasoningEffort: QUALIFICATION_REASONING_EFFORT,
     codexVersion,
     nodeVersion: process.version,
     pnpmVersion,

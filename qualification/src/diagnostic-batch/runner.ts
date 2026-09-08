@@ -12,6 +12,7 @@ import {
 import {
   QualificationAttemptResultDraftSchema,
   QualificationAttemptResultSchema,
+  QualificationExecutionEnvironmentSchema,
   QualificationProbesSchema,
   type IQualificationAttemptResult,
   type IQualificationSelection,
@@ -228,7 +229,15 @@ const createBatchIdentity = (options: {
     | 'stop'
     | 'updatedAt'
   >;
-}): string => calculateSha256(`${JSON.stringify(options.checkpoint)}\n`);
+}): string =>
+  calculateSha256(
+    `${JSON.stringify({
+      ...options.checkpoint,
+      executionEnvironment: QualificationExecutionEnvironmentSchema.parse(
+        options.checkpoint.executionEnvironment,
+      ),
+    })}\n`,
+  );
 
 /** Reads one diagnostic file only after enforcing its regular-file and byte boundaries. */
 export const readQualificationDiagnosticState = async <TResult>(

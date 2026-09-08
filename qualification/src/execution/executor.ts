@@ -552,7 +552,8 @@ export const runQualification = async (
                   candidateTokensConsumed: checkpoint.candidateTokensConsumed,
                 };
               })(),
-              reasoningEffort: executionEnvironment.reasoningEffort,
+              actorReasoningEffort: executionEnvironment.actorReasoningEffort,
+              judgeReasoningEffort: executionEnvironment.judgeReasoningEffort,
             });
 
       if (!isApproved) {
@@ -1334,6 +1335,30 @@ export const runQualification = async (
         ...failedRequirements,
         ...(judgeResult?.output.verdict === 'fail' ? judgeResult.output.failures : []),
       ];
+      const dimensions = {
+        semantic:
+          checkpoint.isDryRun ||
+          (!hasJudgeRequirements && actorOutcomeFailures.length === 0) ||
+          (actorOutcomeFailures.length === 0 &&
+            judgeResult !== null &&
+            judgeResult.output.verdict === 'pass' &&
+            !requirementAssessments.some(
+              ({ evaluator, verdict }) => evaluator === 'judge' && verdict === 'fail',
+            )),
+        resource: resourceFailures.length === 0,
+        commandPolicy: commandPolicyFailures.length === 0,
+        repositoryControl: deterministicAfter.summary.passed,
+        mountIntegrity: workspaceAssertions.passed,
+        operational: true,
+      };
+      const failureClassifications = Object.entries(dimensions)
+        .filter(([, passed]) => !passed)
+        .map(([dimension]) => dimension);
+      const confirmationEligible =
+        !dimensions.semantic &&
+        Object.entries(dimensions)
+          .filter(([dimension]) => dimension !== 'semantic')
+          .every(([, passed]) => passed);
       const confirmationIndex =
         trialId === 'initial' ? null : Number(trialId.slice('confirmation-'.length));
       const trialResult = QualificationTrialResultSchema.parse(
@@ -1342,7 +1367,10 @@ export const runQualification = async (
             trialId,
             kind: trialId === 'initial' ? 'initial' : 'confirmation',
             confirmationIndex,
-            passed: failures.length === 0,
+            confirmationEligible,
+            dimensions,
+            failureClassifications,
+            passed: Object.values(dimensions).every(Boolean),
             durationMs: Math.max(0, Math.round(performance.now() - trialStartedAt)),
             deterministicBeforePath: `${trialRoot}/deterministic-before.json`,
             deterministicAfterPath: `${trialRoot}/deterministic-after.json`,
@@ -1454,7 +1482,11 @@ export const runQualification = async (
 
       if (checkpoint.mode === 'diagnostic') {
         status = trials[0]?.passed ? 'passed' : 'failed';
-        confirmationStatus = 'not-applicable';
+        confirmationStatus = trials[0]?.passed
+          ? 'not-required'
+          : trials[0]?.confirmationEligible
+            ? 'not-run'
+            : 'not-applicable';
       } else if (trials[0]?.passed) {
         checkpoint = await skipQualificationStageGroup(attemptDirectory, checkpoint, [
           ...createQualificationTrialStageIds(profileCase.id, 'confirmation-1'),
@@ -1462,7 +1494,7 @@ export const runQualification = async (
         ]);
         status = 'passed';
         confirmationStatus = 'not-required';
-      } else {
+      } else if (trials[0]?.confirmationEligible) {
         const confirmation1 = await executeTrial(profileCase, 'confirmation-1');
         trials.push(confirmation1);
 
@@ -1480,6 +1512,13 @@ export const runQualification = async (
           status = confirmation2.passed ? 'recovered' : 'failed';
           confirmationStatus = confirmation2.passed ? 'passed' : 'rejected';
         }
+      } else {
+        checkpoint = await skipQualificationStageGroup(attemptDirectory, checkpoint, [
+          ...createQualificationTrialStageIds(profileCase.id, 'confirmation-1'),
+          ...createQualificationTrialStageIds(profileCase.id, 'confirmation-2'),
+        ]);
+        status = 'failed';
+        confirmationStatus = 'not-applicable';
       }
 
       const terminalTrial = trials.at(-1);

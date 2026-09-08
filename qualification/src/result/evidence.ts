@@ -138,7 +138,8 @@ const selectQualificationReuseIdentity = (result: IQualificationAttemptResult): 
     pnpmVersion: result.provenance.pnpmVersion,
     profileDigest: result.provenance.profileDigest,
     qualificationDigest: result.provenance.qualificationDigest,
-    reasoningEffort: result.provenance.reasoningEffort,
+    actorReasoningEffort: result.provenance.actorReasoningEffort,
+    judgeReasoningEffort: result.provenance.judgeReasoningEffort,
     skillRepositoryFingerprint: result.provenance.skillRepositoryFingerprint,
     sslCertificateFileSha256: result.provenance.sslCertificateFileSha256,
     targetDigest: result.provenance.targetDigest,
@@ -695,6 +696,60 @@ const deriveTrialFailures = (options: {
   ...(options.judge?.verdict === 'fail' ? options.judge.failures : []),
 ];
 
+const deriveTrialDimensions = (options: {
+  actor: IActorOutput;
+  actorEvidence: IQualificationModelStageEvidence;
+  deterministicAfter: IDeterministicVerificationArtifact;
+  isDryRun: boolean;
+  judge: IJudgeOutput | null;
+  judgeEvidence: IQualificationModelStageEvidence | null;
+  resourceProfile: IQualificationResourceProfile;
+  requirementAssessments: IQualificationTrialResult['requirementAssessments'];
+  scenario: IQualificationCaseScenario;
+  workspaceAssertions: IWorkspaceAssertionResult;
+}): IQualificationTrialResult['dimensions'] => {
+  const actorOutcomePassed = options.actor.outcome === options.scenario.expectedActorOutcome;
+  const commandPolicyPassed =
+    hasPassingCodexEvaluationCommandPolicy(options.actorEvidence.commandPolicy) &&
+    (options.judgeEvidence === null ||
+      hasPassingCodexEvaluationCommandPolicy(options.judgeEvidence.commandPolicy));
+  const resourcePassed =
+    inspectQualificationResourceUsage({
+      allowMissingUsage: options.isDryRun,
+      evidence: options.actorEvidence,
+      profile: options.resourceProfile,
+      role: 'Actor',
+      scenario: options.scenario,
+    }).failures.length === 0 &&
+    (options.judgeEvidence === null ||
+      inspectQualificationResourceUsage({
+        allowMissingUsage: options.isDryRun,
+        evidence: options.judgeEvidence,
+        profile: options.resourceProfile,
+        role: 'Judge',
+        scenario: options.scenario,
+      }).failures.length === 0);
+  const hasJudgeRequirements = options.scenario.judgeRequirements.some(
+    (requirement) => requirement.evaluation.kind === 'judge',
+  );
+
+  return {
+    semantic:
+      options.isDryRun ||
+      (!hasJudgeRequirements && actorOutcomePassed) ||
+      (actorOutcomePassed &&
+        options.judge?.verdict === 'pass' &&
+        !options.requirementAssessments.some(
+          ({ evaluator, verdict }) => evaluator === 'judge' && verdict === 'fail',
+        )),
+    resource: resourcePassed,
+    commandPolicy: commandPolicyPassed,
+    repositoryControl: options.deterministicAfter.summary.passed,
+    mountIntegrity: options.workspaceAssertions.passed,
+    operational: true,
+  };
+};
+
 const deriveRequirementAssessments = (options: {
   actor: IActorOutput;
   actorEvidence: IQualificationModelStageEvidence;
@@ -878,8 +933,6 @@ const assertCurrentTrialEvidence = async (options: {
     hasFailedActorCommandPolicy ||
     actorResourceAssessment.hasJudgeBlocker ||
     !hasJudgeRequirements;
-  // failed immutable attempts may retain the earlier conservative skip decision
-  const mayRetainSkippedJudge = mustSkipJudge || actorResourceAssessment.failures.length > 0;
   let judge: IJudgeOutput | null = null;
   let judgeEvidence: IQualificationModelStageEvidence | null = null;
 
@@ -925,7 +978,7 @@ const assertCurrentTrialEvidence = async (options: {
     );
 
     if (
-      !mayRetainSkippedJudge ||
+      !mustSkipJudge ||
       judgeSkipped.kind !==
         (!hasJudgeRequirements ? 'no-judge-requirements' : 'deterministic-failure') ||
       judgeSkipped.deterministicAfterPassed !== deterministicAfter.summary.passed ||
@@ -957,11 +1010,35 @@ const assertCurrentTrialEvidence = async (options: {
     scenario: options.scenario,
     workspaceAssertions: assertions,
   });
+  const derivedDimensions = deriveTrialDimensions({
+    actor,
+    actorEvidence,
+    deterministicAfter,
+    isDryRun: options.result.mode === 'dry-run',
+    judge,
+    judgeEvidence,
+    resourceProfile: options.resourceProfile,
+    requirementAssessments: derivedRequirementAssessments,
+    scenario: options.scenario,
+    workspaceAssertions: assertions,
+  });
+  const derivedFailureClassifications = Object.entries(derivedDimensions)
+    .filter(([, passed]) => !passed)
+    .map(([dimension]) => dimension);
+  const derivedConfirmationEligibility =
+    !derivedDimensions.semantic &&
+    Object.entries(derivedDimensions)
+      .filter(([dimension]) => dimension !== 'semantic')
+      .every(([, passed]) => passed);
 
   if (
     JSON.stringify(options.trial.requirementAssessments) !==
       JSON.stringify(derivedRequirementAssessments) ||
-    options.trial.passed !== (derivedFailures.length === 0) ||
+    JSON.stringify(options.trial.dimensions) !== JSON.stringify(derivedDimensions) ||
+    JSON.stringify(options.trial.failureClassifications) !==
+      JSON.stringify(derivedFailureClassifications) ||
+    options.trial.confirmationEligible !== derivedConfirmationEligibility ||
+    options.trial.passed !== Object.values(derivedDimensions).every(Boolean) ||
     JSON.stringify(options.trial.failures) !== JSON.stringify(derivedFailures)
   ) {
     throw new Error(
@@ -1198,7 +1275,7 @@ const validateCurrentTerminalAttempt = async (
   );
 
   if (JSON.stringify(actualArtifactPaths) !== JSON.stringify(expectedArtifactPaths)) {
-    throw new Error('Qualification evidence has an incomplete protocol 8 artifact inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 9 artifact inventory.');
   }
 
   const [baseline, coverage, probes, sourceState] = await Promise.all([
@@ -1260,7 +1337,7 @@ const validateCurrentTerminalAttempt = async (
   const actualStageIds = result.stages.map(({ id }) => id);
 
   if (JSON.stringify(actualStageIds) !== JSON.stringify(expectedStageIds)) {
-    throw new Error('Qualification evidence has an incomplete protocol 8 stage inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 9 stage inventory.');
   }
 
   const stages = new Map(result.stages.map((stage) => [stage.id, stage]));

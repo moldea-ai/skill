@@ -12,6 +12,10 @@ import {
   type IQualificationAttemptStorage,
   type IQualificationProfileIndexTarget,
 } from '../../../../qualification/src/storage/index.ts';
+import {
+  CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
+  CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+} from '../../../../tooling/codex-evaluation-host/index.mjs';
 
 import {
   ActorOutputSchema,
@@ -65,7 +69,7 @@ import {
 } from './validations.ts';
 
 const QUALIFICATION_ROUTE = '/evidence/qualification/';
-// immutable protocol 8 actor-prompt boundary retained by current evidence
+// immutable protocol 9 actor-prompt boundary retained by current evidence
 const QUALIFICATION_ACTOR_PROMPT_PREFIX =
   'Complete the project task below in the current Git working tree:\n\n';
 const QUALIFICATION_ACTOR_PROMPT_SUFFIX = `
@@ -80,6 +84,13 @@ Execution rules:
 - Treat ambiguous or unsupported runtime behavior conservatively. Record it explicitly instead of inventing evidence.
 - Inspect the final Git diff and run the relevant local validation before finishing.
 - Return only the structured result required by the output schema.
+
+Git inspection:
+
+- Use only the evaluator-approved forms below. Do not inspect evaluator-owned wrapper files or home paths to discover alternatives.
+- Status: \`env GIT_ATTR_NOSYSTEM=1 git ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')}\`
+- Diff (replace the final placeholder; do not type the angle brackets): \`env GIT_ATTR_NOSYSTEM=1 git ${CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.join(' ')} <one-or-more-repository-relative-paths>\`
+
 `;
 
 type ICaseCatalogEntry = ReturnType<typeof QualificationCaseCatalogSchema.parse>['cases'][number];
@@ -151,7 +162,7 @@ const createExpectedCurrentArtifactPaths = (
   ].sort((left, right) => left.localeCompare(right, 'en'));
 
 const assertCurrentArtifactInventory = (
-  result: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>,
+  result: Extract<IQualificationAttemptResult, { protocolVersion: 9 }>,
 ): void => {
   const expectedPaths = createExpectedCurrentArtifactPaths(result.cases);
   const actualPaths = Object.keys(result.artifactDigests).sort((left, right) =>
@@ -159,7 +170,7 @@ const assertCurrentArtifactInventory = (
   );
 
   if (JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)) {
-    throw new Error('Qualification evidence has an incomplete protocol 8 artifact inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 9 artifact inventory.');
   }
 };
 
@@ -368,7 +379,7 @@ const readRecordedDeveloperTask = (
 
 const loadCurrentAttemptCase = (
   readArtifact: IReadAttemptArtifact,
-  attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>,
+  attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 9 }>,
   result: IQualificationCurrentCaseResult,
   artifacts: IQualificationArtifactModel[],
   profileCase: Pick<IQualificationProfileCaseModel, 'id' | 'scenario'>,

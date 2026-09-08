@@ -55,7 +55,11 @@ const createCommandPresentation = (
 
   return {
     operation: `moldea ${fact.command}`,
-    results: [`CLI ${fact.cliVersion} returned ${fact.status}.`],
+    results: [
+      fact.errorCode === null
+        ? `CLI ${fact.cliVersion} returned ${fact.status}.`
+        : `CLI ${fact.cliVersion} returned ${fact.status} (${fact.errorCode}).`,
+    ],
   };
 };
 
@@ -165,10 +169,14 @@ const createTrialSummary = (
   actorCommandPolicyEvidence: trial.actorCommandPolicyEvidence,
   actorResourceEvidence: trial.actorResourceEvidence,
   actorHost: trial.actorHost,
+  confirmationEligible: trial.confirmationEligible,
   confirmationIndex,
+  dimensions: trial.dimensions,
   evaluatedAt: trial.evaluatedAt,
   executionOrigin: trial.executionOrigin,
   forbidden: trial.forbidden,
+  failureClassifications: trial.failureClassifications,
+  judgeCommandPolicyEvidence: trial.judgeCommandPolicyEvidence,
   judgeHost: trial.judgeHost,
   kind,
   observed: trial.observed,

@@ -13,11 +13,17 @@ import {
   type ISemanticReplayCommand,
 } from './validations.ts';
 
-const HOST = {
+const ACTOR_HOST = {
   model: 'gpt-5.6-sol',
   name: 'codex',
   reasoningEffort: 'high',
+  role: 'actor',
   version: 'codex-cli test',
+} as const;
+const JUDGE_HOST = {
+  ...ACTOR_HOST,
+  reasoningEffort: 'xhigh',
+  role: 'judge',
 } as const;
 const MODEL_USAGE = {
   cachedInputTokens: 0,
@@ -26,6 +32,23 @@ const MODEL_USAGE = {
 } as const;
 const createCommandPolicyEvidence = (completedCommandCount: number) => ({
   completedCommandCount,
+  credentialExposure: { status: 'not-observed' as const, observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
+  networkAccess: {
+    status: 'not-observed' as const,
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+  sensitiveAccess: {
+    status: 'not-observed' as const,
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
 });
 const CASE_DEFINITION = {
   expected: [{ criterion: 'The agent must finish.', label: 'finished' }],
@@ -70,6 +93,7 @@ const createCommand = (
 });
 
 const createRawTrial = (overrides: Record<string, unknown> = {}): Record<string, unknown> => {
+  const passed = overrides['passed'] === undefined ? true : overrides['passed'] === true;
   const actorExecutionEvidence = overrides['actorExecutionEvidence'] ?? [];
   const completedCommandCount = Array.isArray(actorExecutionEvidence)
     ? actorExecutionEvidence.length
@@ -101,19 +125,30 @@ const createRawTrial = (overrides: Record<string, unknown> = {}): Record<string,
       ),
       stdoutByteCount: moldeaOutputByteCount,
     },
-    actorHost: HOST,
+    actorHost: ACTOR_HOST,
     actorUsage: MODEL_USAGE,
     actorResponse: 'I completed the requested change and verified the result.',
     caseDefinitionDigest: CASE_DEFINITION_DIGEST,
     caseId: CASE_DEFINITION.id,
+    confirmationEligible: !passed,
+    dimensions: {
+      semantic: passed,
+      resource: true,
+      commandPolicy: true,
+      repositoryControl: true,
+      mountIntegrity: true,
+      operational: true,
+    },
     evaluatedAt: '2026-08-28T12:00:00.000Z',
     executionOrigin: 'executed',
     forbidden: [],
+    failureClassifications: passed ? [] : ['semantic'],
     id: CASE_DEFINITION.id,
-    judgeHost: HOST,
+    judgeCommandPolicyEvidence: createCommandPolicyEvidence(0),
+    judgeHost: JUDGE_HOST,
     judgeUsage: MODEL_USAGE,
     observed: ['finished'],
-    passed: true,
+    passed,
     rationale: 'The recorded result satisfies the required behavior.',
     scenarioEvidence: [
       {
@@ -138,10 +173,14 @@ const createTrialSummary = (
   actorCommandPolicyEvidence: trial.actorCommandPolicyEvidence,
   actorResourceEvidence: trial.actorResourceEvidence,
   actorHost: trial.actorHost,
+  confirmationEligible: trial.confirmationEligible,
   confirmationIndex,
+  dimensions: trial.dimensions,
   evaluatedAt: trial.evaluatedAt,
   executionOrigin: trial.executionOrigin,
   forbidden: trial.forbidden,
+  failureClassifications: trial.failureClassifications,
+  judgeCommandPolicyEvidence: trial.judgeCommandPolicyEvidence,
   judgeHost: trial.judgeHost,
   kind,
   observed: trial.observed,
@@ -177,7 +216,7 @@ const parseCandidate = (
     confirmations,
     evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     results: [initial],
-    schemaVersion: 7,
+    schemaVersion: 8,
   });
 
 describe('createSemanticEvaluationReplay', () => {
@@ -191,6 +230,7 @@ describe('createSemanticEvaluationReplay', () => {
             cliVersion: '6.0.0',
             command: 'validate',
             containsContent: false,
+            errorCode: null,
             errorPresent: false,
             hasNextPage: false,
             kind: 'moldea-cli-envelope',

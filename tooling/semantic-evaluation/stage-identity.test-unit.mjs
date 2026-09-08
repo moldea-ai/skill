@@ -8,11 +8,17 @@ import {
 } from './stage-identity.mjs';
 
 const digest = 'a'.repeat(64);
-const host = {
+const actorHost = {
   model: 'gpt-5.6-sol',
   name: 'codex',
   reasoningEffort: 'high',
+  role: 'actor',
   version: 'codex-cli 0.153.4',
+};
+const judgeHost = {
+  ...actorHost,
+  reasoningEffort: 'xhigh',
+  role: 'judge',
 };
 const repositoryControlBefore = {
   indexDigest: digest,
@@ -22,12 +28,12 @@ const repositoryControlBefore = {
 
 const createActor = (overrides = {}) =>
   createSemanticActorStageIdentity({
-    actorHost: host,
+    actorHost,
     actorPrompt: 'Use moldea to validate this repository.',
     artifactDigest: digest,
     caseDefinitionDigest: digest,
     cli: { integrity: 'sha512-example', version: '7.0.1' },
-    evaluationProtocolVersion: 23,
+    evaluationProtocolVersion: 24,
     readOnlyMountControlEvidence: [],
     repositoryControlBefore,
     resourceProfileDigest: digest,
@@ -50,8 +56,9 @@ describe('semantic stage identity', () => {
       { artifactDigest: 'b'.repeat(64) },
       { caseDefinitionDigest: 'b'.repeat(64) },
       { cli: { integrity: 'sha512-other', version: '7.0.1' } },
-      { actorHost: { ...host, version: 'codex-cli 0.154.0' } },
-      { evaluationProtocolVersion: 24 },
+      { actorHost: { ...actorHost, version: 'codex-cli 0.154.0' } },
+      { actorHost: { ...actorHost, reasoningEffort: 'xhigh' } },
+      { evaluationProtocolVersion: 25 },
       {
         readOnlyMountControlEvidence: [
           {
@@ -72,6 +79,29 @@ describe('semantic stage identity', () => {
     ]) {
       assert.notEqual(createActor(override).sha256, baseline.sha256);
     }
+  });
+
+  test('does not bind semantic stage reuse to the host timeout ceiling', () => {
+    assert.equal(
+      createActor({ hostTimeoutMs: 600_000 }).sha256,
+      createActor({ hostTimeoutMs: 900_000 }).sha256,
+    );
+  });
+
+  test('rejects role mismatches at each stage identity boundary', () => {
+    assert.throws(() => createActor({ actorHost: judgeHost }), /complete model-host identity/u);
+    assert.throws(
+      () =>
+        createSemanticJudgeStageIdentity({
+          actorEvidence: { actorResponse: 'Valid.', workspaceChanges: [] },
+          actorIdentitySha256: createActor().sha256,
+          caseDefinitionDigest: digest,
+          evaluationProtocolVersion: 24,
+          judgeHost: actorHost,
+          judgePrompt: 'Assess this exact evidence.',
+        }),
+      /complete model-host identity/u,
+    );
   });
 
   test('ignores ephemeral Git identity while retaining fixture-owned state', () => {
@@ -102,16 +132,16 @@ describe('semantic stage identity', () => {
       actorEvidence: { actorResponse: 'Valid.', workspaceChanges: [] },
       actorIdentitySha256: actor.sha256,
       caseDefinitionDigest: digest,
-      evaluationProtocolVersion: 23,
-      judgeHost: host,
+      evaluationProtocolVersion: 24,
+      judgeHost,
       judgePrompt: 'Assess this exact evidence.',
     });
     const changed = createSemanticJudgeStageIdentity({
       actorEvidence: { actorResponse: 'Invalid.', workspaceChanges: [] },
       actorIdentitySha256: actor.sha256,
       caseDefinitionDigest: digest,
-      evaluationProtocolVersion: 23,
-      judgeHost: host,
+      evaluationProtocolVersion: 24,
+      judgeHost,
       judgePrompt: 'Assess this exact evidence.',
     });
     assert.notEqual(changed.sha256, baseline.sha256);
@@ -119,10 +149,21 @@ describe('semantic stage identity', () => {
       actorEvidence: { actorResponse: 'Valid.', workspaceChanges: [] },
       actorIdentitySha256: actor.sha256,
       caseDefinitionDigest: digest,
-      evaluationProtocolVersion: 23,
-      judgeHost: host,
+      evaluationProtocolVersion: 24,
+      judgeHost,
       judgePrompt: 'Assess different evidence.',
     });
     assert.notEqual(changedPrompt.sha256, baseline.sha256);
+    assert.notEqual(
+      createSemanticJudgeStageIdentity({
+        actorEvidence: { actorResponse: 'Valid.', workspaceChanges: [] },
+        actorIdentitySha256: actor.sha256,
+        caseDefinitionDigest: digest,
+        evaluationProtocolVersion: 24,
+        judgeHost: { ...judgeHost, reasoningEffort: 'high' },
+        judgePrompt: 'Assess this exact evidence.',
+      }).sha256,
+      baseline.sha256,
+    );
   });
 });

@@ -15,13 +15,6 @@ export {
   projectActorExecutionEvidenceEvent,
 } from './actor-execution-evidence.mjs';
 
-// actor command-policy evidence
-export {
-  classifyActorCommandPolicyEvent,
-  createActorCommandPolicyEvidence,
-  hasValidActorCommandPolicyEvidence,
-} from './actor-command-policy-evidence.mjs';
-
 // coverage
 export { createSemanticCoverageDigest, validateSemanticCoverage } from './coverage.mjs';
 

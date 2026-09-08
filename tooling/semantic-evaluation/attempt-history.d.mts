@@ -2,21 +2,38 @@
 export type ISemanticAttemptStatus = 'failed' | 'incomplete' | 'passed';
 
 // behavior-bearing semantic execution contract
-export interface ISemanticEvaluationHostContract {
+export interface ISemanticEvaluationActorHostContract {
   model: 'gpt-5.6-sol';
   name: 'codex';
-  reasoningEffort: 'high' | 'medium';
+  reasoningEffort: 'high';
+  role: 'actor';
 }
 
-// exact non-sensitive provenance for one Codex role execution
-export interface ISemanticEvaluationHostIdentity extends ISemanticEvaluationHostContract {
+export interface ISemanticEvaluationJudgeHostContract {
+  model: 'gpt-5.6-sol';
+  name: 'codex';
+  reasoningEffort: 'xhigh';
+  role: 'judge';
+}
+
+// closed actor and judge execution roles
+export interface ISemanticEvaluationHostContract {
+  actor: ISemanticEvaluationActorHostContract;
+  judge: ISemanticEvaluationJudgeHostContract;
+}
+
+// exact non-sensitive provenance for one actor execution
+export interface ISemanticEvaluationActorHostIdentity extends ISemanticEvaluationActorHostContract {
+  version: string;
+}
+
+// exact non-sensitive provenance for one judge execution
+export interface ISemanticEvaluationJudgeHostIdentity extends ISemanticEvaluationJudgeHostContract {
   version: string;
 }
 
 // aggregate command-policy evidence retained without raw command text
-export interface ISemanticAttemptCommandPolicyEvidence {
-  completedCommandCount: number;
-}
+export type ISemanticAttemptCommandPolicyEvidence = ICodexEvaluationCommandPolicyEvidence;
 
 // bounded moldea CLI use retained without raw output bodies
 export interface ISemanticAttemptResourceEvidence {
@@ -38,10 +55,10 @@ export interface ISemanticAttemptCliIdentity {
 
 // immutable evidence reference for the current semantic contract
 export interface ISemanticAttemptEvidenceReference {
-  evaluationProtocolVersion: 23;
+  evaluationProtocolVersion: 24;
   kind: 'candidate';
   path: 'evidence.json';
-  schemaVersion: 7;
+  schemaVersion: 8;
   sha256: string;
 }
 
@@ -64,16 +81,38 @@ interface ISemanticAttemptStageReuseRecord<TStage extends 'actor' | 'judge'> {
   stage: TStage;
 }
 
+export type ISemanticFailureClassification =
+  | 'semantic'
+  | 'resource'
+  | 'commandPolicy'
+  | 'repositoryControl'
+  | 'mountIntegrity'
+  | 'operational';
+
+// independently attributable trial outcomes
+export interface ISemanticResultDimensions {
+  semantic: boolean;
+  resource: boolean;
+  commandPolicy: boolean;
+  repositoryControl: boolean;
+  mountIntegrity: boolean;
+  operational: boolean;
+}
+
 // one initial or confirmation evaluation for a semantic case
 export interface ISemanticAttemptTrial {
   actorCommandPolicyEvidence: ISemanticAttemptCommandPolicyEvidence;
   actorResourceEvidence: ISemanticAttemptResourceEvidence;
-  actorHost: ISemanticEvaluationHostIdentity;
+  actorHost: ISemanticEvaluationActorHostIdentity;
+  confirmationEligible: boolean;
   confirmationIndex: 1 | 2 | null;
+  dimensions: ISemanticResultDimensions;
   evaluatedAt: string;
   executionOrigin: 'executed' | 'reused';
   forbidden: string[];
-  judgeHost: ISemanticEvaluationHostIdentity;
+  failureClassifications: ISemanticFailureClassification[];
+  judgeCommandPolicyEvidence: ISemanticAttemptCommandPolicyEvidence;
+  judgeHost: ISemanticEvaluationJudgeHostIdentity;
   kind: 'confirmation' | 'initial';
   observed: string[];
   passed: boolean;
@@ -86,7 +125,7 @@ export interface ISemanticAttemptTrial {
 
 // derived case status and its complete ordered trial history
 export interface ISemanticAttemptCase {
-  confirmationStatus: 'not-required' | 'passed' | 'rejected' | 'required';
+  confirmationStatus: 'not-applicable' | 'not-required' | 'passed' | 'rejected' | 'required';
   id: string;
   status: 'failed' | 'passed' | 'recovered';
   trials: ISemanticAttemptTrial[];
@@ -112,7 +151,7 @@ export interface ISemanticAttemptRecord {
   recoveredCaseCount: number;
   reusedStageCount: number;
   reusedTrialCount: number;
-  schemaVersion: 4;
+  schemaVersion: 5;
   status: ISemanticAttemptStatus;
   stopReason:
     | 'case-failure'
@@ -163,3 +202,4 @@ export const verifySemanticEvaluationAttempts: (resultsRoot: string) => Promise<
   issues: string[];
   passed: boolean;
 }>;
+import type { ICodexEvaluationCommandPolicyEvidence } from '../codex-evaluation-host/index.mjs';

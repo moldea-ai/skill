@@ -34,8 +34,10 @@ export class CodexCliHost implements ICodexHost {
       identifyCodexEvaluationHost(
         createCodexExecCommand({
           outputPath: SANDBOX_OUTPUT_PATH,
+          role: 'actor',
           schemaPath: SANDBOX_SCHEMA_PATH,
         }),
+        'actor',
       ).version,
     );
   }
@@ -71,6 +73,7 @@ export class CodexCliHost implements ICodexHost {
       await writeJsonFileAtomically(schemaPath, z.toJSONSchema(input.schema));
       const command = createCodexExecCommand({
         outputPath: SANDBOX_OUTPUT_PATH,
+        role,
         schemaPath: SANDBOX_SCHEMA_PATH,
       });
       const startedAt = performance.now();
@@ -80,6 +83,7 @@ export class CodexCliHost implements ICodexHost {
         defaultHostTimeoutMs: QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS,
         includeWorkspaceBinaryDirectory: role === 'actor',
         prompt: input.prompt,
+        role,
         sandboxHome,
         ...(input.signal === undefined ? {} : { signal: input.signal }),
         workspaceAccess,

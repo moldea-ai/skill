@@ -3,6 +3,44 @@ import { posix } from 'node:path';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
 
 const COMMAND_POLICY_STATUSES = new Set(['indeterminate', 'not-observed', 'observed']);
+const COMMAND_POLICY_REASON_CODES = new Set([
+  'broad-filesystem-read',
+  'credential-material',
+  'dynamic-execution',
+  'environment-dump',
+  'environment-value-read',
+  'evaluator-auth-file',
+  'evaluator-home',
+  'git-network',
+  'network-client',
+  'oversized-command',
+  'package-manager-network',
+  'process-environment',
+  'unclassified-command',
+]);
+const NETWORK_OBSERVED_REASON_CODES = new Set([
+  'git-network',
+  'network-client',
+  'package-manager-network',
+]);
+const NETWORK_INDETERMINATE_REASON_CODES = new Set([
+  'dynamic-execution',
+  'oversized-command',
+  'unclassified-command',
+]);
+const SENSITIVE_OBSERVED_REASON_CODES = new Set([
+  'environment-dump',
+  'environment-value-read',
+  'evaluator-auth-file',
+  'evaluator-home',
+  'process-environment',
+]);
+const SENSITIVE_INDETERMINATE_REASON_CODES = new Set([
+  'broad-filesystem-read',
+  'dynamic-execution',
+  'oversized-command',
+  'unclassified-command',
+]);
 const COMMAND_RESULT_STATUSES = new Set(['completed', 'failed']);
 const MAX_COMPLETED_COMMAND_COUNT =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCompletedCommandCount;
@@ -183,6 +221,14 @@ const FILE_INSPECTION_EXECUTABLES = new Set([
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
+
+const hasExactKeys = (record, keys) =>
+  isPlainRecord(record) &&
+  Object.keys(record).length === keys.length &&
+  keys.every((key) => Object.hasOwn(record, key));
+
+const isBoundedNonNegativeInteger = (value, maximum) =>
+  Number.isSafeInteger(value) && value >= 0 && value <= maximum;
 
 /** Reconstructs one fixed shell-escaped word without evaluating expansions. */
 const decodeFixedShellWord = (input) => {
@@ -1019,13 +1065,139 @@ const assertWithinResourceLimit = (label, unit, observedValue, maximumValue) => 
   }
 };
 
+/** Checks one ordered privacy-safe command-policy reason list. */
+const hasValidCommandPolicyReasons = (reasons) =>
+  Array.isArray(reasons) &&
+  reasons.every(
+    (reason, index) =>
+      hasExactKeys(reason, ['code', 'count']) &&
+      COMMAND_POLICY_REASON_CODES.has(reason.code) &&
+      Number.isSafeInteger(reason.count) &&
+      reason.count > 0 &&
+      (index === 0 || reasons[index - 1].code < reason.code),
+  );
+
+/** Checks one derived network or sensitive-access aggregate. */
+const hasValidCommandPolicyObservation = (
+  observation,
+  completedCommandCount,
+  observedReasonCodes,
+  indeterminateReasonCodes,
+) => {
+  if (
+    !hasExactKeys(observation, ['status', 'observedCount', 'indeterminateCount', 'reasons']) ||
+    !COMMAND_POLICY_STATUSES.has(observation.status) ||
+    !isBoundedNonNegativeInteger(observation.observedCount, completedCommandCount) ||
+    !isBoundedNonNegativeInteger(observation.indeterminateCount, completedCommandCount) ||
+    observation.observedCount + observation.indeterminateCount > completedCommandCount ||
+    !hasValidCommandPolicyReasons(observation.reasons)
+  ) {
+    return false;
+  }
+
+  const expectedStatus =
+    observation.observedCount > 0
+      ? 'observed'
+      : observation.indeterminateCount > 0
+        ? 'indeterminate'
+        : 'not-observed';
+  const observedReasonCount = observation.reasons.reduce(
+    (total, reason) => total + (observedReasonCodes.has(reason.code) ? reason.count : 0),
+    0,
+  );
+  const indeterminateReasonCount = observation.reasons.reduce(
+    (total, reason) => total + (indeterminateReasonCodes.has(reason.code) ? reason.count : 0),
+    0,
+  );
+  return (
+    observation.status === expectedStatus &&
+    observedReasonCount === observation.observedCount &&
+    indeterminateReasonCount === observation.indeterminateCount &&
+    observedReasonCount + indeterminateReasonCount ===
+      observation.reasons.reduce((total, reason) => total + reason.count, 0)
+  );
+};
+
 /**
- * Decides whether qualification command-policy evidence contains an observed violation.
- * @param evidence The validated privacy-safe command-policy aggregate.
+ * Checks the complete privacy-safe command-policy aggregate shared by evaluation workflows.
+ * @param evidence The prospective aggregate.
+ * @returns Whether the aggregate has the exact current structure and consistent derived counts.
+ */
+export const hasValidCodexEvaluationCommandPolicy = (evidence) => {
+  if (
+    !hasExactKeys(evidence, [
+      'completedCommandCount',
+      'credentialExposure',
+      'maximumCommandOutputByteCount',
+      'modelVisibleToolOutputByteCount',
+      'moldeaCommandCount',
+      'moldeaOutputByteCount',
+      'networkAccess',
+      'sensitiveAccess',
+    ]) ||
+    !isBoundedNonNegativeInteger(evidence.completedCommandCount, MAX_COMPLETED_COMMAND_COUNT) ||
+    !isBoundedNonNegativeInteger(
+      evidence.maximumCommandOutputByteCount,
+      MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES,
+    ) ||
+    !isBoundedNonNegativeInteger(
+      evidence.modelVisibleToolOutputByteCount,
+      MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES,
+    ) ||
+    !isBoundedNonNegativeInteger(evidence.moldeaCommandCount, MAX_MOLDEA_COMMAND_COUNT) ||
+    !isBoundedNonNegativeInteger(evidence.moldeaOutputByteCount, MAX_MOLDEA_OUTPUT_BYTES) ||
+    evidence.maximumCommandOutputByteCount > evidence.modelVisibleToolOutputByteCount ||
+    (evidence.completedCommandCount === 0 && evidence.maximumCommandOutputByteCount !== 0) ||
+    evidence.moldeaCommandCount > evidence.completedCommandCount ||
+    (evidence.moldeaCommandCount === 0 && evidence.moldeaOutputByteCount !== 0) ||
+    evidence.moldeaOutputByteCount > evidence.modelVisibleToolOutputByteCount
+  ) {
+    return false;
+  }
+
+  const credentialExposure = evidence.credentialExposure;
+  if (
+    !hasExactKeys(credentialExposure, ['status', 'observedCount', 'reasons']) ||
+    !['not-observed', 'observed'].includes(credentialExposure.status) ||
+    !Number.isSafeInteger(credentialExposure.observedCount) ||
+    credentialExposure.observedCount < 0 ||
+    !hasValidCommandPolicyReasons(credentialExposure.reasons) ||
+    credentialExposure.status !==
+      (credentialExposure.observedCount > 0 ? 'observed' : 'not-observed') ||
+    credentialExposure.reasons.reduce((total, reason) => total + reason.count, 0) !==
+      credentialExposure.observedCount ||
+    (credentialExposure.observedCount > 0 &&
+      (credentialExposure.reasons.length !== 1 ||
+        credentialExposure.reasons[0].code !== 'credential-material')) ||
+    (credentialExposure.observedCount === 0 && credentialExposure.reasons.length !== 0)
+  ) {
+    return false;
+  }
+
+  return (
+    hasValidCommandPolicyObservation(
+      evidence.networkAccess,
+      evidence.completedCommandCount,
+      NETWORK_OBSERVED_REASON_CODES,
+      NETWORK_INDETERMINATE_REASON_CODES,
+    ) &&
+    hasValidCommandPolicyObservation(
+      evidence.sensitiveAccess,
+      evidence.completedCommandCount,
+      SENSITIVE_OBSERVED_REASON_CODES,
+      SENSITIVE_INDETERMINATE_REASON_CODES,
+    )
+  );
+};
+
+/**
+ * Decides whether evaluation command-policy evidence contains an observed violation.
+ * @param evidence The prospective privacy-safe command-policy aggregate.
  * @returns Whether the evidence contains no policy-level failure.
  */
 export const hasPassingCodexEvaluationCommandPolicy = (evidence) => {
   return (
+    hasValidCodexEvaluationCommandPolicy(evidence) &&
     evidence.credentialExposure.status !== 'observed' &&
     evidence.networkAccess.status !== 'observed' &&
     evidence.sensitiveAccess.status !== 'observed'

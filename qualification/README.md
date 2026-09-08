@@ -43,11 +43,13 @@ The CLI, runtime packages, auxiliary types, and TypeScript compiler are download
 
 ## Model boundary
 
-Official semantic stages use `gpt-5.6-sol` with `high` reasoning effort. Actors and judges run in separate disposable homes and separate workspaces through the shared isolated host.
+Official actors use `gpt-5.6-sol` with `high` reasoning effort. Independent judges use the same model with `xhigh` reasoning. Both roles run in separate disposable homes and separate workspaces through the shared isolated host.
 
 The actor receives a natural task and the portable skill. The judge receives declared semantic requirements, deterministic results, workspace assertions, projected execution facts, and the actor response. Neither role receives hidden credentials or unrelated host state.
 
 The host records stage duration and model token usage when Codex reports it. Raw commands and output are discarded after privacy-safe projection.
+
+Every trial records semantic, resource, command-policy, repository-control, mount-integrity, and operational dimensions. Overall pass is their strict conjunction. Only a semantic failure with every other dimension passing can receive confirmations; all non-semantic failures are terminal for that trial.
 
 ## Resource budgets
 
@@ -62,7 +64,7 @@ Every scenario declares `ordinary` or `largeTraversal`. Every actor and judge st
 
 Both profiles permit at most 128 KiB from one completed host command, 64 completed commands, 16 moldea calls, and 1,625,000 model tokens. This is distinct from the portable skill's unchanged 64 KiB limit for one moldea CLI response page. The `ordinary` profile also permits 256 KiB of moldea output and 1 MiB of aggregate model-visible tool output. `largeTraversal` also permits 1 MiB of moldea output and 4 MiB of aggregate model-visible tool output. Every dimension remains an independent final failure. An actor that exceeds only completed-command, moldea-call, or total-token limits may reach the judge while inside absolute containment so a semantic verdict can establish calibration eligibility. The trial still fails the active profile. Missing token usage and maximum-command, aggregate model-visible, or aggregate moldea output overages skip judging, as do deterministic, workspace, runner-owned, and observed command-policy failures. Higher absolute host ceilings remain failure containment, not recommended operating volumes.
 
-Protocol 8 classifies actual operations instead of matching security vocabulary in repository searches. Evidence retains only bounded sorted reason codes and counts for network, sensitive, credential, or indeterminate operations. It never retains raw commands, paths, patterns, outputs, or credentials. Indeterminate evidence is not a safety attestation; official runs accept it only alongside independently established read-only filesystem and restricted-egress sandbox boundaries.
+Protocol 9 classifies actual operations instead of matching security vocabulary in repository searches. Evidence retains only bounded sorted reason codes and counts for network, sensitive, credential, or indeterminate operations. It never retains raw commands, paths, patterns, outputs, or credentials. Indeterminate evidence is not a safety attestation; official runs accept it only alongside independently established read-only filesystem and restricted-egress sandbox boundaries.
 
 The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,144 bytes of aggregate `moldea` output. It also requires exact or bounded host discovery that excludes dependency, VCS, generated, cache, and package-store trees. Large repositories remain supported through paginated metadata and explicit content chunks. A budget failure states which observed value exceeded which limit; it never silently truncates evidence into an apparently valid result.
 
@@ -70,7 +72,7 @@ The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,
 
 ## Current-only evidence
 
-Qualification protocol 8 is the sole accepted contract. A passing attempt must match the current skill bytes, CLI closure, evaluator, host, resource profile, probes, cases, target, execution environment, and package closure. Protocol-7 artifacts have no active reader, converter, release selection path, or website surface.
+Qualification protocol 9 is the sole accepted contract. A passing attempt must match the current skill bytes, CLI closure, evaluator, role-specific actor and judge hosts, resource profile, probes, cases, target, execution environment, and package closure.
 
 An official run may reuse a passed or recovered case group from a committed failed attempt only while every behavior-bearing identity, source commit, artifact digest, Custom baseline, and package closure remains exact. Failed and incomplete case groups, diagnostic attempts, uncommitted evidence, chained reuse, and tampered artifacts are never eligible.
 
@@ -180,7 +182,7 @@ The runner has no free-floating model-output cache. Model stages always execute 
 
 `diagnose-batch` runs one selected case at a time without confirmations or evidence reuse. It keeps one private checkpoint and one separate content-free completed ledger under `.runtime-qualification/diagnostic-batch/`; each file is limited to 1 MiB and replaced atomically. The ledger retains only case status, requirement IDs, deterministic explanation, duration, model and token totals, operational-failure count, and attempt identity. It never retains prompts, model rationale, commands, output bodies, repository content, or workspace paths. Final JSON output is limited to 16 KiB. Successful completion deletes the private checkpoint, terminal diagnostic attempts are deleted after projection, and official results and pointers are never changed.
 
-Each model stage has a finite ten-minute timeout so `high` reasoning can complete without treating an ordinary long response as an operational failure. Operational provider, proxy, and timeout failures may retry within the configured retry policy. Deterministic failures, changed identities, cancellation, and exhausted retries stop the attempt clearly.
+Each model stage has a finite fifteen-minute timeout so role-specific reasoning can complete without treating an ordinary long response as an operational failure. Operational provider, proxy, and timeout failures may retry within the configured retry policy. Deterministic failures, changed identities, cancellation, and exhausted retries stop the attempt clearly.
 
 The packages repository contributes only the immutable `HEAD:compatibility/runtimes.yaml` artifact. Qualification records its commit and content fingerprint, so live worktree changes cannot alter or interrupt an active run. Qualification-engine source and the portable skill remain independently fingerprinted and must be clean before publication.
 
@@ -188,7 +190,7 @@ The packages repository contributes only the immutable `HEAD:compatibility/runti
 
 `results/<target-key>/attempts/a-<digest>/` contains the current attempt and numbered artifacts. `storage.json` binds logical artifact paths to physical files and verifies every SHA-256 digest. `latest.json` points to the latest attempt and current passing attempt when one exists.
 
-Current protocol-8 attempts are revalidated against the profile, probes, scenarios, and resource calibration stored at their recorded qualification source commit. Earlier attempts remain available only through Git history; active source and local runtime storage contain no compatibility corpus or reader.
+Current protocol-9 attempts are revalidated against the profile, probes, scenarios, and resource calibration stored at their recorded qualification source commit. Earlier attempts remain available only through Git history; active source and local runtime storage contain no compatibility corpus or reader.
 
 Fresh release verification reads only this current storage. Every indexed target must have one compatible passing attempt. An explicit release evidence pin instead validates the original immutable source tag and its compact artifact manifests without copying source attempts into the new release.
 

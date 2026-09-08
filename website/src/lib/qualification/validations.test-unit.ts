@@ -13,7 +13,7 @@ const SHA_A = 'a'.repeat(64);
 
 // complete official preflight evidence for an adapter attempt with no executed cases
 const FAILED_BASELINE_RESULT = {
-  protocolVersion: 8,
+  protocolVersion: 9,
   confirmationPolicy: { version: 1, requiredPassingConfirmations: 2 },
   mode: 'official',
   attemptId: 'failed-baseline-attempt',
@@ -29,7 +29,8 @@ const FAILED_BASELINE_RESULT = {
   summary: 'Qualification stopped because its Custom baseline is incompatible.',
   provenance: {
     model: 'gpt-5.6-sol',
-    reasoningEffort: 'high',
+    actorReasoningEffort: 'high',
+    judgeReasoningEffort: 'xhigh',
     codexVersion: 'codex-cli test',
     nodeVersion: 'v24.15.0',
     pnpmVersion: '11.9.0',
@@ -38,6 +39,7 @@ const FAILED_BASELINE_RESULT = {
     hostTimeoutMs: 300_000,
     modelEndpoint: null,
     sslCertificateFileSha256: null,
+    candidateFingerprint: null,
     packagesRepositoryCommit: 'packages-commit',
     packagesRepositoryFingerprint: SHA_A,
     packagesRepositoryDirty: false,

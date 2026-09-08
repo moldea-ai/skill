@@ -34,6 +34,8 @@ Each case combines:
 
 The actor never receives grading criteria. The judge cannot replace deterministic package, schema, filesystem, or resource evidence with prose.
 
+Every trial records semantic, resource, command-policy, repository-control, mount-integrity, and operational dimensions. Overall pass is their strict conjunction. Only a semantic failure with every other dimension passing can receive confirmations; all non-semantic failures are terminal for that trial.
+
 Qualification workspaces contain their complete installed dependency set before an actor starts. Actors cannot invoke a package manager, transient executable, or installer and must use the installed skill's closed repository-local CLI launcher. This keeps network isolation mechanically enforceable without preventing project-native validation.
 
 ## Resource limits
@@ -56,11 +58,11 @@ The operating limits and higher absolute ceilings are imported from the same sou
 
 Qualification results retain these numeric aggregates but never raw command text, raw command output, credentials, hidden reasoning, or arbitrary workspace content.
 
-Protocol 8 classifies operations rather than vocabulary. Searching repository text for terms such as `secret`, `authorization`, or `.codex` is inert, while actual evaluator-home, authentication-file, credential, environment-value, process-environment, network, package-manager-network, dynamic-execution, or broad-filesystem operations receive stable reason codes and counts. Public evidence never contains the command, path, search pattern, output, or secret. An `indeterminate` classification remains visible diagnostic uncertainty and is acceptable only because official runs independently establish read-only filesystem and restricted-egress sandboxes; it is not presented as proof that access was safe.
+Protocol 9 classifies operations rather than vocabulary. Searching repository text for terms such as `secret`, `authorization`, or `.codex` is inert, while actual evaluator-home, authentication-file, credential, environment-value, process-environment, network, package-manager-network, dynamic-execution, or broad-filesystem operations receive stable reason codes and counts. Public evidence never contains the command, path, search pattern, output, or secret. An `indeterminate` classification remains visible diagnostic uncertainty and is acceptable only because official runs independently establish read-only filesystem and restricted-egress sandboxes; it is not presented as proof that access was safe.
 
 ## Fresh evidence by default
 
-Qualification protocol 8 accepts only evidence matching the current:
+Qualification protocol 9 accepts only evidence matching the current:
 
 - portable skill bytes
 - CLI and package closure
@@ -71,7 +73,7 @@ Qualification protocol 8 accepts only evidence matching the current:
 - Custom baseline relationship
 - scenario resource profile and privacy-safe command-policy reason counts
 
-Every current target must have a current passing attempt for its exact current inputs. A current attempt may reuse only complete passed or recovered case groups from a byte-valid committed failed attempt with the same behavior-bearing identity. Direct and reused work remain visibly distinct, and failed, incomplete, diagnostic, uncommitted, chained, mismatched, or tampered evidence is rejected. Active protocol-8 history is revalidated against the contracts at each attempt's recorded source commit. Attempts from earlier protocols, incomplete field sets, or other reasoning efforts remain available only through Git history; there is no compatibility reader or converter.
+Every current target must have a current passing attempt for its exact current inputs. A current attempt may reuse only complete passed or recovered case groups from a byte-valid committed failed attempt with the same behavior-bearing identity. Direct and reused work remain visibly distinct, and failed, incomplete, diagnostic, uncommitted, chained, mismatched, or tampered evidence is rejected. Current protocol-9 history is revalidated against the contracts at each attempt's recorded source commit.
 
 This is the normal release path. An explicit release evidence pin may reuse the original passing qualification evidence from an earlier immutable release when a maintainer has established that the new release does not affect evaluated behavior. The pin is disclosed publicly and does not relabel the source attempt as current. See [Release evidence](/docs/release-evidence/).
 

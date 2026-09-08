@@ -95,7 +95,8 @@ describe('qualification command runner', () => {
             maximumTokenCount: 32_000_000,
             maximumTokensPerCall: 2_097_152,
             model: 'gpt-5.6-sol',
-            reasoningEffort: 'high',
+            actorReasoningEffort: 'high',
+            judgeReasoningEffort: 'xhigh',
             reusedCaseCount: 2,
           }),
         ).resolves.toBe(true);
@@ -197,7 +198,8 @@ describe('qualification command runner', () => {
             maximumTokenCount: 8_388_608,
             maximumTokensPerCall: 2_097_152,
             model: 'gpt-5.6-sol',
-            reasoningEffort: 'high',
+            actorReasoningEffort: 'high',
+            judgeReasoningEffort: 'xhigh',
             reusedCaseCount: 0,
           }),
         ).resolves.toBe(true);

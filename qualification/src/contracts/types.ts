@@ -6,14 +6,15 @@ import { calculateCodexEvaluationOperationalRetryDelay } from '../../../tooling/
 import {
   DEFAULT_PACKAGES_REPOSITORY,
   QUALIFICATION_ALLOWED_EGRESS_HOSTS,
+  QUALIFICATION_ACTOR_REASONING_EFFORT,
   QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
   QUALIFICATION_CONFIRMATION_POLICY,
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+  QUALIFICATION_JUDGE_REASONING_EFFORT,
   QUALIFICATION_MODEL,
   QUALIFICATION_MODEL_ENDPOINT_ORIGINS,
   QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT,
   QUALIFICATION_PROTOCOL_VERSION,
-  QUALIFICATION_REASONING_EFFORT,
   QUALIFICATION_TRIAL_IDS,
 } from '../constants/index.ts';
 
@@ -534,6 +535,7 @@ export const QualificationCommandPolicyEvidenceSchema = z
       });
     }
     if (
+      evidence.moldeaCommandCount > evidence.completedCommandCount ||
       (evidence.moldeaCommandCount === 0 && evidence.moldeaOutputByteCount !== 0) ||
       evidence.moldeaOutputByteCount > evidence.modelVisibleToolOutputByteCount
     ) {
@@ -588,7 +590,8 @@ export type IQualificationModelStageEvidence = z.infer<
 // exact local execution identity that must remain stable across resume boundaries
 export const QualificationExecutionEnvironmentSchema = z.strictObject({
   model: z.literal(QUALIFICATION_MODEL),
-  reasoningEffort: z.literal(QUALIFICATION_REASONING_EFFORT),
+  actorReasoningEffort: z.literal(QUALIFICATION_ACTOR_REASONING_EFFORT),
+  judgeReasoningEffort: z.literal(QUALIFICATION_JUDGE_REASONING_EFFORT),
   codexVersion: z.string().trim().min(1),
   nodeVersion: z.string().trim().min(1),
   pnpmVersion: z.string().trim().min(1),
@@ -968,12 +971,33 @@ export const QualificationAttemptCheckpointSchema = z
 
 export type IQualificationAttemptCheckpoint = z.infer<typeof QualificationAttemptCheckpointSchema>;
 
-// one protocol 8 initial or confirmation trial and its complete artifact references
+const QualificationTrialDimensionsSchema = z.strictObject({
+  semantic: z.boolean(),
+  resource: z.boolean(),
+  commandPolicy: z.boolean(),
+  repositoryControl: z.boolean(),
+  mountIntegrity: z.boolean(),
+  operational: z.boolean(),
+});
+
+const QualificationFailureClassificationSchema = z.enum([
+  'semantic',
+  'resource',
+  'commandPolicy',
+  'repositoryControl',
+  'mountIntegrity',
+  'operational',
+]);
+
+// one protocol 9 initial or confirmation trial and its complete artifact references
 export const QualificationTrialResultSchema = z
   .strictObject({
     trialId: z.enum(QUALIFICATION_TRIAL_IDS),
     kind: z.enum(['confirmation', 'initial']),
     confirmationIndex: z.number().int().min(1).max(2).nullable(),
+    confirmationEligible: z.boolean(),
+    dimensions: QualificationTrialDimensionsSchema,
+    failureClassifications: z.array(QualificationFailureClassificationSchema),
     passed: z.boolean(),
     durationMs: z.number().int().nonnegative(),
     deterministicBeforePath: RelativePathSchema,
@@ -1020,6 +1044,28 @@ export const QualificationTrialResultSchema = z
       });
     }
 
+    const dimensionEntries = Object.entries(trial.dimensions);
+    const isPassing = dimensionEntries.every(([, passed]) => passed);
+    const failureClassifications = dimensionEntries
+      .filter(([, passed]) => !passed)
+      .map(([dimension]) => dimension);
+    const isConfirmationEligible =
+      !trial.dimensions.semantic &&
+      dimensionEntries
+        .filter(([dimension]) => dimension !== 'semantic')
+        .every(([, passed]) => passed);
+    if (
+      trial.passed !== isPassing ||
+      trial.confirmationEligible !== isConfirmationEligible ||
+      JSON.stringify(trial.failureClassifications) !== JSON.stringify(failureClassifications)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Trial verdict and confirmation eligibility must derive from its dimensions.',
+        path: ['dimensions'],
+      });
+    }
+
     if (
       new Set(trial.requirementAssessments.map(({ id }) => id)).size !==
       trial.requirementAssessments.length
@@ -1043,13 +1089,13 @@ export const QualificationCaseReuseSchema = z.strictObject({
 
 export type IQualificationCaseReuse = z.infer<typeof QualificationCaseReuseSchema>;
 
-// terminal protocol 8 case history preserving the original trial and every confirmation
+// terminal protocol 9 case history preserving the original trial and every confirmation
 export const QualificationCaseResultSchema = z
   .strictObject({
     caseId: StableIdSchema,
     title: z.string().trim().min(1),
     status: z.enum(['failed', 'passed', 'recovered']),
-    confirmationStatus: z.enum(['not-applicable', 'not-required', 'passed', 'rejected']),
+    confirmationStatus: z.enum(['not-applicable', 'not-required', 'not-run', 'passed', 'rejected']),
     durationMs: z.number().int().nonnegative(),
     trials: z.array(QualificationTrialResultSchema).min(1).max(3),
     failures: z.array(z.string()),
@@ -1062,11 +1108,20 @@ export const QualificationCaseResultSchema = z
     const confirmation2 = caseResult.trials[2];
     let isValidHistory = initial?.trialId === 'initial';
 
-    if (caseResult.confirmationStatus === 'not-applicable') {
+    if (caseResult.confirmationStatus === 'not-run') {
       isValidHistory =
         isValidHistory &&
         caseResult.trials.length === 1 &&
-        caseResult.status === (initial?.passed === true ? 'passed' : 'failed');
+        initial?.passed === false &&
+        initial.confirmationEligible &&
+        caseResult.status === 'failed';
+    } else if (caseResult.confirmationStatus === 'not-applicable') {
+      isValidHistory =
+        isValidHistory &&
+        caseResult.trials.length === 1 &&
+        initial?.passed === false &&
+        initial.confirmationEligible === false &&
+        caseResult.status === 'failed';
     } else if (initial?.passed === true) {
       isValidHistory =
         isValidHistory &&
@@ -1076,6 +1131,7 @@ export const QualificationCaseResultSchema = z
     } else if (initial !== undefined) {
       isValidHistory =
         isValidHistory &&
+        initial.confirmationEligible &&
         confirmation1?.trialId === 'confirmation-1' &&
         (confirmation1.passed
           ? confirmation2?.trialId === 'confirmation-2' &&
@@ -1168,7 +1224,7 @@ const QualificationAttemptResultSharedShape = {
   artifactDigests: z.record(RelativePathSchema, z.string().regex(/^[a-f0-9]{64}$/u)),
 };
 
-// fixed protocol 8 confirmation policy committed with every current attempt
+// fixed protocol 9 confirmation policy committed with every current attempt
 export const QualificationConfirmationPolicySchema = z.strictObject({
   version: z.literal(QUALIFICATION_CONFIRMATION_POLICY.version),
   requiredPassingConfirmations: z.literal(
@@ -1176,7 +1232,7 @@ export const QualificationConfirmationPolicySchema = z.strictObject({
   ),
 });
 
-// local protocol 8 result draft shared by dry runs and official result publication
+// local protocol 9 result draft shared by dry runs and official result publication
 export const QualificationAttemptResultDraftSchema = z.strictObject({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationAttemptResultSharedShape,
@@ -1263,10 +1319,10 @@ const validateCurrentQualificationAttemptResult = (
     });
   }
 
-  if (result.cases.some(({ confirmationStatus }) => confirmationStatus === 'not-applicable')) {
+  if (result.cases.some(({ confirmationStatus }) => confirmationStatus === 'not-run')) {
     context.addIssue({
       code: 'custom',
-      message: 'Recorded official qualification evidence must use confirmation decisions.',
+      message: 'Recorded qualification evidence cannot omit an eligible semantic confirmation.',
       path: ['cases'],
     });
   }

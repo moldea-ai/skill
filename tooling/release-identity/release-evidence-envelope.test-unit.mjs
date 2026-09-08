@@ -37,7 +37,7 @@ const createFreshEnvelope = () => ({
     attemptSha256: SHA256,
     evidenceSha256: SHA256,
     latestSha256: SHA256,
-    protocolVersion: 23,
+    protocolVersion: 24,
     resourceStatus: 'passed',
     resultSha256: SHA256,
   },

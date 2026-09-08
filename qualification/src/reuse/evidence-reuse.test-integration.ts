@@ -118,7 +118,8 @@ describe('qualification case evidence reuse', () => {
       targetDigest: sourceResult.provenance.targetDigest,
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        reasoningEffort: 'high',
+        actorReasoningEffort: 'high',
+        judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,
         pnpmVersion: '11.9.0',
@@ -277,7 +278,8 @@ describe('qualification case evidence reuse', () => {
     ).stdout.trim();
     const executionEnvironment = {
       model: sourceResult.provenance.model,
-      reasoningEffort: sourceResult.provenance.reasoningEffort,
+      actorReasoningEffort: sourceResult.provenance.actorReasoningEffort,
+      judgeReasoningEffort: sourceResult.provenance.judgeReasoningEffort,
       codexVersion: sourceResult.provenance.codexVersion,
       nodeVersion: sourceResult.provenance.nodeVersion,
       pnpmVersion: sourceResult.provenance.pnpmVersion,

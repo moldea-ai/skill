@@ -271,7 +271,9 @@ const evidenceSourceLabel = 'Current evidence';
               <div>
                 <dt class="text-muted-foreground">Model configuration</dt>
                 <dd class="mt-1 font-mono break-all">
-                  {result.provenance.model} · {result.provenance.reasoningEffort}
+                  {result.provenance.model} · actor {result.provenance.actorReasoningEffort} · judge {
+                    result.provenance.judgeReasoningEffort
+                  }
                 </dd>
               </div>
               <div>

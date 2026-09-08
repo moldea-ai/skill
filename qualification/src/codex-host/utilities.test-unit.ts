@@ -7,6 +7,7 @@ describe('createCodexExecCommand', () => {
   test('creates the shared externally sandboxed fixed-model contract', () => {
     const command = createCodexExecCommand({
       outputPath: '/home/evaluator/output.json',
+      role: 'actor',
       schemaPath: '/home/evaluator/schema.json',
     });
 
@@ -25,5 +26,16 @@ describe('createCodexExecCommand', () => {
     expect(command).not.toContain('--sandbox');
     expect(command).not.toContain('--cd');
     expect(command.slice(-1)).toStrictEqual(['-']);
+  });
+
+  test('creates the xhigh judge contract independently from the actor', () => {
+    const command = createCodexExecCommand({
+      outputPath: '/home/evaluator/output.json',
+      role: 'judge',
+      schemaPath: '/home/evaluator/schema.json',
+    });
+
+    expect(command).toContain('model_reasoning_effort=xhigh');
+    expect(command).not.toContain('model_reasoning_effort=high');
   });
 });

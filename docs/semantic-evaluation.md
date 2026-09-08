@@ -39,7 +39,7 @@ A separate judge receives the declared criteria plus runner-owned evidence. No a
 
 ## Resource evidence
 
-For every completed actor command, the runner observes the command and output in memory, projects only safe facts, and discards raw command text and output bodies.
+For every completed actor and judge command, the runner observes the command and output in memory, projects only safe facts, and discards raw command text and output bodies.
 
 The committed result records:
 
@@ -47,10 +47,11 @@ The committed result records:
 - emitted `moldea` bytes
 - maximum bytes emitted by one recognized invocation
 - total model-visible tool-output bytes
+- actor and judge command-policy status with bounded reason codes and counts
 - completed host-command count and total input-plus-output model tokens
 - whether a non-content command attempted to return canonical content
 
-Abstention cases require zero recognized `moldea` commands and zero `moldea` bytes. Each semantic case owns its exact activation and `moldea` budget. The activation label records how the case became eligible; it does not require a CLI call when independent artifact evidence owns the operation. Direct Agent Skill artifact cases therefore use exact zero-call budgets when repository validation would add no relevant fact. A direct case may begin with `scope` when explicit `moldea` intent targets ordinary repository paths, while a relationship case always begins with `scope` and never uses `inspect`. Other ordinary direct and relationship cases permit at most four `moldea` calls and 262,144 `moldea`-output bytes. The dedicated large-context case permits at most 16 calls and 1,048,576 output bytes while still requiring paginated, purpose-bounded traversal. The evaluation host separately enforces its absolute command, output, and token containment ceilings. Each model stage has a finite ten-minute timeout so `high` reasoning can complete without turning an ordinary long response into an operational failure.
+Abstention cases require zero recognized `moldea` commands and zero `moldea` bytes. Each semantic case owns its exact activation and `moldea` budget. The activation label records how the case became eligible; it does not require a CLI call when independent artifact evidence owns the operation. Direct Agent Skill artifact cases therefore use exact zero-call budgets when repository validation would add no relevant fact. A direct case may begin with `scope` when explicit `moldea` intent targets ordinary repository paths, while a relationship case always begins with `scope` and never uses `inspect`. Other ordinary direct and relationship cases permit at most four `moldea` calls and 262,144 `moldea`-output bytes. The dedicated large-context case permits at most 16 calls and 1,048,576 output bytes while still requiring paginated, purpose-bounded traversal. The evaluation host separately enforces its absolute command, output, and token containment ceilings. Each actor and judge stage has a finite fifteen-minute timeout. Actors use `high` reasoning and independent judges use `xhigh` reasoning.
 
 When pre-adoption abstention consumes the complete request, the actor reports only a neutral repository outcome such as `No files were changed.` It does not name `moldea`, describe an unavailable operation or result, or recommend initialization. When an independent host review remains, the actor completes that review and reports its normal actionable findings without mentioning `moldea`.
 
@@ -68,7 +69,7 @@ Every adopted semantic repository contains the current managed README discovery 
 
 Relationship cases begin from ordinary Git-style task paths. They cover both a host-provided changed path and an unchanged path explicitly named by the developer. The gate normalizes those repository-relative spellings before Core matching, and the actor must use the corresponding leading-slash repository-logical paths for the CLI query. This prevents false abstention without weakening canonical manifest path validation or adding `moldea`-owned Git discovery.
 
-The runner validates each declared resource dimension and activation order before it invokes the semantic judge. A budget or activation miss makes the case fail but remains valid bounded evidence, so the attempt and any required confirmation trials are preserved instead of being treated as evaluator corruption. The judge evaluates only the remaining behavioral clauses and projected command-result facts. It must not reinterpret the total host command count or output from non-`moldea` commands as `moldea` resource consumption.
+The runner records semantic, resource, command-policy, repository-control, read-only-mount, and operational results as separate dimensions. Overall pass is their strict conjunction. Only a semantic failure with every other dimension passing is eligible for confirmation; deterministic, resource, policy, repository, mount, and operational failures are terminal and do not spend confirmation calls. The judge evaluates only the behavioral clauses and projected command-result facts. It must not reinterpret the total host command count or output from non-`moldea` commands as `moldea` resource consumption.
 
 When a criterion requires a repository correctness test, the runner recognizes only one static repository-root Node test invocation over portable colocated test paths, `npm test`, or `npm run test:integration`. A successful command contributes one `node-test-summary` fact containing the recognized test level and native aggregate counts. Projection requires a zero exit code, a complete native summary, at least one test, every discovered test passing, and zero failures, cancellations, skips, or todo results. Raw command text, test names, assertions, paths, durations, npm preambles, and output bodies are discarded. Unrecognized, incomplete, contradictory, failed, or oversized output supplies no result fact.
 
@@ -87,7 +88,7 @@ The read-only case fails if evaluation changes any protected or ordinary reposit
 
 ## Fresh evidence by default
 
-Semantic protocol 23 accepts only evidence produced by the current suite, current portable bytes, current CLI closure, current runner, current coverage map, current resource profiles, and current host contract.
+Semantic protocol 24 accepts only schema-8 evidence produced by the current suite, current portable bytes, current CLI closure, current runner, current coverage map, current resource profiles, and current role-specific host contract. Active routes, pointers, and derived results are generated solely from that contract.
 
 Evidence applies only to exact behavior-bearing actor and judge stage identities. Actor identity binds the portable skill bytes, case definition, natural prompt, deterministic fixture, scenario evidence, complete related-repository mount state, resource-profile file, CLI closure, protocol, and exact host. The source resource profile is read from the immutable commit that contains the reused evidence rather than inferred from the current checkout. Judge identity additionally binds its exact prompt and the complete projected actor evidence it assessed. A verified immutable stage may be reused only when all of those inputs match byte-for-byte. Every mismatch is a cache miss.
 
@@ -117,7 +118,7 @@ Use one explicit case for a non-recording diagnostic:
 npm run eval:semantic -- --case <case-id>
 ```
 
-The diagnostic emits one content-free JSON result with the verdict, complete observed and forbidden criterion identifiers, a UTF-8-safe rationale excerpt with explicit truncation state, and aggregate command and token evidence. Output cannot exceed 65,536 UTF-8 bytes. Running `npm run eval:semantic` without `--case` or `--record` fails before host discovery and makes no model call.
+The diagnostic emits one content-free JSON result with the verdict, complete observed and forbidden criterion identifiers, a UTF-8-safe rationale excerpt with explicit truncation state, and separate actor and judge command-policy aggregates plus resource and token evidence. Policy aggregates contain only statuses, bounded reason codes, and counts. Output cannot exceed 65,536 UTF-8 bytes. Running `npm run eval:semantic` without `--case` or `--record` fails before host discovery and makes no model call.
 
 ## Correct failures efficiently
 

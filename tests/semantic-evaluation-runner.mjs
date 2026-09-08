@@ -22,12 +22,15 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import {
+  CODEX_EVALUATION_ACTOR_REASONING_EFFORT,
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
+  CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
   CODEX_EVALUATION_MODEL,
   CODEX_EVALUATION_NPM_VERSION,
-  CODEX_EVALUATION_REASONING_EFFORT,
   CodexEvaluationHostError,
   buildCodexEvaluationHostCommand,
+  hasPassingCodexEvaluationCommandPolicy,
+  hasValidCodexEvaluationCommandPolicy,
   identifyCodexEvaluationHost,
   parseCodexEvaluationHostCommand,
   prepareCodexEvaluationHome,
@@ -44,10 +47,8 @@ import {
   INCORRECT_MOLDEA_PRODUCT_NAME_CASING_LABEL,
   captureReadOnlyMountControlState,
   captureRepositoryControlState,
-  classifyActorCommandPolicyEvent,
   collectScenarioEvidence,
   collectSkillArtifactEvidence,
-  createActorCommandPolicyEvidence,
   createMoldeaResourceEvidence,
   createPortableSkillDigest,
   createReadOnlyMountControlEvidence,
@@ -62,7 +63,6 @@ import {
   getSemanticCriterionLabels,
   hasPassingMoldeaResourceBudget,
   hasValidReadOnlyMountControlEvidence,
-  hasValidActorCommandPolicyEvidence,
   hasValidActorExecutionEvidence,
   hasValidMoldeaResourceEvidence,
   hasValidRepositoryControlEvidence,
@@ -148,8 +148,8 @@ const SEMANTIC_MAXIMUM_CHARGED_OPERATIONAL_FAILURE_COUNT = Math.floor(
   SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT /
     MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
 );
-const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 7;
-const SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION = 1;
+const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 8;
+const SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION = 2;
 const SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1;
 const SEMANTIC_MODEL_CALLS_PER_TRIAL = 2;
 const SEMANTIC_MAXIMUM_TRIALS_PER_CASE = 3;
@@ -375,7 +375,13 @@ export const createSemanticDiagnosticOutput = (result) => {
     !Array.isArray(result.forbidden) ||
     result.forbidden.some((criterionId) => typeof criterionId !== 'string') ||
     typeof result.rationale !== 'string' ||
-    !hasValidActorCommandPolicyEvidence(result.actorCommandPolicyEvidence) ||
+    !hasValidSemanticResultDimensions(result.dimensions) ||
+    result.passed !== hasPassingSemanticResultDimensions(result.dimensions) ||
+    result.confirmationEligible !== isSemanticConfirmationEligible(result.dimensions) ||
+    JSON.stringify(result.failureClassifications) !==
+      JSON.stringify(getSemanticFailureClassifications(result.dimensions)) ||
+    !hasValidCodexEvaluationCommandPolicy(result.actorCommandPolicyEvidence) ||
+    !hasValidCodexEvaluationCommandPolicy(result.judgeCommandPolicyEvidence) ||
     !hasValidMoldeaResourceEvidence(result.actorResourceEvidence) ||
     !hasValidSemanticModelUsage(result.actorUsage) ||
     !hasValidSemanticModelUsage(result.judgeUsage)
@@ -384,9 +390,12 @@ export const createSemanticDiagnosticOutput = (result) => {
   }
 
   const createRecord = (rationale, rationaleTruncated) => ({
-    schemaVersion: 1,
+    schemaVersion: SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION,
     evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     caseId: result.id,
+    confirmationEligible: result.confirmationEligible,
+    dimensions: result.dimensions,
+    failureClassifications: result.failureClassifications,
     verdict: result.passed ? 'passed' : 'failed',
     criteria: {
       observed: [...result.observed],
@@ -395,8 +404,9 @@ export const createSemanticDiagnosticOutput = (result) => {
     rationale,
     rationaleTruncated,
     resources: {
-      actorCommands: {
-        completedCommandCount: result.actorCommandPolicyEvidence.completedCommandCount,
+      commandPolicy: {
+        actor: result.actorCommandPolicyEvidence,
+        judge: result.judgeCommandPolicyEvidence,
       },
       moldea: {
         commandCount: result.actorResourceEvidence.commandCount,
@@ -554,10 +564,7 @@ const truncateSemanticDiagnosticText = (source, maximumByteCount) => {
 /** Creates a useful batch explanation without retaining model-authored content. */
 const createContentFreeSemanticDiagnosticRationale = (diagnostic) => {
   if (diagnostic.verdict === 'passed') return 'All required criteria passed.';
-  if (diagnostic.criteria.forbidden.length > 0) {
-    return 'The case failed because at least one forbidden criterion was triggered.';
-  }
-  return 'The case failed because an expected criterion or deterministic boundary did not pass.';
+  return `Failed dimensions: ${diagnostic.failureClassifications.join(', ')}.`;
 };
 
 /** Projects one complete case result into the content-free diagnostic ledger contract. */
@@ -596,8 +603,9 @@ export const createSemanticDiagnosticBatchOutput = (ledger) => {
       passedCount,
       failedCount: ledger.results.length - passedCount,
       ledgerSha256: createSha256(`${JSON.stringify(ledger, null, 2)}\n`),
-      results: ledger.results.map(({ caseId, verdict }) => ({
+      results: ledger.results.map(({ caseId, failureClassifications, verdict }) => ({
         caseId,
+        failureClassifications,
         verdict,
       })),
     },
@@ -615,14 +623,19 @@ export const createSemanticEvaluationHostContract = (host) => ({
   model: host?.model,
   name: host?.name,
   reasoningEffort: host?.reasoningEffort,
+  role: host?.role,
 });
 
 /** Checks whether a host contract preserves the fixed semantic execution boundary. */
-const hasValidSemanticEvaluationHostContract = (hostContract) =>
+const hasValidSemanticEvaluationHostContract = (hostContract, role) =>
   isPlainRecord(hostContract) &&
   hostContract.model === CODEX_EVALUATION_MODEL &&
   hostContract.name === 'codex' &&
-  hostContract.reasoningEffort === CODEX_EVALUATION_REASONING_EFFORT;
+  hostContract.reasoningEffort ===
+    (role === 'actor'
+      ? CODEX_EVALUATION_ACTOR_REASONING_EFFORT
+      : CODEX_EVALUATION_JUDGE_REASONING_EFFORT) &&
+  hostContract.role === role;
 
 /** Checks whether exact host provenance satisfies one stable execution contract. */
 const hasValidSemanticEvaluationHostIdentity = (host, hostContract) =>
@@ -632,23 +645,28 @@ const hasValidSemanticEvaluationHostIdentity = (host, hostContract) =>
   host.version.trim().length > 0 &&
   host.version !== 'unavailable';
 
-/** Requires actor and judge identities to share the fixed semantic host contract. */
-const createCompatibleSemanticEvaluationHostContract = (actorHost, judgeHost) => {
-  const actorContract = createSemanticEvaluationHostContract(actorHost);
-  const judgeContract = createSemanticEvaluationHostContract(judgeHost);
+/** Requires one host identity to satisfy its closed semantic evaluation role. */
+const requireSemanticEvaluationHostIdentity = (host, role) => {
+  const hostContract = createSemanticEvaluationHostContract(host);
   if (
-    !hasValidSemanticEvaluationHostContract(actorContract) ||
-    JSON.stringify(actorContract) !== JSON.stringify(judgeContract) ||
-    !hasValidSemanticEvaluationHostIdentity(actorHost, actorContract) ||
-    !hasValidSemanticEvaluationHostIdentity(judgeHost, judgeContract)
+    !hasValidSemanticEvaluationHostContract(hostContract, role) ||
+    !hasValidSemanticEvaluationHostIdentity(host, hostContract)
   ) {
     throw new Error(
       `Semantic evaluation requires ${CODEX_EVALUATION_MODEL} ` +
-        `${CODEX_EVALUATION_REASONING_EFFORT} actor and judge Codex hosts with exact versions.`,
+        `${CODEX_EVALUATION_ACTOR_REASONING_EFFORT} actor and ` +
+        `${CODEX_EVALUATION_JUDGE_REASONING_EFFORT} judge Codex hosts with exact versions.`,
     );
   }
+  return hostContract;
+};
 
-  return actorContract;
+/** Requires actor and judge identities to share the fixed semantic host contract. */
+const createCompatibleSemanticEvaluationHostContract = (actorHost, judgeHost) => {
+  return {
+    actor: requireSemanticEvaluationHostIdentity(actorHost, 'actor'),
+    judge: requireSemanticEvaluationHostIdentity(judgeHost, 'judge'),
+  };
 };
 
 /** Creates an empty artifact-bound checkpoint for one stable evaluation host contract. */
@@ -725,6 +743,55 @@ const hasValidWorkspaceChanges = (workspaceChanges) =>
 /** Enforces one semantic case's explicit moldea command and output budget. */
 const hasPassingCaseMoldeaResourceBudget = (caseDefinition, actorResourceEvidence) =>
   hasPassingMoldeaResourceBudget(actorResourceEvidence, caseDefinition.resourceBudget);
+
+const SEMANTIC_RESULT_DIMENSION_NAMES = [
+  'semantic',
+  'resource',
+  'commandPolicy',
+  'repositoryControl',
+  'mountIntegrity',
+  'operational',
+];
+
+/** Creates the independently attributable outcome dimensions for one completed trial. */
+const createSemanticResultDimensions = (caseDefinition, actorEvidence, isSemanticPass) => ({
+  semantic: isSemanticPass,
+  resource: hasPassingCaseMoldeaResourceBudget(caseDefinition, actorEvidence.actorResourceEvidence),
+  commandPolicy:
+    hasPassingCodexEvaluationCommandPolicy(actorEvidence.actorCommandPolicyEvidence) &&
+    hasPassingCodexEvaluationCommandPolicy(actorEvidence.judgeCommandPolicyEvidence),
+  repositoryControl:
+    hasValidRepositoryControlEvidence(actorEvidence.repositoryControlEvidence) &&
+    actorEvidence.repositoryControlEvidence.violations.length === 0,
+  mountIntegrity: hasUnchangedReadOnlyMounts(
+    actorEvidence.readOnlyMountControlEvidence,
+    caseDefinition,
+  ),
+  operational: true,
+});
+
+/** Checks one complete closed dimension record. */
+const hasValidSemanticResultDimensions = (dimensions) =>
+  isPlainRecord(dimensions) &&
+  Object.keys(dimensions).length === SEMANTIC_RESULT_DIMENSION_NAMES.length &&
+  SEMANTIC_RESULT_DIMENSION_NAMES.every((dimension) => typeof dimensions[dimension] === 'boolean');
+
+/** Derives the overall trial verdict from every independent outcome dimension. */
+const hasPassingSemanticResultDimensions = (dimensions) =>
+  hasValidSemanticResultDimensions(dimensions) &&
+  SEMANTIC_RESULT_DIMENSION_NAMES.every((dimension) => dimensions[dimension]);
+
+/** Limits confirmations to semantic uncertainty with every deterministic dimension passing. */
+const isSemanticConfirmationEligible = (dimensions) =>
+  hasValidSemanticResultDimensions(dimensions) &&
+  !dimensions.semantic &&
+  SEMANTIC_RESULT_DIMENSION_NAMES.filter((dimension) => dimension !== 'semantic').every(
+    (dimension) => dimensions[dimension],
+  );
+
+/** Returns stable content-free identifiers for every failing outcome dimension. */
+const getSemanticFailureClassifications = (dimensions) =>
+  SEMANTIC_RESULT_DIMENSION_NAMES.filter((dimension) => !dimensions[dimension]);
 
 /** Checks whether one timestamp is a complete ISO date. */
 const hasValidIsoDate = (value) => typeof value === 'string' && !Number.isNaN(Date.parse(value));
@@ -917,14 +984,14 @@ const hasValidSemanticActorStageEvidence = (actorEvidence, candidate, caseDefini
       actorEvidence.actorExecutionEvidence,
       actorExecutionEvidenceOptions,
     ) &&
-    hasValidActorCommandPolicyEvidence(actorEvidence.actorCommandPolicyEvidence) &&
+    hasValidCodexEvaluationCommandPolicy(actorEvidence.actorCommandPolicyEvidence) &&
     hasValidMoldeaResourceEvidence(actorEvidence.actorResourceEvidence) &&
     hasValidWorkspaceChanges(actorEvidence.workspaceChanges) &&
     hasValidScenarioEvidence(actorEvidence.scenarioEvidence, caseDefinition) &&
     hasValidRepositoryControlEvidence(actorEvidence.repositoryControlEvidence) &&
     hasUnchangedReadOnlyMounts(actorEvidence.readOnlyMountControlEvidence, caseDefinition) &&
     hasValidSkillArtifactEvidence(actorEvidence.skillArtifactEvidence, caseDefinition) &&
-    hasValidSemanticEvaluationHostIdentity(actorEvidence.actorHost, candidate.hostContract)
+    hasValidSemanticEvaluationHostIdentity(actorEvidence.actorHost, candidate.hostContract.actor)
   );
 };
 
@@ -1160,7 +1227,9 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
     !('activeTrial' in candidate) ||
     !Array.isArray(candidate.confirmations) ||
     !Array.isArray(candidate.results) ||
-    !hasValidSemanticEvaluationHostContract(hostContract) ||
+    !isPlainRecord(hostContract) ||
+    !hasValidSemanticEvaluationHostContract(hostContract.actor, 'actor') ||
+    !hasValidSemanticEvaluationHostContract(hostContract.judge, 'judge') ||
     Object.keys(candidate).some((key) => !SEMANTIC_CANDIDATE_KEYS.has(key))
   ) {
     throw new Error('The semantic evaluation candidate has an unsupported shape.');
@@ -1188,14 +1257,15 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       Array.isArray(result.forbidden) &&
       result.forbidden.every((label) => typeof label === 'string') &&
       result.forbidden.every((label) => forbiddenLabels.includes(label));
-    const isDerivedPass =
+    const isSemanticPass =
       hasValidLabels &&
       expectedLabels.every((label) => result.observed.includes(label)) &&
-      result.forbidden.length === 0 &&
-      hasPassingCaseMoldeaResourceBudget(caseDefinition, result.actorResourceEvidence) &&
-      hasValidRepositoryControlEvidence(result.repositoryControlEvidence) &&
-      result.repositoryControlEvidence.violations.length === 0 &&
-      hasUnchangedReadOnlyMounts(result.readOnlyMountControlEvidence, caseDefinition);
+      result.forbidden.length === 0;
+    const expectedDimensions = caseDefinition
+      ? createSemanticResultDimensions(caseDefinition, result, isSemanticPass)
+      : null;
+    const isDerivedPass =
+      expectedDimensions !== null && hasPassingSemanticResultDimensions(expectedDimensions);
 
     if (
       !caseDefinition ||
@@ -1207,10 +1277,16 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
         result.actorExecutionEvidence,
         actorExecutionEvidenceOptions,
       ) ||
-      !hasValidActorCommandPolicyEvidence(result.actorCommandPolicyEvidence) ||
+      !hasValidCodexEvaluationCommandPolicy(result.actorCommandPolicyEvidence) ||
+      !hasValidCodexEvaluationCommandPolicy(result.judgeCommandPolicyEvidence) ||
       !hasValidMoldeaResourceEvidence(result.actorResourceEvidence) ||
       !hasValidSemanticOperationalRetries(result.operationalRetries) ||
       typeof result.rationale !== 'string' ||
+      !hasValidSemanticResultDimensions(result.dimensions) ||
+      JSON.stringify(result.dimensions) !== JSON.stringify(expectedDimensions) ||
+      result.confirmationEligible !== isSemanticConfirmationEligible(result.dimensions) ||
+      JSON.stringify(result.failureClassifications) !==
+        JSON.stringify(getSemanticFailureClassifications(result.dimensions)) ||
       typeof result.passed !== 'boolean' ||
       result.passed !== isDerivedPass ||
       !hasValidWorkspaceChanges(result.workspaceChanges) ||
@@ -1220,8 +1296,8 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       !hasValidSkillArtifactEvidence(result.skillArtifactEvidence, caseDefinition) ||
       typeof result.evaluatedAt !== 'string' ||
       result.caseDefinitionDigest !== createSemanticCaseDefinitionDigest(caseDefinition) ||
-      !hasValidSemanticEvaluationHostIdentity(result.actorHost, hostContract) ||
-      !hasValidSemanticEvaluationHostIdentity(result.judgeHost, hostContract) ||
+      !hasValidSemanticEvaluationHostIdentity(result.actorHost, hostContract.actor) ||
+      !hasValidSemanticEvaluationHostIdentity(result.judgeHost, hostContract.judge) ||
       !hasValidSemanticModelUsage(result.judgeUsage) ||
       !hasValidSemanticExecutionOrigin(result, candidate, caseDefinition)
     ) {
@@ -1246,19 +1322,21 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       Array.isArray(confirmation.forbidden) &&
       confirmation.forbidden.every((label) => typeof label === 'string') &&
       confirmation.forbidden.every((label) => forbiddenLabels.includes(label));
-    const isDerivedPass =
+    const isSemanticPass =
       hasValidLabels &&
       expectedLabels.every((label) => confirmation.observed.includes(label)) &&
-      confirmation.forbidden.length === 0 &&
-      hasPassingCaseMoldeaResourceBudget(caseDefinition, confirmation.actorResourceEvidence) &&
-      hasValidRepositoryControlEvidence(confirmation.repositoryControlEvidence) &&
-      confirmation.repositoryControlEvidence.violations.length === 0 &&
-      hasUnchangedReadOnlyMounts(confirmation.readOnlyMountControlEvidence, caseDefinition);
+      confirmation.forbidden.length === 0;
+    const expectedDimensions = caseDefinition
+      ? createSemanticResultDimensions(caseDefinition, confirmation, isSemanticPass)
+      : null;
+    const isDerivedPass =
+      expectedDimensions !== null && hasPassingSemanticResultDimensions(expectedDimensions);
     const confirmationIdentity = `${confirmation?.id}:${confirmation?.confirmationIndex}`;
 
     if (
       !caseDefinition ||
       initialResult?.passed !== false ||
+      initialResult.confirmationEligible !== true ||
       confirmation.caseId !== confirmation.id ||
       ![1, 2].includes(confirmation.confirmationIndex) ||
       confirmationIds.has(confirmationIdentity) ||
@@ -1268,10 +1346,17 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
         confirmation.actorExecutionEvidence,
         actorExecutionEvidenceOptions,
       ) ||
-      !hasValidActorCommandPolicyEvidence(confirmation.actorCommandPolicyEvidence) ||
+      !hasValidCodexEvaluationCommandPolicy(confirmation.actorCommandPolicyEvidence) ||
+      !hasValidCodexEvaluationCommandPolicy(confirmation.judgeCommandPolicyEvidence) ||
       !hasValidMoldeaResourceEvidence(confirmation.actorResourceEvidence) ||
       !hasValidSemanticOperationalRetries(confirmation.operationalRetries) ||
       typeof confirmation.rationale !== 'string' ||
+      !hasValidSemanticResultDimensions(confirmation.dimensions) ||
+      JSON.stringify(confirmation.dimensions) !== JSON.stringify(expectedDimensions) ||
+      confirmation.confirmationEligible !==
+        isSemanticConfirmationEligible(confirmation.dimensions) ||
+      JSON.stringify(confirmation.failureClassifications) !==
+        JSON.stringify(getSemanticFailureClassifications(confirmation.dimensions)) ||
       typeof confirmation.passed !== 'boolean' ||
       confirmation.passed !== isDerivedPass ||
       !hasValidWorkspaceChanges(confirmation.workspaceChanges) ||
@@ -1281,8 +1366,8 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       !hasValidSkillArtifactEvidence(confirmation.skillArtifactEvidence, caseDefinition) ||
       typeof confirmation.evaluatedAt !== 'string' ||
       confirmation.caseDefinitionDigest !== createSemanticCaseDefinitionDigest(caseDefinition) ||
-      !hasValidSemanticEvaluationHostIdentity(confirmation.actorHost, hostContract) ||
-      !hasValidSemanticEvaluationHostIdentity(confirmation.judgeHost, hostContract) ||
+      !hasValidSemanticEvaluationHostIdentity(confirmation.actorHost, hostContract.actor) ||
+      !hasValidSemanticEvaluationHostIdentity(confirmation.judgeHost, hostContract.judge) ||
       !hasValidSemanticModelUsage(confirmation.judgeUsage) ||
       !hasValidSemanticExecutionOrigin(confirmation, candidate, caseDefinition)
     ) {
@@ -1296,7 +1381,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       .filter(({ id }) => id === result.id)
       .sort((left, right) => left.confirmationIndex - right.confirmationIndex);
     if (
-      (result.passed && confirmations.length > 0) ||
+      ((!result.confirmationEligible || result.passed) && confirmations.length > 0) ||
       confirmations.length > 2 ||
       confirmations.some(({ confirmationIndex }, index) => confirmationIndex !== index + 1) ||
       confirmations.slice(0, -1).some(({ passed }) => !passed)
@@ -1365,20 +1450,25 @@ export const validateSemanticCandidateCheckpointCompatibility = (
   candidate,
   { artifactDigest, caseDefinitions, cli, coverageDigest },
 ) => {
-  if (!hasValidSemanticEvaluationHostContract(candidate?.hostContract)) {
+  if (
+    !isPlainRecord(candidate?.hostContract) ||
+    !hasValidSemanticEvaluationHostContract(candidate.hostContract.actor, 'actor') ||
+    !hasValidSemanticEvaluationHostContract(candidate.hostContract.judge, 'judge')
+  ) {
     throw new Error(
       `The semantic evaluation candidate does not use the required ${CODEX_EVALUATION_MODEL} ` +
-        `${CODEX_EVALUATION_REASONING_EFFORT} Codex host contract.`,
+        `${CODEX_EVALUATION_ACTOR_REASONING_EFFORT} actor and ` +
+        `${CODEX_EVALUATION_JUDGE_REASONING_EFFORT} judge Codex host contract.`,
     );
   }
 
   validateSemanticCandidateCompatibility(candidate, {
-    actorHost: { ...candidate.hostContract, version: 'checkpoint-validation' },
+    actorHost: { ...candidate.hostContract.actor, version: 'checkpoint-validation' },
     artifactDigest,
     caseDefinitions,
     cli,
     coverageDigest,
-    judgeHost: { ...candidate.hostContract, version: 'checkpoint-validation' },
+    judgeHost: { ...candidate.hostContract.judge, version: 'checkpoint-validation' },
   });
 };
 
@@ -1421,8 +1511,8 @@ export const appendSemanticCandidateInitialResult = (
     throw new Error(`Semantic case ${caseDefinition.id} already has an initial trial.`);
   }
   if (
-    !hasValidSemanticEvaluationHostIdentity(result.actorHost, candidate.hostContract) ||
-    !hasValidSemanticEvaluationHostIdentity(result.judgeHost, candidate.hostContract)
+    !hasValidSemanticEvaluationHostIdentity(result.actorHost, candidate.hostContract.actor) ||
+    !hasValidSemanticEvaluationHostIdentity(result.judgeHost, candidate.hostContract.judge)
   ) {
     throw new Error('Semantic case evidence does not contain compatible actor and judge hosts.');
   }
@@ -1446,6 +1536,7 @@ export const getSemanticCaseResolution = (candidate, caseId) => {
   const initialResult = candidate.results.find(({ id }) => id === caseId);
   if (initialResult === undefined) return 'pending';
   if (initialResult.passed) return 'passed';
+  if (!initialResult.confirmationEligible) return 'confirmed-failure';
 
   const confirmations = candidate.confirmations
     .filter(({ id }) => id === caseId)
@@ -1474,8 +1565,8 @@ export const appendSemanticCandidateConfirmation = (
     throw new Error('Semantic confirmation evidence must match the evaluated case definition.');
   }
   if (
-    !hasValidSemanticEvaluationHostIdentity(result.actorHost, candidate.hostContract) ||
-    !hasValidSemanticEvaluationHostIdentity(result.judgeHost, candidate.hostContract)
+    !hasValidSemanticEvaluationHostIdentity(result.actorHost, candidate.hostContract.actor) ||
+    !hasValidSemanticEvaluationHostIdentity(result.judgeHost, candidate.hostContract.judge)
   ) {
     throw new Error(
       'Semantic confirmation evidence does not contain compatible actor and judge hosts.',
@@ -1716,8 +1807,11 @@ const hasValidSemanticDiagnosticSelection = (selection) =>
 const hasValidSemanticDiagnosticRecord = (record, expectedCaseId) =>
   hasExactObjectKeys(record, [
     'caseId',
+    'confirmationEligible',
     'criteria',
+    'dimensions',
     'evaluationProtocolVersion',
+    'failureClassifications',
     'rationale',
     'rationaleRedacted',
     'rationaleTruncated',
@@ -1729,6 +1823,12 @@ const hasValidSemanticDiagnosticRecord = (record, expectedCaseId) =>
   record.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION &&
   record.caseId === expectedCaseId &&
   ['passed', 'failed'].includes(record.verdict) &&
+  hasValidSemanticResultDimensions(record.dimensions) &&
+  record.verdict ===
+    (hasPassingSemanticResultDimensions(record.dimensions) ? 'passed' : 'failed') &&
+  record.confirmationEligible === isSemanticConfirmationEligible(record.dimensions) &&
+  JSON.stringify(record.failureClassifications) ===
+    JSON.stringify(getSemanticFailureClassifications(record.dimensions)) &&
   hasExactObjectKeys(record.criteria, ['forbidden', 'observed']) &&
   Array.isArray(record.criteria.observed) &&
   record.criteria.observed.every((criterionId) => typeof criterionId === 'string') &&
@@ -1739,12 +1839,14 @@ const hasValidSemanticDiagnosticRecord = (record, expectedCaseId) =>
   record.rationaleRedacted === true &&
   typeof record.rationaleTruncated === 'boolean' &&
   hasExactObjectKeys(record.resources, [
-    'actorCommands',
+    'commandPolicy',
     'modelTokens',
     'moldea',
     'operationalFailures',
   ]) &&
-  hasValidActorCommandPolicyEvidence(record.resources.actorCommands) &&
+  hasExactObjectKeys(record.resources.commandPolicy, ['actor', 'judge']) &&
+  hasValidCodexEvaluationCommandPolicy(record.resources.commandPolicy.actor) &&
+  hasValidCodexEvaluationCommandPolicy(record.resources.commandPolicy.judge) &&
   hasValidMoldeaResourceEvidence(record.resources.moldea) &&
   hasExactObjectKeys(record.resources.modelTokens, ['actor', 'judge']) &&
   hasExactObjectKeys(record.resources.modelTokens.actor, [
@@ -1952,8 +2054,8 @@ export const buildActorPrompt = (caseDefinition) => {
 };
 
 /** Adds Codex JSONL output so execution events remain independently observable. */
-export const buildSemanticEvaluationHostCommand = (baseCommand) => {
-  const command = buildCodexEvaluationHostCommand(baseCommand);
+export const buildSemanticEvaluationHostCommand = (baseCommand, role) => {
+  const command = buildCodexEvaluationHostCommand(baseCommand, role);
   if (command.includes('--json')) return command;
 
   return [...command.slice(0, -1), '--json', '-'];
@@ -1966,9 +2068,8 @@ export const buildSemanticEvaluationHostCommand = (baseCommand) => {
  * @returns The final response, bounded command facts, and command-policy aggregate.
  */
 export const parseSemanticEvaluationHostOutput = (output, options) => {
-  const { usage } = projectCodexEvaluationExecutionEvidence(output);
+  const { commandPolicy, usage } = projectCodexEvaluationExecutionEvidence(output);
   const actorExecutionEvidence = [];
-  const actorCommandPolicyClassifications = [];
   let hasOperationalFailureEvent = false;
   let response = null;
 
@@ -2006,10 +2107,6 @@ export const parseSemanticEvaluationHostOutput = (output, options) => {
         throw new Error('Codex actor execution evidence exceeded its item limit.');
       }
     }
-    const commandPolicyClassification = classifyActorCommandPolicyEvent(event);
-    if (commandPolicyClassification !== null) {
-      actorCommandPolicyClassifications.push(commandPolicyClassification);
-    }
   }
 
   if (response === null || response.trim() === '') {
@@ -2023,9 +2120,9 @@ export const parseSemanticEvaluationHostOutput = (output, options) => {
   }
 
   return {
-    actorCommandPolicyEvidence: createActorCommandPolicyEvidence(actorCommandPolicyClassifications),
     actorExecutionEvidence,
     actorResourceEvidence: createMoldeaResourceEvidence(actorExecutionEvidence, options),
+    commandPolicyEvidence: commandPolicy,
     response,
     usage,
   };
@@ -2078,7 +2175,8 @@ export const createSemanticEvaluationCostEstimate = (
     model: CODEX_EVALUATION_MODEL,
     operationalRetryInclusiveInvocationLimit,
     paidInitialStageCount,
-    reasoningEffort: CODEX_EVALUATION_REASONING_EFFORT,
+    actorReasoningEffort: CODEX_EVALUATION_ACTOR_REASONING_EFFORT,
+    judgeReasoningEffort: CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
     reusedCaseCount,
     reusedStageCount,
     stageReservationTokenCount: absoluteTokensPerInvocation,
@@ -2132,6 +2230,7 @@ const loadSemanticReuseSources = async () => {
   if (!verification.passed) {
     throw new Error('Semantic stage reuse requires valid immutable attempt history.');
   }
+  if (!existsSync(ATTEMPT_DIRECTORIES_ROOT)) return [];
   const entries = await readdir(ATTEMPT_DIRECTORIES_ROOT, {
     withFileTypes: true,
   });
@@ -2404,7 +2503,7 @@ export const buildJudgePrompt = (
   skillArtifactEvidence = [],
 ) => {
   const { activationScenarios } = validateSkillEvidenceConfiguration(caseDefinition);
-  if (!hasValidActorCommandPolicyEvidence(actorCommandPolicyEvidence)) {
+  if (!hasValidCodexEvaluationCommandPolicy(actorCommandPolicyEvidence)) {
     throw new Error('Judge input requires valid actor command-policy evidence.');
   }
   if (!hasValidMoldeaResourceEvidence(actorResourceEvidence)) {
@@ -4441,11 +4540,15 @@ export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, gen
       actorExecutionEvidence: result.actorExecutionEvidence,
       actorResourceEvidence: result.actorResourceEvidence,
       caseDefinitionDigest: result.caseDefinitionDigest,
+      confirmationEligible: result.confirmationEligible,
+      dimensions: result.dimensions,
       evaluatedAt: result.evaluatedAt,
       executionOrigin: result.executionOrigin,
       expectedSatisfied: result.observed,
+      failureClassifications: result.failureClassifications,
       forbiddenTriggered: result.forbidden,
       id: result.id,
+      judgeCommandPolicyEvidence: result.judgeCommandPolicyEvidence,
       judgeHost: result.judgeHost,
       passed: result.passed,
       rationale: result.rationale,
@@ -4643,14 +4746,15 @@ const evaluateActorStage = async (caseDefinition, actorCommand, cli) => {
     const repositoryControlBefore = await captureRepositoryControlState(actorRepository);
     const readOnlyMountControlBefore = await captureReadOnlyMountControlStates(readOnlyMounts);
     const before = await snapshotWorkspace(actorRepository);
-    const actorHost = identifyCodexEvaluationHost(actorCommand);
-    createCompatibleSemanticEvaluationHostContract(actorHost, actorHost);
+    const actorHost = identifyCodexEvaluationHost(actorCommand, 'actor');
+    requireSemanticEvaluationHostIdentity(actorHost, 'actor');
     const actorHostOutput = await runCodexEvaluationHost({
       command: actorCommand,
       cwd: actorRepository,
       prompt: buildActorPrompt(caseDefinition),
       readOnlyMounts: [...readOnlyMounts, ...actorToolMounts],
       readOnlyWorkspacePaths: ['.git', '.agents/skills/moldea'],
+      role: 'actor',
       sandboxHome: actorHome,
     });
     const actorExecutionEvidenceOptions = {
@@ -4658,9 +4762,9 @@ const evaluateActorStage = async (caseDefinition, actorCommand, cli) => {
       jsonSchemaVersion: cli.jsonSchemaVersion,
     };
     const {
-      actorCommandPolicyEvidence,
       actorExecutionEvidence,
       actorResourceEvidence,
+      commandPolicyEvidence: actorCommandPolicyEvidence,
       response: actorResponse,
       usage: actorUsage,
     } = parseSemanticEvaluationHostOutput(actorHostOutput, actorExecutionEvidenceOptions);
@@ -4709,7 +4813,7 @@ const evaluateJudgeStage = async (caseDefinition, actorEvidence, judgeCommand, c
     const judgeHome = join(evaluationRoot, 'judge-home');
     await mkdir(judgeRepository, { recursive: true });
     await prepareCodexEvaluationHome(judgeHome);
-    const judgeHost = identifyCodexEvaluationHost(judgeCommand);
+    const judgeHost = identifyCodexEvaluationHost(judgeCommand, 'judge');
     createCompatibleSemanticEvaluationHostContract(actorEvidence.actorHost, judgeHost);
     const judgeHostOutput = await runCodexEvaluationHost({
       command: judgeCommand,
@@ -4726,6 +4830,7 @@ const evaluateJudgeStage = async (caseDefinition, actorEvidence, judgeCommand, c
         actorEvidence.readOnlyMountControlEvidence,
         actorEvidence.skillArtifactEvidence,
       ),
+      role: 'judge',
       sandboxHome: judgeHome,
       workspaceAccess: 'read-only',
     });
@@ -4733,29 +4838,35 @@ const evaluateJudgeStage = async (caseDefinition, actorEvidence, judgeCommand, c
       cliVersion: cli.version,
       jsonSchemaVersion: cli.jsonSchemaVersion,
     };
-    const { response: judgeResponse, usage: judgeUsage } = parseSemanticEvaluationHostOutput(
-      judgeHostOutput,
-      actorExecutionEvidenceOptions,
-    );
+    const {
+      commandPolicyEvidence: judgeCommandPolicyEvidence,
+      response: judgeResponse,
+      usage: judgeUsage,
+    } = parseSemanticEvaluationHostOutput(judgeHostOutput, actorExecutionEvidenceOptions);
     const assessment = assessJudgeOutput(
       caseDefinition,
       judgeResponse,
       actorEvidence.actorResponse,
     );
+    const completeEvidence = { ...actorEvidence, judgeCommandPolicyEvidence };
+    const dimensions = createSemanticResultDimensions(
+      caseDefinition,
+      completeEvidence,
+      assessment.isPassed,
+    );
 
     return {
-      ...actorEvidence,
+      ...completeEvidence,
       caseId: caseDefinition.id,
+      confirmationEligible: isSemanticConfirmationEligible(dimensions),
+      dimensions,
+      failureClassifications: getSemanticFailureClassifications(dimensions),
       forbidden: assessment.forbidden,
       id: caseDefinition.id,
       judgeHost,
       judgeUsage,
       observed: assessment.observed,
-      passed:
-        assessment.isPassed &&
-        hasPassingCaseMoldeaResourceBudget(caseDefinition, actorEvidence.actorResourceEvidence) &&
-        actorEvidence.repositoryControlEvidence.violations.length === 0 &&
-        hasUnchangedReadOnlyMounts(actorEvidence.readOnlyMountControlEvidence, caseDefinition),
+      passed: hasPassingSemanticResultDimensions(dimensions),
       rationale: assessment.rationale,
     };
   } finally {
@@ -5165,16 +5276,16 @@ const main = async () => {
     'MOLDEA_EVAL_JUDGE_COMMAND_JSON',
     actorBaseCommand,
   );
-  const actorCommand = buildSemanticEvaluationHostCommand(actorBaseCommand);
-  const judgeCommand = buildSemanticEvaluationHostCommand(judgeBaseCommand);
+  const actorCommand = buildSemanticEvaluationHostCommand(actorBaseCommand, 'actor');
+  const judgeCommand = buildSemanticEvaluationHostCommand(judgeBaseCommand, 'judge');
   const requestedCaseDefinition = requestedCaseId
     ? caseDefinitions.find(({ id }) => id === requestedCaseId)
     : undefined;
   if (requestedCaseId && !requestedCaseDefinition) {
     throw new Error(`Unknown semantic evaluation case: ${requestedCaseId}`);
   }
-  const actorHost = identifyCodexEvaluationHost(actorCommand);
-  const judgeHost = identifyCodexEvaluationHost(judgeCommand);
+  const actorHost = identifyCodexEvaluationHost(actorCommand, 'actor');
+  const judgeHost = identifyCodexEvaluationHost(judgeCommand, 'judge');
   const evidenceBoundary = {
     actorHost,
     artifactDigest,

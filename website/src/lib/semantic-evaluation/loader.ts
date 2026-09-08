@@ -42,15 +42,20 @@ const CONFORMANCE_CASES_PATH = 'fixtures/conformance-cases.json';
 const SEMANTIC_ATTEMPTS_PATH = 'fixtures/semantic-evaluation-results';
 const SEMANTIC_COVERAGE_PATH = 'fixtures/semantic-evaluation-coverage.json';
 
-const isOfficialSemanticHost = (host: {
-  model: string;
-  name: string;
-  reasoningEffort: string;
-  version?: string;
-}): boolean =>
+const isOfficialSemanticHost = (
+  host: {
+    model: string;
+    name: string;
+    reasoningEffort: string;
+    role: string;
+    version?: string;
+  },
+  role: 'actor' | 'judge',
+): boolean =>
   host.model === 'gpt-5.6-sol' &&
   host.name === 'codex' &&
-  host.reasoningEffort === 'high' &&
+  host.role === role &&
+  host.reasoningEffort === (role === 'actor' ? 'high' : 'xhigh') &&
   (host.version === undefined ||
     (host.version.trim().length > 0 && host.version !== 'unavailable'));
 
@@ -117,11 +122,12 @@ const hasCurrentAttemptIdentity = (
     attempt.artifactDigest !== createPortableSkillDigest(repositoryRoot) ||
     JSON.stringify(attempt.cli) !== JSON.stringify(createSemanticCliIdentity(repositoryRoot));
   const hasOfficialHosts =
-    isOfficialSemanticHost(attempt.hostContract) &&
+    isOfficialSemanticHost(attempt.hostContract.actor, 'actor') &&
+    isOfficialSemanticHost(attempt.hostContract.judge, 'judge') &&
     attempt.cases.every(({ trials }) =>
       trials.every(
         ({ actorHost, judgeHost }) =>
-          isOfficialSemanticHost(actorHost) && isOfficialSemanticHost(judgeHost),
+          isOfficialSemanticHost(actorHost, 'actor') && isOfficialSemanticHost(judgeHost, 'judge'),
       ),
     );
   if (!hasOfficialHosts) {

@@ -12,6 +12,27 @@ import {
   verifySemanticEvaluationAttempts,
 } from './attempt-history.mjs';
 
+const EMPTY_COMMAND_POLICY_EVIDENCE = {
+  completedCommandCount: 0,
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
+  networkAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+};
+
 const createEvidence = (id, passed, updatedAt) => ({
   activeTrial: null,
   artifactDigest: 'a'.repeat(64),
@@ -22,15 +43,22 @@ const createEvidence = (id, passed, updatedAt) => ({
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt: updatedAt,
   hostContract: {
-    model: 'gpt-5.6-sol',
-    name: 'codex',
-    reasoningEffort: 'high',
+    actor: {
+      model: 'gpt-5.6-sol',
+      name: 'codex',
+      reasoningEffort: 'high',
+      role: 'actor',
+    },
+    judge: {
+      model: 'gpt-5.6-sol',
+      name: 'codex',
+      reasoningEffort: 'xhigh',
+      role: 'judge',
+    },
   },
   results: [
     {
-      actorCommandPolicyEvidence: {
-        completedCommandCount: 0,
-      },
+      actorCommandPolicyEvidence: EMPTY_COMMAND_POLICY_EVIDENCE,
       actorResourceEvidence: {
         commandCount: 0,
         maximumInvocationByteCount: 0,
@@ -42,6 +70,7 @@ const createEvidence = (id, passed, updatedAt) => ({
         model: 'gpt-5.6-sol',
         name: 'codex',
         reasoningEffort: 'high',
+        role: 'actor',
         version: 'codex-cli test',
       },
       actorUsage: {
@@ -49,14 +78,26 @@ const createEvidence = (id, passed, updatedAt) => ({
         inputTokens: 8_000,
         outputTokens: 1_000,
       },
+      confirmationEligible: !passed,
+      dimensions: {
+        semantic: passed,
+        resource: true,
+        commandPolicy: true,
+        repositoryControl: true,
+        mountIntegrity: true,
+        operational: true,
+      },
       evaluatedAt: updatedAt,
       executionOrigin: 'executed',
       forbidden: [],
       id,
+      failureClassifications: passed ? [] : ['semantic'],
+      judgeCommandPolicyEvidence: EMPTY_COMMAND_POLICY_EVIDENCE,
       judgeHost: {
         model: 'gpt-5.6-sol',
         name: 'codex',
-        reasoningEffort: 'high',
+        reasoningEffort: 'xhigh',
+        role: 'judge',
         version: 'codex-cli test',
       },
       judgeUsage: {
@@ -72,7 +113,7 @@ const createEvidence = (id, passed, updatedAt) => ({
       stageReuse: null,
     },
   ],
-  schemaVersion: 7,
+  schemaVersion: 8,
   updatedAt,
 });
 

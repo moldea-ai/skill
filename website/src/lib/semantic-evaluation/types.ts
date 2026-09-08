@@ -1,5 +1,6 @@
 import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
 
+import type { ICodexEvaluationCommandPolicyEvidence } from '../../../../tooling/codex-evaluation-host/index.mjs';
 import type { ISemanticCliIdentity } from '../../../../tooling/release-identity/identity.mjs';
 import type {
   ISemanticCaseDefinition as ISemanticCaseContract,
@@ -15,18 +16,44 @@ export type ISemanticEvaluationCaseStatus = 'failed' | 'passed' | 'pending' | 'r
 export type ISemanticEvidenceMatch = 'exact';
 
 // exact actor or judge host shown with one trial
-export interface ISemanticEvaluationHostModel {
+export interface ISemanticEvaluationActorHostModel {
   model: 'gpt-5.6-sol';
   name: string;
   reasoningEffort: 'high';
+  role: 'actor';
   version: string;
+}
+
+// exact independent judge host shown with one trial
+export interface ISemanticEvaluationJudgeHostModel {
+  model: 'gpt-5.6-sol';
+  name: string;
+  reasoningEffort: 'xhigh';
+  role: 'judge';
+  version: string;
+}
+
+export type ISemanticFailureClassification =
+  | 'semantic'
+  | 'resource'
+  | 'commandPolicy'
+  | 'repositoryControl'
+  | 'mountIntegrity'
+  | 'operational';
+
+// independently attributable public outcome dimensions
+export interface ISemanticResultDimensions {
+  semantic: boolean;
+  resource: boolean;
+  commandPolicy: boolean;
+  repositoryControl: boolean;
+  mountIntegrity: boolean;
+  operational: boolean;
 }
 
 // exact current trial provenance shown on public attempt pages
 export interface ISemanticAttemptTrialModel {
-  actorCommandPolicyEvidence: {
-    completedCommandCount: number;
-  };
+  actorCommandPolicyEvidence: ICodexEvaluationCommandPolicyEvidence;
   actorResourceEvidence: {
     commandCount: number;
     maximumInvocationByteCount: number;
@@ -36,12 +63,16 @@ export interface ISemanticAttemptTrialModel {
     >;
     stdoutByteCount: number;
   };
-  actorHost: ISemanticEvaluationHostModel;
+  actorHost: ISemanticEvaluationActorHostModel;
+  confirmationEligible: boolean;
   confirmationIndex: 1 | 2 | null;
+  dimensions: ISemanticResultDimensions;
   evaluatedAt: string;
   executionOrigin: 'executed' | 'reused';
   forbidden: string[];
-  judgeHost: ISemanticEvaluationHostModel;
+  failureClassifications: ISemanticFailureClassification[];
+  judgeCommandPolicyEvidence: ICodexEvaluationCommandPolicyEvidence;
+  judgeHost: ISemanticEvaluationJudgeHostModel;
   kind: 'confirmation' | 'initial';
   observed: string[];
   passed: boolean;
@@ -135,7 +166,7 @@ export interface ISemanticEvaluationWebsiteModel {
   currentAssurance: ISemanticAttemptModel | null;
   evidenceMatch: ISemanticEvidenceMatch | null;
   evaluatedAt: string | null;
-  evaluationModel: ISemanticEvaluationHostModel['model'];
+  evaluationModel: ISemanticEvaluationActorHostModel['model'];
   failedCaseCount: number;
   groups: ISemanticEvaluationGroupModel[];
   hasAttempt: boolean;

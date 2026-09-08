@@ -194,7 +194,7 @@ test('presents profile definitions and the exact current evidence state', async 
       );
     }
     if (profile.currentLatest === null) {
-      await expect(page.getByText(/No protocol 8 Sol attempt has been committed/u)).toBeVisible();
+      await expect(page.getByText(/No protocol 9 Sol attempt has been committed/u)).toBeVisible();
       await expect(
         page.getByRole('link', {
           name: /Inspect the (?:execution-error|failed|passing) attempt/u,
@@ -216,7 +216,7 @@ test('replays qualification evidence through human-readable and technical views'
   const customProfile = getProfile('custom', 'custom');
   await page.goto(toPublicPath(customProfile.route));
   if (customProfile.currentLatest === null) {
-    await expect(page.getByText(/No protocol 8 Sol attempt has been committed/u)).toBeVisible();
+    await expect(page.getByText(/No protocol 9 Sol attempt has been committed/u)).toBeVisible();
     return;
   }
   const groundedAgentCase = customProfile.currentLatest.cases.find(
@@ -454,7 +454,7 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
 });
 
 test(
-  'renders recovered protocol 8 trial evidence',
+  'renders recovered protocol 9 trial evidence',
   { tag: '@qualification-current-fixture' },
   async ({ browser }) => {
     const recoveredProfile = getProfile('custom', 'custom');
@@ -521,25 +521,25 @@ test(
       );
       await initialTrial.locator('summary').first().click();
       await expect(initialTrial.getByText('ordinary', { exact: true })).toBeVisible();
-      await expect(initialTrial.getByText('0 / 64', { exact: true })).toBeVisible();
+      await expect(initialTrial.getByText('0 / 64', { exact: true })).toHaveCount(2);
       await expect(
         initialTrial.getByText('Largest command output / limit:', { exact: false }),
-      ).toBeVisible();
-      await expect(initialTrial.getByText('0 / 131072 bytes', { exact: true })).toBeVisible();
+      ).toHaveCount(2);
+      await expect(initialTrial.getByText('0 / 131072 bytes', { exact: true })).toHaveCount(2);
       await expect(
         initialTrial.getByText(
           `144 / ${MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxHostTokenCount}`,
           { exact: true },
         ),
-      ).toBeVisible();
-      await expect(initialTrial.getByText('not-observed', { exact: true })).toHaveCount(3);
-      await expect(initialTrial.getByText('Unexpected changed path unexpected.md.')).toHaveCount(2);
+      ).toHaveCount(2);
+      await expect(initialTrial.getByText('not-observed', { exact: true })).toHaveCount(6);
+      await expect(initialTrial.getByText('Unexpected changed path unexpected.md.')).toHaveCount(0);
       await expect(
         initialTrial.getByText(
           'The judge was skipped because runner-owned evidence already failed.',
         ),
-      ).toBeVisible();
-      await expect(initialTrial.getByText('skipped', { exact: true })).toBeVisible();
+      ).toHaveCount(0);
+      await expect(initialTrial.getByText('fail', { exact: true })).toBeVisible();
 
       for (const confirmationName of ['Confirmation 1', 'Confirmation 2']) {
         const confirmationTrial = caseEvidence
@@ -551,7 +551,7 @@ test(
         );
       }
 
-      await expect(caseEvidence.getByText('Direct evidence', { exact: true })).toHaveCount(5);
+      await expect(caseEvidence.getByText('Direct evidence', { exact: true })).toHaveCount(6);
       const retryDisclosure = initialTrial.getByText(
         'Operational retries (1) and committed trial artifacts',
         { exact: true },

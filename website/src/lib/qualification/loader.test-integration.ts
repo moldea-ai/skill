@@ -289,7 +289,7 @@ const seedCurrentQualificationAttempt = async (
   writeText(
     root,
     'qualification/profiles/t1/cases/c1/README.md',
-    '# Release case\n\nThis fixture exercises protocol 8 evidence.\n',
+    '# Release case\n\nThis fixture exercises protocol 9 evidence.\n',
   );
   writeText(
     root,
@@ -336,86 +336,6 @@ cases:
   );
 };
 
-const convertCurrentAttemptToActorPolicyFailure = (root: string, attemptId: string): void => {
-  const failure =
-    'Actor command policy observed prohibited credential, network, or sensitive evaluator access.';
-  const attempt = readAttemptFixture(root, attemptId);
-  const caseResult = attempt.cases[0];
-  const trials = caseResult?.['trials'];
-
-  if (
-    !caseResult ||
-    !Array.isArray(trials) ||
-    typeof trials[0] !== 'object' ||
-    trials[0] === null
-  ) {
-    throw new Error('Missing current initial fixture.');
-  }
-
-  const initialTrial = trials[0] as Record<string, unknown>;
-  initialTrial['failures'] = [failure];
-  const initialRoot = 'cases/release-case/trials/initial';
-  const confirmationRoot = 'cases/release-case/trials/confirmation-1';
-  const actorEvidencePath = `${initialRoot}/actor-evidence.json`;
-  const actorEvidence = JSON.parse(
-    readFileSync(getArtifactPath(root, attemptId, actorEvidencePath), 'utf8'),
-  ) as {
-    commandPolicy: {
-      completedCommandCount: number;
-      sensitiveAccess: Record<string, unknown>;
-    };
-  };
-  actorEvidence.commandPolicy.completedCommandCount = 1;
-  actorEvidence.commandPolicy.sensitiveAccess = {
-    status: 'observed',
-    observedCount: 1,
-    indeterminateCount: 0,
-    reasons: [{ code: 'evaluator-home', count: 1 }],
-  };
-  replaceAttemptArtifact(root, attemptId, actorEvidencePath, actorEvidence);
-  replaceAttemptTextArtifact(
-    root,
-    attemptId,
-    `${initialRoot}/actor-events.jsonl`,
-    `${JSON.stringify({
-      eventType: 'command.completed',
-      exitCode: 0,
-      moldeaCommandCount: 0,
-      outputByteCount: 1,
-      status: 'completed',
-    })}\n`,
-  );
-
-  for (const artifactName of ['actor-output.json', 'workspace-assertions.json'] as const) {
-    const passingArtifact = JSON.parse(
-      readFileSync(getArtifactPath(root, attemptId, `${confirmationRoot}/${artifactName}`), 'utf8'),
-    ) as unknown;
-    replaceAttemptArtifact(root, attemptId, `${initialRoot}/${artifactName}`, passingArtifact);
-  }
-
-  replaceAttemptArtifact(root, attemptId, `${initialRoot}/judge-skipped.json`, {
-    kind: 'deterministic-failure',
-    reason: 'The judge was skipped because runner-owned evidence already failed.',
-    deterministicAfterPassed: true,
-    workspaceAssertionsPassed: true,
-  });
-  replaceAttemptArtifact(root, attemptId, `${initialRoot}/trial-result.json`, initialTrial);
-  replaceAttemptArtifact(root, attemptId, 'cases/release-case/case-result.json', caseResult);
-
-  const updatedAttempt = readAttemptFixture(root, attemptId);
-  const assertionsStage = updatedAttempt.stages.find(
-    ({ id }) => id === 'case:release-case:trial:initial:assertions',
-  );
-
-  if (assertionsStage === undefined) {
-    throw new Error('Missing current initial assertions stage.');
-  }
-
-  assertionsStage['status'] = 'passed';
-  updatedAttempt.cases = [caseResult];
-  writeAttemptFixture(root, attemptId, updatedAttempt);
-};
-
 const convertCurrentAttemptToFailed = (root: string, attemptId: string): void => {
   const failures = ['Requirement complete-evidence failed: Fixture failure.', 'Fixture failure.'];
   const attempt = readAttemptFixture(root, attemptId);
@@ -433,6 +353,16 @@ const convertCurrentAttemptToFailed = (root: string, attemptId: string): void =>
 
   const terminalTrial = trials[2] as Record<string, unknown>;
   terminalTrial['passed'] = false;
+  terminalTrial['confirmationEligible'] = true;
+  terminalTrial['dimensions'] = {
+    semantic: false,
+    resource: true,
+    commandPolicy: true,
+    repositoryControl: true,
+    mountIntegrity: true,
+    operational: true,
+  };
+  terminalTrial['failureClassifications'] = ['semantic'];
   terminalTrial['requirementAssessments'] = [
     {
       id: 'complete-evidence',
@@ -474,7 +404,7 @@ const convertCurrentAttemptToFailed = (root: string, attemptId: string): void =>
   updatedAttempt.cases = attempt.cases;
   writeAttemptFixture(root, attemptId, updatedAttempt);
   writeJson(root, 'qualification/results/t1/latest.json', {
-    protocolVersion: 8,
+    protocolVersion: 9,
     adapterId: 'custom',
     implementationId: 'custom',
     latestAttemptId: attemptId,
@@ -502,6 +432,16 @@ const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: stri
 
   const terminalTrial = trials[2] as Record<string, unknown>;
   terminalTrial['passed'] = false;
+  terminalTrial['confirmationEligible'] = false;
+  terminalTrial['dimensions'] = {
+    semantic: true,
+    resource: true,
+    commandPolicy: false,
+    repositoryControl: true,
+    mountIntegrity: true,
+    operational: true,
+  };
+  terminalTrial['failureClassifications'] = ['commandPolicy'];
   terminalTrial['failures'] = [failure];
   caseResult['status'] = 'failed';
   caseResult['confirmationStatus'] = 'rejected';
@@ -535,7 +475,7 @@ const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: stri
   updatedAttempt.cases = attempt.cases;
   writeAttemptFixture(root, attemptId, updatedAttempt);
   writeJson(root, 'qualification/results/t1/latest.json', {
-    protocolVersion: 8,
+    protocolVersion: 9,
     adapterId: 'custom',
     implementationId: 'custom',
     latestAttemptId: attemptId,
@@ -594,7 +534,7 @@ describe('loadQualificationWebsiteModel', () => {
     expect(serializedModel).not.toContain('file://');
   });
 
-  test('rejects pre-clean-slate medium-reasoning evidence', async () => {
+  test('rejects pre-clean-slate single-effort evidence', async () => {
     const root = createTemporaryRoot();
     await seedCurrentQualificationAttempt(root, 'medium-attempt');
     const attempt = readAttemptFixture(root, 'medium-attempt');
@@ -604,7 +544,9 @@ describe('loadQualificationWebsiteModel', () => {
       throw new Error('Missing qualification provenance fixture.');
     }
 
-    (provenance as Record<string, unknown>)['reasoningEffort'] = 'medium';
+    delete (provenance as Record<string, unknown>)['actorReasoningEffort'];
+    delete (provenance as Record<string, unknown>)['judgeReasoningEffort'];
+    (provenance as Record<string, unknown>)['reasoningEffort'] = 'high';
     writeAttemptFixture(root, 'medium-attempt', attempt);
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
@@ -703,7 +645,7 @@ describe('loadQualificationWebsiteModel', () => {
     writeText(
       root,
       'qualification/profiles/t1/cases/c1/README.md',
-      '# Release case\n\nThis fixture exercises recovered protocol 8 evidence.\n',
+      '# Release case\n\nThis fixture exercises recovered protocol 9 evidence.\n',
     );
     const result = await seedPassingQualificationEvidenceFixture({
       artifactDirectory,
@@ -754,7 +696,7 @@ cases:
 
     expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
     expect(profile?.currentLatest?.result).toMatchObject({
-      protocolVersion: 8,
+      protocolVersion: 9,
       status: 'passed',
     });
     expect(recoveredCase?.result).toMatchObject({
@@ -912,13 +854,16 @@ cases:
     expect(() => loadQualificationWebsiteModel(root)).not.toThrow();
   });
 
-  test('loads a recovered trial whose judge was skipped after an actor policy failure', async () => {
+  test('loads a terminal non-semantic failure without confirmations', async () => {
     const root = createTemporaryRoot();
-    const attemptId = 'attempt-actor-policy-failure';
+    const attemptId = 'attempt-terminal-non-semantic-failure';
     await seedCurrentQualificationAttempt(root, attemptId, true);
-    convertCurrentAttemptToActorPolicyFailure(root, attemptId);
+    const attempt = loadQualificationWebsiteModel(root).profiles[0]?.currentLatest;
 
-    expect(() => loadQualificationWebsiteModel(root)).not.toThrow();
+    expect(attempt?.result.status).toBe('failed');
+    expect(attempt?.cases[0]?.result.confirmationStatus).toBe('not-applicable');
+    expect(attempt?.cases[0]?.result.trials).toHaveLength(1);
+    expect(attempt?.cases[0]?.result.trials[0]?.confirmationEligible).toBe(false);
   });
 
   test('rejects a current actor prompt with altered execution rules', async () => {
@@ -983,7 +928,7 @@ cases:
     });
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
-      'Qualification evidence has an incomplete protocol 8 artifact inventory.',
+      'Qualification evidence has an incomplete protocol 9 artifact inventory.',
     );
   });
 
@@ -1027,6 +972,22 @@ cases:
     expect(() => loadQualificationWebsiteModel(root)).toThrow(/unrecognized_keys/u);
   });
 
+  test('rejects more moldea invocations than completed commands', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-invalid-moldea-command-count';
+    const relativePath = 'cases/release-case/trials/initial/actor-evidence.json';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    const evidence = JSON.parse(
+      readFileSync(getArtifactPath(root, attemptId, relativePath), 'utf8'),
+    ) as {
+      commandPolicy: { moldeaCommandCount: number };
+    };
+    evidence.commandPolicy.moldeaCommandCount = 1;
+    replaceAttemptArtifact(root, attemptId, relativePath, evidence);
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
+  });
+
   test('rejects current retry evidence outside the bounded backoff range', async () => {
     const root = createTemporaryRoot();
     const attemptId = 'attempt-retry-delay';
@@ -1057,6 +1018,17 @@ cases:
       unknown
     >;
     writeJson(root, latestPath, { ...latest, protocolVersion: 7 });
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
+  });
+
+  test('rejects undeclared fields in a current attempt record', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-undeclared-field';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    const attempt = readAttemptFixture(root, attemptId);
+    attempt['legacyResult'] = { status: 'passed' };
+    writeAttemptFixture(root, attemptId, attempt);
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
   });

@@ -104,7 +104,8 @@ const createResult = (
     summary: `Fixture ${status} result.`,
     provenance: {
       model: 'gpt-5.6-sol',
-      reasoningEffort: 'high',
+      actorReasoningEffort: 'high',
+      judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',
@@ -387,7 +388,7 @@ describe('qualification result recording', () => {
     expect(verification.attempts).toBe(0);
     expect(verification.issues).toHaveLength(1);
     expect(verification.issues[0]?.path).toBe(TARGET_KEY);
-    expect(verification.issues[0]?.message).toContain('Invalid input: expected 8');
+    expect(verification.issues[0]?.message).toContain('Invalid input: expected 9');
   });
 
   test.each([

@@ -26,18 +26,21 @@ import {
   runCodexEvaluationHost,
 } from './host.mjs';
 
-const HOST_COMMAND = buildCodexEvaluationHostCommand([
-  'codex',
-  'exec',
-  '--ignore-user-config',
-  '--ignore-rules',
-  '--ephemeral',
-  '--skip-git-repo-check',
-  '--dangerously-bypass-approvals-and-sandbox',
-  '-c',
-  'shell_environment_policy.inherit=none',
-  '-',
-]);
+const HOST_COMMAND = buildCodexEvaluationHostCommand(
+  [
+    'codex',
+    'exec',
+    '--ignore-user-config',
+    '--ignore-rules',
+    '--ephemeral',
+    '--skip-git-repo-check',
+    '--dangerously-bypass-approvals-and-sandbox',
+    '-c',
+    'shell_environment_policy.inherit=none',
+    '-',
+  ],
+  'actor',
+);
 
 const runSystemGit = (repositoryPath, argumentsList) => {
   const result = spawnSync('/usr/bin/git', argumentsList, {
@@ -179,6 +182,7 @@ test('shared host aligns the Git traversal budget with its read-only dependency 
         cwd: repositoryPath,
         includeWorkspaceBinaryDirectory: true,
         prompt: 'test dependency boundary',
+        role: 'actor',
         sandboxHome,
       }),
       'host success',
@@ -241,6 +245,7 @@ test('shared host permits the installed release CLI selected scope inventory', a
           target: '/dependencies/node_modules',
         },
       ],
+      role: 'actor',
       sandboxHome,
     });
     const envelope = JSON.parse(output);
@@ -551,6 +556,7 @@ test('shared host closes its relay after successful and failed executions', asyn
         command: HOST_COMMAND,
         cwd: repositoryPath,
         prompt: 'test success',
+        role: 'actor',
         sandboxHome,
       }),
       'host success',
@@ -562,6 +568,7 @@ test('shared host closes its relay after successful and failed executions', asyn
         command: HOST_COMMAND,
         cwd: repositoryPath,
         prompt: 'test failure',
+        role: 'actor',
         sandboxHome,
       }),
       (error) =>
@@ -602,6 +609,7 @@ test('shared host cancellation stops the outer Bubblewrap execution', async () =
         command: HOST_COMMAND,
         cwd: repositoryPath,
         prompt: 'test cancellation',
+        role: 'actor',
         sandboxHome,
         signal: abortController.signal,
       }),
@@ -643,6 +651,7 @@ test('shared host enforces a workflow-owned default timeout', async () => {
         cwd: repositoryPath,
         defaultHostTimeoutMs: 50,
         prompt: 'test timeout',
+        role: 'actor',
         sandboxHome,
       }),
       (error) =>

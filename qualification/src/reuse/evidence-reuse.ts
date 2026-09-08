@@ -15,6 +15,7 @@ import {
   type IQualificationExecutionEnvironment,
   type IQualificationStageCheckpoint,
 } from '../contracts/index.ts';
+import { haveQualificationExecutionInputsChanged } from '../execution/validations.ts';
 import {
   ensureDirectory,
   readJsonFile,
@@ -48,8 +49,9 @@ const createPublicPackages = (candidate: ICandidateClosure) =>
 const selectExecutionEnvironment = (
   result: IReusableQualificationCase['result'],
 ): IQualificationExecutionEnvironment => ({
+  actorReasoningEffort: result.provenance.actorReasoningEffort,
+  judgeReasoningEffort: result.provenance.judgeReasoningEffort,
   model: result.provenance.model,
-  reasoningEffort: result.provenance.reasoningEffort,
   codexVersion: result.provenance.codexVersion,
   nodeVersion: result.provenance.nodeVersion,
   pnpmVersion: result.provenance.pnpmVersion,
@@ -92,8 +94,10 @@ const hasExactIdentity = (options: {
     ) &&
     JSON.stringify(result.provenance.packages) ===
       JSON.stringify(createPublicPackages(options.candidate)) &&
-    JSON.stringify(selectExecutionEnvironment(result)) ===
-      JSON.stringify(options.executionEnvironment)
+    !haveQualificationExecutionInputsChanged(
+      selectExecutionEnvironment(result),
+      options.executionEnvironment,
+    )
   );
 };
 

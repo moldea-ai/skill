@@ -47,7 +47,8 @@ export type IQualificationPaidExecutionRequest = {
   plannedCallCount: number;
   reusedCaseCount: number;
   model: IQualificationExecutionEnvironment['model'];
-  reasoningEffort: IQualificationExecutionEnvironment['reasoningEffort'];
+  actorReasoningEffort: IQualificationExecutionEnvironment['actorReasoningEffort'];
+  judgeReasoningEffort: IQualificationExecutionEnvironment['judgeReasoningEffort'];
 };
 
 // timing seams keep operational retry integration tests deterministic and fast

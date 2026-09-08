@@ -89,6 +89,7 @@ test('projects launcher-backed content-free inspect metadata and exact output by
     cliVersion: '7.0.0',
     command: 'inspect',
     containsContent: false,
+    errorCode: null,
     errorPresent: false,
     hasNextPage: false,
     kind: 'moldea-cli-envelope',
@@ -167,6 +168,7 @@ test('projects failed content commands without requiring a canonical body', () =
     cliVersion: '7.0.0',
     command: 'content',
     containsContent: false,
+    errorCode: 'CONTENT_PATH_INVALID',
     errorPresent: true,
     hasNextPage: false,
     kind: 'moldea-cli-envelope',
@@ -176,6 +178,31 @@ test('projects failed content commands without requiring a canonical body', () =
     schemaVersion: 4,
     status: 'error',
   });
+});
+
+test('rejects unsafe CLI error classifications without retaining error bodies', () => {
+  const unsafeOutput = JSON.stringify({
+    schemaVersion: 4,
+    cliVersion: '7.0.0',
+    command: 'content',
+    status: 'error',
+    result: null,
+    error: {
+      code: '/private/path leaked',
+      message: 'sensitive body',
+    },
+  });
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent(createLauncherCommand('content', '--json'), unsafeOutput, {
+      exitCode: 2,
+      status: 'failed',
+    }),
+    OPTIONS,
+  );
+
+  assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
+  assert.equal(JSON.stringify(evidence).includes('private'), false);
+  assert.equal(JSON.stringify(evidence).includes('sensitive'), false);
 });
 
 test('accepts zero CLI consumption for informational and abstention paths', () => {

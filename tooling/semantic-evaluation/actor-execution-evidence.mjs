@@ -7,6 +7,7 @@ import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles
 const COMMAND_COMPLETED_STATUSES = new Set(['completed', 'failed']);
 const MOLDEA_COMMANDS = new Set(['composition', 'content', 'inspect', 'scope', 'validate']);
 const MOLDEA_STATUSES = new Set(['error', 'invalid', 'valid']);
+const MOLDEA_ERROR_CODE_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/u;
 const OUTPUT_DISPOSITIONS = new Set(['empty', 'projected', 'too-large', 'unrecognized']);
 const MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxActorExecutionEvidenceItems;
@@ -90,7 +91,13 @@ const hasConsistentMoldeaEnvelope = (envelope, operation, exitCode, options) => 
   if (envelope.status === 'invalid') {
     return exitCode === 1 && envelope.result !== null && envelope.error === null;
   }
-  return [2, 3].includes(exitCode) && envelope.result === null && envelope.error !== null;
+  return (
+    [2, 3].includes(exitCode) &&
+    envelope.result === null &&
+    isPlainRecord(envelope.error) &&
+    typeof envelope.error.code === 'string' &&
+    MOLDEA_ERROR_CODE_PATTERN.test(envelope.error.code)
+  );
 };
 
 const projectMoldeaEnvelope = (source, operation, exitCode, options) => {
@@ -106,6 +113,7 @@ const projectMoldeaEnvelope = (source, operation, exitCode, options) => {
     cliVersion: envelope.cliVersion,
     command: envelope.command,
     containsContent: result !== null && containsContentField(result),
+    errorCode: envelope.status === 'error' ? envelope.error.code : null,
     errorPresent: envelope.error !== null,
     hasNextPage: hasNextPage(result),
     kind: 'moldea-cli-envelope',
@@ -126,6 +134,7 @@ const hasValidMoldeaFact = (fact, exitCode, options) =>
     'cliVersion',
     'command',
     'containsContent',
+    'errorCode',
     'errorPresent',
     'hasNextPage',
     'kind',
@@ -141,6 +150,8 @@ const hasValidMoldeaFact = (fact, exitCode, options) =>
   MOLDEA_COMMANDS.has(fact.command) &&
   MOLDEA_STATUSES.has(fact.status) &&
   typeof fact.containsContent === 'boolean' &&
+  (fact.errorCode === null ||
+    (typeof fact.errorCode === 'string' && MOLDEA_ERROR_CODE_PATTERN.test(fact.errorCode))) &&
   typeof fact.hasNextPage === 'boolean' &&
   Number.isSafeInteger(fact.pageRecordCount) &&
   fact.pageRecordCount >= 0 &&
@@ -148,12 +159,21 @@ const hasValidMoldeaFact = (fact, exitCode, options) =>
   ((fact.command === 'content' &&
     (fact.status === 'valid' ? fact.containsContent : !fact.containsContent)) ||
     (fact.command !== 'content' && !fact.containsContent)) &&
-  ((fact.status === 'valid' && exitCode === 0 && fact.resultPresent && !fact.errorPresent) ||
-    (fact.status === 'invalid' && exitCode === 1 && fact.resultPresent && !fact.errorPresent) ||
+  ((fact.status === 'valid' &&
+    exitCode === 0 &&
+    fact.resultPresent &&
+    !fact.errorPresent &&
+    fact.errorCode === null) ||
+    (fact.status === 'invalid' &&
+      exitCode === 1 &&
+      fact.resultPresent &&
+      !fact.errorPresent &&
+      fact.errorCode === null) ||
     (fact.status === 'error' &&
       [2, 3].includes(exitCode) &&
       !fact.resultPresent &&
-      fact.errorPresent));
+      fact.errorPresent &&
+      fact.errorCode !== null));
 
 /** Projects a successful native Node test summary without retaining test output. */
 const projectNodeTestSummary = (source, exitCode, testKind) => {

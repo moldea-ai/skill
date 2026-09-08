@@ -34,7 +34,7 @@ const BASE_HOST_COMMAND = [
   'shell_environment_policy.inherit=none',
   '-',
 ];
-const SAFE_HOST_COMMAND = buildCodexEvaluationHostCommand(BASE_HOST_COMMAND);
+const SAFE_HOST_COMMAND = buildCodexEvaluationHostCommand(BASE_HOST_COMMAND, 'actor');
 
 test('host failures expose stable retryable and terminal categories', () => {
   assert.equal(
@@ -122,7 +122,7 @@ test('host configuration accepts a workflow-owned default timeout', () => {
   try {
     delete process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
 
-    assert.equal(CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS, 600_000);
+    assert.equal(CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS, 900_000);
     assert.equal(
       identifyCodexEvaluationHostConfiguration().hostTimeoutMs,
       CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
@@ -143,9 +143,13 @@ test('host configuration accepts a workflow-owned default timeout', () => {
   }
 });
 
-test('host commands use the runner-owned model and reasoning effort', () => {
+test('host commands use the runner-owned model and role-specific reasoning effort', () => {
   assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-5.6-sol');
   assert.equal(identifyConfiguredReasoningEffort(SAFE_HOST_COMMAND), 'high');
+  assert.equal(
+    identifyConfiguredReasoningEffort(buildCodexEvaluationHostCommand(BASE_HOST_COMMAND, 'judge')),
+    'xhigh',
+  );
   assert.throws(
     () =>
       validateCodexEvaluationHostCommand(
@@ -154,6 +158,7 @@ test('host commands use the runner-owned model and reasoning effort', () => {
             ? 'model_reasoning_effort=medium'
             : commandPart,
         ),
+        'actor',
       ),
     /must use high reasoning effort/,
   );
@@ -162,31 +167,26 @@ test('host commands use the runner-owned model and reasoning effort', () => {
 test('host commands reject caller-owned model and reasoning overrides', () => {
   assert.throws(
     () =>
-      buildCodexEvaluationHostCommand([
-        ...BASE_HOST_COMMAND.slice(0, -1),
-        '--model',
-        'gpt-example',
-        '-',
-      ]),
+      buildCodexEvaluationHostCommand(
+        [...BASE_HOST_COMMAND.slice(0, -1), '--model', 'gpt-example', '-'],
+        'actor',
+      ),
     /must not override the runner-owned gpt-5\.6-sol model/,
   );
   assert.throws(
     () =>
-      buildCodexEvaluationHostCommand([
-        ...BASE_HOST_COMMAND.slice(0, -1),
-        '--config=model=gpt-example',
-        '-',
-      ]),
+      buildCodexEvaluationHostCommand(
+        [...BASE_HOST_COMMAND.slice(0, -1), '--config=model=gpt-example', '-'],
+        'actor',
+      ),
     /must not override the runner-owned gpt-5\.6-sol model/,
   );
   assert.throws(
     () =>
-      buildCodexEvaluationHostCommand([
-        ...BASE_HOST_COMMAND.slice(0, -1),
-        '-c',
-        'model_reasoning_effort=high',
-        '-',
-      ]),
+      buildCodexEvaluationHostCommand(
+        [...BASE_HOST_COMMAND.slice(0, -1), '-c', 'model_reasoning_effort=high', '-'],
+        'actor',
+      ),
     /must not override the runner-owned reasoning effort/,
   );
 });
@@ -362,15 +362,13 @@ test('sandbox can expose the project-local binary directory and mount the worksp
 });
 
 test('host command requires externally sandboxed execution mode', () => {
-  assert.doesNotThrow(() => validateCodexEvaluationHostCommand(SAFE_HOST_COMMAND));
+  assert.doesNotThrow(() => validateCodexEvaluationHostCommand(SAFE_HOST_COMMAND, 'actor'));
   assert.throws(
     () =>
-      validateCodexEvaluationHostCommand([
-        ...SAFE_HOST_COMMAND.slice(0, -1),
-        '--sandbox',
-        'workspace-write',
-        '-',
-      ]),
+      validateCodexEvaluationHostCommand(
+        [...SAFE_HOST_COMMAND.slice(0, -1), '--sandbox', 'workspace-write', '-'],
+        'actor',
+      ),
     /sandbox-weakening/,
   );
 });
@@ -378,12 +376,10 @@ test('host command requires externally sandboxed execution mode', () => {
 test('host command rejects writable paths outside the workspace', () => {
   assert.throws(
     () =>
-      validateCodexEvaluationHostCommand([
-        ...SAFE_HOST_COMMAND.slice(0, -1),
-        '--add-dir',
-        '/host',
-        '-',
-      ]),
+      validateCodexEvaluationHostCommand(
+        [...SAFE_HOST_COMMAND.slice(0, -1), '--add-dir', '/host', '-'],
+        'actor',
+      ),
     /sandbox-weakening/,
   );
 });
@@ -393,6 +389,7 @@ test('host command rejects missing external-sandbox delegation', () => {
     () =>
       validateCodexEvaluationHostCommand(
         SAFE_HOST_COMMAND.filter((part) => part !== '--dangerously-bypass-approvals-and-sandbox'),
+        'actor',
       ),
     /outer sandbox/,
   );

@@ -139,33 +139,33 @@ Inspect runtime evidence provenance, activation narrowness, ambiguity-before-wri
 
 ### Objective
 
-Restore explicit first-route consumption of the developer's “Use moldea” direction and prove the one remaining independent-skill case uses zero repository moldea commands.
+Replace the inference-dependent Agent Skill boundary with an operation-first deliverable route and prove the one remaining case performs no repository moldea inspection or validation.
 
 ### Dependencies
 
-- Milestone 75 is complete and published at signed commit `d59bb17ba8bb32a4cef3ca2c4b4b20bca1413efb`.
-- The complete nine-case xhigh ledger is classified under SHA-256 `c72fbb4c3a981434e15a8d8d4848df6324a8da3c0c1d7e073875e4a443abcd9e`: eight direct passes and one resource-only failure in `skill-maintain-linked-resources`.
-- The failure repeated earlier repository inspection behavior while every semantic and other deterministic dimension passed, establishing root-route precedence as the proven owner.
+- The first focused correction is published at signed commit `9a6c76817a0a8bed35557283508cf358047bb5be`.
+- Its single-case xhigh rerun is classified under ledger SHA-256 `d5da4367c57ef3fb3efa13b15d8499718a70c65931e59ff6c32a6af147e609f7`: all six semantic criteria and every deterministic dimension except resource passed, while the actor repeated exactly `inspect` and `validate`.
+- The challenged plan preserves the combined-scope exception for tasks that separately request `/moldea/**` or declared-relationship work.
 
 ### Scope and implementation
 
-- Update only the first independent Agent Skill route in `moldea/SKILL.md` so it explicitly consumes even a developer direction to use moldea and cannot create a second repository inspection or validation obligation.
-- Add one focused assertion in `tests/conformance.test-unit.mjs` for that precedence.
-- Keep `moldea/references/skill-design.md`, `fixtures/conformance-cases.json`, its exact zero-command and zero-output budget, all semantic criteria, protocol 25, evaluator behavior, and the eight passing cases unchanged.
-- Keep the root skill at or below 2,560 words, synchronize no unrelated documentation, and preserve the failed official attempt plus passing/latest pointers byte-for-byte.
-- Run affected deterministic checks, review the exact change, publish it from `new_skill`, then restart diagnostic state for only `skill-maintain-linked-resources`.
+- Update only the first route in `moldea/SKILL.md` so an Agent Skill creation, maintenance, or evaluation deliverable takes the artifact route before repository gating when the task does not separately request canonical or relationship work.
+- State that `Use moldea` wording and repository-local placement do not create a second repository workflow.
+- Retain artifact-local work and validation, the explicit combined-scope exception, and the complete skill's 2,560-word ceiling.
+- Update only the focused route assertion in `tests/conformance.test-unit.mjs`; keep `moldea/references/skill-design.md`, `fixtures/conformance-cases.json`, the zero-call budget, evaluator, protocols, official evidence, and unrelated routes byte-identical.
+- Run the same deterministic correction boundary, review and publish the exact change, then restart diagnostic state for only `skill-maintain-linked-resources`.
 
 ### Verification and acceptance criteria
 
-- Focused conformance and complete affected root regression checks pass; skill structure, resource, identity, formatting, path, website, and evidence integrity remain valid where the changed skill bytes apply.
-- The published correction is signed, signed off, and pushed through the explicit `origin/new_skill` refspec.
-- The single xhigh diagnostic passes all six semantic criteria and every resource, command-policy, repository-control, mount-integrity, and operational dimension with exactly zero moldea commands and bytes.
-- No completed passing case is rerun before the official complete suite, and no budget, criterion, classifier, evaluator, protocol, or unrelated route is weakened.
-- A repeated failure stops official execution and returns through evidence-led planning.
+- Focused conformance, complete root unit and integration suites, skill validation, resource, identity, formatting, path, website, build, artifact, and immutable-evidence checks pass.
+- The reviewed commit is signed, signed off, and pushed through explicit `origin/new_skill`.
+- The single xhigh diagnostic observes all six semantic criteria and passes every deterministic dimension with exactly zero moldea commands and bytes.
+- No other case is rerun and no budget, criterion, classifier, evaluator, protocol, reference, evidence artifact, or combined-scope route is weakened.
+- If `inspect` and `validate` repeat, stop paid execution and investigate evaluator delivery or host skill loading instead of applying another wording patch.
 
 ### Review checkpoint
 
-Inspect the first-route precedence, word count, focused assertion, unchanged case and reference bytes, evidence-pointer immutability, exact diagnostic command totals, and absence of unrelated changes.
+Inspect operation-first precedence, the canonical/relationship exception, route word count, focused assertion, byte-identical excluded owners, evidence integrity, exact case command totals, and absence of unrelated changes.
 
 ## Milestone 77: Record and publish current 74-case semantic evidence
 
@@ -367,4 +367,4 @@ Inspect exact repository tips, public claims, protocol and policy terminology, e
 
 ## Execution scope
 
-Preserve completed and published Milestones 1 through 75, failed official attempt `20260909T160245245Z-semantic-f4435831`, and the complete Milestone 76 nine-case classification. Complete the revised Milestone 76 by restoring explicit “Use moldea” consumption in the independent Agent Skill route, publishing its focused correction, and rerunning only `skill-maintain-linked-resources`. Then execute Milestones 77 through 83 sequentially: record one passing 74-case attempt; add bounded qualification batching; establish a passing 12-case Custom baseline; collect and close all 13 adapter profiles; publish clean skill 5.0; and complete the cross-repository launch audit. Every paid batch uses at most four isolated workers, deterministic aggregate writes, exact resume, global token and disk admission, content-free status, and stop-dispatch with sibling drain. A repeatable deterministic defect returns through the authorized revise-plan, challenge, and breakdown cycle before another correction. Preserve all safety, privacy, provenance, signing, review, branch, clean-slate, protected-instruction, hard-exclusion, and unrelated-concurrent-work constraints from the challenged plan.
+Preserve completed and published Milestones 1 through 75, the first published Milestone 76 correction at `9a6c76817a0a8bed35557283508cf358047bb5be`, failed official attempt `20260909T160245245Z-semantic-f4435831`, the complete nine-case classification, and the repeated single-case classification. Complete the revised Milestone 76 by replacing the inference-dependent Agent Skill boundary with an operation-first deliverable route that preserves separately requested canonical or relationship work, then publish and rerun only `skill-maintain-linked-resources`. If the same resource-only call pattern repeats, stop wording patches and diagnose evaluator delivery or host skill loading. Then execute Milestones 77 through 83 sequentially: record one passing 74-case attempt; add bounded qualification batching; establish a passing 12-case Custom baseline; collect and close all 13 adapter profiles; publish clean skill 5.0; and complete the cross-repository launch audit. Preserve every worker, resource, safety, privacy, provenance, signing, review, branch, clean-slate, protected-instruction, hard-exclusion, and unrelated-concurrent-work constraint from the challenged plan.

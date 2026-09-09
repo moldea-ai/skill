@@ -17,8 +17,9 @@ export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT = 'xhigh';
 export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT = 'xhigh';
 const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
   'You are running inside a closed local evaluation workspace. Do not use network clients other ' +
-  'than an evaluator-provided fixed local probe explicitly required by the current evaluation ' +
-  'task, perform Git network operations, invoke package managers or installers, call providers ' +
+  'than an evaluator-provided fixed local probe required by the current evaluation task. When the ' +
+  'task requires current runtime publication evidence, use that probe for the exact publication ' +
+  'URL. Do not perform Git network operations, invoke package managers or installers, call providers ' +
   'or models, use subagents, inspect environment variables or authentication state, access the ' +
   'evaluator home, or access filesystem paths outside the current workspace except evaluator-provided ' +
   'read-only repositories explicitly named by the current task. Required dependencies and fixtures ' +
@@ -63,6 +64,7 @@ const REQUIRED_CODEX_FLAGS = [
   '--skip-git-repo-check',
 ];
 const REQUIRED_CODEX_CONFIG = ['shell_environment_policy.inherit=none'];
+const REQUIRED_CODEX_FEATURE = 'skip_host_skill_discovery';
 const SAFE_HOST_ENVIRONMENT_NAMES = ['OPENAI_API_KEY', 'OPENAI_BASE_URL', 'SSL_CERT_FILE'];
 const EXCLUDED_WORKSPACE_PATH_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 
@@ -288,9 +290,22 @@ export const buildCodexEvaluationHostCommand = (command, role) => {
       'The evaluation host command must not override the runner-owned developer instructions.',
     );
   }
+  if (
+    command.some(
+      (commandPart, index) =>
+        ((commandPart === '--enable' || commandPart === '--disable') &&
+          command[index + 1] === REQUIRED_CODEX_FEATURE) ||
+        commandPart === `--enable=${REQUIRED_CODEX_FEATURE}` ||
+        commandPart === `--disable=${REQUIRED_CODEX_FEATURE}`,
+    )
+  ) {
+    throw new Error('The evaluation host command must not override host skill discovery.');
+  }
 
   const effectiveCommand = [
     ...command.slice(0, -1),
+    '--enable',
+    REQUIRED_CODEX_FEATURE,
     '--model',
     CODEX_EVALUATION_MODEL,
     '-c',
@@ -311,6 +326,21 @@ export const buildCodexEvaluationHostCommand = (command, role) => {
  */
 export const validateCodexEvaluationHostCommand = (command, role) => {
   validateBaseHostCommand(command);
+  const enabledHostSkillDiscoveryFeatures = command.filter(
+    (commandPart, index) =>
+      (commandPart === '--enable' && command[index + 1] === REQUIRED_CODEX_FEATURE) ||
+      commandPart === `--enable=${REQUIRED_CODEX_FEATURE}`,
+  );
+  if (
+    enabledHostSkillDiscoveryFeatures.length !== 1 ||
+    command.some(
+      (commandPart, index) =>
+        (commandPart === '--disable' && command[index + 1] === REQUIRED_CODEX_FEATURE) ||
+        commandPart === `--disable=${REQUIRED_CODEX_FEATURE}`,
+    )
+  ) {
+    throw new Error('Codex evaluation must disable host skill discovery.');
+  }
   const reasoningEffort = getCodexEvaluationReasoningEffort(role);
   if (identifyConfiguredModel(command) !== CODEX_EVALUATION_MODEL) {
     throw new Error(`Codex evaluation must use ${CODEX_EVALUATION_MODEL}.`);

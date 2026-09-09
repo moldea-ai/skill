@@ -560,6 +560,43 @@ test('execution evidence detects credentials outside command output without reta
   assert.doesNotMatch(JSON.stringify(result), /github_pat_/u);
 });
 
+test('execution evidence distinguishes Basic credentials from ordinary prose', () => {
+  const basicCredential = Buffer.from('user:secret', 'utf8').toString('base64');
+  const result = projectCodexEvaluationExecutionEvidence(
+    [
+      JSON.stringify({
+        type: 'item.completed',
+        item: { type: 'agent_message', text: 'Basic authentication remains disabled.' },
+      }),
+      JSON.stringify({
+        type: 'item.completed',
+        item: { type: 'agent_message', text: `Authorization: Basic ${basicCredential}` },
+      }),
+    ].join('\n'),
+  );
+
+  assert.deepEqual(result.commandPolicy.credentialExposure, {
+    status: 'observed',
+    observedCount: 1,
+    reasons: [{ code: 'credential-material', count: 1 }],
+  });
+});
+
+test('execution evidence ignores ordinary Basic prose without a credential', () => {
+  const result = projectCodexEvaluationExecutionEvidence(
+    `${JSON.stringify({
+      type: 'item.completed',
+      item: { type: 'agent_message', text: 'Basic authentication remains disabled.' },
+    })}\n`,
+  );
+
+  assert.deepEqual(result.commandPolicy.credentialExposure, {
+    status: 'not-observed',
+    observedCount: 0,
+    reasons: [],
+  });
+});
+
 test('execution evidence rejects malformed and incomplete completed-command events', () => {
   assert.throws(() => projectCodexEvaluationExecutionEvidence('{not-json}\n'), /malformed JSONL/u);
   assert.throws(

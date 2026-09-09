@@ -146,6 +146,12 @@ test('host configuration accepts a workflow-owned default timeout', () => {
 });
 
 test('host commands use the runner-owned model and role-specific reasoning effort', () => {
+  assert.deepEqual(
+    SAFE_HOST_COMMAND.flatMap((commandPart, index) =>
+      commandPart === '--enable' ? [SAFE_HOST_COMMAND[index + 1]] : [],
+    ),
+    ['skip_host_skill_discovery'],
+  );
   assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-5.6-sol');
   assert.equal(identifyConfiguredReasoningEffort(SAFE_HOST_COMMAND), 'xhigh');
   assert.equal(
@@ -176,6 +182,8 @@ test('host commands carry one neutral runner-owned developer policy and exact di
   assert.match(instruction, /closed local evaluation workspace/u);
   assert.match(instruction, /Do not use network clients/u);
   assert.match(instruction, /evaluator-provided fixed local probe/u);
+  assert.match(instruction, /task requires current runtime publication evidence/u);
+  assert.match(instruction, /probe for the exact publication URL/u);
   assert.match(instruction, /invoke package managers or installers/u);
   assert.match(instruction, /access filesystem paths outside the current workspace/u);
   assert.match(instruction, /read-only repositories explicitly named by the current task/u);
@@ -241,6 +249,33 @@ test('host commands reject caller-owned model, reasoning, and developer-policy o
   assert.throws(
     () => validateCodexEvaluationHostCommand(duplicatedPolicyCommand, 'actor'),
     /must use the runner-owned developer instructions/,
+  );
+  for (const featureFlag of ['--enable', '--disable']) {
+    assert.throws(
+      () =>
+        buildCodexEvaluationHostCommand(
+          [
+            ...BASE_HOST_COMMAND.slice(0, -1),
+            featureFlag,
+            'skip_host_skill_discovery',
+            '-',
+          ],
+          'actor',
+        ),
+      /must not override host skill discovery/,
+    );
+  }
+  assert.throws(
+    () =>
+      validateCodexEvaluationHostCommand(
+        SAFE_HOST_COMMAND.filter(
+          (commandPart, index, command) =>
+            commandPart !== 'skip_host_skill_discovery' &&
+            !(commandPart === '--enable' && command[index + 1] === 'skip_host_skill_discovery'),
+        ),
+        'actor',
+      ),
+    /must disable host skill discovery/,
   );
 });
 

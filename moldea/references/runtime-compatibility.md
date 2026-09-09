@@ -41,6 +41,8 @@ When the publication cannot establish a required fact, the final report must:
 
 For behavioral fit, identify which material model API and control flow, instruction loading, tool or schema, continuation, state or handoff, error or retry, lifecycle, and persistence facts apply and remain unproved. Resolve them from current source contracts, closed wiring, source-owned target documentation, or focused integration tests rather than package hints.
 
+When missing behavioral evidence prevents a runtime change, report the specific material unknowns and pair each with at least one concrete reliable resolver. Do not replace that accounting with a generic request for more evidence.
+
 State canonical runtime identity, repository behavior and fit, local composition, published technical compatibility, and maturity separately in plans and reports. When they disagree, preserve the disagreement rather than collapsing it into one compatibility claim or describing an established fact as absent. When changing `runtime.id`, retain every independently evidenced model-visible capability in canonical guidance; a runtime identity correction does not authorize dropping supported behavior.
 
 Plan the minimum evidence operations before invoking the CLI. For one already identified agent and target, invoke composition first and retain its conclusion, then use only the canonical content needed for that agent and current publication when required. Do not add `inspect` after the owner is known or run `validate` when structural status cannot change the runtime conclusion. A publication result cannot retroactively replace or erase the completed composition result. Direct relevant work remains inside the ordinary four-command moldea limit.

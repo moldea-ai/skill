@@ -209,9 +209,11 @@ const CREDENTIAL_PATTERNS = [
   /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/gu,
   /\b(?:npm_[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{16,})\b/gu,
   /\bAKIA[A-Z0-9]{16}\b/gu,
-  /\b(?:Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{12,}(?=$|[\s"',;])/giu,
+  /\bBearer\s+[A-Za-z0-9._~+/=-]{12,}(?=$|[\s"',;])/giu,
   /-----BEGIN [^-]+-----[\s\S]*?-----END [^-]+-----/gu,
 ];
+const BASIC_AUTHORIZATION_PATTERN =
+  /\bBasic\s+([A-Za-z0-9+/]{8,}={0,2})(?=$|[\s"',;])/giu;
 const SENSITIVE_ENVIRONMENT_NAME_PATTERN =
   /^(?:OPENAI_API_KEY|AUTHORIZATION|ACCESS_TOKEN|AUTH_TOKEN|PASSWORD|PRIVATE_KEY|SECRET)$/iu;
 const PROCESS_ENVIRONMENT_PATTERN = /^\/proc\/(?:self|\d+)\/environ$/u;
@@ -1034,7 +1036,27 @@ const classifyCommand = (command, localProbeKind) => {
   };
 };
 
+/** Detects a canonical Basic credential without treating ordinary prose as secret material. */
+const hasBasicAuthorizationCredential = (source) => {
+  BASIC_AUTHORIZATION_PATTERN.lastIndex = 0;
+  for (const match of source.matchAll(BASIC_AUTHORIZATION_PATTERN)) {
+    const token = match[1];
+    const decoded = Buffer.from(token, 'base64');
+    const decodedText = decoded.toString('utf8');
+    const normalizedToken = token.replace(/=+$/u, '');
+    if (
+      Buffer.from(decodedText, 'utf8').equals(decoded) &&
+      decoded.toString('base64').replace(/=+$/u, '') === normalizedToken &&
+      decodedText.includes(':')
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
+
 const hasCredentialExposure = (source) =>
+  hasBasicAuthorizationCredential(source) ||
   CREDENTIAL_PATTERNS.some((pattern) => {
     pattern.lastIndex = 0;
     return pattern.test(source);

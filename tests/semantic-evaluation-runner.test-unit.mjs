@@ -952,6 +952,14 @@ test('keeps runner-enforced moldea budgets outside semantic judgment', () => {
     prompt,
     /projected `node-test-summary` fact[\s\S]+every discovered test passed[\s\S]+`testKind` establishes the recognized test level/u,
   );
+  assert.match(
+    prompt,
+    /criterion explicitly accepts a concise no-finding response[\s\S]+do not require the actor to restate that evidence/u,
+  );
+  assert.match(
+    prompt,
+    /criterion explicitly accepts one focused question as the complete response[\s\S]+do not invent an unrequested task/u,
+  );
 });
 
 test('passes case-budget misses to semantic judgment as a deterministic failure', () => {

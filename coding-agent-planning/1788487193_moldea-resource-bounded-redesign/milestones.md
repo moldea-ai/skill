@@ -1,222 +1,245 @@
-# moldea resource-bounded redesign milestones
+# Resource-bounded moldea redesign milestones
 
-## Completed milestones
+## Completed milestones 1 through 67
 
-Milestones 1 through 62 are complete, reviewed, signed, and published at the repository boundaries recorded in `plan.md`. Milestone 62 is published at `940f9bb29b4be2ce05e348170729b6ec1b3b1280` and established semantic protocol 25, qualification protocol 10, one shared developer-policy identity, direct-Node-only correctness evidence, and independent semantic activation and resource dimensions.
+Milestones 1 through 66 are complete and published. They established the clean-slate package generation, repository-bound activation, content-free CLI inspection, lazy repository reading, PR Assurance foundations, paired public/private fixtures, evidence pinning, the 74-case semantic inventory, the 12-plus-2 qualification model, clean protocol-25 and protocol-10 evidence contracts, collect-first diagnostics, strict resource accounting, and the evaluator corrections recorded in the plan.
 
-Milestone 63 completed the exact protocol-25 seven-case diagnostic without changing tracked files or official evidence. Three cases passed directly, two passed their one unchanged semantic confirmation, and two repeated a semantic-only failure with every deterministic dimension passing. The content-free ledger identity, digest, full distribution, and root-cause classification are preserved in problems 105 through 107 of `plan.md`. This diagnostic must not be rerun as a seven-case batch.
+Milestone 67 completed one official 74-case protocol-25 attempt. It is complete but failed with 56 direct passes, three recovered cases, and 15 terminal failures. The attempt is immutable audit evidence and remains unpublished only because this re-planning cycle had to define the evaluator corrections and bounded parallel scheduler before another paid run.
 
-## Milestone 64: Publish the two-cause correction plan
+## Milestone 68: Publish the failed attempt and revised execution contract
 
 ### Objective
 
-Publish one challenged planning contract that preserves the complete diagnostic history and limits the next behavior change to its two proven owners.
+Publish the complete failed protocol-25 attempt unchanged together with the challenged plan and regenerated breakdown.
 
 ### Dependencies
 
-- Milestone 62 is published from the exact recorded commit.
-- Milestone 63 is complete and no evaluator or model-host process is active.
-- Official semantic and qualification evidence stores remain empty.
+- The attempt `20260909T043816171Z-semantic-a7e22bfc` remains byte-identical to the completed Milestone 67 output.
+- The revised plan has recommendation `No material concerns` at SHA-256 `1240ac8f6ee4b7a80f12eb531f3aef6217dddb2ee72e3be95ebb966a8de5924d` before this breakdown is added.
 
 ### Scope and implementation
 
-- Update only `coding-agent-planning/1788487193_moldea-resource-bounded-redesign/plan.md` and this `milestones.md`.
-- Record the exact protocol-25 ledger, the two recovered variance cases, the two confirmed residuals, and their portable-skill versus evaluator-policy root causes.
-- Define the compact canonical-maintenance route, semantic-case-scoped fixed-probe capability, qualification exclusion, unchanged protocol generations, targeted two-case gate, and remaining execution order.
-- Preserve every non-planning file, ignored diagnostic artifact, protected instruction, case, criterion, budget, fixture, and official evidence store.
+- Verify the attempt, identity, latest pointer, source commit, result counts, and failed status without changing the evidence.
+- Commit only the failed attempt, latest pointer, revised `plan.md`, and this `milestones.md` as one planning-and-evidence boundary.
+- Preserve ignored diagnostic candidates and ledgers, protected instructions, and unrelated work.
 
 ### Verification and acceptance criteria
 
-- The revised plan passes `challenge plan` with no material concerns.
-- Plan and breakdown formatting, path portability, internal consistency, complete remaining-scope coverage, and diff checks pass.
-- No model call, behavior change, evidence mutation, or unrelated file enters the milestone.
-- Review is ready and the signed, signed-off planning commit is pushed to `origin/new_skill` before implementation.
+- Evidence verification reports protocol 25, evidence schema 9, attempt schema 6, 74 initials, 13 confirmations, 87 trials, 174 stages, 56 direct passes, three recoveries, 15 failures, and no operational stop.
+- The attempt remains failed, no passing pointer is fabricated, and no evidence body is rewritten.
+- Read-only review is ready; the signed and signed-off commit is pushed explicitly from `new_skill` to its resolved destination.
 
 ### Review checkpoint
 
-Inspect ledger preservation, root-cause ownership, fixed-probe containment, qualification isolation, stop-loss rules, and exact publication scope.
+Inspect immutable evidence identity, exact result distribution, pointer behavior, changed-path cohesion, and preservation of ignored and unrelated state.
 
-## Milestone 65: Publish the canonical-maintenance and fixed-probe correction
+## Milestone 69: Correct evaluator ownership and add bounded semantic batching
 
 ### Objective
 
-Correct the two confirmed residual causes without changing cases, resource budgets, protocols, or official evidence.
+Implement one deterministic semantic generation that corrects the 15 false-negative or variance-prone boundaries, moves both model roles to xhigh, and supports safe one-, two-, or four-worker execution.
 
 ### Dependencies
 
-- Milestone 64 is published from a clean worktree.
-- The shared host policy digest and semantic case-definition boundary remain the established behavior-identity owners.
+- Milestone 68 is published from a clean tracked boundary.
+- The 15-case failure classification in problems 110 and 111 remains the complete correction input.
 
 ### Scope and implementation
 
-- In `moldea/SKILL.md`, add direct maintenance or change of canonical agent/runtime facts to the adoption-only route. Permit one content-free ownership inspection only when the developer has not named the canonical owner, then require canonical-first edits, derived mirror synchronization, and final validation through the existing focused references.
-- Keep ordinary unrelated maintenance on the cheap abstention path and keep the root skill within its established size budget.
-- In `tooling/codex-evaluation-host/host.mjs`, amend the exact non-overridable developer policy to permit evaluator-provided fixed local probes explicitly required by the evaluation workspace. Let the existing policy digest invalidate both semantic and qualification host identities automatically.
-- In `tooling/codex-evaluation-host/execution-evidence.mjs`, its declaration and public entry as needed, add a typed optional local-probe capability. Classify only an exact evaluator-owned runtime-publication command as non-networking when that capability is supplied; retain content-free projections.
-- In `tests/semantic-evaluation-runner.mjs`, supply the capability only for the existing runtime-publication case set and harden the evaluator-owned probe to the exact URL and minimal safe curl flag forms. Do not supply it to judges, unrelated semantic cases, Custom, or adapters.
-- Add focused host, execution-evidence, semantic runner, conformance, and qualification tests. Prove bare and absolute evaluator-owned forms as applicable, successful and unavailable probe outcomes, rejection of alternate URLs and unsafe arguments, unrelated-case rejection, and unchanged qualification rejection.
-- Synchronize only directly affected current-state documentation. Preserve semantic protocol 25, qualification protocol 10, all case definitions and criteria, repository fixtures, budgets, timeouts, reasoning efforts, CLI identity, official evidence stores, and public not-recorded surfaces.
+- Update `fixtures/conformance-cases.json` and semantic evaluator projections only where handoff, no-finding review, blocked-route, related-repository, independent-skill, runtime, or independently reproducible command-policy evidence proves evaluator ownership.
+- Add `src/unrelated.js` to the unrelated-review fixture projection and raise only the two contradictory inspect-plus-content blocked budgets.
+- Keep `moldea/**` frozen unless deterministic xhigh evidence later proves a portable skill defect.
+- Set actor and judge reasoning to xhigh in `tooling/codex-evaluation-host/host.mjs`, declarations, identities, validation, and focused tests. Keep the 900,000-millisecond timeout identity-neutral.
+- Refactor `tests/semantic-evaluation-runner.mjs` and focused semantic modules so diagnostic and official execution accept only `--workers 1|2|4`, default to four, use case-isolated workspaces and private checkpoints, serialize aggregate writes, reserve tokens globally, merge in fixture order, and resume completed stages exactly at a different accepted worker count.
+- Enforce the shared evaluation temporary-storage envelope: 1,073,741,824 bytes per worker, 4,294,967,296 bytes aggregate, and a 2,147,483,648-byte free-space floor. Keep four-worker diagnostic metadata at or below 6,291,456 bytes.
+- Stop new dispatch on operational or capacity exhaustion, drain active siblings to safe checkpoints, preserve completed work, and clean disposable terminal storage without turning an operational stop into semantic evidence.
+- Synchronize `README.md`, `docs/semantic-evaluation.md`, directly affected evidence documentation, schemas, public types, and command help. Do not change protocol 25, evidence schema 9, attempt schema 6, or immutable result shapes solely for operational scheduling.
 
 ### Verification and acceptance criteria
 
-- Direct canonical maintenance resolves its owner with at most one content-free inspection, updates canonical state before declared mirrors, validates, and stays within the unchanged four-call budget.
-- Arbitrary curl, other network clients, unsafe curl options, dynamic shell forms, and use without the semantic capability remain observed or indeterminate command-policy failures.
-- Qualification uses the changed shared policy identity but receives no fixed-probe exception.
-- Targeted tests pass, followed by complete root unit and integration suites, complete qualification unit and integration suites, skill validation, documentation checks, website checks, release-identity checks, typechecking, linting, formatting, builds, path checks, and contradiction searches.
-- Official semantic and qualification evidence remain empty and no model call occurs.
-- Review is ready and the signed, signed-off correction commit is pushed before the targeted diagnostic.
+- Unit and integration tests prove one-versus-four equivalence, fixture-order output, no duplicate stage after every interruption boundary, exact cross-worker resume, token reservation boundaries, disk admission and overage, sibling drain, cleanup, privacy, and absence of cross-case contamination.
+- Focused tests prove the 15 corrected contracts without weakening credential, environment, evaluator-home, network, package-manager, repository-control, mount-integrity, or command-policy rejection.
+- Complete root unit and integration suites, skill validation, documentation checks, typechecking, linting, formatting, builds, evidence verification, and release-identity checks pass.
+- No paid model call occurs in this milestone.
+- Read-only review is ready; the signed and signed-off commit is pushed before diagnostics.
 
 ### Review checkpoint
 
-Inspect activation narrowness, canonical-first ownership, instruction size, capability scoping, command parsing, adversarial rejection, semantic/qualification identity effects, privacy, and unchanged cases and budgets.
+Inspect correction ownership, portable-skill freeze, xhigh identity, worker isolation, deterministic aggregation, token and disk admission, exact resume, stop-loss behavior, public contracts, and unchanged protocol generation.
 
-## Milestone 66: Pass the two-case diagnostic gate
+## Milestone 70: Close the 15-case xhigh semantic gate
 
 ### Objective
 
-Prove both corrections under the published final behavior identity before official recording.
+Run the complete residual set once as a bounded four-worker diagnostic and decide from the full ledger whether any portable behavior still needs correction.
 
 ### Dependencies
 
-- Milestone 65 is published from a clean worktree.
-- Model-free preflight reports protocol 25, 74 cases, zero current reuse, `high` actors, `xhigh` judges, the 900,000-millisecond ceiling, and unchanged resource and token containment.
+- Milestone 69 is published and every deterministic scheduler test passes.
+- Model-free preflight resolves exactly the 15 failed case identifiers and the final xhigh/xhigh host identity.
 
 ### Scope and implementation
 
-- Run only `canonical-instruction-changed` and `dedicated-repository-runtime-selection` in one sequential non-recording diagnostic batch.
-- Run each initial once. Give at most one unchanged confirmation only when semantics alone fail and every deterministic dimension passes.
-- Retain only bounded content-free diagnostics; do not mutate source, official evidence, pointers, or public results.
-- If either case remains a confirmed failure or any deterministic or operational defect appears, preserve the complete ledger and return through autonomous planning before another edit.
+- Run the 15 cases together with four workers, one initial per case, no official evidence write, and no eligible reuse.
+- If provider or host pressure appears, resume the exact checkpoint with two or one workers without repeating a completed stage.
+- Analyze the complete content-free ledger across semantic, resource, command-policy, repository-control, mount-integrity, operational, token, output, and disk dimensions before editing.
+- If residual failures prove a shared evaluator, fixture, or portable-skill defect, return through the authorized revise-plan, challenge, and breakdown cycle and correct the complete residual set once. Do not patch one case while siblings remain unclassified.
 
 ### Verification and acceptance criteria
 
-- Both cases pass directly or through their one eligible semantic confirmation.
-- Canonical maintenance uses moldea, updates the canonical owner before mirrors, and stays within the existing resource contract.
-- Runtime selection uses only the evaluator-owned local probe capability, selects from composition, publication, and repository behavior evidence, and preserves the related read-only repository.
-- Every command-policy, resource, repository-control, mount-integrity, and operational dimension passes.
-- Review records ledger identity, digest, outcomes, resource aggregates, and non-mutation. With no tracked change, publication is a verified no-op.
+- Every selected identifier appears exactly once in deterministic order and every completed stage remains resumable.
+- The gate passes directly or through only the confirmation behavior authorized by the current semantic contract, with every deterministic dimension green.
+- Diagnostic state and stdout remain within their content-free byte ceilings and official evidence remains unchanged.
+- A repeated systemic residual produces one explicit re-plan rather than another blind full run.
 
 ### Review checkpoint
 
-Inspect exact two-case selection, prior-failure closure, confirmation eligibility, command evidence, resource totals, identity, and finite stop-loss.
+Inspect the complete distribution, recovered-versus-repeatable variance, actor and judge effort, command classifications, resource totals, worker scheduling, checkpoint reuse, and whether any remaining change belongs to the skill or evaluator.
 
-## Milestone 67: Record fresh passing 74-case semantic evidence
+## Milestone 71: Record and publish current 74-case semantic evidence
 
 ### Objective
 
-Produce one complete protocol-25 semantic assurance artifact for the final frozen behavior.
+Produce one complete passing protocol-25 attempt under the final xhigh and bounded-worker identity.
 
 ### Dependencies
 
-- Milestone 66 is green against the exact behavior identity to be recorded.
-- Free preflight reports all 74 cases and exact direct, reusable, confirmation-inclusive, retry-inclusive, token, and output exposure.
+- Milestone 70 is green against the exact behavior and evaluator generation to be recorded.
+- Free preflight reports all 74 cases, paid exposure, confirmations, retries, token reservations, and no stale reusable stage.
 
 ### Scope and implementation
 
-- Run one sequential collect-first official semantic attempt, using exact eligible current reuse and executing only paid misses.
-- Complete every initial before eligible confirmations, persist interruption-safe progress, and enforce the candidate token ceiling before every model invocation.
-- Preserve a complete failed attempt unchanged and return through autonomous planning if a repeatable systemic defect remains. Promote only a complete passing attempt.
-- Update the latest/passing pointers, compact result, and website evidence only through the normal validated passing path.
+- Run one official four-worker collect-first attempt. Complete every initial before eligible confirmations and preserve exact progress after interruption.
+- Reduce concurrency only through exact resume if measured provider or host pressure requires it.
+- Promote only a complete passing attempt and update latest, passing, compact-result, website, and release identity through validated generators.
+- Preserve any complete failure unchanged and return through evidence-led re-planning if a repeatable systemic defect remains.
 
 ### Verification and acceptance criteria
 
-- All 74 cases pass directly or recover through eligible semantic confirmations, with no pending or stopped case.
-- Attempt, release, website, resource, privacy, stage-reuse, documentation, type, lint, format, build, and regression verification pass.
-- Public pages distinguish direct, recovered, and exact-reused outcomes without exposing raw evidence or predecessor pages.
+- All 74 cases pass directly or recover through an eligible semantic confirmation, with no pending or stopped case.
+- Attempt, evidence, release, website, resource, privacy, ordering, stage-reuse, documentation, type, lint, format, build, and regression verification pass.
 - An unchanged post-recording preflight reports complete exact-current reuse.
-- Review is ready and the signed, signed-off evidence commit is pushed.
+- Read-only review is ready; the signed and signed-off evidence commit is pushed.
 
 ### Review checkpoint
 
-Inspect complete resolution, behavior and policy identity, confirmation eligibility, tokens and output, direct/reused provenance, passing-only promotion, public clarity, and post-run reuse.
+Inspect complete resolution, direct/recovered provenance, xhigh identity, confirmations, tokens, output, disk, ordering, passing-only promotion, and public clarity.
 
-## Milestone 68: Establish fresh passing Custom qualification evidence
+## Milestone 72: Add bounded qualification batching
 
 ### Objective
 
-Close all 12 shared Custom journeys under protocol 10 before any adapter-specific qualification.
+Give Custom and adapter qualification the same safe batching, checkpoint, resume, and consolidated-failure workflow before another qualification model call.
 
 ### Dependencies
 
-- Milestone 67 is published with current passing semantic evidence.
-- Qualification preflight binds protocol 10, the shared developer policy, direct-Node evidence, split effort, fifteen-minute ceiling, final upper resource profiles, and exact package closure.
+- Milestone 71 is published with current passing semantic evidence.
+- Active qualification evidence remains a clean protocol-10 not-recorded state.
 
 ### Scope and implementation
 
-- Run one official collect-first Custom attempt sequentially, completing all initial cases and only eligible semantic confirmations.
-- Preserve and publish any complete failed attempt before a behavior change, then classify the entire failure set across skill, evaluator, fixture, probe, resource, infrastructure, and variance.
-- Return through autonomous re-planning for a repeatable systemic defect; do not start a patch-and-rerun loop.
-- Promote only a genuinely passing current attempt as the shared baseline and present it without inherited-history or legacy-attempt language.
+- Extend `qualification/src/command-line`, `qualification/src/cli`, `qualification/src/execution`, and `qualification/src/diagnostic-batch` with `--workers 1|2|4` and a `run-batch` command that accepts exactly one of `--all`, `--targets`, or `--unresolved-from`.
+- Run Custom cases concurrently only within one attempt. Refuse every adapter profile until the exact passing Custom baseline exists, then coordinate adapter profiles through isolated attempt directories, result roots, checkpoints, and token accounts.
+- Serialize aggregate state, merge in declared order, stop dispatch and drain siblings on operational or capacity failure, and allow exact resume at a different accepted worker count without duplicating a completed model stage.
+- Apply the shared 4 GiB temporary-storage envelope and derive per-profile and aggregate paid-token ceilings from validated qualification measurements rather than copying the semantic candidate limit.
+- Synchronize `docs/adapter-qualification.md`, root command documentation, declarations, schemas, website not-recorded behavior, and release verification without adding a legacy reader or inherited-attempt language.
 
 ### Verification and acceptance criteria
 
-- All 12 Custom journeys pass with exact protocol, policy digest, effort, timeout, package, skill, evaluator, resource, repository, and provenance identity.
-- Failed attempts remain failed, deterministic failures receive no confirmations, and diagnostics never become release evidence.
+- Parser, runner, executor, diagnostic, and integration tests cover valid selectors, conflicts, unknown targets, one-versus-four equivalence, Custom prerequisite races, deterministic order, failure continuation, stop-dispatch, disk and token boundaries, exact resume, cleanup, and result-root isolation.
+- Model-free dry-run proves the complete Custom and 13-adapter schedule before paid work.
+- Complete qualification and affected root/website suites, types, lint, format, builds, documentation, privacy, storage, and release-identity checks pass.
+- No paid model call occurs in this milestone.
+- Read-only review is ready; the signed and signed-off commit is pushed.
+
+### Review checkpoint
+
+Inspect command contracts, Custom-first enforcement, scheduler isolation, operational-versus-evidence identity, aggregate capacity, cleanup, public composition, and legacy absence.
+
+## Milestone 73: Establish fresh Custom qualification evidence
+
+### Objective
+
+Close all 12 shared Custom journeys under the final protocol-10 xhigh contract.
+
+### Dependencies
+
+- Milestone 72 is published and model-free preflight passes.
+
+### Scope and implementation
+
+- Run one four-worker collect-first Custom attempt, completing all initials and only eligible semantic confirmations.
+- Preserve every complete failed attempt, classify the full failure set once, and correct only proven shared causes through autonomous re-planning.
+- Promote only a passing current attempt as the shared Custom baseline. Do not present it as inherited evidence.
+
+### Verification and acceptance criteria
+
+- All 12 journeys pass with exact policy, xhigh efforts, timeout, package, skill, evaluator, resource, repository, and provenance identity.
+- Failed evidence remains failed, diagnostics never become release evidence, and terminal workspaces are cleaned safely.
 - Qualification, website, release, privacy, storage, type, lint, format, build, documentation, and regression checks pass.
-- Review is ready and every cohesive evidence or correction commit is signed, signed off, and pushed.
+- Read-only review is ready; every cohesive correction or evidence commit is signed, signed off, and pushed.
 
 ### Review checkpoint
 
-Inspect the complete Custom ledger, shared policy application, upper-resource-only qualification semantics, confirmation eligibility, source identity, baseline meaning, cleanup, and stop-loss.
+Inspect the complete Custom ledger, confirmation eligibility, resource and disk use, baseline identity, cleanup, public language, and stop-loss decisions.
 
-## Milestone 69: Produce the complete adapter-specific ledger
+## Milestone 74: Produce the complete adapter-specific ledger
 
 ### Objective
 
-Run all 13 adapter profiles against the exact passing Custom baseline and collect every adapter-specific outcome before editing behavior.
+Run all 13 adapter profiles in bounded batches against the exact Custom baseline and collect every outcome before editing.
 
 ### Dependencies
 
-- Milestone 68 is published with current passing Custom evidence.
-- Every adapter preflight binds the same exact Custom attempt and exposes two direct adapter cases.
+- Milestone 73 is published with a current passing Custom attempt.
+- `run-batch --all --workers 4` preflight binds every profile to that exact baseline.
 
 ### Scope and implementation
 
-- Run each adapter profile sequentially under protocol 10 with the shared developer policy, `high` actors, `xhigh` judges, direct-Node evidence, upper-only resource profiles, and the fifteen-minute ceiling.
-- Continue across semantic profile failures while operationally safe, preserve every complete attempt, and collect all 13 outcomes before changing shared or adapter behavior.
-- Reuse only exact current stages, keep result accumulation outside behavior identity, and preserve bounded terminal-storage cleanup.
-- Classify the complete distribution across shared skill, adapter contract, evaluator, fixture, probe, resource, infrastructure, and variance.
+- Run adapter profiles in batches of at most four, retaining two direct adapter projects per profile and the shared 12-case Custom baseline.
+- Continue across semantic failures while operationally safe, reduce worker count only through exact resume when needed, and preserve each complete attempt independently.
+- Classify the complete cross-profile distribution before changing shared skill, adapter, evaluator, fixture, probe, resource, or package behavior.
 
 ### Verification and acceptance criteria
 
-- All 13 profiles have a complete current result bound to the same passing Custom baseline, or a durable containment stop triggers autonomous re-planning.
-- Every attempt verifies policy, provenance, package and adapter versions, source commits, independent dimensions, resource containment, and privacy boundaries.
-- Public composition shows 12 shared plus two direct adapter journeys without claiming 14 adapter executions.
-- Review is ready and the unchanged complete ledger is signed, signed off, and pushed before any correction.
+- All 13 profiles reach a complete current result or one durable containment stop triggers autonomous re-planning.
+- Every attempt verifies source, package and adapter versions, policy, xhigh effort, provenance, independent dimensions, resource containment, and privacy.
+- Public composition remains 12 shared plus two direct journeys per adapter and 38 unique projects overall.
+- Read-only review is ready; the unchanged complete ledger is signed, signed off, and pushed before correction.
 
 ### Review checkpoint
 
-Inspect cross-profile distribution, semantic/qualification parity, upper-resource semantics, isolation, baseline binding, sequential execution, resource totals, and honest public composition.
+Inspect cross-profile failure patterns, Custom binding, isolation, concurrency, resource totals, direct-versus-shared provenance, and honest public counts.
 
-## Milestone 70: Close adapter qualification evidence
+## Milestone 75: Close adapter qualification evidence
 
 ### Objective
 
-Correct the consolidated adapter-specific failure set coherently and publish passing current evidence for Custom and every adapter.
+Correct the consolidated adapter failure set coherently and publish passing current evidence for all profiles.
 
 ### Dependencies
 
-- Milestone 69 produced and published the complete classified adapter ledger.
+- Milestone 74 produced and published the complete classified ledger.
 
 ### Scope and implementation
 
-- Make no behavior change when every adapter already passes. Otherwise re-plan proven shared defects once and keep adapter-specific corrections in their owning package, fixture, profile, evaluator, or documentation boundary.
-- Run affected deterministic checks and canaries, then only failed or exact-identity-invalidated cases and profiles.
-- Re-establish semantic or Custom evidence through autonomous re-planning if a portable skill or shared-baseline identity changes.
-- Retain no protocol-9, `medium`, all-high, inherited-history, dual-reader, or false two-project-only surface.
+- Make no behavior change when every profile passes. Otherwise revise the plan once from the complete distribution and keep each correction in its owning package, fixture, evaluator, profile, or documentation boundary.
+- Run deterministic checks and focused canaries, then rerun only failed or exact-identity-invalidated profiles through `run-batch --unresolved-from`.
+- Re-establish semantic or Custom evidence only when a real shared identity change requires it.
+- Retain no protocol-9, medium, all-high, inherited-history, dual-reader, or two-project-only compatibility surface.
 
 ### Verification and acceptance criteria
 
-- Custom and all 13 adapters have valid current passing evidence, with each adapter page composing 12 shared journeys and two directly executed adapter journeys.
+- Custom and all 13 adapters have valid current passing evidence under one exact generation.
 - A repeated systemic failure returns through re-planning instead of another patch loop.
 - Affected package, qualification, website, release, documentation, resource, privacy, type, lint, format, build, and regression checks pass.
-- Review is ready and every cohesive correction and evidence commit is signed, signed off, and pushed.
+- Read-only review is ready; every cohesive correction and evidence commit is signed, signed off, and pushed.
 
 ### Review checkpoint
 
-Inspect correction ownership, invalidated identities, exact rerun scope, shared-baseline integrity, adapter confidence, public provenance, and legacy absence.
+Inspect correction ownership, invalidated identities, targeted rerun scope, baseline integrity, adapter confidence, and legacy absence.
 
-## Milestone 71: Publish the clean skill 5.0 release
+## Milestone 76: Publish the clean skill 5.0 release
 
 ### Objective
 
@@ -224,49 +247,49 @@ Integrate and publish one clean 5.0 skill release against verified package major
 
 ### Dependencies
 
-- Semantic, Custom, and all adapter evidence are current, passing, and verified.
+- Semantic, Custom, and every adapter attempt are current, passing, and verified.
 - Required package majors are registry-visible and release identity validates.
 
 ### Scope and implementation
 
-- Select fresh evidence by default. Use the evidence-pin command only when the developer explicitly identifies an eligible compatible source release and reason; never use it for behavior changed by this sequence.
-- Remove every authorized active 4.0.x tag, hosted release, page, and release surface without adding compatibility runtime, loaders, fallbacks, routes, or historical-current wording.
-- Review the complete feature branch against freshly resolved `main`, resolve material staleness through autonomous re-planning, integrate through signed repository workflows, and push only explicit resolved refs.
+- Select fresh evidence by default. Use the native evidence-pin path only when the developer explicitly names an eligible compatible source release and reason.
+- Remove authorized active 4.0.x tags, hosted releases, pages, and release surfaces without adding compatibility readers, routes, fallbacks, or historical-current wording.
+- Review each feature branch against freshly resolved `main`, integrate through signed repository workflows, and push explicit single-branch refs.
 - Monitor release and website workflows and verify registry versions, tags, hosted releases, evidence routes, and downloadable skill identity.
 
 ### Verification and acceptance criteria
 
-- Release verification proves package, CLI, portable skill, 74-case semantic, 12-case Custom, 13-adapter qualification, resource, and release-envelope identity.
-- Active source, documentation, website, tags, and hosted releases expose only the clean current contract; immutable registry history is described honestly.
-- Current-main review, signed integration, publication workflows, registry checks, and host checks succeed or remain explicit external prerequisites.
+- Release verification proves package, CLI, portable skill, 74-case semantic, 12-case Custom, 13-adapter qualification, resource, and evidence-envelope identity.
+- Active source, documentation, websites, tags, and hosted releases expose only the clean current contract; immutable registry history is described honestly.
+- Current-main review, signed integration, publication workflows, registry checks, and host checks pass or remain explicit external prerequisites.
 
 ### Review checkpoint
 
-Inspect release identity, package closure, evidence selection, clean-slate removal, target freshness, signed integration, workflow results, registry state, and hosted release state.
+Inspect release identity, package closure, evidence selection, clean-slate removal, target freshness, signed integration, workflow results, registry state, and hosted state.
 
-## Milestone 72: Complete the cross-repository contradiction audit
+## Milestone 77: Complete the cross-repository launch audit
 
 ### Objective
 
-Prove that active specifications, packages, platform, skill, fixtures, websites, and knowledge base describe the same efficient launch contract.
+Prove that active specifications, packages, platform, skill, fixtures, websites, and knowledge-base content describe the same efficient launch contract.
 
 ### Dependencies
 
-- Milestone 71 is complete or has only explicit external publication prerequisites remaining.
+- Milestone 76 is complete or has only explicit external publication prerequisites.
 
 ### Scope and implementation
 
-- Audit active content in `skill`, `../packages`, `../platform`, `../knowledge-base`, and both GitHub fixture repositories while excluding protected instructions, hard-excluded archive and backup directories, and unrelated concurrent work.
-- Remove contradictions involving lowercase `moldea`, repository-bound installation, clean package majors, flexible adapter ranges, activation abstention, bounded content-free inspection, lazy repository reading, PR Assurance completeness, resource and disk containment, evidence pinning, 74-case semantics, shared developer policy, policy identity, split model effort, fifteen-minute stages, independent dimensions, semantic-only confirmation, shared 12-plus-2 qualification composition, and obsolete 4.0.x, protocol-24, protocol-9, `medium`, all-high, inherited-attempt, or compatibility surfaces.
-- Run each affected repository's established documentation, link, manifest, test, type, lint, format, build, package, website, release, registry, workflow, and host verification.
+- Audit active content in this repository, `../packages`, `../platform`, `../knowledge-base`, and both GitHub fixture repositories while excluding protected instructions, hard-excluded archive and backup directories, and unrelated concurrent work.
+- Remove contradictions involving lowercase `moldea`, repository-bound installation, clean package majors, flexible adapter ranges, activation abstention, bounded content-free inspection, lazy repository reading, PR Assurance completeness, resource containment, evidence pinning, 74-case semantics, xhigh roles, 15-minute stages, independent dimensions, shared 12-plus-2 qualification composition, bounded batches, and obsolete releases or compatibility surfaces.
+- Run every affected repository's established documentation, link, manifest, test, type, lint, format, build, package, website, release, registry, workflow, and host checks.
 - Review and publish only cohesive repository-owned changes to exact destinations while preserving unrelated concurrent work.
 
 ### Verification and acceptance criteria
 
-- No active contradiction or unsupported launch claim remains across specifications, source, packages, public documentation, websites, knowledge-base content, fixtures, registry state, tags, or hosted releases.
+- No active contradiction or unsupported launch claim remains across source, specifications, packages, public documentation, websites, knowledge base, fixtures, registry state, tags, or hosted releases.
 - Public and private fixtures remain equivalent at every declared scenario tip, and repository reading and PR Assurance remain bounded and complete.
 - Evidence is understandable to non-technical readers without exposing raw content or becoming a repository browser.
-- External prerequisites remain explicitly incomplete until directly proven.
+- External prerequisites remain explicit until directly proven.
 
 ### Review checkpoint
 
@@ -274,4 +297,4 @@ Inspect exact repository tips, public claims, protocol and policy terminology, e
 
 ## Execution scope
 
-Preserve completed and published Milestones 1 through 62 plus the completed Milestone 63 diagnostic classification. Execute Milestones 64 through 72 sequentially: publish the two-cause planning contract; publish the compact canonical-maintenance and semantic-case-scoped fixed-probe correction; pass only the two confirmed residual cases; record one fresh 74-case semantic attempt; establish one passing 12-case Custom baseline; collect and close all 13 adapter profiles; publish the clean skill 5.0 release; and complete the cross-repository contradiction audit. A repeatable defect at any evidence gate returns through autonomous planning, challenge, and breakdown before source changes. Preserve every safety, privacy, resource, provenance, signing, review, branch, clean-slate, protected-instruction, and unrelated-concurrent-work constraint from the challenged plan.
+Preserve completed and published Milestones 1 through 66 and the complete failed Milestone 67 attempt. Execute Milestones 68 through 77 sequentially: publish the failed attempt and revised planning contract; implement evaluator corrections, xhigh identity, and bounded semantic batching; close the 15-case residual gate; record one passing 74-case attempt; add bounded qualification batching; establish a passing 12-case Custom baseline; collect and close all 13 adapter profiles; publish clean skill 5.0; and complete the cross-repository launch audit. Every batch uses at most four isolated workers, deterministic aggregate writes, exact resume, global token and disk admission, content-free status, and stop-dispatch with sibling drain. A repeatable systemic defect returns through the authorized revise-plan, challenge, and breakdown cycle before another correction. Preserve all safety, privacy, provenance, signing, review, branch, clean-slate, protected-instruction, hard-exclusion, and unrelated-concurrent-work constraints from the challenged plan.

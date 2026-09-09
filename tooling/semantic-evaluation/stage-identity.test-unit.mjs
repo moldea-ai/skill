@@ -14,7 +14,7 @@ const actorHost = {
   developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   model: 'gpt-5.6-sol',
   name: 'codex',
-  reasoningEffort: 'high',
+  reasoningEffort: 'xhigh',
   role: 'actor',
   version: 'codex-cli 0.153.4',
 };
@@ -60,7 +60,7 @@ describe('semantic stage identity', () => {
       { caseDefinitionDigest: 'b'.repeat(64) },
       { cli: { integrity: 'sha512-other', version: '7.0.1' } },
       { actorHost: { ...actorHost, version: 'codex-cli 0.154.0' } },
-      { actorHost: { ...actorHost, reasoningEffort: 'xhigh' } },
+      { actorHost: { ...actorHost, reasoningEffort: 'high' } },
       { evaluationProtocolVersion: 26 },
       {
         actorHost: {

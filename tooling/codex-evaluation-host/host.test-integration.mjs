@@ -276,6 +276,7 @@ test('evaluator and system commands precede immutable workspace binaries on sand
   const evaluatorBinDirectory = join(sandboxHome, 'bin');
   mkdirSync(workspaceBinDirectory, { recursive: true });
   mkdirSync(evaluatorBinDirectory, { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
 
   const executableName = 'path-precedence-probe';
   const workspaceExecutablePath = join(workspaceBinDirectory, executableName);
@@ -318,6 +319,7 @@ test('Bubblewrap exposes the Codex code-mode companion beside the host executabl
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(repositoryPath);
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
 
   try {
     const result = spawnSync(
@@ -344,6 +346,7 @@ test('Bubblewrap exposes the exact host Node runtime through its isolated PATH',
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(repositoryPath);
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
 
   const probe = `
     const { spawnSync } = require('node:child_process');
@@ -381,6 +384,7 @@ test('Bubblewrap cannot observe host state or connect to host localhost', async 
   const hostMarkerPath = join(hostMarkerRoot, 'marker');
   mkdirSync(repositoryPath);
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
   writeFileSync(hostMarkerPath, 'host-only');
 
   const server = createServer();
@@ -428,6 +432,7 @@ test('Bubblewrap exposes related repositories without write authority', () => {
   mkdirSync(repositoryPath);
   mkdirSync(relatedRepositoryPath);
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
   writeFileSync(join(relatedRepositoryPath, 'marker'), 'related');
 
   const probe = `
@@ -468,6 +473,7 @@ test('Bubblewrap keeps the workspace writable except for evaluator-owned control
     recursive: true,
   });
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
   writeFileSync(join(repositoryPath, '.git', 'config'), 'protected');
   writeFileSync(join(repositoryPath, '.agents', 'skills', 'moldea', 'SKILL.md'), 'protected');
   writeFileSync(join(repositoryPath, 'editable.txt'), 'before');
@@ -504,6 +510,7 @@ test('Bubblewrap can mount the primary evaluation workspace read-only for judges
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(repositoryPath);
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
   writeFileSync(join(repositoryPath, 'marker'), 'judge input');
 
   const probe = `

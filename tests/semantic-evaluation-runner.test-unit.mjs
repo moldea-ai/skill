@@ -14,6 +14,7 @@ import {
 
 import {
   assessJudgeOutput,
+  assertNoOrphanedSemanticWorkerState,
   assertSemanticCandidatePaidStageCapacity,
   buildActorPrompt,
   buildJudgePrompt,
@@ -26,6 +27,7 @@ import {
   getSemanticCandidatePaidTokenCount,
   hasMatchingSemanticReusedSourceTrial,
   isSemanticActiveTrialOperationallyStopped,
+  isSemanticCoordinatorStopCaseKnown,
   isSemanticConfirmationEligible,
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
@@ -129,6 +131,7 @@ test('requires an explicit semantic model-execution mode', () => {
     isResumeStoppedStageRequested: false,
     isVerifyAttemptsRequested: false,
     requestedCaseId: undefined,
+    workerCount: 4,
   });
   assert.deepEqual(parseSemanticEvaluationArguments(['--record', '--restart']), {
     diagnosticBatchSelector: null,
@@ -140,6 +143,7 @@ test('requires an explicit semantic model-execution mode', () => {
     isResumeStoppedStageRequested: false,
     isVerifyAttemptsRequested: false,
     requestedCaseId: undefined,
+    workerCount: 4,
   });
   assert.equal(
     parseSemanticEvaluationArguments(['--record', '--resume-stopped-stage'])
@@ -201,6 +205,7 @@ test('parses one diagnostic case without authorizing recording', () => {
     isResumeStoppedStageRequested: false,
     isVerifyAttemptsRequested: false,
     requestedCaseId: 'unrelated-review',
+    workerCount: null,
   });
   assert.throws(() => parseSemanticEvaluationArguments(['--case', 'unrelated-review', '--record']));
   assert.throws(() =>
@@ -219,7 +224,16 @@ test('parses one exact diagnostic batch selector', () => {
     isResumeStoppedStageRequested: false,
     isVerifyAttemptsRequested: false,
     requestedCaseId: undefined,
+    workerCount: 4,
   });
+  assert.equal(
+    parseSemanticEvaluationArguments(['--diagnose-batch', '--all', '--workers', '2']).workerCount,
+    2,
+  );
+  assert.throws(
+    () => parseSemanticEvaluationArguments(['--record', '--workers', '3']),
+    /must be 1, 2, or 4/u,
+  );
   assert.deepEqual(
     parseSemanticEvaluationArguments([
       '--diagnose-batch',
@@ -339,7 +353,7 @@ test('creates one bounded content-free semantic diagnostic', () => {
   );
 
   assert.deepEqual(diagnostic, {
-    schemaVersion: 2,
+    schemaVersion: 3,
     evaluationProtocolVersion: 25,
     caseId: 'bounded-diagnostic',
     confirmationEligible: true,
@@ -487,6 +501,35 @@ test('projects bounded batch records and a compact all-case summary', () => {
   assert.ok(Buffer.byteLength(output, 'utf8') <= SEMANTIC_DIAGNOSTIC_SUMMARY_MAXIMUM_BYTE_COUNT);
   assert.equal(summary.results.length, 74);
   assert.equal(summary.results[0].rationale, undefined);
+});
+
+test('rejects semantic worker state without an owning candidate', async () => {
+  const workerRoot = await mkdtemp(join(tmpdir(), 'moldea-semantic-worker-'));
+
+  try {
+    assert.throws(
+      () => assertNoOrphanedSemanticWorkerState(null, workerRoot),
+      /worker state has no owning candidate/u,
+    );
+    assert.doesNotThrow(() => assertNoOrphanedSemanticWorkerState({}, workerRoot));
+    await rm(workerRoot, { force: true, recursive: true });
+    assert.doesNotThrow(() => assertNoOrphanedSemanticWorkerState(null, workerRoot));
+  } finally {
+    await rm(workerRoot, { force: true, recursive: true });
+  }
+});
+
+test('recognizes a stopped semantic case before or after durable commit', () => {
+  const candidate = {
+    confirmations: [{ id: 'confirmed' }],
+    results: [{ id: 'recorded' }],
+  };
+  const trials = [{ caseDefinition: { id: 'pending' } }];
+
+  assert.equal(isSemanticCoordinatorStopCaseKnown(candidate, trials, 'pending'), true);
+  assert.equal(isSemanticCoordinatorStopCaseKnown(candidate, trials, 'recorded'), true);
+  assert.equal(isSemanticCoordinatorStopCaseKnown(candidate, trials, 'confirmed'), true);
+  assert.equal(isSemanticCoordinatorStopCaseKnown(candidate, trials, 'unknown'), false);
 });
 
 test('enforces each diagnostic state ceiling before writing oversized bytes', async () => {
@@ -1005,7 +1048,7 @@ test('reports the clean 74-case paid execution boundary without reusable predece
     model: 'gpt-5.6-sol',
     operationalRetryInclusiveInvocationLimit: 888,
     paidInitialStageCount: 148,
-    actorReasoningEffort: 'high',
+    actorReasoningEffort: 'xhigh',
     judgeReasoningEffort: 'xhigh',
     reusedCaseCount: 0,
     reusedStageCount: 0,

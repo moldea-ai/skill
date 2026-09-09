@@ -30,7 +30,7 @@ describe('paid qualification confirmation', () => {
         ),
       ).resolves.toBe(true);
       expect(promptMocks.confirm).toHaveBeenCalledWith({
-        message: `This attempt plans up to ${plannedCallCount} paid frontier-model calls and can make at most ${maximumCallCount} calls including bounded operational retries, with at most ${maximumCallCount * 2_097_152} total tokens across that envelope (gpt-5.6-sol, high actors, xhigh judges). Continue?`,
+        message: `This attempt plans up to ${plannedCallCount} paid frontier-model calls and can make at most ${maximumCallCount} calls including bounded operational retries, with at most ${maximumCallCount * 2_097_152} total tokens across that envelope (gpt-5.6-sol, xhigh actors, xhigh judges). Continue?`,
         default: false,
       });
     },

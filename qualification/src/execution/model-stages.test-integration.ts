@@ -244,7 +244,7 @@ describe('qualification model stages', () => {
       caseArtifactDirectory,
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        actorReasoningEffort: 'high',
+        actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli fake',
         nodeVersion: process.version,
@@ -361,7 +361,7 @@ describe('qualification model stages', () => {
         caseArtifactDirectory,
         executionEnvironment: {
           model: 'gpt-5.6-sol',
-          actorReasoningEffort: 'high',
+          actorReasoningEffort: 'xhigh',
           judgeReasoningEffort: 'xhigh',
           codexVersion: 'codex-cli test',
           nodeVersion: process.version,
@@ -504,7 +504,7 @@ describe('qualification model stages', () => {
         caseArtifactDirectory,
         executionEnvironment: {
           model: 'gpt-5.6-sol',
-          actorReasoningEffort: 'high',
+          actorReasoningEffort: 'xhigh',
           judgeReasoningEffort: 'xhigh',
           codexVersion: 'codex-cli test',
           nodeVersion: process.version,
@@ -643,7 +643,7 @@ describe('qualification model stages', () => {
       caseArtifactDirectory,
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        actorReasoningEffort: 'high',
+        actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,
@@ -842,7 +842,7 @@ describe('qualification model stages', () => {
       deterministicAfter,
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        actorReasoningEffort: 'high',
+        actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,
@@ -958,7 +958,7 @@ describe('qualification model stages', () => {
     };
     const executionEnvironment: IQualificationExecutionEnvironment = {
       model: 'gpt-5.6-sol',
-      actorReasoningEffort: 'high',
+      actorReasoningEffort: 'xhigh',
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,

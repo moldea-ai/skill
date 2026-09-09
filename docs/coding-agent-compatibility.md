@@ -48,7 +48,7 @@ The optional `agents/openai.yaml` file adds OpenAI-host presentation, default-pr
 
 Coding agents can differ in how they discover and install skills, present them in the interface, apply invocation policies, combine them with project instructions, expose tools, and report work. Those host-level differences do not create separate `moldea` formats or sources of truth, and an installed copy does not prove activation or runtime registration.
 
-Use a frontier-capability coding model for the strongest results. Official release assurance runs actors with `gpt-5.6-sol` at `high` reasoning effort and independent judges at `xhigh`.
+Use a frontier-capability coding model for the strongest results. Official release assurance runs actors and independent judges with `gpt-5.6-sol` at `xhigh` reasoning effort.
 
 Before installation, confirm that the host supports Agent Skills or is recognized by the current `skills` CLI. A host logo on this site identifies compatibility; it does not imply sponsorship or endorsement by that vendor.
 

@@ -48,9 +48,6 @@ const SEMANTIC_ATTEMPTS_PATH = join(
   'semantic-evaluation-results',
   'attempts',
 );
-const SEMANTIC_DIAGNOSTIC_ROOT = join(process.cwd(), 'fixtures', 'semantic-evaluation-diagnostics');
-const SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH = join(SEMANTIC_DIAGNOSTIC_ROOT, 'checkpoint.json');
-const SEMANTIC_DIAGNOSTIC_LEDGER_PATH = join(SEMANTIC_DIAGNOSTIC_ROOT, 'ledger.json');
 const SEMANTIC_RESULT_PATH = join(process.cwd(), 'fixtures', 'semantic-evaluation-result.json');
 const RUNTIME_COMPATIBILITY_PUBLICATION_URL =
   'https://packages.moldea.ai/compatibility/runtimes.json';
@@ -259,7 +256,7 @@ test('one targeted fake-host evaluation emits only its bounded diagnostic', () =
       Buffer.byteLength(result.stdout, 'utf8') <= SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT,
     );
     assert.deepEqual(JSON.parse(result.stdout), {
-      schemaVersion: 2,
+      schemaVersion: 3,
       evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
       caseId: 'unrelated-documentation-review',
       confirmationEligible: false,
@@ -303,9 +300,10 @@ test('one targeted fake-host evaluation emits only its bounded diagnostic', () =
 });
 
 test('one fake-host batch completes every selected case without changing official evidence', () => {
-  assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH), false);
-  assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), false);
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
+  const diagnosticRoot = join(hostRoot, 'diagnostic-results');
+  const diagnosticCheckpointPath = join(diagnosticRoot, 'checkpoint.json');
+  const diagnosticLedgerPath = join(diagnosticRoot, 'ledger.json');
   const hostCommand = createFakeCodexHost(hostRoot);
   const beforeCandidate = readCandidateState();
   const beforeAttempts = readAttemptEntries();
@@ -328,6 +326,7 @@ test('one fake-host batch completes every selected case without changing officia
         env: {
           ...process.env,
           MOLDEA_EVAL_ACTOR_COMMAND_JSON: JSON.stringify(hostCommand),
+          MOLDEA_EVAL_DIAGNOSTIC_RESULTS_ROOT: diagnosticRoot,
           MOLDEA_EVAL_JUDGE_COMMAND_JSON: JSON.stringify(hostCommand),
         },
         maxBuffer: 1024 * 1024,
@@ -351,9 +350,9 @@ test('one fake-host batch completes every selected case without changing officia
     assert.equal(summary.selectedCount, 2);
     assert.equal(summary.passedCount, 2);
     assert.equal(summary.failedCount, 0);
-    assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH), false);
-    assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), true);
-    const ledgerBytes = readFileSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH);
+    assert.equal(existsSync(diagnosticCheckpointPath), false);
+    assert.equal(existsSync(diagnosticLedgerPath), true);
+    const ledgerBytes = readFileSync(diagnosticLedgerPath);
     assert.ok(ledgerBytes.byteLength <= 1024 * 1024);
     const ledger = JSON.parse(ledgerBytes.toString('utf8'));
     assert.equal(ledger.results[0].rationale, 'All required criteria passed.');
@@ -377,6 +376,7 @@ test('one fake-host batch completes every selected case without changing officia
         env: {
           ...process.env,
           MOLDEA_EVAL_ACTOR_COMMAND_JSON: JSON.stringify(hostCommand),
+          MOLDEA_EVAL_DIAGNOSTIC_RESULTS_ROOT: diagnosticRoot,
           MOLDEA_EVAL_JUDGE_COMMAND_JSON: JSON.stringify(hostCommand),
         },
         maxBuffer: 1024 * 1024,
@@ -384,21 +384,20 @@ test('one fake-host batch completes every selected case without changing officia
     );
     assert.equal(mismatchedResume.status, 1);
     assert.match(mismatchedResume.stderr, /does not match the current batch identity/u);
-    assert.deepEqual(readFileSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), ledgerBytes);
+    assert.deepEqual(readFileSync(diagnosticLedgerPath), ledgerBytes);
     assert.equal(readCandidateState(), beforeCandidate);
     assert.deepEqual(readAttemptEntries(), beforeAttempts);
     assert.equal(readOfficialResult(), beforeOfficialResult);
   } finally {
-    rmSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH, { force: true });
-    rmSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH, { force: true });
     rmSync(hostRoot, { force: true, recursive: true });
   }
 });
 
 test('one complete fake-host batch collects all 74 semantic failures before returning', () => {
-  assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH), false);
-  assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), false);
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
+  const diagnosticRoot = join(hostRoot, 'diagnostic-results');
+  const diagnosticCheckpointPath = join(diagnosticRoot, 'checkpoint.json');
+  const diagnosticLedgerPath = join(diagnosticRoot, 'ledger.json');
   const hostCommand = createFakeCodexHost(hostRoot, false);
   const beforeCandidate = readCandidateState();
   const beforeAttempts = readAttemptEntries();
@@ -420,6 +419,7 @@ test('one complete fake-host batch collects all 74 semantic failures before retu
         env: {
           ...process.env,
           MOLDEA_EVAL_ACTOR_COMMAND_JSON: JSON.stringify(hostCommand),
+          MOLDEA_EVAL_DIAGNOSTIC_RESULTS_ROOT: diagnosticRoot,
           MOLDEA_EVAL_JUDGE_COMMAND_JSON: JSON.stringify(hostCommand),
         },
         maxBuffer: 1024 * 1024,
@@ -435,14 +435,12 @@ test('one complete fake-host batch collects all 74 semantic failures before retu
       summary.results.map(({ caseId }) => caseId),
       SEMANTIC_CASES.map(({ id }) => id),
     );
-    assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH), false);
-    assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), true);
+    assert.equal(existsSync(diagnosticCheckpointPath), false);
+    assert.equal(existsSync(diagnosticLedgerPath), true);
     assert.equal(readCandidateState(), beforeCandidate);
     assert.deepEqual(readAttemptEntries(), beforeAttempts);
     assert.equal(readOfficialResult(), beforeOfficialResult);
   } finally {
-    rmSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH, { force: true });
-    rmSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH, { force: true });
     rmSync(hostRoot, { force: true, recursive: true });
   }
 });

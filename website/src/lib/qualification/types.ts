@@ -238,7 +238,7 @@ const CandidatePackageSchema = z.object({
 });
 
 const QualificationProvenanceShape = {
-  actorReasoningEffort: z.literal('high'),
+  actorReasoningEffort: z.literal('xhigh'),
   judgeReasoningEffort: z.literal('xhigh'),
   codexVersion: z.string().trim().min(1),
   nodeVersion: z.string().trim().min(1),

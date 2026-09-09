@@ -12,6 +12,12 @@ import {
 } from '../../../../tooling/semantic-evaluation/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../../../../tooling/release-identity/constants.mjs';
 import { createSemanticCliIdentity } from '../../../../tooling/release-identity/identity.mjs';
+import {
+  CODEX_EVALUATION_ACTOR_REASONING_EFFORT,
+  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
+  CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
+  CODEX_EVALUATION_MODEL,
+} from '../../../../tooling/codex-evaluation-host/index.mjs';
 
 import { RAW_SOURCE_REPOSITORY_URL } from '../model/constants.ts';
 
@@ -42,8 +48,9 @@ const CONFORMANCE_CASES_PATH = 'fixtures/conformance-cases.json';
 const SEMANTIC_ATTEMPTS_PATH = 'fixtures/semantic-evaluation-results';
 const SEMANTIC_COVERAGE_PATH = 'fixtures/semantic-evaluation-coverage.json';
 
-const isOfficialSemanticHost = (
+const isCurrentSemanticHost = (
   host: {
+    developerInstructionsSha256: string;
     model: string;
     name: string;
     reasoningEffort: string;
@@ -52,10 +59,14 @@ const isOfficialSemanticHost = (
   },
   role: 'actor' | 'judge',
 ): boolean =>
-  host.model === 'gpt-5.6-sol' &&
+  host.developerInstructionsSha256 === CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 &&
+  host.model === CODEX_EVALUATION_MODEL &&
   host.name === 'codex' &&
   host.role === role &&
-  host.reasoningEffort === (role === 'actor' ? 'high' : 'xhigh') &&
+  host.reasoningEffort ===
+    (role === 'actor'
+      ? CODEX_EVALUATION_ACTOR_REASONING_EFFORT
+      : CODEX_EVALUATION_JUDGE_REASONING_EFFORT) &&
   (host.version === undefined ||
     (host.version.trim().length > 0 && host.version !== 'unavailable'));
 
@@ -121,20 +132,16 @@ const hasCurrentAttemptIdentity = (
     !hasCurrentAttemptContract(attempt, caseDefinitions, coverage) ||
     attempt.artifactDigest !== createPortableSkillDigest(repositoryRoot) ||
     JSON.stringify(attempt.cli) !== JSON.stringify(createSemanticCliIdentity(repositoryRoot));
-  const hasOfficialHosts =
-    isOfficialSemanticHost(attempt.hostContract.actor, 'actor') &&
-    isOfficialSemanticHost(attempt.hostContract.judge, 'judge') &&
+  const hasCurrentHosts =
+    isCurrentSemanticHost(attempt.hostContract.actor, 'actor') &&
+    isCurrentSemanticHost(attempt.hostContract.judge, 'judge') &&
     attempt.cases.every(({ trials }) =>
       trials.every(
         ({ actorHost, judgeHost }) =>
-          isOfficialSemanticHost(actorHost, 'actor') && isOfficialSemanticHost(judgeHost, 'judge'),
+          isCurrentSemanticHost(actorHost, 'actor') && isCurrentSemanticHost(judgeHost, 'judge'),
       ),
     );
-  if (!hasOfficialHosts) {
-    throw new Error('Latest semantic attempt does not use its schema-owned host configuration.');
-  }
-
-  return !hasInputMismatch;
+  return !hasInputMismatch && hasCurrentHosts;
 };
 
 const createCaseModel = (

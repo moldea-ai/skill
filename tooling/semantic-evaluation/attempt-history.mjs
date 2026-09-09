@@ -5,7 +5,6 @@ import { dirname, join } from 'node:path';
 
 import {
   CODEX_EVALUATION_ACTOR_REASONING_EFFORT,
-  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
   CODEX_EVALUATION_MODEL,
   hasPassingCodexEvaluationCommandPolicy,
@@ -82,18 +81,23 @@ const createAttemptId = (updatedAt, evidenceSha256) => {
   return `${timestamp}-semantic-${evidenceSha256.slice(0, 8)}`;
 };
 
-const hasRoleHostContract = (hostContract, role, reasoningEffort) =>
+const hasRoleHostContract = (hostContract, role, reasoningEfforts) =>
   isPlainRecord(hostContract) &&
-  hostContract.developerInstructionsSha256 === CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 &&
+  SHA256_PATTERN.test(hostContract.developerInstructionsSha256) &&
   hostContract.model === CODEX_EVALUATION_MODEL &&
   hostContract.name === 'codex' &&
-  hostContract.reasoningEffort === reasoningEffort &&
+  reasoningEfforts.includes(hostContract.reasoningEffort) &&
   hostContract.role === role;
 
+// immutable audit history may contain a failed high-actor attempt that current xhigh reuse rejects
 const hasHostContract = (hostContract) =>
   isPlainRecord(hostContract) &&
-  hasRoleHostContract(hostContract.actor, 'actor', CODEX_EVALUATION_ACTOR_REASONING_EFFORT) &&
-  hasRoleHostContract(hostContract.judge, 'judge', CODEX_EVALUATION_JUDGE_REASONING_EFFORT);
+  hasRoleHostContract(hostContract.actor, 'actor', [
+    'high',
+    CODEX_EVALUATION_ACTOR_REASONING_EFFORT,
+  ]) &&
+  hasRoleHostContract(hostContract.judge, 'judge', [CODEX_EVALUATION_JUDGE_REASONING_EFFORT]) &&
+  hostContract.actor.developerInstructionsSha256 === hostContract.judge.developerInstructionsSha256;
 
 const hasValidHostIdentity = (host, hostContract) =>
   isPlainRecord(host) &&

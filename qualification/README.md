@@ -43,7 +43,7 @@ The CLI, runtime packages, auxiliary types, and TypeScript compiler are download
 
 ## Model boundary
 
-Official actors use `gpt-5.6-sol` with `high` reasoning effort. Independent judges use the same model with `xhigh` reasoning. Both roles run in separate disposable homes and separate workspaces through the shared isolated host.
+Official actors and independent judges use `gpt-5.6-sol` with `xhigh` reasoning effort. Both roles run in separate disposable homes and separate workspaces through the shared isolated host.
 
 The actor receives a natural task and the portable skill. The judge receives declared semantic requirements, deterministic results, workspace assertions, projected execution facts, and the actor response. Neither role receives hidden credentials or unrelated host state.
 

@@ -20,7 +20,7 @@ export interface ISemanticEvaluationActorHostModel {
   developerInstructionsSha256: string;
   model: 'gpt-5.6-sol';
   name: string;
-  reasoningEffort: 'high';
+  reasoningEffort: 'high' | 'xhigh';
   role: 'actor';
   version: string;
 }

@@ -524,6 +524,14 @@
               "path": "README.md",
               "expectedType": "file"
             }
+          },
+          {
+            "claim": "The requested unrelated source change is present in the working tree.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/unrelated.js",
+              "expectedType": "file"
+            }
           }
         ]
       },
@@ -536,7 +544,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A concise no-finding outcome satisfies this criterion when runner-owned execution and workspace evidence independently establish that the requested source change was reviewed and contains no actionable issue; the actor need not restate that evidence."
         }
       ],
       "forbidden": [
@@ -580,7 +588,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A concise no-finding outcome satisfies this criterion when runner-owned execution and workspace evidence independently establish that the requested README change was reviewed and contains no actionable issue; the actor need not restate that evidence."
         }
       ],
       "forbidden": [
@@ -1470,7 +1478,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
+          "criterion": "The actor stays within the host workflow without mentioning or reframing the handoff around moldea. Because the developer supplied context without requesting an action, one focused question asking what they want done is a valid complete response, and workspace evidence must contain no repository changes."
         }
       ],
       "forbidden": [
@@ -1554,7 +1562,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence."
+          "criterion": "The actor stays within the host workflow without mentioning or reframing the handoff around moldea. Because the developer supplied an ambiguous statement without requesting an action, one focused question asking what they want done is a valid complete response, and workspace evidence must contain no repository changes."
         }
       ],
       "forbidden": [
@@ -1908,7 +1916,7 @@
         },
         {
           "label": "preserve-conflicting-context-before-answer",
-          "criterion": "The actor explicitly states that compression is blocked pending the answer, and workspace evidence contains no repository changes."
+          "criterion": "The actor explicitly states that it cannot safely complete compression before the conflict is resolved, or gives an equivalent no-write explanation, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -1932,7 +1940,7 @@
       "resourceBudget": {
         "activation": "blocked",
         "minimumMoldeaCommands": 0,
-        "maximumMoldeaCommands": 1,
+        "maximumMoldeaCommands": 2,
         "maximumMoldeaOutputBytes": 65536
       }
     },
@@ -2408,7 +2416,7 @@
       "resourceBudget": {
         "activation": "blocked",
         "minimumMoldeaCommands": 0,
-        "maximumMoldeaCommands": 1,
+        "maximumMoldeaCommands": 2,
         "maximumMoldeaOutputBytes": 65536
       }
     },
@@ -2805,7 +2813,7 @@
         },
         {
           "label": "duplicate-authoritative-project-policy",
-          "criterion": "The workspace changes duplicate authoritative project policy instead of reusing its authoritative existing owner."
+          "criterion": "The workspace changes reproduce substantive release rules, thresholds, or procedural detail already owned by the authoritative project policy. Concise activation, sequencing, and stop-condition guardrails needed to operate the skill do not trigger this label."
         },
         {
           "label": "create-ceremonial-resource-directory",

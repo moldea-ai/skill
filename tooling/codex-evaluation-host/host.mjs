@@ -13,15 +13,16 @@ import { prepareGitCommandPolicyBoundary } from './git-command-policy-boundary.m
 // fixed model contract shared by local evaluation workflows
 export const CODEX_EVALUATION_MODEL = 'gpt-5.6-sol';
 export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
-export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT = 'high';
+export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT = 'xhigh';
 export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT = 'xhigh';
 const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
   'You are running inside a closed local evaluation workspace. Do not use network clients other ' +
   'than an evaluator-provided fixed local probe explicitly required by the current evaluation ' +
   'task, perform Git network operations, invoke package managers or installers, call providers ' +
   'or models, use subagents, inspect environment variables or authentication state, access the ' +
-  'evaluator home, or access filesystem paths outside the current workspace. Required dependencies ' +
-  'and fixtures are already present. Use only local workspace files and direct local executables. ' +
+  'evaluator home, or access filesystem paths outside the current workspace except evaluator-provided ' +
+  'read-only repositories explicitly named by the current task. Required dependencies and fixtures ' +
+  'are already present. Use only local workspace files and direct local executables. ' +
   'When repository tests are needed, invoke Node directly with explicit repository-relative test paths.';
 const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG = JSON.stringify(
   CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS,
@@ -396,6 +397,7 @@ export const identifyCodexEvaluationHost = (command, role) => {
 export const prepareCodexEvaluationHome = async (sandboxHome) => {
   const sandboxCodexHome = join(sandboxHome, '.codex');
   await mkdir(sandboxCodexHome, { recursive: true, mode: 0o700 });
+  await mkdir(join(sandboxHome, 'tmp'), { recursive: true, mode: 0o700 });
 
   const sourceCodexHome = process.env.CODEX_HOME ?? join(homedir(), '.codex');
   try {
@@ -591,7 +593,8 @@ export const buildCodexEvaluationBwrapArguments = ({
       source,
       target,
     ]),
-    '--tmpfs',
+    '--bind',
+    join(sandboxHome, 'tmp'),
     '/tmp',
     '--proc',
     '/proc',
@@ -907,6 +910,7 @@ export const runCodexEvaluationHost = async ({
   if (!['read-only', 'read-write'].includes(workspaceAccess)) {
     throw new Error(`Unsupported evaluation workspace access: ${workspaceAccess}`);
   }
+  await mkdir(join(sandboxHome, 'tmp'), { recursive: true, mode: 0o700 });
   await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'), {
     trustedReadOnlyDirectoryNames: includeWorkspaceBinaryDirectory ? ['node_modules'] : [],
   });

@@ -16,6 +16,7 @@ pids
 *.pid.lock
 fixtures/.semantic-evaluation-candidate.json*
 fixtures/.semantic-evaluation-identity-receipt.json*
+/fixtures/.semantic-evaluation-workers/
 /fixtures/semantic-evaluation-diagnostics/
 .runtime-qualification/
 

@@ -6,7 +6,7 @@ export interface ISemanticEvaluationActorHostContract {
   developerInstructionsSha256: string;
   model: 'gpt-5.6-sol';
   name: 'codex';
-  reasoningEffort: 'high';
+  reasoningEffort: 'high' | 'xhigh';
   role: 'actor';
 }
 

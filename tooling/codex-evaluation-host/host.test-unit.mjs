@@ -147,7 +147,7 @@ test('host configuration accepts a workflow-owned default timeout', () => {
 
 test('host commands use the runner-owned model and role-specific reasoning effort', () => {
   assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-5.6-sol');
-  assert.equal(identifyConfiguredReasoningEffort(SAFE_HOST_COMMAND), 'high');
+  assert.equal(identifyConfiguredReasoningEffort(SAFE_HOST_COMMAND), 'xhigh');
   assert.equal(
     identifyConfiguredReasoningEffort(buildCodexEvaluationHostCommand(BASE_HOST_COMMAND, 'judge')),
     'xhigh',
@@ -156,13 +156,13 @@ test('host commands use the runner-owned model and role-specific reasoning effor
     () =>
       validateCodexEvaluationHostCommand(
         SAFE_HOST_COMMAND.map((commandPart) =>
-          commandPart === 'model_reasoning_effort=high'
+          commandPart === 'model_reasoning_effort=xhigh'
             ? 'model_reasoning_effort=medium'
             : commandPart,
         ),
         'actor',
       ),
-    /must use high reasoning effort/,
+    /must use xhigh reasoning effort/,
   );
 });
 
@@ -178,6 +178,7 @@ test('host commands carry one neutral runner-owned developer policy and exact di
   assert.match(instruction, /evaluator-provided fixed local probe/u);
   assert.match(instruction, /invoke package managers or installers/u);
   assert.match(instruction, /access filesystem paths outside the current workspace/u);
+  assert.match(instruction, /read-only repositories explicitly named by the current task/u);
   assert.doesNotMatch(instruction, /moldea|scenario|criterion|adapter/u);
   assert.equal(
     createHash('sha256').update(instruction).digest('hex'),
@@ -311,6 +312,14 @@ test('sandbox uses an empty root, isolated network, and restricted relay', () =>
   );
   assert.notEqual(writableHomeMountIndex, -1);
   assert.ok(readOnlyBinaryMountIndex > writableHomeMountIndex);
+  assert.ok(
+    argumentsList.some(
+      (part, index) =>
+        part === '--bind' &&
+        argumentsList[index + 1] === '/tmp/evaluation-home/tmp' &&
+        argumentsList[index + 2] === '/tmp',
+    ),
+  );
   assert.ok(argumentsList.includes('/home/evaluator/bin:/opt:/usr/bin:/bin'));
 });
 

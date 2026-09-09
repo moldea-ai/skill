@@ -40,7 +40,7 @@ const createResult = (attemptId: string, artifactDigest: string): IQualification
     summary: 'Fixture error.',
     provenance: {
       model: 'gpt-5.6-sol',
-      actorReasoningEffort: 'high',
+      actorReasoningEffort: 'xhigh',
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,

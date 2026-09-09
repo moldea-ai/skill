@@ -10,7 +10,7 @@ import { inspectQualificationBaseline } from './baseline.ts';
 
 const executionEnvironment: IQualificationExecutionEnvironment = {
   model: 'gpt-5.6-sol',
-  actorReasoningEffort: 'high',
+  actorReasoningEffort: 'xhigh',
   judgeReasoningEffort: 'xhigh',
   codexVersion: 'codex-cli test',
   nodeVersion: process.version,

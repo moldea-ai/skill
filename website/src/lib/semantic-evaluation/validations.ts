@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import {
-  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
+  CODEX_EVALUATION_MODEL,
   hasPassingCodexEvaluationCommandPolicy,
 } from '../../../../tooling/codex-evaluation-host/index.mjs';
 import {
@@ -17,25 +17,30 @@ const AttemptStatusSchema = z.enum(['failed', 'incomplete', 'passed']);
 
 // website read models select the current evidence fields rendered by public pages
 const SemanticActorHostSchema = z.strictObject({
-  developerInstructionsSha256: z.literal(CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256),
-  model: z.literal('gpt-5.6-sol'),
+  developerInstructionsSha256: Sha256Schema,
+  model: z.literal(CODEX_EVALUATION_MODEL),
   name: z.literal('codex'),
-  reasoningEffort: z.literal('high'),
+  reasoningEffort: z.enum(['high', 'xhigh']),
   role: z.literal('actor'),
   version: z.string().trim().min(1),
 });
 const SemanticJudgeHostSchema = z.strictObject({
-  developerInstructionsSha256: z.literal(CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256),
-  model: z.literal('gpt-5.6-sol'),
+  developerInstructionsSha256: Sha256Schema,
+  model: z.literal(CODEX_EVALUATION_MODEL),
   name: z.literal('codex'),
   reasoningEffort: z.literal('xhigh'),
   role: z.literal('judge'),
   version: z.string().trim().min(1),
 });
-const SemanticHostContractSchema = z.strictObject({
-  actor: SemanticActorHostSchema.omit({ version: true }),
-  judge: SemanticJudgeHostSchema.omit({ version: true }),
-});
+const SemanticHostContractSchema = z
+  .strictObject({
+    actor: SemanticActorHostSchema.omit({ version: true }),
+    judge: SemanticJudgeHostSchema.omit({ version: true }),
+  })
+  .refine(
+    ({ actor, judge }) => actor.developerInstructionsSha256 === judge.developerInstructionsSha256,
+    'Semantic host roles must share one developer-instruction contract.',
+  );
 const SemanticFailureClassificationSchema = z.enum([
   'semantic',
   'resource',

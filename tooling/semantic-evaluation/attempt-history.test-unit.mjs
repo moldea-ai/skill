@@ -12,7 +12,7 @@ const ACTOR_HOST = {
   developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   model: 'gpt-5.6-sol',
   name: 'codex',
-  reasoningEffort: 'high',
+  reasoningEffort: 'xhigh',
   role: 'actor',
   version: 'codex-cli test',
 };
@@ -408,7 +408,7 @@ test('semantic attempt summaries reject missing or incompatible trial evidence',
       createSemanticAttemptRecord({
         ...options,
         evidence: createEvidence([
-          { ...trial, actorHost: { ...ACTOR_HOST, reasoningEffort: 'xhigh' } },
+          { ...trial, actorHost: { ...ACTOR_HOST, reasoningEffort: 'medium' } },
         ]),
       }),
     /invalid trial host provenance/,

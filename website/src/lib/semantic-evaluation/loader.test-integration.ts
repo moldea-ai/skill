@@ -35,7 +35,7 @@ const ACTOR_HOST = {
   developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   model: 'gpt-5.6-sol',
   name: 'codex',
-  reasoningEffort: 'high',
+  reasoningEffort: 'xhigh',
   role: 'actor',
   version: 'codex-cli test',
 } as const;

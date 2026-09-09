@@ -58,10 +58,10 @@ const createScenario = (pathPattern: string) => ({
   ],
 });
 
-test('accepts only high actors and xhigh judges for current qualification execution', () => {
+test('accepts only xhigh actors and xhigh judges for current qualification execution', () => {
   const environment = {
     model: 'gpt-5.6-sol',
-    actorReasoningEffort: 'high',
+    actorReasoningEffort: 'xhigh',
     judgeReasoningEffort: 'xhigh',
     codexVersion: 'codex-cli test',
     nodeVersion: process.version,
@@ -77,7 +77,7 @@ test('accepts only high actors and xhigh judges for current qualification execut
   expect(
     QualificationExecutionEnvironmentSchema.safeParse({
       ...environment,
-      judgeReasoningEffort: 'high',
+      actorReasoningEffort: 'high',
     }).success,
   ).toBe(false);
 });

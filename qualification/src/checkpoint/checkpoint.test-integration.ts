@@ -44,7 +44,7 @@ describe('qualification checkpoints', () => {
       targetDigest: 'f'.repeat(64),
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        actorReasoningEffort: 'high',
+        actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,
@@ -84,7 +84,7 @@ describe('qualification checkpoints', () => {
       recordedAt: null,
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        actorReasoningEffort: 'high',
+        actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
       },
@@ -125,7 +125,7 @@ describe('qualification checkpoints', () => {
       targetDigest: 'f'.repeat(64),
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        actorReasoningEffort: 'high',
+        actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,

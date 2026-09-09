@@ -25,6 +25,7 @@ import {
   createSemanticResultDimensions,
   getNextSemanticTrial,
   getSemanticCandidatePaidTokenCount,
+  getSemanticWorkerPaidTokenCount,
   hasMatchingSemanticReusedSourceTrial,
   isSemanticActiveTrialOperationallyStopped,
   isSemanticCoordinatorStopCaseKnown,
@@ -34,6 +35,7 @@ import {
   readSemanticDiagnosticState,
   resolveSemanticDiagnosticCaseDefinitions,
   runSemanticCaseTrial,
+  selectSemanticWorkerTrialHistory,
   SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT,
   SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT,
   SEMANTIC_DIAGNOSTIC_RATIONALE_MAXIMUM_BYTE_COUNT,
@@ -530,6 +532,60 @@ test('recognizes a stopped semantic case before or after durable commit', () => 
   assert.equal(isSemanticCoordinatorStopCaseKnown(candidate, trials, 'recorded'), true);
   assert.equal(isSemanticCoordinatorStopCaseKnown(candidate, trials, 'confirmed'), true);
   assert.equal(isSemanticCoordinatorStopCaseKnown(candidate, trials, 'unknown'), false);
+});
+
+test('seeds isolated confirmation workers with only their required case history', () => {
+  const failedInitial = {
+    confirmationEligible: true,
+    id: 'failed-case',
+    passed: false,
+  };
+  const firstConfirmation = {
+    confirmationIndex: 1,
+    id: 'failed-case',
+    passed: true,
+  };
+  const initialSourceCandidate = {
+    confirmations: [{ confirmationIndex: 1, id: 'other-case', passed: true }],
+    results: [failedInitial, { id: 'other-case', passed: false }],
+  };
+  const confirmedSourceCandidate = {
+    ...initialSourceCandidate,
+    confirmations: [firstConfirmation, ...initialSourceCandidate.confirmations],
+  };
+
+  assert.deepEqual(selectSemanticWorkerTrialHistory(initialSourceCandidate, 'failed-case', null), {
+    confirmations: [],
+    results: [],
+  });
+  assert.deepEqual(selectSemanticWorkerTrialHistory(initialSourceCandidate, 'failed-case', 1), {
+    confirmations: [],
+    results: [failedInitial],
+  });
+  assert.deepEqual(selectSemanticWorkerTrialHistory(confirmedSourceCandidate, 'failed-case', 2), {
+    confirmations: [firstConfirmation],
+    results: [failedInitial],
+  });
+  assert.throws(
+    () =>
+      selectSemanticWorkerTrialHistory(
+        {
+          confirmations: [{ ...firstConfirmation, passed: false }],
+          results: [failedInitial],
+        },
+        'failed-case',
+        2,
+      ),
+    /invalid prior case history/u,
+  );
+  assert.equal(
+    getSemanticWorkerPaidTokenCount({
+      activeTrial: null,
+      confirmations: [firstConfirmation],
+      results: [failedInitial],
+    }),
+    0,
+  );
 });
 
 test('enforces each diagnostic state ceiling before writing oversized bytes', async () => {

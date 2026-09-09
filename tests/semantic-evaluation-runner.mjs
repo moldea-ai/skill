@@ -1860,8 +1860,40 @@ export const isSemanticCoordinatorStopCaseKnown = (candidate, trials, caseId) =>
   candidate.results.some(({ id }) => id === caseId) ||
   candidate.confirmations.some(({ id }) => id === caseId);
 
-const createSemanticWorkerCandidate = (evidenceBoundary, generatedAt) =>
-  createSemanticEvaluationCandidate({ ...evidenceBoundary, generatedAt });
+/** Selects the exact prior case history required to validate one isolated worker trial. */
+export const selectSemanticWorkerTrialHistory = (sourceCandidate, caseId, confirmationIndex) => {
+  if (confirmationIndex === null) return { confirmations: [], results: [] };
+
+  const results = sourceCandidate.results.filter(({ id }) => id === caseId);
+  const confirmations = sourceCandidate.confirmations
+    .filter(({ id }) => id === caseId)
+    .sort((left, right) => left.confirmationIndex - right.confirmationIndex);
+  if (
+    results.length !== 1 ||
+    results[0].passed ||
+    !results[0].confirmationEligible ||
+    confirmations.length !== confirmationIndex - 1 ||
+    confirmations.some(
+      ({ confirmationIndex: recordedIndex, passed }, index) =>
+        recordedIndex !== index + 1 || !passed,
+    )
+  ) {
+    throw new Error('Semantic worker confirmation has invalid prior case history.');
+  }
+
+  return { confirmations, results };
+};
+
+const createSemanticWorkerCandidate = ({
+  caseId,
+  confirmationIndex,
+  evidenceBoundary,
+  generatedAt,
+  sourceCandidate,
+}) => ({
+  ...createSemanticEvaluationCandidate({ ...evidenceBoundary, generatedAt }),
+  ...selectSemanticWorkerTrialHistory(sourceCandidate, caseId, confirmationIndex),
+});
 
 const validateSemanticWorkerCheckpoint = ({
   checkpoint,
@@ -1890,9 +1922,20 @@ const validateSemanticWorkerCheckpoint = ({
     throw new Error('Semantic worker checkpoint does not match its current trial identity.');
   }
   validateSemanticCandidateCompatibility(checkpoint.candidate, evidenceBoundary);
+  let expectedTrialHistory;
+  try {
+    expectedTrialHistory = selectSemanticWorkerTrialHistory(
+      checkpoint.candidate,
+      caseDefinition.id,
+      confirmationIndex,
+    );
+  } catch {
+    throw new Error('Semantic worker checkpoint does not match its current trial identity.');
+  }
   if (
-    checkpoint.candidate.results.length !== 0 ||
-    checkpoint.candidate.confirmations.length !== 0 ||
+    JSON.stringify(checkpoint.candidate.results) !== JSON.stringify(expectedTrialHistory.results) ||
+    JSON.stringify(checkpoint.candidate.confirmations) !==
+      JSON.stringify(expectedTrialHistory.confirmations) ||
     (checkpoint.candidate.activeTrial !== null &&
       (checkpoint.candidate.activeTrial.caseId !== caseDefinition.id ||
         checkpoint.candidate.activeTrial.confirmationIndex !== confirmationIndex))
@@ -1920,6 +1963,14 @@ const createSerializedOperation = () => {
   };
 };
 
+/** Counts only uncommitted paid work retained by one isolated worker checkpoint. */
+export const getSemanticWorkerPaidTokenCount = (workerCandidate) =>
+  getSemanticCandidatePaidTokenCount({
+    ...workerCandidate,
+    confirmations: [],
+    results: [],
+  });
+
 const createSemanticBatchTokenController = ({
   getCommittedCandidate,
   getCommittedPaidTokenCount = () => 0,
@@ -1938,7 +1989,7 @@ const createSemanticBatchTokenController = ({
           throw new Error(`Semantic worker ${caseId} already has a paid-stage reservation.`);
         }
         const workerPaidTokenCount = getWorkerCandidates().reduce(
-          (total, workerCandidate) => total + getSemanticCandidatePaidTokenCount(workerCandidate),
+          (total, workerCandidate) => total + getSemanticWorkerPaidTokenCount(workerCandidate),
           0,
         );
         assertSemanticCandidatePaidStageCapacity(
@@ -5085,6 +5136,7 @@ const runSemanticWorkerTrial = async ({
   identitySha256,
   isOperationalResumeRequested,
   judgeCommand,
+  sourceCandidate,
   tokenController,
   workerCandidates,
   workerRoot,
@@ -5105,7 +5157,13 @@ const runSemanticWorkerTrial = async ({
   if (checkpoint === null) {
     const generatedAt = new Date().toISOString();
     checkpoint = {
-      candidate: createSemanticWorkerCandidate(evidenceBoundary, generatedAt),
+      candidate: createSemanticWorkerCandidate({
+        caseId: caseDefinition.id,
+        confirmationIndex,
+        evidenceBoundary,
+        generatedAt,
+        sourceCandidate,
+      }),
       caseId: caseDefinition.id,
       confirmationIndex,
       identitySha256,
@@ -5324,10 +5382,10 @@ const runSemanticDiagnosticBatch = async ({
 
   const workerRoot = join(DIAGNOSTIC_RESULTS_ROOT, 'workers');
   const workerCandidates = new Map();
-  const committedCandidate = createSemanticWorkerCandidate(
-    evidenceBoundary,
-    coordinator.generatedAt,
-  );
+  const committedCandidate = createSemanticEvaluationCandidate({
+    ...evidenceBoundary,
+    generatedAt: coordinator.generatedAt,
+  });
   const tokenController = createSemanticBatchTokenController({
     getCommittedCandidate: () => committedCandidate,
     getCommittedPaidTokenCount: () => getSemanticDiagnosticLedgerPaidTokenCount(ledger),
@@ -5360,6 +5418,7 @@ const runSemanticDiagnosticBatch = async ({
         identitySha256,
         isOperationalResumeRequested: isResumeStoppedStageRequested,
         judgeCommand,
+        sourceCandidate: committedCandidate,
         tokenController,
         workerCandidates,
         workerRoot,
@@ -5504,6 +5563,7 @@ const runSemanticOfficialTrialBatch = async ({
         identitySha256,
         isOperationalResumeRequested: isResumeStoppedStageRequested,
         judgeCommand,
+        sourceCandidate: initialCandidate,
         tokenController,
         workerCandidates,
         workerRoot: SEMANTIC_WORKER_ROOT,

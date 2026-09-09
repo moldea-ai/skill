@@ -183,10 +183,15 @@ test('host commands carry one neutral runner-owned developer policy and exact di
   assert.match(instruction, /Do not use network clients/u);
   assert.match(instruction, /evaluator-provided fixed local probe/u);
   assert.match(instruction, /task requires current runtime publication evidence/u);
-  assert.match(instruction, /probe for the exact publication URL/u);
+  assert.match(
+    instruction,
+    /curl --fail --silent --show-error --location -- <the exact publication URL named in task-owned instructions>/u,
+  );
   assert.match(instruction, /invoke package managers or installers/u);
   assert.match(instruction, /access filesystem paths outside the current workspace/u);
   assert.match(instruction, /read-only repositories explicitly named by the current task/u);
+  assert.match(instruction, /Host-injected system-skill paths are unavailable/u);
+  assert.match(instruction, /do not search evaluator home for a substitute/u);
   assert.doesNotMatch(instruction, /moldea|scenario|criterion|adapter/u);
   assert.equal(
     createHash('sha256').update(instruction).digest('hex'),
@@ -254,12 +259,7 @@ test('host commands reject caller-owned model, reasoning, and developer-policy o
     assert.throws(
       () =>
         buildCodexEvaluationHostCommand(
-          [
-            ...BASE_HOST_COMMAND.slice(0, -1),
-            featureFlag,
-            'skip_host_skill_discovery',
-            '-',
-          ],
+          [...BASE_HOST_COMMAND.slice(0, -1), featureFlag, 'skip_host_skill_discovery', '-'],
           'actor',
         ),
       /must not override host skill discovery/,
@@ -345,7 +345,14 @@ test('sandbox uses an empty root, isolated network, and restricted relay', () =>
       argumentsList[index + 1] === '/tmp/evaluation-home/bin' &&
       argumentsList[index + 2] === '/home/evaluator/bin',
   );
+  const readOnlySkillMountIndex = argumentsList.findIndex(
+    (part, index) =>
+      part === '--ro-bind-try' &&
+      argumentsList[index + 1] === '/tmp/evaluation-home/.codex/skills' &&
+      argumentsList[index + 2] === '/home/evaluator/.codex/skills',
+  );
   assert.notEqual(writableHomeMountIndex, -1);
+  assert.ok(readOnlySkillMountIndex > writableHomeMountIndex);
   assert.ok(readOnlyBinaryMountIndex > writableHomeMountIndex);
   assert.ok(
     argumentsList.some(

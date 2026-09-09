@@ -544,7 +544,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A concise no-finding outcome satisfies this criterion when runner-owned execution and workspace evidence independently establish that the requested source change was reviewed and contains no actionable issue; the actor need not restate that evidence."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea. A concise no-finding outcome satisfies this criterion when independently collected scenario evidence supplies the complete reviewed source change and establishes no actionable issue; the actor need not restate that evidence."
         }
       ],
       "forbidden": [
@@ -2642,7 +2642,7 @@
       "scenario": "A developer proposes Agent Skills for a repository-wide naming rule already owned by protected coding instructions and for checksum generation already owned by deterministic software.",
       "operation": "evaluate-agent-skill-boundaries",
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Evaluate whether either proposed Agent Skill is the correct behavior boundary. Explain the appropriate surfaces without changing files.",
+        "developerDirection": "Use moldea to complete this repository task. Evaluate whether either proposed Agent Skill under skills/javascript-naming and skills/checksum-generation is the correct behavior boundary. Explain the appropriate surfaces without changing files.",
         "repositoryEvidence": [
           {
             "claim": "Applicable protected coding instructions own the naming rule.",
@@ -3044,7 +3044,7 @@
       "scenario": "A deployment-review Agent Skill has supported OpenAI host metadata with implicit invocation disabled, and the portable activation wording now needs a focused update.",
       "operation": "maintain-agent-skill",
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Update the portable description and default prompt for deployment readiness reviews. Preserve every unrelated supported host field and do not change invocation policy.",
+        "developerDirection": "Use moldea to complete this repository task. Update the portable description and default prompt for the Agent Skill under skills/deployment-review. Preserve every unrelated supported host field and do not change invocation policy.",
         "repositoryEvidence": [
           {
             "claim": "The authoritative deployment skill exists.",
@@ -4370,7 +4370,7 @@
       "expected": [
         {
           "label": "confirm-grounded-runtime-identity",
-          "criterion": "The actor recognizes that repository evidence, local composition, and the published target support the OpenAI runtime identity."
+          "criterion": "The actor reports the canonical runtime.id as openai, recognizes that repository source uses the OpenAI Responses API, and reports the matching local adapter composition and exact published target without treating either as the owner of repository identity."
         },
         {
           "label": "report-experimental-maturity",

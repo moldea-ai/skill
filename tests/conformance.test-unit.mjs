@@ -610,9 +610,10 @@ describe('portable skill contract', () => {
     assert.match(runtime, /current published technical targets/u);
     assert.match(runtime, /It does not erase a canonical runtime declaration/u);
     assert.match(runtime, /establish local composition once before interpreting the publication/u);
+    assert.match(runtime, /inspect\.project\.runtimes.*cannot negate an agent assignment/u);
     assert.match(runtime, /Do not add `inspect` after the owner is known/u);
     assert.match(runtime, /ordinary four-command moldea limit/u);
-    assert.match(runtime, /invoke composition first and retain its conclusion/u);
+    assert.match(runtime, /invoke `composition` first and retain its conclusion/u);
     assert.match(runtime, /cannot retroactively replace or erase/u);
     assert.match(runtime, /official skill release selects an exact CLI closure/u);
     assert.match(runtime, /state the exact canonical `runtime\.id` when established/u);
@@ -636,9 +637,9 @@ describe('portable skill contract', () => {
   test('uses one compact precedence-ordered direct-operation router', () => {
     const skill = readSkill();
     const routeHeadings = [
+      '**Independent Agent Skill artifact:**',
       '**Repository-local tooling:**',
       '**Explicit initialization:**',
-      '**Independent Agent Skill artifact:**',
       '**Current-change review or evaluation:**',
       '**Direct canonical agent or runtime work:**',
       '**Repository-independent information:**',
@@ -819,6 +820,24 @@ describe('activation and semantic protection', () => {
       .sort();
 
     assert.deepEqual(zeroBudgetDirectCases, expectedCaseIds);
+  });
+
+  test('names independent Agent Skill artifact roots in the actor-visible task', () => {
+    const boundaryCase = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'skill-boundary-surface-selection',
+    );
+    const hostMetadataCase = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'skill-maintain-host-invocation-policy',
+    );
+
+    assert.match(
+      boundaryCase.input.developerDirection,
+      /skills\/javascript-naming and skills\/checksum-generation/u,
+    );
+    assert.match(
+      hostMetadataCase.input.developerDirection,
+      /Agent Skill under skills\/deployment-review/u,
+    );
   });
 
   test('keeps the deterministic adoption gate fail-closed and two bytes', () => {

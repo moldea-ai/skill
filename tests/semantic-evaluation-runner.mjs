@@ -2616,8 +2616,9 @@ command text, started commands, and MCP events are intentionally unavailable. Ev
 not interchangeable: the actor's final response cannot prove execution or command results, and
 runner-owned execution evidence cannot prove what the actor reported. When a criterion assigns
 clauses to named sources, each clause must be established by that source.
-When a criterion explicitly accepts a concise no-finding response because runner-owned evidence
-establishes the review, do not require the actor to restate that evidence. When the developer supplied
+When a criterion explicitly accepts a concise no-finding response because independent scenario
+evidence supplies the complete reviewed content and establishes no actionable issue,
+do not require the actor to restate that evidence. When the developer supplied
 no requested action and a criterion explicitly accepts one focused question as the complete response,
 do not invent an unrequested task or require the actor to resolve it.
 Runner-owned command evidence records the completed-command count, while moldea resource evidence

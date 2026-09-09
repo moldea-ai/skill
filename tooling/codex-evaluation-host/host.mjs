@@ -18,12 +18,14 @@ export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT = 'xhigh';
 const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
   'You are running inside a closed local evaluation workspace. Do not use network clients other ' +
   'than an evaluator-provided fixed local probe required by the current evaluation task. When the ' +
-  'task requires current runtime publication evidence, use that probe for the exact publication ' +
-  'URL. Do not perform Git network operations, invoke package managers or installers, call providers ' +
+  'task requires current runtime publication evidence, invoke the probe as `curl --fail --silent ' +
+  '--show-error --location -- <the exact publication URL named in task-owned instructions>`. Do not ' +
+  'perform Git network operations, invoke package managers or installers, call providers ' +
   'or models, use subagents, inspect environment variables or authentication state, access the ' +
   'evaluator home, or access filesystem paths outside the current workspace except evaluator-provided ' +
   'read-only repositories explicitly named by the current task. Required dependencies and fixtures ' +
-  'are already present. Use only local workspace files and direct local executables. ' +
+  'are already present. Host-injected system-skill paths are unavailable; if an exact lookup fails, ' +
+  'do not search evaluator home for a substitute. Use only local workspace files and direct local executables. ' +
   'When repository tests are needed, invoke Node directly with explicit repository-relative test paths.';
 const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG = JSON.stringify(
   CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS,
@@ -427,6 +429,10 @@ export const identifyCodexEvaluationHost = (command, role) => {
 export const prepareCodexEvaluationHome = async (sandboxHome) => {
   const sandboxCodexHome = join(sandboxHome, '.codex');
   await mkdir(sandboxCodexHome, { recursive: true, mode: 0o700 });
+  await mkdir(join(sandboxCodexHome, 'skills'), {
+    recursive: true,
+    mode: 0o700,
+  });
   await mkdir(join(sandboxHome, 'tmp'), { recursive: true, mode: 0o700 });
 
   const sourceCodexHome = process.env.CODEX_HOME ?? join(homedir(), '.codex');
@@ -609,6 +615,9 @@ export const buildCodexEvaluationBwrapArguments = ({
     '--bind',
     sandboxHome,
     '/home/evaluator',
+    '--ro-bind-try',
+    join(sandboxHome, '.codex', 'skills'),
+    '/home/evaluator/.codex/skills',
     '--ro-bind',
     join(sandboxHome, 'bin'),
     '/home/evaluator/bin',

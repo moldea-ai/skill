@@ -2,6 +2,8 @@
 
 Read this reference after selecting independent Agent Skill artifact work or establishing moldea relevance for a registered relationship.
 
+For an independent artifact, stop before repository gating. Explicit moldea wording is already consumed by this route: never invoke the relevance gate or any moldea CLI operation, and never inspect the surrounding moldea repository for additional authority.
+
 ## Establish ownership
 
 An Agent Skill is a portable, reusable behavior contract. Before editing it, establish the authoritative source, intended coding-agent users, installation and distribution paths, host metadata, consumers, runtime registration, and repository-owned requirements it references.

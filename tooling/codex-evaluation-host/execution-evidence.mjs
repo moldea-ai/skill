@@ -178,6 +178,7 @@ const REPOSITORY_TEST_PATH_PATTERN =
   /(?:^|\/)[a-z0-9][a-z0-9._-]*\.test-(?:e2e|integration|unit)\.(?:c|m)?js$/u;
 const SAFE_SED_PRINT_SCRIPT_PATTERN = /^\d+(?:,\d+)?p$/u;
 const EVALUATOR_HOME_PATH = '/home/evaluator';
+const EVALUATOR_EMPTY_SKILLS_PATH = `${EVALUATOR_HOME_PATH}/.codex/skills`;
 const SAFE_EVALUATOR_EXECUTABLE_PATHS = new Set([
   `${EVALUATOR_HOME_PATH}/bin/git`,
   `${EVALUATOR_HOME_PATH}/bin/npm`,
@@ -212,8 +213,10 @@ const CREDENTIAL_PATTERNS = [
   /\bBearer\s+[A-Za-z0-9._~+/=-]{12,}(?=$|[\s"',;])/giu,
   /-----BEGIN [^-]+-----[\s\S]*?-----END [^-]+-----/gu,
 ];
-const BASIC_AUTHORIZATION_PATTERN =
-  /\bBasic\s+([A-Za-z0-9+/]{8,}={0,2})(?=$|[\s"',;])/giu;
+const BASIC_AUTHORIZATION_PATTERN = /\bBasic\s+([A-Za-z0-9+/]{8,}={0,2})(?=$|[\s"',;])/giu;
+const CREDENTIAL_TEXT_FIELD_NAMES = new Set(['aggregated_output', 'command', 'message', 'text']);
+const SAFE_EVALUATOR_SKILL_PATH_PATTERN =
+  /\/home\/evaluator\/\.codex\/skills(?:\/(?!(?:\.{1,2})(?:\/|$))[A-Za-z0-9._-]+)*(?![A-Za-z0-9._/-])/gu;
 const SENSITIVE_ENVIRONMENT_NAME_PATTERN =
   /^(?:OPENAI_API_KEY|AUTHORIZATION|ACCESS_TOKEN|AUTH_TOKEN|PASSWORD|PRIVATE_KEY|SECRET)$/iu;
 const PROCESS_ENVIRONMENT_PATTERN = /^\/proc\/(?:self|\d+)\/environ$/u;
@@ -530,6 +533,12 @@ const classifyFilesystemTarget = (candidate) => {
   } else if (!candidate.startsWith('/') && !candidate.startsWith('.')) return null;
 
   const normalizedPath = posix.resolve('/mnt', pathCandidate);
+  if (
+    normalizedPath === EVALUATOR_EMPTY_SKILLS_PATH ||
+    normalizedPath.startsWith(`${EVALUATOR_EMPTY_SKILLS_PATH}/`)
+  ) {
+    return null;
+  }
   if (PROCESS_ENVIRONMENT_PATTERN.test(normalizedPath)) {
     return { status: 'observed', reasonCode: 'process-environment' };
   }
@@ -967,6 +976,16 @@ const classifyUntokenizedSensitiveAccess = (source) => {
     if (/\/home\/evaluator\/\.codex\/(?:auth|config)/u.test(normalizedSource)) {
       return { status: 'observed', reasonCode: 'evaluator-auth-file' };
     }
+    const sourceWithoutEmptySkillPaths = normalizedSource.replaceAll(
+      SAFE_EVALUATOR_SKILL_PATH_PATTERN,
+      '',
+    );
+    if (
+      normalizedSource.includes(EVALUATOR_EMPTY_SKILLS_PATH) &&
+      !sourceWithoutEmptySkillPaths.includes(EVALUATOR_HOME_PATH)
+    ) {
+      return null;
+    }
     if (/\/home\/evaluator(?:\/|\b)/u.test(normalizedSource)) {
       return { status: 'observed', reasonCode: 'evaluator-home' };
     }
@@ -996,8 +1015,8 @@ const classifyCommand = (command, localProbeKind) => {
       moldeaCommandCount: 0,
       networkAccess: 'indeterminate',
       networkReasonCode: 'dynamic-execution',
-      sensitiveAccess: sensitiveClassification.status,
-      sensitiveReasonCode: sensitiveClassification.reasonCode,
+      sensitiveAccess: sensitiveClassification?.status ?? 'indeterminate',
+      sensitiveReasonCode: sensitiveClassification?.reasonCode ?? 'dynamic-execution',
     };
   }
   const sensitiveClassification = classifyDecodedSensitiveAccess(commands);
@@ -1061,6 +1080,22 @@ const hasCredentialExposure = (source) =>
     pattern.lastIndex = 0;
     return pattern.test(source);
   });
+
+/** Detects credentials only in plaintext event fields that can expose them to the model or logs. */
+const hasCredentialExposureInEvent = (event) => {
+  const visit = (candidate) => {
+    if (Array.isArray(candidate)) return candidate.some(visit);
+    if (!isPlainRecord(candidate)) return false;
+    return Object.entries(candidate).some(([key, value]) => {
+      if (typeof value === 'string' && CREDENTIAL_TEXT_FIELD_NAMES.has(key)) {
+        return hasCredentialExposure(value);
+      }
+      return typeof value === 'object' && value !== null ? visit(value) : false;
+    });
+  };
+
+  return visit(event);
+};
 
 /** Recursively selects the latest complete token-usage candidate. */
 const extractUsageCandidate = (candidate) => {
@@ -1288,7 +1323,6 @@ export const projectCodexEvaluationExecutionEvidence = (source, options = {}) =>
 
   for (const eventLine of source.split('\n')) {
     if (eventLine.trim() === '') continue;
-    if (hasCredentialExposure(eventLine)) credentialExposureCount += 1;
     let event;
     try {
       event = JSON.parse(eventLine);
@@ -1300,6 +1334,7 @@ export const projectCodexEvaluationExecutionEvidence = (source, options = {}) =>
     if (!isPlainRecord(event) || typeof event.type !== 'string') {
       throw new Error('Codex execution evidence contains an unsupported event.');
     }
+    if (hasCredentialExposureInEvent(event)) credentialExposureCount += 1;
     const eventUsage = extractUsageCandidate(event);
     if (eventUsage !== null) usage = eventUsage;
 

@@ -67,7 +67,9 @@ test('sandbox npm probe is immutable, reports the fixture version, and rejects e
           '-c',
           'test "$(npm --version)" = "11.12.1" && ' +
             "! sed -i '2c modified' /home/evaluator/bin/npm 2>/dev/null && " +
-            'test "$(npm --version)" = "11.12.1" && ! npm install example-package',
+            'test "$(npm --version)" = "11.12.1" && ' +
+            '! printf unexpected > /home/evaluator/.codex/skills/created 2>/dev/null && ' +
+            'test ! -e /home/evaluator/.codex/skills/created && ! npm install example-package',
         ],
         cwd: repositoryPath,
         hostExecutable: realpathSync('/bin/sh'),

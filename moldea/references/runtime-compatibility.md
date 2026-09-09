@@ -2,11 +2,15 @@
 
 Read this reference after moldea relevance is established when runtime or adapter selection, target maturity, provider limits, supported patterns, runtime guidance, or production-readiness claims matter.
 
+## Use the fixed evidence sequence
+
+For a direct evaluation of one named agent and target, invoke `composition` first and retain its conclusion, then read only that agent's canonical content. When current publication affects the conclusion, use the evaluator-provided fixed probe for exactly [`https://packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json). Do not add `inspect` after the owner is known or request a second canonical body. Publication evidence cannot retroactively replace or erase the completed composition result. Direct relevant work remains inside the ordinary four-command moldea limit.
+
 ## Keep the evidence boundaries separate
 
 Keep four conclusions independent even when one repository supplies evidence for more than one:
 
-1. Canonical moldea declarations establish the currently declared `runtime.id` and registered relationships.
+1. Canonical moldea declarations establish the currently declared `agents.<agent-id>.runtime.id` assignment and registered relationships. A top-level runtime inventory or `inspect.project.runtimes` count describes registered runtime definitions; it cannot negate an agent assignment present in `/moldea/moldea.yaml`.
 2. Repository source, configuration, closed wiring, source-owned contracts, and focused integration tests establish actual behavior and behavioral fit.
 3. Root-local `composition --json` establishes only the exact installed executable: CLI and package versions, active adapter IDs, repository-format versions, and Node.js and Git requirements.
 4. [`https://packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json) establishes the current published technical targets, implementation status, target maturity, package ranges, patterns, provider limits, runtime-guidance expectations, and verification dates.
@@ -45,4 +49,4 @@ When missing behavioral evidence prevents a runtime change, report the specific 
 
 State canonical runtime identity, repository behavior and fit, local composition, published technical compatibility, and maturity separately in plans and reports. When they disagree, preserve the disagreement rather than collapsing it into one compatibility claim or describing an established fact as absent. When changing `runtime.id`, retain every independently evidenced model-visible capability in canonical guidance; a runtime identity correction does not authorize dropping supported behavior.
 
-Plan the minimum evidence operations before invoking the CLI. For one already identified agent and target, invoke composition first and retain its conclusion, then use only the canonical content needed for that agent and current publication when required. Do not add `inspect` after the owner is known or run `validate` when structural status cannot change the runtime conclusion. A publication result cannot retroactively replace or erase the completed composition result. Direct relevant work remains inside the ordinary four-command moldea limit.
+Do not run `validate` when structural status cannot change the runtime conclusion.

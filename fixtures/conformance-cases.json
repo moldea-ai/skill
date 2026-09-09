@@ -1562,7 +1562,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor stays within the host workflow without mentioning or reframing the handoff around moldea. Because the developer supplied an ambiguous statement without requesting an action, one focused question asking what they want done is a valid complete response, and workspace evidence must contain no repository changes."
+          "criterion": "The actor stays within the host workflow without mentioning or reframing the handoff around moldea, and workspace evidence contains no repository changes. Because the developer supplied content without requesting an action, a neutral acknowledgment, a faithful restatement that adds no claim, or one focused question asking what they want done is a valid complete response."
         }
       ],
       "forbidden": [
@@ -2032,7 +2032,7 @@
       "resourceBudget": {
         "activation": "direct",
         "minimumMoldeaCommands": 1,
-        "maximumMoldeaCommands": 4,
+        "maximumMoldeaCommands": 5,
         "maximumMoldeaOutputBytes": 262144
       }
     },
@@ -4488,7 +4488,7 @@
       "resourceBudget": {
         "activation": "direct",
         "minimumMoldeaCommands": 1,
-        "maximumMoldeaCommands": 4,
+        "maximumMoldeaCommands": 5,
         "maximumMoldeaOutputBytes": 262144
       }
     },

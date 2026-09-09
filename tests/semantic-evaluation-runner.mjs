@@ -218,6 +218,7 @@ const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
   'initialize-sufficient-context',
 ]);
 const RUNTIME_COMPATIBILITY_PUBLICATION_CASE_IDS = new Set([
+  'agent-adoption-inline-runtime-instruction',
   'dedicated-repository-runtime-selection',
   'experimental-target-not-production-ready',
   'installed-adapter-without-published-target',
@@ -227,6 +228,9 @@ const RUNTIME_COMPATIBILITY_PUBLICATION_CASE_IDS = new Set([
 ]);
 const RUNTIME_COMPATIBILITY_PUBLICATION_URL =
   'https://packages.moldea.ai/compatibility/runtimes.json';
+const RUNTIME_COMPATIBILITY_PUBLICATION_TASK_INSTRUCTION =
+  `The evaluation host explicitly provides a fixed local current-publication probe for exactly ${RUNTIME_COMPATIBILITY_PUBLICATION_URL}. ` +
+  'Use it only when that publication can change the conclusion; no other network access is granted.';
 const CUSTOM_SETUP_CASE_IDS = new Set([
   'host-plan-command-precedence',
   'plan-uninitialized-zero-agent',
@@ -2169,10 +2173,12 @@ const readSemanticEvaluationCandidateEvidenceText = async (path = CANDIDATE_RESU
 export const writeSemanticEvaluationCandidate = async (candidate, path = CANDIDATE_RESULT_PATH) =>
   writeJsonAtomically(path, candidate);
 
-/** Returns only scenario evidence, never evaluation criteria, to the acting host. */
+/** Returns the natural task and any explicitly granted capability, never evaluation criteria. */
 export const buildActorPrompt = (caseDefinition) => {
   validateSemanticCaseDefinition(caseDefinition);
-  return caseDefinition.input.developerDirection;
+  return RUNTIME_COMPATIBILITY_PUBLICATION_CASE_IDS.has(caseDefinition.id)
+    ? `${caseDefinition.input.developerDirection}\n\n${RUNTIME_COMPATIBILITY_PUBLICATION_TASK_INSTRUCTION}`
+    : caseDefinition.input.developerDirection;
 };
 
 /** Adds Codex JSONL output so execution events remain independently observable. */
@@ -4791,7 +4797,11 @@ const runSemanticEvaluationPreflight = async (caseDefinitions, coverage = null) 
       if (!hasUnchangedReadOnlyMounts(readOnlyMountControlEvidence, caseDefinition)) {
         throw new Error(`Preflight changed a related repository for ${caseDefinition.id}.`);
       }
-      if (buildActorPrompt(caseDefinition) !== caseDefinition.input.developerDirection) {
+      const actorPrompt = buildActorPrompt(caseDefinition);
+      const expectedActorPrompt = RUNTIME_COMPATIBILITY_PUBLICATION_CASE_IDS.has(caseDefinition.id)
+        ? `${caseDefinition.input.developerDirection}\n\n${RUNTIME_COMPATIBILITY_PUBLICATION_TASK_INSTRUCTION}`
+        : caseDefinition.input.developerDirection;
+      if (actorPrompt !== expectedActorPrompt) {
         throw new Error(`Preflight exposed an invalid actor prompt for ${caseDefinition.id}.`);
       }
       caseContexts.set(caseDefinition.id, {

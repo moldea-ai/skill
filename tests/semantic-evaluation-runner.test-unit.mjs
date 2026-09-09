@@ -932,6 +932,21 @@ test('keeps evaluator criteria out of the actor prompt', () => {
   assert.equal(buildActorPrompt(CASE), 'Review docs/example.md.');
 });
 
+test('exposes a fixed publication probe only to explicitly granted actor tasks', () => {
+  const grantedCase = SEMANTIC_CASES.find(
+    ({ id }) => id === 'agent-adoption-inline-runtime-instruction',
+  );
+  const ungrantedCase = SEMANTIC_CASES.find(
+    ({ id }) => id === 'plan-runtime-inventory-insufficient-evidence',
+  );
+  assert.ok(grantedCase);
+  assert.ok(ungrantedCase);
+
+  assert.match(buildActorPrompt(grantedCase), /explicitly provides a fixed local/u);
+  assert.match(buildActorPrompt(grantedCase), /compatibility\/runtimes\.json/u);
+  assert.equal(buildActorPrompt(ungrantedCase), ungrantedCase.input.developerDirection);
+});
+
 test('judges insufficient initialization context without duplicate phrase requirements', () => {
   const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'initialize-insufficient-context');
   assert.ok(caseDefinition);

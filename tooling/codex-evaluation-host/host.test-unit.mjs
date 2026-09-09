@@ -181,8 +181,8 @@ test('host commands carry one neutral runner-owned developer policy and exact di
   const instruction = JSON.parse(assignments[0].slice('developer_instructions='.length));
   assert.match(instruction, /closed local evaluation workspace/u);
   assert.match(instruction, /Do not use network clients/u);
-  assert.match(instruction, /evaluator-provided fixed local probe/u);
-  assert.match(instruction, /task requires current runtime publication evidence/u);
+  assert.match(instruction, /natural task explicitly states/u);
+  assert.match(instruction, /A URL or a need for current evidence does not grant network access/u);
   assert.match(
     instruction,
     /curl --fail --silent --show-error --location -- <the exact publication URL named in task-owned instructions>/u,

@@ -67,7 +67,7 @@ node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-reposi
 
 Accept only a completed compatible CLI 7 envelope using schema 4 whose exact stable CLI version matches the repository-local version selected by its declaration and lockfile and satisfies `^7.0.0`, whose `status` is `valid`, whose `result.valid` is true, and whose `result.relevant` is true. Do not follow a cursor merely to search for relevance. Missing or invalid tooling, malformed input or output, operational failure, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
 
-Treat the first successful `scope` page as the complete relationship inventory. Do not follow it with `inspect`. The scope call counts toward the ordinary four-command limit, leaving at most three CLI calls: only selected `content` needed for the relationship, plus one final `validate` when structure or a write requires it. For writes, reserve `validate` as the final moldea command after every canonical, relationship, requirement, runtime, and mirror write. A validation performed before a later write does not verify the resulting state. Omit unused calls and never exceed four.
+Treat the first successful `scope` page as the complete relationship inventory; never follow it with `inspect`. The scope call counts toward the ordinary four-command limit, leaving at most three CLI calls for selected `content` and final `validate`. Reserve validation until all writes finish. A direct agent or runtime write may use one fifth call only to validate an actual repair after the first post-write validation. Never use it for inspection or an unchanged retry.
 
 ## Select one operation and reference
 
@@ -89,7 +89,7 @@ Host planning, review, implementation, package-manager, Git, commit, and publica
 
 For direct agent creation, the existing independent inline instruction is then a migration input, not a reason to stop when repository source and tests establish the behavior and the requested runtime integration authorizes the coherent canonical, runtime, relationship, test, and final-validation change.
 
-For direct runtime identity or production-readiness evaluation, establish `composition` once before publication evidence, then read only the named agent content needed to confirm the declaration. Keep canonical identity, repository wiring and behavioral fit, local composition, and current publication support as independent conclusions. Unavailable publication withholds only publication-dependent claims; it never erases an established canonical runtime ID or local adapter result, and the final report must retain both. When fit is unproved, report specific unknowns and concrete resolvers.
+For runtime identity or readiness, run `composition` before publication and read only named agent content. Probe publication only when the host explicitly grants exact retrieval and it can change the conclusion; a URL is not authority. Keep canonical identity, repository fit, local composition, and publication separate. Missing publication withholds only dependent claims, never established runtime or adapter facts. Report specific unknowns and resolvers.
 
 ## Initialize minimally
 

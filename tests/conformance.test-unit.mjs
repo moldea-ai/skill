@@ -347,9 +347,11 @@ describe('portable skill contract', () => {
     assert.match(skill, /paths discovered later by the host cannot reactivate `moldea`/u);
     assert.match(skill, /must not open, read, search for, or edit `\/moldea\/\*\*`/u);
     assert.match(skill, /acknowledge it without inventing persistence/u);
-    assert.match(skill, /Do not follow it with `inspect`/u);
+    assert.match(skill, /never follow it with `inspect`/u);
     assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
     assert.match(skill, /leaving at most three CLI calls/u);
+    assert.match(skill, /may use one fifth call only to validate/u);
+    assert.match(skill, /Never use it for inspection or an unchanged retry/u);
     assert.match(skill, /direct request supplies intent, not a canonical owner/u);
     assert.match(skill, /Direct canonical agent or runtime work/u);
     assert.match(skill, /create, maintain, change, or reconcile canonical agent or runtime facts/u);
@@ -385,8 +387,8 @@ describe('portable skill contract', () => {
     assert.match(skill, /existing independent inline instruction is then a migration input/u);
     assert.match(skill, /direct request to prove, invoke, inspect, or explain/u);
     assert.match(skill, /before inspecting providers or concluding/u);
-    assert.match(skill, /reserve `validate` as the final moldea command after every canonical/u);
-    assert.match(skill, /validation performed before a later write does not verify/u);
+    assert.match(skill, /Reserve validation until all writes finish/u);
+    assert.match(skill, /only to validate an actual repair after the first post-write validation/u);
     assert.match(skill, /load only `references\/continuous-maintenance\.md`/u);
     assert.match(
       skill,
@@ -433,7 +435,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /Request a named owner's `content` directly/u);
     assert.match(skill, /use at most one canonical `content` call total/u);
     assert.match(skill, /do not read project context or a second canonical body/u);
-    assert.match(skill, /establish `composition` once before publication evidence/u);
+    assert.match(skill, /run `composition` before publication and read only named agent content/u);
     assert.match(skill, /Every recursive search or listing must exclude VCS internals/u);
     assert.match(skill, /Never dump a complete lockfile, dependency inventory, generated tree/u);
     assert.match(skill, /more than 65,536 model-visible bytes/u);
@@ -593,7 +595,10 @@ describe('portable skill contract', () => {
     assert.match(agentDesign, /runner-owned focused test evidence/u);
     assert.match(agentDesign, /complete all runtime, test, and canonical file writes/u);
     assert.match(agentDesign, /only then run launcher-backed `validate`/u);
-    assert.match(agentDesign, /never write after the last allowed validation/u);
+    assert.match(agentDesign, /never write after the last allowed validation/iu);
+    assert.match(agentDesign, /exact backtick-wrapped identity token/u);
+    assert.match(agentDesign, /A heading that merely names the agent does not satisfy/u);
+    assert.match(agentDesign, /retry may be the fifth and final moldea call/u);
     const agentSystemPlanning = readFileSync(
       join(SKILL_ROOT, 'references', 'agent-system-planning.md'),
       'utf8',
@@ -613,6 +618,9 @@ describe('portable skill contract', () => {
     assert.match(runtime, /inspect\.project\.runtimes.*cannot negate an agent assignment/u);
     assert.match(runtime, /Do not add `inspect` after the owner is known/u);
     assert.match(runtime, /ordinary four-command moldea limit/u);
+    assert.match(runtime, /ambient network client does not grant access/u);
+    assert.match(runtime, /independently evidenced blocker already determines/u);
+    assert.match(runtime, /single fifth-call repair validation/u);
     assert.match(runtime, /invoke `composition` first and retain its conclusion/u);
     assert.match(runtime, /cannot retroactively replace or erase/u);
     assert.match(runtime, /official skill release selects an exact CLI closure/u);
@@ -662,7 +670,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /complete four-field blocked-install result/u);
     assert.match(skill, /Do not run a moldea gate or CLI command/u);
     assert.match(skill, /owner was reconsidered and remains accurate without an edit/u);
-    assert.match(skill, /never erases an established canonical runtime ID/u);
+    assert.match(skill, /never established runtime or adapter facts/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
 
     const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
@@ -784,6 +792,28 @@ describe('activation and semantic protection', () => {
         maximumMoldeaOutputBytes: 0,
       });
     }
+  });
+
+  test('accepts neutral no-action handoffs without requiring a clarification question', () => {
+    const ambiguousHandoff = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'adopted-ambiguous-context-handoff',
+    );
+    assert.ok(ambiguousHandoff);
+    assert.match(ambiguousHandoff.expected[0].criterion, /neutral acknowledgment/u);
+    assert.match(ambiguousHandoff.expected[0].criterion, /faithful restatement/u);
+    assert.match(ambiguousHandoff.expected[0].criterion, /one focused question/u);
+  });
+
+  test('budgets one fifth validation only for discovery-heavy repairable mutations', () => {
+    const fiveCallCases = FIXTURE.semanticCases
+      .filter(({ resourceBudget }) => resourceBudget.maximumMoldeaCommands === 5)
+      .map(({ id }) => id)
+      .sort();
+
+    assert.deepEqual(fiveCallCases, [
+      'agent-adoption-inline-runtime-instruction',
+      'dedicated-repository-runtime-selection',
+    ]);
   });
 
   test('gives the informational case a literal zero moldea budget', () => {

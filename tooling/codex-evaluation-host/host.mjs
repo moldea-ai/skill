@@ -16,10 +16,11 @@ export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
 export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT = 'xhigh';
 export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT = 'xhigh';
 const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
-  'You are running inside a closed local evaluation workspace. Do not use network clients other ' +
-  'than an evaluator-provided fixed local probe required by the current evaluation task. When the ' +
-  'task requires current runtime publication evidence, invoke the probe as `curl --fail --silent ' +
-  '--show-error --location -- <the exact publication URL named in task-owned instructions>`. Do not ' +
+  'You are running inside a closed local evaluation workspace. Do not use network clients unless ' +
+  'the natural task explicitly states that the evaluator provides a fixed local probe. A URL or a ' +
+  'need for current evidence does not grant network access. When the natural task explicitly grants ' +
+  'a current-publication probe, invoke it as `curl --fail --silent --show-error --location -- ' +
+  '<the exact publication URL named in task-owned instructions>`. Do not ' +
   'perform Git network operations, invoke package managers or installers, call providers ' +
   'or models, use subagents, inspect environment variables or authentication state, access the ' +
   'evaluator home, or access filesystem paths outside the current workspace except evaluator-provided ' +

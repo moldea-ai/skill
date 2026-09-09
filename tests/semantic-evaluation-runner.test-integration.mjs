@@ -113,12 +113,26 @@ test('runtime compatibility cases receive one exact fixed local publication prob
       assert.equal(rejected.stdout, '');
     }
 
-    const unrelatedHome = join(evaluationRoot, 'unrelated-home');
-    const unrelatedTools = join(evaluationRoot, 'unrelated-tools');
-    const unrelatedCase = SEMANTIC_CASES.find(({ id }) => id === 'host-plan-command-precedence');
-    assert.notEqual(unrelatedCase, undefined);
-    await prepareSemanticEvaluationHome(unrelatedHome, unrelatedCase, unrelatedTools);
-    assert.equal(existsSync(join(unrelatedTools, 'curl')), false);
+    const inlineHome = join(evaluationRoot, 'inline-home');
+    const inlineTools = join(evaluationRoot, 'inline-tools');
+    const inlineCase = SEMANTIC_CASES.find(
+      ({ id }) => id === 'agent-adoption-inline-runtime-instruction',
+    );
+    assert.notEqual(inlineCase, undefined);
+    await prepareSemanticEvaluationHome(inlineHome, inlineCase, inlineTools);
+    assert.equal(existsSync(join(inlineTools, 'curl')), true);
+
+    for (const [caseId, directoryName] of [
+      ['host-plan-command-precedence', 'unrelated'],
+      ['plan-runtime-inventory-insufficient-evidence', 'ungranted-runtime'],
+    ]) {
+      const ungrantedHome = join(evaluationRoot, `${directoryName}-home`);
+      const ungrantedTools = join(evaluationRoot, `${directoryName}-tools`);
+      const ungrantedCase = SEMANTIC_CASES.find(({ id }) => id === caseId);
+      assert.notEqual(ungrantedCase, undefined);
+      await prepareSemanticEvaluationHome(ungrantedHome, ungrantedCase, ungrantedTools);
+      assert.equal(existsSync(join(ungrantedTools, 'curl')), false);
+    }
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

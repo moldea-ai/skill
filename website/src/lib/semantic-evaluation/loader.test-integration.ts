@@ -269,7 +269,8 @@ afterEach(() => {
 
 describe('loadSemanticEvaluationWebsiteModel', () => {
   test('publishes the transparent empty state before current 74-case evidence exists', () => {
-    const model = loadSemanticEvaluationWebsiteModel(REPOSITORY_ROOT);
+    const root = createTemporaryRoot();
+    const model = loadSemanticEvaluationWebsiteModel(root);
 
     expect(model.caseCount).toBe(74);
     expect(model.attempts).toStrictEqual([]);
@@ -277,9 +278,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.latest).toBeNull();
     expect(model.lastPassing).toBeNull();
     expect(model.latestPointer).toBeNull();
-    expect(existsSync(join(REPOSITORY_ROOT, 'fixtures/semantic-evaluation-result.json'))).toBe(
-      false,
-    );
+    expect(existsSync(join(root, 'fixtures/semantic-evaluation-result.json'))).toBe(false);
   });
 
   test('publishes the complete current passing attempt', async () => {

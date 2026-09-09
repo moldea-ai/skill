@@ -1,0 +1,13 @@
+{
+  "argumentDigest": "ae29b6a5c1b7a37113356eabbda42700d9b0330cba9fd7d888d019bdbe7988a9",
+  "attemptId": "20260909T160245245Z-semantic-f4435831",
+  "attemptSha256": "8d8b3f07d96aadc1390da7962040a93bea5b6d3328569eeca866e277f237fe6a",
+  "cliClosureDigest": "de1e0c4a52d6664641d37c4b61a9b1bfcdb32e436956e63f57b9aedda80fe3e5",
+  "evidenceSha256": "f44358315b788490c34b3e91c2c2447e556d903981c61010774f95989a02825a",
+  "invocationId": "c0e44141-0199-4bc2-89f6-ea24b0dc1078",
+  "portableSkillBehaviorDigest": "a744ba1bc02ee7089012b8d3250470636e18e3d81070bfbf219bbaf2bdd5136b",
+  "schemaVersion": 1,
+  "semanticInputDigest": "dc37b274e835c1ec8a6d833bd27e14c402d377276a71073cddccf5cf2982b097",
+  "sourceCommit": "d1dd9b66e02512c67b048c8e88c867252b696d50",
+  "sourceDigest": "974ddd340c308a6082264463aef6171557d42b3b9d6e4a2a690a971a98477bf0"
+}

@@ -42,7 +42,7 @@ The envelope contains:
 
 Exit code 0 represents `valid`, exit code 1 represents `invalid`, and exit code 2 or 3 represents `error`. The launcher preserves a completed child's status and uses 3 for its own validation, containment, signal, or output-boundary failures. It sends the requested termination signal first and force-terminates a child that remains active after five seconds. A launcher failure, signal, malformed envelope, version mismatch, unsupported schema, stale cursor, or contradictory status provides no deterministic conclusion.
 
-`inspect` and `validate` do not include canonical document bodies. `scope` accepts one logical path or one NUL-delimited path set and returns relationship matches after the two-byte gate establishes relevance. `content` returns chunks only for one explicit canonical `/moldea/**` path.
+`inspect` and `validate` do not include canonical document bodies. Each paged `kind: agent` inspection record exposes exact `agentId` and `runtimeId` assignment metadata without the agent body. `scope` accepts one logical path or one NUL-delimited path set and returns relationship matches after the two-byte gate establishes relevance. `content` returns chunks only for one explicit canonical `/moldea/**` path.
 
 ## Resource limits
 

@@ -16,7 +16,7 @@ Use evaluation when you want a read-only assessment of project, Agent Skill, and
 Evaluate the refund agent and do not change repository files.
 ```
 
-The coding agent runs deterministic inspection first, verifies the machine envelope, then directly reads relevant canonical state, Agent Skill sources, host metadata, consumers, implementation, contracts, tests, runtime wiring, adapter evidence, developer intent, and unresolved state. Discovery alone does not justify an absence claim or a request to paste an accessible file.
+The coding agent uses deterministic metadata or structural inspection only when it can change the conclusion, verifies every machine envelope it does use, and directly reads only relevant canonical state, Agent Skill sources, host metadata, consumers, implementation, contracts, tests, runtime wiring, adapter evidence, developer intent, and unresolved state. For a direct named reconciliation conflict, it compares supplied or focused implementation evidence with at most one canonical body, then asks one focused authority question before inspection, validation, another canonical read, or any write. Discovery alone does not justify an absence claim or a request to paste an accessible file.
 
 In an adopted repository, `Evaluate the current project.` starts with that repository's project-owned canonical system and follows its material relationships into implementation. The developer does not need to name `moldea` to activate this behavior. A brief project request must not silently become an audit of the installed operating skill. Explicit requests to evaluate a project-owned Agent Skill still assess its complete source, resources, copies, consumers, and runtime registration.
 

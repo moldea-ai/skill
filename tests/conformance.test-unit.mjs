@@ -126,7 +126,7 @@ const writeCliFixture = (cliRoot) => {
       {
         name: '@moldea.ai/cli',
         type: 'module',
-        version: '7.0.1',
+        version: '7.1.0',
         bin: { moldea: './dist/moldea.js' },
         dependencies: { '@moldea.ai/core': '^3.0.0' },
       },
@@ -145,7 +145,7 @@ const writeCoreFixture = (coreRoot, options = {}) => {
       {
         name: options.name ?? '@moldea.ai/core',
         type: 'module',
-        version: options.version ?? '3.0.1',
+        version: options.version ?? '3.1.0',
       },
       null,
       2,
@@ -190,15 +190,15 @@ const createIsolatedToolingProject = (layout) => {
   }
 
   const storeRoot = join(root, 'node_modules', '.pnpm');
-  const cliStoreRoot = join(storeRoot, '@moldea.ai+cli@7.0.1', 'node_modules', '@moldea.ai', 'cli');
+  const cliStoreRoot = join(storeRoot, '@moldea.ai+cli@7.1.0', 'node_modules', '@moldea.ai', 'cli');
   const coreStoreRoot = join(
     storeRoot,
-    '@moldea.ai+core@3.0.1',
+    '@moldea.ai+core@3.1.0',
     'node_modules',
     '@moldea.ai',
     'core',
   );
-  const cliDependencyRoot = join(storeRoot, '@moldea.ai+cli@7.0.1', 'node_modules', '@moldea.ai');
+  const cliDependencyRoot = join(storeRoot, '@moldea.ai+cli@7.1.0', 'node_modules', '@moldea.ai');
   writeCliFixture(cliStoreRoot);
   writeCoreFixture(coreStoreRoot);
   mkdirSync(join(root, 'node_modules', '@moldea.ai'), { recursive: true });
@@ -259,7 +259,7 @@ const createLauncherProject = (cliSource, options = {}) => {
       {
         name: '@moldea.ai/cli',
         type: 'module',
-        version: options.version ?? '7.0.1',
+        version: options.version ?? '7.1.0',
         bin: { moldea: options.binary ?? './dist/moldea.js' },
         dependencies: { '@moldea.ai/core': options.coreRange ?? '^3.0.0' },
       },
@@ -355,11 +355,8 @@ describe('portable skill contract', () => {
     assert.match(skill, /direct request supplies intent, not a canonical owner/u);
     assert.match(skill, /Direct canonical agent or runtime work/u);
     assert.match(skill, /create, maintain, change, or reconcile canonical agent or runtime facts/u);
-    assert.match(
-      skill,
-      /otherwise use one content-free `inspect` to resolve the owner and mirrors/u,
-    );
-    assert.match(skill, /Write the canonical owner first, derive every declared mirror/u);
+    assert.match(skill, /otherwise use content-free `inspect` to resolve the owner and mirrors/u);
+    assert.match(skill, /Otherwise write the owner first, derive declared mirrors/u);
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
     assert.match(skill, /retain one deduplicated leading-slash repository-logical set/u);
     assert.match(skill, /send it to one `scope`/u);
@@ -390,12 +387,10 @@ describe('portable skill contract', () => {
     assert.match(skill, /before inspecting providers or concluding/u);
     assert.match(skill, /Reserve validation until all writes finish/u);
     assert.match(skill, /only to validate an actual repair after the first post-write validation/u);
-    assert.match(
-      skill,
-      /use one content-free `inspect`, then one named-agent `content` if needed/u,
-    );
+    assert.match(skill, /use one content-free `inspect`/u);
+    assert.match(skill, /Request named-agent `content` only when semantics matter/u);
     assert.match(skill, /never inspect afterward or request manifest content/u);
-    assert.match(skill, /give every behavioral or integration unknown a concrete resolver/u);
+    assert.match(skill, /pair every behavioral or integration unknown with a concrete resolver/u);
     assert.match(skill, /load only `references\/continuous-maintenance\.md`/u);
     assert.match(
       skill,
@@ -442,7 +437,13 @@ describe('portable skill contract', () => {
     assert.match(skill, /Request a named owner's `content` directly/u);
     assert.match(skill, /use at most one canonical `content` call total/u);
     assert.match(skill, /do not read project context or a second canonical body/u);
-    assert.match(skill, /Run `composition` first for runtime identity or readiness/u);
+    assert.match(
+      skill,
+      /Run `composition` only when local runtime availability or readiness matters/u,
+    );
+    assert.match(skill, /it never establishes canonical assignment/u);
+    assert.match(skill, /matching `kind: agent` record's `agentId` and `runtimeId`/u);
+    assert.match(skill, /sole canonical content-free source/u);
     assert.match(skill, /Every recursive search or listing must exclude VCS internals/u);
     assert.match(skill, /Never dump a complete lockfile, dependency inventory, generated tree/u);
     assert.match(skill, /more than 65,536 model-visible bytes/u);
@@ -600,6 +601,7 @@ describe('portable skill contract', () => {
     assert.match(evaluation, /at most one canonical `content` call total/u);
     assert.match(evaluation, /Do not read project context, a second canonical owner/u);
     assert.match(evaluation, /state that reconciliation is blocked pending the answer/u);
+    assert.match(skill, /stop before `inspect`, `validate`, another `content`, or any write/u);
     const agentDesign = readFileSync(join(SKILL_ROOT, 'references', 'agent-design.md'), 'utf8');
     assert.match(agentDesign, /complete the coherent implementation/u);
     assert.match(agentDesign, /remove the independently maintained inline policy/u);
@@ -627,11 +629,9 @@ describe('portable skill contract', () => {
     assert.match(runtime, /It does not erase a canonical runtime declaration/u);
     assert.match(runtime, /establish local composition once before interpreting the publication/u);
     assert.match(runtime, /inspect\.project\.runtimes.*cannot negate an agent assignment/u);
-    assert.match(
-      runtime,
-      /use one content-free `inspect` to establish that assignment and owner metadata/u,
-    );
-    assert.match(runtime, /Never request `\/moldea\/moldea\.yaml` through `content`/u);
+    assert.match(runtime, /matching `kind: agent` record's exact `agentId` and `runtimeId`/u);
+    assert.match(runtime, /sole canonical content-free source for that assignment/u);
+    assert.match(runtime, /request `\/moldea\/moldea\.yaml` through `content`/u);
     assert.match(runtime, /ordinary four-command moldea limit/u);
     assert.match(runtime, /ambient network client does not grant access/u);
     assert.match(
@@ -690,9 +690,15 @@ describe('portable skill contract', () => {
     assert.match(skill, /route-owned normalized set/u);
     assert.match(skill, /conclude from the host review alone/u);
     assert.match(skill, /complete four-field blocked-install result/u);
-    assert.match(skill, /Do not run a moldea gate or CLI command/u);
+    assert.match(skill, /This ends repository moldea work/u);
+    assert.match(
+      skill,
+      /never gate, invoke the CLI, inspect or validate surrounding canonical state/u,
+    );
+    assert.match(skill, /or append moldea status/u);
     assert.match(skill, /owner was reconsidered and remains accurate without an edit/u);
-    assert.match(skill, /never established runtime or adapter facts/u);
+    assert.match(skill, /Unavailable publication limits only dependent claims/u);
+    assert.match(skill, /Preserve established facts/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
 
     const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
@@ -824,6 +830,19 @@ describe('activation and semantic protection', () => {
     assert.match(ambiguousHandoff.expected[0].criterion, /neutral acknowledgment/u);
     assert.match(ambiguousHandoff.expected[0].criterion, /faithful restatement/u);
     assert.match(ambiguousHandoff.expected[0].criterion, /one focused question/u);
+  });
+
+  test('accepts an unadopted context-only handoff without inventing repository work', () => {
+    const contextHandoff = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'unadopted-direct-context-handoff',
+    );
+    assert.ok(contextHandoff);
+    assert.match(contextHandoff.expected[0].criterion, /context-only handoff as information/u);
+    assert.match(contextHandoff.expected[0].criterion, /concise acknowledgment/u);
+    assert.match(contextHandoff.expected[0].criterion, /faithful restatement/u);
+    assert.match(contextHandoff.expected[0].criterion, /one focused host-level question/u);
+    assert.match(contextHandoff.expected[0].criterion, /no repository inspection/u);
+    assert.doesNotMatch(contextHandoff.expected[0].criterion, /performed the requested task/u);
   });
 
   test('budgets one fifth validation only for discovery-heavy repairable mutations', () => {
@@ -998,7 +1017,7 @@ describe('activation and semantic protection', () => {
         invalidRoot,
         'node_modules',
         '.pnpm',
-        '@moldea.ai+cli@7.0.1',
+        '@moldea.ai+cli@7.1.0',
         'node_modules',
         '@moldea.ai',
         'cli',
@@ -1046,6 +1065,21 @@ describe('CLI 7 bounded machine protocol', () => {
   test('returns content-free inspect metadata and bounded explicit content', () => {
     const root = createProject();
     try {
+      mkdirSync(join(root, 'moldea', 'agents', 'assistant'), {
+        recursive: true,
+      });
+      writeFileSync(
+        join(root, 'moldea', 'moldea.yaml'),
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n\nagents:\n  assistant:\n    runtime:\n      id: custom\n',
+      );
+      writeFileSync(
+        join(root, 'moldea', 'agents', 'assistant', 'description.md'),
+        'Routes bounded project questions.\n',
+      );
+      writeFileSync(
+        join(root, 'moldea', 'agents', 'assistant', 'instruction.md'),
+        '# Assistant\n\nYou are the `assistant` agent.\n\nSENTINEL_AGENT_BODY\n',
+      );
       const inspect = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
       assert.equal(inspect.status, 0);
       assert.ok(Buffer.byteLength(inspect.stdout) <= 65_536);
@@ -1057,6 +1091,16 @@ describe('CLI 7 bounded machine protocol', () => {
       assert.equal(inspectEnvelope.cliVersion, packageManifest.devDependencies['@moldea.ai/cli']);
       assert.equal(inspectEnvelope.command, 'inspect');
       assert.equal(inspect.stdout.includes('Current project truth.'), false);
+      assert.equal(inspect.stdout.includes('SENTINEL_AGENT_BODY'), false);
+      assert.deepEqual(
+        inspectEnvelope.result.page.records.find(({ kind }) => kind === 'agent'),
+        {
+          agentId: 'assistant',
+          key: '["000004","agent","assistant","custom"]',
+          kind: 'agent',
+          runtimeId: 'custom',
+        },
+      );
 
       const content = runCli(root, [
         'content',
@@ -1145,7 +1189,7 @@ describe('CLI 7 bounded machine protocol', () => {
     const missingRoot = mkdtempSync(join(tmpdir(), 'moldea-v5-launcher-missing-'));
     const malformedRoot = createLauncherProject('process.exitCode = 0;\n');
     const prereleaseRoot = createLauncherProject('process.exitCode = 0;\n', {
-      version: '7.0.1-beta.1',
+      version: '7.1.0-beta.1',
     });
     const escapedRoot = createLauncherProject('process.exitCode = 0;\n');
     try {
@@ -1159,7 +1203,7 @@ describe('CLI 7 bounded machine protocol', () => {
       mkdirSync(join(escapedCliRoot, 'dist'), { recursive: true });
       writeFileSync(
         join(escapedCliRoot, 'package.json'),
-        '{"name":"@moldea.ai/cli","version":"7.0.1","bin":{"moldea":"./dist/moldea.js"},"dependencies":{"@moldea.ai/core":"^3.0.0"}}\n',
+        '{"name":"@moldea.ai/cli","version":"7.1.0","bin":{"moldea":"./dist/moldea.js"},"dependencies":{"@moldea.ai/core":"^3.0.0"}}\n',
       );
       writeFileSync(join(escapedCliRoot, 'dist', 'moldea.js'), 'process.exitCode = 0;\n');
       rmSync(installedCliRoot, { force: true, recursive: true });

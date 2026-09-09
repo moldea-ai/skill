@@ -87,7 +87,7 @@ Broad ideas such as “potentially durable knowledge” do not activate the skil
 
 Compatible CLI 7 releases emit schema 4 JSON only. The portable `scripts/moldea-cli.mjs` launcher accepts an absolute repository root and a closed argument surface, verifies the installed CLI/Core closure and resolved-path containment, invokes Node without a shell, enforces the declared stdout boundary and a separate stderr boundary, relays cancellation, force-terminates a child that ignores termination for five seconds, and preserves completed child exit status. Agents do not repeat package, link, `PATH`, or parent-workspace discovery around it.
 
-- `inspect` returns content-free metadata, counts, diagnostics, paths, digests, relationships, and a bounded page.
+- `inspect` returns content-free metadata, counts, diagnostics, paths, digests, relationships, exact agent-to-runtime assignment records, and a bounded page.
 - `scope` matches one path or one NUL-delimited path set against declared relationships.
 - `content` reads one explicitly selected canonical asset in bounded Unicode-safe chunks.
 - `validate` reports structural validity without embedding canonical document bodies.

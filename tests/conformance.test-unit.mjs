@@ -375,7 +375,8 @@ describe('portable skill contract', () => {
     assert.match(skill, /Never conclude from the host review alone/u);
     assert.match(skill, /reactivate after an unrelated-task gate miss/u);
     assert.match(skill, /run the full gate once\. On `1`/u);
-    assert.match(skill, /load matched owners, and bind the coherent change before writing/u);
+    assert.match(skill, /load matched owners, and bind the implementation, owners, and mirrors/u);
+    assert.match(skill, /contradicted guidance cannot remain unchanged or be called accurate/u);
     assert.match(skill, /On `0` or failure, continue without moldea/u);
     assert.match(skill, /work as if the skill were absent/u);
     assert.match(skill, /For ordinary repository paths, use the full relationship gate/u);
@@ -384,11 +385,17 @@ describe('portable skill contract', () => {
     assert.match(skill, /After `1`, pass the exact same byte stream/u);
     assert.match(skill, /Classify requirement criteria/u);
     assert.match(skill, /bind necessary `description` and `resolution` rewrites/u);
-    assert.match(skill, /existing independent inline instruction is then a migration input/u);
+    assert.match(skill, /existing independent inline instruction is migration input/u);
     assert.match(skill, /direct request to prove, invoke, inspect, or explain/u);
     assert.match(skill, /before inspecting providers or concluding/u);
     assert.match(skill, /Reserve validation until all writes finish/u);
     assert.match(skill, /only to validate an actual repair after the first post-write validation/u);
+    assert.match(
+      skill,
+      /use one content-free `inspect`, then one named-agent `content` if needed/u,
+    );
+    assert.match(skill, /never inspect afterward or request manifest content/u);
+    assert.match(skill, /give every behavioral or integration unknown a concrete resolver/u);
     assert.match(skill, /load only `references\/continuous-maintenance\.md`/u);
     assert.match(
       skill,
@@ -406,9 +413,9 @@ describe('portable skill contract', () => {
     assert.match(skill, /Insufficient evidence and partial evidence.*pre-write stop conditions/u);
     assert.match(
       skill,
-      /not adopted by `moldea` because the complete adoption contract is absent/u,
+      /not adopted or was not initialized because the complete adoption contract is absent/u,
     );
-    assert.match(skill, /Do not substitute an indirect status such as paused or incomplete/u);
+    assert.match(skill, /Do not substitute.*or add generic product-benefit boilerplate/u);
     assert.match(
       skill,
       /name the present and missing elements among `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the owned README awareness block/u,
@@ -435,7 +442,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /Request a named owner's `content` directly/u);
     assert.match(skill, /use at most one canonical `content` call total/u);
     assert.match(skill, /do not read project context or a second canonical body/u);
-    assert.match(skill, /run `composition` before publication and read only named agent content/u);
+    assert.match(skill, /Run `composition` first for runtime identity or readiness/u);
     assert.match(skill, /Every recursive search or listing must exclude VCS internals/u);
     assert.match(skill, /Never dump a complete lockfile, dependency inventory, generated tree/u);
     assert.match(skill, /more than 65,536 model-visible bytes/u);
@@ -480,7 +487,11 @@ describe('portable skill contract', () => {
     assert.match(maintenance, /what does the project do, and who or what does it serve\?/u);
     assert.match(
       maintenance,
-      /not adopted by `moldea` because the complete adoption contract is absent/u,
+      /not adopted or was not initialized because the complete adoption contract is absent/u,
+    );
+    assert.match(
+      maintenance,
+      /Do not add generic product-benefit boilerplate to this concise blocked result/u,
     );
     assert.match(maintenance, /paused or incomplete is not the adoption result/u);
     assert.match(maintenance, /Preserve every existing artifact/u);
@@ -616,10 +627,17 @@ describe('portable skill contract', () => {
     assert.match(runtime, /It does not erase a canonical runtime declaration/u);
     assert.match(runtime, /establish local composition once before interpreting the publication/u);
     assert.match(runtime, /inspect\.project\.runtimes.*cannot negate an agent assignment/u);
-    assert.match(runtime, /Do not add `inspect` after the owner is known/u);
+    assert.match(
+      runtime,
+      /use one content-free `inspect` to establish that assignment and owner metadata/u,
+    );
+    assert.match(runtime, /Never request `\/moldea\/moldea\.yaml` through `content`/u);
     assert.match(runtime, /ordinary four-command moldea limit/u);
     assert.match(runtime, /ambient network client does not grant access/u);
-    assert.match(runtime, /independently evidenced blocker already determines/u);
+    assert.match(
+      runtime,
+      /explicit target-maturity or production-readiness request, retrieve the current publication despite independent blockers/u,
+    );
     assert.match(runtime, /single fifth-call repair validation/u);
     assert.match(runtime, /invoke `composition` first and retain its conclusion/u);
     assert.match(runtime, /cannot retroactively replace or erase/u);
@@ -627,6 +645,10 @@ describe('portable skill contract', () => {
     assert.match(runtime, /state the exact canonical `runtime\.id` when established/u);
     assert.match(runtime, /and the repository wires the target/u);
     assert.match(runtime, /published `experimental` maturity as the reason readiness is withheld/u);
+    assert.match(
+      runtime,
+      /matching local adapter, exact published target, and maturity separately/u,
+    );
     assert.match(runtime, /retain every independently evidenced model-visible capability/u);
     assert.doesNotMatch(runtime, /composition --json --max-output-bytes/u);
     const skillDesign = readFileSync(join(SKILL_ROOT, 'references', 'skill-design.md'), 'utf8');

@@ -1232,11 +1232,11 @@
       "expected": [
         {
           "label": "report-unadopted-project",
-          "criterion": "The actor reports the project as unadopted because the complete canonical adoption contract is absent."
+          "criterion": "The actor reports that moldea is not adopted or was not initialized because the complete adoption contract is absent or the available evidence cannot support a truthful canonical foundation."
         },
         {
           "label": "report-no-meaningful-project-context",
-          "criterion": "From the identified inspected evidence, the actor concludes that the repository does not establish a meaningful project purpose or who or what it serves. Semantically equivalent wording or an explicit synthesis of the cited evidence is acceptable."
+          "criterion": "From the identified inspected evidence, the actor concludes that the repository does not establish a meaningful project purpose or who or what it serves. Semantically equivalent wording is acceptable. Citing only generic or empty project evidence and asking for the missing purpose and audience is an explicit synthesis of that conclusion."
         },
         {
           "label": "identify-inspected-evidence",
@@ -1244,7 +1244,7 @@
         },
         {
           "label": "ask-focused-foundation-question",
-          "criterion": "The actor explains that moldea keeps durable repository context so coding agents can understand the project consistently over time and asks one focused question about what the project does and who or what it serves."
+          "criterion": "The actor asks one focused question about what the project does and who or what it serves. It need not add generic product-benefit prose to this concise blocked result."
         },
         {
           "label": "avoid-speculative-canonical-truth",
@@ -4038,7 +4038,7 @@
         },
         {
           "label": "report-behavioral-evidence-limitation",
-          "criterion": "The actor preserves established facts, identifies the specific behavioral compatibility or integration facts that remain unknown, and names at least one concrete reliable resolver for each material unknown, such as source-owned adapter documentation, closed repository runtime wiring, provider configuration, or a focused integration test. A generic request for more evidence does not satisfy this criterion."
+          "criterion": "The actor preserves established facts, identifies the specific behavioral compatibility or integration facts that remain unknown, and names at least one concrete reliable resolver for each material unknown, such as source-owned adapter documentation, closed repository runtime wiring, provider configuration, or a focused integration test. Naming the specific missing approved integration contract counts as a concrete resolver when establishing that contract would resolve both behavioral fit and integration wiring. A generic request for more evidence does not satisfy this criterion."
         },
         {
           "label": "preserve-existing-runtime-id",

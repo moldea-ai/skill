@@ -956,16 +956,33 @@ test('judges insufficient initialization context without duplicate phrase requir
   );
   assert.match(
     expectedByLabel.get('report-no-meaningful-project-context'),
-    /Semantically equivalent wording or an explicit synthesis/u,
+    /asking for the missing purpose and audience is an explicit synthesis/u,
   );
-  assert.doesNotMatch(
-    expectedByLabel.get('ask-focused-foundation-question'),
-    /README and source do not establish/u,
+  assert.match(
+    expectedByLabel.get('report-unadopted-project'),
+    /not adopted or was not initialized/u,
   );
   assert.match(
     expectedByLabel.get('ask-focused-foundation-question'),
     /what the project does and who or what it serves/u,
   );
+  assert.match(
+    expectedByLabel.get('ask-focused-foundation-question'),
+    /need not add generic product-benefit prose/u,
+  );
+});
+
+test('accepts a specific missing integration contract as runtime evidence resolver', () => {
+  const caseDefinition = SEMANTIC_CASES.find(
+    ({ id }) => id === 'available-runtime-insufficient-behavioral-evidence',
+  );
+  assert.ok(caseDefinition);
+
+  const limitation = caseDefinition.expected.find(
+    ({ label }) => label === 'report-behavioral-evidence-limitation',
+  );
+  assert.match(limitation?.criterion, /specific missing approved integration contract/u);
+  assert.match(limitation?.criterion, /resolve both behavioral fit and integration wiring/u);
 });
 
 test('projects every bounded runtime-planning fact the judge may verify', () => {

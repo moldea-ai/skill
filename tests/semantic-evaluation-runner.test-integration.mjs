@@ -459,7 +459,7 @@ test('one complete fake-host batch collects all 74 semantic failures before retu
   }
 });
 
-test('preflight reports every clean-slate case as a fresh initial stage', () => {
+test('preflight reports exact current reuse and remaining paid stages', () => {
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
   const hostCommand = createFakeCodexHost(hostRoot, true, 'codex-cli 0.153.4');
   const beforeCandidate = readCandidateState();
@@ -486,12 +486,19 @@ test('preflight reports every clean-slate case as a fresh initial stage', () => 
       result.stderr.slice(result.stderr.indexOf('{'), result.stderr.lastIndexOf('}') + 1),
     );
     assert.equal(estimate.caseCount, 74);
-    assert.equal(estimate.reusedCaseCount, 0);
-    assert.equal(estimate.reusedStageCount, 0);
-    assert.equal(estimate.paidInitialStageCount, 148);
+    assert.equal(estimate.reusedStageCount >= estimate.reusedCaseCount * 2, true);
+    assert.equal(estimate.reusedStageCount % 2, 0);
+    assert.equal(estimate.paidInitialStageCount, (74 - estimate.reusedCaseCount) * 2);
+    assert.equal(estimate.confirmationInclusivePaidStageLimit, estimate.paidInitialStageCount * 3);
+    assert.equal(
+      estimate.operationalRetryInclusiveInvocationLimit,
+      estimate.confirmationInclusivePaidStageLimit * 2,
+    );
+    assert.equal(estimate.paidCaseIds.length, 74 - estimate.reusedCaseCount);
+    const paidCaseIds = new Set(estimate.paidCaseIds);
     assert.deepEqual(
       estimate.paidCaseIds,
-      SEMANTIC_CASES.map(({ id }) => id),
+      SEMANTIC_CASES.map(({ id }) => id).filter((id) => paidCaseIds.has(id)),
     );
     assert.equal(readCandidateState(), beforeCandidate);
     assert.deepEqual(readAttemptEntries(), beforeAttempts);

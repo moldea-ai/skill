@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  CODEX_EVALUATION_LOCAL_PROBE_KINDS,
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
@@ -204,6 +205,49 @@ test('execution evidence preserves quoted patterns and static shell predicates',
       indeterminateCount: 0,
     },
   });
+});
+
+test('execution evidence accepts only the exact capability-scoped runtime publication probe', () => {
+  const runtimeProbe = CODEX_EVALUATION_LOCAL_PROBE_KINDS.RuntimeCompatibilityPublication;
+  const publicationUrl = 'https://packages.moldea.ai/compatibility/runtimes.json';
+  const accepted = projectCodexEvaluationExecutionEvidence(
+    [
+      createCommandEvent(`curl ${publicationUrl}`),
+      createCommandEvent(`/home/evaluator/bin/curl -fsSL -- ${publicationUrl}`),
+    ].join('\n'),
+    { localProbeKind: runtimeProbe },
+  );
+
+  assert.equal(accepted.commandPolicy.networkAccess.status, 'not-observed');
+  assert.equal(hasPassingCodexEvaluationCommandPolicy(accepted.commandPolicy), true);
+
+  for (const command of [
+    `curl ${publicationUrl}`,
+    'curl https://example.com',
+    `/usr/bin/curl ${publicationUrl}`,
+    `curl --output publication.json ${publicationUrl}`,
+    `curl -H x-test:value ${publicationUrl}`,
+    `curl ${publicationUrl} 2>/dev/null`,
+    `curl ${publicationUrl} | jq .`,
+    `URL=${publicationUrl} curl ${publicationUrl}`,
+  ]) {
+    const rejected = projectCodexEvaluationExecutionEvidence(
+      createCommandEvent(command),
+      command === `curl ${publicationUrl}` ? {} : { localProbeKind: runtimeProbe },
+    );
+    assert.notEqual(rejected.commandPolicy.networkAccess.status, 'not-observed');
+    assert.equal(hasPassingCodexEvaluationCommandPolicy(rejected.commandPolicy), false);
+  }
+});
+
+test('execution evidence rejects unsupported local probe capabilities', () => {
+  assert.throws(
+    () =>
+      projectCodexEvaluationExecutionEvidence('', {
+        localProbeKind: 'other-probe',
+      }),
+    /unsupported local probe/u,
+  );
 });
 
 test('execution evidence fails closed for network, sensitive, and opaque commands', () => {

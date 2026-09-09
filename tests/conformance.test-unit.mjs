@@ -351,6 +351,13 @@ describe('portable skill contract', () => {
     assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
     assert.match(skill, /leaving at most three CLI calls/u);
     assert.match(skill, /direct request supplies intent, not a canonical owner/u);
+    assert.match(skill, /Direct canonical agent or runtime work/u);
+    assert.match(skill, /create, maintain, change, or reconcile canonical agent or runtime facts/u);
+    assert.match(
+      skill,
+      /otherwise use one content-free `inspect` to resolve the owner and mirrors/u,
+    );
+    assert.match(skill, /Write the canonical owner first, derive every declared mirror/u);
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
     assert.match(skill, /retain one deduplicated leading-slash repository-logical set/u);
     assert.match(skill, /send it to one `scope`/u);
@@ -423,7 +430,7 @@ describe('portable skill contract', () => {
       /Do not steer the developer toward agent creation without a separate goal/u,
     );
     assert.match(skill, /Read exact task-owned files first/u);
-    assert.match(skill, /request that owner's `content` directly/u);
+    assert.match(skill, /Request a named owner's `content` directly/u);
     assert.match(skill, /use at most one canonical `content` call total/u);
     assert.match(skill, /do not read project context or a second canonical body/u);
     assert.match(skill, /establish `composition` once before publication evidence/u);
@@ -633,7 +640,7 @@ describe('portable skill contract', () => {
       '**Explicit initialization:**',
       '**Independent Agent Skill artifact:**',
       '**Current-change review or evaluation:**',
-      '**Direct named-owner reconciliation:**',
+      '**Direct canonical agent or runtime work:**',
       '**Repository-independent information:**',
       '**Every other repository task:**',
     ];

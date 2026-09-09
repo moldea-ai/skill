@@ -24,6 +24,7 @@ import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../tooling/release-identit
 import {
   createActorRepository,
   parseSemanticEvaluationHostOutput,
+  prepareSemanticEvaluationHome,
   readSemanticEvaluationCandidate,
   SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT,
   writeSemanticEvaluationCandidate,
@@ -51,6 +52,8 @@ const SEMANTIC_DIAGNOSTIC_ROOT = join(process.cwd(), 'fixtures', 'semantic-evalu
 const SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH = join(SEMANTIC_DIAGNOSTIC_ROOT, 'checkpoint.json');
 const SEMANTIC_DIAGNOSTIC_LEDGER_PATH = join(SEMANTIC_DIAGNOSTIC_ROOT, 'ledger.json');
 const SEMANTIC_RESULT_PATH = join(process.cwd(), 'fixtures', 'semantic-evaluation-result.json');
+const RUNTIME_COMPATIBILITY_PUBLICATION_URL =
+  'https://packages.moldea.ai/compatibility/runtimes.json';
 const EMPTY_COMMAND_POLICY_EVIDENCE = {
   completedCommandCount: 0,
   credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
@@ -71,6 +74,58 @@ const EMPTY_COMMAND_POLICY_EVIDENCE = {
     reasons: [],
   },
 };
+
+test('runtime compatibility cases receive one exact fixed local publication probe', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-runtime-probe-test-'));
+  const sandboxHome = join(evaluationRoot, 'home');
+  const actorToolDirectory = join(evaluationRoot, 'tools');
+  const caseDefinition = SEMANTIC_CASES.find(
+    ({ id }) => id === 'dedicated-repository-runtime-selection',
+  );
+  assert.notEqual(caseDefinition, undefined);
+
+  try {
+    const mounts = await prepareSemanticEvaluationHome(
+      sandboxHome,
+      caseDefinition,
+      actorToolDirectory,
+    );
+    const probePath = join(actorToolDirectory, 'curl');
+    assert.deepEqual(mounts, [{ source: actorToolDirectory, target: '/home/evaluator/bin' }]);
+    assert.equal(existsSync(probePath), true);
+
+    const accepted = spawnSync(
+      process.execPath,
+      [probePath, '-fsSL', RUNTIME_COMPATIBILITY_PUBLICATION_URL],
+      {
+        encoding: 'utf8',
+      },
+    );
+    assert.equal(accepted.status, 0);
+    assert.equal(JSON.parse(accepted.stdout).matrixVersion, 2);
+
+    for (const argumentsList of [
+      ['https://example.com'],
+      ['--output', 'publication.json', RUNTIME_COMPATIBILITY_PUBLICATION_URL],
+      ['-H', 'x-test:value', RUNTIME_COMPATIBILITY_PUBLICATION_URL],
+    ]) {
+      const rejected = spawnSync(process.execPath, [probePath, ...argumentsList], {
+        encoding: 'utf8',
+      });
+      assert.equal(rejected.status, 2);
+      assert.equal(rejected.stdout, '');
+    }
+
+    const unrelatedHome = join(evaluationRoot, 'unrelated-home');
+    const unrelatedTools = join(evaluationRoot, 'unrelated-tools');
+    const unrelatedCase = SEMANTIC_CASES.find(({ id }) => id === 'host-plan-command-precedence');
+    assert.notEqual(unrelatedCase, undefined);
+    await prepareSemanticEvaluationHome(unrelatedHome, unrelatedCase, unrelatedTools);
+    assert.equal(existsSync(join(unrelatedTools, 'curl')), false);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
 
 /** Creates an isolated no-network Codex substitute for runner boundary tests. */
 const createFakeCodexHost = (root, isJudgePassing = true, hostVersion = 'codex-fake 1.0.0') => {

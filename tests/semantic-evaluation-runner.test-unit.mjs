@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 
 import {
+  CODEX_EVALUATION_LOCAL_PROBE_KINDS,
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CodexEvaluationHostError,
   runCodexEvaluationOperationalStage,
@@ -1061,4 +1062,39 @@ test('retains observed command-policy failures without command text', () => {
     { code: 'network-client', count: 1 },
   ]);
   assert.doesNotMatch(JSON.stringify(result.commandPolicyEvidence), /curl|example\.com/u);
+});
+
+test('grants the fixed runtime-publication probe only through explicit semantic options', () => {
+  const publicationUrl = 'https://packages.moldea.ai/compatibility/runtimes.json';
+  const output = [
+    {
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command: `curl -fsSL ${publicationUrl}`,
+        aggregated_output: '{}\n',
+        exit_code: 0,
+        status: 'completed',
+      },
+    },
+    {
+      type: 'item.completed',
+      item: { type: 'agent_message', text: 'Finished.' },
+    },
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+  const releaseIdentity = { cliVersion: '7.0.0', jsonSchemaVersion: 4 };
+  const defaultResult = parseSemanticEvaluationHostOutput(output, releaseIdentity);
+  const runtimeResult = parseSemanticEvaluationHostOutput(output, {
+    ...releaseIdentity,
+    localProbeKind: CODEX_EVALUATION_LOCAL_PROBE_KINDS.RuntimeCompatibilityPublication,
+  });
+
+  assert.equal(defaultResult.commandPolicyEvidence.networkAccess.status, 'observed');
+  assert.equal(runtimeResult.commandPolicyEvidence.networkAccess.status, 'not-observed');
+  assert.doesNotMatch(
+    JSON.stringify(runtimeResult.commandPolicyEvidence),
+    /curl|packages\.moldea/u,
+  );
 });

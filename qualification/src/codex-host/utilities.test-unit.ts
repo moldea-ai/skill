@@ -2,7 +2,10 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, test } from 'vitest';
 
-import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../../../tooling/codex-evaluation-host/index.mjs';
+import {
+  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
+  projectCodexEvaluationExecutionEvidence,
+} from '../../../tooling/codex-evaluation-host/index.mjs';
 
 import { createCodexExecCommand } from './utilities.ts';
 
@@ -60,5 +63,22 @@ describe('createCodexExecCommand', () => {
         }),
       ),
     );
+  });
+
+  test('keeps fixed-probe capability unavailable to qualification execution', () => {
+    const rawEvents = JSON.stringify({
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command: 'curl https://packages.moldea.ai/compatibility/runtimes.json',
+        aggregated_output: '{}\n',
+        exit_code: 0,
+        status: 'completed',
+      },
+    });
+
+    expect(
+      projectCodexEvaluationExecutionEvidence(rawEvents).commandPolicy.networkAccess.status,
+    ).toBe('observed');
   });
 });

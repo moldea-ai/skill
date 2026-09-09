@@ -16,13 +16,13 @@ export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
 export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT = 'high';
 export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT = 'xhigh';
 const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
-  'You are running inside a closed local evaluation workspace. Do not use network clients, ' +
-  'perform Git network operations, invoke package managers or installers, call providers or ' +
-  'models, use subagents, inspect environment variables or authentication state, access the ' +
-  'evaluator home, or access filesystem paths outside the current workspace. Required ' +
-  'dependencies and fixtures are already present. Use only local workspace files and direct ' +
-  'local executables. When repository tests are needed, invoke Node directly with explicit ' +
-  'repository-relative test paths.';
+  'You are running inside a closed local evaluation workspace. Do not use network clients other ' +
+  'than an evaluator-provided fixed local probe explicitly required by the current evaluation ' +
+  'task, perform Git network operations, invoke package managers or installers, call providers ' +
+  'or models, use subagents, inspect environment variables or authentication state, access the ' +
+  'evaluator home, or access filesystem paths outside the current workspace. Required dependencies ' +
+  'and fixtures are already present. Use only local workspace files and direct local executables. ' +
+  'When repository tests are needed, invoke Node directly with explicit repository-relative test paths.';
 const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG = JSON.stringify(
   CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS,
 );

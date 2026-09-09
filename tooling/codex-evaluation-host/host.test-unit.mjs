@@ -175,6 +175,7 @@ test('host commands carry one neutral runner-owned developer policy and exact di
   const instruction = JSON.parse(assignments[0].slice('developer_instructions='.length));
   assert.match(instruction, /closed local evaluation workspace/u);
   assert.match(instruction, /Do not use network clients/u);
+  assert.match(instruction, /evaluator-provided fixed local probe/u);
   assert.match(instruction, /invoke package managers or installers/u);
   assert.match(instruction, /access filesystem paths outside the current workspace/u);
   assert.doesNotMatch(instruction, /moldea|scenario|criterion|adapter/u);

@@ -26,6 +26,7 @@ import {
   CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
+  CODEX_EVALUATION_LOCAL_PROBE_KINDS,
   CODEX_EVALUATION_MODEL,
   CODEX_EVALUATION_NPM_VERSION,
   CodexEvaluationHostError,
@@ -189,6 +190,8 @@ const RUNTIME_COMPATIBILITY_PUBLICATION_CASE_IDS = new Set([
   'runtime-publication-malformed',
   'runtime-publication-unavailable',
 ]);
+const RUNTIME_COMPATIBILITY_PUBLICATION_URL =
+  'https://packages.moldea.ai/compatibility/runtimes.json';
 const CUSTOM_SETUP_CASE_IDS = new Set([
   'host-plan-command-precedence',
   'plan-uninitialized-zero-agent',
@@ -2081,7 +2084,12 @@ export const buildSemanticEvaluationHostCommand = (baseCommand, role) => {
  * @returns The final response, bounded command facts, and command-policy aggregate.
  */
 export const parseSemanticEvaluationHostOutput = (output, options) => {
-  const { commandPolicy, usage } = projectCodexEvaluationExecutionEvidence(output);
+  const executionEvidenceOptions =
+    options.localProbeKind === undefined ? {} : { localProbeKind: options.localProbeKind };
+  const { commandPolicy, usage } = projectCodexEvaluationExecutionEvidence(
+    output,
+    executionEvidenceOptions,
+  );
   const actorExecutionEvidence = [];
   let hasOperationalFailureEvent = false;
   let response = null;
@@ -2991,9 +2999,15 @@ export const prepareSemanticEvaluationHome = async (
       curlProbePath,
       [
         '#!/opt/node',
-        "const expectedUrl = 'https://packages.moldea.ai/compatibility/runtimes.json';",
+        `const expectedUrl = ${JSON.stringify(RUNTIME_COMPATIBILITY_PUBLICATION_URL)};`,
+        "const safeLongOptions = new Set(['--fail', '--location', '--show-error', '--silent']);",
         'const argumentsList = process.argv.slice(2);',
-        'if (!argumentsList.includes(expectedUrl)) {',
+        'const commandOptions = argumentsList.slice(0, -1);',
+        "if (commandOptions.at(-1) === '--') commandOptions.pop();",
+        'const hasValidCommand =',
+        '  argumentsList.at(-1) === expectedUrl &&',
+        '  commandOptions.every((option) => safeLongOptions.has(option) || /^-[fLsS]+$/u.test(option));',
+        'if (!hasValidCommand) {',
         "  process.stderr.write('The evaluation curl probe supports only the runtime compatibility publication.\\n');",
         '  process.exitCode = 2;',
         `} else if (${JSON.stringify(caseDefinition.id)} === 'runtime-publication-unavailable') {`,
@@ -4778,6 +4792,11 @@ const evaluateActorStage = async (caseDefinition, actorCommand, cli) => {
     const actorExecutionEvidenceOptions = {
       cliVersion: cli.version,
       jsonSchemaVersion: cli.jsonSchemaVersion,
+      ...(RUNTIME_COMPATIBILITY_PUBLICATION_CASE_IDS.has(caseDefinition.id)
+        ? {
+            localProbeKind: CODEX_EVALUATION_LOCAL_PROBE_KINDS.RuntimeCompatibilityPublication,
+          }
+        : {}),
     };
     const {
       actorExecutionEvidence,
@@ -4852,7 +4871,7 @@ const evaluateJudgeStage = async (caseDefinition, actorEvidence, judgeCommand, c
       sandboxHome: judgeHome,
       workspaceAccess: 'read-only',
     });
-    const actorExecutionEvidenceOptions = {
+    const judgeExecutionEvidenceOptions = {
       cliVersion: cli.version,
       jsonSchemaVersion: cli.jsonSchemaVersion,
     };
@@ -4860,7 +4879,7 @@ const evaluateJudgeStage = async (caseDefinition, actorEvidence, judgeCommand, c
       commandPolicyEvidence: judgeCommandPolicyEvidence,
       response: judgeResponse,
       usage: judgeUsage,
-    } = parseSemanticEvaluationHostOutput(judgeHostOutput, actorExecutionEvidenceOptions);
+    } = parseSemanticEvaluationHostOutput(judgeHostOutput, judgeExecutionEvidenceOptions);
     const assessment = assessJudgeOutput(
       caseDefinition,
       judgeResponse,

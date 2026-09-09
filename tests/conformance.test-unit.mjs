@@ -1,5 +1,5 @@
-import assert from "node:assert/strict";
-import { spawn, spawnSync } from "node:child_process";
+import assert from 'node:assert/strict';
+import { spawn, spawnSync } from 'node:child_process';
 import {
   existsSync,
   mkdirSync,
@@ -9,50 +9,44 @@ import {
   rmSync,
   symlinkSync,
   writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { describe, test } from "node:test";
-import { parseDocument } from "yaml";
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { describe, test } from 'node:test';
+import { parseDocument } from 'yaml';
 
 import {
   createSemanticCaseSuiteDigest,
   createSemanticCoverageDigest,
   validateSemanticCaseDefinition,
   validateSemanticCoverage,
-} from "../tooling/semantic-evaluation/index.mjs";
+} from '../tooling/semantic-evaluation/index.mjs';
 
-const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const SKILL_ROOT = join(REPOSITORY_ROOT, "moldea");
-const SKILL_PATH = join(SKILL_ROOT, "SKILL.md");
-const CLI_LAUNCHER_PATH = join(SKILL_ROOT, "scripts", "moldea-cli.mjs");
-const RELEVANCE_GATE_PATH = join(SKILL_ROOT, "scripts", "relevance-gate.mjs");
+const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const SKILL_ROOT = join(REPOSITORY_ROOT, 'moldea');
+const SKILL_PATH = join(SKILL_ROOT, 'SKILL.md');
+const CLI_LAUNCHER_PATH = join(SKILL_ROOT, 'scripts', 'moldea-cli.mjs');
+const RELEVANCE_GATE_PATH = join(SKILL_ROOT, 'scripts', 'relevance-gate.mjs');
 const FIXTURE = JSON.parse(
-  readFileSync(
-    join(REPOSITORY_ROOT, "fixtures", "conformance-cases.json"),
-    "utf8",
-  ),
+  readFileSync(join(REPOSITORY_ROOT, 'fixtures', 'conformance-cases.json'), 'utf8'),
 );
 const COVERAGE = JSON.parse(
-  readFileSync(
-    join(REPOSITORY_ROOT, "fixtures", "semantic-evaluation-coverage.json"),
-    "utf8",
-  ),
+  readFileSync(join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-coverage.json'), 'utf8'),
 );
 const REFERENCE_NAMES = [
-  "agent-design.md",
-  "agent-system-planning.md",
-  "context-compression.md",
-  "context-gathering.md",
-  "continuous-maintenance.md",
-  "evaluate-and-reconcile.md",
-  "local-tooling.md",
-  "runtime-compatibility.md",
-  "skill-design.md",
+  'agent-design.md',
+  'agent-system-planning.md',
+  'context-compression.md',
+  'context-gathering.md',
+  'continuous-maintenance.md',
+  'evaluate-and-reconcile.md',
+  'local-tooling.md',
+  'runtime-compatibility.md',
+  'skill-design.md',
 ];
 
-const readSkill = () => readFileSync(SKILL_PATH, "utf8");
+const readSkill = () => readFileSync(SKILL_PATH, 'utf8');
 
 const parseFrontmatter = () => {
   const match = readSkill().match(/^---\n([\s\S]*?)\n---\n/u);
@@ -63,29 +57,25 @@ const parseFrontmatter = () => {
 };
 
 const resolveActivationCase = (input) => {
-  if (input.informationalRequest === true) return "informational";
-  if (input.initializationRequest === true) return "initialize";
-  if (input.initialized !== true) return "abstain";
-  if (input.explicitMoldeaRequest === true) return "direct";
-  if (
-    input.paths?.some(
-      (path) => path === "/moldea" || path.startsWith("/moldea/"),
-    )
-  ) {
-    return "direct";
+  if (input.informationalRequest === true) return 'informational';
+  if (input.initializationRequest === true) return 'initialize';
+  if (input.initialized !== true) return 'abstain';
+  if (input.explicitMoldeaRequest === true) return 'direct';
+  if (input.paths?.some((path) => path === '/moldea' || path.startsWith('/moldea/'))) {
+    return 'direct';
   }
-  if (input.readmeHunk === "inside-markers") return "direct";
-  if (input.relationshipMatch === true) return "relationship-gate";
-  return "abstain";
+  if (input.readmeHunk === 'inside-markers') return 'direct';
+  if (input.relationshipMatch === true) return 'relationship-gate';
+  return 'abstain';
 };
 
 const runCli = (repository, arguments_, input) => {
   const result = spawnSync(
     process.execPath,
-    [CLI_LAUNCHER_PATH, "--repository", repository, "--", ...arguments_],
+    [CLI_LAUNCHER_PATH, '--repository', repository, '--', ...arguments_],
     {
       cwd: repository,
-      encoding: "utf8",
+      encoding: 'utf8',
       input,
       maxBuffer: 1_048_576,
     },
@@ -97,10 +87,10 @@ const runCli = (repository, arguments_, input) => {
 const runRelevanceGate = (repository, arguments_ = [], input) => {
   const result = spawnSync(
     process.execPath,
-    [RELEVANCE_GATE_PATH, "--repository", repository, ...arguments_],
+    [RELEVANCE_GATE_PATH, '--repository', repository, ...arguments_],
     {
       cwd: repository,
-      encoding: "utf8",
+      encoding: 'utf8',
       input,
       maxBuffer: 16,
     },
@@ -111,157 +101,137 @@ const runRelevanceGate = (repository, arguments_ = [], input) => {
 
 const installProjectToolingFixture = (root) => {
   writeFileSync(
-    join(root, "package.json"),
+    join(root, 'package.json'),
     `${JSON.stringify(
       {
         private: true,
-        devDependencies: { "@moldea.ai/cli": "^7.0.0" },
+        devDependencies: { '@moldea.ai/cli': '^7.0.0' },
       },
       null,
       2,
     )}\n`,
   );
   symlinkSync(
-    join(REPOSITORY_ROOT, "node_modules"),
-    join(root, "node_modules"),
-    process.platform === "win32" ? "junction" : "dir",
+    join(REPOSITORY_ROOT, 'node_modules'),
+    join(root, 'node_modules'),
+    process.platform === 'win32' ? 'junction' : 'dir',
   );
 };
 
 const writeCliFixture = (cliRoot) => {
-  mkdirSync(join(cliRoot, "dist"), { recursive: true });
+  mkdirSync(join(cliRoot, 'dist'), { recursive: true });
   writeFileSync(
-    join(cliRoot, "package.json"),
+    join(cliRoot, 'package.json'),
     `${JSON.stringify(
       {
-        name: "@moldea.ai/cli",
-        type: "module",
-        version: "7.1.0",
-        bin: { moldea: "./dist/moldea.js" },
-        dependencies: { "@moldea.ai/core": "^3.0.0" },
+        name: '@moldea.ai/cli',
+        type: 'module',
+        version: '7.1.0',
+        bin: { moldea: './dist/moldea.js' },
+        dependencies: { '@moldea.ai/core': '^3.0.0' },
       },
       null,
       2,
     )}\n`,
   );
-  writeFileSync(join(cliRoot, "dist", "moldea.js"), "process.exitCode = 0;\n");
+  writeFileSync(join(cliRoot, 'dist', 'moldea.js'), 'process.exitCode = 0;\n');
 };
 
 const writeCoreFixture = (coreRoot, options = {}) => {
-  mkdirSync(join(coreRoot, "dist"), { recursive: true });
+  mkdirSync(join(coreRoot, 'dist'), { recursive: true });
   writeFileSync(
-    join(coreRoot, "package.json"),
+    join(coreRoot, 'package.json'),
     `${JSON.stringify(
       {
-        name: options.name ?? "@moldea.ai/core",
-        type: "module",
-        version: options.version ?? "3.1.0",
+        name: options.name ?? '@moldea.ai/core',
+        type: 'module',
+        version: options.version ?? '3.1.0',
       },
       null,
       2,
     )}\n`,
   );
   writeFileSync(
-    join(coreRoot, "dist", "index.js"),
-    "export const createCore = () => ({ matchManifestScope: async () => ({ valid: true, relevant: true }) });\n",
+    join(coreRoot, 'dist', 'index.js'),
+    'export const createCore = () => ({ matchManifestScope: async () => ({ valid: true, relevant: true }) });\n',
   );
 };
 
 const createIsolatedToolingProject = (layout) => {
-  const root = mkdtempSync(join(tmpdir(), "moldea-v5-isolated-"));
-  mkdirSync(join(root, "moldea"), { recursive: true });
-  mkdirSync(join(root, "src"), { recursive: true });
+  const root = mkdtempSync(join(tmpdir(), 'moldea-v5-isolated-'));
+  mkdirSync(join(root, 'moldea'), { recursive: true });
+  mkdirSync(join(root, 'src'), { recursive: true });
   writeFileSync(
-    join(root, "package.json"),
+    join(root, 'package.json'),
     `${JSON.stringify(
       {
         private: true,
-        devDependencies: { "@moldea.ai/cli": "^7.0.0" },
+        devDependencies: { '@moldea.ai/cli': '^7.0.0' },
       },
       null,
       2,
     )}\n`,
   );
   writeFileSync(
-    join(root, "README.md"),
-    "# Project\n\n<!-- moldea:start -->\nCanonical moldea project state lives under `/moldea/**`.\n<!-- moldea:end -->\n",
+    join(root, 'README.md'),
+    '# Project\n\n<!-- moldea:start -->\nCanonical moldea project state lives under `/moldea/**`.\n<!-- moldea:end -->\n',
   );
   writeFileSync(
-    join(root, "moldea", "moldea.yaml"),
-    "version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n",
+    join(root, 'moldea', 'moldea.yaml'),
+    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
   );
-  writeFileSync(join(root, "moldea", "project.md"), "# Project\n");
-  writeFileSync(
-    join(root, "src", "project-state.js"),
-    "export const state = true;\n",
-  );
+  writeFileSync(join(root, 'moldea', 'project.md'), '# Project\n');
+  writeFileSync(join(root, 'src', 'project-state.js'), 'export const state = true;\n');
 
-  if (layout === "npm") {
-    writeCliFixture(join(root, "node_modules", "@moldea.ai", "cli"));
-    writeCoreFixture(join(root, "node_modules", "@moldea.ai", "core"));
+  if (layout === 'npm') {
+    writeCliFixture(join(root, 'node_modules', '@moldea.ai', 'cli'));
+    writeCoreFixture(join(root, 'node_modules', '@moldea.ai', 'core'));
     return root;
   }
 
-  const storeRoot = join(root, "node_modules", ".pnpm");
-  const cliStoreRoot = join(
-    storeRoot,
-    "@moldea.ai+cli@7.1.0",
-    "node_modules",
-    "@moldea.ai",
-    "cli",
-  );
+  const storeRoot = join(root, 'node_modules', '.pnpm');
+  const cliStoreRoot = join(storeRoot, '@moldea.ai+cli@7.1.0', 'node_modules', '@moldea.ai', 'cli');
   const coreStoreRoot = join(
     storeRoot,
-    "@moldea.ai+core@3.1.0",
-    "node_modules",
-    "@moldea.ai",
-    "core",
+    '@moldea.ai+core@3.1.0',
+    'node_modules',
+    '@moldea.ai',
+    'core',
   );
-  const cliDependencyRoot = join(
-    storeRoot,
-    "@moldea.ai+cli@7.1.0",
-    "node_modules",
-    "@moldea.ai",
-  );
+  const cliDependencyRoot = join(storeRoot, '@moldea.ai+cli@7.1.0', 'node_modules', '@moldea.ai');
   writeCliFixture(cliStoreRoot);
   writeCoreFixture(coreStoreRoot);
-  mkdirSync(join(root, "node_modules", "@moldea.ai"), { recursive: true });
+  mkdirSync(join(root, 'node_modules', '@moldea.ai'), { recursive: true });
   symlinkSync(
     cliStoreRoot,
-    join(root, "node_modules", "@moldea.ai", "cli"),
-    process.platform === "win32" ? "junction" : "dir",
+    join(root, 'node_modules', '@moldea.ai', 'cli'),
+    process.platform === 'win32' ? 'junction' : 'dir',
   );
   symlinkSync(
     coreStoreRoot,
-    join(cliDependencyRoot, "core"),
-    process.platform === "win32" ? "junction" : "dir",
+    join(cliDependencyRoot, 'core'),
+    process.platform === 'win32' ? 'junction' : 'dir',
   );
   return root;
 };
 
 const createProject = () => {
-  const root = mkdtempSync(join(tmpdir(), "moldea-v5-conformance-"));
-  mkdirSync(join(root, "moldea"), { recursive: true });
-  mkdirSync(join(root, "src"), { recursive: true });
+  const root = mkdtempSync(join(tmpdir(), 'moldea-v5-conformance-'));
+  mkdirSync(join(root, 'moldea'), { recursive: true });
+  mkdirSync(join(root, 'src'), { recursive: true });
   writeFileSync(
-    join(root, "README.md"),
-    "# Project\n\n<!-- moldea:start -->\nFor every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.\nCanonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.\n<!-- moldea:end -->\n",
+    join(root, 'README.md'),
+    '# Project\n\n<!-- moldea:start -->\nFor every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.\nCanonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.\n<!-- moldea:end -->\n',
   );
   writeFileSync(
-    join(root, "moldea", "moldea.yaml"),
-    "version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n",
+    join(root, 'moldea', 'moldea.yaml'),
+    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
   );
-  writeFileSync(
-    join(root, "moldea", "project.md"),
-    "# Project\n\nCurrent project truth.\n",
-  );
-  writeFileSync(
-    join(root, "src", "project-state.js"),
-    "export const state = true;\n",
-  );
-  const init = spawnSync("git", ["init", "--quiet"], {
+  writeFileSync(join(root, 'moldea', 'project.md'), '# Project\n\nCurrent project truth.\n');
+  writeFileSync(join(root, 'src', 'project-state.js'), 'export const state = true;\n');
+  const init = spawnSync('git', ['init', '--quiet'], {
     cwd: root,
-    encoding: "utf8",
+    encoding: 'utf8',
   });
   assert.equal(init.status, 0);
   installProjectToolingFixture(root);
@@ -269,106 +239,72 @@ const createProject = () => {
 };
 
 const createLauncherProject = (cliSource, options = {}) => {
-  const root = mkdtempSync(join(tmpdir(), "moldea-v5-launcher-"));
-  const cliRoot = join(root, "node_modules", "@moldea.ai", "cli");
-  mkdirSync(join(cliRoot, "dist"), { recursive: true });
+  const root = mkdtempSync(join(tmpdir(), 'moldea-v5-launcher-'));
+  const cliRoot = join(root, 'node_modules', '@moldea.ai', 'cli');
+  mkdirSync(join(cliRoot, 'dist'), { recursive: true });
   writeFileSync(
-    join(root, "package.json"),
+    join(root, 'package.json'),
     `${JSON.stringify(
       {
         private: true,
-        devDependencies: { "@moldea.ai/cli": options.declaration ?? "^7.0.0" },
+        devDependencies: { '@moldea.ai/cli': options.declaration ?? '^7.0.0' },
       },
       null,
       2,
     )}\n`,
   );
   writeFileSync(
-    join(cliRoot, "package.json"),
+    join(cliRoot, 'package.json'),
     `${JSON.stringify(
       {
-        name: "@moldea.ai/cli",
-        type: "module",
-        version: options.version ?? "7.1.0",
-        bin: { moldea: options.binary ?? "./dist/moldea.js" },
-        dependencies: { "@moldea.ai/core": options.coreRange ?? "^3.0.0" },
+        name: '@moldea.ai/cli',
+        type: 'module',
+        version: options.version ?? '7.1.0',
+        bin: { moldea: options.binary ?? './dist/moldea.js' },
+        dependencies: { '@moldea.ai/core': options.coreRange ?? '^3.0.0' },
       },
       null,
       2,
     )}\n`,
   );
-  writeFileSync(join(cliRoot, "dist", "moldea.js"), cliSource);
+  writeFileSync(join(cliRoot, 'dist', 'moldea.js'), cliSource);
   return root;
 };
 
 const waitForPath = async (path) => {
   const deadline = Date.now() + 2_000;
   while (!existsSync(path)) {
-    if (Date.now() >= deadline)
-      throw new Error("Timed out waiting for the launcher child.");
+    if (Date.now() >= deadline) throw new Error('Timed out waiting for the launcher child.');
     await new Promise((resolvePromise) => setTimeout(resolvePromise, 10));
   }
 };
 
-describe("portable skill contract", () => {
-  test("uses lowercase identity, repository-bound initialization, and a narrow description", () => {
+describe('portable skill contract', () => {
+  test('uses lowercase identity, repository-bound initialization, and a narrow description', () => {
     const frontmatter = parseFrontmatter();
     assert.deepEqual(frontmatter.metadata, {
-      version: "5.0.0",
-      cliVersionRange: "^7.0.0",
+      version: '5.0.0',
+      cliVersionRange: '^7.0.0',
       cliJsonSchemaVersion: 4,
     });
-    assert.equal(frontmatter.name, "moldea");
-    assert.match(
-      frontmatter.description,
-      /initialize moldea only when explicitly requested/u,
-    );
-    assert.match(
-      frontmatter.description,
-      /only after adoption and relevance are established/u,
-    );
-    assert.match(
-      frontmatter.description,
-      /declared binding or affectedBy relationship/u,
-    );
-    assert.match(
-      frontmatter.description,
-      /Do not use for other uninitialized work/u,
-    );
-    assert.match(
-      frontmatter.description,
-      /when this skill is installed in the repository/u,
-    );
-    assert.match(
-      frontmatter.description,
-      /Use for every repository-dependent task/u,
-    );
-    assert.match(
-      frontmatter.description,
-      /including reviews, plans, and implementation/u,
-    );
+    assert.equal(frontmatter.name, 'moldea');
+    assert.match(frontmatter.description, /initialize moldea only when explicitly requested/u);
+    assert.match(frontmatter.description, /only after adoption and relevance are established/u);
+    assert.match(frontmatter.description, /declared binding or affectedBy relationship/u);
+    assert.match(frontmatter.description, /Do not use for other uninitialized work/u);
+    assert.match(frontmatter.description, /when this skill is installed in the repository/u);
+    assert.match(frontmatter.description, /Use for every repository-dependent task/u);
+    assert.match(frontmatter.description, /including reviews, plans, and implementation/u);
     assert.match(frontmatter.description, /two-byte relevance gate/u);
     assert.match(frontmatter.description, /A gate miss abstains silently/u);
-    assert.match(
-      frontmatter.description,
-      /independently supplied Agent Skill artifact/u,
-    );
-    assert.match(
-      frontmatter.description,
-      /without gating the surrounding repository/u,
-    );
-    assert.doesNotMatch(
-      frontmatter.description,
-      /potentially durable knowledge|Use first/iu,
-    );
+    assert.match(frontmatter.description, /independently supplied Agent Skill artifact/u);
+    assert.match(frontmatter.description, /without gating the surrounding repository/u);
+    assert.doesNotMatch(frontmatter.description, /potentially durable knowledge|Use first/iu);
     const skill = readSkill();
     assert.match(skill, /Before responding, scan for violations/u);
     assert.match(skill, /including actionable reviews/u);
     assert.match(skill, /never substitute a neutral no-change response/u);
-    assert.match(
-      skill,
-      /When abstention consumes the request and no host work remains/u,
-    );
+    assert.match(skill, /When abstention consumes the request and no host work remains/u);
     assert.match(skill, /reply only with a neutral outcome/u);
     assert.match(skill, /`No files were changed\.`/u);
     assert.match(
@@ -377,15 +313,12 @@ describe("portable skill contract", () => {
     );
   });
 
-  test("keeps progressive disclosure bounded to owning references", () => {
+  test('keeps progressive disclosure bounded to owning references', () => {
     const skill = readSkill();
     for (const referenceName of REFERENCE_NAMES) {
-      assert.match(
-        skill,
-        new RegExp(`references/${referenceName.replace(".", "\\.")}`, "u"),
-      );
+      assert.match(skill, new RegExp(`references/${referenceName.replace('.', '\\.')}`, 'u'));
       assert.doesNotThrow(() =>
-        readFileSync(join(SKILL_ROOT, "references", referenceName), "utf8"),
+        readFileSync(join(SKILL_ROOT, 'references', referenceName), 'utf8'),
       );
     }
     assert.match(skill, /Never read every reference by default/u);
@@ -402,10 +335,7 @@ describe("portable skill contract", () => {
       skill,
       /Reuse the complete changed-path set already established by the host and pass it/u,
     );
-    assert.match(
-      skill,
-      /Never replace the gate by inspecting canonical state directly/u,
-    );
+    assert.match(skill, /Never replace the gate by inspecting canonical state directly/u);
     assert.match(
       skill,
       /Generic phrases such as project context, outdated context, durable knowledge, canonical alignment, documentation, or maintenance do not name `moldea`/u,
@@ -414,116 +344,53 @@ describe("portable skill contract", () => {
     assert.match(skill, /calls existing project context outdated/u);
     assert.match(skill, /do not search for a canonical destination/u);
     assert.match(skill, /abstention is final for the current request/u);
-    assert.match(
-      skill,
-      /paths discovered later by the host cannot reactivate `moldea`/u,
-    );
-    assert.match(
-      skill,
-      /must not open, read, search for, or edit `\/moldea\/\*\*`/u,
-    );
+    assert.match(skill, /paths discovered later by the host cannot reactivate `moldea`/u);
+    assert.match(skill, /must not open, read, search for, or edit `\/moldea\/\*\*`/u);
     assert.match(skill, /acknowledge it without inventing persistence/u);
     assert.match(skill, /never follow it with `inspect`/u);
-    assert.match(
-      skill,
-      /scope call counts toward the ordinary four-command limit/u,
-    );
+    assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
     assert.match(skill, /leaving at most three CLI calls/u);
     assert.match(skill, /may use one fifth call only to validate/u);
     assert.match(skill, /Never use it for inspection or an unchanged retry/u);
-    assert.match(
-      skill,
-      /direct request supplies intent, not a canonical owner/u,
-    );
+    assert.match(skill, /direct request supplies intent, not a canonical owner/u);
     assert.match(skill, /Direct canonical agent or runtime work/u);
-    assert.match(
-      skill,
-      /create, maintain, change, or reconcile canonical agent or runtime facts/u,
-    );
-    assert.match(
-      skill,
-      /otherwise use content-free `inspect` to resolve the owner and mirrors/u,
-    );
-    assert.match(
-      skill,
-      /Otherwise write the owner first, derive declared mirrors/u,
-    );
+    assert.match(skill, /create, maintain, change, or reconcile canonical agent or runtime facts/u);
+    assert.match(skill, /otherwise use content-free `inspect` to resolve the owner and mirrors/u);
+    assert.match(skill, /Otherwise write the owner first, derive declared mirrors/u);
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
-    assert.match(
-      skill,
-      /retain one deduplicated leading-slash repository-logical set/u,
-    );
+    assert.match(skill, /retain one deduplicated leading-slash repository-logical set/u);
     assert.match(skill, /send it to one `scope`/u);
-    assert.match(
-      skill,
-      /Current-change review or evaluation:.*host must retain/iu,
-    );
+    assert.match(skill, /Current-change review or evaluation:.*host must retain/iu);
     assert.match(skill, /must retain every staged, unstaged, untracked/u);
     assert.match(skill, /leading-slash repository-logical form/u);
     assert.match(skill, /separate canonical paths or known managed hunks/u);
     assert.match(skill, /run the adoption-only gate once/u);
     assert.match(skill, /run one `scope` only when ordinary paths remain/u);
-    assert.match(
-      skill,
-      /`relevant: false` adds no owner and never cancels direct relevance/u,
-    );
-    assert.match(
-      skill,
-      /With ordinary paths only, run the full relationship gate/u,
-    );
-    assert.match(
-      skill,
-      /report the complete path scope, canonical assessment/iu,
-    );
+    assert.match(skill, /`relevant: false` adds no owner and never cancels direct relevance/u);
+    assert.match(skill, /With ordinary paths only, run the full relationship gate/u);
+    assert.match(skill, /report the complete path scope, canonical assessment/iu);
     assert.match(skill, /Never conclude from the host review alone/u);
     assert.match(skill, /reactivate after an unrelated-task gate miss/u);
     assert.match(skill, /run the full gate once\. On `1`/u);
-    assert.match(
-      skill,
-      /load matched owners, and bind the implementation, owners, and mirrors/u,
-    );
-    assert.match(
-      skill,
-      /contradicted guidance cannot remain unchanged or be called accurate/u,
-    );
+    assert.match(skill, /load matched owners, and bind the implementation, owners, and mirrors/u);
+    assert.match(skill, /contradicted guidance cannot remain unchanged or be called accurate/u);
     assert.match(skill, /On `0` or failure, continue without moldea/u);
     assert.match(skill, /work as if the skill were absent/u);
-    assert.match(
-      skill,
-      /For ordinary repository paths, use the full relationship gate/u,
-    );
+    assert.match(skill, /For ordinary repository paths, use the full relationship gate/u);
     assert.match(skill, /every path's UTF-8 bytes followed by one NUL/u);
     assert.match(skill, /never begin with a delimiter/iu);
     assert.match(skill, /After `1`, pass the exact same byte stream/u);
     assert.match(skill, /Classify requirement criteria/u);
-    assert.match(
-      skill,
-      /bind necessary `description` and `resolution` rewrites/u,
-    );
-    assert.match(
-      skill,
-      /existing independent inline instruction is migration input/u,
-    );
-    assert.match(
-      skill,
-      /direct request to prove, invoke, inspect, or explain/u,
-    );
+    assert.match(skill, /bind necessary `description` and `resolution` rewrites/u);
+    assert.match(skill, /existing independent inline instruction is migration input/u);
+    assert.match(skill, /direct request to prove, invoke, inspect, or explain/u);
     assert.match(skill, /before inspecting providers or concluding/u);
     assert.match(skill, /Reserve validation until all writes finish/u);
-    assert.match(
-      skill,
-      /only to validate an actual repair after the first post-write validation/u,
-    );
+    assert.match(skill, /only to validate an actual repair after the first post-write validation/u);
     assert.match(skill, /use one content-free `inspect`/u);
-    assert.match(
-      skill,
-      /Request named-agent `content` only when semantics matter/u,
-    );
+    assert.match(skill, /Request named-agent `content` only when semantics matter/u);
     assert.match(skill, /never inspect afterward or request manifest content/u);
-    assert.match(
-      skill,
-      /pair every behavioral or integration unknown with a concrete resolver/u,
-    );
+    assert.match(skill, /pair every behavioral or integration unknown with a concrete resolver/u);
     assert.match(skill, /load only `references\/continuous-maintenance\.md`/u);
     assert.match(
       skill,
@@ -533,61 +400,34 @@ describe("portable skill contract", () => {
       skill,
       /Load `references\/local-tooling\.md` only when the launcher reports that repository tooling is unavailable or invalid/u,
     );
-    assert.match(
-      skill,
-      /Write the complete three-file foundation before the first CLI call/u,
-    );
+    assert.match(skill, /Write the complete three-file foundation before the first CLI call/u);
     assert.match(
       skill,
       /foundation-evidence decision before any dependency, canonical-state, or managed README write/u,
     );
-    assert.match(
-      skill,
-      /Insufficient evidence and partial evidence.*pre-write stop conditions/u,
-    );
+    assert.match(skill, /Insufficient evidence and partial evidence.*pre-write stop conditions/u);
     assert.match(
       skill,
       /not adopted or was not initialized because the complete adoption contract is absent/u,
     );
-    assert.match(
-      skill,
-      /Do not substitute.*or add generic product-benefit boilerplate/u,
-    );
+    assert.match(skill, /Do not substitute.*or add generic product-benefit boilerplate/u);
     assert.match(
       skill,
       /name the present and missing elements among `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the owned README awareness block/u,
     );
     assert.match(skill, /ask what the project does and who or what it serves/u);
-    assert.match(
-      skill,
-      /Structural validation proves format, not the truth or sufficiency/u,
-    );
+    assert.match(skill, /Structural validation proves format, not the truth or sufficiency/u);
     assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
     assert.match(skill, /run `validate` at most once more/u);
     assert.match(skill, /Before foundation analysis, inspect `package\.json`/u);
-    assert.match(
-      skill,
-      /Executable install configuration preempts foundation analysis/u,
-    );
-    assert.match(
-      skill,
-      /return its complete four-field blocked-install result/u,
-    );
+    assert.match(skill, /Executable install configuration preempts foundation analysis/u);
+    assert.match(skill, /return its complete four-field blocked-install result/u);
     assert.match(skill, /Never substitute a partial summary/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
-    assert.match(
-      skill,
-      /before foundation classification, package-manager execution, questions/u,
-    );
-    assert.match(
-      skill,
-      /name the project-owned evidence that established the foundation/u,
-    );
+    assert.match(skill, /before foundation classification, package-manager execution, questions/u);
+    assert.match(skill, /name the project-owned evidence that established the foundation/u);
     assert.match(skill, /Always end a successful initialization response/u);
-    assert.match(
-      skill,
-      /one short, evidence-supported `Next:` action; do not omit it/u,
-    );
+    assert.match(skill, /one short, evidence-supported `Next:` action; do not omit it/u);
     assert.match(skill, /continue normal repository work/u);
     assert.match(
       skill,
@@ -596,50 +436,26 @@ describe("portable skill contract", () => {
     assert.match(skill, /Read exact task-owned files first/u);
     assert.match(skill, /Request a named owner's `content` directly/u);
     assert.match(skill, /use at most one canonical `content` call total/u);
-    assert.match(
-      skill,
-      /do not read project context or a second canonical body/u,
-    );
+    assert.match(skill, /do not read project context or a second canonical body/u);
     assert.match(
       skill,
       /Run `composition` only when local runtime availability or readiness matters/u,
     );
     assert.match(skill, /it never establishes canonical assignment/u);
-    assert.match(
-      skill,
-      /matching `kind: agent` record's `agentId` and `runtimeId`/u,
-    );
+    assert.match(skill, /matching `kind: agent` record's `agentId` and `runtimeId`/u);
     assert.match(skill, /sole canonical content-free source/u);
-    assert.match(
-      skill,
-      /Every recursive search or listing must exclude VCS internals/u,
-    );
-    assert.match(
-      skill,
-      /Never dump a complete lockfile, dependency inventory, generated tree/u,
-    );
+    assert.match(skill, /Every recursive search or listing must exclude VCS internals/u);
+    assert.match(skill, /Never dump a complete lockfile, dependency inventory, generated tree/u);
     assert.match(skill, /more than 65,536 model-visible bytes/u);
     assert.match(
       skill,
       /enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path/u,
     );
     assert.match(skill, /compare the final state and diff with that list/u);
-    assert.match(
-      skill,
-      /record each remaining unresolved fact under its exact canonical owner/u,
-    );
-    assert.match(
-      skill,
-      /Do not choose code, canonical prose, tests, or the newest asset/u,
-    );
-    assert.match(
-      skill,
-      /ask one focused question that resolves the authority/u,
-    );
-    assert.match(
-      skill,
-      /state that the selected operation is blocked pending the answer/u,
-    );
+    assert.match(skill, /record each remaining unresolved fact under its exact canonical owner/u);
+    assert.match(skill, /Do not choose code, canonical prose, tests, or the newest asset/u);
+    assert.match(skill, /ask one focused question that resolves the authority/u);
+    assert.match(skill, /state that the selected operation is blocked pending the answer/u);
     assert.match(skill, /evaluation stopped before worktree-aware Git/u);
     assert.match(skill, /name `.gitattributes` and the declared filter/u);
     assert.match(
@@ -647,44 +463,29 @@ describe("portable skill contract", () => {
       /Continue correcting instead of claiming completion while an item is missing/u,
     );
     assert.match(skill, /--cursor "<opaque-cursor>"/u);
-    assert.match(
-      skill,
-      /exact cursor from the immediately preceding envelope/u,
-    );
-    assert.match(
-      skill,
-      /Do not hide pagination inside a pipeline, command substitution/u,
-    );
+    assert.match(skill, /exact cursor from the immediately preceding envelope/u);
+    assert.match(skill, /Do not hide pagination inside a pipeline, command substitution/u);
     assert.match(skill, /final raw envelope returns a null cursor/u);
     assert.match(
       skill,
       /scripts\/moldea-cli\.mjs --repository <absolute-repository-root> -- scope/u,
     );
     const maintenance = readFileSync(
-      join(SKILL_ROOT, "references", "continuous-maintenance.md"),
-      "utf8",
+      join(SKILL_ROOT, 'references', 'continuous-maintenance.md'),
+      'utf8',
     );
     assert.match(maintenance, /Do not validate a partial foundation/u);
-    assert.match(
-      maintenance,
-      /executable-installation hazard preempts foundation classification/u,
-    );
+    assert.match(maintenance, /executable-installation hazard preempts foundation classification/u);
     assert.match(
       maintenance,
       /Stop before invoking the package manager, asking for project purpose/u,
     );
-    assert.match(
-      maintenance,
-      /## Decide whether foundation evidence is sufficient/u,
-    );
+    assert.match(maintenance, /## Decide whether foundation evidence is sufficient/u);
     assert.match(
       maintenance,
       /Insufficient and partial foundations stop before every dependency, `\/moldea\/\*\*`, and managed README write/u,
     );
-    assert.match(
-      maintenance,
-      /what does the project do, and who or what does it serve\?/u,
-    );
+    assert.match(maintenance, /what does the project do, and who or what does it serve\?/u);
     assert.match(
       maintenance,
       /not adopted or was not initialized because the complete adoption contract is absent/u,
@@ -693,10 +494,7 @@ describe("portable skill contract", () => {
       maintenance,
       /Do not add generic product-benefit boilerplate to this concise blocked result/u,
     );
-    assert.match(
-      maintenance,
-      /paused or incomplete is not the adoption result/u,
-    );
+    assert.match(maintenance, /paused or incomplete is not the adoption result/u);
     assert.match(maintenance, /Preserve every existing artifact/u);
     assert.match(
       maintenance,
@@ -707,10 +505,7 @@ describe("portable skill contract", () => {
       maintenance,
       /retain one complete change set containing the authorized implementation paths/u,
     );
-    assert.match(
-      maintenance,
-      /Never edit implementation before this set is bound/u,
-    );
+    assert.match(maintenance, /Never edit implementation before this set is bound/u);
     assert.match(maintenance, /rewrite both `description` and `resolution`/u);
     assert.match(maintenance, /neither still claims that condition/u);
     assert.match(
@@ -718,80 +513,41 @@ describe("portable skill contract", () => {
       /compare every affected requirement criterion with the authorized requested outcome/u,
     );
     assert.ok(
-      maintenance.indexOf("## Requirements and removal") <
-        maintenance.indexOf("## README marker ownership"),
+      maintenance.indexOf('## Requirements and removal') <
+        maintenance.indexOf('## README marker ownership'),
     );
     assert.match(
       maintenance,
       /identifying the canonical owner reconsidered, stating that behavior or contracts remain unchanged/u,
     );
-    assert.match(
-      maintenance,
-      /Validation proves that files satisfy the repository format/u,
-    );
-    assert.match(
-      maintenance,
-      /map the project-owned evidence to the foundation it established/u,
-    );
-    assert.match(
-      maintenance,
-      /End with one short, evidence-supported `Next:` action/u,
-    );
+    assert.match(maintenance, /Validation proves that files satisfy the repository format/u);
+    assert.match(maintenance, /map the project-owned evidence to the foundation it established/u);
+    assert.match(maintenance, /End with one short, evidence-supported `Next:` action/u);
     assert.match(maintenance, /continue normal repository work/u);
-    assert.match(
-      maintenance,
-      /Do not suggest agent creation without a separate goal/u,
-    );
+    assert.match(maintenance, /Do not suggest agent creation without a separate goal/u);
     assert.match(maintenance, /The file ends with one LF/u);
-    assert.match(
-      maintenance,
-      /Do not add a project name, schema field, metadata/u,
-    );
-    assert.match(
-      maintenance,
-      /stop without `inspect` or another moldea command/u,
-    );
+    assert.match(maintenance, /Do not add a project name, schema field, metadata/u);
+    assert.match(maintenance, /stop without `inspect` or another moldea command/u);
     assert.match(
       maintenance,
       /For every repository task, select the repository-installed `moldea` skill/u,
     );
-    assert.match(
-      maintenance,
-      /If the gate does not match, continue without `moldea`/u,
-    );
+    assert.match(maintenance, /If the gate does not match, continue without `moldea`/u);
     assert.match(maintenance, /start at `\/moldea\/project\.md`/u);
     const contextGathering = readFileSync(
-      join(SKILL_ROOT, "references", "context-gathering.md"),
-      "utf8",
+      join(SKILL_ROOT, 'references', 'context-gathering.md'),
+      'utf8',
     );
     assert.match(contextGathering, /Prefer exact paths and targeted searches/u);
-    assert.match(
-      contextGathering,
-      /exclude VCS internals, dependency trees, generated output/u,
-    );
+    assert.match(contextGathering, /exclude VCS internals, dependency trees, generated output/u);
     assert.match(contextGathering, /only the relevant lockfile entry/u);
-    assert.match(
-      contextGathering,
-      /one ordinary host command cannot emit more than 65,536/u,
-    );
+    assert.match(contextGathering, /one ordinary host command cannot emit more than 65,536/u);
     assert.match(contextGathering, /same standalone launcher operation/u);
-    assert.match(
-      contextGathering,
-      /Do not pipeline, wrap, parse, filter, aggregate, or script/u,
-    );
-    const localTooling = readFileSync(
-      join(SKILL_ROOT, "references", "local-tooling.md"),
-      "utf8",
-    );
+    assert.match(contextGathering, /Do not pipeline, wrap, parse, filter, aggregate, or script/u);
+    const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
     assert.match(localTooling, /append `--cursor "<opaque-cursor>"`/u);
-    assert.match(
-      localTooling,
-      /never claim completeness before the final raw envelope/u,
-    );
-    assert.match(
-      localTooling,
-      /Plug'n'Play-only layout without that closure is unavailable/u,
-    );
+    assert.match(localTooling, /never claim completeness before the final raw envelope/u);
+    assert.match(localTooling, /Plug'n'Play-only layout without that closure is unavailable/u);
     assert.match(
       localTooling,
       /invoke the installed skill launcher once with `composition --json`/u,
@@ -802,68 +558,32 @@ describe("portable skill contract", () => {
     assert.match(localTooling, /one inert exact-path symlink-target read/u);
     assert.match(localTooling, /declared compatible dependency exists/u);
     assert.match(localTooling, /conflicting symlink is not authority/u);
-    assert.match(
-      localTooling,
-      /Name the exact configuration and executable hook or plugin/u,
-    );
+    assert.match(localTooling, /Name the exact configuration and executable hook or plugin/u);
     assert.match(localTooling, /\.pnpmfile\.cjs/u);
-    assert.match(
-      localTooling,
-      /inspect `\.yarnrc\.yml` and the exact repository plugin path/u,
-    );
+    assert.match(localTooling, /inspect `\.yarnrc\.yml` and the exact repository plugin path/u);
     assert.match(localTooling, /exact repository plugin path it declares/u);
-    assert.match(
-      localTooling,
-      /execution stopped before invoking the package manager/u,
-    );
-    assert.match(
-      localTooling,
-      /Return one blocked-install result containing all four fields/u,
-    );
-    assert.match(
-      localTooling,
-      /blocks the named package manager's local CLI installation/u,
-    );
-    assert.match(
-      localTooling,
-      /Omitting or merging a field into a partial summary is incomplete/u,
-    );
-    assert.match(
-      localTooling,
-      /precedes foundation-sufficiency inspection and questioning/u,
-    );
+    assert.match(localTooling, /execution stopped before invoking the package manager/u);
+    assert.match(localTooling, /Return one blocked-install result containing all four fields/u);
+    assert.match(localTooling, /blocks the named package manager's local CLI installation/u);
+    assert.match(localTooling, /Omitting or merging a field into a partial summary is incomplete/u);
+    assert.match(localTooling, /precedes foundation-sufficiency inspection and questioning/u);
     assert.match(localTooling, /Do not ask a project-purpose question/u);
     const compression = readFileSync(
-      join(SKILL_ROOT, "references", "context-compression.md"),
-      "utf8",
+      join(SKILL_ROOT, 'references', 'context-compression.md'),
+      'utf8',
     );
     assert.match(compression, /compression is blocked pending the answer/u);
     const evaluation = readFileSync(
-      join(SKILL_ROOT, "references", "evaluate-and-reconcile.md"),
-      "utf8",
+      join(SKILL_ROOT, 'references', 'evaluate-and-reconcile.md'),
+      'utf8',
     );
     assert.match(evaluation, /stop before worktree-aware Git can execute it/u);
-    assert.match(
-      evaluation,
-      /executable Git filter, text conversion, external diff, fsmonitor/u,
-    );
-    assert.match(
-      evaluation,
-      /canonical owner or declared relationship actually assessed/u,
-    );
-    assert.match(
-      evaluation,
-      /current-change review or evaluation must retain/u,
-    );
-    assert.match(
-      evaluation,
-      /partition direct canonical paths or known managed hunks/u,
-    );
+    assert.match(evaluation, /executable Git filter, text conversion, external diff, fsmonitor/u);
+    assert.match(evaluation, /canonical owner or declared relationship actually assessed/u);
+    assert.match(evaluation, /current-change review or evaluation must retain/u);
+    assert.match(evaluation, /partition direct canonical paths or known managed hunks/u);
     assert.match(evaluation, /irrelevant ordinary subset adds no owner/u);
-    assert.match(
-      evaluation,
-      /A path inventory alone is not a moldea evaluation/u,
-    );
+    assert.match(evaluation, /A path inventory alone is not a moldea evaluation/u);
     assert.match(
       evaluation,
       /report the complete path scope, canonical assessment, and explicitly that the operation is read-only and changed no files/iu,
@@ -874,98 +594,44 @@ describe("portable skill contract", () => {
       evaluation,
       /Observed implementation state is not automatically durable canonical truth/u,
     );
-    assert.match(
-      evaluation,
-      /Every read-only evaluation report explicitly states/u,
-    );
-    assert.match(
-      evaluation,
-      /load `agent-design\.md` as the second and owning reference/u,
-    );
+    assert.match(evaluation, /Every read-only evaluation report explicitly states/u);
+    assert.match(evaluation, /load `agent-design\.md` as the second and owning reference/u);
     assert.match(evaluation, /a property name is not classification evidence/u);
-    assert.match(
-      evaluation,
-      /Do not report an established aligned mapping as defective/u,
-    );
+    assert.match(evaluation, /Do not report an established aligned mapping as defective/u);
     assert.match(evaluation, /at most one canonical `content` call total/u);
-    assert.match(
-      evaluation,
-      /Do not read project context, a second canonical owner/u,
-    );
-    assert.match(
-      evaluation,
-      /state that reconciliation is blocked pending the answer/u,
-    );
-    assert.match(
-      skill,
-      /stop before `inspect`, `validate`, another `content`, or any write/u,
-    );
-    const agentDesign = readFileSync(
-      join(SKILL_ROOT, "references", "agent-design.md"),
-      "utf8",
-    );
+    assert.match(evaluation, /Do not read project context, a second canonical owner/u);
+    assert.match(evaluation, /state that reconciliation is blocked pending the answer/u);
+    assert.match(skill, /stop before `inspect`, `validate`, another `content`, or any write/u);
+    const agentDesign = readFileSync(join(SKILL_ROOT, 'references', 'agent-design.md'), 'utf8');
     assert.match(agentDesign, /complete the coherent implementation/u);
-    assert.match(
-      agentDesign,
-      /remove the independently maintained inline policy/u,
-    );
+    assert.match(agentDesign, /remove the independently maintained inline policy/u);
     assert.match(agentDesign, /runner-owned focused test evidence/u);
-    assert.match(
-      agentDesign,
-      /complete all runtime, test, and canonical file writes/u,
-    );
+    assert.match(agentDesign, /complete all runtime, test, and canonical file writes/u);
     assert.match(agentDesign, /only then run launcher-backed `validate`/u);
-    assert.match(
-      agentDesign,
-      /never write after the last allowed validation/iu,
-    );
+    assert.match(agentDesign, /never write after the last allowed validation/iu);
     assert.match(agentDesign, /exact backtick-wrapped identity token/u);
-    assert.match(
-      agentDesign,
-      /A heading that merely names the agent does not satisfy/u,
-    );
+    assert.match(agentDesign, /A heading that merely names the agent does not satisfy/u);
     assert.match(agentDesign, /retry may be the fifth and final moldea call/u);
     const agentSystemPlanning = readFileSync(
-      join(SKILL_ROOT, "references", "agent-system-planning.md"),
-      "utf8",
+      join(SKILL_ROOT, 'references', 'agent-system-planning.md'),
+      'utf8',
     );
-    assert.match(
-      agentSystemPlanning,
-      /Use only facts stated by the bounded source/u,
-    );
-    assert.match(
-      agentSystemPlanning,
-      /Keep those dimensions as explicit evidence prerequisites/u,
-    );
+    assert.match(agentSystemPlanning, /Use only facts stated by the bounded source/u);
+    assert.match(agentSystemPlanning, /Keep those dimensions as explicit evidence prerequisites/u);
     const runtime = readFileSync(
-      join(SKILL_ROOT, "references", "runtime-compatibility.md"),
-      "utf8",
+      join(SKILL_ROOT, 'references', 'runtime-compatibility.md'),
+      'utf8',
     );
     assert.match(runtime, /Canonical moldea declarations establish/u);
     assert.match(runtime, /Repository source, configuration, closed wiring/u);
     assert.match(runtime, /Root-local `composition/u);
     assert.match(runtime, /current published technical targets/u);
     assert.match(runtime, /It does not erase a canonical runtime declaration/u);
-    assert.match(
-      runtime,
-      /establish local composition once before interpreting the publication/u,
-    );
-    assert.match(
-      runtime,
-      /inspect\.project\.runtimes.*cannot negate an agent assignment/u,
-    );
-    assert.match(
-      runtime,
-      /matching `kind: agent` record's exact `agentId` and `runtimeId`/u,
-    );
-    assert.match(
-      runtime,
-      /sole canonical content-free source for that assignment/u,
-    );
-    assert.match(
-      runtime,
-      /request `\/moldea\/moldea\.yaml` through `content`/u,
-    );
+    assert.match(runtime, /establish local composition once before interpreting the publication/u);
+    assert.match(runtime, /inspect\.project\.runtimes.*cannot negate an agent assignment/u);
+    assert.match(runtime, /matching `kind: agent` record's exact `agentId` and `runtimeId`/u);
+    assert.match(runtime, /sole canonical content-free source for that assignment/u);
+    assert.match(runtime, /request `\/moldea\/moldea\.yaml` through `content`/u);
     assert.match(runtime, /ordinary four-command moldea limit/u);
     assert.match(runtime, /ambient network client does not grant access/u);
     assert.match(
@@ -973,37 +639,19 @@ describe("portable skill contract", () => {
       /explicit target-maturity or production-readiness request, retrieve the current publication despite independent blockers/u,
     );
     assert.match(runtime, /single fifth-call repair validation/u);
-    assert.match(
-      runtime,
-      /invoke `composition` first and retain its conclusion/u,
-    );
+    assert.match(runtime, /invoke `composition` first and retain its conclusion/u);
     assert.match(runtime, /cannot retroactively replace or erase/u);
-    assert.match(
-      runtime,
-      /official skill release selects an exact CLI closure/u,
-    );
-    assert.match(
-      runtime,
-      /state the exact canonical `runtime\.id` when established/u,
-    );
+    assert.match(runtime, /official skill release selects an exact CLI closure/u);
+    assert.match(runtime, /state the exact canonical `runtime\.id` when established/u);
     assert.match(runtime, /and the repository wires the target/u);
-    assert.match(
-      runtime,
-      /published `experimental` maturity as the reason readiness is withheld/u,
-    );
+    assert.match(runtime, /published `experimental` maturity as the reason readiness is withheld/u);
     assert.match(
       runtime,
       /matching local adapter, exact published target, and maturity separately/u,
     );
-    assert.match(
-      runtime,
-      /retain every independently evidenced model-visible capability/u,
-    );
+    assert.match(runtime, /retain every independently evidenced model-visible capability/u);
     assert.doesNotMatch(runtime, /composition --json --max-output-bytes/u);
-    const skillDesign = readFileSync(
-      join(SKILL_ROOT, "references", "skill-design.md"),
-      "utf8",
-    );
+    const skillDesign = readFileSync(join(SKILL_ROOT, 'references', 'skill-design.md'), 'utf8');
     assert.match(skillDesign, /make the skill structurally invalid/u);
     assert.match(skillDesign, /Never use a successful unrelated validator/u);
     assert.match(skillDesign, /do not run a moldea gate or CLI command/u);
@@ -1011,105 +659,64 @@ describe("portable skill contract", () => {
     assert.match(skillDesign, /Do not run any moldea CLI operation/u);
     assert.match(skillDesign, /surrounding moldea repository/u);
     assert.match(agentDesign, /its name supplies no classification evidence/u);
-    assert.match(
-      agentDesign,
-      /Always state the consumer-purpose classification/u,
-    );
-    assert.match(
-      agentDesign,
-      /checklist of every externally evidenced model-visible capability/u,
-    );
-    assert.match(
-      localTooling,
-      /Return one blocked-install result containing all four fields/u,
-    );
+    assert.match(agentDesign, /Always state the consumer-purpose classification/u);
+    assert.match(agentDesign, /checklist of every externally evidenced model-visible capability/u);
+    assert.match(localTooling, /Return one blocked-install result containing all four fields/u);
   });
 
-  test("uses one compact precedence-ordered direct-operation router", () => {
+  test('uses one compact precedence-ordered direct-operation router', () => {
     const skill = readSkill();
     const routeHeadings = [
-      "**Independent Agent Skill artifact:**",
-      "**Repository-local tooling:**",
-      "**Explicit initialization:**",
-      "**Current-change review or evaluation:**",
-      "**Direct canonical agent or runtime work:**",
-      "**Repository-independent information:**",
-      "**Every other repository task:**",
+      '**Independent Agent Skill artifact:**',
+      '**Repository-local tooling:**',
+      '**Explicit initialization:**',
+      '**Current-change review or evaluation:**',
+      '**Direct canonical agent or runtime work:**',
+      '**Repository-independent information:**',
+      '**Every other repository task:**',
     ];
     let previousIndex = -1;
     for (const routeHeading of routeHeadings) {
       const routeIndex = skill.indexOf(routeHeading);
-      assert.ok(
-        routeIndex > previousIndex,
-        `${routeHeading} must retain router precedence.`,
-      );
+      assert.ok(routeIndex > previousIndex, `${routeHeading} must retain router precedence.`);
       previousIndex = routeIndex;
     }
 
     assert.ok(skill.trim().split(/\s+/u).length <= 2_560);
     assert.match(skill, /Before foundation analysis, inspect `package\.json`/u);
     assert.match(skill, /preempts foundation analysis/u);
-    assert.match(
-      skill,
-      /attempt the closed launcher's content-free `composition` operation/u,
-    );
-    assert.match(
-      skill,
-      /With ordinary paths only, run the full relationship gate/u,
-    );
+    assert.match(skill, /attempt the closed launcher's content-free `composition` operation/u);
+    assert.match(skill, /With ordinary paths only, run the full relationship gate/u);
     assert.match(skill, /route-owned normalized set/u);
     assert.match(skill, /conclude from the host review alone/u);
     assert.match(skill, /complete four-field blocked-install result/u);
     assert.match(skill, /take this route before repository gating/u);
-    assert.match(
-      skill,
-      /regardless of `Use moldea` direction or repository-local placement/u,
-    );
+    assert.match(skill, /regardless of `Use moldea` direction or repository-local placement/u);
     assert.match(
       skill,
       /no `\/moldea\/\*\*` or declared-relationship work is separately requested/u,
     );
-    assert.match(
-      skill,
-      /Never invoke CLI, inspect or validate canonical state/u,
-    );
+    assert.match(skill, /Never invoke CLI, inspect or validate canonical state/u);
     assert.match(skill, /or append moldea status/u);
-    assert.match(
-      skill,
-      /owner was reconsidered and remains accurate without an edit/u,
-    );
-    assert.match(
-      skill,
-      /Unavailable publication limits only dependent claims/u,
-    );
+    assert.match(skill, /owner was reconsidered and remains accurate without an edit/u);
+    assert.match(skill, /Unavailable publication limits only dependent claims/u);
     assert.match(skill, /Preserve established facts/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
 
-    const localTooling = readFileSync(
-      join(SKILL_ROOT, "references", "local-tooling.md"),
-      "utf8",
-    );
+    const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
     const maintenance = readFileSync(
-      join(SKILL_ROOT, "references", "continuous-maintenance.md"),
-      "utf8",
+      join(SKILL_ROOT, 'references', 'continuous-maintenance.md'),
+      'utf8',
     );
-    assert.match(
-      localTooling,
-      /does not depend on the developer naming the hazard/u,
-    );
-    assert.match(
-      maintenance,
-      /does not depend on the developer naming the hazard/u,
-    );
+    assert.match(localTooling, /does not depend on the developer naming the hazard/u);
+    assert.match(maintenance, /does not depend on the developer naming the hazard/u);
   });
 
-  test("defines silent abstention, host ownership, and bounded schema-4 evidence", () => {
+  test('defines silent abstention, host ownership, and bounded schema-4 evidence', () => {
     const distributedText = [
       readSkill(),
-      ...REFERENCE_NAMES.map((name) =>
-        readFileSync(join(SKILL_ROOT, "references", name), "utf8"),
-      ),
-    ].join("\n");
+      ...REFERENCE_NAMES.map((name) => readFileSync(join(SKILL_ROOT, 'references', name), 'utf8')),
+    ].join('\n');
     assert.match(distributedText, /abstains silently/u);
     assert.match(
       distributedText,
@@ -1120,27 +727,18 @@ describe("portable skill contract", () => {
     assert.match(distributedText, /1 MiB/u);
     assert.match(distributedText, /content-free/u);
     assert.doesNotMatch(distributedText, /Moldea/u);
-    assert.doesNotMatch(
-      distributedText,
-      /4\.0\.[0-2]|CLI JSON schema (?:1|2|3)\b|schema-3\b/u,
-    );
+    assert.doesNotMatch(distributedText, /4\.0\.[0-2]|CLI JSON schema (?:1|2|3)\b|schema-3\b/u);
   });
 
-  test("documents content-free repository test-result projection", () => {
-    const readme = readFileSync(join(REPOSITORY_ROOT, "README.md"), "utf8");
+  test('documents content-free repository test-result projection', () => {
+    const readme = readFileSync(join(REPOSITORY_ROOT, 'README.md'), 'utf8');
     const semanticEvaluation = readFileSync(
-      join(REPOSITORY_ROOT, "docs", "semantic-evaluation.md"),
-      "utf8",
+      join(REPOSITORY_ROOT, 'docs', 'semantic-evaluation.md'),
+      'utf8',
     );
 
-    assert.match(
-      readme,
-      /fixed repository-root direct Node correctness-test invocation/u,
-    );
-    assert.match(
-      readme,
-      /Package-manager commands cannot contribute correctness evidence/u,
-    );
+    assert.match(readme, /fixed repository-root direct Node correctness-test invocation/u);
+    assert.match(readme, /Package-manager commands cannot contribute correctness evidence/u);
     assert.match(
       readme,
       /never retains test names, assertions, paths, durations, or output bodies/u,
@@ -1153,78 +751,46 @@ describe("portable skill contract", () => {
     );
   });
 
-  test("exposes concise lowercase host metadata", () => {
-    const metadata = readFileSync(
-      join(SKILL_ROOT, "agents", "openai.yaml"),
-      "utf8",
-    );
+  test('exposes concise lowercase host metadata', () => {
+    const metadata = readFileSync(join(SKILL_ROOT, 'agents', 'openai.yaml'), 'utf8');
     assert.match(metadata, /display_name: ['"]moldea['"]/u);
     assert.match(metadata, /allow_implicit_invocation: true/u);
     assert.doesNotMatch(metadata, /durable knowledge|Use first/iu);
   });
 });
 
-describe("activation and semantic protection", () => {
-  test("covers and resolves the complete initialization and relevance state machine", () => {
+describe('activation and semantic protection', () => {
+  test('covers and resolves the complete initialization and relevance state machine', () => {
     assert.equal(FIXTURE.activationCases.length, 15);
     for (const { expected, input } of FIXTURE.activationCases) {
       assert.equal(resolveActivationCase(input), expected);
     }
     const outcomes = FIXTURE.activationCases.map(({ expected }) => expected);
-    assert.equal(
-      outcomes.filter((value) => value === "informational").length,
-      1,
-    );
-    assert.equal(outcomes.filter((value) => value === "initialize").length, 1);
-    assert.equal(outcomes.filter((value) => value === "direct").length, 3);
-    assert.equal(
-      outcomes.filter((value) => value === "relationship-gate").length,
-      2,
-    );
-    assert.equal(outcomes.filter((value) => value === "abstain").length, 8);
+    assert.equal(outcomes.filter((value) => value === 'informational').length, 1);
+    assert.equal(outcomes.filter((value) => value === 'initialize').length, 1);
+    assert.equal(outcomes.filter((value) => value === 'direct').length, 3);
+    assert.equal(outcomes.filter((value) => value === 'relationship-gate').length, 2);
+    assert.equal(outcomes.filter((value) => value === 'abstain').length, 8);
   });
 
-  test("validates the complete 74-case resource-bounded semantic suite", () => {
+  test('validates the complete 74-case resource-bounded semantic suite', () => {
     assert.equal(FIXTURE.semanticCases.length, 74);
     for (const caseDefinition of FIXTURE.semanticCases) {
-      assert.equal(
-        validateSemanticCaseDefinition(caseDefinition),
-        caseDefinition,
-      );
+      assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
     }
-    assert.match(
-      createSemanticCaseSuiteDigest(FIXTURE.semanticCases),
-      /^[a-f0-9]{64}$/u,
-    );
-    assert.equal(
-      validateSemanticCoverage(COVERAGE, FIXTURE.semanticCases),
-      COVERAGE,
-    );
-    assert.match(
-      createSemanticCoverageDigest(COVERAGE, FIXTURE.semanticCases),
-      /^[a-f0-9]{64}$/u,
-    );
+    assert.match(createSemanticCaseSuiteDigest(FIXTURE.semanticCases), /^[a-f0-9]{64}$/u);
+    assert.equal(validateSemanticCoverage(COVERAGE, FIXTURE.semanticCases), COVERAGE);
+    assert.match(createSemanticCoverageDigest(COVERAGE, FIXTURE.semanticCases), /^[a-f0-9]{64}$/u);
   });
 
-  test("protects unchanged named relationship targets as bounded task-path evidence", () => {
-    const relationshipCase = FIXTURE.semanticCases.find(
-      ({ id }) => id === "affected-by-relevance",
-    );
+  test('protects unchanged named relationship targets as bounded task-path evidence', () => {
+    const relationshipCase = FIXTURE.semanticCases.find(({ id }) => id === 'affected-by-relevance');
     assert.ok(relationshipCase);
-    assert.match(
-      relationshipCase.scenario,
-      /unchanged path explicitly named by the developer/u,
-    );
-    assert.match(
-      relationshipCase.input.developerDirection,
-      /Review src\/project-state\.js/u,
-    );
-    assert.doesNotMatch(
-      relationshipCase.input.developerDirection,
-      /current change/u,
-    );
+    assert.match(relationshipCase.scenario, /unchanged path explicitly named by the developer/u);
+    assert.match(relationshipCase.input.developerDirection, /Review src\/project-state\.js/u);
+    assert.doesNotMatch(relationshipCase.input.developerDirection, /current change/u);
     assert.deepEqual(relationshipCase.resourceBudget, {
-      activation: "relationship",
+      activation: 'relationship',
       minimumMoldeaCommands: 1,
       maximumMoldeaCommands: 4,
       maximumMoldeaOutputBytes: 262_144,
@@ -1243,14 +809,14 @@ describe("activation and semantic protection", () => {
     );
   });
 
-  test("gives every abstention case a literal zero moldea budget", () => {
+  test('gives every abstention case a literal zero moldea budget', () => {
     const abstentions = FIXTURE.semanticCases.filter(
-      ({ resourceBudget }) => resourceBudget.activation === "abstain",
+      ({ resourceBudget }) => resourceBudget.activation === 'abstain',
     );
     assert.equal(abstentions.length, 15);
     for (const { resourceBudget } of abstentions) {
       assert.deepEqual(resourceBudget, {
-        activation: "abstain",
+        activation: 'abstain',
         minimumMoldeaCommands: 0,
         maximumMoldeaCommands: 0,
         maximumMoldeaOutputBytes: 0,
@@ -1258,93 +824,67 @@ describe("activation and semantic protection", () => {
     }
   });
 
-  test("accepts neutral no-action handoffs without requiring a clarification question", () => {
+  test('accepts neutral no-action handoffs without requiring a clarification question', () => {
     const ambiguousHandoff = FIXTURE.semanticCases.find(
-      ({ id }) => id === "adopted-ambiguous-context-handoff",
+      ({ id }) => id === 'adopted-ambiguous-context-handoff',
     );
     assert.ok(ambiguousHandoff);
-    assert.match(
-      ambiguousHandoff.expected[0].criterion,
-      /neutral acknowledgment/u,
-    );
-    assert.match(
-      ambiguousHandoff.expected[0].criterion,
-      /faithful restatement/u,
-    );
-    assert.match(
-      ambiguousHandoff.expected[0].criterion,
-      /one focused question/u,
-    );
+    assert.match(ambiguousHandoff.expected[0].criterion, /neutral acknowledgment/u);
+    assert.match(ambiguousHandoff.expected[0].criterion, /faithful restatement/u);
+    assert.match(ambiguousHandoff.expected[0].criterion, /one focused question/u);
   });
 
-  test("accepts an unadopted context-only handoff without inventing repository work", () => {
+  test('accepts an unadopted context-only handoff without inventing repository work', () => {
     const contextHandoff = FIXTURE.semanticCases.find(
-      ({ id }) => id === "unadopted-direct-context-handoff",
+      ({ id }) => id === 'unadopted-direct-context-handoff',
     );
     assert.ok(contextHandoff);
-    assert.match(
-      contextHandoff.expected[0].criterion,
-      /context-only handoff as information/u,
-    );
-    assert.match(
-      contextHandoff.expected[0].criterion,
-      /concise acknowledgment/u,
-    );
+    assert.match(contextHandoff.expected[0].criterion, /context-only handoff as information/u);
+    assert.match(contextHandoff.expected[0].criterion, /concise acknowledgment/u);
     assert.match(contextHandoff.expected[0].criterion, /faithful restatement/u);
-    assert.match(
-      contextHandoff.expected[0].criterion,
-      /one focused host-level question/u,
-    );
-    assert.match(
-      contextHandoff.expected[0].criterion,
-      /no repository inspection/u,
-    );
-    assert.doesNotMatch(
-      contextHandoff.expected[0].criterion,
-      /performed the requested task/u,
-    );
+    assert.match(contextHandoff.expected[0].criterion, /one focused host-level question/u);
+    assert.match(contextHandoff.expected[0].criterion, /no repository inspection/u);
+    assert.doesNotMatch(contextHandoff.expected[0].criterion, /performed the requested task/u);
   });
 
-  test("budgets one fifth validation only for discovery-heavy repairable mutations", () => {
+  test('budgets one fifth validation only for discovery-heavy repairable mutations', () => {
     const fiveCallCases = FIXTURE.semanticCases
-      .filter(
-        ({ resourceBudget }) => resourceBudget.maximumMoldeaCommands === 5,
-      )
+      .filter(({ resourceBudget }) => resourceBudget.maximumMoldeaCommands === 5)
       .map(({ id }) => id)
       .sort();
 
     assert.deepEqual(fiveCallCases, [
-      "agent-adoption-inline-runtime-instruction",
-      "dedicated-repository-runtime-selection",
+      'agent-adoption-inline-runtime-instruction',
+      'dedicated-repository-runtime-selection',
     ]);
   });
 
-  test("gives the informational case a literal zero moldea budget", () => {
+  test('gives the informational case a literal zero moldea budget', () => {
     const informational = FIXTURE.semanticCases.find(
-      ({ resourceBudget }) => resourceBudget.activation === "informational",
+      ({ resourceBudget }) => resourceBudget.activation === 'informational',
     );
     assert.deepEqual(informational?.resourceBudget, {
-      activation: "informational",
+      activation: 'informational',
       minimumMoldeaCommands: 0,
       maximumMoldeaCommands: 0,
       maximumMoldeaOutputBytes: 0,
     });
   });
 
-  test("gives independently validated Agent Skill cases exact zero CLI budgets", () => {
+  test('gives independently validated Agent Skill cases exact zero CLI budgets', () => {
     const expectedCaseIds = [
-      "skill-boundary-surface-selection",
-      "skill-create-progressive-disclosure",
-      "skill-evaluate-read-only",
-      "skill-evaluate-script-authority",
-      "skill-maintain-host-invocation-policy",
-      "skill-maintain-linked-resources",
-      "skill-reuse-existing-cohesive",
+      'skill-boundary-surface-selection',
+      'skill-create-progressive-disclosure',
+      'skill-evaluate-read-only',
+      'skill-evaluate-script-authority',
+      'skill-maintain-host-invocation-policy',
+      'skill-maintain-linked-resources',
+      'skill-reuse-existing-cohesive',
     ];
     const zeroBudgetDirectCases = FIXTURE.semanticCases
       .filter(
         ({ resourceBudget }) =>
-          resourceBudget.activation === "direct" &&
+          resourceBudget.activation === 'direct' &&
           resourceBudget.minimumMoldeaCommands === 0 &&
           resourceBudget.maximumMoldeaCommands === 0 &&
           resourceBudget.maximumMoldeaOutputBytes === 0,
@@ -1355,12 +895,12 @@ describe("activation and semantic protection", () => {
     assert.deepEqual(zeroBudgetDirectCases, expectedCaseIds);
   });
 
-  test("names independent Agent Skill artifact roots in the actor-visible task", () => {
+  test('names independent Agent Skill artifact roots in the actor-visible task', () => {
     const boundaryCase = FIXTURE.semanticCases.find(
-      ({ id }) => id === "skill-boundary-surface-selection",
+      ({ id }) => id === 'skill-boundary-surface-selection',
     );
     const hostMetadataCase = FIXTURE.semanticCases.find(
-      ({ id }) => id === "skill-maintain-host-invocation-policy",
+      ({ id }) => id === 'skill-maintain-host-invocation-policy',
     );
 
     assert.match(
@@ -1373,94 +913,78 @@ describe("activation and semantic protection", () => {
     );
   });
 
-  test("keeps the deterministic adoption gate fail-closed and two bytes", () => {
+  test('keeps the deterministic adoption gate fail-closed and two bytes', () => {
     const initialized = createProject();
-    const uninitialized = mkdtempSync(
-      join(tmpdir(), "moldea-v5-uninitialized-"),
-    );
+    const uninitialized = mkdtempSync(join(tmpdir(), 'moldea-v5-uninitialized-'));
     try {
-      writeFileSync(join(uninitialized, "README.md"), "# Project\n");
+      writeFileSync(join(uninitialized, 'README.md'), '# Project\n');
       for (const [repository, expected] of [
-        [initialized, "1\n"],
-        [uninitialized, "0\n"],
+        [initialized, '1\n'],
+        [uninitialized, '0\n'],
       ]) {
-        const result = runRelevanceGate(repository, ["--adoption-only"]);
+        const result = runRelevanceGate(repository, ['--adoption-only']);
         assert.equal(result.status, 0);
-        assert.equal(result.stderr, "");
+        assert.equal(result.stderr, '');
         assert.equal(result.stdout, expected);
         assert.equal(Buffer.byteLength(result.stdout), 2);
       }
 
       writeFileSync(
-        join(initialized, "README.md"),
-        "# Project\n\n<!-- moldea:end -->\n<!-- moldea:start -->\n",
+        join(initialized, 'README.md'),
+        '# Project\n\n<!-- moldea:end -->\n<!-- moldea:start -->\n',
       );
-      assert.equal(
-        runRelevanceGate(initialized, ["--adoption-only"]).stdout,
-        "0\n",
-      );
+      assert.equal(runRelevanceGate(initialized, ['--adoption-only']).stdout, '0\n');
     } finally {
       rmSync(initialized, { force: true, recursive: true });
       rmSync(uninitialized, { force: true, recursive: true });
     }
   });
 
-  test("matches exact and glob relationships without invoking the CLI", () => {
+  test('matches exact and glob relationships without invoking the CLI', () => {
     const root = createProject();
     try {
       for (const [input, expected] of [
-        ["/src/project-state.js\0", "1\n"],
-        ["src/project-state.js\0", "1\n"],
-        ["\0/src/project-state.js\0", "0\n"],
-        ["/src/unrelated.js\0", "0\n"],
-        ["./src/project-state.js\0", "0\n"],
-        ["C:src/project-state.js\0", "0\n"],
-        ["/src/project-state.js", "0\n"],
-        [Buffer.from([0xff, 0]), "0\n"],
+        ['/src/project-state.js\0', '1\n'],
+        ['src/project-state.js\0', '1\n'],
+        ['\0/src/project-state.js\0', '0\n'],
+        ['/src/unrelated.js\0', '0\n'],
+        ['./src/project-state.js\0', '0\n'],
+        ['C:src/project-state.js\0', '0\n'],
+        ['/src/project-state.js', '0\n'],
+        [Buffer.from([0xff, 0]), '0\n'],
       ]) {
         const result = runRelevanceGate(root, [], input);
         assert.equal(result.status, 0);
-        assert.equal(result.stderr, "");
+        assert.equal(result.stderr, '');
         assert.equal(result.stdout, expected);
         assert.equal(Buffer.byteLength(result.stdout), 2);
       }
 
       writeFileSync(
-        join(root, "moldea", "moldea.yaml"),
-        "version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n",
+        join(root, 'moldea', 'moldea.yaml'),
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n',
       );
-      assert.equal(
-        runRelevanceGate(root, [], "/src/nested/module.js\0").stdout,
-        "1\n",
-      );
+      assert.equal(runRelevanceGate(root, [], '/src/nested/module.js\0').stdout, '1\n');
 
-      const packageManifest = JSON.parse(
-        readFileSync(join(root, "package.json"), "utf8"),
-      );
-      packageManifest.devDependencies["@moldea.ai/cli"] = "^6.0.0";
-      writeFileSync(
-        join(root, "package.json"),
-        `${JSON.stringify(packageManifest, null, 2)}\n`,
-      );
-      assert.equal(
-        runRelevanceGate(root, [], "/src/nested/module.js\0").stdout,
-        "0\n",
-      );
+      const packageManifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+      packageManifest.devDependencies['@moldea.ai/cli'] = '^6.0.0';
+      writeFileSync(join(root, 'package.json'), `${JSON.stringify(packageManifest, null, 2)}\n`);
+      assert.equal(runRelevanceGate(root, [], '/src/nested/module.js\0').stdout, '0\n');
     } finally {
       rmSync(root, { force: true, recursive: true });
     }
   });
 
-  test("resolves Core only through repository-local npm and pnpm dependency graphs", () => {
-    const npmRoot = createIsolatedToolingProject("npm");
-    const pnpmRoot = createIsolatedToolingProject("pnpm");
+  test('resolves Core only through repository-local npm and pnpm dependency graphs', () => {
+    const npmRoot = createIsolatedToolingProject('npm');
+    const pnpmRoot = createIsolatedToolingProject('pnpm');
 
     try {
       for (const root of [npmRoot, pnpmRoot]) {
-        const result = runRelevanceGate(root, [], "/src/project-state.js\0");
+        const result = runRelevanceGate(root, [], '/src/project-state.js\0');
         assert.equal(result.status, 0);
-        assert.equal(result.stderr, "");
-        assert.equal(result.stdout, "1\n");
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, '1\n');
       }
     } finally {
       rmSync(npmRoot, { force: true, recursive: true });
@@ -1468,70 +992,56 @@ describe("activation and semantic protection", () => {
     }
   });
 
-  test("fails closed instead of using ambient, escaped, or later Core packages", () => {
-    const parentRoot = mkdtempSync(join(tmpdir(), "moldea-v5-core-boundary-"));
-    const missingRoot = join(parentRoot, "missing");
-    const invalidRoot = createIsolatedToolingProject("pnpm");
-    const escapedRoot = createIsolatedToolingProject("npm");
+  test('fails closed instead of using ambient, escaped, or later Core packages', () => {
+    const parentRoot = mkdtempSync(join(tmpdir(), 'moldea-v5-core-boundary-'));
+    const missingRoot = join(parentRoot, 'missing');
+    const invalidRoot = createIsolatedToolingProject('pnpm');
+    const escapedRoot = createIsolatedToolingProject('npm');
 
     try {
       mkdirSync(missingRoot, { recursive: true });
-      writeCliFixture(join(missingRoot, "node_modules", "@moldea.ai", "cli"));
-      writeCoreFixture(join(parentRoot, "node_modules", "@moldea.ai", "core"));
-      for (const path of ["README.md", "package.json"]) {
-        writeFileSync(
-          join(missingRoot, path),
-          readFileSync(join(invalidRoot, path)),
-        );
+      writeCliFixture(join(missingRoot, 'node_modules', '@moldea.ai', 'cli'));
+      writeCoreFixture(join(parentRoot, 'node_modules', '@moldea.ai', 'core'));
+      for (const path of ['README.md', 'package.json']) {
+        writeFileSync(join(missingRoot, path), readFileSync(join(invalidRoot, path)));
       }
-      mkdirSync(join(missingRoot, "moldea"), { recursive: true });
-      mkdirSync(join(missingRoot, "src"), { recursive: true });
+      mkdirSync(join(missingRoot, 'moldea'), { recursive: true });
+      mkdirSync(join(missingRoot, 'src'), { recursive: true });
       for (const path of [
-        join("moldea", "moldea.yaml"),
-        join("moldea", "project.md"),
-        join("src", "project-state.js"),
+        join('moldea', 'moldea.yaml'),
+        join('moldea', 'project.md'),
+        join('src', 'project-state.js'),
       ]) {
-        writeFileSync(
-          join(missingRoot, path),
-          readFileSync(join(invalidRoot, path)),
-        );
+        writeFileSync(join(missingRoot, path), readFileSync(join(invalidRoot, path)));
       }
 
       const resolvedCliRoot = join(
         invalidRoot,
-        "node_modules",
-        ".pnpm",
-        "@moldea.ai+cli@7.1.0",
-        "node_modules",
-        "@moldea.ai",
-        "cli",
+        'node_modules',
+        '.pnpm',
+        '@moldea.ai+cli@7.1.0',
+        'node_modules',
+        '@moldea.ai',
+        'cli',
       );
-      writeCoreFixture(
-        join(resolvedCliRoot, "node_modules", "@moldea.ai", "core"),
-        {
-          name: "@moldea.ai/not-core",
-        },
-      );
-      const escapedCoreRoot = join(parentRoot, "escaped-core");
-      const installedCoreRoot = join(
-        escapedRoot,
-        "node_modules",
-        "@moldea.ai",
-        "core",
-      );
+      writeCoreFixture(join(resolvedCliRoot, 'node_modules', '@moldea.ai', 'core'), {
+        name: '@moldea.ai/not-core',
+      });
+      const escapedCoreRoot = join(parentRoot, 'escaped-core');
+      const installedCoreRoot = join(escapedRoot, 'node_modules', '@moldea.ai', 'core');
       writeCoreFixture(escapedCoreRoot);
       rmSync(installedCoreRoot, { force: true, recursive: true });
       symlinkSync(
         escapedCoreRoot,
         installedCoreRoot,
-        process.platform === "win32" ? "junction" : "dir",
+        process.platform === 'win32' ? 'junction' : 'dir',
       );
 
       for (const root of [missingRoot, invalidRoot, escapedRoot]) {
-        const result = runRelevanceGate(root, [], "/src/project-state.js\0");
+        const result = runRelevanceGate(root, [], '/src/project-state.js\0');
         assert.equal(result.status, 0);
-        assert.equal(result.stderr, "");
-        assert.equal(result.stdout, "0\n");
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, '0\n');
       }
     } finally {
       rmSync(parentRoot, { force: true, recursive: true });
@@ -1541,131 +1051,104 @@ describe("activation and semantic protection", () => {
   });
 });
 
-describe("CLI 7 bounded machine protocol", () => {
-  test("keeps release identity exact across the root manifests", () => {
-    const packageManifest = JSON.parse(
-      readFileSync(join(REPOSITORY_ROOT, "package.json"), "utf8"),
-    );
+describe('CLI 7 bounded machine protocol', () => {
+  test('keeps release identity exact across the root manifests', () => {
+    const packageManifest = JSON.parse(readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf8'));
     const packageLock = JSON.parse(
-      readFileSync(join(REPOSITORY_ROOT, "package-lock.json"), "utf8"),
+      readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'),
     );
-    const declaredCliVersion =
-      packageManifest.devDependencies["@moldea.ai/cli"];
-    assert.equal(packageManifest.version, "5.0.0");
+    const declaredCliVersion = packageManifest.devDependencies['@moldea.ai/cli'];
+    assert.equal(packageManifest.version, '5.0.0');
     assert.match(declaredCliVersion, /^\d+\.\d+\.\d+$/u);
     assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 4);
-    assert.equal(
-      packageLock.packages["node_modules/@moldea.ai/cli"].version,
-      declaredCliVersion,
-    );
+    assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, declaredCliVersion);
   });
 
-  test("returns content-free inspect metadata and bounded explicit content", () => {
+  test('returns content-free inspect metadata and bounded explicit content', () => {
     const root = createProject();
     try {
-      mkdirSync(join(root, "moldea", "agents", "assistant"), {
+      mkdirSync(join(root, 'moldea', 'agents', 'assistant'), {
         recursive: true,
       });
       writeFileSync(
-        join(root, "moldea", "moldea.yaml"),
-        "version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n\nagents:\n  assistant:\n    runtime:\n      id: custom\n",
+        join(root, 'moldea', 'moldea.yaml'),
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n\nagents:\n  assistant:\n    runtime:\n      id: custom\n',
       );
       writeFileSync(
-        join(root, "moldea", "agents", "assistant", "description.md"),
-        "Routes bounded project questions.\n",
+        join(root, 'moldea', 'agents', 'assistant', 'description.md'),
+        'Routes bounded project questions.\n',
       );
       writeFileSync(
-        join(root, "moldea", "agents", "assistant", "instruction.md"),
-        "# Assistant\n\nYou are the `assistant` agent.\n\nSENTINEL_AGENT_BODY\n",
+        join(root, 'moldea', 'agents', 'assistant', 'instruction.md'),
+        '# Assistant\n\nYou are the `assistant` agent.\n\nSENTINEL_AGENT_BODY\n',
       );
-      const inspect = runCli(root, [
-        "inspect",
-        "--json",
-        "--max-output-bytes",
-        "65536",
-      ]);
+      const inspect = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
       assert.equal(inspect.status, 0);
       assert.ok(Buffer.byteLength(inspect.stdout) <= 65_536);
       const inspectEnvelope = JSON.parse(inspect.stdout);
       const packageManifest = JSON.parse(
-        readFileSync(join(REPOSITORY_ROOT, "package.json"), "utf8"),
+        readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf8'),
       );
       assert.equal(inspectEnvelope.schemaVersion, 4);
-      assert.equal(
-        inspectEnvelope.cliVersion,
-        packageManifest.devDependencies["@moldea.ai/cli"],
-      );
-      assert.equal(inspectEnvelope.command, "inspect");
-      assert.equal(inspect.stdout.includes("Current project truth."), false);
-      assert.equal(inspect.stdout.includes("SENTINEL_AGENT_BODY"), false);
+      assert.equal(inspectEnvelope.cliVersion, packageManifest.devDependencies['@moldea.ai/cli']);
+      assert.equal(inspectEnvelope.command, 'inspect');
+      assert.equal(inspect.stdout.includes('Current project truth.'), false);
+      assert.equal(inspect.stdout.includes('SENTINEL_AGENT_BODY'), false);
       assert.deepEqual(
-        inspectEnvelope.result.page.records.find(
-          ({ kind }) => kind === "agent",
-        ),
+        inspectEnvelope.result.page.records.find(({ kind }) => kind === 'agent'),
         {
-          agentId: "assistant",
+          agentId: 'assistant',
           key: '["000004","agent","assistant","custom"]',
-          kind: "agent",
-          runtimeId: "custom",
+          kind: 'agent',
+          runtimeId: 'custom',
         },
       );
 
       const content = runCli(root, [
-        "content",
-        "--path",
-        "/moldea/project.md",
-        "--json",
-        "--max-output-bytes",
-        "65536",
+        'content',
+        '--path',
+        '/moldea/project.md',
+        '--json',
+        '--max-output-bytes',
+        '65536',
       ]);
       assert.equal(content.status, 0);
       assert.ok(Buffer.byteLength(content.stdout) <= 65_536);
-      assert.match(
-        JSON.parse(content.stdout).result.chunk.content,
-        /Current project truth/u,
-      );
+      assert.match(JSON.parse(content.stdout).result.chunk.content, /Current project truth/u);
     } finally {
       rmSync(root, { force: true, recursive: true });
     }
   });
 
-  test("continues validation through standalone bounded launcher pages", () => {
+  test('continues validation through standalone bounded launcher pages', () => {
     const root = createProject();
     try {
       const contextDeclarations = [];
       for (let index = 1; index <= 256; index += 1) {
-        const id = String(index).padStart(3, "0");
+        const id = String(index).padStart(3, '0');
         const canonicalPath = `/moldea/context/section-${id}.md`;
         contextDeclarations.push(`  ${canonicalPath}: {}`);
-        mkdirSync(join(root, "moldea", "context"), { recursive: true });
-        writeFileSync(
-          join(root, canonicalPath.slice(1)),
-          `# Context section ${id}\n`,
-        );
+        mkdirSync(join(root, 'moldea', 'context'), { recursive: true });
+        writeFileSync(join(root, canonicalPath.slice(1)), `# Context section ${id}\n`);
       }
       writeFileSync(
-        join(root, "moldea", "moldea.yaml"),
-        `version: 1\n\ncontext:\n${contextDeclarations.join("\n")}\n`,
+        join(root, 'moldea', 'moldea.yaml'),
+        `version: 1\n\ncontext:\n${contextDeclarations.join('\n')}\n`,
       );
 
       const records = [];
       let cursor;
       let pageCount = 0;
       do {
-        const arguments_ = [
-          "validate",
-          "--json",
-          "--max-output-bytes",
-          "65536",
-        ];
-        if (cursor !== undefined) arguments_.push("--cursor", cursor);
+        const arguments_ = ['validate', '--json', '--max-output-bytes', '65536'];
+        if (cursor !== undefined) arguments_.push('--cursor', cursor);
         const page = runCli(root, arguments_);
         assert.equal(page.status, 1);
         assert.ok(Buffer.byteLength(page.stdout) <= 65_536);
         const envelope = JSON.parse(page.stdout);
         assert.equal(envelope.schemaVersion, 4);
-        assert.equal(envelope.command, "validate");
-        assert.equal(envelope.status, "invalid");
+        assert.equal(envelope.command, 'validate');
+        assert.equal(envelope.status, 'invalid');
         assert.equal(envelope.error, null);
         records.push(...envelope.result.page.records);
         cursor = envelope.result.page.cursor ?? undefined;
@@ -1679,163 +1162,92 @@ describe("CLI 7 bounded machine protocol", () => {
     }
   });
 
-  test("rejects unsupported launcher commands, arguments, and package declarations", () => {
+  test('rejects unsupported launcher commands, arguments, and package declarations', () => {
     const root = createProject();
     try {
-      const unsupportedCommand = runCli(root, ["unknown", "--json"]);
+      const unsupportedCommand = runCli(root, ['unknown', '--json']);
       assert.equal(unsupportedCommand.status, 3);
       assert.match(unsupportedCommand.stderr, /not supported/u);
-      assert.equal(unsupportedCommand.stdout, "");
+      assert.equal(unsupportedCommand.stdout, '');
 
-      const unsupportedArgument = runCli(root, [
-        "inspect",
-        "--json",
-        "--repository",
-        root,
-      ]);
+      const unsupportedArgument = runCli(root, ['inspect', '--json', '--repository', root]);
       assert.equal(unsupportedArgument.status, 3);
       assert.match(unsupportedArgument.stderr, /unsupported or duplicate/iu);
-      assert.equal(unsupportedArgument.stdout, "");
+      assert.equal(unsupportedArgument.stdout, '');
 
-      const packageManifest = JSON.parse(
-        readFileSync(join(root, "package.json"), "utf8"),
-      );
-      packageManifest.devDependencies["@moldea.ai/cli"] = "^8.0.0";
-      writeFileSync(
-        join(root, "package.json"),
-        `${JSON.stringify(packageManifest, null, 2)}\n`,
-      );
-      const unsupportedPackage = runCli(root, [
-        "inspect",
-        "--json",
-        "--max-output-bytes",
-        "65536",
-      ]);
+      const packageManifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+      packageManifest.devDependencies['@moldea.ai/cli'] = '^8.0.0';
+      writeFileSync(join(root, 'package.json'), `${JSON.stringify(packageManifest, null, 2)}\n`);
+      const unsupportedPackage = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
       assert.equal(unsupportedPackage.status, 3);
-      assert.match(
-        unsupportedPackage.stderr,
-        /unsupported CLI package closure/u,
-      );
-      assert.equal(unsupportedPackage.stdout, "");
+      assert.match(unsupportedPackage.stderr, /unsupported CLI package closure/u);
+      assert.equal(unsupportedPackage.stdout, '');
     } finally {
       rmSync(root, { force: true, recursive: true });
     }
   });
 
-  test("rejects missing, malformed, prerelease, and escaped CLI closures", () => {
-    const missingRoot = mkdtempSync(
-      join(tmpdir(), "moldea-v5-launcher-missing-"),
-    );
-    const malformedRoot = createLauncherProject("process.exitCode = 0;\n");
-    const prereleaseRoot = createLauncherProject("process.exitCode = 0;\n", {
-      version: "7.1.0-beta.1",
+  test('rejects missing, malformed, prerelease, and escaped CLI closures', () => {
+    const missingRoot = mkdtempSync(join(tmpdir(), 'moldea-v5-launcher-missing-'));
+    const malformedRoot = createLauncherProject('process.exitCode = 0;\n');
+    const prereleaseRoot = createLauncherProject('process.exitCode = 0;\n', {
+      version: '7.1.0-beta.1',
     });
-    const escapedRoot = createLauncherProject("process.exitCode = 0;\n");
+    const escapedRoot = createLauncherProject('process.exitCode = 0;\n');
     try {
       writeFileSync(
-        join(missingRoot, "package.json"),
+        join(missingRoot, 'package.json'),
         '{"private":true,"devDependencies":{"@moldea.ai/cli":"^7.0.0"}}\n',
       );
+      writeFileSync(join(malformedRoot, 'node_modules', '@moldea.ai', 'cli', 'package.json'), '{');
+      const escapedCliRoot = join(escapedRoot, 'escaped-cli');
+      const installedCliRoot = join(escapedRoot, 'node_modules', '@moldea.ai', 'cli');
+      mkdirSync(join(escapedCliRoot, 'dist'), { recursive: true });
       writeFileSync(
-        join(
-          malformedRoot,
-          "node_modules",
-          "@moldea.ai",
-          "cli",
-          "package.json",
-        ),
-        "{",
-      );
-      const escapedCliRoot = join(escapedRoot, "escaped-cli");
-      const installedCliRoot = join(
-        escapedRoot,
-        "node_modules",
-        "@moldea.ai",
-        "cli",
-      );
-      mkdirSync(join(escapedCliRoot, "dist"), { recursive: true });
-      writeFileSync(
-        join(escapedCliRoot, "package.json"),
+        join(escapedCliRoot, 'package.json'),
         '{"name":"@moldea.ai/cli","version":"7.1.0","bin":{"moldea":"./dist/moldea.js"},"dependencies":{"@moldea.ai/core":"^3.0.0"}}\n',
       );
-      writeFileSync(
-        join(escapedCliRoot, "dist", "moldea.js"),
-        "process.exitCode = 0;\n",
-      );
+      writeFileSync(join(escapedCliRoot, 'dist', 'moldea.js'), 'process.exitCode = 0;\n');
       rmSync(installedCliRoot, { force: true, recursive: true });
       symlinkSync(
         escapedCliRoot,
         installedCliRoot,
-        process.platform === "win32" ? "junction" : "dir",
+        process.platform === 'win32' ? 'junction' : 'dir',
       );
 
-      for (const root of [
-        missingRoot,
-        malformedRoot,
-        prereleaseRoot,
-        escapedRoot,
-      ]) {
-        const result = runCli(root, [
-          "inspect",
-          "--json",
-          "--max-output-bytes",
-          "65536",
-        ]);
+      for (const root of [missingRoot, malformedRoot, prereleaseRoot, escapedRoot]) {
+        const result = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
         assert.equal(result.status, 3);
-        assert.equal(result.stdout, "");
-        assert.notEqual(result.stderr, "");
+        assert.equal(result.stdout, '');
+        assert.notEqual(result.stderr, '');
       }
       assert.match(
-        runCli(escapedRoot, [
-          "inspect",
-          "--json",
-          "--max-output-bytes",
-          "65536",
-        ]).stderr,
+        runCli(escapedRoot, ['inspect', '--json', '--max-output-bytes', '65536']).stderr,
         /escaped repository dependencies/u,
       );
     } finally {
-      for (const root of [
-        missingRoot,
-        malformedRoot,
-        prereleaseRoot,
-        escapedRoot,
-      ]) {
+      for (const root of [missingRoot, malformedRoot, prereleaseRoot, escapedRoot]) {
         rmSync(root, { force: true, recursive: true });
       }
     }
   });
 
-  test("preserves completed child status and enforces stdout and stderr boundaries", () => {
+  test('preserves completed child status and enforces stdout and stderr boundaries', () => {
     const exitRoot = createLauncherProject(
       "const command = process.argv[2]; process.stdout.write('{}\\n'); process.exitCode = command === 'inspect' ? 1 : 2;\n",
     );
-    const stdoutRoot = createLauncherProject(
-      "process.stdout.write('x'.repeat(4097));\n",
-    );
-    const stderrRoot = createLauncherProject(
-      "process.stderr.write('x'.repeat(32769));\n",
-    );
+    const stdoutRoot = createLauncherProject("process.stdout.write('x'.repeat(4097));\n");
+    const stderrRoot = createLauncherProject("process.stderr.write('x'.repeat(32769));\n");
     try {
+      assert.equal(runCli(exitRoot, ['inspect', '--json', '--max-output-bytes', '4096']).status, 1);
       assert.equal(
-        runCli(exitRoot, ["inspect", "--json", "--max-output-bytes", "4096"])
-          .status,
-        1,
-      );
-      assert.equal(
-        runCli(exitRoot, ["validate", "--json", "--max-output-bytes", "4096"])
-          .status,
+        runCli(exitRoot, ['validate', '--json', '--max-output-bytes', '4096']).status,
         2,
       );
       for (const root of [stdoutRoot, stderrRoot]) {
-        const result = runCli(root, [
-          "inspect",
-          "--json",
-          "--max-output-bytes",
-          "4096",
-        ]);
+        const result = runCli(root, ['inspect', '--json', '--max-output-bytes', '4096']);
         assert.equal(result.status, 3);
-        assert.equal(result.stdout, "");
+        assert.equal(result.stdout, '');
         assert.match(result.stderr, /output exceeded the launcher boundary/u);
       }
     } finally {
@@ -1846,21 +1258,16 @@ describe("CLI 7 bounded machine protocol", () => {
   });
 
   test(
-    "force-terminates a child that ignores the output-boundary signal",
-    { skip: process.platform === "win32", timeout: 8_000 },
+    'force-terminates a child that ignores the output-boundary signal',
+    { skip: process.platform === 'win32', timeout: 8_000 },
     () => {
       const root = createLauncherProject(
         "process.on('SIGTERM', () => {}); process.stdout.write('x'.repeat(4097)); setInterval(() => {}, 1000);\n",
       );
       try {
-        const result = runCli(root, [
-          "inspect",
-          "--json",
-          "--max-output-bytes",
-          "4096",
-        ]);
+        const result = runCli(root, ['inspect', '--json', '--max-output-bytes', '4096']);
         assert.equal(result.status, 3);
-        assert.equal(result.stdout, "");
+        assert.equal(result.stdout, '');
         assert.match(result.stderr, /output exceeded the launcher boundary/u);
       } finally {
         rmSync(root, { force: true, recursive: true });
@@ -1869,8 +1276,8 @@ describe("CLI 7 bounded machine protocol", () => {
   );
 
   test(
-    "relays cancellation and returns a launcher failure without partial output",
-    { skip: process.platform === "win32" },
+    'relays cancellation and returns a launcher failure without partial output',
+    { skip: process.platform === 'win32' },
     async () => {
       const root = createLauncherProject(
         "import { writeFileSync } from 'node:fs'; writeFileSync('.child-ready', ''); setInterval(() => {}, 1000);\n",
@@ -1880,51 +1287,48 @@ describe("CLI 7 bounded machine protocol", () => {
           process.execPath,
           [
             CLI_LAUNCHER_PATH,
-            "--repository",
+            '--repository',
             root,
-            "--",
-            "inspect",
-            "--json",
-            "--max-output-bytes",
-            "4096",
+            '--',
+            'inspect',
+            '--json',
+            '--max-output-bytes',
+            '4096',
           ],
-          { cwd: root, stdio: ["ignore", "pipe", "pipe"] },
+          { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] },
         );
         const stdout = [];
         const stderr = [];
-        child.stdout.on("data", (chunk) => stdout.push(chunk));
-        child.stderr.on("data", (chunk) => stderr.push(chunk));
-        await waitForPath(join(root, ".child-ready"));
-        child.kill("SIGTERM");
+        child.stdout.on('data', (chunk) => stdout.push(chunk));
+        child.stderr.on('data', (chunk) => stderr.push(chunk));
+        await waitForPath(join(root, '.child-ready'));
+        child.kill('SIGTERM');
         const exitCode = await new Promise((resolvePromise, rejectPromise) => {
-          child.once("error", rejectPromise);
-          child.once("close", resolvePromise);
+          child.once('error', rejectPromise);
+          child.once('close', resolvePromise);
         });
 
         assert.equal(exitCode, 3);
-        assert.equal(Buffer.concat(stdout).toString("utf8"), "");
-        assert.match(
-          Buffer.concat(stderr).toString("utf8"),
-          /terminated by SIGTERM/u,
-        );
+        assert.equal(Buffer.concat(stdout).toString('utf8'), '');
+        assert.match(Buffer.concat(stderr).toString('utf8'), /terminated by SIGTERM/u);
       } finally {
         rmSync(root, { force: true, recursive: true });
       }
     },
   );
 
-  test("gates exact relationships through one bounded scope result", () => {
+  test('gates exact relationships through one bounded scope result', () => {
     const root = createProject();
     try {
       const related = runCli(
         root,
-        ["scope", "--paths-stdin", "--json", "--max-output-bytes", "65536"],
-        "/src/project-state.js\0",
+        ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+        '/src/project-state.js\0',
       );
       const unrelated = runCli(
         root,
-        ["scope", "--paths-stdin", "--json", "--max-output-bytes", "65536"],
-        "/src/unrelated.js\0",
+        ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+        '/src/unrelated.js\0',
       );
       assert.equal(JSON.parse(related.stdout).result.relevant, true);
       assert.equal(JSON.parse(unrelated.stdout).result.relevant, false);
@@ -1935,11 +1339,11 @@ describe("CLI 7 bounded machine protocol", () => {
     }
   });
 
-  test("continues large Unicode content through bounded schema-4 chunks", () => {
+  test('continues large Unicode content through bounded schema-4 chunks', () => {
     const root = createProject();
     try {
-      const largeContent = `# Large context\n\n${"bounded🙂content\n".repeat(2048)}`;
-      writeFileSync(join(root, "moldea", "project.md"), largeContent);
+      const largeContent = `# Large context\n\n${'bounded🙂content\n'.repeat(2048)}`;
+      writeFileSync(join(root, 'moldea', 'project.md'), largeContent);
       const chunks = [];
       let cursor;
       let commandCount = 0;
@@ -1947,14 +1351,14 @@ describe("CLI 7 bounded machine protocol", () => {
 
       do {
         const arguments_ = [
-          "content",
-          "--path",
-          "/moldea/project.md",
-          "--json",
-          "--max-output-bytes",
-          "4096",
+          'content',
+          '--path',
+          '/moldea/project.md',
+          '--json',
+          '--max-output-bytes',
+          '4096',
         ];
-        if (cursor !== undefined) arguments_.push("--cursor", cursor);
+        if (cursor !== undefined) arguments_.push('--cursor', cursor);
         const content = runCli(root, arguments_);
         assert.equal(content.status, 0);
         const pageByteCount = Buffer.byteLength(content.stdout);
@@ -1962,13 +1366,13 @@ describe("CLI 7 bounded machine protocol", () => {
         outputByteCount += pageByteCount;
         const envelope = JSON.parse(content.stdout);
         assert.equal(envelope.schemaVersion, 4);
-        assert.equal(envelope.status, "valid");
+        assert.equal(envelope.status, 'valid');
         chunks.push(envelope.result.chunk.content);
         cursor = envelope.result.cursor ?? undefined;
         commandCount += 1;
       } while (cursor !== undefined);
 
-      assert.equal(chunks.join(""), largeContent);
+      assert.equal(chunks.join(''), largeContent);
       assert.ok(commandCount > 1);
       assert.ok(commandCount <= 32);
       assert.ok(outputByteCount <= 262_144);
@@ -1977,47 +1381,34 @@ describe("CLI 7 bounded machine protocol", () => {
     }
   });
 
-  test("keeps validate, inspect, scope, and content read-only at the Git boundary", () => {
+  test('keeps validate, inspect, scope, and content read-only at the Git boundary', () => {
     const root = createProject();
     try {
-      const beforeStatus = spawnSync(
-        "git",
-        ["status", "--porcelain=v2", "-z"],
-        {
-          cwd: root,
-          encoding: "utf8",
-        },
-      ).stdout;
-      const beforeObjects = readdirSync(join(root, ".git", "objects"), {
+      const beforeStatus = spawnSync('git', ['status', '--porcelain=v2', '-z'], {
+        cwd: root,
+        encoding: 'utf8',
+      }).stdout;
+      const beforeObjects = readdirSync(join(root, '.git', 'objects'), {
         recursive: true,
       }).sort();
 
       for (const [arguments_, input] of [
-        [["validate", "--json", "--max-output-bytes", "65536"]],
-        [["inspect", "--json", "--max-output-bytes", "65536"]],
+        [['validate', '--json', '--max-output-bytes', '65536']],
+        [['inspect', '--json', '--max-output-bytes', '65536']],
         [
-          ["scope", "--paths-stdin", "--json", "--max-output-bytes", "65536"],
-          "/src/project-state.js\0",
+          ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+          '/src/project-state.js\0',
         ],
-        [
-          [
-            "content",
-            "--path",
-            "/moldea/project.md",
-            "--json",
-            "--max-output-bytes",
-            "65536",
-          ],
-        ],
+        [['content', '--path', '/moldea/project.md', '--json', '--max-output-bytes', '65536']],
       ]) {
         assert.equal(runCli(root, arguments_, input).status, 0);
       }
 
-      const afterStatus = spawnSync("git", ["status", "--porcelain=v2", "-z"], {
+      const afterStatus = spawnSync('git', ['status', '--porcelain=v2', '-z'], {
         cwd: root,
-        encoding: "utf8",
+        encoding: 'utf8',
       }).stdout;
-      const afterObjects = readdirSync(join(root, ".git", "objects"), {
+      const afterObjects = readdirSync(join(root, '.git', 'objects'), {
         recursive: true,
       }).sort();
       assert.equal(afterStatus, beforeStatus);
@@ -2027,26 +1418,23 @@ describe("CLI 7 bounded machine protocol", () => {
     }
   });
 
-  test("rejects malformed, mismatched, leaking, and over-budget envelopes in fixtures", () => {
+  test('rejects malformed, mismatched, leaking, and over-budget envelopes in fixtures', () => {
     const expectedById = new Map(
       FIXTURE.cliEnvelopeCases.map(({ id, expected }) => [id, expected]),
     );
-    assert.equal(expectedById.get("inspect-valid"), "interpret-result");
-    assert.equal(expectedById.get("scope-valid"), "interpret-result");
-    assert.equal(expectedById.get("content-valid"), "interpret-result");
+    assert.equal(expectedById.get('inspect-valid'), 'interpret-result');
+    assert.equal(expectedById.get('scope-valid'), 'interpret-result');
+    assert.equal(expectedById.get('content-valid'), 'interpret-result');
     for (const id of [
-      "schema-mismatch",
-      "version-mismatch",
-      "command-mismatch",
-      "status-exit-mismatch",
-      "inspect-content-leak",
+      'schema-mismatch',
+      'version-mismatch',
+      'command-mismatch',
+      'status-exit-mismatch',
+      'inspect-content-leak',
     ]) {
-      assert.equal(expectedById.get(id), "reject-envelope");
+      assert.equal(expectedById.get(id), 'reject-envelope');
     }
-    assert.equal(expectedById.get("invocation-too-large"), "reject-output");
-    assert.equal(
-      expectedById.get("ordinary-aggregate-too-large"),
-      "stop-traversal",
-    );
+    assert.equal(expectedById.get('invocation-too-large'), 'reject-output');
+    assert.equal(expectedById.get('ordinary-aggregate-too-large'), 'stop-traversal');
   });
 });

@@ -64,6 +64,10 @@ Inspect contract ownership, minimal record shape, bounded pagination, schema com
 
 ## Milestone 74: Release Core 3.1 and CLI 7.1
 
+### Status
+
+Complete and published at signed package commit `6ef074a0ac20e2a0690ae074e92bacc2a414e980`; Core 3.1.0 and CLI 7.1.0 are registry-verified.
+
 ### Objective
 
 Implement, test, publish, and registry-verify the content-free per-agent runtime-assignment record in the packages repository.
@@ -96,6 +100,10 @@ Inspect public types, discriminators, ordering, cursors, snapshot identity, outp
 
 ## Milestone 75: Correct the residual skill and evaluator routes
 
+### Status
+
+Complete and published at signed skill commit `d59bb17ba8bb32a4cef3ca2c4b4b20bca1413efb` after all deterministic checks and read-only review passed.
+
 ### Objective
 
 Update the skill to consume CLI 7.1 runtime-assignment evidence and correct the two proven portable routes plus the context-only evaluator criterion without disturbing unrelated behavior.
@@ -127,35 +135,37 @@ Update the skill to consume CLI 7.1 runtime-assignment evidence and correct the 
 
 Inspect runtime evidence provenance, activation narrowness, ambiguity-before-write behavior, independent artifact routing, evaluator criterion fidelity, strict canaries, word count, and unchanged protocol contracts.
 
-## Milestone 76: Close the nine-case semantic gate
+## Milestone 76: Close the independent-skill zero-call gate
 
 ### Objective
 
-Run the complete classified residual set once and decide from its full ledger whether the official suite is ready.
+Restore explicit first-route consumption of the developer's “Use moldea” direction and prove the one remaining independent-skill case uses zero repository moldea commands.
 
 ### Dependencies
 
-- Milestone 75 is published against registry-visible CLI 7.1.0.
-- Model-free preflight resolves exactly the four runtime cases, `reconcile-material-ambiguity`, `skill-maintain-linked-resources`, `unadopted-direct-context-handoff`, `exact-binding-relevance`, and `managed-readme-relevance` under the final xhigh/xhigh identity.
+- Milestone 75 is complete and published at signed commit `d59bb17ba8bb32a4cef3ca2c4b4b20bca1413efb`.
+- The complete nine-case xhigh ledger is classified under SHA-256 `c72fbb4c3a981434e15a8d8d4848df6324a8da3c0c1d7e073875e4a443abcd9e`: eight direct passes and one resource-only failure in `skill-maintain-linked-resources`.
+- The failure repeated earlier repository inspection behavior while every semantic and other deterministic dimension passed, establishing root-route precedence as the proven owner.
 
 ### Scope and implementation
 
-- Run the nine cases together with four isolated workers and collect the complete diagnostic ledger before editing.
-- Resume the exact checkpoint at two or one workers only if provider or host pressure requires it; never repeat a completed model stage.
-- Analyze semantic, resource, command-policy, repository-control, mount-integrity, operational, token, output, and disk dimensions together, including direct and recovered outcomes.
-- Treat a real credential-material observation as a hard security failure. If it cannot be reproduced deterministically and the behavior-invalidated cases pass, preserve the diagnostic result without weakening the classifier.
-- If a deterministic residual repeats, return through the authorized revise-plan, challenge, and breakdown cycle and correct only its proven owner once. Do not run the official suite against a known deterministic defect.
+- Update only the first independent Agent Skill route in `moldea/SKILL.md` so it explicitly consumes even a developer direction to use moldea and cannot create a second repository inspection or validation obligation.
+- Add one focused assertion in `tests/conformance.test-unit.mjs` for that precedence.
+- Keep `moldea/references/skill-design.md`, `fixtures/conformance-cases.json`, its exact zero-command and zero-output budget, all semantic criteria, protocol 25, evaluator behavior, and the eight passing cases unchanged.
+- Keep the root skill at or below 2,560 words, synchronize no unrelated documentation, and preserve the failed official attempt plus passing/latest pointers byte-for-byte.
+- Run affected deterministic checks, review the exact change, publish it from `new_skill`, then restart diagnostic state for only `skill-maintain-linked-resources`.
 
 ### Verification and acceptance criteria
 
-- Every selected case appears exactly once in fixture order and every completed stage is checkpointed and resumable.
-- Every behavior- or evaluator-invalidated case passes directly or through one eligible semantic confirmation with all deterministic dimensions green.
-- The exact-binding and credential canaries remain strict and produce no evidence of a repeatable product defect.
-- Diagnostic state and stdout remain within content-free byte ceilings; official evidence and pointers remain unchanged.
+- Focused conformance and complete affected root regression checks pass; skill structure, resource, identity, formatting, path, website, and evidence integrity remain valid where the changed skill bytes apply.
+- The published correction is signed, signed off, and pushed through the explicit `origin/new_skill` refspec.
+- The single xhigh diagnostic passes all six semantic criteria and every resource, command-policy, repository-control, mount-integrity, and operational dimension with exactly zero moldea commands and bytes.
+- No completed passing case is rerun before the official complete suite, and no budget, criterion, classifier, evaluator, protocol, or unrelated route is weakened.
+- A repeated failure stops official execution and returns through evidence-led planning.
 
 ### Review checkpoint
 
-Inspect the complete direct/recovered/failure pattern, runtime provenance, command classifications, resource totals, worker scheduling, checkpoint reuse, and whether any residual is deterministic, variance, or security evidence.
+Inspect the first-route precedence, word count, focused assertion, unchanged case and reference bytes, evidence-pointer immutability, exact diagnostic command totals, and absence of unrelated changes.
 
 ## Milestone 77: Record and publish current 74-case semantic evidence
 
@@ -357,4 +367,4 @@ Inspect exact repository tips, public claims, protocol and policy terminology, e
 
 ## Execution scope
 
-Preserve completed and published Milestones 1 through 70 and the complete failed Milestone 71 attempt. Execute Milestones 72 through 83 sequentially: publish the failed attempt and revised planning contract; define and implement the content-free agent/runtime record; release and registry-verify Core 3.1 and CLI 7.1; correct the two portable routes and one evaluator criterion; close the nine-case residual gate; record one passing 74-case attempt; add bounded qualification batching; establish a passing 12-case Custom baseline; collect and close all 13 adapter profiles; publish clean skill 5.0; and complete the cross-repository launch audit. Every paid batch uses at most four isolated workers, deterministic aggregate writes, exact resume, global token and disk admission, content-free status, and stop-dispatch with sibling drain. A repeatable deterministic defect returns through the authorized revise-plan, challenge, and breakdown cycle before another correction. Preserve all safety, privacy, provenance, signing, review, branch, clean-slate, protected-instruction, hard-exclusion, and unrelated-concurrent-work constraints from the challenged plan.
+Preserve completed and published Milestones 1 through 75, failed official attempt `20260909T160245245Z-semantic-f4435831`, and the complete Milestone 76 nine-case classification. Complete the revised Milestone 76 by restoring explicit “Use moldea” consumption in the independent Agent Skill route, publishing its focused correction, and rerunning only `skill-maintain-linked-resources`. Then execute Milestones 77 through 83 sequentially: record one passing 74-case attempt; add bounded qualification batching; establish a passing 12-case Custom baseline; collect and close all 13 adapter profiles; publish clean skill 5.0; and complete the cross-repository launch audit. Every paid batch uses at most four isolated workers, deterministic aggregate writes, exact resume, global token and disk admission, content-free status, and stop-dispatch with sibling drain. A repeatable deterministic defect returns through the authorized revise-plan, challenge, and breakdown cycle before another correction. Preserve all safety, privacy, provenance, signing, review, branch, clean-slate, protected-instruction, hard-exclusion, and unrelated-concurrent-work constraints from the challenged plan.

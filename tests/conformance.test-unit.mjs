@@ -690,7 +690,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /route-owned normalized set/u);
     assert.match(skill, /conclude from the host review alone/u);
     assert.match(skill, /complete four-field blocked-install result/u);
-    assert.match(skill, /This ends repository moldea work/u);
+    assert.match(skill, /This route consumes an explicit `Use moldea` direction/u);
     assert.match(
       skill,
       /never gate, invoke the CLI, inspect or validate surrounding canonical state/u,

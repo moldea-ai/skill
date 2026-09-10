@@ -1,26 +1,26 @@
 # moldea resource-bounded redesign milestones
 
-The challenged revised plan is executed through the following ordered milestones. Milestones 80 through 90 are complete and published or classified. Milestone 91 owns the first incomplete implementation.
+The challenged revised plan is executed through the following ordered milestones. Milestones 80 through 92 are complete and published or classified. Milestone 93 owns the first incomplete publication checkpoint.
 
-## Milestone 80: Publish the complete failed final-closure ledger
+## Milestone 80: Publish the first complete failed final-closure ledger
 
 Status: Complete and published at `264aad26162c2e28a026b6d9afbc0559151ed4a2`.
 
 ### Objective and acceptance
 
-Preserve attempt `20260910T132459262Z-semantic-c264efb6` with 61 direct passes, nine recoveries, four failures, 97 trials, 194 stages, exact source identity, immutable digests, and no passing promotion. Publish one signed and signed-off evidence checkpoint.
+Preserve attempt `20260910T132459262Z-semantic-c264efb6` with 61 direct passes, nine recoveries, four failures, 97 trials, 194 stages, exact source identity, and no passing promotion.
 
 ### Review checkpoint
 
 Inspect completeness, identity, distribution, non-promotion, and immutable evidence.
 
-## Milestone 81: Correct the four consolidated semantic residuals
+## Milestone 81: Correct the first four consolidated semantic residuals
 
 Status: Complete and published at `981b1432a09ac5a720795d01be878a649e8a7593`.
 
 ### Objective and acceptance
 
-Apply the first consolidated correction for reconciliation, routing, compression, Git-helper reporting, and lower-worker exact resume. Pass the deterministic boundary and publish one signed and signed-off correction.
+Apply the first consolidated correction for reconciliation, routing, compression, Git-helper reporting, and lower-worker exact resume, then pass the complete deterministic boundary.
 
 ### Review checkpoint
 
@@ -28,7 +28,7 @@ Inspect semantic ownership, bounded calibration, safe reporting, exact resume, a
 
 ## Milestone 82: Classify the first four-case xhigh gate
 
-Status: Complete diagnostic checkpoint with ledger SHA-256 `35233103f875c3210ce7b66490f6abf22d69d42a586ce75f372f19625abeb75f`; no tracked publication required.
+Status: Complete diagnostic checkpoint with ledger SHA-256 `35233103f875c3210ce7b66490f6abf22d69d42a586ce75f372f19625abeb75f`.
 
 ### Objective and acceptance
 
@@ -44,7 +44,7 @@ Status: Complete and published at `9f33e9edf54bd3e3f033964b98b946cda6a2d4dd`.
 
 ### Objective and acceptance
 
-Distinguish direct evaluation from reconciliation and preserve routing consumer-purpose classification independently from structural diagnostics. Preserve root and evaluator contracts, pass deterministic checks, and publish the correction.
+Distinguish direct evaluation from reconciliation and preserve routing consumer-purpose classification independently from structural diagnostics.
 
 ### Review checkpoint
 
@@ -52,11 +52,11 @@ Inspect reference ownership, independent conclusions, unchanged contracts, and f
 
 ## Milestone 84: Classify the second four-case xhigh gate
 
-Status: Complete diagnostic checkpoint with ledger SHA-256 `1acd54a854ed76e901e002d083cfe419df4dbf23d7a1ef9375d1f4d1c0559c7b`; no tracked publication required.
+Status: Complete diagnostic checkpoint with ledger SHA-256 `1acd54a854ed76e901e002d083cfe419df4dbf23d7a1ef9375d1f4d1c0559c7b`.
 
 ### Objective and acceptance
 
-Preserve complete passes for compression, dynamic routing, and Git-helper suppression. Classify reconciliation as a repeated semantic-only operation-ordering failure with every containment dimension passing.
+Preserve three complete passes and classify reconciliation as the remaining semantic-only operation-ordering failure.
 
 ### Review checkpoint
 
@@ -68,23 +68,23 @@ Status: Complete and published at `aac8371b8f175de70c8b10cbfddec2e9a3d72a73`.
 
 ### Objective and acceptance
 
-Make evaluation and reconciliation mutually exclusive, place the complete reconciliation procedure first, require implementation comparison before completion, pass deterministic checks, and publish the reviewed tree.
+Make evaluation and reconciliation mutually exclusive, place reconciliation first, require implementation comparison before completion, and pass deterministic checks.
 
 ### Review checkpoint
 
 Inspect operation order, comparison precondition, conflict stop, unchanged contracts, and focused tests.
 
-## Milestone 86: Classify the operation-first four-case gate
+## Milestone 86: Classify the operation-first gate
 
-Status: Complete diagnostic checkpoint with identity `f7ba66c36ac3b23b7451f0b96b4378978fb17034f9010f04c91da3ef36196141` and ledger SHA-256 `a7d1262336d15aa57b9f914f251a351394c72f9cd9cf974f5dab0ddf74c19399`; no tracked publication required.
+Status: Complete diagnostic checkpoint with ledger SHA-256 `a7d1262336d15aa57b9f914f251a351394c72f9cd9cf974f5dab0ddf74c19399`.
 
 ### Objective and acceptance
 
-Preserve three complete passes and classify reconciliation as the only semantic failure with bounded resources, one canonical body, unchanged repository state, and every containment dimension passing.
+Preserve three complete passes and classify reconciliation as the only semantic failure with every deterministic dimension green.
 
 ### Review checkpoint
 
-Inspect the ledger, skill and reference delivery, actor evidence, and judge rationale.
+Inspect the ledger, delivered skill, actor evidence, and judge rationale.
 
 ## Milestone 87: Separate canonical ownership from behavioral authority
 
@@ -92,23 +92,23 @@ Status: Complete and published at `6521b1b041b684f7a5b527f43eb4a8e72c014853`.
 
 ### Objective and acceptance
 
-Add an early general invariant separating canonical storage ownership from authority among conflicting claims. Keep the root at 2,560 words, pass every deterministic boundary, and publish the correction.
+Add the general invariant that canonical storage ownership cannot resolve mutually exclusive behavioral claims, while keeping the root at 2,560 words.
 
 ### Review checkpoint
 
-Inspect clarity, salience, duplicate removal, unchanged evaluator contracts, and coverage.
+Inspect salience, duplicate removal, unchanged evaluator contracts, and coverage.
 
-## Milestone 88: Bind the reconciliation fixture to its implementation
+## Milestone 88: Bind reconciliation to its implementation
 
 Status: Complete and published at `8399111222180172e90764cf87f571f764ec5021`.
 
 ### Objective and acceptance
 
-Declare `/src/refund-policy.js` in `refund-agent`’s `affectedBy` list and prove through an integration test that CLI scope maps the path to the agent. Pass 260 root unit tests, 73 root integration tests, semantic preflight, documentation, resource, release-identity, path, format, and diff checks before signed publication.
+Declare `/src/refund-policy.js` in `refund-agent`'s `affectedBy` list and prove that CLI scope maps the path to the agent owner.
 
 ### Review checkpoint
 
-Inspect actor and judge evidence parity, exact relationship ownership, unchanged criteria, and source identity.
+Inspect actor and judge evidence parity, relationship ownership, unchanged criteria, and source identity.
 
 ## Milestone 89: Make unresolved conflict a mandatory stop
 
@@ -116,129 +116,161 @@ Status: Complete and published at `7cc738beadb07b96de02bb9f5fc58a7730cc2f60`.
 
 ### Objective and acceptance
 
-Make generic reconciliation write authority incapable of selecting a conflicting claim. Require a current developer choice or third independent resolver, otherwise stop moldea calls and semantic writes, state both claims, and ask which governs. Keep the root at 2,560 words, pass the complete deterministic boundary, and publish the correction.
+Require a current developer choice or third independent resolver before selecting either conflicting claim, otherwise stop and ask which governs.
 
 ### Review checkpoint
 
-Inspect resolver definition, stop behavior, salience, duplicate removal, unchanged contracts, and focused coverage.
+Inspect resolver definition, stop behavior, salience, and focused coverage.
 
-## Milestone 90: Classify the mandatory-stop reconciliation gate
+## Milestone 90: Classify the mandatory-stop gate
 
-Status: Complete diagnostic checkpoint; no tracked publication required.
+Status: Complete diagnostic checkpoint.
 
 ### Objective and acceptance
 
-Preserve the semantic-only failure after seven bounded actor commands, one 458-byte canonical body, no repository mutation, and green resource, command-policy, repository-control, mount-integrity, and operational dimensions. Establish that the immediately following truth-reconstruction sentence contradicts the delivered mandatory gate.
+Establish that a post-gate truth-reconstruction sentence contradicted the delivered mandatory stop while all deterministic dimensions passed.
 
 ### Review checkpoint
 
-Inspect the delivered root and reference, grounded relationship evidence, judge rationale, resource trace, and post-gate instruction order.
+Inspect the delivered reference, relationship evidence, judge rationale, and operation order.
 
 ## Milestone 91: Remove post-gate truth reconstruction
 
+Status: Complete and published at `1e7e915927f3019c05c24d2d0c7c910153f54c2c`.
+
+### Objective and acceptance
+
+Make reconciliation comparison detect agreement or conflict without allowing either conflicting asset to establish authority, pass every deterministic boundary, and keep the portable root unchanged at 2,560 words.
+
+### Review checkpoint
+
+Inspect contradiction removal, conflict detection, repair-target ordering, and exact source identity.
+
+## Milestone 92: Pass the conflict-detection reconciliation gate
+
+Status: Complete diagnostic checkpoint; the xhigh case passed on its first trial with all six dimensions green, eight completed commands, one 458-byte moldea content result, and no repository mutation.
+
+### Objective and acceptance
+
+Prove the grounded reconciliation behavior before another official attempt without promoting diagnostic evidence.
+
+### Review checkpoint
+
+Inspect the response, dimensions, resources, repository controls, and provenance.
+
+## Milestone 93: Publish the complete current failed attempt
+
 ### Objective
 
-Make the reconciliation comparison identify agreement or conflict without letting the two conflicting assets establish their own authority.
+Preserve official attempt `20260910T191627934Z-semantic-f69e0e71` unchanged and make its 70 passing or recovered case groups eligible for exact source-verified reuse.
 
 ### Dependencies
 
-- Milestone 89 is published from a clean source boundary.
-- Milestone 90 establishes a semantic-only failure with every containment dimension passing.
-- The owning reference contains one literal contradiction immediately after the mandatory gate.
+- Milestone 91 is the attempt's published source commit.
+- Attempt verification passes with 74 resolved cases and no integrity issue.
+- The revised plan and this breakdown record the complete failure classification before evaluator edits.
 
 ### Scope and implementation
 
-- In `moldea/references/evaluate-and-reconcile.md`, remove the instruction to establish intended truth from developer intent, current behavior, authoritative documentation, and tests.
-- Require the task-named implementation and one canonical body to be compared only to identify agreement or conflict.
-- Apply the mandatory stop immediately when those claims conflict without a current developer choice or third independent resolver.
-- Establish the repair target only after a permitted resolver selects one claim, using only aligned supporting evidence afterward.
-- In `tests/conformance.test-unit.mjs`, assert the superseded sentence is absent and conflict detection precedes repair-target establishment.
-- Synchronize this plan and breakdown. Leave `moldea/SKILL.md`, fixtures, criteria, judge, evaluator, model settings, budgets, protocols, resource profiles, and unrelated references unchanged.
+- Commit the attempt's `attempt.json`, `evidence.json`, and `identity.json` plus the failed latest pointer without changing any recorded byte.
+- Include the revised plan and regenerated breakdown that explain why the attempt failed and how exact reuse avoids another complete run.
+- Do not edit evaluator, fixture, skill, qualification, website, or Vite/Vitest temporary-storage code in this milestone.
 
 ### Tests and verification
 
-- Run focused conformance first, then the complete root unit and integration suites.
-- Run semantic preflight, model-free Custom and all-adapter dry runs, documentation, resource, release-identity, path, format, diff, privacy, and protected-instruction checks affected by the reference identity.
-- Reuse exact successful qualification package and website checks whose inputs remain byte-identical; remove only reproducible runtime caches.
+- Run semantic attempt verification and release-identity checks applicable to a failed latest attempt.
+- Verify the exact counts, evidence digest, source commit, portable behavior digest, failed status, and absence of passing promotion.
+- Review the complete candidate state and publish one signed and signed-off commit to `origin/new_skill`.
+
+### Acceptance criteria
+
+- The attempt remains failed with 67 direct passes, three recoveries, four terminal failures, and zero pending cases.
+- Its evidence path resolves to the exact source commit and becomes eligible as a reuse source only for passed or recovered case groups.
+- No result, criterion, source identity, or evidence byte is rewritten.
+
+### Review checkpoint
+
+Inspect integrity, source provenance, counts, non-promotion, plan accuracy, and exact publication scope.
+
+## Milestone 94: Correct and audit semantic evaluator contracts
+
+### Objective
+
+Remove the four proven measurement defects while keeping the portable skill, behavior requirements, safety constraints, and other 70 cases unchanged.
+
+### Dependencies
+
+- Milestone 93 is published and its evidence is source-verifiable.
+- No model-bearing evaluator process is active.
+
+### Scope and implementation
+
+- In `fixtures/conformance-cases.json`, give `skill-reconcile-distributed-copy` the exact zero-call independent Agent Skill budget.
+- Name stable `refund-agent` and `/src/refund-policy.js` in `reconcile-material-ambiguity` so decisive implementation evidence is actor-visible.
+- Name stable `refund-agent` in `experimental-target-not-production-ready` because name resolution is not the behavior under test.
+- Clarify `routing-description-dynamic-wiring` so reporting the assessed canonical agent owner does not claim a dynamically selected description source.
+- In `tooling/semantic-evaluation/evidence.mjs`, require every case carrying independent `skillEvidence` to use the zero-call direct budget.
+- Add focused unit and conformance coverage for the invariant and all four corrected contracts.
+- Audit all 74 definitions for the same CLI-budget, actor-evidence, and expected/forbidden ambiguity patterns. Change no passing case without current proof of the same defect.
+- Leave `moldea/**`, model effort, timeout, protocols, resource ceilings, qualification behavior, and another agent's Vite/Vitest work unchanged.
+
+### Tests and verification
+
+- Run focused semantic-evidence and conformance tests, then the complete root unit and integration suites.
+- Run semantic preflight, semantic attempt verification, documentation, resource, release-identity, path, formatting, and diff checks.
+- Confirm exactly four case-definition digests changed and the portable behavior digest did not.
 - Run read-only review against a reproducible complete candidate fingerprint.
 
 ### Acceptance criteria
 
-- No actor-visible instruction reconstructs authority from either conflicting asset after the mandatory gate.
-- The comparison detects agreement or conflict before any repair target can be established.
-- The root remains exactly 2,560 words and unchanged; evaluator and resource contracts remain unchanged.
-- Deterministic checks pass, review returns `Ready to commit`, and one signed and signed-off commit is pushed explicitly to `origin/new_skill`.
+- Correct independent Agent Skill behavior can pass with zero moldea commands, and future nonzero `skillEvidence` budgets are rejected.
+- Both grounded tasks expose the exact identity or path necessary for their intended behavior.
+- Dynamic owner reporting and dynamic source selection are unambiguously distinct.
+- The audit finds no unresolved instance of the same defect classes.
+- All deterministic checks pass and one signed and signed-off commit is pushed to `origin/new_skill`.
 
 ### Review checkpoint
 
-Inspect removal of the contradiction, operation order, focused test resilience, unchanged root and evaluator contracts, and exact source identity.
+Inspect the four case digests, general zero-CLI invariant, audit evidence, unchanged portable skill, and absence of criterion weakening.
 
-## Milestone 92: Pass the conflict-detection reconciliation gate
+## Milestone 95: Record passing semantic closure
 
 ### Objective
 
-Prove the grounded reconciliation criterion once under the contradiction-free reference before official evidence.
+Produce and publish one current passing 74-case protocol-25 attempt while paying only for exact identity-invalidated work.
 
 ### Dependencies
 
-- Milestone 91 is published from a clean source boundary.
-- Free preflight validates the new identity with zero incompatible reuse.
+- Milestone 94 is published from a clean source boundary.
+- Semantic preflight verifies 70 reusable groups and identifies only the four corrected cases as paid work, or reports any independently caused identity change explicitly.
+- No evaluator process is active and filesystem byte and inode headroom is adequate.
 
 ### Scope and implementation
 
-- Remove only stale bounded diagnostic state.
-- Run `reconcile-material-ambiguity` once at xhigh.
-- Do not rerun stable targeted passes; the official suite owns their new-identity regression.
-- Resume only an exact operational or conservative-capacity stop without duplicating work.
-- If the case fails, classify the complete evidence before any edit or official run.
+- Run the official recorder against the current published source.
+- Reuse only exact identity-bound passed or recovered trials from the Milestone 93 attempt.
+- Execute the four corrected cases and only their eligible semantic confirmations when preflight confirms the expected 70-group reuse plan.
+- If concurrent Vite/Vitest work changed identity, trust the fresh preflight and classify the difference before paying for additional stages.
+- Promote and synchronize website evidence only when all 74 current cases pass directly or recover through the existing protocol.
 
 ### Tests and verification
 
-- Verify source identity, one selected case, all six result dimensions, command and byte limits, repository preservation, and no official evidence mutation.
+- Verify attempt integrity, exact stage reuse provenance, case resolutions, dimensions, resources, privacy, repository controls, pointers, website artifacts, and release gates.
+- Run affected website checks and build after passing evidence is generated.
+- Review and publish the passing attempt with signed and signed-off history.
 
 ### Acceptance criteria
 
-- The case passes all six dimensions and asks which bound claim governs before every write.
-- No diagnostic is promoted, pinned, or represented as official evidence.
+- All 74 current cases pass under one exact generation.
+- No failed, mismatched, stale, or manually substituted trial is promoted.
+- The passing attempt and public `74/74` claim are source-verifiable and published.
+- Semantic closure immediately unblocks Custom qualification.
 
 ### Review checkpoint
 
-Inspect the response, relationship evidence, dimensions, resources, repository controls, and provenance.
+Inspect paid/reused distribution, four corrected outcomes, confirmation eligibility, provenance, promotion, and public presentation.
 
-## Milestone 93: Record passing final-closure semantics
-
-### Objective
-
-Produce one complete current passing 74-case protocol-25 attempt for Core 4.0.1 and CLI 8.
-
-### Dependencies
-
-- Milestone 92 passes completely.
-- Free preflight reports a clean current identity and no invalid reuse.
-
-### Scope and implementation
-
-- Run one official four-worker xhigh collect-first attempt.
-- Preserve completed stages and reduce exact-resume concurrency to two and then one only for operational or conservative-capacity stops.
-- Collect every initial before eligible confirmations and retain each independent result dimension.
-- Preserve a failed attempt and re-plan only for a proven residual.
-- Promote and publish only a complete passing attempt; synchronize website evidence and `74/74` claims from it.
-
-### Tests and verification
-
-- Verify attempt integrity, provenance, tokens, confirmations, limits, privacy, repository controls, pointers, website generation, and release gates.
-
-### Acceptance criteria
-
-- All 74 cases pass directly or through eligible confirmations under one exact generation.
-- No failed, stale, incompatible, or mismatched stage is relabeled or promoted.
-- Review is ready and publication is signed, signed off, and pushed.
-
-### Review checkpoint
-
-Inspect distribution, confirmation eligibility, provenance, resources, resumes, promotion, and presentation.
-
-## Milestone 94: Establish fresh Custom qualification evidence
+## Milestone 96: Establish fresh Custom qualification evidence
 
 ### Objective
 
@@ -246,14 +278,14 @@ Close all 12 universal Custom journeys under the final protocol-10 xhigh contrac
 
 ### Dependencies
 
-- Milestone 93 is published with current passing semantic evidence.
+- Milestone 95 is published with current passing semantic evidence.
 - Model-free Custom preflight and dry run pass against the same identity.
 
 ### Scope and implementation
 
-- Run one four-worker collect-first Custom attempt with eligible semantic confirmations only.
+- Run one collect-first Custom attempt with at most four workers and eligible semantic confirmations only.
 - Reduce concurrency on exact capacity resume before considering measured limit changes.
-- Classify a complete failure set once and correct only proven shared causes through re-planning.
+- Classify the complete failure set once and correct only proven shared causes through autonomous re-planning.
 - Promote only a passing current attempt as the shared baseline.
 
 ### Tests and verification
@@ -262,14 +294,14 @@ Close all 12 universal Custom journeys under the final protocol-10 xhigh contrac
 
 ### Acceptance criteria
 
-- All 12 journeys pass under one exact generation and all affected release boundaries remain green.
-- Review is ready and every publication is signed, signed off, and pushed.
+- All 12 journeys pass under one exact generation and every affected release boundary remains green.
+- Review is ready and publication is signed, signed off, and pushed.
 
 ### Review checkpoint
 
-Inspect the ledger, confirmations, resources, disk use, fallback, baseline identity, and cleanup.
+Inspect the ledger, confirmations, resources, baseline identity, and cleanup.
 
-## Milestone 95: Produce and close the adapter-specific ledger
+## Milestone 97: Produce and close the adapter-specific ledger
 
 ### Objective
 
@@ -277,7 +309,7 @@ Run all 13 adapters against the exact Custom baseline, collect the complete dist
 
 ### Dependencies
 
-- Milestone 94 is published with a current passing Custom attempt.
+- Milestone 96 is published with a current passing Custom attempt.
 - Adapter preflight binds every profile to that baseline.
 
 ### Scope and implementation
@@ -285,7 +317,7 @@ Run all 13 adapters against the exact Custom baseline, collect the complete dist
 - Run profiles in batches of at most four with isolated attempts, two direct projects per profile, and the shared 12-case baseline.
 - Continue across semantic failures while operationally safe and use lower-worker exact resume for capacity stops.
 - Classify the complete distribution before changing shared skill, adapter, evaluator, fixture, probe, resource, or package behavior.
-- Re-plan from a complete ledger and rerun only failed or identity-invalidated profiles.
+- Re-plan from a complete ledger and rerun only failed or exact-identity-invalidated profiles.
 
 ### Tests and verification
 
@@ -299,9 +331,9 @@ Run all 13 adapters against the exact Custom baseline, collect the complete dist
 
 ### Review checkpoint
 
-Inspect cross-profile patterns, Custom binding, isolation, concurrency, rerun scope, provenance, counts, and legacy absence.
+Inspect cross-profile patterns, isolation, concurrency, rerun scope, provenance, counts, and legacy absence.
 
-## Milestone 96: Publish the clean skill 5.0 release
+## Milestone 98: Publish the clean skill 5.0 release
 
 ### Objective
 
@@ -309,7 +341,7 @@ Integrate and publish one clean skill 5.0 release against verified packages and 
 
 ### Dependencies
 
-- Milestones 93 through 95 are published and passing.
+- Milestones 95 through 97 are published and passing.
 - Target branches, identities, registry state, and hosted destinations are freshly resolved.
 
 ### Scope and implementation
@@ -333,7 +365,7 @@ Integrate and publish one clean skill 5.0 release against verified packages and 
 
 Inspect evidence selection, clean-slate removal, freshness, signed integration, workflow, registry, and hosted state.
 
-## Milestone 97: Complete the cross-repository launch audit
+## Milestone 99: Complete the cross-repository launch audit
 
 ### Objective
 
@@ -341,7 +373,7 @@ Prove that specifications, packages, platform, skill, fixtures, websites, and kn
 
 ### Dependencies
 
-- Milestone 96 is complete or has only explicit external publication prerequisites.
+- Milestone 98 is complete or has only explicit external publication prerequisites.
 
 ### Scope and implementation
 
@@ -353,7 +385,7 @@ Prove that specifications, packages, platform, skill, fixtures, websites, and kn
 
 ### Tests and verification
 
-- Run each repository’s focused and broader launch checks, contradiction searches, fixture checks, registry reads, hosted-page checks, and Git identity verification.
+- Run each repository's focused and broader launch checks, contradiction searches, fixture checks, registry reads, hosted-page checks, and Git identity verification.
 
 ### Acceptance criteria
 
@@ -367,4 +399,4 @@ Inspect exact tips, claims, counts, links, closure, fixture parity, hosted state
 
 ## Execution scope
 
-Preserve completed Milestones 1 through 90 and their exact evidence. Remove only the contradictory post-gate truth-reconstruction path, prove conflict detection precedes repair-target selection, verify and publish the correction, then run only the grounded reconciliation case before the official 74-case regression. After passing semantic closure, establish the 12-case Custom baseline, qualify all 13 adapters in bounded batches, publish clean skill 5.0, and complete the cross-repository launch audit. Do not weaken criteria, resource or security boundaries, preserve compatibility code, relabel evidence, duplicate paid stages, exceed four workers, modify protected instructions, or incorporate unrelated work.
+Preserve completed Milestones 1 through 92 and their exact evidence. Publish the complete failed 74-case attempt unchanged, correct only its four proven evaluator contracts, audit all 74 cases for the same defect classes, and use exact source-verified reuse so only identity-invalidated cases run again. A verified passing 74-case attempt completes semantic closure. Then establish the 12-case Custom baseline, qualify all 13 adapters in bounded batches, publish clean skill 5.0, and complete the cross-repository launch audit. Do not alter the portable skill, weaken criteria or resource and security boundaries, modify another agent's Vite/Vitest work, preserve compatibility code, relabel evidence, duplicate paid stages, exceed four workers, modify protected instructions, or incorporate unrelated work.

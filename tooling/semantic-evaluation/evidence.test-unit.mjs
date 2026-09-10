@@ -173,6 +173,31 @@ describe('semantic evaluation evidence', () => {
     );
   });
 
+  test('accepts a blocked case that needs four bounded discovery calls', () => {
+    const caseDefinition = {
+      ...createCaseDefinition('blocked-discovery-case'),
+      resourceBudget: {
+        activation: 'blocked',
+        minimumMoldeaCommands: 0,
+        maximumMoldeaCommands: 4,
+        maximumMoldeaOutputBytes: 65_536,
+      },
+    };
+
+    assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
+    assert.throws(
+      () =>
+        validateSemanticCaseDefinition({
+          ...caseDefinition,
+          resourceBudget: {
+            ...caseDefinition.resourceBudget,
+            maximumMoldeaCommands: 5,
+          },
+        }),
+      /structured scenario/u,
+    );
+  });
+
   test('hashes every distributed skill byte', () => {
     assert.match(createPortableSkillDigest(), /^[a-f0-9]{64}$/);
   });

@@ -10,6 +10,8 @@ An Agent Skill is a portable, reusable behavior contract. Before editing it, est
 
 Keep skill-owned activation and workflow in the skill. Keep repository policy, product truth, build commands, and host command contracts in their established owners, then route to them without copying. Do not claim installation, discovery, or runtime consumption merely because source files exist.
 
+Resolve every linked resource from the skill root. Use the correct relative path from `SKILL.md` to each repository-owned file, then verify that the normalized target exists and remains inside the repository.
+
 Independent Agent Skill work is artifact-owned before repository gating. When supplied artifact or host evidence establishes the skill boundary and the operation does not separately change `/moldea/**` or a declared relationship, do not run a moldea gate or CLI command. Use only the independent validator and focused behavioral evidence, including after edits; a surrounding repository manifest adds no relevant fact and does not justify an appended moldea validation result.
 
 For a read-only Agent Skill evaluation, this reference owns the operation. Do not run any moldea CLI operation or inspect or validate the surrounding moldea repository. Report structural validity only from the evaluated artifact and its linked resources.

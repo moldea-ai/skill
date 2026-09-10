@@ -15,6 +15,8 @@ Broad compression requires explicit developer intent expressed naturally through
 3. Identify the established owner of every fact, rationale, requirement, unresolved boundary, relationship, and consumer in scope.
 4. Classify apparent duplication as exact duplication, overlapping responsibility, useful controlled repetition, stale superseded wording, or consequential conflict. Similar wording is not enough to prove duplication.
 
+Use at most one content-free `inspect`, then one `content` call for each distinct in-scope context record. Use the record's exact `asset.path`; never repeat a path or request manifest content. Stop immediately when retrieved evidence establishes a consequential conflict.
+
 Do not compress implementation, tests, protected coding instructions, generated evidence, history, or unrelated documentation unless the developer explicitly includes them and another governing workflow authorizes the change. Compression may update consumers and state-bearing documentation only when canonical reorganization would otherwise leave them stale or broken.
 
 ## Preserve meaning before removing content

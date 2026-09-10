@@ -1940,7 +1940,7 @@
       "resourceBudget": {
         "activation": "blocked",
         "minimumMoldeaCommands": 0,
-        "maximumMoldeaCommands": 2,
+        "maximumMoldeaCommands": 4,
         "maximumMoldeaOutputBytes": 65536
       }
     },
@@ -2042,10 +2042,10 @@
     },
     {
       "id": "evaluate-dirty-working-tree",
-      "scenario": "Evaluate has no explicit scope and HEAD exists with staged, unstaged, untracked, renamed, and deleted paths.",
+      "scenario": "The developer names no path scope, and the host establishes staged, unstaged, untracked, renamed, and deleted paths relative to HEAD.",
       "operation": "evaluate",
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Evaluate the current uncommitted project changes.",
+        "developerDirection": "Use moldea to evaluate the current uncommitted project changes. The host-established scope contains staged /src/staged.js, unstaged /src/unstaged.js, untracked /src/untracked.js, renamed /src/renamed-before.js to /src/renamed-after.js, and deleted /src/deleted.js.",
         "repositoryEvidence": [
           {
             "claim": "HEAD exists.",
@@ -3566,7 +3566,7 @@
         },
         {
           "label": "inspect-yarn-provider-source",
-          "criterion": "The actor explains that the conflicting node_modules/.bin symlink is not an authority because the launcher resolves the validated package-owned executable directly."
+          "criterion": "The actor identifies the conflicting node_modules/.bin/moldea provider and states that it does not override the launcher-verified repository-contained @moldea.ai/cli executable closure."
         },
         {
           "label": "distinguish-declared-cli-from-effective-provider",

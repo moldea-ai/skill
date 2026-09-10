@@ -349,13 +349,15 @@ describe('portable skill contract', () => {
     assert.match(skill, /must not open, read, search for, or edit `\/moldea\/\*\*`/u);
     assert.match(skill, /acknowledge it without inventing persistence/u);
     assert.match(skill, /never follow it with `inspect`/u);
-    assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
+    assert.match(skill, /Scope consumes one of four ordinary commands/u);
     assert.match(skill, /complete candidate inventory/u);
-    assert.match(skill, /prefer an exact match over an overlapping broad glob/u);
-    assert.match(skill, /Request only implicated assets, not every asset/u);
-    assert.match(skill, /leaving at most three calls/u);
+    assert.match(skill, /preferring an exact match over an overlapping broad glob/u);
+    assert.match(skill, /context record's exact `asset\.path`/u);
+    assert.match(skill, /`\/moldea\/agents\/<agentId>\/instruction\.md`/u);
+    assert.match(skill, /request only implicated assets/u);
+    assert.match(skill, /leaving three for selected `content`/u);
     assert.match(skill, /Only route 5 may use a fifth call/u);
-    assert.match(skill, /Never use it for inspection or an unchanged retry/u);
+    assert.match(skill, /never for inspection or an unchanged retry/u);
     assert.match(skill, /direct request supplies intent, not a canonical owner/u);
     assert.match(skill, /Direct canonical agent or runtime work/u);
     assert.match(skill, /create, maintain, change, or reconcile canonical agent or runtime facts/u);
@@ -390,7 +392,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /existing independent inline instruction is migration input/u);
     assert.match(skill, /direct request to prove, invoke, inspect, or explain/u);
     assert.match(skill, /before inspecting providers or concluding/u);
-    assert.match(skill, /Reserve validation until writes finish/u);
+    assert.match(skill, /Validate only after writes/u);
     assert.match(skill, /to validate a repair after its first post-write validation/u);
     assert.match(skill, /use one content-free `inspect`/u);
     assert.match(skill, /Request named-agent `content` only when semantics matter/u);
@@ -578,6 +580,11 @@ describe('portable skill contract', () => {
       'utf8',
     );
     assert.match(compression, /compression is blocked pending the answer/u);
+    assert.match(compression, /at most one content-free `inspect`/u);
+    assert.match(compression, /one `content` call for each distinct in-scope context record/u);
+    assert.match(compression, /record's exact `asset\.path`/u);
+    assert.match(compression, /never repeat a path or request manifest content/u);
+    assert.match(compression, /Stop immediately.*consequential conflict/u);
     const evaluation = readFileSync(
       join(SKILL_ROOT, 'references', 'evaluate-and-reconcile.md'),
       'utf8',
@@ -814,6 +821,37 @@ describe('activation and semantic protection', () => {
     assert.match(
       relationshipCase.forbidden[0].criterion,
       /runs Git solely to discover gate paths/u,
+    );
+  });
+
+  test('keeps corrected semantic cases grounded and realistically bounded', () => {
+    const compressionCase = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'compress-conflicting-project-context',
+    );
+    const dirtyTreeCase = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'evaluate-dirty-working-tree',
+    );
+    const yarnCase = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'yarn-conflicting-cli-provider',
+    );
+
+    assert.equal(compressionCase.resourceBudget.maximumMoldeaCommands, 4);
+    assert.match(dirtyTreeCase.scenario, /developer names no path scope/u);
+    assert.match(dirtyTreeCase.scenario, /host establishes staged, unstaged, untracked/u);
+    assert.match(dirtyTreeCase.input.developerDirection, /host-established scope/u);
+    for (const path of [
+      '/src/staged.js',
+      '/src/unstaged.js',
+      '/src/untracked.js',
+      '/src/renamed-before.js',
+      '/src/renamed-after.js',
+      '/src/deleted.js',
+    ]) {
+      assert.match(dirtyTreeCase.input.developerDirection, new RegExp(path.replace('.', '\\.'), 'u'));
+    }
+    assert.match(
+      yarnCase.expected.find(({ label }) => label === 'inspect-yarn-provider-source').criterion,
+      /does not override the launcher-verified repository-contained/u,
     );
   });
 

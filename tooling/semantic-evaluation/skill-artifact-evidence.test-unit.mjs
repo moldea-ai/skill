@@ -90,4 +90,40 @@ describe('semantic skill artifact evidence', () => {
       await rm(repositoryPath, { force: true, recursive: true });
     }
   });
+
+  test('resolves repository resources from a nested skill root', async () => {
+    const repositoryPath = await mkdtemp(join(tmpdir(), 'moldea-skill-evidence-'));
+    try {
+      await mkdir(join(repositoryPath, 'skills', 'release-review'), { recursive: true });
+      await mkdir(join(repositoryPath, 'docs'), { recursive: true });
+      await mkdir(join(repositoryPath, 'scripts'), { recursive: true });
+      await writeFile(
+        join(repositoryPath, 'skills', 'release-review', 'SKILL.md'),
+        '---\nname: release-review\ndescription: Reviews repository releases.\n---\n\nRead [policy](../../docs/release-policy.md) and inspect `../../scripts/verify-release.mjs`.\n',
+      );
+      await writeFile(join(repositoryPath, 'docs', 'release-policy.md'), 'Policy.\n');
+      await writeFile(join(repositoryPath, 'scripts', 'verify-release.mjs'), 'export {};\n');
+
+      const caseDefinition = createCaseDefinition('skills/release-review');
+      const evidence = await collectSkillArtifactEvidence(repositoryPath, caseDefinition);
+
+      assert.deepEqual(evidence[0].resourceReferences, [
+        {
+          isSafe: true,
+          reference: '../../docs/release-policy.md',
+          resolvedPath: 'docs/release-policy.md',
+          type: 'file',
+        },
+        {
+          isSafe: true,
+          reference: '../../scripts/verify-release.mjs',
+          resolvedPath: 'scripts/verify-release.mjs',
+          type: 'file',
+        },
+      ]);
+      assert.equal(hasValidSkillArtifactEvidence(evidence, caseDefinition), true);
+    } finally {
+      await rm(repositoryPath, { force: true, recursive: true });
+    }
+  });
 });

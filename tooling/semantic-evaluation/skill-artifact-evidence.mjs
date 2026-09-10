@@ -171,6 +171,8 @@ export const validateSkillDocument = (content, directoryName) => {
 const extractSkillResourceReferences = (content) => {
   const markdownReferences = new Set();
   const references = new Set();
+  const createReferenceIdentity = (reference) =>
+    reference.replace(/^\//u, '').replace(/^(?:\.\.\/)+/u, '');
   const markdownPattern =
     /\]\(((?:(?:\.\.)?\/)*\/?(?:assets|docs|references|scripts)\/[A-Za-z0-9._/-]+)\)/gu;
   for (const match of content.matchAll(markdownPattern)) {
@@ -178,15 +180,13 @@ const extractSkillResourceReferences = (content) => {
     references.add(match[1]);
   }
   const linkedResourceIdentities = new Set(
-    [...markdownReferences].map((reference) =>
-      reference.replace(/^\//u, '').replace(/^(?:\.\.\/)+/u, ''),
-    ),
+    [...markdownReferences].map(createReferenceIdentity),
   );
   for (const match of content.matchAll(
-    /`(\/?(?:assets|docs|references|scripts)\/[A-Za-z0-9._/-]+)`/gu,
+    /`(((?:(?:\.\.)?\/)*\/?(?:assets|docs|references|scripts)\/[A-Za-z0-9._/-]+))`/gu,
   )) {
     const reference = match[1];
-    if (!linkedResourceIdentities.has(reference.replace(/^\//u, ''))) references.add(reference);
+    if (!linkedResourceIdentities.has(createReferenceIdentity(reference))) references.add(reference);
   }
   return [...references].sort((left, right) => left.localeCompare(right, 'en'));
 };

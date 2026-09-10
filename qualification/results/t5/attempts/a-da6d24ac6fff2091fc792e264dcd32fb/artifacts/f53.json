@@ -1,0 +1,9 @@
+{
+  "outcome": "completed",
+  "summary": "moldea maintains project context and systems without owning the work. An adopted project keeps its canonical state under `/moldea/` in its repository.",
+  "changedFiles": [],
+  "observations": [
+    "Only the runner-mounted, read-only moldea guidance was consulted; the repository was not inspected or changed."
+  ],
+  "unresolved": []
+}

@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace and Git patch satisfy both declared requirements, and the runner-owned validation and workspace assertions agree. This read-only evaluation changed no repository files.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "`moldea/project.md` describes invoice-line review, findings returned to a human finance operator, and the boundary that the service never authorizes or sends payment. It accurately grounds deterministic duplicate-reference detection in `src/invoice-review.ts` and explicitly avoids asserting unsupported arithmetic-mismatch behavior. The README independently states the same project purpose and non-authorizing boundary."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The canonical tree contains only `moldea/moldea.yaml` and `moldea/project.md`; the manifest is exactly `version: 1` plus a trailing LF and declares no agents, runtimes, relationships, decisions, or requirements. Git status/diff and workspace assertions show only those two canonical files and the README awareness block were added or changed, while the original README content was preserved."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "blocked",
+        "completed"
+      ],
+      "description": "Whether the project task was completed or could not be completed."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A concise evidence-based account of the work and outcome."
+    },
+    "changedFiles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Repository-relative project files intentionally changed by the task."
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Material observations established from repository evidence."
+    },
+    "unresolved": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Remaining blockers or uncertainties that were not invented away."
+    }
+  },
+  "required": [
+    "outcome",
+    "summary",
+    "changedFiles",
+    "observations",
+    "unresolved"
+  ],
+  "additionalProperties": false
+}

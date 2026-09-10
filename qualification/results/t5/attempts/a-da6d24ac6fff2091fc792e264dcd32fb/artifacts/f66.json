@@ -1,0 +1,80 @@
+{
+  "caseId": "create-grounded-agent",
+  "title": "Create a grounded agent",
+  "status": "failed",
+  "confirmationStatus": "not-applicable",
+  "durationMs": 317834,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": false,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": false,
+        "operational": true
+      },
+      "failureClassifications": [
+        "semantic",
+        "mountIntegrity"
+      ],
+      "passed": false,
+      "durationMs": 317834,
+      "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+      "judgeStatus": "skipped",
+      "judgeOutputPath": null,
+      "judgeSkippedPath": "cases/create-grounded-agent/trials/initial/judge-skipped.json",
+      "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 514777,
+        "cachedInputTokens": 481024,
+        "outputTokens": 10169
+      },
+      "judgeUsage": null,
+      "actorEvidenceCreatedAt": "2026-09-10T22:13:25.933Z",
+      "judgeEvidenceCreatedAt": null,
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-behavior",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "binds-implementation",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "defines-runtime-guidance",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": [
+        "Changes escaped the declared allowlist: test/order-triage-agent.test.mjs."
+      ]
+    }
+  ],
+  "failures": [
+    "Changes escaped the declared allowlist: test/order-triage-agent.test.mjs."
+  ],
+  "reuse": null
+}

@@ -1,0 +1,71 @@
+{
+  "caseId": "activate-declared-relationship",
+  "title": "Activate a declared relationship",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 246744,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 246744,
+      "deterministicBeforePath": "cases/activate-declared-relationship/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/activate-declared-relationship/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/activate-declared-relationship/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/activate-declared-relationship/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/activate-declared-relationship/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/activate-declared-relationship/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 212150,
+        "cachedInputTokens": 187904,
+        "outputTokens": 3629
+      },
+      "judgeUsage": {
+        "inputTokens": 184233,
+        "cachedInputTokens": 145024,
+        "outputTokens": 2403
+      },
+      "actorEvidenceCreatedAt": "2026-09-10T22:22:46.572Z",
+      "judgeEvidenceCreatedAt": "2026-09-10T22:24:29.255Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "identifies-owning-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current moldea/moldea.yaml contains one context entry, /moldea/project.md, whose affectedBy list contains /src/project-state.ts. The actor reported that exact canonical owner, and deterministic-after confirms valid scope/inspection with an unchanged repository."
+        },
+        {
+          "id": "uses-bounded-moldea-evidence",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Runner-owned actor-command-policy records exactly 2 moldea CLI calls, within the required 1–4 range. The actor report identifies only /moldea/project.md and the reviewed src/project-state.ts behavior, without enumerating unrelated canonical content."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

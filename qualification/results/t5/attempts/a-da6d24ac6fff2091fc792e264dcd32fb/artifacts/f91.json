@@ -1,0 +1,60 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 282561,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 182453,
+    "cachedInputTokens": 155392,
+    "outputTokens": 5667
+  },
+  "judgeUsage": {
+    "inputTokens": 209490,
+    "cachedInputTokens": 182528,
+    "outputTokens": 2976
+  },
+  "actorEvidenceCreatedAt": "2026-09-10T22:11:07.846Z",
+  "judgeEvidenceCreatedAt": "2026-09-10T22:12:52.186Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-alignment",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies `support`, runtime `custom`, guidance `/moldea/runtimes/custom.md`, and runtime binding `/src/support-agent.ts` symbol `supportAgent`. `moldea/moldea.yaml` confirms all four facts; the guidance identifies the exported record and its identifier/channel constraint; `src/support-agent.ts` exports `supportAgent` with ID `support` and channel `email`. Deterministic evidence reports valid CLI validation/inspection, passing typecheck, and an unchanged repository; before/after hashes match. The approved Git status and scoped diff are empty."
+    },
+    {
+      "id": "avoids-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

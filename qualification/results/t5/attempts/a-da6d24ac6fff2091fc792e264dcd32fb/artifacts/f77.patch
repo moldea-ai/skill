@@ -1,0 +1,95 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index a5ba2f9..d52e14e 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -4,3 +4,23 @@ context:
+   /moldea/project.md:
+     affectedBy:
+       - /src/**
++
++agents:
++  order-triage:
++    runtime:
++      id: custom
++      guidance: /moldea/runtimes/custom.md
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: createOrderTriageAgent
++    affectedBy:
++      - /src/order-triage-agent.ts
++    unresolved:
++      runtime-wiring:
++        category: runtime-integration
++        effect: blocking
++        description: The repository defines the custom-runtime factory contract, but it does not contain the runtime bootstrap that invokes the factory or implements its injected canonical-instruction loader.
++        resolution: Identify or add the runtime bootstrap and a focused integration test proving that it invokes createOrderTriageAgent with a loader that resolves /moldea/agents/order-triage/instruction.md.
++        related:
++          - path: /src/order-triage-agent.ts
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..990c058
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review without approving refunds or performing financial mutations.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..1c226a8
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,5 @@
++# Order triage
++
++You are `order-triage`, the agent that classifies orders for human review.
++
++Classify orders for a human reviewer. Do not approve refunds or perform financial mutations. Keep refund decisions with the human reviewer, and never present a classification as approval.
+
+diff --git a/moldea/runtimes/custom.md b/moldea/runtimes/custom.md
+new file mode 100644
+index 0000000..330f0c3
+--- /dev/null
++++ b/moldea/runtimes/custom.md
+@@ -0,0 +1,5 @@
++# Custom runtime
++
++The project exposes `createOrderTriageAgent` as an asynchronous custom-runtime factory in `/src/order-triage-agent.ts`. The runtime supplies a canonical-instruction loader; the factory requests `/moldea/agents/order-triage/instruction.md`, awaits its content, and assigns that content to the agent's `instruction` field.
++
++The factory fixes the agent ID as `order-triage`, the action as `classify-for-human-review`, and `canApproveRefunds` as `false`. The injected loader's implementation and deployment wiring are outside this repository and are not established here.
+
+diff --git a/test/order-triage-agent.test.mjs b/test/order-triage-agent.test.mjs
+new file mode 100644
+index 0000000..67e896f
+--- /dev/null
++++ b/test/order-triage-agent.test.mjs
+@@ -0,0 +1,28 @@
++import assert from 'node:assert/strict';
++import { readFile } from 'node:fs/promises';
++import test from 'node:test';
++
++import { createOrderTriageAgent } from '../src/order-triage-agent.ts';
++
++test('creates the order-triage agent from its canonical instruction', async () => {
++  const requestedPaths = [];
++  const canonicalInstruction = await readFile(
++    new URL('../moldea/agents/order-triage/instruction.md', import.meta.url),
++    'utf8',
++  );
++
++  const agent = await createOrderTriageAgent(async (instructionPath) => {
++    requestedPaths.push(instructionPath);
++    return canonicalInstruction;
++  });
++
++  assert.deepEqual(requestedPaths, [
++    '/moldea/agents/order-triage/instruction.md',
++  ]);
++  assert.deepEqual(agent, {
++    id: 'order-triage',
++    instruction: canonicalInstruction,
++    canApproveRefunds: false,
++    action: 'classify-for-human-review',
++  });
++});

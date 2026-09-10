@@ -1,0 +1,21 @@
+{
+  "outcome": "completed",
+  "summary": "Added the order-triage moldea agent using the custom runtime, grounded canonical guidance in the implemented human-review classification behavior, bound the real factory and affected source path, and added focused coverage. Final moldea validation, TypeScript compilation, and the focused test all passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/custom.md",
+    "test/order-triage-agent.test.mjs"
+  ],
+  "observations": [
+    "The agent binds `/src/order-triage-agent.ts` and `createOrderTriageAgent`.",
+    "The instruction explicitly prohibits refund approval and financial mutations.",
+    "The existing `/moldea/project.md` owner was reconsidered and remains accurate without modification.",
+    "moldea validation returned valid with zero diagnostics; TypeScript passed; the focused Node test passed 1/1.",
+    "The final Git status and authorized diff were inspected; unrelated files were unchanged."
+  ],
+  "unresolved": [
+    "The production runtime bootstrap and injected canonical-instruction loader implementation are not present in this repository. This is recorded as a blocking `runtime-wiring` requirement with resolution criteria."
+  ]
+}

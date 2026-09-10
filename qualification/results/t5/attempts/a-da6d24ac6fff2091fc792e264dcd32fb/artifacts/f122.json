@@ -1,0 +1,77 @@
+{
+  "caseId": "reconcile-drift-and-boundaries",
+  "title": "Reconcile drift and boundaries",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 450322,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 450322,
+      "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 512855,
+        "cachedInputTokens": 457472,
+        "outputTokens": 11862
+      },
+      "judgeUsage": {
+        "inputTokens": 226647,
+        "cachedInputTokens": 183168,
+        "outputTokens": 3408
+      },
+      "actorEvidenceCreatedAt": "2026-09-10T22:18:31.098Z",
+      "judgeEvidenceCreatedAt": "2026-09-10T22:20:22.509Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "repairs-binding",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts with symbol supportAssistant, matching the existing export in src/support-assistant.ts. src/support-agent.ts is absent, Git status records its deletion, and the diff replaces the obsolete /src/support-agent.ts/supportAgent reference without recreating it. The workspace patch changed only moldea/moldea.yaml, while deterministic validation and typechecking passed."
+        },
+        {
+          "id": "records-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Under agents.support.unresolved, moldea/moldea.yaml records dynamic-tool-registration as effect: warning, relates /src/dynamic-tools.ts, and prescribes an integration test exercising createToolRegistry and proving registration with supportAssistant before adding any relationship. The only declared binding is runtimeAgent; no tool binding was invented. The scoped diff adds exactly this warning, and deterministic validation passed with zero reported failures."
+        },
+        {
+          "id": "preserves-source",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

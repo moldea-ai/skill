@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The moldea `support` setup is structurally valid and agrees with the available source evidence, so no files were edited. moldea validation passed with zero diagnostics, strict TypeScript compilation passed, and the final approved Git status and scoped diff were empty.",
+  "changedFiles": [],
+  "observations": [
+    "`moldea/moldea.yaml` declares runtime `custom`, guidance `/moldea/runtimes/custom.md`, and binds `/src/support-agent.ts` symbol `supportAgent`.",
+    "`src/support-agent.ts` exports `supportAgent` with ID `support` and channel `email`, matching the binding, runtime guidance, description, and canonical instruction.",
+    "The runtime guidance accurately identifies the exported record as the runtime-owned definition and covers its project-specific identifier/channel constraint.",
+    "moldea CLI 8.0.0/schema 4 validated format version 1 with `valid: true` and zero diagnostics.",
+    "`node node_modules/typescript/bin/tsc --noEmit --project tsconfig.json` exited successfully.",
+    "No tests or package test script exist in the repository."
+  ],
+  "unresolved": [
+    "The repository contains no evidenced model invocation or canonical-instruction loader, so static evidence cannot prove that `/moldea/agents/support/instruction.md` reaches an active runtime. This is an evidence limitation, not a demonstrated contradiction in the reviewed setup."
+  ]
+}

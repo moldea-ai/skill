@@ -1,0 +1,65 @@
+{
+  "caseId": "abstain-initialized-unrelated-work",
+  "title": "Abstain from initialized unrelated work",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 224003,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 224003,
+      "deterministicBeforePath": "cases/abstain-initialized-unrelated-work/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/abstain-initialized-unrelated-work/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/abstain-initialized-unrelated-work/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/abstain-initialized-unrelated-work/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/abstain-initialized-unrelated-work/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/abstain-initialized-unrelated-work/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 182421,
+        "cachedInputTokens": 168448,
+        "outputTokens": 5055
+      },
+      "judgeUsage": {
+        "inputTokens": 89607,
+        "cachedInputTokens": 76800,
+        "outputTokens": 2277
+      },
+      "actorEvidenceCreatedAt": "2026-09-10T22:22:52.306Z",
+      "judgeEvidenceCreatedAt": "2026-09-10T22:24:06.514Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "abstains-after-cheap-gate",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor-output contains actionable operations-note findings but no moldea mention or skill-reference content. The actor-command-policy reports moldeaCommandCount: 0 and moldeaOutputByteCount: 0."
+        },
+        {
+          "id": "preserves-valid-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

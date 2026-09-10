@@ -303,6 +303,10 @@ describe('portable skill contract', () => {
     assert.doesNotMatch(frontmatter.description, /potentially durable knowledge|Use first/iu);
     const skill = readSkill();
     assert.match(skill, /Before responding, scan for violations/u);
+    assert.match(skill, /Canonical ownership locates settled truth/u);
+    assert.match(skill, /does not resolve mutually exclusive behavioral claims/u);
+    assert.match(skill, /explicit developer direction or independent evidence/u);
+    assert.match(skill, /ask one focused authority question before every semantic write/u);
     assert.match(skill, /including actionable reviews/u);
     assert.match(skill, /never substitute a neutral no-change response/u);
     assert.match(skill, /When abstention consumes the request and no host work remains/u);
@@ -369,7 +373,6 @@ describe('portable skill contract', () => {
       /For reconciliation, inspect only task-named implementation evidence.*then at most one named-owner `content`/su,
     );
     assert.match(skill, /never CLI `inspect`/u);
-    assert.match(skill, /Consequential conflict stops further moldea calls and writes/u);
     assert.match(skill, /otherwise use content-free `inspect` to resolve the owner and mirrors/u);
     assert.match(skill, /Write owner first, derive mirrors/u);
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
@@ -474,9 +477,9 @@ describe('portable skill contract', () => {
     );
     assert.match(skill, /compare the final state and diff with that list/u);
     assert.match(skill, /record each remaining unresolved fact under its exact canonical owner/u);
-    assert.match(skill, /Do not choose code, canonical prose, tests, or the newest asset/u);
-    assert.match(skill, /ask one focused question that resolves the authority/u);
-    assert.match(skill, /state that the selected operation is blocked pending the answer/u);
+    assert.match(skill, /canonical status and recency resolve nothing/u);
+    assert.match(skill, /ask one focused authority question before every semantic write/u);
+    assert.match(skill, /state both claims/u);
     assert.match(skill, /evaluation stopped before worktree-aware Git/u);
     assert.match(skill, /name `.gitattributes` and the declared filter/u);
     assert.match(
@@ -627,6 +630,9 @@ describe('portable skill contract', () => {
     assert.ok(progressiveEvaluationIndex > reconciliationIndex);
     assert.match(evaluation, /Select exactly one operation before gathering evidence/u);
     assert.match(evaluation, /Do not apply canonical-first evaluation instructions/u);
+    assert.match(evaluation, /Canonical ownership locates settled truth/u);
+    assert.match(evaluation, /does not resolve mutually exclusive behavioral claims/u);
+    assert.match(evaluation, /neither permitted resolver selects a claim/u);
     assert.match(
       evaluation,
       /Canonical content alone cannot establish that a requested reconciliation is aligned, complete, or unchanged/u,
@@ -660,7 +666,7 @@ describe('portable skill contract', () => {
     assert.match(evaluation, /at most one canonical `content` call total/u);
     assert.match(evaluation, /Do not read project context, a second canonical owner/u);
     assert.match(evaluation, /state that reconciliation is blocked pending the answer/u);
-    assert.match(skill, /Consequential conflict stops further moldea calls and writes/u);
+    assert.match(skill, /does not resolve mutually exclusive behavioral claims/u);
     const agentDesign = readFileSync(join(SKILL_ROOT, 'references', 'agent-design.md'), 'utf8');
     assert.match(agentDesign, /complete the coherent implementation/u);
     assert.match(agentDesign, /remove the independently maintained inline policy/u);

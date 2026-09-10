@@ -20,6 +20,7 @@
     "eval:semantic:verify": "node --experimental-strip-types tests/semantic-evaluation-runner.mjs --verify-attempts",
     "qualification": "npm --prefix qualification run qualification --",
     "qualification:dry-run": "npm --prefix qualification run qualification -- run --adapter custom --implementation custom --dry-run --json",
+    "qualification:dry-run:all": "npm run qualification:dry-run && npm --prefix qualification run qualification -- run-batch --all --dry-run --workers 4 --json",
     "qualification:format:check": "npm --prefix qualification run format:check",
     "qualification:lint": "npm --prefix qualification run lint",
     "qualification:list": "npm --prefix qualification run qualification -- list",

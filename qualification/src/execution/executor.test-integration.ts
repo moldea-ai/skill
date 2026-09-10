@@ -250,6 +250,7 @@ describe('qualification execution', () => {
       isDryRun: true,
       resultsRoot,
       signal: abortController.signal,
+      workerCount: 1,
     });
     temporaryAttemptDirectory = interruptedOutcome.attemptDirectory;
     const attemptBackup = path.join(temporaryRoot, 'attempt-backup');
@@ -410,6 +411,7 @@ describe('qualification execution', () => {
         },
       },
       resultsRoot,
+      workerCount: 1,
       signal: abortController.signal,
     });
     temporaryAttemptDirectory = interruptedOutcome.attemptDirectory;
@@ -469,6 +471,7 @@ describe('qualification execution', () => {
         wait: () => Promise.resolve(),
       },
       resultsRoot,
+      workerCount: 1,
     });
     const resumedActorStage = resumedOutcome.result.stages.find(({ id }) => id === actorStageId);
 
@@ -540,6 +543,7 @@ describe('qualification execution', () => {
         wait: () => Promise.resolve(),
       },
       resultsRoot,
+      workerCount: 1,
     });
     temporaryAttemptDirectory = stoppedOutcome.attemptDirectory;
     const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
@@ -561,6 +565,7 @@ describe('qualification execution', () => {
         host: new FakeCodexHost(),
         resumeAttemptId: stoppedOutcome.result.attemptId,
         resultsRoot,
+        workerCount: 1,
       }),
     ).rejects.toThrow('resume requires --resume-stopped-stage');
 
@@ -569,6 +574,7 @@ describe('qualification execution', () => {
       resumeAttemptId: stoppedOutcome.result.attemptId,
       resumeStoppedStage: true,
       resultsRoot,
+      workerCount: 1,
     });
 
     expect(resumedOutcome.result.status).toBe('passed');
@@ -592,6 +598,7 @@ describe('qualification execution', () => {
         wait: () => Promise.reject(new Error('Explicit resume cannot schedule a new retry.')),
       },
       resultsRoot,
+      workerCount: 1,
     });
 
     expect(restoppedOutcome.result.status).toBe('incomplete');
@@ -611,6 +618,7 @@ describe('qualification execution', () => {
         resumeAttemptId: stoppedOutcome.result.attemptId,
         resumeStoppedStage: true,
         resultsRoot,
+        workerCount: 1,
       }),
     ).rejects.toThrow('already used its one explicit resume');
   }, 120_000);
@@ -687,6 +695,7 @@ describe('qualification execution', () => {
       },
       resultsRoot,
       signal: abortController.signal,
+      workerCount: 1,
     });
     temporaryAttemptDirectory = interruptedOutcome.attemptDirectory;
 

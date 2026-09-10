@@ -121,10 +121,18 @@ npm run qualification -- status --all --cursor <opaque-cursor>
 Run Custom first:
 
 ```bash
-npm run qualification -- run --adapter custom --implementation custom
+npm run qualification -- run --adapter custom --implementation custom --workers 4
 ```
 
-Run or diagnose an adapter:
+Run all adapter profiles, an explicit logical target set, or only unresolved profiles from a completed batch:
+
+```bash
+npm run qualification -- run-batch --all --workers 4
+npm run qualification -- run-batch --targets anthropic/typescript-messages-api-0-117,openai/typescript-responses-api-7 --workers 4
+npm run qualification -- run-batch --unresolved-from <batch-id> --workers 4
+```
+
+Run or diagnose one adapter:
 
 ```bash
 npm run qualification -- run --adapter anthropic --implementation typescript-messages-api-0-117
@@ -140,9 +148,9 @@ npm run qualification -- diagnose-batch --adapter anthropic --implementation typ
 npm run qualification -- diagnose-batch --adapter custom --implementation custom --unresolved-from <attempt-id>
 ```
 
-Re-running the exact command resumes its current batch. Use `--restart` to discard only that exact matching diagnostic state. If one model stage exhausts its automatic retry, use `--resume-stopped-stage` to authorize its single additional attempt.
+`run`, `run-batch`, and `diagnose-batch` accept `--workers 1`, `--workers 2`, or `--workers 4` and default to four. Re-running the exact command resumes its current batch even when the worker count changes. Use `--restart` to discard only that exact matching batch state. If one model stage exhausts its automatic retry, use `--resume-stopped-stage` to authorize its single additional attempt.
 
-For a correction sweep, use `diagnose-batch` to collect the complete selected failure set before editing behavior. After one consolidated correction, diagnose only the unresolved cases, then create one official evidence-producing run. Across adapter profiles, continue sequentially after semantic failures while the host remains operationally safe. Keep one model-bearing process active at a time unless measured host, provider, memory, disk, quota, and token capacity supports a source-controlled concurrency limit.
+For a correction sweep, use `diagnose-batch` to collect the complete selected failure set before editing behavior. After one consolidated correction, diagnose only the unresolved cases, then create one official evidence-producing run. After Custom passes, `run-batch` continues across adapter semantic failures while the host remains operationally safe and collects one ordered profile ledger before correction. Each adapter retains an isolated attempt, result root, checkpoint, and 32,000,000-token candidate stop-loss.
 
 Resume or retry:
 
@@ -160,19 +168,20 @@ npm run qualification -- verify
 
 Use `--json` for machine-readable output. `status` returns only content-free attempt and latest-result metadata. Its default scope contains unrecorded incomplete attempts, unavailable checkpoint summaries, and committed latest pointers; `--all` selects complete local history. Each page contains at most 64 records and 65,536 UTF-8 bytes. Continue with the returned opaque cursor and the same scope options. A cursor is bound to the exact summary snapshot and is rejected after the selected status state changes. Complete checkpoints, candidates, package manifests, stages, prompts, workspace paths, commands, model output, and repository content are never included.
 
-Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in bounded attempt storage for explicit inspection. Terminal attempts remove disposable workspaces, installed runtime trees, snapshots, and attempt-local package stores. Interrupted attempts preserve internal snapshots only while they remain eligible for explicit resume. Paid `run`, `diagnose`, `diagnose-batch`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first direct model call. Exact evidence reuse and the model-free dry run require no paid confirmation.
+Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in bounded attempt storage for explicit inspection. Terminal attempts remove disposable workspaces, installed runtime trees, snapshots, and attempt-local package stores. Interrupted attempts preserve internal snapshots only while they remain eligible for explicit resume. Paid `run`, `run-batch`, `diagnose`, `diagnose-batch`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first direct model call. One concurrent batch presents one aggregate approval boundary rather than one prompt per worker. Exact evidence reuse and model-free dry runs require no paid confirmation.
 
 Actor and judge prompts provide the exact bounded Git status and path-scoped diff forms accepted by the isolated host. Evaluation agents must use those forms instead of probing evaluator-owned wrappers or home paths.
 
-Immediately before paid execution, the CLI reports direct and reused cases, planned calls, the maximum calls including one bounded operational retry per stage, the 2,097,152-token stage ceiling, prior candidate consumption, and the 32,000,000-token candidate stop-loss. The per-stage ceiling contains a complete tool-using Codex stage and is not a consumption target. It retains more than 25 percent headroom above the observed 1,264,666-token qualification stage that invalidated the earlier ceiling. Token totals count input plus output while reporting provider-cached input separately without adding it twice. The candidate boundary accepts an exact fit and refuses the next stage before one full reservation would exceed it.
+Immediately before paid execution, the CLI reports the candidate count, direct and reused cases, planned calls, maximum calls including one bounded operational retry per stage, the 2,097,152-token stage ceiling, prior candidate consumption, and the total candidate-token ceiling. One profile has a 32,000,000-token stop-loss; an adapter batch reports the sum of those independent per-profile ceilings without turning it into a shared allowance. The per-stage ceiling contains a complete tool-using Codex stage and is not a consumption target. It retains more than 25 percent headroom above the observed 1,264,666-token qualification stage that invalidated the earlier ceiling. Token totals count input plus output while reporting provider-cached input separately without adding it twice. Each candidate boundary accepts an exact fit and refuses the next stage before one full reservation would exceed it.
 
 ## Model-free dry run
 
 ```bash
 npm run qualification:dry-run
+npm run qualification:dry-run:all
 ```
 
-The dry run constructs the exact candidate, prepares every Custom project, applies transparent expected state, and executes runner-owned validation. It does not call an actor or judge, publish evidence, or satisfy a release gate.
+The first command validates Custom. The second validates Custom and the complete 13-adapter schedule with four isolated workers. Dry runs construct exact candidates, prepare every selected project, apply transparent expected state, and execute runner-owned validation. They do not call an actor or judge, publish evidence, or satisfy a release gate.
 
 ## Checkpoints and exact evidence reuse
 
@@ -182,7 +191,11 @@ Every checkpoint write also replaces an 8,192-byte-bounded local status sidecar.
 
 The runner has no free-floating model-output cache. Model stages always execute directly unless the official runner materializes a complete eligible case group from one verified committed failed attempt. The reused case retains its source attempt, source commit, source attempt digest, stage identities, trial results, and artifacts. Independent result verification reloads that direct source and rejects identity drift, chained reuse, missing files, or changed bytes.
 
-`diagnose-batch` runs one selected case at a time without confirmations or evidence reuse. It keeps one private checkpoint and one separate content-free completed ledger under `.runtime-qualification/diagnostic-batch/`; each file is limited to 1 MiB and replaced atomically. The ledger retains only case status, requirement IDs, deterministic explanation, duration, model and token totals, operational-failure count, and attempt identity. It never retains prompts, model rationale, commands, output bodies, repository content, or workspace paths. Final JSON output is limited to 16 KiB. Successful completion deletes the private checkpoint, terminal diagnostic attempts are deleted after projection, and official results and pointers are never changed.
+`diagnose-batch` gives each selected case one private attempt and runs up to four initials concurrently without confirmations or evidence reuse. The coordinator alone replaces its content-free checkpoint and completed ledger under `.runtime-qualification/diagnostic-batch/`. Each aggregate file and each private attempt checkpoint is limited to 1 MiB, with a 6 MiB four-worker metadata ceiling. The ledger retains only case status, requirement IDs, deterministic explanation, duration, model and token totals, operational-failure count, and attempt identity. It never retains prompts, model rationale, commands, output bodies, repository content, or workspace paths. Final JSON output is limited to 16 KiB. Successful completion deletes the aggregate checkpoint and terminal diagnostic attempts after projection; official results and pointers are never changed.
+
+`run-batch` gives every selected adapter one fixed private attempt and result root, runs up to four profiles concurrently only after an exact passing Custom baseline is established, and commits terminal summaries in profile-index order. Its aggregate checkpoint, active ledger, and retained completed ledger are each limited to 1 MiB, summaries to 4 KiB, and final JSON to 16 KiB. A semantic failure does not stop safe sibling work. An operational or capacity failure stops new dispatch, drains active siblings, and preserves completed attempts for exact resume. `--unresolved-from <batch-id>` selects only profiles that did not pass in that completed ledger.
+
+Before dispatch, both batch coordinators reserve 2 GiB of temporary storage per worker, no more than 8 GiB for four workers, while preserving a 2 GiB free-space floor. The per-worker ceiling includes independent candidate snapshots and installed dependency workspaces; a measured healthy Claude Agent SDK dry-run worker used about 1.25 GiB. The guard measures complete worker roots before and after each model stage and uses constant-cost free-space checks while a stage is active, avoiding repeated recursive scans of large dependency trees. Crossing the per-worker or aggregate boundary stops new work and retains resumable state instead of allowing uncontrolled disk growth.
 
 Each model stage has a finite fifteen-minute timeout so role-specific reasoning can complete without treating an ordinary long response as an operational failure. Operational provider, proxy, and timeout failures may retry within the configured retry policy. Deterministic failures, changed identities, cancellation, and exhausted retries stop the attempt clearly.
 

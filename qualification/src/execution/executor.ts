@@ -3,6 +3,10 @@ import { access, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import { CodexEvaluationOperationalRetryExhaustedError } from '../../../tooling/codex-evaluation-host/index.mjs';
+import {
+  EVALUATION_BATCH_DEFAULT_WORKER_COUNT,
+  runOrderedEvaluationBatch,
+} from '../../../tooling/evaluation-batch/index.mjs';
 
 import { prepareCandidateClosure } from '../candidate-closure/index.ts';
 import {
@@ -96,6 +100,10 @@ import {
   inspectQualificationExecutionEnvironment,
 } from './provenance.ts';
 import {
+  assertQualificationBatchDiskAdmission,
+  runWithQualificationTemporaryStorageGuard,
+} from './resources.ts';
+import {
   completeQualificationStage,
   createQualificationStageIds,
   createQualificationTrialStageIds,
@@ -110,6 +118,7 @@ import {
   startQualificationStage,
 } from './stages.ts';
 import { createQualificationAttemptResult } from './transformers.ts';
+import { createQualificationBatchTokenController } from './token-admission.ts';
 import {
   createRunnerRequirementAssessments,
   deriveQualificationCommandPolicyFailures,
@@ -463,6 +472,28 @@ export const runQualification = async (
   let baselineAttemptId: string | null = provenance.baselineAttemptId;
   let reusableCaseCount = 0;
   let activeStageId: string | null = null;
+  const workerCount = options.workerCount ?? EVALUATION_BATCH_DEFAULT_WORKER_COUNT;
+  const tokenController =
+    options.tokenController ??
+    createQualificationBatchTokenController({
+      initialTokensConsumed: checkpoint.candidateTokensConsumed,
+      totalTokenLimit: checkpoint.candidateTokenLimit,
+      workerCount,
+    });
+  let checkpointMutationQueue = Promise.resolve();
+
+  /** Serializes every checkpoint and candidate-token mutation across concurrent case workers. */
+  const updateCheckpoint = async (
+    operation: (
+      currentCheckpoint: IQualificationAttemptCheckpoint,
+    ) => Promise<IQualificationAttemptCheckpoint>,
+  ): Promise<void> => {
+    const queuedMutation = checkpointMutationQueue.then(async () => {
+      checkpoint = await operation(checkpoint);
+    });
+    checkpointMutationQueue = queuedMutation.catch(() => {});
+    await queuedMutation;
+  };
   const verifyExecutionInputs = async (): Promise<void> => {
     if (checkpoint.mode === 'dry-run') {
       return;
@@ -525,64 +556,83 @@ export const runQualification = async (
     }
   };
   let hasApprovedPaidExecution = false;
+  let paidExecutionApproval: Promise<void> | null = null;
   const approvePaidExecution = async (): Promise<void> => {
     if (checkpoint.mode === 'dry-run' || hasApprovedPaidExecution) {
       return;
     }
 
-    try {
-      const isApproved =
-        options.requestPaidExecutionApproval === undefined
-          ? false
-          : await options.requestPaidExecutionApproval({
-              model: executionEnvironment.model,
-              ...(() => {
-                const plannedCallCount = getQualificationPlannedCallCount(
-                  selectedProfileCases.length - reusableCaseCount,
-                  checkpoint.mode !== 'diagnostic',
-                );
-                const maximumCallCount = getQualificationMaximumCallCount(plannedCallCount);
-                return {
-                  maximumCallCount,
-                  maximumTokenCount: checkpoint.candidateTokenLimit,
-                  maximumTokensPerCall: getQualificationMaximumTokenCount(1),
-                  plannedCallCount,
-                  directCaseCount: selectedProfileCases.length - reusableCaseCount,
-                  reusedCaseCount: reusableCaseCount,
-                  candidateTokensConsumed: checkpoint.candidateTokensConsumed,
-                };
-              })(),
-              actorReasoningEffort: executionEnvironment.actorReasoningEffort,
-              judgeReasoningEffort: executionEnvironment.judgeReasoningEffort,
-            });
+    paidExecutionApproval ??= (async () => {
+      try {
+        const isApproved =
+          options.requestPaidExecutionApproval === undefined
+            ? false
+            : await options.requestPaidExecutionApproval({
+                model: executionEnvironment.model,
+                ...(() => {
+                  const plannedCallCount = getQualificationPlannedCallCount(
+                    selectedProfileCases.length - reusableCaseCount,
+                    checkpoint.mode !== 'diagnostic',
+                  );
+                  const maximumCallCount = getQualificationMaximumCallCount(plannedCallCount);
+                  return {
+                    candidateCount: 1,
+                    maximumCallCount,
+                    maximumTokenCount: checkpoint.candidateTokenLimit,
+                    maximumTokensPerCall: getQualificationMaximumTokenCount(1),
+                    plannedCallCount,
+                    directCaseCount: selectedProfileCases.length - reusableCaseCount,
+                    reusedCaseCount: reusableCaseCount,
+                    candidateTokensConsumed: checkpoint.candidateTokensConsumed,
+                  };
+                })(),
+                actorReasoningEffort: executionEnvironment.actorReasoningEffort,
+                judgeReasoningEffort: executionEnvironment.judgeReasoningEffort,
+              });
 
-      if (!isApproved) {
+        if (!isApproved) {
+          throw new PaidExecutionApprovalError(
+            'Paid qualification was not approved immediately before model execution.',
+          );
+        }
+      } catch (error) {
+        if (error instanceof PaidExecutionApprovalError) {
+          throw error;
+        }
+
         throw new PaidExecutionApprovalError(
-          'Paid qualification was not approved immediately before model execution.',
+          error instanceof Error
+            ? error.message
+            : 'Paid qualification approval could not be established.',
+          { cause: error },
         );
       }
-    } catch (error) {
-      if (error instanceof PaidExecutionApprovalError) {
-        throw error;
-      }
 
-      throw new PaidExecutionApprovalError(
-        error instanceof Error
-          ? error.message
-          : 'Paid qualification approval could not be established.',
-        { cause: error },
-      );
-    }
-
-    hasApprovedPaidExecution = true;
+      hasApprovedPaidExecution = true;
+    })();
+    await paidExecutionApproval;
   };
   const reservePaidExecution = async (): Promise<void> => {
-    checkpoint = await reserveQualificationCandidateTokens(attemptDirectory, checkpoint);
+    tokenController.reserve();
+    try {
+      await updateCheckpoint((currentCheckpoint) =>
+        reserveQualificationCandidateTokens(attemptDirectory, currentCheckpoint),
+      );
+    } catch (error) {
+      tokenController.release();
+      throw error;
+    }
   };
   const settlePaidExecution = async (
     usage: IQualificationTrialResult['actorUsage'],
   ): Promise<void> => {
-    checkpoint = await settleQualificationCandidateTokens(attemptDirectory, checkpoint, usage);
+    try {
+      await updateCheckpoint((currentCheckpoint) =>
+        settleQualificationCandidateTokens(attemptDirectory, currentCheckpoint, usage),
+      );
+    } finally {
+      tokenController.settle(usage);
+    }
   };
 
   if (preparedAttempt.isResume) {
@@ -829,6 +879,21 @@ export const runQualification = async (
     reusableCaseCount = reusableCases.size;
     const caseTitles = new Map<string, string>();
 
+    /** Starts one case-owned stage through the attempt's single checkpoint writer. */
+    const startCaseStage = (stageId: string): Promise<void> =>
+      updateCheckpoint((currentCheckpoint) =>
+        startQualificationStage(attemptDirectory, currentCheckpoint, stageId),
+      );
+
+    /** Completes one case-owned stage through the attempt's single checkpoint writer. */
+    const completeCaseStage = (
+      stageId: string,
+      stageOptions: Parameters<typeof completeQualificationStage>[3],
+    ): Promise<void> =>
+      updateCheckpoint((currentCheckpoint) =>
+        completeQualificationStage(attemptDirectory, currentCheckpoint, stageId, stageOptions),
+      );
+
     /** Executes or restores one complete initial or confirmation trial from pristine state. */
     const executeTrial = async (
       profileCase: IQualificationProfileCase,
@@ -858,8 +923,7 @@ export const runQualification = async (
       const isPrepareComplete = isQualificationStageComplete(checkpoint, prepareStageId);
 
       if (!isPrepareComplete) {
-        activeStageId = prepareStageId;
-        checkpoint = await startQualificationStage(attemptDirectory, checkpoint, prepareStageId);
+        await startCaseStage(prepareStageId);
       }
 
       const project = await prepareQualificationProject({
@@ -874,24 +938,33 @@ export const runQualification = async (
       });
       caseTitles.set(profileCase.id, project.scenario.title);
       const workspaceKey = `${profileCase.id}:${trialId}`;
-      checkpoint = QualificationAttemptCheckpointSchema.parse({
-        ...checkpoint,
-        workspaceDirectories: {
-          ...checkpoint.workspaceDirectories,
-          [workspaceKey]: project.workspaceDirectory,
-        },
-      });
-
       if (!isPrepareComplete) {
-        checkpoint = await completeQualificationStage(
-          attemptDirectory,
-          checkpoint,
-          prepareStageId,
-          { status: 'passed' },
+        await updateCheckpoint((currentCheckpoint) =>
+          completeQualificationStage(
+            attemptDirectory,
+            QualificationAttemptCheckpointSchema.parse({
+              ...currentCheckpoint,
+              workspaceDirectories: {
+                ...currentCheckpoint.workspaceDirectories,
+                [workspaceKey]: project.workspaceDirectory,
+              },
+            }),
+            prepareStageId,
+            { status: 'passed' },
+          ),
         );
-        activeStageId = null;
       } else {
-        await writeAttemptCheckpoint(attemptDirectory, checkpoint);
+        await updateCheckpoint(async (currentCheckpoint) => {
+          const updatedCheckpoint = QualificationAttemptCheckpointSchema.parse({
+            ...currentCheckpoint,
+            workspaceDirectories: {
+              ...currentCheckpoint.workspaceDirectories,
+              [workspaceKey]: project.workspaceDirectory,
+            },
+          });
+          await writeAttemptCheckpoint(attemptDirectory, updatedCheckpoint);
+          return updatedCheckpoint;
+        });
       }
 
       const task = await readQualificationTask(project);
@@ -906,12 +979,7 @@ export const runQualification = async (
       )
         ? await readJsonFile(deterministicBeforePath, DeterministicVerificationArtifactSchema)
         : await (async () => {
-            activeStageId = deterministicBeforeStageId;
-            checkpoint = await startQualificationStage(
-              attemptDirectory,
-              checkpoint,
-              deterministicBeforeStageId,
-            );
+            await startCaseStage(deterministicBeforeStageId);
             const result = await verifyDeterministicProject({
               adapterId: target.selection.adapterId,
               adapterPackage: target.adapter.implementation.package,
@@ -929,13 +997,9 @@ export const runQualification = async (
                 workspaceDirectory: project.workspaceDirectory,
               }),
             );
-            checkpoint = await completeQualificationStage(
-              attemptDirectory,
-              checkpoint,
-              deterministicBeforeStageId,
-              { status: result.summary.passed ? 'passed' : 'failed' },
-            );
-            activeStageId = null;
+            await completeCaseStage(deterministicBeforeStageId, {
+              status: result.summary.passed ? 'passed' : 'failed',
+            });
             return result;
           })();
 
@@ -957,8 +1021,7 @@ export const runQualification = async (
             snapshotDirectory: actorSnapshotDirectory,
           })
         : await (async () => {
-            activeStageId = actorStageId;
-            checkpoint = await startQualificationStage(attemptDirectory, checkpoint, actorStageId);
+            await startCaseStage(actorStageId);
             const initialOperationalFailureCount =
               checkpoint.stages[actorStageId]?.operationalRetries.length ?? 0;
             const result = await executeActorModelStage({
@@ -975,19 +1038,23 @@ export const runQualification = async (
               initialOperationalFailureCount,
               isDryRun: checkpoint.isDryRun,
               onStageIdentity: async (stageIdentity) => {
-                checkpoint = await setQualificationStageIdentity(
-                  attemptDirectory,
-                  checkpoint,
-                  actorStageId,
-                  stageIdentity,
+                await updateCheckpoint((currentCheckpoint) =>
+                  setQualificationStageIdentity(
+                    attemptDirectory,
+                    currentCheckpoint,
+                    actorStageId,
+                    stageIdentity,
+                  ),
                 );
               },
               onOperationalRetry: async (retry) => {
-                checkpoint = await appendQualificationOperationalRetry(
-                  attemptDirectory,
-                  checkpoint,
-                  actorStageId,
-                  retry,
+                await updateCheckpoint((currentCheckpoint) =>
+                  appendQualificationOperationalRetry(
+                    attemptDirectory,
+                    currentCheckpoint,
+                    actorStageId,
+                    retry,
+                  ),
                 );
                 await options.onProgress?.({
                   kind: 'operational-retry',
@@ -999,11 +1066,13 @@ export const runQualification = async (
                 });
               },
               onOperationalStop: async (stop) => {
-                checkpoint = await appendQualificationOperationalStop(
-                  attemptDirectory,
-                  checkpoint,
-                  actorStageId,
-                  QualificationOperationalStopSchema.parse(stop),
+                await updateCheckpoint((currentCheckpoint) =>
+                  appendQualificationOperationalStop(
+                    attemptDirectory,
+                    currentCheckpoint,
+                    actorStageId,
+                    QualificationOperationalStopSchema.parse(stop),
+                  ),
                 );
                 await options.onProgress?.({
                   kind: 'operational-stop',
@@ -1025,6 +1094,15 @@ export const runQualification = async (
               project,
               restorePreActorState: () =>
                 restoreQualificationProjectSnapshot(project, preActorSnapshotDirectory),
+              runWithTemporaryStorageGuard: (operation) =>
+                runWithQualificationTemporaryStorageGuard({
+                  attemptDirectory,
+                  internalTrialDirectory,
+                  operation,
+                  publicTrialDirectory: trialArtifactDirectory,
+                  ...(options.signal === undefined ? {} : { signal: options.signal }),
+                  workspaceDirectory,
+                }),
               signal: options.signal,
               skillDigest: checkpoint.skillDigest,
               targetDigest: checkpoint.targetDigest,
@@ -1035,17 +1113,11 @@ export const runQualification = async (
               trialId,
               verifyExecutionInputs,
             });
-            checkpoint = await completeQualificationStage(
-              attemptDirectory,
-              checkpoint,
-              actorStageId,
-              {
-                status: result.evidence.reuseSourceAttemptId === null ? 'passed' : 'reused',
-                stageIdentity: result.evidence.stageIdentity,
-                reuseSourceAttemptId: result.evidence.reuseSourceAttemptId,
-              },
-            );
-            activeStageId = null;
+            await completeCaseStage(actorStageId, {
+              status: result.evidence.reuseSourceAttemptId === null ? 'passed' : 'reused',
+              stageIdentity: result.evidence.stageIdentity,
+              reuseSourceAttemptId: result.evidence.reuseSourceAttemptId,
+            });
             return result;
           })();
 
@@ -1054,12 +1126,7 @@ export const runQualification = async (
       const deterministicAfter = isQualificationStageComplete(checkpoint, deterministicAfterStageId)
         ? await readJsonFile(deterministicAfterPath, DeterministicVerificationArtifactSchema)
         : await (async () => {
-            activeStageId = deterministicAfterStageId;
-            checkpoint = await startQualificationStage(
-              attemptDirectory,
-              checkpoint,
-              deterministicAfterStageId,
-            );
+            await startCaseStage(deterministicAfterStageId);
             const result = await verifyDeterministicProject({
               adapterId: target.selection.adapterId,
               adapterPackage: target.adapter.implementation.package,
@@ -1077,13 +1144,9 @@ export const runQualification = async (
                 workspaceDirectory: project.workspaceDirectory,
               }),
             );
-            checkpoint = await completeQualificationStage(
-              attemptDirectory,
-              checkpoint,
-              deterministicAfterStageId,
-              { status: result.summary.passed ? 'passed' : 'failed' },
-            );
-            activeStageId = null;
+            await completeCaseStage(deterministicAfterStageId, {
+              status: result.summary.passed ? 'passed' : 'failed',
+            });
             return result;
           })();
 
@@ -1092,21 +1155,12 @@ export const runQualification = async (
       const workspaceAssertions = isQualificationStageComplete(checkpoint, assertionsStageId)
         ? await readJsonFile(assertionsPath, WorkspaceAssertionResultSchema)
         : await (async () => {
-            activeStageId = assertionsStageId;
-            checkpoint = await startQualificationStage(
-              attemptDirectory,
-              checkpoint,
-              assertionsStageId,
-            );
+            await startCaseStage(assertionsStageId);
             const result = await inspectWorkspaceAssertions(project, actorResult.output);
             await writeJsonFileAtomically(assertionsPath, result);
-            checkpoint = await completeQualificationStage(
-              attemptDirectory,
-              checkpoint,
-              assertionsStageId,
-              { status: result.passed ? 'passed' : 'failed' },
-            );
-            activeStageId = null;
+            await completeCaseStage(assertionsStageId, {
+              status: result.passed ? 'passed' : 'failed',
+            });
             return result;
           })();
       const patchContent = sanitizeEvidenceText(
@@ -1159,12 +1213,7 @@ export const runQualification = async (
       const judgeResult = shouldSkipJudge
         ? await (async () => {
             if (checkpoint.stages[judgeStageId]?.status !== 'skipped') {
-              activeStageId = judgeStageId;
-              checkpoint = await startQualificationStage(
-                attemptDirectory,
-                checkpoint,
-                judgeStageId,
-              );
+              await startCaseStage(judgeStageId);
               await writeJsonFileAtomically(
                 judgeSkippedPath,
                 QualificationJudgeSkippedSchema.parse({
@@ -1182,13 +1231,7 @@ export const runQualification = async (
                   workspaceAssertionsPassed: workspaceAssertions.passed,
                 }),
               );
-              checkpoint = await completeQualificationStage(
-                attemptDirectory,
-                checkpoint,
-                judgeStageId,
-                { status: 'skipped' },
-              );
-              activeStageId = null;
+              await completeCaseStage(judgeStageId, { status: 'skipped' });
             }
             return null;
           })()
@@ -1198,12 +1241,7 @@ export const runQualification = async (
               scenario: project.scenario,
             })
           : await (async () => {
-              activeStageId = judgeStageId;
-              checkpoint = await startQualificationStage(
-                attemptDirectory,
-                checkpoint,
-                judgeStageId,
-              );
+              await startCaseStage(judgeStageId);
               const initialOperationalFailureCount =
                 checkpoint.stages[judgeStageId]?.operationalRetries.length ?? 0;
               const result = await executeJudgeModelStage({
@@ -1224,19 +1262,23 @@ export const runQualification = async (
                 isDryRun: checkpoint.isDryRun,
                 judgeWorkspaceDirectory,
                 onStageIdentity: async (stageIdentity) => {
-                  checkpoint = await setQualificationStageIdentity(
-                    attemptDirectory,
-                    checkpoint,
-                    judgeStageId,
-                    stageIdentity,
+                  await updateCheckpoint((currentCheckpoint) =>
+                    setQualificationStageIdentity(
+                      attemptDirectory,
+                      currentCheckpoint,
+                      judgeStageId,
+                      stageIdentity,
+                    ),
                   );
                 },
                 onOperationalRetry: async (retry) => {
-                  checkpoint = await appendQualificationOperationalRetry(
-                    attemptDirectory,
-                    checkpoint,
-                    judgeStageId,
-                    retry,
+                  await updateCheckpoint((currentCheckpoint) =>
+                    appendQualificationOperationalRetry(
+                      attemptDirectory,
+                      currentCheckpoint,
+                      judgeStageId,
+                      retry,
+                    ),
                   );
                   await options.onProgress?.({
                     kind: 'operational-retry',
@@ -1248,11 +1290,13 @@ export const runQualification = async (
                   });
                 },
                 onOperationalStop: async (stop) => {
-                  checkpoint = await appendQualificationOperationalStop(
-                    attemptDirectory,
-                    checkpoint,
-                    judgeStageId,
-                    QualificationOperationalStopSchema.parse(stop),
+                  await updateCheckpoint((currentCheckpoint) =>
+                    appendQualificationOperationalStop(
+                      attemptDirectory,
+                      currentCheckpoint,
+                      judgeStageId,
+                      QualificationOperationalStopSchema.parse(stop),
+                    ),
                   );
                   await options.onProgress?.({
                     kind: 'operational-stop',
@@ -1272,6 +1316,15 @@ export const runQualification = async (
                 qualificationDigest: inputState.qualificationDigest,
                 baselineAttemptId,
                 project,
+                runWithTemporaryStorageGuard: (operation) =>
+                  runWithQualificationTemporaryStorageGuard({
+                    attemptDirectory,
+                    internalTrialDirectory,
+                    operation,
+                    publicTrialDirectory: trialArtifactDirectory,
+                    ...(options.signal === undefined ? {} : { signal: options.signal }),
+                    workspaceDirectory,
+                  }),
                 signal: options.signal,
                 skillDigest: checkpoint.skillDigest,
                 targetDigest: checkpoint.targetDigest,
@@ -1282,17 +1335,11 @@ export const runQualification = async (
                 verifyExecutionInputs,
                 workspaceAssertions,
               });
-              checkpoint = await completeQualificationStage(
-                attemptDirectory,
-                checkpoint,
-                judgeStageId,
-                {
-                  status: result.evidence.reuseSourceAttemptId === null ? 'passed' : 'reused',
-                  stageIdentity: result.evidence.stageIdentity,
-                  reuseSourceAttemptId: result.evidence.reuseSourceAttemptId,
-                },
-              );
-              activeStageId = null;
+              await completeCaseStage(judgeStageId, {
+                status: result.evidence.reuseSourceAttemptId === null ? 'passed' : 'reused',
+                stageIdentity: result.evidence.stageIdentity,
+                reuseSourceAttemptId: result.evidence.reuseSourceAttemptId,
+              });
               return result;
             })();
 
@@ -1414,64 +1461,98 @@ export const runQualification = async (
     const initialTrials = new Map<string, IQualificationTrialResult>();
     const completedCaseResults = new Map<string, IQualificationCaseResult>();
 
-    // collect every initial before confirmations expose the complete frozen-profile failure set
     for (const profileCase of selectedProfileCases) {
       const resultStageId = `case:${profileCase.id}:result`;
       const caseArtifactDirectory = path.join(publicDirectory, 'cases', profileCase.id);
       const caseResultPath = path.join(caseArtifactDirectory, 'case-result.json');
-
-      if (!isQualificationStageComplete(checkpoint, resultStageId)) {
-        const reusableCase = reusableCases.get(profileCase.id);
-
-        if (reusableCase !== undefined) {
-          const materialized = await materializeReusableQualificationCase({
-            attemptDirectory,
-            checkpoint,
-            publicDirectory,
-            reusableCase,
-          });
-          checkpoint = materialized.checkpoint;
-          completedCaseResults.set(profileCase.id, materialized.caseResult);
-          const initialTrial = materialized.caseResult.trials[0];
-
-          if (initialTrial === undefined) {
-            throw new Error(`Reusable case ${profileCase.id} is missing its initial trial.`);
-          }
-
-          initialTrials.set(profileCase.id, initialTrial);
-          continue;
-        }
-      }
 
       if (isQualificationStageComplete(checkpoint, resultStageId)) {
         const caseResult = await readJsonFile(caseResultPath, QualificationCaseResultSchema);
         completedCaseResults.set(profileCase.id, caseResult);
         const initialTrial = caseResult.trials[0];
-
         if (initialTrial === undefined) {
           throw new Error(`Completed case ${profileCase.id} is missing its initial trial.`);
         }
-
         initialTrials.set(profileCase.id, initialTrial);
         continue;
       }
 
-      initialTrials.set(profileCase.id, await executeTrial(profileCase, 'initial'));
+      const reusableCase = reusableCases.get(profileCase.id);
+      if (reusableCase !== undefined) {
+        const materialized = await materializeReusableQualificationCase({
+          attemptDirectory,
+          checkpoint,
+          publicDirectory,
+          reusableCase,
+        });
+        checkpoint = materialized.checkpoint;
+        completedCaseResults.set(profileCase.id, materialized.caseResult);
+        const initialTrial = materialized.caseResult.trials[0];
+        if (initialTrial === undefined) {
+          throw new Error(`Reusable case ${profileCase.id} is missing its initial trial.`);
+        }
+        initialTrials.set(profileCase.id, initialTrial);
+      }
     }
 
-    for (const profileCase of selectedProfileCases) {
-      const completedCaseResult = completedCaseResults.get(profileCase.id);
+    const isBatchInterruption = (error: unknown): boolean =>
+      options.signal?.aborted === true ||
+      error instanceof CodexEvaluationOperationalRetryExhaustedError ||
+      error instanceof QualificationCandidateTokenLimitError ||
+      (error instanceof Error && error.name === 'EvaluationBatchDiskLimitError');
 
-      if (completedCaseResult !== undefined) {
-        caseResults.push(completedCaseResult);
-        continue;
-      }
+    const recordCaseBatchFailure = async (
+      profileCase: IQualificationProfileCase,
+      error: unknown,
+    ): Promise<void> => {
+      if (isBatchInterruption(error)) return;
+      const safeError = sanitizeEvidenceText(
+        error instanceof Error ? error.message : 'Unknown qualification case-worker failure.',
+        {
+          attemptDirectory,
+          packagesRepository: checkpoint.packagesRepository,
+          skillRepository: checkpoint.skillRepository,
+        },
+      );
+      await updateCheckpoint(async (currentCheckpoint) => {
+        let updatedCheckpoint = currentCheckpoint;
+        const runningStageIds = Object.values(currentCheckpoint.stages)
+          .filter(
+            ({ id, status }) => id.startsWith(`case:${profileCase.id}:`) && status === 'running',
+          )
+          .map(({ id }) => id);
+        for (const stageId of runningStageIds) {
+          updatedCheckpoint = await completeQualificationStage(
+            attemptDirectory,
+            updatedCheckpoint,
+            stageId,
+            { status: 'errored', error: safeError },
+          );
+        }
+        return updatedCheckpoint;
+      });
+    };
 
-      const resultStageId = `case:${profileCase.id}:result`;
-      const caseArtifactDirectory = path.join(publicDirectory, 'cases', profileCase.id);
-      const caseResultPath = path.join(caseArtifactDirectory, 'case-result.json');
+    await assertQualificationBatchDiskAdmission(workerCount, attemptDirectory);
+    const pendingInitialCases = selectedProfileCases.filter(
+      ({ id }) => !completedCaseResults.has(id),
+    );
+
+    // collect every initial before confirmations expose the complete frozen-profile failure set
+    await runOrderedEvaluationBatch<IQualificationProfileCase, IQualificationTrialResult>({
+      commitItem: ({ item, value }) => {
+        initialTrials.set(item.id, value);
+      },
+      executeItem: ({ item }) => executeTrial(item, 'initial'),
+      items: pendingInitialCases,
+      onItemError: ({ error, item }) => recordCaseBatchFailure(item, error),
+      workerCount,
+    });
+
+    const resolveCase = async (
+      profileCase: IQualificationProfileCase,
+    ): Promise<IQualificationCaseResult> => {
       const initialTrial = initialTrials.get(profileCase.id);
-
       if (initialTrial === undefined) {
         throw new Error(`Case ${profileCase.id} is missing its collected initial trial.`);
       }
@@ -1481,28 +1562,32 @@ export const runQualification = async (
       let confirmationStatus: IQualificationCaseResult['confirmationStatus'];
 
       if (checkpoint.mode === 'diagnostic') {
-        status = trials[0]?.passed ? 'passed' : 'failed';
-        confirmationStatus = trials[0]?.passed
+        status = initialTrial.passed ? 'passed' : 'failed';
+        confirmationStatus = initialTrial.passed
           ? 'not-required'
-          : trials[0]?.confirmationEligible
+          : initialTrial.confirmationEligible
             ? 'not-run'
             : 'not-applicable';
-      } else if (trials[0]?.passed) {
-        checkpoint = await skipQualificationStageGroup(attemptDirectory, checkpoint, [
-          ...createQualificationTrialStageIds(profileCase.id, 'confirmation-1'),
-          ...createQualificationTrialStageIds(profileCase.id, 'confirmation-2'),
-        ]);
+      } else if (initialTrial.passed) {
+        await updateCheckpoint((currentCheckpoint) =>
+          skipQualificationStageGroup(attemptDirectory, currentCheckpoint, [
+            ...createQualificationTrialStageIds(profileCase.id, 'confirmation-1'),
+            ...createQualificationTrialStageIds(profileCase.id, 'confirmation-2'),
+          ]),
+        );
         status = 'passed';
         confirmationStatus = 'not-required';
-      } else if (trials[0]?.confirmationEligible) {
+      } else if (initialTrial.confirmationEligible) {
         const confirmation1 = await executeTrial(profileCase, 'confirmation-1');
         trials.push(confirmation1);
 
         if (!confirmation1.passed) {
-          checkpoint = await skipQualificationStageGroup(
-            attemptDirectory,
-            checkpoint,
-            createQualificationTrialStageIds(profileCase.id, 'confirmation-2'),
+          await updateCheckpoint((currentCheckpoint) =>
+            skipQualificationStageGroup(
+              attemptDirectory,
+              currentCheckpoint,
+              createQualificationTrialStageIds(profileCase.id, 'confirmation-2'),
+            ),
           );
           status = 'failed';
           confirmationStatus = 'rejected';
@@ -1513,10 +1598,12 @@ export const runQualification = async (
           confirmationStatus = confirmation2.passed ? 'passed' : 'rejected';
         }
       } else {
-        checkpoint = await skipQualificationStageGroup(attemptDirectory, checkpoint, [
-          ...createQualificationTrialStageIds(profileCase.id, 'confirmation-1'),
-          ...createQualificationTrialStageIds(profileCase.id, 'confirmation-2'),
-        ]);
+        await updateCheckpoint((currentCheckpoint) =>
+          skipQualificationStageGroup(attemptDirectory, currentCheckpoint, [
+            ...createQualificationTrialStageIds(profileCase.id, 'confirmation-1'),
+            ...createQualificationTrialStageIds(profileCase.id, 'confirmation-2'),
+          ]),
+        );
         status = 'failed';
         confirmationStatus = 'not-applicable';
       }
@@ -1532,13 +1619,37 @@ export const runQualification = async (
         failures: status === 'failed' ? (terminalTrial?.failures ?? []) : [],
         reuse: null,
       });
-      activeStageId = resultStageId;
-      checkpoint = await startQualificationStage(attemptDirectory, checkpoint, resultStageId);
+      const resultStageId = `case:${profileCase.id}:result`;
+      const caseResultPath = path.join(
+        publicDirectory,
+        'cases',
+        profileCase.id,
+        'case-result.json',
+      );
+      await startCaseStage(resultStageId);
       await writeJsonFileAtomically(caseResultPath, caseResult);
-      checkpoint = await completeQualificationStage(attemptDirectory, checkpoint, resultStageId, {
-        status: 'passed',
-      });
-      activeStageId = null;
+      await completeCaseStage(resultStageId, { status: 'passed' });
+      return caseResult;
+    };
+
+    const pendingCaseResults = selectedProfileCases.filter(
+      ({ id }) => !completedCaseResults.has(id),
+    );
+    await runOrderedEvaluationBatch<IQualificationProfileCase, IQualificationCaseResult>({
+      commitItem: ({ item, value }) => {
+        completedCaseResults.set(item.id, value);
+      },
+      executeItem: ({ item }) => resolveCase(item),
+      items: pendingCaseResults,
+      onItemError: ({ error, item }) => recordCaseBatchFailure(item, error),
+      workerCount,
+    });
+
+    for (const profileCase of selectedProfileCases) {
+      const caseResult = completedCaseResults.get(profileCase.id);
+      if (caseResult === undefined) {
+        throw new Error(`Case ${profileCase.id} has no terminal result.`);
+      }
       caseResults.push(caseResult);
     }
 
@@ -1588,11 +1699,13 @@ export const runQualification = async (
     const isApprovalDeclined = error instanceof PaidExecutionApprovalError;
     const isOperationallyStopped = error instanceof CodexEvaluationOperationalRetryExhaustedError;
     const isCandidateTokenStop = error instanceof QualificationCandidateTokenLimitError;
+    const isDiskStop = error instanceof Error && error.name === 'EvaluationBatchDiskLimitError';
     const isInterrupted =
       options.signal?.aborted === true ||
       isApprovalDeclined ||
       isOperationallyStopped ||
-      isCandidateTokenStop;
+      isCandidateTokenStop ||
+      isDiskStop;
     const safeError = sanitizeEvidenceText(
       error instanceof Error ? error.message : 'Unknown qualification execution failure.',
       {
@@ -1642,7 +1755,9 @@ export const runQualification = async (
             ? `Qualification stopped after bounded operational recovery: ${safeError}`
             : isCandidateTokenStop
               ? `Qualification stopped at its candidate token boundary: ${safeError}`
-              : 'Qualification was interrupted and can be resumed from its last atomic checkpoint.'
+              : isDiskStop
+                ? `Qualification stopped at its temporary-storage boundary: ${safeError}`
+                : 'Qualification was interrupted and can be resumed from its last atomic checkpoint.'
         : `Qualification stopped with an execution error: ${safeError}`,
     });
     checkpoint = finalState.checkpoint;

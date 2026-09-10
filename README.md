@@ -209,7 +209,7 @@ npm run eval:semantic:diagnose -- --claims <comma-separated-claim-ids>
 npm run eval:semantic:diagnose -- --unresolved-from <attempt-id>
 ```
 
-The batch completes one initial trial for every selected case, continues across semantic failures, and emits a compact final ledger. It accepts one, two, or four isolated workers and defaults to four. Worker count is operational, aggregate writes remain in fixture order, and exact completed stages resume at another accepted count after interruption. `--restart` explicitly discards the current diagnostic batch. The coordinator, content-free ledger, and each private worker checkpoint are independently limited to 1 MiB, for a 6 MiB four-worker metadata ceiling. The ledger retains criterion IDs, a deterministic content-free explanation, and aggregate resources, never the model-authored rationale. Final stdout is limited to 16 KiB. Each worker is limited to 1 GiB of temporary storage, the batch reserves no more than 4 GiB, and dispatch preserves a 2 GiB free-space floor.
+The batch completes one initial trial for every selected case, continues across semantic failures, and emits a compact final ledger. It accepts one, two, or four isolated workers and defaults to four. Worker count is operational, aggregate writes remain in fixture order, and exact completed stages resume at another accepted count after interruption. `--restart` explicitly discards the current diagnostic batch. The coordinator, content-free ledger, and each private worker checkpoint are independently limited to 1 MiB, for a 6 MiB four-worker metadata ceiling. The ledger retains criterion IDs, a deterministic content-free explanation, and aggregate resources, never the model-authored rationale. Final stdout is limited to 16 KiB. Each worker is limited to 2 GiB of temporary storage, the batch reserves no more than 8 GiB, and dispatch preserves a 2 GiB free-space floor. The per-worker limit includes independent snapshots and installed dependencies; a healthy model-free Claude Agent SDK qualification measured about 1.25 GiB.
 
 Run the current semantic evaluation and verify its committed attempt only with explicit recording:
 
@@ -220,7 +220,17 @@ npm run eval:semantic:verify
 
 Official recording also completes all missing initial cases before confirmations and records one complete attempt even when failures remain. Actors and independent judges run at `xhigh`, and every stage has a fifteen-minute ceiling. Semantic and qualification stages receive the same runner-owned closed-host developer instruction before their natural task. Host skill discovery is disabled, and the sandbox overlays an empty read-only host-skill tree, so external skill files cannot alter the closed fixture or expose evaluator-home content. The host rejects caller overrides and binds the instruction's SHA-256 digest into model-stage identity without storing its body in public evidence. Selected semantic runtime-publication cases grant one exact evaluator-owned fixed local probe and instruct the actor to use it when current publication evidence is required; qualification and every other command remain under the ordinary no-network policy. Semantic, resource, command-policy, repository-control, read-only-mount, and operational dimensions are recorded separately. Only semantic-only failures receive confirmations. Independently passing or recovered case groups from a valid committed failed attempt may be reused only when their complete actor and judge stage identities still match. Reused stages retain their original provenance and do not count as new model work. Before every paid stage, the runner reserves the 2,097,152-token per-invocation maximum and refuses to exceed the 32,000,000-token direct-work ceiling for one candidate. A stage that exhausts its one automatic retry is persisted as terminally stopped before the command exits. An ordinary rerun refuses to repeat it; use `--resume-stopped-stage` to authorize exactly one additional attempt without discarding the candidate. A compatible resume clears the superseded interruption marker after identity validation so terminal evidence cannot retain stale interruption state. Every failed invocation is charged conservatively against the same ceiling.
 
-Run free qualification preflight and Custom first, then execute each published adapter profile sequentially. Continue across failed profiles when the host remains operationally safe, preserve their attempts, and collect the complete profile failure ledger before changing shared behavior. Use the bounded non-publishing batch for complete or targeted diagnosis:
+Run free qualification preflight and Custom first. Custom cases accept one, two, or four isolated workers and default to four. After Custom passes, run all 13 adapters with one bounded profile batch. It continues across semantic failures while the host remains operationally safe, preserves each isolated attempt and result root, and commits summaries in profile-index order:
+
+```bash
+npm run qualification:dry-run:all
+npm run qualification -- run --adapter custom --implementation custom --workers 4
+npm run qualification -- run-batch --all --workers 4
+npm run qualification -- run-batch --targets anthropic/typescript-messages-api-0-117,openai/typescript-responses-api-7 --workers 4
+npm run qualification -- run-batch --unresolved-from <batch-id> --workers 4
+```
+
+Use the bounded non-publishing batch for complete or targeted diagnosis:
 
 ```bash
 npm run qualification -- diagnose-batch --adapter custom --implementation custom --all
@@ -229,7 +239,9 @@ npm run qualification -- diagnose-batch --adapter <adapter> --implementation <im
 npm run qualification -- diagnose-batch --adapter <adapter> --implementation <implementation> --unresolved-from <attempt-id>
 ```
 
-The batch keeps one active attempt, writes a content-free completed ledger, and never changes official evidence. Each private state file is limited to 1 MiB and final output is limited to 16 KiB. Correct the consolidated failure set, rerun only unresolved cases, then rerun only failed or exact-identity-invalidated official profiles. Every official run records evidence for the current protocol, exact skill bytes, CLI closure, evaluator, target, and environment. Keep one model-bearing process active at a time unless measured capacity supports a stricter source-controlled concurrency contract.
+The diagnostic batch gives every selected case one private attempt, runs up to four initials concurrently, writes a content-free completed ledger in declared order, and never changes official evidence. The coordinator and each private checkpoint are limited to 1 MiB, the aggregate metadata ceiling is 6 MiB, and final output is limited to 16 KiB. Correct the consolidated failure set, rerun only unresolved cases, then rerun only failed or exact-identity-invalidated official profiles. Every official run records evidence for the current protocol, exact skill bytes, CLI closure, evaluator, target, and environment.
+
+Qualification batches use the same 2 GiB per-worker, 8 GiB aggregate, and 2 GiB free-space boundaries as semantic batches. The guard measures complete worker roots at model-stage boundaries and monitors filesystem free space during active stages without repeatedly traversing large dependency trees. Operational or capacity failure stops new dispatch, drains active siblings, and preserves exact resumable progress. One batch presents one aggregate paid boundary immediately before its first direct model call, including candidate count, planned and maximum calls, and the sum of independent per-candidate token ceilings.
 
 After current semantic and qualification evidence passes, record the compact fresh release envelope:
 

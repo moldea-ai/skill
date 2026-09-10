@@ -212,7 +212,7 @@ Give Custom and adapter qualification the same safe batching, checkpoint, resume
 - Extend qualification command-line, CLI, execution, and diagnostic-batch modules with `--workers 1|2|4` and a `run-batch` command accepting exactly one of `--all`, `--targets`, or `--unresolved-from`.
 - Run Custom cases concurrently only inside one attempt. Refuse every adapter profile until the exact passing Custom baseline exists, then coordinate profiles through isolated attempt directories, result roots, checkpoints, and token accounts.
 - Serialize aggregate state, merge in declared order, stop dispatch and drain siblings on operational or capacity failure, and allow exact resume at another accepted worker count without duplicating a completed model stage.
-- Apply the shared 4 GiB temporary-storage envelope and derive qualification token admission from measured qualification evidence rather than copying semantic candidate limits.
+- Apply the measured shared 8 GiB temporary-storage envelope, with a 2 GiB ceiling per worker after a healthy current qualification worker reached 1,246,233,506 bytes, and derive qualification token admission from measured qualification evidence rather than copying semantic candidate limits.
 - Synchronize adapter-qualification documentation, command help, declarations, schemas, website not-recorded behavior, and release verification without adding a legacy reader or inherited-attempt language.
 
 ### Verification and acceptance criteria
@@ -235,6 +235,7 @@ Close all 12 shared Custom journeys under the final protocol-10 xhigh contract.
 ### Dependencies
 
 - Milestone 78 is published and model-free preflight passes.
+- The developer-named “Review PR Assurance readiness” session and current Core implementation have been reviewed, the proposed performance change has been classified, and its exact evidence-reuse or rerun impact has been reported before any paid call.
 
 ### Scope and implementation
 

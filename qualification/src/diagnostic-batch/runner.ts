@@ -2,6 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { access, lstat, readFile, readdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 
+import {
+  EVALUATION_BATCH_DEFAULT_WORKER_COUNT,
+  runOrderedEvaluationBatch,
+  type IEvaluationBatchWorkerCount,
+} from '../../../tooling/evaluation-batch/index.mjs';
+
 import type { IBoundarySchema } from '../filesystem/index.ts';
 import {
   DEFAULT_PACKAGES_REPOSITORY,
@@ -19,8 +25,13 @@ import {
 } from '../contracts/index.ts';
 import {
   getLocalAttemptDirectory,
+  assertQualificationBatchDiskAdmission,
+  coalesceQualificationPaidExecutionApproval,
+  createQualificationBatchTokenController,
+  getQualificationMaximumCallCount,
   getQualificationModelUsageTokenCount,
   getQualificationMaximumTokenCount,
+  getQualificationPlannedCallCount,
   inspectQualificationExecutionEnvironment,
   inspectQualificationInputState,
   runQualification,
@@ -45,6 +56,7 @@ import { readAttemptCheckpoint } from '../checkpoint/index.ts';
 import { resolveQualificationResultTargetDirectory } from '../storage/index.ts';
 import {
   QUALIFICATION_DIAGNOSTIC_CHECKPOINT_PATH,
+  QUALIFICATION_DIAGNOSTIC_AGGREGATE_STATE_MAXIMUM_BYTE_COUNT,
   QUALIFICATION_DIAGNOSTIC_EXPLANATION_MAXIMUM_BYTE_COUNT,
   QUALIFICATION_DIAGNOSTIC_LEDGER_PATH,
   QUALIFICATION_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT,
@@ -63,6 +75,30 @@ import {
   type IQualificationDiagnosticSelector,
   type IQualificationDiagnosticSelectorInput,
 } from './types.ts';
+
+class QualificationDiagnosticWorkerStopError extends Error {
+  public readonly attemptId: string;
+  public readonly caseId: string;
+  public readonly kind:
+    | 'candidate-token-limit'
+    | 'execution-error'
+    | 'operational-stop'
+    | 'operational-recovery-exhausted'
+    | 'temporary-storage-limit';
+
+  public constructor(
+    attemptId: string,
+    caseId: string,
+    kind: QualificationDiagnosticWorkerStopError['kind'],
+    message: string,
+  ) {
+    super(message);
+    this.name = 'QualificationDiagnosticWorkerStopError';
+    this.attemptId = attemptId;
+    this.caseId = caseId;
+    this.kind = kind;
+  }
+}
 
 const hasPath = async (candidatePath: string): Promise<boolean> => {
   try {
@@ -220,11 +256,10 @@ const resolveDiagnosticSelector = async (options: {
 const createBatchIdentity = (options: {
   checkpoint: Omit<
     IQualificationDiagnosticCheckpoint,
-    | 'activeAttemptId'
+    | 'attemptIds'
     | 'candidateTokensConsumed'
     | 'createdAt'
     | 'identitySha256'
-    | 'nextCaseIndex'
     | 'schemaVersion'
     | 'stop'
     | 'updatedAt'
@@ -294,11 +329,6 @@ const validateBatchState = (options: {
     }
     return;
   }
-  const hasCommittedRecordOverlap =
-    checkpoint.activeAttemptId !== null &&
-    checkpoint.nextCaseIndex + 1 === ledger.records.length &&
-    ledger.records.at(-1)?.attemptId === checkpoint.activeAttemptId &&
-    ledger.records.at(-1)?.caseId === selector.caseIds[checkpoint.nextCaseIndex];
   const checkpointIdentitySha256 = createBatchIdentity({
     checkpoint: {
       selection: checkpoint.selection,
@@ -314,22 +344,102 @@ const validateBatchState = (options: {
       executionEnvironment: checkpoint.executionEnvironment,
     },
   });
+  const mappedCaseIds = Object.keys(checkpoint.attemptIds);
+  const mappedAttemptIds = Object.values(checkpoint.attemptIds);
   if (
     checkpoint.identitySha256 !== identitySha256 ||
     checkpointIdentitySha256 !== identitySha256 ||
     JSON.stringify(checkpoint.selection) !== JSON.stringify(ledger.selection) ||
     JSON.stringify(checkpoint.selector) !== JSON.stringify(selector) ||
-    (checkpoint.nextCaseIndex !== ledger.records.length && !hasCommittedRecordOverlap) ||
-    checkpoint.nextCaseIndex >= selector.caseIds.length ||
-    (checkpoint.activeAttemptId === null
-      ? checkpoint.candidateTokensConsumed !== ledger.candidateTokensConsumed
-      : checkpoint.candidateTokensConsumed < ledger.candidateTokensConsumed) ||
-    (checkpoint.stop !== null && checkpoint.activeAttemptId !== checkpoint.stop.attemptId)
+    JSON.stringify(mappedCaseIds) !== JSON.stringify(selector.caseIds) ||
+    new Set(mappedAttemptIds).size !== mappedAttemptIds.length ||
+    checkpoint.candidateTokensConsumed < ledger.candidateTokensConsumed ||
+    (checkpoint.stop !== null &&
+      checkpoint.attemptIds[checkpoint.stop.caseId] !== checkpoint.stop.attemptId)
   ) {
     throw new Error(
       'Qualification diagnostic checkpoint does not match the current batch identity.',
     );
   }
+};
+
+const getAttemptCheckpoint = async (
+  attemptId: string,
+): Promise<Awaited<ReturnType<typeof readAttemptCheckpoint>> | null> => {
+  const attemptDirectory = getLocalAttemptDirectory(attemptId);
+  if (!(await hasPath(path.join(attemptDirectory, 'checkpoint.json')))) {
+    return null;
+  }
+  return readAttemptCheckpoint(attemptDirectory);
+};
+
+const assertMappedAttempt = (options: {
+  attempt: Awaited<ReturnType<typeof readAttemptCheckpoint>>;
+  caseId: string;
+  selection: IQualificationSelection;
+}): void => {
+  if (
+    options.attempt.mode !== 'diagnostic' ||
+    options.attempt.selectedCaseId !== options.caseId ||
+    JSON.stringify(options.attempt.selection) !== JSON.stringify(options.selection)
+  ) {
+    throw new Error(
+      `Mapped qualification attempt ${options.attempt.attemptId} does not match diagnostic case ${options.caseId}.`,
+    );
+  }
+};
+
+const getActiveAttemptIds = async (options: {
+  checkpoint: IQualificationDiagnosticCheckpoint | null;
+  ledger: IQualificationDiagnosticLedger;
+}): Promise<string[]> => {
+  if (options.checkpoint === null) return [];
+  const committedCaseIds = new Set(options.ledger.records.map(({ caseId }) => caseId));
+  const activeAttemptIds: string[] = [];
+
+  for (const caseId of options.checkpoint.selector.caseIds) {
+    const attemptId = options.checkpoint.attemptIds[caseId];
+    if (
+      !committedCaseIds.has(caseId) &&
+      attemptId !== undefined &&
+      (await hasPath(path.join(getLocalAttemptDirectory(attemptId), 'checkpoint.json')))
+    ) {
+      activeAttemptIds.push(attemptId);
+    }
+  }
+
+  return activeAttemptIds;
+};
+
+const getUncommittedCandidateTokenCount = async (options: {
+  checkpoint: IQualificationDiagnosticCheckpoint;
+  ledger: IQualificationDiagnosticLedger;
+}): Promise<number> => {
+  const committedCaseIds = new Set(options.ledger.records.map(({ caseId }) => caseId));
+  let candidateTokensConsumed = options.ledger.candidateTokensConsumed;
+
+  for (const caseId of options.checkpoint.selector.caseIds) {
+    if (committedCaseIds.has(caseId)) continue;
+    const attemptId = options.checkpoint.attemptIds[caseId];
+    if (attemptId === undefined) {
+      throw new Error(`Qualification diagnostic case ${caseId} has no mapped attempt.`);
+    }
+    const attemptCheckpoint = await getAttemptCheckpoint(attemptId);
+    if (attemptCheckpoint !== null) {
+      assertMappedAttempt({
+        attempt: attemptCheckpoint,
+        caseId,
+        selection: options.checkpoint.selection,
+      });
+      candidateTokensConsumed +=
+        attemptCheckpoint.candidateTokensConsumed + attemptCheckpoint.candidateTokensReserved;
+    }
+  }
+
+  if (candidateTokensConsumed > QUALIFICATION_CANDIDATE_TOKEN_LIMIT) {
+    throw new Error('Qualification diagnostic candidate-token state exceeds its fixed limit.');
+  }
+  return candidateTokensConsumed;
 };
 
 const createDiagnosticRecord = (
@@ -363,7 +473,8 @@ const createDiagnosticRecord = (
     0,
   );
   const modelCallCount = caseResult.trials.reduce(
-    (total, trial) => total + 1 + (trial.judgeStatus === 'completed' ? 1 : 0),
+    (total, trial) =>
+      total + (trial.actorUsage === null ? 0 : 1) + (trial.judgeUsage === null ? 0 : 1),
     0,
   );
   const operationalFailureCount = result.stages.reduce(
@@ -397,10 +508,10 @@ const createDiagnosticRecord = (
   });
 };
 
-const createOutcome = (options: {
+const createOutcome = async (options: {
   checkpoint: IQualificationDiagnosticCheckpoint | null;
   ledger: IQualificationDiagnosticLedger;
-}): IQualificationDiagnosticBatchOutcome => ({
+}): Promise<IQualificationDiagnosticBatchOutcome> => ({
   status: options.checkpoint === null ? 'completed' : 'incomplete',
   identitySha256: options.ledger.identitySha256,
   selection: options.ledger.selection,
@@ -408,7 +519,7 @@ const createOutcome = (options: {
   candidateTokenLimit: QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
   candidateTokensConsumed:
     options.checkpoint?.candidateTokensConsumed ?? options.ledger.candidateTokensConsumed,
-  activeAttemptId: options.checkpoint?.activeAttemptId ?? null,
+  activeAttemptIds: await getActiveAttemptIds(options),
   records: options.ledger.records,
 });
 
@@ -429,7 +540,7 @@ const createAttemptId = (selection: IQualificationSelection): string => {
   return `${timestamp}-${selection.adapterId}-${selection.implementationId}-${randomUUID().slice(0, 8)}`;
 };
 
-/** Runs one exact sequential diagnostic selection without mutating official evidence. */
+/** Runs one bounded diagnostic selection concurrently without mutating official evidence. */
 export const runQualificationDiagnosticBatch = async (options: {
   host: ICodexHost;
   selection: IQualificationSelection;
@@ -445,6 +556,7 @@ export const runQualificationDiagnosticBatch = async (options: {
   onProgress?: (progress: IQualificationProgress) => Promise<void> | void;
   operationalRetry?: IQualificationOperationalRetryOptions;
   signal?: AbortSignal;
+  workerCount?: IEvaluationBatchWorkerCount;
 }): Promise<IQualificationDiagnosticBatchOutcome> => {
   const packagesRepository = path.resolve(
     options.packagesRepository ?? DEFAULT_PACKAGES_REPOSITORY,
@@ -453,6 +565,13 @@ export const runQualificationDiagnosticBatch = async (options: {
   const resultsRoot = options.resultsRoot ?? QUALIFICATION_RESULTS_ROOT;
   const checkpointPath = options.checkpointPath ?? QUALIFICATION_DIAGNOSTIC_CHECKPOINT_PATH;
   const ledgerPath = options.ledgerPath ?? QUALIFICATION_DIAGNOSTIC_LEDGER_PATH;
+  const workerCount = options.workerCount ?? EVALUATION_BATCH_DEFAULT_WORKER_COUNT;
+  if (
+    QUALIFICATION_DIAGNOSTIC_AGGREGATE_STATE_MAXIMUM_BYTE_COUNT <
+    (workerCount + 2) * QUALIFICATION_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT
+  ) {
+    throw new Error('Qualification diagnostic aggregate state boundary is too small.');
+  }
   const compatibilitySnapshot = await loadRuntimeCompatibilitySnapshot(packagesRepository);
   const target = await resolveQualificationTarget(
     options.selection,
@@ -504,11 +623,12 @@ export const runQualificationDiagnosticBatch = async (options: {
       selection: target.selection,
       selector,
     });
-    if (checkpoint?.activeAttemptId !== null && checkpoint?.activeAttemptId !== undefined) {
-      await rm(getLocalAttemptDirectory(checkpoint.activeAttemptId), {
-        force: true,
-        recursive: true,
-      });
+    if (checkpoint !== null) {
+      await Promise.all(
+        Object.values(checkpoint.attemptIds).map((attemptId) =>
+          rm(getLocalAttemptDirectory(attemptId), { force: true, recursive: true }),
+        ),
+      );
     }
     await Promise.all([rm(checkpointPath, { force: true }), rm(ledgerPath, { force: true })]);
     checkpoint = null;
@@ -517,12 +637,14 @@ export const runQualificationDiagnosticBatch = async (options: {
 
   if (checkpoint === null && ledger === null) {
     const timestamp = new Date().toISOString();
+    const attemptIds = Object.fromEntries(
+      selector.caseIds.map((caseId) => [caseId, createAttemptId(target.selection)]),
+    );
     checkpoint = QualificationDiagnosticCheckpointSchema.parse({
       schemaVersion: QUALIFICATION_DIAGNOSTIC_SCHEMA_VERSION,
       identitySha256,
       ...identityState,
-      nextCaseIndex: 0,
-      activeAttemptId: null,
+      attemptIds,
       candidateTokensConsumed: 0,
       stop: null,
       createdAt: timestamp,
@@ -540,7 +662,7 @@ export const runQualificationDiagnosticBatch = async (options: {
     });
     await writeQualificationDiagnosticState(checkpointPath, checkpoint);
     await writeQualificationDiagnosticState(ledgerPath, ledger);
-  } else if (checkpoint !== null && ledger === null && checkpoint.nextCaseIndex === 0) {
+  } else if (checkpoint !== null && ledger === null) {
     ledger = QualificationDiagnosticLedgerSchema.parse({
       schemaVersion: QUALIFICATION_DIAGNOSTIC_SCHEMA_VERSION,
       identitySha256,
@@ -565,142 +687,151 @@ export const runQualificationDiagnosticBatch = async (options: {
     selector,
   });
 
-  if (
-    checkpoint !== null &&
-    checkpoint.activeAttemptId !== null &&
-    checkpoint.nextCaseIndex + 1 === ledger.records.length &&
-    ledger.records.at(-1)?.attemptId === checkpoint.activeAttemptId
-  ) {
-    await rm(getLocalAttemptDirectory(checkpoint.activeAttemptId), {
-      force: true,
-      recursive: true,
-    });
-    const updatedAt = new Date().toISOString();
-    const nextCaseIndex = checkpoint.nextCaseIndex + 1;
-    if (nextCaseIndex === selector.caseIds.length) {
-      await rm(checkpointPath, { force: true });
-      checkpoint = null;
-    } else {
-      checkpoint = QualificationDiagnosticCheckpointSchema.parse({
-        ...checkpoint,
-        nextCaseIndex,
-        activeAttemptId: null,
-        candidateTokensConsumed: ledger.candidateTokensConsumed,
-        updatedAt,
-      });
-      await writeQualificationDiagnosticState(checkpointPath, checkpoint);
-    }
-  }
-
   if (checkpoint === null) {
     if (options.resumeStoppedStage === true) {
       throw new Error('--resume-stopped-stage requires one stopped diagnostic stage.');
     }
-    const outcome = createOutcome({ checkpoint, ledger });
+    const outcome = await createOutcome({ checkpoint, ledger });
     assertQualificationDiagnosticOutputSize(outcome);
     return outcome;
   }
-  if (checkpoint.stop !== null) {
+  if (
+    checkpoint.stop !== null &&
+    checkpoint.stop.kind !== 'candidate-token-limit' &&
+    checkpoint.stop.kind !== 'temporary-storage-limit'
+  ) {
     throw new Error(
       `Qualification diagnostic batch stopped at ${checkpoint.stop.caseId}: ${checkpoint.stop.kind}. Use --restart after correcting the cause.`,
     );
   }
+  let activeCheckpoint: IQualificationDiagnosticCheckpoint = checkpoint;
+  let activeLedger: IQualificationDiagnosticLedger = ledger;
 
-  let canResumeStoppedStage = options.resumeStoppedStage === true;
-
-  while (checkpoint.nextCaseIndex < selector.caseIds.length) {
-    const caseId = selector.caseIds[checkpoint.nextCaseIndex];
-    if (caseId === undefined) {
-      throw new Error('Qualification diagnostic selection ended unexpectedly.');
+  const remainingCaseIds = selector.caseIds.slice(activeLedger.records.length);
+  const stoppedAttempts: Array<{ attemptId: string; caseId: string }> = [];
+  for (const caseId of remainingCaseIds) {
+    const attemptId = activeCheckpoint.attemptIds[caseId];
+    if (attemptId === undefined) throw new Error(`Diagnostic case ${caseId} has no attempt id.`);
+    const attemptCheckpoint = await getAttemptCheckpoint(attemptId);
+    if (attemptCheckpoint === null) continue;
+    assertMappedAttempt({ attempt: attemptCheckpoint, caseId, selection: target.selection });
+    if (Object.values(attemptCheckpoint.stages).some(({ status }) => status === 'stopped')) {
+      stoppedAttempts.push({ attemptId, caseId });
     }
-    let attemptId = checkpoint.activeAttemptId;
-    let isResume = attemptId !== null;
-    if (attemptId === null) {
-      if (canResumeStoppedStage) {
-        throw new Error('--resume-stopped-stage requires one stopped diagnostic stage.');
+  }
+  if (options.resumeStoppedStage === true && stoppedAttempts.length !== 1) {
+    throw new Error('--resume-stopped-stage requires exactly one stopped diagnostic stage.');
+  }
+  if (options.resumeStoppedStage !== true && stoppedAttempts.length > 0) {
+    throw new Error(
+      'Qualification diagnostic batch contains a stopped stage. Resume with --resume-stopped-stage.',
+    );
+  }
+  const stoppedAttemptId =
+    options.resumeStoppedStage === true ? stoppedAttempts[0]?.attemptId : null;
+  const initialCandidateTokensConsumed = await getUncommittedCandidateTokenCount({
+    checkpoint: activeCheckpoint,
+    ledger: activeLedger,
+  });
+  const tokenController = createQualificationBatchTokenController({
+    initialTokensConsumed: initialCandidateTokensConsumed,
+    totalTokenLimit: QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
+    workerCount,
+  });
+  const plannedCallCount = getQualificationPlannedCallCount(remainingCaseIds.length, false);
+  const requestPaidExecutionApproval = coalesceQualificationPaidExecutionApproval(
+    options.requestPaidExecutionApproval,
+    {
+      actorReasoningEffort: executionEnvironment.actorReasoningEffort,
+      candidateCount: 1,
+      candidateTokensConsumed: initialCandidateTokensConsumed,
+      directCaseCount: remainingCaseIds.length,
+      judgeReasoningEffort: executionEnvironment.judgeReasoningEffort,
+      maximumCallCount: getQualificationMaximumCallCount(plannedCallCount),
+      maximumTokenCount: QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
+      maximumTokensPerCall: getQualificationMaximumTokenCount(1),
+      model: executionEnvironment.model,
+      plannedCallCount,
+      reusedCaseCount: 0,
+    },
+  );
+  activeCheckpoint = QualificationDiagnosticCheckpointSchema.parse({
+    ...activeCheckpoint,
+    candidateTokensConsumed: initialCandidateTokensConsumed,
+    stop: null,
+    updatedAt: new Date().toISOString(),
+  });
+  await writeQualificationDiagnosticState(checkpointPath, activeCheckpoint);
+  await assertQualificationBatchDiskAdmission(workerCount, skillRepository);
+
+  const executeCase = async (caseId: string) => {
+    const attemptId = activeCheckpoint.attemptIds[caseId];
+    if (attemptId === undefined) throw new Error(`Diagnostic case ${caseId} has no attempt id.`);
+    const attemptDirectory = getLocalAttemptDirectory(attemptId);
+    const existingCheckpoint = await getAttemptCheckpoint(attemptId);
+    if (existingCheckpoint !== null) {
+      assertMappedAttempt({ attempt: existingCheckpoint, caseId, selection: target.selection });
+      if (existingCheckpoint.status === 'passed' || existingCheckpoint.status === 'failed') {
+        return {
+          attemptDirectory,
+          result: await readJsonFile(
+            path.join(attemptDirectory, 'result-draft.json'),
+            QualificationAttemptResultDraftSchema,
+          ),
+        };
       }
-      attemptId = createAttemptId(target.selection);
-      checkpoint = QualificationDiagnosticCheckpointSchema.parse({
-        ...checkpoint,
-        activeAttemptId: attemptId,
-        updatedAt: new Date().toISOString(),
-      });
-      await writeQualificationDiagnosticState(checkpointPath, checkpoint);
-    } else if (
-      !(await hasPath(path.join(getLocalAttemptDirectory(attemptId), 'checkpoint.json')))
-    ) {
-      await rm(getLocalAttemptDirectory(attemptId), { force: true, recursive: true });
-      isResume = false;
     }
 
+    const sharedOptions = {
+      host: options.host,
+      tokenController,
+      workerCount: 1 as const,
+      ...(requestPaidExecutionApproval === undefined ? {} : { requestPaidExecutionApproval }),
+      ...(options.onProgress === undefined ? {} : { onProgress: options.onProgress }),
+      ...(options.operationalRetry === undefined
+        ? {}
+        : { operationalRetry: options.operationalRetry }),
+      ...(options.signal === undefined ? {} : { signal: options.signal }),
+    };
     const outcome = await runQualification(
-      isResume
+      existingCheckpoint === null
         ? {
-            host: options.host,
-            resumeAttemptId: attemptId,
-            resumeStoppedStage: canResumeStoppedStage,
-            ...(options.requestPaidExecutionApproval === undefined
-              ? {}
-              : { requestPaidExecutionApproval: options.requestPaidExecutionApproval }),
-            ...(options.onProgress === undefined ? {} : { onProgress: options.onProgress }),
-            ...(options.operationalRetry === undefined
-              ? {}
-              : { operationalRetry: options.operationalRetry }),
-            ...(options.signal === undefined ? {} : { signal: options.signal }),
-          }
-        : {
-            host: options.host,
+            ...sharedOptions,
             selection: target.selection,
             caseId,
             mode: 'diagnostic',
             newAttemptId: attemptId,
-            initialCandidateTokensConsumed: checkpoint.candidateTokensConsumed,
             packagesRepository,
             skillRepository,
             reuseEvidence: false,
-            ...(options.requestPaidExecutionApproval === undefined
-              ? {}
-              : { requestPaidExecutionApproval: options.requestPaidExecutionApproval }),
-            ...(options.onProgress === undefined ? {} : { onProgress: options.onProgress }),
-            ...(options.operationalRetry === undefined
-              ? {}
-              : { operationalRetry: options.operationalRetry }),
-            ...(options.signal === undefined ? {} : { signal: options.signal }),
+          }
+        : {
+            ...sharedOptions,
+            resumeAttemptId: attemptId,
+            resumeStoppedStage: stoppedAttemptId === attemptId,
           },
     );
-    canResumeStoppedStage = false;
     const attemptCheckpoint = await readAttemptCheckpoint(outcome.attemptDirectory);
-    checkpoint = QualificationDiagnosticCheckpointSchema.parse({
-      ...checkpoint,
-      candidateTokensConsumed: attemptCheckpoint.candidateTokensConsumed,
-      updatedAt: new Date().toISOString(),
-    });
-
     if (outcome.result.status === 'incomplete') {
-      const stoppedStage = outcome.result.stages.find(({ status }) => status === 'stopped');
-      const stopKind =
+      const stoppedStage = Object.values(attemptCheckpoint.stages).find(
+        ({ status }) => status === 'stopped',
+      );
+      const kind =
         stoppedStage?.hasUsedOperationalStopResume === true
           ? 'operational-recovery-exhausted'
-          : stoppedStage === undefined &&
-              checkpoint.candidateTokensConsumed + getQualificationMaximumTokenCount(1) >
-                QUALIFICATION_CANDIDATE_TOKEN_LIMIT
-            ? 'candidate-token-limit'
-            : null;
-      if (stopKind !== null) {
-        checkpoint = QualificationDiagnosticCheckpointSchema.parse({
-          ...checkpoint,
-          stop: {
-            kind: stopKind,
-            caseId,
-            attemptId,
-            stoppedAt: new Date().toISOString(),
-          },
-        });
-      }
-      await writeQualificationDiagnosticState(checkpointPath, checkpoint);
-      const incompleteOutcome = createOutcome({ checkpoint, ledger });
-      assertQualificationDiagnosticOutputSize(incompleteOutcome);
-      return incompleteOutcome;
+          : stoppedStage !== undefined
+            ? 'operational-stop'
+            : outcome.result.summary.includes('candidate token boundary')
+              ? 'candidate-token-limit'
+              : outcome.result.summary.includes('temporary-storage boundary')
+                ? 'temporary-storage-limit'
+                : 'execution-error';
+      throw new QualificationDiagnosticWorkerStopError(
+        attemptId,
+        caseId,
+        kind,
+        outcome.result.summary,
+      );
     }
     const terminalCase = outcome.result.cases[0];
     if (
@@ -709,50 +840,95 @@ export const runQualificationDiagnosticBatch = async (options: {
       outcome.result.cases.length !== 1 ||
       terminalCase?.caseId !== caseId
     ) {
-      checkpoint = QualificationDiagnosticCheckpointSchema.parse({
-        ...checkpoint,
-        stop: {
-          kind: 'execution-error',
-          caseId,
-          attemptId,
-          stoppedAt: new Date().toISOString(),
-        },
-      });
-      await writeQualificationDiagnosticState(checkpointPath, checkpoint);
-      throw new Error(
+      throw new QualificationDiagnosticWorkerStopError(
+        attemptId,
+        caseId,
+        'execution-error',
         `Qualification diagnostic case ${caseId} did not produce one matching terminal case in ${attemptId}.`,
       );
     }
+    return outcome;
+  };
 
-    const record = createDiagnosticRecord(
-      outcome.result,
-      attemptCheckpoint.candidateTokensConsumed,
-    );
-    ledger = QualificationDiagnosticLedgerSchema.parse({
-      ...ledger,
-      candidateTokensConsumed: attemptCheckpoint.candidateTokensConsumed,
-      records: [...ledger.records, record],
-      updatedAt: new Date().toISOString(),
+  const batchFailure: { stop: QualificationDiagnosticWorkerStopError | null } = { stop: null };
+  try {
+    await runOrderedEvaluationBatch({
+      items: remainingCaseIds,
+      workerCount,
+      executeItem: ({ item }) => executeCase(item),
+      commitItem: async ({ item: caseId, value: outcome }) => {
+        const attemptCheckpoint = await readAttemptCheckpoint(outcome.attemptDirectory);
+        const candidateTokensConsumed =
+          activeLedger.candidateTokensConsumed + attemptCheckpoint.candidateTokensConsumed;
+        const record = createDiagnosticRecord(outcome.result, candidateTokensConsumed);
+        activeLedger = QualificationDiagnosticLedgerSchema.parse({
+          ...activeLedger,
+          candidateTokensConsumed,
+          records: [...activeLedger.records, record],
+          updatedAt: new Date().toISOString(),
+        });
+        await writeQualificationDiagnosticState(ledgerPath, activeLedger);
+        await rm(outcome.attemptDirectory, { force: true, recursive: true });
+        activeCheckpoint = QualificationDiagnosticCheckpointSchema.parse({
+          ...activeCheckpoint,
+          candidateTokensConsumed: await getUncommittedCandidateTokenCount({
+            checkpoint: activeCheckpoint,
+            ledger: activeLedger,
+          }),
+          updatedAt: new Date().toISOString(),
+        });
+        await writeQualificationDiagnosticState(checkpointPath, activeCheckpoint);
+        if (caseId !== activeLedger.records.at(-1)?.caseId) {
+          throw new Error('Qualification diagnostic ledger commit order changed unexpectedly.');
+        }
+      },
+      onItemError: async ({ error, item: caseId }) => {
+        const attemptId = activeCheckpoint.attemptIds[caseId];
+        if (attemptId === undefined)
+          throw new Error(`Diagnostic case ${caseId} has no attempt id.`);
+        batchFailure.stop =
+          error instanceof QualificationDiagnosticWorkerStopError
+            ? error
+            : new QualificationDiagnosticWorkerStopError(
+                attemptId,
+                caseId,
+                'execution-error',
+                error instanceof Error ? error.message : 'Unknown diagnostic worker failure.',
+              );
+        const stop = batchFailure.stop;
+        activeCheckpoint = QualificationDiagnosticCheckpointSchema.parse({
+          ...activeCheckpoint,
+          candidateTokensConsumed: await getUncommittedCandidateTokenCount({
+            checkpoint: activeCheckpoint,
+            ledger: activeLedger,
+          }),
+          stop:
+            stop.kind === 'operational-stop'
+              ? null
+              : {
+                  kind: stop.kind,
+                  caseId: stop.caseId,
+                  attemptId: stop.attemptId,
+                  stoppedAt: new Date().toISOString(),
+                },
+          updatedAt: new Date().toISOString(),
+        });
+        await writeQualificationDiagnosticState(checkpointPath, activeCheckpoint);
+      },
     });
-    await writeQualificationDiagnosticState(ledgerPath, ledger);
-    await rm(outcome.attemptDirectory, { force: true, recursive: true });
-    const nextCaseIndex = checkpoint.nextCaseIndex + 1;
-    if (nextCaseIndex === selector.caseIds.length) {
-      await rm(checkpointPath, { force: true });
-      checkpoint = null;
-      break;
-    }
-    checkpoint = QualificationDiagnosticCheckpointSchema.parse({
-      ...checkpoint,
-      nextCaseIndex,
-      activeAttemptId: null,
-      candidateTokensConsumed: ledger.candidateTokensConsumed,
-      updatedAt: new Date().toISOString(),
+  } catch (error) {
+    const stop = batchFailure.stop;
+    if (stop === null || stop.kind === 'execution-error') throw error;
+    const incompleteOutcome = await createOutcome({
+      checkpoint: activeCheckpoint,
+      ledger: activeLedger,
     });
-    await writeQualificationDiagnosticState(checkpointPath, checkpoint);
+    assertQualificationDiagnosticOutputSize(incompleteOutcome);
+    return incompleteOutcome;
   }
 
-  const finalOutcome = createOutcome({ checkpoint, ledger });
+  await rm(checkpointPath, { force: true });
+  const finalOutcome = await createOutcome({ checkpoint: null, ledger: activeLedger });
   assertQualificationDiagnosticOutputSize(finalOutcome);
   return finalOutcome;
 };

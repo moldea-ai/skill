@@ -52,7 +52,9 @@ Each actor or judge stage records:
 
 Every scenario declares `ordinary` or `largeTraversal`. Both profiles permit at most 128 KiB from one completed command, 64 completed commands, 16 `moldea` calls, and 1,625,000 input-plus-output tokens. `ordinary` also permits 256 KiB of `moldea` output and 1 MiB of aggregate model-visible tool output. `largeTraversal` also permits 1 MiB of `moldea` output and 4 MiB of aggregate model-visible tool output. Crossing any dimension remains an explicit stage failure naming the profile, measured value, and limit. An actor that exceeds only cumulative completed-command, `moldea`-call, or token limits may still receive a semantic verdict while inside absolute containment. This makes an otherwise accepted trial usable for calibration without making the over-budget trial pass. Missing token usage and output-volume or existing correctness and safety failures skip the judge.
 
-The profile token limits contain a complete tool-using Codex stage rather than one internal model turn, and they are not consumption targets. Before the first direct model call, the CLI reports direct and reused cases, planned calls, the maximum calls including one operational retry per stage, the 2,097,152-token absolute ceiling per stage, prior candidate consumption, and the 32,000,000-token candidate stop-loss. The selected scenario profile is enforced against every completed actor and judge stage in the final verdict. Provider-cached input remains visible in evidence but is not added to input a second time.
+The profile token limits contain a complete tool-using Codex stage rather than one internal model turn, and they are not consumption targets. Before the first direct model call, the CLI reports candidate count, direct and reused cases, planned calls, maximum calls including one operational retry per stage, the 2,097,152-token absolute ceiling per stage, prior candidate consumption, and the total candidate-token ceiling. One profile retains its independent 32,000,000-token stop-loss; a multi-profile approval reports the sum of those independent ceilings. The selected scenario profile is enforced against every completed actor and judge stage in the final verdict. Provider-cached input remains visible in evidence but is not added to input a second time.
+
+Batch execution accepts one, two, or four isolated workers and defaults to four. Before dispatch, the coordinator reserves 2 GiB of temporary storage per worker, no more than 8 GiB for four workers, while preserving a 2 GiB free-space floor. The per-worker value includes an exact candidate snapshot and installed dependency workspace; a healthy model-free Claude Agent SDK qualification measured about 1.25 GiB. The guard measures complete worker roots at model-stage boundaries and uses constant-cost free-space checks while a stage is active, avoiding repeated recursive scans of large dependency trees. Capacity exhaustion stops new dispatch and preserves bounded resumable state.
 
 The operating limits and higher absolute ceilings are imported from the same source-controlled profile used by semantic evaluation and host execution. Deterministic boundary tests prove exact acceptance and over-limit failure for every dimension. The deterministic calibration corpus measures CLI and repository-operation behavior. Accepted qualification trials are the authority for complete model-stage consumption; duration and memory remain diagnostic observations. The strict `fixtures/model-stage-resource-calibration.json` artifact is a self-contained safety-calibration record, not current qualification assurance. It retains only trial identity, evidence digests, pass states, aggregate counts, and token categories, without loading an active result directory. It excludes commands, paths, prompts, output bodies, repository content, credentials, and hidden reasoning.
 
@@ -103,6 +105,7 @@ Run free deterministic validation first:
 
 ```bash
 npm run qualification:dry-run
+npm run qualification:dry-run:all
 npm run qualification:test
 npm run qualification:typecheck
 npm run qualification:lint
@@ -119,13 +122,13 @@ The two universal abstention cases assess only `moldea` activation, resource use
 
 ## Correct profiles efficiently
 
-Run the free deterministic checks before paid work and establish the current Custom baseline once. Then execute every adapter profile sequentially, continuing after a failed profile when the host remains operationally safe. Failed official attempts remain immutable evidence. Collect the complete adapter, profile, and case failure ledger before changing shared skill or qualification behavior so one correction can address every affected target.
+Run the free deterministic checks before paid work and establish the current Custom baseline once with `run --adapter custom --implementation custom --workers 4`. Then use `run-batch --all --workers 4` to execute the 13 adapter profiles. The batch continues after semantic failures while the host remains operationally safe, retains each profile in an isolated attempt and result root, and commits its compact ledger in profile-index order. Failed official attempts remain immutable evidence. Collect the complete adapter, profile, and case failure ledger before changing shared skill or qualification behavior so one correction can address every affected target.
 
-Use `diagnose-batch --adapter <adapter> --implementation <implementation>` with exactly one of `--all`, `--cases <comma-separated-case-ids>`, `--claims <comma-separated-claim-ids>`, or `--unresolved-from <attempt-id>`. The batch executes one initial trial at a time without confirmations or evidence reuse, continues across semantic failures, and never changes official evidence. After the consolidated correction, rerun a batch for only unresolved cases, then create one official evidence-producing attempt. `diagnose --case` remains available for one focused investigation.
+Use `diagnose-batch --adapter <adapter> --implementation <implementation>` with exactly one of `--all`, `--cases <comma-separated-case-ids>`, `--claims <comma-separated-claim-ids>`, or `--unresolved-from <attempt-id>`. The batch executes up to four isolated initial trials concurrently without confirmations or evidence reuse, continues across semantic failures, and never changes official evidence. After the consolidated correction, rerun a batch for only unresolved cases, then create one official evidence-producing attempt. `diagnose --case` remains available for one focused investigation.
 
-The diagnostic checkpoint and content-free ledger are independently limited to 1 MiB and atomically replaced. Completed entries contain status, requirement IDs, a deterministic explanation, aggregate resource counts, and attempt identity, never model rationale, prompts, commands, output bodies, repository content, or workspace paths. Final output is limited to 16 KiB. Successful completion deletes the private checkpoint. A stopped model stage receives one explicit additional attempt only with `--resume-stopped-stage`; `--restart` discards only exact matching diagnostic state.
+The diagnostic aggregate checkpoint and content-free ledger are independently limited to 1 MiB and atomically replaced. Each private worker checkpoint has the same limit, for a 6 MiB four-worker metadata ceiling. Completed entries contain status, requirement IDs, a deterministic explanation, aggregate resource counts, and attempt identity, never model rationale, prompts, commands, output bodies, repository content, or workspace paths. Final output is limited to 16 KiB. Successful completion deletes the aggregate checkpoint and terminal private attempts after projection. A stopped model stage receives one explicit additional attempt only with `--resume-stopped-stage`; `--restart` discards only exact matching diagnostic state.
 
-Keep one model-bearing qualification process active at a time. Parallel profile execution can multiply package workspaces, memory, temporary disk, provider quota, and token peaks. A future concurrency increase requires measured aggregate capacity and source-controlled resource limits; elapsed-time pressure by itself is not evidence that parallel execution is safe.
+`run-batch` accepts exactly one of `--all`, `--targets <comma-separated-logical-target-identifiers>`, or `--unresolved-from <batch-id>`. One logical target identifier has the form `<adapter>/<implementation>`. The coordinator creates fixed target attempts before dispatch, validates the exact passing Custom baseline before any adapter starts, runs at most four profiles concurrently, and records terminal summaries in declared order. Its checkpoint, active ledger, and retained completed ledger are each limited to 1 MiB; each summary is limited to 4 KiB and final JSON to 16 KiB. An operational or capacity failure stops new dispatch, drains active siblings, and preserves completed results. Resume may use a lower accepted worker count without replaying completed stages.
 
 Run the Custom profile before adapters:
 
@@ -133,9 +136,11 @@ Run the Custom profile before adapters:
 npm run qualification -- run --adapter custom --implementation custom
 ```
 
-Then run each adapter and verify all committed current evidence:
+Then run the adapter batch and verify all committed current evidence:
 
 ```bash
+npm run qualification -- run-batch --all --workers 4
+npm run qualification -- run-batch --unresolved-from <batch-id> --workers 4
 npm run qualification -- verify
 ```
 

@@ -93,6 +93,9 @@ type ISharedModelStageOptions = {
   onOperationalRetry?: (retry: ICodexEvaluationOperationalRetry) => Promise<void>;
   onOperationalStop?: (stop: ICodexEvaluationOperationalExhaustion) => Promise<void>;
   operationalRetry?: IQualificationOperationalRetryOptions;
+  runWithTemporaryStorageGuard?: <TResult>(
+    operation: (signal: AbortSignal) => Promise<TResult>,
+  ) => Promise<TResult>;
   verifyExecutionInputs: () => Promise<void>;
 };
 
@@ -207,15 +210,20 @@ export const executeActorModelStage = async (
       }
 
       try {
-        actorExecution = await options.host.runActor({
-          caseId: options.project.scenario.id,
-          ...(dryRunChangedFiles === undefined ? {} : { dryRunChangedFiles }),
-          prompt,
-          scenario: options.project.scenario,
-          schema: ActorOutputSchema,
-          signal: options.signal,
-          workspaceDirectory: options.project.workspaceDirectory,
-        });
+        const runActor = (signal: AbortSignal | undefined) =>
+          options.host.runActor({
+            caseId: options.project.scenario.id,
+            ...(dryRunChangedFiles === undefined ? {} : { dryRunChangedFiles }),
+            prompt,
+            scenario: options.project.scenario,
+            schema: ActorOutputSchema,
+            signal,
+            workspaceDirectory: options.project.workspaceDirectory,
+          });
+        actorExecution =
+          options.runWithTemporaryStorageGuard === undefined
+            ? await runActor(options.signal)
+            : await options.runWithTemporaryStorageGuard(runActor);
       } catch (error) {
         if (!options.isDryRun) {
           await options.settlePaidExecution?.(null);
@@ -361,14 +369,19 @@ export const executeJudgeModelStage = async (
       let judgeExecution;
 
       try {
-        judgeExecution = await options.host.runJudge({
-          caseId: options.project.scenario.id,
-          prompt,
-          scenario: options.project.scenario,
-          schema: JudgeOutputSchema,
-          signal: options.signal,
-          workspaceDirectory: options.judgeWorkspaceDirectory,
-        });
+        const runJudge = (signal: AbortSignal | undefined) =>
+          options.host.runJudge({
+            caseId: options.project.scenario.id,
+            prompt,
+            scenario: options.project.scenario,
+            schema: JudgeOutputSchema,
+            signal,
+            workspaceDirectory: options.judgeWorkspaceDirectory,
+          });
+        judgeExecution =
+          options.runWithTemporaryStorageGuard === undefined
+            ? await runJudge(options.signal)
+            : await options.runWithTemporaryStorageGuard(runJudge);
       } catch (error) {
         await options.settlePaidExecution?.(null);
         throw error;

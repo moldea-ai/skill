@@ -1,4 +1,4 @@
-import { lstat, readdir } from 'node:fs/promises';
+import { lstat, readdir, statfs } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import {
@@ -43,7 +43,30 @@ export const getEvaluationTemporaryByteCount = async (root) => {
   return byteCount;
 };
 
-/** Rejects one worker root whose allocated storage exceeds its fixed ceiling. */
+const getEvaluationTemporaryRoots = (root) => (Array.isArray(root) ? root : [root]);
+
+const getAvailableByteCount = async (root) => {
+  const statistics = await statfs(root, { bigint: true });
+  return statistics.bavail * statistics.bsize;
+};
+
+const assertEvaluationAvailableStorage = async (
+  root,
+  minimumFreeByteCount,
+  inspectAvailableByteCount,
+) => {
+  const availableByteCount = await inspectAvailableByteCount(root);
+  if (availableByteCount < BigInt(minimumFreeByteCount)) {
+    const error = new Error(
+      `Evaluation filesystem has ${availableByteCount} available bytes; ` +
+        `the required free-space floor is ${minimumFreeByteCount} bytes.`,
+    );
+    error.name = 'EvaluationBatchDiskLimitError';
+    throw error;
+  }
+};
+
+/** Rejects one worker's roots whose combined allocated storage exceeds its fixed ceiling. */
 export const assertEvaluationWorkerTemporaryStorage = async (
   root,
   maximumByteCount = EVALUATION_BATCH_WORKER_TEMPORARY_BYTE_COUNT,
@@ -51,7 +74,13 @@ export const assertEvaluationWorkerTemporaryStorage = async (
   if (!Number.isSafeInteger(maximumByteCount) || maximumByteCount <= 0) {
     throw new Error('Evaluation worker temporary byte limit must be a positive integer.');
   }
-  const byteCount = await getEvaluationTemporaryByteCount(root);
+  const roots = getEvaluationTemporaryRoots(root);
+  if (roots.length === 0 || roots.some((candidateRoot) => typeof candidateRoot !== 'string')) {
+    throw new Error('Evaluation worker temporary roots must contain at least one path.');
+  }
+  const byteCount = (
+    await Promise.all(roots.map((candidateRoot) => getEvaluationTemporaryByteCount(candidateRoot)))
+  ).reduce((total, candidateByteCount) => total + candidateByteCount, 0n);
   if (byteCount > BigInt(maximumByteCount)) {
     const error = new Error(
       `Evaluation worker temporary storage reached ${byteCount} bytes; the limit is ${maximumByteCount} bytes.`,
@@ -62,11 +91,16 @@ export const assertEvaluationWorkerTemporaryStorage = async (
   return byteCount;
 };
 
-/** Runs one model boundary under continuous and final temporary-storage checks. */
+/** Runs one model boundary with exact size checks and constant-cost free-space monitoring. */
 export const runWithEvaluationTemporaryStorageGuard = async (
   root,
   operation,
-  { maximumByteCount = EVALUATION_BATCH_WORKER_TEMPORARY_BYTE_COUNT, pollIntervalMs = 1_000 } = {},
+  {
+    inspectAvailableByteCount = getAvailableByteCount,
+    maximumByteCount = EVALUATION_BATCH_WORKER_TEMPORARY_BYTE_COUNT,
+    minimumFreeByteCount = EVALUATION_BATCH_MINIMUM_FREE_BYTE_COUNT,
+    pollIntervalMs = 1_000,
+  } = {},
 ) => {
   if (typeof operation !== 'function') {
     throw new Error('Evaluation temporary-storage guard requires an operation callback.');
@@ -74,13 +108,31 @@ export const runWithEvaluationTemporaryStorageGuard = async (
   if (!Number.isSafeInteger(pollIntervalMs) || pollIntervalMs <= 0) {
     throw new Error('Evaluation temporary-storage poll interval must be a positive integer.');
   }
-  await assertEvaluationWorkerTemporaryStorage(root, maximumByteCount);
+  if (!Number.isSafeInteger(minimumFreeByteCount) || minimumFreeByteCount < 0) {
+    throw new Error('Evaluation minimum free byte count must be a non-negative integer.');
+  }
+  if (typeof inspectAvailableByteCount !== 'function') {
+    throw new Error('Evaluation available-storage inspector must be a function.');
+  }
+  const roots = getEvaluationTemporaryRoots(root);
+  if (roots.length === 0 || roots.some((candidateRoot) => typeof candidateRoot !== 'string')) {
+    throw new Error('Evaluation worker temporary roots must contain at least one path.');
+  }
+  const storageRoot = roots[0];
+  await Promise.all([
+    assertEvaluationWorkerTemporaryStorage(roots, maximumByteCount),
+    assertEvaluationAvailableStorage(storageRoot, minimumFreeByteCount, inspectAvailableByteCount),
+  ]);
   const controller = new AbortController();
   let activeCheck = null;
   let limitError = null;
   const check = () => {
     if (activeCheck !== null || limitError !== null) return;
-    activeCheck = assertEvaluationWorkerTemporaryStorage(root, maximumByteCount)
+    activeCheck = assertEvaluationAvailableStorage(
+      storageRoot,
+      minimumFreeByteCount,
+      inspectAvailableByteCount,
+    )
       .catch((error) => {
         limitError = error;
         controller.abort(error);
@@ -102,7 +154,14 @@ export const runWithEvaluationTemporaryStorageGuard = async (
     clearInterval(interval);
     if (activeCheck !== null) await activeCheck;
     try {
-      await assertEvaluationWorkerTemporaryStorage(root, maximumByteCount);
+      await Promise.all([
+        assertEvaluationWorkerTemporaryStorage(roots, maximumByteCount),
+        assertEvaluationAvailableStorage(
+          storageRoot,
+          minimumFreeByteCount,
+          inspectAvailableByteCount,
+        ),
+      ]);
     } catch (error) {
       limitError ??= error;
     }

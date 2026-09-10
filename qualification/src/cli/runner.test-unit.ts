@@ -88,6 +88,7 @@ describe('qualification command runner', () => {
       async (options: IRunQualificationOptions) => {
         await expect(
           options.requestPaidExecutionApproval?.({
+            candidateCount: 1,
             candidateTokensConsumed: 0,
             directCaseCount: 10,
             plannedCallCount: 60,
@@ -124,6 +125,7 @@ describe('qualification command runner', () => {
         selection: { adapterId: 'custom', implementationId: 'custom' },
         isDryRun: true,
         reuseEvidence: true,
+        workerCount: 4,
         hasConfirmedPaidExecution: true,
         isJson: true,
       }),
@@ -157,7 +159,7 @@ describe('qualification command runner', () => {
       wasRecorded: false,
     });
     expect(stderr).toBe(
-      'Qualification paid boundary: 60 planned calls, 120 maximum calls, 2097152 tokens per call, 32000000 candidate tokens; 2 reused cases, 10 direct cases, 0 tokens already consumed.\n' +
+      'Qualification paid boundary: 60 planned calls, 120 maximum calls, 2097152 tokens per call, 32000000 total candidate-token ceiling across 1 candidate; 2 reused cases, 10 direct cases, 0 tokens already consumed.\n' +
         'Qualification evaluate-aligned-project initial judge retry 1: timed-out; waiting 5000 ms.\n',
     );
     expect(stdout).not.toContain('retry 1');
@@ -191,6 +193,7 @@ describe('qualification command runner', () => {
         });
         await expect(
           options.requestPaidExecutionApproval?.({
+            candidateCount: 1,
             candidateTokensConsumed: 0,
             directCaseCount: 1,
             plannedCallCount: 2,

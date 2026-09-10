@@ -15,6 +15,11 @@ import {
   type IQualificationDiagnosticBatchOutcome,
 } from '../diagnostic-batch/index.ts';
 import {
+  assertQualificationProfileBatchOutputSize,
+  runQualificationProfileBatch,
+  type IQualificationProfileBatchOutcome,
+} from '../profile-batch/index.ts';
+import {
   confirmPaidQualificationExecution,
   promptQualificationAction,
 } from '../interactive/index.ts';
@@ -42,7 +47,8 @@ const createPaidExecutionApprovalRequester = (options: {
     process.stderr.write(
       `Qualification paid boundary: ${request.plannedCallCount} planned calls, ` +
         `${request.maximumCallCount} maximum calls, ${request.maximumTokensPerCall} ` +
-        `tokens per call, ${request.maximumTokenCount} candidate tokens; ` +
+        `tokens per call, ${request.maximumTokenCount} total candidate-token ceiling ` +
+        `across ${request.candidateCount} candidate${request.candidateCount === 1 ? '' : 's'}; ` +
         `${request.reusedCaseCount} reused cases, ${request.directCaseCount} direct cases, ` +
         `${request.candidateTokensConsumed} tokens already consumed.\n`,
     );
@@ -154,13 +160,30 @@ const presentRunOutcome = (
 const formatDiagnosticBatch = (outcome: IQualificationDiagnosticBatchOutcome): string => {
   const resultLines = outcome.records.map(({ caseId, verdict }) => `- ${caseId}: ${verdict}`);
   const activeLine =
-    outcome.activeAttemptId === null
+    outcome.activeAttemptIds.length === 0
       ? []
-      : [`Active resumable attempt: ${outcome.activeAttemptId}`];
+      : [`Active resumable attempts: ${outcome.activeAttemptIds.join(', ')}`];
   return [
     `Qualification diagnostic batch ${outcome.status}.`,
     `${outcome.records.length}/${outcome.selector.caseIds.length} cases completed.`,
     `${outcome.candidateTokensConsumed}/${outcome.candidateTokenLimit} candidate tokens consumed.`,
+    ...activeLine,
+    ...resultLines,
+  ].join('\n');
+};
+
+const formatProfileBatch = (outcome: IQualificationProfileBatchOutcome): string => {
+  const resultLines = outcome.records.map(
+    ({ adapterId, implementationId, status }) => `- ${adapterId}/${implementationId}: ${status}`,
+  );
+  const activeLine =
+    outcome.activeAttemptIds.length === 0
+      ? []
+      : [`Active resumable attempts: ${outcome.activeAttemptIds.join(', ')}`];
+  return [
+    `Qualification profile batch ${outcome.batchId} ${outcome.status}.`,
+    `${outcome.records.length}/${outcome.selector.targetIds.length} targets completed.`,
+    `${outcome.candidateTokensConsumed} candidate tokens consumed.`,
     ...activeLine,
     ...resultLines,
   ].join('\n');
@@ -187,7 +210,7 @@ export const executeQualificationCommand = async (
         reuseEvidence: false,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         onProgress: reportQualificationProgress,
-        signal,
+        ...(signal === undefined ? {} : { signal }),
       });
       return presentRunOutcome(outcome, command.isJson);
     }
@@ -204,6 +227,7 @@ export const executeQualificationCommand = async (
           : { skillRepository: command.skillRepository }),
         restart: command.restart,
         resumeStoppedStage: command.resumeStoppedStage,
+        workerCount: command.workerCount,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         onProgress: reportQualificationProgress,
         ...(signal === undefined ? {} : { signal }),
@@ -263,6 +287,7 @@ export const executeQualificationCommand = async (
         isDryRun: command.isDryRun,
         mode: command.isDryRun ? 'dry-run' : 'official',
         reuseEvidence: command.reuseEvidence,
+        workerCount: command.workerCount,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         onProgress: reportQualificationProgress,
         signal,
@@ -276,6 +301,7 @@ export const executeQualificationCommand = async (
         host: createHost(checkpoint.mode === 'dry-run'),
         resumeAttemptId: checkpoint.attemptId,
         resumeStoppedStage: command.resumeStoppedStage,
+        workerCount: command.workerCount,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         onProgress: reportQualificationProgress,
         signal,
@@ -302,11 +328,39 @@ export const executeQualificationCommand = async (
         isDryRun: checkpoint.isDryRun,
         reuseEvidence: checkpoint.reuseEvidence,
         parentAttemptId: checkpoint.attemptId,
+        workerCount: command.workerCount,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         onProgress: reportQualificationProgress,
         signal,
       });
       return presentRunOutcome(outcome, command.isJson);
+    }
+    case 'run-batch': {
+      const outcome = await runQualificationProfileBatch({
+        host: createHost(command.isDryRun),
+        selector: command.selector,
+        ...(command.packagesRepository === undefined
+          ? {}
+          : { packagesRepository: command.packagesRepository }),
+        ...(command.skillRepository === undefined
+          ? {}
+          : { skillRepository: command.skillRepository }),
+        isDryRun: command.isDryRun,
+        reuseEvidence: command.reuseEvidence,
+        restart: command.restart,
+        resumeStoppedStage: command.resumeStoppedStage,
+        workerCount: command.workerCount,
+        requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
+        onProgress: reportQualificationProgress,
+        ...(signal === undefined ? {} : { signal }),
+      });
+      assertQualificationProfileBatchOutputSize(outcome);
+      presentQualificationOutput(outcome, command.isJson, formatProfileBatch(outcome));
+      return outcome.status === 'incomplete'
+        ? 130
+        : outcome.records.some(({ status }) => status === 'failed')
+          ? 2
+          : 0;
     }
   }
 };
@@ -330,6 +384,7 @@ export const executeInteractiveQualification = async (signal?: AbortSignal): Pro
         attemptId: action.attemptId,
         hasConfirmedPaidExecution: false,
         resumeStoppedStage: false,
+        workerCount: 4,
         isJson: false,
       },
       signal,
@@ -345,6 +400,7 @@ export const executeInteractiveQualification = async (signal?: AbortSignal): Pro
       },
       isDryRun: false,
       reuseEvidence: true,
+      workerCount: 4,
       hasConfirmedPaidExecution: false,
       isJson: false,
     },

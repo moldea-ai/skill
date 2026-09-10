@@ -12,6 +12,7 @@ import type {
   ICodexEvaluationOperationalExhaustion,
   ICodexEvaluationOperationalRetry,
 } from '../../../tooling/codex-evaluation-host/index.mjs';
+import type { IEvaluationBatchWorkerCount } from '../../../tooling/evaluation-batch/index.mjs';
 import type { ICodexHost } from '../codex-host/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 
@@ -34,12 +35,29 @@ export type IRunQualificationOptions = {
   requestPaidExecutionApproval?: (request: IQualificationPaidExecutionRequest) => Promise<boolean>;
   onProgress?: (progress: IQualificationProgress) => Promise<void> | void;
   operationalRetry?: IQualificationOperationalRetryOptions;
+  tokenController?: IQualificationBatchTokenController;
   signal?: AbortSignal | undefined;
+  workerCount?: IEvaluationBatchWorkerCount;
+};
+
+// shared in-flight admission used by case and cross-profile coordinators
+export type IQualificationBatchTokenController = {
+  getSnapshot: () => {
+    inFlightTokenLimit: number;
+    reservationTokenCount: number;
+    tokensConsumed: number;
+    tokensReserved: number;
+    totalTokenLimit: number | null;
+  };
+  release: () => void;
+  reserve: () => void;
+  settle: (usage: IQualificationTrialResult['actorUsage']) => void;
 };
 
 // exact cost boundary presented immediately before the first direct model call
 export type IQualificationPaidExecutionRequest = {
   candidateTokensConsumed: number;
+  candidateCount: number;
   directCaseCount: number;
   maximumCallCount: number;
   maximumTokenCount: number;

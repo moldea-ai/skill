@@ -100,6 +100,7 @@ describe('qualification diagnostic batch execution', () => {
           events: '',
         }),
     });
+    const requestPaidExecutionApproval = vi.fn(() => Promise.resolve(true));
     const outcome = await runQualificationDiagnosticBatch({
       host,
       selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -107,18 +108,32 @@ describe('qualification diagnostic batch execution', () => {
       checkpointPath,
       ledgerPath,
       resultsRoot,
-      requestPaidExecutionApproval: () => Promise.resolve(true),
+      requestPaidExecutionApproval,
     });
     repositoryStateSpy.mockRestore();
 
     expect(outcome).toMatchObject({
       status: 'completed',
-      activeAttemptId: null,
+      activeAttemptIds: [],
       selector: { kind: 'cases', caseIds },
     });
     expect(outcome.records).toHaveLength(caseIds.length);
     expect(outcome.records.map(({ caseId }) => caseId)).toStrictEqual(caseIds);
     expect(outcome.records.map(({ verdict }) => verdict)).toStrictEqual(['failed', 'passed']);
+    expect(requestPaidExecutionApproval).toHaveBeenCalledOnce();
+    expect(requestPaidExecutionApproval).toHaveBeenCalledWith({
+      actorReasoningEffort: 'xhigh',
+      candidateCount: 1,
+      candidateTokensConsumed: 0,
+      directCaseCount: 2,
+      judgeReasoningEffort: 'xhigh',
+      maximumCallCount: 8,
+      maximumTokenCount: 32_000_000,
+      maximumTokensPerCall: 2_097_152,
+      model: 'gpt-5.6-sol',
+      plannedCallCount: 4,
+      reusedCaseCount: 0,
+    });
     await expect(access(checkpointPath)).rejects.toThrow();
     await expect(access(resultsRoot)).rejects.toThrow();
 
@@ -173,13 +188,14 @@ describe('qualification diagnostic batch execution', () => {
     expect(checkpoint?.stop).toMatchObject({
       kind: 'execution-error',
       caseId,
-      attemptId: checkpoint?.activeAttemptId,
+      attemptId: checkpoint?.attemptIds[caseId],
     });
     expect(checkpoint?.candidateTokensConsumed).toBe(0);
     await expect(access(resultsRoot)).rejects.toThrow();
 
-    if (checkpoint?.activeAttemptId !== null && checkpoint?.activeAttemptId !== undefined) {
-      await rm(getLocalAttemptDirectory(checkpoint.activeAttemptId), {
+    const attemptId = checkpoint?.attemptIds[caseId];
+    if (attemptId !== undefined) {
+      await rm(getLocalAttemptDirectory(attemptId), {
         force: true,
         recursive: true,
       });

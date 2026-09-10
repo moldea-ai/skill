@@ -23,6 +23,7 @@ describe('parseQualificationCommand', () => {
       packagesRepository: '/work/packages',
       isDryRun: true,
       reuseEvidence: true,
+      workerCount: 4,
       hasConfirmedPaidExecution: false,
       isJson: true,
     });
@@ -98,6 +99,35 @@ describe('parseQualificationCommand', () => {
       kind: 'diagnose-batch',
       selection: { adapterId: 'custom', implementationId: 'custom' },
       selector,
+      workerCount: 4,
+    });
+  });
+
+  test.each([
+    [['run-batch', '--all'], { kind: 'all', value: null }],
+    [
+      [
+        'run-batch',
+        '--targets',
+        'anthropic/typescript-messages-api-0-117,vercel-ai-sdk/typescript-tool-loop-agent-7',
+        '--workers',
+        '2',
+      ],
+      {
+        kind: 'targets',
+        value: 'anthropic/typescript-messages-api-0-117,vercel-ai-sdk/typescript-tool-loop-agent-7',
+      },
+    ],
+    [
+      ['run-batch', '--unresolved-from', 'batch-one'],
+      { kind: 'unresolved-from', value: 'batch-one' },
+    ],
+  ] as const)('parses one run-batch selector from %o', (args, selector) => {
+    expect(parseQualificationCommand(args)).toMatchObject({
+      kind: 'run-batch',
+      selector,
+      resumeStoppedStage: false,
+      workerCount: selector.kind === 'targets' ? 2 : 4,
     });
   });
 
@@ -120,6 +150,7 @@ describe('parseQualificationCommand', () => {
         attemptId: 'attempt-1',
         hasConfirmedPaidExecution: true,
         resumeStoppedStage: false,
+        workerCount: 4,
         isJson: false,
       },
     ],
@@ -130,6 +161,7 @@ describe('parseQualificationCommand', () => {
         attemptId: 'attempt-1',
         hasConfirmedPaidExecution: false,
         resumeStoppedStage: true,
+        workerCount: 4,
         isJson: false,
       },
     ],
@@ -139,6 +171,7 @@ describe('parseQualificationCommand', () => {
         kind: 'retry',
         attemptId: 'attempt-1',
         hasConfirmedPaidExecution: false,
+        workerCount: 4,
         isJson: true,
       },
     ],
@@ -175,6 +208,13 @@ describe('parseQualificationCommand', () => {
     [
       ['diagnose-batch', '--adapter', 'custom', '--implementation', 'custom'],
       'diagnose-batch requires exactly one diagnostic selector',
+    ],
+    [['run-batch'], 'run-batch requires exactly one profile selector'],
+    [['run-batch', '--all', '--targets', 't1'], 'run-batch requires exactly one profile selector'],
+    [['run-batch', '--all', '--workers', '3'], '--workers must be 1, 2, or 4'],
+    [
+      ['run-batch', '--all', '--restart', '--resume-stopped-stage'],
+      '--restart and --resume-stopped-stage cannot be combined',
     ],
     [
       [

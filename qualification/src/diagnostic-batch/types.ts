@@ -69,7 +69,7 @@ export const QualificationDiagnosticLedgerSchema = z.strictObject({
 
 export type IQualificationDiagnosticLedger = z.infer<typeof QualificationDiagnosticLedgerSchema>;
 
-// private content-free orchestration state that points to at most one active attempt
+// private content-free orchestration state that maps each case to its isolated attempt
 export const QualificationDiagnosticCheckpointSchema = z.strictObject({
   schemaVersion: z.literal(QUALIFICATION_DIAGNOSTIC_SCHEMA_VERSION),
   identitySha256: Sha256Schema,
@@ -84,12 +84,16 @@ export const QualificationDiagnosticCheckpointSchema = z.strictObject({
   packagesRepositoryFingerprint: Sha256Schema,
   targetDigest: Sha256Schema,
   executionEnvironment: QualificationExecutionEnvironmentSchema,
-  nextCaseIndex: z.number().int().nonnegative(),
-  activeAttemptId: z.string().trim().min(1).nullable(),
+  attemptIds: z.record(StableIdSchema, z.string().trim().min(1)),
   candidateTokensConsumed: z.number().int().min(0).max(QUALIFICATION_CANDIDATE_TOKEN_LIMIT),
   stop: z
     .strictObject({
-      kind: z.enum(['candidate-token-limit', 'execution-error', 'operational-recovery-exhausted']),
+      kind: z.enum([
+        'candidate-token-limit',
+        'execution-error',
+        'operational-recovery-exhausted',
+        'temporary-storage-limit',
+      ]),
       caseId: StableIdSchema,
       attemptId: z.string().trim().min(1),
       stoppedAt: z.string().datetime(),
@@ -117,6 +121,6 @@ export type IQualificationDiagnosticBatchOutcome = {
   selector: IQualificationDiagnosticSelector;
   candidateTokenLimit: number;
   candidateTokensConsumed: number;
-  activeAttemptId: string | null;
+  activeAttemptIds: string[];
   records: IQualificationDiagnosticRecord[];
 };

@@ -1,5 +1,8 @@
+import type { IEvaluationBatchWorkerCount } from '../../../tooling/evaluation-batch/index.mjs';
+
 import type { IQualificationSelection } from '../contracts/index.ts';
 import type { IQualificationDiagnosticSelectorInput } from '../diagnostic-batch/index.ts';
+import type { IQualificationProfileBatchSelectorInput } from '../profile-batch/index.ts';
 
 export type IQualificationCommand =
   | {
@@ -19,6 +22,7 @@ export type IQualificationCommand =
       skillRepository?: string;
       restart: boolean;
       resumeStoppedStage: boolean;
+      workerCount: IEvaluationBatchWorkerCount;
       hasConfirmedPaidExecution: boolean;
       isJson: boolean;
     }
@@ -33,12 +37,14 @@ export type IQualificationCommand =
       attemptId: string;
       hasConfirmedPaidExecution: boolean;
       resumeStoppedStage: boolean;
+      workerCount: IEvaluationBatchWorkerCount;
       isJson: boolean;
     }
   | {
       kind: 'retry';
       attemptId: string;
       hasConfirmedPaidExecution: boolean;
+      workerCount: IEvaluationBatchWorkerCount;
       isJson: boolean;
     }
   | {
@@ -48,6 +54,20 @@ export type IQualificationCommand =
       skillRepository?: string;
       isDryRun: boolean;
       reuseEvidence: boolean;
+      workerCount: IEvaluationBatchWorkerCount;
+      hasConfirmedPaidExecution: boolean;
+      isJson: boolean;
+    }
+  | {
+      kind: 'run-batch';
+      selector: IQualificationProfileBatchSelectorInput;
+      packagesRepository?: string;
+      skillRepository?: string;
+      isDryRun: boolean;
+      reuseEvidence: boolean;
+      restart: boolean;
+      resumeStoppedStage: boolean;
+      workerCount: IEvaluationBatchWorkerCount;
       hasConfirmedPaidExecution: boolean;
       isJson: boolean;
     }

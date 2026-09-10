@@ -1,10 +1,12 @@
 # Resource-bounded moldea redesign milestones
 
-## Completed milestones 1 through 71
+## Completed milestones 1 through 78
 
-Milestones 1 through 70 are complete, reviewed, signed, and published. They established the clean-slate package generation, repository-bound activation, content-free CLI inspection, lazy repository reading, PR Assurance foundations, paired public/private fixtures, evidence pinning, the 74-case semantic inventory, the 12-plus-2 qualification model, protocol-25 and protocol-10 evidence contracts, collect-first evaluation, xhigh actors and judges, strict resource accounting, and bounded four-worker semantic execution.
+Milestones 1 through 78 are complete, reviewed, signed, and published. They established the initial clean-slate package generation, repository-bound activation, content-free CLI inspection, lazy repository reading, PR Assurance foundations, paired public/private fixtures, evidence pinning, the 74-case semantic inventory, the 12-plus-2 qualification model, protocol-25 and protocol-10 evidence contracts, collect-first evaluation, xhigh actors and judges, strict resource accounting, bounded four-worker semantic execution, and equivalent bounded qualification batching.
 
 Milestone 71 completed official attempt `20260909T160245245Z-semantic-f4435831`. It reached all 74 cases with 60 direct passes, five recoveries, nine terminal failures, 93 trials, 186 model stages, and no operational stop. The failed attempt is immutable audit evidence. Its complete classification identified one repeated package inspection defect, two compact portable route defects, one evaluator criterion defect, and two strict variance/security canaries.
+
+Milestones 72 through 77 corrected those bounded causes and recorded passing attempt `20260909T215730003Z-semantic-a0ad31b0` with 69 direct passes, five eligible recoveries, and no failures. Milestone 78 then published bounded four-worker qualification batching. A subsequent PR Assurance review exposed a launch-critical Core paging and retained-memory defect, so that passing attempt remains immutable evidence for its exact Core 3.1/CLI 7.1 closure but cannot serve as final release evidence after the required clean Core 4 cutover.
 
 ## Milestone 72: Publish the failed attempt and revised execution contract
 
@@ -226,7 +228,73 @@ Give Custom and adapter qualification the same safe batching, checkpoint, resume
 
 Inspect command contracts, Custom-first enforcement, scheduler isolation, operational versus evidence identity, aggregate capacity, cleanup, public composition, and legacy absence.
 
-## Milestone 79: Establish fresh Custom qualification evidence
+## Milestone 79: Publish the clean Core 4 package generation
+
+### Objective
+
+Replace stateless repository-bearing project inspection with one resource-bounded snapshot preparation and publish a single Core-4-only package closure before another paid model call.
+
+### Dependencies
+
+- Milestone 78 is published at signed skill commit `f381da45284c5603124589d23b043c7f527ddb3a`.
+- `../packages/new_skill` and `origin/new_skill` are clean at `7f0642090b428643a6b658ef077f3a7983dbfa9f`.
+- The challenged revised plan establishes that the platform has not launched and no Core 3 paging compatibility path is required.
+
+### Scope and implementation
+
+- In Core, replace `inspectProjectPage` and its repository-bearing input with asynchronous `createProjectInspection({ repository, signal? })`. Return one immutable content-free inspection object whose synchronous `readPage({ cursor?, maxItems, view })` method slices a single prepared, deterministically ordered record set.
+- Remove the old operation, input shape, implementation module, exports, tests, documentation, examples, and specification language. Do not retain an alias, wrapper, overload, deprecated export, fallback, or parallel stateless implementation.
+- Add a required `maxRetainedBytes` Core resource limit and deterministic accounted retained/peak usage covering canonical validation state and prepared content-free records. Enforce known source-size limits before expensive allocation, reject exact over-limit conditions predictably, release canonical bodies after preparation, and expose only bounded usage needed by higher-level ledgers.
+- Update CLI to 8.0.0 so each command prepares once and reads every page from that snapshot while preserving external JSON schema 4 and current content-free output behavior.
+- Update every official adapter to a Core-4-only dependency and publish the necessary stable adapter versions. Remove every Core 3 dependency or compatibility branch and verify that packed CLI and adapter consumers install exactly one Core 4 instance.
+- Synchronize package READMEs, public declarations, examples, generated compatibility state, release plans, and package specifications owned by `../packages`.
+- Review and publish cohesive signed package commits through the established branch/main/release workflow, monitor registry publication, and verify every exact version before the next milestone.
+
+### Verification and acceptance criteria
+
+- Focused Core unit and integration tests prove preparation reads and validates once; reading second, tenth, and final pages performs zero repository reads, validation passes, record rebuilds, resorts, or redigests.
+- Large and pathological fixtures prove deterministic cursor behavior, content exclusion, cancellation, exact retained-byte boundaries, pre-allocation rejection where sizes are known, peak/retained accounting, and absence of canonical bodies from the returned object.
+- Every affected package's granular and generic test suites, typecheck, lint, format, build, public API, documentation, compatibility, release-plan, packed-candidate, and production-artifact checks pass.
+- Registry and packed-consumer inspection prove Core 4.0.0, CLI 8.0.0, required adapter releases, and one deduplicated Core 4 closure with no Core 3 package.
+- Read-only review is ready; every commit is signed, signed off, and pushed to its exact resolved destination.
+
+### Review checkpoint
+
+Inspect the one-path API removal, snapshot lifetime, canonical-body disposal, memory accounting model, exact limit failures, CLI schema stability, adapter dependency graph, generated contracts, package versions, packed closure, and registry state.
+
+## Milestone 80: Align platform and skill, then record fresh semantics
+
+### Objective
+
+Make the platform specifications and skill consume only the published Core 4/CLI 8 generation, then record final-closure passing evidence across all 74 semantic cases.
+
+### Dependencies
+
+- Milestone 79 package versions are registry-visible and packed consumers prove one Core 4 closure.
+- Platform PR Assurance implementation remains assigned to the separate agent; this milestone owns only package closure and directly affected canonical specifications.
+- Concurrent platform changes are either published or isolated from this work through a clean worktree and cohesive commits.
+
+### Scope and implementation
+
+- Update `../platform/moldea/**` Core, CLI, adapter, package, runtime, project, and PR Assurance specifications that describe project inspection, retained-memory accounting, supported package versions, or dependency closure. Describe only the Core 4 preparation/read contract and leave separately assigned PR Assurance implementation files untouched.
+- Update platform package and lock state only where required to resolve the exact Core 4/CLI 8 generation, without bundling unrelated concurrent changes.
+- Update this repository's exact CLI development dependency, lockfile, supported major, evaluation identity, qualification target versions, documentation, generated website state, and release assertions to the registry-published final package closure. Remove all Core 3/CLI 7 compatibility wording or readers.
+- Run complete free deterministic preflight and exact-identity checks, then record one official four-worker, collect-first, xhigh 74-case attempt. Preserve `20260909T215730003Z-semantic-a0ad31b0` unchanged as historical Core 3.1/CLI 7.1 evidence; do not relabel, promote, or exact-reuse it for the new closure.
+- If a repeatable failure appears, classify the complete ledger once and revise only the proven owner before rerunning failed or exact-identity-invalidated work. Do not start Custom until current semantic evidence passes.
+
+### Verification and acceptance criteria
+
+- Platform specifications, package metadata, locks, skill declarations, evaluator identity, website, and release checks all resolve and describe the same exact Core 4/CLI 8/adapter generation with no active Core 3 or CLI 7 path.
+- Platform and skill repository-owned unit, integration, documentation, type, lint, format, build, package-candidate, link, identity, and contradiction checks pass at the affected boundaries.
+- All 74 semantic cases pass directly or through eligible unchanged confirmation with every deterministic, policy, repository, mount, operational, and resource dimension green.
+- An unchanged post-recording preflight reports complete exact-current reuse for the new closure, and immutable evidence verification passes.
+- Each repository reaches a read-only ready verdict and publishes only its cohesive signed changes to its exact destination.
+
+### Review checkpoint
+
+Inspect cross-repository version identity, absence of legacy paths, platform isolation, specification accuracy, semantic stage provenance, direct/recovered distribution, resource totals, and passing-only promotion.
+
+## Milestone 81: Establish fresh Custom qualification evidence
 
 ### Objective
 
@@ -234,8 +302,7 @@ Close all 12 shared Custom journeys under the final protocol-10 xhigh contract.
 
 ### Dependencies
 
-- Milestone 78 is published and model-free preflight passes.
-- The developer-named “Review PR Assurance readiness” session and current Core implementation have been reviewed, the proposed performance change has been classified, and its exact evidence-reuse or rerun impact has been reported before any paid call.
+- Milestone 80 is published with current passing final-closure semantic evidence and model-free qualification preflight passes.
 
 ### Scope and implementation
 
@@ -254,7 +321,7 @@ Close all 12 shared Custom journeys under the final protocol-10 xhigh contract.
 
 Inspect the complete Custom ledger, confirmation eligibility, resource and disk use, baseline identity, cleanup, public language, and stop-loss decisions.
 
-## Milestone 80: Produce the complete adapter-specific ledger
+## Milestone 82: Produce the complete adapter-specific ledger
 
 ### Objective
 
@@ -262,7 +329,7 @@ Run all 13 adapter profiles in bounded batches against the exact Custom baseline
 
 ### Dependencies
 
-- Milestone 79 is published with a current passing Custom attempt.
+- Milestone 81 is published with a current passing Custom attempt.
 - `run-batch --all --workers 4` preflight binds every profile to that exact baseline.
 
 ### Scope and implementation
@@ -282,7 +349,7 @@ Run all 13 adapter profiles in bounded batches against the exact Custom baseline
 
 Inspect cross-profile failure patterns, Custom binding, isolation, concurrency, resource totals, direct-versus-shared provenance, and honest public counts.
 
-## Milestone 81: Close adapter qualification evidence
+## Milestone 83: Close adapter qualification evidence
 
 ### Objective
 
@@ -290,7 +357,7 @@ Correct the consolidated adapter failure set coherently and publish passing curr
 
 ### Dependencies
 
-- Milestone 80 produced and published the complete classified ledger.
+- Milestone 82 produced and published the complete classified ledger.
 
 ### Scope and implementation
 
@@ -310,7 +377,7 @@ Correct the consolidated adapter failure set coherently and publish passing curr
 
 Inspect correction ownership, invalidated identities, targeted rerun scope, baseline integrity, adapter confidence, and legacy absence.
 
-## Milestone 82: Publish the clean skill 5.0 release
+## Milestone 84: Publish the clean skill 5.0 release
 
 ### Objective
 
@@ -338,7 +405,7 @@ Integrate and publish one clean 5.0 skill release against verified package versi
 
 Inspect release identity, package closure, evidence selection, clean-slate removal, target freshness, signed integration, workflow results, registry state, and hosted state.
 
-## Milestone 83: Complete the cross-repository launch audit
+## Milestone 85: Complete the cross-repository launch audit
 
 ### Objective
 
@@ -346,7 +413,7 @@ Prove that active specifications, packages, platform, skill, fixtures, websites,
 
 ### Dependencies
 
-- Milestone 82 is complete or has only explicit external publication prerequisites.
+- Milestone 84 is complete or has only explicit external publication prerequisites.
 
 ### Scope and implementation
 
@@ -368,4 +435,4 @@ Inspect exact repository tips, public claims, protocol and policy terminology, e
 
 ## Execution scope
 
-Preserve completed and published Milestones 1 through 75, the first published Milestone 76 correction at `9a6c76817a0a8bed35557283508cf358047bb5be`, failed official attempt `20260909T160245245Z-semantic-f4435831`, the complete nine-case classification, and the repeated single-case classification. Complete the revised Milestone 76 by replacing the inference-dependent Agent Skill boundary with an operation-first deliverable route that preserves separately requested canonical or relationship work, then publish and rerun only `skill-maintain-linked-resources`. If the same resource-only call pattern repeats, stop wording patches and diagnose evaluator delivery or host skill loading. Then execute Milestones 77 through 83 sequentially: record one passing 74-case attempt; add bounded qualification batching; establish a passing 12-case Custom baseline; collect and close all 13 adapter profiles; publish clean skill 5.0; and complete the cross-repository launch audit. Preserve every worker, resource, safety, privacy, provenance, signing, review, branch, clean-slate, protected-instruction, hard-exclusion, and unrelated-concurrent-work constraint from the challenged plan.
+Preserve completed and published Milestones 1 through 78 and passing attempt `20260909T215730003Z-semantic-a0ad31b0` as immutable evidence for their exact Core 3.1/CLI 7.1 closure. Execute Milestones 79 through 85 sequentially: publish one clean Core 4/CLI 8/Core-4-only adapter generation with snapshot-bound inspection and deterministic retained-memory containment; align platform specifications and the skill to that exact closure; record one fresh passing 74-case attempt; establish a passing 12-case Custom baseline; collect and close all 13 adapter profiles; publish clean skill 5.0; and complete the cross-repository launch audit. No paid model call occurs before the package and closure milestones pass. Preserve every worker, resource, safety, privacy, provenance, signing, review, branch, clean-slate, protected-instruction, hard-exclusion, and unrelated-concurrent-work constraint from the challenged plan. Retain no Core 3 paging, CLI 7 paging, repository-bearing inspection wrapper, deprecated alias, fallback, dual dependency, or other compatibility implementation.

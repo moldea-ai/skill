@@ -99,7 +99,9 @@ test('runtime compatibility cases receive one exact fixed local publication prob
       },
     );
     assert.equal(accepted.status, 0);
-    assert.equal(JSON.parse(accepted.stdout).matrixVersion, 2);
+    const currentPublication = JSON.parse(accepted.stdout);
+    assert.equal(currentPublication.matrixVersion, 2);
+    assert.equal(currentPublication.adapters.openai.targets[0].maturity, 'supported');
 
     for (const argumentsList of [
       ['https://example.com'],
@@ -121,6 +123,43 @@ test('runtime compatibility cases receive one exact fixed local publication prob
     assert.notEqual(inlineCase, undefined);
     await prepareSemanticEvaluationHome(inlineHome, inlineCase, inlineTools);
     assert.equal(existsSync(join(inlineTools, 'curl')), true);
+
+    for (const [caseId, expected] of [
+      ['experimental-target-not-production-ready', 'experimental'],
+      ['installed-adapter-without-published-target', 'missing'],
+      ['published-supported-target-not-installed', 'future'],
+      ['runtime-publication-malformed', 'malformed'],
+      ['runtime-publication-unavailable', 'unavailable'],
+    ]) {
+      const variantHome = join(evaluationRoot, `${expected}-home`);
+      const variantTools = join(evaluationRoot, `${expected}-tools`);
+      const variantCase = SEMANTIC_CASES.find(({ id }) => id === caseId);
+      assert.notEqual(variantCase, undefined);
+      await prepareSemanticEvaluationHome(variantHome, variantCase, variantTools);
+      const variantProbe = spawnSync(
+        process.execPath,
+        [join(variantTools, 'curl'), RUNTIME_COMPATIBILITY_PUBLICATION_URL],
+        { encoding: 'utf8' },
+      );
+
+      if (expected === 'unavailable') {
+        assert.equal(variantProbe.status, 22);
+        assert.match(variantProbe.stderr, /publication is unavailable/u);
+      } else if (expected === 'malformed') {
+        assert.equal(variantProbe.status, 0);
+        assert.equal(variantProbe.stdout, '{');
+      } else {
+        assert.equal(variantProbe.status, 0);
+        const publication = JSON.parse(variantProbe.stdout);
+        if (expected === 'experimental') {
+          assert.equal(publication.adapters.openai.targets[0].maturity, 'experimental');
+        } else if (expected === 'missing') {
+          assert.deepEqual(publication.adapters.openai.targets, []);
+        } else {
+          assert.equal(publication.adapters.future.targets[0].maturity, 'supported');
+        }
+      }
+    }
 
     for (const [caseId, directoryName] of [
       ['host-plan-command-precedence', 'unrelated'],

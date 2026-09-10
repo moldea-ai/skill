@@ -1948,6 +1948,10 @@
       "id": "agent-adoption-inline-runtime-instruction",
       "scenario": "An adopted project has an existing customer-support runtime that sends an independently maintained inline instruction to two Responses-style model calls, and the developer asks to create and register that runtime agent in moldea.",
       "operation": "create-agent",
+      "localProbe": {
+        "kind": "runtime-compatibility-publication",
+        "variant": "current-supported-target"
+      },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Create and register the existing customer-support runtime agent and make it ready.",
         "repositoryEvidence": [
@@ -4082,6 +4086,10 @@
       "id": "runtime-publication-unavailable",
       "scenario": "An adopted OpenAI Responses API agent has matching repository evidence and a locally installed OpenAI adapter, but the exact packages website runtime publication is operationally unavailable.",
       "operation": "evaluate-runtime-relationship",
+      "localProbe": {
+        "kind": "runtime-compatibility-publication",
+        "variant": "unavailable"
+      },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Evaluate the refund agent's runtime compatibility and production readiness using current evidence.",
         "repositoryEvidence": [
@@ -4146,6 +4154,10 @@
       "id": "runtime-publication-malformed",
       "scenario": "An adopted OpenAI Responses API agent has matching repository evidence and a locally installed OpenAI adapter, but the exact packages website runtime publication returns malformed JSON.",
       "operation": "evaluate-runtime-relationship",
+      "localProbe": {
+        "kind": "runtime-compatibility-publication",
+        "variant": "malformed"
+      },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Evaluate the refund agent's runtime compatibility and production readiness using current evidence.",
         "repositoryEvidence": [
@@ -4214,6 +4226,10 @@
       "id": "installed-adapter-without-published-target",
       "scenario": "An adopted OpenAI Responses API agent has matching repository evidence and the OpenAI adapter is active in local CLI composition, but the valid current packages website publication has no OpenAI target.",
       "operation": "evaluate-runtime-relationship",
+      "localProbe": {
+        "kind": "runtime-compatibility-publication",
+        "variant": "missing-current-target"
+      },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Evaluate whether the refund agent has published runtime support and is production-ready.",
         "repositoryEvidence": [
@@ -4282,6 +4298,10 @@
       "id": "published-supported-target-not-installed",
       "scenario": "The valid current packages website publication marks a future runtime target supported, but the exact local CLI composition does not contain its adapter and the repository has not installed or wired that runtime.",
       "operation": "plan-agent-system",
+      "localProbe": {
+        "kind": "runtime-compatibility-publication",
+        "variant": "future-supported-target"
+      },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Plan whether the refund agent should move to the published future runtime target.",
         "repositoryEvidence": [
@@ -4346,6 +4366,10 @@
       "id": "experimental-target-not-production-ready",
       "scenario": "An adopted OpenAI Responses API agent has matching repository evidence, the OpenAI adapter is active in local composition, and the valid current packages website publication identifies the exact target as experimental.",
       "operation": "evaluate-runtime-relationship",
+      "localProbe": {
+        "kind": "runtime-compatibility-publication",
+        "variant": "experimental-current-target"
+      },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Evaluate the refund agent's runtime identity and whether it is production-ready.",
         "repositoryEvidence": [
@@ -4410,6 +4434,10 @@
       "id": "dedicated-repository-runtime-selection",
       "scenario": "Canonical moldea state is in a dedicated repository while a developer-identified related application repository directly uses a verified available OpenAI provider target as its primary runtime boundary.",
       "operation": "maintain-agent-runtime",
+      "localProbe": {
+        "kind": "runtime-compatibility-publication",
+        "variant": "current-supported-target"
+      },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Align the canonical agent runtime using the read-only related application at /related-application as evidence.",
         "repositoryEvidence": [

@@ -596,6 +596,34 @@ test('execution evidence detects credentials in commands, output, and error mess
   });
 });
 
+test('execution evidence detects private-key blocks without treating public signatures as keys', () => {
+  const privateKeyResult = projectCodexEvaluationExecutionEvidence(
+    `${createCommandEvent(
+      'printf safe',
+      '-----BEGIN OPENSSH PRIVATE KEY-----\nprivate-material\n-----END OPENSSH PRIVATE KEY-----',
+    )}\n`,
+  );
+  assert.deepEqual(privateKeyResult.commandPolicy.credentialExposure, {
+    status: 'observed',
+    observedCount: 1,
+    reasons: [{ code: 'credential-material', count: 1 }],
+  });
+
+  for (const label of ['SSH SIGNATURE', 'PUBLIC KEY', 'CERTIFICATE']) {
+    const publicMaterialResult = projectCodexEvaluationExecutionEvidence(
+      `${createCommandEvent(
+        'printf safe',
+        `-----BEGIN ${label}-----\npublic-material\n-----END ${label}-----`,
+      )}\n`,
+    );
+    assert.deepEqual(publicMaterialResult.commandPolicy.credentialExposure, {
+      status: 'not-observed',
+      observedCount: 0,
+      reasons: [],
+    });
+  }
+});
+
 test('execution evidence distinguishes Basic credentials from ordinary prose', () => {
   const basicCredential = Buffer.from('user:secret', 'utf8').toString('base64');
   const result = projectCodexEvaluationExecutionEvidence(

@@ -211,7 +211,7 @@ const CREDENTIAL_PATTERNS = [
   /\b(?:npm_[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{16,})\b/gu,
   /\bAKIA[A-Z0-9]{16}\b/gu,
   /\bBearer\s+[A-Za-z0-9._~+/=-]{12,}(?=$|[\s"',;])/giu,
-  /-----BEGIN [^-]+-----[\s\S]*?-----END [^-]+-----/gu,
+  /-----BEGIN ((?:(?:RSA|DSA|EC|OPENSSH|ENCRYPTED) )?PRIVATE KEY|PGP PRIVATE KEY BLOCK)-----[\s\S]*?-----END \1-----/gu,
 ];
 const BASIC_AUTHORIZATION_PATTERN = /\bBasic\s+([A-Za-z0-9+/]{8,}={0,2})(?=$|[\s"',;])/giu;
 const CREDENTIAL_TEXT_FIELD_NAMES = new Set(['aggregated_output', 'command', 'message', 'text']);

@@ -24,10 +24,19 @@ const SEMANTIC_CASE_KEYS = new Set([
   'hostInstructions',
   'id',
   'input',
+  'localProbe',
   'operation',
   'resourceBudget',
   'scenario',
   'skillEvidence',
+]);
+const RUNTIME_COMPATIBILITY_PUBLICATION_PROBE_VARIANTS = new Set([
+  'current-supported-target',
+  'experimental-current-target',
+  'future-supported-target',
+  'malformed',
+  'missing-current-target',
+  'unavailable',
 ]);
 const SKILL_ARTIFACT_ROLES = new Set([
   'authoritative-source',
@@ -140,6 +149,13 @@ const isValidSkillEvidence = (skillEvidence) => {
   });
 };
 
+/** Returns whether one evaluator-owned local probe has a bounded explicit contract. */
+const isValidLocalProbe = (localProbe) =>
+  isPlainRecord(localProbe) &&
+  Object.keys(localProbe).length === 2 &&
+  localProbe.kind === 'runtime-compatibility-publication' &&
+  RUNTIME_COMPATIBILITY_PUBLICATION_PROBE_VARIANTS.has(localProbe.variant);
+
 /** Hashes one JSON-compatible semantic-evaluation contract exactly. */
 const createJsonDigest = (value) =>
   createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -219,6 +235,9 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
   const hasValidConfiguredSkillEvidence =
     isPlainRecord(caseDefinition) &&
     (!('skillEvidence' in caseDefinition) || isValidSkillEvidence(caseDefinition.skillEvidence));
+  const hasValidConfiguredLocalProbe =
+    isPlainRecord(caseDefinition) &&
+    (!('localProbe' in caseDefinition) || isValidLocalProbe(caseDefinition.localProbe));
   if (
     !isPlainRecord(caseDefinition) ||
     'prompt' in caseDefinition ||
@@ -228,6 +247,7 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
     !hasValidResourceBudget ||
     !hasValidHostInstructions ||
     !hasValidConfiguredSkillEvidence ||
+    !hasValidConfiguredLocalProbe ||
     !Array.isArray(caseDefinition.expected) ||
     caseDefinition.expected.length === 0 ||
     !Array.isArray(caseDefinition.forbidden) ||

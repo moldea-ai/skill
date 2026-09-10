@@ -54,6 +54,33 @@ describe('semantic evaluation evidence', () => {
     );
   });
 
+  test('binds explicit local-probe behavior into each case definition', () => {
+    const caseDefinition = {
+      ...createCaseDefinition('runtime-case'),
+      localProbe: {
+        kind: 'runtime-compatibility-publication',
+        variant: 'current-supported-target',
+      },
+    };
+
+    assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
+    assert.notEqual(
+      createSemanticCaseDefinitionDigest(caseDefinition),
+      createSemanticCaseDefinitionDigest({
+        ...caseDefinition,
+        localProbe: { ...caseDefinition.localProbe, variant: 'experimental-current-target' },
+      }),
+    );
+    assert.throws(
+      () =>
+        validateSemanticCaseDefinition({
+          ...caseDefinition,
+          localProbe: { ...caseDefinition.localProbe, variant: 'unsupported' },
+        }),
+      /structured scenario/,
+    );
+  });
+
   test('rejects duplicate labels across expected and forbidden criteria', () => {
     const caseDefinition = createCaseDefinition('case-one');
     caseDefinition.forbidden[0].label = 'expected';

@@ -615,6 +615,13 @@ describe('portable skill contract', () => {
       /report the complete path scope, canonical assessment, and explicitly that the operation is read-only and changed no files/iu,
     );
     assert.match(evaluation, /without running `scope` or `inspect`/u);
+    assert.match(evaluation, /For direct canonical evaluation/u);
+    assert.doesNotMatch(evaluation, /For direct canonical work/u);
+    assert.match(
+      evaluation,
+      /Direct reconciliation is different:.*implementation evidence comes before canonical content/su,
+    );
+    assert.match(evaluation, /evaluation shortcut never applies to reconciliation/u);
     assert.match(evaluation, /name the supplied `.gitattributes` declaration/u);
     assert.match(
       evaluation,
@@ -624,6 +631,18 @@ describe('portable skill contract', () => {
     assert.match(evaluation, /load `agent-design\.md` as the second and owning reference/u);
     assert.match(evaluation, /a property name is not classification evidence/u);
     assert.match(evaluation, /Do not report an established aligned mapping as defective/u);
+    assert.match(
+      evaluation,
+      /consumer-purpose classification and structural or source-selection diagnostics as independent conclusions/u,
+    );
+    assert.match(
+      evaluation,
+      /cannot erase a purpose classification already established by task-named runtime guidance and implementation/u,
+    );
+    assert.match(
+      evaluation,
+      /State the established classification even when canonical source selection remains unresolved/u,
+    );
     assert.match(evaluation, /at most one canonical `content` call total/u);
     assert.match(evaluation, /Do not read project context, a second canonical owner/u);
     assert.match(evaluation, /state that reconciliation is blocked pending the answer/u);

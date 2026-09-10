@@ -1013,6 +1013,36 @@ describe('activation and semantic protection', () => {
     );
   });
 
+  test('keeps terminal semantic evaluator corrections narrow and explicit', () => {
+    const reconciliation = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'reconcile-material-ambiguity',
+    );
+    const distributedCopy = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'skill-reconcile-distributed-copy',
+    );
+    const experimentalTarget = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'experimental-target-not-production-ready',
+    );
+    const dynamicRouting = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'routing-description-dynamic-wiring',
+    );
+
+    assert.match(reconciliation?.input.developerDirection, /`refund-agent`/u);
+    assert.match(reconciliation?.input.developerDirection, /`\/src\/refund-policy\.js`/u);
+    assert.deepEqual(distributedCopy?.resourceBudget, {
+      activation: 'direct',
+      minimumMoldeaCommands: 0,
+      maximumMoldeaCommands: 0,
+      maximumMoldeaOutputBytes: 0,
+    });
+    assert.match(experimentalTarget?.input.developerDirection, /`refund-agent`/u);
+    assert.match(
+      dynamicRouting?.forbidden.find(({ label }) => label === 'claim-wrong-description-source')
+        ?.criterion,
+      /the agent instruction as the assessed canonical owner is allowed/u,
+    );
+  });
+
   test('gives the informational case a literal zero moldea budget', () => {
     const informational = FIXTURE.semanticCases.find(
       ({ resourceBudget }) => resourceBudget.activation === 'informational',
@@ -1033,6 +1063,7 @@ describe('activation and semantic protection', () => {
       'skill-evaluate-script-authority',
       'skill-maintain-host-invocation-policy',
       'skill-maintain-linked-resources',
+      'skill-reconcile-distributed-copy',
       'skill-reuse-existing-cohesive',
     ];
     const zeroBudgetDirectCases = FIXTURE.semanticCases

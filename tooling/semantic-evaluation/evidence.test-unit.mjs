@@ -171,6 +171,19 @@ describe('semantic evaluation evidence', () => {
       () => validateSemanticCaseDefinition({ ...caseDefinition, skillEvidence: undefined }),
       /structured scenario/,
     );
+    assert.throws(
+      () =>
+        validateSemanticCaseDefinition({
+          ...caseDefinition,
+          resourceBudget: {
+            activation: 'direct',
+            minimumMoldeaCommands: 1,
+            maximumMoldeaCommands: 4,
+            maximumMoldeaOutputBytes: 262_144,
+          },
+        }),
+      /structured scenario/,
+    );
   });
 
   test('accepts a blocked case that needs four bounded discovery calls', () => {

@@ -173,6 +173,7 @@ export const getSemanticCriterionLabels = (criteria) => criteria.map(({ label })
  * - If evaluator labels are duplicated
  */
 export const validateSemanticCaseDefinition = (caseDefinition) => {
+  const hasSkillEvidence = isPlainRecord(caseDefinition) && 'skillEvidence' in caseDefinition;
   const hasStructuredScenario =
     isPlainRecord(caseDefinition) &&
     Object.keys(caseDefinition).every((key) => SEMANTIC_CASE_KEYS.has(key)) &&
@@ -215,6 +216,11 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
         resourceBudget.maximumMoldeaCommands === 0 &&
         resourceBudget.maximumMoldeaOutputBytes === 0 &&
         isValidSkillEvidence(caseDefinition?.skillEvidence))) &&
+    (!hasSkillEvidence ||
+      (resourceBudget.activation === 'direct' &&
+        resourceBudget.minimumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaOutputBytes === 0)) &&
     (resourceBudget.activation !== 'blocked' || resourceBudget.maximumMoldeaCommands <= 4);
   const hostInstructionEvidenceCount =
     isPlainRecord(caseDefinition?.input) && Array.isArray(caseDefinition.input.repositoryEvidence)

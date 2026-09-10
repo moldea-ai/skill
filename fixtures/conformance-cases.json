@@ -2381,7 +2381,7 @@
       "scenario": "Code and agent instructions support two materially different plausible refund authorization policies.",
       "operation": "reconcile",
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Reconcile the refund agent.",
+        "developerDirection": "Use moldea to complete this repository task. Reconcile `refund-agent` against `/src/refund-policy.js`.",
         "repositoryEvidence": [
           {
             "claim": "The instruction requires administrator approval.",
@@ -3213,9 +3213,9 @@
       ],
       "resourceBudget": {
         "activation": "direct",
-        "minimumMoldeaCommands": 1,
-        "maximumMoldeaCommands": 4,
-        "maximumMoldeaOutputBytes": 262144
+        "minimumMoldeaCommands": 0,
+        "maximumMoldeaCommands": 0,
+        "maximumMoldeaOutputBytes": 0
       }
     },
     {
@@ -4371,7 +4371,7 @@
         "variant": "experimental-current-target"
       },
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Evaluate the refund agent's runtime identity and whether it is production-ready.",
+        "developerDirection": "Use moldea to complete this repository task. Evaluate `refund-agent`'s runtime identity and whether it is production-ready.",
         "repositoryEvidence": [
           {
             "claim": "The canonical agent declares the OpenAI runtime.",
@@ -4562,7 +4562,7 @@
       "forbidden": [
         {
           "label": "claim-wrong-description-source",
-          "criterion": "The actor unconditionally claims that a candidate description source is current, selected, effective, absent, or wrong when dynamic runtime wiring leaves the selected source unresolved; identifying the consumer's established purpose, its required source, or a conditional mismatch is allowed."
+          "criterion": "The actor unconditionally claims that a candidate description source is current, selected, effective, absent, or wrong when dynamic runtime wiring leaves the selected source unresolved; identifying the consumer's established purpose, its required source, a conditional mismatch, or the agent instruction as the assessed canonical owner is allowed."
         },
         {
           "label": "treat-property-name-as-proof",

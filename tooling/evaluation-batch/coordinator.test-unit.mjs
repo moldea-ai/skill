@@ -158,7 +158,7 @@ test('stops new dispatch and reports one deterministic commit failure', async ()
   assert.deepEqual(stopped, [1]);
 });
 
-test('resumes completed private work at another accepted worker count', async () => {
+test('resumes a four-worker capacity stop at two workers without duplicating checkpoints', async () => {
   const checkpoints = new Map();
   const executionCounts = new Map();
   let shouldFail = true;
@@ -167,7 +167,7 @@ test('resumes completed private work at another accepted worker count', async ()
     executionCounts.set(item, (executionCounts.get(item) ?? 0) + 1);
     if (item === 1 && shouldFail) {
       shouldFail = false;
-      throw new Error('interrupted');
+      throw new Error('candidate token admission stopped');
     }
     await new Promise((resolve) => setTimeout(resolve, item === 0 ? 5 : 1));
     const checkpoint = `completed-${item}`;
@@ -182,17 +182,24 @@ test('resumes completed private work at another accepted worker count', async ()
       items: [0, 1, 2, 3],
       workerCount: 4,
     }),
-    /interrupted/u,
+    /candidate token admission stopped/u,
   );
+
+  assert.deepEqual([...checkpoints.keys()].sort(), [0, 2, 3]);
 
   const committed = [];
   await runOrderedEvaluationBatch({
     commitItem: async ({ value }) => committed.push(value),
     executeItem,
     items: [0, 1, 2, 3],
-    workerCount: 1,
+    workerCount: 2,
   });
 
   assert.deepEqual(committed, ['completed-0', 'completed-1', 'completed-2', 'completed-3']);
-  assert.deepEqual(Object.fromEntries(executionCounts), { 0: 1, 1: 2, 2: 1, 3: 1 });
+  assert.deepEqual(Object.fromEntries(executionCounts), {
+    0: 1,
+    1: 2,
+    2: 1,
+    3: 1,
+  });
 });

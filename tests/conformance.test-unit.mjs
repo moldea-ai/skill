@@ -323,7 +323,7 @@ describe('portable skill contract', () => {
       );
     }
     assert.match(skill, /Never read every reference by default/u);
-    assert.match(skill, /read only what the selected operation needs/u);
+    assert.match(skill, /read only what the operation requires/u);
     assert.match(skill, /Before host work on named paths/u);
     assert.match(skill, /deduplicated leading-slash repository-logical set/u);
     assert.match(skill, /named paths may be changed or unchanged/u);
@@ -356,13 +356,22 @@ describe('portable skill contract', () => {
     assert.match(skill, /`\/moldea\/agents\/<agentId>\/instruction\.md`/u);
     assert.match(skill, /request only implicated assets/u);
     assert.match(skill, /leaving three for selected `content`/u);
-    assert.match(skill, /Only route 5 may use a fifth call/u);
-    assert.match(skill, /never for inspection or an unchanged retry/u);
+    assert.match(
+      skill,
+      /Only route-5 repair validation or explicit three-record compression permits a fifth call/u,
+    );
+    assert.match(skill, /never use it for unchanged retry or extra inspection/u);
     assert.match(skill, /direct request supplies intent, not a canonical owner/u);
     assert.match(skill, /Direct canonical agent or runtime work/u);
     assert.match(skill, /create, maintain, change, or reconcile canonical agent or runtime facts/u);
+    assert.match(
+      skill,
+      /For reconciliation, inspect only task-named implementation evidence.*then at most one named-owner `content`/su,
+    );
+    assert.match(skill, /never CLI `inspect`/u);
+    assert.match(skill, /Consequential conflict stops further moldea calls and writes/u);
     assert.match(skill, /otherwise use content-free `inspect` to resolve the owner and mirrors/u);
-    assert.match(skill, /Otherwise write the owner first, derive declared mirrors/u);
+    assert.match(skill, /Write owner first, derive mirrors/u);
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
     assert.match(skill, /retain one deduplicated leading-slash repository-logical set/u);
     assert.match(skill, /send it to one `scope`/u);
@@ -378,6 +387,11 @@ describe('portable skill contract', () => {
     assert.match(skill, /Never conclude from the host review alone/u);
     assert.match(skill, /reactivate after an unrelated-task gate miss/u);
     assert.match(skill, /run the full gate once\. On `1`/u);
+    assert.match(
+      skill,
+      /Routing-description evaluation reads `evaluate-and-reconcile\.md`, then owning `agent-design\.md` before classifying from runtime documentation and consumption evidence/u,
+    );
+    assert.match(skill, /identifiers prove nothing/u);
     assert.match(skill, /bind selected owners and mirrors before writing/u);
     assert.match(skill, /synchronize every contradicted owner before completing implementation/u);
     assert.match(skill, /contradictions cannot remain or be called accurate/u);
@@ -393,7 +407,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /direct request to prove, invoke, inspect, or explain/u);
     assert.match(skill, /before inspecting providers or concluding/u);
     assert.match(skill, /Validate only after writes/u);
-    assert.match(skill, /to validate a repair after its first post-write validation/u);
+    assert.match(skill, /route-5 repair validation or explicit three-record compression/u);
     assert.match(skill, /use one content-free `inspect`/u);
     assert.match(skill, /Request named-agent `content` only when semantics matter/u);
     assert.match(skill, /never inspect afterward or request manifest content/u);
@@ -441,7 +455,7 @@ describe('portable skill contract', () => {
       /Do not steer the developer toward agent creation without a separate goal/u,
     );
     assert.match(skill, /Read exact task-owned files first/u);
-    assert.match(skill, /Request a named owner's `content` directly/u);
+    assert.match(skill, /request named `content` directly/u);
     assert.match(skill, /use at most one canonical `content` call total/u);
     assert.match(skill, /do not read project context or a second canonical body/u);
     assert.match(
@@ -613,7 +627,7 @@ describe('portable skill contract', () => {
     assert.match(evaluation, /at most one canonical `content` call total/u);
     assert.match(evaluation, /Do not read project context, a second canonical owner/u);
     assert.match(evaluation, /state that reconciliation is blocked pending the answer/u);
-    assert.match(skill, /stop before `inspect`, `validate`, another `content`, or any write/u);
+    assert.match(skill, /Consequential conflict stops further moldea calls and writes/u);
     const agentDesign = readFileSync(join(SKILL_ROOT, 'references', 'agent-design.md'), 'utf8');
     assert.match(agentDesign, /complete the coherent implementation/u);
     assert.match(agentDesign, /remove the independently maintained inline policy/u);
@@ -893,7 +907,7 @@ describe('activation and semantic protection', () => {
     assert.doesNotMatch(contextHandoff.expected[0].criterion, /performed the requested task/u);
   });
 
-  test('budgets one fifth validation only for discovery-heavy repairable mutations', () => {
+  test('budgets a fifth call only for evidenced repair or three-record compression', () => {
     const fiveCallCases = FIXTURE.semanticCases
       .filter(({ resourceBudget }) => resourceBudget.maximumMoldeaCommands === 5)
       .map(({ id }) => id)
@@ -901,8 +915,47 @@ describe('activation and semantic protection', () => {
 
     assert.deepEqual(fiveCallCases, [
       'agent-adoption-inline-runtime-instruction',
+      'compress-project-context',
       'dedicated-repository-runtime-selection',
     ]);
+  });
+
+  test('keeps the four residual semantic corrections narrow and explicit', () => {
+    const compression = FIXTURE.semanticCases.find(({ id }) => id === 'compress-project-context');
+    const reconciliation = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'reconcile-material-ambiguity',
+    );
+    const routing = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'routing-description-dynamic-wiring',
+    );
+    const gitHelper = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'read-only-git-helper-suppression',
+    );
+
+    assert.deepEqual(compression?.resourceBudget, {
+      activation: 'direct',
+      minimumMoldeaCommands: 1,
+      maximumMoldeaCommands: 5,
+      maximumMoldeaOutputBytes: 262_144,
+    });
+    assert.match(
+      reconciliation?.expected[0].criterion,
+      /asks one focused question that resolves whether manager or administrator approval is authoritative/u,
+    );
+    assert.match(
+      routing?.expected.find(({ label }) => label === 'classify-consumer-by-semantic-purpose')
+        ?.criterion,
+      /actual consumer semantics rather than its property name/u,
+    );
+    const safeGitCriterion = gitHelper?.expected.find(
+      ({ label }) => label === 'stop-before-worktree-git',
+    )?.criterion;
+    assert.match(safeGitCriterion, /Semantically equivalent wording is accepted/u);
+    assert.match(safeGitCriterion, /need not use a prescribed stop phrase/u);
+    assert.match(
+      gitHelper?.forbidden.find(({ label }) => label === 'execute-git-helper')?.criterion,
+      /positively demonstrates that a repository-controlled Git helper/u,
+    );
   });
 
   test('gives the informational case a literal zero moldea budget', () => {

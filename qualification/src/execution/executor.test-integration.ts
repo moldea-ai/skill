@@ -144,7 +144,13 @@ describe('qualification execution', () => {
       requiresCleanInputs: true,
       skillRepositoryDirty: true,
     });
-    for (const relativeDirectory of ['internal', 'pnpm-store', 'runtime', 'workspaces']) {
+    for (const relativeDirectory of [
+      'internal',
+      'pnpm-cache',
+      'pnpm-store',
+      'runtime',
+      'workspaces',
+    ]) {
       await expectPathToBeMissing(path.join(outcome.attemptDirectory, relativeDirectory));
     }
     expect(
@@ -276,7 +282,7 @@ describe('qualification execution', () => {
       )?.status,
     ).toBe('pending');
     await access(path.join(interruptedOutcome.attemptDirectory, 'internal'));
-    for (const relativeDirectory of ['pnpm-store', 'runtime', 'workspaces']) {
+    for (const relativeDirectory of ['pnpm-cache', 'pnpm-store', 'runtime', 'workspaces']) {
       await expectPathToBeMissing(
         path.join(interruptedOutcome.attemptDirectory, relativeDirectory),
       );
@@ -331,7 +337,13 @@ describe('qualification execution', () => {
     expect(resumedOutcome.wasRecorded).toBe(false);
     expect(resumedActorCalls).toBe(11);
     expect(resumedJudgeCalls).toBe(0);
-    for (const relativeDirectory of ['internal', 'pnpm-store', 'runtime', 'workspaces']) {
+    for (const relativeDirectory of [
+      'internal',
+      'pnpm-cache',
+      'pnpm-store',
+      'runtime',
+      'workspaces',
+    ]) {
       await expectPathToBeMissing(path.join(resumedOutcome.attemptDirectory, relativeDirectory));
     }
 

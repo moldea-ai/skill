@@ -1,22 +1,27 @@
 import { rm } from 'node:fs/promises';
 
 import { resolveContainedPath } from '../filesystem/index.ts';
-
-// disposable trees can always be reconstructed from committed inputs and verified package artifacts
-const RECONSTRUCTIBLE_ATTEMPT_DIRECTORIES = ['pnpm-store', 'runtime', 'workspaces'] as const;
+import { createQualificationPnpmInstallation } from '../pnpm-installation/index.ts';
 
 /** Removes attempt-owned runtime trees while retaining only state required for explicit resume. */
 export const cleanupQualificationAttemptRuntime = async (
   attemptDirectory: string,
   preserveResumeState: boolean,
 ): Promise<void> => {
-  const relativeDirectories = preserveResumeState
-    ? RECONSTRUCTIBLE_ATTEMPT_DIRECTORIES
-    : [...RECONSTRUCTIBLE_ATTEMPT_DIRECTORIES, 'internal'];
+  const pnpmInstallation = createQualificationPnpmInstallation(attemptDirectory);
+  const reconstructibleDirectories = [
+    pnpmInstallation.cacheDirectory,
+    pnpmInstallation.storeDirectory,
+    resolveContainedPath(attemptDirectory, 'runtime'),
+    resolveContainedPath(attemptDirectory, 'workspaces'),
+  ];
+  const directories = preserveResumeState
+    ? reconstructibleDirectories
+    : [...reconstructibleDirectories, resolveContainedPath(attemptDirectory, 'internal')];
 
   await Promise.all(
-    relativeDirectories.map((relativeDirectory) =>
-      rm(resolveContainedPath(attemptDirectory, relativeDirectory), {
+    directories.map((directory) =>
+      rm(directory, {
         force: true,
         recursive: true,
       }),

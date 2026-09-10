@@ -24,6 +24,7 @@ import {
 import {
   QualificationAttemptResultDraftSchema,
   QualificationExecutionEnvironmentSchema,
+  type IQualificationAttemptCheckpoint,
   type IQualificationAttemptResult,
   type IQualificationSelection,
 } from '../contracts/index.ts';
@@ -113,6 +114,45 @@ const hasPath = async (candidatePath: string): Promise<boolean> => {
 
 const createTargetId = (selection: IQualificationSelection): string =>
   `${selection.adapterId}/${selection.implementationId}`;
+
+/** Validates one worker result and preserves its actionable operational stop summary. */
+export const assertQualificationProfileWorkerResult = (
+  attemptId: string,
+  targetId: string,
+  result: Pick<IQualificationAttemptResult, 'selection' | 'status' | 'summary'>,
+  stages: IQualificationAttemptCheckpoint['stages'],
+): void => {
+  if (createTargetId(result.selection) !== targetId) {
+    throw new QualificationProfileWorkerStopError(
+      attemptId,
+      targetId,
+      'execution-error',
+      `Qualification target ${targetId} did not produce one matching terminal result.`,
+    );
+  }
+  if (result.status === 'incomplete') {
+    const stoppedStage = Object.values(stages).find(({ status }) => status === 'stopped');
+    const kind =
+      stoppedStage?.hasUsedOperationalStopResume === true
+        ? 'operational-recovery-exhausted'
+        : stoppedStage !== undefined
+          ? 'operational-stop'
+          : result.summary.includes('candidate token boundary')
+            ? 'candidate-token-limit'
+            : result.summary.includes('temporary-storage boundary')
+              ? 'temporary-storage-limit'
+              : 'execution-error';
+    throw new QualificationProfileWorkerStopError(attemptId, targetId, kind, result.summary);
+  }
+  if (result.status === 'errored') {
+    throw new QualificationProfileWorkerStopError(
+      attemptId,
+      targetId,
+      'execution-error',
+      result.summary,
+    );
+  }
+};
 
 const parseTargetId = (targetId: string): IQualificationSelection => {
   const [adapterId, implementationId, unexpected] = targetId.split('/');
@@ -791,38 +831,12 @@ export const runQualificationProfileBatch = async (options: {
           },
     );
     const attemptCheckpoint = await readAttemptCheckpoint(outcome.attemptDirectory);
-    if (outcome.result.status === 'incomplete') {
-      const stoppedStage = Object.values(attemptCheckpoint.stages).find(
-        ({ status }) => status === 'stopped',
-      );
-      const kind =
-        stoppedStage?.hasUsedOperationalStopResume === true
-          ? 'operational-recovery-exhausted'
-          : stoppedStage !== undefined
-            ? 'operational-stop'
-            : outcome.result.summary.includes('candidate token boundary')
-              ? 'candidate-token-limit'
-              : outcome.result.summary.includes('temporary-storage boundary')
-                ? 'temporary-storage-limit'
-                : 'execution-error';
-      throw new QualificationProfileWorkerStopError(
-        attemptId,
-        targetId,
-        kind,
-        outcome.result.summary,
-      );
-    }
-    if (
-      (outcome.result.status !== 'passed' && outcome.result.status !== 'failed') ||
-      createTargetId(outcome.result.selection) !== targetId
-    ) {
-      throw new QualificationProfileWorkerStopError(
-        attemptId,
-        targetId,
-        'execution-error',
-        `Qualification target ${targetId} did not produce one matching terminal result.`,
-      );
-    }
+    assertQualificationProfileWorkerResult(
+      attemptId,
+      targetId,
+      outcome.result,
+      attemptCheckpoint.stages,
+    );
     return outcome;
   };
 

@@ -108,3 +108,10 @@ export const loadCandidateArtifacts: (
   artifactDirectory: string,
   selectedRootPackageNames?: string[],
 ) => IValidatedPackageCandidate;
+
+export const createCandidateRegistry: (
+  artifacts: Map<string, IPackageCandidateArtifact>,
+) => Promise<{
+  registryUrl: string;
+  server: import('node:http').Server;
+}>;

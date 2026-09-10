@@ -50,30 +50,35 @@ Remove qualification's ambient global pnpm metadata dependency so every attempt 
 ### Scope and implementation
 
 - Add one attempt-local `pnpm-cache` path beside `pnpm-store`.
-- Pass the explicit cache and store to candidate preparation's bounded `--prefer-offline` install.
-- Pass those same exact paths to every project fixture's strict `--offline` install.
+- Create an empty qualification-owned user config inside `pnpm-cache`, and pass the attempt-local store through `--store-dir`, metadata root through `XDG_CACHE_HOME`, user config through `--userconfig`, and public registry through `--registry` to candidate preparation's bounded `--prefer-offline` install; do not use pnpm 12.4.0's unsupported `--cache-dir` option.
+- Pass those same exact paths, configuration, registry, and environment to every project fixture's strict `--offline` install.
+- Keep the independently downloaded, hashed, and registry-verified tarballs as candidate evidence, but write exact semantic versions to candidate and fixture dependency/override contracts so pnpm performs strict peer validation against versions rather than incompatible `file:` specifiers.
+- Remove the local-tarball installation path completely; candidate preparation populates the isolated cache/store from exact registry versions, and fixtures must reuse that exact closure offline with no registry download.
 - Add `pnpm-cache` to qualification temporary-storage measurement and reconstructible cleanup for completed, failed, and stale attempts.
+- Preserve an errored target's bounded operational summary at the profile-batch boundary instead of replacing it with a generic terminal-result error.
 - Audit every qualification-owned pnpm install and leave no global-cache fallback, compatibility flag, or parallel path.
-- Update qualification documentation and public operational guidance that describes installation isolation, storage accounting, cleanup, and failure behavior.
+- Update qualification documentation and public operational guidance that describes artifact verification, exact-version installation, isolation, storage accounting, cleanup, and failure behavior.
 
 ### Tests and verification
 
-- Add or update colocated unit and integration coverage for candidate installation arguments, project installation arguments, cleanup, storage measurement, and attempt path containment.
+- Add or update colocated unit and integration coverage for candidate installation arguments, config isolation, explicit registry selection, exact-version dependency and override construction, project installation arguments, strict peer behavior, offline cache reuse, actionable batch errors, cleanup, storage measurement, and attempt path containment.
 - Run targeted qualification unit and integration tests, then the complete qualification correctness suite, typecheck, lint, formatting, docs, path, resource, privacy, release-identity, and website checks affected by the change.
 - Run all 12 Custom and all 26 adapter model-free projects through the real candidate closure and offline installation path.
 - Confirm the portable skill digest and semantic behavior identity remain unchanged and protocol-25 evidence still verifies.
 
 ### Acceptance criteria
 
-- No qualification-owned pnpm install can read or write pnpm metadata through the user's global cache.
+- No qualification-owned pnpm install can read or write pnpm metadata through the user's global cache, load the user's home package-manager configuration, attach its registry credentials, or select an ambient registry.
 - Candidate preparation is the only network-permitted population boundary; project installs remain strictly offline.
+- Every installed candidate and runtime package uses its exact verified version, strict peer validation passes, and no `file:` installation compatibility path remains.
 - Cache bytes are contained by the existing absolute temporary-storage guard and removed with other reconstructible runtime state.
+- Profile-batch operational failures preserve the underlying bounded diagnostic summary.
 - All deterministic and model-free verification passes without weakening resource or security ceilings.
 - Review is ready and publication is signed, signed off, explicit, and pushed.
 
 ### Review checkpoint
 
-Inspect install ordering, exact path reuse, offline guarantees, failure cleanup, disk accounting, concurrency safety, portability, documentation, and identity isolation.
+Inspect artifact-versus-install identity, exact-version closure, strict peer behavior, install ordering, exact path/config/registry reuse, credential isolation, offline guarantees, actionable errors, failure cleanup, disk accounting, concurrency safety, portability, documentation, and identity isolation.
 
 ## Milestone 98: Establish fresh Custom qualification evidence
 
@@ -210,4 +215,4 @@ Inspect exact tips, claims, counts, links, closure, fixture parity, hosted state
 
 ## Execution scope
 
-Preserve completed Milestones 1 through 95 and their exact evidence. Publish the first protocol-10 Custom operational failure unchanged, isolate every qualification-owned pnpm metadata and content-store path within its attempt, measure and clean that state, and pass the complete deterministic and model-free boundary without changing portable skill or semantic identity. Record one fresh passing 12-case Custom baseline, qualify all 13 adapters in batches of at most four, publish clean skill 5.0, and complete the cross-repository launch audit. Do not alter the completed 74-case semantic evidence, modify another agent's Vite/Vitest work, preserve compatibility code, add a global-cache fallback, relabel evidence, duplicate paid stages, exceed four workers, modify protected instructions, or incorporate unrelated work.
+Preserve completed Milestones 1 through 96 and their exact evidence. Isolate every qualification-owned pnpm metadata, content-store, user-config, and registry input within its attempt, retain verified tarballs as evidence while installing exact registry versions with strict peer validation, preserve bounded operational summaries, measure and clean reconstructible state, and pass the complete deterministic and model-free boundary without changing portable skill or semantic identity. Record one fresh passing 12-case Custom baseline, qualify all 13 adapters in batches of at most four, publish clean skill 5.0, and complete the cross-repository launch audit. Do not alter the completed 74-case semantic evidence, modify another agent's Vite/Vitest work, preserve compatibility code, add a global-cache, home-config, ambient-registry, or local-tarball installation fallback, relabel evidence, duplicate paid stages, exceed four workers, modify protected instructions, or incorporate unrelated work.

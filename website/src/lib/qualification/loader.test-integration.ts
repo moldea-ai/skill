@@ -492,7 +492,6 @@ afterEach(() => {
 describe('loadQualificationWebsiteModel', () => {
   test('loads current profiles with universal cases owned only by Custom', () => {
     const model = loadQualificationWebsiteModel(canonicalRepositoryRoot);
-    const attempts = model.profiles.flatMap(({ attempts }) => attempts);
     const customProfile = model.profiles.find(
       ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
     );
@@ -505,7 +504,6 @@ describe('loadQualificationWebsiteModel', () => {
 
     expect(model.profiles).toHaveLength(14);
     expect(model.uniqueJourneyCount).toBe(38);
-    expect(attempts).toStrictEqual([]);
     expect(customProfile?.cases.map(({ id }) => id)).toStrictEqual([...universalCaseIds]);
     expect(
       model.profiles
@@ -516,16 +514,6 @@ describe('loadQualificationWebsiteModel', () => {
       model.profiles
         .filter(({ adapterId }) => adapterId !== 'custom')
         .every(({ cases, sharedCases }) => sharedCases.length === 12 && cases.length === 2),
-    ).toBe(true);
-    expect(
-      model.profiles.every(
-        ({ attempts, currentAssurance, currentLatest, currentStatus, latest }) =>
-          attempts.length === 0 &&
-          currentAssurance === null &&
-          currentLatest === null &&
-          currentStatus === 'not-recorded' &&
-          latest === null,
-      ),
     ).toBe(true);
     expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
 

@@ -29,6 +29,13 @@ import {
   writeJsonFileAtomically,
   writeTextFileAtomically,
 } from '../filesystem/index.ts';
+import {
+  createQualificationPnpmInstallation,
+  createQualificationPnpmOptions,
+  createQualificationPnpmPackageVersions,
+  initializeQualificationPnpmInstallation,
+  type IQualificationPnpmInstallation,
+} from '../pnpm-installation/index.ts';
 import { executeProcess } from '../process/index.ts';
 import { loadVerifiedCachedPackage } from './cache.ts';
 import { createPublicCandidatePackage } from './transformers.ts';
@@ -216,28 +223,28 @@ const installCandidateRuntime = async (
   runtimePackages: readonly ICandidatePackage[],
   typeScriptPackage: ICandidatePackage,
   runtimeDirectory: string,
-  storeDirectory: string,
+  pnpmInstallation: IQualificationPnpmInstallation,
   signal: AbortSignal | undefined,
 ): Promise<void> => {
   await rm(runtimeDirectory, { force: true, recursive: true });
   await ensureDirectory(runtimeDirectory);
-  const localDependencies = Object.fromEntries(
-    [...packages, ...runtimePackages, typeScriptPackage].map((candidatePackage) => [
-      candidatePackage.name,
-      `file:${candidatePackage.tarballPath}`,
-    ]),
-  );
+  await initializeQualificationPnpmInstallation(pnpmInstallation);
+  const packageVersions = createQualificationPnpmPackageVersions([
+    ...packages,
+    ...runtimePackages,
+    typeScriptPackage,
+  ]);
 
   await writeJsonFileAtomically(path.join(runtimeDirectory, 'package.json'), {
     name: 'moldea-qualification-runtime',
     version: '0.0.0',
     private: true,
     type: 'module',
-    dependencies: localDependencies,
+    dependencies: packageVersions,
   });
   await writeTextFileAtomically(
     path.join(runtimeDirectory, 'pnpm-workspace.yaml'),
-    stringifyYaml({ overrides: localDependencies }),
+    stringifyYaml({ overrides: packageVersions }),
   );
   await executeProcess({
     command: 'pnpm',
@@ -246,11 +253,10 @@ const installCandidateRuntime = async (
       '--prefer-offline',
       '--ignore-scripts',
       '--config.strict-peer-dependencies=true',
-      '--store-dir',
-      storeDirectory,
+      ...createQualificationPnpmOptions(pnpmInstallation),
     ],
     cwd: runtimeDirectory,
-    environment: { ...process.env, CI: 'true' },
+    environment: pnpmInstallation.environment,
     signal,
   });
 };
@@ -303,7 +309,7 @@ export const prepareCandidateClosure = async (
   );
   const cacheDirectory = path.join(LOCAL_QUALIFICATION_ROOT, 'candidates', fingerprint);
   const runtimeDirectory = path.join(options.attemptDirectory, 'runtime');
-  const storeDirectory = path.join(options.attemptDirectory, 'pnpm-store');
+  const pnpmInstallation = createQualificationPnpmInstallation(options.attemptDirectory);
   let candidate = await validateCachedCandidate({
     adapterPackage: options.adapterPackage,
     cacheDirectory,
@@ -352,7 +358,7 @@ export const prepareCandidateClosure = async (
     candidate.runtimePackages,
     candidate.typeScriptPackage,
     runtimeDirectory,
-    storeDirectory,
+    pnpmInstallation,
     options.signal,
   );
   return CandidateClosureSchema.parse({

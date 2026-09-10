@@ -10,6 +10,7 @@ import {
   QUALIFICATION_PROFILE_BATCH_STATE_MAXIMUM_BYTE_COUNT,
 } from './constants.ts';
 import {
+  assertQualificationProfileWorkerResult,
   assertQualificationProfileBatchOutputSize,
   readQualificationProfileBatchState,
   writeQualificationProfileBatchState,
@@ -115,5 +116,23 @@ describe('qualification profile-batch boundaries', () => {
     await expect(
       readQualificationProfileBatchState(ledgerPath, QualificationProfileBatchLedgerSchema),
     ).rejects.toThrow();
+  });
+
+  test('preserves the bounded summary from an errored qualification target', () => {
+    expect(() =>
+      assertQualificationProfileWorkerResult(
+        'attempt-one',
+        'anthropic/typescript-messages-api-0-117',
+        {
+          selection: {
+            adapterId: 'anthropic',
+            implementationId: 'typescript-messages-api-0-117',
+          },
+          status: 'errored',
+          summary: 'Exact pnpm peer dependency failure.',
+        },
+        {},
+      ),
+    ).toThrow('Exact pnpm peer dependency failure.');
   });
 });

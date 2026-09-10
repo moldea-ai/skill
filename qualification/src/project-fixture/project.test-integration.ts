@@ -1,8 +1,12 @@
 // @vitest-environment node
 import { access, chmod, lstat, mkdtemp, readFile, readlink, rm, writeFile } from 'node:fs/promises';
+import type { Server } from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
+import { stringify as stringifyYaml } from 'yaml';
+
+import { createCandidateRegistry } from '../../../tooling/package-candidate/index.mjs';
 
 import { createOrderTriageAgent } from '../../profiles/t5/cases/c3/seed/src/order-triage-agent.ts';
 
@@ -17,14 +21,21 @@ import {
   readYamlFile,
 } from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
+import {
+  createQualificationPnpmInstallation,
+  createQualificationPnpmOptions,
+  createQualificationPnpmPackageVersions,
+  initializeQualificationPnpmInstallation,
+} from '../pnpm-installation/index.ts';
 import { inspectGitRepositoryState, type IGitRepositoryState } from '../repository-state/index.ts';
 import {
   applyExpectedDryRunState,
   inspectWorkspaceAssertions,
-  prepareQualificationProject,
+  prepareQualificationProject as prepareQualificationProjectProduction,
 } from './index.ts';
 
 const CUSTOM_PROFILE_DIRECTORY = path.join(QUALIFICATION_PROFILES_ROOT, 't5');
+const candidateRegistryServers: Server[] = [];
 
 const createCandidateFixture = async (
   temporaryRoot: string,
@@ -39,20 +50,27 @@ const createCandidateFixture = async (
   const typeScriptTarballPath = path.join(temporaryRoot, 'typescript-6.0.3.tgz');
   const runtimePackageSourceDirectory = path.join(temporaryRoot, 'runtime-package');
   const runtimePackageTarballPath = path.join(temporaryRoot, 'fixture-runtime-1.0.0.tgz');
+  const cliManifest = {
+    name: '@moldea.ai/cli',
+    version: '3.1.3',
+    type: 'module',
+    bin: { moldea: 'dist/moldea.js' },
+  };
+  const typeScriptManifest = {
+    name: 'typescript',
+    version: '6.0.3',
+    bin: { tsc: 'bin/tsc' },
+  };
+  const runtimePackageManifest = {
+    name: 'fixture-runtime',
+    version: '1.0.0',
+    peerDependencies: { typescript: '>=6.0.0' },
+  };
   await ensureDirectory(path.dirname(cliExecutablePath));
   await ensureDirectory(runtimeDirectory);
   await writeFile(
     path.join(packageSourceDirectory, 'package.json'),
-    `${JSON.stringify(
-      {
-        name: '@moldea.ai/cli',
-        version: '3.1.3',
-        type: 'module',
-        bin: { moldea: 'dist/moldea.js' },
-      },
-      null,
-      2,
-    )}\n`,
+    `${JSON.stringify(cliManifest, null, 2)}\n`,
     'utf8',
   );
   await writeFile(
@@ -69,15 +87,7 @@ const createCandidateFixture = async (
   await ensureDirectory(path.dirname(typeScriptExecutablePath));
   await writeFile(
     path.join(typeScriptSourceDirectory, 'package.json'),
-    `${JSON.stringify(
-      {
-        name: 'typescript',
-        version: '6.0.3',
-        bin: { tsc: 'bin/tsc' },
-      },
-      null,
-      2,
-    )}\n`,
+    `${JSON.stringify(typeScriptManifest, null, 2)}\n`,
     'utf8',
   );
   await writeFile(
@@ -96,7 +106,7 @@ const createCandidateFixture = async (
     await ensureDirectory(runtimePackageSourceDirectory);
     await writeFile(
       path.join(runtimePackageSourceDirectory, 'package.json'),
-      `${JSON.stringify({ name: 'fixture-runtime', version: '1.0.0' }, null, 2)}\n`,
+      `${JSON.stringify(runtimePackageManifest, null, 2)}\n`,
       'utf8',
     );
     await executeProcess({
@@ -105,6 +115,39 @@ const createCandidateFixture = async (
       cwd: runtimePackageSourceDirectory,
     });
   }
+
+  const artifacts = new Map([
+    [
+      cliManifest.name,
+      {
+        archive: await readFile(tarballPath),
+        archiveName: path.basename(tarballPath),
+        manifest: cliManifest,
+      },
+    ],
+    [
+      typeScriptManifest.name,
+      {
+        archive: await readFile(typeScriptTarballPath),
+        archiveName: path.basename(typeScriptTarballPath),
+        manifest: typeScriptManifest,
+      },
+    ],
+    ...(options.includeRuntimePackage === true
+      ? [
+          [
+            runtimePackageManifest.name,
+            {
+              archive: await readFile(runtimePackageTarballPath),
+              archiveName: path.basename(runtimePackageTarballPath),
+              manifest: runtimePackageManifest,
+            },
+          ] as const,
+        ]
+      : []),
+  ]);
+  const { registryUrl, server } = await createCandidateRegistry(artifacts);
+  candidateRegistryServers.push(server);
 
   return {
     cliJsonSchemaVersion: 2,
@@ -116,7 +159,7 @@ const createCandidateFixture = async (
         version: '3.1.3',
         registryIntegrity: `sha512-${'a'.repeat(86)}`,
         registryShasum: 'c'.repeat(40),
-        registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-3.1.3.tgz',
+        registryTarballUrl: `${registryUrl}/@moldea.ai/cli/-/${path.basename(tarballPath)}`,
         tarballPath,
         tarballName: path.basename(tarballPath),
         sha256: await calculateFileSha256(tarballPath),
@@ -130,8 +173,7 @@ const createCandidateFixture = async (
               version: '1.0.0',
               registryIntegrity: `sha512-${'f'.repeat(86)}`,
               registryShasum: '1'.repeat(40),
-              registryTarballUrl:
-                'https://registry.npmjs.org/fixture-runtime/-/fixture-runtime-1.0.0.tgz',
+              registryTarballUrl: `${registryUrl}/fixture-runtime/-/${path.basename(runtimePackageTarballPath)}`,
               tarballPath: runtimePackageTarballPath,
               tarballName: path.basename(runtimePackageTarballPath),
               sha256: await calculateFileSha256(runtimePackageTarballPath),
@@ -144,7 +186,7 @@ const createCandidateFixture = async (
       version: '6.0.3',
       registryIntegrity: `sha512-${'d'.repeat(86)}`,
       registryShasum: 'e'.repeat(40),
-      registryTarballUrl: 'https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz',
+      registryTarballUrl: `${registryUrl}/typescript/-/${path.basename(typeScriptTarballPath)}`,
       tarballPath: typeScriptTarballPath,
       tarballName: path.basename(typeScriptTarballPath),
       sha256: await calculateFileSha256(typeScriptTarballPath),
@@ -153,10 +195,68 @@ const createCandidateFixture = async (
   };
 };
 
+const prepareQualificationProject = async (
+  options: Parameters<typeof prepareQualificationProjectProduction>[0],
+) => {
+  const registryUrl = `${new URL(options.candidate.packages[0]!.registryTarballUrl).origin}/`;
+  const installation = createQualificationPnpmInstallation(options.attemptDirectory, registryUrl);
+  const packageVersions = createQualificationPnpmPackageVersions([
+    ...options.candidate.packages,
+    ...(options.candidate.runtimePackages ?? []),
+    options.candidate.typeScriptPackage,
+  ]);
+  await rm(options.candidate.runtimeDirectory, { force: true, recursive: true });
+  await ensureDirectory(options.candidate.runtimeDirectory);
+  await initializeQualificationPnpmInstallation(installation);
+  await writeFile(
+    path.join(options.candidate.runtimeDirectory, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: 'moldea-candidate-runtime-test',
+        version: '0.0.0',
+        private: true,
+        dependencies: packageVersions,
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+  await writeFile(
+    path.join(options.candidate.runtimeDirectory, 'pnpm-workspace.yaml'),
+    stringifyYaml({ overrides: packageVersions }),
+    'utf8',
+  );
+  await executeProcess({
+    command: 'pnpm',
+    args: [
+      'install',
+      '--prefer-offline',
+      '--ignore-scripts',
+      '--config.strict-peer-dependencies=true',
+      ...createQualificationPnpmOptions(installation),
+    ],
+    cwd: options.candidate.runtimeDirectory,
+    environment: installation.environment,
+  });
+
+  return prepareQualificationProjectProduction(options);
+};
+
 describe('qualification project fixtures', () => {
   let temporaryRoot: string | null = null;
 
   afterEach(async () => {
+    await Promise.all(
+      candidateRegistryServers
+        .splice(0)
+        .map(
+          (server) =>
+            new Promise<void>((resolve, reject) =>
+              server.close((error) => (error === undefined ? resolve() : reject(error))),
+            ),
+        ),
+    );
     if (temporaryRoot !== null) {
       await rm(temporaryRoot, { force: true, recursive: true });
     }
@@ -442,7 +542,7 @@ describe('qualification project fixtures', () => {
     ).toBe(originalPnpmWorkspace);
   });
 
-  test('requires and installs exact profile runtime packages from candidate tarballs', async () => {
+  test('requires and installs exact profile runtime package versions with strict peers', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-project-'));
     const profileDirectory = path.join(temporaryRoot, 'profile');
     const skillRepository = path.join(temporaryRoot, 'skill');

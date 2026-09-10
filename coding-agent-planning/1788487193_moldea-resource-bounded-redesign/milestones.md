@@ -1,387 +1,183 @@
-# Resource-bounded moldea redesign milestones
+# moldea resource-bounded redesign milestones
 
-## Completed milestones 1 through 78
+Milestones 1 through 79 are complete and published. The following sequence replaces the prior incomplete Milestone 80 and preserves every completed package, platform, fixture, evaluator, website, and skill result established by the challenged plan.
 
-Milestones 1 through 79 are complete, reviewed, signed, and published. They established the initial clean-slate package generation, repository-bound activation, content-free CLI inspection, lazy repository reading, PR Assurance foundations, paired public/private fixtures, evidence pinning, the 74-case semantic inventory, the 12-plus-2 qualification model, protocol-25 and protocol-10 evidence contracts, collect-first evaluation, xhigh actors and judges, strict resource accounting, bounded four-worker semantic execution, equivalent bounded qualification batching, and the corrected Core 4.0.1/CLI 8/Core-4-only adapter generation.
-
-Milestone 71 completed official attempt `20260909T160245245Z-semantic-f4435831`. It reached all 74 cases with 60 direct passes, five recoveries, nine terminal failures, 93 trials, 186 model stages, and no operational stop. The failed attempt is immutable audit evidence. Its complete classification identified one repeated package inspection defect, two compact portable route defects, one evaluator criterion defect, and two strict variance/security canaries.
-
-Milestones 72 through 77 corrected those bounded causes and recorded passing attempt `20260909T215730003Z-semantic-a0ad31b0` with 69 direct passes, five eligible recoveries, and no failures. Milestone 78 then published bounded four-worker qualification batching. A subsequent PR Assurance review exposed a launch-critical Core paging and retained-memory defect, so that passing attempt remains immutable evidence for its exact Core 3.1/CLI 7.1 closure but cannot serve as final release evidence after the required clean Core 4 cutover. Milestone 79 published the clean Core 4 generation and then its required 4.0.1 retained-memory correction at signed package commits `5144f24c06437e0cbea18bd7c5c8d8449c04ba4b` and `f6d9cfc3f998557bf6a97d036c73f8fc758ea96e`; registry, CI, and clean-consumer checks prove one Core 4.0.1 closure.
-
-## Milestone 72: Publish the failed attempt and revised execution contract
+## Milestone 80: Publish the complete failed final-closure ledger
 
 ### Objective
 
-Publish the complete failed Milestone 71 attempt unchanged together with the challenged plan and regenerated breakdown.
+Preserve the exact completed Core 4.0.1/CLI 8 semantic result and its root-cause plan before changing evaluator or portable skill behavior.
 
 ### Dependencies
 
-- Attempt `20260909T160245245Z-semantic-f4435831` remains byte-identical to the completed official run and passes integrity verification.
-- The revised plan has recommendation `No material concerns` at SHA-256 `7f2b36f2652ffd6c52a68d250b5d164fec079f99ff72d7297e52dcfae5be44fd` before this breakdown is added.
+- Core 4.0.1, CLI 8.0.0, and every required Core-4-only adapter release are registry-visible.
+- Platform specifications are published at `69ae534804b1c25c303cab7012a54c99de0f50cf`.
+- Skill source `941871ee9c22dd2637ea048efefbcd94353612a0` is published and attempt `20260910T132459262Z-semantic-c264efb6` is complete.
 
 ### Scope and implementation
 
-- Verify the attempt identity, source commit, 74 resolutions, result distribution, latest pointer, and failed status without changing evidence.
-- Commit only the failed attempt, failed latest pointer, revised `plan.md`, and this `milestones.md` as one planning-and-evidence boundary.
-- Preserve ignored diagnostic and candidate state, protected instructions, hard-excluded directories, and unrelated concurrent work.
+- Retain only the complete 97-trial attempt and its latest pointer; do not retain the redundant uncommitted mid-run checkpoint artifact.
+- Persist the revised plan and this breakdown with the measured capacity event, four residual classifications, correction ownership, and unchanged stop-loss decision.
+- Make no evaluator, fixture, portable skill, package, platform, website, or qualification behavior change.
 
 ### Verification and acceptance criteria
 
-- Evidence verification reports protocol 25, evidence schema 9, attempt schema 6, 74 initials, 19 confirmations, 93 trials, 186 model stages, 60 direct passes, five recoveries, nine failures, and no operational stop.
-- The attempt remains failed, no passing pointer is created or changed, and no actor, judge, resource, command-policy, or repository result is rewritten.
-- Read-only review is ready; the signed and signed-off commit is pushed explicitly from `new_skill` to its resolved destination.
+- Semantic attempt verification proves 61 direct passes, nine recoveries, four terminal failures, zero pending cases, 97 trials, 194 stages, exact source identity, and no passing promotion.
+- Evidence, latest pointer, plan, and breakdown pass schema, digest, formatting, path, privacy, and source-integrity checks.
+- Read-only review is ready; one cohesive signed and signed-off commit is pushed explicitly.
 
 ### Review checkpoint
 
-Inspect immutable evidence identity, exact result distribution, pointer behavior, changed-path cohesion, and preservation of ignored and unrelated state.
+Inspect attempt completeness, source identity, failure distribution, absence of the redundant checkpoint artifact, non-promotion, and planning accuracy.
 
-## Milestone 73: Define the content-free runtime-assignment contract
+## Milestone 81: Correct the four consolidated semantic residuals
 
 ### Objective
 
-Make the platform specifications the authoritative contract for bounded per-agent runtime assignment in Core 3.1 and CLI 7.1.
+Fix the two portable route gaps and two evaluator calibrations without weakening ambiguity handling, runtime semantics, Git-helper safety, compression correctness, or resource containment.
 
 ### Dependencies
 
-- Milestone 72 is published.
-- The four runtime failures remain attributable to the missing Core/CLI projection rather than manifest parsing or adapter behavior.
+- Milestone 80 is published and the complete failed attempt is immutable.
 
 ### Scope and implementation
 
-- Update `../platform/moldea/context/core-package.md` and `../platform/moldea/context/cli-package.md` to define one independently paged content-free agent record per canonical agent.
-- Specify the record discriminator and exactly the stable `agentId` and `runtimeId` payload, deterministic ordering, metadata/all view inclusion, snapshot and cursor identity, existing page ceilings, and recursive body exclusion.
-- Specify Core 3.1.0 and CLI 7.1.0 as additive stable releases on the existing major and schema-4 lines. Define no manifest-body projection, duplicated per-asset runtime field, unbounded parent array, fallback reader, or legacy record path.
-- Synchronize only directly affected platform blueprint or specification links when their current statements would otherwise contradict the new contract.
+- Reorder direct named-agent reconciliation in `moldea/SKILL.md` so one bounded host inspection keyed to the agent or domain precedes at most one canonical owner `content` read. When the sources conflict consequentially, stop before every further moldea call or write, report both claims, and ask one focused authority question.
+- Make routing-description evaluation load and apply the owning consumer-semantic guidance before classification. Require runtime documentation and actual consumption evidence; a property or parameter name remains insufficient.
+- Raise only `compress-project-context`'s moldea-command maximum from four to five, retaining its existing output ceiling, semantic requirements, validation requirement, and forbidden outcomes.
+- Revise only `read-only-git-helper-suppression`'s stop-reporting criterion to accept semantically equivalent explicit evidence that worktree-aware Git was not run because repository-controlled execution made it unsafe. Continue rejecting demonstrated helper/filter execution and repository writes.
+- Clarify semantic and qualification documentation that a conservative concurrent token-admission stop should resume at a lower supported worker count before any stop-loss recalibration.
+- Add focused deterministic coverage for reconciliation ordering, routing-source classification, exact compression budget boundaries, semantic Git-helper reporting, four-to-two-worker stopped-stage resume, checkpoint preservation, and non-duplication.
 
 ### Verification and acceptance criteria
 
-- Platform specification, link, format, lowercase-brand, and canonical-state checks pass.
-- The specifications distinguish canonical runtime assignment from local composition, behavior evidence, adapter evidence, and runtime publication.
-- Unrelated platform work and its untracked planning directory remain untouched and absent from the milestone commit.
-- Read-only review is ready; the signed and signed-off platform commit is pushed explicitly from `new_skill` to its resolved destination.
+- The root skill remains within its 2,560-word ceiling and retains one authoritative current route rather than a compatibility path.
+- Focused unit and integration tests prove each correction and reject the unsafe or unbounded counterexample.
+- Complete semantic evaluator, evidence, portable artifact, qualification-impact, website, release-identity, documentation, type, lint, format, build, path, and privacy checks pass.
+- No paid model call occurs. Read-only review is ready; one cohesive signed and signed-off commit is pushed explicitly.
 
 ### Review checkpoint
 
-Inspect contract ownership, minimal record shape, bounded pagination, schema compatibility, versioning, body exclusion, and absence of a parallel or legacy path.
+Inspect route order, one-content boundary, conflict stop, semantic classification source, five-call calibration evidence, safe-report equivalence, lower-worker resume, and absence of legacy or weakened paths.
 
-## Milestone 74: Release Core 3.1 and CLI 7.1
-
-### Status
-
-Complete and published at signed package commit `6ef074a0ac20e2a0690ae074e92bacc2a414e980`; Core 3.1.0 and CLI 7.1.0 are registry-verified.
+## Milestone 82: Pass the four-case xhigh correction gate
 
 ### Objective
 
-Implement, test, publish, and registry-verify the content-free per-agent runtime-assignment record in the packages repository.
+Prove the exact corrected behavior on all four residual cases before another complete official run.
 
 ### Dependencies
 
-- Milestone 73 is published and provides the canonical package contract.
-- `../packages/new_skill`, its destination, and current registry versions are resolved again before changes or publication.
+- Milestone 81 is published from a clean source boundary and free preflight passes.
 
 ### Scope and implementation
 
-- Extend Core inspection contracts, metadata collection, ordering, paging inputs, snapshot identity, and public exports with one agent record per canonical agent containing the stable agent and runtime IDs.
-- Include agent records in metadata and all views. Keep diagnostics and adapter evidence behavior unchanged and preserve content-free recursive output.
-- Extend CLI schema-4 projection, public types, record formatting, source-cursor handling, human output, recursive body guards, installed-package composition, and output paging for the new record.
-- Add focused unit and integration tests for zero, one, exact-page-boundary, multi-page, shared-prefix, and large agent inventories; stable ordering; cursor continuation and tampering; snapshot drift; byte ceilings; multibyte identifiers; body exclusion; and distinct canonical assignment versus composition and adapter evidence.
-- Extend packed-consumer and installed-CLI e2e fixtures so the released tarballs prove the exact record and version closure.
-- Update package READMEs, CLI/Core command and output documentation, generated API/reference artifacts, compatibility/release data, package versions, dependency ranges, and the workspace lockfile.
-- Release Core 3.1.0 and CLI 7.1.0 through the current packages workflow, integrate reviewed changes through the resolved `main` path, monitor publication, and verify both exact versions and tarballs from the registry.
+- Run one four-worker collect-first diagnostic over `compress-project-context`, `reconcile-material-ambiguity`, `routing-description-dynamic-wiring`, and `read-only-git-helper-suppression`.
+- Preserve the content-free diagnostic ledger until all four results are known. If an operational or concurrent-capacity stop occurs, use exact resume at two and then one worker without duplicating completed stages.
+- If any case fails, classify the complete four-case distribution once and return through the authorized plan revision before editing.
 
 ### Verification and acceptance criteria
 
-- Changed package unit, integration, e2e, generic test, type, lint, format, build, public API, documentation, release-plan, packed-candidate, and packed-consumer checks pass.
-- Large inventories remain bounded by existing page and memory contracts; no canonical body or arbitrary adapter detail appears in any non-content output.
-- Core 3.1.0 and CLI 7.1.0 are registry-visible, mutually compatible, and executable from a clean packed consumer.
-- Read-only review is ready at each package repository boundary; every publication commit is signed, signed off, and pushed through an explicit one-branch refspec.
+- All four cases pass every semantic, resource, command-policy, repository-control, mount-integrity, and operational dimension under the corrected identity.
+- No diagnostic result is promoted, pinned, or represented as official evidence.
+- Diagnostic checkpoints are removed after success and disk use remains within the documented bounds.
+- Read-only review confirms the gate result and source identity; no commit is required when no tracked file changes.
 
 ### Review checkpoint
 
-Inspect public types, discriminators, ordering, cursors, snapshot identity, output containment, installed-package behavior, version closure, generated artifacts, registry contents, and absence of legacy code.
+Inspect exact case selection, all independent dimensions, command/output totals, conflict behavior, safe Git behavior, worker reuse, and diagnostic cleanup.
 
-## Milestone 75: Correct the residual skill and evaluator routes
-
-### Status
-
-Complete and published at signed skill commit `d59bb17ba8bb32a4cef3ca2c4b4b20bca1413efb` after all deterministic checks and read-only review passed.
+## Milestone 83: Record passing final-closure semantics
 
 ### Objective
 
-Update the skill to consume CLI 7.1 runtime-assignment evidence and correct the two proven portable routes plus the context-only evaluator criterion without disturbing unrelated behavior.
+Produce one complete current passing 74-case protocol-25 attempt for the final Core 4.0.1/CLI 8 portable skill identity.
 
 ### Dependencies
 
-- Core 3.1.0 and CLI 7.1.0 are registry-verified.
-- The skill repository is clean apart from explicitly preserved ignored diagnostic state.
+- Milestone 82's exact four-case gate passes.
+- Free preflight reports a clean current identity and the expected lack of reusable stages after the portable root change.
 
 ### Scope and implementation
 
-- Update the exact development CLI closure to 7.1.0 while retaining the portable compatible-major `^7.0.0` declaration.
-- Make the paged agent record the sole canonical content-free source for `agents.<id>.runtime.id` after composition. Remove wording that asks `inspect` to infer assignment from asset or top-level runtime-guidance counts.
-- Correct the direct reconcile route so supplied implementation evidence plus at most one canonical body leads to one focused authority question before writes, without an unnecessary inspect or validate call.
-- Correct the independent repository-local Agent Skill route so repository placement alone does not activate moldea when the task does not change `/moldea/**` or a declared relationship.
-- Correct only `unadopted-direct-context-handoff`'s completion criterion so context-only input accepts a concise acknowledgement or optional focused host question without inventing work.
-- Add focused conformance, fixture, projection, stage-identity, and route tests. Keep the compact root skill at or below 2,560 words and preserve exact-binding, credential detection, command ceilings, confirmation eligibility, protocol 25, and every unrelated case.
-- Synchronize the directly affected skill README, runtime/evaluation documentation, generated website evidence text, and release identity. Do not claim passing current evidence yet.
+- Run one official collect-first recording with four workers, xhigh actor and judge roles, and the 15-minute stage ceiling.
+- Allow only semantic-only failures to receive the two unchanged confirmations required for recovery.
+- On conservative concurrent token admission, resume the exact checkpoint at two and then one worker as needed. Do not raise the 32,000,000-token candidate ceiling, restart completed work, or relabel failed evidence.
+- Record and promote only a complete passing attempt, then rerun model-free evidence verification and exact-current preflight.
 
 ### Verification and acceptance criteria
 
-- Deterministic tests prove correct runtime identity when assignment, composition, behavior, and publication differ.
-- Reconcile asks exactly one focused question before every write and stays within its existing two-call ceiling; independent Agent Skill maintenance uses zero moldea calls.
-- The context-only fixture validates the actual no-action request while all other handoff criteria remain unchanged.
-- Root unit and integration suites, skill validation, documentation, website, type, lint, format, build, evidence, release-identity, and packed-candidate checks pass without a paid model call.
-- Read-only review is ready; the signed and signed-off skill commit is pushed explicitly from `new_skill` to its resolved destination.
+- All 74 cases pass directly or recover through two passing confirmations; every deterministic and containment dimension is green.
+- Attempt, evidence, identity, latest pointer, passing result, website projection, and release identity verify from the exact published source.
+- An unchanged preflight reports complete exact-current reuse and zero required direct semantic stages.
+- Read-only review is ready; the evidence commit is signed, signed off, and pushed explicitly.
 
 ### Review checkpoint
 
-Inspect runtime evidence provenance, activation narrowness, ambiguity-before-write behavior, independent artifact routing, evaluator criterion fidelity, strict canaries, word count, and unchanged protocol contracts.
+Inspect complete distribution, confirmation eligibility, stage provenance, actual and charged resource totals, lower-worker resumes, passing-only promotion, and public 74-case presentation.
 
-## Milestone 76: Close the independent-skill zero-call gate
-
-### Objective
-
-Replace the inference-dependent Agent Skill boundary with an operation-first deliverable route and prove the one remaining case performs no repository moldea inspection or validation.
-
-### Dependencies
-
-- The first focused correction is published at signed commit `9a6c76817a0a8bed35557283508cf358047bb5be`.
-- Its single-case xhigh rerun is classified under ledger SHA-256 `d5da4367c57ef3fb3efa13b15d8499718a70c65931e59ff6c32a6af147e609f7`: all six semantic criteria and every deterministic dimension except resource passed, while the actor repeated exactly `inspect` and `validate`.
-- The challenged plan preserves the combined-scope exception for tasks that separately request `/moldea/**` or declared-relationship work.
-
-### Scope and implementation
-
-- Update only the first route in `moldea/SKILL.md` so an Agent Skill creation, maintenance, or evaluation deliverable takes the artifact route before repository gating when the task does not separately request canonical or relationship work.
-- State that `Use moldea` wording and repository-local placement do not create a second repository workflow.
-- Retain artifact-local work and validation, the explicit combined-scope exception, and the complete skill's 2,560-word ceiling.
-- Update only the focused route assertion in `tests/conformance.test-unit.mjs`; keep `moldea/references/skill-design.md`, `fixtures/conformance-cases.json`, the zero-call budget, evaluator, protocols, official evidence, and unrelated routes byte-identical.
-- Run the same deterministic correction boundary, review and publish the exact change, then restart diagnostic state for only `skill-maintain-linked-resources`.
-
-### Verification and acceptance criteria
-
-- Focused conformance, complete root unit and integration suites, skill validation, resource, identity, formatting, path, website, build, artifact, and immutable-evidence checks pass.
-- The reviewed commit is signed, signed off, and pushed through explicit `origin/new_skill`.
-- The single xhigh diagnostic observes all six semantic criteria and passes every deterministic dimension with exactly zero moldea commands and bytes.
-- No other case is rerun and no budget, criterion, classifier, evaluator, protocol, reference, evidence artifact, or combined-scope route is weakened.
-- If `inspect` and `validate` repeat, stop paid execution and investigate evaluator delivery or host skill loading instead of applying another wording patch.
-
-### Review checkpoint
-
-Inspect operation-first precedence, the canonical/relationship exception, route word count, focused assertion, byte-identical excluded owners, evidence integrity, exact case command totals, and absence of unrelated changes.
-
-## Milestone 77: Record and publish current 74-case semantic evidence
+## Milestone 84: Establish fresh Custom qualification evidence
 
 ### Objective
 
-Produce one complete passing protocol-25 attempt under the final packages, skill, evaluator, xhigh, and bounded-worker identity.
+Close all 12 universal Custom journeys under the final protocol-10 xhigh contract.
 
 ### Dependencies
 
-- Milestone 76 is green against the exact behavior and evaluator generation to be recorded.
-- Free preflight reports all 74 cases, paid exposure, eligible confirmations, retries, token reservations, output bounds, disk admission, and exact reuse.
-
-### Scope and implementation
-
-- Run one official four-worker collect-first attempt. Complete all missing initials before eligible confirmations and preserve exact progress after interruption.
-- Reuse only exact eligible passing or recovered stages. Reduce concurrency only through exact resume when measured provider or host pressure requires it.
-- Promote only a complete passing attempt and update latest, passing, compact-result, website, and release identity through validated generators.
-- Preserve a complete failure unchanged and return through evidence-led re-planning only if a repeatable deterministic defect remains.
-
-### Verification and acceptance criteria
-
-- All 74 cases pass directly or recover through an eligible semantic confirmation, with no pending, stopped, resource-failed, policy-failed, repository-failed, or mount-failed case.
-- Attempt, evidence, release, website, resource, privacy, ordering, reuse, documentation, type, lint, format, build, and regression verification pass.
-- An unchanged post-recording preflight reports complete exact-current reuse.
-- Read-only review is ready; the signed and signed-off evidence commit is pushed explicitly.
-
-### Review checkpoint
-
-Inspect complete resolution, direct and recovered provenance, package and skill identity, confirmations, resource totals, ordering, passing-only promotion, and public clarity.
-
-## Milestone 78: Add bounded qualification batching
-
-### Objective
-
-Give Custom and adapter qualification the same safe batching, checkpoint, resume, and consolidated-failure workflow before another qualification model call.
-
-### Dependencies
-
-- Milestone 77 is published with current passing semantic evidence.
-- Active qualification evidence remains a clean protocol-10 not-recorded state.
-
-### Scope and implementation
-
-- Extend qualification command-line, CLI, execution, and diagnostic-batch modules with `--workers 1|2|4` and a `run-batch` command accepting exactly one of `--all`, `--targets`, or `--unresolved-from`.
-- Run Custom cases concurrently only inside one attempt. Refuse every adapter profile until the exact passing Custom baseline exists, then coordinate profiles through isolated attempt directories, result roots, checkpoints, and token accounts.
-- Serialize aggregate state, merge in declared order, stop dispatch and drain siblings on operational or capacity failure, and allow exact resume at another accepted worker count without duplicating a completed model stage.
-- Apply the measured shared 8 GiB temporary-storage envelope, with a 2 GiB ceiling per worker after a healthy current qualification worker reached 1,246,233,506 bytes, and derive qualification token admission from measured qualification evidence rather than copying semantic candidate limits.
-- Synchronize adapter-qualification documentation, command help, declarations, schemas, website not-recorded behavior, and release verification without adding a legacy reader or inherited-attempt language.
-
-### Verification and acceptance criteria
-
-- Parser, runner, executor, diagnostic, and integration tests cover selectors, conflicts, unknown targets, one-versus-four equivalence, Custom prerequisite races, deterministic order, failure continuation, stop-dispatch, disk and token boundaries, exact resume, cleanup, and result-root isolation.
-- Model-free dry-run proves the complete Custom and 13-adapter schedule before paid work.
-- Complete qualification and affected root/website suites, types, lint, format, builds, documentation, privacy, storage, and release-identity checks pass.
-- No paid model call occurs in this milestone. Read-only review is ready; the signed and signed-off commit is pushed explicitly.
-
-### Review checkpoint
-
-Inspect command contracts, Custom-first enforcement, scheduler isolation, operational versus evidence identity, aggregate capacity, cleanup, public composition, and legacy absence.
-
-## Milestone 79: Publish the clean Core 4 package generation
-
-### Objective
-
-Replace stateless repository-bearing project inspection with one resource-bounded snapshot preparation and publish a single Core-4-only package closure before another paid model call.
-
-### Dependencies
-
-- Milestone 78 is published at signed skill commit `f381da45284c5603124589d23b043c7f527ddb3a`.
-- `../packages/new_skill` and `origin/new_skill` are clean at `7f0642090b428643a6b658ef077f3a7983dbfa9f`.
-- The challenged revised plan establishes that the platform has not launched and no Core 3 paging compatibility path is required.
-
-### Scope and implementation
-
-- In Core, replace `inspectProjectPage` and its repository-bearing input with asynchronous `createProjectInspection({ repository, signal? })`. Return one immutable content-free inspection object whose synchronous `readPage({ cursor?, maxItems, view })` method slices a single prepared, deterministically ordered record set.
-- Remove the old operation, input shape, implementation module, exports, tests, documentation, examples, and specification language. Do not retain an alias, wrapper, overload, deprecated export, fallback, or parallel stateless implementation.
-- Add a required `maxRetainedBytes` Core resource limit and deterministic accounted retained/peak usage covering canonical validation state, complete adapter buffers, prepared content-free records, view references, and digest preparation. Reserve known complete allocations before construction, retain their charge for the inspection lifetime, reject exact over-limit conditions predictably, release canonical bodies after preparation, and expose only bounded usage needed by higher-level ledgers.
-- Update CLI to 8.0.0 so each command prepares once and reads every page from that snapshot while preserving external JSON schema 4 and current content-free output behavior.
-- Update every official adapter to a Core-4-only dependency and publish the necessary stable adapter versions. Remove every Core 3 dependency or compatibility branch and verify that packed CLI and adapter consumers install exactly one Core 4 instance.
-- Synchronize package READMEs, public declarations, examples, generated compatibility state, release plans, and package specifications owned by `../packages`. Correct package-change classification so standardized `*.test-fixtures.*` files remain test-only while README, source, license, and other published inputs still select their owning package.
-- Review and publish cohesive signed package commits through the established branch/main/release workflow, monitor registry publication, and verify every exact version before the next milestone.
-
-### Verification and acceptance criteria
-
-- Focused Core unit and integration tests prove preparation reads and validates once; reading second, tenth, and final pages performs zero repository reads, validation passes, record rebuilds, resorts, or redigests.
-- Large and pathological fixtures prove deterministic cursor behavior, content exclusion, cancellation, exact retained-byte boundaries, pre-allocation rejection where sizes are known, peak/retained accounting, and absence of canonical bodies from the returned object.
-- Every affected package's granular and generic test suites, typecheck, lint, format, build, public API, documentation, compatibility, release-plan, packed-candidate, and production-artifact checks pass.
-- Registry and packed-consumer inspection prove Core 4.0.1, CLI 8.0.0, required adapter releases, and one deduplicated Core 4.0.1 closure with no Core 3 or Core 4.0.0 package.
-- Read-only review is ready; every commit is signed, signed off, and pushed to its exact resolved destination.
-
-### Review checkpoint
-
-Inspect the one-path API removal, snapshot lifetime, canonical-body disposal, memory accounting model, exact limit failures, CLI schema stability, adapter dependency graph, generated contracts, package versions, packed closure, and registry state.
-
-## Milestone 80: Align platform and skill, then record fresh semantics
-
-### Objective
-
-Make the platform specifications and skill consume only the published Core 4/CLI 8 generation, then record final-closure passing evidence across all 74 semantic cases.
-
-### Dependencies
-
-- Milestone 79 package versions are registry-visible and packed consumers prove one Core 4 closure.
-- Platform PR Assurance implementation remains assigned to the separate agent; this milestone owns only package closure and directly affected canonical specifications.
-- Concurrent platform changes are either published or isolated from this work through a clean worktree and cohesive commits.
-
-### Scope and implementation
-
-- Update `../platform/moldea/**` Core, CLI, adapter, package, runtime, project, and PR Assurance specifications that describe project inspection, retained-memory accounting, supported package versions, or dependency closure. Describe only the Core 4.0.1 preparation/read contract, require Core `^4.0.1` for the skill, reject stale prior adapter-major wording throughout each adapter specification, and leave separately assigned PR Assurance implementation files untouched.
-- Update platform package and lock state only where required to resolve the exact Core 4/CLI 8 generation, without bundling unrelated concurrent changes.
-- Update this repository's exact CLI development dependency, lockfile, minimum Core range, supported package majors, evaluation identity, qualification target versions, documentation, generated website state, and release assertions to the registry-published Core 4.0.1/CLI 8 closure. Remove all Core 3/CLI 7 compatibility wording or readers and reject Core 4.0.0 as an eligible skill runtime.
-- Run complete free deterministic preflight and exact-identity checks, then record one official four-worker, collect-first, xhigh 74-case attempt. Preserve `20260909T215730003Z-semantic-a0ad31b0` unchanged as historical Core 3.1/CLI 7.1 evidence; do not relabel, promote, or exact-reuse it for the new closure.
-- If a repeatable failure appears, classify the complete ledger once and revise only the proven owner before rerunning failed or exact-identity-invalidated work. Do not start Custom until current semantic evidence passes.
-
-### Verification and acceptance criteria
-
-- Platform specifications, package metadata, locks, skill declarations, evaluator identity, website, and release checks all resolve and describe the same exact Core 4/CLI 8/adapter generation with no active Core 3 or CLI 7 path.
-- Platform and skill repository-owned unit, integration, documentation, type, lint, format, build, package-candidate, link, identity, and contradiction checks pass at the affected boundaries.
-- All 74 semantic cases pass directly or through eligible unchanged confirmation with every deterministic, policy, repository, mount, operational, and resource dimension green.
-- An unchanged post-recording preflight reports complete exact-current reuse for the new closure, and immutable evidence verification passes.
-- Each repository reaches a read-only ready verdict and publishes only its cohesive signed changes to its exact destination.
-
-### Review checkpoint
-
-Inspect cross-repository version identity, absence of legacy paths, platform isolation, specification accuracy, semantic stage provenance, direct/recovered distribution, resource totals, and passing-only promotion.
-
-## Milestone 81: Establish fresh Custom qualification evidence
-
-### Objective
-
-Close all 12 shared Custom journeys under the final protocol-10 xhigh contract.
-
-### Dependencies
-
-- Milestone 80 is published with current passing final-closure semantic evidence and model-free qualification preflight passes.
+- Milestone 83 is published with current passing semantic evidence.
+- Model-free Custom preflight and dry run pass against the same source identity.
 
 ### Scope and implementation
 
 - Run one four-worker collect-first Custom attempt, completing every initial and only eligible semantic confirmations.
-- Preserve every complete failed attempt, classify the full failure set once, and correct only proven shared causes through autonomous re-planning.
-- Promote only a passing current attempt as the shared Custom baseline. Do not present it as inherited evidence.
+- Reduce concurrency on an exact resumable capacity stop before considering any measured stop-loss change.
+- Preserve each complete failed attempt, classify the complete failure set once, and correct only proven shared causes through autonomous re-planning.
+- Promote only a passing current attempt as the shared Custom baseline; do not present it as inherited evidence.
 
 ### Verification and acceptance criteria
 
-- All 12 journeys pass with exact policy, xhigh efforts, timeout, package, skill, evaluator, resource, repository, and provenance identity.
-- Failed evidence remains failed, diagnostics never become release evidence, and terminal workspaces are cleaned safely.
+- All 12 journeys pass with exact policy, xhigh effort, timeout, package, skill, evaluator, resource, repository, and provenance identity.
 - Qualification, website, release, privacy, storage, type, lint, format, build, documentation, and regression checks pass.
 - Read-only review is ready; every cohesive correction or evidence commit is signed, signed off, and pushed.
 
 ### Review checkpoint
 
-Inspect the complete Custom ledger, confirmation eligibility, resource and disk use, baseline identity, cleanup, public language, and stop-loss decisions.
+Inspect the complete Custom ledger, confirmation eligibility, resource and disk use, worker fallback, baseline identity, cleanup, public language, and stop-loss decisions.
 
-## Milestone 82: Produce the complete adapter-specific ledger
+## Milestone 85: Produce and close the adapter-specific ledger
 
 ### Objective
 
-Run all 13 adapter profiles in bounded batches against the exact Custom baseline and collect every outcome before editing.
+Run all 13 adapter profiles against the exact Custom baseline, collect the complete distribution, and close only proven residuals.
 
 ### Dependencies
 
-- Milestone 81 is published with a current passing Custom attempt.
-- `run-batch --all --workers 4` preflight binds every profile to that exact baseline.
+- Milestone 84 is published with a current passing Custom attempt.
+- `run-batch --all --workers 4` preflight binds every profile to that baseline.
 
 ### Scope and implementation
 
 - Run adapter profiles in batches of at most four, retaining two direct adapter projects per profile and the shared 12-case Custom baseline.
-- Continue across semantic failures while operationally safe, reduce worker count only through exact resume when needed, and preserve each complete attempt independently.
+- Continue across semantic failures while operationally safe; reduce worker count through exact resume when necessary; preserve each complete attempt independently.
 - Classify the complete cross-profile distribution before changing shared skill, adapter, evaluator, fixture, probe, resource, or package behavior.
-
-### Verification and acceptance criteria
-
-- All 13 profiles reach a complete current result, or one durable containment stop triggers autonomous re-planning.
-- Every attempt verifies source, package and adapter versions, policy, xhigh effort, provenance, independent dimensions, resource containment, and privacy.
-- Public composition remains 12 shared plus two direct journeys per adapter and 38 unique projects overall.
-- Read-only review is ready; the unchanged complete ledger is signed, signed off, and pushed before correction.
-
-### Review checkpoint
-
-Inspect cross-profile failure patterns, Custom binding, isolation, concurrency, resource totals, direct-versus-shared provenance, and honest public counts.
-
-## Milestone 83: Close adapter qualification evidence
-
-### Objective
-
-Correct the consolidated adapter failure set coherently and publish passing current evidence for all profiles.
-
-### Dependencies
-
-- Milestone 82 produced and published the complete classified ledger.
-
-### Scope and implementation
-
-- Make no behavior change when every profile passes. Otherwise revise the plan once from the complete distribution and keep each correction in its owning package, fixture, evaluator, profile, or documentation boundary.
-- Run deterministic checks and focused canaries, then rerun only failed or exact-identity-invalidated profiles through `run-batch --unresolved-from`.
-- Re-establish semantic or Custom evidence only when a real shared behavior identity change requires it.
-- Retain no protocol-9, medium, all-high, inherited-history, dual-reader, or two-project-only compatibility surface.
+- If corrections are required, revise the plan once from the complete ledger, run deterministic and focused canary checks, and rerun only failed or exact-identity-invalidated profiles through `run-batch --unresolved-from`.
 
 ### Verification and acceptance criteria
 
 - Custom and all 13 adapters have valid current passing evidence under one exact generation.
-- A repeated systemic failure returns through re-planning instead of another patch loop.
-- Affected package, qualification, website, release, documentation, resource, privacy, type, lint, format, build, and regression checks pass.
-- Read-only review is ready; every cohesive correction and evidence commit is signed, signed off, and pushed.
+- Every attempt verifies source, package and adapter versions, policy, xhigh effort, provenance, independent dimensions, resource containment, and privacy.
+- Public composition remains 12 shared plus two direct journeys per adapter and 38 unique projects overall.
+- Read-only review is ready; complete-ledger and correction/evidence commits are signed, signed off, and pushed explicitly.
 
 ### Review checkpoint
 
-Inspect correction ownership, invalidated identities, targeted rerun scope, baseline integrity, adapter confidence, and legacy absence.
+Inspect cross-profile patterns, Custom binding, isolation, concurrency, targeted rerun scope, direct-versus-shared provenance, public counts, and legacy absence.
 
-## Milestone 84: Publish the clean skill 5.0 release
+## Milestone 86: Publish the clean skill 5.0 release
 
 ### Objective
 
-Integrate and publish one clean 5.0 skill release against verified package versions and complete current evidence.
+Integrate and publish one clean 5.0 skill release against verified packages and complete current evidence.
 
 ### Dependencies
 
@@ -391,7 +187,7 @@ Integrate and publish one clean 5.0 skill release against verified package versi
 ### Scope and implementation
 
 - Select fresh evidence by default. Use the native evidence-pin path only when the developer explicitly names an eligible compatible source release and reason.
-- Remove authorized active 4.0.x tags, hosted releases, pages, and release surfaces without adding compatibility readers, routes, fallbacks, or historical-current wording.
+- Remove authorized active 4.0.x tags, hosted releases, pages, and release surfaces without compatibility readers, routes, fallbacks, or historical-current wording.
 - Review each feature branch against freshly resolved `main`, integrate through signed repository workflows, and push explicit single-branch refs.
 - Monitor release and website workflows and verify registry versions, tags, hosted releases, evidence routes, and downloadable skill identity.
 
@@ -405,7 +201,7 @@ Integrate and publish one clean 5.0 skill release against verified package versi
 
 Inspect release identity, package closure, evidence selection, clean-slate removal, target freshness, signed integration, workflow results, registry state, and hosted state.
 
-## Milestone 85: Complete the cross-repository launch audit
+## Milestone 87: Complete the cross-repository launch audit
 
 ### Objective
 
@@ -413,12 +209,12 @@ Prove that active specifications, packages, platform, skill, fixtures, websites,
 
 ### Dependencies
 
-- Milestone 84 is complete or has only explicit external publication prerequisites.
+- Milestone 86 is complete or has only explicit external publication prerequisites.
 
 ### Scope and implementation
 
-- Audit active content in this repository, `../packages`, `../platform`, `../knowledge-base`, and both GitHub fixture repositories while excluding protected instructions, hard-excluded archive and backup directories, and unrelated concurrent work.
-- Remove contradictions involving lowercase `moldea`, repository-bound installation, clean package versions, flexible adapter ranges, activation abstention, bounded content-free inspection, lazy repository reading, PR Assurance completeness, resource containment, evidence pinning, 74-case semantics, xhigh roles, 15-minute stages, independent dimensions, shared 12-plus-2 qualification composition, bounded batches, and obsolete releases or compatibility surfaces.
+- Audit active content in this repository, `../packages`, `../platform`, `../knowledge-base`, and both GitHub fixture repositories while excluding protected instructions, hard-excluded archive/backup directories, and unrelated concurrent work.
+- Remove contradictions involving lowercase `moldea`, repository-bound installation, clean package versions, flexible adapter ranges, activation abstention, bounded content-free inspection, lazy repository reading, PR Assurance completeness, resource containment, lower-worker exact resume, evidence pinning, 74-case semantics, xhigh roles, 15-minute stages, independent dimensions, shared 12-plus-2 qualification composition, bounded batches, and obsolete releases or compatibility surfaces.
 - Run every affected repository's established documentation, link, manifest, test, type, lint, format, build, package, website, release, registry, workflow, and host checks.
 - Review and publish only cohesive repository-owned changes to exact destinations while preserving unrelated concurrent work.
 
@@ -435,4 +231,4 @@ Inspect exact repository tips, public claims, protocol and policy terminology, e
 
 ## Execution scope
 
-Preserve completed and published Milestones 1 through 79 and passing attempt `20260909T215730003Z-semantic-a0ad31b0` as immutable evidence for their exact historical closures. Execute Milestones 80 through 85 sequentially: align platform specifications and the skill to the exact Core 4.0.1/CLI 8/Core-4-only adapter closure; record one fresh passing 74-case attempt; establish a passing 12-case Custom baseline; collect and close all 13 adapter profiles; publish clean skill 5.0; and complete the cross-repository launch audit. No paid model call occurs before the deterministic platform and skill closure passes. Preserve every worker, resource, safety, privacy, provenance, signing, review, branch, clean-slate, protected-instruction, hard-exclusion, and unrelated-concurrent-work constraint from the challenged plan. Retain no Core 3 or Core 4.0.0 runtime, CLI 7 paging, repository-bearing inspection wrapper, deprecated alias, fallback, dual dependency, or other compatibility implementation.
+Execute Milestones 80 through 87 sequentially. First publish complete failed attempt `20260910T132459262Z-semantic-c264efb6` and the challenged root-cause plan. Correct its four residuals as one clean portable/evaluator change, pass the exact four-case xhigh diagnostic, and record one final passing 74-case attempt without raising the measured 32,000,000-token stop-loss or reusing identity-invalidated stages. Then establish the 12-case Custom baseline, run and close all 13 adapter profiles in batches of at most four, publish clean skill 5.0, and complete the cross-repository launch audit. Preserve every completed milestone, immutable evidence boundary, safety, privacy, resource, signing, review, branch, clean-slate, protected-instruction, hard-exclusion, and unrelated-concurrent-work constraint from the challenged plan.

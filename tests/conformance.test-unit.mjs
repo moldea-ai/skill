@@ -105,7 +105,7 @@ const installProjectToolingFixture = (root) => {
     `${JSON.stringify(
       {
         private: true,
-        devDependencies: { '@moldea.ai/cli': '^7.0.0' },
+        devDependencies: { '@moldea.ai/cli': '^8.0.0' },
       },
       null,
       2,
@@ -126,9 +126,9 @@ const writeCliFixture = (cliRoot) => {
       {
         name: '@moldea.ai/cli',
         type: 'module',
-        version: '7.1.0',
+        version: '8.0.0',
         bin: { moldea: './dist/moldea.js' },
-        dependencies: { '@moldea.ai/core': '^3.0.0' },
+        dependencies: { '@moldea.ai/core': '^4.0.0' },
       },
       null,
       2,
@@ -145,7 +145,7 @@ const writeCoreFixture = (coreRoot, options = {}) => {
       {
         name: options.name ?? '@moldea.ai/core',
         type: 'module',
-        version: options.version ?? '3.1.0',
+        version: options.version ?? '4.0.1',
       },
       null,
       2,
@@ -166,7 +166,7 @@ const createIsolatedToolingProject = (layout) => {
     `${JSON.stringify(
       {
         private: true,
-        devDependencies: { '@moldea.ai/cli': '^7.0.0' },
+        devDependencies: { '@moldea.ai/cli': '^8.0.0' },
       },
       null,
       2,
@@ -190,15 +190,15 @@ const createIsolatedToolingProject = (layout) => {
   }
 
   const storeRoot = join(root, 'node_modules', '.pnpm');
-  const cliStoreRoot = join(storeRoot, '@moldea.ai+cli@7.1.0', 'node_modules', '@moldea.ai', 'cli');
+  const cliStoreRoot = join(storeRoot, '@moldea.ai+cli@8.0.0', 'node_modules', '@moldea.ai', 'cli');
   const coreStoreRoot = join(
     storeRoot,
-    '@moldea.ai+core@3.1.0',
+    '@moldea.ai+core@4.0.1',
     'node_modules',
     '@moldea.ai',
     'core',
   );
-  const cliDependencyRoot = join(storeRoot, '@moldea.ai+cli@7.1.0', 'node_modules', '@moldea.ai');
+  const cliDependencyRoot = join(storeRoot, '@moldea.ai+cli@8.0.0', 'node_modules', '@moldea.ai');
   writeCliFixture(cliStoreRoot);
   writeCoreFixture(coreStoreRoot);
   mkdirSync(join(root, 'node_modules', '@moldea.ai'), { recursive: true });
@@ -247,7 +247,7 @@ const createLauncherProject = (cliSource, options = {}) => {
     `${JSON.stringify(
       {
         private: true,
-        devDependencies: { '@moldea.ai/cli': options.declaration ?? '^7.0.0' },
+        devDependencies: { '@moldea.ai/cli': options.declaration ?? '^8.0.0' },
       },
       null,
       2,
@@ -259,9 +259,9 @@ const createLauncherProject = (cliSource, options = {}) => {
       {
         name: '@moldea.ai/cli',
         type: 'module',
-        version: options.version ?? '7.1.0',
+        version: options.version ?? '8.0.0',
         bin: { moldea: options.binary ?? './dist/moldea.js' },
-        dependencies: { '@moldea.ai/core': options.coreRange ?? '^3.0.0' },
+        dependencies: { '@moldea.ai/core': options.coreRange ?? '^4.0.0' },
       },
       null,
       2,
@@ -284,7 +284,8 @@ describe('portable skill contract', () => {
     const frontmatter = parseFrontmatter();
     assert.deepEqual(frontmatter.metadata, {
       version: '5.0.0',
-      cliVersionRange: '^7.0.0',
+      cliVersionRange: '^8.0.0',
+      coreVersionRange: '^4.0.1',
       cliJsonSchemaVersion: 4,
     });
     assert.equal(frontmatter.name, 'moldea');
@@ -727,7 +728,10 @@ describe('portable skill contract', () => {
     assert.match(distributedText, /1 MiB/u);
     assert.match(distributedText, /content-free/u);
     assert.doesNotMatch(distributedText, /Moldea/u);
-    assert.doesNotMatch(distributedText, /4\.0\.[0-2]|CLI JSON schema (?:1|2|3)\b|schema-3\b/u);
+    assert.doesNotMatch(
+      distributedText,
+      /(?:\bskill(?:\s+release)?\s+|@moldea\.ai\/skill@|\/releases\/tag\/v?)4\.0\.[0-2]\b|CLI JSON schema (?:1|2|3)\b|schema-3\b/iu,
+    );
   });
 
   test('documents content-free repository test-result projection', () => {
@@ -997,6 +1001,7 @@ describe('activation and semantic protection', () => {
     const missingRoot = join(parentRoot, 'missing');
     const invalidRoot = createIsolatedToolingProject('pnpm');
     const escapedRoot = createIsolatedToolingProject('npm');
+    const unsafeVersionRoot = createIsolatedToolingProject('npm');
 
     try {
       mkdirSync(missingRoot, { recursive: true });
@@ -1019,7 +1024,7 @@ describe('activation and semantic protection', () => {
         invalidRoot,
         'node_modules',
         '.pnpm',
-        '@moldea.ai+cli@7.1.0',
+        '@moldea.ai+cli@8.0.0',
         'node_modules',
         '@moldea.ai',
         'cli',
@@ -1036,8 +1041,11 @@ describe('activation and semantic protection', () => {
         installedCoreRoot,
         process.platform === 'win32' ? 'junction' : 'dir',
       );
+      writeCoreFixture(join(unsafeVersionRoot, 'node_modules', '@moldea.ai', 'core'), {
+        version: '4.0.0',
+      });
 
-      for (const root of [missingRoot, invalidRoot, escapedRoot]) {
+      for (const root of [missingRoot, invalidRoot, escapedRoot, unsafeVersionRoot]) {
         const result = runRelevanceGate(root, [], '/src/project-state.js\0');
         assert.equal(result.status, 0);
         assert.equal(result.stderr, '');
@@ -1047,11 +1055,12 @@ describe('activation and semantic protection', () => {
       rmSync(parentRoot, { force: true, recursive: true });
       rmSync(invalidRoot, { force: true, recursive: true });
       rmSync(escapedRoot, { force: true, recursive: true });
+      rmSync(unsafeVersionRoot, { force: true, recursive: true });
     }
   });
 });
 
-describe('CLI 7 bounded machine protocol', () => {
+describe('CLI 8 bounded machine protocol', () => {
   test('keeps release identity exact across the root manifests', () => {
     const packageManifest = JSON.parse(readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf8'));
     const packageLock = JSON.parse(
@@ -1176,7 +1185,7 @@ describe('CLI 7 bounded machine protocol', () => {
       assert.equal(unsupportedArgument.stdout, '');
 
       const packageManifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-      packageManifest.devDependencies['@moldea.ai/cli'] = '^8.0.0';
+      packageManifest.devDependencies['@moldea.ai/cli'] = '^7.0.0';
       writeFileSync(join(root, 'package.json'), `${JSON.stringify(packageManifest, null, 2)}\n`);
       const unsupportedPackage = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
       assert.equal(unsupportedPackage.status, 3);
@@ -1191,13 +1200,13 @@ describe('CLI 7 bounded machine protocol', () => {
     const missingRoot = mkdtempSync(join(tmpdir(), 'moldea-v5-launcher-missing-'));
     const malformedRoot = createLauncherProject('process.exitCode = 0;\n');
     const prereleaseRoot = createLauncherProject('process.exitCode = 0;\n', {
-      version: '7.1.0-beta.1',
+      version: '8.0.0-beta.1',
     });
     const escapedRoot = createLauncherProject('process.exitCode = 0;\n');
     try {
       writeFileSync(
         join(missingRoot, 'package.json'),
-        '{"private":true,"devDependencies":{"@moldea.ai/cli":"^7.0.0"}}\n',
+        '{"private":true,"devDependencies":{"@moldea.ai/cli":"^8.0.0"}}\n',
       );
       writeFileSync(join(malformedRoot, 'node_modules', '@moldea.ai', 'cli', 'package.json'), '{');
       const escapedCliRoot = join(escapedRoot, 'escaped-cli');
@@ -1205,7 +1214,7 @@ describe('CLI 7 bounded machine protocol', () => {
       mkdirSync(join(escapedCliRoot, 'dist'), { recursive: true });
       writeFileSync(
         join(escapedCliRoot, 'package.json'),
-        '{"name":"@moldea.ai/cli","version":"7.1.0","bin":{"moldea":"./dist/moldea.js"},"dependencies":{"@moldea.ai/core":"^3.0.0"}}\n',
+        '{"name":"@moldea.ai/cli","version":"8.0.0","bin":{"moldea":"./dist/moldea.js"},"dependencies":{"@moldea.ai/core":"^4.0.0"}}\n',
       );
       writeFileSync(join(escapedCliRoot, 'dist', 'moldea.js'), 'process.exitCode = 0;\n');
       rmSync(installedCliRoot, { force: true, recursive: true });

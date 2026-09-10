@@ -1,11 +1,6 @@
 const ADAPTER_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
-const IMPLEMENTATION_STATUSES = new Set([
-  'available',
-  'deprecated',
-  'in-development',
-  'planned',
-]);
+const IMPLEMENTATION_STATUSES = new Set(['available', 'deprecated', 'in-development', 'planned']);
 const TARGET_KINDS = new Set(['custom', 'package']);
 const TARGET_MATURITIES = new Set(['experimental', 'supported']);
 
@@ -77,7 +72,7 @@ const hasValidAdapter = (input) => {
 };
 
 /**
- * Validates the packages website publication fields consumed by Skill release 4.
+ * Validates the packages website publication fields consumed by skill release 5.
  * @param input The untrusted parsed publication value.
  * @returns The validated publication value.
  * @throws

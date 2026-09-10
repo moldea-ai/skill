@@ -6,7 +6,7 @@ For a direct request to prove or safely invoke the local CLI, apply this referen
 
 ## Supported contract
 
-Skill 5.0.0 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^3.0.0`, stable `@moldea.ai/cli` releases satisfying `^7.0.0`, repository format 1, and CLI JSON schema 4. Never substitute a global, transient, out-of-range, or prerelease CLI.
+Skill 5.0.0 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^4.0.1`, stable `@moldea.ai/cli` releases satisfying `^8.0.0`, repository format 1, and CLI JSON schema 4. Never substitute a global, transient, out-of-range, or prerelease CLI.
 
 Use only `<installed-skill-root>/scripts/moldea-cli.mjs`. The launcher resolves the repository-root-local package and executable, verifies the package name, exact installed stable version, supported repository declaration, declared `moldea` binary, Core dependency range, and resolved-path containment from inert package metadata, then invokes the executable without a shell. Require the exact envelope version to match that installed version. Do not reproduce these probes, inspect links manually, search parent workspaces, inspect unrelated repositories, use package-manager launchers, or search `PATH` for another copy.
 
@@ -23,7 +23,7 @@ Return one blocked-install result containing all four fields below. Omitting or 
 3. State that execution stopped before invoking the package manager.
 4. Give the exact prerequisite to remove or disable that configuration or executable mechanism before retrying.
 
-Do not ask a project-purpose question, execute, rewrite, or disable the extension. Otherwise install `@moldea.ai/cli@^7.0.0` with lifecycle scripts disabled and update the ordinary lockfile. The manifest may retain a compatible caret range or the exact stable version selected by the lockfile. Do not load or execute repository-supplied package-manager extensions. Read-only work never authorizes installation or dependency changes; after direct relevance, report that deterministic evidence is unavailable.
+Do not ask a project-purpose question, execute, rewrite, or disable the extension. Otherwise install `@moldea.ai/cli@^8.0.0` with lifecycle scripts disabled and update the ordinary lockfile. The manifest may retain a compatible caret range or the exact stable version selected by the lockfile. Do not load or execute repository-supplied package-manager extensions. Read-only work never authorizes installation or dependency changes; after direct relevance, report that deterministic evidence is unavailable.
 
 These rules govern only moldea CLI establishment. They never govern host-owned package-manager, planning, review, Git, commit, or publication commands.
 
@@ -48,7 +48,7 @@ Repository-logical paths begin with `/`. For stdin scope, encode each path's UTF
 Interpret JSON only after the child process completes. Require:
 
 - integer `schemaVersion: 4`
-- string `cliVersion` equal to the exact installed stable CLI version satisfying `^7.0.0`
+- string `cliVersion` equal to the exact installed stable CLI version satisfying `^8.0.0`
 - the exact invoked `command`
 - `status` equal to `valid`, `invalid`, or `error`
 - `error: null` and a non-null result only for `valid` or `invalid`

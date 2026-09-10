@@ -13,6 +13,15 @@ export const CLI_VERSION_RANGE_TEXT_PATHS = [
   'qualification/README.md',
 ];
 
+// portable release files that must carry the minimum supported Core range
+export const CORE_VERSION_RANGE_TEXT_PATHS = [
+  'README.md',
+  'docs/compatibility-and-local-tooling.md',
+  'moldea/SKILL.md',
+  'moldea/references/local-tooling.md',
+  'moldea/scripts/repository-package.mjs',
+];
+
 // release files that must carry the exact CLI JSON schema version
 export const CLI_JSON_SCHEMA_VERSION_TEXT_PATHS = [
   'README.md',

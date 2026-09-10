@@ -24,9 +24,12 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   }
   currentFiles.set(
     RELEASE_PATHS.skillRepositoryPackage,
-    "const EXPECTED_CLI_RANGE = '^6.0.0';\nconst EXPECTED_CORE_RANGE = '^2.0.0';\n",
+    "const EXPECTED_CLI_RANGE = '^6.0.0';\nconst EXPECTED_CLI_CORE_RANGE = '^2.0.0';\nconst SUPPORTED_CORE_RANGE = '^2.0.1';\n",
   );
-  currentFiles.set(RELEASE_PATHS.packageManifest, '{"moldeaRelease":{"cliJsonSchemaVersion":3}}\n');
+  currentFiles.set(
+    RELEASE_PATHS.packageManifest,
+    '{"moldeaRelease":{"cliJsonSchemaVersion":3,"coreVersionRange":"^2.0.1"}}\n',
+  );
   currentFiles.set(RELEASE_PATHS.packageLock, '{}\n');
   currentFiles.set(
     RELEASE_PATHS.conformanceCases,
@@ -111,7 +114,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   assert.equal(updatedFiles.get(RELEASE_PATHS.packageManifest), '{"version":"3.1.0"}\n');
   assert.equal(
     updatedFiles.get(RELEASE_PATHS.skillRepositoryPackage),
-    "const EXPECTED_CLI_RANGE = '^7.0.0';\nconst EXPECTED_CORE_RANGE = '^3.0.0';\n",
+    "const EXPECTED_CLI_RANGE = '^7.0.0';\nconst EXPECTED_CLI_CORE_RANGE = '^3.0.0';\nconst SUPPORTED_CORE_RANGE = '^3.0.0';\n",
   );
   const conformanceCases = JSON.parse(updatedFiles.get(RELEASE_PATHS.conformanceCases));
   assert.deepEqual(conformanceCases.packageManagerCases[0].input.cli, {
@@ -138,7 +141,10 @@ test('createCliReleaseUpdate preserves portable ranges for a same-major patch', 
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
     currentFiles.set(relativePath, `${currentFiles.get(relativePath)}CLI JSON schema \`4\`\n`);
   }
-  currentFiles.set(RELEASE_PATHS.packageManifest, '{"moldeaRelease":{"cliJsonSchemaVersion":4}}\n');
+  currentFiles.set(
+    RELEASE_PATHS.packageManifest,
+    '{"moldeaRelease":{"cliJsonSchemaVersion":4,"coreVersionRange":"^3.0.1"}}\n',
+  );
   currentFiles.set(RELEASE_PATHS.packageLock, '{}\n');
   currentFiles.set(
     RELEASE_PATHS.conformanceCases,

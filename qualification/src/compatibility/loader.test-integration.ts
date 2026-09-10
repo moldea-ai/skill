@@ -246,9 +246,9 @@ describe('Custom qualification profile', () => {
       'compatible Core range',
       (adapter: Awaited<ReturnType<typeof resolveQualificationTarget>>['adapter']) => ({
         ...adapter,
-        compatibleCoreRange: '^4.0.0',
+        compatibleCoreRange: '^5.0.0',
       }),
-      'adapter.compatible-core-range.^4.0.0',
+      'adapter.compatible-core-range.^5.0.0',
     ],
   ] as const)(
     'invalidates coverage when the matrix adds or changes its %s claim',

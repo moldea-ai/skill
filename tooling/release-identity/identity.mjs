@@ -2,17 +2,20 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import semver from 'semver';
 import { parseDocument } from 'yaml';
 
 import {
   CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
   CLI_PACKAGE_NAME,
   CLI_VERSION_RANGE_TEXT_PATHS,
+  CORE_VERSION_RANGE_TEXT_PATHS,
   RELEASE_PATHS,
 } from './constants.mjs';
 
 const STABLE_VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u;
 const COMPATIBLE_MAJOR_RANGE_PATTERN = /^\^([1-9]\d*)\.0\.0$/u;
+const COMPATIBLE_STABLE_RANGE_PATTERN = /^\^([1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u;
 const OBSOLETE_SKILL_RELEASE_PATTERN =
   /(?:\bskill(?:\s+release)?\s+|@moldea\.ai\/skill@|\/releases\/tag\/v?)4\.0\.[0-2]\b/iu;
 
@@ -34,6 +37,15 @@ export const createCompatibleMajorRange = (version) => {
 export const parseCompatibleMajorRange = (versionRange) => {
   if (typeof versionRange !== 'string' || !COMPATIBLE_MAJOR_RANGE_PATTERN.test(versionRange)) {
     throw new Error(`Expected a compatible major range, received ${String(versionRange)}.`);
+  }
+
+  return versionRange;
+};
+
+/** Parses one canonical nonzero-major caret range with an exact stable minimum. */
+export const parseCompatibleStableRange = (versionRange) => {
+  if (typeof versionRange !== 'string' || !COMPATIBLE_STABLE_RANGE_PATTERN.test(versionRange)) {
+    throw new Error(`Expected a compatible stable range, received ${String(versionRange)}.`);
   }
 
   return versionRange;
@@ -62,6 +74,7 @@ const parseSkillMetadata = (source) => {
     name: frontmatter?.name,
     version: parseStableVersion(frontmatter?.metadata?.version),
     cliVersionRange: parseCompatibleMajorRange(frontmatter?.metadata?.cliVersionRange),
+    coreVersionRange: parseCompatibleStableRange(frontmatter?.metadata?.coreVersionRange),
     cliJsonSchemaVersion: parsePositiveInteger(
       frontmatter?.metadata?.cliJsonSchemaVersion,
       'Skill CLI JSON schema version',
@@ -76,6 +89,9 @@ export const readReleaseIdentity = (repositoryRoot) => {
   const packageLock = JSON.parse(packageLockText);
   const cliVersion = parseStableVersion(packageManifest.devDependencies?.[CLI_PACKAGE_NAME]);
   const cliVersionRange = createCompatibleMajorRange(cliVersion);
+  const coreVersionRange = parseCompatibleStableRange(
+    packageManifest.moldeaRelease?.coreVersionRange,
+  );
   const releaseVersion = parseStableVersion(packageManifest.version);
   const cliJsonSchemaVersion = parsePositiveInteger(
     packageManifest.moldeaRelease?.cliJsonSchemaVersion,
@@ -85,12 +101,30 @@ export const readReleaseIdentity = (repositoryRoot) => {
   if (lockedCli?.version !== cliVersion || typeof lockedCli.integrity !== 'string') {
     throw new Error(`package-lock.json does not bind ${CLI_PACKAGE_NAME}@${cliVersion}.`);
   }
+  const cliCoreVersionRange = parseCompatibleMajorRange(
+    lockedCli.dependencies?.['@moldea.ai/core'],
+  );
+  const lockedCore = packageLock.packages?.['node_modules/@moldea.ai/core'];
+  const coreVersion = parseStableVersion(lockedCore?.version);
+  if (
+    typeof lockedCore?.integrity !== 'string' ||
+    !semver.satisfies(coreVersion, cliCoreVersionRange) ||
+    !semver.satisfies(coreVersion, coreVersionRange)
+  ) {
+    throw new Error(
+      `package-lock.json does not bind a Core release satisfying ${coreVersionRange}.`,
+    );
+  }
   return {
     cliDependencies: lockedCli.dependencies ?? {},
     cliIntegrity: lockedCli.integrity,
     cliJsonSchemaVersion,
     cliVersion,
     cliVersionRange,
+    cliCoreVersionRange,
+    coreIntegrity: lockedCore.integrity,
+    coreVersion,
+    coreVersionRange,
     packageLock,
     packageLockSha256: createHash('sha256').update(packageLockText).digest('hex'),
     packageManifest,
@@ -135,6 +169,7 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
     skillMetadata.name !== 'moldea' ||
     skillMetadata.version !== identity.releaseVersion ||
     skillMetadata.cliVersionRange !== identity.cliVersionRange ||
+    skillMetadata.coreVersionRange !== identity.coreVersionRange ||
     skillMetadata.cliJsonSchemaVersion !== identity.cliJsonSchemaVersion
   ) {
     issues.push('Portable skill metadata does not match the exact current release identity.');
@@ -162,9 +197,10 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
     !includesStringConstant(repositoryPackage, 'EXPECTED_CLI_RANGE', identity.cliVersionRange) ||
     !includesStringConstant(
       repositoryPackage,
-      'EXPECTED_CORE_RANGE',
-      identity.cliDependencies['@moldea.ai/core'],
-    )
+      'EXPECTED_CLI_CORE_RANGE',
+      identity.cliCoreVersionRange,
+    ) ||
+    !includesStringConstant(repositoryPackage, 'SUPPORTED_CORE_RANGE', identity.coreVersionRange)
   ) {
     issues.push('The repository package resolver does not match the compatible CLI/Core closure.');
   }
@@ -172,6 +208,11 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
   for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {
     if (!readText(repositoryRoot, relativePath).includes(identity.cliVersionRange)) {
       issues.push(`${relativePath} does not name CLI range ${identity.cliVersionRange}.`);
+    }
+  }
+  for (const relativePath of CORE_VERSION_RANGE_TEXT_PATHS) {
+    if (!readText(repositoryRoot, relativePath).includes(identity.coreVersionRange)) {
+      issues.push(`${relativePath} does not name Core range ${identity.coreVersionRange}.`);
     }
   }
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {

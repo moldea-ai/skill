@@ -5,6 +5,7 @@ import test from 'node:test';
 import {
   createCompatibleMajorRange,
   parseCompatibleMajorRange,
+  parseCompatibleStableRange,
   parseStableVersion,
 } from './identity.mjs';
 
@@ -26,5 +27,13 @@ test('parseCompatibleMajorRange accepts only canonical nonzero-major ranges', ()
 
   for (const versionRange of ['7.0.0', '^7.1.0', '>=7.0.0 <8.0.0', '^0.1.0']) {
     assert.throws(() => parseCompatibleMajorRange(versionRange), /compatible major range/);
+  }
+});
+
+test('parseCompatibleStableRange accepts a stable patch minimum', () => {
+  assert.equal(parseCompatibleStableRange('^4.0.1'), '^4.0.1');
+
+  for (const versionRange of ['4.0.1', '>=4.0.1 <5.0.0', '^0.1.0', '^04.0.1']) {
+    assert.throws(() => parseCompatibleStableRange(versionRange), /compatible stable range/);
   }
 });

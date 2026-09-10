@@ -135,7 +135,7 @@
         "exitCode": 0,
         "output": {
           "schemaVersion": 4,
-          "cliVersion": "7.1.0",
+          "cliVersion": "8.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {
@@ -156,7 +156,7 @@
         "exitCode": 0,
         "output": {
           "schemaVersion": 4,
-          "cliVersion": "7.1.0",
+          "cliVersion": "8.0.0",
           "command": "scope",
           "status": "valid",
           "result": {
@@ -178,7 +178,7 @@
         "exitCode": 0,
         "output": {
           "schemaVersion": 4,
-          "cliVersion": "7.1.0",
+          "cliVersion": "8.0.0",
           "command": "content",
           "status": "valid",
           "result": {
@@ -198,7 +198,7 @@
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "7.1.0",
+          "cliVersion": "8.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -215,7 +215,7 @@
         "exitCode": 0,
         "output": {
           "schemaVersion": 4,
-          "cliVersion": "8.0.0",
+          "cliVersion": "9.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -223,7 +223,7 @@
         }
       },
       "expected": "reject-envelope",
-      "scenario": "The machine envelope reports unsupported CLI 8.0.0 while the declared and installed root package is 7.1.0."
+      "scenario": "The machine envelope reports unsupported CLI 9.0.0 while the declared and installed root package is 8.0.0."
     },
     {
       "id": "command-mismatch",
@@ -232,7 +232,7 @@
         "exitCode": 0,
         "output": {
           "schemaVersion": 4,
-          "cliVersion": "7.1.0",
+          "cliVersion": "8.0.0",
           "command": "validate",
           "status": "valid",
           "result": {},
@@ -248,7 +248,7 @@
         "exitCode": 1,
         "output": {
           "schemaVersion": 4,
-          "cliVersion": "7.1.0",
+          "cliVersion": "8.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -264,7 +264,7 @@
         "exitCode": 0,
         "output": {
           "schemaVersion": 4,
-          "cliVersion": "7.1.0",
+          "cliVersion": "8.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {

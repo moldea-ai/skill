@@ -32,7 +32,7 @@ Deterministic verification runs before and after the actor. It verifies:
 - exact registry package integrity and dependency closure
 - repository filesystem and in-memory reader equivalence
 - Core behavior and project validity
-- exact evaluated CLI 7/schema 4 envelopes within the skill's supported `^7.0.0` range
+- exact evaluated CLI 8/schema 4 envelopes within the skill's supported `^8.0.0` range
 - content-free `inspect` and `validate` behavior
 - project-local typechecking
 - scenario-specific diagnostics and assertions

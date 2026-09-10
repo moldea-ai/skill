@@ -44,12 +44,23 @@ const createRootManifestUpdater =
   (cliDependencies) =>
   ({ packageLock, packageManifest, version }) => {
     const updatedPackageLock = JSON.parse(packageLock);
+    const coreMinimumVersion = cliDependencies['@moldea.ai/core'].slice(1);
+    const coreMajor = coreMinimumVersion.split('.')[0];
+    const existingCoreVersion = updatedPackageLock.packages['node_modules/@moldea.ai/core'].version;
+    const coreVersion = existingCoreVersion.startsWith(`${coreMajor}.`)
+      ? existingCoreVersion
+      : coreMinimumVersion;
     updatedPackageLock.packages[''].devDependencies['@moldea.ai/cli'] = version;
     updatedPackageLock.packages['node_modules/@moldea.ai/cli'] = {
       ...updatedPackageLock.packages['node_modules/@moldea.ai/cli'],
       dependencies: cliDependencies,
       integrity: `sha512-${version}`,
       version,
+    };
+    updatedPackageLock.packages['node_modules/@moldea.ai/core'] = {
+      ...updatedPackageLock.packages['node_modules/@moldea.ai/core'],
+      integrity: `sha512-${coreVersion}`,
+      version: coreVersion,
     };
 
     return {
@@ -61,13 +72,13 @@ const createRootManifestUpdater =
 test('updateCliRelease synchronizes a complete copied release tree', () => {
   const temporaryRoot = createTemporaryReleaseRoot();
   const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
-  const nextVersion = '8.0.0';
+  const nextVersion = '9.0.0';
   const nextCliJsonSchemaVersion = currentIdentity.cliJsonSchemaVersion + 1;
   const nextCliDependencies = Object.fromEntries(
     Object.entries(currentIdentity.cliDependencies).map(([name, versionRange]) => [
       name,
       name === '@moldea.ai/core'
-        ? '^4.0.0'
+        ? '^5.0.0'
         : versionRange.replace(/^\^?\d+/u, (major) => `^${Number(major.replace('^', '')) + 1}`),
     ]),
   );
@@ -89,7 +100,7 @@ test('updateCliRelease synchronizes a complete copied release tree', () => {
     assert.equal(identity.cliJsonSchemaVersion, nextCliJsonSchemaVersion);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
     for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {
-      assert.match(readFileSync(join(temporaryRoot, relativePath), 'utf8'), /\^8\.0\.0/u);
+      assert.match(readFileSync(join(temporaryRoot, relativePath), 'utf8'), /\^9\.0\.0/u);
     }
 
     const composition = spawnSync(
@@ -133,7 +144,7 @@ test('updateCliRelease restores every managed file after failed identity verific
           }),
           updateRootManifests: createRootManifestUpdater({
             ...currentIdentity.cliDependencies,
-            '@moldea.ai/core': '0.0.0',
+            '@moldea.ai/repository': '0.0.0',
           }),
         }),
       /dependency inventory does not match/u,

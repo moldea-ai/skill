@@ -4,8 +4,9 @@ import { isAbsolute, join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 // package identities accepted by this portable skill release
-export const EXPECTED_CLI_RANGE = '^7.0.0';
-export const EXPECTED_CORE_RANGE = '^3.0.0';
+export const EXPECTED_CLI_RANGE = '^8.0.0';
+export const EXPECTED_CLI_CORE_RANGE = '^4.0.0';
+export const SUPPORTED_CORE_RANGE = '^4.0.1';
 
 const MAXIMUM_PACKAGE_MANIFEST_BYTES = 65_536;
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
@@ -120,7 +121,7 @@ export const resolveRepositoryCli = async (repositoryRoot) => {
   if (
     cliManifest.name !== '@moldea.ai/cli' ||
     !isSupportedCliDeclaration(declaredCliRange, cliManifest.version) ||
-    cliManifest.dependencies?.['@moldea.ai/core'] !== EXPECTED_CORE_RANGE ||
+    cliManifest.dependencies?.['@moldea.ai/core'] !== EXPECTED_CLI_CORE_RANGE ||
     cliBinaryDeclaration !== './dist/moldea.js'
   ) {
     throw new Error('The repository declares an unsupported CLI package closure.');
@@ -196,7 +197,7 @@ export const loadRepositoryCore = async (repositoryRoot) => {
 
   if (
     coreManifest.name !== '@moldea.ai/core' ||
-    !isCompatibleStableVersion(coreManifest.version, EXPECTED_CORE_RANGE)
+    !isCompatibleStableVersion(coreManifest.version, SUPPORTED_CORE_RANGE)
   ) {
     throw new Error('The repository has an unsupported Core package.');
   }

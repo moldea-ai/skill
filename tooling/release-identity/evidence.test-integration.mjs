@@ -39,13 +39,13 @@ const writeJson = (root, relativePath, value) => {
 const runGit = (root, ...arguments_) =>
   execFileSync('git', arguments_, { cwd: root, encoding: 'utf8' }).trim();
 
-const createPackageIdentity = (root, version, cliVersion = '7.0.0') => {
+const createPackageIdentity = (root, version, cliVersion = '8.0.0') => {
   writeJson(root, 'package.json', {
     name: '@moldea.ai/skill-conformance',
     version,
     private: true,
     type: 'module',
-    moldeaRelease: { cliJsonSchemaVersion: 4 },
+    moldeaRelease: { cliJsonSchemaVersion: 4, coreVersionRange: '^4.0.1' },
     devDependencies: { '@moldea.ai/cli': cliVersion },
   });
   writeJson(root, 'package-lock.json', {
@@ -61,7 +61,11 @@ const createPackageIdentity = (root, version, cliVersion = '7.0.0') => {
       'node_modules/@moldea.ai/cli': {
         version: cliVersion,
         integrity: `sha512-${cliVersion}`,
-        dependencies: { '@moldea.ai/core': '3.0.0' },
+        dependencies: { '@moldea.ai/core': '^4.0.0' },
+      },
+      'node_modules/@moldea.ai/core': {
+        version: '4.0.1',
+        integrity: 'sha512-4.0.1',
       },
     },
   });

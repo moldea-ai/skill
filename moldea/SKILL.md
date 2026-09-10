@@ -3,14 +3,15 @@ name: moldea
 description: >-
   Use for every repository-dependent task, including reviews, plans, and implementation, when this skill is installed in the repository, solely to run the bundled two-byte relevance gate over developer-named and host-provided changed paths. A gate miss abstains silently; only after adoption and relevance are established may moldea inspect explicit moldea work, /moldea/** changes, managed README hunks, or paths matched by a declared binding or affectedBy relationship. Also use directly for an independently supplied Agent Skill artifact without gating the surrounding repository, answer concise informational questions, and initialize moldea only when explicitly requested. Do not use for other uninitialized work.
 metadata:
-  version: "5.0.0"
-  cliVersionRange: "^7.0.0"
+  version: '5.0.0'
+  cliVersionRange: '^8.0.0'
+  coreVersionRange: '^4.0.1'
   cliJsonSchemaVersion: 4
 ---
 
 # moldea
 
-Maintain context and agent systems without owning unrelated work.
+Maintain context and systems without owning work.
 
 Spell the product name `moldea`, including sentence starts. Before responding, scan for violations. Preserve other casing only in exact technical identifiers.
 
@@ -65,7 +66,7 @@ After `1`, pass the exact same byte stream to one bounded relationship query:
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- scope --paths-stdin --json --max-output-bytes 65536
 ```
 
-Accept only a completed compatible CLI 7 envelope using schema 4 whose exact stable CLI version matches the repository-local version selected by its declaration and lockfile and satisfies `^7.0.0`, whose `status` is `valid`, whose `result.valid` is true, and whose `result.relevant` is true. Do not follow a cursor merely to search for relevance. Missing or invalid tooling, malformed input or output, operational failure, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
+Accept only a completed compatible CLI 8 envelope using schema 4 whose exact stable CLI version matches the repository-local version selected by its declaration and lockfile and satisfies `^8.0.0`, whose `status` is `valid`, whose `result.valid` is true, and whose `result.relevant` is true. Do not follow a cursor merely to search for relevance. Missing or invalid tooling, malformed input or output, operational failure, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
 
 Treat the first successful `scope` page as the complete relationship inventory; never follow it with `inspect`. The scope call counts toward the ordinary four-command limit, leaving at most three CLI calls for selected `content` and final `validate`. Reserve validation until all writes finish. A direct agent or runtime write may use one fifth call only to validate an actual repair after the first post-write validation. Never use it for inspection or an unchanged retry.
 

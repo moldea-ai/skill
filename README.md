@@ -58,12 +58,12 @@ Release `5.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- stable `@moldea.ai/core` releases satisfying `^3.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^7.0.0`
+- stable `@moldea.ai/core` releases satisfying `^4.0.1`
+- stable `@moldea.ai/cli` releases satisfying `^8.0.0`
 - repository format version 1
 - CLI JSON schema 4
 
-The CLI must be a repository-root-local development dependency. Its manifest declaration and exact lockfile-selected stable version must satisfy the supported CLI 7 range. Every invocation goes through the installed skill's closed repository-local launcher. The skill never falls back to a global installation, another workspace, a package-manager launcher, or a transient download.
+The CLI must be a repository-root-local development dependency. Its manifest declaration and exact lockfile-selected stable version must satisfy the supported CLI 8 range. Every invocation goes through the installed skill's closed repository-local launcher. The skill never falls back to a global installation, another workspace, a package-manager launcher, or a transient download.
 
 Tooling establishment belongs only to write-capable `moldea` work. Read-only evaluation, validation, planning, and host-owned review workflows do not install dependencies or alter package-manager state.
 
@@ -85,7 +85,7 @@ Broad ideas such as “potentially durable knowledge” do not activate the skil
 
 ## Bounded CLI evidence
 
-Compatible CLI 7 releases emit schema 4 JSON only. The portable `scripts/moldea-cli.mjs` launcher accepts an absolute repository root and a closed argument surface, verifies the installed CLI/Core closure and resolved-path containment, invokes Node without a shell, enforces the declared stdout boundary and a separate stderr boundary, relays cancellation, force-terminates a child that ignores termination for five seconds, and preserves completed child exit status. Agents do not repeat package, link, `PATH`, or parent-workspace discovery around it.
+Compatible CLI 8 releases emit schema 4 JSON only. The portable `scripts/moldea-cli.mjs` launcher accepts an absolute repository root and a closed argument surface, verifies the installed CLI/Core closure and resolved-path containment, invokes Node without a shell, enforces the declared stdout boundary and a separate stderr boundary, relays cancellation, force-terminates a child that ignores termination for five seconds, and preserves completed child exit status. Agents do not repeat package, link, `PATH`, or parent-workspace discovery around it.
 
 - `inspect` returns content-free metadata, counts, diagnostics, paths, digests, relationships, exact agent-to-runtime assignment records, and a bounded page.
 - `scope` matches one path or one NUL-delimited path set against declared relationships.

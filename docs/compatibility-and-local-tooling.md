@@ -12,12 +12,12 @@ Release `5.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- stable `@moldea.ai/core` releases satisfying `^3.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^7.0.0`
+- stable `@moldea.ai/core` releases satisfying `^4.0.1`
+- stable `@moldea.ai/cli` releases satisfying `^8.0.0`
 - repository format version 1
 - CLI JSON schema 4
 
-The CLI is a repository-root-local development dependency. Its declaration and exact lockfile-selected stable version must satisfy `^7.0.0`; compatible CLI 7 patches and minors do not require another skill release. CLI 8, prereleases, malformed ranges, and incompatible installed versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
+The CLI is a repository-root-local development dependency. Its declaration and exact lockfile-selected stable version must satisfy `^8.0.0`; compatible CLI 8 patches and minors do not require another skill release. Other CLI majors, prereleases, malformed ranges, incompatible installed versions, and Core versions below 4.0.1 fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
 ## Tooling ownership
 
@@ -29,12 +29,12 @@ Every CLI operation uses the portable skill's `scripts/moldea-cli.mjs` launcher.
 
 ## Machine output
 
-Compatible stable CLI 7 releases emit schema 4 JSON only. Every paged machine command uses `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary.
+Compatible stable CLI 8 releases emit schema 4 JSON only. Every paged machine command uses `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary.
 
 The envelope contains:
 
 - `schemaVersion: 4`
-- `cliVersion` equal to the exact installed stable CLI 7 version
+- `cliVersion` equal to the exact installed stable CLI 8 version
 - the invoked `command`
 - `status`
 - `result`

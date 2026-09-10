@@ -7,12 +7,14 @@ import {
   CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
   CLI_PACKAGE_NAME,
   CLI_VERSION_RANGE_TEXT_PATHS,
+  CORE_VERSION_RANGE_TEXT_PATHS,
   RELEASE_PATHS,
 } from './constants.mjs';
 import {
   assertReleaseIdentity,
   createCompatibleMajorRange,
   parseCompatibleMajorRange,
+  parseCompatibleStableRange,
   parseStableVersion,
 } from './identity.mjs';
 
@@ -21,6 +23,12 @@ const createDifferentStableVersion = (version) => {
   const [major] = version.split('.').map(Number);
   return `${major + 1}.0.0`;
 };
+
+/** Preserves a safe Core minimum within one major and resets it for a new CLI Core major. */
+const resolveNextCoreVersionRange = ({ nextCliCoreRange, previousCliCoreRange, previousRange }) =>
+  nextCliCoreRange.split('.')[0] === previousCliCoreRange.split('.')[0]
+    ? parseCompatibleStableRange(previousRange)
+    : nextCliCoreRange;
 
 /** Replaces only portable CLI/Core major-range references. */
 const replaceCompatibleRangeReferences = ({
@@ -47,7 +55,7 @@ const replaceCompatibleRangeReferences = ({
           .replaceAll(previousCliRange, nextCliRange)
           .replaceAll(`CLI ${previousCliMajor}`, `CLI ${nextCliMajor}`);
       }
-      if (line.includes('@moldea.ai/core') || line.includes('EXPECTED_CORE_RANGE')) {
+      if (line.includes('@moldea.ai/core') || line.includes('EXPECTED_CLI_CORE_RANGE')) {
         updatedLine = updatedLine.replaceAll(previousCoreRange, nextCoreRange);
       }
       return updatedLine;
@@ -305,6 +313,14 @@ export const createCliReleaseUpdate = ({
   const nextCoreRange = parseCompatibleMajorRange(
     publishedManifest.dependencies?.['@moldea.ai/core'],
   );
+  const previousSupportedCoreRange = parseCompatibleStableRange(
+    currentPackageManifest.moldeaRelease?.coreVersionRange,
+  );
+  const nextSupportedCoreRange = resolveNextCoreVersionRange({
+    nextCliCoreRange: nextCoreRange,
+    previousCliCoreRange: previousCoreRange,
+    previousRange: previousSupportedCoreRange,
+  });
 
   for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {
     const currentContent = currentFiles.get(relativePath);
@@ -320,6 +336,16 @@ export const createCliReleaseUpdate = ({
         previousCliRange,
         previousCoreRange,
       }),
+    );
+  }
+  for (const relativePath of CORE_VERSION_RANGE_TEXT_PATHS) {
+    const currentContent = updatedFiles.get(relativePath);
+    if (typeof currentContent !== 'string') {
+      throw new Error(`Missing release identity source ${relativePath}.`);
+    }
+    updatedFiles.set(
+      relativePath,
+      currentContent.replaceAll(previousSupportedCoreRange, nextSupportedCoreRange),
     );
   }
   const previousCliJsonSchemaVersion = currentPackageManifest.moldeaRelease?.cliJsonSchemaVersion;
@@ -439,11 +465,24 @@ export const updateCliRelease = ({
   const previousCliVersion = parseStableVersion(
     packageManifest.devDependencies?.[CLI_PACKAGE_NAME],
   );
+  const semanticCliManifest = JSON.parse(currentFiles.get(RELEASE_PATHS.semanticCliManifest));
+  const previousCliCoreRange = parseCompatibleMajorRange(
+    semanticCliManifest.dependencies?.['@moldea.ai/core'],
+  );
+  const nextCliCoreRange = parseCompatibleMajorRange(
+    publishedManifest.dependencies?.['@moldea.ai/core'],
+  );
+  const nextCoreVersionRange = resolveNextCoreVersionRange({
+    nextCliCoreRange,
+    previousCliCoreRange,
+    previousRange: packageManifest.moldeaRelease?.coreVersionRange,
+  });
   const nextPackageManifest = {
     ...packageManifest,
     moldeaRelease: {
       ...packageManifest.moldeaRelease,
       cliJsonSchemaVersion: publishedManifest.jsonSchemaVersion,
+      coreVersionRange: nextCoreVersionRange,
     },
     devDependencies: {
       ...packageManifest.devDependencies,

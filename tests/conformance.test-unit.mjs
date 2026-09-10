@@ -640,15 +640,24 @@ describe('portable skill contract', () => {
     assert.match(evaluation, /neither conflicting asset nor its canonical designation/u);
     assert.match(evaluation, /third independent source that explicitly resolves the alternatives/u);
     assert.match(evaluation, /stop all moldea calls and semantic writes/u);
+    assert.doesNotMatch(
+      evaluation,
+      /Establish the intended truth from developer intent, current behavior, authoritative documentation, and tests/u,
+    );
+    assert.match(evaluation, /only to identify agreement or conflict, never to rank asset types/u);
+    assert.match(evaluation, /apply the stop above immediately/u);
+    assert.match(evaluation, /establish the repair target from that agreement or selected claim/u);
     assert.match(
       evaluation,
-      /Canonical content alone cannot establish that a requested reconciliation is aligned, complete, or unchanged/u,
+      /Complete that comparison before any aligned, reconciled, or no-change conclusion/u,
     );
+    const conflictDetectionIndex = evaluation.indexOf('only to identify agreement or conflict');
+    const unresolvedConflictStopIndex = evaluation.indexOf('apply the stop above immediately');
+    const repairTargetIndex = evaluation.indexOf('establish the repair target');
+    assert.ok(conflictDetectionIndex > reconciliationIndex);
+    assert.ok(unresolvedConflictStopIndex > conflictDetectionIndex);
+    assert.ok(repairTargetIndex > unresolvedConflictStopIndex);
     assert.match(evaluation, /first inspect only exact implementation evidence/u);
-    assert.match(
-      evaluation,
-      /Complete that implementation-versus-canonical comparison before any aligned, reconciled, or no-change conclusion/u,
-    );
     assert.match(evaluation, /name the supplied `.gitattributes` declaration/u);
     assert.match(
       evaluation,

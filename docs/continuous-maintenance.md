@@ -30,7 +30,7 @@ When a new claim materially conflicts with established context, its format or ba
 
 ## Reconsider does not mean rewrite
 
-An impact path, explicit knowledge-maintenance request, or semantic relationship means “inspect this surface,” not “edit this file.” If supplied information is not suitable for persistence or existing project context and declared behavior remain accurate, the right result is no `/moldea/**` change.
+An impact path, explicit knowledge-maintenance request, or semantic relationship means “inspect this surface,” not “edit this file.” Scope matches are candidate authorities, not a requirement to read every owner or every asset. The coding agent selects the smallest affected owner set and prefers an exact task-specific relationship over an overlapping broad glob unless evidence shows both contracts change. If supplied information is not suitable for persistence or existing project context and declared behavior remain accurate, the right result is no `/moldea/**` change.
 
 The same scope rule applies to unresolved requirements. Discovering a referenced path is not enough: before changing it, the coding agent reads the requirement and every resolution criterion. After the authorized work, it removes each satisfied condition from both the current-state description and resolution text while retaining every outstanding or evidence-blocked condition. It does not complete additional work merely to close the requirement, and the requirement remains until current evidence satisfies every criterion.
 

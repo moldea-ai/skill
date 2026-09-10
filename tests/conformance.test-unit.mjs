@@ -350,8 +350,11 @@ describe('portable skill contract', () => {
     assert.match(skill, /acknowledge it without inventing persistence/u);
     assert.match(skill, /never follow it with `inspect`/u);
     assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
-    assert.match(skill, /leaving at most three CLI calls/u);
-    assert.match(skill, /may use one fifth call only to validate/u);
+    assert.match(skill, /complete candidate inventory/u);
+    assert.match(skill, /prefer an exact match over an overlapping broad glob/u);
+    assert.match(skill, /Request only implicated assets, not every asset/u);
+    assert.match(skill, /leaving at most three calls/u);
+    assert.match(skill, /Only route 5 may use a fifth call/u);
     assert.match(skill, /Never use it for inspection or an unchanged retry/u);
     assert.match(skill, /direct request supplies intent, not a canonical owner/u);
     assert.match(skill, /Direct canonical agent or runtime work/u);
@@ -373,8 +376,9 @@ describe('portable skill contract', () => {
     assert.match(skill, /Never conclude from the host review alone/u);
     assert.match(skill, /reactivate after an unrelated-task gate miss/u);
     assert.match(skill, /run the full gate once\. On `1`/u);
-    assert.match(skill, /load matched owners, and bind the implementation, owners, and mirrors/u);
-    assert.match(skill, /contradicted guidance cannot remain unchanged or be called accurate/u);
+    assert.match(skill, /bind selected owners and mirrors before writing/u);
+    assert.match(skill, /synchronize every contradicted owner before completing implementation/u);
+    assert.match(skill, /contradictions cannot remain or be called accurate/u);
     assert.match(skill, /On `0` or failure, continue without moldea/u);
     assert.match(skill, /work as if the skill were absent/u);
     assert.match(skill, /For ordinary repository paths, use the full relationship gate/u);
@@ -386,8 +390,8 @@ describe('portable skill contract', () => {
     assert.match(skill, /existing independent inline instruction is migration input/u);
     assert.match(skill, /direct request to prove, invoke, inspect, or explain/u);
     assert.match(skill, /before inspecting providers or concluding/u);
-    assert.match(skill, /Reserve validation until all writes finish/u);
-    assert.match(skill, /only to validate an actual repair after the first post-write validation/u);
+    assert.match(skill, /Reserve validation until writes finish/u);
+    assert.match(skill, /to validate a repair after its first post-write validation/u);
     assert.match(skill, /use one content-free `inspect`/u);
     assert.match(skill, /Request named-agent `content` only when semantics matter/u);
     assert.match(skill, /never inspect afterward or request manifest content/u);
@@ -406,10 +410,10 @@ describe('portable skill contract', () => {
       skill,
       /foundation-evidence decision before any dependency, canonical-state, or managed README write/u,
     );
-    assert.match(skill, /Insufficient evidence and partial evidence.*pre-write stop conditions/u);
+    assert.match(skill, /Insufficient or materially incomplete evidence stops writes/u);
     assert.match(
       skill,
-      /not adopted or was not initialized because the complete adoption contract is absent/u,
+      /not adopted or initialized because its complete contract is absent/u,
     );
     assert.match(skill, /Do not substitute.*or add generic product-benefit boilerplate/u);
     assert.match(
@@ -639,7 +643,7 @@ describe('portable skill contract', () => {
       runtime,
       /explicit target-maturity or production-readiness request, retrieve the current publication despite independent blockers/u,
     );
-    assert.match(runtime, /single fifth-call repair validation/u);
+    assert.match(runtime, /route-5 fifth-call repair validation/u);
     assert.match(runtime, /invoke `composition` first and retain its conclusion/u);
     assert.match(runtime, /cannot retroactively replace or erase/u);
     assert.match(runtime, /official skill release selects an exact CLI closure/u);

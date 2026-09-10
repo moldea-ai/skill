@@ -2,11 +2,28 @@
 
 Read this reference only after moldea relevance is established for a requested moldea evaluation or authorized reconciliation.
 
+## Select one operation
+
+Select exactly one operation before gathering evidence:
+
+1. For reconciliation, apply the complete Reconcile procedure next. Do not apply canonical-first evaluation instructions.
+2. For evaluation, apply Preserve host workflow ownership and then Evaluate progressively.
+
+Never enter both branches. Evidence discovered during reconciliation does not turn it into evaluation.
+
+## Reconcile
+
+Reconciliation requires write authority from the host task. Establish the intended truth from developer intent, current behavior, authoritative documentation, and tests. Canonical content alone cannot establish that a requested reconciliation is aligned, complete, or unchanged. For a direct named agent, first inspect only exact implementation evidence named by the task or one bounded host search keyed to that agent or domain, then use at most one canonical `content` call total for the agent instruction. Complete that implementation-versus-canonical comparison before any aligned, reconciled, or no-change conclusion.
+
+Do not read project context, a second canonical owner, inventory, or structural status before asking the authority question; none can resolve an established conflict. If supplied or inspected evidence shows materially conflicting policies and the task contract does not resolve them, do not validate or repair one as preferred. Stop before every semantic write, name both claims, state that reconciliation is blocked pending the answer, and ask one focused question that establishes which authority is current. Code, canonical prose, tests, and recency are evidence rather than automatic precedence. Do not persist a new unresolved requirement instead of asking a developer-answerable authority question.
+
+Apply the smallest coherent repair across directly affected canonical owners, declarations, relationships, mirrors, consumers, and tests. Remove superseded parallel paths made unnecessary by the repair. Preserve unrelated state and rerun only the checks affected by the changed contract.
+
 ## Preserve host workflow ownership
 
 Evaluation is read-only. Reuse the host review or task workflow's root, HEAD, exact named or targeted task paths, changed paths, hunks, branch state, diffs, and completed checks. Do not create temporary indexes, Git objects, candidate trees, fingerprints, repeated status probes, or publication checks for moldea. The host workflow decides readiness, commit identity, and publication.
 
-For a relationship-triggered operation, use the one completed `scope` result as the canonical expansion boundary. For direct canonical evaluation, start at the named owner without running `scope` or `inspect`. An exact path, stable agent ID, or unambiguous agent name identifies its standard canonical owner; use one `content` call when its body is required. Direct reconciliation is different: follow the implementation-first procedure under Reconcile, where task-named implementation evidence comes before canonical content. Do not turn a clean or unscoped host review into a whole-project moldea audit.
+For a relationship-triggered operation, use the one completed `scope` result as the canonical expansion boundary. For direct canonical evaluation, start at the named owner without running `scope` or `inspect`. An exact path, stable agent ID, or unambiguous agent name identifies its standard canonical owner; use one `content` call when its body is required. Do not turn a clean or unscoped host review into a whole-project moldea audit.
 
 A current-change review or evaluation must retain every staged, unstaged, untracked, renamed-source, renamed-destination, and deleted path. Normalize the complete set, then partition direct canonical paths or known managed hunks from ordinary paths. With any direct item, run the adoption-only gate once, assess each canonical owner or managed hunk directly, and run one `scope` only over remaining ordinary paths; an irrelevant ordinary subset adds no owner and cannot cancel direct relevance. With ordinary paths only, run the full relationship gate and one `scope` over that set. Report the complete path scope, canonical assessment, and explicitly that the operation is read-only and changed no files. A path inventory alone is not a moldea evaluation. This is host work followed by bounded moldea work, not moldea-only Git discovery, and it cannot reactivate moldea after an implicit unrelated-task gate miss. Never run Git to expand the completed scope.
 
@@ -14,7 +31,7 @@ If already supplied repository evidence identifies an executable Git filter, tex
 
 ## Evaluate progressively
 
-For direct evaluation of a named owner, begin with its exact `content` instead of steps 1 or 2 below. This evaluation shortcut never applies to reconciliation; the Reconcile procedure establishes task-named implementation evidence first. Add structural or inventory evidence only when the question actually depends on it.
+For direct evaluation of a named owner, begin with its exact `content` instead of steps 1 or 2 below. Add structural or inventory evidence only when the question actually depends on it.
 
 1. Run `validate` when structural validity is material.
 2. Run content-free `inspect` only when inventory, diagnostics, requirements, mirrors, or runtime declarations are needed.
@@ -39,12 +56,6 @@ Observed implementation state is not automatically durable canonical truth. When
 When an evaluation asks whether an agent or runtime description consumer selects the correct canonical source, load `agent-design.md` as the second and owning reference before classifying or reporting the mapping. Apply its consumer-semantic contract to the repository evidence; a property name is not classification evidence. Do not report an established aligned mapping as defective.
 
 Treat consumer-purpose classification and structural or source-selection diagnostics as independent conclusions. A missing impact relationship, invalid structure, or unknown selected source can withhold only the conclusions it prevents; it cannot erase a purpose classification already established by task-named runtime guidance and implementation. State the established classification even when canonical source selection remains unresolved.
-
-## Reconcile
-
-Reconciliation requires write authority from the host task. Establish the intended truth from developer intent, current behavior, authoritative documentation, and tests. For a direct named agent, inspect only exact implementation evidence named by the task or a bounded host search keyed to that agent or domain, then use at most one canonical `content` call total for the agent instruction. Do not read project context, a second canonical owner, inventory, or structural status before asking the authority question; none can resolve an established conflict. If supplied or inspected evidence already shows materially conflicting policies and the task contract does not resolve them, do not validate or repair one as preferred. Stop before every semantic write, name both claims, state that reconciliation is blocked pending the answer, and ask one focused question that establishes which authority is current. Code, canonical prose, tests, and recency are evidence rather than automatic precedence. Do not persist a new unresolved requirement instead of asking a developer-answerable authority question.
-
-Apply the smallest coherent repair across directly affected canonical owners, declarations, relationships, mirrors, consumers, and tests. Remove superseded parallel paths made unnecessary by the repair. Preserve unrelated state and rerun only the checks affected by the changed contract.
 
 ## Read-only proof
 

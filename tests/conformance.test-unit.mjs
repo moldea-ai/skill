@@ -617,11 +617,25 @@ describe('portable skill contract', () => {
     assert.match(evaluation, /without running `scope` or `inspect`/u);
     assert.match(evaluation, /For direct canonical evaluation/u);
     assert.doesNotMatch(evaluation, /For direct canonical work/u);
+    assert.doesNotMatch(evaluation, /Direct reconciliation is different/u);
+    assert.doesNotMatch(evaluation, /evaluation shortcut never applies to reconciliation/u);
+    const operationSelectionIndex = evaluation.indexOf('## Select one operation');
+    const reconciliationIndex = evaluation.indexOf('## Reconcile');
+    const progressiveEvaluationIndex = evaluation.indexOf('## Evaluate progressively');
+    assert.ok(operationSelectionIndex >= 0);
+    assert.ok(reconciliationIndex > operationSelectionIndex);
+    assert.ok(progressiveEvaluationIndex > reconciliationIndex);
+    assert.match(evaluation, /Select exactly one operation before gathering evidence/u);
+    assert.match(evaluation, /Do not apply canonical-first evaluation instructions/u);
     assert.match(
       evaluation,
-      /Direct reconciliation is different:.*implementation evidence comes before canonical content/su,
+      /Canonical content alone cannot establish that a requested reconciliation is aligned, complete, or unchanged/u,
     );
-    assert.match(evaluation, /evaluation shortcut never applies to reconciliation/u);
+    assert.match(evaluation, /first inspect only exact implementation evidence/u);
+    assert.match(
+      evaluation,
+      /Complete that implementation-versus-canonical comparison before any aligned, reconciled, or no-change conclusion/u,
+    );
     assert.match(evaluation, /name the supplied `.gitattributes` declaration/u);
     assert.match(
       evaluation,

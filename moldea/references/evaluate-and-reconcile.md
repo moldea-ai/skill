@@ -13,11 +13,11 @@ Never enter both branches. Evidence discovered during reconciliation does not tu
 
 ## Reconcile
 
-Reconciliation requires write authority from the host task. Canonical ownership locates settled truth; it does not resolve mutually exclusive behavioral claims. Select one only from explicit developer direction or independent evidence that directly resolves the conflict. Otherwise state both claims, state that reconciliation is blocked pending the answer, and ask one focused authority question before every semantic write.
+Reconciliation requires write authority from the host task. A generic reconcile request authorizes correction but selects no claim. Existing repository content is not a current developer choice, and neither conflicting asset nor its canonical designation, relationships, mirror agreement, tests, implementation, or recency can resolve itself. Select only from a current developer statement that chooses one claim or a third independent source that explicitly resolves the alternatives. Otherwise stop all moldea calls and semantic writes, state both claims, and ask which governs.
 
 Establish the intended truth from developer intent, current behavior, authoritative documentation, and tests. Canonical content alone cannot establish that a requested reconciliation is aligned, complete, or unchanged. For a direct named agent, first inspect only exact implementation evidence named by the task or one bounded host search keyed to that agent or domain, then use at most one canonical `content` call total for the agent instruction. Complete that implementation-versus-canonical comparison before any aligned, reconciled, or no-change conclusion.
 
-Do not read project context, a second canonical owner, inventory, or structural status before asking the authority question; none can resolve an established conflict. If supplied or inspected evidence materially conflicts and neither permitted resolver selects a claim, apply the authority rule. Do not validate or repair one as preferred, persist a developer-answerable ambiguity as an unresolved requirement, or treat code, canonical prose, tests, or recency as precedence by type.
+Do not read project context, a second canonical owner, inventory, or structural status after an unresolved conflict; none can resolve it. Do not validate or repair a preferred claim, persist a developer-answerable ambiguity as an unresolved requirement, or report alignment before the required authority answer.
 
 Apply the smallest coherent repair across directly affected canonical owners, declarations, relationships, mirrors, consumers, and tests. Remove superseded parallel paths made unnecessary by the repair. Preserve unrelated state and rerun only the checks affected by the changed contract.
 

@@ -13,13 +13,13 @@ metadata:
 
 Maintain context and systems without owning work.
 
-Spell the product name `moldea`, including sentence starts. Before responding, scan for violations. Preserve other casing only in exact technical identifiers.
+Spell `moldea` lowercase, including sentence starts. Before responding, scan for violations. Preserve casing only in exact identifiers.
 
-Canonical ownership locates settled truth; it does not resolve mutually exclusive behavioral claims. Select one only from explicit developer direction or independent evidence that directly resolves the conflict. Otherwise state both claims, state that reconciliation is blocked pending the answer, and ask one focused authority question before every semantic write.
+Canonical status identifies storage, not conflict precedence. A generic reconcile request authorizes correction but selects no claim. Existing repository content is not a current developer choice, and neither conflicting asset nor its labels, relationships, mirrors, tests, implementation, or recency can resolve itself. Select only from a current developer statement that chooses one claim or a third independent source that explicitly resolves them. Otherwise stop all moldea calls and semantic writes, state both claims, and ask which governs immediately.
 
 ## Establish the entry state first
 
-Use the first matching route; never combine or revisit routes.
+Use only the first matching route.
 
 1. **Independent Agent Skill artifact:** When Agent Skill creation, maintenance, or evaluation is the deliverable and no `/moldea/**` or declared-relationship work is separately requested, take this route before repository gating, regardless of `Use moldea` direction or repository-local placement. Load only `references/skill-design.md`; keep work and validation artifact-local. Never invoke CLI, inspect or validate canonical state, or append moldea status. Evaluation is read-only.
 2. **Repository-local tooling:** Apply this route to a direct request to prove, invoke, inspect, or explain the repository's moldea CLI. Reuse adoption evidence or run the adoption-only gate once. On `1`, load only `references/local-tooling.md`, attempt the closed launcher's content-free `composition` operation, and follow that reference before inspecting providers or concluding. Never invoke Yarn, pnpm, a global binary, a transient download, or an unverified `.bin` provider to prove the CLI.
@@ -117,7 +117,7 @@ node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-reposi
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- validate --json --max-output-bytes 65536 --cursor "<opaque-cursor>"
 ```
 
-Follow a cursor only while another metadata page or Unicode-safe content chunk can change the conclusion. Repeat the same standalone launcher operation with the exact cursor from the immediately preceding envelope and retain the same bound. Process each raw envelope directly. Do not hide pagination inside a pipeline, command substitution, scripted loop, parser, output filter, or aggregate wrapper. Claim complete traversal only after the final raw envelope returns a null cursor. Never request or reconstruct a complete project-content dump.
+Follow a cursor only while another page or chunk can change the conclusion. Repeat the same standalone launcher operation with the exact cursor from the immediately preceding envelope and retain the same bound. Process each raw envelope directly. Do not hide pagination inside a pipeline, command substitution, scripted loop, parser, output filter, or aggregate wrapper. Claim complete traversal only after the final raw envelope returns a null cursor. Never request or reconstruct a complete project-content dump.
 
 Keep every ordinary invocation at or below 65,536 output bytes, aggregate moldea output at or below 262,144 bytes, and each invocation below the CLI's 1 MiB hard maximum. These limits bound peaks, not repository size. If evidence remains incomplete, report the exact incomplete conclusion and continuation point. Treat `OUTPUT_BUDGET_TOO_SMALL`, `RESOURCE_LIMIT_EXCEEDED`, invalid continuation, cancellation, signal, launcher failure, or incomplete output as no conclusion; never retry unbounded.
 
@@ -128,7 +128,6 @@ Keep every ordinary invocation at or below 65,536 output bytes, aggregate moldea
 - Never stage, commit, push, switch branches, rewrite history, or own host Git safety procedures.
 - Preserve unrelated developer work and unrelated canonical state. Do not persist secrets, transient status, generic knowledge, or easily rediscovered implementation detail.
 - Write only when the selected operation and host task authorize it.
-- Before writes, apply this authority rule; canonical status and recency resolve nothing.
 - Before a write, enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path. Before completion, compare the final state and diff with that list, record each remaining unresolved fact under its exact canonical owner with resolution criteria and related paths, and confirm every changed path is authorized. Continue correcting instead of claiming completion while an item is missing.
-- Information gets a concise answer; abstention is silent. Material canonical work reports activation, owner, changes, diagnostics, limits, unresolved facts, and checks.
-- Never use moldea-derived commentary, commit wording, or status reporting for unrelated work.
+- Answer information concisely; abstention is silent. Canonical work reports activation, owner, changes, diagnostics, limits, unresolved facts, and checks.
+- Never add moldea commentary, commit wording, or status to unrelated work.

@@ -4003,7 +4003,9 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
       );
       break;
     case 'reconcile-material-ambiguity':
-      await seedRefundAgent(repositoryPath, 'Only an administrator may approve a refund.');
+      await seedRefundAgent(repositoryPath, 'Only an administrator may approve a refund.', {
+        affectedBy: ['/src/refund-policy.js'],
+      });
       await writeScenarioFile(
         repositoryPath,
         'src/refund-policy.js',

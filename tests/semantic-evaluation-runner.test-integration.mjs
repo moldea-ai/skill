@@ -594,6 +594,42 @@ test('all clean-slate semantic cases materialize their declared repository evide
   }
 });
 
+test('material ambiguity binds the judge implementation evidence to actor scope', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-material-ambiguity-'));
+  const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'reconcile-material-ambiguity');
+  assert.ok(caseDefinition);
+
+  try {
+    const { repositoryPath } = await createActorRepository(evaluationRoot, caseDefinition);
+    const scope = JSON.parse(
+      runLauncher(
+        repositoryPath,
+        ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+        '/src/refund-policy.js\0',
+      ),
+    );
+
+    assert.equal(scope.status, 'valid');
+    assert.equal(scope.result.relevant, true);
+    assert.equal(scope.result.counts.matchedOwners, 2);
+    assert.equal(scope.result.counts.matchedPaths, 1);
+    assert.equal(scope.result.page.records.length, 2);
+    assert.ok(
+      scope.result.page.records.every(({ match }) => match.inputPath === '/src/refund-policy.js'),
+    );
+    assert.deepEqual(
+      scope.result.page.records.find(({ match }) => match.owner.kind === 'agent')?.match.owner,
+      {
+        agentId: 'refund-agent',
+        id: 'refund-agent',
+        kind: 'agent',
+      },
+    );
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
 test('runtime planning receives a bounded route and complete independent evidence', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-runtime-planning-'));
   const caseDefinition = SEMANTIC_CASES.find(

@@ -1,0 +1,4 @@
+{
+  "stageId": null,
+  "message": "Command pnpm install --offline --ignore-scripts --lockfile=false --config.strict-peer-dependencies=true --store-dir <attempt>/pnpm-store exited with exit code 1: stderr:\nError:   × installing dependencies\n  ╰─▶ Failed to resolve dependency tree: Failed to resolve dependency: Failed\n      to resolve semver@7.8.5 in package mirror \"<home>/.cache/\n      pnpm/v11/metadata/https%3A+registry.npmjs.org/semver.jsonl\""
+}

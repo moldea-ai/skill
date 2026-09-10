@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the stale moldea `support` agent by removing its manifest registration, canonical description/instruction, and support-only custom runtime guidance. TypeScript validation passed, and moldea CLI 8.0.0 schema-4 validation returned valid with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "`moldea/project.md` states that the former email support agent was removed from runtime implementation.",
+    "The pre-existing deletion of `src/support-agent.ts` removed the exact `supportAgent` symbol referenced by `moldea/moldea.yaml`.",
+    "The deleted description and instruction exclusively described the support agent, while `moldea/runtimes/custom.md` exclusively described the removed `supportAgent` integration.",
+    "The final Git diff contained only the four intended canonical changes plus the preserved pre-existing `src/support-agent.ts` deletion.",
+    "`node node_modules/typescript/bin/tsc -p tsconfig.json` passed.",
+    "Final moldea validation reported `valid: true` and `diagnosticCount: 0`."
+  ],
+  "unresolved": []
+}

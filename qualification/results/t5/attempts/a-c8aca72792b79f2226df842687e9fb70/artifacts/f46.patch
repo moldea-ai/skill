@@ -1,0 +1,46 @@
+diff --git a/README.md b/README.md
+index 6b08ae6..b56da06 100644
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,9 @@
+ # Invoice review service
+ 
+ This project reviews invoice line items for duplicate references and arithmetic mismatches. It returns findings for a human finance operator and never authorizes or sends a payment.
++
++<!-- moldea:start -->
++
++For every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.
++Canonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.
++<!-- moldea:end -->
+
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+new file mode 100644
+index 0000000..b825518
+--- /dev/null
++++ b/moldea/moldea.yaml
+@@ -0,0 +1 @@
++version: 1
+
+diff --git a/moldea/project.md b/moldea/project.md
+new file mode 100644
+index 0000000..c17fb42
+--- /dev/null
++++ b/moldea/project.md
+@@ -0,0 +1,17 @@
++# Invoice review service
++
++## Purpose
++
++Review invoice line items for duplicate references and arithmetic mismatches, and return findings to a human finance operator.
++
++## Established implementation
++
++Invoice lines have a string reference and an integer amount in cents. The current source detects repeated references and returns each duplicated reference once in lexicographic order.
++
++## Operating boundary
++
++The project never authorizes or sends a payment.
++
++## Evidence boundary
++
++The README identifies arithmetic-mismatch review as part of the project, but the current source does not establish an arithmetic-mismatch implementation or service runtime behavior.

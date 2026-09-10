@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 288118,
+  "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 310147,
+    "cachedInputTokens": 278272,
+    "outputTokens": 5317
+  },
+  "judgeUsage": {
+    "inputTokens": 214485,
+    "cachedInputTokens": 190208,
+    "outputTokens": 2500
+  },
+  "actorEvidenceCreatedAt": "2026-09-10T20:23:41.995Z",
+  "judgeEvidenceCreatedAt": "2026-09-10T20:26:04.965Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "removes-obsolete-declaration",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml contains only version 1 and the /moldea/project.md context declaration; it has no support agent, runtimeAgent binding, custom runtime guidance, or support-agent reference. The scoped diff removes the complete agents.support manifest block, including runtime id/guidance and binding, and deletes the support description, instruction, and custom runtime guidance files. Direct checks confirm those canonical paths and src/support-agent.ts are absent. Workspace assertions identify exactly the four intended canonical changes, while deterministic post-actor validation reports a valid schema-4 repository, passing typecheck, zero failures, and no validation-time mutation."
+    },
+    {
+      "id": "removes-orphaned-assets",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "preserves-surviving-context",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

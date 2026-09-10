@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 298259,
+  "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 264397,
+    "cachedInputTokens": 215552,
+    "outputTokens": 7187
+  },
+  "judgeUsage": {
+    "inputTokens": 169546,
+    "cachedInputTokens": 146048,
+    "outputTokens": 3469
+  },
+  "actorEvidenceCreatedAt": "2026-09-10T20:19:31.742Z",
+  "judgeEvidenceCreatedAt": "2026-09-10T20:21:16.853Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-project",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md describes invoice review, findings returned to a human finance operator, deterministic unique lexicographically sorted duplicate-reference results, and the boundary that payments are never authorized or sent. README.md and src/invoice-review.ts support those claims; the context explicitly limits the unsupported arithmetic-mismatch implementation claim."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Git status, targeted workspace inspection, and workspace assertions identify only README.md, moldea/moldea.yaml, and moldea/project.md as changed. The manifest contains only `version: 1`; moldea contains only the manifest and project context. No agent, decision, runtime, guide, requirement, or manifest relationship was created, and the existing README text was preserved before the appended awareness block."
+    },
+    {
+      "id": "preserves-existing-work",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

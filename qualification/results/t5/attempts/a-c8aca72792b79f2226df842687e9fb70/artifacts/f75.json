@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "The support agent is aligned at the documented metadata and binding level; no canonical edit was required and no repository files changed.",
+  "changedFiles": [],
+  "observations": [
+    "The reviewed path scope was /src/support-agent.ts; initial and final Git status were clean, and the final relevant-path diff was empty.",
+    "src/support-agent.ts exports supportAgent with id \"support\" and channel \"email\".",
+    "moldea/project.md describes a customer-support agent with an explicit custom runtime integration, while the agent description assigns customer-support requests to the email channel.",
+    "moldea/moldea.yaml declares runtime.id \"custom\", guidance /moldea/runtimes/custom.md, and an exact runtimeAgent binding to /src/support-agent.ts symbol supportAgent. Scope validation matched both this binding and the /src/** affectedBy relationship.",
+    "The custom runtime guidance identifies supportAgent as the runtime-owned definition and accurately reflects its identifier and channel.",
+    "The canonical support instruction identifies the `support` agent and defines evidence-based customer-question handling with escalation for uncertainty.",
+    "Local TypeScript validation passed. moldea CLI 8.0.0 validation reported format version 1 as valid with zero diagnostics."
+  ],
+  "unresolved": [
+    "The repository does not show an invocation or instruction-loading path beyond the exported metadata record, so actual runtime consumption of the canonical instruction and end-to-end support behavior cannot be proven from the available evidence."
+  ]
+}

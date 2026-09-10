@@ -1,0 +1,294 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "invalid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "invalid",
+    "cliInspectStatus": "invalid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1424
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "MOLDEA_AGENT_IDENTITY_INVALID",
+          "MOLDEA_REFERENCE_MISSING"
+        ],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 0
+      },
+      "memory": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "MOLDEA_AGENT_IDENTITY_INVALID",
+          "MOLDEA_REFERENCE_MISSING"
+        ],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 0
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "invalid",
+      "result": {
+        "diagnosticCount": 2,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "code": "MOLDEA_AGENT_IDENTITY_INVALID",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"diagnostic\",\"core\",\"MOLDEA_AGENT_IDENTITY_INVALID\",\"/moldea/agents/support/instruction.md\",null,0]",
+              "kind": "diagnostic",
+              "message": "The agent instruction identity is invalid.",
+              "path": "/moldea/agents/support/instruction.md",
+              "pointer": null,
+              "range": null,
+              "source": "core"
+            },
+            {
+              "code": "MOLDEA_REFERENCE_MISSING",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"diagnostic\",\"core\",\"MOLDEA_REFERENCE_MISSING\",\"/moldea/moldea.yaml\",\"/agents/support/bindings/runtimeAgent\",1]",
+              "kind": "diagnostic",
+              "message": "The referenced repository path does not exist.",
+              "path": "/moldea/moldea.yaml",
+              "pointer": "/agents/support/bindings/runtimeAgent",
+              "range": null,
+              "source": "core"
+            }
+          ]
+        },
+        "snapshotDigest": "sha256:43f7dd2f8773fe20d427921a62d2cfcc5602296d4d58fdd116b83d8d1689e413",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "invalid",
+      "result": {
+        "counts": {
+          "agents": 0,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 2,
+          "evidence": 0,
+          "metadata": 0,
+          "mirrors": 0,
+          "runtimes": 0,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "code": "MOLDEA_AGENT_IDENTITY_INVALID",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"000000\",\"diagnostic\",\"core\",\"MOLDEA_AGENT_IDENTITY_INVALID\"]",
+              "kind": "diagnostic",
+              "message": "The agent instruction identity is invalid.",
+              "path": "/moldea/agents/support/instruction.md",
+              "pointer": null,
+              "range": null,
+              "source": "core"
+            },
+            {
+              "code": "MOLDEA_REFERENCE_MISSING",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"000001\",\"diagnostic\",\"core\",\"MOLDEA_REFERENCE_MISSING\"]",
+              "kind": "diagnostic",
+              "message": "The referenced repository path does not exist.",
+              "path": "/moldea/moldea.yaml",
+              "pointer": "/agents/support/bindings/runtimeAgent",
+              "range": null,
+              "source": "core"
+            }
+          ]
+        },
+        "project": null,
+        "snapshotDigest": "sha256:60718bb05b814c54179ec7134dd434266c03abe57230be69e91a61f9b1b193ad",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

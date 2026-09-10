@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "Repository state, deterministic validation, and Git evidence agree. The billing context is canonically registered and assigned to support, and the instruction update preserves the required identity opening.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` exists at the canonical path. `moldea/moldea.yaml` registers it under top-level `context` with exact `affectedBy: /src/billing.ts` and assigns it under `agents.support.context`. The approved diff shows the manifest additions, status identifies the new context directory, the scope result confirms the exact context relationship, and deterministic validation passed."
+    },
+    {
+      "id": "updates-instruction",
+      "verdict": "pass",
+      "evidence": "`moldea/agents/support/instruction.md` retains the opening identity `You are the support agent` and adds explicit direction to consult billing context for refund or invoice questions, use established evidence, and escalate unresolved disputes. The diff shows the original opening unchanged and only the guidance paragraph added."
+    }
+  ],
+  "failures": []
+}

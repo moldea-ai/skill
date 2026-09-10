@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, connected it to `src/billing.ts`, and assigned it to the `support` agent while preserving its opening identity and existing Custom runtime integration.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md"
+  ],
+  "observations": [
+    "moldea scope identified `support` as the affected owner.",
+    "The context records the 30-day refund window and requires escalation rather than inventing unsupported invoice details.",
+    "TypeScript validation passed.",
+    "moldea CLI 8.0.0 validation passed with format version 1 and zero diagnostics.",
+    "The complete tracked diff and final status were inspected. Pre-existing `src/operator-notes.ts` and `notes/` changes retained identical hashes."
+  ],
+  "unresolved": [
+    "Repository evidence does not include an executable instruction/context loader, so runtime consumption beyond the existing canonical Custom integration was not claimed."
+  ]
+}

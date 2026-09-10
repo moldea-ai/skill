@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "The moldea `support` agent setup is valid and agrees with the source; no edit was required. The manifest correctly declares runtime `custom`, references its guidance, and binds the agent to `/src/support-agent.ts` symbol `supportAgent`. moldea validation and the repository TypeScript check passed. Final Git status and scoped diff were empty.",
+  "changedFiles": [],
+  "observations": [
+    "`src/support-agent.ts` exports `supportAgent` with ID `support` and channel `email`.",
+    "The agent description identifies customer support over the project's email channel.",
+    "`moldea/runtimes/custom.md` accurately describes `supportAgent` as the runtime-owned definition and preserves its identifier and channel.",
+    "`moldea/moldea.yaml` binds `/src/support-agent.ts#supportAgent`, declares runtime ID `custom`, references `/moldea/runtimes/custom.md`, and marks `/src/**` as affecting the agent.",
+    "The relationship scope matched both the exact runtime-agent binding and the `/src/**` impact declaration.",
+    "moldea CLI 8.0.0 validation returned `valid: true` with zero diagnostics.",
+    "`node node_modules/typescript/bin/tsc --project tsconfig.json` passed."
+  ],
+  "unresolved": [
+    "The source contains only static agent metadata; it does not expose a model invocation or canonical instruction-loading path. Therefore, runtime activation of the canonical instruction's support and escalation behavior cannot be proven from the available repository evidence."
+  ]
+}

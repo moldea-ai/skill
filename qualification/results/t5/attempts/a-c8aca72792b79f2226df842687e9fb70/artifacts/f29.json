@@ -1,0 +1,60 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 273107,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 283415,
+    "cachedInputTokens": 253184,
+    "outputTokens": 6669
+  },
+  "judgeUsage": {
+    "inputTokens": 214564,
+    "cachedInputTokens": 187776,
+    "outputTokens": 2700
+  },
+  "actorEvidenceCreatedAt": "2026-09-10T20:19:15.815Z",
+  "judgeEvidenceCreatedAt": "2026-09-10T20:20:51.701Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-alignment",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Actor-output identifies the registered `support` agent, custom runtime guidance, and explicit runtime binding. Current-workspace evidence in `moldea/moldea.yaml` declares `runtime.id: custom`, guidance `/moldea/runtimes/custom.md`, and `runtimeAgent` `/src/support-agent.ts` symbol `supportAgent`; that source exports `supportAgent` with ID `support` and channel `email`, agreeing with the guidance and description. Deterministic-after reports valid CLI inspection/validation, passing typecheck, and an unchanged repository. Evaluator-approved Git status and the scoped diff both returned empty."
+    },
+    {
+      "id": "avoids-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

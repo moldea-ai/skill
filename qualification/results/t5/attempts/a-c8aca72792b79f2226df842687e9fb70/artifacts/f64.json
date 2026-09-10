@@ -1,0 +1,17 @@
+{
+  "outcome": "blocked",
+  "summary": "Updated the support agent binding to `src/support-assistant.ts` and added an agent-level integration warning for dynamic tool registration. The final diff was inspected, but successful post-repair validation could not be established within the moldea skill’s bounded validation calls.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The binding now targets symbol `supportAssistant`.",
+    "The warning includes a concrete runtime verification procedure and relates `/src/dynamic-tools.ts` through its effect.",
+    "No implementation files were modified.",
+    "Pre-existing deletion of `src/support-agent.ts` and untracked `src/support-assistant.ts` and `src/dynamic-tools.ts` were preserved."
+  ],
+  "unresolved": [
+    "The final manifest shape requires successful post-repair moldea validation.",
+    "The final tool relationship remains intentionally unresolved until `createToolRegistry` is executed and compared with `supportAssistant.tools`."
+  ]
+}

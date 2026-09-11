@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 314927,
+  "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 216965,
+    "cachedInputTokens": 190464,
+    "outputTokens": 6667
+  },
+  "judgeUsage": {
+    "inputTokens": 168972,
+    "cachedInputTokens": 125184,
+    "outputTokens": 4370
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T04:43:31.609Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T04:45:38.385Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-project",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service reviews invoice line items and returns findings to a human finance operator, while never authorizing or sending payment. README.md supports that purpose and boundary; src/invoice-review.ts deterministically detects duplicate references and returns them sorted. The project context correctly limits arithmetic-mismatch behavior to the repository description rather than claiming source implementation."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains only `version: 1`, and the moldea tree contains only moldea.yaml and project.md—no agent, runtime, decision, relationship, or requirement assets or manifest references. Git status and the workspace assertions identify only README.md, moldea/moldea.yaml, and moldea/project.md as changed. The README diff preserves all original content and only appends the marked awareness block; current file hashes match the asserted post-actor hashes."
+    },
+    {
+      "id": "preserves-existing-work",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

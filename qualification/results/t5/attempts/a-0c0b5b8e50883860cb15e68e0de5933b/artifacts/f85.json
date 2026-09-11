@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The moldea `support` setup is structurally valid and agrees with the available source evidence, so no edits were made. The project TypeScript check and moldea validation both passed; final Git status and scoped diff were clean.",
+  "changedFiles": [],
+  "observations": [
+    "`moldea/moldea.yaml` registers runtime `custom`, guidance `/moldea/runtimes/custom.md`, and binds `/src/support-agent.ts` symbol `supportAgent`.",
+    "The description identifies customer support over email, matching `supportAgent` fields `id: 'support'` and `channel: 'email'`.",
+    "Runtime guidance correctly identifies the exported record and its identifier/channel contract.",
+    "The canonical instruction uses the required `support` identity and defines evidence-based responses with escalation for uncertainty.",
+    "`node node_modules/typescript/bin/tsc -p tsconfig.json` passed.",
+    "moldea CLI 8.0.0/schema 4 validation returned `valid: true` with zero diagnostics."
+  ],
+  "unresolved": [
+    "`src/support-agent.ts` only exports declarative metadata; the reviewed evidence does not establish an actual model invocation or prove runtime consumption of the canonical instruction. No production-readiness claim was made."
+  ]
+}

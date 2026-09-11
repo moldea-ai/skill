@@ -1,0 +1,60 @@
+diff --git a/moldea/agents/support/instruction.md b/moldea/agents/support/instruction.md
+index 1b0b641..3c74be9 100644
+--- a/moldea/agents/support/instruction.md
++++ b/moldea/agents/support/instruction.md
+@@ -1,3 +1,9 @@
+ # Support agent
+ 
+ You are the `support` agent. Use only project-owned capabilities whose behavior can be established from repository evidence.
++
++## Unresolved warning
++
++- Description: Static inspection cannot prove that the dynamically assembled tool registry exposes `lookupAccount` to the `support` agent.
++- Resolution: Add an integration test that builds `createToolRegistry()` and verifies every entry in `supportAssistant.tools` is registered for the running support agent.
++- Related source: `/src/dynamic-tools.ts`
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 0537cec..3410570 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -6,7 +6,7 @@ agents:
+       guidance: /moldea/runtimes/custom.md
+     bindings:
+       runtimeAgent:
+-        path: /src/support-agent.ts
+-        symbol: supportAgent
++        path: /src/support-assistant.ts
++        symbol: supportAssistant
+     affectedBy:
+       - /src/**
+diff --git a/src/support-agent.ts b/src/support-agent.ts
+deleted file mode 100644
+index 2c08d05..0000000
+--- a/src/support-agent.ts
++++ /dev/null
+@@ -1,4 +0,0 @@
+-export const supportAgent = {
+-  id: 'support',
+-  tools: ['lookupAccount'],
+-} as const;
+
+diff --git a/src/dynamic-tools.ts b/src/dynamic-tools.ts
+new file mode 100644
+index 0000000..e56d8b3
+--- /dev/null
++++ b/src/dynamic-tools.ts
+@@ -0,0 +1,4 @@
++const toolNames = ['lookupAccount'] as const;
++
++export const createToolRegistry = (): Readonly<Record<string, string>> =>
++  Object.fromEntries(toolNames.map((toolName) => [toolName, `dynamic:${toolName}`]));
+
+diff --git a/src/support-assistant.ts b/src/support-assistant.ts
+new file mode 100644
+index 0000000..928e6dd
+--- /dev/null
++++ b/src/support-assistant.ts
+@@ -0,0 +1,4 @@
++export const supportAssistant = {
++  id: 'support',
++  tools: ['lookupAccount'],
++} as const;

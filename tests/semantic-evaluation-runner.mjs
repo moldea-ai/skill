@@ -54,6 +54,10 @@ import {
   runWithEvaluationTemporaryStorageGuard,
 } from '../tooling/evaluation-batch/index.mjs';
 import {
+  EVALUATION_CONFIRMATION_POLICY,
+  getEvaluationConfirmationResolution,
+} from '../tooling/evaluation-confirmation-policy/index.mjs';
+import {
   INCORRECT_MOLDEA_PRODUCT_NAME_CASING_LABEL,
   captureReadOnlyMountControlState,
   captureRepositoryControlState,
@@ -109,6 +113,7 @@ const RESOURCE_PROFILE_PATH = join(
 );
 const ATTEMPT_RESULTS_ROOT = join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-results');
 const ATTEMPT_DIRECTORIES_ROOT = join(ATTEMPT_RESULTS_ROOT, 'attempts');
+const SEMANTIC_REUSE_SOURCES_PATH = join(ATTEMPT_RESULTS_ROOT, 'reuse-sources.json');
 const CANDIDATE_RESULT_PATH = join(
   REPOSITORY_ROOT,
   'fixtures',
@@ -162,6 +167,7 @@ const RESOURCE_PROFILE_DIGEST = createHash('sha256')
   .update(readFileSync(RESOURCE_PROFILE_PATH))
   .digest('hex');
 const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
+const SHA256_DIGEST_PATTERN = /^[a-f0-9]{64}$/u;
 // fixed commit metadata keeps generated Git fixtures reproducible across hosts and runs
 const EVALUATION_GIT_COMMIT_ENV = {
   ...process.env,
@@ -186,16 +192,17 @@ const SEMANTIC_MAXIMUM_CHARGED_OPERATIONAL_FAILURE_COUNT = Math.floor(
   SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT /
     MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
 );
-const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 9;
+const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 10;
 const SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION = 3;
 const SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1;
 const SEMANTIC_MODEL_CALLS_PER_TRIAL = 2;
-const SEMANTIC_MAXIMUM_TRIALS_PER_CASE = 3;
+const SEMANTIC_MAXIMUM_TRIALS_PER_CASE = EVALUATION_CONFIRMATION_POLICY.maximumConfirmations + 1;
 const SEMANTIC_CANDIDATE_KEYS = new Set([
   'activeTrial',
   'artifactDigest',
   'caseSuiteDigest',
   'cli',
+  'confirmationPolicy',
   'confirmations',
   'coverageDigest',
   'evaluationProtocolVersion',
@@ -261,9 +268,7 @@ const createRuntimeCompatibilityPublicationProbe = (variant) => {
               }
             : {
                 ...VERIFIED_OPENAI_PUBLICATION_TARGET,
-                ...(variant === 'experimental-current-target'
-                  ? { maturity: 'experimental' }
-                  : {}),
+                ...(variant === 'experimental-current-target' ? { maturity: 'experimental' } : {}),
               },
         ];
   const adapterId = isFutureTarget ? 'future' : 'openai';
@@ -823,6 +828,7 @@ export const createSemanticEvaluationCandidate = ({
   artifactDigest,
   caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
   cli,
+  confirmationPolicy: EVALUATION_CONFIRMATION_POLICY,
   confirmations: [],
   coverageDigest,
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
@@ -1306,10 +1312,11 @@ const validateSemanticActiveTrial = (candidate, caseDefinitions) => {
       initialResult === undefined &&
       confirmations.length === 0) ||
       (activeTrial.trialKind === 'confirmation' &&
-        [1, 2].includes(activeTrial.confirmationIndex) &&
+        [1, 2, 3].includes(activeTrial.confirmationIndex) &&
         initialResult?.passed === false &&
         confirmations.length === activeTrial.confirmationIndex - 1 &&
-        confirmations.every(({ passed }) => passed)));
+        getEvaluationConfirmationResolution(confirmations.map(({ passed }) => passed)) ===
+          'awaiting-confirmation'));
 
   if (!hasValidIdentity) {
     throw new Error('The semantic evaluation candidate contains an invalid active trial.');
@@ -1368,6 +1375,8 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
     !candidate ||
     candidate.schemaVersion !== SEMANTIC_CHECKPOINT_SCHEMA_VERSION ||
     candidate.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
+    JSON.stringify(candidate.confirmationPolicy) !==
+      JSON.stringify(EVALUATION_CONFIRMATION_POLICY) ||
     !hasValidSemanticCliIdentity(candidate.cli) ||
     typeof candidate.generatedAt !== 'string' ||
     typeof candidate.updatedAt !== 'string' ||
@@ -1487,7 +1496,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       initialResult?.passed !== false ||
       initialResult.confirmationEligible !== true ||
       confirmation.caseId !== confirmation.id ||
-      ![1, 2].includes(confirmation.confirmationIndex) ||
+      ![1, 2, 3].includes(confirmation.confirmationIndex) ||
       confirmationIds.has(confirmationIdentity) ||
       typeof confirmation.actorResponse !== 'string' ||
       !hasValidSemanticModelUsage(confirmation.actorUsage) ||
@@ -1531,10 +1540,14 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       .sort((left, right) => left.confirmationIndex - right.confirmationIndex);
     if (
       ((!result.confirmationEligible || result.passed) && confirmations.length > 0) ||
-      confirmations.length > 2 ||
-      confirmations.some(({ confirmationIndex }, index) => confirmationIndex !== index + 1) ||
-      confirmations.slice(0, -1).some(({ passed }) => !passed)
+      confirmations.length > EVALUATION_CONFIRMATION_POLICY.maximumConfirmations ||
+      confirmations.some(({ confirmationIndex }, index) => confirmationIndex !== index + 1)
     ) {
+      throw new Error('The semantic evaluation candidate has an invalid confirmation sequence.');
+    }
+    try {
+      getEvaluationConfirmationResolution(confirmations.map(({ passed }) => passed));
+    } catch {
       throw new Error('The semantic evaluation candidate has an invalid confirmation sequence.');
     }
   }
@@ -1680,7 +1693,7 @@ export const appendSemanticCandidateInitialResult = (
   };
 };
 
-/** Derives one case's result under the bounded two-confirmation policy. */
+/** Derives one case's result under the bounded confirmation quorum. */
 export const getSemanticCaseResolution = (candidate, caseId) => {
   const initialResult = candidate.results.find(({ id }) => id === caseId);
   if (initialResult === undefined) return 'pending';
@@ -1690,11 +1703,7 @@ export const getSemanticCaseResolution = (candidate, caseId) => {
   const confirmations = candidate.confirmations
     .filter(({ id }) => id === caseId)
     .sort((left, right) => left.confirmationIndex - right.confirmationIndex);
-  if (confirmations.some(({ passed }) => !passed)) return 'confirmed-failure';
-  if (confirmations.length === 2 && confirmations.every(({ passed }) => passed)) {
-    return 'recovered';
-  }
-  return 'awaiting-confirmation';
+  return getEvaluationConfirmationResolution(confirmations.map(({ passed }) => passed));
 };
 
 /** Appends the next authorized confirmation without replacing the initial failure. */
@@ -1945,9 +1954,10 @@ export const selectSemanticWorkerTrialHistory = (sourceCandidate, caseId, confir
     !results[0].confirmationEligible ||
     confirmations.length !== confirmationIndex - 1 ||
     confirmations.some(
-      ({ confirmationIndex: recordedIndex, passed }, index) =>
-        recordedIndex !== index + 1 || !passed,
-    )
+      ({ confirmationIndex: recordedIndex }, index) => recordedIndex !== index + 1,
+    ) ||
+    getEvaluationConfirmationResolution(confirmations.map(({ passed }) => passed)) !==
+      'awaiting-confirmation'
   ) {
     throw new Error('Semantic worker confirmation has invalid prior case history.');
   }
@@ -2424,41 +2434,90 @@ const resolveSemanticSourceFileDigest = (sourceCommit, path) => {
   return createSha256(result.stdout);
 };
 
-/** Loads valid committed attempt evidence in deterministic newest-first order. */
-const loadSemanticReuseSources = async () => {
-  const verification = await verifySemanticEvaluationAttempts(ATTEMPT_RESULTS_ROOT);
-  if (!verification.passed) {
-    throw new Error('Semantic stage reuse requires valid immutable attempt history.');
-  }
-  if (!existsSync(ATTEMPT_DIRECTORIES_ROOT)) return [];
-  const entries = await readdir(ATTEMPT_DIRECTORIES_ROOT, {
-    withFileTypes: true,
+/** Reads one bounded file directly from an immutable semantic source commit. */
+const readSemanticSourceBlob = (sourceCommit, relativePath) => {
+  const result = spawnSync('git', ['cat-file', 'blob', `${sourceCommit}:${relativePath}`], {
+    cwd: REPOSITORY_ROOT,
+    encoding: 'buffer',
+    maxBuffer: 16 * 1024 * 1024,
   });
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    throw new Error(`Semantic reuse source ${sourceCommit} does not contain ${relativePath}.`);
+  }
+  return result.stdout;
+};
+
+/** Loads valid committed source evidence in deterministic manifest order. */
+const loadSemanticReuseSources = async () => {
+  if (!existsSync(SEMANTIC_REUSE_SOURCES_PATH)) return [];
+  const manifest = JSON.parse(await readFile(SEMANTIC_REUSE_SOURCES_PATH, 'utf8'));
+  if (
+    !hasExactObjectKeys(manifest, ['sources', 'version']) ||
+    manifest.version !== 1 ||
+    !Array.isArray(manifest.sources) ||
+    manifest.sources.length > 8
+  ) {
+    throw new Error('Semantic reuse source manifest is invalid.');
+  }
   const sources = [];
-  for (const entry of entries.sort((left, right) => right.name.localeCompare(left.name, 'en'))) {
-    if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
-    const evidencePath = `fixtures/semantic-evaluation-results/attempts/${entry.name}/evidence.json`;
-    const attemptPath = join(ATTEMPT_DIRECTORIES_ROOT, entry.name, 'attempt.json');
-    const absoluteEvidencePath = join(ATTEMPT_DIRECTORIES_ROOT, entry.name, 'evidence.json');
-    const attempt = JSON.parse(await readFile(attemptPath, 'utf8'));
-    const evidenceBytes = await readFile(absoluteEvidencePath);
+  const sourceKeys = new Set();
+  for (const reference of manifest.sources) {
+    if (
+      !hasExactObjectKeys(reference, [
+        'attemptId',
+        'attemptSha256',
+        'evidenceCommit',
+        'evidenceSha256',
+      ]) ||
+      typeof reference.attemptId !== 'string' ||
+      !/^[a-zA-Z0-9-]+$/u.test(reference.attemptId) ||
+      typeof reference.evidenceCommit !== 'string' ||
+      !/^[a-f0-9]{40}$/u.test(reference.evidenceCommit) ||
+      typeof reference.attemptSha256 !== 'string' ||
+      !SHA256_DIGEST_PATTERN.test(reference.attemptSha256) ||
+      typeof reference.evidenceSha256 !== 'string' ||
+      !SHA256_DIGEST_PATTERN.test(reference.evidenceSha256)
+    ) {
+      throw new Error('Semantic reuse source manifest contains an invalid source.');
+    }
+    const sourceKey = `${reference.evidenceCommit}:${reference.attemptId}`;
+    if (sourceKeys.has(sourceKey)) {
+      throw new Error('Semantic reuse source manifest contains a duplicate source.');
+    }
+    sourceKeys.add(sourceKey);
+    const attemptDirectory = `fixtures/semantic-evaluation-results/attempts/${reference.attemptId}`;
+    const attemptPath = `${attemptDirectory}/attempt.json`;
+    const evidencePath = `${attemptDirectory}/evidence.json`;
+    const attemptBytes = readSemanticSourceBlob(reference.evidenceCommit, attemptPath);
+    const evidenceBytes = readSemanticSourceBlob(reference.evidenceCommit, evidencePath);
+    if (
+      createSha256(attemptBytes) !== reference.attemptSha256 ||
+      createSha256(evidenceBytes) !== reference.evidenceSha256
+    ) {
+      throw new Error(`Semantic reuse source ${reference.attemptId} changed.`);
+    }
+    const attempt = JSON.parse(attemptBytes.toString('utf8'));
     const evidenceSha256 = createSha256(evidenceBytes);
-    if (evidenceSha256 !== attempt.evidence.sha256) {
-      throw new Error(`Semantic reuse source ${entry.name} has a mismatched evidence digest.`);
+    if (
+      attempt.attemptId !== reference.attemptId ||
+      attempt.status !== 'passed' ||
+      attempt.evidence?.sha256 !== evidenceSha256 ||
+      attempt.evidence?.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION
+    ) {
+      throw new Error(`Semantic reuse source ${reference.attemptId} is not a passing source.`);
     }
     const evidence = JSON.parse(evidenceBytes.toString('utf8'));
-    const sourceCommit = resolveSemanticAttemptSourceCommit(evidencePath, evidenceSha256);
-    if (sourceCommit === null) continue;
     sources.push({
       attempt,
       evidence,
       evidencePath,
       evidenceSha256,
       resourceProfileDigest: resolveSemanticSourceFileDigest(
-        sourceCommit,
+        reference.evidenceCommit,
         'tooling/resource-calibration/profiles.mjs',
       ),
-      sourceCommit,
+      sourceCommit: reference.evidenceCommit,
     });
   }
   return sources;
@@ -4732,10 +4791,7 @@ export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, gen
       resolution: getSemanticCaseResolution(candidate, id),
     })),
     cli: candidate.cli,
-    confirmationPolicy: {
-      requiredPassingConfirmations: 2,
-      version: 1,
-    },
+    confirmationPolicy: EVALUATION_CONFIRMATION_POLICY,
     coverageDigest: candidate.coverageDigest,
     evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     evaluatedAt: generatedAt,

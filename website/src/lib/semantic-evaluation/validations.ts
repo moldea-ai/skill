@@ -5,6 +5,10 @@ import {
   hasPassingCodexEvaluationCommandPolicy,
 } from '../../../../tooling/codex-evaluation-host/index.mjs';
 import {
+  EVALUATION_CONFIRMATION_POLICY,
+  getEvaluationConfirmationResolution,
+} from '../../../../tooling/evaluation-confirmation-policy/index.mjs';
+import {
   hasValidActorExecutionEvidence,
   type ISemanticActorExecutionEvidenceOptions,
 } from '../../../../tooling/semantic-evaluation/index.mjs';
@@ -14,6 +18,16 @@ import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../tooling/resource-cal
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
 const StableIdSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
 const AttemptStatusSchema = z.enum(['failed', 'incomplete', 'passed']);
+const SemanticConfirmationPolicySchema = z.strictObject({
+  version: z.literal(EVALUATION_CONFIRMATION_POLICY.version),
+  requiredPassingConfirmations: z.literal(
+    EVALUATION_CONFIRMATION_POLICY.requiredPassingConfirmations,
+  ),
+  requiredFailingConfirmations: z.literal(
+    EVALUATION_CONFIRMATION_POLICY.requiredFailingConfirmations,
+  ),
+  maximumConfirmations: z.literal(EVALUATION_CONFIRMATION_POLICY.maximumConfirmations),
+});
 
 // website read models select the current evidence fields rendered by public pages
 const SemanticActorHostSchema = z.strictObject({
@@ -275,7 +289,7 @@ export const SemanticCliIdentitySchema = z.strictObject({
 
 const SemanticStageTrialIdentitySchema = z.strictObject({
   caseId: StableIdSchema,
-  confirmationIndex: z.union([z.literal(1), z.literal(2)]).nullable(),
+  confirmationIndex: z.union([z.literal(1), z.literal(2), z.literal(3)]).nullable(),
   kind: z.enum(['confirmation', 'initial']),
 });
 const SemanticStageReuseRecordShape = {
@@ -318,7 +332,7 @@ const SemanticAttemptTrialSchema = z
     actorResourceEvidence: SemanticActorResourceEvidenceSchema,
     actorHost: SemanticActorHostSchema,
     confirmationEligible: z.boolean(),
-    confirmationIndex: z.union([z.literal(1), z.literal(2)]).nullable(),
+    confirmationIndex: z.union([z.literal(1), z.literal(2), z.literal(3)]).nullable(),
     dimensions: SemanticResultDimensionsSchema,
     evaluatedAt: z.iso.datetime(),
     executionOrigin: z.enum(['executed', 'reused']),
@@ -371,7 +385,7 @@ const SemanticAttemptEvidenceReferenceBaseSchema = z.strictObject({
 });
 const SemanticAttemptEvidenceReferenceSchema = SemanticAttemptEvidenceReferenceBaseSchema.extend({
   evaluationProtocolVersion: z.literal(SEMANTIC_EVALUATION_PROTOCOL_VERSION),
-  schemaVersion: z.literal(9),
+  schemaVersion: z.literal(10),
 });
 
 const SemanticReplayMoldeaOutputFactSchema = z.object({
@@ -537,7 +551,7 @@ const SemanticReplayInitialTrialSchema = z
 const SemanticReplayConfirmationTrialSchema = z
   .object({
     ...SemanticReplayTrialShape,
-    confirmationIndex: z.union([z.literal(1), z.literal(2)]),
+    confirmationIndex: z.union([z.literal(1), z.literal(2), z.literal(3)]),
     scenarioEvidence: SemanticReplayDeveloperDirectionSchema,
   })
   .superRefine((trial, context) => {
@@ -556,10 +570,11 @@ const SemanticReplayConfirmationTrialSchema = z
 
 // public-safe projection selected from one digest-verified current evidence artifact
 export const SemanticReplayCandidateSchema = z.object({
+  confirmationPolicy: SemanticConfirmationPolicySchema,
   confirmations: z.array(SemanticReplayConfirmationTrialSchema),
   evaluationProtocolVersion: z.literal(SEMANTIC_EVALUATION_PROTOCOL_VERSION),
   results: z.array(SemanticReplayInitialTrialSchema),
-  schemaVersion: z.literal(9),
+  schemaVersion: z.literal(10),
 });
 
 /**
@@ -589,10 +604,10 @@ type ISemanticAttemptCase = {
 
 /** Validates the complete ordered trial history and derived status for one semantic case. */
 const hasValidSemanticAttemptCaseHistory = (attemptCase: ISemanticAttemptCase): boolean => {
-  const [initial, confirmation1, confirmation2] = attemptCase.trials;
+  const [initial] = attemptCase.trials;
   if (initial?.kind !== 'initial' || initial.confirmationIndex !== null) return false;
   if (
-    attemptCase.trials.length > 3 ||
+    attemptCase.trials.length > EVALUATION_CONFIRMATION_POLICY.maximumConfirmations + 1 ||
     attemptCase.trials
       .slice(1)
       .some(
@@ -616,26 +631,22 @@ const hasValidSemanticAttemptCaseHistory = (attemptCase: ISemanticAttemptCase): 
       attemptCase.confirmationStatus === 'not-applicable'
     );
   }
-  if (confirmation1 === undefined) {
-    return attemptCase.status === 'failed' && attemptCase.confirmationStatus === 'required';
-  }
-  if (!confirmation1.passed) {
-    return (
-      attemptCase.trials.length === 2 &&
-      attemptCase.status === 'failed' &&
-      attemptCase.confirmationStatus === 'rejected'
+  let resolution: ReturnType<typeof getEvaluationConfirmationResolution>;
+  try {
+    resolution = getEvaluationConfirmationResolution(
+      attemptCase.trials.slice(1).map(({ passed }) => passed),
     );
-  }
-  if (confirmation2 === undefined) {
-    return attemptCase.status === 'failed' && attemptCase.confirmationStatus === 'required';
+  } catch {
+    return false;
   }
 
-  return (
-    attemptCase.trials.length === 3 &&
-    (confirmation2.passed
-      ? attemptCase.status === 'recovered' && attemptCase.confirmationStatus === 'passed'
-      : attemptCase.status === 'failed' && attemptCase.confirmationStatus === 'rejected')
-  );
+  if (resolution === 'awaiting-confirmation') {
+    return attemptCase.status === 'failed' && attemptCase.confirmationStatus === 'required';
+  }
+  if (resolution === 'recovered') {
+    return attemptCase.status === 'recovered' && attemptCase.confirmationStatus === 'passed';
+  }
+  return attemptCase.status === 'failed' && attemptCase.confirmationStatus === 'rejected';
 };
 
 export const SemanticAttemptRecordSchema = z
@@ -654,10 +665,14 @@ export const SemanticAttemptRecordSchema = z
         ]),
         id: StableIdSchema,
         status: z.enum(['failed', 'passed', 'recovered']),
-        trials: z.array(SemanticAttemptTrialSchema).min(1).max(3),
+        trials: z
+          .array(SemanticAttemptTrialSchema)
+          .min(1)
+          .max(EVALUATION_CONFIRMATION_POLICY.maximumConfirmations + 1),
       }),
     ),
     cli: SemanticCliIdentitySchema,
+    confirmationPolicy: SemanticConfirmationPolicySchema,
     coverageDigest: Sha256Schema,
     createdAt: z.iso.datetime(),
     evidence: SemanticAttemptEvidenceReferenceSchema,
@@ -671,7 +686,7 @@ export const SemanticAttemptRecordSchema = z
     recoveredCaseCount: z.number().int().nonnegative(),
     reusedStageCount: z.number().int().nonnegative(),
     reusedTrialCount: z.number().int().nonnegative(),
-    schemaVersion: z.literal(6),
+    schemaVersion: z.literal(7),
     status: AttemptStatusSchema,
     stopReason: z.enum([
       'case-failure',

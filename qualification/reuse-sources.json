@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "selection": {
+        "adapterId": "custom",
+        "implementationId": "custom"
+      },
+      "attemptId": "20260910T220756999Z-custom-custom-3c86e131",
+      "evidenceCommit": "cbfedb8b4a244ac69b9e7f8e8d83a9c6ea1a3aad",
+      "attemptSha256": "70b44fb2ca21e54354f335d7c3b1c5645a31a302ff8143f3aa38fb65181a87ae",
+      "storageSha256": "dc9dd8a6d74b66bcf10586c9e6f1e776d1a09a5db3ccf1eafc0f81f19bb00cf7"
+    }
+  ]
+}

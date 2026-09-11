@@ -1,6 +1,7 @@
 import path from 'node:path';
 
 import { hasPassingCodexEvaluationCommandPolicy } from '../../../../tooling/codex-evaluation-host/index.mjs';
+import { getEvaluationConfirmationResolution } from '../../../../tooling/evaluation-confirmation-policy/index.mjs';
 
 import type {
   IActorOutput,
@@ -20,7 +21,7 @@ import type {
 } from './types.ts';
 
 const OFFICIAL_EGRESS_HOSTS = ['api.openai.com', 'auth.openai.com', 'chatgpt.com'] as const;
-const TRIAL_IDS = ['initial', 'confirmation-1', 'confirmation-2'] as const;
+const TRIAL_IDS = ['initial', 'confirmation-1', 'confirmation-2', 'confirmation-3'] as const;
 // minimal recorded case contract required to revalidate an immutable attempt
 type IQualificationRecordedCaseContract = Pick<IQualificationProfileCaseModel, 'id' | 'scenario'>;
 type IQualificationResourceDimension =
@@ -670,7 +671,7 @@ export const assertQualificationTrialModelEvidence = (options: {
 const hasValidCurrentCaseHistory = (
   caseResult: Extract<IQualificationAttemptResult, { protocolVersion: 10 }>['cases'][number],
 ): boolean => {
-  const [initial, confirmation1, confirmation2] = caseResult.trials;
+  const [initial] = caseResult.trials;
 
   if (initial?.trialId !== 'initial') return false;
   if (initial.passed) {
@@ -689,22 +690,29 @@ const hasValidCurrentCaseHistory = (
     );
   }
 
-  if (confirmation1?.trialId !== 'confirmation-1') return false;
-  if (!confirmation1.passed) {
-    return (
-      caseResult.trials.length === 2 &&
-      caseResult.status === 'failed' &&
-      caseResult.confirmationStatus === 'rejected'
-    );
+  const confirmations = caseResult.trials.slice(1);
+  if (
+    confirmations.length === 0 ||
+    confirmations.some(
+      (trial, index) =>
+        trial.trialId !== `confirmation-${index + 1}` || trial.confirmationIndex !== index + 1,
+    )
+  ) {
+    return false;
   }
 
-  return (
-    confirmation2?.trialId === 'confirmation-2' &&
-    caseResult.trials.length === 3 &&
-    (confirmation2.passed
+  try {
+    const resolution = getEvaluationConfirmationResolution(
+      confirmations.map(({ passed }) => passed),
+    );
+    return resolution === 'recovered'
       ? caseResult.status === 'recovered' && caseResult.confirmationStatus === 'passed'
-      : caseResult.status === 'failed' && caseResult.confirmationStatus === 'rejected')
-  );
+      : resolution === 'confirmed-failure' &&
+          caseResult.status === 'failed' &&
+          caseResult.confirmationStatus === 'rejected';
+  } catch {
+    return false;
+  }
 };
 
 const hasCompletedStageState = (

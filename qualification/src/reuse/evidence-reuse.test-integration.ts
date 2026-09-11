@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
@@ -14,12 +14,17 @@ import {
   type ICandidateClosure,
 } from '../contracts/index.ts';
 import { createQualificationStageIds } from '../execution/index.ts';
+import {
+  calculateQualificationCaseModelInputDigestsAtCommit,
+  calculateQualificationModelStageEvaluatorDigestAtCommit,
+} from '../evidence-identity/index.ts';
 import { ensureDirectory, readJsonFile } from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
 import { recordQualificationResult } from '../result/index.ts';
 import {
   createQualificationAttemptKey,
   readQualificationAttemptStorage,
+  resolveQualificationArtifactPath,
 } from '../storage/index.ts';
 import {
   loadReusableQualificationCases,
@@ -142,10 +147,15 @@ describe('qualification case evidence reuse', () => {
       checkpoint,
       publicDirectory,
       reusableCase: {
-        attemptDirectory: sourceAttemptDirectory,
         caseResult: sourceCase,
-        result: sourceResult,
+        readArtifact: (logicalPath) =>
+          readFile(
+            resolveQualificationArtifactPath(sourceAttemptDirectory, sourceStorage, logicalPath),
+          ),
+        sourceAttemptId: sourceResult.attemptId,
         sourceCommit: SOURCE_COMMIT,
+        sourceCreatedAt: sourceResult.createdAt,
+        sourceStages: sourceResult.stages,
         storage: sourceStorage,
       },
     });
@@ -309,22 +319,46 @@ describe('qualification case evidence reuse', () => {
       executionEnvironment,
       stageIds: createQualificationStageIds(sourceResult.cases.map(({ caseId }) => caseId)),
     });
-    const loadCases = () =>
-      loadReusableQualificationCases({
+    const loadCases = async (
+      identityOverrides: { caseDigest?: string; evaluatorStageDigest?: string } = {},
+    ) => {
+      const [caseDigests, evaluatorStageDigest] = await Promise.all([
+        calculateQualificationCaseModelInputDigestsAtCommit({
+          caseIds: [CASE_ID],
+          commit: contractCommit,
+          repositoryRoot,
+          selection: sourceResult.selection,
+        }),
+        calculateQualificationModelStageEvaluatorDigestAtCommit(contractCommit, repositoryRoot),
+      ]);
+
+      return loadReusableQualificationCases({
         baselineAttemptId: null,
         candidate,
+        caseDigests: {
+          ...caseDigests,
+          ...(identityOverrides.caseDigest === undefined
+            ? {}
+            : { [CASE_ID]: identityOverrides.caseDigest }),
+        },
         caseIds: [CASE_ID],
         checkpoint,
+        evaluatorStageDigest: identityOverrides.evaluatorStageDigest ?? evaluatorStageDigest,
         executionEnvironment,
         packagesRepositoryCommit: sourceResult.provenance.packagesRepositoryCommit,
         qualificationRepositoryCommit: evidenceCommit,
         repositoryRoot,
         resultsRoot,
       });
+    };
     const reusableCases = await loadCases();
 
     expect(reusableCases.get(CASE_ID)?.caseResult.status).toBe('passed');
-    expect(reusableCases.get(CASE_ID)?.result.attemptId).toBe(sourceResult.attemptId);
+    expect(reusableCases.get(CASE_ID)?.sourceAttemptId).toBe(sourceResult.attemptId);
+    await expect(loadCases({ caseDigest: '0'.repeat(64) })).resolves.toStrictEqual(new Map());
+    await expect(loadCases({ evaluatorStageDigest: '0'.repeat(64) })).resolves.toStrictEqual(
+      new Map(),
+    );
 
     const sourceAttemptDirectory = path.join(
       resultsRoot,

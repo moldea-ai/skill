@@ -170,7 +170,7 @@ const createRawTrial = (overrides: Record<string, unknown> = {}): Record<string,
 const createTrialSummary = (
   trial: ISemanticReplayCandidate['results'][number],
   kind: 'confirmation' | 'initial' = 'initial',
-  confirmationIndex: 1 | 2 | null = null,
+  confirmationIndex: 1 | 2 | 3 | null = null,
 ): ISemanticAttemptRecord['cases'][number]['trials'][number] => ({
   actorCommandPolicyEvidence: trial.actorCommandPolicyEvidence,
   actorResourceEvidence: trial.actorResourceEvidence,
@@ -215,10 +215,16 @@ const parseCandidate = (
   confirmations: Record<string, unknown>[] = [],
 ): ISemanticReplayCandidate =>
   SemanticReplayCandidateSchema.parse({
+    confirmationPolicy: {
+      version: 2,
+      requiredPassingConfirmations: 2,
+      requiredFailingConfirmations: 2,
+      maximumConfirmations: 3,
+    },
     confirmations,
     evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     results: [initial],
-    schemaVersion: 9,
+    schemaVersion: 10,
   });
 
 describe('createSemanticEvaluationReplay', () => {
@@ -351,10 +357,14 @@ describe('createSemanticEvaluationReplay', () => {
         rationale: 'The initial requirement was not satisfied.',
       }),
       [
-        createRawTrial({ confirmationIndex: 1 }),
+        createRawTrial({ confirmationIndex: 1, passed: false }),
         createRawTrial({
           confirmationIndex: 2,
           evaluatedAt: '2026-08-28T12:05:00.000Z',
+        }),
+        createRawTrial({
+          confirmationIndex: 3,
+          evaluatedAt: '2026-08-28T12:10:00.000Z',
         }),
       ],
     );
@@ -369,6 +379,7 @@ describe('createSemanticEvaluationReplay', () => {
       { id: 'initial', title: 'Initial trial' },
       { id: 'confirmation-1', title: 'Confirmation 1' },
       { id: 'confirmation-2', title: 'Confirmation 2' },
+      { id: 'confirmation-3', title: 'Confirmation 3' },
     ]);
     expect(replay.trials[0]?.steps.at(-1)).toStrictEqual({
       kind: 'verdict',

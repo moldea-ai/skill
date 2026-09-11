@@ -24,10 +24,7 @@ import {
   type IQualificationTrialResult,
   type IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
-import {
-  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
-  QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT,
-} from '../constants/index.ts';
+import { QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT } from '../constants/index.ts';
 import {
   calculateDirectoryFingerprint,
   readJsonFile,
@@ -71,15 +68,14 @@ type ISharedModelStageOptions = {
   attemptId: string;
   attemptDirectory: string;
   candidate: ICandidateClosure;
+  caseDigest: string;
   caseArtifactDirectory: string;
   executionEnvironment: IQualificationExecutionEnvironment;
   host: ICodexHost;
   implementationId: string;
   isDryRun: boolean;
-  modelHostDigest: string;
+  evaluatorStageDigest: string;
   packagesRepository: string;
-  profileDigest: string;
-  qualificationDigest: string;
   baselineAttemptId: string | null;
   project: IPreparedQualificationProject;
   signal?: AbortSignal | undefined;
@@ -166,18 +162,16 @@ export const executeActorModelStage = async (
     task: options.task,
   });
   const stageIdentity = calculateModelStageIdentity({
-    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     role: 'actor',
     executionEnvironment: options.executionEnvironment,
     candidateFingerprint: options.candidate.fingerprint,
-    modelHostDigest: options.modelHostDigest,
+    evaluatorStageDigest: options.evaluatorStageDigest,
     outputSchema: z.toJSONSchema(ActorOutputSchema),
-    profileDigest: options.profileDigest,
-    qualificationDigest: options.qualificationDigest,
     baselineAttemptId: options.baselineAttemptId,
     skillDigest: options.skillDigest,
     targetDigest: options.targetDigest,
     caseId: options.project.scenario.id,
+    caseDigest: options.caseDigest,
     trialId: options.trialId,
     projectFingerprint: await getProjectFingerprint(options.project),
     prompt,
@@ -329,18 +323,16 @@ export const executeJudgeModelStage = async (
     workspaceAssertions: options.workspaceAssertions,
   });
   const stageIdentity = calculateModelStageIdentity({
-    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     role: 'judge',
     executionEnvironment: options.executionEnvironment,
     candidateFingerprint: options.candidate.fingerprint,
-    modelHostDigest: options.modelHostDigest,
+    evaluatorStageDigest: options.evaluatorStageDigest,
     outputSchema: z.toJSONSchema(JudgeOutputSchema),
-    profileDigest: options.profileDigest,
-    qualificationDigest: options.qualificationDigest,
     baselineAttemptId: options.baselineAttemptId,
     skillDigest: options.skillDigest,
     targetDigest: options.targetDigest,
     caseId: options.project.scenario.id,
+    caseDigest: options.caseDigest,
     trialId: options.trialId,
     projectFingerprint: await getProjectFingerprint(options.project),
     prompt,

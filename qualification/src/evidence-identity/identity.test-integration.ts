@@ -8,8 +8,10 @@ import { QUALIFICATION_ROOT } from '../constants/index.ts';
 import { copyDirectory, ensureDirectory, writeTextFileAtomically } from '../filesystem/index.ts';
 import { loadQualificationProfileIndex } from '../storage/index.ts';
 import {
+  calculateQualificationCaseModelInputDigests,
   calculateQualificationEvaluatorDigest,
   calculateQualificationLogicalInputDigest,
+  calculateQualificationModelStageEvaluatorDigest,
 } from './identity.ts';
 
 describe('qualification compatibility identity', () => {
@@ -79,5 +81,118 @@ describe('qualification compatibility identity', () => {
     await expect(
       calculateQualificationLogicalInputDigest({ qualificationRoot, selection }),
     ).resolves.not.toBe(initialDigest);
+  });
+
+  test('isolates case input changes to their exact owning case', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-case-input-'));
+    const qualificationRoot = path.join(temporaryRoot, 'qualification');
+    await Promise.all([
+      copyDirectory(
+        path.join(QUALIFICATION_ROOT, 'profiles', 't5'),
+        path.join(qualificationRoot, 'profiles', 't5'),
+      ),
+      ensureDirectory(path.join(qualificationRoot, 'cases')),
+    ]);
+    await Promise.all([
+      writeFile(
+        path.join(qualificationRoot, 'profiles', 'index.yaml'),
+        await readFile(path.join(QUALIFICATION_ROOT, 'profiles', 'index.yaml')),
+      ),
+      writeFile(
+        path.join(qualificationRoot, 'cases', 'cases.yaml'),
+        await readFile(path.join(QUALIFICATION_ROOT, 'cases', 'cases.yaml')),
+      ),
+    ]);
+    const selection = { adapterId: 'custom', implementationId: 'custom' } as const;
+    const caseIds = ['evaluate-aligned-project', 'create-grounded-agent'];
+    const before = await calculateQualificationCaseModelInputDigests({
+      caseIds,
+      qualificationRoot,
+      selection,
+    });
+    const scenarioPath = path.join(
+      qualificationRoot,
+      'profiles',
+      't5',
+      'cases',
+      'c3',
+      'scenario.yaml',
+    );
+    await writeFile(
+      scenarioPath,
+      `${await readFile(scenarioPath, 'utf8')}\n# changed case input\n`,
+    );
+    const after = await calculateQualificationCaseModelInputDigests({
+      caseIds,
+      qualificationRoot,
+      selection,
+    });
+
+    expect(after['evaluate-aligned-project']).toBe(before['evaluate-aligned-project']);
+    expect(after['create-grounded-agent']).not.toBe(before['create-grounded-agent']);
+  });
+
+  test('keeps scheduling source outside the model-stage evaluator digest', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-model-stage-identity-'));
+    await ensureDirectory(path.join(temporaryRoot, 'qualification'));
+    await Promise.all([
+      copyDirectory(
+        path.join(QUALIFICATION_ROOT, 'src'),
+        path.join(temporaryRoot, 'qualification', 'src'),
+      ),
+      copyDirectory(
+        path.join(QUALIFICATION_ROOT, '..', 'tooling', 'codex-evaluation-host'),
+        path.join(temporaryRoot, 'tooling', 'codex-evaluation-host'),
+      ),
+      copyDirectory(
+        path.join(QUALIFICATION_ROOT, '..', 'tooling', 'package-candidate'),
+        path.join(temporaryRoot, 'tooling', 'package-candidate'),
+      ),
+      copyDirectory(
+        path.join(QUALIFICATION_ROOT, '..', 'tooling', 'resource-calibration'),
+        path.join(temporaryRoot, 'tooling', 'resource-calibration'),
+      ),
+      writeFile(
+        path.join(temporaryRoot, 'package.json'),
+        await readFile(path.join(QUALIFICATION_ROOT, '..', 'package.json')),
+      ),
+      writeFile(
+        path.join(temporaryRoot, 'package-lock.json'),
+        await readFile(path.join(QUALIFICATION_ROOT, '..', 'package-lock.json')),
+      ),
+      writeFile(
+        path.join(temporaryRoot, 'qualification', 'package.json'),
+        await readFile(path.join(QUALIFICATION_ROOT, 'package.json')),
+      ),
+      writeFile(
+        path.join(temporaryRoot, 'qualification', 'package-lock.json'),
+        await readFile(path.join(QUALIFICATION_ROOT, 'package-lock.json')),
+      ),
+    ]);
+    const before = await calculateQualificationModelStageEvaluatorDigest(temporaryRoot);
+    const executorPath = path.join(
+      temporaryRoot,
+      'qualification',
+      'src',
+      'execution',
+      'executor.ts',
+    );
+    await writeFile(executorPath, `${await readFile(executorPath, 'utf8')}\n// scheduling only\n`);
+
+    await expect(calculateQualificationModelStageEvaluatorDigest(temporaryRoot)).resolves.toBe(
+      before,
+    );
+
+    const workspacePath = path.join(
+      temporaryRoot,
+      'qualification',
+      'src',
+      'execution',
+      'workspaces.ts',
+    );
+    await writeFile(workspacePath, `${await readFile(workspacePath, 'utf8')}\n// model-visible\n`);
+    await expect(calculateQualificationModelStageEvaluatorDigest(temporaryRoot)).resolves.not.toBe(
+      before,
+    );
   });
 });

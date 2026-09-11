@@ -345,59 +345,63 @@ const convertCurrentAttemptToFailed = (root: string, attemptId: string): void =>
   if (
     !caseResult ||
     !Array.isArray(trials) ||
+    typeof trials[1] !== 'object' ||
+    trials[1] === null ||
     typeof trials[2] !== 'object' ||
     trials[2] === null
   ) {
     throw new Error('Missing current confirmation fixture.');
   }
 
-  const terminalTrial = trials[2] as Record<string, unknown>;
-  terminalTrial['passed'] = false;
-  terminalTrial['confirmationEligible'] = true;
-  terminalTrial['dimensions'] = {
-    semantic: false,
-    resource: true,
-    commandPolicy: true,
-    repositoryControl: true,
-    mountIntegrity: true,
-    operational: true,
-  };
-  terminalTrial['failureClassifications'] = ['semantic'];
-  terminalTrial['requirementAssessments'] = [
-    {
-      id: 'complete-evidence',
-      evaluator: 'judge',
-      verdict: 'fail',
-      evidence: 'Fixture failure.',
-    },
-  ];
-  terminalTrial['failures'] = failures;
+  const confirmationTrials = [trials[1], trials[2]] as Array<Record<string, unknown>>;
+  for (const [confirmationOffset, confirmationTrial] of confirmationTrials.entries()) {
+    confirmationTrial['passed'] = false;
+    confirmationTrial['confirmationEligible'] = true;
+    confirmationTrial['dimensions'] = {
+      semantic: false,
+      resource: true,
+      commandPolicy: true,
+      repositoryControl: true,
+      mountIntegrity: true,
+      operational: true,
+    };
+    confirmationTrial['failureClassifications'] = ['semantic'];
+    confirmationTrial['requirementAssessments'] = [
+      {
+        id: 'complete-evidence',
+        evaluator: 'judge',
+        verdict: 'fail',
+        evidence: 'Fixture failure.',
+      },
+    ];
+    confirmationTrial['failures'] = failures;
+    replaceAttemptArtifact(
+      root,
+      attemptId,
+      `cases/release-case/trials/confirmation-${confirmationOffset + 1}/judge-output.json`,
+      {
+        verdict: 'fail',
+        summary: 'The confirmation failed.',
+        requirements: [
+          {
+            id: 'complete-evidence',
+            verdict: 'fail',
+            evidence: 'Fixture failure.',
+          },
+        ],
+        failures: ['Fixture failure.'],
+      },
+    );
+    replaceAttemptArtifact(
+      root,
+      attemptId,
+      `cases/release-case/trials/confirmation-${confirmationOffset + 1}/trial-result.json`,
+      confirmationTrial,
+    );
+  }
   caseResult['status'] = 'failed';
   caseResult['confirmationStatus'] = 'rejected';
   caseResult['failures'] = failures;
-  replaceAttemptArtifact(
-    root,
-    attemptId,
-    'cases/release-case/trials/confirmation-2/judge-output.json',
-    {
-      verdict: 'fail',
-      summary: 'The confirmation failed.',
-      requirements: [
-        {
-          id: 'complete-evidence',
-          verdict: 'fail',
-          evidence: 'Fixture failure.',
-        },
-      ],
-      failures: ['Fixture failure.'],
-    },
-  );
-  replaceAttemptArtifact(
-    root,
-    attemptId,
-    'cases/release-case/trials/confirmation-2/trial-result.json',
-    terminalTrial,
-  );
   replaceAttemptArtifact(root, attemptId, 'cases/release-case/case-result.json', caseResult);
   const updatedAttempt = readAttemptFixture(root, attemptId);
   updatedAttempt['status'] = 'failed';
@@ -417,6 +421,7 @@ const convertCurrentAttemptToFailed = (root: string, attemptId: string): void =>
 const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: string): void => {
   const failure =
     'Judge command policy observed prohibited credential, network, or sensitive evaluator access.';
+  convertCurrentAttemptToFailed(root, attemptId);
   const attempt = readAttemptFixture(root, attemptId);
   const caseResult = attempt.cases[0];
   const trials = caseResult?.['trials'];
@@ -442,6 +447,14 @@ const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: stri
     operational: true,
   };
   terminalTrial['failureClassifications'] = ['commandPolicy'];
+  terminalTrial['requirementAssessments'] = [
+    {
+      id: 'complete-evidence',
+      evaluator: 'judge',
+      verdict: 'pass',
+      evidence: 'The deterministic and workspace evidence passed.',
+    },
+  ];
   terminalTrial['failures'] = [failure];
   caseResult['status'] = 'failed';
   caseResult['confirmationStatus'] = 'rejected';
@@ -463,6 +476,23 @@ const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: stri
     reasons: [{ code: 'evaluator-home', count: 1 }],
   };
   replaceAttemptArtifact(root, attemptId, judgeEvidencePath, judgeEvidence);
+  replaceAttemptArtifact(
+    root,
+    attemptId,
+    'cases/release-case/trials/confirmation-2/judge-output.json',
+    {
+      verdict: 'pass',
+      summary: 'Every declared fixture requirement passed.',
+      requirements: [
+        {
+          id: 'complete-evidence',
+          verdict: 'pass',
+          evidence: 'The deterministic and workspace evidence passed.',
+        },
+      ],
+      failures: [],
+    },
+  );
   replaceAttemptArtifact(
     root,
     attemptId,
@@ -799,7 +829,7 @@ cases:
       root,
       attemptId,
       'cases/release-case/trials/initial/actor-prompt.md',
-      buildActorPrompt({
+      `${buildActorPrompt({
         task: [
           '# Recorded task',
           '',
@@ -809,7 +839,7 @@ cases:
           '',
           '- Keep this task-owned section in the replay.',
         ].join('\n'),
-      }),
+      }).trim()}\n`,
     );
     writeText(
       root,

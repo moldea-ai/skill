@@ -97,6 +97,12 @@ const createAttemptRecord = (
     packageLockSha256: 'c'.repeat(64),
     version: '6.0.0',
   },
+  confirmationPolicy: {
+    version: 2,
+    requiredPassingConfirmations: 2,
+    requiredFailingConfirmations: 2,
+    maximumConfirmations: 3,
+  },
   coverageDigest: 'd'.repeat(64),
   createdAt: TIMESTAMP,
   evidence: {
@@ -131,7 +137,7 @@ const createAttemptRecord = (
   recoveredCaseCount: 0,
   reusedStageCount: 0,
   reusedTrialCount: 0,
-  schemaVersion: 6,
+  schemaVersion: 7,
   status: 'passed',
   stopReason: 'complete',
   totalCaseCount: 1,
@@ -140,7 +146,7 @@ const createAttemptRecord = (
 
 describe('SemanticAttemptRecordSchema', () => {
   test('accepts a terminal non-semantic failure without confirmations', () => {
-    const attempt = createAttemptRecord(9, 25);
+    const attempt = createAttemptRecord(10, 25);
     const attemptCase = (attempt['cases'] as Array<Record<string, unknown>>)[0];
     const trial = (attemptCase?.['trials'] as Array<Record<string, unknown>>)[0];
     if (attemptCase === undefined || trial === undefined) {
@@ -167,7 +173,7 @@ describe('SemanticAttemptRecordSchema', () => {
   });
 
   test('rejects contradictory case aggregates and stop reasons', () => {
-    const attempt = createAttemptRecord(9, 25);
+    const attempt = createAttemptRecord(10, 25);
     attempt['failedCaseCount'] = 1;
     attempt['passedCaseCount'] = 0;
     attempt['status'] = 'failed';
@@ -177,17 +183,17 @@ describe('SemanticAttemptRecordSchema', () => {
   });
 
   test('rejects undeclared compatibility fields', () => {
-    const attempt = createAttemptRecord(9, 25);
+    const attempt = createAttemptRecord(10, 25);
     attempt['legacyResult'] = { status: 'passed' };
 
     expect(SemanticAttemptRecordSchema.safeParse(attempt).success).toBe(false);
   });
 
   test.each([
-    [8, 25, false],
-    [9, 24, false],
-    [9, 25, true],
-    [9, 26, false],
+    [9, 25, false],
+    [10, 24, false],
+    [10, 25, true],
+    [10, 26, false],
   ])(
     'schema %d with protocol %d has validity %s',
     (schemaVersion, evaluationProtocolVersion, expectedValidity) => {
@@ -200,7 +206,7 @@ describe('SemanticAttemptRecordSchema', () => {
   );
 
   test('validates explicit executed and reused stage-count arithmetic', () => {
-    const record = createAttemptRecord(9, 25);
+    const record = createAttemptRecord(10, 25);
     const attemptCase = (record['cases'] as Array<Record<string, unknown>>)[0];
     const trial = (attemptCase?.['trials'] as Array<Record<string, unknown>>)[0];
     if (trial === undefined) throw new Error('Expected one semantic trial.');
@@ -212,7 +218,7 @@ describe('SemanticAttemptRecordSchema', () => {
   });
 
   test('rejects attempts without explicit execution provenance', () => {
-    const record = createAttemptRecord(9, 25);
+    const record = createAttemptRecord(10, 25);
     const attemptCase = (record['cases'] as Array<Record<string, unknown>>)[0];
     const trial = (attemptCase?.['trials'] as Array<Record<string, unknown>>)[0];
     if (trial === undefined) throw new Error('Expected one semantic trial.');
@@ -223,7 +229,7 @@ describe('SemanticAttemptRecordSchema', () => {
   });
 
   test('rejects a passing command-policy dimension with observed actor access', () => {
-    const record = createAttemptRecord(9, 25);
+    const record = createAttemptRecord(10, 25);
     const attemptCase = (record['cases'] as Array<Record<string, unknown>>)[0];
     const trial = (attemptCase?.['trials'] as Array<Record<string, unknown>>)[0];
     if (trial === undefined) throw new Error('Expected one semantic trial.');
@@ -242,7 +248,7 @@ describe('SemanticAttemptRecordSchema', () => {
   });
 
   test('rejects moldea command counts greater than completed command counts', () => {
-    const record = createAttemptRecord(9, 25);
+    const record = createAttemptRecord(10, 25);
     const attemptCase = (record['cases'] as Array<Record<string, unknown>>)[0];
     const trial = (attemptCase?.['trials'] as Array<Record<string, unknown>>)[0];
     if (trial === undefined) throw new Error('Expected one semantic trial.');
@@ -255,7 +261,7 @@ describe('SemanticAttemptRecordSchema', () => {
   });
 
   test('rejects reused provenance that names another case', () => {
-    const record = createAttemptRecord(9, 25);
+    const record = createAttemptRecord(10, 25);
     const attemptCase = (record['cases'] as Array<Record<string, unknown>>)[0];
     const trial = (attemptCase?.['trials'] as Array<Record<string, unknown>>)[0];
     if (trial === undefined) throw new Error('Expected one semantic trial.');

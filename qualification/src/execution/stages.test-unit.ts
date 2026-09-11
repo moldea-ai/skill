@@ -11,9 +11,9 @@ import {
 } from './stages.ts';
 
 describe('qualification stage planning', () => {
-  test('derives the exact Custom maximum of seventy-two planned trial calls from twelve cases', () => {
-    expect(getQualificationPlannedCallCount(12)).toBe(72);
-    expect(getQualificationMaximumCallCount(72)).toBe(144);
+  test('derives the exact Custom maximum of ninety-six planned trial calls from twelve cases', () => {
+    expect(getQualificationPlannedCallCount(12)).toBe(96);
+    expect(getQualificationMaximumCallCount(96)).toBe(192);
   });
 
   test('bounds one diagnostic initial trial at two planned and four maximum calls', () => {
@@ -35,7 +35,7 @@ describe('qualification stage planning', () => {
   });
 
   test('derives the aggregate token ceiling from the bounded call envelope', () => {
-    expect(getQualificationMaximumTokenCount(144)).toBe(301_989_888);
+    expect(getQualificationMaximumTokenCount(192)).toBe(402_653_184);
     expect(() => getQualificationMaximumTokenCount(-1)).toThrow(
       'Qualification maximum call count must be a non-negative integer.',
     );
@@ -82,6 +82,12 @@ describe('qualification stage planning', () => {
       'case:release-case:trial:confirmation-2:deterministic-after',
       'case:release-case:trial:confirmation-2:assertions',
       'case:release-case:trial:confirmation-2:judge',
+      'case:release-case:trial:confirmation-3:prepare',
+      'case:release-case:trial:confirmation-3:deterministic-before',
+      'case:release-case:trial:confirmation-3:actor',
+      'case:release-case:trial:confirmation-3:deterministic-after',
+      'case:release-case:trial:confirmation-3:assertions',
+      'case:release-case:trial:confirmation-3:judge',
       'case:release-case:result',
     ]);
   });

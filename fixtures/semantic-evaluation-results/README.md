@@ -1,14 +1,14 @@
 # Semantic evaluation results
 
-This directory stores protocol 24 attempts for the active 74-case semantic evaluation. Every terminal recorded run appends one immutable attempt directory containing:
+This directory stores protocol 25 attempts for the active 74-case semantic evaluation. Every terminal recorded run appends one immutable attempt directory containing:
 
 - `attempt.json`: the derived status, cases, confirmations, command-policy and resource aggregates, exact actor and judge provenance, and execution-origin counts when the attempt supports exact stage reuse
-- `evidence.json`: the exact schema-8 checkpoint that produced the summary
+- `evidence.json`: the exact schema-10 checkpoint that produced the summary
 - `identity.json`: the attempt and evidence digests bound to the clean source commit, relevant-source digest, portable-skill digest, CLI closure, semantic input digest, and invocation arguments
 
 `latest.json` is created with the first attempt and identifies the newest attempt and last passing attempt independently. A newer failure remains visible and cannot be hidden by an older pass.
 
-Current assurance accepts only a complete attempt whose 74-case suite, coverage, portable skill, CLI closure, protocol, and host contract match current source. Exact actor or judge stages may come from verified committed passing evidence when their complete stage identities match; their provenance remains explicit and they are not counted as new executions. Only a complete current 74-case attempt can create `fixtures/semantic-evaluation-result.json` or support a `74/74` public claim.
+Current assurance accepts only a complete attempt whose 74-case suite, coverage, portable skill, CLI closure, protocol, confirmation policy, and host contract match current source. Confirmations run sequentially until two pass or two fail, with at most three confirmations. Exact actor or judge stages may come from a source declared in `reuse-sources.json` only when the manifest digests, committed source evidence, evaluator-stage input, and exact case input all match. Their original provenance remains explicit and they are not counted as new executions. The source manifest is reuse input, not current assurance. Only a complete current 74-case attempt can create `fixtures/semantic-evaluation-result.json` or support a `74/74` public claim.
 
 The public website generates attempt routes and search records only for evidence matching the active evaluation contract. Superseded evaluation generations are not retained as an active source, compatibility surface, public route, or release fallback.
 

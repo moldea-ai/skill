@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, test } from 'vitest';
 
 import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../../../../tooling/codex-evaluation-host/index.mjs';
+import { EVALUATION_CONFIRMATION_POLICY } from '../../../../tooling/evaluation-confirmation-policy/index.mjs';
 import {
   createPortableSkillDigest,
   createSemanticCaseDefinitionDigest,
@@ -121,6 +122,7 @@ const createCandidate = (
   cli: createSemanticCliIdentity(root),
   confirmations: [],
   coverageDigest: createSemanticCoverageDigest(coverage, caseDefinitions),
+  confirmationPolicy: EVALUATION_CONFIRMATION_POLICY,
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt: updatedAt,
   hostContract: {
@@ -234,7 +236,7 @@ const createCandidate = (
       workspaceChanges: { created: [], deleted: [], modified: [] },
     };
   }),
-  schemaVersion: 9,
+  schemaVersion: 10,
   updatedAt,
 });
 
@@ -387,7 +389,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
     const model = loadSemanticEvaluationWebsiteModel(root);
 
-    expect(model.latest?.result.schemaVersion).toBe(6);
+    expect(model.latest?.result.schemaVersion).toBe(7);
     expect(
       model.latest?.cases.find(({ id }) => id === cases[0]?.id)?.trials[0]
         ?.actorCommandPolicyEvidence,

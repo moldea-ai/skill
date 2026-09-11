@@ -208,7 +208,7 @@ const breadcrumbs = [
               </article>
               <div class="grid justify-items-start gap-3 lg:justify-items-end">
                 <a
-                  class="inline-flex items-center gap-2 font-semibold text-link hover:underline"
+                  class="inline-flex items-center gap-2 text-link font-semibold hover:underline"
                   href={withBase(latestAttempt.route, basePath)}
                 >
                   {latestAttemptLinkLabel}
@@ -220,7 +220,7 @@ const breadcrumbs = [
                 {profile.currentAssurance?.baselineAttempt !== null &&
                   profile.currentAssurance?.baselineAttempt !== undefined && (
                     <a
-                      class="inline-flex items-center gap-2 font-semibold text-link hover:underline"
+                      class="inline-flex items-center gap-2 text-link font-semibold hover:underline"
                       href={withBase(profile.currentAssurance.baselineAttempt.route, basePath)}
                     >
                       Inspect the shared Custom evidence
@@ -358,7 +358,7 @@ const breadcrumbs = [
 
               <div class="mt-5 flex flex-wrap gap-4 text-sm">
                 <a
-                  class="inline-flex items-center gap-1.5 font-semibold text-link hover:underline"
+                  class="inline-flex items-center gap-1.5 text-link font-semibold hover:underline"
                   href={profileCase.projectSourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -370,7 +370,7 @@ const breadcrumbs = [
                   />
                 </a>
                 <a
-                  class="inline-flex items-center gap-1.5 font-semibold text-link hover:underline"
+                  class="inline-flex items-center gap-1.5 text-link font-semibold hover:underline"
                   href={profileCase.scenarioSourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -382,7 +382,7 @@ const breadcrumbs = [
                   />
                 </a>
                 <a
-                  class="inline-flex items-center gap-1.5 font-semibold text-link hover:underline"
+                  class="inline-flex items-center gap-1.5 text-link font-semibold hover:underline"
                   href={profileCase.taskSourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -504,7 +504,7 @@ const breadcrumbs = [
                   <tr>
                     <td class="px-4 py-3 align-top">
                       <a
-                        class="font-mono font-semibold text-link hover:underline"
+                        class="text-link font-mono font-semibold hover:underline"
                         href={withBase(route, basePath)}
                       >
                         {result.attemptId}

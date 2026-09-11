@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 
 import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../codex-evaluation-host/index.mjs';
+import { EVALUATION_CONFIRMATION_POLICY } from '../evaluation-confirmation-policy/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
 
 import {
@@ -40,6 +41,7 @@ const createEvidence = (id, passed, updatedAt) => ({
   caseSuiteDigest: 'b'.repeat(64),
   cli: { name: '@moldea.ai/cli', version: '5.0.0' },
   confirmations: [],
+  confirmationPolicy: EVALUATION_CONFIRMATION_POLICY,
   coverageDigest: 'c'.repeat(64),
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt: updatedAt,
@@ -118,7 +120,7 @@ const createEvidence = (id, passed, updatedAt) => ({
       stageReuse: null,
     },
   ],
-  schemaVersion: 9,
+  schemaVersion: 10,
   updatedAt,
 });
 

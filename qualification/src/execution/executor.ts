@@ -7,6 +7,7 @@ import {
   EVALUATION_BATCH_DEFAULT_WORKER_COUNT,
   runOrderedEvaluationBatch,
 } from '../../../tooling/evaluation-batch/index.mjs';
+import { getEvaluationConfirmationResolution } from '../../../tooling/evaluation-confirmation-policy/index.mjs';
 
 import { prepareCandidateClosure } from '../candidate-closure/index.ts';
 import {
@@ -33,6 +34,7 @@ import {
   DEFAULT_PACKAGES_REPOSITORY,
   DEFAULT_SKILL_REPOSITORY,
   QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
+  QUALIFICATION_CONFIRMATION_POLICY,
   QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
   QUALIFICATION_RESULTS_ROOT,
   SKILL_REPOSITORY_ROOT,
@@ -57,6 +59,10 @@ import {
   QualificationCoverageResultSchema,
 } from '../coverage/index.ts';
 import { verifyDeterministicProject } from '../deterministic/index.ts';
+import {
+  calculateQualificationCaseModelInputDigests,
+  calculateQualificationModelStageEvaluatorDigest,
+} from '../evidence-identity/index.ts';
 import {
   ensureDirectory,
   readJsonFile,
@@ -87,7 +93,6 @@ import { cleanupQualificationAttemptRuntime } from './attempt-runtime.ts';
 import {
   calculatePackagesQualificationDigest,
   calculateQualificationExecutionDigest,
-  calculateQualificationModelHostDigest,
 } from './fingerprints.ts';
 import {
   executeActorModelStage,
@@ -149,27 +154,29 @@ const pathExists = async (candidatePath: string): Promise<boolean> => {
 };
 
 /**
- * Inspects every source tree that can affect qualification evidence.
+ * Captures the immutable behavior-bearing repositories for one qualification target.
  * @returns The package, qualification-suite, and portable-skill repository states.
  */
-/** Captures the immutable behavior-bearing repositories for one qualification target. */
 export const inspectQualificationInputState = async (
   packagesState: IQualificationInputState['packagesState'],
   skillRepository: string,
   target: IResolvedQualificationTarget,
 ): Promise<IQualificationInputState> => {
-  const [modelHostDigest, qualificationDigest, qualificationState, skillState] = await Promise.all([
-    calculateQualificationModelHostDigest(),
-    calculateQualificationExecutionDigest({
-      caseIds: target.profile.cases.map(({ id }) => id),
-      profileDirectory: target.profileDirectory,
-    }),
-    inspectGitRepositoryState(SKILL_REPOSITORY_ROOT, {
-      includedRelativePathPrefixes: QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
-      excludedRelativePathPrefixes: ['qualification/results'],
-    }),
-    inspectGitRepositoryState(skillRepository),
-  ]);
+  const caseIds = target.profile.cases.map(({ id }) => id);
+  const [caseDigests, evaluatorStageDigest, qualificationDigest, qualificationState, skillState] =
+    await Promise.all([
+      calculateQualificationCaseModelInputDigests({ caseIds, selection: target.selection }),
+      calculateQualificationModelStageEvaluatorDigest(),
+      calculateQualificationExecutionDigest({
+        caseIds,
+        profileDirectory: target.profileDirectory,
+      }),
+      inspectGitRepositoryState(SKILL_REPOSITORY_ROOT, {
+        includedRelativePathPrefixes: QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
+        excludedRelativePathPrefixes: ['qualification/results'],
+      }),
+      inspectGitRepositoryState(skillRepository),
+    ]);
   const packagesDigest = calculatePackagesQualificationDigest({
     adapter: target.adapter,
     matrixVersion: target.matrix.version,
@@ -180,7 +187,8 @@ export const inspectQualificationInputState = async (
   );
 
   return {
-    modelHostDigest,
+    caseDigests,
+    evaluatorStageDigest,
     packagesDigest,
     packagesState,
     qualificationBaselineDigest,
@@ -425,7 +433,7 @@ export const runQualification = async (
     checkpoint.skillRepository,
     target,
   );
-  const { modelHostDigest, packagesState, qualificationState, skillState } = inputState;
+  const { packagesState, qualificationState, skillState } = inputState;
   const { qualificationDigest } = inputState;
 
   if (
@@ -867,8 +875,10 @@ export const runQualification = async (
         ? await loadReusableQualificationCases({
             baselineAttemptId,
             candidate,
+            caseDigests: inputState.caseDigests,
             caseIds: selectedProfileCases.map(({ id }) => id),
             checkpoint,
+            evaluatorStageDigest: inputState.evaluatorStageDigest,
             executionEnvironment,
             packagesRepositoryCommit: packagesState.commit,
             qualificationRepositoryCommit: qualificationState.commit,
@@ -968,6 +978,10 @@ export const runQualification = async (
       }
 
       const task = await readQualificationTask(project);
+      const caseDigest = inputState.caseDigests[profileCase.id];
+      if (caseDigest === undefined) {
+        throw new Error(`Qualification input identity is missing case ${profileCase.id}.`);
+      }
       const deterministicBeforeStageId = `case:${profileCase.id}:trial:${trialId}:deterministic-before`;
       const deterministicBeforePath = path.join(
         trialArtifactDirectory,
@@ -1031,6 +1045,7 @@ export const runQualification = async (
               attemptDirectory,
               attemptId: checkpoint.attemptId,
               candidate,
+              caseDigest,
               caseArtifactDirectory: trialArtifactDirectory,
               executionEnvironment,
               host: options.host,
@@ -1087,9 +1102,7 @@ export const runQualification = async (
                 ? {}
                 : { operationalRetry: options.operationalRetry }),
               packagesRepository: checkpoint.packagesRepository,
-              modelHostDigest,
-              profileDigest: checkpoint.profileDigest,
-              qualificationDigest: inputState.qualificationDigest,
+              evaluatorStageDigest: inputState.evaluatorStageDigest,
               baselineAttemptId,
               project,
               restorePreActorState: () =>
@@ -1253,6 +1266,7 @@ export const runQualification = async (
                 attemptDirectory,
                 attemptId: checkpoint.attemptId,
                 candidate,
+                caseDigest,
                 caseArtifactDirectory: trialArtifactDirectory,
                 deterministicAfter: deterministicAfter.summary,
                 executionEnvironment,
@@ -1311,9 +1325,7 @@ export const runQualification = async (
                   ? {}
                   : { operationalRetry: options.operationalRetry }),
                 packagesRepository: checkpoint.packagesRepository,
-                modelHostDigest,
-                profileDigest: checkpoint.profileDigest,
-                qualificationDigest: inputState.qualificationDigest,
+                evaluatorStageDigest: inputState.evaluatorStageDigest,
                 baselineAttemptId,
                 project,
                 runWithTemporaryStorageGuard: (operation) =>
@@ -1573,35 +1585,56 @@ export const runQualification = async (
           skipQualificationStageGroup(attemptDirectory, currentCheckpoint, [
             ...createQualificationTrialStageIds(profileCase.id, 'confirmation-1'),
             ...createQualificationTrialStageIds(profileCase.id, 'confirmation-2'),
+            ...createQualificationTrialStageIds(profileCase.id, 'confirmation-3'),
           ]),
         );
         status = 'passed';
         confirmationStatus = 'not-required';
       } else if (initialTrial.confirmationEligible) {
-        const confirmation1 = await executeTrial(profileCase, 'confirmation-1');
-        trials.push(confirmation1);
+        let resolution: ReturnType<typeof getEvaluationConfirmationResolution> =
+          'awaiting-confirmation';
 
-        if (!confirmation1.passed) {
-          await updateCheckpoint((currentCheckpoint) =>
-            skipQualificationStageGroup(
-              attemptDirectory,
-              currentCheckpoint,
-              createQualificationTrialStageIds(profileCase.id, 'confirmation-2'),
-            ),
+        for (
+          let confirmationIndex = 1;
+          confirmationIndex <= QUALIFICATION_CONFIRMATION_POLICY.maximumConfirmations;
+          confirmationIndex += 1
+        ) {
+          const trialId =
+            `confirmation-${confirmationIndex}` as IQualificationTrialResult['trialId'];
+          const confirmation = await executeTrial(profileCase, trialId);
+          trials.push(confirmation);
+          resolution = getEvaluationConfirmationResolution(
+            trials.slice(1).map(({ passed }) => passed),
           );
-          status = 'failed';
-          confirmationStatus = 'rejected';
-        } else {
-          const confirmation2 = await executeTrial(profileCase, 'confirmation-2');
-          trials.push(confirmation2);
-          status = confirmation2.passed ? 'recovered' : 'failed';
-          confirmationStatus = confirmation2.passed ? 'passed' : 'rejected';
+
+          if (resolution !== 'awaiting-confirmation') {
+            const skippedStageIds = Array.from(
+              {
+                length: QUALIFICATION_CONFIRMATION_POLICY.maximumConfirmations - confirmationIndex,
+              },
+              (_, offset) =>
+                createQualificationTrialStageIds(
+                  profileCase.id,
+                  `confirmation-${confirmationIndex + offset + 1}` as IQualificationTrialResult['trialId'],
+                ),
+            ).flat();
+            if (skippedStageIds.length > 0) {
+              await updateCheckpoint((currentCheckpoint) =>
+                skipQualificationStageGroup(attemptDirectory, currentCheckpoint, skippedStageIds),
+              );
+            }
+            break;
+          }
         }
+
+        status = resolution === 'recovered' ? 'recovered' : 'failed';
+        confirmationStatus = resolution === 'recovered' ? 'passed' : 'rejected';
       } else {
         await updateCheckpoint((currentCheckpoint) =>
           skipQualificationStageGroup(attemptDirectory, currentCheckpoint, [
             ...createQualificationTrialStageIds(profileCase.id, 'confirmation-1'),
             ...createQualificationTrialStageIds(profileCase.id, 'confirmation-2'),
+            ...createQualificationTrialStageIds(profileCase.id, 'confirmation-3'),
           ]),
         );
         status = 'failed';

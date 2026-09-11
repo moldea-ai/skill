@@ -127,7 +127,8 @@ export type IQualificationExecutionProvenance = Omit<IQualificationProvenance, '
 
 // source repositories that determine one attempt's reproducible input identity
 export type IQualificationInputState = {
-  modelHostDigest: string;
+  caseDigests: Record<string, string>;
+  evaluatorStageDigest: string;
   packagesDigest: string;
   packagesState: IGitRepositoryState;
   qualificationBaselineDigest: string;

@@ -9,6 +9,7 @@ import { QualificationCaseScenarioSchema } from '../contracts/index.ts';
 import { inspectQualificationCoverage } from '../coverage/index.ts';
 import { ensureDirectory, readYamlFile } from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
+import { loadQualificationProfileIndex } from '../storage/index.ts';
 import { loadRuntimeCompatibilitySnapshot, resolveQualificationTarget } from './loader.ts';
 
 // cases that intentionally begin without the complete moldea adoption contract
@@ -121,6 +122,58 @@ test('loads compatibility from an immutable packages commit instead of its workt
 });
 
 describe('Custom qualification profile', () => {
+  test('keeps focused-test allowances exact and limited to behavior-authoring cases', async () => {
+    const index = await loadQualificationProfileIndex();
+    const testAllowances: Array<{
+      adapterId: string;
+      caseId: string;
+      path: string;
+    }> = [];
+
+    for (const indexedTarget of index.targets) {
+      const target = await resolveQualificationTarget({
+        adapterId: indexedTarget.adapterId,
+        implementationId: indexedTarget.implementationId,
+      });
+
+      for (const profileCase of target.profile.cases) {
+        const scenario = await readYamlFile(
+          path.join(
+            target.profileDirectory,
+            profileCase.projectDirectory,
+            profileCase.scenarioFile,
+          ),
+          QualificationCaseScenarioSchema,
+        );
+
+        for (const allowedPath of scenario.workspace.allowedChangePaths) {
+          if (allowedPath.startsWith('test/') || allowedPath.startsWith('tests/')) {
+            testAllowances.push({
+              adapterId: target.profile.adapterId,
+              caseId: scenario.id,
+              path: allowedPath,
+            });
+          }
+        }
+
+        expect(
+          scenario.workspace.allowedChangePathPatterns.some(
+            (allowedPattern) =>
+              allowedPattern.startsWith('test/') || allowedPattern.startsWith('tests/'),
+          ),
+        ).toBe(false);
+      }
+    }
+
+    expect(testAllowances).toStrictEqual([
+      {
+        adapterId: 'custom',
+        caseId: 'create-grounded-agent',
+        path: 'test/order-triage-agent.test.mjs',
+      },
+    ]);
+  });
+
   test('keeps abstention verdicts limited to moldea behavior and repository preservation', async () => {
     const target = await resolveQualificationTarget({
       adapterId: 'custom',

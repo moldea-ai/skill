@@ -67,7 +67,7 @@ export interface ISemanticAttemptTrialModel {
   };
   actorHost: ISemanticEvaluationActorHostModel;
   confirmationEligible: boolean;
-  confirmationIndex: 1 | 2 | null;
+  confirmationIndex: 1 | 2 | 3 | null;
   dimensions: ISemanticResultDimensions;
   evaluatedAt: string;
   executionOrigin: 'executed' | 'reused';
@@ -91,7 +91,7 @@ export interface ISemanticAttemptTrialModel {
         evidenceSha256: string;
         trial: {
           caseId: string;
-          confirmationIndex: 1 | 2 | null;
+          confirmationIndex: 1 | 2 | 3 | null;
           kind: 'confirmation' | 'initial';
         };
       };
@@ -108,7 +108,7 @@ export interface ISemanticAttemptTrialModel {
         evidenceSha256: string;
         trial: {
           caseId: string;
-          confirmationIndex: 1 | 2 | null;
+          confirmationIndex: 1 | 2 | 3 | null;
           kind: 'confirmation' | 'initial';
         };
       };

@@ -14,7 +14,12 @@ const SHA_A = 'a'.repeat(64);
 // complete official preflight evidence for an adapter attempt with no executed cases
 const FAILED_BASELINE_RESULT = {
   protocolVersion: 10,
-  confirmationPolicy: { version: 1, requiredPassingConfirmations: 2 },
+  confirmationPolicy: {
+    version: 2,
+    requiredPassingConfirmations: 2,
+    requiredFailingConfirmations: 2,
+    maximumConfirmations: 3,
+  },
   mode: 'official',
   attemptId: 'failed-baseline-attempt',
   parentAttemptId: null,

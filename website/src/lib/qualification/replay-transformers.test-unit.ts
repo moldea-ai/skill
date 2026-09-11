@@ -112,7 +112,7 @@ const createWorkspace = (): IWorkspaceAssertionResult => ({
 const createTrial = (
   options: {
     actorExecutionEvents?: IQualificationProjectedExecutionEvent[];
-    confirmationIndex?: 1 | 2;
+    confirmationIndex?: 1 | 2 | 3;
     passed?: boolean;
     workspaceAssertions?: IWorkspaceAssertionResult;
   } = {},
@@ -301,15 +301,17 @@ describe('createQualificationReplay', () => {
 
   test('preserves initial and confirmation trials in recorded order', () => {
     const initial = createTrial({ passed: false });
-    const confirmation1 = createTrial({ confirmationIndex: 1 });
+    const confirmation1 = createTrial({ confirmationIndex: 1, passed: false });
     const confirmation2 = createTrial({ confirmationIndex: 2 });
-    const trials = [initial, confirmation1, confirmation2];
+    const confirmation3 = createTrial({ confirmationIndex: 3 });
+    const trials = [initial, confirmation1, confirmation2, confirmation3];
     const replay = createQualificationReplay(createCaseResult(trials), trials);
 
     expect(replay.trials.map(({ id, title }) => ({ id, title }))).toStrictEqual([
       { id: 'initial', title: 'Initial trial' },
       { id: 'confirmation-1', title: 'Confirmation 1' },
       { id: 'confirmation-2', title: 'Confirmation 2' },
+      { id: 'confirmation-3', title: 'Confirmation 3' },
     ]);
     expect(replay.trials[0]?.steps.at(-1)).toMatchObject({
       source: 'derived',

@@ -2,6 +2,7 @@ import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibr
 
 import {
   QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
+  QUALIFICATION_CONFIRMATION_POLICY,
   QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT,
 } from '../constants/index.ts';
 import {
@@ -39,7 +40,10 @@ export const getQualificationPlannedCallCount = (
     throw new Error('Qualification case count must be a non-negative integer.');
   }
 
-  return caseCount * (includeConfirmations ? 6 : 2);
+  const trialCount = includeConfirmations
+    ? QUALIFICATION_CONFIRMATION_POLICY.maximumConfirmations + 1
+    : 1;
+  return caseCount * trialCount * 2;
 };
 
 /** Returns the hard paid-call ceiling after bounded operational retries. */
@@ -150,6 +154,7 @@ export const createQualificationStageIds = (
       ? [
           ...createQualificationTrialStageIds(caseId, 'confirmation-1'),
           ...createQualificationTrialStageIds(caseId, 'confirmation-2'),
+          ...createQualificationTrialStageIds(caseId, 'confirmation-3'),
         ]
       : []),
     `case:${caseId}:result`,

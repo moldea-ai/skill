@@ -8,6 +8,11 @@ import type {
 } from '@moldea.ai/website-ui/evaluation-replay-model';
 import { z } from 'zod';
 
+import {
+  EVALUATION_CONFIRMATION_POLICY,
+  getEvaluationConfirmationResolution,
+} from '../../../../tooling/evaluation-confirmation-policy/index.mjs';
+
 const QUALIFICATION_PROTOCOL_VERSION = 2;
 const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 10;
 const INITIAL_OPERATIONAL_RETRY_DELAY_MS = 5_000;
@@ -31,6 +36,16 @@ const RelativePathSchema = z
   }, 'Expected a normalized repository-relative POSIX path.');
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
 const AttemptStatusSchema = z.enum(['errored', 'failed', 'incomplete', 'passed']);
+const QualificationConfirmationPolicySchema = z.strictObject({
+  version: z.literal(EVALUATION_CONFIRMATION_POLICY.version),
+  requiredPassingConfirmations: z.literal(
+    EVALUATION_CONFIRMATION_POLICY.requiredPassingConfirmations,
+  ),
+  requiredFailingConfirmations: z.literal(
+    EVALUATION_CONFIRMATION_POLICY.requiredFailingConfirmations,
+  ),
+  maximumConfirmations: z.literal(EVALUATION_CONFIRMATION_POLICY.maximumConfirmations),
+});
 
 /** Calculates the independently validated retry-delay range for one failure count. */
 const getOperationalRetryDelayRange = (
@@ -290,9 +305,9 @@ const QualificationFailureClassificationSchema = z.enum([
 ]);
 export const QualificationTrialResultSchema = z
   .strictObject({
-    trialId: z.enum(['initial', 'confirmation-1', 'confirmation-2']),
+    trialId: z.enum(['initial', 'confirmation-1', 'confirmation-2', 'confirmation-3']),
     kind: z.enum(['confirmation', 'initial']),
-    confirmationIndex: z.number().int().min(1).max(2).nullable(),
+    confirmationIndex: z.number().int().min(1).max(3).nullable(),
     confirmationEligible: z.boolean(),
     dimensions: QualificationTrialDimensionsSchema,
     failureClassifications: z.array(QualificationFailureClassificationSchema),
@@ -391,7 +406,10 @@ export const QualificationCurrentCaseResultSchema = z
     status: z.enum(['failed', 'passed', 'recovered']),
     confirmationStatus: z.enum(['not-applicable', 'not-required', 'passed', 'rejected']),
     durationMs: z.number().int().nonnegative(),
-    trials: z.array(QualificationTrialResultSchema).min(1).max(3),
+    trials: z
+      .array(QualificationTrialResultSchema)
+      .min(1)
+      .max(EVALUATION_CONFIRMATION_POLICY.maximumConfirmations + 1),
     failures: z.array(z.string()),
     reuse: z
       .strictObject({
@@ -402,27 +420,45 @@ export const QualificationCurrentCaseResultSchema = z
       .nullable(),
   })
   .superRefine((caseResult, context) => {
-    const [initial, confirmation1, confirmation2] = caseResult.trials;
-    const hasValidHistory =
-      initial?.trialId === 'initial' &&
-      (initial.passed
-        ? caseResult.trials.length === 1 &&
-          caseResult.status === 'passed' &&
-          caseResult.confirmationStatus === 'not-required'
-        : !initial.confirmationEligible
-          ? caseResult.trials.length === 1 &&
-            caseResult.status === 'failed' &&
-            caseResult.confirmationStatus === 'not-applicable'
-          : confirmation1?.trialId === 'confirmation-1' &&
-            (confirmation1.passed
-              ? confirmation2?.trialId === 'confirmation-2' &&
-                caseResult.trials.length === 3 &&
-                (confirmation2.passed
-                  ? caseResult.status === 'recovered' && caseResult.confirmationStatus === 'passed'
-                  : caseResult.status === 'failed' && caseResult.confirmationStatus === 'rejected')
-              : caseResult.trials.length === 2 &&
-                caseResult.status === 'failed' &&
-                caseResult.confirmationStatus === 'rejected'));
+    const [initial] = caseResult.trials;
+    const confirmations = caseResult.trials.slice(1);
+    let hasValidHistory = initial?.trialId === 'initial';
+
+    if (initial?.passed) {
+      hasValidHistory =
+        hasValidHistory &&
+        caseResult.trials.length === 1 &&
+        caseResult.status === 'passed' &&
+        caseResult.confirmationStatus === 'not-required';
+    } else if (initial !== undefined && !initial.confirmationEligible) {
+      hasValidHistory =
+        hasValidHistory &&
+        caseResult.trials.length === 1 &&
+        caseResult.status === 'failed' &&
+        caseResult.confirmationStatus === 'not-applicable';
+    } else {
+      try {
+        const resolution = getEvaluationConfirmationResolution(
+          confirmations.map(({ passed }) => passed),
+        );
+        hasValidHistory =
+          hasValidHistory &&
+          confirmations.length > 0 &&
+          confirmations.every(
+            (trial, index) =>
+              trial.trialId === `confirmation-${index + 1}` &&
+              trial.confirmationIndex === index + 1,
+          ) &&
+          ((resolution === 'recovered' &&
+            caseResult.status === 'recovered' &&
+            caseResult.confirmationStatus === 'passed') ||
+            (resolution === 'confirmed-failure' &&
+              caseResult.status === 'failed' &&
+              caseResult.confirmationStatus === 'rejected'));
+      } catch {
+        hasValidHistory = false;
+      }
+    }
     const expectedReuseSourceAttemptId = caseResult.reuse?.sourceAttemptId ?? null;
     const reuseSourceAttemptIds = caseResult.trials.flatMap((trial) => [
       trial.actorReuseSourceAttemptId,
@@ -509,7 +545,7 @@ const QualificationCurrentStageSchema = QualificationStageSchema.extend({
     )
     .max(2),
 }).superRefine((stage, context) => {
-  const isModelStage = /:trial:(?:initial|confirmation-[12]):(?:actor|judge)$/u.test(stage.id);
+  const isModelStage = /:trial:(?:initial|confirmation-[123]):(?:actor|judge)$/u.test(stage.id);
 
   for (const [index, retry] of stage.operationalRetries.entries()) {
     if (retry.failureCount !== index + 1) {
@@ -554,10 +590,7 @@ const QualificationCurrentStageSchema = QualificationStageSchema.extend({
 export const QualificationAttemptResultSchema = z.strictObject({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationAttemptResultShape,
-  confirmationPolicy: z.strictObject({
-    version: z.literal(1),
-    requiredPassingConfirmations: z.literal(2),
-  }),
+  confirmationPolicy: QualificationConfirmationPolicySchema,
   mode: z.literal('official'),
   stages: z.array(QualificationCurrentStageSchema),
   cases: z.array(QualificationCurrentCaseResultSchema),
@@ -824,7 +857,7 @@ const QualificationCommandPolicyEvidenceSchema = z
 // current trial-scoped model provenance consumed independently by the website
 export const QualificationModelStageEvidenceSchema = z.strictObject({
   role: z.enum(['actor', 'judge']),
-  trialId: z.enum(['initial', 'confirmation-1', 'confirmation-2']),
+  trialId: z.enum(['initial', 'confirmation-1', 'confirmation-2', 'confirmation-3']),
   createdAt: z.iso.datetime(),
   durationMs: z.number().int().nonnegative(),
   usage: ModelUsageSchema.nullable(),

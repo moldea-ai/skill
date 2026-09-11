@@ -60,7 +60,7 @@ export interface ISemanticAttemptEvidenceReference {
   evaluationProtocolVersion: 25;
   kind: 'candidate';
   path: 'evidence.json';
-  schemaVersion: 9;
+  schemaVersion: 10;
   sha256: string;
 }
 
@@ -76,7 +76,7 @@ interface ISemanticAttemptStageReuseRecord<TStage extends 'actor' | 'judge'> {
     evidenceSha256: string;
     trial: {
       caseId: string;
-      confirmationIndex: 1 | 2 | null;
+      confirmationIndex: 1 | 2 | 3 | null;
       kind: 'confirmation' | 'initial';
     };
   };
@@ -107,7 +107,7 @@ export interface ISemanticAttemptTrial {
   actorResourceEvidence: ISemanticAttemptResourceEvidence;
   actorHost: ISemanticEvaluationActorHostIdentity;
   confirmationEligible: boolean;
-  confirmationIndex: 1 | 2 | null;
+  confirmationIndex: 1 | 2 | 3 | null;
   dimensions: ISemanticResultDimensions;
   evaluatedAt: string;
   executionOrigin: 'executed' | 'reused';
@@ -140,6 +140,12 @@ export interface ISemanticAttemptRecord {
   caseSuiteDigest: string;
   cases: ISemanticAttemptCase[];
   cli: ISemanticAttemptCliIdentity;
+  confirmationPolicy: Readonly<{
+    version: 2;
+    requiredPassingConfirmations: 2;
+    requiredFailingConfirmations: 2;
+    maximumConfirmations: 3;
+  }>;
   coverageDigest: string;
   createdAt: string;
   evidence: ISemanticAttemptEvidenceReference;
@@ -153,7 +159,7 @@ export interface ISemanticAttemptRecord {
   recoveredCaseCount: number;
   reusedStageCount: number;
   reusedTrialCount: number;
-  schemaVersion: 6;
+  schemaVersion: 7;
   status: ISemanticAttemptStatus;
   stopReason:
     | 'case-failure'

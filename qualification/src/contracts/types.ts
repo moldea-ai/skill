@@ -3,6 +3,7 @@ import semver from 'semver';
 import { z } from 'zod';
 
 import { calculateCodexEvaluationOperationalRetryDelay } from '../../../tooling/codex-evaluation-host/index.mjs';
+import { getEvaluationConfirmationResolution } from '../../../tooling/evaluation-confirmation-policy/index.mjs';
 import {
   DEFAULT_PACKAGES_REPOSITORY,
   QUALIFICATION_ALLOWED_EGRESS_HOSTS,
@@ -833,7 +834,7 @@ export const QualificationStageCheckpointSchema = z
     operationalStops: z.array(QualificationOperationalStopSchema).max(2),
   })
   .superRefine((stage, context) => {
-    const isModelStage = /:trial:(?:initial|confirmation-[12]):(?:actor|judge)$/u.test(stage.id);
+    const isModelStage = /:trial:(?:initial|confirmation-[123]):(?:actor|judge)$/u.test(stage.id);
 
     for (const [index, retry] of stage.operationalRetries.entries()) {
       if (retry.failureCount !== index + 1) {
@@ -994,7 +995,7 @@ export const QualificationTrialResultSchema = z
   .strictObject({
     trialId: z.enum(QUALIFICATION_TRIAL_IDS),
     kind: z.enum(['confirmation', 'initial']),
-    confirmationIndex: z.number().int().min(1).max(2).nullable(),
+    confirmationIndex: z.number().int().min(1).max(3).nullable(),
     confirmationEligible: z.boolean(),
     dimensions: QualificationTrialDimensionsSchema,
     failureClassifications: z.array(QualificationFailureClassificationSchema),
@@ -1097,15 +1098,13 @@ export const QualificationCaseResultSchema = z
     status: z.enum(['failed', 'passed', 'recovered']),
     confirmationStatus: z.enum(['not-applicable', 'not-required', 'not-run', 'passed', 'rejected']),
     durationMs: z.number().int().nonnegative(),
-    trials: z.array(QualificationTrialResultSchema).min(1).max(3),
+    trials: z.array(QualificationTrialResultSchema).min(1).max(4),
     failures: z.array(z.string()),
     reuse: QualificationCaseReuseSchema.nullable(),
   })
   .superRefine((caseResult, context) => {
     const trialIds = caseResult.trials.map(({ trialId }) => trialId);
     const initial = caseResult.trials[0];
-    const confirmation1 = caseResult.trials[1];
-    const confirmation2 = caseResult.trials[2];
     let isValidHistory = initial?.trialId === 'initial';
 
     if (caseResult.confirmationStatus === 'not-run') {
@@ -1129,19 +1128,32 @@ export const QualificationCaseResultSchema = z
         caseResult.status === 'passed' &&
         caseResult.confirmationStatus === 'not-required';
     } else if (initial !== undefined) {
+      const confirmations = caseResult.trials.slice(1);
+      const hasContiguousConfirmations = confirmations.every(
+        (trial, index) =>
+          trial.trialId === `confirmation-${index + 1}` &&
+          trial.kind === 'confirmation' &&
+          trial.confirmationIndex === index + 1,
+      );
+      const resolution = (() => {
+        try {
+          return getEvaluationConfirmationResolution(confirmations.map(({ passed }) => passed));
+        } catch {
+          return null;
+        }
+      })();
+
       isValidHistory =
         isValidHistory &&
         initial.confirmationEligible &&
-        confirmation1?.trialId === 'confirmation-1' &&
-        (confirmation1.passed
-          ? confirmation2?.trialId === 'confirmation-2' &&
-            caseResult.trials.length === 3 &&
-            (confirmation2.passed
-              ? caseResult.status === 'recovered' && caseResult.confirmationStatus === 'passed'
-              : caseResult.status === 'failed' && caseResult.confirmationStatus === 'rejected')
-          : caseResult.trials.length === 2 &&
+        confirmations.length > 0 &&
+        hasContiguousConfirmations &&
+        ((resolution === 'recovered' &&
+          caseResult.status === 'recovered' &&
+          caseResult.confirmationStatus === 'passed') ||
+          (resolution === 'confirmed-failure' &&
             caseResult.status === 'failed' &&
-            caseResult.confirmationStatus === 'rejected');
+            caseResult.confirmationStatus === 'rejected'));
     }
 
     if (!isValidHistory || new Set(trialIds).size !== trialIds.length) {
@@ -1230,6 +1242,10 @@ export const QualificationConfirmationPolicySchema = z.strictObject({
   requiredPassingConfirmations: z.literal(
     QUALIFICATION_CONFIRMATION_POLICY.requiredPassingConfirmations,
   ),
+  requiredFailingConfirmations: z.literal(
+    QUALIFICATION_CONFIRMATION_POLICY.requiredFailingConfirmations,
+  ),
+  maximumConfirmations: z.literal(QUALIFICATION_CONFIRMATION_POLICY.maximumConfirmations),
 });
 
 // local protocol 10 result draft shared by dry runs and official result publication

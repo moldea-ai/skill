@@ -13,7 +13,7 @@ const hasMatchingTrialIdentity = (candidate, expected) =>
   candidate.caseId.trim().length > 0 &&
   candidate.caseId === expected.caseId &&
   candidate.confirmationIndex === expected.confirmationIndex &&
-  [null, 1, 2].includes(candidate.confirmationIndex) &&
+  [null, 1, 2, 3].includes(candidate.confirmationIndex) &&
   candidate.kind === expected.kind &&
   candidate.kind === (candidate.confirmationIndex === null ? 'initial' : 'confirmation');
 

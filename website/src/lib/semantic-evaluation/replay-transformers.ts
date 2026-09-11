@@ -164,7 +164,7 @@ const createWorkspaceStep = (trial: ISemanticReplaySourceTrial): IEvaluationRepl
 const createTrialSummary = (
   trial: ISemanticReplaySourceTrial,
   kind: 'confirmation' | 'initial',
-  confirmationIndex: 1 | 2 | null,
+  confirmationIndex: 1 | 2 | 3 | null,
 ): ISemanticAttemptRecord['cases'][number]['trials'][number] => ({
   actorCommandPolicyEvidence: trial.actorCommandPolicyEvidence,
   actorResourceEvidence: trial.actorResourceEvidence,
@@ -190,7 +190,7 @@ const getSourceTrials = (
   candidate: ISemanticReplayCandidate,
   caseId: string,
 ): Array<{
-  confirmationIndex: 1 | 2 | null;
+  confirmationIndex: 1 | 2 | 3 | null;
   kind: 'confirmation' | 'initial';
   source: ISemanticReplaySourceTrial;
 }> => {

@@ -125,7 +125,9 @@ const requireObservation = (input, index) => {
   if (!['ordinary', 'largeTraversal'].includes(observation.resourceProfile)) {
     throw new Error(`${label}.resourceProfile is unsupported.`);
   }
-  if (!['initial', 'confirmation-1', 'confirmation-2'].includes(observation.trialId)) {
+  if (
+    !['initial', 'confirmation-1', 'confirmation-2', 'confirmation-3'].includes(observation.trialId)
+  ) {
     throw new Error(`${label}.trialId is unsupported.`);
   }
 
@@ -203,7 +205,9 @@ const requireCommandOutputObservation = (
   if (!['ordinary', 'largeTraversal'].includes(observation.resourceProfile)) {
     throw new Error(`${label}.resourceProfile is unsupported.`);
   }
-  if (!['initial', 'confirmation-1', 'confirmation-2'].includes(observation.trialId)) {
+  if (
+    !['initial', 'confirmation-1', 'confirmation-2', 'confirmation-3'].includes(observation.trialId)
+  ) {
     throw new Error(`${label}.trialId is unsupported.`);
   }
   if (observation.disposition !== expectedDisposition) {

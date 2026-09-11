@@ -1,4 +1,4 @@
-import { readFile, readdir, rm } from 'node:fs/promises';
+import { access, readFile, readdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import { createPublicCandidatePackage } from '../candidate-closure/index.ts';
@@ -15,6 +15,10 @@ import {
   type IQualificationExecutionEnvironment,
   type IQualificationStageCheckpoint,
 } from '../contracts/index.ts';
+import {
+  calculateQualificationCaseModelInputDigestsAtCommit,
+  calculateQualificationModelStageEvaluatorDigestAtCommit,
+} from '../evidence-identity/index.ts';
 import { haveQualificationExecutionInputsChanged } from '../execution/validations.ts';
 import {
   ensureDirectory,
@@ -31,10 +35,15 @@ import {
   verifyQualificationAttemptStorage,
 } from '../storage/index.ts';
 import type { IReusableQualificationCase } from './types.ts';
+import {
+  loadQualificationReuseSourceManifest,
+  readCommittedQualificationSource,
+  type IQualificationCommittedSource,
+} from './source-evidence.ts';
 
 const pathExists = async (candidatePath: string): Promise<boolean> => {
   try {
-    await readFile(candidatePath);
+    await access(candidatePath);
     return true;
   } catch {
     return false;
@@ -47,22 +56,22 @@ const createPublicPackages = (candidate: ICandidateClosure) =>
   );
 
 const selectExecutionEnvironment = (
-  result: IReusableQualificationCase['result'],
+  provenance: IQualificationCommittedSource['provenance'],
 ): IQualificationExecutionEnvironment => ({
-  actorReasoningEffort: result.provenance.actorReasoningEffort,
-  judgeReasoningEffort: result.provenance.judgeReasoningEffort,
-  model: result.provenance.model,
-  codexVersion: result.provenance.codexVersion,
-  nodeVersion: result.provenance.nodeVersion,
-  pnpmVersion: result.provenance.pnpmVersion,
-  gitVersion: result.provenance.gitVersion,
-  allowedEgressHosts: result.provenance.allowedEgressHosts,
-  hostTimeoutMs: result.provenance.hostTimeoutMs,
-  modelEndpoint: result.provenance.modelEndpoint,
-  sslCertificateFileSha256: result.provenance.sslCertificateFileSha256,
+  actorReasoningEffort: provenance.actorReasoningEffort,
+  judgeReasoningEffort: provenance.judgeReasoningEffort,
+  model: provenance.model,
+  codexVersion: provenance.codexVersion,
+  nodeVersion: provenance.nodeVersion,
+  pnpmVersion: provenance.pnpmVersion,
+  gitVersion: provenance.gitVersion,
+  allowedEgressHosts: provenance.allowedEgressHosts,
+  hostTimeoutMs: provenance.hostTimeoutMs,
+  modelEndpoint: provenance.modelEndpoint,
+  sslCertificateFileSha256: provenance.sslCertificateFileSha256,
 });
 
-const hasExactIdentity = (options: {
+const hasExactCurrentSourceIdentity = (options: {
   baselineAttemptId: string | null;
   candidate: ICandidateClosure;
   checkpoint: IQualificationAttemptCheckpoint;
@@ -79,8 +88,6 @@ const hasExactIdentity = (options: {
     result.provenance.candidateFingerprint === options.candidate.fingerprint &&
     result.provenance.packagesRepositoryCommit === options.packagesRepositoryCommit &&
     result.provenance.packagesRepositoryFingerprint === checkpoint.packagesRepositoryFingerprint &&
-    result.provenance.profileDigest === checkpoint.profileDigest &&
-    result.provenance.qualificationDigest === checkpoint.qualificationDigest &&
     result.provenance.skillRepositoryFingerprint === checkpoint.skillDigest &&
     result.provenance.targetDigest === checkpoint.targetDigest &&
     result.provenance.baselineAttemptId === options.baselineAttemptId &&
@@ -94,8 +101,37 @@ const hasExactIdentity = (options: {
     ) &&
     JSON.stringify(result.provenance.packages) ===
       JSON.stringify(createPublicPackages(options.candidate)) &&
+    !haveQualificationExecutionInputsChanged(result.provenance, options.executionEnvironment)
+  );
+};
+
+const hasExactCommittedSourceIdentity = (options: {
+  baselineAttemptId: string | null;
+  candidate: ICandidateClosure;
+  checkpoint: IQualificationAttemptCheckpoint;
+  executionEnvironment: IQualificationExecutionEnvironment;
+  packagesRepositoryCommit: string;
+  source: IQualificationCommittedSource;
+}): boolean => {
+  const source = options.source;
+  const { provenance } = source;
+
+  return (
+    source.mode === 'official' &&
+    source.status === 'failed' &&
+    source.selection.adapterId === options.checkpoint.selection.adapterId &&
+    source.selection.implementationId === options.checkpoint.selection.implementationId &&
+    provenance.candidateFingerprint === options.candidate.fingerprint &&
+    provenance.packagesRepositoryCommit === options.packagesRepositoryCommit &&
+    provenance.packagesRepositoryFingerprint === options.checkpoint.packagesRepositoryFingerprint &&
+    provenance.skillRepositoryFingerprint === options.checkpoint.skillDigest &&
+    provenance.targetDigest === options.checkpoint.targetDigest &&
+    provenance.baselineAttemptId === options.baselineAttemptId &&
+    source.stages.every(({ reuseSourceAttemptId }) => reuseSourceAttemptId === null) &&
+    JSON.stringify(provenance.packages) ===
+      JSON.stringify(createPublicPackages(options.candidate)) &&
     !haveQualificationExecutionInputsChanged(
-      selectExecutionEnvironment(result),
+      selectExecutionEnvironment(provenance),
       options.executionEnvironment,
     )
   );
@@ -105,8 +141,10 @@ const hasExactIdentity = (options: {
 export const loadReusableQualificationCases = async (options: {
   baselineAttemptId: string | null;
   candidate: ICandidateClosure;
+  caseDigests: Readonly<Record<string, string>>;
   caseIds: readonly string[];
   checkpoint: IQualificationAttemptCheckpoint;
+  evaluatorStageDigest: string;
   executionEnvironment: IQualificationExecutionEnvironment;
   packagesRepositoryCommit: string;
   qualificationRepositoryCommit: string;
@@ -119,55 +157,153 @@ export const loadReusableQualificationCases = async (options: {
   );
   const attemptsRoot = path.join(targetRoot, 'attempts');
 
-  if (!(await pathExists(path.join(targetRoot, 'latest.json')))) {
-    return new Map();
-  }
-
-  const entries = await readdir(attemptsRoot, { withFileTypes: true });
   const candidates: IReusableQualificationCase[] = [];
 
-  for (const entry of entries) {
-    if (!entry.isDirectory() || !/^a-[a-f0-9]{32}$/u.test(entry.name)) {
-      continue;
+  if (await pathExists(path.join(targetRoot, 'latest.json'))) {
+    const entries = await readdir(attemptsRoot, { withFileTypes: true });
+
+    for (const entry of entries) {
+      if (!entry.isDirectory() || !/^a-[a-f0-9]{32}$/u.test(entry.name)) continue;
+      const attemptDirectory = path.join(attemptsRoot, entry.name);
+
+      try {
+        const result = await readJsonFile(
+          path.join(attemptDirectory, 'attempt.json'),
+          QualificationAttemptResultSchema,
+        );
+        if (
+          createQualificationAttemptKey(result.attemptId) !== entry.name ||
+          !hasExactCurrentSourceIdentity({
+            baselineAttemptId: options.baselineAttemptId,
+            candidate: options.candidate,
+            checkpoint: options.checkpoint,
+            executionEnvironment: options.executionEnvironment,
+            packagesRepositoryCommit: options.packagesRepositoryCommit,
+            result,
+          }) ||
+          !(await isQualificationAttemptCommitted({
+            attemptDirectory,
+            commit: options.qualificationRepositoryCommit,
+            repositoryRoot: options.repositoryRoot,
+          }))
+        ) {
+          continue;
+        }
+        const selectedCaseIds = new Set(options.caseIds);
+        const sharedCaseIds = result.cases
+          .map(({ caseId }) => caseId)
+          .filter((caseId) => selectedCaseIds.has(caseId));
+        const [sourceEvaluatorStageDigest, sourceCaseDigests] = await Promise.all([
+          calculateQualificationModelStageEvaluatorDigestAtCommit(
+            result.provenance.qualificationRepositoryCommit,
+            options.repositoryRoot,
+          ),
+          calculateQualificationCaseModelInputDigestsAtCommit({
+            caseIds: sharedCaseIds,
+            commit: result.provenance.qualificationRepositoryCommit,
+            repositoryRoot: options.repositoryRoot,
+            selection: result.selection,
+          }),
+        ]);
+        if (sourceEvaluatorStageDigest !== options.evaluatorStageDigest) continue;
+        const storage = await verifyQualificationAttemptStorage({ attemptDirectory, result });
+        await validateQualificationAttemptEvidence({
+          attemptDirectory,
+          result,
+          resultsRoot: options.resultsRoot,
+        });
+
+        for (const caseResult of result.cases) {
+          if (
+            options.caseIds.includes(caseResult.caseId) &&
+            sourceCaseDigests[caseResult.caseId] === options.caseDigests[caseResult.caseId] &&
+            (caseResult.status === 'passed' || caseResult.status === 'recovered') &&
+            caseResult.trials.every(
+              (trial) =>
+                trial.actorReuseSourceAttemptId === null &&
+                trial.judgeReuseSourceAttemptId === null,
+            )
+          ) {
+            candidates.push({
+              caseResult,
+              readArtifact: (logicalPath) =>
+                readFile(resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath)),
+              sourceAttemptId: result.attemptId,
+              sourceCommit: options.qualificationRepositoryCommit,
+              sourceCreatedAt: result.createdAt,
+              sourceStages: result.stages,
+              storage,
+            });
+          }
+        }
+      } catch {
+        continue;
+      }
     }
+  }
 
-    const attemptDirectory = path.join(attemptsRoot, entry.name);
+  if (
+    path.resolve(options.resultsRoot) === path.join(options.repositoryRoot, 'qualification/results')
+  ) {
+    const manifest = await loadQualificationReuseSourceManifest(options.repositoryRoot);
 
-    try {
-      const result = await readJsonFile(
-        path.join(attemptDirectory, 'attempt.json'),
-        QualificationAttemptResultSchema,
-      );
-
+    for (const reference of manifest.sources) {
       if (
-        createQualificationAttemptKey(result.attemptId) !== entry.name ||
-        !hasExactIdentity({
+        reference.selection.adapterId !== options.checkpoint.selection.adapterId ||
+        reference.selection.implementationId !== options.checkpoint.selection.implementationId
+      ) {
+        continue;
+      }
+      const targetRelativePath = path
+        .relative(options.repositoryRoot, targetRoot)
+        .split(path.sep)
+        .join(path.posix.sep);
+      const source = await readCommittedQualificationSource({
+        attemptRelativeDirectory: path.posix.join(
+          targetRelativePath,
+          'attempts',
+          createQualificationAttemptKey(reference.attemptId),
+        ),
+        attemptSha256: reference.attemptSha256,
+        evidenceCommit: reference.evidenceCommit,
+        repositoryRoot: options.repositoryRoot,
+        storageSha256: reference.storageSha256,
+      });
+      const selectedCaseIds = new Set(options.caseIds);
+      const sharedCaseIds = source.cases
+        .map(({ caseId }) => caseId)
+        .filter((caseId) => selectedCaseIds.has(caseId));
+      const [sourceEvaluatorStageDigest, sourceCaseDigests] = await Promise.all([
+        calculateQualificationModelStageEvaluatorDigestAtCommit(
+          source.provenance.qualificationRepositoryCommit,
+          options.repositoryRoot,
+        ),
+        calculateQualificationCaseModelInputDigestsAtCommit({
+          caseIds: sharedCaseIds,
+          commit: source.provenance.qualificationRepositoryCommit,
+          repositoryRoot: options.repositoryRoot,
+          selection: source.selection,
+        }),
+      ]);
+      if (
+        source.attemptId !== reference.attemptId ||
+        sourceEvaluatorStageDigest !== options.evaluatorStageDigest ||
+        !hasExactCommittedSourceIdentity({
           baselineAttemptId: options.baselineAttemptId,
           candidate: options.candidate,
           checkpoint: options.checkpoint,
           executionEnvironment: options.executionEnvironment,
           packagesRepositoryCommit: options.packagesRepositoryCommit,
-          result,
-        }) ||
-        !(await isQualificationAttemptCommitted({
-          attemptDirectory,
-          commit: options.qualificationRepositoryCommit,
-          repositoryRoot: options.repositoryRoot,
-        }))
+          source,
+        })
       ) {
         continue;
       }
 
-      const storage = await verifyQualificationAttemptStorage({ attemptDirectory, result });
-      await validateQualificationAttemptEvidence({
-        attemptDirectory,
-        result,
-        resultsRoot: options.resultsRoot,
-      });
-
-      for (const caseResult of result.cases) {
+      for (const caseResult of source.cases) {
         if (
           options.caseIds.includes(caseResult.caseId) &&
+          sourceCaseDigests[caseResult.caseId] === options.caseDigests[caseResult.caseId] &&
           (caseResult.status === 'passed' || caseResult.status === 'recovered') &&
           caseResult.trials.every(
             (trial) =>
@@ -175,23 +311,23 @@ export const loadReusableQualificationCases = async (options: {
           )
         ) {
           candidates.push({
-            attemptDirectory,
             caseResult,
-            result,
-            sourceCommit: options.qualificationRepositoryCommit,
-            storage,
+            readArtifact: source.readArtifact,
+            sourceAttemptId: source.attemptId,
+            sourceCommit: source.evidenceCommit,
+            sourceCreatedAt: source.createdAt,
+            sourceStages: source.stages,
+            storage: source.storage,
           });
         }
       }
-    } catch {
-      continue;
     }
   }
 
   candidates.sort(
     (left, right) =>
-      right.result.createdAt.localeCompare(left.result.createdAt, 'en') ||
-      right.result.attemptId.localeCompare(left.result.attemptId, 'en'),
+      right.sourceCreatedAt.localeCompare(left.sourceCreatedAt, 'en') ||
+      right.sourceAttemptId.localeCompare(left.sourceAttemptId, 'en'),
   );
   const reusableCases = new Map<string, IReusableQualificationCase>();
 
@@ -225,7 +361,7 @@ export const materializeReusableQualificationCase = async (options: {
   checkpoint: IQualificationAttemptCheckpoint;
 }> => {
   const { reusableCase } = options;
-  const sourceAttemptId = reusableCase.result.attemptId;
+  const sourceAttemptId = reusableCase.sourceAttemptId;
   const casePrefix = `cases/${reusableCase.caseResult.caseId}/`;
   const destinationCaseDirectory = path.join(
     options.publicDirectory,
@@ -251,14 +387,9 @@ export const materializeReusableQualificationCase = async (options: {
       continue;
     }
 
-    const sourcePath = resolveQualificationArtifactPath(
-      reusableCase.attemptDirectory,
-      reusableCase.storage,
-      artifact.logicalPath,
-    );
     const destinationPath = path.join(options.publicDirectory, artifact.logicalPath);
     const trialMatch = artifact.logicalPath.match(
-      /^cases\/[^/]+\/trials\/(initial|confirmation-[12])\/(actor|judge)-evidence\.json$/u,
+      /^cases\/[^/]+\/trials\/(initial|confirmation-[123])\/(actor|judge)-evidence\.json$/u,
     );
 
     if (artifact.logicalPath.endsWith('/case-result.json')) {
@@ -272,29 +403,51 @@ export const materializeReusableQualificationCase = async (options: {
       }
       await writeJsonFileAtomically(destinationPath, trial);
     } else if (trialMatch !== null) {
-      const evidence = await readJsonFile(sourcePath, QualificationModelStageEvidenceSchema);
+      const evidence = QualificationModelStageEvidenceSchema.parse(
+        JSON.parse(
+          (await reusableCase.readArtifact(artifact.logicalPath)).toString('utf8'),
+        ) as unknown,
+      );
       await writeJsonFileAtomically(destinationPath, {
         ...evidence,
         reuseSourceAttemptId: sourceAttemptId,
       });
     } else {
       await ensureDirectory(path.dirname(destinationPath));
-      await writeTextFileAtomically(destinationPath, await readFile(sourcePath, 'utf8'));
+      await writeTextFileAtomically(
+        destinationPath,
+        (await reusableCase.readArtifact(artifact.logicalPath)).toString('utf8'),
+      );
     }
   }
 
-  const sourceStages = new Map(reusableCase.result.stages.map((stage) => [stage.id, stage]));
+  const sourceStages = new Map(reusableCase.sourceStages.map((stage) => [stage.id, stage]));
   const caseStagePrefix = `case:${reusableCase.caseResult.caseId}:`;
-  const ownedStageIds = reusableCase.result.stages
-    .map(({ id }) => id)
-    .filter((stageId) => stageId.startsWith(caseStagePrefix));
   const stages = { ...options.checkpoint.stages };
 
-  for (const stageId of ownedStageIds) {
+  for (const stageId of Object.keys(stages).filter((id) => id.startsWith(caseStagePrefix))) {
+    const currentStage = stages[stageId];
     const sourceStage = sourceStages.get(stageId);
 
+    if (currentStage === undefined) {
+      throw new Error(`Qualification checkpoint is missing stage ${stageId}.`);
+    }
+
     if (sourceStage === undefined) {
-      throw new Error(`Reusable case is missing stage ${stageId}.`);
+      stages[stageId] = {
+        ...currentStage,
+        status: 'skipped',
+        startedAt: null,
+        completedAt: null,
+        durationMs: null,
+        stageIdentity: null,
+        reuseSourceAttemptId: null,
+        hasUsedOperationalStopResume: false,
+        operationalRetries: [],
+        operationalStops: [],
+        error: null,
+      } satisfies IQualificationStageCheckpoint;
+      continue;
     }
 
     const isModelStage = /:(actor|judge)$/u.test(stageId) && sourceStage.status !== 'skipped';

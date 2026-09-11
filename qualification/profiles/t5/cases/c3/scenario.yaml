@@ -43,6 +43,7 @@ workspace:
     - moldea/agents/order-triage/instruction.md
     - moldea/moldea.yaml
     - moldea/runtimes/custom.md
+    - test/order-triage-agent.test.mjs
   allowedChangePathPatterns:
     - moldea/runtimes/**/*.md
   mustChangePathPatterns:

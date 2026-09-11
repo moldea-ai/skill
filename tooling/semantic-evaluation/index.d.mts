@@ -385,7 +385,7 @@ export interface ISemanticStageIdentity {
 }
 export interface ISemanticStageTrialIdentity {
   caseId: string;
-  confirmationIndex: 1 | 2 | null;
+  confirmationIndex: 1 | 2 | 3 | null;
   kind: 'confirmation' | 'initial';
 }
 export interface ISemanticStageReuseRecord {

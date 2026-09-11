@@ -464,6 +464,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
   const failedCompanionTrials = [
     createTrialResult(FAILED_CASE_ID, 'initial', false),
     createTrialResult(FAILED_CASE_ID, 'confirmation-1', false),
+    createTrialResult(FAILED_CASE_ID, 'confirmation-2', false),
   ];
   const failedCompanionCase: IQualificationAttemptResult['cases'][number] = {
     caseId: FAILED_CASE_ID,
@@ -652,7 +653,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
         ),
         writeTextFileAtomically(
           path.join(trialRoot, 'actor-prompt.md'),
-          buildActorPrompt({ task: '# Release case\n\nInspect the current evidence.' }),
+          `${buildActorPrompt({ task: '# Release case\n\nInspect the current evidence.' }).trim()}\n`,
         ),
         writeJsonFileAtomically(
           path.join(trialRoot, 'deterministic-after.json'),

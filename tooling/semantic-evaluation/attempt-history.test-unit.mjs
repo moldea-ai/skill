@@ -116,7 +116,12 @@ const createEvidence = (results, confirmations = []) => ({
   artifactDigest: SHA256,
   caseSuiteDigest: 'b'.repeat(64),
   cli: { name: '@moldea.ai/cli', version: '5.0.0' },
-  confirmations,
+  confirmationPolicy: {
+    version: 2,
+    requiredPassingConfirmations: 2,
+    requiredFailingConfirmations: 2,
+    maximumConfirmations: 3,
+  },
   coverageDigest: 'c'.repeat(64),
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt: '2026-08-25T00:00:00.000Z',
@@ -141,7 +146,7 @@ const createEvidence = (results, confirmations = []) => ({
     judgeUsage: MODEL_USAGE,
     ...result,
   })),
-  schemaVersion: 9,
+  schemaVersion: 10,
   updatedAt: '2026-08-25T01:00:00.000Z',
 });
 
@@ -175,10 +180,14 @@ test('semantic attempt summaries accept one complete ledger with confirmed failu
     ...createTrial('failing-case', false, '2026-08-25T00:40:00.000Z'),
     confirmationIndex: 1,
   };
+  const terminalConfirmation = {
+    ...createTrial('failing-case', false, '2026-08-25T00:50:00.000Z'),
+    confirmationIndex: 2,
+  };
   const attempt = createSemanticAttemptRecord({
     evidence: createEvidence(
       [createTrial('passing-case', true, '2026-08-25T00:20:00.000Z'), initialFailure],
-      [rejectedConfirmation],
+      [rejectedConfirmation, terminalConfirmation],
     ),
     evidenceKind: 'candidate',
     evidenceSha256: 'c'.repeat(64),
@@ -287,7 +296,7 @@ test('semantic attempt summaries preserve mixed per-trial host provenance', () =
     totalCaseCount: 1,
   });
 
-  assert.equal(attempt.schemaVersion, 6);
+  assert.equal(attempt.schemaVersion, 7);
   assert.deepEqual(attempt.hostContract, HOST_CONTRACT);
   assert.equal(attempt.actorHost, undefined);
   assert.equal(attempt.cases[0].trials[0].actorHost.version, ACTOR_HOST.version);
@@ -305,7 +314,7 @@ test('semantic attempt summaries record Sol provenance and command policy', () =
     totalCaseCount: 1,
   });
 
-  assert.equal(attempt.schemaVersion, 6);
+  assert.equal(attempt.schemaVersion, 7);
   assert.deepEqual(attempt.hostContract, HOST_CONTRACT);
   assert.equal(attempt.cases[0].trials[0].actorHost.model, ACTOR_HOST.model);
   assert.deepEqual(attempt.cases[0].trials[0].actorCommandPolicyEvidence, COMMAND_POLICY_EVIDENCE);
@@ -486,7 +495,7 @@ test('semantic attempt summaries accept only the current schema and protocol con
     () =>
       createSemanticAttemptRecord({
         ...options,
-        evidence: { ...createEvidence([trial]), schemaVersion: 7 },
+        evidence: { ...createEvidence([trial]), schemaVersion: 8 },
       }),
     /unsupported schema/,
   );

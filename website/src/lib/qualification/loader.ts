@@ -70,7 +70,7 @@ const QUALIFICATION_ACTOR_TASK_SENTINEL = 'moldea-qualification-recorded-task-bo
 
 /** Derives the immutable protocol 10 task boundary from the authoritative actor prompt builder. */
 const createQualificationActorPromptBoundary = (): readonly [string, string] => {
-  const prompt = buildActorPrompt({ task: QUALIFICATION_ACTOR_TASK_SENTINEL });
+  const prompt = `${buildActorPrompt({ task: QUALIFICATION_ACTOR_TASK_SENTINEL }).trim()}\n`;
   const taskStartIndex = prompt.indexOf(QUALIFICATION_ACTOR_TASK_SENTINEL);
 
   if (taskStartIndex === -1) {

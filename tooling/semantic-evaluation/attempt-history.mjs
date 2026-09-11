@@ -10,6 +10,10 @@ import {
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
 } from '../codex-evaluation-host/index.mjs';
+import {
+  EVALUATION_CONFIRMATION_POLICY,
+  getEvaluationConfirmationResolution,
+} from '../evaluation-confirmation-policy/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
 
@@ -18,8 +22,8 @@ import { hasValidSemanticStageReuseRecord } from './stage-reuse.mjs';
 
 const ATTEMPT_EVIDENCE_FILENAME = 'evidence.json';
 const ATTEMPT_RECORD_FILENAME = 'attempt.json';
-const ATTEMPT_SCHEMA_VERSION = 6;
-const EVIDENCE_SCHEMA_VERSION = 9;
+const ATTEMPT_SCHEMA_VERSION = 7;
+const EVIDENCE_SCHEMA_VERSION = 10;
 const LATEST_SCHEMA_VERSION = 1;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
@@ -42,7 +46,8 @@ const STOP_REASON_VALUES = new Set([
 
 const hasSupportedRecordedEvidenceContract = (evidence) =>
   evidence.schemaVersion === EVIDENCE_SCHEMA_VERSION &&
-  evidence.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION;
+  evidence.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION &&
+  JSON.stringify(evidence.confirmationPolicy) === JSON.stringify(EVALUATION_CONFIRMATION_POLICY);
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
@@ -260,7 +265,7 @@ const collectCaseTrials = (evidence) => {
       !isPlainRecord(confirmation) ||
       !Number.isInteger(confirmation.confirmationIndex) ||
       confirmation.confirmationIndex < 1 ||
-      confirmation.confirmationIndex > 2
+      confirmation.confirmationIndex > EVALUATION_CONFIRMATION_POLICY.maximumConfirmations
     ) {
       throw new Error('Semantic attempt contains an invalid confirmation identity.');
     }
@@ -311,8 +316,8 @@ const deriveCaseResult = (id, trials) => {
   if (initialTrial.passed && sortedConfirmations.length > 0) {
     throw new Error(`Passing semantic case ${id} must not have confirmation trials.`);
   }
-  if (sortedConfirmations.length > 2) {
-    throw new Error(`Semantic case ${id} exceeds the two-confirmation limit.`);
+  if (sortedConfirmations.length > EVALUATION_CONFIRMATION_POLICY.maximumConfirmations) {
+    throw new Error(`Semantic case ${id} exceeds the confirmation limit.`);
   }
 
   let confirmationStatus = 'not-required';
@@ -326,14 +331,14 @@ const deriveCaseResult = (id, trials) => {
         trials: [initialTrial],
       };
     }
-    const hasFailedConfirmation = sortedConfirmations.some(({ passed }) => !passed);
-    const hasTwoPassingConfirmations =
-      sortedConfirmations.length === 2 && sortedConfirmations.every(({ passed }) => passed);
+    const resolution = getEvaluationConfirmationResolution(
+      sortedConfirmations.map(({ passed }) => passed),
+    );
 
-    if (hasFailedConfirmation) {
+    if (resolution === 'confirmed-failure') {
       confirmationStatus = 'rejected';
       status = 'failed';
-    } else if (hasTwoPassingConfirmations) {
+    } else if (resolution === 'recovered') {
       confirmationStatus = 'passed';
       status = 'recovered';
     } else {
@@ -425,6 +430,7 @@ export const createSemanticAttemptRecord = ({
     caseSuiteDigest: requireSha256(evidence.caseSuiteDigest, 'Semantic attempt case suite'),
     cases,
     cli: evidence.cli,
+    confirmationPolicy: EVALUATION_CONFIRMATION_POLICY,
     coverageDigest: requireSha256(evidence.coverageDigest, 'Semantic attempt coverage'),
     createdAt: generatedAt,
     evidence: {

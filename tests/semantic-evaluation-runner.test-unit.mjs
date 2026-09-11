@@ -566,15 +566,26 @@ test('seeds isolated confirmation workers with only their required case history'
     confirmations: [firstConfirmation],
     results: [failedInitial],
   });
+  assert.deepEqual(
+    selectSemanticWorkerTrialHistory(
+      {
+        confirmations: [{ ...firstConfirmation, passed: false }],
+        results: [failedInitial],
+      },
+      'failed-case',
+      2,
+    ).confirmations.map(({ passed }) => passed),
+    [false],
+  );
   assert.throws(
     () =>
       selectSemanticWorkerTrialHistory(
         {
-          confirmations: [{ ...firstConfirmation, passed: false }],
+          confirmations: [firstConfirmation, { ...firstConfirmation, confirmationIndex: 2 }],
           results: [failedInitial],
         },
         'failed-case',
-        2,
+        3,
       ),
     /invalid prior case history/u,
   );
@@ -691,6 +702,15 @@ test('selects every missing initial before any confirmation', () => {
   });
   afterInitials.confirmations.push({
     confirmationIndex: 1,
+    id: 'failed-first',
+    passed: false,
+  });
+  assert.deepEqual(getNextSemanticTrial(afterInitials, caseDefinitions), {
+    caseDefinition: caseDefinitions[0],
+    confirmationIndex: 2,
+  });
+  afterInitials.confirmations.push({
+    confirmationIndex: 2,
     id: 'failed-first',
     passed: false,
   });
@@ -1135,14 +1155,14 @@ test('reports safe resource aggregates when malformed judge input is rejected', 
 
 test('reports the clean 74-case paid execution boundary without reusable predecessors', () => {
   assert.deepEqual(createSemanticEvaluationCostEstimate(74), {
-    absoluteTokenContainmentLimit: 1_862_270_976,
+    absoluteTokenContainmentLimit: 2_483_027_968,
     absoluteTokensPerInvocation: 2_097_152,
     candidatePaidTokenMaximum: 32_000_000,
     caseCount: 74,
-    confirmationInclusivePaidStageLimit: 444,
+    confirmationInclusivePaidStageLimit: 592,
     initialStageCount: 148,
     model: 'gpt-5.6-sol',
-    operationalRetryInclusiveInvocationLimit: 888,
+    operationalRetryInclusiveInvocationLimit: 1184,
     paidInitialStageCount: 148,
     actorReasoningEffort: 'xhigh',
     judgeReasoningEffort: 'xhigh',

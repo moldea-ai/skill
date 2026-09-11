@@ -493,7 +493,8 @@ describe('judge output validation', () => {
 describe('qualification source-state validation', () => {
   test('accepts clean inputs for an official run', () => {
     const inputState = {
-      modelHostDigest: 'a'.repeat(64),
+      caseDigests: { case: 'a'.repeat(64) },
+      evaluatorStageDigest: 'a'.repeat(64),
       packagesDigest: 'a'.repeat(64),
       packagesState: createRepositoryState(false),
       qualificationBaselineDigest: 'a'.repeat(64),
@@ -591,7 +592,8 @@ describe('qualification source-state validation', () => {
     ['skill', { skillDigest: 'b'.repeat(64) }],
   ])('detects a changed %s fingerprint before publication', (_source, changedDigest) => {
     const inputState = {
-      modelHostDigest: 'a'.repeat(64),
+      caseDigests: { case: 'a'.repeat(64) },
+      evaluatorStageDigest: 'a'.repeat(64),
       packagesDigest: 'a'.repeat(64),
       packagesState: createRepositoryState(false),
       qualificationBaselineDigest: 'a'.repeat(64),
@@ -611,7 +613,8 @@ describe('qualification source-state validation', () => {
 
   test('retains resume when unrelated package source changes but selected behavior does not', () => {
     const inputState = {
-      modelHostDigest: 'a'.repeat(64),
+      caseDigests: { case: 'a'.repeat(64) },
+      evaluatorStageDigest: 'a'.repeat(64),
       packagesDigest: 'a'.repeat(64),
       packagesState: {
         ...createRepositoryState(false),

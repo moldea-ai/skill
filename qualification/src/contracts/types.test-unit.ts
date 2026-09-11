@@ -396,8 +396,12 @@ describe('protocol 10 qualification contracts', () => {
     [
       'failed',
       'rejected',
-      [createTrial('initial', false), createTrial('confirmation-1', false)],
-      ['confirmation-1 failed.'],
+      [
+        createTrial('initial', false),
+        createTrial('confirmation-1', false),
+        createTrial('confirmation-2', false),
+      ],
+      ['confirmation-2 failed.'],
     ],
     [
       'failed',
@@ -406,8 +410,20 @@ describe('protocol 10 qualification contracts', () => {
         createTrial('initial', false),
         createTrial('confirmation-1', true),
         createTrial('confirmation-2', false),
+        createTrial('confirmation-3', false),
       ],
-      ['confirmation-2 failed.'],
+      ['confirmation-3 failed.'],
+    ],
+    [
+      'recovered',
+      'passed',
+      [
+        createTrial('initial', false),
+        createTrial('confirmation-1', false),
+        createTrial('confirmation-2', true),
+        createTrial('confirmation-3', true),
+      ],
+      [],
     ],
     ['failed', 'not-applicable', [createTerminalNonSemanticTrial()], ['initial failed.']],
     ['failed', 'not-run', [createTrial('initial', false)], ['initial failed.']],

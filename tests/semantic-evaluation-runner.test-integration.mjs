@@ -19,6 +19,7 @@ import {
   collectScenarioEvidence,
   hasValidScenarioEvidence,
 } from '../tooling/semantic-evaluation/index.mjs';
+import { EVALUATION_CONFIRMATION_POLICY } from '../tooling/evaluation-confirmation-policy/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../tooling/release-identity/index.mjs';
 
 import {
@@ -528,7 +529,10 @@ test('preflight reports exact current reuse and remaining paid stages', () => {
     assert.equal(estimate.reusedStageCount >= estimate.reusedCaseCount * 2, true);
     assert.equal(estimate.reusedStageCount % 2, 0);
     assert.equal(estimate.paidInitialStageCount, (74 - estimate.reusedCaseCount) * 2);
-    assert.equal(estimate.confirmationInclusivePaidStageLimit, estimate.paidInitialStageCount * 3);
+    assert.equal(
+      estimate.confirmationInclusivePaidStageLimit,
+      estimate.paidInitialStageCount * (EVALUATION_CONFIRMATION_POLICY.maximumConfirmations + 1),
+    );
     assert.equal(
       estimate.operationalRetryInclusiveInvocationLimit,
       estimate.confirmationInclusivePaidStageLimit * 2,

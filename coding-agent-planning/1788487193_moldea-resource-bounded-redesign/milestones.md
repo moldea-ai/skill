@@ -80,42 +80,159 @@ Remove qualification's ambient global pnpm metadata dependency so every attempt 
 
 Inspect artifact-versus-install identity, exact-version closure, strict peer behavior, install ordering, exact path/config/registry reuse, credential isolation, offline guarantees, actionable errors, failure cleanup, disk accounting, concurrency safety, portability, documentation, and identity isolation.
 
-## Milestone 98: Establish fresh Custom qualification evidence
+## Milestone 98: Extend the shared replay contract
 
 ### Objective
 
-Run the complete 12-case Custom baseline once against the published isolated qualification engine and classify its complete result.
+Publish the smallest additive Website UI contract needed to represent the third confirmation without a cast, forked model, or renderer change.
 
 ### Dependencies
 
-- Milestone 97 is published and every deterministic/model-free gate passes.
-- Disk bytes and inodes are sufficient, no evaluator process is active, and the exact source identity is current.
+- Milestone 97 is published and `../packages/new_skill` is clean at its tracked boundary.
+- Published `@moldea.ai/website-ui` 1.6.0 is the current registry version.
 
 ### Scope and implementation
 
-- Run one official protocol-10 Custom attempt with xhigh actor and judge roles, the fifteen-minute stage ceiling, and at most four workers.
-- Continue collect-first across semantic-only failures while operational containment remains safe; use only the existing bounded confirmation rule.
-- If an operational capacity stop occurs, resume the exact attempt with lower concurrency without duplicating completed stages.
-- Analyze the complete result, including direct, recovered, and terminal cases, before changing skill, evaluator, fixture, resource, or package behavior.
-- Promote only a verified passing or legitimately recovered 12-case attempt as the sole current Custom baseline.
+- Extend `IEvaluationReplayTrial.confirmationIndex` from `1 | 2 | null` to `1 | 2 | 3 | null` in the sole shared replay model.
+- Bump `@moldea.ai/website-ui` to `1.6.1` and update only directly derived package metadata.
+- Preserve every renderer, component, runtime behavior, dependency, and unrelated package unchanged.
+- Review, sign, publish, and registry-verify the package through the established packages workflow before returning to the skill repository.
 
 ### Tests and verification
 
-- Verify source, candidate closure, model-host policy, reasoning, timeouts, all six result dimensions, repository isolation, resources, artifacts, and public status.
-- Run qualification evidence verification, release identity, website artifact integration, and hosted-data generation checks.
+- Run Website UI unit, integration, typecheck, lint, format, build, and packed-declaration checks.
+- Run package release-plan and affected repository regression checks, and require the release plan to select only Website UI.
+- Verify the registry artifact exposes `1 | 2 | 3 | null` and matches the reviewed package bytes.
 
 ### Acceptance criteria
 
-- All 12 Custom cases pass directly or through their permitted semantic confirmation, with zero operational, deterministic, resource, policy, repository, or mount failure.
-- The passing pointer identifies the fresh current attempt; the errored predecessor remains audit evidence only.
-- No semantic rerun occurs because the portable skill and semantic identity are unchanged.
+- `@moldea.ai/website-ui` 1.6.1 is registry-visible with the exact additive type contract.
+- No unsafe cast, private replay-model fork, renderer change, or unrelated package delta exists.
 - Review is ready and publication is signed, signed off, explicit, and pushed.
 
 ### Review checkpoint
 
-Inspect the complete failure distribution, confirmation eligibility, pnpm isolation evidence, resource use, model variance, provenance, and promotion truth.
+Inspect public type compatibility, package scope, emitted declarations, packed artifact identity, release-plan isolation, signing, and registry propagation.
 
-## Milestone 99: Produce and close the adapter-specific ledger
+## Milestone 99: Adopt the bounded confirmation quorum
+
+### Objective
+
+Replace brittle first-confirmation rejection with one clean current two-pass/two-fail quorum without invalidating model stages, and correct the exact Custom focused-test boundary before more paid work.
+
+### Dependencies
+
+- Milestone 98 is published and registry verification exposes the shared third-confirmation type.
+- Passing semantic attempt `20260910T200124746Z-semantic-178afc26` and Custom attempt `20260910T220756999Z-custom-custom-3c86e131` remain immutable at their published commits.
+
+### Scope and implementation
+
+- Define one current confirmation policy with version `2`, two required passing confirmations, two required failing confirmations, and three maximum confirmations.
+- Run confirmations sequentially after an eligible semantic-only initial failure, stop at either quorum, and never confirm deterministic, resource, command-policy, repository-control, mount-integrity, or operational failures.
+- Apply the policy to semantic and qualification scheduling, checkpoints, histories, result derivation, stage enumeration, artifact paths, evidence verification, declarations, preflight limits, resource-calibration trial identifiers, website schemas/replay/presentation, and directly affected documentation.
+- Keep confirmation aggregation, scheduler/result source, and profile-wide container bytes outside actor and judge stage identity. Add one exact behavior-bearing qualification evaluator-stage digest and one exact per-case digest while retaining complete evaluator/profile digests as attempt audit provenance and every actual actor/judge input in stage identity.
+- Resolve reusable source trials directly through their recorded commit, path, digest, and source-era validation instead of requiring predecessor attempts in the active result tree.
+- Pin the passing semantic and Custom sources by exact immutable Git provenance, and prove through preflight that policy-only changes preserve all 74 semantic groups without a paid model stage.
+- Remove active policy-v1 semantic and qualification attempts, pointers, fixtures, and public pages; retain only the exact immutable source manifests and expose an honest not-recorded current-policy state until Milestone 100 records its replacement.
+- Update the skill website lockfile to the exact published Website UI 1.6.1 artifact while retaining its compatible-major dependency range.
+- Permit only `test/order-triage-agent.test.mjs` for `create-grounded-agent`, reject broad test-directory allowances across every profile, and keep the portable skill unchanged.
+- Synchronize directly affected active documentation and public website copy in this repository and any exact cross-repository policy statement discovered in platform or knowledge-base content.
+
+### Tests and verification
+
+- Add exhaustive ordered quorum cases, early-stop, no-post-quorum, non-semantic terminal, contiguous-index, checkpoint/resume, third-confirmation, result-verification, website replay, declaration, and exact maximum-admission coverage.
+- Add identity-isolation coverage proving policy-only and unrelated-case changes do not change actor or judge stage identity, the create-agent scenario correction invalidates only that case, and every real model input still invalidates reuse.
+- Run the focused cross-profile allowance regression, complete root and qualification correctness suites, typechecking, linting, formatting, docs, paths, resource, privacy, release identity, semantic preflight, qualification dry-run, website tests/build, and evidence verification.
+- Require semantic preflight to report 74 reusable case groups, zero paid stages, and an empty paid-case list.
+
+### Acceptance criteria
+
+- The sole active policy recovers at two confirmation passes, rejects at two confirmation failures, and executes no more than three confirmations.
+- Non-semantic failures remain immediately terminal and no model stage executes after a terminal quorum.
+- All 74 semantic cases are proven reusable with zero new model calls from exact immutable source provenance.
+- No active policy-v1 attempt, pointer, public page, compatibility reader, fallback, or fixture remains.
+- The exact create-agent focused test is allowed and no broad test path is accepted.
+- Review is ready and publication is signed, signed off, explicit, and pushed.
+
+### Review checkpoint
+
+Inspect quorum truth tables, stage-identity boundaries, immutable-source isolation, zero-call semantic preflight, token ceilings, honest not-recorded website state, documentation, and absence of legacy policy code or evidence.
+
+## Milestone 100: Reproject current semantic evidence and complete the clean-slate cutover
+
+### Objective
+
+Create one current-policy passing 74-case semantic attempt with zero model calls from the exact published evaluator source, then prove Custom reuse.
+
+### Dependencies
+
+- Milestone 99 is reviewed and published, so every official evidence-bearing input matches one clean committed `HEAD`.
+- Semantic preflight reports 74 reusable groups, 164 reusable stages, zero paid stages, and no paid case IDs.
+- Active semantic and qualification evidence stores contain no predecessor-policy attempt or pointer.
+
+### Scope and implementation
+
+- Record one current-policy semantic attempt entirely from exact reusable source stages without invoking an actor or judge.
+- Preserve complete source attempt, commit, path, digest, trial, and stage provenance in the new evidence.
+- Retain only the explicit immutable source manifests needed to verify model work through Git history.
+- Run qualification reuse preflight against the published generation and require exactly ten direct passing Custom groups, with only `create-grounded-agent` and `maintain-dirty-project` unresolved.
+- Synchronize active evidence documentation and generated website data to the current-policy state.
+
+### Tests and verification
+
+- Run semantic attempt verification, release identity, documentation, website artifact tests/build, and exact reuse/source-provenance checks.
+- Run qualification reuse preflight and evidence verification without authorizing paid execution.
+- Confirm no actor, judge, or evaluator model process was launched during reprojection.
+
+### Acceptance criteria
+
+- One verified current-policy semantic attempt passes all 74 cases with 164 reused stages and zero executed model stages.
+- No active policy-v1 attempt, pointer, public page, reader, fallback, or fixture remains.
+- Exactly ten Custom groups are reusable and only the two known unresolved cases require model work.
+- Review is ready and publication is signed, signed off, explicit, and pushed.
+
+### Review checkpoint
+
+Inspect clean committed source identity, zero-call recording, exact source provenance, active-evidence deletion, website truth, and the ten-versus-two Custom reuse boundary.
+
+## Milestone 101: Close the Custom qualification baseline
+
+### Objective
+
+Produce one verified 12-case Custom baseline by reusing ten exact passing groups and executing only the two unresolved cases.
+
+### Dependencies
+
+- Milestone 100 is published with current semantic evidence and every deterministic/model-free gate passing.
+- Preflight proves 74 semantic cases require zero paid stages and the ten direct Custom groups remain reusable.
+- Disk bytes and inodes are sufficient, no evaluator process is active, and the exact source identity is current.
+
+### Scope and implementation
+
+- Preserve official attempt `20260910T220756999Z-custom-custom-3c86e131` unchanged as ten reusable direct passes plus two unresolved deterministic workspace failures.
+- Preserve the passing unchanged `maintain-dirty-project` diagnostic as variance evidence without changing portable skill bytes.
+- Diagnose only corrected `create-grounded-agent`; if it passes, run one official closure that reuses the ten exact passing groups and executes only `create-grounded-agent` and `maintain-dirty-project` under the current quorum.
+- If an operational capacity stop occurs, resume the exact attempt with lower concurrency without duplicating completed stages.
+- Promote only a verified passing or legitimately recovered 12-case attempt as the sole current Custom baseline.
+
+### Tests and verification
+
+- Verify source, candidate closure, model-host policy, reasoning, timeout, confirmation policy, all six result dimensions, repository isolation, resources, artifacts, reuse provenance, and public status.
+- Run qualification evidence verification, release identity, website artifact integration, hosted-data generation, and exact paid/reused count checks.
+
+### Acceptance criteria
+
+- All 12 Custom cases pass directly or through the current quorum, with zero operational, deterministic, resource, policy, repository, or mount failure.
+- Exactly ten case groups are reused and only the two unresolved cases incur official model work.
+- The passing pointer identifies the current attempt; prior attempts remain historical evidence only.
+- No semantic model call occurs.
+- Review is ready and publication is signed, signed off, explicit, and pushed.
+
+### Review checkpoint
+
+Inspect the two executed cases, complete result distribution, quorum use, exact reuse provenance, pnpm isolation, resources, and promotion truth.
+
+## Milestone 102: Produce and close the adapter-specific ledger
 
 ### Objective
 
@@ -123,7 +240,7 @@ Qualify all 13 official adapters against the exact current Custom baseline while
 
 ### Dependencies
 
-- Milestone 98 provides one verified current passing Custom baseline.
+- Milestone 101 provides one verified current passing Custom baseline.
 - Adapter preflight binds every profile to that exact baseline and current package closure.
 
 ### Scope and implementation
@@ -149,7 +266,7 @@ Qualify all 13 official adapters against the exact current Custom baseline while
 
 Inspect cross-profile patterns, isolation, concurrency, rerun scope, package closure, provenance, counts, public composition, and absence of legacy evidence.
 
-## Milestone 100: Publish the clean skill 5.0 release
+## Milestone 103: Publish the clean skill 5.0 release
 
 ### Objective
 
@@ -157,7 +274,7 @@ Integrate and publish one clean skill 5.0 release against verified packages and 
 
 ### Dependencies
 
-- Milestones 95 and 98 through 99 provide verified current passing evidence.
+- Milestones 95 and 98 through 102 provide verified current passing evidence.
 - Target branches, identities, registry state, workflows, and hosted destinations are freshly resolved.
 
 ### Scope and implementation
@@ -181,7 +298,7 @@ Integrate and publish one clean skill 5.0 release against verified packages and 
 
 Inspect evidence selection, clean-slate removal, freshness, signed integration, workflows, registry state, and hosted presentation.
 
-## Milestone 101: Complete the cross-repository launch audit
+## Milestone 104: Complete the cross-repository launch audit
 
 ### Objective
 
@@ -189,7 +306,7 @@ Prove that specifications, packages, platform, skill, fixtures, websites, and kn
 
 ### Dependencies
 
-- Milestone 100 is complete or has only a precisely documented external publication prerequisite.
+- Milestone 103 is complete or has only a precisely documented external publication prerequisite.
 
 ### Scope and implementation
 
@@ -215,4 +332,4 @@ Inspect exact tips, claims, counts, links, closure, fixture parity, hosted state
 
 ## Execution scope
 
-Preserve completed Milestones 1 through 96 and their exact evidence. Isolate every qualification-owned pnpm metadata, content-store, user-config, and registry input within its attempt, retain verified tarballs as evidence while installing exact registry versions with strict peer validation, preserve bounded operational summaries, measure and clean reconstructible state, and pass the complete deterministic and model-free boundary without changing portable skill or semantic identity. Record one fresh passing 12-case Custom baseline, qualify all 13 adapters in batches of at most four, publish clean skill 5.0, and complete the cross-repository launch audit. Do not alter the completed 74-case semantic evidence, modify another agent's Vite/Vitest work, preserve compatibility code, add a global-cache, home-config, ambient-registry, or local-tarball installation fallback, relabel evidence, duplicate paid stages, exceed four workers, modify protected instructions, or incorporate unrelated work.
+Preserve completed Milestones 1 through 97 and their exact evidence. Publish Website UI 1.6.1 with the sole additive third-confirmation replay type, adopt one current two-pass/two-fail confirmation quorum capped at three confirmations across semantic evaluation and qualification, keep aggregation policy outside model-stage identity, reproject all 74 semantic cases with zero paid stages, retain exactly ten reusable Custom groups, correct only the exact create-agent focused-test allowance, and remove active predecessor-policy compatibility. Execute only the two unresolved Custom cases, establish one passing 12-case baseline, qualify all 13 adapters in batches of at most four, publish clean skill 5.0, and complete the cross-repository launch audit. Do not alter portable skill behavior, modify another agent's Vite/Vitest work, preserve compatibility code, relabel evidence, treat policy-only changes as model-stage invalidation, duplicate paid stages, exceed four workers, modify protected instructions, or incorporate unrelated work.

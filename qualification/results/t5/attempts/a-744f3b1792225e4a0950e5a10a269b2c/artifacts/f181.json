@@ -1,0 +1,14 @@
+{
+  "outcome": "blocked",
+  "summary": "moldea was not initialized because project-owned evidence cannot support one truthful foundation. README.md describes conflicting preview-only and value-moving execution purposes, while src/transfer-operation.ts explicitly leaves those semantics unresolved. No moldea validation was run because partial foundations must not be written or validated. Final Git status and scoped diff were clean.",
+  "changedFiles": [],
+  "observations": [
+    "package.json declares @moldea.ai/cli 8.0.0, and that exact compatible version is installed locally.",
+    "All adoption elements are absent: /moldea/moldea.yaml, /moldea/project.md, and the owned README awareness block.",
+    "README.md says no approved decision identifies whether the repository owns transfer previews or execution.",
+    "src/transfer-operation.ts only returns requests unchanged pending that product decision."
+  ],
+  "unresolved": [
+    "Decision required: Is this repository a preview-only transfer simulator or a service authorized to execute value-moving transfers, and who or what does that behavior serve?"
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 252831,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 301340,
+    "cachedInputTokens": 273792,
+    "outputTokens": 5147
+  },
+  "judgeUsage": {
+    "inputTokens": 201576,
+    "cachedInputTokens": 173824,
+    "outputTokens": 3523
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T10:05:08.698Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T10:06:49.973Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-binding",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` binds `/src/support-assistant.ts#supportAssistant`; that file exports `supportAssistant`, while `src/support-agent.ts` is absent. The Git diff replaces `/src/support-agent.ts#supportAgent` and shows the obsolete file deleted. Deterministic validation and typechecking passed."
+    },
+    {
+      "id": "records-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `agents.support.unresolved.dynamic-tool-registration` contains the canonical `category`, warning `effect`, current-state `description`, concrete `resolution`, and `related` path `/src/dynamic-tools.ts`. The Git diff adds this block without adding a tool binding or changing the support instruction. Deterministic validation passed with no failures, and workspace assertions show only `moldea/moldea.yaml` changed during the actor run."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

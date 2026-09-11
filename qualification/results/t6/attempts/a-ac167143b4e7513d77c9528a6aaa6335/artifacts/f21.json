@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s canonical Eve tool registration by changing `find_order` to the path-derived runtime name `orders-find`. Preserved all working agent source, instructions, implementation, and schemas.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Eve 0.39.1 derives `orders-find` from `/agent/tools/orders/find.ts`.",
+    "Canonical validation with CLI 8.0.0 completed with `status: valid`, `result.valid: true`, zero diagnostics, and a null cursor.",
+    "TypeScript validation passed with no errors.",
+    "Final Git status contains only the intended modification; the inspected diff is a one-line tool-name change.",
+    "Canonical content and validation commands were bounded to 65,536 output bytes."
+  ],
+  "unresolved": []
+}

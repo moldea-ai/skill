@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "Read-only assessment of canonical owner agents.support passed. The complete change scope is moldea/moldea.yaml and moldea/runtimes/eve.md; source hashes are preserved, the approved Git evidence agrees, and validation reports zero diagnostics. No repository files were changed during judging.",
+  "requirements": [
+    {
+      "id": "preserves-supported-static-relationships",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml canonically binds /agent/agent.ts, exact lowercase /agent/instructions.md, SupportOutputSchema, the status defineTool registration/implementation/schemas, and the triage defineSkill module. The corresponding sources match those declarations. Workspace assertions preserve every source hash; the deterministic result reports valid CLI validation and passing typecheck."
+    },
+    {
+      "id": "records-dynamic-and-markdown-boundaries",
+      "verdict": "pass",
+      "evidence": "The manifest records warning-level unresolved entries for /agent/tools/runtime.ts and both Markdown skill files, with focused runtime-evidence or supported-static-form resolutions. These files remain unchanged and are not claimed under canonical tools or skills. Deterministic validation passed."
+    },
+    {
+      "id": "records-subagent-and-instruction-boundaries",
+      "verdict": "pass",
+      "evidence": "Warning-level unresolved entries reference /agent/subagents/quick.ts and all three unsupported instruction examples. Resolutions direct users to the nested static agent form or exact lowercase instructions.md, while moldea/runtimes/eve.md identifies the concrete supported alternatives. Workspace hashes confirm all sources were preserved."
+    },
+    {
+      "id": "records-operational-boundaries",
+      "verdict": "pass",
+      "evidence": "The sole Eve runtime guide, moldea/runtimes/eve.md, concisely covers Node.js 24+, supported static forms, and the evidence boundary for remote agents, extensions, connection/framework tools, collisions, reserved names, advanced behavior, providers, and models. package.json independently declares node >=24, and the manifest diff adds the guide relationship."
+    }
+  ],
+  "failures": []
+}

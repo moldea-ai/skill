@@ -1,0 +1,83 @@
+{
+  "caseId": "preserve-eve-static-boundary",
+  "title": "Preserve the Eve static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 631012,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 631012,
+      "deterministicBeforePath": "cases/preserve-eve-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-eve-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-eve-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-eve-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-eve-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-eve-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 292892,
+        "cachedInputTokens": 237696,
+        "outputTokens": 8543
+      },
+      "judgeUsage": {
+        "inputTokens": 249521,
+        "cachedInputTokens": 209920,
+        "outputTokens": 4612
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T13:07:27.961Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T13:12:28.080Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "preserves-supported-static-relationships",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current moldea/moldea.yaml canonically binds /agent/agent.ts, exact lowercase /agent/instructions.md, SupportOutputSchema, the status defineTool registration/implementation/schemas, and the triage defineSkill module. The corresponding sources match those declarations. Workspace assertions preserve every source hash; the deterministic result reports valid CLI validation and passing typecheck."
+        },
+        {
+          "id": "records-dynamic-and-markdown-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest records warning-level unresolved entries for /agent/tools/runtime.ts and both Markdown skill files, with focused runtime-evidence or supported-static-form resolutions. These files remain unchanged and are not claimed under canonical tools or skills. Deterministic validation passed."
+        },
+        {
+          "id": "records-subagent-and-instruction-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Warning-level unresolved entries reference /agent/subagents/quick.ts and all three unsupported instruction examples. Resolutions direct users to the nested static agent form or exact lowercase instructions.md, while moldea/runtimes/eve.md identifies the concrete supported alternatives. Workspace hashes confirm all sources were preserved."
+        },
+        {
+          "id": "records-operational-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The sole Eve runtime guide, moldea/runtimes/eve.md, concisely covers Node.js 24+, supported static forms, and the evidence boundary for remote agents, extensions, connection/framework tools, collisions, reserved names, advanced behavior, providers, and models. package.json independently declares node >=24, and the manifest diff adds the guide relationship."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

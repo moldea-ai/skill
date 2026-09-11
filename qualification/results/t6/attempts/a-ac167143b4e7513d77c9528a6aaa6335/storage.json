@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "attemptKey": "a-ac167143b4e7513d77c9528a6aaa6335",
+  "attemptId": "20260911T130131282Z-eve-typescript-filesystem-agent-0-39-05b94571",
+  "attemptIdDigest": "ac167143b4e7513d77c9528a6aaa6335188cb8312da88b0cca699fc6891f3539",
+  "attemptDigest": "e3b37424c6aef6320906d4f175b87212caa707ed2ae54e59595298496a22436b",
+  "sourceCommit": "f5a10ccd79b5bed5c0e4735210f412b87ececb01",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "e9cf6e97d1d5862c4d5c040a4afa73b50a3237d1f83b352f564e51130b3dc297",
+    "qualificationLogicalInputDigest": "d8caba0a2b55f59f49376069a194e5f31c0775a779a8af3bfd207fc9224b3813",
+    "qualificationBaselineEvaluatorDigest": "f127211dad0153b4cb328ff4cb0f2f927624b4db2ffe4ea55652d8c526043fcb"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "6d5a49450f68ec9cf76f139f3b19a8c2d9ee425fb9eda6a1cac978c815511e43"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/case-result.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "2a3dd563389d33af26d1177149daef1ee1640005ce459a54d759a4c0a46c79c9"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f3.jsonl",
+      "sha256": "ddd7f3619bf296a5fb69e56da6e5692ee6d7ea5562049a31707744aa8d13d947"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f4.json",
+      "sha256": "4a0bd431d018a63ba9c61b7619972c30bac82543e6ace932e0105b420ff86c45"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f5.json",
+      "sha256": "9ae03b5c55e403406adb25473b9a0cf8bfa42f2068876e615f1e6b697536cc28"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f6.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f7.md",
+      "sha256": "531f84ca1c87ac4d95bae97b6e62ba673a28deafdbe651aae022f9d0cd9552aa"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f8.json",
+      "sha256": "3ef3737fa79ff52c6cd12682d8808cdf93ff635c3ed15fe632661aeba57fdb9c"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f9.json",
+      "sha256": "ca79c04f5013cbfaf10fa6cb8a97960c0cbdbee7f4e0ff4819e405ebbaae26fd"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f10.jsonl",
+      "sha256": "6badebac5265d7550b9e2ecb7c81f70d65277e26841da079da54905ec8648d70"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f11.json",
+      "sha256": "2e7008ad7c302e9aeaa4a6b2cf37f095db5c6db813e38d0145659349c8493ff0"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f12.json",
+      "sha256": "5e13e9f863b5abe551a5b12cebb2dbde08998cca3549124edb301ca29412a58f"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f13.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f14.md",
+      "sha256": "4b73257201857730d5b8ece7a98139fbe2bafc5159e790a854094a1b531da0b4"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f15.json",
+      "sha256": "2485201acb98b25a0d37507fc1ce43f80772033efe31bc21dd477512b9802e70"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f16.json",
+      "sha256": "51823d4cb862c396cfbaf7920f7c677a0d32e485f3c028970934691af5659493"
+    },
+    {
+      "logicalPath": "cases/preserve-eve-static-boundary/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f17.patch",
+      "sha256": "b9e11981a8296b9a18b36c3c2503241c9c191bf79183b6f4cf3ffb02177c8600"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/case-result.json",
+      "physicalPath": "artifacts/f18.json",
+      "sha256": "2b9b4d623c6c5e23c7888944435d9c860e3adf560e2ffc1f4abd0d4fd2cdbf35"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f19.jsonl",
+      "sha256": "a7a8cfd61b1c481ecd869890bfcdb6095bc13d42bdacd20f5f4c77207f26ab34"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f20.json",
+      "sha256": "b956882ad0a98e25d896c0964eb79214c219b33625949546e3792dabd814f6aa"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f21.json",
+      "sha256": "af870c613f5ac7e8ce99c6d9c4a3aeeb7a815e7eb1911877a488990e0bb407ca"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f22.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f23.md",
+      "sha256": "b56ee3c4ce690775cc11a79cedb76cf53cd375f19f67be9eeff99a2a5127b47e"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f24.json",
+      "sha256": "e0696d892ff0d7603b9d1358f538dc6223f7a7547fa7de942d0251393acd1ccd"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f25.json",
+      "sha256": "09a66f9900e655020cfa0964b57a5e8d5ffe9911877c7f549c389fd7cc756004"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f26.jsonl",
+      "sha256": "dedecc66ed63882b8dc7ad3113e91e994c9db81ee6dd9db49ec09208ce6bd04d"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f27.json",
+      "sha256": "c5238fd7baafa3f3caba5c7c626a47532169eaefb970425c927d66a0cdc382c9"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f28.json",
+      "sha256": "228159acaf3d210871ecbde7dd9a1526417591428e66d2b6b859ff63eb0efe41"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f29.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f30.md",
+      "sha256": "e3202712af002d3397496e123c69f2105e266e684dbdae03960db01ce4b1b798"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f31.json",
+      "sha256": "7f9c5d0bfc557e3f114357d834e57b9b9861d58c4487c7ec19576e09233e0e96"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f32.json",
+      "sha256": "db704d07c89f42f2c249b46dbb14427568adec2ff521f23043b5598ea08c16fe"
+    },
+    {
+      "logicalPath": "cases/repair-eve-tool-registration/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f33.patch",
+      "sha256": "7a381a4f59c33fe90f0acb6eb852ecc0041b1e86a6c06057672e22e01a7ef3f4"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f34.json",
+      "sha256": "ab95ea264f685e01411dfb86bdf33d3912b5a2307ed399e3fc70fb3b00a9e0b1"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f35.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

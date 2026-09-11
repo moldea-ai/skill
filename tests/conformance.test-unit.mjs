@@ -229,6 +229,7 @@ const createProject = () => {
   );
   writeFileSync(join(root, 'moldea', 'project.md'), '# Project\n\nCurrent project truth.\n');
   writeFileSync(join(root, 'src', 'project-state.js'), 'export const state = true;\n');
+  writeFileSync(join(root, '.gitignore'), 'node_modules/\n');
   const init = spawnSync('git', ['init', '--quiet'], {
     cwd: root,
     encoding: 'utf8',

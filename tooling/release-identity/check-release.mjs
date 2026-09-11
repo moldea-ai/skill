@@ -27,10 +27,12 @@ if (unsupportedArgument) {
     const evidence = process.argv.includes('--identity-only')
       ? null
       : await assertReleaseEvidence(repositoryRoot);
+    const evidenceStatus =
+      evidence === null
+        ? ''
+        : ` Semantic evidence is ${evidence.semantic.mode}; qualification evidence is ${evidence.qualification.mode}.`;
     process.stdout.write(
-      evidence?.mode === 'pinned'
-        ? `Release identity is synchronized for skill ${identity.releaseVersion}. Evidence pinned from ${evidence.source.tag}: ${evidence.reason}\n`
-        : `Release identity is synchronized for skill ${identity.releaseVersion} and ${identity.cliVersion}.\n`,
+      `Release identity is synchronized for skill ${identity.releaseVersion} and ${identity.cliVersion}.${evidenceStatus}\n`,
     );
   } catch (error) {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);

@@ -79,7 +79,7 @@ Qualification protocol 10 accepts only evidence matching the current:
 
 Every current target must have a current passing attempt for its exact current inputs. A current attempt may reuse only complete passed or recovered case groups from a byte-valid committed failed attempt with the same behavior-bearing identity. Direct and reused work remain visibly distinct, and failed, incomplete, diagnostic, uncommitted, chained, mismatched, or tampered evidence is rejected. Current protocol-10 history is revalidated against the contracts at each attempt's recorded source commit.
 
-This is the normal release path. An explicit release evidence pin may reuse the original passing qualification evidence from an earlier immutable release when a maintainer has established that the new release does not affect evaluated behavior. The pin is disclosed publicly and does not relabel the source attempt as current. See [Release evidence](/docs/release-evidence/).
+This is the normal release path. An explicit qualification-scoped release evidence pin may reuse original passing qualification evidence from an immutable release tag or full commit when a maintainer has established that qualification behavior is unchanged. Semantic evidence remains independently fresh or pinned. The qualification pages disclose the source and do not relabel it as current. See [Release evidence](/docs/release-evidence/).
 
 An adapter attempt requires a passing current Custom baseline. A Custom attempt does not require another baseline.
 

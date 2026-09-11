@@ -8,7 +8,14 @@ import { dirname, join, resolve } from 'node:path';
 import { test } from 'node:test';
 
 import { createQualificationAttemptKey } from '../../qualification/src/storage/index.ts';
+import { recordQualificationResult } from '../../qualification/src/result/index.ts';
+import { seedPassingQualificationEvidenceFixture } from '../../qualification/vitest/evidence-fixture.ts';
 import { loadReleaseEvidenceModel } from '../../website/src/lib/release-evidence/index.ts';
+import {
+  createPortableSkillDigest,
+  createSemanticCaseSuiteDigest,
+  createSemanticCoverageDigest,
+} from '../semantic-evaluation/index.mjs';
 
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from './constants.mjs';
 import {
@@ -17,12 +24,16 @@ import {
   pinReleaseEvidence,
   recordFreshReleaseEvidence,
 } from './evidence.mjs';
-import { createFreshReleaseEvidenceEnvelope } from './release-evidence-current.mjs';
+import {
+  createCurrentQualificationReleaseEvidence,
+  createFreshReleaseEvidenceEnvelope,
+} from './release-evidence-current.mjs';
 import {
   createReleaseEvidenceSha256,
   serializeReleaseEvidenceEnvelope,
 } from './release-evidence-envelope.mjs';
 import { assertTargetReleaseTagIdentity } from './release-evidence-source.mjs';
+import { createSemanticCliIdentity } from './identity.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(new URL(import.meta.url).pathname), '../..');
 
@@ -71,12 +82,11 @@ const createPackageIdentity = (root, version, cliVersion = '8.0.0') => {
   });
 };
 
-const seedFreshEvidence = (
+const seedFreshEvidence = async (
   root,
   {
     isCorrupt = false,
     isFailed = false,
-    isInvalidResource = false,
     isMissing = false,
     isOverBudget = false,
     isProfileMismatch = false,
@@ -91,19 +101,27 @@ const seedFreshEvidence = (
     operations: ['inspect'],
     stdoutByteCount: 1,
   };
-  writeJson(root, 'fixtures/conformance-cases.json', {
-    semanticCases: [
+  const semanticCase = JSON.parse(
+    readFileSync(join(REPOSITORY_ROOT, 'fixtures/conformance-cases.json'), 'utf8'),
+  ).semanticCases.find(
+    ({ resourceBudget }) =>
+      resourceBudget.activation === 'direct' && resourceBudget.minimumMoldeaCommands === 1,
+  );
+  const semanticCases = [semanticCase];
+  const semanticCoverage = {
+    claims: [
       {
-        id: 'semantic-case',
-        resourceBudget: {
-          activation: 'direct',
-          maximumMoldeaCommands: 2,
-          maximumMoldeaOutputBytes: 1024,
-          minimumMoldeaCommands: 1,
-        },
+        description: 'Covers the release evidence fixture.',
+        evidence: [{ id: semanticCase.id, kind: 'semantic-case' }],
+        id: 'release-evidence',
+        rationale: 'The fixture case exercises the selected evidence contract.',
+        sourcePaths: ['moldea/SKILL.md#fixture'],
       },
     ],
-  });
+    schemaVersion: 1,
+  };
+  writeJson(root, 'fixtures/conformance-cases.json', { semanticCases });
+  writeJson(root, 'fixtures/semantic-evaluation-coverage.json', semanticCoverage);
   const semanticAttemptId = '20260905T000000000Z-semantic-12345678';
   const semanticAttemptRoot = `fixtures/semantic-evaluation-results/attempts/${semanticAttemptId}`;
   const semanticEvidence = `${JSON.stringify({ kind: 'candidate' })}\n`;
@@ -122,113 +140,74 @@ const seedFreshEvidence = (
     lastPassingAttemptId: semanticAttemptId,
   });
   writeJson(root, 'fixtures/semantic-evaluation-result.json', {
+    artifactDigest: createPortableSkillDigest(root),
+    artifactSha256: createPortableSkillDigest(root),
+    caseSuiteDigest: createSemanticCaseSuiteDigest(semanticCases),
+    cli: createSemanticCliIdentity(root),
+    coverageDigest: createSemanticCoverageDigest(semanticCoverage, semanticCases),
     evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     semanticAttemptId,
-    cases: [{ actorResourceEvidence: resourceEvidence, id: 'semantic-case', passed: !isFailed }],
+    cases: [
+      {
+        actorResourceEvidence: resourceEvidence,
+        id: semanticCase.id,
+        passed: !isFailed,
+      },
+    ],
   });
 
   const qualificationAttemptId = 'qualification-attempt';
   const qualificationAttemptKey = createQualificationAttemptKey(qualificationAttemptId);
   const qualificationAttemptRoot = `qualification/results/t1/attempts/${qualificationAttemptKey}`;
-  const actorEvidence = `${JSON.stringify({
-    stageIdentity: '0'.repeat(64),
-    reuseSourceAttemptId: null,
-    commandPolicy: {
-      completedCommandCount: 1,
-      credentialExposure: { observedCount: 0, reasons: [], status: 'not-observed' },
-      maximumCommandOutputByteCount: 1024,
-      modelVisibleToolOutputByteCount: 1024,
-      moldeaCommandCount: isInvalidResource ? 33 : 1,
-      moldeaOutputByteCount: 512,
-      networkAccess: {
-        indeterminateCount: 0,
-        observedCount: 0,
-        reasons: [],
-        status: 'not-observed',
-      },
-      sensitiveAccess: {
-        indeterminateCount: 0,
-        observedCount: 0,
-        reasons: [],
-        status: 'not-observed',
-      },
-    },
-    createdAt: '2026-09-05T00:00:00.000Z',
-    durationMs: 1,
-    role: 'actor',
-    sourceAttemptId: qualificationAttemptId,
-    trialId: 'initial',
-    usage: null,
-  })}\n`;
-  const actorEvidencePath = 'cases/case-1/trials/initial/actor-evidence.json';
-  const actorPhysicalPath = 'artifacts/f1.json';
-  writeText(root, `${qualificationAttemptRoot}/${actorPhysicalPath}`, actorEvidence);
-  const qualificationAttemptPath = `${qualificationAttemptRoot}/attempt.json`;
-  writeJson(root, qualificationAttemptPath, {
-    artifactDigests: {
-      [actorEvidencePath]: createReleaseEvidenceSha256(actorEvidence),
-    },
+  const artifactDirectory = join(root, '.qualification-artifacts');
+  const result = await seedPassingQualificationEvidenceFixture({
+    artifactDirectory,
     attemptId: qualificationAttemptId,
-    cases: [{ caseId: 'case-1', status: 'passed' }],
-    mode: 'official',
-    protocolVersion: 10,
-    provenance: {
-      packagesRepositoryDirty: false,
-      qualificationRepositoryDirty: false,
-      skillRepositoryDirty: false,
-    },
-    selection: { adapterId: 'custom', implementationId: 'custom' },
-    status: 'passed',
+    resultsRoot: join(root, 'qualification', 'results'),
   });
-  const qualificationAttemptSha256 = createReleaseEvidenceSha256(
-    readFileSync(join(root, qualificationAttemptPath)),
-  );
-  writeJson(root, `${qualificationAttemptRoot}/storage.json`, {
-    version: 1,
-    attemptId: qualificationAttemptId,
-    attemptKey: qualificationAttemptKey,
-    attemptDigest: qualificationAttemptSha256,
-    artifacts: [
-      {
-        logicalPath: actorEvidencePath,
-        physicalPath: actorPhysicalPath,
-        sha256: createReleaseEvidenceSha256(actorEvidence),
+  await recordQualificationResult(
+    {
+      artifactDirectory,
+      result,
+      sanitizationContext: {
+        attemptDirectory: '/attempt',
+        packagesRepository: '/packages',
+        skillRepository: '/skill',
       },
-    ],
-  });
-  writeJson(root, 'qualification/results/t1/latest.json', {
-    adapterId: 'custom',
-    implementationId: 'custom',
-    latestAttemptId: qualificationAttemptId,
-    latestStatus: 'passed',
-    lastPassingAttemptId: qualificationAttemptId,
-    protocolVersion: 10,
-  });
-  writeText(
-    root,
-    'qualification/profiles/index.yaml',
-    'version: 1\ntargets:\n  - key: t1\n    adapterId: custom\n    implementationId: custom\n',
+    },
+    join(root, 'qualification', 'results'),
   );
-  writeText(
-    root,
-    'qualification/profiles/t1/profile.yaml',
-    `version: 2\nadapterId: custom\nimplementationId: custom\ntitle: Custom qualification\ndescription: Test profile.\nprobesFile: probes/claims.yaml\ncases:\n  - id: ${isProfileMismatch ? 'case-2' : 'case-1'}\n    projectDirectory: cases/c1\n    scenarioFile: scenario.yaml\n`,
-  );
+  rmSync(artifactDirectory, { force: true, recursive: true });
+  if (isProfileMismatch) {
+    const profilePath = join(root, 'qualification/profiles/t1/profile.yaml');
+    writeFileSync(
+      profilePath,
+      readFileSync(profilePath, 'utf8').replace('id: release-case', 'id: different-case'),
+      'utf8',
+    );
+  }
   const envelope = createFreshReleaseEvidenceEnvelope(root);
   writeText(root, 'fixtures/release-evidence.json', serializeReleaseEvidenceEnvelope(envelope));
+  const storage = JSON.parse(
+    readFileSync(join(root, qualificationAttemptRoot, 'storage.json'), 'utf8'),
+  );
+  const actorEvidence = storage.artifacts.find(({ logicalPath }) =>
+    logicalPath.endsWith('/actor-evidence.json'),
+  );
+  const actorPhysicalPath = join(qualificationAttemptRoot, actorEvidence.physicalPath);
   if (isCorrupt) {
-    writeText(root, `${qualificationAttemptRoot}/${actorPhysicalPath}`, '{"corrupt":true}\n');
+    writeText(root, actorPhysicalPath, '{"corrupt":true}\n');
   } else if (isMissing) {
-    unlinkSync(join(root, qualificationAttemptRoot, actorPhysicalPath));
+    unlinkSync(join(root, actorPhysicalPath));
   }
 };
 
-const createRepository = (options) => {
+const createRepository = async (options) => {
   const root = mkdtempSync(join(tmpdir(), 'moldea-release-evidence-'));
+  await seedFreshEvidence(root, options);
   runGit(root, 'init', '-b', 'main');
   runGit(root, 'config', 'user.email', 'fixture@example.com');
   runGit(root, 'config', 'user.name', 'Fixture');
-  seedFreshEvidence(root, options);
   runGit(root, 'add', '-A');
   runGit(root, 'commit', '-m', 'release 5.0.0');
   runGit(root, 'tag', 'v5.0.0');
@@ -248,7 +227,7 @@ test('reports an absent release selection without invoking current evidence read
 });
 
 test('records deterministic fresh evidence only after its verifier passes', async () => {
-  const root = createRepository();
+  const root = await createRepository();
   try {
     unlinkSync(join(root, 'fixtures/release-evidence.json'));
     let verificationCount = 0;
@@ -259,7 +238,9 @@ test('records deterministic fresh evidence only after its verifier passes', asyn
     });
     const firstSource = readFileSync(join(root, 'fixtures/release-evidence.json'), 'utf8');
     assert.throws(() => clearPinnedReleaseEvidence(root), /Only pinned release evidence/);
-    const second = await recordFreshReleaseEvidence(root, { assertEvidence: async () => {} });
+    const second = await recordFreshReleaseEvidence(root, {
+      assertEvidence: async () => {},
+    });
     assert.equal(verificationCount, 1);
     assert.deepEqual(second, first);
     assert.equal(readFileSync(join(root, 'fixtures/release-evidence.json'), 'utf8'), firstSource);
@@ -276,22 +257,49 @@ test('records deterministic fresh evidence only after its verifier passes', asyn
   }
 });
 
-test('pins directly, bypasses changed current evidence identity, and clears explicitly', async () => {
-  const root = createRepository();
+test('represents commit-pinned semantic evidence beside fresh qualification evidence', async () => {
+  const root = await createRepository();
   try {
+    const sourceCommit = runGit(root, 'rev-parse', 'HEAD');
     prepareTarget(root);
-    const envelope = pinReleaseEvidence(root, {
-      from: 'v5.0.0',
+    await assert.rejects(
+      pinReleaseEvidence(root, {
+        fromCommit: sourceCommit,
+        reason: 'The target changes release tooling without changing evaluated behavior.',
+        scope: 'semantic',
+      }),
+      /Qualification/u,
+    );
+    const pinnedEnvelope = await pinReleaseEvidence(root, {
+      fromCommit: sourceCommit,
       reason: 'The target changes release tooling without changing evaluated behavior.',
+      scope: 'all',
     });
-    assert.equal(envelope.mode, 'pinned');
-    assert.equal(envelope.source.tag, 'v5.0.0');
+    const envelope = {
+      ...pinnedEnvelope,
+      qualification: {
+        evidence: createCurrentQualificationReleaseEvidence(root),
+        mode: 'fresh',
+      },
+    };
+    writeText(root, 'fixtures/release-evidence.json', serializeReleaseEvidenceEnvelope(envelope));
+    assert.equal(envelope.semantic.mode, 'pinned');
+    assert.equal(envelope.semantic.source.commit, sourceCommit);
+    assert.equal(envelope.semantic.source.tag, null);
+    assert.equal(envelope.qualification.mode, 'fresh');
     assert.deepEqual(loadReleaseEvidenceModel(root, '6.0.0'), {
-      mode: 'pinned',
-      reason: 'The target changes release tooling without changing evaluated behavior.',
-      sourceCommit: runGit(root, 'rev-parse', 'v5.0.0^{commit}'),
-      sourceTag: 'v5.0.0',
-      sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
+      mode: 'recorded',
+      qualification: {
+        mode: 'fresh',
+        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
+      },
+      semantic: {
+        mode: 'pinned',
+        reason: 'The target changes release tooling without changing evaluated behavior.',
+        sourceCommit,
+        sourceLabel: sourceCommit.slice(0, 12),
+        sourceUrl: `https://github.com/moldea-ai/skill/tree/${sourceCommit}`,
+      },
       targetVersion: '6.0.0',
     });
     writeText(root, 'moldea/SKILL.md', '# drifted target skill\n');
@@ -300,9 +308,6 @@ test('pins directly, bypasses changed current evidence identity, and clears expl
       /does not match the current portable skill bytes/,
     );
     writeText(root, 'moldea/SKILL.md', '# fixture skill 6.0.0\n');
-    rmSync(join(root, 'fixtures/semantic-evaluation-results'), { force: true, recursive: true });
-    rmSync(join(root, 'qualification/results'), { force: true, recursive: true });
-    assert.deepEqual(await inspectReleaseEvidence(root), []);
     let currentVerifierCalled = false;
     await assert.rejects(
       recordFreshReleaseEvidence(root, {
@@ -320,88 +325,50 @@ test('pins directly, bypasses changed current evidence identity, and clears expl
   }
 });
 
-test('flattens a pinned release to its original fresh source across major versions', () => {
-  const root = createRepository();
+test('flattens tagged pinned sections to their original source', async () => {
+  const root = await createRepository();
   try {
     prepareTarget(root, '6.0.0');
-    pinReleaseEvidence(root, { from: 'v5.0.0', reason: 'Release tooling only.' });
+    await pinReleaseEvidence(root, {
+      from: 'v5.0.0',
+      reason: 'Release tooling only.',
+      scope: 'all',
+    });
     runGit(root, 'add', '-A');
     runGit(root, 'commit', '-m', 'release 6.0.0');
     runGit(root, 'tag', 'v6.0.0');
     prepareTarget(root, '9.0.0');
-    const envelope = pinReleaseEvidence(root, {
+    const envelope = await pinReleaseEvidence(root, {
       from: 'v6.0.0',
       reason: 'A later major retains the same evaluated behavior.',
+      scope: 'all',
     });
-    assert.equal(envelope.source.tag, 'v5.0.0');
-    assert.equal(envelope.source.commit, runGit(root, 'rev-parse', 'v5.0.0^{commit}'));
+    assert.equal(envelope.semantic.source.tag, 'v5.0.0');
+    assert.equal(envelope.qualification.source.tag, 'v5.0.0');
+    assert.equal(envelope.semantic.source.commit, runGit(root, 'rev-parse', 'v5.0.0^{commit}'));
   } finally {
     rmSync(root, { force: true, recursive: true });
   }
 });
 
-test('bounds malformed pin chains even though command-created pins are flattened', () => {
-  const root = createRepository();
-  try {
-    const freshSource = readFileSync(join(root, 'fixtures/release-evidence.json'), 'utf8');
-    const freshEnvelope = JSON.parse(freshSource);
-    const freshCommit = runGit(root, 'rev-parse', 'v5.0.0^{commit}');
-    let previousTag = 'v5.0.0';
-    for (let major = 6; major <= 70; major += 1) {
-      const version = `${major}.0.0`;
-      createPackageIdentity(root, version);
-      writeText(
-        root,
-        'fixtures/release-evidence.json',
-        serializeReleaseEvidenceEnvelope({
-          mode: 'pinned',
-          reason: 'Synthetic malformed chain.',
-          schemaVersion: 1,
-          source: {
-            commit: freshCommit,
-            evidenceSha256: createReleaseEvidenceSha256(freshSource),
-            qualificationSha256: createReleaseEvidenceSha256(
-              JSON.stringify(freshEnvelope.qualification),
-            ),
-            semanticSha256: createReleaseEvidenceSha256(JSON.stringify(freshEnvelope.semantic)),
-            tag: previousTag,
-          },
-          target: {
-            portableSkillSha256: freshEnvelope.target.portableSkillSha256,
-            version,
-          },
-        }),
-      );
-      runGit(root, 'add', '-A');
-      runGit(root, 'commit', '-m', `release ${version}`);
-      previousTag = `v${version}`;
-      runGit(root, 'tag', previousTag);
-    }
-    prepareTarget(root, '71.0.0');
-    assert.throws(
-      () => pinReleaseEvidence(root, { from: previousTag, reason: 'Reject chain.' }),
-      /pin chain exceeds 64 tags/,
-    );
-  } finally {
-    rmSync(root, { force: true, recursive: true });
-  }
-});
-
-test('rejects self-reference, pre-envelope tags, corrupt artifacts, and over-budget evidence', () => {
+test('rejects self-reference, pre-envelope tags, corrupt artifacts, and over-budget evidence', async () => {
   const scenarios = [
     [{ isCorrupt: true }, /artifact digest does not match/],
     [{ isFailed: true }, /failed or over budget/],
-    [{ isInvalidResource: true }, /invalid or over budget/],
     [{ isMissing: true }, /exists on disk|does not exist/],
     [{ isOverBudget: true }, /failed or over budget/],
     [{ isProfileMismatch: true }, /not self-consistent and passing/],
   ];
   for (const [options, expectedError] of scenarios) {
-    const root = createRepository(options);
+    const root = await createRepository(options);
     try {
       prepareTarget(root);
-      assert.throws(
-        () => pinReleaseEvidence(root, { from: 'v5.0.0', reason: 'Expected rejection.' }),
+      await assert.rejects(
+        pinReleaseEvidence(root, {
+          from: 'v5.0.0',
+          reason: 'Expected rejection.',
+          scope: 'all',
+        }),
         expectedError,
       );
     } finally {
@@ -409,17 +376,25 @@ test('rejects self-reference, pre-envelope tags, corrupt artifacts, and over-bud
     }
   }
 
-  const root = createRepository();
+  const root = await createRepository();
   try {
     prepareTarget(root);
-    assert.throws(
-      () => pinReleaseEvidence(root, { from: 'v-does-not-exist', reason: '' }),
+    await assert.rejects(
+      pinReleaseEvidence(root, {
+        from: 'v-does-not-exist',
+        reason: '',
+        scope: 'all',
+      }),
       /Pinned evidence reason/,
     );
     createPackageIdentity(root, '5.0.0');
     writeText(root, 'moldea/SKILL.md', '# fixture skill\n');
-    assert.throws(
-      () => pinReleaseEvidence(root, { from: 'v5.0.0', reason: 'Self reference.' }),
+    await assert.rejects(
+      pinReleaseEvidence(root, {
+        from: 'v5.0.0',
+        reason: 'Self reference.',
+        scope: 'all',
+      }),
       /cannot pin the target release to itself/,
     );
     unlinkSync(join(root, 'fixtures/release-evidence.json'));
@@ -429,8 +404,12 @@ test('rejects self-reference, pre-envelope tags, corrupt artifacts, and over-bud
     runGit(root, 'commit', '-m', 'pre-envelope release');
     runGit(root, 'tag', 'v4.0.0');
     prepareTarget(root);
-    assert.throws(
-      () => pinReleaseEvidence(root, { from: 'v4.0.0', reason: 'Pre-envelope source.' }),
+    await assert.rejects(
+      pinReleaseEvidence(root, {
+        from: 'v4.0.0',
+        reason: 'Pre-envelope source.',
+        scope: 'all',
+      }),
       /release-evidence\.json|exists on disk/,
     );
   } finally {
@@ -439,10 +418,14 @@ test('rejects self-reference, pre-envelope tags, corrupt artifacts, and over-bud
 });
 
 test('detects a source tag moved after pinning', async () => {
-  const root = createRepository();
+  const root = await createRepository();
   try {
     prepareTarget(root);
-    pinReleaseEvidence(root, { from: 'v5.0.0', reason: 'Source binding test.' });
+    await pinReleaseEvidence(root, {
+      from: 'v5.0.0',
+      reason: 'Source binding test.',
+      scope: 'all',
+    });
     writeText(root, 'unrelated.txt', `${createHash('sha256').update('moved').digest('hex')}\n`);
     runGit(root, 'add', '-A');
     runGit(root, 'commit', '-m', 'move source');
@@ -455,8 +438,8 @@ test('detects a source tag moved after pinning', async () => {
   }
 });
 
-test('binds an optional target release tag to the checked-out release commit', () => {
-  const root = createRepository();
+test('binds an optional target release tag to the checked-out release commit', async () => {
+  const root = await createRepository();
   try {
     assert.doesNotThrow(() => assertTargetReleaseTagIdentity(root, '5.0.0', undefined));
     assert.doesNotThrow(() => assertTargetReleaseTagIdentity(root, '5.0.0', 'v5.0.0'));

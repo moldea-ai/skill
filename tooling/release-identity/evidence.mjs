@@ -19,6 +19,10 @@ import {
 import { createSemanticCliIdentity } from './identity.mjs';
 import { readReleaseIdentity } from './identity.mjs';
 import {
+  createCurrentQualificationReleaseEvidence,
+  createCurrentReleaseEvidenceTarget,
+  createCurrentSemanticReleaseEvidence,
+  createDependencyClosureSha256,
   createFreshEvidenceSectionSha256,
   createFreshReleaseEvidenceEnvelope,
 } from './release-evidence-current.mjs';
@@ -29,8 +33,8 @@ import {
   validateReleaseEvidenceReason,
 } from './release-evidence-envelope.mjs';
 import {
-  assertPinnedReleaseEvidenceSource,
-  resolveFreshReleaseEvidenceSource,
+  assertPinnedReleaseEvidenceSection,
+  resolveReleaseEvidenceSectionSource,
 } from './release-evidence-source.mjs';
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
@@ -184,12 +188,16 @@ const writeEnvelopeAtomically = (repositoryRoot, envelope) => {
 const inspectTargetIdentity = (repositoryRoot, envelope) => {
   const identity = readReleaseIdentity(repositoryRoot);
   const portableSkillSha256 = createPortableSkillDigest(repositoryRoot);
+  const dependencyClosureSha256 = createDependencyClosureSha256(repositoryRoot);
   const issues = [];
   if (envelope.target.version !== identity.releaseVersion) {
     issues.push('Release evidence target version does not match the current release.');
   }
   if (envelope.target.portableSkillSha256 !== portableSkillSha256) {
     issues.push('Release evidence target does not match the current portable skill bytes.');
+  }
+  if (envelope.target.dependencyClosureSha256 !== dependencyClosureSha256) {
+    issues.push('Release evidence target does not match the current dependency closure.');
   }
   return issues;
 };
@@ -200,7 +208,10 @@ export const recordFreshReleaseEvidence = async (
   { assertEvidence = assertCurrentReleaseEvidence } = {},
 ) => {
   const selectedEnvelope = readReleaseEvidenceEnvelope(repositoryRoot);
-  if (selectedEnvelope?.mode === 'pinned') {
+  if (
+    selectedEnvelope?.semantic.mode === 'pinned' ||
+    selectedEnvelope?.qualification.mode === 'pinned'
+  ) {
     throw new Error('Clear pinned release evidence before recording fresh evidence.');
   }
   await assertEvidence(repositoryRoot);
@@ -209,29 +220,60 @@ export const recordFreshReleaseEvidence = async (
   return envelope;
 };
 
-/** Records a compact pin to the original fresh evidence behind one exact source tag. */
-export const pinReleaseEvidence = (repositoryRoot, { from, reason }) => {
+const RELEASE_EVIDENCE_SCOPES = new Set(['all', 'qualification', 'semantic']);
+
+const createFreshSection = async (repositoryRoot, kind) => {
+  const issues =
+    kind === 'semantic'
+      ? await inspectSemanticEvidence(repositoryRoot)
+      : await inspectQualificationEvidence(repositoryRoot);
+  if (issues.length > 0) throw new Error(issues.join('\n'));
+  return {
+    evidence:
+      kind === 'semantic'
+        ? createCurrentSemanticReleaseEvidence(repositoryRoot)
+        : createCurrentQualificationReleaseEvidence(repositoryRoot),
+    mode: 'fresh',
+  };
+};
+
+const createPinnedSection = (repositoryRoot, kind, sourceOptions, reason) => ({
+  mode: 'pinned',
+  reason,
+  source: resolveReleaseEvidenceSectionSource(repositoryRoot, {
+    ...sourceOptions,
+    kind,
+  }),
+});
+
+/** Selects immutable prior evidence for one explicit release-evidence section. */
+export const pinReleaseEvidence = async (
+  repositoryRoot,
+  { from = null, fromCommit = null, reason, scope },
+) => {
   const identity = readReleaseIdentity(repositoryRoot);
   const validatedReason = validateReleaseEvidenceReason(reason);
+  if (!RELEASE_EVIDENCE_SCOPES.has(scope)) {
+    throw new Error('Release evidence scope must be semantic, qualification, or all.');
+  }
+  if ((from === null) === (fromCommit === null)) {
+    throw new Error('Select exactly one evidence source with --from or --from-commit.');
+  }
   if (from === `v${identity.releaseVersion}`) {
     throw new Error('Release evidence cannot pin the target release to itself.');
   }
-  const resolved = resolveFreshReleaseEvidenceSource(repositoryRoot, from);
+  const sourceOptions = { commit: fromCommit, tag: from };
+  const pinsSemantic = scope === 'all' || scope === 'semantic';
+  const pinsQualification = scope === 'all' || scope === 'qualification';
   const envelope = {
-    mode: 'pinned',
-    reason: validatedReason,
-    schemaVersion: 1,
-    source: {
-      commit: resolved.commit,
-      evidenceSha256: resolved.envelopeSha256,
-      qualificationSha256: createFreshEvidenceSectionSha256(resolved.envelope.qualification),
-      semanticSha256: createFreshEvidenceSectionSha256(resolved.envelope.semantic),
-      tag: resolved.tag,
-    },
-    target: {
-      portableSkillSha256: createPortableSkillDigest(repositoryRoot),
-      version: identity.releaseVersion,
-    },
+    qualification: pinsQualification
+      ? createPinnedSection(repositoryRoot, 'qualification', sourceOptions, validatedReason)
+      : await createFreshSection(repositoryRoot, 'qualification'),
+    schemaVersion: 2,
+    semantic: pinsSemantic
+      ? createPinnedSection(repositoryRoot, 'semantic', sourceOptions, validatedReason)
+      : await createFreshSection(repositoryRoot, 'semantic'),
+    target: createCurrentReleaseEvidenceTarget(repositoryRoot),
   };
   const validated = parseReleaseEvidenceEnvelope(serializeReleaseEvidenceEnvelope(envelope));
   writeEnvelopeAtomically(repositoryRoot, validated);
@@ -243,7 +285,7 @@ export const clearPinnedReleaseEvidence = (repositoryRoot) => {
   const path = join(repositoryRoot, 'fixtures', 'release-evidence.json');
   if (!existsSync(path)) return false;
   const envelope = readReleaseEvidenceEnvelope(repositoryRoot);
-  if (envelope.mode !== 'pinned') {
+  if (envelope.semantic.mode !== 'pinned' && envelope.qualification.mode !== 'pinned') {
     throw new Error('Only pinned release evidence can be cleared with the pin command.');
   }
   unlinkSync(path);
@@ -258,25 +300,37 @@ export const inspectReleaseEvidence = async (repositoryRoot) => {
   }
   const identityIssues = inspectTargetIdentity(repositoryRoot, envelope);
   if (identityIssues.length > 0) return identityIssues;
-  if (envelope.mode === 'pinned') {
-    try {
-      assertPinnedReleaseEvidenceSource(repositoryRoot, envelope);
-      return [];
-    } catch (error) {
-      return [error instanceof Error ? error.message : String(error)];
+  const issues = [];
+  for (const kind of ['semantic', 'qualification']) {
+    const section = envelope[kind];
+    if (section.mode === 'pinned') {
+      try {
+        assertPinnedReleaseEvidenceSection(repositoryRoot, section, kind);
+      } catch (error) {
+        issues.push(error instanceof Error ? error.message : String(error));
+      }
+      continue;
+    }
+    const currentIssues =
+      kind === 'semantic'
+        ? await inspectSemanticEvidence(repositoryRoot)
+        : await inspectQualificationEvidence(repositoryRoot);
+    issues.push(...currentIssues);
+    if (currentIssues.length > 0) continue;
+    const expectedEvidence =
+      kind === 'semantic'
+        ? createCurrentSemanticReleaseEvidence(repositoryRoot)
+        : createCurrentQualificationReleaseEvidence(repositoryRoot);
+    if (
+      createFreshEvidenceSectionSha256(expectedEvidence) !==
+      createFreshEvidenceSectionSha256(section.evidence)
+    ) {
+      issues.push(
+        `${kind === 'semantic' ? 'Semantic' : 'Qualification'} release evidence does not exactly match current verified evidence.`,
+      );
     }
   }
-  const currentIssues = await inspectCurrentReleaseEvidence(repositoryRoot);
-  if (currentIssues.length > 0) return currentIssues;
-  try {
-    const expected = createFreshReleaseEvidenceEnvelope(repositoryRoot);
-    if (serializeReleaseEvidenceEnvelope(expected) !== serializeReleaseEvidenceEnvelope(envelope)) {
-      return ['Fresh release evidence does not exactly match current verified evidence.'];
-    }
-  } catch (error) {
-    return [error instanceof Error ? error.message : String(error)];
-  }
-  return [];
+  return issues;
 };
 
 /** Requires the selected fresh or pinned release evidence to be valid. */

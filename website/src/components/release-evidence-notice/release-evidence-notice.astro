@@ -2,13 +2,29 @@
 import { ExternalLink } from '@lucide/astro';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 
-import type { IReleaseEvidenceModel } from '../../lib/release-evidence/index.ts';
+import type {
+  IReleaseEvidenceModel,
+  IReleaseEvidenceSectionModel,
+} from '../../lib/release-evidence/index.ts';
 
 interface Props {
   evidence: IReleaseEvidenceModel;
+  scope?: 'qualification' | 'semantic';
 }
 
-const { evidence } = Astro.props;
+const { evidence, scope } = Astro.props;
+const sections: Array<{
+  kind: 'qualification' | 'semantic';
+  section: IReleaseEvidenceSectionModel;
+}> =
+  evidence.mode === 'recorded'
+    ? scope === undefined
+      ? [
+          { kind: 'semantic', section: evidence.semantic },
+          { kind: 'qualification', section: evidence.qualification },
+        ]
+      : [{ kind: scope, section: evidence[scope] }]
+    : [];
 ---
 
 {
@@ -17,32 +33,34 @@ const { evidence } = Astro.props;
       class="mt-6 rounded-lg border border-border bg-muted/35 px-4 py-3 text-sm leading-6 text-muted-foreground"
       aria-label="Release evidence provenance"
     >
-      {evidence.mode === 'pinned' ? (
-        <p>
-          Evidence for release <code>{evidence.targetVersion}</code> is pinned from{' '}
-          <a
-            class="font-bold text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-            href={evidence.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {evidence.sourceTag}
-            <ExternalLink
-              class="ml-1 inline size-3.5"
-              aria-hidden="true"
+      {sections.map(({ kind, section }) =>
+        section.mode === 'pinned' ? (
+          <p>
+            {kind === 'semantic' ? 'Semantic' : 'Qualification'} evidence for release{' '}
+            <code>{evidence.targetVersion}</code> is pinned from{' '}
+            <a
+              class="font-bold text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              href={section.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {section.sourceLabel}
+              <ExternalLink
+                class="ml-1 inline size-3.5"
+                aria-hidden="true"
+              />
+            </a>
+            . Reason:{' '}
+            <InlineBrandText
+              text={section.reason}
+              variant="compact"
             />
-          </a>
-          . Reason:{' '}
-          <InlineBrandText
-            text={evidence.reason}
-            variant="compact"
-          />
-        </p>
-      ) : (
-        <p>
-          Fresh semantic and qualification evidence is recorded for release{' '}
-          <code>{evidence.targetVersion}</code>.
-        </p>
+          </p>
+        ) : (
+          <p>
+            Fresh {kind} evidence is recorded for release <code>{evidence.targetVersion}</code>.
+          </p>
+        ),
       )}
     </aside>
   )

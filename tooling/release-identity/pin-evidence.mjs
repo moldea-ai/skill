@@ -25,15 +25,29 @@ try {
     );
   } else {
     const from = readOption('--from');
+    const fromCommit = readOption('--from-commit');
     const reason = readOption('--reason');
-    if (arguments_.length !== 4 || from === null || reason === null) {
+    const scope = readOption('--scope');
+    if (
+      arguments_.length !== 6 ||
+      (from === null) === (fromCommit === null) ||
+      reason === null ||
+      scope === null
+    ) {
       throw new Error(
-        'Usage: npm run release:evidence:pin -- --from v<version> --reason "<reason>" or --clear.',
+        'Usage: npm run release:evidence:pin -- --scope <semantic|qualification|all> (--from v<version> | --from-commit <full-commit>) --reason "<reason>" or --clear.',
       );
     }
-    const envelope = pinReleaseEvidence(repositoryRoot, { from, reason });
+    const envelope = await pinReleaseEvidence(repositoryRoot, {
+      from,
+      fromCommit,
+      reason,
+      scope,
+    });
+    const selectedSection = scope === 'all' ? 'semantic and qualification' : scope;
+    const source = from ?? fromCommit;
     process.stdout.write(
-      `Pinned ${envelope.target.version} release evidence from ${envelope.source.tag}: ${envelope.reason}\n`,
+      `Pinned ${selectedSection} evidence for ${envelope.target.version} from ${source}: ${reason}\n`,
     );
   }
 } catch (error) {

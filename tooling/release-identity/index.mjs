@@ -34,9 +34,9 @@ export {
 
 // immutable source and target tags
 export {
-  assertPinnedReleaseEvidenceSource,
+  assertPinnedReleaseEvidenceSection,
   assertTargetReleaseTagIdentity,
-  resolveFreshReleaseEvidenceSource,
+  resolveReleaseEvidenceSectionSource,
   resolveReleaseTagCommit,
 } from './release-evidence-source.mjs';
 

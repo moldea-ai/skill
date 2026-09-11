@@ -6,6 +6,7 @@ import { test } from 'node:test';
 
 import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from './constants.mjs';
 import {
+  createReleaseEvidenceSha256,
   MAX_RELEASE_EVIDENCE_REASON_BYTES,
   parseReleaseEvidenceEnvelope,
   serializeReleaseEvidenceEnvelope,
@@ -13,33 +14,42 @@ import {
 
 const SHA256 = 'a'.repeat(64);
 
+const createQualificationEvidence = () => ({
+  protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+  resourceStatus: 'passed',
+  targets: [
+    {
+      adapterId: 'custom',
+      attemptId: 'qualification-attempt',
+      attemptKey: 'a-0123456789abcdef0123456789abcdef',
+      attemptSha256: SHA256,
+      implementationId: 'custom',
+      key: 't1',
+      latestSha256: SHA256,
+      storageSha256: SHA256,
+    },
+  ],
+});
+
+const createSemanticEvidence = () => ({
+  attemptId: '20260905T000000000Z-semantic-12345678',
+  attemptSha256: SHA256,
+  evidenceSha256: SHA256,
+  latestSha256: SHA256,
+  protocolVersion: 24,
+  resourceStatus: 'passed',
+  resultSha256: SHA256,
+});
+
 const createFreshEnvelope = () => ({
-  mode: 'fresh',
   qualification: {
-    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
-    resourceStatus: 'passed',
-    targets: [
-      {
-        adapterId: 'custom',
-        attemptId: 'qualification-attempt',
-        attemptKey: 'a-0123456789abcdef0123456789abcdef',
-        attemptSha256: SHA256,
-        implementationId: 'custom',
-        key: 't1',
-        latestSha256: SHA256,
-        storageSha256: SHA256,
-      },
-    ],
+    evidence: createQualificationEvidence(),
+    mode: 'fresh',
   },
-  schemaVersion: 1,
+  schemaVersion: 2,
   semantic: {
-    attemptId: '20260905T000000000Z-semantic-12345678',
-    attemptSha256: SHA256,
-    evidenceSha256: SHA256,
-    latestSha256: SHA256,
-    protocolVersion: 24,
-    resourceStatus: 'passed',
-    resultSha256: SHA256,
+    evidence: createSemanticEvidence(),
+    mode: 'fresh',
   },
   target: {
     dependencyClosureSha256: SHA256,
@@ -52,7 +62,7 @@ test('round-trips only canonical strict fresh evidence', () => {
   const source = serializeReleaseEvidenceEnvelope(createFreshEnvelope());
   assert.deepEqual(parseReleaseEvidenceEnvelope(source), createFreshEnvelope());
   assert.throws(
-    () => parseReleaseEvidenceEnvelope(source.replace('  "mode"', ' "mode"')),
+    () => parseReleaseEvidenceEnvelope(source.replace('  "qualification"', ' "qualification"')),
     /canonical JSON serialization/,
   );
   assert.throws(
@@ -64,26 +74,40 @@ test('round-trips only canonical strict fresh evidence', () => {
   );
 });
 
-test('requires compact reasoned pinned provenance', () => {
+test('requires compact reasoned provenance only on the selected section', () => {
+  const semanticEvidence = createSemanticEvidence();
   const pinned = {
-    mode: 'pinned',
-    reason: 'The CLI-only fix cannot affect portable skill behavior.',
-    schemaVersion: 1,
-    source: {
-      commit: 'b'.repeat(40),
-      evidenceSha256: SHA256,
-      qualificationSha256: SHA256,
-      semanticSha256: SHA256,
-      tag: 'v5.0.0',
+    qualification: {
+      evidence: createQualificationEvidence(),
+      mode: 'fresh',
+    },
+    schemaVersion: 2,
+    semantic: {
+      mode: 'pinned',
+      reason: 'The package-only fix cannot affect portable skill behavior.',
+      source: {
+        commit: 'b'.repeat(40),
+        evidence: semanticEvidence,
+        evidenceSha256: createReleaseEvidenceSha256(JSON.stringify(semanticEvidence)),
+        portableSkillSha256: SHA256,
+        tag: null,
+      },
     },
     target: {
+      dependencyClosureSha256: SHA256,
       portableSkillSha256: SHA256,
       version: '6.0.0',
     },
   };
   assert.deepEqual(parseReleaseEvidenceEnvelope(serializeReleaseEvidenceEnvelope(pinned)), pinned);
   assert.throws(
-    () => parseReleaseEvidenceEnvelope(serializeReleaseEvidenceEnvelope({ ...pinned, reason: '' })),
+    () =>
+      parseReleaseEvidenceEnvelope(
+        serializeReleaseEvidenceEnvelope({
+          ...pinned,
+          semantic: { ...pinned.semantic, reason: '' },
+        }),
+      ),
     /Pinned evidence reason/,
   );
   assert.throws(
@@ -91,10 +115,29 @@ test('requires compact reasoned pinned provenance', () => {
       parseReleaseEvidenceEnvelope(
         serializeReleaseEvidenceEnvelope({
           ...pinned,
-          reason: 'r'.repeat(MAX_RELEASE_EVIDENCE_REASON_BYTES + 1),
+          semantic: {
+            ...pinned.semantic,
+            reason: 'r'.repeat(MAX_RELEASE_EVIDENCE_REASON_BYTES + 1),
+          },
         }),
       ),
     /Pinned evidence reason/,
+  );
+});
+
+test('rejects the superseded all-or-nothing schema', () => {
+  assert.throws(
+    () =>
+      parseReleaseEvidenceEnvelope(
+        serializeReleaseEvidenceEnvelope({
+          mode: 'fresh',
+          qualification: createQualificationEvidence(),
+          schemaVersion: 1,
+          semantic: createSemanticEvidence(),
+          target: createFreshEnvelope().target,
+        }),
+      ),
+    /schema 2/,
   );
 });
 

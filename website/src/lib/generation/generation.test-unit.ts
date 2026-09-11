@@ -210,23 +210,30 @@ describe('createWebsiteModel', () => {
     expect(model.llmsText).toContain('## Evidence');
   });
 
-  test('selects a pin before current-only qualification publication checks', () => {
+  test('bypasses current qualification checks only when qualification evidence is pinned', () => {
     const publicationCheck = vi.mocked(assertPublishableQualificationEvidence);
     publicationCheck.mockClear();
     vi.mocked(loadReleaseEvidenceModel).mockReturnValueOnce({
-      mode: 'pinned',
-      reason: 'Release tooling only.',
-      sourceCommit: 'a'.repeat(40),
-      sourceTag: 'v5.0.0',
-      sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
+      mode: 'recorded',
+      qualification: {
+        mode: 'pinned',
+        reason: 'Release tooling only.',
+        sourceCommit: 'a'.repeat(40),
+        sourceLabel: 'v5.0.0',
+        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
+      },
+      semantic: {
+        mode: 'fresh',
+        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
+      },
       targetVersion: '6.0.0',
     });
 
     const model = createWebsiteModel();
 
-    expect(model.releaseEvidence.mode).toBe('pinned');
+    expect(model.releaseEvidence.mode).toBe('recorded');
     expect(publicationCheck).not.toHaveBeenCalled();
-    expect(model.llmsText).toContain('evidence pinned from [v5.0.0]');
+    expect(model.llmsText).toContain('Qualification evidence for release 6.0.0 is pinned');
   });
 
   test('requires reader-facing product mentions in Markdown to use inline code', () => {

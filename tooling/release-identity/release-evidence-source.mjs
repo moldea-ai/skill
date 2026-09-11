@@ -4,8 +4,14 @@ import { spawnSync } from 'node:child_process';
 
 import { parse } from 'yaml';
 
-import { hasPassingMoldeaResourceBudget } from '../semantic-evaluation/index.mjs';
+import {
+  createSemanticCaseSuiteDigest,
+  createSemanticCoverageDigest,
+  hasPassingMoldeaResourceBudget,
+  validateSemanticCoverage,
+} from '../semantic-evaluation/index.mjs';
 import { QualificationModelStageEvidenceSchema } from '../../qualification/src/contracts/index.ts';
+import { createQualificationAttemptKey } from '../../qualification/src/storage/index.ts';
 
 import { CLI_PACKAGE_NAME, RELEASE_PATHS } from './constants.mjs';
 import { createFreshEvidenceSectionSha256 } from './release-evidence-current.mjs';
@@ -16,7 +22,6 @@ import {
 
 const MAX_GIT_JSON_BYTES = 16 * 1_048_576;
 const MAX_MATERIALIZED_FILE_BYTES = 32 * 1_048_576;
-const MAX_PIN_SOURCE_DEPTH = 64;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 
 const runGit = (repositoryRoot, arguments_, options = {}) => {
@@ -76,7 +81,9 @@ export const assertTargetReleaseTagIdentity = (repositoryRoot, releaseVersion, r
   }
   const tagCommit = resolveReleaseTagCommit(repositoryRoot, releaseTag);
   const headCommit = String(
-    runGit(repositoryRoot, ['rev-parse', '--verify', 'HEAD'], { encoding: 'utf8' }),
+    runGit(repositoryRoot, ['rev-parse', '--verify', 'HEAD'], {
+      encoding: 'utf8',
+    }),
   ).trim();
   if (tagCommit !== headCommit) {
     throw new Error(`Target release tag ${releaseTag} does not identify the checked-out commit.`);
@@ -127,7 +134,9 @@ const createGitPortableSkillDigest = (repositoryRoot, commit) => {
     })
     .filter((entry) => entry !== null && (entry.mode === '100644' || entry.mode === '100755'))
     .sort((left, right) => left.path.localeCompare(right.path, 'en'));
-  if (files.length === 0) throw new Error('Pinned source tag has no portable moldea skill files.');
+  if (files.length === 0) {
+    throw new Error('Pinned source commit has no portable moldea skill files.');
+  }
   const hash = createHash('sha256');
   for (const { path } of files) {
     hash.update(path.slice('moldea/'.length));
@@ -138,37 +147,30 @@ const createGitPortableSkillDigest = (repositoryRoot, commit) => {
   return hash.digest('hex');
 };
 
-const createGitDependencyClosureSha256 = (repositoryRoot, commit, envelope) => {
-  const packageManifestText = readGitText(repositoryRoot, commit, RELEASE_PATHS.packageManifest);
+const createGitSemanticCliIdentity = (repositoryRoot, commit) => {
+  const packageManifest = JSON.parse(
+    readGitText(repositoryRoot, commit, RELEASE_PATHS.packageManifest),
+  );
   const packageLockText = readGitText(repositoryRoot, commit, RELEASE_PATHS.packageLock);
-  const packageManifest = JSON.parse(packageManifestText);
   const packageLock = JSON.parse(packageLockText);
   const cliVersion = packageManifest.devDependencies?.[CLI_PACKAGE_NAME];
   const cliJsonSchemaVersion = packageManifest.moldeaRelease?.cliJsonSchemaVersion;
   const lockedCli = packageLock.packages?.[`node_modules/${CLI_PACKAGE_NAME}`];
   if (
-    packageManifest.version !== envelope.target.version ||
-    packageLock.packages?.['']?.version !== envelope.target.version ||
     typeof cliVersion !== 'string' ||
     lockedCli?.version !== cliVersion ||
     typeof lockedCli.integrity !== 'string' ||
     !Number.isSafeInteger(cliJsonSchemaVersion)
   ) {
-    throw new Error('Pinned source dependency closure is incomplete.');
+    throw new Error('Pinned semantic source CLI closure is incomplete.');
   }
-  return createReleaseEvidenceSha256(
-    JSON.stringify({
-      cli: {
-        integrity: lockedCli.integrity,
-        jsonSchemaVersion: cliJsonSchemaVersion,
-        name: CLI_PACKAGE_NAME,
-        packageLockSha256: createReleaseEvidenceSha256(packageLockText),
-        version: cliVersion,
-      },
-      qualificationProtocolVersion: envelope.qualification.protocolVersion,
-      semanticProtocolVersion: envelope.semantic.protocolVersion,
-    }),
-  );
+  return {
+    integrity: lockedCli.integrity,
+    jsonSchemaVersion: cliJsonSchemaVersion,
+    name: CLI_PACKAGE_NAME,
+    packageLockSha256: createReleaseEvidenceSha256(packageLockText),
+    version: cliVersion,
+  };
 };
 
 const assertSemanticResourceEvidence = (repositoryRoot, commit, result) => {
@@ -189,8 +191,15 @@ const assertSemanticResourceEvidence = (repositoryRoot, commit, result) => {
   }
 };
 
-const assertSemanticSource = (repositoryRoot, commit, semantic) => {
+const assertSemanticSource = (repositoryRoot, commit, semantic, portableSkillSha256) => {
   const result = readGitJson(repositoryRoot, commit, RELEASE_PATHS.semanticResult);
+  const caseDefinitions = readGitJson(
+    repositoryRoot,
+    commit,
+    RELEASE_PATHS.conformanceCases,
+  ).semanticCases;
+  const coverage = readGitJson(repositoryRoot, commit, RELEASE_PATHS.semanticCoverage);
+  validateSemanticCoverage(coverage, caseDefinitions);
   const latestPath = 'fixtures/semantic-evaluation-results/latest.json';
   const attemptPath = `fixtures/semantic-evaluation-results/attempts/${semantic.attemptId}/attempt.json`;
   const attempt = readGitJson(repositoryRoot, commit, attemptPath);
@@ -198,6 +207,12 @@ const assertSemanticSource = (repositoryRoot, commit, semantic) => {
   if (
     result.semanticAttemptId !== semantic.attemptId ||
     result.evaluationProtocolVersion !== semantic.protocolVersion ||
+    result.artifactDigest !== portableSkillSha256 ||
+    result.artifactSha256 !== portableSkillSha256 ||
+    result.caseSuiteDigest !== createSemanticCaseSuiteDigest(caseDefinitions) ||
+    result.coverageDigest !== createSemanticCoverageDigest(coverage, caseDefinitions) ||
+    JSON.stringify(result.cli) !==
+      JSON.stringify(createGitSemanticCliIdentity(repositoryRoot, commit)) ||
     attempt.attemptId !== semantic.attemptId ||
     attempt.status !== 'passed' ||
     latest.latestStatus !== 'passed' ||
@@ -364,87 +379,152 @@ const assertQualificationSource = (repositoryRoot, commit, qualification) => {
   }
 };
 
-const assertFreshSource = (repositoryRoot, tag, commit, source, envelope) => {
-  if (tag !== `v${envelope.target.version}`) {
-    throw new Error('Pinned source tag does not match the fresh envelope version.');
-  }
+const createSemanticEvidenceAtCommit = (repositoryRoot, commit, portableSkillSha256) => {
+  const result = readGitJson(repositoryRoot, commit, RELEASE_PATHS.semanticResult);
+  const semanticAttemptId = result.semanticAttemptId;
+  const latestPath = 'fixtures/semantic-evaluation-results/latest.json';
+  const attemptPath = `fixtures/semantic-evaluation-results/attempts/${semanticAttemptId}/attempt.json`;
+  const attempt = readGitJson(repositoryRoot, commit, attemptPath);
+  const evidence = {
+    attemptId: semanticAttemptId,
+    attemptSha256: hashGitFile(repositoryRoot, commit, attemptPath),
+    evidenceSha256: attempt.evidence?.sha256,
+    latestSha256: hashGitFile(repositoryRoot, commit, latestPath),
+    protocolVersion: result.evaluationProtocolVersion,
+    resourceStatus: 'passed',
+    resultSha256: hashGitFile(repositoryRoot, commit, RELEASE_PATHS.semanticResult),
+  };
+  assertSemanticSource(repositoryRoot, commit, evidence, portableSkillSha256);
+  return evidence;
+};
+
+const createQualificationEvidenceAtCommit = (repositoryRoot, commit) => {
+  const profileIndex = parse(
+    readGitText(repositoryRoot, commit, 'qualification/profiles/index.yaml'),
+  );
   if (
-    createGitPortableSkillDigest(repositoryRoot, commit) !== envelope.target.portableSkillSha256
+    profileIndex?.version !== 1 ||
+    !Array.isArray(profileIndex.targets) ||
+    profileIndex.targets.length === 0
   ) {
-    throw new Error('Pinned source portable skill digest does not match its tag.');
+    throw new Error('Pinned qualification source has no valid target index.');
   }
-  if (
-    createGitDependencyClosureSha256(repositoryRoot, commit, envelope) !==
-    envelope.target.dependencyClosureSha256
-  ) {
-    throw new Error('Pinned source dependency closure does not match its tag.');
-  }
-  assertSemanticSource(repositoryRoot, commit, envelope.semantic);
-  assertQualificationSource(repositoryRoot, commit, envelope.qualification);
+  const targets = profileIndex.targets
+    .map((target) => {
+      const targetRoot = `qualification/results/${target.key}`;
+      const latestPath = `${targetRoot}/latest.json`;
+      const latest = readGitJson(repositoryRoot, commit, latestPath);
+      const attemptKey = createQualificationAttemptKey(latest.latestAttemptId);
+      const attemptPath = `${targetRoot}/attempts/${attemptKey}/attempt.json`;
+      const storagePath = `${targetRoot}/attempts/${attemptKey}/storage.json`;
+      return {
+        adapterId: target.adapterId,
+        attemptId: latest.latestAttemptId,
+        attemptKey,
+        attemptSha256: hashGitFile(repositoryRoot, commit, attemptPath),
+        implementationId: target.implementationId,
+        key: target.key,
+        latestSha256: hashGitFile(repositoryRoot, commit, latestPath),
+        storageSha256: hashGitFile(repositoryRoot, commit, storagePath),
+      };
+    })
+    .sort((left, right) => left.key.localeCompare(right.key, 'en'));
+  const evidence = {
+    protocolVersion: readGitJson(
+      repositoryRoot,
+      commit,
+      `qualification/results/${targets[0].key}/latest.json`,
+    ).protocolVersion,
+    resourceStatus: 'passed',
+    targets,
+  };
+  assertQualificationSource(repositoryRoot, commit, evidence);
+  return evidence;
+};
+
+const createPinnedSectionSource = (repositoryRoot, commit, tag, kind) => {
+  const portableSkillSha256 = createGitPortableSkillDigest(repositoryRoot, commit);
+  const evidence =
+    kind === 'semantic'
+      ? createSemanticEvidenceAtCommit(repositoryRoot, commit, portableSkillSha256)
+      : createQualificationEvidenceAtCommit(repositoryRoot, commit);
   return {
     commit,
-    envelope,
-    envelopeSha256: createReleaseEvidenceSha256(source),
+    evidence,
+    evidenceSha256: createFreshEvidenceSectionSha256(evidence),
+    portableSkillSha256,
     tag,
   };
 };
 
-const resolveFreshReleaseEvidenceSourceInternal = (repositoryRoot, tag, visitedTags, depth) => {
-  if (depth > MAX_PIN_SOURCE_DEPTH) {
-    throw new Error(`Release evidence pin chain exceeds ${MAX_PIN_SOURCE_DEPTH} tags.`);
-  }
-  if (visitedTags.has(tag)) throw new Error(`Release evidence pin cycle includes ${tag}.`);
-  visitedTags.add(tag);
-  const commit = resolveReleaseTagCommit(repositoryRoot, tag);
-  const source = readGitText(repositoryRoot, commit, RELEASE_PATHS.releaseEvidence);
-  const envelope = parseReleaseEvidenceEnvelope(source);
-  if (envelope.mode === 'fresh') {
-    return assertFreshSource(repositoryRoot, tag, commit, source, envelope);
-  }
+/** Verifies one pinned semantic or qualification section against immutable Git evidence. */
+export const assertPinnedReleaseEvidenceSection = (repositoryRoot, section, kind) => {
+  const { source } = section;
   if (
-    tag !== `v${envelope.target.version}` ||
-    createGitPortableSkillDigest(repositoryRoot, commit) !== envelope.target.portableSkillSha256
+    source.tag !== null &&
+    resolveReleaseTagCommit(repositoryRoot, source.tag) !== source.commit
   ) {
-    throw new Error(`Pinned release ${tag} does not match its target identity.`);
+    throw new Error(`Pinned ${kind} source tag does not match its recorded commit.`);
   }
-  if (envelope.source.tag === tag || envelope.source.commit === commit) {
-    throw new Error('Pinned release evidence cannot refer to itself.');
+  if (createGitPortableSkillDigest(repositoryRoot, source.commit) !== source.portableSkillSha256) {
+    throw new Error(`Pinned ${kind} source portable skill digest does not match its commit.`);
   }
-  const resolved = resolveFreshReleaseEvidenceSourceInternal(
-    repositoryRoot,
-    envelope.source.tag,
-    visitedTags,
-    depth + 1,
-  );
-  if (
-    resolved.commit !== envelope.source.commit ||
-    resolved.envelopeSha256 !== envelope.source.evidenceSha256 ||
-    createFreshEvidenceSectionSha256(resolved.envelope.semantic) !==
-      envelope.source.semanticSha256 ||
-    createFreshEvidenceSectionSha256(resolved.envelope.qualification) !==
-      envelope.source.qualificationSha256
-  ) {
-    throw new Error(`Pinned release ${tag} does not match its original fresh source.`);
+  if (createFreshEvidenceSectionSha256(source.evidence) !== source.evidenceSha256) {
+    throw new Error(`Pinned ${kind} evidence descriptor digest does not match.`);
   }
-  return resolved;
+  if (kind === 'semantic') {
+    assertSemanticSource(
+      repositoryRoot,
+      source.commit,
+      source.evidence,
+      source.portableSkillSha256,
+    );
+  } else assertQualificationSource(repositoryRoot, source.commit, source.evidence);
+  return source;
 };
 
-/** Resolves a tag through compact pin provenance to the original valid fresh evidence. */
-export const resolveFreshReleaseEvidenceSource = (repositoryRoot, tag) =>
-  resolveFreshReleaseEvidenceSourceInternal(repositoryRoot, tag, new Set(), 1);
-
-/** Verifies one current pinned envelope against its original immutable fresh source. */
-export const assertPinnedReleaseEvidenceSource = (repositoryRoot, envelope) => {
-  const resolved = resolveFreshReleaseEvidenceSource(repositoryRoot, envelope.source.tag);
-  if (
-    resolved.commit !== envelope.source.commit ||
-    resolved.envelopeSha256 !== envelope.source.evidenceSha256 ||
-    createFreshEvidenceSectionSha256(resolved.envelope.semantic) !==
-      envelope.source.semanticSha256 ||
-    createFreshEvidenceSectionSha256(resolved.envelope.qualification) !==
-      envelope.source.qualificationSha256
-  ) {
-    throw new Error('Pinned release evidence provenance does not match its original fresh source.');
+/** Resolves one exact commit or stable tag to a direct immutable evidence source. */
+export const resolveReleaseEvidenceSectionSource = (
+  repositoryRoot,
+  { commit = null, kind, tag = null },
+) => {
+  if ((tag === null) === (commit === null)) {
+    throw new Error('Select exactly one pinned evidence source commit or tag.');
   }
-  return resolved;
+  if (kind !== 'semantic' && kind !== 'qualification') {
+    throw new Error('Pinned evidence kind must be semantic or qualification.');
+  }
+  const resolvedCommit = tag === null ? commit : resolveReleaseTagCommit(repositoryRoot, tag);
+  if (
+    typeof resolvedCommit !== 'string' ||
+    !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u.test(resolvedCommit)
+  ) {
+    throw new Error('Pinned evidence source commit must be a full Git object id.');
+  }
+  if (tag === null) return createPinnedSectionSource(repositoryRoot, resolvedCommit, null, kind);
+
+  const envelope = parseReleaseEvidenceEnvelope(
+    readGitText(repositoryRoot, resolvedCommit, RELEASE_PATHS.releaseEvidence),
+  );
+  if (tag !== `v${envelope.target.version}`) {
+    throw new Error('Pinned source tag does not match its release envelope version.');
+  }
+  const section = envelope[kind];
+  if (section.mode === 'pinned') {
+    assertPinnedReleaseEvidenceSection(repositoryRoot, section, kind);
+    return section.source;
+  }
+  const source = {
+    commit: resolvedCommit,
+    evidence: section.evidence,
+    evidenceSha256: createFreshEvidenceSectionSha256(section.evidence),
+    portableSkillSha256: envelope.target.portableSkillSha256,
+    tag,
+  };
+  assertPinnedReleaseEvidenceSection(
+    repositoryRoot,
+    { mode: 'pinned', reason: 'source', source },
+    kind,
+  );
+  return source;
 };

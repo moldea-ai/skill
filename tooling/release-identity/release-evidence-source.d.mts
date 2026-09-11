@@ -1,28 +1,38 @@
 import type {
-  IFreshReleaseEvidenceEnvelope,
-  IPinnedReleaseEvidenceEnvelope,
+  IPinnedReleaseEvidenceSource,
+  IQualificationReleaseEvidence,
+  IReleaseEvidenceSection,
+  ISemanticReleaseEvidence,
 } from './release-evidence-envelope.mjs';
 
-export interface IFreshReleaseEvidenceSource {
-  commit: string;
-  envelope: IFreshReleaseEvidenceEnvelope;
-  envelopeSha256: string;
-  tag: string;
-}
+export type IPinnedReleaseEvidenceSection =
+  | (IReleaseEvidenceSection<IQualificationReleaseEvidence> & {
+      mode: 'pinned';
+    })
+  | (IReleaseEvidenceSection<ISemanticReleaseEvidence> & { mode: 'pinned' });
 
-export const assertPinnedReleaseEvidenceSource: (
+export type IResolvedReleaseEvidenceSource =
+  | IPinnedReleaseEvidenceSource<IQualificationReleaseEvidence>
+  | IPinnedReleaseEvidenceSource<ISemanticReleaseEvidence>;
+
+export const assertPinnedReleaseEvidenceSection: (
   repositoryRoot: string,
-  envelope: IPinnedReleaseEvidenceEnvelope,
-) => IFreshReleaseEvidenceSource;
+  section: IPinnedReleaseEvidenceSection,
+  kind: 'qualification' | 'semantic',
+) => IResolvedReleaseEvidenceSource;
 export const assertTargetReleaseTagIdentity: (
   repositoryRoot: string,
   releaseVersion: string,
   releaseTag: string | undefined,
 ) => void;
 
-export const resolveFreshReleaseEvidenceSource: (
+export const resolveReleaseEvidenceSectionSource: (
   repositoryRoot: string,
-  tag: string,
-) => IFreshReleaseEvidenceSource;
+  options: {
+    commit?: string | null;
+    kind: 'qualification' | 'semantic';
+    tag?: string | null;
+  },
+) => IResolvedReleaseEvidenceSource;
 
 export const resolveReleaseTagCommit: (repositoryRoot: string, tag: string) => string;

@@ -61,7 +61,10 @@ const evidenceLayers = [
       items={breadcrumbs}
     />
 
-    <ReleaseEvidenceNotice evidence={model.releaseEvidence} />
+    <ReleaseEvidenceNotice
+      evidence={model.releaseEvidence}
+      scope="qualification"
+    />
 
     <header class="mt-7 border-b border-border pb-10">
       <p class="eyebrow mb-4">Transparent support gate</p>

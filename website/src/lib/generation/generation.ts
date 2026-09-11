@@ -323,6 +323,16 @@ export const createLlmsText = (
   releaseEvidence: IWebsiteModel['releaseEvidence'],
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
 ): string => {
+  const releaseEvidenceLines =
+    releaseEvidence.mode === 'not-recorded'
+      ? [`Release evidence has not been recorded for ${releaseEvidence.targetVersion}.`]
+      : (['semantic', 'qualification'] as const).map((kind) => {
+          const section = releaseEvidence[kind];
+          const label = kind === 'semantic' ? 'Semantic' : 'Qualification';
+          return section.mode === 'pinned'
+            ? `${label} evidence for release ${releaseEvidence.targetVersion} is pinned from [${section.sourceLabel}](${section.sourceUrl}). Reason: ${section.reason}`
+            : `${label} evidence for release ${releaseEvidence.targetVersion} is fresh.`;
+        });
   const lines = [
     '# `moldea` Agent Skill',
     '',
@@ -357,11 +367,7 @@ export const createLlmsText = (
   lines.push(
     '## Evidence',
     '',
-    releaseEvidence.mode === 'pinned'
-      ? `Release ${releaseEvidence.targetVersion} uses evidence pinned from [${releaseEvidence.sourceTag}](${releaseEvidence.sourceUrl}). Reason: ${releaseEvidence.reason}`
-      : releaseEvidence.mode === 'fresh'
-        ? `Release ${releaseEvidence.targetVersion} uses fresh semantic and qualification evidence.`
-        : `Release evidence has not been recorded for ${releaseEvidence.targetVersion}.`,
+    ...releaseEvidenceLines,
     '',
     `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
     semanticEvaluation.hasAttempt
@@ -440,7 +446,9 @@ export const createWebsiteModel = (
   const skill = readSkillMetadata(repositoryRoot);
   const releaseEvidence = loadReleaseEvidenceModel(repositoryRoot, skill.version);
   const qualification = loadQualificationWebsiteModel(qualificationRepositoryRoot);
-  if (releaseEvidence.mode !== 'pinned') assertPublishableQualificationEvidence(qualification);
+  if (releaseEvidence.mode === 'not-recorded' || releaseEvidence.qualification.mode === 'fresh') {
+    assertPublishableQualificationEvidence(qualification);
+  }
   const semanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();

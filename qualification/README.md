@@ -207,7 +207,7 @@ The packages repository contributes only the immutable `HEAD:compatibility/runti
 
 Current protocol-10 attempts are revalidated against the profile, probes, scenarios, and resource calibration stored at their recorded qualification source commit. Earlier attempts remain available only through Git history; active source and local runtime storage contain no compatibility corpus or reader.
 
-Fresh release verification reads only this current storage. Every indexed target must have one compatible passing attempt. An explicit release evidence pin instead validates the original immutable source tag and its compact artifact manifests without copying source attempts into the new release.
+Fresh qualification release verification reads only this current storage. Every indexed target must have one compatible passing attempt. An explicit qualification-scoped release evidence pin instead validates an immutable source tag or full commit and its compact artifact manifests without copying source attempts into the new release or changing the semantic evidence selection.
 
 ## Verification
 
@@ -221,4 +221,4 @@ npm run qualification:format:check
 npm run qualification:verify
 ```
 
-The generic test script runs both unit and integration categories. Qualification results become fresh release evidence only after every current identity, resource budget, artifact digest, and target requirement passes. A pinned release remains visibly attributed to the original passing source and does not claim a new qualification run.
+The generic test script runs both unit and integration categories. Qualification results become fresh release evidence only after every current identity, resource budget, artifact digest, and target requirement passes. Pinned qualification evidence remains visibly attributed to the original passing source and does not claim a new qualification run.

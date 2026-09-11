@@ -37,9 +37,8 @@ export const createDependencyClosureSha256 = (repositoryRoot) =>
     }),
   );
 
-/** Builds the exact fresh envelope from already verified current evidence without writing it. */
-export const createFreshReleaseEvidenceEnvelope = (repositoryRoot) => {
-  const identity = readReleaseIdentity(repositoryRoot);
+/** Builds the exact current semantic evidence descriptor without writing it. */
+export const createCurrentSemanticReleaseEvidence = (repositoryRoot) => {
   const semanticResult = readJson(repositoryRoot, RELEASE_PATHS.semanticResult);
   const semanticLatestPath = 'fixtures/semantic-evaluation-results/latest.json';
   const semanticLatest = readJson(repositoryRoot, semanticLatestPath);
@@ -62,8 +61,21 @@ export const createFreshReleaseEvidenceEnvelope = (repositoryRoot) => {
     throw new Error('Semantic attempt record is not passing or self-consistent.');
   }
 
+  return {
+    attemptId: semanticAttemptId,
+    attemptSha256: hashFile(repositoryRoot, semanticAttemptPath),
+    evidenceSha256: semanticAttempt.evidence.sha256,
+    latestSha256: hashFile(repositoryRoot, semanticLatestPath),
+    protocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
+    resourceStatus: 'passed',
+    resultSha256: hashFile(repositoryRoot, RELEASE_PATHS.semanticResult),
+  };
+};
+
+/** Builds the exact current qualification evidence descriptor without writing it. */
+export const createCurrentQualificationReleaseEvidence = (repositoryRoot) => {
   const qualificationIndex = parse(readText(repositoryRoot, 'qualification/profiles/index.yaml'));
-  const qualificationTargets = qualificationIndex.targets
+  const targets = qualificationIndex.targets
     .map((target) => {
       const targetRoot = `qualification/results/${target.key}`;
       const latestPath = `${targetRoot}/latest.json`;
@@ -100,29 +112,35 @@ export const createFreshReleaseEvidenceEnvelope = (repositoryRoot) => {
     .sort((left, right) => left.key.localeCompare(right.key, 'en'));
 
   return {
-    mode: 'fresh',
-    qualification: {
-      protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
-      resourceStatus: 'passed',
-      targets: qualificationTargets,
-    },
-    schemaVersion: RELEASE_EVIDENCE_SCHEMA_VERSION,
-    semantic: {
-      attemptId: semanticAttemptId,
-      attemptSha256: hashFile(repositoryRoot, semanticAttemptPath),
-      evidenceSha256: semanticAttempt.evidence.sha256,
-      latestSha256: hashFile(repositoryRoot, semanticLatestPath),
-      protocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
-      resourceStatus: 'passed',
-      resultSha256: hashFile(repositoryRoot, RELEASE_PATHS.semanticResult),
-    },
-    target: {
-      dependencyClosureSha256: createDependencyClosureSha256(repositoryRoot),
-      portableSkillSha256: createPortableSkillDigest(repositoryRoot),
-      version: identity.releaseVersion,
-    },
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+    resourceStatus: 'passed',
+    targets,
   };
 };
+
+/** Builds the exact current release target without reading model evidence. */
+export const createCurrentReleaseEvidenceTarget = (repositoryRoot) => {
+  const identity = readReleaseIdentity(repositoryRoot);
+  return {
+    dependencyClosureSha256: createDependencyClosureSha256(repositoryRoot),
+    portableSkillSha256: createPortableSkillDigest(repositoryRoot),
+    version: identity.releaseVersion,
+  };
+};
+
+/** Builds the exact all-fresh envelope from already verified current evidence. */
+export const createFreshReleaseEvidenceEnvelope = (repositoryRoot) => ({
+  qualification: {
+    evidence: createCurrentQualificationReleaseEvidence(repositoryRoot),
+    mode: 'fresh',
+  },
+  schemaVersion: RELEASE_EVIDENCE_SCHEMA_VERSION,
+  semantic: {
+    evidence: createCurrentSemanticReleaseEvidence(repositoryRoot),
+    mode: 'fresh',
+  },
+  target: createCurrentReleaseEvidenceTarget(repositoryRoot),
+});
 
 /** Hashes one fresh semantic or qualification descriptor for compact pin provenance. */
 export const createFreshEvidenceSectionSha256 = (section) =>

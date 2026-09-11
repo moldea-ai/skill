@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { RELEASE_PATHS } from './constants.mjs';
 import { parseStableVersion } from './identity.mjs';
 
-export const RELEASE_EVIDENCE_SCHEMA_VERSION = 1;
+export const RELEASE_EVIDENCE_SCHEMA_VERSION = 2;
 export const MAX_RELEASE_EVIDENCE_BYTES = 65_536;
 export const MAX_RELEASE_EVIDENCE_REASON_BYTES = 1_024;
 
@@ -82,23 +82,17 @@ const requireSemanticAttemptId = (input) => {
   return attemptId;
 };
 
-const parseTarget = (input, isFresh) => {
+const parseTarget = (input) => {
   assertExactKeys(
     input,
-    isFresh
-      ? ['dependencyClosureSha256', 'portableSkillSha256', 'version']
-      : ['portableSkillSha256', 'version'],
+    ['dependencyClosureSha256', 'portableSkillSha256', 'version'],
     'Release evidence target',
   );
   return {
-    ...(isFresh
-      ? {
-          dependencyClosureSha256: requireSha256(
-            input.dependencyClosureSha256,
-            'Target dependency closure',
-          ),
-        }
-      : {}),
+    dependencyClosureSha256: requireSha256(
+      input.dependencyClosureSha256,
+      'Target dependency closure',
+    ),
     portableSkillSha256: requireSha256(input.portableSkillSha256, 'Target portable skill'),
     version: parseStableVersion(input.version),
   };
@@ -190,25 +184,48 @@ const parseQualificationEvidence = (input) => {
   };
 };
 
-const parsePinnedSource = (input) => {
+const parsePinnedSource = (input, parseEvidence, label) => {
   assertExactKeys(
     input,
-    ['commit', 'evidenceSha256', 'qualificationSha256', 'semanticSha256', 'tag'],
-    'Pinned release source',
+    ['commit', 'evidence', 'evidenceSha256', 'portableSkillSha256', 'tag'],
+    `${label} source`,
   );
-  const tag = requireBoundedString(input.tag, 'Pinned source tag', 128);
-  if (!STABLE_TAG_PATTERN.test(tag))
-    throw new Error('Pinned source tag must be an exact stable v<version> tag.');
-  const commit = requireBoundedString(input.commit, 'Pinned source commit', 64);
+  const tag = input.tag === null ? null : requireBoundedString(input.tag, `${label} tag`, 128);
+  if (tag !== null && !STABLE_TAG_PATTERN.test(tag)) {
+    throw new Error(`${label} tag must be an exact stable v<version> tag or null.`);
+  }
+  const commit = requireBoundedString(input.commit, `${label} commit`, 64);
   if (!COMMIT_PATTERN.test(commit))
-    throw new Error('Pinned source commit must be a full Git object id.');
+    throw new Error(`${label} commit must be a full Git object id.`);
+  const evidence = parseEvidence(input.evidence);
+  const evidenceSha256 = requireSha256(input.evidenceSha256, `${label} evidence`);
+  if (createReleaseEvidenceSha256(JSON.stringify(evidence)) !== evidenceSha256) {
+    throw new Error(`${label} evidence digest does not match its descriptor.`);
+  }
   return {
     commit,
-    evidenceSha256: requireSha256(input.evidenceSha256, 'Pinned source envelope'),
-    qualificationSha256: requireSha256(input.qualificationSha256, 'Pinned qualification evidence'),
-    semanticSha256: requireSha256(input.semanticSha256, 'Pinned semantic evidence'),
+    evidence,
+    evidenceSha256,
+    portableSkillSha256: requireSha256(input.portableSkillSha256, `${label} portable skill`),
     tag,
   };
+};
+
+const parseEvidenceSection = (input, parseEvidence, label) => {
+  if (!isPlainRecord(input)) throw new Error(`${label} must be an object.`);
+  if (input.mode === 'fresh') {
+    assertExactKeys(input, ['evidence', 'mode'], label);
+    return { evidence: parseEvidence(input.evidence), mode: 'fresh' };
+  }
+  if (input.mode === 'pinned') {
+    assertExactKeys(input, ['mode', 'reason', 'source'], label);
+    return {
+      mode: 'pinned',
+      reason: validateReleaseEvidenceReason(input.reason),
+      source: parsePinnedSource(input.source, parseEvidence, `Pinned ${label.toLowerCase()}`),
+    };
+  }
+  throw new Error(`${label} mode must be fresh or pinned.`);
 };
 
 /** Creates a SHA-256 digest for bytes or text. */
@@ -237,7 +254,7 @@ export const serializeReleaseEvidenceEnvelope = (envelope) => {
   return source;
 };
 
-/** Parses and strictly validates one canonical fresh or pinned envelope. */
+/** Parses and strictly validates one canonical section-scoped evidence envelope. */
 export const parseReleaseEvidenceEnvelope = (source) => {
   if (typeof source !== 'string') throw new Error('Release evidence must be UTF-8 text.');
   if (Buffer.byteLength(source, 'utf8') > MAX_RELEASE_EVIDENCE_BYTES) {
@@ -253,37 +270,25 @@ export const parseReleaseEvidenceEnvelope = (source) => {
   if (unknownEnvelope.schemaVersion !== RELEASE_EVIDENCE_SCHEMA_VERSION) {
     throw new Error(`Release evidence must use schema ${RELEASE_EVIDENCE_SCHEMA_VERSION}.`);
   }
-  let envelope;
-  if (unknownEnvelope.mode === 'fresh') {
-    assertExactKeys(
-      unknownEnvelope,
-      ['mode', 'qualification', 'schemaVersion', 'semantic', 'target'],
-      'Fresh release evidence',
-    );
-    envelope = {
-      mode: 'fresh',
-      qualification: parseQualificationEvidence(unknownEnvelope.qualification),
-      schemaVersion: RELEASE_EVIDENCE_SCHEMA_VERSION,
-      semantic: parseSemanticEvidence(unknownEnvelope.semantic),
-      target: parseTarget(unknownEnvelope.target, true),
-    };
-  } else if (unknownEnvelope.mode === 'pinned') {
-    assertExactKeys(
-      unknownEnvelope,
-      ['mode', 'reason', 'schemaVersion', 'source', 'target'],
-      'Pinned release evidence',
-    );
-    const reason = validateReleaseEvidenceReason(unknownEnvelope.reason);
-    envelope = {
-      mode: 'pinned',
-      reason,
-      schemaVersion: RELEASE_EVIDENCE_SCHEMA_VERSION,
-      source: parsePinnedSource(unknownEnvelope.source),
-      target: parseTarget(unknownEnvelope.target, false),
-    };
-  } else {
-    throw new Error('Release evidence mode must be fresh or pinned.');
-  }
+  assertExactKeys(
+    unknownEnvelope,
+    ['qualification', 'schemaVersion', 'semantic', 'target'],
+    'Release evidence',
+  );
+  const envelope = {
+    qualification: parseEvidenceSection(
+      unknownEnvelope.qualification,
+      parseQualificationEvidence,
+      'Qualification release evidence',
+    ),
+    schemaVersion: RELEASE_EVIDENCE_SCHEMA_VERSION,
+    semantic: parseEvidenceSection(
+      unknownEnvelope.semantic,
+      parseSemanticEvidence,
+      'Semantic release evidence',
+    ),
+    target: parseTarget(unknownEnvelope.target),
+  };
   if (serializeReleaseEvidenceEnvelope(envelope) !== source) {
     throw new Error('Release evidence must use canonical JSON serialization.');
   }

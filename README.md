@@ -249,13 +249,14 @@ After current semantic and qualification evidence passes, record the compact fre
 npm run release:evidence:record
 ```
 
-When a maintainer has established that a release does not affect evaluated behavior, pin it to an earlier passing release that carries the stable evidence envelope:
+When a maintainer has established that a release does not affect one evidence domain, pin only that domain to a verified earlier source. Use an exact release tag or an exact full commit:
 
 ```bash
-npm run release:evidence:pin -- --from v5.0.0 --reason "Release tooling only; portable behavior is unchanged."
+npm run release:evidence:pin -- --scope semantic --from-commit <full-commit> --reason "Release tooling only; portable behavior is unchanged."
+npm run release:evidence:pin -- --scope qualification --from v5.0.0 --reason "Qualification behavior is unchanged."
 ```
 
-The pin is explicit, local, reasoned, and visible on public evidence pages. It validates the exact source tag, source commit, compact envelope, referenced artifact digests, passing states, and resource limits. It bypasses only current evidence freshness and identity equality. It does not bypass release signing or publication credentials. Run the same command with `--clear` to remove a prepared pin.
+The scope may be `semantic`, `qualification`, or `all`. Every unselected section must have valid fresh current evidence. A pin is explicit, repository-bound, reasoned, and visible only on the corresponding public evidence pages. It validates the immutable source commit, optional source tag, portable skill digest, referenced artifacts, passing states, and resource limits. It does not bypass release signing or publication credentials. Run the same command with `--clear` to remove an envelope containing a pin.
 
 ## Releases
 
@@ -263,13 +264,13 @@ The skill uses independent semantic versioning. Every release must:
 
 - record its exact version in `moldea/SKILL.md`
 - declare the compatible CLI major and bind the exact evaluated CLI closure plus CLI JSON schema in release evidence
-- pass current conformance and select either verified fresh evidence or an explicit valid pin to an earlier passing release
+- pass current conformance and select verified fresh or explicitly pinned evidence independently for semantic evaluation and qualification
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
 Release `5.0.0` uses tag `v5.0.0`.
 
-See [Release evidence](docs/release-evidence.md) for the exact fresh and pinned workflows. `npm run release:check` is read-only and selects the evidence mode before running any current-only verifier.
+See [Release evidence](docs/release-evidence.md) for the exact fresh and pinned workflows. `npm run release:check` is read-only and validates each section through its selected path before running current-only verification for fresh sections.
 
 ## License
 

@@ -9,9 +9,10 @@ import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 
 const model = loadWebsiteModel();
 const { qualification, semanticEvaluation } = model;
-const pinnedSourceTag =
-  model.releaseEvidence.mode === 'pinned' ? model.releaseEvidence.sourceTag : null;
-const isPinned = pinnedSourceTag !== null;
+const semanticEvidence =
+  model.releaseEvidence.mode === 'recorded' ? model.releaseEvidence.semantic : null;
+const qualificationEvidence =
+  model.releaseEvidence.mode === 'recorded' ? model.releaseEvidence.qualification : null;
 const basePath = import.meta.env.BASE_URL;
 const projectCount = qualification.uniqueJourneyCount;
 const claimCount = qualification.profiles.reduce(
@@ -19,15 +20,16 @@ const claimCount = qualification.profiles.reduce(
   0,
 );
 const qualificationStatuses = qualification.profiles.map((profile) => profile.currentStatus);
-const qualificationStatus = isPinned
-  ? 'passed'
-  : qualificationStatuses.includes('errored')
-    ? 'errored'
-    : qualificationStatuses.includes('failed')
-      ? 'failed'
-      : qualificationStatuses.includes('not-recorded')
-        ? 'not-recorded'
-        : 'passed';
+const qualificationStatus =
+  qualificationEvidence?.mode === 'pinned'
+    ? 'passed'
+    : qualificationStatuses.includes('errored')
+      ? 'errored'
+      : qualificationStatuses.includes('failed')
+        ? 'failed'
+        : qualificationStatuses.includes('not-recorded')
+          ? 'not-recorded'
+          : 'passed';
 const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
 ---
 
@@ -64,10 +66,10 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         title="Semantic evaluation"
         description="Review the behavioral scenarios, exact success and failure criteria, and evidence-based rationale for every current-contract outcome."
         href={semanticEvaluation.route}
-        metric={isPinned
-          ? `Evidence pinned from ${pinnedSourceTag}`
+        metric={semanticEvidence?.mode === 'pinned'
+          ? `Evidence pinned from ${semanticEvidence.sourceLabel}`
           : `${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful for current assurance`}
-        status={isPinned ? 'passed' : semanticEvaluation.status}
+        status={semanticEvidence?.mode === 'pinned' ? 'passed' : semanticEvaluation.status}
         questions={[
           'Does the skill make the right decision when context is incomplete or conflicting?',
           'Does it respect repository truth, host constraints, and safety boundaries?',
@@ -84,8 +86,8 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         title="Adapter qualification"
         description="Review realistic project journeys, compatibility claims, deterministic checks, independent judgment, and raw attempt artifacts."
         href={qualification.route}
-        metric={isPinned
-          ? `Evidence pinned from ${pinnedSourceTag}`
+        metric={qualificationEvidence?.mode === 'pinned'
+          ? `Evidence pinned from ${qualificationEvidence.sourceLabel}`
           : `${projectCount} ${projectCount === 1 ? 'project' : 'projects'} covering ${claimCount} ${claimCount === 1 ? 'claim' : 'claims'}`}
         status={qualificationStatus}
         questions={[

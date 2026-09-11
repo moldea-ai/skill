@@ -98,7 +98,7 @@ Reused stages retain their original evaluation time and carry the source attempt
 
 The public evidence site generates routes and visible audit history for structurally valid protocol-25 attempts that match the current 74-case contract. It presents current assurance only when the latest attempt also matches the exact active portable, CLI, evaluator, developer-instruction, actor, and judge identity.
 
-This is the normal release path. A maintainer may explicitly pin a release to valid passing evidence from an earlier immutable release when the current change cannot affect evaluated behavior. A pin is presented as pinned evidence, never as a fresh run, and must pass the source integrity and resource checks described in [Release evidence](/docs/release-evidence/).
+This is the normal release path. A maintainer may explicitly pin only semantic evidence to valid passing evidence from an immutable release tag or full commit when the current change cannot affect portable skill behavior. Qualification evidence remains independently fresh or pinned. A semantic pin is presented as pinned evidence, never as a fresh run, and must pass the source integrity and resource checks described in [Release evidence](/docs/release-evidence/).
 
 Attempt storage remains append-only during one current release cycle. Failed initial trials remain visible, and a failed case can recover only after two passing confirmations. Operational host retries do not consume semantic trials.
 

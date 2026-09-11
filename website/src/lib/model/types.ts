@@ -1,6 +1,9 @@
 import type { IQualificationWebsiteModel } from '../qualification/index.ts';
 import type { IReleaseEvidenceModel } from '../release-evidence/index.ts';
-import type { ISemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
+import type {
+  ISemanticAttemptModel,
+  ISemanticEvaluationWebsiteModel,
+} from '../semantic-evaluation/index.ts';
 
 import type { DOCUMENT_SECTION_LABELS } from './constants.ts';
 
@@ -53,5 +56,6 @@ export interface IWebsiteModel {
   routes: string[];
   searchRecords: ISearchRecord[];
   semanticEvaluation: ISemanticEvaluationWebsiteModel;
+  semanticReleaseAssurance: ISemanticAttemptModel | null;
   skill: ISkillMetadata;
 }

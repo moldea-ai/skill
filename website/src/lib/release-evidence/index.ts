@@ -1,5 +1,9 @@
 // types
-export type { IReleaseEvidenceModel, IReleaseEvidenceSectionModel } from './types.ts';
+export type {
+  IReleaseEvidenceModel,
+  IReleaseEvidenceSectionModel,
+  ISemanticReleaseEvidenceSectionModel,
+} from './types.ts';
 
 // loading
 export { loadReleaseEvidenceModel } from './loader.ts';

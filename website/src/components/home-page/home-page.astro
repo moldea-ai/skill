@@ -31,6 +31,9 @@ const qualificationProjectCount = model.qualification.profiles.reduce(
   (total, profile) => total + profile.cases.length,
   0,
 );
+const successfulSemanticCaseCount =
+  (model.semanticReleaseAssurance?.result.passedCaseCount ?? 0) +
+  (model.semanticReleaseAssurance?.result.recoveredCaseCount ?? 0);
 ---
 
 <BaseLayout
@@ -188,7 +191,7 @@ const qualificationProjectCount = model.qualification.profiles.reduce(
             Semantic scenarios test whether the skill preserves developer authority, gathers
             relevant evidence, maintains or evaluates the right surfaces, and refuses unsupported
             conclusions. Adapter qualification exercises complete transparent project journeys with
-            deterministic verification. Every release requires current passing evidence, while
+            deterministic verification. Every release requires verified passing evidence, while
             failed and incomplete attempts remain available for inspection.
           </p>
           <ActionLink
@@ -206,10 +209,7 @@ const qualificationProjectCount = model.qualification.profiles.reduce(
           <div class="rounded-xl border border-border bg-muted/30 p-5">
             <dt class="text-sm font-semibold">Skill behavior scenarios successful</dt>
             <dd class="mt-2 font-mono text-3xl font-bold">
-              {
-                model.semanticEvaluation.passedCaseCount +
-                  model.semanticEvaluation.recoveredCaseCount
-              }/{model.semanticEvaluation.caseCount}
+              {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount}
             </dd>
             <dd class="mt-2 text-sm leading-6 text-muted-foreground">
               Authority, evidence, maintenance, evaluation, and safe refusal boundaries.

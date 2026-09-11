@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "attemptKey": "a-a54d9089fde1c36ceaf680908cd5ef2b",
+  "attemptId": "20260911T051814459Z-openai-agents-sdk-typescript-agent-handoffs-0-16-6074a7fa",
+  "attemptIdDigest": "a54d9089fde1c36ceaf680908cd5ef2bdeac7e8824bea649e3462e8c8084a733",
+  "attemptDigest": "d2f38ca7c5e871f0505b24eac1ac5d5ef3223e366119718eb42056fd9c0f2ee0",
+  "sourceCommit": "ab6632bd8d7fff73d29f08707d7879a2e89241e5",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "46593f95dd100121e9bd88af139db636567e9ff05571bf6bd55dff678f522e41",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "4b496465d3cfff41adef812174c69a0e62ac1ad0992df2d08dda64d79df58e02"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "fe823ed14d897baf325e0bc9073b098ab699da66b46b737f3c2db8eee7c955ec"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f3.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

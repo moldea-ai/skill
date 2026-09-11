@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "attemptKey": "a-5c9602c84e083b1439ce69eaa499aaeb",
+  "attemptId": "20260911T051814459Z-anthropic-typescript-messages-api-0-117-435dadc1",
+  "attemptIdDigest": "5c9602c84e083b1439ce69eaa499aaeb5fc65312f1f45bd10696053ae746b036",
+  "attemptDigest": "4e9cc6d35c1efeb658b947d1e3c3d4240916c64b92097cf9f20154cd8cf9d053",
+  "sourceCommit": "ab6632bd8d7fff73d29f08707d7879a2e89241e5",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "d6bbedf7b3949a5485398c3e9b9cf3ee76011d9cc9ab2551b8ac5cc7ae241c39",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "4b496465d3cfff41adef812174c69a0e62ac1ad0992df2d08dda64d79df58e02"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "12bc9638cdc5015308708311f2f7ba0aa58eade525784dc75a8a8c5103896be0"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f3.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

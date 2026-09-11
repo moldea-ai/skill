@@ -24,6 +24,7 @@ import {
   verifyQualificationAttemptStorage,
 } from '../storage/index.ts';
 import { QualificationBaselineCheckSchema, type IQualificationBaselineCheck } from './types.ts';
+import { haveSameQualificationExecutionEnvironment } from './utilities.ts';
 
 const CUSTOM_SELECTION = {
   adapterId: 'custom',
@@ -202,7 +203,10 @@ export const inspectQualificationBaseline = async (options: {
     baseline.provenance.targetDigest === options.customTargetDigest &&
     baselineStorage.portableSkillBehaviorDigest === currentPortableSkillBehaviorDigest &&
     baselineStorage.cliClosureDigest === currentCliClosureDigest &&
-    JSON.stringify(baselineExecutionEnvironment) === JSON.stringify(options.executionEnvironment) &&
+    haveSameQualificationExecutionEnvironment(
+      baselineExecutionEnvironment,
+      options.executionEnvironment,
+    ) &&
     hasSharedPublishedClosure;
 
   if (!hasCompatibleIdentity) {

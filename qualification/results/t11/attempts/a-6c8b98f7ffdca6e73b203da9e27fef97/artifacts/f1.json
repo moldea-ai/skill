@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "passed": false,
+  "status": "incompatible",
+  "baselineAttemptId": null,
+  "failures": [
+    "Custom baseline attempt 20260911T045928448Z-custom-custom-489ed604 does not match the current universal suite, Custom target, portable skill, execution environment, and published candidate closure."
+  ]
+}

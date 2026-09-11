@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "attemptKey": "a-b6f8ce3a2beda85706bd3029bbb0a5a1",
+  "attemptId": "20260911T051814459Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-7f6e1b4c",
+  "attemptIdDigest": "b6f8ce3a2beda85706bd3029bbb0a5a15de90c8348bee19def91b68f86670d77",
+  "attemptDigest": "7a986bb84f01bc223ae57576d83910d3e96a400ef718ac40a8c37f68faa747d3",
+  "sourceCommit": "ab6632bd8d7fff73d29f08707d7879a2e89241e5",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "6ea67611c288860659ab5ea4af2feb57625a9f6536ddb85d9a69df6a51b09fa9",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "4b496465d3cfff41adef812174c69a0e62ac1ad0992df2d08dda64d79df58e02"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "d919d579589f350a020fcd21bb5420542b0e4c5f5039b096fa6afd8a726e44a6"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f3.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

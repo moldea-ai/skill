@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "attemptKey": "a-b8c4117caef8745430ef0108a7b05e06",
+  "attemptId": "20260911T051814459Z-eve-typescript-filesystem-agent-0-39-7f40a989",
+  "attemptIdDigest": "b8c4117caef8745430ef0108a7b05e0653f98e54e5b80afa25fe6f054a17b1cb",
+  "attemptDigest": "85561eee0f4b086bcf6491bc409f9d1d0b239bef747ca290ffcf962e8d60c673",
+  "sourceCommit": "ab6632bd8d7fff73d29f08707d7879a2e89241e5",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "d8caba0a2b55f59f49376069a194e5f31c0775a779a8af3bfd207fc9224b3813",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "4b496465d3cfff41adef812174c69a0e62ac1ad0992df2d08dda64d79df58e02"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "ab95ea264f685e01411dfb86bdf33d3912b5a2307ed399e3fc70fb3b00a9e0b1"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f3.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

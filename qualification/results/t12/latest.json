@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 10,
+  "adapterId": "openai-agents-sdk",
+  "implementationId": "typescript-agent-handoffs-0-16",
+  "latestAttemptId": "20260911T051814459Z-openai-agents-sdk-typescript-agent-handoffs-0-16-6074a7fa",
+  "latestStatus": "failed",
+  "lastPassingAttemptId": null,
+  "updatedAt": "2026-09-11T05:20:32.395Z"
+}

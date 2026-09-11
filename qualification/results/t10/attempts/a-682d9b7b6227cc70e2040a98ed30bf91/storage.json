@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "attemptKey": "a-682d9b7b6227cc70e2040a98ed30bf91",
+  "attemptId": "20260911T051814459Z-langgraph-typescript-state-graph-1-4-c53e14df",
+  "attemptIdDigest": "682d9b7b6227cc70e2040a98ed30bf9155f189d24c2b8a57ce2338a57fc2c685",
+  "attemptDigest": "4106e20c7feaa693411c2cac8f0b38b954c0020778a4935ed117a31f61e984b1",
+  "sourceCommit": "ab6632bd8d7fff73d29f08707d7879a2e89241e5",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "e942de33973a359b5b4423a88a3e6d15bbb08352db260187c79e2c99efa50590",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "4b496465d3cfff41adef812174c69a0e62ac1ad0992df2d08dda64d79df58e02"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "a5b44e081145bad9c5ca8c7990e384abb74d1efec1f7381f230013d2d56457e5"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f3.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

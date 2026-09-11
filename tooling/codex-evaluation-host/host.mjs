@@ -126,6 +126,12 @@ const resolveReadOnlyWorkspacePaths = (cwd, paths) =>
     return { source, target: `/mnt/${path}` };
   });
 
+/** Returns the exact workspace paths protected by evaluator-owned read-only overlays. */
+const getProtectedWorkspacePaths = (readOnlyWorkspacePaths, includeWorkspaceBinaryDirectory) =>
+  includeWorkspaceBinaryDirectory
+    ? [...new Set([...readOnlyWorkspacePaths, 'node_modules'])]
+    : [...new Set(readOnlyWorkspacePaths)];
+
 /**
  * Parses one non-interactive Codex command from an environment variable.
  * @param variableName The environment variable containing a JSON command array.
@@ -540,9 +546,10 @@ export const buildCodexEvaluationBwrapArguments = ({
   statusFileDescriptor,
   workspaceAccess = 'read-write',
 }) => {
-  const protectedWorkspacePaths = includeWorkspaceBinaryDirectory
-    ? [...new Set([...readOnlyWorkspacePaths, 'node_modules'])]
-    : readOnlyWorkspacePaths;
+  const protectedWorkspacePaths = getProtectedWorkspacePaths(
+    readOnlyWorkspacePaths,
+    includeWorkspaceBinaryDirectory,
+  );
   const workspaceOverlays = resolveReadOnlyWorkspacePaths(cwd, protectedWorkspacePaths);
 
   return [
@@ -950,9 +957,13 @@ export const runCodexEvaluationHost = async ({
   if (!['read-only', 'read-write'].includes(workspaceAccess)) {
     throw new Error(`Unsupported evaluation workspace access: ${workspaceAccess}`);
   }
+  const protectedWorkspacePaths = getProtectedWorkspacePaths(
+    readOnlyWorkspacePaths,
+    includeWorkspaceBinaryDirectory,
+  );
   await mkdir(join(sandboxHome, 'tmp'), { recursive: true, mode: 0o700 });
   await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'), {
-    trustedReadOnlyDirectoryNames: includeWorkspaceBinaryDirectory ? ['node_modules'] : [],
+    trustedReadOnlyWorkspacePaths: protectedWorkspacePaths,
   });
   const hostExecutable = resolveExecutablePath(command[0]);
   const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);

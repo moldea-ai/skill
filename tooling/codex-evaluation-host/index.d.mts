@@ -234,7 +234,7 @@ export const hasValidCodexEvaluationCommandPolicy: (
 export const prepareGitCommandPolicyBoundary: (
   directoryPath: string,
   options?: {
-    trustedReadOnlyDirectoryNames?: readonly string[];
+    trustedReadOnlyWorkspacePaths?: readonly string[];
   },
 ) => Promise<string>;
 export const CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX: readonly string[];

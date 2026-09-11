@@ -201,10 +201,11 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
   }
 });
 
-test('Git command-policy boundary budgets trusted read-only top-level dependencies separately', async () => {
+test('Git command-policy boundary budgets exact trusted read-only workspace paths separately', async () => {
   const testRoot = mkdtempSync(join(tmpdir(), 'moldea-git-read-only-dependencies-test-'));
   const repositoryPath = join(testRoot, 'repository');
   const dependencyDirectoryPath = join(repositoryPath, 'node_modules');
+  const skillDirectoryPath = join(repositoryPath, '.agents', 'skills', 'moldea');
   const statusArguments = [...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS];
 
   try {
@@ -235,49 +236,59 @@ test('Git command-policy boundary budgets trusted read-only top-level dependenci
     const trustedWrapperPath = await prepareGitCommandPolicyBoundary(
       join(testRoot, 'trusted-bin'),
       {
-        trustedReadOnlyDirectoryNames: ['node_modules'],
+        trustedReadOnlyWorkspacePaths: ['.agents/skills/moldea', 'node_modules'],
       },
     );
     const trustedResult = runWrappedGit(trustedWrapperPath, repositoryPath, statusArguments);
 
     assert.equal(trustedResult.status, 0, trustedResult.stderr);
 
-    const trustedDependencyAttributesPath = join(dependencyDirectoryPath, '.gitattributes');
-    writeFileSync(trustedDependencyAttributesPath, '*.js filter=execution-trap\n', 'utf8');
-    const trustedDependencyAttributesResult = runWrappedGit(
+    mkdirSync(skillDirectoryPath, { recursive: true });
+    for (let entryIndex = 0; entryIndex < 4_097; entryIndex += 1) {
+      writeFileSync(join(skillDirectoryPath, `entry-${entryIndex}`), '');
+    }
+    const nestedTrustedResult = runWrappedGit(trustedWrapperPath, repositoryPath, statusArguments);
+
+    assert.equal(nestedTrustedResult.status, 0, nestedTrustedResult.stderr);
+
+    const writableSiblingPath = join(repositoryPath, '.agents', 'scratch');
+    mkdirSync(writableSiblingPath, { recursive: true });
+    for (let entryIndex = 0; entryIndex < 4_097; entryIndex += 1) {
+      writeFileSync(join(writableSiblingPath, `entry-${entryIndex}`), '');
+    }
+    const writableSiblingResult = runWrappedGit(
       trustedWrapperPath,
       repositoryPath,
       statusArguments,
     );
 
-    assert.equal(trustedDependencyAttributesResult.status, 2);
-    assert.match(
-      trustedDependencyAttributesResult.stderr,
-      /repository attribute safety was not established/u,
-    );
-    rmSync(trustedDependencyAttributesPath);
+    assert.equal(writableSiblingResult.status, 2);
+    assert.match(writableSiblingResult.stderr, /repository attribute safety was not established/u);
 
-    const nestedDependencyDirectoryPath = join(repositoryPath, 'src', 'node_modules');
-    mkdirSync(nestedDependencyDirectoryPath, { recursive: true });
+    rmSync(writableSiblingPath, { force: true, recursive: true });
+    mkdirSync(writableSiblingPath, { recursive: true });
     writeFileSync(
-      join(nestedDependencyDirectoryPath, '.gitattributes'),
+      join(writableSiblingPath, '.gitattributes'),
       '*.js filter=execution-trap\n',
       'utf8',
     );
-    const nestedAttributesResult = runWrappedGit(
+    const writableAttributesResult = runWrappedGit(
       trustedWrapperPath,
       repositoryPath,
       statusArguments,
     );
 
-    assert.equal(nestedAttributesResult.status, 2);
-    assert.match(nestedAttributesResult.stderr, /repository attribute safety was not established/u);
+    assert.equal(writableAttributesResult.status, 2);
+    assert.match(
+      writableAttributesResult.stderr,
+      /repository attribute safety was not established/u,
+    );
 
     await assert.rejects(
       prepareGitCommandPolicyBoundary(join(testRoot, 'invalid-bin'), {
-        trustedReadOnlyDirectoryNames: ['_backup'],
+        trustedReadOnlyWorkspacePaths: ['.agents/_backup/evidence'],
       }),
-      /Invalid trusted read-only workspace directory/u,
+      /Invalid trusted read-only workspace path/u,
     );
   } finally {
     rmSync(testRoot, { force: true, recursive: true });

@@ -25,6 +25,7 @@ import { createCodexExecCommand } from './utilities.ts';
 
 const SANDBOX_OUTPUT_PATH = '/home/evaluator/output.json';
 const SANDBOX_SCHEMA_PATH = '/home/evaluator/output.schema.json';
+const READ_ONLY_WORKSPACE_PATHS = ['.git', '.agents/skills/moldea', 'node_modules'];
 
 /** Production Codex CLI host fixed to the evaluation model and structured-output protocol. */
 export class CodexCliHost implements ICodexHost {
@@ -83,6 +84,7 @@ export class CodexCliHost implements ICodexHost {
         defaultHostTimeoutMs: QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS,
         includeWorkspaceBinaryDirectory: role === 'actor',
         prompt: input.prompt,
+        readOnlyWorkspacePaths: READ_ONLY_WORKSPACE_PATHS,
         role,
         sandboxHome,
         ...(input.signal === undefined ? {} : { signal: input.signal }),

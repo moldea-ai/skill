@@ -22,7 +22,7 @@ Recording fails when current evidence is missing, stale, incomplete, failed, ove
 
 ## Pin earlier passing evidence
 
-When a maintainer has established that the release cannot affect one evidence domain, select that domain and one exact source:
+When a maintainer decides that rerunning one evidence domain would not provide enough additional assurance to justify its cost, select that domain and one exact source:
 
 ```bash
 npm run release:evidence:pin -- --scope semantic --from-commit <full-commit> --reason "Release tooling only; portable behavior is unchanged."
@@ -31,9 +31,13 @@ npm run release:evidence:pin -- --scope qualification --from v5.0.0 --reason "Qu
 
 `--scope` accepts `semantic`, `qualification`, or `all`. `--from` resolves an exact stable release tag. `--from-commit` accepts an exact full commit, including a committed prerelease evidence state that does not yet have a tag. The command validates only the selected source section and requires every unselected section to have valid fresh current evidence. A tagged section that already points to an earlier source is flattened to that original source so reference chains do not accumulate.
 
+Pinning is an explicit repository-bound maintainer risk decision. The reason must identify what changed, name the deterministic candidate checks used instead of a fresh paid run, and avoid claiming that the source models evaluated the new contracts. Public evidence keeps verified prior provenance separate from current-contract assurance, which remains pending until matching evidence exists.
+
 The reason accepts up to 1,024 UTF-8 bytes. The complete envelope accepts up to 65,536 bytes. These limits bound one small release manifest and do not limit repository size, evaluation history, or the number of source files a coding agent can inspect on demand. Limit failures report the observed value and applicable limit.
 
 A pin bypasses current freshness and identity checks only for its selected section. It does not bypass source existence, optional tag identity, portable skill identity, descriptor integrity, artifact digests, passing resource state, the signed target release, or publication credentials. There is no administrator account, approval service, same-major restriction, hidden carry-forward mode, or local evidence registry. The selection is committed with the repository.
+
+Immutable semantic sources are authenticated from their committed suite and coverage digests, complete unique result inventory, resource limits, attempt linkage, and raw evidence hashes. They are not revalidated through the current evaluator vocabulary, so removing or renaming a current scenario field cannot retroactively invalidate a passing published source. Current evidence creation still uses the complete current schema.
 
 Clear a prepared pin with:
 

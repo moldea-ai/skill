@@ -4,12 +4,6 @@ import { spawnSync } from 'node:child_process';
 
 import { parse } from 'yaml';
 
-import {
-  createSemanticCaseSuiteDigest,
-  createSemanticCoverageDigest,
-  hasPassingMoldeaResourceBudget,
-  validateSemanticCoverage,
-} from '../semantic-evaluation/index.mjs';
 import { QualificationModelStageEvidenceSchema } from '../../qualification/src/contracts/index.ts';
 import { createQualificationAttemptKey } from '../../qualification/src/storage/index.ts';
 
@@ -23,6 +17,13 @@ import {
 const MAX_GIT_JSON_BYTES = 16 * 1_048_576;
 const MAX_MATERIALIZED_FILE_BYTES = 32 * 1_048_576;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
+const STABLE_ID_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,126}[a-z0-9])?$/u;
+
+const isPlainRecord = (input) =>
+  input !== null && typeof input === 'object' && !Array.isArray(input);
+
+const createJsonDigest = (input) =>
+  createHash('sha256').update(JSON.stringify(input)).digest('hex');
 
 const runGit = (repositoryRoot, arguments_, options = {}) => {
   const result = spawnSync('git', arguments_, {
@@ -173,21 +174,104 @@ const createGitSemanticCliIdentity = (repositoryRoot, commit) => {
   };
 };
 
-const assertSemanticResourceEvidence = (repositoryRoot, commit, result) => {
-  const cases = readGitJson(repositoryRoot, commit, RELEASE_PATHS.conformanceCases).semanticCases;
-  const definitions = new Map(cases.map((definition) => [definition.id, definition]));
+/*
+ * Source evidence is authenticated through stable result invariants. Applying the current
+ * evaluator schema here would reinterpret an immutable source after its protocol evolves.
+ */
+const createSemanticSourceCaseSuiteDigest = (caseDefinitions) => {
+  if (!Array.isArray(caseDefinitions) || caseDefinitions.length === 0) {
+    throw new Error('Pinned semantic source has no case definitions.');
+  }
+  const definitionsById = caseDefinitions
+    .map((definition) => {
+      if (!isPlainRecord(definition) || !STABLE_ID_PATTERN.test(definition.id)) {
+        throw new Error('Pinned semantic source has an invalid case definition identity.');
+      }
+      return { digest: createJsonDigest(definition), id: definition.id };
+    })
+    .sort(({ id: left }, { id: right }) => left.localeCompare(right));
+  const identifiers = definitionsById.map(({ id }) => id);
+  if (new Set(identifiers).size !== identifiers.length) {
+    throw new Error('Pinned semantic source case IDs must be unique.');
+  }
+  return createJsonDigest(definitionsById);
+};
+
+const createSemanticSourceCoverageDigest = (coverage) => {
+  if (!isPlainRecord(coverage)) {
+    throw new Error('Pinned semantic source coverage must be an object.');
+  }
+  return createJsonDigest(coverage);
+};
+
+const hasPassingSemanticSourceActivation = (evidence, budget) => {
+  if (evidence.commandCount < budget.minimumMoldeaCommands) return false;
+  if (budget.activation === 'abstain' || budget.activation === 'informational') {
+    return evidence.commandCount === 0;
+  }
+  if (budget.activation === 'relationship') {
+    return evidence.operations[0] === 'scope' && !evidence.operations.includes('inspect');
+  }
+  if (budget.activation === 'direct') return true;
+  if (budget.activation === 'blocked') return evidence.operations[0] !== 'scope';
+  return false;
+};
+
+const hasPassingSemanticSourceResourceBudget = (evidence, budget) => {
+  const hasValidStructure =
+    isPlainRecord(evidence) &&
+    isPlainRecord(budget) &&
+    typeof budget.activation === 'string' &&
+    Number.isSafeInteger(budget.minimumMoldeaCommands) &&
+    budget.minimumMoldeaCommands >= 0 &&
+    Number.isSafeInteger(budget.maximumMoldeaCommands) &&
+    budget.maximumMoldeaCommands >= budget.minimumMoldeaCommands &&
+    Number.isSafeInteger(budget.maximumMoldeaOutputBytes) &&
+    budget.maximumMoldeaOutputBytes >= 0 &&
+    Number.isSafeInteger(evidence.commandCount) &&
+    evidence.commandCount >= budget.minimumMoldeaCommands &&
+    evidence.commandCount <= budget.maximumMoldeaCommands &&
+    Number.isSafeInteger(evidence.maximumInvocationByteCount) &&
+    evidence.maximumInvocationByteCount >= 0 &&
+    evidence.maximumInvocationByteCount <= budget.maximumMoldeaOutputBytes &&
+    Number.isSafeInteger(evidence.modelVisibleToolOutputByteCount) &&
+    evidence.modelVisibleToolOutputByteCount >= 0 &&
+    evidence.modelVisibleToolOutputByteCount <= budget.maximumMoldeaOutputBytes &&
+    Number.isSafeInteger(evidence.stdoutByteCount) &&
+    evidence.stdoutByteCount >= 0 &&
+    evidence.stdoutByteCount <= budget.maximumMoldeaOutputBytes &&
+    evidence.modelVisibleToolOutputByteCount === evidence.stdoutByteCount &&
+    evidence.maximumInvocationByteCount <= evidence.stdoutByteCount &&
+    Array.isArray(evidence.operations) &&
+    evidence.operations.length === evidence.commandCount &&
+    evidence.operations.every((operation) => typeof operation === 'string' && operation.length > 0);
+
+  return hasValidStructure && hasPassingSemanticSourceActivation(evidence, budget);
+};
+
+const assertSemanticResourceEvidence = (caseDefinitions, result) => {
+  const definitions = new Map(caseDefinitions.map((definition) => [definition.id, definition]));
   if (!Array.isArray(result.cases) || result.cases.length !== definitions.size) {
     throw new Error('Pinned semantic result has an incomplete case inventory.');
   }
+  const resultIdentifiers = new Set();
   for (const caseResult of result.cases) {
     const definition = definitions.get(caseResult.id);
     if (
+      !isPlainRecord(caseResult) ||
       definition === undefined ||
+      resultIdentifiers.has(caseResult.id) ||
       caseResult.passed !== true ||
-      !hasPassingMoldeaResourceBudget(caseResult.actorResourceEvidence, definition.resourceBudget)
+      !hasPassingSemanticSourceResourceBudget(
+        caseResult.actorResourceEvidence,
+        definition.resourceBudget,
+      ) ||
+      ('caseDefinitionDigest' in caseResult &&
+        caseResult.caseDefinitionDigest !== createJsonDigest(definition))
     ) {
       throw new Error(`Pinned semantic case ${String(caseResult.id)} is failed or over budget.`);
     }
+    resultIdentifiers.add(caseResult.id);
   }
 };
 
@@ -199,7 +283,8 @@ const assertSemanticSource = (repositoryRoot, commit, semantic, portableSkillSha
     RELEASE_PATHS.conformanceCases,
   ).semanticCases;
   const coverage = readGitJson(repositoryRoot, commit, RELEASE_PATHS.semanticCoverage);
-  validateSemanticCoverage(coverage, caseDefinitions);
+  const caseSuiteDigest = createSemanticSourceCaseSuiteDigest(caseDefinitions);
+  const coverageDigest = createSemanticSourceCoverageDigest(coverage);
   const latestPath = 'fixtures/semantic-evaluation-results/latest.json';
   const attemptPath = `fixtures/semantic-evaluation-results/attempts/${semantic.attemptId}/attempt.json`;
   const attempt = readGitJson(repositoryRoot, commit, attemptPath);
@@ -209,8 +294,8 @@ const assertSemanticSource = (repositoryRoot, commit, semantic, portableSkillSha
     result.evaluationProtocolVersion !== semantic.protocolVersion ||
     result.artifactDigest !== portableSkillSha256 ||
     result.artifactSha256 !== portableSkillSha256 ||
-    result.caseSuiteDigest !== createSemanticCaseSuiteDigest(caseDefinitions) ||
-    result.coverageDigest !== createSemanticCoverageDigest(coverage, caseDefinitions) ||
+    result.caseSuiteDigest !== caseSuiteDigest ||
+    result.coverageDigest !== coverageDigest ||
     JSON.stringify(result.cli) !==
       JSON.stringify(createGitSemanticCliIdentity(repositoryRoot, commit)) ||
     attempt.attemptId !== semantic.attemptId ||
@@ -232,7 +317,7 @@ const assertSemanticSource = (repositoryRoot, commit, semantic, portableSkillSha
     throw new Error('Pinned semantic attempt does not match its envelope evidence digest.');
   }
   assertGitFileDigest(repositoryRoot, commit, evidencePath, semantic.evidenceSha256);
-  assertSemanticResourceEvidence(repositoryRoot, commit, result);
+  assertSemanticResourceEvidence(caseDefinitions, result);
 };
 
 const assertQualificationResourceEvidence = (artifact, relativePath) => {

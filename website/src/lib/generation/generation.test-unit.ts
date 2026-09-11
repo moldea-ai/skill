@@ -146,7 +146,7 @@ vi.mock('../semantic-evaluation/index.ts', () => {
 vi.mock('../release-evidence/index.ts', () => ({
   loadReleaseEvidenceModel: vi.fn(() => ({
     mode: 'not-recorded',
-    targetVersion: '5.0.0',
+    targetVersion: '5.0.1',
   })),
 }));
 
@@ -165,14 +165,14 @@ describe('createWebsiteModel', () => {
     const model = createWebsiteModel();
 
     expect(model.skill.name).toBe('moldea');
-    expect(model.skill.version).toBe('5.0.0');
+    expect(model.skill.version).toBe('5.0.1');
     expect(model.skill.description.length).toBeGreaterThan(0);
     expect(new Set(model.routes).size).toBe(model.routes.length);
     expect(model.documents.length).toBeGreaterThanOrEqual(18);
     expect(model.searchRecords.length).toBeGreaterThan(model.documents.length);
     expect(model.navigation.flatMap(({ documents }) => documents)).toStrictEqual(model.documents);
     expect(model.qualification.route).toBe('/evidence/qualification/');
-    expect(model.releaseEvidence).toStrictEqual({ mode: 'not-recorded', targetVersion: '5.0.0' });
+    expect(model.releaseEvidence).toStrictEqual({ mode: 'not-recorded', targetVersion: '5.0.1' });
     expect(model.currentSemanticAssurance).toBe(model.semanticEvaluation.currentAssurance);
     expect(model.semanticEvaluation.route).toBe('/evidence/semantic/');
     expect(model.qualification.profiles).toHaveLength(1);
@@ -280,7 +280,7 @@ describe('createWebsiteModel', () => {
         sourceLabel: 'aaaaaaaaaaaa',
         sourceUrl: `https://github.com/moldea-ai/skill/tree/${'a'.repeat(40)}`,
       },
-      targetVersion: '5.0.0',
+      targetVersion: '5.0.1',
     });
 
     const model = createWebsiteModel();

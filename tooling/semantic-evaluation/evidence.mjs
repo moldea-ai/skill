@@ -31,12 +31,12 @@ const SEMANTIC_CASE_KEYS = new Set([
   'skillEvidence',
 ]);
 const RUNTIME_COMPATIBILITY_PUBLICATION_PROBE_VARIANTS = new Set([
-  'current-supported-target',
-  'experimental-current-target',
-  'future-supported-target',
+  'current-target',
+  'future-target',
   'malformed',
   'missing-current-target',
   'unavailable',
+  'version-mismatched-current-target',
 ]);
 const SKILL_ARTIFACT_ROLES = new Set([
   'authoritative-source',
@@ -336,6 +336,11 @@ const createPortableSkillContentDigest = (transformContent, portableSkillRoot) =
   const hash = createHash('sha256');
   for (const absolutePath of paths) {
     const relativePath = relative(portableSkillRoot, absolutePath).replaceAll('\\', '/');
+
+    if (/\.test-(?:unit|integration|e2e|bench)\.[^/]+$/u.test(relativePath)) {
+      throw new Error(`Portable skill contains a test artifact: moldea/${relativePath}`);
+    }
+
     const content = readFileSync(absolutePath);
     hash.update(relativePath);
     hash.update('\0');

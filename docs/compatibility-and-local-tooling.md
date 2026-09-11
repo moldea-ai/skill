@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `5.0.0` supports exactly:
+Release `5.0.1` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -61,6 +61,6 @@ The host retains higher absolute ceilings of 128 completed commands, 32 `moldea`
 
 ## Published runtime compatibility
 
-Installed CLI composition reports available adapter packages and repository-format compatibility. Current target maturity remains owned by the packages website publication at [`packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json).
+Installed CLI composition reports available adapter packages and repository-format compatibility. The packages publication at [`packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json) supplies current technical targets, package ranges, patterns, provider limits, runtime-guidance expectations, implementation state, repository-format support, and verification dates.
 
-An unavailable or invalid publication blocks only claims that depend on current published maturity. It does not prevent local structural validation, content-free metadata inspection, or a negative readiness conclusion supported by independent evidence.
+An unavailable or invalid publication blocks only claims that depend on those current technical fields. It does not erase an established canonical runtime, local adapter, repository wiring, or independently supported negative readiness conclusion. Website maturity labels are presentation metadata. They are not part of the technical publication contract and do not affect skill behavior, compatibility, qualification, runtime selection, or canonical unresolved state.

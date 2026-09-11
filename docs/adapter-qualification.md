@@ -8,7 +8,7 @@ order: 175
 
 # Adapter qualification
 
-Adapter qualification determines whether one exact published adapter implementation is ready for Supported maturity. It tests the current `moldea` skill and current package closure against realistic repositories without invoking a provider API or running an agent.
+Adapter qualification verifies one exact published adapter implementation and its current package closure against realistic repositories without invoking a provider API or running an agent. Website presentation labels are separate from qualification evidence and do not affect the technical result.
 
 ## Evidence ownership
 

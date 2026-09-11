@@ -520,7 +520,7 @@ afterEach(() => {
 });
 
 describe('loadQualificationWebsiteModel', () => {
-  test('loads current profiles with universal cases owned only by Custom', () => {
+  test('loads changed current profiles as pending with universal cases owned only by Custom', () => {
     const model = loadQualificationWebsiteModel(canonicalRepositoryRoot);
     const customProfile = model.profiles.find(
       ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
@@ -531,14 +531,16 @@ describe('loadQualificationWebsiteModel', () => {
     const universalCaseIds = new Set(
       caseCatalog.cases.filter(({ layer }) => layer === 'universal-baseline').map(({ id }) => id),
     );
-    const currentProfileDigest = customProfile?.currentLatest?.result.provenance.profileDigest;
-
     expect(model.profiles).toHaveLength(14);
     expect(model.uniqueJourneyCount).toBe(38);
-    expect(currentProfileDigest).toMatch(/^[a-f0-9]{64}$/u);
     expect(
-      customProfile?.attempts.every(
-        ({ result }) => result.provenance.profileDigest === currentProfileDigest,
+      model.profiles.every(
+        ({ attempts, currentAssurance, currentLatest, currentStatus, latest }) =>
+          attempts.length === 0 &&
+          currentAssurance === null &&
+          currentLatest === null &&
+          currentStatus === 'not-recorded' &&
+          latest === null,
       ),
     ).toBe(true);
     expect(customProfile?.cases.map(({ id }) => id)).toStrictEqual([...universalCaseIds]);

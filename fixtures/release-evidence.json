@@ -1,157 +1,164 @@
 {
   "qualification": {
-    "evidence": {
-      "protocolVersion": 10,
-      "resourceStatus": "passed",
-      "targets": [
-        {
-          "adapterId": "anthropic",
-          "attemptId": "20260911T101535112Z-anthropic-typescript-messages-api-0-117-28387f4c",
-          "attemptKey": "a-3c1ea7ecf3cc51e5d636de0d522455c1",
-          "attemptSha256": "920078542e05fe80b2118cf533c7b01253353d3980dc5a7f6439ef028316c2aa",
-          "implementationId": "typescript-messages-api-0-117",
-          "key": "t1",
-          "latestSha256": "8f0352781b0e8a5729b9df7c5ee078e119ee21fed96c7ee177da98a4f9f53aa8",
-          "storageSha256": "253a4ffc5e353bd069a62fc221902e2e09f5db4bc95bdf2e57635859946b270d"
-        },
-        {
-          "adapterId": "langgraph",
-          "attemptId": "20260911T101535112Z-langgraph-typescript-state-graph-1-4-3a719657",
-          "attemptKey": "a-ae9481dc6af60a7ec36a1d21dedcc0ef",
-          "attemptSha256": "552c8947f22e1830db3ac68672e8b6a401d8a6bcdc7067731079f99b41147f30",
-          "implementationId": "typescript-state-graph-1-4",
-          "key": "t10",
-          "latestSha256": "1f82c7450317dc279181c2ebe89f0ee876e70723c261032cff5bbf4edce43266",
-          "storageSha256": "815bc92e7933c63bbb3709f51fe0ad2a03e28afc341392900fb64608687589e1"
-        },
-        {
-          "adapterId": "openai",
-          "attemptId": "20260911T101535112Z-openai-typescript-responses-api-7-14744fb8",
-          "attemptKey": "a-c82302136bc438e3701b8633bb27c1c9",
-          "attemptSha256": "842fa53d993530a7842a6fc6a4e49a0782d38e318237c1285003c092bf96e0d3",
-          "implementationId": "typescript-responses-api-7",
-          "key": "t11",
-          "latestSha256": "2542e9e7ef1614fe5a93f3b176adecc015582b789dc388988c726ecd1e91bd5d",
-          "storageSha256": "57a5506aed8ad7c43094a988b4e3ef2d5f7e5c9d7a799d1ff896e80a10ebb45a"
-        },
-        {
-          "adapterId": "openai-agents-sdk",
-          "attemptId": "20260911T101535112Z-openai-agents-sdk-typescript-agent-handoffs-0-16-c83aa565",
-          "attemptKey": "a-33c243e258d8ae0aae221b386e90c135",
-          "attemptSha256": "a7b86ddef9ca20e404257bc4fe491f20e8be4f4b49156841396ea39ae60a3de2",
-          "implementationId": "typescript-agent-handoffs-0-16",
-          "key": "t12",
-          "latestSha256": "c84867c04bbba08cf3bd19310f127cd42b4d779a4a6056f79e32bb385af3ab0b",
-          "storageSha256": "5f2e6a900e37784d8a211b1af3176e0969b1a6cf8c38740f713e4e0a87c49ef2"
-        },
-        {
-          "adapterId": "vercel-ai-sdk",
-          "attemptId": "20260911T101535112Z-vercel-ai-sdk-typescript-generate-stream-text-7-4a096e9c",
-          "attemptKey": "a-d11a1d49f4015dc3543bd58a484cd990",
-          "attemptSha256": "f2629cdf3c01095906da7d5efbe14898a5c40263d8c01965eeb50a82c8af4fe5",
-          "implementationId": "typescript-generate-stream-text-7",
-          "key": "t13",
-          "latestSha256": "02ce17a09b6b66599bd86cba3cf5702dc2976f0c27d81bd2ee4be67c61a23506",
-          "storageSha256": "263be5a6b002d71ba0a4e0724f67de861c08cac8822b56a8900b9408be6ba74a"
-        },
-        {
-          "adapterId": "vercel-ai-sdk",
-          "attemptId": "20260911T101535112Z-vercel-ai-sdk-typescript-tool-loop-agent-7-d2468f39",
-          "attemptKey": "a-936be8ceaf0158e8a739e4efa2eddb78",
-          "attemptSha256": "e0ceb2397ea70e27ede2f3bd274a40b881cb30cef8d551368a39750d76ea7c71",
-          "implementationId": "typescript-tool-loop-agent-7",
-          "key": "t14",
-          "latestSha256": "37469606063821b4db36d584284872430b6ab5c8c7bbfab179be0d8303964531",
-          "storageSha256": "6f90b0486a758b2ace06095afaec68204976c56d6f2193bcb12a59e147780e41"
-        },
-        {
-          "adapterId": "claude-agent-sdk",
-          "attemptId": "20260911T101535112Z-claude-agent-sdk-typescript-query-subagents-0-3-c30d70b8",
-          "attemptKey": "a-917c441d84e840cda44855482fc85de3",
-          "attemptSha256": "9e33ac093a9cc5148cdfcd666782a96ba4840371054bc085e5bb977b2cc6b8bf",
-          "implementationId": "typescript-query-subagents-0-3",
-          "key": "t2",
-          "latestSha256": "98153b8659840981938b92288091b85b213a15742d78f29c787859f8e21c8266",
-          "storageSha256": "6165f98b7abb45ed579a3ab2a1612b761880d5ac2c346c369331957bf98adbb6"
-        },
-        {
-          "adapterId": "cloudflare-agents",
-          "attemptId": "20260911T101535112Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-17659d26",
-          "attemptKey": "a-d0d1f6cc61558ca161107887d1a45014",
-          "attemptSha256": "000a048f7de50ef7695730e472ed24ecc43f4c1de3a1e8b88e7c2104d47c0a5a",
-          "implementationId": "typescript-ai-chat-agent-0-10-ai-sdk-7",
-          "key": "t3",
-          "latestSha256": "508de252885d88d49e58bf4fba1342cdc55f75ce742b97bfb2ae803ca7bc49ec",
-          "storageSha256": "96f5347536e30f8c60b66e20f1390486c698f9c59201d2c846928d153065af7c"
-        },
-        {
-          "adapterId": "cloudflare-agents",
-          "attemptId": "20260911T101535112Z-cloudflare-agents-typescript-think-0-16-ai-sdk-7-835397e9",
-          "attemptKey": "a-a3044e008a8f54f49401a46e468be4a0",
-          "attemptSha256": "a9e513df85cc4409cd8e4258a0cb2095da2711867c1c0c371ccebb734120e869",
-          "implementationId": "typescript-think-0-16-ai-sdk-7",
-          "key": "t4",
-          "latestSha256": "eb95ef86936ac7d664023154392c63034c7ddae71028af20e0b0913365d190c3",
-          "storageSha256": "ed53b5206f7788dbc9357015f3144cf5fa950abd30d4085238bf0db36bd3b9ac"
-        },
-        {
-          "adapterId": "custom",
-          "attemptId": "20260911T100223103Z-custom-custom-825bf6c1",
-          "attemptKey": "a-744f3b1792225e4a0950e5a10a269b2c",
-          "attemptSha256": "1a763372443b69afc19155da779c9e7a306fd181a90f8babff538701ef1a1f10",
-          "implementationId": "custom",
-          "key": "t5",
-          "latestSha256": "7830081126e675990a95760355723672d51eecaaf7b4f7cd747e7ee9c2d4484f",
-          "storageSha256": "5d7ad235d07b1b0af46d14357d27dfbaec0262a58bf553d2b8c94ca4c441891b"
-        },
-        {
-          "adapterId": "eve",
-          "attemptId": "20260911T130131282Z-eve-typescript-filesystem-agent-0-39-05b94571",
-          "attemptKey": "a-ac167143b4e7513d77c9528a6aaa6335",
-          "attemptSha256": "e3b37424c6aef6320906d4f175b87212caa707ed2ae54e59595298496a22436b",
-          "implementationId": "typescript-filesystem-agent-0-39",
-          "key": "t6",
-          "latestSha256": "348386e6ec65751db07c16e4ea14dca99614919eed150b52760ec6174721e902",
-          "storageSha256": "0a655ab7c34274cc08df4e9d930b57f4a9fdf65c18ec9b6e1058ab3c4fae1c2d"
-        },
-        {
-          "adapterId": "google-genai",
-          "attemptId": "20260911T101535112Z-google-genai-typescript-models-generate-content-2-70bcac8e",
-          "attemptKey": "a-ca0d9d343532b81c0588a4d934a3575d",
-          "attemptSha256": "ae92184f187c3ab7ebb02bf9c8eb95b9e562d915674e6167f3b052c5690c8d27",
-          "implementationId": "typescript-models-generate-content-2",
-          "key": "t7",
-          "latestSha256": "1ebad56da87547ba6602cb5fffb944c86c83c0efe7d3bfd15e10062d1e1812d6",
-          "storageSha256": "c120b050b8fd972ee0f820d53fd6b0bbc88f15fbc9dbdc95e4bfebd2972d8e97"
-        },
-        {
-          "adapterId": "langchain",
-          "attemptId": "20260911T101535112Z-langchain-typescript-create-agent-1-5-94673370",
-          "attemptKey": "a-21a13e8c4fd8ab500e72769dca16ccb0",
-          "attemptSha256": "e73d2c01b7cc13b7c0c8b8ce8b27d439b30df88c16f0c66f1441ca63bae34158",
-          "implementationId": "typescript-create-agent-1-5",
-          "key": "t8",
-          "latestSha256": "518a0b2403ca9919ec623a59a986715894e05ae15e85857b021a211cc67b0192",
-          "storageSha256": "6d76ce5b799f53cbf393aa37cd60e0d3a1cd9832d8f6d61995db8f76bcbf9f49"
-        },
-        {
-          "adapterId": "langgraph",
-          "attemptId": "20260911T101535112Z-langgraph-typescript-functional-api-1-4-b66b2006",
-          "attemptKey": "a-430db3476e3177486693fb02c376acbf",
-          "attemptSha256": "9b6140caf5efbec1992ea3a42e716d38b0bba1bd63b80e4be99d38b62673af1b",
-          "implementationId": "typescript-functional-api-1-4",
-          "key": "t9",
-          "latestSha256": "2709c53d2294e9fa4057f316b5750aec1e14bc54800772be78d6a8c1e121d883",
-          "storageSha256": "a3bc67bc92e40f00a6d75987fb655ea1da0e2f6364e2a6ba59854120fb45faea"
-        }
-      ]
-    },
-    "mode": "fresh"
+    "mode": "pinned",
+    "reason": "Release 5.0.1 removes website-owned runtime maturity from technical decisions and standardizes initialization with the deterministic managed README writer. By maintainer decision, prior passing evidence is retained; unit, integration, semantic preflight, and qualification dry-run checks validate the candidate, and the prior models did not evaluate these new contracts.",
+    "source": {
+      "commit": "c3416c52ae69a3f26d2e38c07ba98aa8531e358d",
+      "evidence": {
+        "protocolVersion": 10,
+        "resourceStatus": "passed",
+        "targets": [
+          {
+            "adapterId": "anthropic",
+            "attemptId": "20260911T101535112Z-anthropic-typescript-messages-api-0-117-28387f4c",
+            "attemptKey": "a-3c1ea7ecf3cc51e5d636de0d522455c1",
+            "attemptSha256": "920078542e05fe80b2118cf533c7b01253353d3980dc5a7f6439ef028316c2aa",
+            "implementationId": "typescript-messages-api-0-117",
+            "key": "t1",
+            "latestSha256": "8f0352781b0e8a5729b9df7c5ee078e119ee21fed96c7ee177da98a4f9f53aa8",
+            "storageSha256": "253a4ffc5e353bd069a62fc221902e2e09f5db4bc95bdf2e57635859946b270d"
+          },
+          {
+            "adapterId": "langgraph",
+            "attemptId": "20260911T101535112Z-langgraph-typescript-state-graph-1-4-3a719657",
+            "attemptKey": "a-ae9481dc6af60a7ec36a1d21dedcc0ef",
+            "attemptSha256": "552c8947f22e1830db3ac68672e8b6a401d8a6bcdc7067731079f99b41147f30",
+            "implementationId": "typescript-state-graph-1-4",
+            "key": "t10",
+            "latestSha256": "1f82c7450317dc279181c2ebe89f0ee876e70723c261032cff5bbf4edce43266",
+            "storageSha256": "815bc92e7933c63bbb3709f51fe0ad2a03e28afc341392900fb64608687589e1"
+          },
+          {
+            "adapterId": "openai",
+            "attemptId": "20260911T101535112Z-openai-typescript-responses-api-7-14744fb8",
+            "attemptKey": "a-c82302136bc438e3701b8633bb27c1c9",
+            "attemptSha256": "842fa53d993530a7842a6fc6a4e49a0782d38e318237c1285003c092bf96e0d3",
+            "implementationId": "typescript-responses-api-7",
+            "key": "t11",
+            "latestSha256": "2542e9e7ef1614fe5a93f3b176adecc015582b789dc388988c726ecd1e91bd5d",
+            "storageSha256": "57a5506aed8ad7c43094a988b4e3ef2d5f7e5c9d7a799d1ff896e80a10ebb45a"
+          },
+          {
+            "adapterId": "openai-agents-sdk",
+            "attemptId": "20260911T101535112Z-openai-agents-sdk-typescript-agent-handoffs-0-16-c83aa565",
+            "attemptKey": "a-33c243e258d8ae0aae221b386e90c135",
+            "attemptSha256": "a7b86ddef9ca20e404257bc4fe491f20e8be4f4b49156841396ea39ae60a3de2",
+            "implementationId": "typescript-agent-handoffs-0-16",
+            "key": "t12",
+            "latestSha256": "c84867c04bbba08cf3bd19310f127cd42b4d779a4a6056f79e32bb385af3ab0b",
+            "storageSha256": "5f2e6a900e37784d8a211b1af3176e0969b1a6cf8c38740f713e4e0a87c49ef2"
+          },
+          {
+            "adapterId": "vercel-ai-sdk",
+            "attemptId": "20260911T101535112Z-vercel-ai-sdk-typescript-generate-stream-text-7-4a096e9c",
+            "attemptKey": "a-d11a1d49f4015dc3543bd58a484cd990",
+            "attemptSha256": "f2629cdf3c01095906da7d5efbe14898a5c40263d8c01965eeb50a82c8af4fe5",
+            "implementationId": "typescript-generate-stream-text-7",
+            "key": "t13",
+            "latestSha256": "02ce17a09b6b66599bd86cba3cf5702dc2976f0c27d81bd2ee4be67c61a23506",
+            "storageSha256": "263be5a6b002d71ba0a4e0724f67de861c08cac8822b56a8900b9408be6ba74a"
+          },
+          {
+            "adapterId": "vercel-ai-sdk",
+            "attemptId": "20260911T101535112Z-vercel-ai-sdk-typescript-tool-loop-agent-7-d2468f39",
+            "attemptKey": "a-936be8ceaf0158e8a739e4efa2eddb78",
+            "attemptSha256": "e0ceb2397ea70e27ede2f3bd274a40b881cb30cef8d551368a39750d76ea7c71",
+            "implementationId": "typescript-tool-loop-agent-7",
+            "key": "t14",
+            "latestSha256": "37469606063821b4db36d584284872430b6ab5c8c7bbfab179be0d8303964531",
+            "storageSha256": "6f90b0486a758b2ace06095afaec68204976c56d6f2193bcb12a59e147780e41"
+          },
+          {
+            "adapterId": "claude-agent-sdk",
+            "attemptId": "20260911T101535112Z-claude-agent-sdk-typescript-query-subagents-0-3-c30d70b8",
+            "attemptKey": "a-917c441d84e840cda44855482fc85de3",
+            "attemptSha256": "9e33ac093a9cc5148cdfcd666782a96ba4840371054bc085e5bb977b2cc6b8bf",
+            "implementationId": "typescript-query-subagents-0-3",
+            "key": "t2",
+            "latestSha256": "98153b8659840981938b92288091b85b213a15742d78f29c787859f8e21c8266",
+            "storageSha256": "6165f98b7abb45ed579a3ab2a1612b761880d5ac2c346c369331957bf98adbb6"
+          },
+          {
+            "adapterId": "cloudflare-agents",
+            "attemptId": "20260911T101535112Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-17659d26",
+            "attemptKey": "a-d0d1f6cc61558ca161107887d1a45014",
+            "attemptSha256": "000a048f7de50ef7695730e472ed24ecc43f4c1de3a1e8b88e7c2104d47c0a5a",
+            "implementationId": "typescript-ai-chat-agent-0-10-ai-sdk-7",
+            "key": "t3",
+            "latestSha256": "508de252885d88d49e58bf4fba1342cdc55f75ce742b97bfb2ae803ca7bc49ec",
+            "storageSha256": "96f5347536e30f8c60b66e20f1390486c698f9c59201d2c846928d153065af7c"
+          },
+          {
+            "adapterId": "cloudflare-agents",
+            "attemptId": "20260911T101535112Z-cloudflare-agents-typescript-think-0-16-ai-sdk-7-835397e9",
+            "attemptKey": "a-a3044e008a8f54f49401a46e468be4a0",
+            "attemptSha256": "a9e513df85cc4409cd8e4258a0cb2095da2711867c1c0c371ccebb734120e869",
+            "implementationId": "typescript-think-0-16-ai-sdk-7",
+            "key": "t4",
+            "latestSha256": "eb95ef86936ac7d664023154392c63034c7ddae71028af20e0b0913365d190c3",
+            "storageSha256": "ed53b5206f7788dbc9357015f3144cf5fa950abd30d4085238bf0db36bd3b9ac"
+          },
+          {
+            "adapterId": "custom",
+            "attemptId": "20260911T100223103Z-custom-custom-825bf6c1",
+            "attemptKey": "a-744f3b1792225e4a0950e5a10a269b2c",
+            "attemptSha256": "1a763372443b69afc19155da779c9e7a306fd181a90f8babff538701ef1a1f10",
+            "implementationId": "custom",
+            "key": "t5",
+            "latestSha256": "7830081126e675990a95760355723672d51eecaaf7b4f7cd747e7ee9c2d4484f",
+            "storageSha256": "5d7ad235d07b1b0af46d14357d27dfbaec0262a58bf553d2b8c94ca4c441891b"
+          },
+          {
+            "adapterId": "eve",
+            "attemptId": "20260911T130131282Z-eve-typescript-filesystem-agent-0-39-05b94571",
+            "attemptKey": "a-ac167143b4e7513d77c9528a6aaa6335",
+            "attemptSha256": "e3b37424c6aef6320906d4f175b87212caa707ed2ae54e59595298496a22436b",
+            "implementationId": "typescript-filesystem-agent-0-39",
+            "key": "t6",
+            "latestSha256": "348386e6ec65751db07c16e4ea14dca99614919eed150b52760ec6174721e902",
+            "storageSha256": "0a655ab7c34274cc08df4e9d930b57f4a9fdf65c18ec9b6e1058ab3c4fae1c2d"
+          },
+          {
+            "adapterId": "google-genai",
+            "attemptId": "20260911T101535112Z-google-genai-typescript-models-generate-content-2-70bcac8e",
+            "attemptKey": "a-ca0d9d343532b81c0588a4d934a3575d",
+            "attemptSha256": "ae92184f187c3ab7ebb02bf9c8eb95b9e562d915674e6167f3b052c5690c8d27",
+            "implementationId": "typescript-models-generate-content-2",
+            "key": "t7",
+            "latestSha256": "1ebad56da87547ba6602cb5fffb944c86c83c0efe7d3bfd15e10062d1e1812d6",
+            "storageSha256": "c120b050b8fd972ee0f820d53fd6b0bbc88f15fbc9dbdc95e4bfebd2972d8e97"
+          },
+          {
+            "adapterId": "langchain",
+            "attemptId": "20260911T101535112Z-langchain-typescript-create-agent-1-5-94673370",
+            "attemptKey": "a-21a13e8c4fd8ab500e72769dca16ccb0",
+            "attemptSha256": "e73d2c01b7cc13b7c0c8b8ce8b27d439b30df88c16f0c66f1441ca63bae34158",
+            "implementationId": "typescript-create-agent-1-5",
+            "key": "t8",
+            "latestSha256": "518a0b2403ca9919ec623a59a986715894e05ae15e85857b021a211cc67b0192",
+            "storageSha256": "6d76ce5b799f53cbf393aa37cd60e0d3a1cd9832d8f6d61995db8f76bcbf9f49"
+          },
+          {
+            "adapterId": "langgraph",
+            "attemptId": "20260911T101535112Z-langgraph-typescript-functional-api-1-4-b66b2006",
+            "attemptKey": "a-430db3476e3177486693fb02c376acbf",
+            "attemptSha256": "9b6140caf5efbec1992ea3a42e716d38b0bba1bd63b80e4be99d38b62673af1b",
+            "implementationId": "typescript-functional-api-1-4",
+            "key": "t9",
+            "latestSha256": "2709c53d2294e9fa4057f316b5750aec1e14bc54800772be78d6a8c1e121d883",
+            "storageSha256": "a3bc67bc92e40f00a6d75987fb655ea1da0e2f6364e2a6ba59854120fb45faea"
+          }
+        ]
+      },
+      "evidenceSha256": "12ddee3accbfbdd03cbaac3983adadc60c774cfc48c2b40c399db9f5c125f944",
+      "portableSkillSha256": "351e8f78caa8ebf27a084f22b327536f0b38ce2ef2d89e4c016c3f4c95ae5839",
+      "tag": "v5.0.0"
+    }
   },
   "schemaVersion": 2,
   "semantic": {
     "mode": "pinned",
-    "reason": "Two narrow skill corrections after the passing full suite were verified by deterministic coverage and the exact failing scenario; later changes affect only release tooling and qualification evidence.",
+    "reason": "Release 5.0.1 removes website-owned runtime maturity from technical decisions and standardizes initialization with the deterministic managed README writer. By maintainer decision, prior passing evidence is retained; unit, integration, semantic preflight, and qualification dry-run checks validate the candidate, and the prior models did not evaluate these new contracts.",
     "source": {
       "commit": "926907e26feac6a55929f68ca134aeaf41a6a4b5",
       "evidence": {
@@ -169,8 +176,8 @@
     }
   },
   "target": {
-    "dependencyClosureSha256": "51a5874e09d5be98adfb9553b496a9574ff793fca16c1b0716660e85bc12ab5b",
-    "portableSkillSha256": "351e8f78caa8ebf27a084f22b327536f0b38ce2ef2d89e4c016c3f4c95ae5839",
-    "version": "5.0.0"
+    "dependencyClosureSha256": "96841dfaeb6003c0357e83a2a27b554a02ae7466d8cd5130171a8ca0726a7b6a",
+    "portableSkillSha256": "f0e4571205cecced2a532a392f470d0713949ff69480ef267da1f89a07690d6b",
+    "version": "5.0.1"
   }
 }

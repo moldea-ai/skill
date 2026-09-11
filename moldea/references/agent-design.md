@@ -44,7 +44,7 @@ Always state the consumer-purpose classification, including when dynamic wiring 
 
 ## Select the runtime honestly
 
-Every registered agent declares one `runtime.id`. Use `composition --json` when installed adapter inventory matters. Load `runtime-compatibility.md` when published target compatibility or maturity matters. Complete this gate before editing runtime state:
+Every registered agent declares one `runtime.id`. Use `composition --json` when installed adapter inventory matters. Load `runtime-compatibility.md` when published technical-target compatibility matters. Complete this gate before editing runtime state:
 
 1. Establish authorized repository scope and state. Inspect identified related repositories as read-only evidence.
 2. Identify the primary model-invocation boundary and applicable instruction loading, capabilities, schemas, routing, and variables.
@@ -59,7 +59,7 @@ For a runtime-alignment review, report the declared runtime ID, the exact runtim
 
 Before a runtime write, retain a checklist of every externally evidenced model-visible capability. Do not validate or claim completion until each capability remains represented in canonical instruction or runtime guidance.
 
-If the required adapter is absent from this release, report a tooling prerequisite and stop without selecting another CLI version or replacement runtime. Composition establishes availability, not integration identity, target support, or maturity.
+If the required adapter is absent from this release, report a tooling prerequisite and stop without selecting another CLI version or replacement runtime. Composition establishes availability, not integration identity, target support, package compatibility, or repository fit.
 
 Create runtime guidance only for material project-specific behavior or limitations. Optional manifest syntax is not a Core error. Do not infer compatibility from package names, composition, or general knowledge, dynamically install adapters, or claim behavioral support without a validated published target and repository evidence. Source-owned target documentation, closed wiring, provider configuration, or integration tests may resolve an evidence gap; evaluation remains incomplete without a resolver.
 

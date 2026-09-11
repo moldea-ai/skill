@@ -15,6 +15,22 @@ describe('semantic evaluation dispositions', () => {
     assert.equal(validateSemanticDispositions(dispositions, fixture.semanticCases), dispositions);
     assert.equal(new Set(dispositions.cases.map(({ formerId }) => formerId)).size, 57);
     assert.equal(new Set(fixture.semanticCases.map(({ id }) => id)).size, 74);
+    assert.equal(
+      fixture.semanticCases.some(({ id }) =>
+        [
+          'published-supported-target-not-installed',
+          'experimental-target-not-production-ready',
+        ].includes(id),
+      ),
+      false,
+    );
+    assert.deepEqual(
+      dispositions.cases
+        .filter(({ disposition }) => disposition === 'replaced-technical-boundary')
+        .map(({ activeId }) => activeId)
+        .sort(),
+      ['published-target-not-installed', 'published-target-version-mismatch'],
+    );
   });
 
   test('rejects missing and remapped former cases', () => {

@@ -32,6 +32,10 @@ import {
 } from './semantic-evaluation-runner.mjs';
 
 const ROOT_PACKAGE_MANIFEST = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'));
+const MANAGED_README_BLOCK = readFileSync(
+  join(process.cwd(), 'moldea', 'assets', 'managed-readme-block.md'),
+  'utf8',
+);
 const RELEASE_CLI_VERSION = ROOT_PACKAGE_MANIFEST.devDependencies['@moldea.ai/cli'];
 const RELEASE_CLI_JSON_SCHEMA_VERSION = ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion;
 const SEMANTIC_CASES = JSON.parse(
@@ -102,7 +106,7 @@ test('runtime compatibility cases receive one exact fixed local publication prob
     assert.equal(accepted.status, 0);
     const currentPublication = JSON.parse(accepted.stdout);
     assert.equal(currentPublication.matrixVersion, 2);
-    assert.equal(currentPublication.adapters.openai.targets[0].maturity, 'supported');
+    assert.equal('maturity' in currentPublication.adapters.openai.targets[0], false);
 
     for (const argumentsList of [
       ['https://example.com'],
@@ -126,9 +130,9 @@ test('runtime compatibility cases receive one exact fixed local publication prob
     assert.equal(existsSync(join(inlineTools, 'curl')), true);
 
     for (const [caseId, expected] of [
-      ['experimental-target-not-production-ready', 'experimental'],
+      ['published-target-version-mismatch', 'version-mismatch'],
       ['installed-adapter-without-published-target', 'missing'],
-      ['published-supported-target-not-installed', 'future'],
+      ['published-target-not-installed', 'future'],
       ['runtime-publication-malformed', 'malformed'],
       ['runtime-publication-unavailable', 'unavailable'],
     ]) {
@@ -152,12 +156,12 @@ test('runtime compatibility cases receive one exact fixed local publication prob
       } else {
         assert.equal(variantProbe.status, 0);
         const publication = JSON.parse(variantProbe.stdout);
-        if (expected === 'experimental') {
-          assert.equal(publication.adapters.openai.targets[0].maturity, 'experimental');
+        if (expected === 'version-mismatch') {
+          assert.equal(publication.adapters.openai.targets[0].packages[0].versionRange, '>=8.0.0');
         } else if (expected === 'missing') {
           assert.deepEqual(publication.adapters.openai.targets, []);
         } else {
-          assert.equal(publication.adapters.future.targets[0].maturity, 'supported');
+          assert.equal(publication.adapters.future.targets[0].id, 'typescript-future-runtime-1');
         }
       }
     }
@@ -649,6 +653,7 @@ test('runtime planning receives a bounded route and complete independent evidenc
     const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
     assert.match(readme, /\[`src\/model-runtime\.js`\]\(src\/model-runtime\.js\)/u);
     assert.match(readme, /\[`docs\/runtime-candidates\.md`\]\(docs\/runtime-candidates\.md\)/u);
+    assert.equal(readme.endsWith(MANAGED_README_BLOCK), true);
 
     const evidence = await collectScenarioEvidence({
       caseDefinition,

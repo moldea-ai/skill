@@ -21,7 +21,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.0"
+npx skills add "moldea-ai/skill#v5.0.1"
 ```
 
 Repository installation is required for supported `moldea` use because the team must share the selected skill version with the project. A global installation does not establish repository adoption and is not a supported installation path.
@@ -38,7 +38,7 @@ This request explicitly authorizes adoption. The coding agent handles the initia
 2. Select the `initialize` operation and confirm that the repository and developer authority permit the required writes.
 3. Determine whether the evidence establishes a sufficient project foundation, requires focused clarification, or provides no meaningful project context yet.
 4. Once the foundation is sufficient, establish this skill release's compatible repository-local `@moldea.ai/cli` development dependency through the repository's package manager when needed. A stable installed CLI 8 may provide earlier read-only evidence after its declaration, exact lockfile-selected version, composition, and containment are verified. It never relies on a global CLI fallback.
-5. Once the foundation is sufficient, create the minimum canonical state and the owned README awareness block.
+5. Once the foundation is sufficient, create the minimum canonical state and run the bundled deterministic writer for the owned README awareness block.
 6. Run deterministic inspection and relevant project-native checks, then map the material sources to the foundation conclusions they established and report files, decisions, verification, and practical next actions.
 
 The minimum canonical foundation is:
@@ -49,6 +49,18 @@ The minimum canonical foundation is:
 ```
 
 `moldea.yaml` starts with schema version `1` and omits empty optional mappings. `project.md` records only durable project identity, purpose, users, goals, values, boundaries, and universally important facts supported by repository evidence.
+
+The root README receives this exact logical block:
+
+```text
+<!-- moldea:start -->
+
+For every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.
+Canonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.
+<!-- moldea:end -->
+```
+
+The blank line after the opening marker separates the ownership marker from the Markdown paragraph. The writer preserves existing README bytes outside the managed region, follows the file's consistent CRLF style when applicable, and otherwise writes LF. It rejects duplicate, unpaired, reversed, linked, invalid, or oversized README input instead of guessing.
 
 Initialization does not create an agent automatically. It also does not create ceremonial empty directories, speculative context, or a parallel source of truth. An adopted project turns the same request into focused foundation maintenance. Partial or inconsistent artifacts leave the project unadopted: the coding agent identifies the exact existing artifacts and missing contract elements, preserves valid content, and does not initialize or repair over them until the request authorizes that work and any consequential ambiguity is resolved.
 
@@ -96,7 +108,7 @@ You do not need to:
 
 The coding agent owns the safe interaction with the skill and repository-local tooling.
 
-During initialization, it writes the complete three-file foundation before making one final validation call. With no evidenced relationships, `/moldea/moldea.yaml` contains only `version: 1` and its final LF. A successful validation ends the operation without a follow-up inspection. If bounded structural diagnostics identify a repairable foundation error, the agent may correct it and validate once more.
+During initialization, it writes the two canonical files and invokes the bundled README writer before making one final validation call. The writer is a local skill operation, not a CLI call. With no evidenced relationships, `/moldea/moldea.yaml` contains only `version: 1` and its final LF. A successful validation ends the operation without a follow-up inspection. If bounded structural diagnostics identify a repairable foundation error, the agent may correct it and validate once more.
 
 Ordinary requests that do not pass the relevance gate activate no `moldea` work, whether or not the repository is adopted. Initialization adds a managed README block that tells a supported repository-aware host to select the repository-bound skill for each repository task. The selected entrypoint runs the two-byte gate, but a miss loads no workflow reference, runs no CLI command, and produces no `moldea` report. Initialization remains an explicit operation and never interrupts unrelated work.
 
@@ -111,10 +123,10 @@ npx skills add moldea-ai/skill
 A release-pinned installation never moves to another tag automatically. To update it, choose the desired published release and rerun the installation command with that tag. For example, the current release is:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.0"
+npx skills add "moldea-ai/skill#v5.0.1"
 ```
 
-Replace `v5.0.0` with the desired newer published tag when one becomes available.
+Replace `v5.0.1` with the desired newer published tag when one becomes available.
 
 Updating the skill refreshes its portable instructions and references. It does not initialize a project, change `/moldea/**`, install the `moldea` CLI globally, or alter a repository's canonical project state.
 

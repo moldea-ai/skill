@@ -58,11 +58,13 @@ describe('verifyProductionBuild', () => {
       ({ url }) => url === withBase(model.semanticEvaluation.route, basePath),
     );
     const currentAssurance = model.semanticEvaluation.currentAssurance;
+    const releaseAssurance = model.semanticReleaseAssurance;
     const semanticReleaseEvidence =
       model.releaseEvidence.mode === 'recorded' ? model.releaseEvidence.semantic : null;
     const hasAttemptHistory = model.semanticEvaluation.attempts.length > 0;
     const successfulCaseCount =
-      model.semanticEvaluation.passedCaseCount + model.semanticEvaluation.recoveredCaseCount;
+      (releaseAssurance?.result.passedCaseCount ?? 0) +
+      (releaseAssurance?.result.recoveredCaseCount ?? 0);
 
     expect(model.semanticEvaluation.status).toBe(currentAssurance?.result.status ?? 'not-recorded');
     expect(model.semanticEvaluation.evidenceMatch).toBe(currentAssurance === null ? null : 'exact');
@@ -76,7 +78,11 @@ describe('verifyProductionBuild', () => {
       `${successfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios`,
     );
     expect(semanticHtml).toContain(
-      currentAssurance === null ? 'No current evidence' : 'Exact release inputs',
+      currentAssurance !== null
+        ? 'Exact release inputs'
+        : releaseAssurance === null
+          ? 'No release evidence'
+          : 'Pinned release evidence',
     );
     expect(semanticHtml).toContain(
       !hasAttemptHistory

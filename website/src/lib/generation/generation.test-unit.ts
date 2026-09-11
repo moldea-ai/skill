@@ -57,12 +57,14 @@ vi.mock('../semantic-evaluation/index.ts', () => {
       coverageDigest: 'd'.repeat(64),
       coverageUrl: 'https://example.com/semantic-coverage.json',
       currentAssurance: {
+        cases: [],
         rawAttemptUrl: 'https://example.com/semantic-attempt.json',
         rawEvidenceUrl: 'https://example.com/semantic-evidence.json',
         result: {
           artifactDigest: 'a'.repeat(64),
           attemptId: 'semantic-attempt',
           failedCaseCount: 0,
+          cases: [],
           passedCaseCount: 14,
           pendingCaseCount: 0,
           recoveredCaseCount: 0,
@@ -151,6 +153,7 @@ vi.mock('../release-evidence/index.ts', () => ({
 import { createWebsiteModel } from './generation.ts';
 import { assertPublishableQualificationEvidence } from '../qualification/index.ts';
 import { loadReleaseEvidenceModel } from '../release-evidence/index.ts';
+import { loadSemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
 import {
   INSTALL_COMMAND,
   REQUIRED_DOCUMENT_ROUTES,
@@ -234,6 +237,43 @@ describe('createWebsiteModel', () => {
     expect(model.releaseEvidence.mode).toBe('recorded');
     expect(publicationCheck).not.toHaveBeenCalled();
     expect(model.llmsText).toContain('Qualification evidence for release 6.0.0 is pinned');
+  });
+
+  test('resolves the exact pinned semantic attempt as release assurance', () => {
+    const semanticEvaluation = loadSemanticEvaluationWebsiteModel('unused');
+    const pinnedAttempt = semanticEvaluation.currentAssurance;
+    if (pinnedAttempt === null) throw new Error('Expected a semantic test attempt.');
+    vi.mocked(loadSemanticEvaluationWebsiteModel).mockReturnValueOnce({
+      ...semanticEvaluation,
+      attempts: [pinnedAttempt],
+      currentAssurance: null,
+      evidenceMatch: null,
+      failedCaseCount: 0,
+      passedCaseCount: 0,
+      pendingCaseCount: semanticEvaluation.caseCount,
+      recoveredCaseCount: 0,
+      status: 'not-recorded',
+    });
+    vi.mocked(loadReleaseEvidenceModel).mockReturnValueOnce({
+      mode: 'recorded',
+      qualification: {
+        mode: 'fresh',
+        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
+      },
+      semantic: {
+        mode: 'pinned',
+        reason: 'The release changes only deterministic tooling.',
+        sourceAttemptId: pinnedAttempt.result.attemptId,
+        sourceCommit: 'a'.repeat(40),
+        sourceLabel: 'aaaaaaaaaaaa',
+        sourceUrl: `https://github.com/moldea-ai/skill/tree/${'a'.repeat(40)}`,
+      },
+      targetVersion: '5.0.0',
+    });
+
+    const model = createWebsiteModel();
+
+    expect(model.semanticReleaseAssurance).toBe(pinnedAttempt);
   });
 
   test('requires reader-facing product mentions in Markdown to use inline code', () => {

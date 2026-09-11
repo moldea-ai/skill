@@ -13,6 +13,7 @@ import {
 } from '../qualification/index.ts';
 import {
   loadSemanticEvaluationWebsiteModel,
+  type ISemanticAttemptModel,
   type ISemanticEvaluationWebsiteModel,
 } from '../semantic-evaluation/index.ts';
 import {
@@ -433,6 +434,24 @@ export const createRouteManifest = (
   return [...routes].sort();
 };
 
+/** Resolves the exact semantic attempt selected for the current release. */
+const resolveSemanticReleaseAssurance = (
+  releaseEvidence: IWebsiteModel['releaseEvidence'],
+  semanticEvaluation: ISemanticEvaluationWebsiteModel,
+): ISemanticAttemptModel | null => {
+  if (releaseEvidence.mode !== 'recorded' || releaseEvidence.semantic.mode !== 'pinned') {
+    return semanticEvaluation.currentAssurance;
+  }
+  const sourceAttemptId = releaseEvidence.semantic.sourceAttemptId;
+  const pinnedAttempt = semanticEvaluation.attempts.find(
+    ({ result }) => result.attemptId === sourceAttemptId,
+  );
+  if (pinnedAttempt === undefined || pinnedAttempt.result.status !== 'passed') {
+    throw new Error('Pinned semantic release evidence does not resolve to a passing attempt.');
+  }
+  return pinnedAttempt;
+};
+
 /**
  * Builds the complete deterministic website model without writing generated output.
  * @param qualificationRepositoryRoot Repository root used to load qualification evidence.
@@ -450,6 +469,10 @@ export const createWebsiteModel = (
     assertPublishableQualificationEvidence(qualification);
   }
   const semanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
+  const semanticReleaseAssurance = resolveSemanticReleaseAssurance(
+    releaseEvidence,
+    semanticEvaluation,
+  );
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
   const productionHostname = new URL(DEFAULT_SITE_URL).hostname;
@@ -487,6 +510,7 @@ export const createWebsiteModel = (
       ...createQualificationSearchRecords(qualification),
     ],
     semanticEvaluation,
+    semanticReleaseAssurance,
     skill,
   };
 };

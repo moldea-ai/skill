@@ -3,7 +3,11 @@ import { assertPinnedReleaseEvidenceSection } from '../../../../tooling/release-
 import { createDependencyClosureSha256 } from '../../../../tooling/release-identity/release-evidence-current.mjs';
 import { createPortableSkillDigest } from '../../../../tooling/semantic-evaluation/index.mjs';
 
-import type { IReleaseEvidenceModel, IReleaseEvidenceSectionModel } from './types.ts';
+import type {
+  IReleaseEvidenceModel,
+  IReleaseEvidenceSectionModel,
+  ISemanticReleaseEvidenceSectionModel,
+} from './types.ts';
 
 const SOURCE_REPOSITORY_URL = 'https://github.com/moldea-ai/skill';
 
@@ -27,6 +31,22 @@ const loadSectionModel = (
     sourceCommit: section.source.commit,
     sourceLabel,
     sourceUrl: `${SOURCE_REPOSITORY_URL}/tree/${section.source.tag ?? section.source.commit}`,
+  };
+};
+
+const loadSemanticSectionModel = (
+  repositoryRoot: string,
+  targetVersion: string,
+  section: NonNullable<ReturnType<typeof readReleaseEvidenceEnvelope>>['semantic'],
+): ISemanticReleaseEvidenceSectionModel => {
+  const model = loadSectionModel(repositoryRoot, targetVersion, 'semantic', section);
+  if (model.mode === 'fresh') return model;
+  if (section.mode !== 'pinned') {
+    throw new Error('Pinned semantic release evidence has inconsistent provenance.');
+  }
+  return {
+    ...model,
+    sourceAttemptId: section.source.evidence.attemptId,
   };
 };
 
@@ -54,7 +74,7 @@ export const loadReleaseEvidenceModel = (
       'qualification',
       envelope.qualification,
     ),
-    semantic: loadSectionModel(repositoryRoot, targetVersion, 'semantic', envelope.semantic),
+    semantic: loadSemanticSectionModel(repositoryRoot, targetVersion, envelope.semantic),
     targetVersion,
   };
 };

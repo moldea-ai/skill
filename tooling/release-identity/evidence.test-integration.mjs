@@ -301,6 +301,7 @@ test('represents commit-pinned semantic evidence beside fresh qualification evid
       semantic: {
         mode: 'pinned',
         reason: 'The target changes release tooling without changing evaluated behavior.',
+        sourceAttemptId: envelope.semantic.source.evidence.attemptId,
         sourceCommit,
         sourceLabel: sourceCommit.slice(0, 12),
         sourceUrl: `https://github.com/moldea-ai/skill/tree/${sourceCommit}`,

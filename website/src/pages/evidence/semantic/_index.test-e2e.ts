@@ -11,16 +11,19 @@ import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('replays current semantic evidence through keyboard-accessible tabs', async ({ page }) => {
-  const { semanticEvaluation } = loadWebsiteModel();
+test('replays selected release semantic evidence through keyboard-accessible tabs', async ({
+  page,
+}) => {
+  const { semanticEvaluation, semanticReleaseAssurance } = loadWebsiteModel();
   const successfulCaseCount =
-    semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount;
+    (semanticReleaseAssurance?.result.passedCaseCount ?? 0) +
+    (semanticReleaseAssurance?.result.recoveredCaseCount ?? 0);
   await page.goto(toPublicPath('/evidence/semantic/'));
 
   await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
   await expect(
     page.getByText(
-      `Current suite: ${successfulCaseCount}/${semanticEvaluation.caseCount} scenarios`,
+      `Release suite: ${successfulCaseCount}/${semanticEvaluation.caseCount} scenarios`,
       {
         exact: true,
       },
@@ -30,7 +33,11 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
   await technicalProvenance.locator('summary').click();
   await expect(
     technicalProvenance.getByText(
-      semanticEvaluation.currentAssurance === null ? 'No current evidence' : 'Exact release inputs',
+      semanticEvaluation.evidenceMatch === 'exact'
+        ? 'Exact release inputs'
+        : semanticReleaseAssurance === null
+          ? 'No release evidence'
+          : 'Pinned release evidence',
       { exact: true },
     ),
   ).toBeVisible();
@@ -44,7 +51,7 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
   await expect(attemptLinks).toHaveCount(semanticEvaluation.attempts.length);
   await expect(page.getByText('Earlier current-contract attempt', { exact: true })).toHaveCount(
     semanticEvaluation.attempts.filter(
-      ({ result }) => result.attemptId !== semanticEvaluation.currentAssurance?.result.attemptId,
+      ({ result }) => result.attemptId !== semanticReleaseAssurance?.result.attemptId,
     ).length,
   );
   await expect(page.getByRole('link', { name: 'Read the methodology' })).toHaveAttribute(
@@ -55,7 +62,7 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
     'href',
     /semantic-evaluation-coverage\.json$/u,
   );
-  if (semanticEvaluation.currentAssurance === null) {
+  if (semanticReleaseAssurance === null) {
     if (semanticEvaluation.attempts.length === 0) {
       await expect(
         page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
@@ -69,7 +76,7 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
     return;
   }
 
-  const firstCase = semanticEvaluation.groups.flatMap(({ cases }) => cases)[0];
+  const firstCase = semanticReleaseAssurance.cases[0];
   if (firstCase === undefined) throw new Error('Expected one current semantic case.');
   const firstTrial = firstCase.replay?.trials[0];
   if (firstTrial === undefined) throw new Error('Expected one current semantic trial.');

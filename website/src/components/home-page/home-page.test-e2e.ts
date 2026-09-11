@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import { PACKAGES_WEBSITE_URL, SKILLS_DIRECTORY_URL } from '../../lib/model/constants.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
@@ -96,6 +97,7 @@ test('leads with the durable system around coding-agent work', async ({ page }) 
 });
 
 test('presents value and proof before adoption reassurance', async ({ page }) => {
+  const { semanticEvaluation, semanticReleaseAssurance } = loadWebsiteModel();
   await page.goto(toPublicPath('/'));
 
   const orderedHeadings = [
@@ -157,6 +159,12 @@ test('presents value and proof before adoption reassurance', async ({ page }) =>
     'href',
     toPublicPath('/evidence/'),
   );
+  await expect(
+    page.getByText(
+      `${(semanticReleaseAssurance?.result.passedCaseCount ?? 0) + (semanticReleaseAssurance?.result.recoveredCaseCount ?? 0)}/${semanticEvaluation.caseCount}`,
+      { exact: true },
+    ),
+  ).toBeVisible();
 
   const finalDistributionLink = page
     .getByRole('heading', { name: 'Give your coding agent a system it can keep using.' })

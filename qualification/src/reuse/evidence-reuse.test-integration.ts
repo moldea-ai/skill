@@ -355,6 +355,83 @@ describe('qualification case evidence reuse', () => {
 
     expect(reusableCases.get(CASE_ID)?.caseResult.status).toBe('passed');
     expect(reusableCases.get(CASE_ID)?.sourceAttemptId).toBe(sourceResult.attemptId);
+    const reusableCase = reusableCases.get(CASE_ID);
+    if (reusableCase === undefined) {
+      throw new Error('Qualification fixture did not expose its reusable case.');
+    }
+    const destinationAttemptDirectory = path.join(temporaryRoot, 'destination-record');
+    const destinationArtifactDirectory = path.join(temporaryRoot, 'destination-artifacts');
+    const destinationDraft = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory: destinationArtifactDirectory,
+      attemptId: 'destination-attempt',
+      candidateFingerprint: candidate.fingerprint,
+      hasFailedCompanionCase: true,
+      packages: [publicCandidatePackage],
+      packagesRepositoryCommit: 'advanced-packages-commit',
+      packagesRepositoryFingerprint: sourceResult.provenance.packagesRepositoryFingerprint,
+      qualificationRepositoryCommit: contractCommit,
+      resultsRoot,
+      skillRepositoryCommit: sourceResult.provenance.skillRepositoryCommit,
+      skillRepositoryFingerprint: sourceResult.provenance.skillRepositoryFingerprint,
+      targetDigest: sourceResult.provenance.targetDigest,
+    });
+    const destinationCheckpoint = await createAttemptCheckpoint({
+      attemptDirectory: destinationAttemptDirectory,
+      attemptId: destinationDraft.attemptId,
+      parentAttemptId: sourceResult.attemptId,
+      selection: destinationDraft.selection,
+      isDryRun: false,
+      mode: 'official',
+      selectedCaseId: null,
+      reuseEvidence: true,
+      packagesRepository: '/packages',
+      skillRepository: '/skill',
+      profileDigest: destinationDraft.provenance.profileDigest,
+      qualificationDigest: destinationDraft.provenance.qualificationDigest,
+      skillDigest: destinationDraft.provenance.skillRepositoryFingerprint,
+      packagesRepositoryFingerprint: destinationDraft.provenance.packagesRepositoryFingerprint,
+      packagesDigest: 'e'.repeat(64),
+      targetDigest: destinationDraft.provenance.targetDigest,
+      executionEnvironment,
+      stageIds: createQualificationStageIds(destinationDraft.cases.map(({ caseId }) => caseId)),
+    });
+    const materialized = await materializeReusableQualificationCase({
+      attemptDirectory: destinationAttemptDirectory,
+      checkpoint: destinationCheckpoint,
+      publicDirectory: destinationArtifactDirectory,
+      reusableCase,
+    });
+    const destinationResult = QualificationAttemptResultSchema.parse({
+      ...destinationDraft,
+      parentAttemptId: sourceResult.attemptId,
+      provenance: {
+        ...sourceResult.provenance,
+        packagesRepositoryCommit: destinationDraft.provenance.packagesRepositoryCommit,
+        profileDigest: destinationDraft.provenance.profileDigest,
+      },
+      stages: destinationDraft.stages.map((stage) =>
+        stage.id.startsWith(`case:${CASE_ID}:`) ? materialized.checkpoint.stages[stage.id] : stage,
+      ),
+      cases: [materialized.caseResult, ...destinationDraft.cases.slice(1)],
+      artifactDigests: {},
+    });
+    const recordedDestination = await recordQualificationResult(
+      {
+        artifactDirectory: destinationArtifactDirectory,
+        result: destinationResult,
+        sanitizationContext: {
+          attemptDirectory: destinationAttemptDirectory,
+          packagesRepository: '/packages',
+          skillRepository: '/skill',
+        },
+      },
+      resultsRoot,
+    );
+
+    expect(recordedDestination.provenance.packagesRepositoryCommit).toBe(
+      'advanced-packages-commit',
+    );
+    expect(recordedDestination.cases[0]?.reuse?.sourceAttemptId).toBe(sourceResult.attemptId);
     await expect(loadCases({ caseDigest: '0'.repeat(64) })).resolves.toStrictEqual(new Map());
     await expect(loadCases({ evaluatorStageDigest: '0'.repeat(64) })).resolves.toStrictEqual(
       new Map(),

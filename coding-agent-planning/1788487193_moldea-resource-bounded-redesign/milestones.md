@@ -195,44 +195,142 @@ Create one current-policy passing 74-case semantic attempt with zero model calls
 
 Inspect clean committed source identity, zero-call recording, exact source provenance, active-evidence deletion, website truth, and the ten-versus-two Custom reuse boundary.
 
-## Milestone 101: Close the Custom qualification baseline
+## Milestone 101: Publish the final granular-reuse validator correction
 
 ### Objective
 
-Produce one verified 12-case Custom baseline by reusing ten exact passing groups and executing only the two unresolved cases.
+Finish and publish the already verified final-recording correction without mixing it with the newly discovered portable-skill change.
 
 ### Dependencies
 
-- Milestone 100 is published with current semantic evidence and every deterministic/model-free gate passing.
-- Preflight proves 74 semantic cases require zero paid stages and the ten direct Custom groups remain reusable.
-- Disk bytes and inodes are sufficient, no evaluator process is active, and the exact source identity is current.
+- Milestone 100 and signed approval-boundary fix `aa9bcbd47145fe7ad08537f5175424316999f567` are published.
+- Errored retry `20260911T021914867Z-custom-custom-6a973719` remains immutable operational evidence.
 
 ### Scope and implementation
 
-- Preserve official attempt `20260910T220756999Z-custom-custom-3c86e131` unchanged as ten reusable direct passes plus two unresolved deterministic workspace failures.
-- Preserve the passing unchanged `maintain-dirty-project` diagnostic as variance evidence without changing portable skill bytes.
-- Diagnose only corrected `create-grounded-agent`; if it passes, run one official closure that reuses the ten exact passing groups and executes only `create-grounded-agent` and `maintain-dirty-project` under the current quorum.
-- If an operational capacity stop occurs, resume the exact attempt with lower concurrency without duplicating completed stages.
-- Promote only a verified passing or legitimately recovered 12-case attempt as the sole current Custom baseline.
+- Remove the audit-only packages repository commit from final reuse identity while retaining its exact provenance field.
+- Keep exact compatibility fingerprint, candidate closure, package artifacts, target, skill, host, evaluator-stage, case-input, source-attempt, storage, and artifact validation.
+- Preserve the errored attempt and latest pointer without relabeling or promotion.
+- Extend the real-Git integration through source selection, materialization, and final recording with an advanced packages commit.
 
 ### Tests and verification
 
-- Verify source, candidate closure, model-host policy, reasoning, timeout, confirmation policy, all six result dimensions, repository isolation, resources, artifacts, reuse provenance, and public status.
-- Run qualification evidence verification, release identity, website artifact integration, hosted-data generation, and exact paid/reused count checks.
+- Run the focused reuse integration, complete qualification unit and integration suites, typecheck, lint, formatting, path, privacy, evidence, and release-identity checks.
+- Review the complete source, plan, pointer, and immutable attempt state.
 
 ### Acceptance criteria
 
-- All 12 Custom cases pass directly or through the current quorum, with zero operational, deterministic, resource, policy, repository, or mount failure.
-- Exactly ten case groups are reused and only the two unresolved cases incur official model work.
-- The passing pointer identifies the current attempt; prior attempts remain historical evidence only.
-- No semantic model call occurs.
+- Final recording accepts an exactly compatible reusable group after an unrelated packages commit advance and rejects every behavior-bearing mismatch.
+- The errored attempt verifies and remains historical only.
 - Review is ready and publication is signed, signed off, explicit, and pushed.
 
 ### Review checkpoint
 
-Inspect the two executed cases, complete result distribution, quorum use, exact reuse provenance, pnpm isolation, resources, and promotion truth.
+Inspect audit-versus-behavior identity, real-Git coverage, immutable evidence, exact candidate state, and publication metadata.
 
-## Milestone 102: Produce and close the adapter-specific ledger
+## Milestone 102: Correct direct canonical work with ordinary evidence paths
+
+### Objective
+
+Make direct canonical agent and runtime maintenance unambiguous when the task also names implementation or `affectedBy` paths.
+
+### Dependencies
+
+- Milestone 101 is published from a clean source boundary.
+- The two repeated dirty-project refusals and exact 19,602-byte skill-read/gate/no-CLI trace remain the root-cause evidence.
+
+### Scope and implementation
+
+- Remove the `without ordinary paths` exclusion from the direct canonical agent/runtime route.
+- Require one adoption-only gate for direct canonical agent/runtime work whether or not task-named ordinary evidence paths are present.
+- Keep canonical and managed README paths out of `scope`; allow only ordinary repository paths when scope is necessary to resolve an additional owner.
+- Preserve task-named implementation evidence and the owning reference's existing write, preservation, and validation boundaries.
+- Add a focused conformance regression without weakening abstention, dirty-work preservation, command, output, security, or read-only rules.
+
+### Tests and verification
+
+- Run the focused conformance test, complete root correctness suites, artifact validation, documentation, resource, release-identity, path, formatting, privacy, website, and qualification model-free checks affected by the portable bytes.
+- Prove the root dispatcher stays concise and contains one consistent mixed-path rule with no superseded parallel wording.
+
+### Acceptance criteria
+
+- A direct canonical agent/runtime request cannot be diverted merely because it names an ordinary implementation or affected path.
+- Unrelated ordinary work still abstains after the two-byte relationship gate.
+- Canonical paths never reach the CLI `scope` input.
+- Review is ready and publication is signed, signed off, explicit, and pushed.
+
+### Review checkpoint
+
+Inspect route precedence, one-gate ownership, scope input, reference loading, abstention, resource bounds, and portable artifact identity.
+
+## Milestone 103: Re-establish semantic evidence under the corrected skill
+
+### Objective
+
+Prove the route correction on the exact dirty-project task, then produce one complete verified 74-case semantic baseline for the new portable identity.
+
+### Dependencies
+
+- Milestone 102 is published and all deterministic/model-free checks pass.
+- Disk bytes and inodes are sufficient and no evaluator process is active.
+
+### Scope and implementation
+
+- Run one non-publishing `maintain-dirty-project` qualification diagnostic and require every dimension to pass before official semantic work.
+- Run one complete four-worker semantic recording with no model-stage reuse from prior portable skill bytes.
+- Use the existing two-pass/two-fail confirmation quorum and exact lower-worker resume for an operational capacity stop.
+- Preserve all previous semantic attempts as immutable historical evidence; promote only the verified current-identity passing attempt.
+
+### Tests and verification
+
+- Verify all 74 cases, every trial dimension, resources, command policy, repository isolation, mount integrity, stage identities, artifacts, pointers, website projection, and release identity.
+- Run deterministic, documentation, website, privacy, and source-verification checks after recording.
+
+### Acceptance criteria
+
+- The dirty-project diagnostic passes without changing unrelated tracked or untracked work.
+- All 74 semantic cases pass directly or through the current quorum with no operational or containment failure.
+- The passing pointer identifies only current portable bytes.
+- Review is ready and publication is signed, signed off, explicit, and pushed.
+
+### Review checkpoint
+
+Inspect the focused route proof, full distribution, confirmations, resources, source identity, immutable predecessors, and promotion truth.
+
+## Milestone 104: Close the Custom qualification baseline
+
+### Objective
+
+Produce one verified 12-case Custom baseline under the corrected portable skill identity.
+
+### Dependencies
+
+- Milestone 103 provides verified current semantic evidence and a passing dirty-project diagnostic.
+- Custom preflight proves prior cross-skill stages are not reusable.
+
+### Scope and implementation
+
+- Run all 12 Custom cases in one bounded four-worker attempt because the skill behavior digest changed.
+- Collect the complete case distribution before any correction, apply only evidence-supported shared fixes, and rerun only cases whose exact current identity remains unresolved.
+- Use lower-worker exact resume for operational capacity stops without duplicating completed stages.
+- Preserve prior Custom attempts as historical evidence and promote only one verified current passing baseline.
+
+### Tests and verification
+
+- Verify source, candidate closure, host policy, effort, timeout, confirmation policy, all six dimensions, repository isolation, resources, artifacts, pointers, and public status.
+- Run qualification evidence, website artifact, hosted-data, and release-identity checks.
+
+### Acceptance criteria
+
+- All 12 Custom cases pass directly or through the current quorum with no operational, deterministic, resource, policy, repository, or mount failure.
+- No prior portable-skill stage is reused or relabeled.
+- Review is ready and publication is signed, signed off, explicit, and pushed.
+
+### Review checkpoint
+
+Inspect the complete distribution, quorum use, package isolation, resources, stage identity, and promotion truth.
+
+## Milestone 105: Produce and close the adapter-specific ledger
 
 ### Objective
 
@@ -240,7 +338,7 @@ Qualify all 13 official adapters against the exact current Custom baseline while
 
 ### Dependencies
 
-- Milestone 101 provides one verified current passing Custom baseline.
+- Milestone 104 provides one verified current passing Custom baseline.
 - Adapter preflight binds every profile to that exact baseline and current package closure.
 
 ### Scope and implementation
@@ -253,7 +351,7 @@ Qualify all 13 official adapters against the exact current Custom baseline while
 
 ### Tests and verification
 
-- Verify source, package target, model-host policy, effort, provenance, result dimensions, resources, privacy, workspace isolation, Custom binding, effective 14-journey composition, and website presentation.
+- Verify source, package target, host policy, effort, provenance, result dimensions, resources, privacy, workspace isolation, Custom binding, effective 14-journey composition, and website presentation.
 - Run qualification verification and all affected deterministic, model-free, documentation, type, lint, format, build, and release-identity boundaries after any correction.
 
 ### Acceptance criteria
@@ -266,7 +364,7 @@ Qualify all 13 official adapters against the exact current Custom baseline while
 
 Inspect cross-profile patterns, isolation, concurrency, rerun scope, package closure, provenance, counts, public composition, and absence of legacy evidence.
 
-## Milestone 103: Publish the clean skill 5.0 release
+## Milestone 106: Publish the clean skill 5.0 release
 
 ### Objective
 
@@ -274,7 +372,7 @@ Integrate and publish one clean skill 5.0 release against verified packages and 
 
 ### Dependencies
 
-- Milestones 95 and 98 through 102 provide verified current passing evidence.
+- Milestones 95, 98 through 100, and 101 through 105 provide verified current passing evidence.
 - Target branches, identities, registry state, workflows, and hosted destinations are freshly resolved.
 
 ### Scope and implementation
@@ -298,7 +396,7 @@ Integrate and publish one clean skill 5.0 release against verified packages and 
 
 Inspect evidence selection, clean-slate removal, freshness, signed integration, workflows, registry state, and hosted presentation.
 
-## Milestone 104: Complete the cross-repository launch audit
+## Milestone 107: Complete the cross-repository launch audit
 
 ### Objective
 
@@ -306,7 +404,7 @@ Prove that specifications, packages, platform, skill, fixtures, websites, and kn
 
 ### Dependencies
 
-- Milestone 103 is complete or has only a precisely documented external publication prerequisite.
+- Milestone 106 is complete or has only a precisely documented external publication prerequisite.
 
 ### Scope and implementation
 
@@ -332,4 +430,4 @@ Inspect exact tips, claims, counts, links, closure, fixture parity, hosted state
 
 ## Execution scope
 
-Preserve completed Milestones 1 through 97 and their exact evidence. Publish Website UI 1.6.1 with the sole additive third-confirmation replay type, adopt one current two-pass/two-fail confirmation quorum capped at three confirmations across semantic evaluation and qualification, keep aggregation policy outside model-stage identity, reproject all 74 semantic cases with zero paid stages, retain exactly ten reusable Custom groups, correct only the exact create-agent focused-test allowance, and remove active predecessor-policy compatibility. Execute only the two unresolved Custom cases, establish one passing 12-case baseline, qualify all 13 adapters in batches of at most four, publish clean skill 5.0, and complete the cross-repository launch audit. Do not alter portable skill behavior, modify another agent's Vite/Vitest work, preserve compatibility code, relabel evidence, treat policy-only changes as model-stage invalidation, duplicate paid stages, exceed four workers, modify protected instructions, or incorporate unrelated work.
+Preserve completed Milestones 1 through 100 and every immutable attempt. Publish the final granular-reuse validator correction, then correct direct canonical agent/runtime routing when tasks also name ordinary implementation evidence. Prove that fix in one dirty-project diagnostic, run a fresh 74-case semantic recording because portable behavior changed, establish a fresh 12-case Custom baseline without cross-skill reuse, qualify all 13 adapters in batches of at most four, publish clean skill 5.0, and complete the cross-repository launch audit. Do not alter another agent's Vite/Vitest work, preserve compatibility code, relabel evidence, weaken criteria or containment, duplicate paid stages, exceed four workers, modify protected instructions, or incorporate unrelated work.

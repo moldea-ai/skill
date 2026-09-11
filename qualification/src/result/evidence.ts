@@ -144,7 +144,6 @@ const selectQualificationReuseIdentity = (input: {
     modelEndpoint: input.provenance.modelEndpoint,
     nodeVersion: input.provenance.nodeVersion,
     packages: input.provenance.packages,
-    packagesRepositoryCommit: input.provenance.packagesRepositoryCommit,
     packagesRepositoryFingerprint: input.provenance.packagesRepositoryFingerprint,
     pnpmVersion: input.provenance.pnpmVersion,
     actorReasoningEffort: input.provenance.actorReasoningEffort,

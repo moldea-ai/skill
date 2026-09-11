@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The project is aligned and required no edits. The `support` agent’s email-support description matches `src/support-agent.ts`, while the manifest correctly binds runtime `custom` to the exported `supportAgent` symbol and its guidance.",
+  "changedFiles": [],
+  "observations": [
+    "`src/support-agent.ts` exports `supportAgent` with ID `support` and channel `email`.",
+    "`moldea/moldea.yaml` declares runtime `custom`, references `/moldea/runtimes/custom.md`, and binds `/src/support-agent.ts` symbol `supportAgent`.",
+    "The project, agent description, canonical instruction, and custom runtime guidance consistently describe a customer-support agent using the email channel.",
+    "TypeScript validation passed: `node node_modules/typescript/bin/tsc -p tsconfig.json`.",
+    "moldea CLI 8.0.0 validation passed for format version 1 with zero diagnostics.",
+    "Initial and final approved Git status and final targeted diff were empty; no repository files changed."
+  ],
+  "unresolved": [
+    "Actual runtime invocation and loading of the canonical instruction cannot be verified: the repository contains the declarative agent record and binding but no consumer, model-invocation boundary, instruction loader, or focused runtime test."
+  ]
+}

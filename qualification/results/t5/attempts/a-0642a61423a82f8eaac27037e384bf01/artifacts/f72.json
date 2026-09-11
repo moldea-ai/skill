@@ -1,0 +1,310 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1088
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnosticCount": 0,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": []
+        },
+        "snapshotDigest": "sha256:3d2361faf0edf229f1411a8e5824dcbe95a7e3bf541407f81dce187bef507894",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "counts": {
+          "agents": 1,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 0,
+          "evidence": 0,
+          "metadata": 5,
+          "mirrors": 0,
+          "runtimes": 1,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "order-triage",
+              "byteLength": 63,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:f56bf1dc627f338ae21a043204c7f5c394c0f2bfa782c9f5e2d1b3f06d75ba31",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/order-triage/description.md\",\"agent-description\",\"order-triage\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/order-triage/description.md",
+              "scalarLength": 63
+            },
+            {
+              "agentId": "order-triage",
+              "byteLength": 399,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:182513c807a35f499f1d548dfbfffb09226a78a60c2b54a6aa57ec640ebb08b5",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/order-triage/instruction.md\",\"agent-instruction\",\"order-triage\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/order-triage/instruction.md",
+              "scalarLength": 399
+            },
+            {
+              "agentId": null,
+              "byteLength": 969,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:4ae3ea11d75fa1e4be22203906acbbca87b989c10c3c44c405f2299286f39630",
+              "key": "[\"000002\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 969
+            },
+            {
+              "agentId": null,
+              "byteLength": 159,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:50dad6fcb45b4b5fc6c43a213e97c28ef97d5b85eb60da11d6d30f45d3e978a3",
+              "key": "[\"000003\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 159
+            },
+            {
+              "agentId": null,
+              "byteLength": 468,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:dbd68227769d901ba271e279514278d2e85eacca8613dedba8b8f349096e6b49",
+              "key": "[\"000004\",\"metadata\",\"/moldea/runtimes/custom.md\",\"runtime-guidance\",null]",
+              "kind": "metadata",
+              "metadataKind": "runtime-guidance",
+              "path": "/moldea/runtimes/custom.md",
+              "scalarLength": 468
+            },
+            {
+              "agentId": "order-triage",
+              "key": "[\"000005\",\"agent\",\"order-triage\",\"custom\"]",
+              "kind": "agent",
+              "runtimeId": "custom"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:4ae3ea11d75fa1e4be22203906acbbca87b989c10c3c44c405f2299286f39630",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:50dad6fcb45b4b5fc6c43a213e97c28ef97d5b85eb60da11d6d30f45d3e978a3",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:c17da7992721c49bffeb81ed3d01828dd2e26ec011cccf89146239c169022863",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

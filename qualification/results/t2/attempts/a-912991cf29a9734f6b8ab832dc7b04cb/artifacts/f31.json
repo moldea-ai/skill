@@ -1,0 +1,66 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 703744,
+  "deterministicBeforePath": "cases/repair-claude-agent-sdk-tool-registration/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-claude-agent-sdk-tool-registration/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/repair-claude-agent-sdk-tool-registration/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-claude-agent-sdk-tool-registration/trials/confirmation-1/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-claude-agent-sdk-tool-registration/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/repair-claude-agent-sdk-tool-registration/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 302148,
+    "cachedInputTokens": 249856,
+    "outputTokens": 7003
+  },
+  "judgeUsage": {
+    "inputTokens": 707987,
+    "cachedInputTokens": 669568,
+    "outputTokens": 10647
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T06:18:07.932Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T06:24:26.253Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the stale canonical declaration versus the working SDK registration. The Git diff supplies the exact mismatch: mcp__support__find_order was replaced by mcp__support__lookup_order. In src/agent.ts, query mounts supportServer under key support and allows mcp__support__lookup_order; src/tools.ts declares lookup_order, establishing the fully qualified query-mounted name."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now declares name: mcp__support__lookup_order. Approved Git status reports only moldea/moldea.yaml modified, and its diff contains exactly the one-line name correction. The current inspect result is valid and emits tool-registration runtimeName mcp__support__lookup_order; the deterministic post-actor summary also reports valid validation and inspection."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current manifest bindings remain supportAgent and loadSupportInstruction in src/agent.ts, lookupOrderTool in src/tools.ts, lookupOrder in src/implementations.ts, and LookupOrderInputSchema in src/contracts.ts. Current inspect emits all six evidence records, including instruction-loader, schema, and tool-registration references, with zero diagnostics. Runner assertions show these source files unchanged, and both deterministic and independently rerun TypeScript checks pass."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

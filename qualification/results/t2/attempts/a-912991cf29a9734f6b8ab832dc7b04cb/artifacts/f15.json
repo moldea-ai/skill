@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 926041,
+  "deterministicBeforePath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 446543,
+    "cachedInputTokens": 412928,
+    "outputTokens": 11553
+  },
+  "judgeUsage": {
+    "inputTokens": 532356,
+    "cachedInputTokens": 505344,
+    "outputTokens": 9758
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T06:05:27.601Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T06:12:42.562Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-evidence",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`src/agents.ts` shows `supportAgent` directly calling `query`, with `systemPrompt` loaded by `loadSupportInstruction`; `moldea/moldea.yaml` records exactly the runtime-agent and instruction-loader bindings. The source key `boundary/tools` requires unsupported runtime-name normalization, and the manifest claims no MCP tool relationship. This agrees with the actor report and deterministic invalid inspection/validation outcome with no recorded case failures."
+    },
+    {
+      "id": "preserves-dynamic-query-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`dynamicSupportAgent` directly calls `query`, but its options come from `buildDynamicOptions`, which contains an array prompt, main-thread selection, factory-created subagent, generated description and restrictions, aliases, and preset tools. The manifest records only the direct runtime-agent binding and explicitly leaves dynamic query configuration and routing/tools unresolved; it invents no instruction, delegation, routing, or tool relationship."
+    },
+    {
+      "id": "preserves-sdk-feature-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The workspace contains observer fields, a critical reminder, SDK server instructions, external and per-agent MCP configuration, skills, hooks/settings, and a filesystem agent. The canonical tree contains only `support` and `dynamic-support`, while `sdk-and-filesystem-features` keeps those features outside relationship inference with focused resolution guidance. Current file hashes match the runner-owned before/after assertions, `changedPaths` is empty, `repositoryUnchanged` is true, and typechecking passes."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

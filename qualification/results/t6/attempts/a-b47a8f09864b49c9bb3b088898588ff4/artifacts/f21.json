@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s canonical Eve tool registration by changing the declared name from `find_order` to `orders-find`, matching Eve 0.39.1’s recursive path derivation for `agent/tools/orders/find.ts`. Final moldea validation passed with zero diagnostics and complete output.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The working agent, instruction source, tool implementation, registration module, and schemas were preserved unchanged.",
+    "moldea validation returned `status: valid`, `result.valid: true`, `diagnosticCount: 0`, and `cursor: null`.",
+    "The final Git diff contains only the intended tool-name change."
+  ],
+  "unresolved": []
+}

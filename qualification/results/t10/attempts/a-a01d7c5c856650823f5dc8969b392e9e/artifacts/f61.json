@@ -1,0 +1,71 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "confirmationEligible": true,
+  "dimensions": {
+    "semantic": false,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [
+    "semantic"
+  ],
+  "passed": false,
+  "durationMs": 669823,
+  "deterministicBeforePath": "cases/repair-langgraph-state-schema/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-langgraph-state-schema/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/repair-langgraph-state-schema/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-langgraph-state-schema/trials/confirmation-1/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-langgraph-state-schema/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/repair-langgraph-state-schema/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 349439,
+    "cachedInputTokens": 320512,
+    "outputTokens": 7064
+  },
+  "judgeUsage": {
+    "inputTokens": 372847,
+    "cachedInputTokens": 302208,
+    "outputTokens": 7602
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T07:11:12.307Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T07:17:19.648Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-schema-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the former input binding as SupportOutputSchema and the required binding as SupportInputSchema. Current src/graph.ts wires SupportInputSchema to the StateGraph input role, while src/contracts.ts declares distinct SupportInputSchema and SupportOutputSchema symbols."
+    },
+    {
+      "id": "repairs-canonical-schema",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "Current moldea/moldea.yaml binds inputSchema to SupportInputSchema, src/graph.ts still exports the compiled supportGraph, workspace assertions identify only moldea/moldea.yaml as changed, and deterministic validation is valid with typecheck passed. However, the required Git diff evidence was unavailable because the approved diff command was blocked, so patch agreement cannot be independently established."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml exactly binds runtimeAgent to /src/graph.ts#supportGraph, inputSchema to /src/contracts.ts#SupportInputSchema, and outputSchema to /src/contracts.ts#SupportOutputSchema. The complete manifest has no tools declaration; src/graph.ts retains answer-question as a StateGraph node with START and END edges. Deterministic inspection and validation are valid with no reported failures."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Requirement repairs-canonical-schema failed: Current moldea/moldea.yaml binds inputSchema to SupportInputSchema, src/graph.ts still exports the compiled supportGraph, workspace assertions identify only moldea/moldea.yaml as changed, and deterministic validation is valid with typecheck passed. However, the required Git diff evidence was unavailable because the approved diff command was blocked, so patch agreement cannot be independently established.",
+    "Provide an evaluator-readable Git diff for moldea/moldea.yaml, or resolve the repository attribute-safety blocker so the approved diff command can establish that the patch agrees with the current workspace and runner-owned evidence."
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "caseId": "preserve-anthropic-static-boundary",
+  "title": "Preserve the Anthropic static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 508956,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 508956,
+      "deterministicBeforePath": "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-anthropic-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-anthropic-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-anthropic-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-anthropic-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 316634,
+        "cachedInputTokens": 290304,
+        "outputTokens": 4698
+      },
+      "judgeUsage": {
+        "inputTokens": 368128,
+        "cachedInputTokens": 339072,
+        "outputTokens": 6662
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T06:00:47.621Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T06:04:49.071Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-evidence",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`src/agents.ts` shows `supportAgent` directly invoking `client.messages.create({...})`, with `system: await loadSupportInstruction()`. The loader reads `/moldea/agents/support/instruction.md`. `moldea/moldea.yaml` records the matching `runtimeAgent` and `instructionLoader` bindings, consistent with the actor report and unchanged deterministic state."
+        },
+        {
+          "id": "preserves-provider-tool-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The source declares `providerWebSearchTool` with Anthropic provider-tool type `web_search_20250305`. The manifest records no client-tool, schema, routing, or handoff relationship, and the scoped canonical tree contains no corresponding assets. This matches the actor's conservative explanation and the unchanged deterministic evidence."
+        },
+        {
+          "id": "preserves-indirect-request-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`dynamicSupportAgent` constructs `request` separately before passing it to `client.messages.create(request)`. The manifest records only the Anthropic runtime and runtime-agent binding, while retaining the `indirect-request-construction` runtime-pattern warning. Its concrete resolution is to pass a closed request object directly or document the relationship through a supported adapter pattern. The deterministic result reports valid structure and no repository changes."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

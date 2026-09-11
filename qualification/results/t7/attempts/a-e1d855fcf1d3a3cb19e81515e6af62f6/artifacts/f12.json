@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository preserves the Google Gen AI static boundary accurately. Current workspace hashes match the unchanged before/after assertions, and deterministic post-actor validation, inspection, typecheck, and repository-equivalence checks all passed.",
+  "requirements": [
+    {
+      "id": "explains-direct-evidence",
+      "verdict": "pass",
+      "evidence": "src/agents.ts directly passes a closed object to client.models.generateContent and loads moldea/agents/support/instruction.md through loadSupportInstruction. moldea/moldea.yaml binds supportAgent and loadSupportInstruction, matching the actor report and deterministic validation."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "verdict": "pass",
+      "evidence": "The source defines only the provider-native { googleSearch: {} } object under config.tools. moldea/moldea.yaml contains no function-declaration, schema, routing, handoff, or Google-search relationship, and the corresponding canonical tool/schema/routing/handoff paths are absent."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "verdict": "pass",
+      "evidence": "dynamicSupportAgent constructs request separately before generateContent(request). The manifest retains indirect-request-construction as a runtime-pattern warning, explains that relationships cannot be proven, and gives the concrete resolution of passing a closed object directly or documenting a supported adapter pattern."
+    }
+  ],
+  "failures": []
+}

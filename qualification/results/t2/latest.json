@@ -2,8 +2,8 @@
   "protocolVersion": 10,
   "adapterId": "claude-agent-sdk",
   "implementationId": "typescript-query-subagents-0-3",
-  "latestAttemptId": "20260911T051814459Z-claude-agent-sdk-typescript-query-subagents-0-3-c538aff1",
-  "latestStatus": "failed",
-  "lastPassingAttemptId": null,
-  "updatedAt": "2026-09-11T05:19:13.807Z"
+  "latestAttemptId": "20260911T054140998Z-claude-agent-sdk-typescript-query-subagents-0-3-52364c99",
+  "latestStatus": "passed",
+  "lastPassingAttemptId": "20260911T054140998Z-claude-agent-sdk-typescript-query-subagents-0-3-52364c99",
+  "updatedAt": "2026-09-11T06:34:18.601Z"
 }

@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Documented the Vercel static-inspection boundary while preserving the support implementation. TypeScript validation passed, and project validation completed with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/vercel-ai-sdk.md"
+  ],
+  "observations": [
+    "Added project-local runtime guidance without asserting unsupported runtime, loader, schema, provider, model, routing, handoff, or subagent evidence.",
+    "Registered an agent-level warning whose resolution directs /src/support-agent.ts toward direct generateText options, non-replacing prepareStep behavior, and focused test coverage."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove the supported runtime pattern or which instructions are effective after prepareStep runs."
+  ]
+}

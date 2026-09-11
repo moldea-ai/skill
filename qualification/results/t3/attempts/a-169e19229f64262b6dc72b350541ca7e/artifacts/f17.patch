@@ -1,0 +1,59 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 651685f..edf109e 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -12,18 +13,36 @@ agents:
+         symbol: loadSupportInstruction
+     affectedBy:
+       - /src/**
++    unresolved:
++      runtime-selected-request-tools:
++        category: tool-registration
++        effect: warning
++        description: The final request tool registry is open because SupportAgent spreads runtime-selected tools into its direct generation request.
++        resolution: Establish the complete runtime-selected tool set and registration through closed source or supported adapter evidence.
++        related:
++          - path: /src/support-agent.ts
+   step-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+         symbol: StepSupportAgent
+     affectedBy:
+       - /src/**
++    unresolved:
++      prepare-step-instruction-selection:
++        category: instruction-loading
++        effect: warning
++        description: The effective instruction loader cannot be registered statically because prepareStep can replace the generation instruction.
++        resolution: Establish the effective prepareStep-selected instruction provenance through a closed runtime path or focused integration test.
++        related:
++          - path: /src/step-support-agent.ts
+   delegating-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/cloudflare-agents.md b/moldea/runtimes/cloudflare-agents.md
+new file mode 100644
+index 0000000..7481c0b
+--- /dev/null
++++ b/moldea/runtimes/cloudflare-agents.md
+@@ -0,0 +1,3 @@
++# Cloudflare Agents runtime
++
++The Worker deployment owns the Cloudflare Durable Object bindings for exported `AIChatAgent` classes, a SQLite-backed Durable Object migration for each newly deployed class, the provider binding used by model calls, and coordinated deployment of the Worker code and configuration. Verify those bindings and migrations in the deployed environment; canonical static relationships do not prove them.

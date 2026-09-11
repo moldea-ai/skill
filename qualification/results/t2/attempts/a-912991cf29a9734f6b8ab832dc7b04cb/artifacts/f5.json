@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The existing `support` and `dynamic-support` definitions accurately preserve the Claude Agent SDK static boundary, so no repository files were changed. Final Git status and the scoped diff were clean.",
+  "changedFiles": [],
+  "observations": [
+    "`support` directly wraps `query` and loads its string system prompt through `loadSupportInstruction`; both relationships are recorded.",
+    "The `boundary/tools` SDK MCP key requires runtime-name normalization, so no MCP tool relationship is claimed.",
+    "`dynamic-support` records only its direct query wrapper. Factory-built options, prompt arrays, main-thread selection, dynamic subagents, restrictions, aliases, preset tools, observers, reminders, skills, and external MCP configuration remain unresolved runtime evidence.",
+    "Settings, hooks, SDK MCP instructions, and filesystem agents are not represented as prompt, delegation, routing, tool, or schema relationships.",
+    "TypeScript validation passed. moldea CLI 8.0.0/schema 4 validation returned invalid solely for the expected `CLAUDE_AGENT_SDK_MCP_SERVER_KEY_UNSUPPORTED` diagnostic on `support`."
+  ],
+  "unresolved": [
+    "The `boundary/tools` key cannot establish a canonical MCP runtime-name segment without unsupported normalization; this remains an intentional static-analysis boundary."
+  ]
+}

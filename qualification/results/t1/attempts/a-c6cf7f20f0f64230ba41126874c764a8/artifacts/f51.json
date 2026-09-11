@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the Anthropic registration by changing capability `lookup-order`’s canonical tool name from `find_order` to the source-proven `lookup_order`. Project validation is valid with zero wiring diagnostics, and TypeScript compilation passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the direct Anthropic wrapper, closed client-tool array, tool declaration, implementation, and input schema without source changes.",
+    "moldea CLI 8.0.0 validation returned `valid: true`, `diagnosticCount: 0`, and no paginated records.",
+    "`node ./node_modules/typescript/bin/tsc --project ./tsconfig.json --noEmit` exited successfully.",
+    "Final Git inspection showed only the intended one-line canonical declaration change.",
+    "No live Anthropic request was attempted because external credentials and network behavior are outside the supported local validation evidence."
+  ],
+  "unresolved": []
+}

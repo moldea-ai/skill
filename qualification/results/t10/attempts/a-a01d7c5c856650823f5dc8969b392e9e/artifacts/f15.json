@@ -1,0 +1,84 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 596869,
+  "deterministicBeforePath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 268968,
+    "cachedInputTokens": 233600,
+    "outputTokens": 9787
+  },
+  "judgeUsage": {
+    "inputTokens": 480181,
+    "cachedInputTokens": 400768,
+    "outputTokens": 10149
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T07:32:30.965Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T07:37:18.564Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-closed-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains support.runtimeAgent -> supportGraph, inputSchema -> SupportInputSchema, and outputSchema -> SupportOutputSchema. src/support-graph.ts still uses the closed StateGraph {state,input,output} initializer and direct node/edge/compile operations. Deterministic validation and type-checking passed."
+    },
+    {
+      "id": "preserves-opaque-schema-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "dynamic-support.bindings contains only runtimeAgent -> dynamicSupportGraph. src/dynamic-support-graph.ts still obtains its state schema from getDynamicSupportStateSchema(); no inputSchema or outputSchema relationship is declared. Deterministic validation passed."
+    },
+    {
+      "id": "preserves-routing-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "dynamic-support.unresolved.dynamic-routing explicitly leaves runtime-selected conditional, Command, and Send destinations and complete topology unresolved. The manifest declares no routing targets, handoffs, subagents, or parent navigation. Workspace assertions show all relevant source files were unchanged."
+    },
+    {
+      "id": "keeps-nodes-outside-capabilities",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest contains no tools, skills, handoffs, or subagents. lookupOrder remains source-local, and moldea/runtimes/langgraph.md explicitly says it remains node-local and that the unregistered ToolNode does not establish a tool. The patch changed no source or agent files."
+    },
+    {
+      "id": "preserves-runtime-semantics-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml records reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, and supervisor composition under unresolved.runtime-composition with deployment wiring or focused integration tests as resolution. The runtime guide preserves the same boundary."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Both support.runtime.guidance and dynamic-support.runtime.guidance reference /moldea/runtimes/langgraph.md. It is the sole file under moldea/runtimes and was absent before the patch. The guide contrasts direct exported schema evidence with the opaque factory boundary and identifies deployment wiring or focused integration tests for unresolved runtime behavior."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

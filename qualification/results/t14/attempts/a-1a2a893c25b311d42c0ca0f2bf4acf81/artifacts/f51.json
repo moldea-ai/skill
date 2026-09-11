@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s canonical Vercel tool registration by changing the stale name from `find_order` to `lookup_order`, matching the closed tools map. Final validation reports `valid: true`, zero diagnostics, and no wiring mismatch.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved `src/agent.ts`, `src/tools.ts`, `src/implementations.ts`, and `src/contracts.ts` unchanged.",
+    "Tool evidence remains complete: capability `lookup-order`, runtime name `lookup_order`, registration `lookupOrderTool`, implementation `lookupOrder`, and both input/output schemas.",
+    "The final Git diff contains only the intended one-line registration correction."
+  ],
+  "unresolved": []
+}

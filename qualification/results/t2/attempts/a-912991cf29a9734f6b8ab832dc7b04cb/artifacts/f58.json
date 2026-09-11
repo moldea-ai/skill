@@ -1,0 +1,24 @@
+{
+  "verdict": "fail",
+  "summary": "The source, manifest, deterministic results, and workspace hashes support the repair, but the required independent Git status and diff could not be obtained: both evaluator-approved commands were blocked because repository attribute safety was not established. No repository files were changed during judging.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies the change from `mcp__support__find_order` to `mcp__support__lookup_order`. Current `src/agent.ts` mounts `supportServer` as `support` and enables `mcp__support__lookup_order`, while `src/tools.ts` declares `lookup_order`, establishing the fully qualified SDK name."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "fail",
+      "evidence": "Current `moldea/moldea.yaml` declares `mcp__support__lookup_order`; its SHA-256 matches the supplied after-state, and replacing that value with `mcp__support__find_order` reproduces the supplied before-state hash. The deterministic result is valid with no failures. However, the mandatory path-limited Git diff was blocked, so the explicit requirement that repository state, runner evidence, and Git diff agree cannot be independently established."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest binds `supportAgent` and `loadSupportInstruction` in `src/agent.ts`, `lookupOrderTool` in `src/tools.ts`, `lookupOrder` in `src/implementations.ts`, and `LookupOrderInputSchema` in `src/contracts.ts`. Source confirms the direct `query()` wrapper, `support` MCP mount, `lookup_order` SDK declaration, implementation, and schema chain. Workspace assertions show every source and instruction hash unchanged, while deterministic validation and typechecking pass."
+    }
+  ],
+  "failures": [
+    "Provide independently collected inert Git status and the approved path-limited diff, or establish repository attribute safety so the mandated Git commands can run."
+  ]
+}

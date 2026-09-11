@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Documented the LangGraph static/runtime boundary while preserving all source. Canonical validation passed with zero diagnostics, and TypeScript project compilation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/langgraph.md"
+  ],
+  "observations": [
+    "Preserved support's runtimeAgent, inputSchema, and outputSchema bindings.",
+    "Kept only runtimeAgent under dynamic-support bindings.",
+    "Added one shared runtime guide without declaring routes, handoffs, subagents, tools, schema relationships, or complete topology.",
+    "Final Git status contains only the intended manifest modification and new runtime guide."
+  ],
+  "unresolved": [
+    "Runtime-selected conditional, Command, and Send destinations remain unknown until concrete wiring or focused integration tests establish them.",
+    "Effective LangGraph composition remains unknown for reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, ToolNode registration, and supervisor composition."
+  ]
+}

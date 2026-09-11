@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Updated the canonical Vercel AI SDK boundaries. `support` now retains only provable agent/input-schema wiring; `step-support` retains its provable schemas and tools. Dynamic preparation gaps are warning-level unresolved requirements with resolution criteria. Canonical validation passed with zero diagnostics, and TypeScript compilation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/vercel-ai-sdk.md"
+  ],
+  "observations": [
+    "All source implementations were preserved.",
+    "Every `delegating-support` relationship was preserved without adding handoff, routing-target, or subagent relationships.",
+    "`workflowSupportAgent` was not registered as a ToolLoopAgent target.",
+    "Added project-local guidance covering only the `prepareCall` and `prepareStep` static-inspection boundaries."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove `supportAgent` instruction, output-schema, or tool wiring after `prepareCall`.",
+    "Static inspection cannot prove `stepSupportAgent` instruction provenance after `prepareStep`.",
+    "The evaluator blocked the requested Git diff probe despite the prescribed command shape."
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "role": "judge",
+  "trialId": "confirmation-1",
+  "createdAt": "2026-09-11T06:14:29.458Z",
+  "durationMs": 288827,
+  "usage": {
+    "inputTokens": 373872,
+    "cachedInputTokens": 350464,
+    "outputTokens": 8226
+  },
+  "stageIdentity": "f7dee10738c051befb043c5424f0611ae21e111fecda616bda988456db9513d4",
+  "sourceAttemptId": "20260911T054140998Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-7dea9f57",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 28,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 40597,
+    "moldeaCommandCount": 0,
+    "moldeaOutputByteCount": 0,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        },
+        {
+          "code": "unclassified-command",
+          "count": 2
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        },
+        {
+          "code": "unclassified-command",
+          "count": 2
+        }
+      ]
+    }
+  }
+}

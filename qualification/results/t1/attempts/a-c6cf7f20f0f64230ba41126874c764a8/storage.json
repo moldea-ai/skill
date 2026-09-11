@@ -1,0 +1,343 @@
+{
+  "version": 1,
+  "attemptKey": "a-c6cf7f20f0f64230ba41126874c764a8",
+  "attemptId": "20260911T054140998Z-anthropic-typescript-messages-api-0-117-3c166588",
+  "attemptIdDigest": "c6cf7f20f0f64230ba41126874c764a8faf109240c4e931cd7327e7bb973db7a",
+  "attemptDigest": "db01447353d811a3c96ce78ddd3944c304c16d19c856cf53c0f872808e651037",
+  "sourceCommit": "12611e22eefd2591cf1c60c4e2c20440f1e96426",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "d6bbedf7b3949a5485398c3e9b9cf3ee76011d9cc9ab2551b8ac5cc7ae241c39",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "a360bee1876e891542e720db9ab311511d75ad26fcaa1e310c5096ec55610c40"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/case-result.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "3cce9bd6458982a2d8d08369e0d4ca0acfa34e6722cff60ccdac36a7e4afa0c0"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f3.jsonl",
+      "sha256": "3e35baedea148f39a5fb98cd5b33bb02d2bbb62ba0d25e69d1008dfbbb7dd4ec"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f4.json",
+      "sha256": "43fcb5592175281b165535fccca69b5bd693f30d1ac7fba4fb4891b5c25e0d94"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f5.json",
+      "sha256": "60bfbab337f1d6e502b6cafeea4ab503cb480fddb61e97902c1d2f7f2f2c959e"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f6.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f7.md",
+      "sha256": "b95b4dc5859880e29e5db7f76e8c15ad859abedf435f57c19550654b23d46652"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f8.json",
+      "sha256": "b7ac553bfa55d99025d5df3cef6f1a8a4ff15a5c5a63ff5febddda6006cb237e"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f9.json",
+      "sha256": "6e34a512b6298c91c9779792da8cb9e73bbfa884985137ec4e8c81f28ae1e51c"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f10.jsonl",
+      "sha256": "98ec439e3a5b10e8818a5eabeb55544578e80ed7a42a1375ca3bb837285c29a5"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f11.json",
+      "sha256": "84d5c5264c99970fc475b1afb6d8a7cfa014a7c1cec0ffc80c1bb6a5b57836e9"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f12.json",
+      "sha256": "6c9b4de645808c48e032d2b1b96e8736d80718f78de61feb503b7aa1274d96f1"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f13.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f14.md",
+      "sha256": "0c7b86765e267df5b14f9aa607eaf2d6eab21763de59be9290942817935803e3"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f15.json",
+      "sha256": "9322f154951073564522156121039b775ea7076794f39f677af09071165414d2"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f16.json",
+      "sha256": "6d9d40cb0fb5711cacbaffb6379a5101f0b690d7d17043040fff2f13d6410496"
+    },
+    {
+      "logicalPath": "cases/preserve-anthropic-static-boundary/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f17.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/case-result.json",
+      "physicalPath": "artifacts/f18.json",
+      "sha256": "1d97de5e5d39629eb9a73ec27a828f1dc5bef1a698186906541a8896464dd7e4"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/actor-events.jsonl",
+      "physicalPath": "artifacts/f19.jsonl",
+      "sha256": "14b3e8c1f286c3830be66d5ab9befaa0cd7ef0939f2f7b22efe95e821166a5a1"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/actor-evidence.json",
+      "physicalPath": "artifacts/f20.json",
+      "sha256": "588692b4bb0c742ac12f597a64e7a96e4e1acafa9d1b07636185bdc8b82a1b59"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/actor-output.json",
+      "physicalPath": "artifacts/f21.json",
+      "sha256": "36fe843dc1f00c1cabe8690ca888955916529b694b0ceabc5a49075a8c96af76"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/actor-output.schema.json",
+      "physicalPath": "artifacts/f22.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/actor-prompt.md",
+      "physicalPath": "artifacts/f23.md",
+      "sha256": "ea633e76e97004afe7c12032a7f99fc520214a6219176a16c6ab8ad1b991585e"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/deterministic-after.json",
+      "physicalPath": "artifacts/f24.json",
+      "sha256": "a90e4ce317b01f24084690b41dc2aeea03e032ec3c57f59e067de9383bafd682"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/deterministic-before.json",
+      "physicalPath": "artifacts/f25.json",
+      "sha256": "d3342d9a043cfc569a2edcc8d2632feae53a2af44e8620c3ca94e4cdfad55eca"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/judge-events.jsonl",
+      "physicalPath": "artifacts/f26.jsonl",
+      "sha256": "22ad851e6f4db4b5e8a4e5a12c1e288ec688c9cb641deea1731efea3b1b6ef00"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/judge-evidence.json",
+      "physicalPath": "artifacts/f27.json",
+      "sha256": "502536d05ad7feff72198b3af66d211137bcb76dc6764fd16c3bc5adc4d34b95"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/judge-output.json",
+      "physicalPath": "artifacts/f28.json",
+      "sha256": "876973a7a28e5de98f51d4b9e969a59695b174ee546ad4fbbf17abb343e7a24d"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/judge-output.schema.json",
+      "physicalPath": "artifacts/f29.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/judge-prompt.md",
+      "physicalPath": "artifacts/f30.md",
+      "sha256": "cfab59834555f85e62db59353586836c61b0c7514aacbf536eeedbcee9e36c05"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/trial-result.json",
+      "physicalPath": "artifacts/f31.json",
+      "sha256": "7ce68eea88220cca502cd4b1e300dbe6bab26e6f5f5e7315005de148dd99f199"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/workspace-assertions.json",
+      "physicalPath": "artifacts/f32.json",
+      "sha256": "9c5899762480008c44f96a4911e87fa4f9c68bc299f2ae61500aca67f5e8a606"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-1/workspace.patch",
+      "physicalPath": "artifacts/f33.patch",
+      "sha256": "2e445c6be1463263378ef25439fbe24ce165973e44f4c4a0a37f26a975e6e83f"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/actor-events.jsonl",
+      "physicalPath": "artifacts/f34.jsonl",
+      "sha256": "30562280b93528c26351c9c3c63f3d70fe6e22340aed15e105c59dba05a00343"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/actor-evidence.json",
+      "physicalPath": "artifacts/f35.json",
+      "sha256": "a3e747c106621f53092a91c8ba82549b5526b567b8fb88f547b1f2adef97fce5"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/actor-output.json",
+      "physicalPath": "artifacts/f36.json",
+      "sha256": "110f59d4b1597c88598eff1419f4d9da9dcb7baeb1fb117fd8c60f9b64bb4e5d"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/actor-output.schema.json",
+      "physicalPath": "artifacts/f37.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/actor-prompt.md",
+      "physicalPath": "artifacts/f38.md",
+      "sha256": "ea633e76e97004afe7c12032a7f99fc520214a6219176a16c6ab8ad1b991585e"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/deterministic-after.json",
+      "physicalPath": "artifacts/f39.json",
+      "sha256": "b8dbcb42632f173a4c6fe01d905aad02e5dded1083a4a69806387bf979e441ba"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/deterministic-before.json",
+      "physicalPath": "artifacts/f40.json",
+      "sha256": "1bfcd3a41aa688aec5071dfdad1d42e50a441b442ebdd8bd6918d0ee279f7cf1"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/judge-events.jsonl",
+      "physicalPath": "artifacts/f41.jsonl",
+      "sha256": "5c58443d7aceba23d8188a38a6c6e780638dc0f0b7c6954d3c92b745b116101c"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/judge-evidence.json",
+      "physicalPath": "artifacts/f42.json",
+      "sha256": "3d0540acf3ca3b8bece3b2ea245975bb3a8df28fe9902e843c6af30709e75d49"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/judge-output.json",
+      "physicalPath": "artifacts/f43.json",
+      "sha256": "9adea6b9de9e5092f3726a5ab50f5fd5bc50090156840d9f64ea64ab426dbaa5"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/judge-output.schema.json",
+      "physicalPath": "artifacts/f44.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/judge-prompt.md",
+      "physicalPath": "artifacts/f45.md",
+      "sha256": "acd014c902fa33818e8c3a3c4576f03293de42770de2ad8858a61636563cf880"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/trial-result.json",
+      "physicalPath": "artifacts/f46.json",
+      "sha256": "dc2283191ca0facb012222867f912692fdc2e23e1567c0d567e140291883ad74"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/workspace-assertions.json",
+      "physicalPath": "artifacts/f47.json",
+      "sha256": "9c5899762480008c44f96a4911e87fa4f9c68bc299f2ae61500aca67f5e8a606"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/workspace.patch",
+      "physicalPath": "artifacts/f48.patch",
+      "sha256": "2e445c6be1463263378ef25439fbe24ce165973e44f4c4a0a37f26a975e6e83f"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f49.jsonl",
+      "sha256": "719305676d1d809bd248686567d42f1146125cd72be90f4af93214f282ccc817"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f50.json",
+      "sha256": "1023a17aba569d85c65a68439d33737cb47c527d0f71952cadd0e453d67a0aa4"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f51.json",
+      "sha256": "b773346b9822d24c1fd6c28e30e6d3109acd3808f1e8285a564372813903163d"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f52.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f53.md",
+      "sha256": "ea633e76e97004afe7c12032a7f99fc520214a6219176a16c6ab8ad1b991585e"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f54.json",
+      "sha256": "1e864d72212371145bb2900e84632414926184aa6156ee00d35e4af3ef127122"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f55.json",
+      "sha256": "e3995d2c4e5ff9fbb87a1b339348508b3075b63bee70ec87308f7d1e5be219ef"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f56.jsonl",
+      "sha256": "58bb8cde24ea466465337e11e11795041108026eccf09c7c91a4291d85d34563"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f57.json",
+      "sha256": "c9a6895df72d0c748aff47bbd588d9737122ee6bd14b2cfd364b4476d06a3222"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f58.json",
+      "sha256": "66dff729510b4c125028e82e3e3e770ceba5c309a6c76b9afb4f73d631025144"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f59.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f60.md",
+      "sha256": "341ebe1b6de762c28428822c1ef89901b616d50c8f58c59123a5f3d5e762ca2c"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f61.json",
+      "sha256": "99dc138b490f2a2e1f339934d7849e43431c0c310a37634dc9f08ec363bc516c"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f62.json",
+      "sha256": "9c5899762480008c44f96a4911e87fa4f9c68bc299f2ae61500aca67f5e8a606"
+    },
+    {
+      "logicalPath": "cases/repair-anthropic-tool-registration/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f63.patch",
+      "sha256": "2e445c6be1463263378ef25439fbe24ce165973e44f4c4a0a37f26a975e6e83f"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f64.json",
+      "sha256": "12bc9638cdc5015308708311f2f7ba0aa58eade525784dc75a8a8c5103896be0"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f65.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

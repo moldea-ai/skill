@@ -1,0 +1,736 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1938
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "agent-definition",
+          "instruction-loader",
+          "instruction-loader",
+          "language",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 20,
+        "agentCount": 3
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "agent-definition",
+          "instruction-loader",
+          "instruction-loader",
+          "language",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 20,
+        "agentCount": 3
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnosticCount": 0,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": []
+        },
+        "snapshotDigest": "sha256:530de71ddcdfe630cb28dc0ad0c6932351b79baa289a5bd39fc0143f7baff0c1",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "counts": {
+          "agents": 3,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 0,
+          "evidence": 20,
+          "metadata": 9,
+          "mirrors": 0,
+          "runtimes": 1,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "delegating-support",
+              "byteLength": 73,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:a8117aea31bc38216e01077f15274cf9a991062b8d572773837a18878ce7bc8d",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/delegating-support/description.md\",\"agent-description\",\"delegating-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/delegating-support/description.md",
+              "scalarLength": 73
+            },
+            {
+              "agentId": "delegating-support",
+              "byteLength": 198,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:d60acb50fd78839aa7852812d99ef93b6634170434cd65085978b775debbd865",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/delegating-support/instruction.md\",\"agent-instruction\",\"delegating-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/delegating-support/instruction.md",
+              "scalarLength": 198
+            },
+            {
+              "agentId": "step-support",
+              "byteLength": 76,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:0756b0c13fe196cb4a2cb3e39de296a8b10be60f84a6b6bb31301de6c2dfe8da",
+              "key": "[\"000002\",\"metadata\",\"/moldea/agents/step-support/description.md\",\"agent-description\",\"step-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/step-support/description.md",
+              "scalarLength": 76
+            },
+            {
+              "agentId": "step-support",
+              "byteLength": 118,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:0b3e175e2a6a8e5952010629d7c187bc234093d4e7f2e6a72d6fd2de965ef345",
+              "key": "[\"000003\",\"metadata\",\"/moldea/agents/step-support/instruction.md\",\"agent-instruction\",\"step-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/step-support/instruction.md",
+              "scalarLength": 118
+            },
+            {
+              "agentId": "support",
+              "byteLength": 74,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:ab6d3f651ca3971a36a0922b7ec353354febb630009c6ff5a3ca72d287c2bddc",
+              "key": "[\"000004\",\"metadata\",\"/moldea/agents/support/description.md\",\"agent-description\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/support/description.md",
+              "scalarLength": 74
+            },
+            {
+              "agentId": "support",
+              "byteLength": 90,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46",
+              "key": "[\"000005\",\"metadata\",\"/moldea/agents/support/instruction.md\",\"agent-instruction\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/support/instruction.md",
+              "scalarLength": 90
+            },
+            {
+              "agentId": null,
+              "byteLength": 2463,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:cb1d4a79a677687314a0bcf3f26bdf157270ae4d0713bfbb1914ae78d69b12db",
+              "key": "[\"000006\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 2463
+            },
+            {
+              "agentId": null,
+              "byteLength": 236,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:6d2e8a76aae8e69de4a52231a88850dd3a0807ce364186617dc4c979cc872154",
+              "key": "[\"000007\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 236
+            },
+            {
+              "agentId": null,
+              "byteLength": 932,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:ed1bbc64724e84f5e890072c144867b6c20704e7b96863922d3ce266a412c546",
+              "key": "[\"000008\",\"metadata\",\"/moldea/runtimes/cloudflare-agents.md\",\"runtime-guidance\",null]",
+              "kind": "metadata",
+              "metadataKind": "runtime-guidance",
+              "path": "/moldea/runtimes/cloudflare-agents.md",
+              "scalarLength": 932
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000009\",\"evidence\",\"cloudflare-agents\",\"agent-definition\",\"delegating-support\",null,null,\"DelegatingSupportAgent\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "DelegatingSupportAgent"
+                }
+              ],
+              "runtimeName": "DelegatingSupportAgent",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000010\",\"evidence\",\"cloudflare-agents\",\"agent-definition\",\"step-support\",null,null,\"StepSupportAgent\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/step-support-agent.ts",
+                  "symbol": "StepSupportAgent"
+                }
+              ],
+              "runtimeName": "StepSupportAgent",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000011\",\"evidence\",\"cloudflare-agents\",\"agent-definition\",\"support\",null,null,\"SupportAgent\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "SupportAgent"
+                }
+              ],
+              "runtimeName": "SupportAgent",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "instruction-loader",
+              "key": "[\"000012\",\"evidence\",\"cloudflare-agents\",\"instruction-loader\",\"delegating-support\",null,null,\"loadDelegatingSupportInstruction\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/instructions.ts",
+                  "symbol": "loadDelegatingSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadDelegatingSupportInstruction",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "instruction-loader",
+              "key": "[\"000013\",\"evidence\",\"cloudflare-agents\",\"instruction-loader\",\"support\",null,null,\"loadSupportInstruction\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/instructions.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000014\",\"evidence\",\"cloudflare-agents\",\"language\",\"delegating-support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "DelegatingSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000015\",\"evidence\",\"cloudflare-agents\",\"language\",\"step-support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/step-support-agent.ts",
+                  "symbol": "StepSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000016\",\"evidence\",\"cloudflare-agents\",\"language\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "SupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000017\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"delegating-support\",null,null,\"@cloudflare/think\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@cloudflare/think",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000018\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"delegating-support\",null,null,\"agents\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "agents",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000019\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"delegating-support\",null,null,\"ai\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000020\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"step-support\",null,null,\"@cloudflare/think\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@cloudflare/think",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000021\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"step-support\",null,null,\"ai\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000022\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"step-support\",null,null,\"agents\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "agents",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000023\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"support\",null,null,\"ai\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000024\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"support\",null,null,\"agents\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "agents",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000025\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"support\",null,null,\"@cloudflare/think\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@cloudflare/think",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": "delegate-support",
+              "capabilityKind": "tool",
+              "evidenceKind": "schema",
+              "key": "[\"000026\",\"evidence\",\"cloudflare-agents\",\"schema\",\"delegating-support\",\"tool\",\"delegate-support\",\"DelegateSupportInputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "DelegateSupportInputSchema"
+                }
+              ],
+              "runtimeName": "DelegateSupportInputSchema",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": "delegate-support",
+              "capabilityKind": "tool",
+              "evidenceKind": "schema",
+              "key": "[\"000027\",\"evidence\",\"cloudflare-agents\",\"schema\",\"delegating-support\",\"tool\",\"delegate-support\",\"DelegateSupportOutputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "DelegateSupportOutputSchema"
+                }
+              ],
+              "runtimeName": "DelegateSupportOutputSchema",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": "delegate-support",
+              "capabilityKind": "tool",
+              "evidenceKind": "tool-registration",
+              "key": "[\"000028\",\"evidence\",\"cloudflare-agents\",\"tool-registration\",\"delegating-support\",\"tool\",\"delegate-support\",\"delegate_support\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/delegation-tool.ts",
+                  "symbol": "delegateSupportTool"
+                },
+                {
+                  "path": "/src/delegation.ts",
+                  "symbol": "delegateSupport"
+                }
+              ],
+              "runtimeName": "delegate_support",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "delegating-support",
+              "key": "[\"000029\",\"agent\",\"delegating-support\",\"cloudflare-agents\"]",
+              "kind": "agent",
+              "runtimeId": "cloudflare-agents"
+            },
+            {
+              "agentId": "step-support",
+              "key": "[\"000030\",\"agent\",\"step-support\",\"cloudflare-agents\"]",
+              "kind": "agent",
+              "runtimeId": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "key": "[\"000031\",\"agent\",\"support\",\"cloudflare-agents\"]",
+              "kind": "agent",
+              "runtimeId": "cloudflare-agents"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:cb1d4a79a677687314a0bcf3f26bdf157270ae4d0713bfbb1914ae78d69b12db",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:6d2e8a76aae8e69de4a52231a88850dd3a0807ce364186617dc4c979cc872154",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:0a1c0bd8e72019ba5394d7318f9e431d4bcbe7cac00a3e8978817a8e26c5dd0f",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

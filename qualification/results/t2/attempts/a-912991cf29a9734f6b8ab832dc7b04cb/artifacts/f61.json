@@ -1,0 +1,71 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": true,
+  "dimensions": {
+    "semantic": false,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [
+    "semantic"
+  ],
+  "passed": false,
+  "durationMs": 873471,
+  "deterministicBeforePath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 302424,
+    "cachedInputTokens": 274560,
+    "outputTokens": 7118
+  },
+  "judgeUsage": {
+    "inputTokens": 604155,
+    "cachedInputTokens": 569088,
+    "outputTokens": 13231
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T05:47:57.619Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T05:57:16.520Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies the change from `mcp__support__find_order` to `mcp__support__lookup_order`. Current `src/agent.ts` mounts `supportServer` as `support` and enables `mcp__support__lookup_order`, while `src/tools.ts` declares `lookup_order`, establishing the fully qualified SDK name."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "Current `moldea/moldea.yaml` declares `mcp__support__lookup_order`; its SHA-256 matches the supplied after-state, and replacing that value with `mcp__support__find_order` reproduces the supplied before-state hash. The deterministic result is valid with no failures. However, the mandatory path-limited Git diff was blocked, so the explicit requirement that repository state, runner evidence, and Git diff agree cannot be independently established."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest binds `supportAgent` and `loadSupportInstruction` in `src/agent.ts`, `lookupOrderTool` in `src/tools.ts`, `lookupOrder` in `src/implementations.ts`, and `LookupOrderInputSchema` in `src/contracts.ts`. Source confirms the direct `query()` wrapper, `support` MCP mount, `lookup_order` SDK declaration, implementation, and schema chain. Workspace assertions show every source and instruction hash unchanged, while deterministic validation and typechecking pass."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Requirement repairs-canonical-name failed: Current `moldea/moldea.yaml` declares `mcp__support__lookup_order`; its SHA-256 matches the supplied after-state, and replacing that value with `mcp__support__find_order` reproduces the supplied before-state hash. The deterministic result is valid with no failures. However, the mandatory path-limited Git diff was blocked, so the explicit requirement that repository state, runner evidence, and Git diff agree cannot be independently established.",
+    "Provide independently collected inert Git status and the approved path-limited diff, or establish repository attribute safety so the mandated Git commands can run."
+  ]
+}

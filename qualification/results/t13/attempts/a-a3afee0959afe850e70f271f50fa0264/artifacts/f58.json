@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, patch, and deterministic validation agree: the sole change corrects the manifest tool name to `lookup_order`, matching the Vercel tools-map key, while all runtime bindings and source implementations remain intact. Validation is clean and typechecking passes.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies the original mismatch, and the patch confirms it: `moldea/moldea.yaml` changed from `name: find_order` to `name: lookup_order`, while `src/agent.ts` registers `tools: { lookup_order: lookupOrderTool }`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "The current manifest declares `name: lookup_order`. Git status and diff show `moldea/moldea.yaml` as the only changed path and only this name correction. Deterministic validation reports `valid`, zero failures, and passing typecheck."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The current manifest exactly binds `supportAgent`, `loadSupportInstruction`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema` to their existing source declarations. Workspace hashes show all source and instruction files unchanged, and deterministic inspection, validation, and typechecking all pass."
+    }
+  ],
+  "failures": []
+}

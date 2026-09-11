@@ -1,0 +1,36 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 7cf7049..92b21fe 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,9 +3,19 @@ agents:
+   support:
+     runtime:
+       id: vercel-ai-sdk
++      guidance: /moldea/runtimes/vercel-ai-sdk.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+         symbol: supportAgent
+     affectedBy:
+       - /src/support-agent.ts
++    unresolved:
++      indirect-generation-boundary:
++        category: runtime-integration
++        effect: warning
++        description: Static inspection cannot prove that this indirect request uses a supported direct Vercel AI SDK generation pattern or which instructions are effective after prepareStep runs.
++        resolution: In /src/support-agent.ts, pass the generation options directly to generateText, supply the intended instructions at that call boundary, prevent prepareStep from replacing them, and verify the direct invocation with a focused test.
++        related:
++          - path: /src/support-agent.ts
++          - path: /moldea/runtimes/vercel-ai-sdk.md
+
+diff --git a/moldea/runtimes/vercel-ai-sdk.md b/moldea/runtimes/vercel-ai-sdk.md
+new file mode 100644
+index 0000000..c6f3b7a
+--- /dev/null
++++ b/moldea/runtimes/vercel-ai-sdk.md
+@@ -0,0 +1,5 @@
++# Vercel AI SDK static boundary
++
++The support invocation in `/src/support-agent.ts` passes a request built outside the `generateText` call. Its `prepareStep` callback can replace `instructions`, so static inspection cannot establish that the call uses a supported direct generation pattern or determine which instructions are effective at generation time.
++
++Treat this as an unresolved integration boundary. To make the pattern directly inspectable, pass the generation options to `generateText` at the call site, supply the intended instructions there, prevent `prepareStep` from replacing them, and cover that invocation with a focused test.

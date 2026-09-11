@@ -1,0 +1,72 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 683984,
+  "deterministicBeforePath": "cases/preserve-eve-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-eve-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-eve-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-eve-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-eve-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-eve-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 750641,
+    "cachedInputTokens": 650880,
+    "outputTokens": 15958
+  },
+  "judgeUsage": {
+    "inputTokens": 404070,
+    "cachedInputTokens": 339328,
+    "outputTokens": 9017
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T06:38:47.444Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T06:43:34.996Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-supported-static-relationships",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml canonically binds support to /agent/agent.ts, lowercase /agent/instructions.md, SupportOutputSchema, the static status tool, and /agent/skills/triage.ts. Their current hashes equal both supplied before and after hashes; deterministic validation and typechecking passed."
+    },
+    {
+      "id": "records-dynamic-and-markdown-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest records focused warning-level unresolved entries for /agent/tools/runtime.ts and both Markdown skill candidates. None is added to canonical tools or skills, and all three source files retain their supplied pre-change hashes."
+    },
+    {
+      "id": "records-subagent-and-instruction-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest leaves /agent/subagents/quick.ts and all three example instruction files unbound, references each source explicitly, and gives concrete alternatives: subagents/<id>/agent.ts or an evidenced remote definition, and an exact supported instruction form or focused loader evidence."
+    },
+    {
+      "id": "records-operational-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The newly added moldea/runtimes/eve.md is a single concise guide covering remote agents, extension contributions, MCP/OpenAPI connection tools, framework tools, collisions, reserved namespaces, advanced runtime behavior, and provider/model limits. It requires supported static or focused runtime evidence and states Node.js 24+, matching package.json."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

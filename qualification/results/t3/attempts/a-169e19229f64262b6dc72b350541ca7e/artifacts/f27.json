@@ -1,0 +1,45 @@
+{
+  "verdict": "fail",
+  "summary": "The implementation preserves the requested static boundaries and source files, but canonical state omits the prepareStep unresolved warning, and the new runtime guide does not document static alternatives. Runner validation passed and current hashes match the asserted after-state.",
+  "requirements": [
+    {
+      "id": "preserves-open-tool-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds support to cloudflare-agents, SupportAgent, and loadSupportInstruction; it declares no partial support tool set and records runtime-selected-tools with /src/support-agent.ts and a concrete resolution. src/support-agent.ts directly calls streamText and spreads createRuntimeTools()."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "verdict": "pass",
+      "evidence": "step-support binds only StepSupportAgent to cloudflare-agents and has no instructionLoader binding. src/step-support-agent.ts confirms prepareStep can provide instructions. Its hash is unchanged before and after."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "pass",
+      "evidence": "delegating-support retains runtime, instruction-loader, registration, implementation, input-schema, and output-schema bindings for delegate_support. No handoff or routing target appears. The relevant source hashes are unchanged, and only the manifest and runtime guide changed."
+    },
+    {
+      "id": "preserves-unsupported-generation-boundaries",
+      "verdict": "pass",
+      "evidence": "src/indirect-agent.ts and src/unsupported-output-agent.ts remain byte-identical to the before-state. Neither class appears in the manifest, and moldea/agents contains only support, step-support, and delegating-support."
+    },
+    {
+      "id": "keeps-initialized-class-outside-target",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts still defines RuntimeInitializedAgent with initializedAt = Date.now() and is byte-identical to the before-state. The class has no manifest entry or canonical agent directory."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "fail",
+      "evidence": "support and step-support both reference /moldea/runtimes/cloudflare-agents.md, the sole runtime guide. It covers Durable Object bindings, SQLite new_sqlite_classes migration, provider credentials/binding, and Worker deployment responsibilities, but contains no static alternatives for closing the runtime-tools or prepareStep boundaries."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "fail",
+      "evidence": "moldea/moldea.yaml has a focused runtime-selected-tools warning for support, including source path and resolution, but step-support has no unresolved warning describing prepareStep instruction replacement, no related /src/step-support-agent.ts path, and no resolution."
+    }
+  ],
+  "failures": [
+    "Add a distinct step-support unresolved warning for prepareStep instruction replacement, including /src/step-support-agent.ts and concrete resolution criteria.",
+    "Extend moldea/runtimes/cloudflare-agents.md with concise static alternatives for both the open tool registry and prepareStep-controlled instruction boundary."
+  ]
+}

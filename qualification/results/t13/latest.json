@@ -2,8 +2,8 @@
   "protocolVersion": 10,
   "adapterId": "vercel-ai-sdk",
   "implementationId": "typescript-generate-stream-text-7",
-  "latestAttemptId": "20260911T051814459Z-vercel-ai-sdk-typescript-generate-stream-text-7-50a8ec4d",
-  "latestStatus": "failed",
-  "lastPassingAttemptId": null,
-  "updatedAt": "2026-09-11T05:20:41.058Z"
+  "latestAttemptId": "20260911T054140998Z-vercel-ai-sdk-typescript-generate-stream-text-7-8eacf887",
+  "latestStatus": "passed",
+  "lastPassingAttemptId": "20260911T054140998Z-vercel-ai-sdk-typescript-generate-stream-text-7-8eacf887",
+  "updatedAt": "2026-09-11T07:49:22.418Z"
 }

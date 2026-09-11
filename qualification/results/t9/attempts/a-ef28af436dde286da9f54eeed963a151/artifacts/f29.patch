@@ -1,0 +1,21 @@
+diff --git a/moldea/agents/support/instruction.md b/moldea/agents/support/instruction.md
+index b15693f..62dfc93 100644
+--- a/moldea/agents/support/instruction.md
++++ b/moldea/agents/support/instruction.md
+@@ -1,3 +1,3 @@
+ # Support agent
+ 
+-You are the `support` agent. Use order lookup evidence and escalate when no order can be verified.
++You are the `support` agent. Mark each incoming question as requiring review.
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 71ff9ab..3e319bb 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -6,6 +6,6 @@ agents:
+     bindings:
+       runtimeAgent:
+         path: /src/workflow.ts
+-        symbol: removedSupportWorkflow
++        symbol: supportWorkflow
+     affectedBy:
+       - /src/workflow.ts

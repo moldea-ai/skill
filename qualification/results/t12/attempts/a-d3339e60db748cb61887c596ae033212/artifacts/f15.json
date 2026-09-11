@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 737178,
+  "deterministicBeforePath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 308855,
+    "cachedInputTokens": 275840,
+    "outputTokens": 4778
+  },
+  "judgeUsage": {
+    "inputTokens": 564854,
+    "cachedInputTokens": 539008,
+    "outputTokens": 9022
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T07:15:07.093Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T07:23:05.265Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-evidence",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies that src/agents.ts constructs supportAgent directly with new Agent({...}), assigns instructions: loadSupportInstruction, and that loader reads /moldea/agents/support/instruction.md. moldea/moldea.yaml independently binds supportAgent and loadSupportInstruction to those symbols."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/agents.ts uses summaryAgent.asTool() and webSearchTool(), but the canonical tree contains no function-tool or schema assets and moldea/moldea.yaml declares no function-tool, schema, routing, or handoff relationships. The actor explicitly treats these constructs as unproven, while deterministic inspect and validation remain valid."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/agents.ts passes dynamicSupportConfiguration indirectly to new Agent(), constructs the handoff description through join(), and separately creates a RealtimeAgent. The dynamic-support manifest asserts no instruction loader or direct definition relationship and retains the indirect-agent-configuration warning with the concrete resolution to use a closed inline configuration or a supported adapter pattern. The actor explains these patterns remain unproven and unrecorded."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

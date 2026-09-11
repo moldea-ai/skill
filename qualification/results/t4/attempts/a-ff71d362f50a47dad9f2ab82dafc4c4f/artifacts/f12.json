@@ -1,0 +1,37 @@
+{
+  "verdict": "pass",
+  "summary": "All six requirements pass. The current workspace, approved Git diff, workspace assertions, and deterministic validation agree. Only moldea/moldea.yaml and the new moldea/runtimes/cloudflare-agents.md changed; source files were preserved. This read-only judgment changed no files.",
+  "requirements": [
+    {
+      "id": "preserves-open-tool-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains SupportAgent at /src/support-agent.ts and loadSupportInstruction at /src/instructions.ts, declares no partial support tool set, and adds runtime-selected-tool-map as a warning. src/support-agent.ts confirms getTools() spreads createRuntimeTools(). Deterministic validation passed."
+    },
+    {
+      "id": "preserves-dynamic-session-boundary",
+      "verdict": "pass",
+      "evidence": "step-support retains only the StepSupportAgent runtimeAgent binding and has no instructionLoader binding. Its helper-built-session-instruction warning matches src/step-support-agent.ts, where configureSession() delegates to configureSupportSession(). Deterministic validation passed."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "pass",
+      "evidence": "delegating-support preserves the runtime agent, instruction loader, delegate_support implementation, registration, and input/output schemas. src/delegation-tool.ts uses the ordinary AI SDK tool() function, while src/delegation.ts merely references StepSupportAgent. The diff adds only runtime guidance and no handoff or routing relationship; source hashes remain unchanged."
+    },
+    {
+      "id": "keeps-initialized-class-outside-target",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts still exports RuntimeInitializedAgent with initializedAt = Date.now(), and its workspace hash is unchanged. It is absent from moldea/moldea.yaml, and the diff does not register it."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "support and step-support both reference /moldea/runtimes/cloudflare-agents.md. Targeted runtime-file enumeration found it is the sole Markdown guide under moldea/runtimes. The guide covers all four static-boundary alternatives, Worker exports and bindings, SQLite Durable Object migrations, environment configuration, routing, secrets, migration ordering, and deployment ownership. Workspace assertions identify it as the sole new runtime-guidance file."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml adds two distinct warning records: runtime-selected-tool-map names /src/support-agent.ts and resolves through closed getTools() evidence or a focused runtime test; helper-built-session-instruction names /src/step-support-agent.ts and /src/instructions.ts and resolves through closed source or a focused runtime test. The approved diff shows these focused additions, and deterministic canonical validation reports zero failures."
+    }
+  ],
+  "failures": []
+}

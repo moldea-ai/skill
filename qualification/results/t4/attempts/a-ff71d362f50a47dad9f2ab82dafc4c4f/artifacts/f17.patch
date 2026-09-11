@@ -1,0 +1,62 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 651685f..ed5344b 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -12,18 +13,37 @@ agents:
+         symbol: loadSupportInstruction
+     affectedBy:
+       - /src/**
++    unresolved:
++      runtime-selected-tool-map:
++        category: tool-registration
++        effect: warning
++        description: The open tool-map spread in SupportAgent prevents static inspection from proving the final registered tool set.
++        resolution: Prove the complete getTools() result with closed source or a focused runtime test that observes the registered tools.
++        related:
++          - path: /src/support-agent.ts
+   step-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+         symbol: StepSupportAgent
+     affectedBy:
+       - /src/**
++    unresolved:
++      helper-built-session-instruction:
++        category: instruction-loading
++        effect: warning
++        description: StepSupportAgent delegates configureSession() to a helper, so the selected class target does not prove an instruction-loader binding.
++        resolution: Supply closed source or a focused runtime test that proves which loader provides the configured session instruction.
++        related:
++          - path: /src/step-support-agent.ts
++          - path: /src/instructions.ts
+   delegating-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/cloudflare-agents.md b/moldea/runtimes/cloudflare-agents.md
+new file mode 100644
+index 0000000..1e7a9a0
+--- /dev/null
++++ b/moldea/runtimes/cloudflare-agents.md
+@@ -0,0 +1,5 @@
++# Cloudflare Agents runtime
++
++Canonical bindings cover only relationships proved inside the selected closed `Think` class target. An open `getTools()` spread remains unresolved; helper-built `configureSession()` does not establish an instruction-loader binding; an ordinary AI SDK function tool that references another `Think` class is not an agent handoff; and a class with executable initialization outside the closed target is not registered as supported.
++
++Manifest bindings record code provenance; they do not provision Cloudflare resources. For each deployed `Think` class, the application must export the class from its Worker entry, declare the matching Durable Object binding, and add or advance the SQLite Durable Object migration when classes are introduced or renamed. The deployer owns Worker routing, AI and other environment bindings and secrets, migration ordering, environment-specific configuration, and deployment.

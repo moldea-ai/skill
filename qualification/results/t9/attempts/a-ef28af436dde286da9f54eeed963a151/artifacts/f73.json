@@ -1,0 +1,107 @@
+{
+  "passed": true,
+  "failures": [],
+  "before": [
+    {
+      "path": "moldea/agents/support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0ff1bd9b3fd7e7ba0fa6485233478324b236fb61abbe20a7df730bf189c72a73"
+    },
+    {
+      "path": "moldea/agents/support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "68bb48816e0a8353dc8ddd106f266f434db625e518dbbbf3ae67b447fafc1a5e"
+    },
+    {
+      "path": "moldea/moldea.yaml",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "8c3b9b0a37e94114af43c3cd88be0001619eb884b55c30c98e4bad31171c3841"
+    },
+    {
+      "path": "moldea/project.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "3e82e4e0843c1d099abed9d9860ff02635e0a169d22c79094c82780a034f5de0"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "4acf248b95e6913e84badba2b5633c61a01d0b54a2275a042e7e19e952a444fd"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "d6b34d97c12555466d244e3ef2aeb0d0d54b863e0d37083255221c3a278a0e85"
+    },
+    {
+      "path": "src/workflow.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "6ccc803a69cedcc97a15799f9bc4ed10b7dd494a7e4c0e8520e1f8154a682260"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "7618798c77f948fc8b2a75fa7accecd8222ffc47e53ccd5461da03116901576a"
+    }
+  ],
+  "after": [
+    {
+      "path": "moldea/agents/support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0ff1bd9b3fd7e7ba0fa6485233478324b236fb61abbe20a7df730bf189c72a73"
+    },
+    {
+      "path": "moldea/agents/support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "68bb48816e0a8353dc8ddd106f266f434db625e518dbbbf3ae67b447fafc1a5e"
+    },
+    {
+      "path": "moldea/moldea.yaml",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "9337ff31eaa317aa8a35e67346c9e031effd343719594cc994e6cd4161c22c76"
+    },
+    {
+      "path": "moldea/project.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "3e82e4e0843c1d099abed9d9860ff02635e0a169d22c79094c82780a034f5de0"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "4acf248b95e6913e84badba2b5633c61a01d0b54a2275a042e7e19e952a444fd"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "d6b34d97c12555466d244e3ef2aeb0d0d54b863e0d37083255221c3a278a0e85"
+    },
+    {
+      "path": "src/workflow.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "6ccc803a69cedcc97a15799f9bc4ed10b7dd494a7e4c0e8520e1f8154a682260"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "7618798c77f948fc8b2a75fa7accecd8222ffc47e53ccd5461da03116901576a"
+    }
+  ],
+  "changedPaths": [
+    "moldea/moldea.yaml"
+  ]
+}

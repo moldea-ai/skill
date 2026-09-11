@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Updated canonical state while preserving all source integrations. Recorded the open support tool registry and prepareStep instruction provenance as unresolved, retained all proved bindings and delegating tool relationships, added shared Cloudflare runtime guidance, and left unsupported agents unregistered.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ],
+  "observations": [
+    "SupportAgent retains its runtime-agent and instruction-loader bindings.",
+    "StepSupportAgent retains only its proved runtime-agent binding.",
+    "DelegatingSupportAgent retains its runtime agent, instruction loader, ordinary tool implementation, registration, and schema relationships without a handoff or routing target.",
+    "IndirectSupportAgent, UnsupportedOutputAgent, and RuntimeInitializedAgent remain unregistered.",
+    "The runtime guide assigns Cloudflare Durable Object bindings, SQLite migrations, provider configuration, and coordinated Worker deployment responsibilities.",
+    "TypeScript validation passed, and moldea validation reported valid canonical state with zero diagnostics."
+  ],
+  "unresolved": [
+    "SupportAgent's final request tool registry cannot be statically enumerated because it spreads runtime-selected tools.",
+    "StepSupportAgent's effective instruction provenance cannot be represented as a proved loader binding because prepareStep can replace the direct request instruction."
+  ]
+}

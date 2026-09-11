@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "Repository state, approved Git evidence, workspace assertions, and deterministic post-actor validation agree: only the stale manifest tool name changed, all bindings remain intact, and validation/typechecking pass without diagnostics.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies `find_order` as the stale canonical name and `lookup_order` as the closed client-tool name. This is independently corroborated by the Git diff (`find_order` → `lookup_order`) and `src/tools.ts`, where `lookupOrderTool.name` is `lookup_order`. The deterministic result reports valid inspection and zero failures."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` declares `name: lookup_order`, exactly matching `lookupOrderTool` in `src/tools.ts`. Approved status reports only `moldea/moldea.yaml` modified, and its diff contains only this name replacement. The current manifest SHA-256 matches the asserted post-actor hash."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains runtime `anthropic`; runtime agent `/src/agent.ts#supportAgent`; instruction loader `/src/agent.ts#loadSupportInstruction`; registration `/src/tools.ts#lookupOrderTool`; implementation `/src/implementations.ts#lookupOrder`; and schema `/src/contracts.ts#LookupOrderInputSchema`. Source confirms `supportAgent` directly calls `client.messages.create`, loads the canonical instruction, registers `[lookupOrderTool]`, and the declaration uses `LookupOrderInputSchema`. Relevant source hashes are identical before and after, while deterministic validation, inspection, and typechecking all pass."
+    }
+  ],
+  "failures": []
+}

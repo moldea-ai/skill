@@ -1,0 +1,343 @@
+{
+  "version": 1,
+  "attemptKey": "a-169e19229f64262b6dc72b350541ca7e",
+  "attemptId": "20260911T054140998Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-7dea9f57",
+  "attemptIdDigest": "169e19229f64262b6dc72b350541ca7eccc760e7b7eeb9bc5e5d7d02fd53307b",
+  "attemptDigest": "60bfeaba3c9de6f25ce261bdd866d10c259e4eabfa8bffb4a65c2de1238ff14a",
+  "sourceCommit": "12611e22eefd2591cf1c60c4e2c20440f1e96426",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "6ea67611c288860659ab5ea4af2feb57625a9f6536ddb85d9a69df6a51b09fa9",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "a360bee1876e891542e720db9ab311511d75ad26fcaa1e310c5096ec55610c40"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/case-result.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "18411bb31e9b21aaa9c4ffa74465d4ef9e4292d96c1a4d061c97fd51edbc07c3"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-events.jsonl",
+      "physicalPath": "artifacts/f3.jsonl",
+      "sha256": "434aa4387bfcbac30fc5d0cb7ced9ee865241f09dd6656a7100aa6c7ce373b9b"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-evidence.json",
+      "physicalPath": "artifacts/f4.json",
+      "sha256": "9ce21223d95bb01303d1a383e8e4cd6190bfed61343a6650db06541732cf77e5"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-output.json",
+      "physicalPath": "artifacts/f5.json",
+      "sha256": "c5e0da2016202e2e224d624c7b0fdd4f5b1ca5650c3b6c361cb11c2b9070df3b"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-output.schema.json",
+      "physicalPath": "artifacts/f6.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-prompt.md",
+      "physicalPath": "artifacts/f7.md",
+      "sha256": "2ee5885ff12dc53b7fb9f17c9a30134308b785a9545e934e8fe42f893d7ba0da"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/deterministic-after.json",
+      "physicalPath": "artifacts/f8.json",
+      "sha256": "d6cb1f3012ee2737bc9c9ea480bc185d273132c83e69aa9dd7b096532546146d"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/deterministic-before.json",
+      "physicalPath": "artifacts/f9.json",
+      "sha256": "3af16ae4d82e2bd0ed873956aed083a165053439864151082e4696bd1cedc508"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-events.jsonl",
+      "physicalPath": "artifacts/f10.jsonl",
+      "sha256": "2c924872c876bf48983d147d28712977b3b68d1c9201f04524b9def3389c1d65"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-evidence.json",
+      "physicalPath": "artifacts/f11.json",
+      "sha256": "d869726f973faa6a41f90a332665d9a59bd34032449fc6fc048941ff2d166948"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-output.json",
+      "physicalPath": "artifacts/f12.json",
+      "sha256": "5d16995348c19ba49a2d40159d8c55db12cd4ce892ce00aef6a3e6bf2caaeb29"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-output.schema.json",
+      "physicalPath": "artifacts/f13.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-prompt.md",
+      "physicalPath": "artifacts/f14.md",
+      "sha256": "a1c56a5da39f427f7684d084fb61f3104ad23da31e17ff2af6673a5439529af8"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/trial-result.json",
+      "physicalPath": "artifacts/f15.json",
+      "sha256": "2f9dbb50a856c97feee6396c036054e6b7174e5cc0de425fcba7752a355883f6"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/workspace-assertions.json",
+      "physicalPath": "artifacts/f16.json",
+      "sha256": "e5812d80800d8fc4af3cc526590c4b4a4b0c239968766e52191374b0d973c385"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/workspace.patch",
+      "physicalPath": "artifacts/f17.patch",
+      "sha256": "91dc2162966dd0d96fbdf19110c735b425e5cd6a38ae7dfe808ee840f04dbc69"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/actor-events.jsonl",
+      "physicalPath": "artifacts/f18.jsonl",
+      "sha256": "1c1b90a8c44200e32c37adf3e12539eac0024b4226ebd06b4646f2a9089440c4"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/actor-evidence.json",
+      "physicalPath": "artifacts/f19.json",
+      "sha256": "a5f8d392e1f75804e921f809c87466de708db7d72e07a18da1609f8ae8ddd52c"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/actor-output.json",
+      "physicalPath": "artifacts/f20.json",
+      "sha256": "3240448d6ff93e8ec3e37ab8170466a09d742a01bf69df6314e05c0f2be06c73"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/actor-output.schema.json",
+      "physicalPath": "artifacts/f21.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/actor-prompt.md",
+      "physicalPath": "artifacts/f22.md",
+      "sha256": "2ee5885ff12dc53b7fb9f17c9a30134308b785a9545e934e8fe42f893d7ba0da"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/deterministic-after.json",
+      "physicalPath": "artifacts/f23.json",
+      "sha256": "5435331baa6c37ff595ac2cc7bf72e221ade802365485f2e218d0b28e414417a"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/deterministic-before.json",
+      "physicalPath": "artifacts/f24.json",
+      "sha256": "c42140d5a6078c1e3f1cf3a52259e2820259006b3162fd8be7e77506e59d3ce1"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/judge-events.jsonl",
+      "physicalPath": "artifacts/f25.jsonl",
+      "sha256": "dcbf120fd9501ded1824dab4f4004548aeb07abbb77e0c88862c3fb4e1dd4580"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/judge-evidence.json",
+      "physicalPath": "artifacts/f26.json",
+      "sha256": "298b4a7a7ba15a38abbf542c1a0ccac5d2bfa9f38acd2c6b49a1f1443dc4a900"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/judge-output.json",
+      "physicalPath": "artifacts/f27.json",
+      "sha256": "60ae2fe1575d49a7bf97f8efae1f6c5aa0fb0d55b4d6f77d65166eb90f0b8a09"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/judge-output.schema.json",
+      "physicalPath": "artifacts/f28.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/judge-prompt.md",
+      "physicalPath": "artifacts/f29.md",
+      "sha256": "94904e5fc0b87e3c235ce240802492c2ca2a4a560ec7fe126739f25f4d2f9320"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/trial-result.json",
+      "physicalPath": "artifacts/f30.json",
+      "sha256": "02083edf03ac4b7c02d561c1adabf70a9a5e2d60f1e9e392e2aeef67e392252e"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/workspace-assertions.json",
+      "physicalPath": "artifacts/f31.json",
+      "sha256": "4a2d0893d24f500a04a25f53732e23772ce74426a986b958aba35a0089e5d42b"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/workspace.patch",
+      "physicalPath": "artifacts/f32.patch",
+      "sha256": "db674eaf3438ef0e3150527e62b0d7320ab3388d2f318a0f961a92cb8f7185df"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f33.jsonl",
+      "sha256": "c732811f3c4812b9d80f96041389c82d06d4e6f49583fa211e191376426dd991"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f34.json",
+      "sha256": "3d178ffe60d3ec85100a6b9f0ea269a7848828b19f81cfbe5f57cd7e23dfd4bc"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f35.json",
+      "sha256": "4a6e47101794ee7165edfc2c30de8afeeb62191da09e0f52fd8eece3b14bc351"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f36.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f37.md",
+      "sha256": "2ee5885ff12dc53b7fb9f17c9a30134308b785a9545e934e8fe42f893d7ba0da"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f38.json",
+      "sha256": "1f07fbdb8eeee6ba6dd65167906dfaa3abc858d46e63ee6b50cf2e5467f75444"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f39.json",
+      "sha256": "95958b141c0816a04fc86c75fbc5f44a370cfffab54e6b02c9e550fcf3020207"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f40.jsonl",
+      "sha256": "a82e5ae087d4c3b4ac853dc987dbbf512581f73fed2331f446fedb572077bd0e"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f41.json",
+      "sha256": "e69a63ea63edf6825ed7e106e861dfd38c64bff082117227106aca3325020e9c"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f42.json",
+      "sha256": "c3c21f593dc5305c66abb3f602fb0e4d8a408201668e1d81f3e2687643340c16"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f43.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f44.md",
+      "sha256": "e25c1404a6fe04b91494f607406ea9ba61f24e29e213b849ddf9d3925c8c905a"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f45.json",
+      "sha256": "360a3655f97e4beff2893f3ada9025fc3251710556f556545273dcc00d7c6384"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f46.json",
+      "sha256": "3c009f688294c772168f7d20b1e16152896ec1a6aeb49cefed1fef5fa5ec1243"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f47.patch",
+      "sha256": "4ea167354e7f7dc8da1cbee7e01a145c333832e358a5da67b819f997980546f3"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/case-result.json",
+      "physicalPath": "artifacts/f48.json",
+      "sha256": "788ef3c9572e111cd4c781dfed41810770748cf859dec1464c77632490e234be"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f49.jsonl",
+      "sha256": "e4257865cef8a6a6324588330e9d944ce59bd1a5718ffd693724e1ba3a736faf"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f50.json",
+      "sha256": "a2d116078b121a0d65259cb31f7162c192a8d1999ca23eaf4e7d40f3e929f9d4"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f51.json",
+      "sha256": "3167c29df50316b809a2f24ffbce1f7e58867ee4d46c1798fff0bd3efc280002"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f52.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f53.md",
+      "sha256": "b244802c7bf1bf4170db3f28fb9ed7f2ae59ab08eb23e74e0bc7bc8f5fd57a75"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f54.json",
+      "sha256": "0edc151cb863b61dafd18b86c04f966a1674fe9084fe810b30c5bc4dc941c958"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f55.json",
+      "sha256": "7e58285e9a4b18c1cab293fefdf4674c27880333c32013da580f75a49c305fc1"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f56.jsonl",
+      "sha256": "c18af1654a130432f88ce6cd6ed9fa657818c75a9fafe5d5a39a66e1db13bcd4"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f57.json",
+      "sha256": "76d4abf2543553251a72f56e87cbf149bba3572db83918314b9b8efd731747f2"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f58.json",
+      "sha256": "2e8a9a5002745228083ce09f1934ae4e198999c942394e0a8ffd95b22cf87801"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f59.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f60.md",
+      "sha256": "178e3148026d31ff307304dba25f7e835f70ff5ed55dab3fe25bfccc6e194af3"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f61.json",
+      "sha256": "d2a85d36eea63d333380302475d6e9baa950af537e9db05ce3d49001cc70b198"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f62.json",
+      "sha256": "e3536ecc7723b7aa3e1d586db82d336ff1dc9c4a9336e4168bc0ec41556aacff"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f63.patch",
+      "sha256": "f39d252a858d76e6c2bf116b73556dd9be15576970a4c43011e97ac1eb9e4a19"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f64.json",
+      "sha256": "d919d579589f350a020fcd21bb5420542b0e4c5f5039b096fa6afd8a726e44a6"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f65.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

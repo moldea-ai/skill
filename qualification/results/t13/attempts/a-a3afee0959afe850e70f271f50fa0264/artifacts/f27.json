@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The repository documents the Vercel static-analysis boundary without changing the working support implementation or asserting unsupported relationships. Git status and diff agree with the two declared changed paths, and deterministic validation and typechecking passed. This evaluation was read-only and changed no files.",
+  "requirements": [
+    {
+      "id": "identifies-unsupported-form",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` passes `buildRequest(prompt)` indirectly to `generateText`, while `prepareStep` supplies potentially replacement instructions. The new runtime guidance explicitly says these features prevent static proof of a supported direct generation pattern and of which instructions are effective."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` references `/moldea/runtimes/vercel-ai-sdk.md`; targeted enumeration confirms it is the sole runtime-guidance file. The guide describes the repository wrapper and recommends passing generation options and intended instructions directly at the `generateText` call site while preventing `prepareStep` replacement. It makes no provider-behavior claim."
+    },
+    {
+      "id": "records-unresolved-boundary",
+      "verdict": "pass",
+      "evidence": "The manifest adds agent-level warning `indirect-generation-boundary`, identifies the static-inspection limitation, relates `/src/support-agent.ts` and the runtime guide, and gives a concrete resolution using direct `generateText` options, non-replacing `prepareStep` behavior, and a focused test."
+    },
+    {
+      "id": "avoids-inference",
+      "verdict": "pass",
+      "evidence": "The Git diff adds only the runtime-guidance reference and unresolved warning. It adds no instruction-loader, input-schema, output-schema, tool, provider, model, routing, handoff, or subagent relationship; the existing runtime binding and `affectedBy` entry remain unchanged."
+    }
+  ],
+  "failures": []
+}

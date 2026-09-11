@@ -1,0 +1,24 @@
+{
+  "verdict": "fail",
+  "summary": "The repaired workspace appears correct, but qualification cannot pass because the required Git status and path-bounded diff were both blocked before execution: repository attribute safety was not established. Therefore the patch cannot be independently reconciled with the current state and runner evidence.",
+  "requirements": [
+    {
+      "id": "explains-runtime-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies `supportWorkflow` as the existing exported entrypoint; `src/workflow.ts` confirms that export and the direct `answerQuestion` task. The task records the prior runtime-symbol mismatch, while workspace assertions show source remained unchanged and only the manifest changed."
+    },
+    {
+      "id": "repairs-canonical-runtime-binding",
+      "verdict": "fail",
+      "evidence": "Current `moldea/moldea.yaml` binds `runtimeAgent.symbol` to `supportWorkflow`, exactly matching `src/workflow.ts`, and its hash matches the runner’s after-state. However, both evaluator-approved Git probes exited with `repository attribute safety was not established`, so the required Git diff agreement and exact before-to-after patch could not be verified."
+    },
+    {
+      "id": "preserves-binding-boundary",
+      "verdict": "pass",
+      "evidence": "The manifest contains only the exact runtime-agent binding and `affectedBy` relationship; it declares no tool, skill, handoff, capability, or schema binding. Expected corresponding canonical paths are absent. `src/workflow.ts` still directly exports the entrypoint and invokes its LangGraph `task`; deterministic validation and typechecking passed."
+    }
+  ],
+  "failures": [
+    "Supply independently collected inert Git status and path-bounded diff evidence, or establish repository attribute safety so the approved Git probes can run and the manifest patch can be verified."
+  ]
+}

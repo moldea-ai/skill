@@ -1,0 +1,56 @@
+{
+  "role": "judge",
+  "trialId": "confirmation-2",
+  "createdAt": "2026-09-11T06:33:34.508Z",
+  "durationMs": 180960,
+  "usage": {
+    "inputTokens": 506401,
+    "cachedInputTokens": 453888,
+    "outputTokens": 7440
+  },
+  "stageIdentity": "82e53d842f8a241102aee9e5e3cc39e9d17eb8e8917c833ec4643c90dc853f7e",
+  "sourceAttemptId": "20260911T054140998Z-claude-agent-sdk-typescript-query-subagents-0-3-52364c99",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 32,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 38298,
+    "moldeaCommandCount": 0,
+    "moldeaOutputByteCount": 0,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 5,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 4
+        },
+        {
+          "code": "unclassified-command",
+          "count": 1
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 5,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 4
+        },
+        {
+          "code": "unclassified-command",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

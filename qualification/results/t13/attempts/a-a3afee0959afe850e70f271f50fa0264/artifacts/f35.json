@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Documented the Vercel static boundary without changing the working support wrapper. TypeScript validation passed, and moldea validation returned valid with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/vercel-ai-sdk.md"
+  ],
+  "observations": [
+    "Added project-local runtime guidance describing the indirect request and replaceable prepareStep instructions.",
+    "Added an agent-level warning directing a future migration to a direct generateText({ ... }) call in /src/support-agent.ts with focused runtime coverage.",
+    "src/support-agent.ts has no Git diff."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove which instructions are effective at runtime; this remains explicitly recorded as a warning."
+  ]
+}

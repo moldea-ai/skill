@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Documented the LangChain static boundaries without changing source behavior. Added three warning-level support middleware uncertainties and one shared runtime guide. TypeScript passed, and canonical validation completed with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/langchain.md"
+  ],
+  "observations": [
+    "Preserved step-support’s runtime-agent and instruction-loader bindings without input, output, or tool relationships.",
+    "Preserved every delegating-support relationship without adding handoff, routing-target, or subagent semantics.",
+    "workflowSupportAgent remains unregistered because it is a direct LangGraph StateGraph.",
+    "No source files were modified."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove supportAgent’s effective instruction after middleware.",
+    "Static inspection cannot prove supportAgent’s effective output relationship after middleware.",
+    "Static inspection cannot prove supportAgent’s effective tool registry after middleware."
+  ]
+}

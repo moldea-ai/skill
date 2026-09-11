@@ -1,0 +1,507 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "invalid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "invalid",
+    "cliInspectStatus": "invalid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 4452
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "schema"
+        ],
+        "evidenceCount": 8,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "schema"
+        ],
+        "evidenceCount": 8,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "invalid",
+      "result": {
+        "diagnosticCount": 1,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "code": "LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED",
+              "entity": {
+                "adapterId": "langgraph",
+                "agentId": "support"
+              },
+              "key": "[\"diagnostic\",\"langgraph\",\"LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED\",\"/src/graph.ts\",null,0]",
+              "kind": "diagnostic",
+              "message": "The declared agent input schema is not wired to the detected LangGraph input schema.",
+              "path": "/src/graph.ts",
+              "pointer": null,
+              "range": {
+                "end": {
+                  "column": 28,
+                  "line": 14,
+                  "offset": 443
+                },
+                "start": {
+                  "column": 10,
+                  "line": 14,
+                  "offset": 425
+                }
+              },
+              "source": "langgraph"
+            }
+          ]
+        },
+        "snapshotDigest": "sha256:11f7a97f33c0029e4ef699baca858e95785cf05753dfb97e825243bba841bb71",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "invalid",
+      "result": {
+        "counts": {
+          "agents": 1,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 1,
+          "evidence": 8,
+          "metadata": 4,
+          "mirrors": 0,
+          "runtimes": 0,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "support",
+              "byteLength": 53,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:0ff1bd9b3fd7e7ba0fa6485233478324b236fb61abbe20a7df730bf189c72a73",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/support/description.md\",\"agent-description\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/support/description.md",
+              "scalarLength": 53
+            },
+            {
+              "agentId": "support",
+              "byteLength": 116,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:68bb48816e0a8353dc8ddd106f266f434db625e518dbbbf3ae67b447fafc1a5e",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/support/instruction.md\",\"agent-instruction\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/support/instruction.md",
+              "scalarLength": 116
+            },
+            {
+              "agentId": null,
+              "byteLength": 393,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:3f3ab81e78e42c50ecfe36c8e18dc44a7f43e534f3e96d2d2ce11b0c22b6e553",
+              "key": "[\"000002\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 393
+            },
+            {
+              "agentId": null,
+              "byteLength": 147,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:e891a3f3d520e68194330155bc417417bc116953c76978934baa80a561580958",
+              "key": "[\"000003\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 147
+            },
+            {
+              "code": "LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED",
+              "entity": {
+                "adapterId": "langgraph",
+                "agentId": "support"
+              },
+              "key": "[\"000004\",\"diagnostic\",\"langgraph\",\"LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED\"]",
+              "kind": "diagnostic",
+              "message": "The declared agent input schema is not wired to the detected LangGraph input schema.",
+              "path": "/src/graph.ts",
+              "pointer": null,
+              "range": {
+                "end": {
+                  "column": 28,
+                  "line": 14,
+                  "offset": 443
+                },
+                "start": {
+                  "column": 10,
+                  "line": 14,
+                  "offset": 425
+                }
+              },
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000005\",\"evidence\",\"langgraph\",\"agent-definition\",\"support\",null,null,\"support_graph\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": "support_graph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000006\",\"evidence\",\"langgraph\",\"language\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000007\",\"evidence\",\"langgraph\",\"runtime-package\",\"support\",null,null,\"@langchain/langgraph\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/langgraph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000008\",\"evidence\",\"langgraph\",\"runtime-package\",\"support\",null,null,\"@langchain/core\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000009\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"support\",null,null,\"answer-question\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/graph.ts",
+                  "symbol": null
+                },
+                {
+                  "path": "/src/graph.ts",
+                  "symbol": "answerQuestion"
+                }
+              ],
+              "runtimeName": "answer-question",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000010\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/graph.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000011\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/graph.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "schema",
+              "key": "[\"000012\",\"evidence\",\"langgraph\",\"schema\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                },
+                {
+                  "path": "/src/graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "key": "[\"000013\",\"agent\",\"support\",\"langgraph\"]",
+              "kind": "agent",
+              "runtimeId": "langgraph"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:3f3ab81e78e42c50ecfe36c8e18dc44a7f43e534f3e96d2d2ce11b0c22b6e553",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:e891a3f3d520e68194330155bc417417bc116953c76978934baa80a561580958",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:6a7e04d735577c672a4677a1e27b49b11db3534e2f6fbf2b78e5aa08b2a08c66",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

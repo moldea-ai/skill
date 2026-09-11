@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent registration by changing the stale declared tool name from `find_order` to `lookup_order`, matching the closed Cloudflare Think tools map while preserving the agent, tool implementation, registration, and schemas. Final validation reports zero diagnostics, and TypeScript compilation passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The complete tool evidence remains declared: description, implementation, registration, input schema, and output schema.",
+    "moldea validation returned `valid: true` and `diagnosticCount: 0`.",
+    "`node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json` completed successfully.",
+    "The final Git diff contains only the intended one-line canonical registration repair."
+  ],
+  "unresolved": []
+}

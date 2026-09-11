@@ -1,0 +1,48 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T06:52:54.939Z",
+  "durationMs": 145578,
+  "usage": {
+    "inputTokens": 288383,
+    "cachedInputTokens": 242944,
+    "outputTokens": 6055
+  },
+  "stageIdentity": "26f581d01a2a8c537bdc7a8d39edea8b1df50ceb43a924a7ccb36978420df2cf",
+  "sourceAttemptId": "20260911T054140998Z-google-genai-typescript-models-generate-content-2-bb3004a2",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 15,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 32005,
+    "moldeaCommandCount": 2,
+    "moldeaOutputByteCount": 779,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

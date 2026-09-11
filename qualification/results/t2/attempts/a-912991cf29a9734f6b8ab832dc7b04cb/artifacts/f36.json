@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent declaration to `mcp__support__lookup_order`, matching the `support` MCP mount and SDK `lookup_order` registration. Validation passed with zero diagnostics, and TypeScript typechecking passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the direct query wrapper, MCP server mount, SDK tool declaration, implementation, and input schema.",
+    "Final Git status contains only the intended manifest modification.",
+    "No live Claude query was executed; verification used repository source, local structural validation, and TypeScript typechecking."
+  ],
+  "unresolved": []
+}

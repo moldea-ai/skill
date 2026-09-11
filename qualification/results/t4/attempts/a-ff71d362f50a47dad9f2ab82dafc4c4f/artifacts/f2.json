@@ -1,0 +1,95 @@
+{
+  "caseId": "preserve-cloudflare-think-static-boundary",
+  "title": "Preserve the Cloudflare Think static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 825869,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 825869,
+      "deterministicBeforePath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 397490,
+        "cachedInputTokens": 333696,
+        "outputTokens": 10192
+      },
+      "judgeUsage": {
+        "inputTokens": 428011,
+        "cachedInputTokens": 404480,
+        "outputTokens": 5854
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T06:01:27.844Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T06:07:48.878Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "preserves-open-tool-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml retains SupportAgent at /src/support-agent.ts and loadSupportInstruction at /src/instructions.ts, declares no partial support tool set, and adds runtime-selected-tool-map as a warning. src/support-agent.ts confirms getTools() spreads createRuntimeTools(). Deterministic validation passed."
+        },
+        {
+          "id": "preserves-dynamic-session-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "step-support retains only the StepSupportAgent runtimeAgent binding and has no instructionLoader binding. Its helper-built-session-instruction warning matches src/step-support-agent.ts, where configureSession() delegates to configureSupportSession(). Deterministic validation passed."
+        },
+        {
+          "id": "does-not-infer-subagent-handoff",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "delegating-support preserves the runtime agent, instruction loader, delegate_support implementation, registration, and input/output schemas. src/delegation-tool.ts uses the ordinary AI SDK tool() function, while src/delegation.ts merely references StepSupportAgent. The diff adds only runtime guidance and no handoff or routing relationship; source hashes remain unchanged."
+        },
+        {
+          "id": "keeps-initialized-class-outside-target",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/workflow-agent.mts still exports RuntimeInitializedAgent with initializedAt = Date.now(), and its workspace hash is unchanged. It is absent from moldea/moldea.yaml, and the diff does not register it."
+        },
+        {
+          "id": "records-focused-guidance",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "support and step-support both reference /moldea/runtimes/cloudflare-agents.md. Targeted runtime-file enumeration found it is the sole Markdown guide under moldea/runtimes. The guide covers all four static-boundary alternatives, Worker exports and bindings, SQLite Durable Object migrations, environment configuration, routing, secrets, migration ordering, and deployment ownership. Workspace assertions identify it as the sole new runtime-guidance file."
+        },
+        {
+          "id": "records-unresolved-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml adds two distinct warning records: runtime-selected-tool-map names /src/support-agent.ts and resolves through closed getTools() evidence or a focused runtime test; helper-built-session-instruction names /src/step-support-agent.ts and /src/instructions.ts and resolves through closed source or a focused runtime test. The approved diff shows these focused additions, and deterministic canonical validation reports zero failures."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

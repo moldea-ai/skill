@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent input binding to match the closed StateGraph initializer. TypeScript compilation and repository-local validation passed; validation reported `valid: true`, zero diagnostics, and complete output (`cursor: null`).",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Changed only `agents.support.bindings.inputSchema.symbol` from `SupportOutputSchema` to `SupportInputSchema`.",
+    "The compiled graph, node and edge operations, source schemas, output binding, and tool declarations remain unchanged.",
+    "Final Git status contains only the intended modification."
+  ],
+  "unresolved": []
+}

@@ -1,0 +1,77 @@
+{
+  "caseId": "repair-openai-agents-sdk-tool-registration",
+  "title": "Repair OpenAI Agents SDK tool registration",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 580313,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 580313,
+      "deterministicBeforePath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 291230,
+        "cachedInputTokens": 243072,
+        "outputTokens": 5794
+      },
+      "judgeUsage": {
+        "inputTokens": 442384,
+        "cachedInputTokens": 420352,
+        "outputTokens": 7030
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T07:05:14.219Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T07:10:48.082Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-name-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor identifies the correction from find_order to lookup_order. The Git diff proves the prior manifest declared find_order, while src/tools.ts declares the closed function tool as lookup_order."
+        },
+        {
+          "id": "repairs-canonical-name",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml now declares name: lookup_order, exactly matching src/tools.ts. Approved status and diff show moldea/moldea.yaml as the only changed path; workspace hashes confirm Agent and source files were unchanged. Deterministic validation passed."
+        },
+        {
+          "id": "preserves-binding-closure",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest still binds runtimeAgent to supportAgent, instructionLoader to loadSupportInstruction, registration to lookupOrderTool, inputSchema to LookupOrderInputSchema, and implementation to lookupOrder. The corresponding source imports, direct Agent tools array, function-tool declaration, schema, and implementation match exactly. Before/after hashes show these files unchanged, while deterministic validate, inspect, and typecheck results all passed. The evidence establishes static wiring only and contains no runtime-execution claim."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

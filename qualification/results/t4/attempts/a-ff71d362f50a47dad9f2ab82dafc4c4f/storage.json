@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "attemptKey": "a-ff71d362f50a47dad9f2ab82dafc4c4f",
+  "attemptId": "20260911T054140998Z-cloudflare-agents-typescript-think-0-16-ai-sdk-7-f0433bee",
+  "attemptIdDigest": "ff71d362f50a47dad9f2ab82dafc4c4ffd6502157a4f19a6093390a1b0d91c3f",
+  "attemptDigest": "1d761261eefd23d285b64d8a89086178e48da19943f25fc9c2d0d1e5742bba6d",
+  "sourceCommit": "12611e22eefd2591cf1c60c4e2c20440f1e96426",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "ee19e47ec28b973c5da965f86e12e79e9337f4f5491a9239f6b1e22f4ef27bf4",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "a360bee1876e891542e720db9ab311511d75ad26fcaa1e310c5096ec55610c40"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/case-result.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "66448de833aeb4506f94e0f02add617e19aa410613e743ae96060bb2f946b9a0"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f3.jsonl",
+      "sha256": "352a3858947b62247ef9dc4dcfab1c0948fda0dccd336b10c8f6093440e6133e"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f4.json",
+      "sha256": "42cee47e411fd64ddce157a108fa00423b29e886a58553f5368accb4a75aedc1"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f5.json",
+      "sha256": "c7b283af76f722ec20d00b8c91bf048d22490e23e0d02ab611be81d9f3bfbbba"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f6.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f7.md",
+      "sha256": "14965cf84ddf8669c3d036c37839a51c2fc610d67eb8f4810b9e67ea2a32b616"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f8.json",
+      "sha256": "f0dd48e6eeb61bdde27ca0ff5f13d9d606e8643ddeba7eaa9a6381da4c23a654"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f9.json",
+      "sha256": "3ff97ea022c0e03008ff4c3ab678b8dfb6e954ea6bd0918b4cd2c2ba689de5c8"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f10.jsonl",
+      "sha256": "fd6a8d9b6188eafe7990f247356b25c6c845ba60aee08149aaddd7f5bfa56df3"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f11.json",
+      "sha256": "5cd3d5de4f7f261cbd6aec026f71651ee3197775cff298739eb3a240a8cfb6e1"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f12.json",
+      "sha256": "66e83f42f85bbb7f5f16befe8d7c18236297e4b8ab77de1b716433a049040125"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f13.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f14.md",
+      "sha256": "dd6840db88317fa776726b24f0e14adf7e5a5377bf6d31f6dc7720ddc272d738"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f15.json",
+      "sha256": "06d2ea88b07a419e92a5e9f72618240e5c56f90a04ea3f29fa3cca44eb758396"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f16.json",
+      "sha256": "d9f65f381df6e1e4e90a4e3a41f27220185e80010d4277ba32212e3918da2acb"
+    },
+    {
+      "logicalPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f17.patch",
+      "sha256": "da607bcf7964c06980a307bc35181f9e0bbb4b3ad8673b4b6d3085025a2c26d0"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/case-result.json",
+      "physicalPath": "artifacts/f18.json",
+      "sha256": "0c1b233ec772f07ccfcbecf7d66bcacc3bcd1c4573388bd821d8021b62286306"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f19.jsonl",
+      "sha256": "0c4be4b1f2510240d8bf21ea8d24ae5744fabb151a84312a5c27ef6909677a8c"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f20.json",
+      "sha256": "8217e3f2787a3a118f6b4ce9784419ad2f35fcddb97d14c8881b379aa69d6172"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f21.json",
+      "sha256": "c79311a1debfd4eccc5aeae86855e57555e403892166dc0ec971a1f1b3537069"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f22.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f23.md",
+      "sha256": "9c0da9f8caa383b61037effd7c8cc15e61355b9f7d388caf8c48b799b4b1183e"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f24.json",
+      "sha256": "7fa99656606bbc378f93ab5ba76f660c149de44d186deb4bc4e5a28f5a5dd39c"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f25.json",
+      "sha256": "8192dbb5c05c6a6a6b2ef505f338d6a0ab25a2b802fb2bd2e8ad0fd78f8d53d9"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f26.jsonl",
+      "sha256": "095bc01e32d158fc2a1b48dc07a8fc053d29118fbc59d54eba62a031c4ffcd65"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f27.json",
+      "sha256": "8e403001034e1656c8cd1e38fba32332ad54c78903d3e79d895a6fee5ca2ebd9"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f28.json",
+      "sha256": "b41e43470f8e9681d1aa0ff04920fa52e91a182d935a3dccddc93bb4d55df469"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f29.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f30.md",
+      "sha256": "1dc3e44246ed9d93af4d9464e3bc233367a3bd5fcbaafe7296eaec33db2aceac"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f31.json",
+      "sha256": "f16bd753ceecd9af900c83a9c0d1db10eeeee13005a865a8e17f137061967e7e"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f32.json",
+      "sha256": "925abf5295cf6826cac682fcf2abae8406ccdd8775af9138d9d132cf2d30a19b"
+    },
+    {
+      "logicalPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f33.patch",
+      "sha256": "a6fe5ba20ce42dceadf4a927c042d2b39ae73ae8846a41bec5349e6f18ed5844"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f34.json",
+      "sha256": "1fab7dc8fa12033c3cc3029949a4119756a685898f39ac2a5dc28cff76ec4ae3"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f35.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

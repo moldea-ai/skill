@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s canonical tool name with the closed Google Gen AI declaration by changing `find_order` to `lookup_order`. Preserved the direct wrapper, function-declaration array, implementation, registration symbol, description, and input schema.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Canonical support-agent owner and repository source were compared; the implementation consistently establishes `lookup_order`.",
+    "Local validation returned `valid: true`, `diagnosticCount: 0`, and a complete page with `cursor: null`.",
+    "TypeScript compilation completed successfully.",
+    "The final Git diff contains only the intended one-line tool-name correction.",
+    "Validation establishes static declaration and wiring consistency; it does not prove live Google Gen AI runtime execution."
+  ],
+  "unresolved": []
+}

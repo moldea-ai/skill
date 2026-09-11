@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Documented the Vercel static boundary without changing the working support implementation. Added project-local runtime guidance and an agent-level warning that points to a direct `generateText({ ..., instructions })` pattern in `/src/support-agent.ts`. TypeScript and moldea validation passed; moldea reported zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/vercel-ai-sdk.md"
+  ],
+  "observations": [
+    "`src/support-agent.ts` remains unchanged.",
+    "No claims were added about runtime-pattern support, instruction loaders, input schemas, providers, models, routing, handoffs, or subagents.",
+    "The final Git status contains only the intended manifest modification and new runtime-guidance directory."
+  ],
+  "unresolved": [
+    "Static inspection cannot establish that the indirect request object and `prepareStep` instruction replacement form a supported direct Vercel AI SDK boundary; the manifest records the concrete resolution and related source path."
+  ]
+}

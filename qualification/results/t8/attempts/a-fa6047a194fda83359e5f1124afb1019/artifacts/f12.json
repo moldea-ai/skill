@@ -1,0 +1,37 @@
+{
+  "verdict": "pass",
+  "summary": "Canonical state preserves the LangChain static boundaries exactly as required. Current file hashes match the runner’s after-state, all source hashes remain unchanged, and deterministic validation, inspection, and typechecking passed.",
+  "requirements": [
+    {
+      "id": "preserves-middleware-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml gives support only a runtimeAgent binding. Three warning-level unresolved entries separately cover post-middleware instruction, output, and tool-registration uncertainty, matching the non-empty middleware in src/support-agent.ts. Deterministic inspection and validation are valid."
+    },
+    {
+      "id": "preserves-unsupported-shape-boundaries",
+      "verdict": "pass",
+      "evidence": "step-support has only runtimeAgent and instructionLoader bindings. It has no canonical input, output, or tool relationship despite src/step-support-agent.ts using multiple response formats and state/context schemas and src/status-tools.ts defining a headless tool. Deterministic checks passed."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "pass",
+      "evidence": "delegating-support retains its runtime-agent, instruction-loader, output-schema, and complete delegate-support function-tool bindings. No handoff, routing-target, or subagent declaration exists. src/delegation.ts still directly invokes stepSupportAgent, and runner hashes show all related source files were unchanged."
+    },
+    {
+      "id": "keeps-langgraph-outside-target",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts still exports workflowSupportAgent as a direct StateGraph, with the same before/after hash. No workflow agent entry or canonical agent directory exists; the manifest registers only support, step-support, and delegating-support."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "moldea/runtimes/langchain.md is the sole runtime guide and is referenced by both support and step-support. It concisely identifies direct createAgent targets, middleware uncertainty, unsupported step-support shapes, normal function-tool semantics, and the excluded StateGraph without asserting provider behavior. The patch inventory identifies this as the sole added guide."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "pass",
+      "evidence": "The manifest contains focused warning entries for middleware instruction, output, and tool-registry uncertainty, each with an explicit resolution and related source paths. The shared guide separately characterizes multiple response formats, state/context schemas, and the headless client tool as unsupported canonical relationship shapes. Current hashes agree with the runner after-state and deterministic validation is valid."
+    }
+  ],
+  "failures": []
+}

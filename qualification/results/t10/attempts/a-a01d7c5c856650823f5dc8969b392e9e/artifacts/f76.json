@@ -1,0 +1,70 @@
+{
+  "trialId": "confirmation-2",
+  "kind": "confirmation",
+  "confirmationIndex": 2,
+  "confirmationEligible": true,
+  "dimensions": {
+    "semantic": false,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [
+    "semantic"
+  ],
+  "passed": false,
+  "durationMs": 601974,
+  "deterministicBeforePath": "cases/repair-langgraph-state-schema/trials/confirmation-2/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-langgraph-state-schema/trials/confirmation-2/deterministic-after.json",
+  "actorOutputPath": "cases/repair-langgraph-state-schema/trials/confirmation-2/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-langgraph-state-schema/trials/confirmation-2/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-langgraph-state-schema/trials/confirmation-2/workspace-assertions.json",
+  "patchPath": "cases/repair-langgraph-state-schema/trials/confirmation-2/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 265453,
+    "cachedInputTokens": 216832,
+    "outputTokens": 6003
+  },
+  "judgeUsage": {
+    "inputTokens": 454105,
+    "cachedInputTokens": 423424,
+    "outputTokens": 8637
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T07:21:49.034Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T07:27:21.621Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-schema-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the former manifest input symbol as SupportOutputSchema and the required symbol as SupportInputSchema. Current src/graph.ts wires SupportInputSchema to the StateGraph input role, while deterministic validation reports valid status and zero failures."
+    },
+    {
+      "id": "repairs-canonical-schema",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml binds inputSchema to /src/contracts.ts#SupportInputSchema. src/graph.ts still compiles the same StateGraph, and workspace assertions show src/graph.ts unchanged while only moldea/moldea.yaml changed. Deterministic validation and typecheck passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains runtimeAgent=/src/graph.ts#supportGraph, inputSchema=/src/contracts.ts#SupportInputSchema, and outputSchema=/src/contracts.ts#SupportOutputSchema. Those exports and graph roles exist in source. The complete manifest contains no tools declaration; answer-question remains a StateGraph addNode runtime pattern. Deterministic inspect and validation statuses are valid."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Required Git agreement is unverified: the prescribed status and path-limited diff commands were blocked by unresolved repository attribute safety. Supply independently collected inert Git status/diff evidence or establish attribute safety so those exact approved commands can complete."
+  ]
+}

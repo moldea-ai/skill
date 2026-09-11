@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s canonical tool registration with the closed LangChain tools map by changing the stale `find_order` declaration to `lookup_order`. Preserved all working source definitions and schemas.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The tool evidence remains complete: name, description, implementation, registration, and input schema are declared.",
+    "moldea validation passed with `valid: true` and zero diagnostics.",
+    "TypeScript compilation passed.",
+    "Final Git diff contains only the intended tool-name correction."
+  ],
+  "unresolved": []
+}

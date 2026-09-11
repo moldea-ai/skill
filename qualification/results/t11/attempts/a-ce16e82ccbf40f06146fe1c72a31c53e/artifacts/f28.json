@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, deterministic validation, and one-line Git diff agree: the stale manifest name was changed from `find_order` to `lookup_order`, while all source bindings remained unchanged. The judge inspection was read-only.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report explicitly identifies the validation mismatch as canonical `find_order` versus closed function-tool `lookup_order`. This is corroborated by the Git diff showing the former manifest value and `src/tools.ts` declaring `name: 'lookup_order'`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, matching `src/tools.ts`. Git status reports only `moldea/moldea.yaml` modified, and its diff contains only the one-line `find_order` to `lookup_order` correction."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest still binds `supportAgent`, `loadSupportInstruction`, `lookupOrderTool`, `lookupOrder`, and `LookupOrderInputSchema` to their exact source paths and symbols. Current source confirms the direct `client.responses.create` wrapper and closed `[lookupOrderTool]` array. Workspace assertions show every source and canonical instruction hash unchanged; deterministic validation and inspection are valid, typechecking passed, and failures are empty. The actor also correctly limits the claim to static wiring rather than live API execution."
+    }
+  ],
+  "failures": []
+}

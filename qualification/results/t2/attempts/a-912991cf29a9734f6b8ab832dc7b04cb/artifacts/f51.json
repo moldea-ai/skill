@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s declared tool name with the working SDK wiring by changing `mcp__support__find_order` to `mcp__support__lookup_order`. Canonical validation reports `valid: true` and zero wiring diagnostics; TypeScript compilation also passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The direct `query()` wrapper, `support` MCP mount, `lookup_order` SDK declaration, implementation binding, and input schema remain unchanged.",
+    "Final Git inspection confirms the tool-name declaration is the only worktree change.",
+    "The canonical support instruction was assessed with a bounded content query, and final validation used CLI 8.0.0/schema 4 with a 65,536-byte output limit."
+  ],
+  "unresolved": [
+    "A live Claude query was not executed because it would require external provider behavior; runtime execution remains unverified beyond local declaration, source-wiring, validation, and compilation evidence."
+  ]
+}

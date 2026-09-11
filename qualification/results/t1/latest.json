@@ -2,8 +2,8 @@
   "protocolVersion": 10,
   "adapterId": "anthropic",
   "implementationId": "typescript-messages-api-0-117",
-  "latestAttemptId": "20260911T051814459Z-anthropic-typescript-messages-api-0-117-435dadc1",
-  "latestStatus": "failed",
-  "lastPassingAttemptId": null,
-  "updatedAt": "2026-09-11T05:19:13.386Z"
+  "latestAttemptId": "20260911T054140998Z-anthropic-typescript-messages-api-0-117-3c166588",
+  "latestStatus": "passed",
+  "lastPassingAttemptId": "20260911T054140998Z-anthropic-typescript-messages-api-0-117-3c166588",
+  "updatedAt": "2026-09-11T06:25:29.212Z"
 }

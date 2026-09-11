@@ -1,0 +1,56 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T07:27:34.278Z",
+  "durationMs": 160303,
+  "usage": {
+    "inputTokens": 330610,
+    "cachedInputTokens": 303232,
+    "outputTokens": 5813
+  },
+  "stageIdentity": "840924791d01bdca3c6d247de58987133eb1ef0ce1a6ddb96c3ff95c26c55e9e",
+  "sourceAttemptId": "20260911T054140998Z-vercel-ai-sdk-typescript-generate-stream-text-7-8eacf887",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 23,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 35025,
+    "moldeaCommandCount": 3,
+    "moldeaOutputByteCount": 1645,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        },
+        {
+          "code": "unclassified-command",
+          "count": 1
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        },
+        {
+          "code": "unclassified-command",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

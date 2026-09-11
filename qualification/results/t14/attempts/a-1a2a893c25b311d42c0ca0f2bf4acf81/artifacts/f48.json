@@ -1,0 +1,77 @@
+{
+  "caseId": "repair-vercel-tool-registration",
+  "title": "Repair Vercel tool registration",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 513303,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 513303,
+      "deterministicBeforePath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-vercel-tool-registration/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-vercel-tool-registration/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-vercel-tool-registration/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-vercel-tool-registration/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 379487,
+        "cachedInputTokens": 351872,
+        "outputTokens": 5853
+      },
+      "judgeUsage": {
+        "inputTokens": 539678,
+        "cachedInputTokens": 505984,
+        "outputTokens": 9195
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T07:50:55.036Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T07:55:44.309Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-name-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor identifies `find_order` as the stale declaration and `lookup_order` as the closed tools-map key. The Git diff confirms that exact mismatch and repair, while `src/agent.ts` defines `tools: { lookup_order: lookupOrderTool }`."
+        },
+        {
+          "id": "repairs-canonical-name",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, matching `src/agent.ts`. Approved Git status reports only `moldea/moldea.yaml` modified, and its diff contains only `name: find_order` → `name: lookup_order`. Deterministic validation and inspection are valid."
+        },
+        {
+          "id": "preserves-binding-closure",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest and source exactly retain all bindings: `supportAgent`, `loadSupportInstruction`, `SupportInputSchema`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema`. Source imports and registrations close correctly, scoped source hashes equal the runner's unchanged after-state, deterministic validation/inspection are valid, and typechecking passed."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

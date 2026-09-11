@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, approved Git evidence, and runner-owned results agree: the sole change corrects the manifest tool name from find_order to lookup_order. All source bindings remain intact, deterministic validation and inspection are valid with no failures, and this read-only judgment changed no files.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies the correction from find_order to lookup_order. The Git diff proves the prior manifest declared find_order, while src/tools.ts declares the closed function tool as lookup_order."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now declares name: lookup_order, exactly matching src/tools.ts. Approved status and diff show moldea/moldea.yaml as the only changed path; workspace hashes confirm Agent and source files were unchanged. Deterministic validation passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest still binds runtimeAgent to supportAgent, instructionLoader to loadSupportInstruction, registration to lookupOrderTool, inputSchema to LookupOrderInputSchema, and implementation to lookupOrder. The corresponding source imports, direct Agent tools array, function-tool declaration, schema, and implementation match exactly. Before/after hashes show these files unchanged, while deterministic validate, inspect, and typecheck results all passed. The evidence establishes static wiring only and contains no runtime-execution claim."
+    }
+  ],
+  "failures": []
+}

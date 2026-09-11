@@ -1,0 +1,63 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 651685f..8b6a63a 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -10,20 +11,38 @@ agents:
+       instructionLoader:
+         path: /src/instructions.ts
+         symbol: loadSupportInstruction
++    unresolved:
++      runtime-selected-request-tools:
++        category: tool-registration
++        effect: warning
++        description: The final request tool registry cannot be proven because SupportAgent spreads runtime-selected tools into the direct generation request.
++        resolution: Establish every runtime-selected request tool through a closed registry or focused runtime evidence.
++        related:
++          - path: /src/support-agent.ts
+     affectedBy:
+       - /src/**
+   step-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+         symbol: StepSupportAgent
++    unresolved:
++      prepare-step-instruction-provenance:
++        category: instruction-provenance
++        effect: warning
++        description: The effective step instruction loader cannot be proven because prepareStep can replace the direct request instruction.
++        resolution: Establish instruction provenance for every prepared step through a closed prepareStep path or focused runtime evidence.
++        related:
++          - path: /src/step-support-agent.ts
+     affectedBy:
+       - /src/**
+   delegating-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/cloudflare-agents.md b/moldea/runtimes/cloudflare-agents.md
+new file mode 100644
+index 0000000..d3104f8
+--- /dev/null
++++ b/moldea/runtimes/cloudflare-agents.md
+@@ -0,0 +1,5 @@
++# Cloudflare Agents runtime
++
++The registered `AIChatAgent` classes run as Cloudflare Durable Objects. The deployment owner must declare each deployed class in Wrangler Durable Object bindings, add new classes to a SQLite Durable Object migration with `new_sqlite_classes`, supply the model provider binding and credentials in the Worker environment, and deploy Worker code, bindings, and migrations together.
++
++`SupportAgent` builds an open request tool map by spreading runtime-selected tools, so static inspection cannot enumerate its final tools. `StepSupportAgent` can replace instructions in `prepareStep`, so canonical state does not assert an instruction-loader binding. `DelegatingSupportAgent` registers `delegate_support` as an ordinary function tool; its implementation references `StepSupportAgent`, but that reference is not a handoff or routing target.

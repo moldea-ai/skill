@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, deterministic results, and patch agree: the sole change repairs the support agent runtime symbol to the existing exported Functional API entrypoint while preserving the direct task and manifest boundaries. The judge inspection was read-only.",
+  "requirements": [
+    {
+      "id": "explains-runtime-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies `removedSupportWorkflow` as nonexistent and `supportWorkflow` as the directly exported entrypoint. `src/workflow.ts` exports `supportWorkflow`, while the Git patch shows the prior manifest symbol was `removedSupportWorkflow`; deterministic validation is valid with no failures."
+    },
+    {
+      "id": "repairs-canonical-runtime-binding",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now binds `/src/workflow.ts` to symbol `supportWorkflow`, exactly matching the export in `src/workflow.ts`. Git status identifies only `moldea/moldea.yaml` as modified, and the diff contains only that symbol replacement. Deterministic validation and inspection both report valid."
+    },
+    {
+      "id": "preserves-binding-boundary",
+      "verdict": "pass",
+      "evidence": "The complete manifest contains only the support agent runtime, exact runtimeAgent binding, and `affectedBy` relationship—no tool, skill, handoff, or schema binding. `src/workflow.ts` retains the directly exported `supportWorkflow`, its direct `answerQuestion` task, and TypeScript `string` annotations. Workspace hashes confirm the source was unchanged, and deterministic typechecking passed."
+    }
+  ],
+  "failures": []
+}

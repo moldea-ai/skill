@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "The OpenAI static boundary is already accurate. No repository changes were required; the final scoped Git diff was empty.",
+  "changedFiles": [],
+  "observations": [
+    "`supportAgent` directly calls `client.responses.create({...})` and loads its canonical instruction through `loadSupportInstruction()`. The repository records both `runtime-pattern: responses.create` and `instruction-loader: loadSupportInstruction` for `support`.",
+    "`dynamicSupportAgent` passes a separately constructed request object to `client.responses.create(request)`. Its records conservatively include OpenAI language/runtime-package evidence but no runtime-pattern relationship.",
+    "No function-tool, schema, routing, handoff, or web-search capability relationship is recorded from the provider-hosted `{ type: 'web_search' }` object.",
+    "Both named agents are assigned to the OpenAI runtime, supported by their implementation and the declared `openai` package.",
+    "moldea validation returned `valid: true` with zero diagnostics. TypeScript compilation with `--noEmit` also passed.",
+    "Initial Git status and the final scoped Git diff were empty."
+  ],
+  "unresolved": [
+    "Provider-side handling of `web_search` is not established by static repository evidence.",
+    "The indirect request object's broader runtime semantics are not established; the repository correctly avoids asserting them."
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical state satisfies all six judgments. Only moldea/moldea.yaml and the new runtime guidance changed; runner-owned hashes show all source and existing agent assets were preserved, while deterministic validation, inspection, and typechecking passed. The approved Git probes were blocked by repository attribute safety, consistent with the actor report, but the supplied before/after workspace evidence establishes the scoped patch without contradiction.",
+  "requirements": [
+    {
+      "id": "preserves-prepare-call-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains support.runtimeAgent and support.inputSchema only. Its warning-level prepare-call-runtime-wiring entry explicitly leaves instructions, output, and tools unresolved because prepareCall can replace them. src/support-agent.ts confirms those relationships coexist with prepareCall, and deterministic inspection was valid."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains step-support runtimeAgent, inputSchema, outputSchema, and the complete get-status tool registration, implementation, and schemas. Only prepare-step-instruction-loader is unresolved, matching src/step-support-agent.ts, and deterministic inspection was valid."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "pass",
+      "evidence": "The delegating-support manifest retains its agent, instruction, schemas, and delegate-support function-tool bindings without routing, handoff, or subagent declarations. src/delegation-tool.ts binds execute to delegateSupport, while src/delegation.ts directly calls stepSupportAgent. Workspace patch hashes show these source and agent files were unchanged."
+    },
+    {
+      "id": "keeps-workflow-agent-outside-target",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts still exports workflowSupportAgent using WorkflowAgent. moldea/moldea.yaml registers only support, step-support, and delegating-support, and the canonical agent-path inventory contains no workflow target. Workspace patch hashes show the workflow source was preserved unchanged."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "Both support and step-support reference /moldea/runtimes/vercel-ai-sdk.md. It is the sole file under moldea/runtimes and specifically distinguishes this project's prepareCall and prepareStep inspection boundaries without asserting provider-wide behavior. Workspace evidence identifies it as the sole new file."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "pass",
+      "evidence": "The manifest has separate prepare-call-runtime-wiring and prepare-step-instruction-loader entries, both with effect: warning. Each names the relevant preparation hook, lists related source paths, identifies the relationship-specific uncertainty, and provides a resolver based on statically constrained wiring or focused runtime proof. Deterministic validation and inspection passed."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace accurately preserves the static boundary. Source and canonical manifest evidence support only the direct relationships claimed, all asserted before/after hashes match the current files, and runner-owned evidence reports no repository changes, no failures, and a passing typecheck. The CLI invalid status is consistent with the intentionally unsupported SDK MCP server key.",
+  "requirements": [
+    {
+      "id": "explains-direct-evidence",
+      "verdict": "pass",
+      "evidence": "`src/agents.ts` shows `supportAgent` directly calling `query`, with `systemPrompt` loaded by `loadSupportInstruction`; `moldea/moldea.yaml` records exactly the runtime-agent and instruction-loader bindings. The source key `boundary/tools` requires unsupported runtime-name normalization, and the manifest claims no MCP tool relationship. This agrees with the actor report and deterministic invalid inspection/validation outcome with no recorded case failures."
+    },
+    {
+      "id": "preserves-dynamic-query-boundary",
+      "verdict": "pass",
+      "evidence": "`dynamicSupportAgent` directly calls `query`, but its options come from `buildDynamicOptions`, which contains an array prompt, main-thread selection, factory-created subagent, generated description and restrictions, aliases, and preset tools. The manifest records only the direct runtime-agent binding and explicitly leaves dynamic query configuration and routing/tools unresolved; it invents no instruction, delegation, routing, or tool relationship."
+    },
+    {
+      "id": "preserves-sdk-feature-boundary",
+      "verdict": "pass",
+      "evidence": "The workspace contains observer fields, a critical reminder, SDK server instructions, external and per-agent MCP configuration, skills, hooks/settings, and a filesystem agent. The canonical tree contains only `support` and `dynamic-support`, while `sdk-and-filesystem-features` keeps those features outside relationship inference with focused resolution guidance. Current file hashes match the runner-owned before/after assertions, `changedPaths` is empty, `repositoryUnchanged` is true, and typechecking passes."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,38 @@
+{
+  "role": "judge",
+  "trialId": "confirmation-2",
+  "createdAt": "2026-09-11T07:48:59.404Z",
+  "durationMs": 117431,
+  "usage": {
+    "inputTokens": 196037,
+    "cachedInputTokens": 171904,
+    "outputTokens": 4307
+  },
+  "stageIdentity": "387f5fb51f67e9015f8d528df671949b82f8fd2ce0252e9611a28efedd311393",
+  "sourceAttemptId": "20260911T054140998Z-vercel-ai-sdk-typescript-generate-stream-text-7-8eacf887",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 12,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 32476,
+    "moldeaCommandCount": 1,
+    "moldeaOutputByteCount": 998,
+    "networkAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    },
+    "sensitiveAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    }
+  }
+}

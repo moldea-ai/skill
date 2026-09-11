@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Updated the support agent’s canonical tool name from `find_order` to the working Vercel tools-map key `lookup_order`. Final validation reports `valid: true` with zero diagnostics, and TypeScript compilation passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The initial validator reproduced `VERCEL_AI_SDK_TOOL_NAME_MISMATCH` for support capability `lookup-order`.",
+    "The direct wrapper, tool declaration, implementation, schemas, agent registration map, and instruction were preserved unchanged.",
+    "The final Git diff contains only the one intended canonical name correction."
+  ],
+  "unresolved": []
+}

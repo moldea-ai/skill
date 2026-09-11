@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 557673,
+  "deterministicBeforePath": "cases/repair-langchain-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-langchain-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-langchain-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-langchain-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-langchain-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-langchain-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 265812,
+    "cachedInputTokens": 218112,
+    "outputTokens": 5395
+  },
+  "judgeUsage": {
+    "inputTokens": 419053,
+    "cachedInputTokens": 363008,
+    "outputTokens": 7668
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T06:41:07.984Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T06:46:21.610Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies the stale find_order declaration versus the closed LangChain tool registration lookup_order. Git diff confirms that exact mismatch, while src/tools.ts declares name: 'lookup_order' and src/agent.ts registers lookupOrderTool in the tools array."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now declares name: lookup_order. The approved Git diff shows the sole edit was find_order -> lookup_order, and Git status reports only moldea/moldea.yaml modified. Deterministic validation and typechecking passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace evidence preserves supportAgent and loadSupportInstruction in src/agent.ts, SupportOutputSchema and LookupOrderInputSchema in src/contracts.ts, lookupOrder in src/implementations.ts, and lookupOrderTool registration in src/tools.ts. These exactly match the manifest bindings; deterministic inspect/validate results are valid with typecheckPassed true and no failures."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the stale canonical tool declaration with the working SDK registration by changing it to `mcp__support__lookup_order`. The query wrapper, MCP mount, tool implementation, and schema remain unchanged.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "moldea validation passes with `valid: true` and zero wiring diagnostics.",
+    "TypeScript compilation passes.",
+    "Final diff contains only the intended one-line declaration change."
+  ],
+  "unresolved": []
+}

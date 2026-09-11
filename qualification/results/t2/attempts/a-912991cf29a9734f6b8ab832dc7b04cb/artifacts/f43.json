@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, approved Git diff, actor report, and deterministic validation agree: only moldea/moldea.yaml changed, correcting the stale declared tool name while preserving the complete Claude Agent SDK binding closure. Inspection was read-only and changed no files.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies mcp__support__lookup_order as the name derived from the support MCP mount and lookup_order SDK registration. The Git diff exposes the mismatch directly: the former manifest value was mcp__support__find_order, while src/agent.ts and src/tools.ts establish mcp__support__lookup_order."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now declares name: mcp__support__lookup_order. The approved diff shows this as the sole replacement, and Git status reports only moldea/moldea.yaml modified. Deterministic validation passed with valid validate/inspect statuses, zero failures, and successful typechecking."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains supportAgent and loadSupportInstruction in /src/agent.ts, lookupOrderTool in /src/tools.ts, lookupOrder in /src/implementations.ts, and LookupOrderInputSchema in /src/contracts.ts. Source confirms the direct query wrapper, support MCP mount, lookup_order SDK declaration, implementation, and schema. Current inspect output is valid with zero diagnostics and emits exact instruction-loader, runtime-pattern, schema, and tool-registration evidence for mcp__support__lookup_order; deterministic hashes show all relevant source files remained unchanged."
+    }
+  ],
+  "failures": []
+}

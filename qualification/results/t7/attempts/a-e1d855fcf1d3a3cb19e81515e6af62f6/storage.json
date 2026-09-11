@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "attemptKey": "a-e1d855fcf1d3a3cb19e81515e6af62f6",
+  "attemptId": "20260911T054140998Z-google-genai-typescript-models-generate-content-2-bb3004a2",
+  "attemptIdDigest": "e1d855fcf1d3a3cb19e81515e6af62f6fb541003deeb0ebaa620d8d9ae6152ac",
+  "attemptDigest": "9f30b6dd3f2ec1ead4b545b3945f33687d82c9cece0964f8b5f12d0cb6c38abc",
+  "sourceCommit": "12611e22eefd2591cf1c60c4e2c20440f1e96426",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "e9c60a1e7f40ad6f9a50cc0ccd9cfd424a6c633d234ca71702ed951d6bb86a27",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "a360bee1876e891542e720db9ab311511d75ad26fcaa1e310c5096ec55610c40"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/case-result.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "62bb2fc2759785cfc6e30727639f5773b872b38f3494bc099ba85b9b17e80bf1"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f3.jsonl",
+      "sha256": "0467de84c4eb70c787bed686e219dbcc7c1f882c6c881101c684970b05c7413e"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f4.json",
+      "sha256": "65a1d75903fae41535ad15073b95d7abc2bb8858843eefcc1ba8ff8079b9e69b"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f5.json",
+      "sha256": "bcddaa3739fbf32bf4a554f80c2d9b669843c00f0e874627add75c7d23b673fd"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f6.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f7.md",
+      "sha256": "d03c7e92cbbe07db5e8b13a57b0f9ee11d5b8a9792b7a997a587cf5d586a6cc1"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f8.json",
+      "sha256": "a2fe71c52ed1ea2d0427ecd50a1572413d81d289623bc06beeb04c65ef6fd7ea"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f9.json",
+      "sha256": "adf7ae3f26b2634c1e4c93f9e3afae13652492953d5fbc51ac77c34616f5b2c9"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f10.jsonl",
+      "sha256": "ea3da5b5b5a9d52d31062e03bcc5faefe2d55b1522403a301abd6abd114b581c"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f11.json",
+      "sha256": "0273fd8a6564bdd8c8268484f8e0290bb524f35e885c175e5202346ca797f789"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f12.json",
+      "sha256": "bd486fc39469135419afeea594abc6e71dfebb10cb3fab2ed475730203e649d9"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f13.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f14.md",
+      "sha256": "7ac82c93057ba0fee6308f1bca2aaa9601ff1536ff49840b1a05e5b8cf208c9e"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f15.json",
+      "sha256": "de06e412738d83760ae4ec43dd74051708ed5cc1946c68ee0017584694f54f9e"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f16.json",
+      "sha256": "550c510446624bad14a987788dc1149a7107b00bafb39397cf044df9bb399f1f"
+    },
+    {
+      "logicalPath": "cases/preserve-google-genai-static-boundary/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f17.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/case-result.json",
+      "physicalPath": "artifacts/f18.json",
+      "sha256": "6b5472c3ed26de81683058bd08222bf347edfb974616b75a46533b1ff5cb3baa"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f19.jsonl",
+      "sha256": "c4c6aab4873f41279951eb385ac75042cb934ca6aa35c15a347a87a14b6cb1db"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f20.json",
+      "sha256": "a2f99d55f5653cc87a1b695155934af2ab1b0e83906e47e4e4ee6eae8ba7bb42"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f21.json",
+      "sha256": "d1d741050c22ca8bb6aa8847e00715e96628b60cbe90444ea46caf091e2e2350"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f22.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f23.md",
+      "sha256": "a7c5d11191dd0c03f57fb1b1ab509576422904f13a41e73133ee0e0af6e5fe2b"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f24.json",
+      "sha256": "bce26debb513bd696a0e91cce1168041e9fd0df8d4824797c7ac59cc7700ce04"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f25.json",
+      "sha256": "b1c2ad880c12d18b9fd45fcbcd9b50744560094c5e4c6e8c503c6e38dc6dca18"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f26.jsonl",
+      "sha256": "bda7d36e1efcf95d1661cca20bef0a3713f8cfe05f2cebbe0ba5d23fd5fc53fa"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f27.json",
+      "sha256": "472a4b52f980a1e044d27a5443c387a08a6adaef47eabfbe21b52ed0e27a3df7"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f28.json",
+      "sha256": "df43d5533a42db7427012c93bad6469f689b94b1eb0a9bc344c1ab3655a8b290"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f29.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f30.md",
+      "sha256": "a30765f86b03c56aad3c6d11d6f3c647903fda7f20b8d7df50cd8a3103cb5188"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f31.json",
+      "sha256": "40f2c8b101cee26f13067b5dbe260ea9500cd89f8235ea130f4f745e20a9bb3d"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f32.json",
+      "sha256": "5437c2051cd9db6aa29a9b487bb2b4a5d95f9b027113bb449079041cdfd9d410"
+    },
+    {
+      "logicalPath": "cases/repair-google-genai-tool-registration/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f33.patch",
+      "sha256": "a3bf5960cffa0d302e171f07e242f3a1231c15f5d9145ad2aec8aa805e3ce23a"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f34.json",
+      "sha256": "1a949a8b99182b0cfad4535f2b40d4ef90ff36bc7cd9f7ec9f7995180dc0906e"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f35.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "trialId": "confirmation-2",
+  "kind": "confirmation",
+  "confirmationIndex": 2,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 519013,
+  "deterministicBeforePath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/workspace-assertions.json",
+  "patchPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 415519,
+    "cachedInputTokens": 380928,
+    "outputTokens": 7493
+  },
+  "judgeUsage": {
+    "inputTokens": 461013,
+    "cachedInputTokens": 418688,
+    "outputTokens": 10248
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T07:41:02.406Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T07:45:57.464Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-closed-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains support.runtimeAgent -> /src/support-graph.ts#supportGraph, inputSchema -> SupportInputSchema, and outputSchema -> SupportOutputSchema. src/support-graph.ts contains those exports and its direct StateGraph operations; workspace hashes confirm the source remained unchanged."
+    },
+    {
+      "id": "preserves-opaque-schema-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "dynamic-support declares only runtimeAgent -> /src/dynamic-support-graph.ts#dynamicSupportGraph. No inputSchema or outputSchema relationship exists, matching the unchanged source's factory-produced schema."
+    },
+    {
+      "id": "preserves-routing-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "dynamic-support.unresolved.dynamic-routing explicitly leaves runtime-state, Command, and Send destinations unresolved and requires closed runtime configuration or integration tests. The canonical inventory contains no routing targets, handoffs, subagents, parent navigation, or complete-topology claim."
+    },
+    {
+      "id": "keeps-nodes-outside-capabilities",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest declares no tools, skills, handoffs, or subagents. The guide identifies the order lookup as node-local and the empty ToolNode as unregistered and not an agent tool."
+    },
+    {
+      "id": "preserves-runtime-semantics-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The top-level runtime-composition unresolved record explicitly covers reducers, effective node metadata, subgraphs, checkpointer, store, cache, runtime context, compiled descriptions, prebuilt agents, supervisor composition, and ToolNode registration, with deployment configuration and integration evidence as resolution."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Both support and dynamic-support reference /moldea/runtimes/langgraph.md. Targeted canonical-path inspection found it is the sole runtime Markdown guide; it contrasts directly declared schemas with the opaque factory boundary and documents runtime routing and composition evidence requirements."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

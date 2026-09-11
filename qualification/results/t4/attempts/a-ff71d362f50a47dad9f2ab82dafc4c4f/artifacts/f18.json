@@ -1,0 +1,77 @@
+{
+  "caseId": "repair-cloudflare-think-tool-registration",
+  "title": "Repair Cloudflare Think tool registration",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 687513,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 687513,
+      "deterministicBeforePath": "cases/repair-cloudflare-think-tool-registration/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 417253,
+        "cachedInputTokens": 375936,
+        "outputTokens": 5963
+      },
+      "judgeUsage": {
+        "inputTokens": 289810,
+        "cachedInputTokens": 265344,
+        "outputTokens": 4983
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T05:47:03.079Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T05:54:03.008Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-name-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor report identifies the stale declared name find_order versus the closed getTools map. Current src/agent.ts returns { lookup_order: lookupOrderTool }, while the Git diff shows the manifest previously declared name: find_order and was changed to lookup_order."
+        },
+        {
+          "id": "repairs-canonical-name",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current moldea/moldea.yaml declares name: lookup_order. The Git diff contains only that one-line name replacement, and deterministic post-actor evidence reports valid inspection, valid CLI validation, passing typecheck, and no failures."
+        },
+        {
+          "id": "preserves-binding-closure",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current moldea/moldea.yaml retains SupportAgent and loadSupportInstruction bindings, lookupOrder implementation, lookupOrderTool registration, and LookupOrderInputSchema/LookupOrderOutputSchema bindings, with no agent schema added. The corresponding source exports and getTools registration exist exactly as declared. Workspace assertions show only moldea/moldea.yaml changed, and deterministic validation reports valid inspection and no wiring failures."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

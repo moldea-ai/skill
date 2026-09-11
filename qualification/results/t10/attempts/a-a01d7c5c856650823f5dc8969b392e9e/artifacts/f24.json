@@ -1,0 +1,638 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 3524
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 16,
+        "agentCount": 2
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 16,
+        "agentCount": 2
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnosticCount": 0,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": []
+        },
+        "snapshotDigest": "sha256:f7dd1270e978a28772f3935d386d9671ed01c1633f5912dbf0d433ff06e9ec5f",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "counts": {
+          "agents": 2,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 0,
+          "evidence": 16,
+          "metadata": 6,
+          "mirrors": 0,
+          "runtimes": 0,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "dynamic-support",
+              "byteLength": 98,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:d7a3c9df2b044b05703ffb852e0d6aea47ed4b4d3df2f1ee68e1a9f73ab89528",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/dynamic-support/description.md\",\"agent-description\",\"dynamic-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/dynamic-support/description.md",
+              "scalarLength": 98
+            },
+            {
+              "agentId": "dynamic-support",
+              "byteLength": 229,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:2cbbebe9fb358182652ffc7aab7bfb7c928dce9e1dc59e5c15f0b9539437ae3a",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/dynamic-support/instruction.md\",\"agent-instruction\",\"dynamic-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/dynamic-support/instruction.md",
+              "scalarLength": 229
+            },
+            {
+              "agentId": "support",
+              "byteLength": 74,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:ab6d3f651ca3971a36a0922b7ec353354febb630009c6ff5a3ca72d287c2bddc",
+              "key": "[\"000002\",\"metadata\",\"/moldea/agents/support/description.md\",\"agent-description\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/support/description.md",
+              "scalarLength": 74
+            },
+            {
+              "agentId": "support",
+              "byteLength": 90,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46",
+              "key": "[\"000003\",\"metadata\",\"/moldea/agents/support/instruction.md\",\"agent-instruction\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/support/instruction.md",
+              "scalarLength": 90
+            },
+            {
+              "agentId": null,
+              "byteLength": 679,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:e30ca057971f5d2f68df3621311c989bb7922323a80f0d769cc2beae00e051c3",
+              "key": "[\"000004\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 679
+            },
+            {
+              "agentId": null,
+              "byteLength": 150,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:9ec16f173f4a920c7e5b3ae1a16a134bad8cb67a1b3de3781baa0b30dd9fac84",
+              "key": "[\"000005\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 150
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000006\",\"evidence\",\"langgraph\",\"agent-definition\",\"dynamic-support\",null,null,\"dynamic_support_graph\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-graph.ts",
+                  "symbol": "dynamicSupportGraph"
+                }
+              ],
+              "runtimeName": "dynamic_support_graph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000007\",\"evidence\",\"langgraph\",\"agent-definition\",\"support\",null,null,\"support_graph\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": "support_graph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000008\",\"evidence\",\"langgraph\",\"language\",\"dynamic-support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-graph.ts",
+                  "symbol": "dynamicSupportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000009\",\"evidence\",\"langgraph\",\"language\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000010\",\"evidence\",\"langgraph\",\"runtime-package\",\"dynamic-support\",null,null,\"@langchain/core\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000011\",\"evidence\",\"langgraph\",\"runtime-package\",\"dynamic-support\",null,null,\"@langchain/langgraph\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/langgraph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000012\",\"evidence\",\"langgraph\",\"runtime-package\",\"support\",null,null,\"@langchain/langgraph\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/langgraph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000013\",\"evidence\",\"langgraph\",\"runtime-package\",\"support\",null,null,\"@langchain/core\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000014\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"dynamic-support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-graph.ts",
+                  "symbol": null
+                },
+                {
+                  "path": "/src/dynamic-support-graph.ts",
+                  "symbol": "selectDestination"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000015\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"dynamic-support\",null,null,\"route-request\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-graph.ts",
+                  "symbol": null
+                },
+                {
+                  "path": "/src/dynamic-support-graph.ts",
+                  "symbol": "routeRequest"
+                }
+              ],
+              "runtimeName": "route-request",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000016\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"dynamic-support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-graph.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000017\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000018\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"support\",null,null,\"lookup-order\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": null
+                },
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "lookupOrder"
+                }
+              ],
+              "runtimeName": "lookup-order",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000019\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "schema",
+              "key": "[\"000020\",\"evidence\",\"langgraph\",\"schema\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "SupportOutputSchema"
+                },
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "schema",
+              "key": "[\"000021\",\"evidence\",\"langgraph\",\"schema\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "SupportInputSchema"
+                },
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "key": "[\"000022\",\"agent\",\"dynamic-support\",\"langgraph\"]",
+              "kind": "agent",
+              "runtimeId": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "key": "[\"000023\",\"agent\",\"support\",\"langgraph\"]",
+              "kind": "agent",
+              "runtimeId": "langgraph"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:e30ca057971f5d2f68df3621311c989bb7922323a80f0d769cc2beae00e051c3",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:9ec16f173f4a920c7e5b3ae1a16a134bad8cb67a1b3de3781baa0b30dd9fac84",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:34d110f47757525e0b77d8ca7760fd2fa07288db5f03709acabf4e074b1645d1",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

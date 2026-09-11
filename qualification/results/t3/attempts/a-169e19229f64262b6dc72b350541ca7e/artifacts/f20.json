@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Updated canonical state while preserving all source. Validation passed: TypeScript compiled successfully and canonical validation reported zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ],
+  "observations": [
+    "Preserved support runtime-agent and instruction-loader bindings.",
+    "Preserved step-support runtime-agent binding without adding an instruction loader.",
+    "Preserved all delegating-support tool relationships without adding handoff or routing metadata.",
+    "Did not register indirect-generation, array-output, or initialization-sensitive agents.",
+    "Added Cloudflare Durable Object, SQLite migration, provider binding, and Worker deployment guidance."
+  ],
+  "unresolved": [
+    "SupportAgent’s complete runtime-selected tool registry cannot be statically proven; resolution requires a closed registration source or focused runtime test.",
+    "Binding names and deployed Worker state remain unproved because the repository has no Worker deployment configuration."
+  ]
+}

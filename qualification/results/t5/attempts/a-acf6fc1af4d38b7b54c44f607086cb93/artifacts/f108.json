@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, Git evidence, and runner-owned workspace assertions agree: initialization added only the minimal moldea foundation, preserved the README, and grounded the project context in existing documentation and source behavior.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service reviews invoice line items and returns findings to a human finance operator, while never authorizing or sending payment. README.md supports that purpose and boundary; src/invoice-review.ts deterministically detects duplicate references and returns them sorted. The project context correctly limits arithmetic-mismatch behavior to the repository description rather than claiming source implementation."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains only `version: 1`, and the moldea tree contains only moldea.yaml and project.md—no agent, runtime, decision, relationship, or requirement assets or manifest references. Git status and the workspace assertions identify only README.md, moldea/moldea.yaml, and moldea/project.md as changed. The README diff preserves all original content and only appends the marked awareness block; current file hashes match the asserted post-actor hashes."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "moldea is initialized with minimal, evidence-backed project context. The README was preserved and received the standard awareness block.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "README.md establishes invoice review, the human finance operator, and the no-payment boundary; src/invoice-review.ts confirms duplicate-reference detection.",
+    "No agent, decision, runtime guide, relationship, or requirement was created.",
+    "moldea CLI 8.0.0 validation passed with schema version 4, valid status, and zero diagnostics.",
+    "TypeScript compilation passed with no errors.",
+    "Next: Continue normal repository work and add durable context only when a new project fact or agent design needs an owner."
+  ],
+  "unresolved": [
+    "The README mentions arithmetic-mismatch review, but current source code does not establish its runtime behavior; this evidence boundary is recorded in moldea/project.md."
+  ]
+}

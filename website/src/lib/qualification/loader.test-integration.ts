@@ -531,9 +531,18 @@ describe('loadQualificationWebsiteModel', () => {
     const universalCaseIds = new Set(
       caseCatalog.cases.filter(({ layer }) => layer === 'universal-baseline').map(({ id }) => id),
     );
+    const completeFailedAttempt = customProfile?.attempts.find(
+      ({ result }) =>
+        result.status === 'failed' &&
+        result.cases.length === universalCaseIds.size &&
+        result.cases.at(-1)?.status !== 'failed',
+    );
 
     expect(model.profiles).toHaveLength(14);
     expect(model.uniqueJourneyCount).toBe(38);
+    expect(completeFailedAttempt?.result.cases.some(({ status }) => status === 'failed')).toBe(
+      true,
+    );
     expect(customProfile?.cases.map(({ id }) => id)).toStrictEqual([...universalCaseIds]);
     expect(
       model.profiles

@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing context for the support agent, linked it to `src/billing.ts`, and preserved the existing Custom runtime integration and required opening identity. TypeScript compilation passed; moldea validation reported valid format version 1 with zero diagnostics. Final status and complete tracked diff were inspected.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The billing context records the evidenced 30-day refund window and requires escalation rather than invented invoice policy.",
+    "Pre-existing `src/operator-notes.ts` and untracked `notes/` developer work remained untouched.",
+    "The Custom runtime guidance, runtime-agent binding, and `supportAgent` implementation were unchanged."
+  ],
+  "unresolved": [
+    "No invoice-specific policy is established by the repository; the context and instruction conservatively direct the support agent to escalate unresolved invoice questions."
+  ]
+}

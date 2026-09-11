@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "Repository state, approved Git evidence, workspace assertions, and deterministic validation agree. The judge made no repository changes.",
+  "requirements": [
+    {
+      "id": "repairs-binding",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` binds `/src/support-assistant.ts` symbol `supportAssistant`, matching the existing export. Approved Git status/diff shows `src/support-agent.ts` deleted, and a direct existence check confirms it remains absent. Deterministic validation and typecheck passed."
+    },
+    {
+      "id": "records-boundary",
+      "verdict": "pass",
+      "evidence": "`agents.support.unresolved.dynamic-tool-registration` is an agent-level warning describing the static-inspection limitation, resolving it through a project-owned runtime/integration assertion against `createToolRegistry()`, and relating `/src/dynamic-tools.ts`. The manifest contains no invented tool binding; bounded scope and deterministic validation report valid state."
+    }
+  ],
+  "failures": []
+}

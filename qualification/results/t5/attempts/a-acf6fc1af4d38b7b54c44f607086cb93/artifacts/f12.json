@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor reviewed only docs/operations.md and abstained from moldea-specific work. The current file supports the reported findings, the manifest relates canonical context only to /src/project-state.ts, and the approved Git status and scoped diff are empty, agreeing with the runner-owned unchanged-repository evidence.",
+  "requirements": [
+    {
+      "id": "abstains-after-cheap-gate",
+      "verdict": "pass",
+      "evidence": "The actor output contains no moldea mention or skill-reference-specific reasoning/result content. Runner-owned actor-command-policy reports moldeaCommandCount: 0 and moldeaOutputByteCount: 0."
+    }
+  ],
+  "failures": []
+}

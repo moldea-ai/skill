@@ -865,15 +865,11 @@ const hasValidCurrentCaseSequence = (
   profileCaseIds: readonly string[],
 ): boolean => {
   const resultCaseIds = result.cases.map(({ caseId }) => caseId);
-  const expectedCaseIds =
-    result.status === 'passed' ? profileCaseIds : profileCaseIds.slice(0, resultCaseIds.length);
+  const expectedCaseIds = profileCaseIds;
   const hasExpectedVerdicts =
     result.status === 'passed'
       ? result.cases.every(({ status }) => status !== 'failed')
-      : result.status === 'failed' &&
-        result.cases.length > 0 &&
-        result.cases.at(-1)?.status === 'failed' &&
-        result.cases.slice(0, -1).every(({ status }) => status !== 'failed');
+      : result.status === 'failed' && result.cases.some(({ status }) => status === 'failed');
 
   return JSON.stringify(resultCaseIds) === JSON.stringify(expectedCaseIds) && hasExpectedVerdicts;
 };

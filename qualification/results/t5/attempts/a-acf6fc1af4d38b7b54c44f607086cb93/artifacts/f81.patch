@@ -1,0 +1,62 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index a5ba2f9..afa8aa8 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -4,3 +4,23 @@ context:
+   /moldea/project.md:
+     affectedBy:
+       - /src/**
++
++agents:
++  order-triage:
++    runtime:
++      id: custom
++      guidance: /moldea/runtimes/custom.md
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: createOrderTriageAgent
++    affectedBy:
++      - /src/order-triage-agent.ts
++    unresolved:
++      canonical-instruction-loader:
++        category: instruction-loading
++        effect: blocking
++        description: The runtime supplies the canonical instruction loader, but its implementation and invocation are not present in this repository.
++        resolution: Add repository evidence or a focused integration test proving the runtime passes the exact content of /moldea/agents/order-triage/instruction.md to createOrderTriageAgent.
++        related:
++          - path: /src/order-triage-agent.ts
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..62855c3
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review without authority to approve refunds.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..ea82415
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,7 @@
++# Order triage
++
++`order-triage` classifies orders for human review.
++
++Use only the order information provided. Produce a concise classification for a human reviewer, and surface missing or ambiguous details instead of inventing facts.
++
++You cannot approve refunds. Never state or imply that a refund has been approved; leave refund approval to a human reviewer.
+
+diff --git a/moldea/runtimes/custom.md b/moldea/runtimes/custom.md
+new file mode 100644
+index 0000000..412491d
+--- /dev/null
++++ b/moldea/runtimes/custom.md
+@@ -0,0 +1,5 @@
++# Custom runtime
++
++Instantiate `order-triage` through `createOrderTriageAgent` in `/src/order-triage-agent.ts`. The loader callback receives `/moldea/agents/order-triage/instruction.md` and must return that canonical file's exact content.
++
++Preserve the factory's `classify-for-human-review` action and `canApproveRefunds: false` boundary. No project-local caller, provider adapter, tool registry, or loader implementation is established, so do not assume those capabilities.

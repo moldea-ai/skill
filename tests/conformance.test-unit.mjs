@@ -371,7 +371,11 @@ describe('portable skill contract', () => {
     assert.match(skill, /never use it for unchanged retry or extra inspection/u);
     assert.match(skill, /direct request supplies intent, not a canonical owner/u);
     assert.match(skill, /Direct canonical agent or runtime work/u);
-    assert.match(skill, /create, maintain, change, or reconcile canonical agent or runtime facts/u);
+    assert.match(skill, /Canonical agent or runtime work uses one adoption-only gate/u);
+    assert.match(skill, /even with task-named ordinary implementation or `affectedBy` evidence/u);
+    assert.match(skill, /Never send canonical or managed paths to `scope`/u);
+    assert.match(skill, /query ordinary paths for another owner/u);
+    assert.doesNotMatch(skill, /canonical agent or runtime facts without ordinary paths/u);
     assert.match(
       skill,
       /For reconciliation, inspect only task-named implementation evidence.*then at most one named-owner `content`/su,
@@ -434,10 +438,7 @@ describe('portable skill contract', () => {
       /foundation-evidence decision before any dependency, canonical-state, or managed README write/u,
     );
     assert.match(skill, /Insufficient or materially incomplete evidence stops writes/u);
-    assert.match(
-      skill,
-      /not adopted or initialized because its complete contract is absent/u,
-    );
+    assert.match(skill, /not adopted or initialized because its complete contract is absent/u);
     assert.match(skill, /Do not substitute.*or add generic product-benefit boilerplate/u);
     assert.match(
       skill,
@@ -900,9 +901,7 @@ describe('activation and semantic protection', () => {
     const dirtyTreeCase = FIXTURE.semanticCases.find(
       ({ id }) => id === 'evaluate-dirty-working-tree',
     );
-    const yarnCase = FIXTURE.semanticCases.find(
-      ({ id }) => id === 'yarn-conflicting-cli-provider',
-    );
+    const yarnCase = FIXTURE.semanticCases.find(({ id }) => id === 'yarn-conflicting-cli-provider');
 
     assert.equal(compressionCase.resourceBudget.maximumMoldeaCommands, 4);
     assert.match(dirtyTreeCase.scenario, /developer names no path scope/u);
@@ -916,7 +915,10 @@ describe('activation and semantic protection', () => {
       '/src/renamed-after.js',
       '/src/deleted.js',
     ]) {
-      assert.match(dirtyTreeCase.input.developerDirection, new RegExp(path.replace('.', '\\.'), 'u'));
+      assert.match(
+        dirtyTreeCase.input.developerDirection,
+        new RegExp(path.replace('.', '\\.'), 'u'),
+      );
     }
     assert.match(
       yarnCase.expected.find(({ label }) => label === 'inspect-yarn-provider-source').criterion,

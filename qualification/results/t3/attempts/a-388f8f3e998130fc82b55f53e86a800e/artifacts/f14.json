@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s canonical output-schema binding from `LegacySupportOutputSchema` to the `SupportOutputSchema` consumed by its direct Cloudflare AIChatAgent structured-output request.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "`src/agent.ts` passes `SupportOutputSchema` to `Output.object` in the direct `streamText` request.",
+    "Canonical owner `/moldea/agents/support/instruction.md` remains consistent and unchanged.",
+    "Complete moldea validation passed with `valid: true` and zero diagnostics using CLI 8.0.0/schema 4.",
+    "TypeScript validation passed with `node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json`.",
+    "Final Git status and diff show only the requested one-symbol binding change; all protected implementation and schema elements remain unchanged.",
+    "No unsupported provider or runtime behavior was inferred or claimed."
+  ],
+  "unresolved": []
+}

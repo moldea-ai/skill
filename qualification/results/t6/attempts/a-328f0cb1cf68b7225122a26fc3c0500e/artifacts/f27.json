@@ -1,0 +1,38 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T08:48:41.716Z",
+  "durationMs": 352682,
+  "usage": {
+    "inputTokens": 629002,
+    "cachedInputTokens": 572800,
+    "outputTokens": 10915
+  },
+  "stageIdentity": "89738f710d817e2f977bb79f942d0c6f51e1afe8e7fd9cf2e06007c9dbc81694",
+  "sourceAttemptId": "20260911T083743802Z-eve-typescript-filesystem-agent-0-39-4d853788",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 36,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 50804,
+    "moldeaCommandCount": 1,
+    "moldeaOutputByteCount": 223,
+    "networkAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    },
+    "sensitiveAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    }
+  }
+}

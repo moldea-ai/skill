@@ -1,0 +1,71 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": true,
+  "dimensions": {
+    "semantic": false,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [
+    "semantic"
+  ],
+  "passed": false,
+  "durationMs": 625118,
+  "deterministicBeforePath": "cases/repair-eve-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-eve-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-eve-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-eve-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-eve-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-eve-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 784895,
+    "cachedInputTokens": 692736,
+    "outputTokens": 7527
+  },
+  "judgeUsage": {
+    "inputTokens": 629002,
+    "cachedInputTokens": 572800,
+    "outputTokens": 10915
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T08:42:09.322Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T08:48:41.716Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies the stale `find_order` declaration and explains that Eve 0.39.1 derives `orders-find` from `agent/tools/orders/find.ts`. The current manifest uses `orders-find` for that registration path, while the deterministic post-actor validation reports valid inspect/validate results with no failures."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "`moldea/moldea.yaml` currently declares `name: orders-find` and registers `/agent/tools/orders/find.ts`; its current SHA-256 matches the asserted post-actor hash. Runner evidence reports successful validation and identifies only this manifest as changed. Nevertheless, the approved Git diff command exited 2 with `repository attribute safety was not established`, leaving mandatory workspace-patch agreement unverified."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings for `/agent/agent.ts#default`, `/agent/instructions.md`, `/agent/contracts.ts#SupportOutputSchema`, `/agent/implementations.ts#findOrder`, `/agent/tools/orders/find.ts#default`, `FindOrderInputSchema`, and `FindOrderOutputSchema`. Targeted source reads confirm the corresponding exports and imports. Their current hashes match the supplied after-state, and every listed runtime, instruction, implementation, and schema file has identical before/after hashes. Deterministic validation, inspection, and typechecking all passed."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Requirement repairs-canonical-name failed: `moldea/moldea.yaml` currently declares `name: orders-find` and registers `/agent/tools/orders/find.ts`; its current SHA-256 matches the asserted post-actor hash. Runner evidence reports successful validation and identifies only this manifest as changed. Nevertheless, the approved Git diff command exited 2 with `repository attribute safety was not established`, leaving mandatory workspace-patch agreement unverified.",
+    "Provide independently collected inert Git status/diff evidence, or establish repository attribute safety so the evaluator-approved commands can run, then confirm the patch contains only the canonical tool-name correction from `find_order` to `orders-find`."
+  ]
+}

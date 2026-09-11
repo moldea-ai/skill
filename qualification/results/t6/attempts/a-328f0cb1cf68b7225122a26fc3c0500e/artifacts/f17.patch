@@ -1,0 +1,114 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index e2c0ffe..683dafd 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: eve
++      guidance: /moldea/runtimes/eve.md
+     bindings:
+       runtimeAgent:
+         path: /agent/agent.ts
+@@ -39,4 +40,72 @@ agents:
+           path: /agent/skills/triage.ts
+           symbol: default
+     affectedBy:
+-      - /agent/**
++      - /agent/agent.ts
++      - /agent/instructions.md
++      - /agent/contracts.ts
++      - /agent/implementations.ts
++      - /agent/tools/status.ts
++      - /agent/skills/triage.ts
++      - /package.json
++    unresolved:
++      dynamic-tool-resolution:
++        category: tool-registration
++        effect: warning
++        description: >-
++          /agent/tools/runtime.ts resolves a tool at session runtime, so static
++          source does not establish its final model-visible registration.
++        resolution: >-
++          Supply focused Eve runtime evidence for the resolver's emitted name,
++          schemas, availability, and execution before registering the tool.
++        related:
++          - path: /agent/tools/runtime.ts
++      markdown-skill-discovery:
++        category: skill-registration
++        effect: warning
++        description: >-
++          The flat reference skill and packaged guide candidate are not proven
++          members of the compiled, model-visible skill registry by static
++          inspection alone.
++        resolution: >-
++          Establish their discovery and routing metadata with Eve build or
++          runtime evidence, including valid packaged-skill frontmatter, before
++          adding canonical skill relationships.
++        related:
++          - path: /agent/skills/reference.md
++          - path: /agent/skills/guide/SKILL.md
++      single-file-subagent-form:
++        category: subagent-registration
++        effect: warning
++        description: >-
++          /agent/subagents/quick.ts exports a local defineAgent candidate, while
++          Eve's supported static local form is a subagent directory containing
++          agent.ts; a single file is the remote-agent form.
++        resolution: >-
++          Move the local definition to /agent/subagents/quick/agent.ts or supply
++          an evidenced defineRemoteAgent implementation and verify discovery.
++        related:
++          - path: /agent/subagents/quick.ts
++      example-instruction-forms:
++        category: instruction-loading
++        effect: warning
++        description: >-
++          The case-varied, composed, and legacy example files are outside a
++          proven active Eve instruction slot.
++        resolution: >-
++          Put intended content in an exact supported agent instruction form or
++          supply build and runtime evidence for the loader that consumes it.
++        related:
++          - path: /examples/instructions/Instructions.md
++          - path: /examples/instructions/instructions/part.md
++          - path: /examples/instructions/system.md
++      provider-model-behavior:
++        category: model-runtime
++        effect: warning
++        description: >-
++          The provider/model string in /agent/agent.ts does not establish an
++          available provider, model, or invocation behavior.
++        resolution: >-
++          Configure a supported provider and model and demonstrate the intended
++          invocation through focused Eve runtime evidence.
++        related:
++          - path: /agent/agent.ts
+
+diff --git a/moldea/runtimes/eve.md b/moldea/runtimes/eve.md
+new file mode 100644
+index 0000000..7983544
+--- /dev/null
++++ b/moldea/runtimes/eve.md
+@@ -0,0 +1,21 @@
++# Eve runtime
++
++This project uses the nested `agent/` layout with Eve 0.39.1 and requires
++Node.js 24 or newer, as declared by `package.json`.
++
++The supported static boundary is path-sensitive. Always-on instructions use
++exact lowercase `instructions.md`, `instructions.ts`, or non-recursive entries
++under `instructions/`. Tools are module-backed files under `tools/`. Skills may
++use `skills/<name>.ts`, flat `skills/<name>.md`, or packaged
++`skills/<name>/SKILL.md` with the required description frontmatter. A local
++subagent uses `subagents/<id>/agent.ts`; a single-file `subagents/<id>.ts` is a
++remote-agent form and must export a supported remote definition. The support
++agent's structured output remains the schema assigned in `agent.ts`.
++
++Canonical static relationships do not by themselves prove runtime-resolved
++tools, remote deployments, mounted extension contributions, MCP or OpenAPI
++connection tools, framework-owned tools, or provider and model behavior. They
++also do not settle filesystem name collisions, extension-reserved namespaces,
++or advanced lifecycle, durability, replay, authorization, approval, and sandbox
++behavior. Require a supported static form or focused Eve build, discovery,
++integration, or runtime evidence before recording any of those surfaces.

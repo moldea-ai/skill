@@ -1,0 +1,61 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 651685f..d2c9fd3 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -12,18 +13,36 @@ agents:
+         symbol: loadSupportInstruction
+     affectedBy:
+       - /src/**
++    unresolved:
++      runtime-tool-registry:
++        category: tool-registration
++        effect: warning
++        description: The final model-visible tool registry cannot be proven statically because SupportAgent spreads runtime-selected tools into its direct generation request.
++        resolution: Replace the runtime spread with a closed explicit tools object at the direct generation boundary, then bind every registered tool from repository evidence.
++        related:
++          - path: /src/support-agent.ts
+   step-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+         symbol: StepSupportAgent
+     affectedBy:
+       - /src/**
++    unresolved:
++      instruction-provenance:
++        category: instruction-provenance
++        effect: warning
++        description: The effective per-step instruction cannot be proven statically because prepareStep may replace the instruction selected by the direct generation request.
++        resolution: Remove the prepareStep instruction replacement and load the canonical instruction at the direct generation boundary through a repository-local loader.
++        related:
++          - path: /src/step-support-agent.ts
+   delegating-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/cloudflare-agents.md b/moldea/runtimes/cloudflare-agents.md
+new file mode 100644
+index 0000000..f055c70
+--- /dev/null
++++ b/moldea/runtimes/cloudflare-agents.md
+@@ -0,0 +1,5 @@
++# Cloudflare Agents runtime
++
++Keep each registered `AIChatAgent` class exported by the Worker entry point and declare its Durable Object binding in the Worker configuration. Add each first deployment to a SQLite Durable Object migration with `new_sqlite_classes`, configure the model provider binding or secret used by the selected model, and deploy Worker code, bindings, and migrations together.
++
++To close the support tool boundary statically, replace the runtime tool spread with a closed explicit `tools` object at the direct generation call. To close step-support instruction provenance statically, remove the `prepareStep` instruction replacement and load the canonical instruction through a repository-local loader at the direct generation call.

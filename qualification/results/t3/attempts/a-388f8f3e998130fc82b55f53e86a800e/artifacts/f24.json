@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 488577,
+  "deterministicBeforePath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 265279,
+    "cachedInputTokens": 234624,
+    "outputTokens": 4859
+  },
+  "judgeUsage": {
+    "inputTokens": 548861,
+    "cachedInputTokens": 514688,
+    "outputTokens": 8331
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T05:46:18.428Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T05:50:44.169Z",
+  "actorReuseSourceAttemptId": "20260911T054140998Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-7dea9f57",
+  "judgeReuseSourceAttemptId": "20260911T054140998Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-7dea9f57",
+  "requirementAssessments": [
+    {
+      "id": "explains-output-schema-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the prior LegacySupportOutputSchema binding and the direct Output.object request’s SupportOutputSchema. Current src/agent.ts imports SupportOutputSchema and passes it to Output.object. Replacing the manifest’s sole current SupportOutputSchema binding with LegacySupportOutputSchema reproduces the asserted pre-change SHA-256 exactly, confirming the reported mismatch; deterministic post-actor validation passed."
+    },
+    {
+      "id": "repairs-output-schema-binding",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now binds agents.support.bindings.outputSchema to /src/contracts.ts#SupportOutputSchema. Workspace assertions identify only moldea/moldea.yaml as changed, and every protected source file’s current SHA-256 matches its unchanged before/after assertion. The deterministic summary reports valid inspection, valid CLI validation, passing typecheck, and no failures."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The current manifest retains exact bindings for SupportAgent, loadSupportInstruction, SupportOutputSchema, lookupOrder, lookupOrderTool, LookupOrderInputSchema, and LookupOrderOutputSchema. The corresponding exports and consumption are present in src/agent.ts, src/contracts.ts, src/implementations.ts, and src/tools.ts. The only inputSchema binding is tool-scoped; no agent input schema was invented. Deterministic validation and typechecking both passed."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

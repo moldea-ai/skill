@@ -4884,7 +4884,12 @@ const runSemanticEvaluationPreflight = async (caseDefinitions, coverage = null) 
       if (!evaluationRoot.startsWith(expectedPrefix)) {
         throw new Error('Refusing to clean a preflight path outside the temporary prefix.');
       }
-      await rm(evaluationRoot, { force: true, recursive: true });
+      await rm(evaluationRoot, {
+        force: true,
+        maxRetries: 4,
+        recursive: true,
+        retryDelay: 100,
+      });
     }
   }
 

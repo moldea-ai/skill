@@ -1,0 +1,60 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 262998,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 324287,
+    "cachedInputTokens": 291840,
+    "outputTokens": 5061
+  },
+  "judgeUsage": {
+    "inputTokens": 284542,
+    "cachedInputTokens": 256256,
+    "outputTokens": 3612
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T09:24:36.673Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T09:26:30.655Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-alignment",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies the `support` agent and cites `moldea/moldea.yaml`, which registers runtime ID `custom`, guidance `/moldea/runtimes/custom.md`, and runtime binding `/src/support-agent.ts` symbol `supportAgent`. Current workspace files confirm those declarations; the guidance describes the exported record, and `src/support-agent.ts` exports `supportAgent` with ID `support` and channel `email`. No instruction loader or model-invocation implementation is declared or present in the scoped source. Deterministic-after reports valid CLI validation/inspection, passing typecheck, and `repositoryUnchanged: true`; approved Git status and relevant-path diff are empty."
+    },
+    {
+      "id": "avoids-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

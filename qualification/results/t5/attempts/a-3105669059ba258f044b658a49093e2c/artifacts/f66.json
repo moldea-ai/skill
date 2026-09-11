@@ -1,0 +1,77 @@
+{
+  "caseId": "create-grounded-agent",
+  "title": "Create a grounded agent",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 315797,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 315797,
+      "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 264517,
+        "cachedInputTokens": 216960,
+        "outputTokens": 6891
+      },
+      "judgeUsage": {
+        "inputTokens": 224406,
+        "cachedInputTokens": 196864,
+        "outputTokens": 3572
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T09:25:24.954Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T09:27:23.461Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-behavior",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current `moldea/agents/order-triage/description.md` says the agent classifies orders for human review without refund-approval authority. `instruction.md` requires concise classification for a human reviewer, handling uncertainty without fabrication, and explicitly says never to approve a refund or claim decision authority. Workspace assertions identify both as newly added paths."
+        },
+        {
+          "id": "binds-implementation",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current `moldea/moldea.yaml` binds `agents.order-triage.bindings.runtimeAgent` to `/src/order-triage-agent.ts` and exported symbol `createOrderTriageAgent`, with the same source under `affectedBy`. The source exports that factory and fixes `action` to `classify-for-human-review` and `canApproveRefunds` to false. Deterministic post-actor evidence reports valid inspection, valid CLI validation, passing typecheck, and an unchanged repository during validation."
+        },
+        {
+          "id": "defines-runtime-guidance",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest references `/moldea/runtimes/custom.md`, and targeted inventory shows it is the sole Markdown file under `moldea/runtimes`. Its guidance explains that the custom runtime supplies an asynchronous loader which resolves `/moldea/agents/order-triage/instruction.md` and returns its content to the factory. It explicitly declines to establish an order schema, model-visible tools, provider capabilities, or a refund execution path. Workspace patch evidence lists this as the sole new runtime-guidance file, while the Git diff contains the matching manifest reference."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

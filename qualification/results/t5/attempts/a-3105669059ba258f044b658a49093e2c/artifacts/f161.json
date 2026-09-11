@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the canonical `support` agent setup and its custom runtime integration. The direct moldea request activated the repository’s adoption gate. Canonical content inspection identified `/moldea/agents/support/instruction.md` as the owner; the final CLI 8.0.0 schema-4 validation passed with zero diagnostics. Final Git inspection confirmed only the four intended moldea changes plus the pre-existing `src/support-agent.ts` deletion.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The pre-existing Git status showed `src/support-agent.ts` deleted; its prior contents exported the `supportAgent` runtime record.",
+    "`moldea/moldea.yaml` bound the support agent to the deleted file and declared its custom runtime guidance, so the complete `agents.support` entry was obsolete and removed.",
+    "`moldea/agents/support/instruction.md` and `description.md` described the retired agent, establishing both canonical files as obsolete.",
+    "`moldea/runtimes/custom.md` claimed the deleted `supportAgent` export was the runtime-owned definition; the manifest showed no other agent using it, establishing that runtime guidance as obsolete.",
+    "`moldea/project.md` was preserved because it already truthfully records that the former support agent was removed.",
+    "The bounded canonical content command returned 108 bytes with no continuation cursor. Final bounded validation returned `valid: true`, zero diagnostics, and no cursor.",
+    "`package.json` defines no test scripts, so the repository-local canonical validator was the relevant local validation."
+  ],
+  "unresolved": []
+}

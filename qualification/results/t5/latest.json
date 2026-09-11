@@ -2,8 +2,8 @@
   "protocolVersion": 10,
   "adapterId": "custom",
   "implementationId": "custom",
-  "latestAttemptId": "20260911T045928448Z-custom-custom-489ed604",
-  "latestStatus": "passed",
+  "latestAttemptId": "20260911T092156960Z-custom-custom-fb757bcc",
+  "latestStatus": "failed",
   "lastPassingAttemptId": "20260911T045928448Z-custom-custom-489ed604",
-  "updatedAt": "2026-09-11T05:06:30.923Z"
+  "updatedAt": "2026-09-11T09:34:58.929Z"
 }

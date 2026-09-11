@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The moldea `support` agent is statically aligned with the project and declared custom runtime binding. No edit was required. TypeScript and moldea validation passed, and the final Git status and scoped diff were empty.",
+  "changedFiles": [],
+  "observations": [
+    "`src/support-agent.ts` exports `supportAgent` with ID `support` and email channel.",
+    "The project describes a customer-support agent with an explicit custom runtime integration; the agent description assigns customer-support requests through email, and its instruction requires evidence-based answers with escalation for uncertainty.",
+    "`moldea/moldea.yaml` declares runtime ID `custom`, guidance `/moldea/runtimes/custom.md`, and runtime binding `/src/support-agent.ts` symbol `supportAgent`.",
+    "The runtime guidance identifies `supportAgent` as the runtime-owned definition and preserves its identifier and channel, matching the implementation.",
+    "The canonical content and inspection commands returned valid CLI 8.0.0/schema 4 envelopes. Final moldea validation reported format version 1, zero diagnostics, and `valid: true`.",
+    "`node node_modules/typescript/bin/tsc --project tsconfig.json` exited successfully. No focused test files or package test script were present."
+  ],
+  "unresolved": [
+    "No executable runtime consumer or instruction/description loader is evidenced beyond the exported record and declarative binding, so actual canonical-content consumption and operational runtime behavior cannot be proven from this repository."
+  ]
+}

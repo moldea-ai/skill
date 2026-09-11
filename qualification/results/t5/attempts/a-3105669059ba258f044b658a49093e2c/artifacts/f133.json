@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s runtime binding with the renamed implementation and documented the dynamic tool-registration boundary. moldea validation passed with zero diagnostics, TypeScript compilation passed, and the final scoped diff was inspected.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "The runtimeAgent binding now targets `/src/support-assistant.ts` and symbol `supportAssistant`.",
+    "No tool binding was invented and no implementation code was modified or recreated.",
+    "Pre-existing deletion of `src/support-agent.ts` and untracked `src/support-assistant.ts` and `src/dynamic-tools.ts` were preserved."
+  ],
+  "unresolved": [
+    "Static inspection cannot establish the final runtime tool relationship assembled in `/src/dynamic-tools.ts`; the agent warning resolves this by requiring an integration test that constructs the registry and verifies every `supportAssistant.tools` entry is present."
+  ]
+}

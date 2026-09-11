@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The repository is uninitialized: canonical files are absent, the README has no managed reference, and the package only declares the CLI dependency. Git status and the approved path-limited diff are empty, agreeing with the unchanged-workspace evidence. The actor correctly completed the independent retry-policy review without exposing skill behavior.",
+  "requirements": [
+    {
+      "id": "excludes-moldea",
+      "verdict": "pass",
+      "evidence": "The actor output contains only the retry-policy finding, probes, typecheck, and clean-worktree result; it neither mentions moldea nor reproduces skill-reference content. Runner-owned actor-command-policy reports moldeaCommandCount: 0 and moldeaOutputByteCount: 0."
+    }
+  ],
+  "failures": []
+}

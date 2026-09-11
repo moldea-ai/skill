@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 243251,
+  "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 185145,
+    "cachedInputTokens": 160512,
+    "outputTokens": 5255
+  },
+  "judgeUsage": {
+    "inputTokens": 167571,
+    "cachedInputTokens": 152064,
+    "outputTokens": 3467
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T09:24:26.738Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T09:26:10.915Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-project",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md describes duplicate-reference invoice review, returning findings to a human finance operator, and never authorizing or sending payment. src/invoice-review.ts implements deterministic duplicate detection with sorted output. Current hashes match the runner-owned after-state, and the README diff preserves the repository’s supporting description."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The canonical inventory contains only moldea/moldea.yaml and moldea/project.md; the manifest is exactly `version: 1` and declares no agents, runtimes, relationships, decisions, or requirements. README.md only appends the moldea awareness block. Git status, diff, and workspace assertions identify exactly README.md plus the two new canonical files, while package.json, source, and tsconfig hashes remain unchanged."
+    },
+    {
+      "id": "preserves-existing-work",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

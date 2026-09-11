@@ -1,63 +1,152 @@
-// @vitest-environment node
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../codex-evaluation-host/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
 
 import { createSemanticAttemptRecord } from './attempt-history.mjs';
+import { createSemanticStageReuseRecord } from './stage-reuse.mjs';
 
 const SHA256 = 'a'.repeat(64);
-const HOST = {
+const ACTOR_HOST = {
+  developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   model: 'gpt-5.6-sol',
   name: 'codex',
-  reasoningEffort: 'medium',
+  reasoningEffort: 'xhigh',
+  role: 'actor',
   version: 'codex-cli test',
 };
-const UPDATED_HOST = { ...HOST, version: 'codex-cli updated' };
+const JUDGE_HOST = {
+  ...ACTOR_HOST,
+  reasoningEffort: 'xhigh',
+  role: 'judge',
+};
+const UPDATED_ACTOR_HOST = { ...ACTOR_HOST, version: 'codex-cli updated' };
+const UPDATED_JUDGE_HOST = { ...JUDGE_HOST, version: 'codex-cli updated' };
 const HOST_CONTRACT = {
-  model: HOST.model,
-  name: HOST.name,
-  reasoningEffort: HOST.reasoningEffort,
+  actor: {
+    developerInstructionsSha256: ACTOR_HOST.developerInstructionsSha256,
+    model: ACTOR_HOST.model,
+    name: ACTOR_HOST.name,
+    reasoningEffort: ACTOR_HOST.reasoningEffort,
+    role: ACTOR_HOST.role,
+  },
+  judge: {
+    developerInstructionsSha256: JUDGE_HOST.developerInstructionsSha256,
+    model: JUDGE_HOST.model,
+    name: JUDGE_HOST.name,
+    reasoningEffort: JUDGE_HOST.reasoningEffort,
+    role: JUDGE_HOST.role,
+  },
 };
 const COMMAND_POLICY_EVIDENCE = {
   completedCommandCount: 1,
-  indeterminateCommandCount: 0,
-  packageManagerExecution: 'not-observed',
-  packageManagerInvocationCount: 0,
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
+  networkAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+};
+const RESOURCE_EVIDENCE = {
+  commandCount: 0,
+  maximumInvocationByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  operations: [],
+  stdoutByteCount: 0,
+};
+const MODEL_USAGE = {
+  cachedInputTokens: 4_000,
+  inputTokens: 8_000,
+  outputTokens: 1_000,
 };
 
 const createTrial = (id, passed, evaluatedAt) => ({
+  confirmationEligible: !passed,
+  dimensions: {
+    semantic: passed,
+    resource: true,
+    commandPolicy: true,
+    repositoryControl: true,
+    mountIntegrity: true,
+    operational: true,
+  },
   evaluatedAt,
+  executionOrigin: 'executed',
+  failureClassifications: passed ? [] : ['semantic'],
   forbidden: [],
   id,
   observed: passed ? ['required-behavior'] : [],
   passed,
   rationale: passed ? 'The required behavior was observed.' : 'The required behavior was missing.',
+  stageReuse: null,
 });
+
+const createStageReuse = (id) => {
+  const trial = { caseId: id, confirmationIndex: null, kind: 'initial' };
+  const source = {
+    identitySha256: 'd'.repeat(64),
+    sourceAttemptId: 'source-attempt',
+    sourceCommit: 'e'.repeat(40),
+    sourceEvidencePath:
+      'fixtures/semantic-evaluation-results/attempts/source-attempt/evidence.json',
+    sourceEvidenceSha256: 'f'.repeat(64),
+    trial,
+  };
+
+  return {
+    actor: createSemanticStageReuseRecord({ ...source, stage: 'actor' }),
+    judge: createSemanticStageReuseRecord({ ...source, stage: 'judge' }),
+  };
+};
 
 const createEvidence = (results, confirmations = []) => ({
   activeTrial: null,
   artifactDigest: SHA256,
   caseSuiteDigest: 'b'.repeat(64),
   cli: { name: '@moldea.ai/cli', version: '5.0.0' },
-  confirmations,
+  confirmationPolicy: {
+    version: 2,
+    requiredPassingConfirmations: 2,
+    requiredFailingConfirmations: 2,
+    maximumConfirmations: 3,
+  },
   coverageDigest: 'c'.repeat(64),
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt: '2026-08-25T00:00:00.000Z',
   confirmations: confirmations.map((confirmation) => ({
     actorCommandPolicyEvidence: COMMAND_POLICY_EVIDENCE,
-    actorHost: UPDATED_HOST,
-    judgeHost: UPDATED_HOST,
+    actorResourceEvidence: RESOURCE_EVIDENCE,
+    actorHost: UPDATED_ACTOR_HOST,
+    actorUsage: MODEL_USAGE,
+    judgeCommandPolicyEvidence: COMMAND_POLICY_EVIDENCE,
+    judgeHost: UPDATED_JUDGE_HOST,
+    judgeUsage: MODEL_USAGE,
     ...confirmation,
   })),
   hostContract: HOST_CONTRACT,
   results: results.map((result) => ({
     actorCommandPolicyEvidence: COMMAND_POLICY_EVIDENCE,
-    actorHost: HOST,
-    judgeHost: HOST,
+    actorResourceEvidence: RESOURCE_EVIDENCE,
+    actorHost: ACTOR_HOST,
+    actorUsage: MODEL_USAGE,
+    judgeCommandPolicyEvidence: COMMAND_POLICY_EVIDENCE,
+    judgeHost: JUDGE_HOST,
+    judgeUsage: MODEL_USAGE,
     ...result,
   })),
-  schemaVersion: 6,
+  schemaVersion: 10,
   updatedAt: '2026-08-25T01:00:00.000Z',
 });
 
@@ -83,6 +172,35 @@ test('semantic attempt summaries expose failures and pending cases', () => {
     attempt.cases.find(({ id }) => id === 'failing-case')?.confirmationStatus,
     'required',
   );
+});
+
+test('semantic attempt summaries accept one complete ledger with confirmed failures', () => {
+  const initialFailure = createTrial('failing-case', false, '2026-08-25T00:30:00.000Z');
+  const rejectedConfirmation = {
+    ...createTrial('failing-case', false, '2026-08-25T00:40:00.000Z'),
+    confirmationIndex: 1,
+  };
+  const terminalConfirmation = {
+    ...createTrial('failing-case', false, '2026-08-25T00:50:00.000Z'),
+    confirmationIndex: 2,
+  };
+  const attempt = createSemanticAttemptRecord({
+    evidence: createEvidence(
+      [createTrial('passing-case', true, '2026-08-25T00:20:00.000Z'), initialFailure],
+      [rejectedConfirmation, terminalConfirmation],
+    ),
+    evidenceKind: 'candidate',
+    evidenceSha256: 'c'.repeat(64),
+    recordedAt: '2026-08-25T01:00:01.000Z',
+    stopReason: 'complete-with-failures',
+    totalCaseCount: 2,
+  });
+
+  assert.equal(attempt.status, 'failed');
+  assert.equal(attempt.failedCaseCount, 1);
+  assert.equal(attempt.passedCaseCount, 1);
+  assert.equal(attempt.pendingCaseCount, 0);
+  assert.equal(attempt.stopReason, 'complete-with-failures');
 });
 
 test('semantic attempt summaries recover only after two passing confirmations', () => {
@@ -178,12 +296,12 @@ test('semantic attempt summaries preserve mixed per-trial host provenance', () =
     totalCaseCount: 1,
   });
 
-  assert.equal(attempt.schemaVersion, 4);
+  assert.equal(attempt.schemaVersion, 7);
   assert.deepEqual(attempt.hostContract, HOST_CONTRACT);
   assert.equal(attempt.actorHost, undefined);
-  assert.equal(attempt.cases[0].trials[0].actorHost.version, HOST.version);
-  assert.equal(attempt.cases[0].trials[1].actorHost.version, UPDATED_HOST.version);
-  assert.equal(attempt.cases[0].trials[1].judgeHost.version, UPDATED_HOST.version);
+  assert.equal(attempt.cases[0].trials[0].actorHost.version, ACTOR_HOST.version);
+  assert.equal(attempt.cases[0].trials[1].actorHost.version, UPDATED_ACTOR_HOST.version);
+  assert.equal(attempt.cases[0].trials[1].judgeHost.version, UPDATED_JUDGE_HOST.version);
 });
 
 test('semantic attempt summaries record Sol provenance and command policy', () => {
@@ -196,10 +314,81 @@ test('semantic attempt summaries record Sol provenance and command policy', () =
     totalCaseCount: 1,
   });
 
-  assert.equal(attempt.schemaVersion, 4);
+  assert.equal(attempt.schemaVersion, 7);
   assert.deepEqual(attempt.hostContract, HOST_CONTRACT);
-  assert.equal(attempt.cases[0].trials[0].actorHost.model, HOST.model);
+  assert.equal(attempt.cases[0].trials[0].actorHost.model, ACTOR_HOST.model);
   assert.deepEqual(attempt.cases[0].trials[0].actorCommandPolicyEvidence, COMMAND_POLICY_EVIDENCE);
+  assert.deepEqual(attempt.cases[0].trials[0].judgeCommandPolicyEvidence, COMMAND_POLICY_EVIDENCE);
+});
+
+test('semantic attempt summaries distinguish executed and exact reused stages', () => {
+  const executedTrial = {
+    ...createTrial('executed-case', true, '2026-08-25T00:30:00.000Z'),
+    executionOrigin: 'executed',
+    stageReuse: null,
+  };
+  const reusedTrial = {
+    ...createTrial('reused-case', true, '2026-08-25T01:00:00.000Z'),
+    executionOrigin: 'reused',
+    stageReuse: createStageReuse('reused-case'),
+  };
+  const attempt = createSemanticAttemptRecord({
+    evidence: createEvidence([executedTrial, reusedTrial]),
+    evidenceKind: 'candidate',
+    evidenceSha256: 'd'.repeat(64),
+    recordedAt: '2026-08-25T01:00:01.000Z',
+    stopReason: 'complete',
+    totalCaseCount: 2,
+  });
+
+  assert.equal(attempt.executedTrialCount, 1);
+  assert.equal(attempt.executedStageCount, 2);
+  assert.equal(attempt.reusedTrialCount, 1);
+  assert.equal(attempt.reusedStageCount, 2);
+  assert.equal(attempt.cases[1].trials[0].executionOrigin, 'reused');
+  assert.equal(attempt.cases[1].trials[0].stageReuse.actor.source.attemptId, 'source-attempt');
+});
+
+test('semantic attempt summaries reject incomplete or missing execution provenance', () => {
+  const reusedTrial = {
+    ...createTrial('reused-case', true, '2026-08-25T01:00:00.000Z'),
+    executionOrigin: 'reused',
+    stageReuse: createStageReuse('reused-case'),
+  };
+  reusedTrial.stageReuse.judge.source.evidenceSha256 = '0'.repeat(64);
+
+  assert.throws(
+    () =>
+      createSemanticAttemptRecord({
+        evidence: createEvidence([reusedTrial]),
+        evidenceKind: 'candidate',
+        evidenceSha256: 'd'.repeat(64),
+        recordedAt: '2026-08-25T01:00:01.000Z',
+        stopReason: 'complete',
+        totalCaseCount: 1,
+      }),
+    /invalid execution provenance/u,
+  );
+
+  const missingProvenance = createTrial(
+    'missing-provenance-case',
+    true,
+    '2026-08-25T01:00:00.000Z',
+  );
+  delete missingProvenance.executionOrigin;
+  delete missingProvenance.stageReuse;
+  assert.throws(
+    () =>
+      createSemanticAttemptRecord({
+        evidence: createEvidence([missingProvenance]),
+        evidenceKind: 'candidate',
+        evidenceSha256: 'd'.repeat(64),
+        recordedAt: '2026-08-25T01:00:01.000Z',
+        stopReason: 'complete',
+        totalCaseCount: 1,
+      }),
+    /invalid execution provenance/u,
+  );
 });
 
 test('semantic attempt summaries reject missing or incompatible trial evidence', () => {
@@ -218,7 +407,7 @@ test('semantic attempt summaries reject missing or incompatible trial evidence',
         ...options,
         evidence: {
           ...createEvidence([trial]),
-          results: [{ ...trial, actorHost: HOST, judgeHost: undefined }],
+          results: [{ ...trial, actorHost: ACTOR_HOST, judgeHost: undefined }],
         },
       }),
     /invalid trial host provenance/,
@@ -227,7 +416,9 @@ test('semantic attempt summaries reject missing or incompatible trial evidence',
     () =>
       createSemanticAttemptRecord({
         ...options,
-        evidence: createEvidence([{ ...trial, actorHost: { ...HOST, reasoningEffort: 'high' } }]),
+        evidence: createEvidence([
+          { ...trial, actorHost: { ...ACTOR_HOST, reasoningEffort: 'medium' } },
+        ]),
       }),
     /invalid trial host provenance/,
   );
@@ -240,8 +431,8 @@ test('semantic attempt summaries reject missing or incompatible trial evidence',
           results: [
             {
               ...trial,
-              actorHost: HOST,
-              judgeHost: { ...HOST, model: 'other' },
+              actorHost: ACTOR_HOST,
+              judgeHost: { ...JUDGE_HOST, model: 'other' },
             },
           ],
         },
@@ -254,8 +445,37 @@ test('semantic attempt summaries reject missing or incompatible trial evidence',
         ...options,
         evidence: {
           ...createEvidence([trial]),
-          results: [{ ...trial, actorHost: HOST, judgeHost: HOST }],
+          results: [
+            {
+              ...trial,
+              actorHost: ACTOR_HOST,
+              actorUsage: MODEL_USAGE,
+              judgeHost: JUDGE_HOST,
+              judgeUsage: MODEL_USAGE,
+            },
+          ],
         },
+      }),
+    /invalid trial command-policy evidence/,
+  );
+  assert.throws(
+    () =>
+      createSemanticAttemptRecord({
+        ...options,
+        evidence: createEvidence([
+          {
+            ...trial,
+            actorCommandPolicyEvidence: {
+              ...COMMAND_POLICY_EVIDENCE,
+              networkAccess: {
+                status: 'observed',
+                observedCount: 1,
+                indeterminateCount: 0,
+                reasons: [{ code: 'network-client', count: 1 }],
+              },
+            },
+          },
+        ]),
       }),
     /invalid trial command-policy evidence/,
   );
@@ -275,7 +495,7 @@ test('semantic attempt summaries accept only the current schema and protocol con
     () =>
       createSemanticAttemptRecord({
         ...options,
-        evidence: { ...createEvidence([trial]), schemaVersion: 7 },
+        evidence: { ...createEvidence([trial]), schemaVersion: 8 },
       }),
     /unsupported schema/,
   );
@@ -283,7 +503,10 @@ test('semantic attempt summaries accept only the current schema and protocol con
     () =>
       createSemanticAttemptRecord({
         ...options,
-        evidence: { ...createEvidence([trial]), evaluationProtocolVersion: 22 },
+        evidence: {
+          ...createEvidence([trial]),
+          evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION - 1,
+        },
       }),
     /unsupported schema and protocol contract/,
   );

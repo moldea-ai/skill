@@ -15,6 +15,12 @@ import {
   readYamlFile,
   resolveContainedPath,
 } from '../filesystem/index.ts';
+import {
+  createQualificationPnpmInstallation,
+  createQualificationPnpmOptions,
+  createQualificationPnpmPackageVersions,
+  initializeQualificationPnpmInstallation,
+} from '../pnpm-installation/index.ts';
 import { executeProcess } from '../process/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import {
@@ -85,11 +91,11 @@ const installCandidateProjectRuntime = async (
       );
     }
   }
-  const localPackageOverrides = Object.fromEntries(
-    [...candidate.packages, ...(candidate.runtimePackages ?? []), candidate.typeScriptPackage].map(
-      (candidatePackage) => [candidatePackage.name, `file:${candidatePackage.tarballPath}`],
-    ),
-  );
+  const exactPackageOverrides = createQualificationPnpmPackageVersions([
+    ...candidate.packages,
+    ...(candidate.runtimePackages ?? []),
+    candidate.typeScriptPackage,
+  ]);
   const serializeManifest = (manifestValue: Record<string, unknown>): string =>
     `${JSON.stringify(manifestValue, null, 2)}\n`;
   const pnpmWorkspacePath = path.join(workspaceDirectory, 'pnpm-workspace.yaml');
@@ -112,11 +118,16 @@ const installCandidateProjectRuntime = async (
     preferSymlinkedExecutables: true,
     overrides: {
       ...pnpmWorkspace.overrides,
-      ...localPackageOverrides,
+      ...exactPackageOverrides,
     },
   };
 
   const projectNodeModules = path.join(workspaceDirectory, 'node_modules');
+  const pnpmInstallation = createQualificationPnpmInstallation(
+    attemptDirectory,
+    `${new URL(cliPackage.registryTarballUrl).origin}/`,
+  );
+  await initializeQualificationPnpmInstallation(pnpmInstallation);
   await rm(projectNodeModules, { force: true, recursive: true });
   await writeFile(manifestPath, serializeManifest(projectManifest), 'utf8');
   await writeFile(pnpmWorkspacePath, stringifyYaml(installationPnpmWorkspace), 'utf8');
@@ -130,11 +141,10 @@ const installCandidateProjectRuntime = async (
         '--ignore-scripts',
         '--lockfile=false',
         '--config.strict-peer-dependencies=true',
-        '--store-dir',
-        path.join(attemptDirectory, 'pnpm-store'),
+        ...createQualificationPnpmOptions(pnpmInstallation),
       ],
       cwd: workspaceDirectory,
-      environment: { ...process.env, CI: 'true' },
+      environment: pnpmInstallation.environment,
       signal,
     });
   } finally {

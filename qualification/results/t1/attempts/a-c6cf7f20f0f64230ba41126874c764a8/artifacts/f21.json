@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s Anthropic tool registration by aligning the canonical name with the working `lookup_order` declaration. Local validation is complete and reports no wiring diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Changed only `find_order` to `lookup_order`; the wrapper, declaration, implementation, input schema, paths, and symbols remain unchanged.",
+    "Complete tool evidence remains declared for description, implementation (`lookupOrder`), registration (`lookupOrderTool`), and input schema (`LookupOrderInputSchema`).",
+    "moldea validation returned `valid: true`, `diagnosticCount: 0`, and a null cursor.",
+    "TypeScript validation passed with `tsc -p tsconfig.json --noEmit`.",
+    "Final Git diff contains only the intended one-line manifest correction.",
+    "No live Anthropic API request was attempted or claimed; verification used the closed repository wiring and local validators."
+  ],
+  "unresolved": []
+}

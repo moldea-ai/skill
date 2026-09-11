@@ -1,0 +1,11 @@
+{
+  "outcome": "blocked",
+  "summary": "No files were changed.",
+  "changedFiles": [],
+  "observations": [
+    "Pre-existing tracked and untracked developer work was left untouched."
+  ],
+  "unresolved": [
+    "The requested billing-context integration remains unapplied."
+  ]
+}

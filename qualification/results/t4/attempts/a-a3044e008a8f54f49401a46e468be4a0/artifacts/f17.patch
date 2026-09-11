@@ -1,0 +1,62 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 651685f..76cdc5d 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -12,18 +13,37 @@ agents:
+         symbol: loadSupportInstruction
+     affectedBy:
+       - /src/**
++    unresolved:
++      runtime-selected-tools:
++        category: tool-registration
++        effect: warning
++        description: SupportAgent adds runtime-selected tools to its statically visible tool map, so static inspection cannot establish the final registry.
++        resolution: Establish the complete registry through closed source wiring or an integration test that enumerates SupportAgent.getTools().
++        related:
++          - path: /src/support-agent.ts
+   step-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+         symbol: StepSupportAgent
+     affectedBy:
+       - /src/**
++    unresolved:
++      helper-built-session-instruction:
++        category: instruction-loading
++        effect: warning
++        description: StepSupportAgent delegates dynamic session construction to a helper, so the selected class boundary does not establish a direct instruction-loader binding.
++        resolution: Establish a direct repository-local loader boundary or an integration test that proves canonical instruction provenance through the configured session.
++        related:
++          - path: /src/step-support-agent.ts
++          - path: /src/instructions.ts
+   delegating-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/cloudflare-agents.md b/moldea/runtimes/cloudflare-agents.md
+new file mode 100644
+index 0000000..4681a1c
+--- /dev/null
++++ b/moldea/runtimes/cloudflare-agents.md
+@@ -0,0 +1,5 @@
++# Cloudflare Agents runtime
++
++The registered agents are inspected `Think` subclasses. `SupportAgent.getTools()` includes a known status tool and an open runtime-selected spread, so its final tool registry remains unresolved. `StepSupportAgent.configureSession()` delegates to helper-built session configuration; that construction does not establish a direct instruction-loader binding. `delegate_support` is an ordinary function tool whose implementation references `StepSupportAgent`, not a handoff or routing target. `RuntimeInitializedAgent` is outside the selected closed class target because it has an executable initialized field.
++
++The deploying application owns the Cloudflare Durable Object bindings for selected agent classes, a migration that adds their SQLite-backed classes, and deployment configuration and ordering. Keep binding class names, migration entries, and exported Worker classes aligned; canonical runtime relationships do not create or apply them.

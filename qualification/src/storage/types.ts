@@ -61,14 +61,7 @@ const QualificationArtifactStorageEntrySchema = z.strictObject({
   sha256: Sha256Schema,
 });
 
-const QualificationCarryForwardSourceSchema = z.strictObject({
-  attestationId: z.string().regex(/^v4\.0\.0-custom-[a-f0-9]{64}$/u),
-  sourceRelease: z.literal('v4.0.0'),
-  sourceCommit: GitCommitSchema,
-  sourceAttemptDigest: Sha256Schema,
-});
-
-/** Versioned physical-storage manifest for an unchanged logical qualification attempt. */
+/** Versioned physical-storage manifest for one current qualification attempt. */
 export const QualificationAttemptStorageSchema = z
   .strictObject({
     version: z.literal(1),
@@ -81,7 +74,6 @@ export const QualificationAttemptStorageSchema = z
     portableSkillBehaviorDigest: Sha256Schema,
     cliClosureDigest: Sha256Schema,
     artifacts: z.array(QualificationArtifactStorageEntrySchema),
-    carryForward: QualificationCarryForwardSourceSchema.optional(),
   })
   .superRefine((manifest, context) => {
     const logicalPaths = manifest.artifacts.map(({ logicalPath }) => logicalPath);
@@ -104,8 +96,5 @@ export const QualificationAttemptStorageSchema = z
 export type IQualificationAttemptStorage = z.infer<typeof QualificationAttemptStorageSchema>;
 export type IQualificationArtifactStorageEntry = z.infer<
   typeof QualificationArtifactStorageEntrySchema
->;
-export type IQualificationCarryForwardSource = z.infer<
-  typeof QualificationCarryForwardSourceSchema
 >;
 export type { IQualificationCompatibilityIdentity };

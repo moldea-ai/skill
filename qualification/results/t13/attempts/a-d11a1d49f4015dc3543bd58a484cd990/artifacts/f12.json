@@ -1,0 +1,31 @@
+{
+  "verdict": "fail",
+  "summary": "The manifest and sole runtime-guidance file correctly preserve the implementation and avoid unsupported relationship claims, and deterministic validation passed. However, the documentation never explicitly identifies the missing direct runtime-pattern proof or describes a concrete supported object-literal generateText pattern. This read-only judgment changed no repository files.",
+  "requirements": [
+    {
+      "id": "identifies-unsupported-form",
+      "verdict": "fail",
+      "evidence": "The actor report, moldea/runtimes/vercel-ai-sdk.md, and agents.support.unresolved explain that buildRequest and prepareStep prevent proving which instructions are effective. They do not state that the indirect argument also prevents direct runtime-pattern proof."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "fail",
+      "evidence": "The manifest diff adds guidance: /moldea/runtimes/vercel-ai-sdk.md, and targeted workspace inventory confirms it is the sole runtime-guidance file. It describes buildRequest and prepareStep without provider claims, but only refers generically to a “direct request pattern”; it never describes the required direct object-literal alternative such as generateText({ ... })."
+    },
+    {
+      "id": "records-unresolved-boundary",
+      "verdict": "fail",
+      "evidence": "agents.support.unresolved names the instruction-provenance boundary and relates /src/support-agent.ts and the canonical instruction. Its resolution identifies the source path and runtime verification, but “a supported generateText request pattern” does not concretely specify the supported direct object-literal form."
+    },
+    {
+      "id": "avoids-inference",
+      "verdict": "pass",
+      "evidence": "The path-scoped diff adds only runtime guidance and an unresolved warning. The new guidance adds no instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationship; deterministic validation and workspace assertions also passed."
+    }
+  ],
+  "failures": [
+    "State explicitly that generateText(buildRequest(prompt)) is outside direct runtime-pattern proof and that prepareStep prevents instruction-loader proof.",
+    "Document the concrete supported alternative, for example a direct generateText({ ... }) object literal with the canonical instructions supplied at the invocation boundary.",
+    "Replace the unresolved warning’s generic “supported generateText request pattern” wording with the concrete direct object-literal pattern."
+  ]
+}

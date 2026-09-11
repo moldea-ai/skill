@@ -1,0 +1,24 @@
+{
+  "verdict": "fail",
+  "summary": "The current files and deterministic results support the repair, but mandatory Git evidence could not be verified: both evaluator-approved status and diff commands were blocked with “repository attribute safety was not established.” The judge made no repository changes.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies the former manifest name as find_order and the source-proven name as lookup_order. Current src/tools.ts declares lookup_order, while src/agent.ts registers that declaration in the closed tools: [lookupOrderTool] array; deterministic validation is valid with zero reported failures."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "fail",
+      "evidence": "Current moldea/moldea.yaml declares name: lookup_order, matching src/tools.ts, and runner evidence reports only moldea/moldea.yaml changed with valid post-actor validation. However, the approved Git diff exited 2 before producing a patch, so the required baseline-to-current canonical-name change cannot be independently confirmed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml exactly binds supportAgent and loadSupportInstruction in src/agent.ts, lookupOrderTool in src/tools.ts, LookupOrderInputSchema in src/contracts.ts, and lookupOrder in src/implementations.ts. The source shows the loader reading the canonical instruction, the client registering lookupOrderTool, and the tool using LookupOrderInputSchema. Deterministic inspection and typechecking passed."
+    }
+  ],
+  "failures": [
+    "Supply independently collected inert Git status/diff evidence, or establish repository attribute safety so the evaluator-approved Git commands can run and confirm the exact patch."
+  ]
+}

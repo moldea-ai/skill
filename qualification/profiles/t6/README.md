@@ -1,6 +1,6 @@
 # Eve filesystem-agent profile
 
-This profile covers the eight universal qualification journeys plus diagnostic repair and conservative static-boundary cases for the `typescript-filesystem-agent-0-39` target.
+This profile qualifies the `typescript-filesystem-agent-0-39` target with the shared eight-case `custom/custom` baseline and two adapter-specific projects for diagnostic repair and conservative static-boundary behavior. This profile executes only its adapter-specific projects; the universal baseline executes and publishes once under `custom/custom`.
 
 Each project pins `eve@0.39.1`, `ai@7.0.77`, `zod@4.3.6`, `@types/node@22.20.1`, and `typescript@6.0.3`, and declares Eve's Node.js 24 application prerequisite. Qualification downloads and verifies the exact published artifacts once, records their checksums with candidate evidence, primes the attempt-local package store, and installs projects offline. Deterministic stages typecheck against the real packages but never invoke an agent, tool, skill, subagent, model, or provider.
 

@@ -1,0 +1,87 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 5a1cc56..f23daa0 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,8 +1,34 @@
+ version: 1
++unresolved:
++  typescript-runtime-contracts:
++    category: schema
++    effect: warning
++    description: TypeScript input and result annotations are present, but static inspection does not establish runtime validation or an executable model-facing schema.
++    resolution: Provide the runtime validation or schema artifact and focused evidence that each entrypoint consumes it, or explicitly establish that the contracts remain compile-time only.
++    related:
++      - path: /src/support-workflow.ts
++      - path: /src/dynamic-support-workflow.ts
++  functional-api-runtime-semantics:
++    category: runtime-semantics
++    effect: warning
++    description: Static source does not establish configured checkpointer behavior, replay or idempotency guarantees, interrupt resumption, or approval authorization semantics.
++    resolution: Provide the deployed runtime configuration and focused integration evidence for persistence, replay, idempotency, interrupt resumption, and approval handling.
++    related:
++      - path: /src/support-workflow.ts
++      - path: /src/dynamic-support-workflow.ts
++  task-capability-classification:
++    category: capability-registration
++    effect: informational
++    description: The task declarations establish workflow tasks but do not prove model-visible tools, skills, or agent capabilities.
++    resolution: Provide explicit runtime capability registration and compatible executable contract evidence, or establish that the tasks remain workflow-internal.
++    related:
++      - path: /src/support-workflow.ts
++      - path: /src/dynamic-support-workflow.ts
+ agents:
+   support:
+     runtime:
+       id: langgraph
++      guidance: /moldea/runtimes/langgraph.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-workflow.ts
+@@ -12,10 +38,32 @@ agents:
+   dynamic-support:
+     runtime:
+       id: langgraph
++      guidance: /moldea/runtimes/langgraph.md
+     bindings:
+       runtimeAgent:
+         path: /src/dynamic-support-workflow.ts
+         symbol: dynamicSupportWorkflow
+     affectedBy:
+       - /src/dynamic-support-workflow.ts
+-      - /src/runtime-boundaries.ts
++    unresolved:
++      indirect-task-calls:
++        category: runtime-integration
++        effect: warning
++        description: Static inspection cannot prove how task calls reached through the helper and mapped callbacks are captured as nested runtime invocations.
++        resolution: Provide source-owned runtime documentation or a focused integration test that establishes invocation capture and nesting behavior for both indirect call paths.
++        related:
++          - path: /src/dynamic-support-workflow.ts
++      dynamic-control-flow:
++        category: runtime-control-flow
++        effect: warning
++        description: The input-dependent task selection and concurrent callback mapping are visible, but their runtime tracing, replay, and failure behavior are not established.
++        resolution: Provide focused runtime evidence for each selected branch and the mapped callback path, including replay and failure behavior.
++        related:
++          - path: /src/dynamic-support-workflow.ts
++      routing-classification:
++        category: routing
++        effect: informational
++        description: The route input selects a workflow task, but static inspection does not establish agent routing, transfer semantics, or topology.
++        resolution: Provide explicit runtime routing configuration and consumption evidence, or establish that the branch remains workflow-local control flow.
++        related:
++          - path: /src/dynamic-support-workflow.ts
+
+diff --git a/moldea/runtimes/langgraph.md b/moldea/runtimes/langgraph.md
+new file mode 100644
+index 0000000..01184c4
+--- /dev/null
++++ b/moldea/runtimes/langgraph.md
+@@ -0,0 +1,7 @@
++# LangGraph Functional API boundaries
++
++Static source inspection establishes the `supportWorkflow` and `dynamicSupportWorkflow` entrypoints and their local control flow. It also shows the direct support task call, previous-state read, interrupt payload, separate returned and saved values, input-selected tasks, helper and callback call paths, and TypeScript annotations.
++
++Those facts do not establish executable schemas, model-visible task capabilities, agent routing, handoffs, or an invocation topology. In particular, helper and callback calls do not prove nested-call handling, and the `route` input proves only workflow-local selection.
++
++Runtime configuration and focused integration evidence must establish checkpointer and persistence behavior, replay and idempotency guarantees, indirect and dynamic task handling, interrupt resumption, and approval authorization.

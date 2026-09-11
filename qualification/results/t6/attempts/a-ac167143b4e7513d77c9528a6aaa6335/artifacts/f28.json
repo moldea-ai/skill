@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, one-line Git diff, workspace assertions, and deterministic validation agree: the manifest now declares `orders-find` for `/agent/tools/orders/find.ts`, all other bindings and source files are preserved, validation is valid with no failures, and typechecking passes. This judgment was read-only and changed no files.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the original `find_order` declaration as differing from Eve 0.39.1's path-derived `orders-find` name. The Git diff confirms the old declaration, while the current registration path is `/agent/tools/orders/find.ts`; deterministic post-actor validation reports `passed: true`, `cliValidateStatus: valid`, and no failures."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` currently sets the tool name to `orders-find`. The diff contains exactly the intended one-line change from `find_order` to `orders-find`, and Git status identifies only `moldea/moldea.yaml` as modified."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings for runtime agent `/agent/agent.ts#default`, instruction `/agent/instructions.md`, agent output schema `/agent/contracts.ts#SupportOutputSchema`, implementation `/agent/implementations.ts#findOrder`, registration `/agent/tools/orders/find.ts#default`, input schema `FindOrderInputSchema`, and tool output schema `FindOrderOutputSchema`. The referenced source files contain the corresponding imports, schemas, implementation, and `defineTool` wiring. Workspace assertions show every source and schema hash unchanged, and deterministic evidence reports repository filesystem validity, CLI validity, and passing typecheck."
+    }
+  ],
+  "failures": []
+}

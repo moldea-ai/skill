@@ -1,0 +1,39 @@
+{
+  "verdict": "fail",
+  "summary": "The working tree and deterministic results support the intended static boundaries, but the required Git evidence could not be verified: both evaluator-approved status and diff commands were blocked with “repository attribute safety was not established” (exit 2). A complete pass therefore cannot be established. This inspection changed no files.",
+  "requirements": [
+    {
+      "id": "preserves-prepare-call-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains only support.runtimeAgent and support.inputSchema bindings. Its warning states that prepareCall leaves instruction, output, and tool wiring unresolved; src/support-agent.ts confirms those settings coexist with prepareCall."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains step-support runtimeAgent, inputSchema, outputSchema, and the complete get-status tool relationships, while only its instruction loader is unresolved because prepareStep may replace it. src/step-support-agent.ts and the related source files confirm this structure."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "fail",
+      "evidence": "The current manifest preserves delegating-support’s direct agent, schema, instruction-loader, and delegate_support tool bindings without routing, handoff, or subagent fields. Source hashes are unchanged and deterministic validation passed, but the required workspace diff was unavailable, so patch agreement could not be established."
+    },
+    {
+      "id": "keeps-workflow-agent-outside-target",
+      "verdict": "fail",
+      "evidence": "workflowSupportAgent remains in src/workflow-agent.mts, while the current manifest and canonical agent paths contain no workflow target. Its source hash is unchanged, but the required Git diff could not be inspected."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "fail",
+      "evidence": "Both prepared agents reference /moldea/runtimes/vercel-ai-sdk.md, the only runtime-guidance file found. The guidance distinguishes prepareCall from prepareStep without asserting provider behavior, and runner assertions identify it as newly added, but the required workspace diff was unavailable."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "fail",
+      "evidence": "The current manifest has separate prepare-call and prepare-step unresolved entries, each with effect: warning, related source paths, and relationship-specific runtime-proof or closed-wiring resolutions. Deterministic validation passed, but required Git patch agreement could not be verified."
+    }
+  ],
+  "failures": [
+    "Provide an inert evaluator-approved Git status and diff for moldea/moldea.yaml and moldea/runtimes/vercel-ai-sdk.md; both prescribed commands currently exit 2 because repository attribute safety was not established."
+  ]
+}

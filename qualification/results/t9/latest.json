@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 10,
+  "adapterId": "langgraph",
+  "implementationId": "typescript-functional-api-1-4",
+  "latestAttemptId": "20260911T101535112Z-langgraph-typescript-functional-api-1-4-b66b2006",
+  "latestStatus": "passed",
+  "lastPassingAttemptId": "20260911T101535112Z-langgraph-typescript-functional-api-1-4-b66b2006",
+  "updatedAt": "2026-09-11T11:41:52.039Z"
+}

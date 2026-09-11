@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "attemptKey": "a-68ae95325f5f3f1de25970485a8155f0",
+  "attemptId": "20260911T051814459Z-google-genai-typescript-models-generate-content-2-669656cf",
+  "attemptIdDigest": "68ae95325f5f3f1de25970485a8155f07a164d4c78a4f9f6ea09a492dbf02870",
+  "attemptDigest": "ed0f2349680de2a8c415c5e26b55b37d489a6047b8cb843094f95ee7e4b1166d",
+  "sourceCommit": "ab6632bd8d7fff73d29f08707d7879a2e89241e5",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "e9c60a1e7f40ad6f9a50cc0ccd9cfd424a6c633d234ca71702ed951d6bb86a27",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "4b496465d3cfff41adef812174c69a0e62ac1ad0992df2d08dda64d79df58e02"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "1a949a8b99182b0cfad4535f2b40d4ef90ff36bc7cd9f7ec9f7995180dc0906e"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f3.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

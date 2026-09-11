@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s canonical input-schema binding to match the closed StateGraph initializer while preserving all source graph operations and schema declarations.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Changed only `support.bindings.inputSchema.symbol` from `SupportOutputSchema` to `SupportInputSchema`.",
+    "Final project validation returned `valid: true` with zero diagnostics.",
+    "TypeScript type-checking completed successfully.",
+    "Final Git diff contains only the intended one-line binding correction."
+  ],
+  "unresolved": []
+}

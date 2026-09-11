@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "attemptKey": "a-4c1e986f390245d2037425ad87aca3f9",
+  "attemptId": "20260911T051814459Z-claude-agent-sdk-typescript-query-subagents-0-3-c538aff1",
+  "attemptIdDigest": "4c1e986f390245d2037425ad87aca3f90f6c1514160f95dea2be311f29fa384e",
+  "attemptDigest": "6c78c7f1a64b772e32acb290bf4238a51d6151a61f1cfe5df39ec2a4feef781c",
+  "sourceCommit": "ab6632bd8d7fff73d29f08707d7879a2e89241e5",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "86e630342a68d17dbd9c2bd0e4526ee0e074f6ddbb5b1a852c7400cd70cc1f78",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "4b496465d3cfff41adef812174c69a0e62ac1ad0992df2d08dda64d79df58e02"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "f67321a6adf6a94329dd005dd50b67f26106f062e92acaa4ff2dedbf04104ce4"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f3.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

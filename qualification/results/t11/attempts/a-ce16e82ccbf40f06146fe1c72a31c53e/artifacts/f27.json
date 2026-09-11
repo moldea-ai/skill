@@ -1,0 +1,56 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T07:12:39.058Z",
+  "durationMs": 218508,
+  "usage": {
+    "inputTokens": 467196,
+    "cachedInputTokens": 400256,
+    "outputTokens": 6748
+  },
+  "stageIdentity": "4b59109d4f5d8f829b588c8101271d465bf63f75bfb1f9d0c99c8020b7911427",
+  "sourceAttemptId": "20260911T054140998Z-openai-typescript-responses-api-7-1f646450",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 29,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 32714,
+    "moldeaCommandCount": 0,
+    "moldeaOutputByteCount": 0,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 7,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 3
+        },
+        {
+          "code": "unclassified-command",
+          "count": 4
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 7,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 3
+        },
+        {
+          "code": "unclassified-command",
+          "count": 4
+        }
+      ]
+    }
+  }
+}

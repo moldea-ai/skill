@@ -1,0 +1,1520 @@
+{
+  "protocolVersion": 10,
+  "attemptId": "20260911T054140998Z-langgraph-typescript-state-graph-1-4-6f1a2854",
+  "parentAttemptId": null,
+  "selection": {
+    "adapterId": "langgraph",
+    "implementationId": "typescript-state-graph-1-4"
+  },
+  "status": "failed",
+  "createdAt": "2026-09-11T06:44:15.181Z",
+  "completedAt": "2026-09-11T07:46:20.052Z",
+  "evidenceGeneratedAt": "2026-09-11T06:48:00.121Z",
+  "summary": "Qualification completed every case and recorded its confirmed failures.",
+  "artifactDigests": {
+    "baseline.json": "a360bee1876e891542e720db9ab311511d75ad26fcaa1e310c5096ec55610c40",
+    "cases/preserve-langgraph-state-graph-static-boundary/case-result.json": "6d7ae8d89f09b7a48dd478f79892141ffcc79c6ad8aa1fd33bb439665101fcde",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/actor-events.jsonl": "18afba4fd574be30f9d82f2a3f8f3d3b4c755aac9ac6d8a21dab3733bec00368",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/actor-evidence.json": "2e977eb59021ee0a08664a952a6e15be991803d52c3e290be403634bed11b60a",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/actor-output.json": "a85464281c0217ba406b802de63097ff9e4ce70e1049266df450fa21d588863c",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/actor-prompt.md": "b7df8f73e53229c7d7100493280abbc5829a968d9707444d8b523fc177a8261b",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/deterministic-after.json": "fc6f04e8e37e42b7152db8214a912244a575054297b578da1827c810a8cb2bc7",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/deterministic-before.json": "9af24ef9af8fca7bd9be791c578cce986f4463641ccc105644a0609e48d5c4f8",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/judge-events.jsonl": "387b4745c56c13678e0291090ecefce2a61bb814fe7ea6b52205fe1eed2aebeb",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/judge-evidence.json": "f085e3f5ae45ea96bbe51a77b78e933ff3aded8ef4a89043671333c670f29eed",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/judge-output.json": "9f18755ee17c89ba007823f0b30613964056de66058621374c15658814eacc61",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/judge-prompt.md": "2080a8010d6c03d2be7abda12e08d6d9c3469bc1ff9c2f90458c02447a32ff30",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/trial-result.json": "e7ccbf67bc6bdf626a773aef4d94199e91908deb2697c25e259a5ec444b0f117",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/workspace-assertions.json": "bc05eecfe687b3d3d2df98cc83e2431a571ec0f4aa975adaa1af626ff408513e",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/workspace.patch": "f0ce111170d80b7798decf424518f05fc46942cf3314f441d010e3f94b51504b",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/actor-events.jsonl": "c9b7584abe9e2b8268c49c9bb5ed20014c88d3a13ba7fb6eba4a598395c4c1d3",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/actor-evidence.json": "3079755bf6323e5b81b7a44e9927bfcd55fd38fb75c27c9508ba4ea6e1c8e7f1",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/actor-output.json": "1a7606330141d8fae4e818b9edccbc234e60449ecc3d7ee67055a53c1923f78c",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/actor-prompt.md": "b7df8f73e53229c7d7100493280abbc5829a968d9707444d8b523fc177a8261b",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/deterministic-after.json": "febcb48d199e7bd9539f35179414bc740ce3d9cff27bdff79cd86083b2a1c15c",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/deterministic-before.json": "a7e0838d587bf373eab5b1c32685557291bad68f93fddcfc0165f7a8cc96db4c",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/judge-events.jsonl": "597a3d3a753fb6e254e78219fab3274ed5dc3dba177bbc485ef4a25d55fed63b",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/judge-evidence.json": "8e8e943edaee61ef93751f5eb09a3fa566f0c16d6d42ebaf9588f25b82b750c5",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/judge-output.json": "aeac4dbbd668523188e71a72a46f8ece0a275549bb2b29f1207774de3c085169",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/judge-prompt.md": "64fe0fdc8c146f5d365a39bea8d4253b95e13554c726a8be9c052b3ceba49757",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/trial-result.json": "4f49e3852b03fda54cf2bf95e3b60c22bd4756571e3848ff6d89ff9e5561132b",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/workspace-assertions.json": "ddb49f0e25999772bfdb98273705478f9d21037159015c3d1ba2c9d5c72b58a2",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/workspace.patch": "c0f48a40d9799baf775413af86d858a2b385c16f9835cae11c39dcb061a14f5f",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-events.jsonl": "c452e83f2892a3ccb632389c0c3d2be92c98f4f89fb436ba9c3ec4d8857520b7",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-evidence.json": "d481c3bb2fc05aa54188c0190f01fa879f832d1662c14ca115ebfca3406f556b",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-output.json": "f7be1742a6a81189619a6bf88cdee2a3d0ffc6568b13e323e5acef98ccfde867",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-prompt.md": "b7df8f73e53229c7d7100493280abbc5829a968d9707444d8b523fc177a8261b",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/deterministic-after.json": "aa92f0d0a26dd83e14458c49183b16ef9e7b4cd2c17171366ab8bb9b25afe951",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/deterministic-before.json": "2264ac96ef35ede51004f24dd15e9f1ddaeafe8a559fc3583cbbc378c6ba5351",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-events.jsonl": "fd37c8334a5b1d4bf4ff51dc83cc9d4e8dbab10f855c3a6365ba09f2704b236f",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-evidence.json": "48e49b86f82157e85d615a54cf021388f0d0dc54289875106296a71f2534b1fc",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-output.json": "bf90419f2b69161e5c71e5b2e11b2897a641e1fc250e0081981e1d38e05118ea",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-prompt.md": "0301dcc62aa4a5dc194a10646c32478f1ed45dac27eb3d4dd44f1dd4890d9604",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/trial-result.json": "ee6b0c8152d7ebd5030c84afe5fcd1c1b6343e5f9fbed8d97cca667b7ea1277c",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/workspace-assertions.json": "77530249675f6dde1aeeac360b408b310e0c7caf0affe993a9148e277c933d34",
+    "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/workspace.patch": "e3b5f7227e8d90ed3a42c9b527d127cefb286375dc57d8237458a1a3e420b4d1",
+    "cases/repair-langgraph-state-schema/case-result.json": "87830f9fffb3a81b4375eb7b77ceb1722aa3f81bd731456275d5ee1e50e6bbf4",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/actor-events.jsonl": "efc29ba77938e7b22bda8a951d98c24fe2638f465d0655cd8524cdb7878740b7",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/actor-evidence.json": "604d96a93aa400c6e4ebbe66843df0af1bb1a4848e90c29f83c79eb2b8e26697",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/actor-output.json": "d09a19a999e1b742874e29311d5e60ed44b311b2d0b244229377615400c5cb81",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/actor-prompt.md": "71ed6b8f80a8f8b461ce9b80fb1fa8cbc33d44bd4e8e374e87990abd698b18e9",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/deterministic-after.json": "aa1a655c6c079240b53d3b7fdffb5f0a284fe4cd6913f6fc4497fa0f7cb8ed21",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/deterministic-before.json": "d3ffa7b915f71e445d6184e0e6edd523c211459ff503e3aef768e9f2fcb39ade",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/judge-events.jsonl": "1bc32954a0b1629062604533d8c68182400c5220ddea10f7eedc5e23c54881b4",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/judge-evidence.json": "da4b0029d7f201a9f553efe1f88e66c1b723132bb098cd56dbbe623102f2a560",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/judge-output.json": "8a8f31ddc8546423115bab33496e3201caf51ca931791c6a2423b4659ef89dde",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/judge-prompt.md": "72c073018ee1d94014c56136f672fe1a96bebfda6cda15dc33a47fbb433db725",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/trial-result.json": "6798e413643bebf12c4fa3aaaeba648e9a8d7a4cf922b580c342f4ef3e4f38f9",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/workspace-assertions.json": "871d6c40a949815d7c09b0d5a62b17a204ba1e09b74302070aee62a9048e4988",
+    "cases/repair-langgraph-state-schema/trials/confirmation-1/workspace.patch": "a82086b0551e079c6feca671280824f260078976ef5ffbf67e917e2407091ad6",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/actor-events.jsonl": "06d22a883a954633c4d413f754882d3265d2ec511df3eadcc70600c41618e629",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/actor-evidence.json": "be3e7990c1ba524d3c93137ecaacf1daf0ea04a06ef096c492044a91f2385cf4",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/actor-output.json": "44ea5042215fc04a6d22b70a43b565a8759bf66a8fb513c34d4da258641c0998",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/actor-prompt.md": "71ed6b8f80a8f8b461ce9b80fb1fa8cbc33d44bd4e8e374e87990abd698b18e9",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/deterministic-after.json": "a291b6097e305b92f7d64fe27ad15cb79bb715c3bf60f12f81ec59f348fcc2bd",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/deterministic-before.json": "6ccca4610610caced4dee1d27255f439268da5e40500cbcbdb6df80c9a8edb82",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/judge-events.jsonl": "9ea6038ba018f5723f90a99198f40230f26a065b93c10a092a12f4cfe46f226b",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/judge-evidence.json": "3af14398bcf68adb4670ea67a92a1087358c650572115e444d8567daa1966f5d",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/judge-output.json": "a27b9db2a0b7bea748ece63607ab1d5625c444628c6229161f9d34c720ac8afe",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/judge-prompt.md": "33b2377e5268d820dc007b9aaa429e898aca869cbe308bb233d4a1912a3e293f",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/trial-result.json": "41deaa6d7a98be7eeccf61b43cc2fb7287b9cf00d685454ef7cbedd213e818a5",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/workspace-assertions.json": "871d6c40a949815d7c09b0d5a62b17a204ba1e09b74302070aee62a9048e4988",
+    "cases/repair-langgraph-state-schema/trials/confirmation-2/workspace.patch": "a82086b0551e079c6feca671280824f260078976ef5ffbf67e917e2407091ad6",
+    "cases/repair-langgraph-state-schema/trials/initial/actor-events.jsonl": "1567d90378a7c936f4bcfc238a5af505ed8aab91dcd859d59bf82345b178bf93",
+    "cases/repair-langgraph-state-schema/trials/initial/actor-evidence.json": "052fa2d3de3319e17402c7fe04881f27729d530e0916865a860c07e5c7df4b32",
+    "cases/repair-langgraph-state-schema/trials/initial/actor-output.json": "f696f8e23a5c4351d702a3d7b18f7e46d13352d3aa15a4dfca8b7c73bd45a881",
+    "cases/repair-langgraph-state-schema/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/repair-langgraph-state-schema/trials/initial/actor-prompt.md": "71ed6b8f80a8f8b461ce9b80fb1fa8cbc33d44bd4e8e374e87990abd698b18e9",
+    "cases/repair-langgraph-state-schema/trials/initial/deterministic-after.json": "ac1147278e9de25153d54b3255b2e305a085030bc067c1d811a8a94ce19d0d62",
+    "cases/repair-langgraph-state-schema/trials/initial/deterministic-before.json": "5bcc1f531e0a1af3dd259d4baf796d1dc56a02b4f937b48225af18826f6fa968",
+    "cases/repair-langgraph-state-schema/trials/initial/judge-events.jsonl": "be7cd7ba619f919c281a15b5b0e2edc1847d72eb054ae9918da5edd1b037a2ec",
+    "cases/repair-langgraph-state-schema/trials/initial/judge-evidence.json": "43d347cc4b0fb1d5be2292e66ccc73ec6fddc2b52548a0354017188ab2727c97",
+    "cases/repair-langgraph-state-schema/trials/initial/judge-output.json": "c639f8ed1983e36724fef83436c27b15652914d7c913a3d2a5888898cd6e050a",
+    "cases/repair-langgraph-state-schema/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/repair-langgraph-state-schema/trials/initial/judge-prompt.md": "5848e61ba497297ed408ccfa90d32bf3491045efa4f0995bb8648bd8a689c53c",
+    "cases/repair-langgraph-state-schema/trials/initial/trial-result.json": "dd4982f67bdc958fbcf1af73d959d7ae81ada87eb977bf2fbd1d82b452efc675",
+    "cases/repair-langgraph-state-schema/trials/initial/workspace-assertions.json": "871d6c40a949815d7c09b0d5a62b17a204ba1e09b74302070aee62a9048e4988",
+    "cases/repair-langgraph-state-schema/trials/initial/workspace.patch": "a82086b0551e079c6feca671280824f260078976ef5ffbf67e917e2407091ad6",
+    "coverage.json": "a5b44e081145bad9c5ca8c7990e384abb74d1efec1f7381f230013d2d56457e5",
+    "source-state.json": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+  },
+  "confirmationPolicy": {
+    "version": 2,
+    "requiredPassingConfirmations": 2,
+    "requiredFailingConfirmations": 2,
+    "maximumConfirmations": 3
+  },
+  "mode": "official",
+  "provenance": {
+    "model": "gpt-5.6-sol",
+    "actorReasoningEffort": "xhigh",
+    "judgeReasoningEffort": "xhigh",
+    "codexVersion": "codex-cli 0.154.0",
+    "nodeVersion": "v24.15.0",
+    "pnpmVersion": "12.4.0",
+    "gitVersion": "git version 2.53.0",
+    "allowedEgressHosts": [
+      "api.openai.com",
+      "auth.openai.com",
+      "chatgpt.com"
+    ],
+    "hostTimeoutMs": 900000,
+    "modelEndpoint": null,
+    "sslCertificateFileSha256": null,
+    "candidateFingerprint": "10d9f8abe7ebcd55b3a807a603756fb59dce71ac886a2ba1d107d9fdd6df85c3",
+    "packagesRepositoryCommit": "4707c8154abcc7a544ca4c300e59bdb5968042c5",
+    "packagesRepositoryFingerprint": "7c109a9faf389c5cd6afb027140839d0b42e884beda4b8d2e48b11abd7d396e0",
+    "packagesRepositoryDirty": false,
+    "qualificationRepositoryCommit": "12611e22eefd2591cf1c60c4e2c20440f1e96426",
+    "qualificationRepositoryDirty": false,
+    "skillRepositoryCommit": "12611e22eefd2591cf1c60c4e2c20440f1e96426",
+    "skillRepositoryFingerprint": "4998939c7894a6f72948f245970546e7dbbdab0309c3e0f83d9871bd52cfeb3c",
+    "skillRepositoryDirty": false,
+    "profileDigest": "08d505b0f5c4e6eb89506471fb8b8f7be5ed3dc57be27bd5b5c4ad3e8003abce",
+    "qualificationDigest": "29b7671638f99ee36d39127bcdf311edb5682a8a68098f49d3d4f57bf93ca83b",
+    "targetDigest": "b96e40ff6e0248f803b28d8fd7f550e5beedc66bfcd1f78820661b808215fd22",
+    "baselineAttemptId": "20260911T045928448Z-custom-custom-489ed604",
+    "packages": [
+      {
+        "name": "@moldea.ai/repository",
+        "version": "2.0.0",
+        "registryIntegrity": "sha512-inhtMPmNtW/YnWZikBLMy+FsW3UyVsMaL0pKkV75ZX6VFP2yEFuc1puKyLu2kd8unvE5fAc+oO4lnuYKY77Rcw==",
+        "registryShasum": "d7797b382ae0116f8b6bfa4bfc2d1a51de306f7b",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository/-/repository-2.0.0.tgz",
+        "tarballName": "repository-2.0.0.tgz",
+        "sha256": "455a53c5b21de44f1b1173ff7bdacfe7c838f9eec46f4b3a8a651393deb80ea7"
+      },
+      {
+        "name": "@moldea.ai/core",
+        "version": "4.0.1",
+        "registryIntegrity": "sha512-WHVxnOk5l0MpZxOu/ZsdCjPser+0D49ADtPpmhBxgXZpdntf+5rIptllmysycyTS8ijlk+qsIcFGU8YMWtvoFw==",
+        "registryShasum": "26a3763f46bd68a6af2512d6b9c75314d36591b7",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/core/-/core-4.0.1.tgz",
+        "tarballName": "core-4.0.1.tgz",
+        "sha256": "7237869331c22ab17e2b38c0d2d4e7f2eca82d0ec2a7274d792429e0d61c7d1d"
+      },
+      {
+        "name": "@moldea.ai/adapter-anthropic",
+        "version": "4.0.0",
+        "registryIntegrity": "sha512-Ta8+UPKDLvJK4XauhCR25FYO5C7hxt2LcAIkRr6AtDqq4VMtvjDbFAOaciUay0sRXpnB/Jm/wT3aqEG/9UFWkw==",
+        "registryShasum": "20d99df517dbec6049e4e598bd9390b6c961322c",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-anthropic/-/adapter-anthropic-4.0.0.tgz",
+        "tarballName": "adapter-anthropic-4.0.0.tgz",
+        "sha256": "e037698c4916c77ee44f1bf8b4c3415fd7d640ac2d3421ab012cd52d480e3e22"
+      },
+      {
+        "name": "@moldea.ai/adapter-claude-agent-sdk",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-5Pfy2lpsMhW+eWzIQSkyWRgNB+9z5cCZhaCGKGGDAXIV/H+GfJ49uLq0aSibxvrsibUrJ0ZuARiepB5QthHQag==",
+        "registryShasum": "77e97c197d765a09600a3c4da2a7cb5ead7f2931",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-claude-agent-sdk/-/adapter-claude-agent-sdk-3.0.0.tgz",
+        "tarballName": "adapter-claude-agent-sdk-3.0.0.tgz",
+        "sha256": "d552c6176ecb4394daed4936aef997b1482961a084f424a8cbc6ca90afa8c20e"
+      },
+      {
+        "name": "@moldea.ai/adapter-cloudflare-agents",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-fBPaC2HijnXCiOHFQGoo2zsFsPJFeG4eVy7XHdc08yIY2/GSPD8s+DoYnSnTNjbonNfX3MYePVYGNQn4QqIZKQ==",
+        "registryShasum": "c35cdf0201c2ca5a1d8a19674604d74bd98ab95e",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-cloudflare-agents/-/adapter-cloudflare-agents-3.0.0.tgz",
+        "tarballName": "adapter-cloudflare-agents-3.0.0.tgz",
+        "sha256": "fe66d4b24beb6fdc489dc711a42370c6f0cf020ec26e659d2648854f4d47b6a5"
+      },
+      {
+        "name": "@moldea.ai/adapter-eve",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-Ow/oOaA7gd4al+Iz0rG8LamAOEhQf05ivBXkpHCoA29Ao6YkC7l3GiQgdjO7nW987oqANdGEN2ovRzIpFDv0lA==",
+        "registryShasum": "ebab0ed0f83355c90e33330658db24e4d2cd9e85",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-eve/-/adapter-eve-3.0.0.tgz",
+        "tarballName": "adapter-eve-3.0.0.tgz",
+        "sha256": "7bcf450369e9a5bca96b715fc829959e68d7e626af630f18bfb727fed20d1c9f"
+      },
+      {
+        "name": "@moldea.ai/adapter-google-genai",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-10FOcFvMQwazWOhVMiZDnVBqUq5r1YCaWIpW4coNJBAcrVPMwqM64Np+VfwVrv9j/KeroMiPgXLCxwTCZH5+tQ==",
+        "registryShasum": "c6b8785b5f3b29ef7a7f33c0fb5f013066ab47ba",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-google-genai/-/adapter-google-genai-3.0.0.tgz",
+        "tarballName": "adapter-google-genai-3.0.0.tgz",
+        "sha256": "0a1ddb42f15e40b7907403701bec13b13574c6600030f76a6eab96d5ce582014"
+      },
+      {
+        "name": "@moldea.ai/adapter-langchain",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-vH2zTMDf2GNVFBgt0gBJXhxCh0IIffcUsk/XSHzRCfNZ8UJVlpIxhwLrzhIeVjqpy6uFOqYoP+RuW7Awt/K09Q==",
+        "registryShasum": "2edcc28ff66f1237ef663400f169dd2d36452cd0",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langchain/-/adapter-langchain-3.0.0.tgz",
+        "tarballName": "adapter-langchain-3.0.0.tgz",
+        "sha256": "b37cc8b50976ab1a445a86ba1bf095b74c4ad030915d79fee87e863769ee563f"
+      },
+      {
+        "name": "@moldea.ai/adapter-langgraph",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-nQoR2iRraGLgsBt/uh1yymUvUZN9Js6ObmvieOWnrTiweyn/B2GB/T1SJ1FZCZi2wroZhigsHcWAEN6rhPAx6Q==",
+        "registryShasum": "0f8735f09aaab19af1eff0469ec7c04b2a4647c5",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langgraph/-/adapter-langgraph-3.0.0.tgz",
+        "tarballName": "adapter-langgraph-3.0.0.tgz",
+        "sha256": "b39e1a0e7ce41fe767d1189192074073bca5230aee3389a7ed8b67432e558fab"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai",
+        "version": "4.0.0",
+        "registryIntegrity": "sha512-jbme+AFOBcSX7urrev2g/Saj3NIEVAT8Oc7iuoInVEqwxU3uf1MozcTqSfi+eJJAldEGo8RvShyN1a6XcTCiKg==",
+        "registryShasum": "86857a22d11352f2505e3df756ef67fdadae58a3",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai/-/adapter-openai-4.0.0.tgz",
+        "tarballName": "adapter-openai-4.0.0.tgz",
+        "sha256": "4726a5b5b4753c79f0bfdd656c72f55a8f15a8c7f512300c8244d34f812eec93"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai-agents-sdk",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-wdU1YWIsVj73p0gpJmnEloALXVUcc93frRaZkrObj0SrvsGq672cFVOiKJz+o8xuwIlVpALKSI4XRI4R5HuulA==",
+        "registryShasum": "4305a001c5a831d6290fa4a37c369fbdce99abf7",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai-agents-sdk/-/adapter-openai-agents-sdk-3.0.0.tgz",
+        "tarballName": "adapter-openai-agents-sdk-3.0.0.tgz",
+        "sha256": "98b4af5df48021a4e84edfb97250cc22d47ddef844cd71eaf790c6439adca0e0"
+      },
+      {
+        "name": "@moldea.ai/adapter-vercel-ai-sdk",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-UE4KKBFNVf4icPEeQnNIAIeN6DHQwJlLOAIFegtgXph/sbjVkOnifBMPJUViT4I+in6PIuAprUew/gieZ7yEAA==",
+        "registryShasum": "1ecfea76b8979e179ec08e062c8441700c529f3d",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-vercel-ai-sdk/-/adapter-vercel-ai-sdk-3.0.0.tgz",
+        "tarballName": "adapter-vercel-ai-sdk-3.0.0.tgz",
+        "sha256": "4b0827ca082e0da3db927f720f4ab73acd512ce565067f3a62c484bc67db0907"
+      },
+      {
+        "name": "@moldea.ai/repository-fs",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-TCTHwIUc2asuA8JvNwIjpKtTkDweVU4Y0hSMlG87qf+qgkOjQOinmhM7F+oFaEhT9Ch3RdWNZYiLuVWaC1kyuw==",
+        "registryShasum": "c5ba310dd260a541a1a2334bafcb198444b8bac7",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository-fs/-/repository-fs-2.0.1.tgz",
+        "tarballName": "repository-fs-2.0.1.tgz",
+        "sha256": "8fd204625ecb5b7d1ec46fd3b970c9b11576ab75d810c5ee7a194bc6c3e07fe8"
+      },
+      {
+        "name": "@moldea.ai/cli",
+        "version": "8.0.0",
+        "registryIntegrity": "sha512-70tcl+3IEI62DVN0NL/6QILSrCCE9sHPttrwVOZXKOsHF6Hrh2XP8q0+iVio3VI8NvQ9wi5aAdgFeRGsIi42Pw==",
+        "registryShasum": "08281a3bb64dc99a498e7ae939e0f1c44d406f24",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/cli/-/cli-8.0.0.tgz",
+        "tarballName": "cli-8.0.0.tgz",
+        "sha256": "4a80f5293d7d790ea174e0295337c1efed2887b67b6b595cb92712fd29b5179a"
+      },
+      {
+        "name": "@langchain/core",
+        "version": "1.2.9",
+        "registryIntegrity": "sha512-conzSEj9Zu1AyXJLXsSbgrtxtxinmI1yGqQ5CIJZSoV5rvv+yvQE/vgBnoySpBQ/bl3YPgj2FL/gbDjWykLSfg==",
+        "registryShasum": "4f5fb27ba07c51ce4fb8e1dc32eb36945737afa1",
+        "registryTarballUrl": "https://registry.npmjs.org/@langchain/core/-/core-1.2.9.tgz",
+        "tarballName": "core-1.2.9.tgz",
+        "sha256": "5f1c9e8bcf023e981170e02144b422465603cb542a5328bd14b977893e6007c3"
+      },
+      {
+        "name": "@langchain/langgraph",
+        "version": "1.4.12",
+        "registryIntegrity": "sha512-63iH/igH5Fh5fHqmWp09YYWaDKKB9v4RCmYNJBrnQ224rFRbjebgyYW6o5RCczN5FZxIhQj+xT51rrNmG0zi5A==",
+        "registryShasum": "0870f26fc6a903c57feb6ad039bcf2f2a0c6ebc4",
+        "registryTarballUrl": "https://registry.npmjs.org/@langchain/langgraph/-/langgraph-1.4.12.tgz",
+        "tarballName": "langgraph-1.4.12.tgz",
+        "sha256": "8748fedbadc714dfbdc15b471600db2473986daea3e096762bebdd45cfa338d9"
+      },
+      {
+        "name": "@types/node",
+        "version": "22.20.1",
+        "registryIntegrity": "sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==",
+        "registryShasum": "84e7cdf63cdaa20c134aa317ccc901aa21e16f0e",
+        "registryTarballUrl": "https://registry.npmjs.org/@types/node/-/node-22.20.1.tgz",
+        "tarballName": "node-22.20.1.tgz",
+        "sha256": "6f99aae8d4a2bdecdce5a41a922b10943316edd4e6e6d4350f442d6c1688485f"
+      },
+      {
+        "name": "zod",
+        "version": "4.3.6",
+        "registryIntegrity": "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==",
+        "registryShasum": "89c56e0aa7d2b05107d894412227087885ab112a",
+        "registryTarballUrl": "https://registry.npmjs.org/zod/-/zod-4.3.6.tgz",
+        "tarballName": "zod-4.3.6.tgz",
+        "sha256": "29ee4d2418c0fb6ddc545c28c03ec80b701e345a3f779e50ae23cda0700b1682"
+      },
+      {
+        "name": "typescript",
+        "version": "6.0.3",
+        "registryIntegrity": "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==",
+        "registryShasum": "90251dc007916e972786cb94d74d15b185577d21",
+        "registryTarballUrl": "https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz",
+        "tarballName": "typescript-6.0.3.tgz",
+        "sha256": "33cd0ee1beaa8c9e9d15a9da836c62ddea4c34a42d7c2d349dbc80d94165d22a"
+      }
+    ]
+  },
+  "stages": [
+    {
+      "id": "source-state",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:44:26.338Z",
+      "completedAt": "2026-09-11T06:44:26.340Z",
+      "durationMs": 2,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "coverage",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:44:26.341Z",
+      "completedAt": "2026-09-11T06:44:26.346Z",
+      "durationMs": 5,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "candidate",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:44:26.346Z",
+      "completedAt": "2026-09-11T06:44:40.939Z",
+      "durationMs": 14593,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "baseline",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:44:40.940Z",
+      "completedAt": "2026-09-11T06:44:53.951Z",
+      "durationMs": 13011,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:44:53.954Z",
+      "completedAt": "2026-09-11T06:44:54.564Z",
+      "durationMs": 610,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:44:54.565Z",
+      "completedAt": "2026-09-11T06:44:57.982Z",
+      "durationMs": 3417,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:44:57.985Z",
+      "completedAt": "2026-09-11T06:48:00.497Z",
+      "durationMs": 182512,
+      "stageIdentity": "8049c6650f99072257956cecb7c08b0eeb23ef79617ae948341162fd7f2f6b5a",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:48:00.499Z",
+      "completedAt": "2026-09-11T06:48:03.789Z",
+      "durationMs": 3290,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:48:03.790Z",
+      "completedAt": "2026-09-11T06:48:13.236Z",
+      "durationMs": 9446,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:48:13.325Z",
+      "completedAt": "2026-09-11T06:54:29.864Z",
+      "durationMs": 376539,
+      "stageIdentity": "f36f9fb75dee7f1933da26a4fc1200655eb546480e72715880dc710003764a8f",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-1:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:06:09.831Z",
+      "completedAt": "2026-09-11T07:06:11.025Z",
+      "durationMs": 1194,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-1:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:06:11.029Z",
+      "completedAt": "2026-09-11T07:06:23.510Z",
+      "durationMs": 12481,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-1:actor",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:06:23.548Z",
+      "completedAt": "2026-09-11T07:11:13.014Z",
+      "durationMs": 289466,
+      "stageIdentity": "d5c678c93bb57cc34ff5f971ebb0e8fafdb8ffa469be199a54ece46d69013b88",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-1:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:11:13.037Z",
+      "completedAt": "2026-09-11T07:11:22.302Z",
+      "durationMs": 9265,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-1:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:11:22.306Z",
+      "completedAt": "2026-09-11T07:11:22.928Z",
+      "durationMs": 622,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-1:judge",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:11:22.988Z",
+      "completedAt": "2026-09-11T07:17:19.652Z",
+      "durationMs": 356664,
+      "stageIdentity": "7ce97c32f33620123526f72569eff9cae367a02e5627203d4400b4a40fb479d7",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-2:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:17:19.655Z",
+      "completedAt": "2026-09-11T07:17:20.355Z",
+      "durationMs": 700,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-2:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:17:20.356Z",
+      "completedAt": "2026-09-11T07:17:24.811Z",
+      "durationMs": 4455,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-2:actor",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:17:24.814Z",
+      "completedAt": "2026-09-11T07:21:49.811Z",
+      "durationMs": 264997,
+      "stageIdentity": "65268ffc8136c53a3b7df27866862cd9b6c63f047cab8627debd1b390ad64ef1",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-2:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:21:49.843Z",
+      "completedAt": "2026-09-11T07:22:11.909Z",
+      "durationMs": 22066,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-2:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:22:11.912Z",
+      "completedAt": "2026-09-11T07:22:19.284Z",
+      "durationMs": 7372,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-2:judge",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:22:22.470Z",
+      "completedAt": "2026-09-11T07:27:21.624Z",
+      "durationMs": 299154,
+      "stageIdentity": "526f4d6759000601ba15f847eca438d7a0721a19c2b03d8b42be56fb09ca2b39",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-3:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:27:21.657Z",
+      "completedAt": "2026-09-11T07:27:21.657Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-3:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:27:21.657Z",
+      "completedAt": "2026-09-11T07:27:21.657Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-3:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:27:21.657Z",
+      "completedAt": "2026-09-11T07:27:21.657Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-3:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:27:21.657Z",
+      "completedAt": "2026-09-11T07:27:21.657Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-3:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:27:21.657Z",
+      "completedAt": "2026-09-11T07:27:21.657Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:trial:confirmation-3:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:27:21.657Z",
+      "completedAt": "2026-09-11T07:27:21.657Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-langgraph-state-schema:result",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:27:21.661Z",
+      "completedAt": "2026-09-11T07:27:21.693Z",
+      "durationMs": 32,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:54:29.866Z",
+      "completedAt": "2026-09-11T06:54:30.537Z",
+      "durationMs": 671,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:54:30.538Z",
+      "completedAt": "2026-09-11T06:54:34.108Z",
+      "durationMs": 3570,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:54:34.112Z",
+      "completedAt": "2026-09-11T06:59:02.369Z",
+      "durationMs": 268257,
+      "stageIdentity": "c87b3aab35f674fec8c4ca28d8596926a3559f4b22c3a701d4fef04e65cf8eea",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:59:02.374Z",
+      "completedAt": "2026-09-11T06:59:22.079Z",
+      "durationMs": 19705,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:59:22.275Z",
+      "completedAt": "2026-09-11T06:59:39.562Z",
+      "durationMs": 17287,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-09-11T06:59:39.617Z",
+      "completedAt": "2026-09-11T07:06:09.828Z",
+      "durationMs": 390211,
+      "stageIdentity": "32aaad303df45efa7158533892e8f641934ea48a0869d2a57971e02c2387f9b0",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-1:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:27:21.698Z",
+      "completedAt": "2026-09-11T07:27:33.237Z",
+      "durationMs": 11539,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-1:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:27:33.243Z",
+      "completedAt": "2026-09-11T07:27:37.024Z",
+      "durationMs": 3781,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-1:actor",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:27:37.029Z",
+      "completedAt": "2026-09-11T07:32:31.376Z",
+      "durationMs": 294347,
+      "stageIdentity": "0faac952dda8f6d25091efd1e7f6c84f807b0911daa8353933a9f6f17e565f55",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-1:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:32:31.377Z",
+      "completedAt": "2026-09-11T07:32:34.806Z",
+      "durationMs": 3429,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-1:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:32:34.807Z",
+      "completedAt": "2026-09-11T07:32:35.207Z",
+      "durationMs": 400,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-1:judge",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:32:35.298Z",
+      "completedAt": "2026-09-11T07:37:18.565Z",
+      "durationMs": 283267,
+      "stageIdentity": "8de9d5a10284f50e166d2da7d8b6e2f3aadbd0b72647d87b6737bb0c0ee58c89",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-2:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:37:18.567Z",
+      "completedAt": "2026-09-11T07:37:19.265Z",
+      "durationMs": 698,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-2:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:37:19.266Z",
+      "completedAt": "2026-09-11T07:37:22.793Z",
+      "durationMs": 3527,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-2:actor",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:37:22.798Z",
+      "completedAt": "2026-09-11T07:41:02.785Z",
+      "durationMs": 219987,
+      "stageIdentity": "3221c5e036f80e31d30894e80f0d9e9a5a83b74d4c16eee719ed430d4ff33d96",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-2:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:41:02.786Z",
+      "completedAt": "2026-09-11T07:41:06.232Z",
+      "durationMs": 3446,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-2:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:41:06.235Z",
+      "completedAt": "2026-09-11T07:41:06.623Z",
+      "durationMs": 388,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-2:judge",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:41:06.680Z",
+      "completedAt": "2026-09-11T07:45:57.522Z",
+      "durationMs": 290842,
+      "stageIdentity": "2f70a10967ca3f261adb2a13cd19a1693e4f2ba45d0cacd4075896ba2b1b893d",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-3:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:45:57.582Z",
+      "completedAt": "2026-09-11T07:45:57.582Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-3:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:45:57.582Z",
+      "completedAt": "2026-09-11T07:45:57.582Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-3:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:45:57.582Z",
+      "completedAt": "2026-09-11T07:45:57.582Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-3:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:45:57.582Z",
+      "completedAt": "2026-09-11T07:45:57.582Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-3:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:45:57.582Z",
+      "completedAt": "2026-09-11T07:45:57.582Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:trial:confirmation-3:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-11T07:45:57.582Z",
+      "completedAt": "2026-09-11T07:45:57.582Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-langgraph-state-graph-static-boundary:result",
+      "status": "passed",
+      "startedAt": "2026-09-11T07:45:57.586Z",
+      "completedAt": "2026-09-11T07:45:57.589Z",
+      "durationMs": 3,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    }
+  ],
+  "cases": [
+    {
+      "caseId": "repair-langgraph-state-schema",
+      "title": "Repair LangGraph StateGraph schema binding",
+      "status": "failed",
+      "confirmationStatus": "rejected",
+      "durationMs": 1847709,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "confirmationEligible": true,
+          "dimensions": {
+            "semantic": false,
+            "resource": true,
+            "commandPolicy": true,
+            "repositoryControl": true,
+            "mountIntegrity": true,
+            "operational": true
+          },
+          "failureClassifications": [
+            "semantic"
+          ],
+          "passed": false,
+          "durationMs": 575912,
+          "deterministicBeforePath": "cases/repair-langgraph-state-schema/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/repair-langgraph-state-schema/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/repair-langgraph-state-schema/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/repair-langgraph-state-schema/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/repair-langgraph-state-schema/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/repair-langgraph-state-schema/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 243987,
+            "cachedInputTokens": 226432,
+            "outputTokens": 5574
+          },
+          "judgeUsage": {
+            "inputTokens": 386676,
+            "cachedInputTokens": 363648,
+            "outputTokens": 9951
+          },
+          "actorEvidenceCreatedAt": "2026-09-11T06:48:00.121Z",
+          "judgeEvidenceCreatedAt": "2026-09-11T06:54:29.863Z",
+          "actorReuseSourceAttemptId": null,
+          "judgeReuseSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-schema-mismatch",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor reports correcting the input binding to SupportInputSchema to match the closed initializer; src/graph.ts wires SupportInputSchema to input, and the current manifest declares that symbol."
+            },
+            {
+              "id": "repairs-canonical-schema",
+              "evaluator": "judge",
+              "verdict": "fail",
+              "evidence": "moldea/moldea.yaml now binds inputSchema to SupportInputSchema, src/graph.ts uses the same symbol, source hashes are unchanged, and deterministic validation passed. However, the approved Git diff command was blocked, so the required patch agreement and exact manifest substitution could not be independently verified."
+            },
+            {
+              "id": "preserves-binding-closure",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The manifest binds supportGraph, SupportInputSchema, and SupportOutputSchema to their exact exported source symbols. The compiled graph, node, and edges remain present; no manifest tools declaration or moldea/tools path exists. Runner-owned validation and type-checking passed."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": [
+            "Requirement repairs-canonical-schema failed: moldea/moldea.yaml now binds inputSchema to SupportInputSchema, src/graph.ts uses the same symbol, source hashes are unchanged, and deterministic validation passed. However, the approved Git diff command was blocked, so the required patch agreement and exact manifest substitution could not be independently verified.",
+            "Provide an independently collected inert Git diff for moldea/moldea.yaml, or establish repository attribute safety so the evaluator-approved diff command can run."
+          ]
+        },
+        {
+          "trialId": "confirmation-1",
+          "kind": "confirmation",
+          "confirmationIndex": 1,
+          "confirmationEligible": true,
+          "dimensions": {
+            "semantic": false,
+            "resource": true,
+            "commandPolicy": true,
+            "repositoryControl": true,
+            "mountIntegrity": true,
+            "operational": true
+          },
+          "failureClassifications": [
+            "semantic"
+          ],
+          "passed": false,
+          "durationMs": 669823,
+          "deterministicBeforePath": "cases/repair-langgraph-state-schema/trials/confirmation-1/deterministic-before.json",
+          "deterministicAfterPath": "cases/repair-langgraph-state-schema/trials/confirmation-1/deterministic-after.json",
+          "actorOutputPath": "cases/repair-langgraph-state-schema/trials/confirmation-1/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/repair-langgraph-state-schema/trials/confirmation-1/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/repair-langgraph-state-schema/trials/confirmation-1/workspace-assertions.json",
+          "patchPath": "cases/repair-langgraph-state-schema/trials/confirmation-1/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 349439,
+            "cachedInputTokens": 320512,
+            "outputTokens": 7064
+          },
+          "judgeUsage": {
+            "inputTokens": 372847,
+            "cachedInputTokens": 302208,
+            "outputTokens": 7602
+          },
+          "actorEvidenceCreatedAt": "2026-09-11T07:11:12.307Z",
+          "judgeEvidenceCreatedAt": "2026-09-11T07:17:19.648Z",
+          "actorReuseSourceAttemptId": null,
+          "judgeReuseSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-schema-mismatch",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor report identifies the former input binding as SupportOutputSchema and the required binding as SupportInputSchema. Current src/graph.ts wires SupportInputSchema to the StateGraph input role, while src/contracts.ts declares distinct SupportInputSchema and SupportOutputSchema symbols."
+            },
+            {
+              "id": "repairs-canonical-schema",
+              "evaluator": "judge",
+              "verdict": "fail",
+              "evidence": "Current moldea/moldea.yaml binds inputSchema to SupportInputSchema, src/graph.ts still exports the compiled supportGraph, workspace assertions identify only moldea/moldea.yaml as changed, and deterministic validation is valid with typecheck passed. However, the required Git diff evidence was unavailable because the approved diff command was blocked, so patch agreement cannot be independently established."
+            },
+            {
+              "id": "preserves-binding-closure",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml exactly binds runtimeAgent to /src/graph.ts#supportGraph, inputSchema to /src/contracts.ts#SupportInputSchema, and outputSchema to /src/contracts.ts#SupportOutputSchema. The complete manifest has no tools declaration; src/graph.ts retains answer-question as a StateGraph node with START and END edges. Deterministic inspection and validation are valid with no reported failures."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": [
+            "Requirement repairs-canonical-schema failed: Current moldea/moldea.yaml binds inputSchema to SupportInputSchema, src/graph.ts still exports the compiled supportGraph, workspace assertions identify only moldea/moldea.yaml as changed, and deterministic validation is valid with typecheck passed. However, the required Git diff evidence was unavailable because the approved diff command was blocked, so patch agreement cannot be independently established.",
+            "Provide an evaluator-readable Git diff for moldea/moldea.yaml, or resolve the repository attribute-safety blocker so the approved diff command can establish that the patch agrees with the current workspace and runner-owned evidence."
+          ]
+        },
+        {
+          "trialId": "confirmation-2",
+          "kind": "confirmation",
+          "confirmationIndex": 2,
+          "confirmationEligible": true,
+          "dimensions": {
+            "semantic": false,
+            "resource": true,
+            "commandPolicy": true,
+            "repositoryControl": true,
+            "mountIntegrity": true,
+            "operational": true
+          },
+          "failureClassifications": [
+            "semantic"
+          ],
+          "passed": false,
+          "durationMs": 601974,
+          "deterministicBeforePath": "cases/repair-langgraph-state-schema/trials/confirmation-2/deterministic-before.json",
+          "deterministicAfterPath": "cases/repair-langgraph-state-schema/trials/confirmation-2/deterministic-after.json",
+          "actorOutputPath": "cases/repair-langgraph-state-schema/trials/confirmation-2/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/repair-langgraph-state-schema/trials/confirmation-2/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/repair-langgraph-state-schema/trials/confirmation-2/workspace-assertions.json",
+          "patchPath": "cases/repair-langgraph-state-schema/trials/confirmation-2/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 265453,
+            "cachedInputTokens": 216832,
+            "outputTokens": 6003
+          },
+          "judgeUsage": {
+            "inputTokens": 454105,
+            "cachedInputTokens": 423424,
+            "outputTokens": 8637
+          },
+          "actorEvidenceCreatedAt": "2026-09-11T07:21:49.034Z",
+          "judgeEvidenceCreatedAt": "2026-09-11T07:27:21.621Z",
+          "actorReuseSourceAttemptId": null,
+          "judgeReuseSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-schema-mismatch",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor report identifies the former manifest input symbol as SupportOutputSchema and the required symbol as SupportInputSchema. Current src/graph.ts wires SupportInputSchema to the StateGraph input role, while deterministic validation reports valid status and zero failures."
+            },
+            {
+              "id": "repairs-canonical-schema",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "Current moldea/moldea.yaml binds inputSchema to /src/contracts.ts#SupportInputSchema. src/graph.ts still compiles the same StateGraph, and workspace assertions show src/graph.ts unchanged while only moldea/moldea.yaml changed. Deterministic validation and typecheck passed."
+            },
+            {
+              "id": "preserves-binding-closure",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The manifest retains runtimeAgent=/src/graph.ts#supportGraph, inputSchema=/src/contracts.ts#SupportInputSchema, and outputSchema=/src/contracts.ts#SupportOutputSchema. Those exports and graph roles exist in source. The complete manifest contains no tools declaration; answer-question remains a StateGraph addNode runtime pattern. Deterministic inspect and validation statuses are valid."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": [
+            "Required Git agreement is unverified: the prescribed status and path-limited diff commands were blocked by unresolved repository attribute safety. Supply independently collected inert Git status/diff evidence or establish attribute safety so those exact approved commands can complete."
+          ]
+        }
+      ],
+      "failures": [
+        "Required Git agreement is unverified: the prescribed status and path-limited diff commands were blocked by unresolved repository attribute safety. Supply independently collected inert Git status/diff evidence or establish attribute safety so those exact approved commands can complete."
+      ],
+      "reuse": null
+    },
+    {
+      "caseId": "preserve-langgraph-state-graph-static-boundary",
+      "title": "Preserve the LangGraph StateGraph static boundary",
+      "status": "recovered",
+      "confirmationStatus": "passed",
+      "durationMs": 1815846,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "confirmationEligible": true,
+          "dimensions": {
+            "semantic": false,
+            "resource": true,
+            "commandPolicy": true,
+            "repositoryControl": true,
+            "mountIntegrity": true,
+            "operational": true
+          },
+          "failureClassifications": [
+            "semantic"
+          ],
+          "passed": false,
+          "durationMs": 699964,
+          "deterministicBeforePath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 315342,
+            "cachedInputTokens": 271232,
+            "outputTokens": 8281
+          },
+          "judgeUsage": {
+            "inputTokens": 393864,
+            "cachedInputTokens": 364544,
+            "outputTokens": 11456
+          },
+          "actorEvidenceCreatedAt": "2026-09-11T06:58:42.998Z",
+          "judgeEvidenceCreatedAt": "2026-09-11T07:06:09.826Z",
+          "actorReuseSourceAttemptId": null,
+          "judgeReuseSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "preserves-closed-bindings",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml preserves support's runtimeAgent→supportGraph, inputSchema→SupportInputSchema, and outputSchema→SupportOutputSchema bindings. src/support-graph.ts retains the closed StateGraph initializer and direct graph operations; source hashes are unchanged and deterministic validation/typecheck passed."
+            },
+            {
+              "id": "preserves-opaque-schema-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "dynamic-support has only runtimeAgent→dynamicSupportGraph under bindings. No inputSchema or outputSchema was added for the factory-created schema in src/dynamic-support-graph.ts."
+            },
+            {
+              "id": "preserves-routing-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The manifest records runtime-selected conditional, Command, and Send destinations and complete topology as unresolved. The Git diff adds no routing targets, handoffs, subagents, or parent-navigation claims, and relevant source files remain unchanged."
+            },
+            {
+              "id": "keeps-nodes-outside-capabilities",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml declares no tools, skills, handoffs, or subagents. The guide explicitly describes lookupOrder as node-local and the ToolNode as unregistered; expected capability paths are absent."
+            },
+            {
+              "id": "preserves-runtime-semantics-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The effective-langgraph-composition unresolved record explicitly covers reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, ToolNode registration, and supervisor composition, with deployment wiring or focused integration tests as resolution."
+            },
+            {
+              "id": "records-focused-guidance",
+              "evaluator": "judge",
+              "verdict": "fail",
+              "evidence": "Both agents reference /moldea/runtimes/langgraph.md, and it is the sole Markdown file under moldea/runtimes. It accurately contrasts support with the opaque dynamic schema and documents runtime boundaries, but it never explains the supported alternative: using a closed modern StateGraph initializer with direct input/output schema identifiers to establish canonical schema evidence."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+            }
+          ],
+          "failures": [
+            "Requirement records-focused-guidance failed: Both agents reference /moldea/runtimes/langgraph.md, and it is the sole Markdown file under moldea/runtimes. It accurately contrasts support with the opaque dynamic schema and documents runtime boundaries, but it never explains the supported alternative: using a closed modern StateGraph initializer with direct input/output schema identifiers to establish canonical schema evidence.",
+            "Update moldea/runtimes/langgraph.md to explicitly state that canonical schema evidence is supported through a closed modern StateGraph initializer using direct input and output schema identifiers."
+          ]
+        },
+        {
+          "trialId": "confirmation-1",
+          "kind": "confirmation",
+          "confirmationIndex": 1,
+          "confirmationEligible": false,
+          "dimensions": {
+            "semantic": true,
+            "resource": true,
+            "commandPolicy": true,
+            "repositoryControl": true,
+            "mountIntegrity": true,
+            "operational": true
+          },
+          "failureClassifications": [],
+          "passed": true,
+          "durationMs": 596869,
+          "deterministicBeforePath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/deterministic-before.json",
+          "deterministicAfterPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/deterministic-after.json",
+          "actorOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/workspace-assertions.json",
+          "patchPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-1/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 268968,
+            "cachedInputTokens": 233600,
+            "outputTokens": 9787
+          },
+          "judgeUsage": {
+            "inputTokens": 480181,
+            "cachedInputTokens": 400768,
+            "outputTokens": 10149
+          },
+          "actorEvidenceCreatedAt": "2026-09-11T07:32:30.965Z",
+          "judgeEvidenceCreatedAt": "2026-09-11T07:37:18.564Z",
+          "actorReuseSourceAttemptId": null,
+          "judgeReuseSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "preserves-closed-bindings",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml retains support.runtimeAgent -> supportGraph, inputSchema -> SupportInputSchema, and outputSchema -> SupportOutputSchema. src/support-graph.ts still uses the closed StateGraph {state,input,output} initializer and direct node/edge/compile operations. Deterministic validation and type-checking passed."
+            },
+            {
+              "id": "preserves-opaque-schema-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "dynamic-support.bindings contains only runtimeAgent -> dynamicSupportGraph. src/dynamic-support-graph.ts still obtains its state schema from getDynamicSupportStateSchema(); no inputSchema or outputSchema relationship is declared. Deterministic validation passed."
+            },
+            {
+              "id": "preserves-routing-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "dynamic-support.unresolved.dynamic-routing explicitly leaves runtime-selected conditional, Command, and Send destinations and complete topology unresolved. The manifest declares no routing targets, handoffs, subagents, or parent navigation. Workspace assertions show all relevant source files were unchanged."
+            },
+            {
+              "id": "keeps-nodes-outside-capabilities",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The manifest contains no tools, skills, handoffs, or subagents. lookupOrder remains source-local, and moldea/runtimes/langgraph.md explicitly says it remains node-local and that the unregistered ToolNode does not establish a tool. The patch changed no source or agent files."
+            },
+            {
+              "id": "preserves-runtime-semantics-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml records reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, and supervisor composition under unresolved.runtime-composition with deployment wiring or focused integration tests as resolution. The runtime guide preserves the same boundary."
+            },
+            {
+              "id": "records-focused-guidance",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "Both support.runtime.guidance and dynamic-support.runtime.guidance reference /moldea/runtimes/langgraph.md. It is the sole file under moldea/runtimes and was absent before the patch. The guide contrasts direct exported schema evidence with the opaque factory boundary and identifies deployment wiring or focused integration tests for unresolved runtime behavior."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+            }
+          ],
+          "failures": []
+        },
+        {
+          "trialId": "confirmation-2",
+          "kind": "confirmation",
+          "confirmationIndex": 2,
+          "confirmationEligible": false,
+          "dimensions": {
+            "semantic": true,
+            "resource": true,
+            "commandPolicy": true,
+            "repositoryControl": true,
+            "mountIntegrity": true,
+            "operational": true
+          },
+          "failureClassifications": [],
+          "passed": true,
+          "durationMs": 519013,
+          "deterministicBeforePath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/deterministic-before.json",
+          "deterministicAfterPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/deterministic-after.json",
+          "actorOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/workspace-assertions.json",
+          "patchPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/confirmation-2/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 415519,
+            "cachedInputTokens": 380928,
+            "outputTokens": 7493
+          },
+          "judgeUsage": {
+            "inputTokens": 461013,
+            "cachedInputTokens": 418688,
+            "outputTokens": 10248
+          },
+          "actorEvidenceCreatedAt": "2026-09-11T07:41:02.406Z",
+          "judgeEvidenceCreatedAt": "2026-09-11T07:45:57.464Z",
+          "actorReuseSourceAttemptId": null,
+          "judgeReuseSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "preserves-closed-bindings",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml retains support.runtimeAgent -> /src/support-graph.ts#supportGraph, inputSchema -> SupportInputSchema, and outputSchema -> SupportOutputSchema. src/support-graph.ts contains those exports and its direct StateGraph operations; workspace hashes confirm the source remained unchanged."
+            },
+            {
+              "id": "preserves-opaque-schema-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "dynamic-support declares only runtimeAgent -> /src/dynamic-support-graph.ts#dynamicSupportGraph. No inputSchema or outputSchema relationship exists, matching the unchanged source's factory-produced schema."
+            },
+            {
+              "id": "preserves-routing-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "dynamic-support.unresolved.dynamic-routing explicitly leaves runtime-state, Command, and Send destinations unresolved and requires closed runtime configuration or integration tests. The canonical inventory contains no routing targets, handoffs, subagents, parent navigation, or complete-topology claim."
+            },
+            {
+              "id": "keeps-nodes-outside-capabilities",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The manifest declares no tools, skills, handoffs, or subagents. The guide identifies the order lookup as node-local and the empty ToolNode as unregistered and not an agent tool."
+            },
+            {
+              "id": "preserves-runtime-semantics-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The top-level runtime-composition unresolved record explicitly covers reducers, effective node metadata, subgraphs, checkpointer, store, cache, runtime context, compiled descriptions, prebuilt agents, supervisor composition, and ToolNode registration, with deployment configuration and integration evidence as resolution."
+            },
+            {
+              "id": "records-focused-guidance",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "Both support and dynamic-support reference /moldea/runtimes/langgraph.md. Targeted canonical-path inspection found it is the sole runtime Markdown guide; it contrasts directly declared schemas with the opaque factory boundary and documents runtime routing and composition evidence requirements."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": [],
+      "reuse": null
+    }
+  ]
+}

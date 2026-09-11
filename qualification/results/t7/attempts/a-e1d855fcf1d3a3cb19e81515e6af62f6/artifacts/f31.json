@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 737022,
+  "deterministicBeforePath": "cases/repair-google-genai-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-google-genai-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-google-genai-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-google-genai-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-google-genai-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-google-genai-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 391175,
+    "cachedInputTokens": 358528,
+    "outputTokens": 5148
+  },
+  "judgeUsage": {
+    "inputTokens": 552344,
+    "cachedInputTokens": 533888,
+    "outputTokens": 7831
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T06:42:18.527Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T06:49:21.064Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies the prior `find_order` manifest name and the source-established `lookup_order` declaration. Independently, replacing the current manifest’s `lookup_order` with `find_order` reproduces the asserted before SHA-256 exactly (`92bb9f...84b07`), while `src/tools.ts` declares `name: 'lookup_order'`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`; its SHA-256 matches the asserted after state (`f50624...15b51`). Workspace assertions identify only that manifest as changed, while all wrapper, declaration, contract, and implementation hashes remain identical before and after. Deterministic validation passed without failures."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest binds `supportAgent` and `loadSupportInstruction` in `/src/agent.ts`, `lookupOrderDeclaration` in `/src/tools.ts`, `LookupOrderInputSchema` in `/src/contracts.ts`, and `lookupOrder` in `/src/implementations.ts`. Those exact exports exist; `supportAgent` still directly calls `client.models.generateContent` with the loaded instruction and closed `[lookupOrderDeclaration]` array. Source hashes are unchanged, deterministic CLI inspect/validate and typecheck passed, and the actor explicitly limits its claim to static declaration/wiring consistency rather than live runtime execution."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

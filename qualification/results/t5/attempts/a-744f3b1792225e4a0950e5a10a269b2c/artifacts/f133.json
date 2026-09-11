@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support runtime-agent binding to /src/support-assistant.ts#supportAssistant and recorded the dynamic tool-registration boundary using the canonical warning structure. TypeScript compilation passed, moldea validation returned valid with zero diagnostics, and the final approved Git diff was inspected.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The canonical support instruction remains unchanged.",
+    "No tool binding or implementation code was added.",
+    "Pre-existing deletion of src/support-agent.ts and untracked src/support-assistant.ts and src/dynamic-tools.ts were preserved."
+  ],
+  "unresolved": [
+    "The final support tool relationship remains statically unprovable; agents.support.unresolved.dynamic-tool-registration now requires runtime wiring or focused integration-test evidence to resolve it."
+  ]
+}

@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: maintain-dirty-project
 title: Maintain a dirty project
 purpose: Verify a focused context change while preserving unrelated tracked and untracked work.

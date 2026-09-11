@@ -1,49 +1,66 @@
 ---
 title: Compatibility and local tooling
 navigationTitle: Compatibility
-description: Supported Git, Node.js, package-manager, CLI, and JSON schema versions for the current skill release.
+description: Supported Git, Node.js, CLI, repository format, and machine-output contracts for the current skill release.
 section: reference
 order: 180
 ---
 
 # Compatibility and local tooling
 
-The current skill release supports:
+Release `5.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- `@moldea.ai/cli 5.0.3`
-- CLI JSON schema `2`
-- npm `>=7.0.0`
-- pnpm `>=8.3.1`
-- Yarn `>=4.14.1`
+- stable `@moldea.ai/core` releases satisfying `^4.0.1`
+- stable `@moldea.ai/cli` releases satisfying `^8.0.0`
+- repository format version 1
+- CLI JSON schema 4
 
-A client repository stores the exact release-owned repository-root `@moldea.ai/cli` development dependency. Another CLI version belongs to another skill release and is not treated as interchangeable.
+The CLI is a repository-root-local development dependency. Its declaration and exact lockfile-selected stable version must satisfy `^8.0.0`; compatible CLI 8 patches and minors do not require another skill release. Other CLI majors, prereleases, malformed ranges, incompatible installed versions, and Core versions below 4.0.1 fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
-These open-ended ranges avoid rejecting a new stable manager major before any `moldea` command runs. The Node.js and selected package-manager ranges are independent: the active manager may impose a higher Node.js floor. `moldea` still verifies the exact manager executable, local CLI provider, lifecycle suppression, and machine-readable command envelope, so an incompatible future release fails at the concrete capability boundary.
+## Tooling ownership
 
-## The coding agent owns the tooling boundary
+The local-tooling reference governs only establishment and invocation of the `moldea` CLI. It does not replace Git commands, package-manager commands, planning, review, commit, or publication procedures owned by the host workflow.
 
-Write-capable workflows can establish or reconcile the exact release tooling when authorized. Planning never installs tooling merely to produce a recommendation. Evaluation and validation remain read-only and report missing or mismatched tooling instead of changing dependencies.
+A write-capable `moldea` operation may establish the compatible dependency through the repository's existing package manager with lifecycle scripts disabled. Read-only work reports missing or mismatched tooling and does not alter dependencies, lockfiles, or configuration.
 
-Before any Git, package-manager, deterministic CLI, or tooling-establishment command, the coding agent loads the portable local-tooling guidance as a separate step. It never combines that loading step with the first governed command. Before deterministic execution, it verifies:
+Every CLI operation uses the portable skill's `scripts/moldea-cli.mjs` launcher. The launcher validates the installed package identity, exact stable version, supported declaration, CLI/Core dependency closure, binary declaration, and repository-local containment from inert package metadata. It then invokes Node with an argument array and no shell. The skill's pre-activation script reuses the same resolver, invokes Core without the CLI, and emits only `0` or `1`. Agents do not reproduce package, executable-link, `PATH`, or parent-workspace probes around either script.
 
-- package-manager identity and executable version
-- exact CLI declaration, installed package identity and version, and exported `moldea` binary
-- the repository-local executable provider
-- CLI version and supported JSON schema
-- command, status, payload, and exit-code consistency
+## Machine output
 
-In a pnpm Plug'n'Play repository, provider verification does not require `node_modules/.bin`. The coding agent resolves the exact root package through `pnpapi`, validates the package identity, relative binary, and canonical containment, then invokes the accepted binary in a separate `pnpm node` process. It does not use `pnpm exec` or change the linker. When repository evidence is accessible, even a request to explain the proof executes these checks and reports the provider, exact version, command, and accepted envelope. Only a request without accessible repository evidence receives the procedure alone.
+Compatible stable CLI 8 releases emit schema 4 JSON only. Every paged machine command uses `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary.
 
-In a Yarn 4 repository, declaration, installed identity and exported binary, and effective provider are separate ordered checks. Evidence accepted at an earlier stage remains part of the report when a later provider conflict stops execution. The coding agent never resolves or invokes the binary after that conflict.
+The envelope contains:
 
-The coding agent then uses `inspect --json` for complete deterministic evidence, `validate --json` for structural validation, or `composition --json` when installed package composition, available adapter IDs, repository-format versions, or Node.js and Git requirements can change the conclusion. The CLI does not own target maturity or published behavioral support claims.
+- `schemaVersion: 4`
+- `cliVersion` equal to the exact installed stable CLI 8 version
+- the invoked `command`
+- `status`
+- `result`
+- `error`
 
-When current runtime-target compatibility or maturity matters, the coding agent validates the untrusted publication at [`https://packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json). The packages website owns that publication, including `experimental` and `supported` target maturity, so those states can change independently of the CLI. An unavailable or invalid publication blocks only claims that depend on current published compatibility; it does not prevent safe local inspection, deterministic validation, or a negative readiness conclusion supported by independent blockers. The resulting report states the unavailable fact and includes the literal publication URL required to resolve that limitation.
+Exit code 0 represents `valid`, exit code 1 represents `invalid`, and exit code 2 or 3 represents `error`. The launcher preserves a completed child's status and uses 3 for its own validation, containment, signal, or output-boundary failures. It sends the requested termination signal first and force-terminates a child that remains active after five seconds. A launcher failure, signal, malformed envelope, version mismatch, unsupported schema, stale cursor, or contradictory status provides no deterministic conclusion.
 
-When supplemental Git evidence is necessary, no Git subcommand is presumed harmless. Before worktree-aware Git, the coding agent establishes the candidate repository root through inert filesystem traversal and reads every repository and Git-directory attribute source. Any filter rule or incomplete attribute inspection blocks that Git path because repository clean filters cannot be neutralized universally from the command line. After the preflight passes, command-specific controls disable system and global attributes, filesystem monitors, pagers, external diff programs, text conversion, LFS, and submodule recursion. After every command, especially a failure, the agent checks the workspace and helper sentinels before claiming no writes. If those controls cannot make the inspection safe, it reports the limitation instead of executing repository code.
+`inspect` and `validate` do not include canonical document bodies. Each paged `kind: agent` inspection record exposes exact `agentId` and `runtimeId` assignment metadata without the agent body. `scope` accepts one logical path or one NUL-delimited path set and returns relationship matches after the two-byte gate establishes relevance. `content` returns chunks only for one explicit canonical `/moldea/**` path.
 
-An executable package-manager extension blocks manager execution. A Yarn `plugins[].path` declaration counts even when the plugin remains unread and unrun. The report names its exact path, blocked operation, unavailable evidence, and safe prerequisite: remove or disable the extension and retry, or independently verify an already declared and installed exact CLI without the manager. It does not recommend bypassing or executing the extension merely to continue.
+## Resource limits
 
-You should not need to perform these checks manually. They are the under-the-hood safety boundary that lets you continue requesting outcomes naturally.
+Ordinary work uses a 65,536-byte page and stops once the relevant record or diagnostic is available. Aggregate `moldea` output should remain at or below 262,144 bytes. This is an operating target, not a project-size ceiling.
+
+Large repositories remain supported through deterministic metadata pagination. An explicitly required large-context operation may traverse more pages, but each CLI invocation remains at or below 1 MiB and the traversal remains scoped to the task. The page limit bounds one encoded response, not repository capacity.
+
+Qualification scenarios declare one of two operating profiles:
+
+- `ordinary`: 128 KiB from one completed command, 64 completed commands, 16 `moldea` calls, 256 KiB of `moldea` output, 1 MiB of aggregate model-visible tool output, and 1,625,000 input-plus-output tokens
+- `largeTraversal`: 128 KiB from one completed command, 64 commands, 16 `moldea` calls, 1 MiB of `moldea` output, 4 MiB of aggregate model-visible tool output, and 1,625,000 input-plus-output tokens
+
+The host retains higher absolute ceilings of 128 completed commands, 32 `moldea` calls, 8 MiB of `moldea` output, 16 MiB of complete-stage model-visible tool output, 32 KiB of raw command text, and 2,097,152 tokens. These are failure containment for unusual cases, not operating targets. The 128 KiB operating peak applies to one completed command's output and is distinct from the 32 KiB raw-command-text ceiling. Crossing any operating dimension fails with the profile, dimension, observed value, and limit so users can distinguish excessive behavior from missing evidence. An otherwise safe cumulative completed-command, `moldea`-call, or token overage may reach semantic judging to establish whether it is eligible calibration evidence, but the trial remains failed until the active profile accepts it. Missing token usage and any output-volume, deterministic, workspace, runner-owned, or observed command-policy failure skip the judge. Duration and peak memory remain recorded diagnostics rather than brittle pass/fail thresholds.
+
+`tooling/resource-calibration/profiles.mjs` is the numeric authority for these values. `fixtures/resource-calibration.json` records reproducible deterministic CLI and repository-operation measurements; it is not model-stage evidence. `fixtures/model-stage-resource-calibration.json` is a self-contained safety-calibration record containing the privacy-safe accepted actor and judge aggregates used for cumulative limits. It does not act as current qualification assurance or load an active result directory. Use `npm run resource:check` to verify both calibration sources, internal observation integrity, headroom, and agreement with the active profiles.
+
+## Published runtime compatibility
+
+Installed CLI composition reports available adapter packages and repository-format compatibility. Current target maturity remains owned by the packages website publication at [`packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json).
+
+An unavailable or invalid publication blocks only claims that depend on current published maturity. It does not prevent local structural validation, content-free metadata inspection, or a negative readiness conclusion supported by independent evidence.

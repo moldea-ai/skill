@@ -1,0 +1,60 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 93674,
+  "deterministicBeforePath": "cases/answer-information-before-adoption/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/answer-information-before-adoption/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/answer-information-before-adoption/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/answer-information-before-adoption/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/answer-information-before-adoption/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/answer-information-before-adoption/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 27069,
+    "cachedInputTokens": 19584,
+    "outputTokens": 809
+  },
+  "judgeUsage": {
+    "inputTokens": 48756,
+    "cachedInputTokens": 29568,
+    "outputTokens": 1882
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T04:51:25.938Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T04:52:18.494Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "answers-concisely",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Actor output consists of two short sentences: it describes moldea as maintaining durable project context without owning the work and identifies repository-root `/moldea/` as an adopted project's canonical-state location, without making a repository-specific conclusion."
+    },
+    {
+      "id": "avoids-repository-activation",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Runner-owned actor command policy reports `moldeaCommandCount: 0`. Workspace assertions report `repositoryUnchanged: true`, identical before/after hashes and modes for every asserted file, and no changed paths."
+    },
+    {
+      "id": "preserves-uninitialized-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

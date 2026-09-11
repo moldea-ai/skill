@@ -1,4 +1,5 @@
 import { hasPassingCodexEvaluationCommandPolicy } from '../../../tooling/codex-evaluation-host/index.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
 
 import type {
   IActorOutput,
@@ -9,7 +10,9 @@ import type {
   IQualificationCaseScenario,
   IQualificationCommandPolicyEvidence,
   IQualificationExecutionEnvironment,
+  IQualificationModelStageEvidence,
   IQualificationRequirementAssessment,
+  IQualificationResourceProfile,
   IQualificationSourceStateResult,
   IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
@@ -18,9 +21,21 @@ import {
   QUALIFICATION_MODEL_ENDPOINT_ORIGINS,
 } from '../constants/index.ts';
 
-import type { IQualificationInputState } from './types.ts';
+import type {
+  IQualificationInputState,
+  IQualificationResourceAssessment,
+  IQualificationResourceDimension,
+  IQualificationResourceViolation,
+} from './types.ts';
 
 const formatIds = (ids: readonly string[]): string => ids.join(', ');
+
+// output-volume violations stop before another model stage
+const QUALIFICATION_JUDGE_BLOCKING_RESOURCE_DIMENSIONS = new Set<IQualificationResourceDimension>([
+  'maximum-command-output-bytes',
+  'model-visible-tool-output-bytes',
+  'moldea-output-bytes',
+]);
 
 /**
  * Inspects whether repository inputs are publishable before an official qualification run.
@@ -109,7 +124,19 @@ export const haveQualificationInputsChanged = (
 export const haveQualificationExecutionInputsChanged = (
   expected: IQualificationExecutionEnvironment,
   current: IQualificationExecutionEnvironment,
-): boolean => JSON.stringify(expected) !== JSON.stringify(current);
+): boolean =>
+  expected.model !== current.model ||
+  expected.actorReasoningEffort !== current.actorReasoningEffort ||
+  expected.judgeReasoningEffort !== current.judgeReasoningEffort ||
+  expected.codexVersion !== current.codexVersion ||
+  expected.nodeVersion !== current.nodeVersion ||
+  expected.pnpmVersion !== current.pnpmVersion ||
+  expected.gitVersion !== current.gitVersion ||
+  JSON.stringify(expected.allowedEgressHosts) !== JSON.stringify(current.allowedEgressHosts) ||
+  expected.hostTimeoutMs !== current.hostTimeoutMs ||
+  expected.modelEndpoint?.origin !== current.modelEndpoint?.origin ||
+  expected.modelEndpoint?.sha256 !== current.modelEndpoint?.sha256 ||
+  expected.sslCertificateFileSha256 !== current.sslCertificateFileSha256;
 
 /** Returns whether reconstructed candidate artifacts differ from the checkpointed closure. */
 export const haveCandidateClosuresChanged = (
@@ -189,6 +216,88 @@ export const deriveQualificationCommandPolicyFailures = (options: {
         'Judge command policy observed prohibited credential, network, or sensitive evaluator access.',
       ]),
 ];
+
+/** Inspects one model stage against its scenario-owned operating profile. */
+export const inspectQualificationResourceUsage = (options: {
+  allowMissingUsage: boolean;
+  evidence: Pick<IQualificationModelStageEvidence, 'commandPolicy' | 'usage'>;
+  profile?: IQualificationResourceProfile;
+  role: 'Actor' | 'Judge';
+  scenario: IQualificationCaseScenario;
+}): IQualificationResourceAssessment => {
+  const profile =
+    options.profile ?? MOLDEA_SKILL_RESOURCE_PROFILES[options.scenario.resourceProfile];
+  const observations: Array<{
+    dimension: IQualificationResourceDimension;
+    limit: number;
+    observed: number;
+  }> = [
+    {
+      dimension: 'completed-host-commands',
+      observed: options.evidence.commandPolicy.completedCommandCount,
+      limit: profile.maxCompletedCommandCount,
+    },
+    {
+      dimension: 'moldea-commands',
+      observed: options.evidence.commandPolicy.moldeaCommandCount,
+      limit: profile.maxMoldeaCommandCount,
+    },
+    {
+      dimension: 'moldea-output-bytes',
+      observed: options.evidence.commandPolicy.moldeaOutputByteCount,
+      limit: profile.maxAggregateMoldeaOutputBytes,
+    },
+    {
+      dimension: 'maximum-command-output-bytes',
+      observed: options.evidence.commandPolicy.maximumCommandOutputByteCount,
+      limit: profile.maxCommandOutputBytes,
+    },
+    {
+      dimension: 'model-visible-tool-output-bytes',
+      observed: options.evidence.commandPolicy.modelVisibleToolOutputByteCount,
+      limit: profile.maxModelVisibleToolOutputBytes,
+    },
+  ];
+  const violations: IQualificationResourceViolation[] = observations.flatMap(
+    ({ dimension, observed, limit }) =>
+      observed > limit ? [{ dimension, kind: 'exceeded', limit, observed }] : [],
+  );
+
+  if (options.evidence.usage === null) {
+    if (!options.allowMissingUsage) {
+      violations.push({
+        dimension: 'total-model-tokens',
+        kind: 'unavailable',
+        limit: profile.maxHostTokenCount,
+        observed: null,
+      });
+    }
+  } else {
+    const totalModelTokens =
+      options.evidence.usage.inputTokens + options.evidence.usage.outputTokens;
+    if (totalModelTokens > profile.maxHostTokenCount) {
+      violations.push({
+        dimension: 'total-model-tokens',
+        kind: 'exceeded',
+        limit: profile.maxHostTokenCount,
+        observed: totalModelTokens,
+      });
+    }
+  }
+
+  return {
+    failures: violations.map(({ dimension, kind, limit, observed }) =>
+      kind === 'unavailable'
+        ? `${options.role} resource profile ${options.scenario.resourceProfile} could not establish ${dimension}: observed unavailable, limit ${limit}.`
+        : `${options.role} resource profile ${options.scenario.resourceProfile} exceeded ${dimension}: observed ${observed}, limit ${limit}.`,
+    ),
+    hasJudgeBlocker: violations.some(
+      ({ dimension, kind }) =>
+        kind === 'unavailable' || QUALIFICATION_JUDGE_BLOCKING_RESOURCE_DIMENSIONS.has(dimension),
+    ),
+    violations,
+  };
+};
 
 /** Creates deterministic assessments for every runner-owned scenario requirement. */
 export const createRunnerRequirementAssessments = (options: {

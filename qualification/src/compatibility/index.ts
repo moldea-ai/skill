@@ -4,6 +4,7 @@ export type {
   IResolvedQualificationTarget,
   IRuntimeAdapterEntry,
   IRuntimeCompatibilityMatrix,
+  IRuntimeCompatibilitySnapshot,
   IRuntimeTarget,
 } from './types.ts';
 
@@ -14,5 +15,6 @@ export { RuntimeCompatibilityMatrixSchema } from './types.ts';
 export {
   listQualificationImplementations,
   loadRuntimeCompatibilityMatrix,
+  loadRuntimeCompatibilitySnapshot,
   resolveQualificationTarget,
 } from './loader.ts';

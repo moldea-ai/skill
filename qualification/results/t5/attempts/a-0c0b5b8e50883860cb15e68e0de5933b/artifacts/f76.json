@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, approved Git evidence, and deterministic post-actor results agree: the order-triage agent is grounded in the unchanged implementation, correctly bound to the custom runtime, and documented with accurate runtime-local guidance. Inspection was read-only.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "`moldea/agents/order-triage/description.md` says the agent classifies orders for human review without refund-approval authority. Its canonical instruction repeats both constraints and forbids implying approval. This matches `src/order-triage-agent.ts`, where `action` is `classify-for-human-review` and `canApproveRefunds` is `false`. Workspace hashes match the supplied post-actor assertions."
+    },
+    {
+      "id": "binds-implementation",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` declares runtime `custom`, binds `runtimeAgent.path` to `/src/order-triage-agent.ts` with symbol `createOrderTriageAgent`, and lists that exact source under `affectedBy`. The export exists in the unchanged source, and the deterministic post-actor summary reports valid inspection, validation, typechecking, and repository equivalence."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "verdict": "pass",
+      "evidence": "The manifest references `/moldea/runtimes/custom.md`, and targeted inventory found it to be the sole Markdown file under `moldea/runtimes`. The guidance accurately states that the runtime-owned loader receives `/moldea/agents/order-triage/instruction.md` and returns its exact content to `createOrderTriageAgent`, matching the factory signature and constant in source. It explicitly declines to assume any caller, provider adapter, tool registry, or loader implementation."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Corrected the support agent input binding to `SupportInputSchema`, matching the closed StateGraph initializer without changing runtime source. Local validation returned `valid: true` with zero diagnostics, and TypeScript type-checking passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The final diff contains one symbol substitution only.",
+    "The compiled graph, node and edges, runtime-agent binding, and both schema declarations remain intact.",
+    "Final Git status shows only moldea/moldea.yaml modified."
+  ],
+  "unresolved": []
+}

@@ -1,0 +1,37 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, approved Git diff, workspace assertions, and deterministic validation agree. The manifest preserves the proved SupportAgent, StepSupportAgent, and delegating-support bindings; records the two distinct unresolved static boundaries; adds one shared Cloudflare runtime guide; leaves RuntimeInitializedAgent unregistered; and changes no source files.",
+  "requirements": [
+    {
+      "id": "preserves-open-tool-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains SupportAgent and loadSupportInstruction bindings, declares runtime-selected-tools unresolved, and contains no partial support tool registration. src/support-agent.ts confirms getTools() combines supportStatusTool with an open runtime-selected spread."
+    },
+    {
+      "id": "preserves-dynamic-session-boundary",
+      "verdict": "pass",
+      "evidence": "The step-support manifest entry binds only StepSupportAgent and adds a helper-built-session-instruction warning; it does not bind loadStepSupportInstruction. src/step-support-agent.ts confirms configureSession() delegates to configureSupportSession()."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "pass",
+      "evidence": "The manifest preserves delegate_support description, implementation, registration, input schema, and output schema bindings without handoff or routing metadata. The Git diff adds only runtime guidance to delegating-support, while src/delegation-tool.ts and src/delegation.ts confirm ordinary function-tool delegation."
+    },
+    {
+      "id": "keeps-initialized-class-outside-target",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts still exports RuntimeInitializedAgent with the executable Date.now() field, while targeted manifest inspection finds no RuntimeInitializedAgent or workflow-agent registration. Workspace assertions show the source file is byte-identical before and after."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "Support and step-support both reference /moldea/runtimes/cloudflare-agents.md. Targeted runtime-directory inspection finds it is the sole runtime guide, and its content covers open tools, helper-built sessions, ordinary delegation, initialized fields, Cloudflare Durable Object bindings, SQLite-backed migrations, and deployment configuration."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains separate warning-level unresolved records for SupportAgent's runtime-selected tool registry and StepSupportAgent's helper-built session instruction. Each includes a focused description, concrete resolution criteria, and relevant source paths."
+    }
+  ],
+  "failures": []
+}

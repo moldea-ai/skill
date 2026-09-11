@@ -1,0 +1,69 @@
+{
+  "caseId": "abstain-initialized-unrelated-work",
+  "title": "Abstain from initialized unrelated work",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 205522,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 205522,
+      "deterministicBeforePath": "cases/abstain-initialized-unrelated-work/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/abstain-initialized-unrelated-work/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/abstain-initialized-unrelated-work/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/abstain-initialized-unrelated-work/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/abstain-initialized-unrelated-work/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/abstain-initialized-unrelated-work/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 151910,
+        "cachedInputTokens": 114688,
+        "outputTokens": 4701
+      },
+      "judgeUsage": {
+        "inputTokens": 108028,
+        "cachedInputTokens": 74112,
+        "outputTokens": 1988
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T04:52:58.563Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T04:54:10.340Z",
+      "actorReuseSourceAttemptId": "20260911T044013787Z-custom-custom-d7336457",
+      "judgeReuseSourceAttemptId": "20260911T044013787Z-custom-custom-d7336457",
+      "requirementAssessments": [
+        {
+          "id": "abstains-after-cheap-gate",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor output contains no moldea mention or skill-reference-specific reasoning/result content. Runner-owned actor-command-policy reports moldeaCommandCount: 0 and moldeaOutputByteCount: 0."
+        },
+        {
+          "id": "preserves-valid-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": {
+    "sourceAttemptId": "20260911T044013787Z-custom-custom-d7336457",
+    "sourceCommit": "5bfa7a9ade6b4fc906e1edab2368f4e8b85d84f6",
+    "sourceAttemptDigest": "1def1e41750bc753bb09a6e62b5f47f026bd369ccd30d05f71ab1340538718fd"
+  }
+}

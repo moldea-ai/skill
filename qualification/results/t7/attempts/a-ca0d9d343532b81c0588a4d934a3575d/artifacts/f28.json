@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, runner evidence, and Git diff agree: the only change is `moldea/moldea.yaml`, correcting `find_order` to `lookup_order`. All Google Gen AI bindings and source implementations remain intact, deterministic validation is valid with zero diagnostics, and this judgment made no repository changes.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the mismatch and correction from `find_order` to `lookup_order`. The Git diff confirms the former manifest name, while `src/tools.ts` declares `lookupOrderDeclaration.name` as `lookup_order` and `src/agent.ts` registers that declaration in the closed `functionDeclarations` array."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, matching `src/tools.ts`. The approved Git diff contains only this one-line name change, and the deterministic post-actor summary reports valid inspection, zero listed failures, and passing typecheck."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The current manifest retains exact bindings for `supportAgent`, `loadSupportInstruction`, `lookupOrder`, `lookupOrderDeclaration`, and `LookupOrderInputSchema`. The corresponding source files resolve those symbols and preserve the direct `client.models.generateContent` wrapper with `tools: [{ functionDeclarations: [lookupOrderDeclaration] }]`. Current hashes match the supplied after-state, where every relevant source hash is unchanged; deterministic evidence reports structural validity and typecheck success without claiming runtime execution."
+    }
+  ],
+  "failures": []
+}

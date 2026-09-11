@@ -1,11 +1,21 @@
 // @vitest-environment node
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, test } from 'vitest';
 
+import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../../../../tooling/codex-evaluation-host/index.mjs';
+import { EVALUATION_CONFIRMATION_POLICY } from '../../../../tooling/evaluation-confirmation-policy/index.mjs';
 import {
   createPortableSkillDigest,
   createSemanticCaseDefinitionDigest,
@@ -22,13 +32,46 @@ import type { ISemanticCaseDefinition } from './types.ts';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const temporaryRoots: string[] = [];
-const HOST = {
+const ACTOR_HOST = {
+  developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   model: 'gpt-5.6-sol',
   name: 'codex',
-  reasoningEffort: 'medium',
+  reasoningEffort: 'xhigh',
+  role: 'actor',
   version: 'codex-cli test',
 } as const;
-const UPDATED_HOST = { ...HOST, version: 'codex-cli updated' } as const;
+const JUDGE_HOST = {
+  ...ACTOR_HOST,
+  reasoningEffort: 'xhigh',
+  role: 'judge',
+} as const;
+const UPDATED_ACTOR_HOST = { ...ACTOR_HOST, version: 'codex-cli updated' } as const;
+const UPDATED_JUDGE_HOST = { ...JUDGE_HOST, version: 'codex-cli updated' } as const;
+const MODEL_USAGE = {
+  cachedInputTokens: 0,
+  inputTokens: 1,
+  outputTokens: 1,
+} as const;
+const createCommandPolicyEvidence = (completedCommandCount: number) => ({
+  completedCommandCount,
+  credentialExposure: { status: 'not-observed' as const, observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
+  networkAccess: {
+    status: 'not-observed' as const,
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+  sensitiveAccess: {
+    status: 'not-observed' as const,
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+});
 
 interface IMutableReplayCommand {
   item: {
@@ -79,53 +122,108 @@ const createCandidate = (
   cli: createSemanticCliIdentity(root),
   confirmations: [],
   coverageDigest: createSemanticCoverageDigest(coverage, caseDefinitions),
+  confirmationPolicy: EVALUATION_CONFIRMATION_POLICY,
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt: updatedAt,
   hostContract: {
-    model: HOST.model,
-    name: HOST.name,
-    reasoningEffort: HOST.reasoningEffort,
+    actor: {
+      developerInstructionsSha256: ACTOR_HOST.developerInstructionsSha256,
+      model: ACTOR_HOST.model,
+      name: ACTOR_HOST.name,
+      reasoningEffort: ACTOR_HOST.reasoningEffort,
+      role: ACTOR_HOST.role,
+    },
+    judge: {
+      developerInstructionsSha256: JUDGE_HOST.developerInstructionsSha256,
+      model: JUDGE_HOST.model,
+      name: JUDGE_HOST.name,
+      reasoningEffort: JUDGE_HOST.reasoningEffort,
+      role: JUDGE_HOST.role,
+    },
   },
   results: evaluatedCaseIds.map((id, index) => {
     const caseDefinition = caseDefinitions.find(({ id: caseId }) => caseId === id);
     if (caseDefinition === undefined) throw new Error(`Unknown test case ${id}.`);
     const passed = id !== failedCaseId;
+    const moldeaOperation =
+      caseDefinition.resourceBudget.activation === 'abstain' ||
+      caseDefinition.resourceBudget.activation === 'informational'
+        ? null
+        : caseDefinition.resourceBudget.activation === 'relationship'
+          ? 'scope'
+          : 'inspect';
+    const moldeaOutputByteCount = moldeaOperation === null ? 0 : 128;
     return {
-      actorCommandPolicyEvidence: {
-        completedCommandCount: 1,
-        indeterminateCommandCount: 0,
-        packageManagerExecution: 'not-observed',
-        packageManagerInvocationCount: 0,
-      },
+      actorCommandPolicyEvidence: createCommandPolicyEvidence(1),
       actorExecutionEvidence: [
         {
           eventType: 'item.completed',
           item: {
+            commandKind: moldeaOperation === null ? 'other' : 'moldea',
             exitCode: 0,
             outputEvidence: {
-              byteCount: 0,
-              disposition: 'empty',
-              facts: [],
+              byteCount: moldeaOutputByteCount,
+              disposition: moldeaOperation === null ? 'empty' : 'projected',
+              facts:
+                moldeaOperation === null
+                  ? []
+                  : [
+                      {
+                        cliVersion: createSemanticCliIdentity(root).version,
+                        command: moldeaOperation,
+                        containsContent: false,
+                        errorCode: null,
+                        errorPresent: false,
+                        hasNextPage: false,
+                        kind: 'moldea-cli-envelope',
+                        pageRecordCount: 1,
+                        relevant: moldeaOperation === 'scope' ? true : null,
+                        resultPresent: true,
+                        schemaVersion: createSemanticCliIdentity(root).jsonSchemaVersion,
+                        status: 'valid',
+                      },
+                    ],
             },
             status: 'completed',
             type: 'command_execution',
           },
         },
       ],
-      actorHost: index === 0 ? HOST : UPDATED_HOST,
+      actorResourceEvidence: {
+        commandCount: moldeaOperation === null ? 0 : 1,
+        maximumInvocationByteCount: moldeaOutputByteCount,
+        modelVisibleToolOutputByteCount: moldeaOutputByteCount,
+        operations: moldeaOperation === null ? [] : [moldeaOperation],
+        stdoutByteCount: moldeaOutputByteCount,
+      },
+      actorHost: index === 0 ? ACTOR_HOST : UPDATED_ACTOR_HOST,
+      actorUsage: MODEL_USAGE,
       actorResponse: `Recorded actor replay for ${id}.`,
       caseDefinitionDigest: createSemanticCaseDefinitionDigest(caseDefinition),
       caseId: id,
+      confirmationEligible: !passed,
+      dimensions: {
+        semantic: passed,
+        resource: true,
+        commandPolicy: true,
+        repositoryControl: true,
+        mountIntegrity: true,
+        operational: true,
+      },
       evaluatedAt: updatedAt,
+      executionOrigin: 'executed',
       forbidden: [],
+      failureClassifications: passed ? [] : ['semantic'],
       id,
-      judgeHost: index === 0 ? HOST : UPDATED_HOST,
+      judgeCommandPolicyEvidence: createCommandPolicyEvidence(0),
+      judgeHost: index === 0 ? JUDGE_HOST : UPDATED_JUDGE_HOST,
+      judgeUsage: MODEL_USAGE,
       observed: passed ? getSemanticCriterionLabels(caseDefinition.expected) : [],
       passed,
       rationale: passed
         ? 'The recorded response satisfies every declared criterion.'
         : 'The recorded response misses one declared criterion.',
-      readOnlyMountControlEvidence: [],
+      stageReuse: null,
       scenarioEvidence: [
         {
           observation: {
@@ -138,7 +236,7 @@ const createCandidate = (
       workspaceChanges: { created: [], deleted: [], modified: [] },
     };
   }),
-  schemaVersion: 6,
+  schemaVersion: 10,
   updatedAt,
 });
 
@@ -146,7 +244,7 @@ const recordCandidate = async (
   root: string,
   candidate: Record<string, unknown>,
   totalCaseCount: number,
-  stopReason: 'case-failure' | 'complete' | 'confirmations-passed',
+  stopReason: 'case-failure' | 'complete' | 'complete-with-failures' | 'confirmations-passed',
 ): Promise<void> => {
   await recordSemanticEvaluationAttempt({
     evidenceKind: 'candidate',
@@ -172,6 +270,19 @@ afterEach(() => {
 });
 
 describe('loadSemanticEvaluationWebsiteModel', () => {
+  test('publishes the transparent empty state before current 74-case evidence exists', () => {
+    const root = createTemporaryRoot();
+    const model = loadSemanticEvaluationWebsiteModel(root);
+
+    expect(model.caseCount).toBe(74);
+    expect(model.attempts).toStrictEqual([]);
+    expect(model.hasAttempt).toBe(false);
+    expect(model.latest).toBeNull();
+    expect(model.lastPassing).toBeNull();
+    expect(model.latestPointer).toBeNull();
+    expect(existsSync(join(root, 'fixtures/semantic-evaluation-result.json'))).toBe(false);
+  });
+
   test('publishes the complete current passing attempt', async () => {
     const root = createTemporaryRoot();
     const { cases, coverage } = loadInputs(root);
@@ -205,7 +316,11 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.caseCount).toBe(cases.length);
     expect(model.passedCaseCount).toBe(cases.length);
     expect(model.groups.flatMap(({ cases: groupCases }) => groupCases)).toHaveLength(cases.length);
-    expect(model.groups[0]?.cases[0]?.replay?.trials[0]?.steps).toContainEqual({
+    expect(
+      model.groups
+        .flatMap(({ cases: groupCases }) => groupCases)
+        .find(({ id }) => id === cases[0]?.id)?.replay?.trials[0]?.steps,
+    ).toContainEqual({
       content: `Recorded actor replay for ${cases[0]?.id}.`,
       kind: 'message',
       role: 'coding-agent',
@@ -274,15 +389,21 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
     const model = loadSemanticEvaluationWebsiteModel(root);
 
-    expect(model.latest?.result.schemaVersion).toBe(4);
-    expect(model.latest?.cases[0]?.trials[0]?.actorCommandPolicyEvidence).toStrictEqual({
-      completedCommandCount: 1,
-      indeterminateCommandCount: 0,
-      packageManagerExecution: 'not-observed',
-      packageManagerInvocationCount: 0,
-    });
-    expect(model.latest?.cases[0]?.trials[0]?.actorHost.version).toBe(HOST.version);
-    expect(model.latest?.cases[1]?.trials[0]?.actorHost.version).toBe(UPDATED_HOST.version);
+    expect(model.latest?.result.schemaVersion).toBe(7);
+    expect(
+      model.latest?.cases.find(({ id }) => id === cases[0]?.id)?.trials[0]
+        ?.actorCommandPolicyEvidence,
+    ).toStrictEqual(createCommandPolicyEvidence(1));
+    expect(
+      model.latest?.cases.find(({ id }) => id === cases[0]?.id)?.trials[0]
+        ?.judgeCommandPolicyEvidence,
+    ).toStrictEqual(createCommandPolicyEvidence(0));
+    expect(
+      model.latest?.cases.find(({ id }) => id === cases[0]?.id)?.trials[0]?.actorHost.version,
+    ).toBe(ACTOR_HOST.version);
+    expect(
+      model.latest?.cases.find(({ id }) => id === cases[1]?.id)?.trials[0]?.actorHost.version,
+    ).toBe(UPDATED_ACTOR_HOST.version);
   });
 
   test('publishes confirmation replay in immutable trial order', async () => {
@@ -304,8 +425,18 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
       {
         ...initialResult,
         actorResponse: 'Confirmation one passed.',
+        confirmationEligible: false,
         confirmationIndex: 1,
+        dimensions: {
+          semantic: true,
+          resource: true,
+          commandPolicy: true,
+          repositoryControl: true,
+          mountIntegrity: true,
+          operational: true,
+        },
         evaluatedAt: '2026-08-25T13:01:00.000Z',
+        failureClassifications: [],
         observed: getSemanticCriterionLabels(caseDefinition.expected),
         passed: true,
         rationale: 'Confirmation one satisfied every criterion.',
@@ -313,8 +444,18 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
       {
         ...initialResult,
         actorResponse: 'Confirmation two passed.',
+        confirmationEligible: false,
         confirmationIndex: 2,
+        dimensions: {
+          semantic: true,
+          resource: true,
+          commandPolicy: true,
+          repositoryControl: true,
+          mountIntegrity: true,
+          operational: true,
+        },
         evaluatedAt: '2026-08-25T13:02:00.000Z',
+        failureClassifications: [],
         observed: getSemanticCriterionLabels(caseDefinition.expected),
         passed: true,
         rationale: 'Confirmation two satisfied every criterion.',
@@ -353,14 +494,6 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
   test.each([
     [
-      'an arbitrary evaluator workspace path',
-      () => ({
-        byteCount: 24,
-        disposition: 'projected',
-        facts: [{ kind: 'workspace-paths', paths: ['/unrecognized/path'] }],
-      }),
-    ],
-    [
       'a mismatched moldea CLI version',
       (cli: ReturnType<typeof createSemanticCliIdentity>) => ({
         byteCount: 24,
@@ -369,8 +502,13 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
           {
             cliVersion: '999.0.0',
             command: 'inspect',
+            containsContent: false,
+            errorCode: null,
             errorPresent: false,
+            hasNextPage: false,
             kind: 'moldea-cli-envelope',
+            pageRecordCount: 1,
+            relevant: null,
             resultPresent: true,
             schemaVersion: cli.jsonSchemaVersion,
             status: 'valid',
@@ -379,37 +517,31 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
       }),
     ],
     [
-      'a mismatched Yarn package version',
-      () => ({
-        byteCount: 24,
-        disposition: 'projected',
-        facts: [
-          {
-            binaries: ['moldea'],
-            kind: 'yarn-package-info',
-            packageName: '@moldea.ai/cli',
-            version: '999.0.0',
-          },
-        ],
-      }),
-    ],
-    [
       'an oversized projected result',
-      () => ({
-        byteCount: 32_769,
+      (cli: ReturnType<typeof createSemanticCliIdentity>) => ({
+        byteCount: 1_048_577,
         disposition: 'projected',
         facts: [
           {
-            kind: 'focused-runtime-test',
-            path: '/src/support-agent.test-integration.js',
-            status: 'passed',
+            cliVersion: cli.version,
+            command: 'inspect',
+            containsContent: false,
+            errorCode: null,
+            errorPresent: false,
+            hasNextPage: false,
+            kind: 'moldea-cli-envelope',
+            pageRecordCount: 1,
+            relevant: null,
+            resultPresent: true,
+            schemaVersion: cli.jsonSchemaVersion,
+            status: 'valid',
           },
         ],
       }),
     ],
     [
       'an oversized unrecognized result',
-      () => ({ byteCount: 32_769, disposition: 'unrecognized', facts: [] }),
+      () => ({ byteCount: 131_073, disposition: 'unrecognized', facts: [] }),
     ],
   ] satisfies Array<
     [string, (cli: ReturnType<typeof createSemanticCliIdentity>) => Record<string, unknown>]
@@ -455,12 +587,11 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(loadSemanticEvaluationWebsiteModel(root).latest?.cases[0]?.replay).not.toBeNull();
   });
 
-  test('keeps historical replay bound to its recorded case definition', async () => {
+  test('excludes recorded replay after its case definition leaves the current suite', async () => {
     const root = createTemporaryRoot();
     const { cases, coverage } = loadInputs(root);
     const originalCaseDefinition = cases[0];
     if (originalCaseDefinition === undefined) throw new Error('Expected one semantic case.');
-    const originalDeveloperDirection = originalCaseDefinition.input.developerDirection;
     await recordCandidate(
       root,
       createCandidate(
@@ -489,25 +620,14 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     writeFileSync(fixturePath, `${JSON.stringify(fixture, null, 2)}\n`, 'utf8');
 
     const model = loadSemanticEvaluationWebsiteModel(root);
-    const historicalCase = model.attempts[0]?.cases.find(
-      ({ id }) => id === originalCaseDefinition.id,
-    );
     const currentCase = model.groups
       .flatMap(({ cases: groupCases }) => groupCases)
       .find(({ id }) => id === originalCaseDefinition.id);
 
-    expect(historicalCase).toMatchObject({
-      developerDirection: originalDeveloperDirection,
-      expectedCriteria: [],
-      forbiddenCriteria: [],
-      hasCurrentCaseDefinition: false,
-      status: 'failed',
-      title: originalCaseDefinition.id,
-    });
-    expect(historicalCase?.replay?.trials[0]?.steps[0]).toMatchObject({
-      content: originalDeveloperDirection,
-      role: 'developer',
-    });
+    expect(model.attempts).toStrictEqual([]);
+    expect(model.hasAttempt).toBe(false);
+    expect(model.latest).toBeNull();
+    expect(model.latestPointer).toBeNull();
     expect(currentCase).toMatchObject({
       developerDirection: changedCaseDefinition.input.developerDirection,
       hasCurrentCaseDefinition: true,
@@ -596,6 +716,41 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.latest).toBeNull();
     expect(model.latestPointer).toBeNull();
     expect(model.evaluatedAt).toBeNull();
+    expect(model.pendingCaseCount).toBe(model.caseCount);
+  });
+
+  test('retains immutable attempt history when the current skill no longer matches it', async () => {
+    const root = createTemporaryRoot();
+    const { cases, coverage } = loadInputs(root);
+    await recordCandidate(
+      root,
+      createCandidate(
+        root,
+        cases,
+        coverage,
+        cases.map(({ id }) => id),
+        null,
+        '2026-08-25T12:00:00.000Z',
+      ),
+      cases.length,
+      'complete',
+    );
+    const skillPath = join(root, 'moldea/SKILL.md');
+    writeFileSync(
+      skillPath,
+      `${readFileSync(skillPath, 'utf8')}\nCurrent release change.\n`,
+      'utf8',
+    );
+
+    const model = loadSemanticEvaluationWebsiteModel(root);
+
+    expect(model.status).toBe('not-recorded');
+    expect(model.hasAttempt).toBe(true);
+    expect(model.currentAssurance).toBeNull();
+    expect(model.evidenceMatch).toBeNull();
+    expect(model.attempts).toHaveLength(1);
+    expect(model.latest?.result.status).toBe('passed');
+    expect(model.passedCaseCount).toBe(0);
     expect(model.pendingCaseCount).toBe(model.caseCount);
   });
 });

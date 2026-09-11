@@ -3,13 +3,22 @@ import type { IQualificationCommand } from '../command-line/index.ts';
 import { listQualificationImplementations } from '../compatibility/index.ts';
 import {
   getLocalAttemptDirectory,
-  inspectLocalAttemptCheckpoints,
   type IQualificationPaidExecutionRequest,
   type IQualificationProgress,
   recordIncompleteAttempt,
   runQualification,
 } from '../execution/index.ts';
 import { readAttemptCheckpoint } from '../checkpoint/index.ts';
+import {
+  assertQualificationDiagnosticOutputSize,
+  runQualificationDiagnosticBatch,
+  type IQualificationDiagnosticBatchOutcome,
+} from '../diagnostic-batch/index.ts';
+import {
+  assertQualificationProfileBatchOutputSize,
+  runQualificationProfileBatch,
+  type IQualificationProfileBatchOutcome,
+} from '../profile-batch/index.ts';
 import {
   confirmPaidQualificationExecution,
   promptQualificationAction,
@@ -21,16 +30,30 @@ import {
   formatVerificationResult,
   presentQualificationOutput,
 } from '../presentation/index.ts';
-import { listLatestQualificationResults, verifyQualificationResults } from '../result/index.ts';
+import { verifyQualificationResults } from '../result/index.ts';
+import { loadQualificationStatusPage } from '../status/index.ts';
 
-/** Builds the default-deny callback evaluated only at an uncached paid model boundary. */
-const createPaidExecutionApprovalRequester =
-  (options: {
-    hasConfirmedPaidExecution: boolean;
-    isJson: boolean;
-  }): ((request: IQualificationPaidExecutionRequest) => Promise<boolean>) =>
-  async (request) => {
+/** Builds the default-deny callback evaluated only at a direct paid model boundary. */
+const createPaidExecutionApprovalRequester = (options: {
+  hasConfirmedPaidExecution: boolean;
+  isJson: boolean;
+}): ((request: IQualificationPaidExecutionRequest) => Promise<boolean>) => {
+  let hasApproved = false;
+
+  return async (request) => {
+    if (hasApproved) {
+      return true;
+    }
+    process.stderr.write(
+      `Qualification paid boundary: ${request.plannedCallCount} planned calls, ` +
+        `${request.maximumCallCount} maximum calls, ${request.maximumTokensPerCall} ` +
+        `tokens per call, ${request.maximumTokenCount} total candidate-token ceiling ` +
+        `across ${request.candidateCount} candidate${request.candidateCount === 1 ? '' : 's'}; ` +
+        `${request.reusedCaseCount} reused cases, ${request.directCaseCount} direct cases, ` +
+        `${request.candidateTokensConsumed} tokens already consumed.\n`,
+    );
     if (options.hasConfirmedPaidExecution) {
+      hasApproved = true;
       return true;
     }
 
@@ -40,14 +63,28 @@ const createPaidExecutionApprovalRequester =
       );
     }
 
-    return confirmPaidQualificationExecution(request.plannedCallCount, request.maximumCallCount);
+    const isApproved = await confirmPaidQualificationExecution(
+      request.plannedCallCount,
+      request.maximumCallCount,
+      request.maximumTokenCount,
+    );
+    hasApproved = isApproved;
+    return isApproved;
   };
+};
 
 const createHost = (isDryRun: boolean): ICodexHost =>
   isDryRun ? new FakeCodexHost() : new CodexCliHost();
 
 /** Reports checkpointed retry and confirmation progress without polluting JSON stdout. */
 const reportQualificationProgress = (progress: IQualificationProgress): void => {
+  if (progress.kind === 'operational-stop') {
+    process.stderr.write(
+      `Qualification ${progress.caseId} ${progress.trialId} ${progress.role} stopped after ${progress.stop.failureCount} operational failures.\n`,
+    );
+    return;
+  }
+
   if (progress.kind === 'operational-retry') {
     process.stderr.write(
       `Qualification ${progress.caseId} ${progress.trialId} ${progress.role} retry ${progress.retry.failureCount}: ${progress.retry.category}; waiting ${progress.retry.retryDelayMs} ms.\n`,
@@ -63,23 +100,50 @@ const presentRunOutcome = (
   outcome: Awaited<ReturnType<typeof runQualification>>,
   isJson: boolean,
 ): number => {
-  const unevaluatedRequirementIds = outcome.result.cases.flatMap((caseResult) =>
-    caseResult.trials.flatMap((trial) =>
-      trial.requirementAssessments
-        .filter(({ verdict }) => verdict === 'not-evaluated')
-        .map(({ id }) => id),
+  const unevaluatedRequirementIds = [
+    ...new Set(
+      outcome.result.cases.flatMap((caseResult) =>
+        caseResult.trials.flatMap((trial) =>
+          trial.requirementAssessments
+            .filter(({ verdict }) => verdict === 'not-evaluated')
+            .map(({ id }) => id),
+        ),
+      ),
     ),
+  ].sort();
+  const recoveredCaseCount = outcome.result.cases.filter(
+    ({ status }) => status === 'recovered',
+  ).length;
+  const operationalRetryCount = outcome.result.stages.reduce(
+    (total, stage) => total + stage.operationalRetries.length,
+    0,
   );
   presentQualificationOutput(
     {
+      protocolVersion: outcome.result.protocolVersion,
+      attemptId: outcome.result.attemptId,
+      selection: outcome.result.selection,
+      status: outcome.result.status,
+      mode: outcome.result.mode,
+      summary: outcome.result.summary,
       attemptDirectory: outcome.attemptDirectory,
+      caseResults: outcome.result.cases.map(({ caseId, confirmationStatus, status }) => ({
+        caseId,
+        status,
+        confirmationStatus,
+      })),
+      counts: {
+        cases: outcome.result.cases.length,
+        recoveredCases: recoveredCaseCount,
+        operationalRetries: operationalRetryCount,
+        unevaluatedRequirements: unevaluatedRequirementIds.length,
+      },
       ...(outcome.result.mode === 'dry-run'
         ? {
             preflightPassed: outcome.result.status === 'passed',
             unevaluatedRequirementIds,
           }
         : {}),
-      result: outcome.result,
       wasRecorded: outcome.wasRecorded,
     },
     isJson,
@@ -91,6 +155,38 @@ const presentRunOutcome = (
   }
 
   return outcome.result.status === 'incomplete' ? 130 : 2;
+};
+
+const formatDiagnosticBatch = (outcome: IQualificationDiagnosticBatchOutcome): string => {
+  const resultLines = outcome.records.map(({ caseId, verdict }) => `- ${caseId}: ${verdict}`);
+  const activeLine =
+    outcome.activeAttemptIds.length === 0
+      ? []
+      : [`Active resumable attempts: ${outcome.activeAttemptIds.join(', ')}`];
+  return [
+    `Qualification diagnostic batch ${outcome.status}.`,
+    `${outcome.records.length}/${outcome.selector.caseIds.length} cases completed.`,
+    `${outcome.candidateTokensConsumed}/${outcome.candidateTokenLimit} candidate tokens consumed.`,
+    ...activeLine,
+    ...resultLines,
+  ].join('\n');
+};
+
+const formatProfileBatch = (outcome: IQualificationProfileBatchOutcome): string => {
+  const resultLines = outcome.records.map(
+    ({ adapterId, implementationId, status }) => `- ${adapterId}/${implementationId}: ${status}`,
+  );
+  const activeLine =
+    outcome.activeAttemptIds.length === 0
+      ? []
+      : [`Active resumable attempts: ${outcome.activeAttemptIds.join(', ')}`];
+  return [
+    `Qualification profile batch ${outcome.batchId} ${outcome.status}.`,
+    `${outcome.records.length}/${outcome.selector.targetIds.length} targets completed.`,
+    `${outcome.candidateTokensConsumed} candidate tokens consumed.`,
+    ...activeLine,
+    ...resultLines,
+  ].join('\n');
 };
 
 /** Executes one parsed local qualification command and returns its process exit code. */
@@ -111,12 +207,37 @@ export const executeQualificationCommand = async (
         ...(command.skillRepository === undefined
           ? {}
           : { skillRepository: command.skillRepository }),
-        useCache: command.useCache,
+        reuseEvidence: false,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         onProgress: reportQualificationProgress,
-        signal,
+        ...(signal === undefined ? {} : { signal }),
       });
       return presentRunOutcome(outcome, command.isJson);
+    }
+    case 'diagnose-batch': {
+      const outcome = await runQualificationDiagnosticBatch({
+        host: createHost(false),
+        selection: command.selection,
+        selector: command.selector,
+        ...(command.packagesRepository === undefined
+          ? {}
+          : { packagesRepository: command.packagesRepository }),
+        ...(command.skillRepository === undefined
+          ? {}
+          : { skillRepository: command.skillRepository }),
+        restart: command.restart,
+        resumeStoppedStage: command.resumeStoppedStage,
+        workerCount: command.workerCount,
+        requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
+        onProgress: reportQualificationProgress,
+        ...(signal === undefined ? {} : { signal }),
+      });
+      assertQualificationDiagnosticOutputSize(outcome);
+      presentQualificationOutput(outcome, command.isJson, formatDiagnosticBatch(outcome));
+      if (outcome.status === 'incomplete') {
+        return 130;
+      }
+      return outcome.records.some(({ verdict }) => verdict === 'failed') ? 2 : 0;
     }
     case 'list': {
       const implementations = await listQualificationImplementations();
@@ -128,16 +249,10 @@ export const executeQualificationCommand = async (
       return 0;
     }
     case 'status': {
-      const [{ attempts: allAttempts, unavailableAttempts }, latestResults] = await Promise.all([
-        inspectLocalAttemptCheckpoints(),
-        listLatestQualificationResults(),
-      ]);
-      const attempts = command.isAll
-        ? allAttempts
-        : allAttempts.filter(
-            ({ recordedAt, status }) => status === 'incomplete' && recordedAt === null,
-          );
-      const status = { attempts, unavailableAttempts, latestResults };
+      const status = await loadQualificationStatusPage({
+        isAll: command.isAll,
+        ...(command.cursor === undefined ? {} : { cursor: command.cursor }),
+      });
       presentQualificationOutput(status, command.isJson, formatQualificationStatus(status));
       return 0;
     }
@@ -171,7 +286,8 @@ export const executeQualificationCommand = async (
           : { skillRepository: command.skillRepository }),
         isDryRun: command.isDryRun,
         mode: command.isDryRun ? 'dry-run' : 'official',
-        useCache: command.useCache,
+        reuseEvidence: command.reuseEvidence,
+        workerCount: command.workerCount,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         onProgress: reportQualificationProgress,
         signal,
@@ -184,6 +300,8 @@ export const executeQualificationCommand = async (
       const outcome = await runQualification({
         host: createHost(checkpoint.mode === 'dry-run'),
         resumeAttemptId: checkpoint.attemptId,
+        resumeStoppedStage: command.resumeStoppedStage,
+        workerCount: command.workerCount,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         onProgress: reportQualificationProgress,
         signal,
@@ -208,13 +326,41 @@ export const executeQualificationCommand = async (
         packagesRepository: checkpoint.packagesRepository,
         skillRepository: checkpoint.skillRepository,
         isDryRun: checkpoint.isDryRun,
-        useCache: checkpoint.useCache,
+        reuseEvidence: checkpoint.reuseEvidence,
         parentAttemptId: checkpoint.attemptId,
+        workerCount: command.workerCount,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         onProgress: reportQualificationProgress,
         signal,
       });
       return presentRunOutcome(outcome, command.isJson);
+    }
+    case 'run-batch': {
+      const outcome = await runQualificationProfileBatch({
+        host: createHost(command.isDryRun),
+        selector: command.selector,
+        ...(command.packagesRepository === undefined
+          ? {}
+          : { packagesRepository: command.packagesRepository }),
+        ...(command.skillRepository === undefined
+          ? {}
+          : { skillRepository: command.skillRepository }),
+        isDryRun: command.isDryRun,
+        reuseEvidence: command.reuseEvidence,
+        restart: command.restart,
+        resumeStoppedStage: command.resumeStoppedStage,
+        workerCount: command.workerCount,
+        requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
+        onProgress: reportQualificationProgress,
+        ...(signal === undefined ? {} : { signal }),
+      });
+      assertQualificationProfileBatchOutputSize(outcome);
+      presentQualificationOutput(outcome, command.isJson, formatProfileBatch(outcome));
+      return outcome.status === 'incomplete'
+        ? 130
+        : outcome.records.some(({ status }) => status === 'failed')
+          ? 2
+          : 0;
     }
   }
 };
@@ -237,6 +383,8 @@ export const executeInteractiveQualification = async (signal?: AbortSignal): Pro
         kind: 'resume',
         attemptId: action.attemptId,
         hasConfirmedPaidExecution: false,
+        resumeStoppedStage: false,
+        workerCount: 4,
         isJson: false,
       },
       signal,
@@ -251,7 +399,8 @@ export const executeInteractiveQualification = async (signal?: AbortSignal): Pro
         implementationId: action.implementationId,
       },
       isDryRun: false,
-      useCache: true,
+      reuseEvidence: true,
+      workerCount: 4,
       hasConfirmedPaidExecution: false,
       isJson: false,
     },

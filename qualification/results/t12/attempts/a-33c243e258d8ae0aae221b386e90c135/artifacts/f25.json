@@ -1,0 +1,479 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "invalid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "invalid",
+    "cliInspectStatus": "invalid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 15259
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "OPENAI_AGENTS_SDK_TOOL_NAME_MISMATCH"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "OPENAI_AGENTS_SDK_TOOL_NAME_MISMATCH"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "invalid",
+      "result": {
+        "diagnosticCount": 1,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "code": "OPENAI_AGENTS_SDK_TOOL_NAME_MISMATCH",
+              "entity": {
+                "adapterId": "openai-agents-sdk",
+                "agentId": "support",
+                "capabilityId": "lookup-order",
+                "capabilityKind": "tool"
+              },
+              "key": "[\"diagnostic\",\"openai-agents-sdk\",\"OPENAI_AGENTS_SDK_TOOL_NAME_MISMATCH\",\"/src/tools.ts\",null,0]",
+              "kind": "diagnostic",
+              "message": "The declared tool name does not match the detected OpenAI Agents SDK function-tool name.",
+              "path": "/src/tools.ts",
+              "pointer": null,
+              "range": {
+                "end": {
+                  "column": 23,
+                  "line": 7,
+                  "offset": 235
+                },
+                "start": {
+                  "column": 9,
+                  "line": 7,
+                  "offset": 221
+                }
+              },
+              "source": "openai-agents-sdk"
+            }
+          ]
+        },
+        "snapshotDigest": "sha256:30148dc70e9130b1aa4a47ce95f7bc90fd5e9b4b9e47f02ddf243f14116bf4c0",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "invalid",
+      "result": {
+        "counts": {
+          "agents": 1,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 1,
+          "evidence": 6,
+          "metadata": 4,
+          "mirrors": 0,
+          "runtimes": 0,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "support",
+              "byteLength": 53,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:0ff1bd9b3fd7e7ba0fa6485233478324b236fb61abbe20a7df730bf189c72a73",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/support/description.md\",\"agent-description\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/support/description.md",
+              "scalarLength": 53
+            },
+            {
+              "agentId": "support",
+              "byteLength": 116,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:68bb48816e0a8353dc8ddd106f266f434db625e518dbbbf3ae67b447fafc1a5e",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/support/instruction.md\",\"agent-instruction\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/support/instruction.md",
+              "scalarLength": 116
+            },
+            {
+              "agentId": null,
+              "byteLength": 771,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:6c613c737fa2697cb772cdc1941b477669047a89af6992b03a55431e7fea444f",
+              "key": "[\"000002\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 771
+            },
+            {
+              "agentId": null,
+              "byteLength": 106,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:176e77ee762345f7dddcf44b8b048ebdc270a421bbf5ce76c980500536ca390b",
+              "key": "[\"000003\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 106
+            },
+            {
+              "code": "OPENAI_AGENTS_SDK_TOOL_NAME_MISMATCH",
+              "entity": {
+                "adapterId": "openai-agents-sdk",
+                "agentId": "support",
+                "capabilityId": "lookup-order",
+                "capabilityKind": "tool"
+              },
+              "key": "[\"000004\",\"diagnostic\",\"openai-agents-sdk\",\"OPENAI_AGENTS_SDK_TOOL_NAME_MISMATCH\"]",
+              "kind": "diagnostic",
+              "message": "The declared tool name does not match the detected OpenAI Agents SDK function-tool name.",
+              "path": "/src/tools.ts",
+              "pointer": null,
+              "range": {
+                "end": {
+                  "column": 23,
+                  "line": 7,
+                  "offset": 235
+                },
+                "start": {
+                  "column": 9,
+                  "line": 7,
+                  "offset": 221
+                }
+              },
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000005\",\"evidence\",\"openai-agents-sdk\",\"agent-definition\",\"support\",null,null,\"support\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "support",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "instruction-loader",
+              "key": "[\"000006\",\"evidence\",\"openai-agents-sdk\",\"instruction-loader\",\"support\",null,null,\"loadSupportInstruction\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": null
+                },
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000007\",\"evidence\",\"openai-agents-sdk\",\"language\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000008\",\"evidence\",\"openai-agents-sdk\",\"runtime-package\",\"support\",null,null,\"@openai/agents\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@openai/agents",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool",
+              "evidenceKind": "schema",
+              "key": "[\"000009\",\"evidence\",\"openai-agents-sdk\",\"schema\",\"support\",\"tool\",\"lookup-order\",\"LookupOrderInputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "LookupOrderInputSchema"
+                },
+                {
+                  "path": "/src/tools.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "LookupOrderInputSchema",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool",
+              "evidenceKind": "schema",
+              "key": "[\"000010\",\"evidence\",\"openai-agents-sdk\",\"schema\",\"support\",\"tool\",\"lookup-order\",\"LookupOrderOutputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "LookupOrderOutputSchema"
+                },
+                {
+                  "path": "/src/tools.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "LookupOrderOutputSchema",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "key": "[\"000011\",\"agent\",\"support\",\"openai-agents-sdk\"]",
+              "kind": "agent",
+              "runtimeId": "openai-agents-sdk"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:6c613c737fa2697cb772cdc1941b477669047a89af6992b03a55431e7fea444f",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:176e77ee762345f7dddcf44b8b048ebdc270a421bbf5ce76c980500536ca390b",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:2390b54f29a411f11ce35614033a9c466b3c90f561491b8eaceeb94198957065",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

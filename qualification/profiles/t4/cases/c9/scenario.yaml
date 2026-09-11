@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: repair-cloudflare-think-tool-registration
 title: Repair Cloudflare Think tool registration
 purpose: Verify precise diagnostic-driven repair of closed getTools map identity.

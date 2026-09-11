@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The actor gave an accurate two-sentence repository-independent explanation, made zero moldea CLI calls, and left the workspace unchanged. The workspace assertions, clean Git status, and empty targeted diff agree.",
+  "requirements": [
+    {
+      "id": "answers-concisely",
+      "verdict": "pass",
+      "evidence": "Actor output consists of two short sentences: it describes moldea as maintaining durable project context without owning the work and identifies repository-root `/moldea/` as an adopted project's canonical-state location, without making a repository-specific conclusion."
+    },
+    {
+      "id": "avoids-repository-activation",
+      "verdict": "pass",
+      "evidence": "Runner-owned actor command policy reports `moldeaCommandCount: 0`. Workspace assertions report `repositoryUnchanged: true`, identical before/after hashes and modes for every asserted file, and no changed paths."
+    }
+  ],
+  "failures": []
+}

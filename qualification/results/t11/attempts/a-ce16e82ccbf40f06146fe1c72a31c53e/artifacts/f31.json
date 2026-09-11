@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 691286,
+  "deterministicBeforePath": "cases/repair-openai-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-openai-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-openai-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-openai-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-openai-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-openai-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 322544,
+    "cachedInputTokens": 269440,
+    "outputTokens": 8255
+  },
+  "judgeUsage": {
+    "inputTokens": 467196,
+    "cachedInputTokens": 400256,
+    "outputTokens": 6748
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T07:06:34.353Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T07:12:39.058Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report explicitly identifies the validation mismatch as canonical `find_order` versus closed function-tool `lookup_order`. This is corroborated by the Git diff showing the former manifest value and `src/tools.ts` declaring `name: 'lookup_order'`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, matching `src/tools.ts`. Git status reports only `moldea/moldea.yaml` modified, and its diff contains only the one-line `find_order` to `lookup_order` correction."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest still binds `supportAgent`, `loadSupportInstruction`, `lookupOrderTool`, `lookupOrder`, and `LookupOrderInputSchema` to their exact source paths and symbols. Current source confirms the direct `client.responses.create` wrapper and closed `[lookupOrderTool]` array. Workspace assertions show every source and canonical instruction hash unchanged; deterministic validation and inspection are valid, typechecking passed, and failures are empty. The actor also correctly limits the claim to static wiring rather than live API execution."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

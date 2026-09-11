@@ -1,0 +1,21 @@
+{
+  "outcome": "completed",
+  "summary": "Updated canonical state conservatively, preserved all source integrations, added shared Cloudflare runtime guidance, and completed validation successfully.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ],
+  "observations": [
+    "support retains its runtime-agent and instruction-loader bindings; its runtime-selected request tool registry is recorded as unresolved.",
+    "step-support retains only its proved runtime-agent binding; prepareStep instruction provenance is recorded as unresolved.",
+    "All delegating-support tool, schema, implementation, registration, runtime-agent, and instruction-loader relationships remain intact without a handoff or routing target.",
+    "IndirectSupportAgent, UnsupportedOutputAgent, and RuntimeInitializedAgent remain unregistered.",
+    "The runtime guide assigns responsibility for Cloudflare Durable Object bindings, SQLite migration, provider binding, and coordinated Worker deployment.",
+    "TypeScript compilation passed. Final moldea validation returned valid=true with zero diagnostics.",
+    "Final Git inspection found only the authorized canonical manifest and runtime-guide changes; no source files changed."
+  ],
+  "unresolved": [
+    "The complete runtime-selected support tool registry requires closed runtime or adapter evidence.",
+    "The effective step-support instruction provenance through prepareStep requires a closed runtime path or focused integration test."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s Functional API runtime binding to reference the existing exported `supportWorkflow`. Validation completed with zero diagnostics and no continuation cursor; TypeScript compilation also passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the directly exported entrypoint and its direct `answerQuestion` task.",
+    "Added neither a manifest capability nor TypeScript schema bindings.",
+    "Final Git status shows only the intended manifest modification.",
+    "moldea CLI 8.0.0 returned schema version 4, `valid: true`, `diagnosticCount: 0`, and `cursor: null`.",
+    "`node node_modules/typescript/bin/tsc -p tsconfig.json` passed."
+  ],
+  "unresolved": []
+}

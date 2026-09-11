@@ -1,0 +1,274 @@
+---
+import { ExternalLink, GitCompareArrows } from '@lucide/astro';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import StatusBadge from '@moldea.ai/website-ui/status-badge';
+
+import {
+  createQualificationProjectEvidence,
+  type IQualificationAttemptCaseModel,
+  type IQualificationProfileCaseModel,
+} from '../../lib/qualification/index.ts';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import QualificationProjectPathTree from './qualification-project-path-tree.astro';
+
+interface Props {
+  evidence: IQualificationAttemptCaseModel;
+  profileCase: IQualificationProfileCaseModel;
+}
+
+const { evidence, profileCase } = Astro.props;
+const terminalTrial = evidence.trials.at(-1);
+if (terminalTrial === undefined) {
+  throw new Error(`Qualification case ${evidence.result.caseId} has no project evidence.`);
+}
+const projectEvidence = createQualificationProjectEvidence(terminalTrial.workspaceAssertions);
+const visibleChangeGroups = projectEvidence.changeGroups.filter(
+  ({ changes }) => changes.length > 0,
+);
+const markdownOptions = {
+  basePath: import.meta.env.BASE_URL,
+  localLinks: 'unwrap',
+  productNameTreatment: 'code',
+} as const;
+const [projectExplanationHtml, developerTaskHtml, verifiedResultHtml] = await Promise.all([
+  renderMarkdownFragment(profileCase.projectExplanation, markdownOptions),
+  renderMarkdownFragment(terminalTrial.developerTask, markdownOptions),
+  renderMarkdownFragment(
+    terminalTrial.judge?.summary ??
+      terminalTrial.judgeSkipped?.reason ??
+      terminalTrial.actor.summary,
+    markdownOptions,
+  ),
+]);
+const changePresentation = {
+  created: { label: 'Created', tone: 'success' },
+  deleted: { label: 'Deleted', tone: 'danger' },
+  modified: { label: 'Modified', tone: 'warning' },
+} as const;
+const patchLines = terminalTrial.workspacePatch.content.endsWith('\n')
+  ? terminalTrial.workspacePatch.content.slice(0, -1).split('\n')
+  : terminalTrial.workspacePatch.content.split('\n');
+const getPatchLineClass = (line: string): string => {
+  if (line.startsWith('@@')) return 'bg-info/10 text-info-foreground dark:text-foreground';
+  if (line.startsWith('+++') || line.startsWith('---')) return 'text-muted-foreground';
+  if (line.startsWith('+')) return 'bg-success/10 text-success-foreground dark:text-foreground';
+  if (line.startsWith('-')) return 'bg-destructive/10 text-destructive';
+
+  return 'text-foreground';
+};
+---
+
+<div
+  class="grid min-w-0 gap-6"
+  data-qualification-project
+>
+  <div class="grid gap-4 lg:grid-cols-3">
+    <section
+      class="min-w-0 rounded-xl border border-border bg-muted/20 p-4 sm:p-5"
+      aria-labelledby={`${evidence.result.caseId}-project-starting`}
+    >
+      <p class="font-mono text-xs font-bold text-muted-foreground">01</p>
+      <h4
+        id={`${evidence.result.caseId}-project-starting`}
+        class="mt-2 text-lg font-semibold"
+      >
+        Starting project
+      </h4>
+      <div
+        class="prose-moldea prose-moldea-wrap-code replay-markdown mt-3 min-w-0 text-sm text-muted-foreground"
+        set:html={projectExplanationHtml}
+      />
+      <a
+        class="mt-4 inline-flex items-center gap-1.5 text-link text-sm font-semibold hover:underline"
+        href={profileCase.projectSourceUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View complete project source
+        <ExternalLink
+          class="size-3.5"
+          aria-hidden="true"
+        />
+      </a>
+    </section>
+
+    <section
+      class="min-w-0 rounded-xl border border-border bg-muted/20 p-4 sm:p-5"
+      aria-labelledby={`${evidence.result.caseId}-project-task`}
+    >
+      <p class="font-mono text-xs font-bold text-muted-foreground">02</p>
+      <h4
+        id={`${evidence.result.caseId}-project-task`}
+        class="mt-2 text-lg font-semibold"
+      >
+        Agent task
+      </h4>
+      <div
+        class="prose-moldea prose-moldea-wrap-code replay-markdown mt-3 min-w-0 text-sm text-muted-foreground"
+        set:html={developerTaskHtml}
+      />
+    </section>
+
+    <section
+      class="min-w-0 rounded-xl border border-border bg-muted/20 p-4 sm:p-5"
+      aria-labelledby={`${evidence.result.caseId}-project-result`}
+    >
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <p class="font-mono text-xs font-bold text-muted-foreground">03</p>
+        <EvidenceStatus status={evidence.result.status} />
+      </div>
+      <h4
+        id={`${evidence.result.caseId}-project-result`}
+        class="mt-2 text-lg font-semibold"
+      >
+        Verified result
+      </h4>
+      <div
+        class="prose-moldea prose-moldea-wrap-code replay-markdown mt-3 min-w-0 text-sm text-muted-foreground"
+        set:html={verifiedResultHtml}
+      />
+      <p class="mt-4 text-xs leading-5 text-muted-foreground">
+        The final trial shown here was assessed with the same deterministic workspace checks used by
+        the qualification result.
+      </p>
+    </section>
+  </div>
+
+  <div class="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+    <section
+      class="min-w-0"
+      aria-labelledby={`${evidence.result.caseId}-project-files`}
+    >
+      <h4
+        id={`${evidence.result.caseId}-project-files`}
+        class="font-semibold"
+      >
+        Starting files
+      </h4>
+      <p class="mt-2 text-sm leading-6 text-muted-foreground">
+        This is the complete path structure supplied to the coding agent before work began.
+      </p>
+      {
+        projectEvidence.startingTree.length === 0 ? (
+          <p class="mt-4 rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+            The starting fixture contained no project-visible files.
+          </p>
+        ) : (
+          <div class="mt-4">
+            <QualificationProjectPathTree nodes={projectEvidence.startingTree} />
+          </div>
+        )
+      }
+    </section>
+
+    <section
+      class="min-w-0"
+      aria-labelledby={`${evidence.result.caseId}-project-changes`}
+    >
+      <div class="flex items-center gap-2">
+        <GitCompareArrows
+          class="size-4 text-muted-foreground"
+          aria-hidden="true"
+        />
+        <h4
+          id={`${evidence.result.caseId}-project-changes`}
+          class="font-semibold"
+        >
+          What changed
+        </h4>
+      </div>
+      <p class="mt-2 text-sm leading-6 text-muted-foreground">
+        Changes are derived from the verified workspace snapshots, not from the agent's own claim.
+      </p>
+      {
+        visibleChangeGroups.length === 0 ? (
+          <div
+            class="mt-4 rounded-xl border border-border bg-muted/20 p-4"
+            data-project-no-changes
+          >
+            <p class="font-semibold">No project files changed</p>
+            <p class="mt-1 text-sm leading-6 text-muted-foreground">
+              The verified final workspace matches the starting fixture.
+            </p>
+          </div>
+        ) : (
+          <div class="mt-4 grid gap-4 md:grid-cols-3">
+            {visibleChangeGroups.map((group) => (
+              <section aria-labelledby={`${evidence.result.caseId}-project-${group.status}`}>
+                <div class="flex items-center justify-between gap-2">
+                  <h5
+                    id={`${evidence.result.caseId}-project-${group.status}`}
+                    class="text-sm font-semibold"
+                  >
+                    {changePresentation[group.status].label}
+                  </h5>
+                  <StatusBadge
+                    label={String(group.changes.length)}
+                    tone={changePresentation[group.status].tone}
+                  />
+                </div>
+                <div class="mt-2">
+                  <QualificationProjectPathTree nodes={group.tree} />
+                </div>
+              </section>
+            ))}
+          </div>
+        )
+      }
+    </section>
+  </div>
+
+  <section
+    class="min-w-0"
+    aria-labelledby={`${evidence.result.caseId}-project-patch`}
+  >
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h4
+          id={`${evidence.result.caseId}-project-patch`}
+          class="font-semibold"
+        >
+          Final workspace compared with fixture baseline
+        </h4>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          Green lines were added and red lines were removed. This patch describes the final verified
+          workspace, including any fixture setup that preceded the coding agent.
+        </p>
+      </div>
+      <a
+        class="inline-flex items-center gap-1.5 text-link text-sm font-semibold hover:underline"
+        href={terminalTrial.workspacePatch.rawUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View raw patch
+        <ExternalLink
+          class="size-3.5"
+          aria-hidden="true"
+        />
+      </a>
+    </div>
+    {
+      terminalTrial.workspacePatch.content.length === 0 ? (
+        <p class="mt-4 rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+          The final workspace has no textual diff from the fixture baseline.
+        </p>
+      ) : (
+        <pre
+          class="mt-4 max-w-full overflow-x-auto rounded-xl border border-border bg-background py-3 text-xs leading-5"
+          aria-label="Final workspace patch"
+          tabindex="0"
+          data-project-patch
+        >
+          <code class="block min-w-max font-mono">
+            {patchLines.map((line) => (
+              <span class:list={['block min-h-5 px-4', getPatchLineClass(line)]}>
+                {line || ' '}
+              </span>
+            ))}
+          </code>
+        </pre>
+      )
+    }
+  </section>
+</div>

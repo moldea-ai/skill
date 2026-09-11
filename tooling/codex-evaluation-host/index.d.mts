@@ -1,7 +1,9 @@
 // shared fixed-model evaluation host contracts consumed by TypeScript development tooling
 export const CODEX_EVALUATION_MODEL: 'gpt-5.6-sol';
 export const CODEX_EVALUATION_NPM_VERSION: '11.12.1';
-export const CODEX_EVALUATION_REASONING_EFFORT: 'medium';
+export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT: 'xhigh';
+export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT: 'xhigh';
+export const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256: string;
 export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS: readonly string[];
 export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS: number;
 export const CODEX_EVALUATION_HOST_FAILURE_KINDS: {
@@ -24,23 +26,57 @@ export type ICodexEvaluationOperationalRetry = {
   retryDelayMs: number;
 };
 
+export type ICodexEvaluationOperationalExhaustion = {
+  category: 'execution-failed' | 'proxy-unavailable' | 'timed-out';
+  failedAt: string;
+  failureCount: number;
+  maximumRetryCount: number;
+};
+
 export type ICodexEvaluationCommandPolicyStatus = 'indeterminate' | 'not-observed' | 'observed';
+
+export type ICodexEvaluationCommandPolicyReasonCode =
+  | 'broad-filesystem-read'
+  | 'credential-material'
+  | 'dynamic-execution'
+  | 'environment-dump'
+  | 'environment-value-read'
+  | 'evaluator-auth-file'
+  | 'evaluator-home'
+  | 'git-network'
+  | 'network-client'
+  | 'oversized-command'
+  | 'package-manager-network'
+  | 'process-environment'
+  | 'unclassified-command';
+
+export type ICodexEvaluationCommandPolicyReason = {
+  code: ICodexEvaluationCommandPolicyReasonCode;
+  count: number;
+};
 
 export type ICodexEvaluationCommandPolicyEvidence = {
   completedCommandCount: number;
   credentialExposure: {
     status: 'not-observed' | 'observed';
     observedCount: number;
+    reasons: ICodexEvaluationCommandPolicyReason[];
   };
+  maximumCommandOutputByteCount: number;
+  modelVisibleToolOutputByteCount: number;
+  moldeaCommandCount: number;
+  moldeaOutputByteCount: number;
   networkAccess: {
     status: ICodexEvaluationCommandPolicyStatus;
     observedCount: number;
     indeterminateCount: number;
+    reasons: ICodexEvaluationCommandPolicyReason[];
   };
   sensitiveAccess: {
     status: ICodexEvaluationCommandPolicyStatus;
     observedCount: number;
     indeterminateCount: number;
+    reasons: ICodexEvaluationCommandPolicyReason[];
   };
 };
 
@@ -53,6 +89,29 @@ export type ICodexEvaluationExecutionEvidence = {
     outputTokens: number;
   } | null;
 };
+
+export const CODEX_EVALUATION_LOCAL_PROBE_KINDS: {
+  readonly RuntimeCompatibilityPublication: 'runtime-compatibility-publication';
+};
+
+export type ICodexEvaluationLocalProbeKind =
+  (typeof CODEX_EVALUATION_LOCAL_PROBE_KINDS)[keyof typeof CODEX_EVALUATION_LOCAL_PROBE_KINDS];
+
+export type ICodexEvaluationExecutionEvidenceOptions = {
+  localProbeKind?: ICodexEvaluationLocalProbeKind;
+};
+
+export type IMoldeaCliOperation = 'composition' | 'content' | 'inspect' | 'scope' | 'validate';
+
+export const identifyMoldeaCliLauncherOperation: (command: string) => IMoldeaCliOperation | null;
+
+export type IRepositoryTestCommandKind = 'correctness' | 'e2e' | 'integration' | 'unit';
+
+export const identifyRepositoryTestCommandKind: (
+  command: string,
+) => IRepositoryTestCommandKind | null;
+
+export const isRepositoryTestCommand: (command: string) => boolean;
 
 export class CodexEvaluationOperationalRetryExhaustedError extends Error {
   public readonly category: 'execution-failed' | 'proxy-unavailable' | 'timed-out';
@@ -91,9 +150,11 @@ export type ICodexEvaluationHostConfigurationOptions = {
 };
 
 export type ICodexEvaluationHostIdentity = {
+  developerInstructionsSha256: string;
   model: string;
   name: string;
   reasoningEffort: string;
+  role: 'actor' | 'judge';
   version: string;
 };
 
@@ -118,9 +179,13 @@ export const buildCodexEvaluationBwrapArguments: (options: {
   workspaceAccess?: ICodexEvaluationWorkspaceAccess;
 }) => string[];
 
-export const buildCodexEvaluationHostCommand: (command: readonly string[]) => string[];
+export const buildCodexEvaluationHostCommand: (
+  command: readonly string[],
+  role: 'actor' | 'judge',
+) => string[];
 export const identifyCodexEvaluationHost: (
   command: readonly string[],
+  role: 'actor' | 'judge',
 ) => ICodexEvaluationHostIdentity;
 export const identifyCodexEvaluationHostConfiguration: (
   options?: ICodexEvaluationHostConfigurationOptions,
@@ -142,11 +207,15 @@ export const runCodexEvaluationHost: (options: {
   prompt: string;
   readOnlyMounts?: readonly ICodexEvaluationReadOnlyMount[];
   readOnlyWorkspacePaths?: readonly string[];
+  role: 'actor' | 'judge';
   sandboxHome: string;
   signal?: AbortSignal;
   workspaceAccess?: ICodexEvaluationWorkspaceAccess;
 }) => Promise<string>;
-export const validateCodexEvaluationHostCommand: (command: readonly string[]) => void;
+export const validateCodexEvaluationHostCommand: (
+  command: readonly string[],
+  role: 'actor' | 'judge',
+) => void;
 
 export const calculateCodexEvaluationOperationalRetryDelay: (
   failureCount: number,
@@ -154,20 +223,27 @@ export const calculateCodexEvaluationOperationalRetryDelay: (
 ) => number;
 export const projectCodexEvaluationExecutionEvidence: (
   source: string,
+  options?: ICodexEvaluationExecutionEvidenceOptions,
 ) => ICodexEvaluationExecutionEvidence;
 export const hasPassingCodexEvaluationCommandPolicy: (
   evidence: ICodexEvaluationCommandPolicyEvidence,
 ) => boolean;
+export const hasValidCodexEvaluationCommandPolicy: (
+  evidence: unknown,
+) => evidence is ICodexEvaluationCommandPolicyEvidence;
 export const prepareGitCommandPolicyBoundary: (
   directoryPath: string,
   options?: {
-    trustedReadOnlyDirectoryNames?: readonly string[];
+    trustedReadOnlyWorkspacePaths?: readonly string[];
   },
 ) => Promise<string>;
+export const CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX: readonly string[];
+export const CODEX_EVALUATION_GIT_STATUS_ARGUMENTS: readonly string[];
 export const runCodexEvaluationOperationalStage: <T>(options: {
   initialFailureCount?: number;
   maximumRetryCount?: number;
   now?: () => string;
+  onExhausted?: (exhaustion: ICodexEvaluationOperationalExhaustion) => Promise<void>;
   onRetry: (retry: ICodexEvaluationOperationalRetry) => Promise<void>;
   operation: () => Promise<T>;
   random?: () => number;

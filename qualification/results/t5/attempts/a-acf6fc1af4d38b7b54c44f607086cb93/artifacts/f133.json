@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent binding to `/src/support-assistant.ts` and `supportAssistant`. Added an agent-level warning for the dynamically assembled tool registry. TypeScript compilation passed, and moldea validation completed with zero diagnostics. Final Git status and diff were inspected.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "No tool binding was invented and no implementation code was modified.",
+    "The pre-existing deletion of `src/support-agent.ts` and untracked `src/support-assistant.ts` and `src/dynamic-tools.ts` were preserved.",
+    "The unresolved warning includes a concrete runtime/integration assertion and relates `/src/dynamic-tools.ts`."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove the final `lookupAccount` registration; a project-owned runtime or integration assertion against `createToolRegistry()` is required."
+  ]
+}

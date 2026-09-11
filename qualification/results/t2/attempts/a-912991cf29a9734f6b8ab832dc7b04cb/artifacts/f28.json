@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "Repository state, runner evidence, and Git diff agree: only moldea/moldea.yaml changed, correcting the stale name to mcp__support__lookup_order. Validation is valid with zero diagnostics, complete tool evidence, and passing TypeScript compilation. Inspection was read-only.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the stale canonical declaration versus the working SDK registration. The Git diff supplies the exact mismatch: mcp__support__find_order was replaced by mcp__support__lookup_order. In src/agent.ts, query mounts supportServer under key support and allows mcp__support__lookup_order; src/tools.ts declares lookup_order, establishing the fully qualified query-mounted name."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now declares name: mcp__support__lookup_order. Approved Git status reports only moldea/moldea.yaml modified, and its diff contains exactly the one-line name correction. The current inspect result is valid and emits tool-registration runtimeName mcp__support__lookup_order; the deterministic post-actor summary also reports valid validation and inspection."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "Current manifest bindings remain supportAgent and loadSupportInstruction in src/agent.ts, lookupOrderTool in src/tools.ts, lookupOrder in src/implementations.ts, and LookupOrderInputSchema in src/contracts.ts. Current inspect emits all six evidence records, including instruction-loader, schema, and tool-registration references, with zero diagnostics. Runner assertions show these source files unchanged, and both deterministic and independently rerun TypeScript checks pass."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The current manifest retains only project context and no longer declares any agents, bindings, runtime guidance, or support integration. The canonical support files and custom runtime guide are absent, matching the Git diff and passing deterministic validation. This inspection was read-only and changed no files.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml contains only version: 1 and the /moldea/project.md context relationship; it has no support agent, runtimeAgent binding, custom runtime ID, or guidance reference. Targeted checks confirm moldea/agents/support/description.md, moldea/agents/support/instruction.md, moldea/runtimes/custom.md, and src/support-agent.ts are absent. The approved Git diff removes the complete support agent declaration and deletes all three obsolete canonical files. The deterministic post-actor summary reports valid inspection, valid CLI validation, passing typecheck, and no failures; workspace assertions identify exactly the four canonical task changes."
+    }
+  ],
+  "failures": []
+}

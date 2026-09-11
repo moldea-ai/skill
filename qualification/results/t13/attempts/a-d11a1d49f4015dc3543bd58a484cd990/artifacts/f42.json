@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "All four requirements pass. The current hashes match the runner’s after-state, the approved Git status/diff show only the manifest modification and sole runtime-guidance addition, deterministic validation and typecheck passed, and this read-only evaluation changed no files.",
+  "requirements": [
+    {
+      "id": "identifies-unsupported-form",
+      "verdict": "pass",
+      "evidence": "The actor report and both current files explain that generateText receives buildRequest(prompt) indirectly and prepareStep may replace instructions, so static inspection cannot prove a supported direct runtime pattern or determine the effective loaded instructions."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml references /moldea/runtimes/vercel-ai-sdk.md. Targeted inspection and workspace assertions establish it as the sole new runtime-guidance file. It documents buildRequest(prompt), prepareStep, and the direct generateText({ ... }) alternative without asserting provider behavior."
+    },
+    {
+      "id": "records-unresolved-boundary",
+      "verdict": "pass",
+      "evidence": "agents.support.unresolved.indirect-generate-text-request is an effect: warning entry naming the static-inspection limitation, relating /src/support-agent.ts, and resolving through a documented direct generateText({ ... }) call at supportAgent plus a focused runtime test."
+    },
+    {
+      "id": "avoids-inference",
+      "verdict": "pass",
+      "evidence": "The approved diff adds only runtime.guidance and the unresolved warning. Workspace assertions show all agent instruction/description and implementation files unchanged, and no instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationship was added."
+    }
+  ],
+  "failures": []
+}

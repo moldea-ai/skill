@@ -4,10 +4,15 @@ import type {
   IQualificationCaseResult,
   IQualificationExecutionEnvironment,
   IQualificationProvenance,
+  IQualificationResourceProfile,
   IQualificationSelection,
   IQualificationTrialResult,
 } from '../contracts/index.ts';
-import type { ICodexEvaluationOperationalRetry } from '../../../tooling/codex-evaluation-host/index.mjs';
+import type {
+  ICodexEvaluationOperationalExhaustion,
+  ICodexEvaluationOperationalRetry,
+} from '../../../tooling/codex-evaluation-host/index.mjs';
+import type { IEvaluationBatchWorkerCount } from '../../../tooling/evaluation-batch/index.mjs';
 import type { ICodexHost } from '../codex-host/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 
@@ -16,26 +21,52 @@ export type IRunQualificationOptions = {
   host: ICodexHost;
   selection?: IQualificationSelection;
   caseId?: string;
+  initialCandidateTokensConsumed?: number;
   mode?: 'diagnostic' | 'dry-run' | 'official';
+  newAttemptId?: string;
   packagesRepository?: string;
   skillRepository?: string;
   isDryRun?: boolean;
-  useCache?: boolean;
+  reuseEvidence?: boolean;
   parentAttemptId?: string | null;
   resumeAttemptId?: string;
+  resumeStoppedStage?: boolean;
   resultsRoot?: string;
   requestPaidExecutionApproval?: (request: IQualificationPaidExecutionRequest) => Promise<boolean>;
   onProgress?: (progress: IQualificationProgress) => Promise<void> | void;
   operationalRetry?: IQualificationOperationalRetryOptions;
+  tokenController?: IQualificationBatchTokenController;
   signal?: AbortSignal | undefined;
+  workerCount?: IEvaluationBatchWorkerCount;
 };
 
-// exact cost boundary presented immediately before the first uncached model call
+// shared in-flight admission used by case and cross-profile coordinators
+export type IQualificationBatchTokenController = {
+  getSnapshot: () => {
+    inFlightTokenLimit: number;
+    reservationTokenCount: number;
+    tokensConsumed: number;
+    tokensReserved: number;
+    totalTokenLimit: number | null;
+  };
+  release: () => void;
+  reserve: () => void;
+  settle: (usage: IQualificationTrialResult['actorUsage']) => void;
+};
+
+// exact cost boundary presented immediately before the first direct model call
 export type IQualificationPaidExecutionRequest = {
+  candidateTokensConsumed: number;
+  candidateCount: number;
+  directCaseCount: number;
   maximumCallCount: number;
+  maximumTokenCount: number;
+  maximumTokensPerCall: number;
   plannedCallCount: number;
+  reusedCaseCount: number;
   model: IQualificationExecutionEnvironment['model'];
-  reasoningEffort: IQualificationExecutionEnvironment['reasoningEffort'];
+  actorReasoningEffort: IQualificationExecutionEnvironment['actorReasoningEffort'];
+  judgeReasoningEffort: IQualificationExecutionEnvironment['judgeReasoningEffort'];
 };
 
 // timing seams keep operational retry integration tests deterministic and fast
@@ -47,6 +78,14 @@ export type IQualificationOperationalRetryOptions = {
 
 // safe operator progress emitted independently from JSON stdout
 export type IQualificationProgress =
+  | {
+      kind: 'operational-stop';
+      caseId: string;
+      role: 'actor' | 'judge';
+      stageId: string;
+      stop: ICodexEvaluationOperationalExhaustion;
+      trialId: IQualificationTrialResult['trialId'];
+    }
   | {
       kind: 'operational-retry';
       caseId: string;
@@ -88,7 +127,8 @@ export type IQualificationExecutionProvenance = Omit<IQualificationProvenance, '
 
 // source repositories that determine one attempt's reproducible input identity
 export type IQualificationInputState = {
-  modelHostDigest: string;
+  caseDigests: Record<string, string>;
+  evaluatorStageDigest: string;
   packagesDigest: string;
   packagesState: IGitRepositoryState;
   qualificationBaselineDigest: string;
@@ -102,3 +142,33 @@ export type IQualificationExecutionState = {
   caseResults: IQualificationCaseResult[];
   provenance: IQualificationExecutionProvenance;
 };
+
+// stable dimensions used to classify one operating-profile violation
+export type IQualificationResourceDimension =
+  | 'completed-host-commands'
+  | 'maximum-command-output-bytes'
+  | 'model-visible-tool-output-bytes'
+  | 'moldea-commands'
+  | 'moldea-output-bytes'
+  | 'total-model-tokens';
+
+// typed resource violation retained independently from its display message
+export type IQualificationResourceViolation = {
+  dimension: IQualificationResourceDimension;
+  kind: 'exceeded' | 'unavailable';
+  limit: number;
+  observed: number | null;
+};
+
+// runner decision derived from one stage's scenario-owned operating profile
+export type IQualificationResourceAssessment = {
+  failures: string[];
+  hasJudgeBlocker: boolean;
+  violations: IQualificationResourceViolation[];
+};
+
+// resource profiles keyed by the scenario contract value
+export type IQualificationResourceProfiles = Record<
+  'largeTraversal' | 'ordinary',
+  IQualificationResourceProfile
+>;

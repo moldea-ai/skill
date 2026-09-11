@@ -1,0 +1,44 @@
+{
+  "verdict": "fail",
+  "summary": "Read-only evaluation found the canonical boundaries and unresolved warnings correct, with source files preserved and validation passing. However, the sole runtime guide omits the required static-resolution alternatives. No repository files were changed during judging.",
+  "requirements": [
+    {
+      "id": "preserves-open-tool-boundary",
+      "verdict": "pass",
+      "evidence": "src/support-agent.ts directly calls streamText from SupportAgent, loads loadSupportInstruction, and combines status with ...createRuntimeTools(). moldea/moldea.yaml retains runtimeAgent and instructionLoader, declares no partial tools, and records the final registry as unresolved."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "verdict": "pass",
+      "evidence": "src/step-support-agent.ts directly calls streamText from StepSupportAgent and permits prepareStep to replace instructions. The step-support manifest entry retains only runtimeAgent and records instruction provenance as unresolved, without an instructionLoader binding."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "pass",
+      "evidence": "The manifest retains DelegatingSupportAgent, its instruction loader, delegate_support implementation, registration, and input/output schemas. src/delegation.ts merely references StepSupportAgent; neither the manifest nor runtime guide declares a handoff or routing target. Workspace hashes show all related source files unchanged."
+    },
+    {
+      "id": "preserves-unsupported-generation-boundaries",
+      "verdict": "pass",
+      "evidence": "IndirectSupportAgent and UnsupportedOutputAgent remain in their unchanged source files, while the manifest registers only support, step-support, and delegating-support. No direct-runtime or supported object-schema binding was invented for either negative control."
+    },
+    {
+      "id": "keeps-initialized-class-outside-target",
+      "verdict": "pass",
+      "evidence": "RuntimeInitializedAgent remains unchanged in src/workflow-agent.mts and has no manifest agent entry or binding."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "fail",
+      "evidence": "Both support and step-support reference /moldea/runtimes/cloudflare-agents.md, and workspace evidence establishes it as the sole new runtime guide. It covers Durable Object bindings, new_sqlite_classes migration, provider binding/credentials, and coordinated Worker deployment, but it only describes the static limitations; it does not state alternatives such as a closed tool registry, a closed prepareStep instruction path, or focused runtime evidence."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains distinct warning records for runtime-selected-request-tools and prepare-step-instruction-provenance. Each names the relevant source path and provides a focused resolution criterion. Deterministic validation and type checking passed."
+    }
+  ],
+  "failures": [
+    "Add concise static-resolution alternatives to moldea/runtimes/cloudflare-agents.md, such as using a closed tool registry or closed prepareStep instruction path, with focused runtime evidence as the fallback."
+  ]
+}

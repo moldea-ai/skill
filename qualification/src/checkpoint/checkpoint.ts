@@ -1,16 +1,21 @@
 import path from 'node:path';
 
-import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
+import {
+  QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+} from '../constants/index.ts';
 import {
   QualificationAttemptCheckpointSchema,
   QualificationStageCheckpointSchema,
   type IQualificationAttemptCheckpoint,
   type IQualificationExecutionEnvironment,
   type IQualificationOperationalRetry,
+  type IQualificationOperationalStop,
   type IQualificationSelection,
   type IQualificationStageCheckpoint,
 } from '../contracts/index.ts';
 import { readJsonFile, writeJsonFileAtomically } from '../filesystem/index.ts';
+import { writeQualificationStatusAttempt } from '../status/attempt-summary.ts';
 
 /** Returns the canonical local checkpoint path for one attempt directory. */
 export const getCheckpointPath = (attemptDirectory: string): string =>
@@ -24,10 +29,12 @@ export const createPendingStage = (stageId: string): IQualificationStageCheckpoi
     startedAt: null,
     completedAt: null,
     durationMs: null,
-    cacheKey: null,
-    cacheSourceAttemptId: null,
+    stageIdentity: null,
+    reuseSourceAttemptId: null,
     error: null,
+    hasUsedOperationalStopResume: false,
     operationalRetries: [],
+    operationalStops: [],
   });
 
 /** Appends one contiguous safe operational retry and persists it before backoff begins. */
@@ -53,6 +60,67 @@ export const appendQualificationOperationalRetry = async (
   });
   await writeAttemptCheckpoint(attemptDirectory, updatedCheckpoint);
   return updatedCheckpoint;
+};
+
+/** Persists a terminal operational stop before the exhausted stage returns control. */
+export const appendQualificationOperationalStop = async (
+  attemptDirectory: string,
+  checkpoint: IQualificationAttemptCheckpoint,
+  stageId: string,
+  stop: IQualificationOperationalStop,
+): Promise<IQualificationAttemptCheckpoint> => {
+  const stage = checkpoint.stages[stageId];
+
+  if (stage?.status !== 'running') {
+    throw new Error(`Qualification stage ${stageId} is not running.`);
+  }
+
+  const updatedStage = QualificationStageCheckpointSchema.parse({
+    ...stage,
+    status: 'stopped',
+    operationalStops: [...stage.operationalStops, stop],
+  });
+  const updatedCheckpoint = QualificationAttemptCheckpointSchema.parse({
+    ...checkpoint,
+    stages: { ...checkpoint.stages, [stageId]: updatedStage },
+  });
+  await writeAttemptCheckpoint(attemptDirectory, updatedCheckpoint);
+  return updatedCheckpoint;
+};
+
+/** Authorizes the single explicit relaunch of one terminally stopped model stage. */
+export const resumeQualificationOperationalStop = (
+  checkpoint: IQualificationAttemptCheckpoint,
+): IQualificationAttemptCheckpoint => {
+  const stoppedStages = Object.values(checkpoint.stages).filter(
+    ({ status }) => status === 'stopped',
+  );
+
+  if (stoppedStages.length !== 1) {
+    throw new Error('Explicit operational-stop resume requires exactly one stopped stage.');
+  }
+
+  const [stoppedStage] = stoppedStages;
+
+  if (stoppedStage === undefined || stoppedStage.hasUsedOperationalStopResume) {
+    throw new Error('The stopped stage has already used its one explicit resume.');
+  }
+
+  return QualificationAttemptCheckpointSchema.parse({
+    ...checkpoint,
+    stages: {
+      ...checkpoint.stages,
+      [stoppedStage.id]: {
+        ...stoppedStage,
+        status: 'pending',
+        startedAt: null,
+        completedAt: null,
+        durationMs: null,
+        error: null,
+        hasUsedOperationalStopResume: true,
+      },
+    },
+  });
 };
 
 /** Atomically marks one never-needed confirmation stage group as skipped. */
@@ -85,10 +153,12 @@ export const skipQualificationStageGroup = async (
         startedAt: completedAt,
         completedAt,
         durationMs: 0,
-        cacheKey: null,
-        cacheSourceAttemptId: null,
+        stageIdentity: null,
+        reuseSourceAttemptId: null,
         error: null,
+        hasUsedOperationalStopResume: false,
         operationalRetries: [],
+        operationalStops: [],
       }),
     ]),
   );
@@ -109,7 +179,7 @@ export const createAttemptCheckpoint = async (options: {
   isDryRun: boolean;
   mode: 'diagnostic' | 'dry-run' | 'official';
   selectedCaseId: string | null;
-  useCache: boolean;
+  reuseEvidence: boolean;
   packagesRepository: string;
   skillRepository: string;
   profileDigest: string;
@@ -119,6 +189,7 @@ export const createAttemptCheckpoint = async (options: {
   packagesDigest: string;
   targetDigest: string;
   executionEnvironment: IQualificationExecutionEnvironment;
+  initialCandidateTokensConsumed?: number;
   stageIds: readonly string[];
 }): Promise<IQualificationAttemptCheckpoint> => {
   const timestamp = new Date().toISOString();
@@ -131,7 +202,10 @@ export const createAttemptCheckpoint = async (options: {
     isDryRun: options.isDryRun,
     mode: options.mode,
     selectedCaseId: options.selectedCaseId,
-    useCache: options.useCache,
+    reuseEvidence: options.reuseEvidence,
+    candidateTokenLimit: QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
+    candidateTokensConsumed: options.initialCandidateTokensConsumed ?? 0,
+    candidateTokensReserved: 0,
     createdAt: timestamp,
     updatedAt: timestamp,
     completedAt: null,
@@ -172,6 +246,7 @@ export const writeAttemptCheckpoint = async (
     updatedAt: new Date().toISOString(),
   });
   await writeJsonFileAtomically(getCheckpointPath(attemptDirectory), validatedCheckpoint);
+  await writeQualificationStatusAttempt(attemptDirectory, validatedCheckpoint);
 };
 
 /** Converts an interrupted running stage back to resumable pending state. */
@@ -184,8 +259,10 @@ export const normalizeInterruptedCheckpoint = (
       stage.status === 'running'
         ? QualificationStageCheckpointSchema.parse({
             ...createPendingStage(stageId),
-            cacheKey: stage.cacheKey,
+            stageIdentity: stage.stageIdentity,
+            hasUsedOperationalStopResume: stage.hasUsedOperationalStopResume,
             operationalRetries: stage.operationalRetries,
+            operationalStops: stage.operationalStops,
           })
         : QualificationStageCheckpointSchema.parse(stage),
     ]),
@@ -193,6 +270,9 @@ export const normalizeInterruptedCheckpoint = (
 
   return QualificationAttemptCheckpointSchema.parse({
     ...checkpoint,
+    candidateTokensConsumed:
+      checkpoint.candidateTokensConsumed + checkpoint.candidateTokensReserved,
+    candidateTokensReserved: 0,
     status: checkpoint.status === 'running' ? 'incomplete' : checkpoint.status,
     stages,
   });

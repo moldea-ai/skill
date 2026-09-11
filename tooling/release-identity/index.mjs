@@ -1,15 +1,6 @@
 // release identity
 export { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from './constants.mjs';
 export {
-  assertCompatibility402Expansion,
-  assertRepositoryCompatibility,
-  COMPATIBILITY_401,
-  COMPATIBILITY_402,
-  isCompatibilityVersionSupported,
-  parseCompatibility,
-  validateCompatibilityContract,
-} from './compatibility.mjs';
-export {
   assertReleaseIdentity,
   createSemanticCliIdentity,
   inspectReleaseIdentity,
@@ -17,38 +8,37 @@ export {
   readReleaseIdentity,
 } from './identity.mjs';
 
-// release evidence
+// current release evidence
 export {
   assertReleaseEvidence,
+  assertCurrentReleaseEvidence,
+  clearPinnedReleaseEvidence,
+  inspectCurrentReleaseEvidence,
+  inspectQualificationEvidence,
   inspectReleaseEvidence,
   inspectSemanticEvidence,
+  pinReleaseEvidence,
+  recordFreshReleaseEvidence,
 } from './evidence.mjs';
 
-// historical evidence bridge
+// release evidence contract
 export {
-  CARRY_FORWARD_401_PATH,
-  CARRY_FORWARD_401_SCHEMA_VERSION,
-  CARRY_FORWARD_401_SOURCE_COMMIT,
-  CARRY_FORWARD_401_SOURCE_RELEASE,
-  CARRY_FORWARD_401_TARGET_RELEASE,
-  createCarryForward401Attestation,
-  parseCarryForward401Attestation,
-  readCarryForward401Attestation,
-  verifyCarryForward401Attestation,
-  verifyCarryForward401SourceAttestation,
-  writeCarryForward401Attestation,
-} from './carry-forward-4-0-1.mjs';
+  MAX_RELEASE_EVIDENCE_BYTES,
+  MAX_RELEASE_EVIDENCE_REASON_BYTES,
+  parseReleaseEvidenceEnvelope,
+  readReleaseEvidenceEnvelope,
+  RELEASE_EVIDENCE_SCHEMA_VERSION,
+  serializeReleaseEvidenceEnvelope,
+  validateReleaseEvidenceReason,
+} from './release-evidence-envelope.mjs';
 
-// 4.0.2 compatibility bridge consumers
+// immutable source and target tags
 export {
-  COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY,
-  hasCompatibilityBridge402Qualification,
-  hasLocalCompatibilityBridge402Qualification,
-  mapCompatibilityBridge402Packages,
-  parseCompatibilityBridge402Attestation,
-  readCompatibilityBridge402Attestation,
-  resolveCompatibleHistoricalSemanticAttemptId,
-} from './historical-semantic.mjs';
+  assertPinnedReleaseEvidenceSection,
+  assertTargetReleaseTagIdentity,
+  resolveReleaseEvidenceSectionSource,
+  resolveReleaseTagCommit,
+} from './release-evidence-source.mjs';
 
 // CLI updates
 export {

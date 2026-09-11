@@ -23,6 +23,12 @@ const createCaseDefinition = (id) => ({
     ],
   },
   operation: 'perform-operation',
+  resourceBudget: {
+    activation: 'abstain',
+    minimumMoldeaCommands: 0,
+    maximumMoldeaCommands: 0,
+    maximumMoldeaOutputBytes: 0,
+  },
   scenario: 'An adopted repository needs one operation.',
 });
 
@@ -48,6 +54,33 @@ describe('semantic evaluation evidence', () => {
     );
   });
 
+  test('binds explicit local-probe behavior into each case definition', () => {
+    const caseDefinition = {
+      ...createCaseDefinition('runtime-case'),
+      localProbe: {
+        kind: 'runtime-compatibility-publication',
+        variant: 'current-supported-target',
+      },
+    };
+
+    assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
+    assert.notEqual(
+      createSemanticCaseDefinitionDigest(caseDefinition),
+      createSemanticCaseDefinitionDigest({
+        ...caseDefinition,
+        localProbe: { ...caseDefinition.localProbe, variant: 'experimental-current-target' },
+      }),
+    );
+    assert.throws(
+      () =>
+        validateSemanticCaseDefinition({
+          ...caseDefinition,
+          localProbe: { ...caseDefinition.localProbe, variant: 'unsupported' },
+        }),
+      /structured scenario/,
+    );
+  });
+
   test('rejects duplicate labels across expected and forbidden criteria', () => {
     const caseDefinition = createCaseDefinition('case-one');
     caseDefinition.forbidden[0].label = 'expected';
@@ -56,39 +89,6 @@ describe('semantic evaluation evidence', () => {
       () => validateSemanticCaseDefinition(caseDefinition),
       /duplicate evaluator labels/,
     );
-  });
-
-  test('validates and binds applicable host instructions', () => {
-    const caseDefinition = {
-      ...createCaseDefinition('case-one'),
-      hostInstructions: '# Repository instructions\n\nKeep planning read-only.\n',
-      input: {
-        developerDirection: 'Perform the requested operation.',
-        repositoryEvidence: [
-          {
-            claim: 'The developer requested the operation.',
-            source: { kind: 'developer-direction' },
-          },
-          {
-            claim: 'Repository instructions require read-only planning.',
-            source: { kind: 'host-instructions' },
-          },
-        ],
-      },
-    };
-
-    assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
-    assert.notEqual(
-      createSemanticCaseDefinitionDigest(caseDefinition),
-      createSemanticCaseDefinitionDigest(createCaseDefinition('case-one')),
-    );
-
-    for (const hostInstructions of ['', 'invalid\0instructions', 'x'.repeat(16_385)]) {
-      assert.throws(
-        () => validateSemanticCaseDefinition({ ...caseDefinition, hostInstructions }),
-        /invalid host instructions/,
-      );
-    }
   });
 
   test('rejects prompt-shaped cases and unsourced or unsafe evidence', () => {
@@ -101,14 +101,6 @@ describe('semantic evaluation evidence', () => {
     assert.throws(
       () => validateSemanticCaseDefinition({ ...caseDefinition, unexpected: true }),
       /structured scenario/,
-    );
-    assert.throws(
-      () =>
-        validateSemanticCaseDefinition({
-          ...caseDefinition,
-          hostInstructions: '# Repository instructions',
-        }),
-      /source every applicable host instruction/,
     );
     assert.throws(
       () =>
@@ -140,6 +132,82 @@ describe('semantic evaluation evidence', () => {
           },
         }),
       /structured scenario/,
+    );
+    assert.throws(
+      () =>
+        validateSemanticCaseDefinition({
+          ...caseDefinition,
+          input: {
+            ...caseDefinition.input,
+            repositoryEvidence: [
+              {
+                claim: 'Host instructions own repository-wide constraints.',
+                source: { kind: 'host-instructions' },
+              },
+            ],
+          },
+        }),
+      /structured scenario/,
+    );
+  });
+
+  test('accepts a direct zero-CLI budget only with independent skill-artifact evidence', () => {
+    const caseDefinition = {
+      ...createCaseDefinition('skill-artifact-case'),
+      resourceBudget: {
+        activation: 'direct',
+        minimumMoldeaCommands: 0,
+        maximumMoldeaCommands: 0,
+        maximumMoldeaOutputBytes: 0,
+      },
+      skillEvidence: {
+        activationScenarios: [],
+        artifacts: [{ role: 'authoritative-source', root: 'skills/release-review' }],
+      },
+    };
+
+    assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
+    assert.throws(
+      () => validateSemanticCaseDefinition({ ...caseDefinition, skillEvidence: undefined }),
+      /structured scenario/,
+    );
+    assert.throws(
+      () =>
+        validateSemanticCaseDefinition({
+          ...caseDefinition,
+          resourceBudget: {
+            activation: 'direct',
+            minimumMoldeaCommands: 1,
+            maximumMoldeaCommands: 4,
+            maximumMoldeaOutputBytes: 262_144,
+          },
+        }),
+      /structured scenario/,
+    );
+  });
+
+  test('accepts a blocked case that needs four bounded discovery calls', () => {
+    const caseDefinition = {
+      ...createCaseDefinition('blocked-discovery-case'),
+      resourceBudget: {
+        activation: 'blocked',
+        minimumMoldeaCommands: 0,
+        maximumMoldeaCommands: 4,
+        maximumMoldeaOutputBytes: 65_536,
+      },
+    };
+
+    assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
+    assert.throws(
+      () =>
+        validateSemanticCaseDefinition({
+          ...caseDefinition,
+          resourceBudget: {
+            ...caseDefinition.resourceBudget,
+            maximumMoldeaCommands: 5,
+          },
+        }),
+      /structured scenario/u,
     );
   });
 

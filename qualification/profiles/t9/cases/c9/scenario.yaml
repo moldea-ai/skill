@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: repair-langgraph-functional-runtime-binding
 title: Repair LangGraph Functional API runtime binding
 purpose: Verify precise diagnostic-driven repair of a direct entrypoint symbol relationship.

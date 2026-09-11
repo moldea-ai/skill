@@ -11,7 +11,10 @@ import {
   QualificationModelStageEvidenceSchema,
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
-import { QUALIFICATION_CONFIRMATION_POLICY } from '../constants/index.ts';
+import {
+  QUALIFICATION_CONFIRMATION_POLICY,
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+} from '../constants/index.ts';
 import {
   calculateFileSha256,
   ensureDirectory,
@@ -88,7 +91,7 @@ const createResult = (
   status: 'errored' | 'failed' | 'incomplete' | 'passed',
 ): IQualificationAttemptResult =>
   QualificationAttemptResultSchema.parse({
-    protocolVersion: 6,
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     mode: 'official',
     attemptId,
@@ -101,7 +104,8 @@ const createResult = (
     summary: `Fixture ${status} result.`,
     provenance: {
       model: 'gpt-5.6-sol',
-      reasoningEffort: 'medium',
+      actorReasoningEffort: 'xhigh',
+      judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',
@@ -110,6 +114,7 @@ const createResult = (
       hostTimeoutMs: 120_000,
       modelEndpoint: null,
       sslCertificateFileSha256: null,
+      candidateFingerprint: null,
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'a'.repeat(64),
       packagesRepositoryDirty: false,
@@ -138,7 +143,7 @@ describe('qualification result recording', () => {
     }
   });
 
-  test('preserves history, latest status, last passing attempt, and artifact integrity', async () => {
+  test('preserves attempts, latest status, last passing attempt, and artifact integrity', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
@@ -210,14 +215,14 @@ describe('qualification result recording', () => {
     });
   });
 
-  test('verifies recorded evidence without a readable historical Git repository', async () => {
+  test('verifies self-contained recorded evidence without reading Git objects', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
     await ensureDirectory(artifactDirectory);
     const passingResult = await seedPassingQualificationEvidenceFixture({
       artifactDirectory,
-      attemptId: 'attempt-historical-contract',
+      attemptId: 'attempt-recorded-contract',
       resultsRoot,
     });
     await recordQualificationResult(
@@ -383,7 +388,9 @@ describe('qualification result recording', () => {
     expect(verification.attempts).toBe(0);
     expect(verification.issues).toHaveLength(1);
     expect(verification.issues[0]?.path).toBe(TARGET_KEY);
-    expect(verification.issues[0]?.message).toContain('Invalid input: expected 6');
+    expect(verification.issues[0]?.message).toContain(
+      `Invalid input: expected ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION}`,
+    );
   });
 
   test.each([
@@ -555,6 +562,7 @@ describe('qualification result recording', () => {
             status: 'observed',
             observedCount: 1,
             indeterminateCount: 0,
+            reasons: [{ code: 'network-client', count: 1 }],
           },
         },
       });
@@ -624,7 +632,7 @@ describe('qualification result recording', () => {
       path.join(targetRoot, 'latest.json'),
       `${JSON.stringify(
         {
-          protocolVersion: 6,
+          protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
           adapterId: 'custom',
           implementationId: 'custom',
           latestAttemptId: 'missing-attempt',
@@ -687,6 +695,7 @@ describe('qualification result recording', () => {
       `${JSON.stringify({
         eventType: 'command.completed',
         exitCode: 0,
+        moldeaCommandCount: 0,
         outputByteCount: 0,
         status: 'completed',
       })}\n`,
@@ -735,6 +744,7 @@ describe('qualification result recording', () => {
       `${JSON.stringify({
         eventType: 'command.completed',
         exitCode: 0,
+        moldeaCommandCount: 0,
         outputByteCount: 0,
         status: 'completed',
       })}\n`,

@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-google-genai-static-boundary
 title: Preserve the Google Gen AI static boundary
 purpose: Verify conservative treatment of Google-hosted tools and indirect generate-content request construction.

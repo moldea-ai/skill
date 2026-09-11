@@ -61,6 +61,7 @@ export const createQualificationAttemptResult = (options: {
     summary: options.summary,
     provenance: {
       ...options.provenance,
+      candidateFingerprint: options.checkpoint.candidate?.fingerprint ?? null,
       packages: createPublicPackages(options.checkpoint.candidate),
     },
     stages: options.stageIds.map((stageId) => options.checkpoint.stages[stageId]),

@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor correctly abstained from moldea-specific activity while completing the repository review. The repository is uninitialized at the canonical paths, and the approved Git status and diff are empty.",
+  "requirements": [
+    {
+      "id": "excludes-moldea",
+      "verdict": "pass",
+      "evidence": "The actor output contains only retry-policy findings and validation results, with no moldea mention or skill-reference content. Runner-owned actor-command-policy reports moldeaCommandCount: 0 and moldeaOutputByteCount: 0. Canonical files moldea/moldea.yaml and moldea/project.md are absent; README.md has no managed marker content; approved Git status and scoped diff are empty. package.json declares @moldea.ai/cli but contains no canonical initialization reference."
+    }
+  ],
+  "failures": []
+}

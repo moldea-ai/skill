@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The one-line manifest repair aligns the canonical tool name with the unchanged Anthropic registration. Current source, Git diff, workspace assertions, and deterministic validation agree. This read-only inspection changed no files.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report explains that the canonical name was aligned with the working `lookup_order` declaration. Git diff confirms the prior manifest name was `find_order`, while current `src/tools.ts` declares `lookupOrderTool.name` as `lookup_order`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, matching `src/tools.ts`. Git diff contains only the change from `find_order` to `lookup_order`; deterministic validation reports valid status, successful typechecking, and no failures."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "Current workspace preserves `supportAgent` and `loadSupportInstruction` in `src/agent.ts`, registration through `tools: [lookupOrderTool]`, schema use through `input_schema: LookupOrderInputSchema`, and implementation reference `/src/implementations.ts#lookupOrder`. The manifest retains complete description, implementation, registration, and input-schema evidence. Deterministic validation and typechecking passed."
+    }
+  ],
+  "failures": []
+}

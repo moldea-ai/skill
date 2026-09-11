@@ -1,0 +1,24 @@
+{
+  "verdict": "fail",
+  "summary": "The current manifest and source show the intended repair, and deterministic validation passed, but the required Git diff could not be obtained: every evaluator-approved status and diff command was blocked with “repository attribute safety was not established.” Inspection was read-only and changed no files.",
+  "requirements": [
+    {
+      "id": "explains-schema-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the former input binding as SupportOutputSchema and the required binding as SupportInputSchema. Current src/graph.ts wires SupportInputSchema to the StateGraph input role, while src/contracts.ts declares distinct SupportInputSchema and SupportOutputSchema symbols."
+    },
+    {
+      "id": "repairs-canonical-schema",
+      "verdict": "fail",
+      "evidence": "Current moldea/moldea.yaml binds inputSchema to SupportInputSchema, src/graph.ts still exports the compiled supportGraph, workspace assertions identify only moldea/moldea.yaml as changed, and deterministic validation is valid with typecheck passed. However, the required Git diff evidence was unavailable because the approved diff command was blocked, so patch agreement cannot be independently established."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml exactly binds runtimeAgent to /src/graph.ts#supportGraph, inputSchema to /src/contracts.ts#SupportInputSchema, and outputSchema to /src/contracts.ts#SupportOutputSchema. The complete manifest has no tools declaration; src/graph.ts retains answer-question as a StateGraph node with START and END edges. Deterministic inspection and validation are valid with no reported failures."
+    }
+  ],
+  "failures": [
+    "Provide an evaluator-readable Git diff for moldea/moldea.yaml, or resolve the repository attribute-safety blocker so the approved diff command can establish that the patch agrees with the current workspace and runner-owned evidence."
+  ]
+}

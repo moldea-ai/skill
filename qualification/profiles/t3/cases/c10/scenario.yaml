@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-cloudflare-ai-chat-static-boundary
 title: Preserve the Cloudflare AIChatAgent static boundary
 purpose: Verify conservative handling of dynamic requests, unsupported output, indirect generation, and initialization-sensitive classes.

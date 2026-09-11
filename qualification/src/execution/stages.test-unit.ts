@@ -1,16 +1,19 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
+import { QUALIFICATION_CANDIDATE_TOKEN_LIMIT } from '../constants/index.ts';
 import {
+  assertQualificationCandidateTokenReservation,
   createQualificationStageIds,
   getQualificationMaximumCallCount,
+  getQualificationMaximumTokenCount,
   getQualificationPlannedCallCount,
 } from './stages.ts';
 
 describe('qualification stage planning', () => {
-  test('derives the exact Custom maximum of forty-eight planned trial calls from eight cases', () => {
-    expect(getQualificationPlannedCallCount(8)).toBe(48);
-    expect(getQualificationMaximumCallCount(48)).toBe(96);
+  test('derives the exact Custom maximum of ninety-six planned trial calls from twelve cases', () => {
+    expect(getQualificationPlannedCallCount(12)).toBe(96);
+    expect(getQualificationMaximumCallCount(96)).toBe(192);
   });
 
   test('bounds one diagnostic initial trial at two planned and four maximum calls', () => {
@@ -29,6 +32,30 @@ describe('qualification stage planning', () => {
       'case:release-case:trial:initial:judge',
       'case:release-case:result',
     ]);
+  });
+
+  test('derives the aggregate token ceiling from the bounded call envelope', () => {
+    expect(getQualificationMaximumTokenCount(192)).toBe(402_653_184);
+    expect(() => getQualificationMaximumTokenCount(-1)).toThrow(
+      'Qualification maximum call count must be a non-negative integer.',
+    );
+  });
+
+  test('accepts an exact candidate reservation boundary and refuses one token over', () => {
+    const reservation = getQualificationMaximumTokenCount(1);
+
+    expect(() =>
+      assertQualificationCandidateTokenReservation(
+        QUALIFICATION_CANDIDATE_TOKEN_LIMIT - reservation,
+        0,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      assertQualificationCandidateTokenReservation(
+        QUALIFICATION_CANDIDATE_TOKEN_LIMIT - reservation + 1,
+        0,
+      ),
+    ).toThrow('Qualification candidate token stop reached');
   });
 
   test('plans every trial stage before the terminal case result', () => {
@@ -55,6 +82,12 @@ describe('qualification stage planning', () => {
       'case:release-case:trial:confirmation-2:deterministic-after',
       'case:release-case:trial:confirmation-2:assertions',
       'case:release-case:trial:confirmation-2:judge',
+      'case:release-case:trial:confirmation-3:prepare',
+      'case:release-case:trial:confirmation-3:deterministic-before',
+      'case:release-case:trial:confirmation-3:actor',
+      'case:release-case:trial:confirmation-3:deterministic-after',
+      'case:release-case:trial:confirmation-3:assertions',
+      'case:release-case:trial:confirmation-3:judge',
       'case:release-case:result',
     ]);
   });

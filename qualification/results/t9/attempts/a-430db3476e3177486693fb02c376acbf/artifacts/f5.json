@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Updated canonical LangGraph state while preserving both runtime-agent bindings and all source files. Added one shared runtime guide and explicit unresolved requirements for static-inspection limits. TypeScript compilation and canonical validation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/langgraph.md"
+  ],
+  "observations": [
+    "Both runtimeAgent path/symbol bindings remain unchanged.",
+    "No tools, skills, handoffs, subagents, schemas, capabilities, approval authority, or topology relationships were added.",
+    "`node ./node_modules/typescript/bin/tsc -p ./tsconfig.json` passed.",
+    "Final moldea validation returned valid with zero diagnostics."
+  ],
+  "unresolved": [
+    "Nested and dynamic task execution, capability registration, and routing topology require runtime evidence.",
+    "Executable schema enforcement is not established by TypeScript types alone.",
+    "Checkpointer, replay, idempotency, interrupt/resume, and approval semantics require deployed configuration and integration tests."
+  ]
+}

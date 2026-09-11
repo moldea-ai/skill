@@ -1,0 +1,48 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T06:50:20.999Z",
+  "durationMs": 189300,
+  "usage": {
+    "inputTokens": 435432,
+    "cachedInputTokens": 396032,
+    "outputTokens": 7357
+  },
+  "stageIdentity": "0376d2b5304ff37d195fa78050b892d0a30c2ae0176be894cc2083a8e83cf3b2",
+  "sourceAttemptId": "20260911T054140998Z-langchain-typescript-create-agent-1-5-6a023965",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 22,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 63623,
+    "moldeaCommandCount": 2,
+    "moldeaOutputByteCount": 11174,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

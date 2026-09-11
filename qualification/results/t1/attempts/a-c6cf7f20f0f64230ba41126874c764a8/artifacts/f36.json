@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Updated the stale canonical Anthropic registration from `find_order` to `lookup_order`, matching the closed client-tool array while preserving the wrapper, declaration, implementation, description, and input schema. Final project validation is valid with zero wiring diagnostics; TypeScript compilation also passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Initial validation reported one ANTHROPIC_TOOL_NAME_MISMATCH diagnostic.",
+    "Final validation reported status `valid`, diagnosticCount 0, and no diagnostic records.",
+    "The final Git diff contains only the intended tool-name change.",
+    "No live Anthropic API request was made; runtime verification was limited to local validation and no-emit TypeScript compilation."
+  ],
+  "unresolved": []
+}

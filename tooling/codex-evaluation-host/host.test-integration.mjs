@@ -6,6 +6,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   realpathSync,
   rmSync,
   writeFileSync,
@@ -15,6 +16,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
+import { CODEX_EVALUATION_GIT_STATUS_ARGUMENTS } from './git-command-policy-boundary.mjs';
 import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CodexEvaluationHostError,
@@ -24,41 +26,21 @@ import {
   runCodexEvaluationHost,
 } from './host.mjs';
 
-const HOST_COMMAND = buildCodexEvaluationHostCommand([
-  'codex',
-  'exec',
-  '--ignore-user-config',
-  '--ignore-rules',
-  '--ephemeral',
-  '--skip-git-repo-check',
-  '--dangerously-bypass-approvals-and-sandbox',
-  '-c',
-  'shell_environment_policy.inherit=none',
-  '-',
-]);
-
-// exact helper-suppressed status shape accepted by the evaluator Git boundary
-const APPROVED_GIT_STATUS_ARGUMENTS = [
-  '-c',
-  'core.fsmonitor=false',
-  '-c',
-  'core.pager=cat',
-  '-c',
-  'core.attributesFile=/dev/null',
-  '-c',
-  'filter.lfs.clean=',
-  '-c',
-  'filter.lfs.process=',
-  '-c',
-  'filter.lfs.smudge=',
-  '-c',
-  'filter.lfs.required=false',
-  '--no-pager',
-  'status',
-  '--porcelain=v2',
-  '-z',
-  '--ignore-submodules=all',
-];
+const HOST_COMMAND = buildCodexEvaluationHostCommand(
+  [
+    'codex',
+    'exec',
+    '--ignore-user-config',
+    '--ignore-rules',
+    '--ephemeral',
+    '--skip-git-repo-check',
+    '--dangerously-bypass-approvals-and-sandbox',
+    '-c',
+    'shell_environment_policy.inherit=none',
+    '-',
+  ],
+  'actor',
+);
 
 const runSystemGit = (repositoryPath, argumentsList) => {
   const result = spawnSync('/usr/bin/git', argumentsList, {
@@ -85,7 +67,9 @@ test('sandbox npm probe is immutable, reports the fixture version, and rejects e
           '-c',
           'test "$(npm --version)" = "11.12.1" && ' +
             "! sed -i '2c modified' /home/evaluator/bin/npm 2>/dev/null && " +
-            'test "$(npm --version)" = "11.12.1" && ! npm install example-package',
+            'test "$(npm --version)" = "11.12.1" && ' +
+            '! printf unexpected > /home/evaluator/.codex/skills/created 2>/dev/null && ' +
+            'test ! -e /home/evaluator/.codex/skills/created && ! npm install example-package',
         ],
         cwd: repositoryPath,
         hostExecutable: realpathSync('/bin/sh'),
@@ -132,7 +116,7 @@ test('qualification actor PATH enforces the Git boundary over repository helpers
         command: [
           'codex',
           '-c',
-          `test "$(command -v git)" = "/home/evaluator/bin/git" && git ${APPROVED_GIT_STATUS_ARGUMENTS.join(' ')}`,
+          `test "$(command -v git)" = "/home/evaluator/bin/git" && git ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')}`,
         ],
         cwd: repositoryPath,
         hostExecutable: realpathSync('/bin/sh'),
@@ -150,7 +134,7 @@ test('qualification actor PATH enforces the Git boundary over repository helpers
     const blockedResult = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
-        command: ['codex', '-c', `git ${APPROVED_GIT_STATUS_ARGUMENTS.join(' ')}`],
+        command: ['codex', '-c', `git ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')}`],
         cwd: repositoryPath,
         hostExecutable: realpathSync('/bin/sh'),
         includeWorkspaceBinaryDirectory: true,
@@ -184,7 +168,7 @@ test('shared host aligns the Git traversal budget with its read-only dependency 
   }
   writeFileSync(
     codexPath,
-    `#!/bin/sh\ngit ${APPROVED_GIT_STATUS_ARGUMENTS.join(' ')} >/dev/null\nprintf "host success\\n"\n`,
+    `#!/bin/sh\ngit ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')} >/dev/null\nprintf "host success\\n"\n`,
   );
   writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
   chmodSync(codexPath, 0o755);
@@ -200,10 +184,85 @@ test('shared host aligns the Git traversal budget with its read-only dependency 
         cwd: repositoryPath,
         includeWorkspaceBinaryDirectory: true,
         prompt: 'test dependency boundary',
+        role: 'actor',
         sandboxHome,
       }),
       'host success',
     );
+  } finally {
+    if (originalPath === undefined) delete process.env.PATH;
+    else process.env.PATH = originalPath;
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('shared host permits the installed release CLI selected scope inventory', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-cli-scope-test-'));
+  const executableDirectory = join(evaluationRoot, 'bin');
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  const codexPath = join(executableDirectory, 'codex');
+  const companionPath = join(executableDirectory, 'codex-code-mode-host');
+  mkdirSync(executableDirectory);
+  mkdirSync(join(repositoryPath, 'moldea'), { recursive: true });
+  mkdirSync(join(repositoryPath, 'src'));
+  writeFileSync(join(repositoryPath, 'README.md'), '# Evaluation repository\n');
+  writeFileSync(
+    join(repositoryPath, 'moldea', 'moldea.yaml'),
+    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
+  );
+  writeFileSync(join(repositoryPath, 'moldea', 'project.md'), '# Evaluation project\n');
+  writeFileSync(join(repositoryPath, 'src', 'project-state.js'), 'export const state = true;\n');
+  runSystemGit(repositoryPath, ['init', '--quiet']);
+  runSystemGit(repositoryPath, ['add', '--all']);
+  runSystemGit(repositoryPath, [
+    '-c',
+    'user.name=moldea evaluation',
+    '-c',
+    'user.email=evaluation@invalid.example',
+    'commit',
+    '--quiet',
+    '-m',
+    'test: initialize selected scope fixture',
+  ]);
+  writeFileSync(
+    codexPath,
+    '#!/bin/sh\nprintf "/src/project-state.js\\0" | /dependencies/node_modules/.bin/moldea scope --paths-stdin --json --max-output-bytes 65536\n',
+  );
+  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+  chmodSync(codexPath, 0o755);
+  chmodSync(companionPath, 0o755);
+  await prepareCodexEvaluationHome(sandboxHome);
+  const originalPath = process.env.PATH;
+  process.env.PATH = `${executableDirectory}:${originalPath ?? ''}`;
+
+  try {
+    const output = await runCodexEvaluationHost({
+      command: HOST_COMMAND,
+      cwd: repositoryPath,
+      prompt: 'test installed release CLI scope',
+      readOnlyMounts: [
+        {
+          source: join(process.cwd(), 'node_modules'),
+          target: '/dependencies/node_modules',
+        },
+      ],
+      role: 'actor',
+      sandboxHome,
+    });
+    const envelope = JSON.parse(output);
+    const installedCliManifest = JSON.parse(
+      readFileSync(
+        join(process.cwd(), 'node_modules', '@moldea.ai', 'cli', 'package.json'),
+        'utf8',
+      ),
+    );
+
+    assert.equal(envelope.cliVersion, installedCliManifest.version);
+    assert.equal(envelope.command, 'scope');
+    assert.equal(envelope.error, null);
+    assert.equal(envelope.result.relevant, true);
+    assert.equal(envelope.status, 'valid');
   } finally {
     if (originalPath === undefined) delete process.env.PATH;
     else process.env.PATH = originalPath;
@@ -219,6 +278,7 @@ test('evaluator and system commands precede immutable workspace binaries on sand
   const evaluatorBinDirectory = join(sandboxHome, 'bin');
   mkdirSync(workspaceBinDirectory, { recursive: true });
   mkdirSync(evaluatorBinDirectory, { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
 
   const executableName = 'path-precedence-probe';
   const workspaceExecutablePath = join(workspaceBinDirectory, executableName);
@@ -261,6 +321,7 @@ test('Bubblewrap exposes the Codex code-mode companion beside the host executabl
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(repositoryPath);
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
 
   try {
     const result = spawnSync(
@@ -287,6 +348,7 @@ test('Bubblewrap exposes the exact host Node runtime through its isolated PATH',
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(repositoryPath);
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
 
   const probe = `
     const { spawnSync } = require('node:child_process');
@@ -324,6 +386,7 @@ test('Bubblewrap cannot observe host state or connect to host localhost', async 
   const hostMarkerPath = join(hostMarkerRoot, 'marker');
   mkdirSync(repositoryPath);
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
   writeFileSync(hostMarkerPath, 'host-only');
 
   const server = createServer();
@@ -371,6 +434,7 @@ test('Bubblewrap exposes related repositories without write authority', () => {
   mkdirSync(repositoryPath);
   mkdirSync(relatedRepositoryPath);
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
   writeFileSync(join(relatedRepositoryPath, 'marker'), 'related');
 
   const probe = `
@@ -411,6 +475,7 @@ test('Bubblewrap keeps the workspace writable except for evaluator-owned control
     recursive: true,
   });
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
   writeFileSync(join(repositoryPath, '.git', 'config'), 'protected');
   writeFileSync(join(repositoryPath, '.agents', 'skills', 'moldea', 'SKILL.md'), 'protected');
   writeFileSync(join(repositoryPath, 'editable.txt'), 'before');
@@ -447,6 +512,7 @@ test('Bubblewrap can mount the primary evaluation workspace read-only for judges
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(repositoryPath);
   mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+  mkdirSync(join(sandboxHome, 'tmp'));
   writeFileSync(join(repositoryPath, 'marker'), 'judge input');
 
   const probe = `
@@ -499,6 +565,7 @@ test('shared host closes its relay after successful and failed executions', asyn
         command: HOST_COMMAND,
         cwd: repositoryPath,
         prompt: 'test success',
+        role: 'actor',
         sandboxHome,
       }),
       'host success',
@@ -510,6 +577,7 @@ test('shared host closes its relay after successful and failed executions', asyn
         command: HOST_COMMAND,
         cwd: repositoryPath,
         prompt: 'test failure',
+        role: 'actor',
         sandboxHome,
       }),
       (error) =>
@@ -550,6 +618,7 @@ test('shared host cancellation stops the outer Bubblewrap execution', async () =
         command: HOST_COMMAND,
         cwd: repositoryPath,
         prompt: 'test cancellation',
+        role: 'actor',
         sandboxHome,
         signal: abortController.signal,
       }),
@@ -591,6 +660,7 @@ test('shared host enforces a workflow-owned default timeout', async () => {
         cwd: repositoryPath,
         defaultHostTimeoutMs: 50,
         prompt: 'test timeout',
+        role: 'actor',
         sandboxHome,
       }),
       (error) =>

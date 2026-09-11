@@ -13,18 +13,18 @@ const createRepository = () => {
   temporaryRoots.push(repositoryRoot);
   const packageManifest = {
     name: 'fixture',
-    version: '4.0.0',
+    version: '5.0.0',
     moldeaRelease: { cliJsonSchemaVersion: 2 },
     devDependencies: { '@moldea.ai/cli': '5.0.0', unrelated: '9.0.0' },
   };
   const packageLock = {
     name: 'fixture',
-    version: '4.0.0',
+    version: '5.0.0',
     lockfileVersion: 3,
     packages: {
       '': {
         name: 'fixture',
-        version: '4.0.0',
+        version: '5.0.0',
         devDependencies: packageManifest.devDependencies,
       },
       'node_modules/@moldea.ai/cli': {
@@ -60,10 +60,10 @@ afterEach(() => {
 test('isolates the complete CLI closure from release metadata and unrelated packages', () => {
   const { packageLock, packageManifest, repositoryRoot } = createRepository();
   const originalDigest = createCliClosureDigest(repositoryRoot);
-  packageManifest.version = '4.0.1';
+  packageManifest.version = '5.0.1';
   packageManifest.devDependencies.unrelated = '10.0.0';
-  packageLock.version = '4.0.1';
-  packageLock.packages[''].version = '4.0.1';
+  packageLock.version = '5.0.1';
+  packageLock.packages[''].version = '5.0.1';
   packageLock.packages['node_modules/unrelated'] = {
     version: '10.0.0',
     integrity: 'sha512-unrelated-next',

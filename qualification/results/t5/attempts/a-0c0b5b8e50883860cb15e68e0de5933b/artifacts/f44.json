@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The declared relationship identifies /moldea/project.md as the sole owner of /src/project-state.ts, whose exported value matches the canonical `operational` state. Repository status and scoped diff are clean, and the actor used exactly two moldea CLI calls without reporting unrelated canonical content.",
+  "requirements": [
+    {
+      "id": "identifies-owning-context",
+      "verdict": "pass",
+      "evidence": "Current workspace moldea/moldea.yaml declares only /moldea/project.md with affectedBy /src/project-state.ts; /moldea/project.md declares `operational`, and src/project-state.ts exports `operational`. The actor explicitly reported assessing that relationship, while deterministic-after reports valid scope/inspection, successful typecheck, and an unchanged repository. Approved Git status and scoped diff were empty."
+    },
+    {
+      "id": "uses-bounded-moldea-evidence",
+      "verdict": "pass",
+      "evidence": "Runner-owned actor-command-policy records moldeaCommandCount: 2, satisfying the required range of one through four. The actor report identifies only /moldea/project.md as canonical context and does not enumerate unrelated canonical content."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,77 @@
+{
+  "caseId": "repair-cloudflare-ai-chat-output-schema",
+  "title": "Repair Cloudflare AIChatAgent output schema",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 1053138,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 1053138,
+      "deterministicBeforePath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 274164,
+        "cachedInputTokens": 257664,
+        "outputTokens": 3866
+      },
+      "judgeUsage": {
+        "inputTokens": 153053,
+        "cachedInputTokens": 129152,
+        "outputTokens": 2908
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T10:23:09.453Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T10:34:19.866Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-output-schema-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor report identifies that src/agent.ts uses Output.object({ schema: SupportOutputSchema }) while the prior canonical binding named LegacySupportOutputSchema. Current src/agent.ts corroborates the direct request, and the approved Git diff shows the exact LegacySupportOutputSchema-to-SupportOutputSchema correction. Deterministic validation reports valid status with no failures."
+        },
+        {
+          "id": "repairs-output-schema-binding",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml currently binds agents.support.bindings.outputSchema to /src/contracts.ts#SupportOutputSchema. The Git diff contains only that one symbol replacement, status lists only moldea/moldea.yaml, workspace assertions identify only that changed path, and deterministic post-actor validation passed."
+        },
+        {
+          "id": "preserves-binding-closure",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current workspace evidence confirms SupportAgent and loadSupportInstruction in src/agent.ts; SupportOutputSchema, LookupOrderInputSchema, and LookupOrderOutputSchema in src/contracts.ts; lookupOrder in src/implementations.ts; and lookupOrderTool in src/tools.ts. These exactly match the manifest’s runtime-agent, instruction-loader, agent output-schema, tool implementation, registration, and tool input/output-schema bindings. The agent manifest has no inputSchema binding. Workspace hashes show every source file unchanged, and deterministic validation and typechecking passed."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

@@ -1,60 +1,40 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { spawn, spawnSync } from 'node:child_process';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isDeepStrictEqual } from 'node:util';
 import { describe, test } from 'node:test';
 import { parseDocument } from 'yaml';
 
 import {
-  COMPATIBILITY_402,
-  createSemanticCliIdentity,
-  isCompatibilityVersionSupported,
-  parseCompatibility,
-  SEMANTIC_EVALUATION_PROTOCOL_VERSION,
-} from '../tooling/release-identity/index.mjs';
-import {
-  createPortableSkillDigest,
-  createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
   createSemanticCoverageDigest,
-  getSemanticCriterionLabels,
-  hasValidRepositoryControlEvidence,
-  hasValidScenarioEvidence,
   validateSemanticCaseDefinition,
+  validateSemanticCoverage,
 } from '../tooling/semantic-evaluation/index.mjs';
 
-import { validateSkillEvidenceConfiguration } from './semantic-evaluation-runner.mjs';
-
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const SKILL_DIRECTORY = join(REPOSITORY_ROOT, 'moldea');
-const SKILL_PATH = join(SKILL_DIRECTORY, 'SKILL.md');
-const SEMANTIC_CLI_PATH = join(
-  REPOSITORY_ROOT,
-  'fixtures',
-  'tooling',
-  'semantic-cli',
-  'bin',
-  'moldea.js',
+const SKILL_ROOT = join(REPOSITORY_ROOT, 'moldea');
+const SKILL_PATH = join(SKILL_ROOT, 'SKILL.md');
+const CLI_LAUNCHER_PATH = join(SKILL_ROOT, 'scripts', 'moldea-cli.mjs');
+const RELEVANCE_GATE_PATH = join(SKILL_ROOT, 'scripts', 'relevance-gate.mjs');
+const FIXTURE = JSON.parse(
+  readFileSync(join(REPOSITORY_ROOT, 'fixtures', 'conformance-cases.json'), 'utf8'),
 );
-const SEMANTIC_CLI_MANIFEST = JSON.parse(
-  readFileSync(
-    join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'semantic-cli', 'package.json'),
-    'utf8',
-  ),
+const COVERAGE = JSON.parse(
+  readFileSync(join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-coverage.json'), 'utf8'),
 );
-const LIFECYCLE_CLI_MANIFEST_PATH = join(
-  REPOSITORY_ROOT,
-  'fixtures',
-  'tooling',
-  'lifecycle-cli',
-  'package.json',
-);
-const RETIRED_RUNTIME_TERM = ['frame', 'work'].join('');
-const READ_ONLY_TOOLING_OPERATIONS = new Set(['evaluate', 'plan', 'validate']);
-const REFERENCE_FILES = [
+const REFERENCE_NAMES = [
   'agent-design.md',
   'agent-system-planning.md',
   'context-compression.md',
@@ -65,2382 +45,1606 @@ const REFERENCE_FILES = [
   'runtime-compatibility.md',
   'skill-design.md',
 ];
-const ALLOWED_FRONTMATTER_KEYS = new Set([
-  'allowed-tools',
-  'compatibility',
-  'description',
-  'license',
-  'metadata',
-  'name',
-]);
-const REQUIRED_EVALUATION_CASE_IDS = {
-  packageManagerCases: [
-    'below-floor-executable',
-    'declared-executable-version-conflict',
-    'different-installed-cli',
-    'evaluate-missing-cli-read-only',
-    'evaluate-release-cli-missing-required-capability',
-    'existing-cli-with-executable-manager-config',
-    'floating-cli-with-release-install',
-    'future-npm-major',
-    'future-pnpm-major',
-    'future-yarn-major',
-    'matching-package-manager-and-lockfile',
-    'metadata-lockfile-conflict',
-    'missing-release-cli',
-    'multiple-manager-lockfiles',
-    'no-evidence-default-npm',
-    'plan-missing-cli-without-tooling-change',
-    'pnpm-executable-hook-config',
-    'release-cli-missing-required-capability',
-    'unsupported-established-manager',
-    'validate-missing-cli-read-only',
-    'yarn-third-party-plugin-config',
-  ],
-  cliEnvelopeCases: [
-    'command-mismatch',
-    'composition-invalid',
-    'composition-valid',
-    'different-cli-version',
-    'inspect-invalid',
-    'inspect-valid',
-    'malformed-json',
-    'operational-error',
-    'schema-mismatch',
-    'version-mismatch',
-  ],
-  readmeMarkerCases: [
-    'duplicate-markers',
-    'missing-end',
-    'missing-start',
-    'nested-markers',
-    'no-markers',
-    'one-valid-pair',
-    'reversed-markers',
-  ],
-  semanticCases: [
-    'adopted-ambiguous-context-handoff',
-    'adopted-direct-context-handoff',
-    'adopted-explicit-context-correction',
-    'adopted-relevance-changed-behavior',
-    'adopted-relevance-no-change',
-    'agent-adoption-inline-runtime-instruction',
-    'available-runtime-insufficient-behavioral-evidence',
-    'canonical-instruction-changed',
-    'compress-conflicting-project-context',
-    'compress-project-context',
-    'dedicated-repository-runtime-selection',
-    'dedicated-repository-single-side-change',
-    'evaluate-brief-project-request',
-    'evaluate-clean-working-tree',
-    'evaluate-dirty-working-tree',
-    'evaluate-unborn-repository',
-    'experimental-target-not-production-ready',
-    'host-plan-command-precedence',
-    'initialize-insufficient-context',
-    'initialize-partial-context',
-    'initialize-sufficient-context',
-    'installed-adapter-without-published-target',
-    'maintain-context-without-duplication',
-    'plan-existing-project-one-agent',
-    'plan-justified-multi-agent',
-    'plan-material-ambiguity',
-    'plan-runtime-inventory-insufficient-evidence',
-    'plan-uninitialized-zero-agent',
-    'pnpm-hook-install-blocked',
-    'pnpm-pnp-local-cli-provider',
-    'provider-hosted-capability',
-    'published-supported-target-not-installed',
-    'read-only-git-helper-suppression',
-    'reconcile-material-ambiguity',
-    'routing-description-dynamic-wiring',
-    'routing-description-fallback',
-    'routing-description-property-name',
-    'routing-description-reconciliation',
-    'routing-description-separate-properties',
-    'routing-description-shared-property',
-    'runtime-publication-malformed',
-    'runtime-publication-unavailable',
-    'skill-boundary-surface-selection',
-    'skill-create-progressive-disclosure',
-    'skill-evaluate-read-only',
-    'skill-evaluate-script-authority',
-    'skill-maintain-host-invocation-policy',
-    'skill-maintain-linked-resources',
-    'skill-provider-registration-boundary',
-    'skill-reconcile-distributed-copy',
-    'skill-reuse-existing-cohesive',
-    'unadopted-direct-context-handoff',
-    'unadopted-relevance-no-initialization',
-    'unavailable-runtime-selection',
-    'unresolved-related-file-changed',
-    'yarn-conflicting-cli-provider',
-    'yarn-plugin-install-blocked',
-  ],
-};
 
-const readRepositoryFile = (path) => readFileSync(join(REPOSITORY_ROOT, path), 'utf8');
-const ROOT_PACKAGE_MANIFEST = JSON.parse(readRepositoryFile('package.json'));
-const RELEASE_CLI_VERSION = ROOT_PACKAGE_MANIFEST.devDependencies['@moldea.ai/cli'];
-const RELEASE_CLI_JSON_SCHEMA_VERSION = ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion;
-const RELEASE_COMPATIBILITY = parseCompatibility(readRepositoryFile('moldea/SKILL.md'));
-const isPlainRecord = (input) =>
-  input !== null && typeof input === 'object' && !Array.isArray(input);
+const readSkill = () => readFileSync(SKILL_PATH, 'utf8');
 
-const parseFrontmatter = (content) => {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n/);
-  assert.ok(match, 'SKILL.md must begin with YAML frontmatter.');
+const parseFrontmatter = () => {
+  const match = readSkill().match(/^---\n([\s\S]*?)\n---\n/u);
+  assert.ok(match);
   const document = parseDocument(match[1], { uniqueKeys: true });
-  assert.equal(document.errors.length, 0, document.errors.map((error) => error.message).join('\n'));
-  const frontmatter = document.toJS();
-  assert.ok(isPlainRecord(frontmatter));
+  assert.deepEqual(document.errors, []);
+  return document.toJS();
+};
 
-  for (const key of Object.keys(frontmatter)) {
-    assert.ok(ALLOWED_FRONTMATTER_KEYS.has(key), `Unsupported frontmatter key: ${key}`);
+const resolveActivationCase = (input) => {
+  if (input.informationalRequest === true) return 'informational';
+  if (input.initializationRequest === true) return 'initialize';
+  if (input.initialized !== true) return 'abstain';
+  if (input.explicitMoldeaRequest === true) return 'direct';
+  if (input.paths?.some((path) => path === '/moldea' || path.startsWith('/moldea/'))) {
+    return 'direct';
   }
+  if (input.readmeHunk === 'inside-markers') return 'direct';
+  if (input.relationshipMatch === true) return 'relationship-gate';
+  return 'abstain';
+};
 
-  assert.match(frontmatter.name, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-  assert.ok(frontmatter.name.length <= 64);
-  assert.equal(typeof frontmatter.description, 'string');
-  assert.ok(frontmatter.description.trim().length >= 1 && frontmatter.description.length <= 1024);
-  assert.doesNotMatch(frontmatter.description, /[<>]/);
-  assert.equal(typeof frontmatter.license, 'string');
-  assert.ok(frontmatter.license.trim().length > 0);
-  assert.ok(isPlainRecord(frontmatter.metadata));
-  assert.ok(
-    Object.entries(frontmatter.metadata).every(
-      ([metadataKey, metadataValue]) => metadataKey.length > 0 && typeof metadataValue === 'string',
-    ),
+const runCli = (repository, arguments_, input) => {
+  const result = spawnSync(
+    process.execPath,
+    [CLI_LAUNCHER_PATH, '--repository', repository, '--', ...arguments_],
+    {
+      cwd: repository,
+      encoding: 'utf8',
+      input,
+      maxBuffer: 1_048_576,
+    },
   );
-  if ('allowed-tools' in frontmatter) {
-    assert.equal(typeof frontmatter['allowed-tools'], 'string');
-    assert.ok(frontmatter['allowed-tools'].trim().length > 0);
-  }
-  if ('compatibility' in frontmatter) {
-    assert.equal(typeof frontmatter.compatibility, 'string');
-    assert.ok(frontmatter.compatibility.trim().length > 0);
-  }
-  return frontmatter;
+  if (result.error) throw result.error;
+  return result;
 };
 
-const assertMatchesEvery = (content, patterns) => {
-  for (const pattern of patterns) {
-    assert.match(content, pattern);
-  }
-};
-
-const isSupportedManagerVersion = (manager, version) => {
-  const range = RELEASE_COMPATIBILITY[`${manager}Range`];
-  if (range === undefined) return false;
-  try {
-    return isCompatibilityVersionSupported(range, version);
-  } catch {
-    return false;
-  }
-};
-
-const isReleaseCliVersion = (version) => version === RELEASE_CLI_VERSION;
-
-const evaluatePackageManagerCase = ({ operation, input }) => {
-  const cli = input.cli;
-  const hasReleaseInstall = isReleaseCliVersion(cli.installedVersion);
-  const isExactDeclaration = isReleaseCliVersion(cli.declaration);
-  const hasExactReleaseCli =
-    isExactDeclaration && cli.declaration === cli.installedVersion && cli.executableResolves;
-  const hasRequiredCapability =
-    !cli.requiredCapability || cli.installedCapabilities?.includes(cli.requiredCapability);
-
-  if (operation === 'plan' && !hasExactReleaseCli) {
-    return ['continue-plan-without-tooling'];
-  }
-
-  const lockfileManagers = new Set(
-    input.lockfiles.map((lockfile) => {
-      if (lockfile === 'package-lock.json' || lockfile === 'npm-shrinkwrap.json') return 'npm';
-      if (lockfile === 'pnpm-lock.yaml') return 'pnpm';
-      if (lockfile === 'yarn.lock') return 'yarn';
-      return 'unknown';
-    }),
+const runRelevanceGate = (repository, arguments_ = [], input) => {
+  const result = spawnSync(
+    process.execPath,
+    [RELEVANCE_GATE_PATH, '--repository', repository, ...arguments_],
+    {
+      cwd: repository,
+      encoding: 'utf8',
+      input,
+      maxBuffer: 16,
+    },
   );
-  const metadataParts = input.packageManager?.split('@') ?? [];
-  const metadataManager = metadataParts[0];
-  const metadataVersion = metadataParts[1];
-
-  if (lockfileManagers.size > 1) return ['stop-for-material-conflict'];
-  if (metadataManager && lockfileManagers.size === 1 && !lockfileManagers.has(metadataManager)) {
-    return ['stop-for-material-conflict'];
-  }
-
-  const manager = metadataManager || [...lockfileManagers][0] || 'npm';
-  if (!['npm', 'pnpm', 'yarn'].includes(manager)) {
-    return ['report-prerequisite-without-switching'];
-  }
-  if (input.executable.manager !== manager) return ['stop-for-material-conflict'];
-  if (metadataVersion && metadataVersion !== input.executable.version) {
-    return ['stop-for-material-conflict'];
-  }
-  if (!isSupportedManagerVersion(manager, input.executable.version)) {
-    return ['report-prerequisite-without-upgrade'];
-  }
-
-  const decisions = [
-    metadataManager || lockfileManagers.size > 0
-      ? 'preserve-established-manager'
-      : 'select-npm-and-verify-executable',
-  ];
-  const isReadOnlyOperation = READ_ONLY_TOOLING_OPERATIONS.has(operation);
-  const requiresDependencyChange = !hasExactReleaseCli;
-
-  if (
-    !isReadOnlyOperation &&
-    requiresDependencyChange &&
-    input.repositoryExecutableConfig?.length > 0
-  ) {
-    return ['stop-for-executable-package-manager-config'];
-  }
-
-  if (hasExactReleaseCli && !hasRequiredCapability) {
-    decisions.push('report-release-capability-defect');
-  } else if (isReadOnlyOperation && !hasExactReleaseCli) {
-    decisions.push('report-read-only-remediation');
-  } else if (hasExactReleaseCli) {
-    decisions.push('preserve-existing-exact-cli');
-  } else if (hasReleaseInstall && cli.executableResolves) {
-    decisions.push('pin-exact-release-cli');
-  } else {
-    decisions.push('install-exact-release-cli');
-  }
-
-  return decisions;
+  if (result.error) throw result.error;
+  return result;
 };
 
-const evaluateCliEnvelopeCase = ({ input }) => {
-  if (typeof input.output !== 'object' || input.output === null) {
-    return 'stop-without-heuristics';
-  }
-
-  const envelope = input.output;
-  if (
-    envelope.schemaVersion !== ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion ||
-    !isReleaseCliVersion(envelope.cliVersion) ||
-    envelope.cliVersion !== input.declaredCliVersion ||
-    envelope.cliVersion !== input.installedCliVersion ||
-    envelope.command !== input.invokedCommand ||
-    !['valid', 'invalid', 'error'].includes(envelope.status)
-  ) {
-    return 'stop-without-heuristics';
-  }
-
-  if (envelope.status === 'valid') {
-    return input.exitCode === 0 && envelope.result !== null && envelope.error === null
-      ? 'interpret-result'
-      : 'stop-without-heuristics';
-  }
-  if (envelope.status === 'invalid') {
-    return input.exitCode === 1 &&
-      ['inspect', 'validate'].includes(envelope.command) &&
-      envelope.result !== null &&
-      envelope.error === null
-      ? 'interpret-structural-diagnostics'
-      : 'stop-without-heuristics';
-  }
-  return [2, 3].includes(input.exitCode) && envelope.result === null && envelope.error !== null
-    ? 'report-separately-from-invalidity'
-    : 'stop-without-heuristics';
+const installProjectToolingFixture = (root) => {
+  writeFileSync(
+    join(root, 'package.json'),
+    `${JSON.stringify(
+      {
+        private: true,
+        devDependencies: { '@moldea.ai/cli': '^8.0.0' },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  symlinkSync(
+    join(REPOSITORY_ROOT, 'node_modules'),
+    join(root, 'node_modules'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
 };
 
-const evaluateReadmeMarkerCase = ({ input }) => {
-  const lines = input.readme.split('\n');
-  const starts = lines.flatMap((line, index) => (line === '<!-- moldea:start -->' ? [index] : []));
-  const ends = lines.flatMap((line, index) => (line === '<!-- moldea:end -->' ? [index] : []));
-
-  if (starts.length === 0 && ends.length === 0) {
-    return ['report-missing', 'add-one-block'];
-  }
-  if (starts.length === 1 && ends.length === 1 && starts[0] < ends[0]) {
-    return ['assess-content', 'replace-owned-content-only'];
-  }
-  return ['report-ownership-conflict', 'stop-for-developer-resolution'];
+const writeCliFixture = (cliRoot) => {
+  mkdirSync(join(cliRoot, 'dist'), { recursive: true });
+  writeFileSync(
+    join(cliRoot, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: '@moldea.ai/cli',
+        type: 'module',
+        version: '8.0.0',
+        bin: { moldea: './dist/moldea.js' },
+        dependencies: { '@moldea.ai/core': '^4.0.0' },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(join(cliRoot, 'dist', 'moldea.js'), 'process.exitCode = 0;\n');
 };
 
-describe('portable Agent Skill contract', () => {
-  const skill = readFileSync(SKILL_PATH, 'utf8');
-  const frontmatter = parseFrontmatter(skill);
-  const references = REFERENCE_FILES.map((fileName) =>
-    readRepositoryFile(`moldea/references/${fileName}`),
-  ).join('\n');
-  const portableContent = skill + '\n' + references;
+const writeCoreFixture = (coreRoot, options = {}) => {
+  mkdirSync(join(coreRoot, 'dist'), { recursive: true });
+  writeFileSync(
+    join(coreRoot, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: options.name ?? '@moldea.ai/core',
+        type: 'module',
+        version: options.version ?? '4.0.1',
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(
+    join(coreRoot, 'dist', 'index.js'),
+    'export const createCore = () => ({ matchManifestScope: async () => ({ valid: true, relevant: true }) });\n',
+  );
+};
 
-  test('uses valid portable identity and release metadata', () => {
+const createIsolatedToolingProject = (layout) => {
+  const root = mkdtempSync(join(tmpdir(), 'moldea-v5-isolated-'));
+  mkdirSync(join(root, 'moldea'), { recursive: true });
+  mkdirSync(join(root, 'src'), { recursive: true });
+  writeFileSync(
+    join(root, 'package.json'),
+    `${JSON.stringify(
+      {
+        private: true,
+        devDependencies: { '@moldea.ai/cli': '^8.0.0' },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(
+    join(root, 'README.md'),
+    '# Project\n\n<!-- moldea:start -->\nCanonical moldea project state lives under `/moldea/**`.\n<!-- moldea:end -->\n',
+  );
+  writeFileSync(
+    join(root, 'moldea', 'moldea.yaml'),
+    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
+  );
+  writeFileSync(join(root, 'moldea', 'project.md'), '# Project\n');
+  writeFileSync(join(root, 'src', 'project-state.js'), 'export const state = true;\n');
+
+  if (layout === 'npm') {
+    writeCliFixture(join(root, 'node_modules', '@moldea.ai', 'cli'));
+    writeCoreFixture(join(root, 'node_modules', '@moldea.ai', 'core'));
+    return root;
+  }
+
+  const storeRoot = join(root, 'node_modules', '.pnpm');
+  const cliStoreRoot = join(storeRoot, '@moldea.ai+cli@8.0.0', 'node_modules', '@moldea.ai', 'cli');
+  const coreStoreRoot = join(
+    storeRoot,
+    '@moldea.ai+core@4.0.1',
+    'node_modules',
+    '@moldea.ai',
+    'core',
+  );
+  const cliDependencyRoot = join(storeRoot, '@moldea.ai+cli@8.0.0', 'node_modules', '@moldea.ai');
+  writeCliFixture(cliStoreRoot);
+  writeCoreFixture(coreStoreRoot);
+  mkdirSync(join(root, 'node_modules', '@moldea.ai'), { recursive: true });
+  symlinkSync(
+    cliStoreRoot,
+    join(root, 'node_modules', '@moldea.ai', 'cli'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
+  symlinkSync(
+    coreStoreRoot,
+    join(cliDependencyRoot, 'core'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
+  return root;
+};
+
+const createProject = () => {
+  const root = mkdtempSync(join(tmpdir(), 'moldea-v5-conformance-'));
+  mkdirSync(join(root, 'moldea'), { recursive: true });
+  mkdirSync(join(root, 'src'), { recursive: true });
+  writeFileSync(
+    join(root, 'README.md'),
+    '# Project\n\n<!-- moldea:start -->\nFor every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.\nCanonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.\n<!-- moldea:end -->\n',
+  );
+  writeFileSync(
+    join(root, 'moldea', 'moldea.yaml'),
+    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
+  );
+  writeFileSync(join(root, 'moldea', 'project.md'), '# Project\n\nCurrent project truth.\n');
+  writeFileSync(join(root, 'src', 'project-state.js'), 'export const state = true;\n');
+  writeFileSync(join(root, '.gitignore'), 'node_modules/\n');
+  const init = spawnSync('git', ['init', '--quiet'], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.equal(init.status, 0);
+  installProjectToolingFixture(root);
+  return root;
+};
+
+const createLauncherProject = (cliSource, options = {}) => {
+  const root = mkdtempSync(join(tmpdir(), 'moldea-v5-launcher-'));
+  const cliRoot = join(root, 'node_modules', '@moldea.ai', 'cli');
+  mkdirSync(join(cliRoot, 'dist'), { recursive: true });
+  writeFileSync(
+    join(root, 'package.json'),
+    `${JSON.stringify(
+      {
+        private: true,
+        devDependencies: { '@moldea.ai/cli': options.declaration ?? '^8.0.0' },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(
+    join(cliRoot, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: '@moldea.ai/cli',
+        type: 'module',
+        version: options.version ?? '8.0.0',
+        bin: { moldea: options.binary ?? './dist/moldea.js' },
+        dependencies: { '@moldea.ai/core': options.coreRange ?? '^4.0.0' },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(join(cliRoot, 'dist', 'moldea.js'), cliSource);
+  return root;
+};
+
+const waitForPath = async (path) => {
+  const deadline = Date.now() + 2_000;
+  while (!existsSync(path)) {
+    if (Date.now() >= deadline) throw new Error('Timed out waiting for the launcher child.');
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 10));
+  }
+};
+
+describe('portable skill contract', () => {
+  test('uses lowercase identity, repository-bound initialization, and a narrow description', () => {
+    const frontmatter = parseFrontmatter();
+    assert.deepEqual(frontmatter.metadata, {
+      version: '5.0.0',
+      cliVersionRange: '^8.0.0',
+      coreVersionRange: '^4.0.1',
+      cliJsonSchemaVersion: 4,
+    });
     assert.equal(frontmatter.name, 'moldea');
-    assert.equal(frontmatter.license, 'MIT');
-    assert.equal(frontmatter.metadata.version, ROOT_PACKAGE_MANIFEST.version);
-    assert.equal(dirname(SKILL_PATH), SKILL_DIRECTORY);
-    assert.equal(basename(dirname(SKILL_PATH)), frontmatter.name);
-    assert.ok(frontmatter.description.length >= 1 && frontmatter.description.length <= 1024);
-    assert.match(frontmatter.description, /^Use first when a message/u);
-    assertMatchesEvery(frontmatter.description, [
-      /supplies, confirms, or corrects potentially durable current-project knowledge/u,
-      /ownership, policy, terminology, architecture, or operations/u,
-      /in any format and even without naming moldea or requesting persistence/u,
-      /determine adoption before writing/u,
-      /authorized work may affect canonical truth or declared behavior/u,
-      /explicit initialization, agent-system planning, agent or Agent Skill design, maintenance, evaluation, reconciliation, and validation/u,
-      /Initial adoption requires explicit developer intent/u,
-    ]);
-    assert.doesNotMatch(portableContent, /\bMoldea\b/u);
-    assert.ok(skill.split('\n').length < 500);
-  });
-
-  test('rejects malformed or unsupported Agent Skills frontmatter', () => {
-    assert.throws(() => parseFrontmatter('---\nname: moldea\ndescription: broken: value\n---\n'));
-    assert.throws(() =>
-      parseFrontmatter('---\nname: moldea\ndescription: valid\nunsupported: true\n---\n'),
-    );
-    assert.throws(() =>
-      parseFrontmatter(
-        '---\nname: moldea\ndescription: "   "\nlicense: MIT\nmetadata:\n  version: "1.0.0"\n---\n',
-      ),
-    );
-    assert.throws(() =>
-      parseFrontmatter(
-        '---\nname: moldea\ndescription: valid\nlicense: MIT\ncompatibility: 1\nmetadata:\n  version: "1.0.0"\n---\n',
-      ),
-    );
-    assert.throws(() =>
-      parseFrontmatter(
-        '---\nname: moldea\ndescription: valid\nlicense: MIT\nallowed-tools: []\nmetadata:\n  version: "1.0.0"\n---\n',
-      ),
+    assert.match(frontmatter.description, /initialize moldea only when explicitly requested/u);
+    assert.match(frontmatter.description, /only after adoption and relevance are established/u);
+    assert.match(frontmatter.description, /declared binding or affectedBy relationship/u);
+    assert.match(frontmatter.description, /Do not use for other uninitialized work/u);
+    assert.match(frontmatter.description, /when this skill is installed in the repository/u);
+    assert.match(frontmatter.description, /Use for every repository-dependent task/u);
+    assert.match(frontmatter.description, /including reviews, plans, and implementation/u);
+    assert.match(frontmatter.description, /two-byte relevance gate/u);
+    assert.match(frontmatter.description, /A gate miss abstains silently/u);
+    assert.match(frontmatter.description, /independently supplied Agent Skill artifact/u);
+    assert.match(frontmatter.description, /without gating the surrounding repository/u);
+    assert.doesNotMatch(frontmatter.description, /potentially durable knowledge|Use first/iu);
+    const skill = readSkill();
+    assert.match(skill, /Before responding, scan for violations/u);
+    assert.match(skill, /Canonical status identifies storage, not conflict precedence/u);
+    assert.match(skill, /generic reconcile request authorizes correction but selects no claim/u);
+    assert.match(skill, /Existing repository content is not a current developer choice/u);
+    assert.match(skill, /neither conflicting asset nor its labels, relationships, mirrors, tests/u);
+    assert.match(skill, /current developer statement that chooses one claim/u);
+    assert.match(skill, /third independent source that explicitly resolves them/u);
+    assert.match(skill, /stop all moldea calls and semantic writes/u);
+    assert.match(skill, /state both claims, and ask which governs/u);
+    assert.match(skill, /including actionable reviews/u);
+    assert.match(skill, /never substitute a neutral no-change response/u);
+    assert.match(skill, /When abstention consumes the request and no host work remains/u);
+    assert.match(skill, /reply only with a neutral outcome/u);
+    assert.match(skill, /`No files were changed\.`/u);
+    assert.match(
+      skill,
+      /Do not name moldea, describe the unavailable operation or result, or recommend initialization/u,
     );
   });
 
-  test('declares the exact release compatibility contract', () => {
-    assert.deepEqual(RELEASE_COMPATIBILITY, { ...COMPATIBILITY_402 });
-    assert.equal(RELEASE_COMPATIBILITY.cliVersion, RELEASE_CLI_VERSION);
-    assert.equal(RELEASE_COMPATIBILITY.cliJsonSchemaVersion, RELEASE_CLI_JSON_SCHEMA_VERSION);
-    assert.match(skill, /exact root development dependency/);
-  });
-
-  test('uses explicit progressive-disclosure triggers and resolvable references', () => {
-    const skillDesign = readRepositoryFile('moldea/references/skill-design.md');
-    const referencedPaths = [...skill.matchAll(/Read `references\/([^`]+\.md)` before/g)].map(
-      (match) => match[1],
-    );
-
-    assert.deepEqual([...referencedPaths].sort(), REFERENCE_FILES);
-    assert.match(skill, /Read `references\/agent-design\.md` before agent or runtime evaluation/i);
-
-    for (const fileName of REFERENCE_FILES) {
-      assert.ok(existsSync(join(SKILL_DIRECTORY, 'references', fileName)));
+  test('keeps progressive disclosure bounded to owning references', () => {
+    const skill = readSkill();
+    for (const referenceName of REFERENCE_NAMES) {
+      assert.match(skill, new RegExp(`references/${referenceName.replace('.', '\\.')}`, 'u'));
+      assert.doesNotThrow(() =>
+        readFileSync(join(SKILL_ROOT, 'references', referenceName), 'utf8'),
+      );
     }
-
-    assertMatchesEvery(skillDesign, [
-      /Route to existing authoritative repository documents or scripts when they own the information/i,
-      /skill-local reference only for substantial skill-owned conditional guidance/i,
-      /do not relay or duplicate another source/i,
-      /Resource paths encode ownership/i,
-      /leading `\/` is repository-root-owned/i,
-      /`references\/example\.md` is skill-relative/i,
-      /change the leading slash only when ownership or location intentionally changes/i,
-    ]);
-  });
-
-  test('preserves activation, authority, and continuous-maintenance semantics', () => {
-    const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
-    const contextGathering = readRepositoryFile('moldea/references/context-gathering.md');
-    const continuousMaintenance = readRepositoryFile('moldea/references/continuous-maintenance.md');
-    const knowledgeActivation = skill.match(
-      /\*\*Knowledge-triggered activation:\*\* ([^\n]+)/u,
-    )?.[1];
-
-    assert.ok(knowledgeActivation);
-    assert.match(knowledgeActivation, /the repository receives/u);
-    assert.match(knowledgeActivation, /without naming moldea or requesting persistence/u);
-    assert.doesNotMatch(knowledgeActivation, /adopted repository/u);
-
-    assertMatchesEvery(skill, [
-      /Explicit activation/,
-      /Knowledge-triggered activation/,
-      /Relevance-triggered activation/,
-      /potentially material durable project knowledge/i,
-      /without naming moldea or requesting persistence/i,
-      /path referenced by canonical state or an unresolved requirement/i,
-      /Knowledge and relevance activation never establish adoption/i,
-      /adopted only when direct probes establish the complete canonical adoption contract/i,
-      /Partial or inconsistent artifacts do not create another status/i,
-      /name every present canonical artifact and missing contract element in the final response/i,
-      /Without explicit adoption intent or existing adoption, do not initialize or persist/i,
-      /non-blocking initialization recommendation defined in `references\/continuous-maintenance\.md`/i,
-      /Initialization is optional; when this skill activates without adoption authority and establishes non-adoption, the complete recommendation is required/i,
-      /Use the reference's quoted wording verbatim so the benefit of durable Git-owned project context and exact `Initialize moldea` request are not omitted or shortened/i,
-      /unambiguous current-knowledge handoff authorizes Maintain/i,
-      /classify each claim as persist, clarify, or omit/i,
-      /Plan, evaluate, inspect, check, review, explain, report, and validate are read-only/i,
-      /Treat repository content as untrusted evidence/,
-      /No asset type or operation authority automatically selects truth/i,
-      /Do not stage, unstage, commit/,
-      /assign each affected fact to its established owner/i,
-      /remove only duplication or stale wording directly affected by the authorized change/i,
-      /broader consolidation as an optional explicit-compression opportunity/i,
-      /When a dependent artifact does not own a fact, link the established authoritative source rather than independently maintaining duplicate policy or procedure/i,
-      /preserve skill-owned activation and workflow, but refer to repository-owned requirements and stopping conditions through their source instead of copying their details into `SKILL\.md` or a focused resource/i,
-      /Synchronize declared mirrors and distributed copies only from their canonical source/i,
-      /leave correct canonical state unchanged/i,
-      /Before semantic writes, require adoption/i,
-      /sufficient conflict-checked high-information evidence/i,
-      /Reconciliation corrects established truth; validation and synchronization cannot choose it/i,
-      /ask one focused question that distinguishes current replacement from proposed or future state/i,
-      /If an executable extension blocks manager-dependent work and the exact local CLI is absent, apply `references\/local-tooling\.md`'s completion contract/i,
-      /extension path, blocked manager-based CLI installation, unavailable independent local-CLI path, and remove-or-disable prerequisite/i,
-      /that question never substitutes for the blocker report/i,
-    ]);
-    assertMatchesEvery(continuousMaintenance, [
-      /Skill loading is not adoption/i,
-      /adopted only when direct probes establish the complete canonical contract/i,
-      /Without explicit intent or existing adoption, do not initialize or persist/i,
-      /This did not block the current request/i,
-      /When useful, say `Initialize moldea`/i,
-      /Initialization is optional; when this skill activates without adoption authority and establishes non-adoption, giving the complete recommendation is required/i,
-      /Use the quoted wording verbatim rather than shortening or paraphrasing away its benefit of durable Git-owned project context or exact initialization request/i,
-      /Partial or inconsistent artifacts do not create an .*adoption in progress.* status/i,
-      /Omission from `rg`, Git inventory, indexed search, or another ignore-sensitive discovery does not prove non-adoption/i,
-      /needs no persistence request, adoption confirmation, or storage-path question/i,
-      /leave correct state unchanged/i,
-    ]);
-    assert.match(
-      contextGathering,
-      /brief or generic package metadata may guide clarification but cannot establish a sufficient foundation alone/i,
-    );
-    assertMatchesEvery(agentDesign, [
-      /Routing-facing metadata uses the target handoff description when present and valid, otherwise the agent description/i,
-      /General-only metadata uses the agent description/i,
-      /property called `description` may be shared or routing-facing/i,
-      /evidence identifying consumer purpose/i,
-      /canonical source currently selected, or that selection is unknown/i,
-      /source required by the established purpose/i,
-      /Under dynamic wiring, state conditional outcomes and identify resolving wiring or tests/i,
-    ]);
-  });
-
-  test('filters direct knowledge and clarifies material conflicts before persistence', () => {
-    const contextGathering = readRepositoryFile('moldea/references/context-gathering.md');
-    const continuousMaintenance = readRepositoryFile('moldea/references/continuous-maintenance.md');
-
-    assertMatchesEvery(contextGathering, [
-      /by meaning rather than format/i,
-      /Activation requires reconsideration, not automatic persistence/i,
-      /current truth, explicit correction, future intent, proposal, transient detail, or unresolved uncertainty/i,
-      /Current does not imply durable/i,
-      /never persist a shared container as one unit/i,
-      /non-conflicting current claim can establish truth in any format/i,
-      /conflicting bare assertion cannot replace established truth/i,
-      /developer marks a correction or current replacement/i,
-      /new one replaces current state or is proposed or future state/i,
-      /make no semantic write before the answer/i,
-      /Organizational truth that only the developer can establish does not require repository corroboration/i,
-      /broad verbs such as .*process.*handle.*manage/i,
-      /implementation proves only narrower behavior/i,
-      /unestablished permission, value-bearing, destructive, lifecycle, or external-action boundary/i,
-      /focused question asks for one missing fact or decision/i,
-      /do not bundle purpose, users, goals, boundaries, authority, and workflow/i,
-      /team ownership/i,
-      /path listing only queues candidates/i,
-      /Read every accessible material candidate before a conclusion, absence claim, request, or plan/i,
-      /Never ask the developer to paste an accessible file/i,
-    ]);
-    assertMatchesEvery(continuousMaintenance, [
-      /Probe repository-root `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the exact README markers directly/i,
-      /Omission from `rg`, Git inventory, indexed search, or another ignore-sensitive discovery does not prove non-adoption/i,
-      /unambiguous direct handoff of current project knowledge is Maintain authority/i,
-      /needs no persistence request, adoption confirmation, or storage-path question/i,
-      /terse prose, answers, tables, structured data, and accessible sources/i,
-      /shared container establishes neither authority nor replacement semantics/i,
-      /consequential conflict lacks explicit correction or replacement meaning/i,
-      /Do not merely acknowledge a handoff/i,
-      /completed deterministic proof stage, status, and material diagnostics, including their absence/i,
-      /exact repository-local invocation still runs separately but need not be repeated/i,
-      /For corrections, state the corrected boundary and resulting current truth/i,
-      /Without explicit intent or existing adoption, do not initialize or persist/i,
-      /Read every referencing requirement's current state and criteria before editing/i,
-      /durable truth changed or was newly established/i,
-      /remove only duplication or stale wording directly affected by the authorized change/i,
-      /recommend a separate explicit compression request without performing it/i,
-    ]);
-  });
-
-  test('defines explicit loss-preserving context compression without host-context claims', () => {
-    const contextCompression = readRepositoryFile('moldea/references/context-compression.md');
-
-    assertMatchesEvery(skill, [
-      /consolidate, deduplicate, organize, clean up, or compress canonical project context/i,
-      /Read `references\/context-compression\.md` before explicit broad context consolidation/i,
-    ]);
-    assertMatchesEvery(contextCompression, [
-      /Maintain subtype for Git-owned canonical project context/i,
-      /does not manage the coding host's context window, prompt cache, conversation compaction, token budget, or model internals/i,
-      /never claims token savings/i,
-      /Broad compression requires explicit developer intent/i,
-      /Do not start it merely because ordinary maintenance reveals an opportunity/i,
-      /account for every distinct established fact, accepted rationale, relevant requirement, unresolved boundary, relationship, and consumer/i,
-      /Consolidate proven duplicates into the established authoritative owner/i,
-      /Update manifest paths, references, indexes, consumers, and directly affected documentation in the same change/i,
-      /Do not use arbitrary file-count, word-count, character-count, age, or size thresholds/i,
-      /ask one focused question/i,
-      /Make no semantic write before the answer/i,
-      /Confirm that unrelated context and implementation remain unchanged/i,
-    ]);
-  });
-
-  test('defines evidence-based initialization clarification and handoff behavior', () => {
-    const contextGathering = readRepositoryFile('moldea/references/context-gathering.md');
-
-    assertMatchesEvery(contextGathering, [
-      /Insufficient:/,
-      /Partial:/,
-      /Sufficient:/,
-      /no meaningful context was established/i,
-      /In the final response, state the evidence-backed project purpose before naming the material gap and asking one question about it/i,
-      /Judge evidence by quality, coverage, consistency, and authority rather than volume/i,
-      /Stop before dependencies, canonical state, or the README block/i,
-      /do not bundle purpose, users, goals, boundaries, authority, and workflow/i,
-      /Never turn developer-answerable ambiguity into an unresolved requirement/i,
-      /Every completed initialization ends with `Next actions`/i,
-      /foundation review and ordinary development/i,
-      /material sources supporting each foundation conclusion/i,
-      /Validation does not replace this handoff/i,
-      /make file creation semantic completion/i,
-      /Classify the project foundation before changing dependency state/i,
-      /Missing or unverified tooling never makes available evidence empty/i,
-      /brief or generic package metadata may guide clarification but cannot establish a sufficient foundation alone/i,
-      /`moldea` keeps durable project context in the repository so coding agents can understand the project consistently over time/i,
-      /What does the project do, and who or what does it serve/i,
-      /Partial or inconsistent artifacts leave the project unadopted/i,
-      /name every present canonical artifact and missing contract element in the final response/i,
-    ]);
-  });
-
-  test('defines objective-first read-only agent-system planning', () => {
-    const agentSystemPlanning = readRepositoryFile('moldea/references/agent-system-planning.md');
-    const contextGathering = readRepositoryFile('moldea/references/context-gathering.md');
-
-    assertMatchesEvery(skill, [
-      /Agent-system planning applies only when the developer asks how an AI-enabled objective should be divided among agents and non-agent components/i,
-      /Generic planning and host-defined `plan` commands remain outside/i,
-      /Read `references\/agent-system-planning\.md` before planning an AI- or agent-enabled system/i,
-    ]);
-    assertMatchesEvery(contextGathering, [
-      /bounded root inventory/i,
-      /Search objective terms across source, documentation, configuration, and tests/i,
-      /every accessible material candidate before a conclusion, absence claim, request, or plan/i,
-      /mapping each path to its fact and responsibility/i,
-    ]);
-    assertMatchesEvery(agentSystemPlanning, [
-      /Use `plan` only when the developer asks what agent-and-software system should accomplish an objective/i,
-      /Generic implementation, architecture, migration, refactor, deployment, and host-defined `plan` commands remain outside/i,
-      /Planning may precede adoption and changes no repository, dependency, Git, protected instruction, generated artifact, or external system/i,
-      /inventory proves availability only/i,
-      /every material accessible candidate must be read and mapped to a fact and responsibility/i,
-      /Keep fixed calculations, eligibility, filtering, storage, delivery, and predictable sequencing deterministic/i,
-      /valid result may use zero agents/i,
-      /smallest topology that preserves every material responsibility and boundary/i,
-      /Reconcile every evidenced responsibility with a deterministic, service, tool, skill, agent, or human owner/i,
-      /Combining or removing an owner requires reliable replacement evidence/i,
-      /incompatible private context, permissions, trust, or failure boundaries remain separate/i,
-      /Public research and privileged project or customer reasoning remain separate/i,
-      /responsibility and why it requires model reasoning/i,
-      /Prefer deterministic orchestration/i,
-      /approval for every publication when required/i,
-      /authoritative and derived data, transient and persistent state, readers and writers/i,
-      /principal inputs, outputs, events, service and tool contracts, and failure boundaries/i,
-      /leave the final `runtime\.id` for later design and implementation/i,
-      /completion check, not a mandatory prose template/i,
-      /Name material paths read and what they establish/i,
-      /ordered, unexecuted build-and-verification sequence that tests risky boundaries early/i,
-      /runtime control flow is distinct/i,
-      /question that most changes authority, ownership, topology, or consequential side effects/i,
-      /state the invariant architecture and identify what cannot be finalized/i,
-      /state that no repository files changed/i,
-    ]);
+    assert.match(skill, /Never read every reference by default/u);
+    assert.match(skill, /read only what the operation requires/u);
+    assert.match(skill, /Before host work on named paths/u);
+    assert.match(skill, /deduplicated leading-slash repository-logical set/u);
+    assert.match(skill, /named paths may be changed or unchanged/u);
+    assert.match(skill, /host-established changed paths/u);
     assert.match(
       skill,
-      /Read `references\/context-gathering\.md` before initialization, agent-system planning/i,
+      /Never run Git or broaden repository inspection solely to discover gate paths/u,
     );
-    assert.doesNotMatch(skill, /Every `plan` result must/i);
-  });
-
-  test('treats Agent Skills as first-class portable artifacts', () => {
-    const evaluateAndReconcile = readRepositoryFile('moldea/references/evaluate-and-reconcile.md');
-    const skillDesign = readRepositoryFile('moldea/references/skill-design.md');
-
-    assertMatchesEvery(skillDesign, [
-      /Choose a skill deliberately/,
-      /primary activation contract/,
-      /representative positive, adjacent non-activation, ambiguous, and related-technology requests/i,
-      /Keep host metadata aligned/,
-      /Update portable purpose or activation first/i,
-      /Preserve invocation policy and unrelated fields/i,
-      /State ownership before creating a skill/i,
-      /Protected instructions remain developer-owned/i,
-      /Verify both artifacts and representative activation boundaries/i,
-      /Use progressive disclosure/,
-      /references\//,
-      /scripts\//,
-      /assets\//,
-      /Design scripts as real software/,
-      /dependencies, environments, and exit behavior/i,
-      /installed, generated, cached, mirrored, or distributed copies/i,
-      /coordinated changes are non-atomic/i,
-      /Format version `1` defines no canonical `\/moldea\/skills` store/i,
-      /Source content alone does not prove installation, discovery, consumption, or runtime registration/i,
-      /basic validator cannot establish whole-artifact validity/i,
-    ]);
-    assert.match(skill, /Read `references\/skill-design\.md` before creating, evaluating/i);
-    assertMatchesEvery(skill, [
-      /never generalize a component validator into whole-system validity/i,
-      /Use each focused reference's operation-specific completion contract/i,
-    ]);
-    assertMatchesEvery(skillDesign, [
-      /Invalid identity or frontmatter, broken links, missing required resources, and validator failures are structural/i,
-      /Activation imprecision, incomplete behavior, incorrect use conditions, and content drift are semantic/i,
-      /structural evidence only/i,
-    ]);
-    assert.match(
-      evaluateAndReconcile,
-      /For Agent Skills, apply `skill-design\.md` to the authoritative artifact/i,
+    assert.doesNotMatch(
+      skill,
+      /Reuse the complete changed-path set already established by the host and pass it/u,
     );
-  });
-
-  test('preserves evaluate, reconcile, and deterministic responsibility boundaries', () => {
-    const evaluateAndReconcile = readRepositoryFile('moldea/references/evaluate-and-reconcile.md');
-
-    assertMatchesEvery(evaluateAndReconcile, [
-      /`evaluate` changes no repository, dependency, lockfile, mirror, or Git state/i,
-      /staged, unstaged, untracked, renamed, and deleted/,
-      /HEAD exists and the tree is clean/i,
-      /HEAD does not exist/i,
-      /Resolve the subject before collecting target evidence/i,
-      /brief natural project-evaluation request targets the project-owned moldea system/i,
-      /Ask one focused question before evaluating when material subject ambiguity remains/i,
-      /installed `\.agents\/skills\/moldea` entrypoint and operation-triggered references only as operating guidance/i,
-      /Do not inventory, validate, or report that tree as target evidence/i,
-      /Semantic alignment requires reliable evidence of each material behavior's intended meaning and relevant consumption/i,
-      /relationship proves scope and implementation proves current behavior; neither alone proves agreement/i,
-      /exact evidence limitation instead of claiming alignment/i,
-      /unscoped clean evaluation, state the project-owned starting scope/i,
-      /canonical relationship that expanded implementation evidence or why none was material/i,
-      /Deterministic diagnostics/,
-      /Confirmed semantic problems/,
-      /Material ambiguities/,
-      /Relevant unresolved requirements/,
-      /Material evidence limitations/,
-      /Project status is only adopted or unadopted/i,
-      /each unknown fact, its smallest reliable resolving artifact and established owner/i,
-      /what that artifact must prove/i,
-      /source-owned target documentation, closed wiring, provider configuration, and integration tests/i,
-      /missing-evidence list without an unknown-to-resolver mapping leaves evaluation incomplete/i,
-      /absent handoff description is aligned fallback when the consumer uses the agent description/i,
-      /Under unresolved dynamic wiring, state conditional outcomes/i,
-      /call a source required, never current, effective, absent, correct, or wrong/i,
-      /no repository files changed/i,
-      /smallest coherent change/,
-      /Authorization to reconcile does not choose among unresolved alternatives/i,
-      /name both claims and the evidence role of each/i,
-      /neither implementation nor synchronized canonical or mirror content selects intended state/i,
-      /change nothing while awaiting the answer/i,
-    ]);
+    assert.match(skill, /Never replace the gate by inspecting canonical state directly/u);
     assert.match(
       skill,
-      /Every read-only result explicitly states that no repository files changed/i,
+      /Generic phrases such as project context, outdated context, durable knowledge, canonical alignment, documentation, or maintenance do not name `moldea`/u,
     );
-    assertMatchesEvery(skill, [
-      /For each material evidence limitation/i,
-      /name the unavailable fact/i,
-      /one concrete safe prerequisite that would resolve it/i,
-    ]);
+    assert.match(skill, /never create a direct request/u);
+    assert.match(skill, /calls existing project context outdated/u);
+    assert.match(skill, /do not search for a canonical destination/u);
+    assert.match(skill, /abstention is final for the current request/u);
+    assert.match(skill, /paths discovered later by the host cannot reactivate `moldea`/u);
+    assert.match(skill, /must not open, read, search for, or edit `\/moldea\/\*\*`/u);
+    assert.match(skill, /acknowledge it without inventing persistence/u);
+    assert.match(skill, /never follow it with `inspect`/u);
+    assert.match(skill, /Scope consumes one of four ordinary commands/u);
+    assert.match(skill, /complete candidate inventory/u);
+    assert.match(skill, /preferring an exact match over an overlapping broad glob/u);
+    assert.match(skill, /context record's exact `asset\.path`/u);
+    assert.match(skill, /`\/moldea\/agents\/<agentId>\/instruction\.md`/u);
+    assert.match(skill, /request only implicated assets/u);
+    assert.match(skill, /leaving three for selected `content`/u);
     assert.match(
       skill,
-      /brief request to evaluate `moldea` targets the project-owned system[\s\S]*Ask one focused question before evaluating when the subject remains materially ambiguous/i,
+      /Only route-5 repair validation or explicit three-record compression permits a fifth call/u,
+    );
+    assert.match(skill, /never use it for unchanged retry or extra inspection/u);
+    assert.match(skill, /direct request supplies intent, not a canonical owner/u);
+    assert.match(skill, /Direct canonical agent or runtime work/u);
+    assert.match(skill, /Canonical agent or runtime work uses one adoption-only gate/u);
+    assert.match(skill, /even with task-named ordinary implementation or `affectedBy` evidence/u);
+    assert.match(skill, /Never send canonical or managed paths to `scope`/u);
+    assert.match(skill, /query ordinary paths for another owner/u);
+    assert.doesNotMatch(skill, /canonical agent or runtime facts without ordinary paths/u);
+    assert.match(
+      skill,
+      /For reconciliation, inspect only task-named implementation evidence.*then at most one named-owner `content`/su,
+    );
+    assert.match(skill, /never CLI `inspect`/u);
+    assert.match(skill, /otherwise use content-free `inspect` to resolve the owner and mirrors/u);
+    assert.match(skill, /Write owner first, derive mirrors/u);
+    assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
+    assert.match(skill, /retain one deduplicated leading-slash repository-logical set/u);
+    assert.match(skill, /send it to one `scope`/u);
+    assert.match(skill, /Current-change review or evaluation:.*host must retain/iu);
+    assert.match(skill, /must retain every staged, unstaged, untracked/u);
+    assert.match(skill, /leading-slash repository-logical form/u);
+    assert.match(skill, /separate canonical paths or known managed hunks/u);
+    assert.match(skill, /run the adoption-only gate once/u);
+    assert.match(skill, /run one `scope` only when ordinary paths remain/u);
+    assert.match(skill, /`relevant: false` adds no owner and never cancels direct relevance/u);
+    assert.match(skill, /With ordinary paths only, run the full relationship gate/u);
+    assert.match(skill, /report the complete path scope, canonical assessment/iu);
+    assert.match(skill, /Never conclude from the host review alone/u);
+    assert.match(skill, /reactivate after an unrelated-task gate miss/u);
+    assert.match(skill, /run the full gate once\. On `1`/u);
+    assert.match(
+      skill,
+      /Routing-description evaluation reads `evaluate-and-reconcile\.md`, then owning `agent-design\.md` before classifying from runtime documentation and consumption evidence/u,
+    );
+    assert.match(skill, /identifiers prove nothing/u);
+    assert.match(skill, /bind selected owners and mirrors before writing/u);
+    assert.match(skill, /synchronize every contradicted owner before completing implementation/u);
+    assert.match(skill, /contradictions cannot remain or be called accurate/u);
+    assert.match(skill, /On `0` or failure, continue without moldea/u);
+    assert.match(skill, /work as if the skill were absent/u);
+    assert.match(skill, /For ordinary repository paths, use the full relationship gate/u);
+    assert.match(skill, /every path's UTF-8 bytes followed by one NUL/u);
+    assert.match(skill, /never begin with a delimiter/iu);
+    assert.match(skill, /After `1`, pass the exact same byte stream/u);
+    assert.match(skill, /Classify requirement criteria/u);
+    assert.match(skill, /bind necessary `description` and `resolution` rewrites/u);
+    assert.match(skill, /existing independent inline instruction is migration input/u);
+    assert.match(skill, /direct request to prove, invoke, inspect, or explain/u);
+    assert.match(skill, /before inspecting providers or concluding/u);
+    assert.match(skill, /Validate only after writes/u);
+    assert.match(skill, /route-5 repair validation or explicit three-record compression/u);
+    assert.match(skill, /use one content-free `inspect`/u);
+    assert.match(skill, /Request named-agent `content` only when semantics matter/u);
+    assert.match(skill, /never inspect afterward or request manifest content/u);
+    assert.match(skill, /pair every behavioral or integration unknown with a concrete resolver/u);
+    assert.match(skill, /load only `references\/continuous-maintenance\.md`/u);
+    assert.match(
+      skill,
+      /do not inspect dependency trees, CLI package internals, executable links/u,
+    );
+    assert.match(
+      skill,
+      /Load `references\/local-tooling\.md` only when the launcher reports that repository tooling is unavailable or invalid/u,
+    );
+    assert.match(skill, /Write the complete three-file foundation before the first CLI call/u);
+    assert.match(
+      skill,
+      /foundation-evidence decision before any dependency, canonical-state, or managed README write/u,
+    );
+    assert.match(skill, /Insufficient or materially incomplete evidence stops writes/u);
+    assert.match(skill, /not adopted or initialized because its complete contract is absent/u);
+    assert.match(skill, /Do not substitute.*or add generic product-benefit boilerplate/u);
+    assert.match(
+      skill,
+      /name the present and missing elements among `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the owned README awareness block/u,
+    );
+    assert.match(skill, /ask what the project does and who or what it serves/u);
+    assert.match(skill, /Structural validation proves format, not the truth or sufficiency/u);
+    assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
+    assert.match(skill, /run `validate` at most once more/u);
+    assert.match(skill, /Before foundation analysis, inspect `package\.json`/u);
+    assert.match(skill, /Executable install configuration preempts foundation analysis/u);
+    assert.match(skill, /return its complete four-field blocked-install result/u);
+    assert.match(skill, /Never substitute a partial summary/u);
+    assert.doesNotMatch(skill, /supplied evidence already establishes/u);
+    assert.match(skill, /before foundation classification, package-manager execution, questions/u);
+    assert.match(skill, /name the project-owned evidence that established the foundation/u);
+    assert.match(skill, /Always end a successful initialization response/u);
+    assert.match(skill, /one short, evidence-supported `Next:` action; do not omit it/u);
+    assert.match(skill, /continue normal repository work/u);
+    assert.match(
+      skill,
+      /Do not steer the developer toward agent creation without a separate goal/u,
+    );
+    assert.match(skill, /Read exact task-owned files first/u);
+    assert.match(skill, /request named `content` directly/u);
+    assert.match(skill, /use at most one canonical `content` call total/u);
+    assert.match(skill, /do not read project context or a second canonical body/u);
+    assert.match(
+      skill,
+      /Run `composition` only when local runtime availability or readiness matters/u,
+    );
+    assert.match(skill, /it never establishes canonical assignment/u);
+    assert.match(skill, /matching `kind: agent` record's `agentId` and `runtimeId`/u);
+    assert.match(skill, /sole canonical content-free source/u);
+    assert.match(skill, /Every recursive search or listing must exclude VCS internals/u);
+    assert.match(skill, /Never dump a complete lockfile, dependency inventory, generated tree/u);
+    assert.match(skill, /more than 65,536 model-visible bytes/u);
+    assert.match(
+      skill,
+      /enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path/u,
+    );
+    assert.match(skill, /compare the final state and diff with that list/u);
+    assert.match(skill, /record each remaining unresolved fact under its exact canonical owner/u);
+    assert.match(skill, /state both claims/u);
+    assert.match(skill, /evaluation stopped before worktree-aware Git/u);
+    assert.match(skill, /name `.gitattributes` and the declared filter/u);
+    assert.match(
+      skill,
+      /Continue correcting instead of claiming completion while an item is missing/u,
+    );
+    assert.match(skill, /--cursor "<opaque-cursor>"/u);
+    assert.match(skill, /exact cursor from the immediately preceding envelope/u);
+    assert.match(skill, /Do not hide pagination inside a pipeline, command substitution/u);
+    assert.match(skill, /final raw envelope returns a null cursor/u);
+    assert.match(
+      skill,
+      /scripts\/moldea-cli\.mjs --repository <absolute-repository-root> -- scope/u,
+    );
+    const maintenance = readFileSync(
+      join(SKILL_ROOT, 'references', 'continuous-maintenance.md'),
+      'utf8',
+    );
+    assert.match(maintenance, /Do not validate a partial foundation/u);
+    assert.match(maintenance, /executable-installation hazard preempts foundation classification/u);
+    assert.match(
+      maintenance,
+      /Stop before invoking the package manager, asking for project purpose/u,
+    );
+    assert.match(maintenance, /## Decide whether foundation evidence is sufficient/u);
+    assert.match(
+      maintenance,
+      /Insufficient and partial foundations stop before every dependency, `\/moldea\/\*\*`, and managed README write/u,
+    );
+    assert.match(maintenance, /what does the project do, and who or what does it serve\?/u);
+    assert.match(
+      maintenance,
+      /not adopted or was not initialized because the complete adoption contract is absent/u,
+    );
+    assert.match(
+      maintenance,
+      /Do not add generic product-benefit boilerplate to this concise blocked result/u,
+    );
+    assert.match(maintenance, /paused or incomplete is not the adoption result/u);
+    assert.match(maintenance, /Preserve every existing artifact/u);
+    assert.match(
+      maintenance,
+      /Name the present and missing adoption elements among `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the owned README awareness block/u,
+    );
+    assert.match(maintenance, /Do not store developer-answerable ambiguity/u);
+    assert.match(
+      maintenance,
+      /retain one complete change set containing the authorized implementation paths/u,
+    );
+    assert.match(maintenance, /Never edit implementation before this set is bound/u);
+    assert.match(maintenance, /rewrite both `description` and `resolution`/u);
+    assert.match(maintenance, /neither still claims that condition/u);
+    assert.match(
+      maintenance,
+      /compare every affected requirement criterion with the authorized requested outcome/u,
     );
     assert.ok(
-      evaluateAndReconcile.indexOf('Resolve the subject before collecting target evidence') <
-        evaluateAndReconcile.indexOf('After resolving the subject'),
-      'Evaluation target resolution must precede Git-state scope selection.',
+      maintenance.indexOf('## Requirements and removal') <
+        maintenance.indexOf('## README marker ownership'),
+    );
+    assert.match(
+      maintenance,
+      /identifying the canonical owner reconsidered, stating that behavior or contracts remain unchanged/u,
+    );
+    assert.match(maintenance, /Validation proves that files satisfy the repository format/u);
+    assert.match(maintenance, /map the project-owned evidence to the foundation it established/u);
+    assert.match(maintenance, /End with one short, evidence-supported `Next:` action/u);
+    assert.match(maintenance, /continue normal repository work/u);
+    assert.match(maintenance, /Do not suggest agent creation without a separate goal/u);
+    assert.match(maintenance, /The file ends with one LF/u);
+    assert.match(maintenance, /Do not add a project name, schema field, metadata/u);
+    assert.match(maintenance, /stop without `inspect` or another moldea command/u);
+    assert.match(
+      maintenance,
+      /For every repository task, select the repository-installed `moldea` skill/u,
+    );
+    assert.match(maintenance, /If the gate does not match, continue without `moldea`/u);
+    assert.match(maintenance, /start at `\/moldea\/project\.md`/u);
+    const contextGathering = readFileSync(
+      join(SKILL_ROOT, 'references', 'context-gathering.md'),
+      'utf8',
+    );
+    assert.match(contextGathering, /Prefer exact paths and targeted searches/u);
+    assert.match(contextGathering, /exclude VCS internals, dependency trees, generated output/u);
+    assert.match(contextGathering, /only the relevant lockfile entry/u);
+    assert.match(contextGathering, /one ordinary host command cannot emit more than 65,536/u);
+    assert.match(contextGathering, /same standalone launcher operation/u);
+    assert.match(contextGathering, /Do not pipeline, wrap, parse, filter, aggregate, or script/u);
+    const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
+    assert.match(localTooling, /append `--cursor "<opaque-cursor>"`/u);
+    assert.match(localTooling, /never claim completeness before the final raw envelope/u);
+    assert.match(localTooling, /Plug'n'Play-only layout without that closure is unavailable/u);
+    assert.match(
+      localTooling,
+      /invoke the installed skill launcher once with `composition --json`/u,
+    );
+    assert.match(localTooling, /attempted launcher proof is required/u);
+    assert.match(localTooling, /before reaching any conclusion/u);
+    assert.match(localTooling, /required first proof attempt/u);
+    assert.match(localTooling, /one inert exact-path symlink-target read/u);
+    assert.match(localTooling, /declared compatible dependency exists/u);
+    assert.match(localTooling, /conflicting symlink is not authority/u);
+    assert.match(localTooling, /Name the exact configuration and executable hook or plugin/u);
+    assert.match(localTooling, /\.pnpmfile\.cjs/u);
+    assert.match(localTooling, /inspect `\.yarnrc\.yml` and the exact repository plugin path/u);
+    assert.match(localTooling, /exact repository plugin path it declares/u);
+    assert.match(localTooling, /execution stopped before invoking the package manager/u);
+    assert.match(localTooling, /Return one blocked-install result containing all four fields/u);
+    assert.match(localTooling, /blocks the named package manager's local CLI installation/u);
+    assert.match(localTooling, /Omitting or merging a field into a partial summary is incomplete/u);
+    assert.match(localTooling, /precedes foundation-sufficiency inspection and questioning/u);
+    assert.match(localTooling, /Do not ask a project-purpose question/u);
+    const compression = readFileSync(
+      join(SKILL_ROOT, 'references', 'context-compression.md'),
+      'utf8',
+    );
+    assert.match(compression, /compression is blocked pending the answer/u);
+    assert.match(compression, /at most one content-free `inspect`/u);
+    assert.match(compression, /one `content` call for each distinct in-scope context record/u);
+    assert.match(compression, /record's exact `asset\.path`/u);
+    assert.match(compression, /never repeat a path or request manifest content/u);
+    assert.match(compression, /Stop immediately.*consequential conflict/u);
+    const evaluation = readFileSync(
+      join(SKILL_ROOT, 'references', 'evaluate-and-reconcile.md'),
+      'utf8',
+    );
+    assert.match(evaluation, /stop before worktree-aware Git can execute it/u);
+    assert.match(evaluation, /executable Git filter, text conversion, external diff, fsmonitor/u);
+    assert.match(evaluation, /canonical owner or declared relationship actually assessed/u);
+    assert.match(evaluation, /current-change review or evaluation must retain/u);
+    assert.match(evaluation, /partition direct canonical paths or known managed hunks/u);
+    assert.match(evaluation, /irrelevant ordinary subset adds no owner/u);
+    assert.match(evaluation, /A path inventory alone is not a moldea evaluation/u);
+    assert.match(
+      evaluation,
+      /report the complete path scope, canonical assessment, and explicitly that the operation is read-only and changed no files/iu,
+    );
+    assert.match(evaluation, /without running `scope` or `inspect`/u);
+    assert.match(evaluation, /For direct canonical evaluation/u);
+    assert.doesNotMatch(evaluation, /For direct canonical work/u);
+    assert.doesNotMatch(evaluation, /Direct reconciliation is different/u);
+    assert.doesNotMatch(evaluation, /evaluation shortcut never applies to reconciliation/u);
+    const operationSelectionIndex = evaluation.indexOf('## Select one operation');
+    const reconciliationIndex = evaluation.indexOf('## Reconcile');
+    const progressiveEvaluationIndex = evaluation.indexOf('## Evaluate progressively');
+    assert.ok(operationSelectionIndex >= 0);
+    assert.ok(reconciliationIndex > operationSelectionIndex);
+    assert.ok(progressiveEvaluationIndex > reconciliationIndex);
+    assert.match(evaluation, /Select exactly one operation before gathering evidence/u);
+    assert.match(evaluation, /Do not apply canonical-first evaluation instructions/u);
+    assert.match(
+      evaluation,
+      /generic reconcile request authorizes correction but selects no claim/u,
+    );
+    assert.match(evaluation, /Existing repository content is not a current developer choice/u);
+    assert.match(evaluation, /neither conflicting asset nor its canonical designation/u);
+    assert.match(evaluation, /third independent source that explicitly resolves the alternatives/u);
+    assert.match(evaluation, /stop all moldea calls and semantic writes/u);
+    assert.doesNotMatch(
+      evaluation,
+      /Establish the intended truth from developer intent, current behavior, authoritative documentation, and tests/u,
+    );
+    assert.match(evaluation, /only to identify agreement or conflict, never to rank asset types/u);
+    assert.match(evaluation, /apply the stop above immediately/u);
+    assert.match(evaluation, /establish the repair target from that agreement or selected claim/u);
+    assert.match(
+      evaluation,
+      /Complete that comparison before any aligned, reconciled, or no-change conclusion/u,
+    );
+    const conflictDetectionIndex = evaluation.indexOf('only to identify agreement or conflict');
+    const unresolvedConflictStopIndex = evaluation.indexOf('apply the stop above immediately');
+    const repairTargetIndex = evaluation.indexOf('establish the repair target');
+    assert.ok(conflictDetectionIndex > reconciliationIndex);
+    assert.ok(unresolvedConflictStopIndex > conflictDetectionIndex);
+    assert.ok(repairTargetIndex > unresolvedConflictStopIndex);
+    assert.match(evaluation, /first inspect only exact implementation evidence/u);
+    assert.match(evaluation, /name the supplied `.gitattributes` declaration/u);
+    assert.match(
+      evaluation,
+      /Observed implementation state is not automatically durable canonical truth/u,
+    );
+    assert.match(evaluation, /Every read-only evaluation report explicitly states/u);
+    assert.match(evaluation, /load `agent-design\.md` as the second and owning reference/u);
+    assert.match(evaluation, /a property name is not classification evidence/u);
+    assert.match(evaluation, /Do not report an established aligned mapping as defective/u);
+    assert.match(
+      evaluation,
+      /consumer-purpose classification and structural or source-selection diagnostics as independent conclusions/u,
+    );
+    assert.match(
+      evaluation,
+      /cannot erase a purpose classification already established by task-named runtime guidance and implementation/u,
+    );
+    assert.match(
+      evaluation,
+      /State the established classification even when canonical source selection remains unresolved/u,
+    );
+    assert.match(evaluation, /at most one canonical `content` call total/u);
+    assert.match(evaluation, /Do not read project context, a second canonical owner/u);
+    assert.match(evaluation, /report alignment before the required authority answer/u);
+    assert.match(skill, /generic reconcile request authorizes correction but selects no claim/u);
+    const agentDesign = readFileSync(join(SKILL_ROOT, 'references', 'agent-design.md'), 'utf8');
+    assert.match(agentDesign, /complete the coherent implementation/u);
+    assert.match(agentDesign, /remove the independently maintained inline policy/u);
+    assert.match(agentDesign, /runner-owned focused test evidence/u);
+    assert.match(agentDesign, /complete all runtime, test, and canonical file writes/u);
+    assert.match(agentDesign, /only then run launcher-backed `validate`/u);
+    assert.match(agentDesign, /never write after the last allowed validation/iu);
+    assert.match(agentDesign, /exact backtick-wrapped identity token/u);
+    assert.match(agentDesign, /A heading that merely names the agent does not satisfy/u);
+    assert.match(agentDesign, /retry may be the fifth and final moldea call/u);
+    assert.match(
+      agentDesign,
+      /Separate the requested operation's outcome from agent or runtime readiness/u,
+    );
+    assert.match(
+      agentDesign,
+      /blocking unresolved requirement prevents claims that the affected behavior, agent, or runtime is complete or production-ready/u,
+    );
+    assert.match(
+      agentDesign,
+      /does not make a narrower maintenance operation blocked when every requested safe write, preservation obligation, and validation step is complete/u,
+    );
+    assert.match(
+      agentDesign,
+      /use a blocked task outcome only when the gap prevents the requested deliverable itself/u,
+    );
+    const agentSystemPlanning = readFileSync(
+      join(SKILL_ROOT, 'references', 'agent-system-planning.md'),
+      'utf8',
+    );
+    assert.match(agentSystemPlanning, /Use only facts stated by the bounded source/u);
+    assert.match(agentSystemPlanning, /Keep those dimensions as explicit evidence prerequisites/u);
+    const runtime = readFileSync(
+      join(SKILL_ROOT, 'references', 'runtime-compatibility.md'),
+      'utf8',
+    );
+    assert.match(runtime, /Canonical moldea declarations establish/u);
+    assert.match(runtime, /Repository source, configuration, closed wiring/u);
+    assert.match(runtime, /Root-local `composition/u);
+    assert.match(runtime, /current published technical targets/u);
+    assert.match(runtime, /It does not erase a canonical runtime declaration/u);
+    assert.match(runtime, /establish local composition once before interpreting the publication/u);
+    assert.match(runtime, /inspect\.project\.runtimes.*cannot negate an agent assignment/u);
+    assert.match(runtime, /matching `kind: agent` record's exact `agentId` and `runtimeId`/u);
+    assert.match(runtime, /sole canonical content-free source for that assignment/u);
+    assert.match(runtime, /request `\/moldea\/moldea\.yaml` through `content`/u);
+    assert.match(runtime, /ordinary four-command moldea limit/u);
+    assert.match(runtime, /ambient network client does not grant access/u);
+    assert.match(
+      runtime,
+      /explicit target-maturity or production-readiness request, retrieve the current publication despite independent blockers/u,
+    );
+    assert.match(runtime, /route-5 fifth-call repair validation/u);
+    assert.match(runtime, /invoke `composition` first and retain its conclusion/u);
+    assert.match(runtime, /cannot retroactively replace or erase/u);
+    assert.match(runtime, /official skill release selects an exact CLI closure/u);
+    assert.match(runtime, /state the exact canonical `runtime\.id` when established/u);
+    assert.match(runtime, /and the repository wires the target/u);
+    assert.match(runtime, /published `experimental` maturity as the reason readiness is withheld/u);
+    assert.match(
+      runtime,
+      /matching local adapter, exact published target, and maturity separately/u,
+    );
+    assert.match(runtime, /retain every independently evidenced model-visible capability/u);
+    assert.doesNotMatch(runtime, /composition --json --max-output-bytes/u);
+    const skillDesign = readFileSync(join(SKILL_ROOT, 'references', 'skill-design.md'), 'utf8');
+    assert.match(skillDesign, /make the skill structurally invalid/u);
+    assert.match(skillDesign, /Never use a successful unrelated validator/u);
+    assert.match(skillDesign, /do not run a moldea gate or CLI command/u);
+    assert.match(skill, /Create, change, or evaluate an Agent Skill/u);
+    assert.match(skillDesign, /Do not run any moldea CLI operation/u);
+    assert.match(skillDesign, /surrounding moldea repository/u);
+    assert.match(agentDesign, /its name supplies no classification evidence/u);
+    assert.match(agentDesign, /Always state the consumer-purpose classification/u);
+    assert.match(agentDesign, /checklist of every externally evidenced model-visible capability/u);
+    assert.match(localTooling, /Return one blocked-install result containing all four fields/u);
+  });
+
+  test('uses one compact precedence-ordered direct-operation router', () => {
+    const skill = readSkill();
+    const routeHeadings = [
+      '**Independent Agent Skill artifact:**',
+      '**Repository-local tooling:**',
+      '**Explicit initialization:**',
+      '**Current-change review or evaluation:**',
+      '**Direct canonical agent or runtime work:**',
+      '**Repository-independent information:**',
+      '**Every other repository task:**',
+    ];
+    let previousIndex = -1;
+    for (const routeHeading of routeHeadings) {
+      const routeIndex = skill.indexOf(routeHeading);
+      assert.ok(routeIndex > previousIndex, `${routeHeading} must retain router precedence.`);
+      previousIndex = routeIndex;
+    }
+
+    assert.ok(skill.trim().split(/\s+/u).length <= 2_560);
+    assert.match(skill, /Before foundation analysis, inspect `package\.json`/u);
+    assert.match(skill, /preempts foundation analysis/u);
+    assert.match(skill, /attempt the closed launcher's content-free `composition` operation/u);
+    assert.match(skill, /With ordinary paths only, run the full relationship gate/u);
+    assert.match(skill, /route-owned normalized set/u);
+    assert.match(skill, /conclude from the host review alone/u);
+    assert.match(skill, /complete four-field blocked-install result/u);
+    assert.match(skill, /take this route before repository gating/u);
+    assert.match(skill, /regardless of `Use moldea` direction or repository-local placement/u);
+    assert.match(
+      skill,
+      /no `\/moldea\/\*\*` or declared-relationship work is separately requested/u,
+    );
+    assert.match(skill, /Never invoke CLI, inspect or validate canonical state/u);
+    assert.match(skill, /or append moldea status/u);
+    assert.match(skill, /owner was reconsidered and remains accurate without an edit/u);
+    assert.match(skill, /Unavailable publication limits only dependent claims/u);
+    assert.match(skill, /Preserve established facts/u);
+    assert.doesNotMatch(skill, /supplied evidence already establishes/u);
+
+    const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
+    const maintenance = readFileSync(
+      join(SKILL_ROOT, 'references', 'continuous-maintenance.md'),
+      'utf8',
+    );
+    assert.match(localTooling, /does not depend on the developer naming the hazard/u);
+    assert.match(maintenance, /does not depend on the developer naming the hazard/u);
+  });
+
+  test('defines silent abstention, host ownership, and bounded schema-4 evidence', () => {
+    const distributedText = [
+      readSkill(),
+      ...REFERENCE_NAMES.map((name) => readFileSync(join(SKILL_ROOT, 'references', name), 'utf8')),
+    ].join('\n');
+    assert.match(distributedText, /abstains silently/u);
+    assert.match(
+      distributedText,
+      /Host planning, review, implementation, package-manager, Git, commit, and publication workflows always retain ownership/u,
+    );
+    assert.match(distributedText, /65,536-byte output page/u);
+    assert.match(distributedText, /262,144 bytes/u);
+    assert.match(distributedText, /1 MiB/u);
+    assert.match(distributedText, /content-free/u);
+    assert.doesNotMatch(distributedText, /Moldea/u);
+    assert.doesNotMatch(
+      distributedText,
+      /(?:\bskill(?:\s+release)?\s+|@moldea\.ai\/skill@|\/releases\/tag\/v?)4\.0\.[0-2]\b|CLI JSON schema (?:1|2|3)\b|schema-3\b/iu,
     );
   });
 
-  test('keeps deterministic evidence and adapter claims at their owning boundaries', () => {
-    const skillDesign = readRepositoryFile('moldea/references/skill-design.md');
-    const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
-    const continuousMaintenance = readRepositoryFile('moldea/references/continuous-maintenance.md');
+  test('documents content-free repository test-result projection', () => {
+    const readme = readFileSync(join(REPOSITORY_ROOT, 'README.md'), 'utf8');
+    const semanticEvaluation = readFileSync(
+      join(REPOSITORY_ROOT, 'docs', 'semantic-evaluation.md'),
+      'utf8',
+    );
 
-    assertMatchesEvery(skill, [
-      /After writes/i,
-      /failed, incomplete, malformed, unsupported, or contradictory result supports no deterministic conclusion/i,
-      /Every write-capable result identifies `Canonical state` as changed, unchanged with a reason, or blocked with the focused question/i,
-      /Report only completed, independently attributable checks and workspace-proven changes/i,
-    ]);
-    assertMatchesEvery(skillDesign, [
-      /established script's real interface/i,
-      /rather than asking the model to reproduce its check or derive script-owned results/i,
-    ]);
-    assertMatchesEvery(agentDesign, [
-      /Without behavioral evidence, preserve the runtime/i,
-      /map every material unknown invocation, instruction-loading, capability, schema, routing, or variable fact/i,
-      /smallest reliable resolving artifact, established owner, and required proof/i,
-      /Never invent a path, identity, or owner/i,
-      /evaluation remains incomplete without a resolver/i,
-      /Before changing a mapping, establish/i,
-      /evidence identifying consumer purpose/i,
-      /canonical source currently selected, or that selection is unknown/i,
-      /source required by the established purpose/i,
-      /required source does not prove selection/i,
-      /never call a candidate current, effective, absent, or wrong/i,
-      /Prove a mismatch before editing/i,
-      /Tests confirm a correction but do not justify it/i,
-      /inventory external capabilities/i,
-      /classify them as model-visible, integration-only, or qualifying local implementation/i,
-      /Reconcile runtime identity and semantic surfaces together/i,
-      /Provider hosting or correct runtime identity never replaces model-visible semantics/i,
-      /Report evidence paths, repository states, canonical inspection limits, and remaining unknowns/i,
-    ]);
-    assertMatchesEvery(continuousMaintenance, [
-      /classify the canonical and each related repository as clean, dirty, unborn, unavailable, or uninspected/i,
-      /facts canonical inspection cannot observe/i,
-    ]);
+    assert.match(readme, /fixed repository-root direct Node correctness-test invocation/u);
+    assert.match(readme, /Package-manager commands cannot contribute correctness evidence/u);
+    assert.match(
+      readme,
+      /never retains test names, assertions, paths, durations, or output bodies/u,
+    );
+    assert.match(semanticEvaluation, /one `node-test-summary` fact/u);
+    assert.match(semanticEvaluation, /every discovered test passing/u);
+    assert.match(
+      semanticEvaluation,
+      /Unrecognized, incomplete, contradictory, failed, or oversized output supplies no result fact/u,
+    );
   });
 
-  test('defines safe tooling, exact pinning, and machine-envelope handling', () => {
-    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
-
-    assertMatchesEvery(localTooling, [
-      /npm install --save-dev --save-exact --ignore-scripts/,
-      /pnpm add --save-dev --save-exact --ignore-scripts/,
-      /pnpm add --workspace-root --save-dev --save-exact --ignore-scripts/,
-      /yarn add --dev --exact --mode=skip-build/,
-      /repository-supplied executable package-manager extensions, hooks, or plugins/,
-      /Before any npm, pnpm, Yarn, Corepack, or related command/i,
-      /pnpmfiles, hook-bearing pnpm configuration/,
-      /Yarn plugins/,
-      /`.yarnrc.yml` `plugins\[\]\.path` is executable even when unread/i,
-      /blocks manager execution, including version discovery/i,
-      /blocks only manager-dependent work/i,
-      /Report each extension path, blocked operation, unavailable evidence, and safe prerequisite/i,
-      /When the exact local CLI is absent, state that the independent local-CLI path is unavailable and the extension therefore blocks manager-based installation/i,
-      /Remove or disable the extension and retry/i,
-      /invoke without the manager only for an already declared and installed exact CLI/i,
-      /Never bypass, trust, or execute the extension/i,
-      /Lifecycle-script suppression does not neutralize repository-supplied extensions/i,
-      /every command whose safety or authority depends on earlier output separately/i,
-      /never batch a result-dependent sequence/i,
-      /Retain cumulative proof of the root declaration, installed identity and version, exported `bin\.moldea`, and effective provider/i,
-      /yarn info @moldea\.ai\/cli --json/,
-      /prove each stage separately/i,
-      /installed identity, version, and exported `bin\.moldea` through `yarn info/i,
-      /newline-delimited JSON records/,
-      /exactly one `moldea` entry sourced by `@moldea\.ai\/cli`/,
-      /`source` identifies the package, not its version/,
-      /Any missing, malformed, duplicate, conflicting, or non-CLI provider ends this proof branch/i,
-      /Do not then resolve or invoke the executable through Yarn, symlink inspection, `readlink`, `realpath`, Node\.js filesystem APIs, or another tool/i,
-      /Report accepted stages and later stages as unattempted/i,
-      /unrelated safe reporting checks may continue/i,
-      /Only an accepted provider record permits a new `yarn bin moldea` process/i,
-      /yarn exec moldea/,
-      /canonical path to equal the recorded path/,
-      /Never use a bare `moldea`/i,
-      /pnpapi\.resolveToUnqualified\('@moldea\.ai\/cli'/i,
-      /require exact name `@moldea\.ai\/cli`, the exact release version, and a relative `bin\.moldea`/i,
-      /require the bin to remain inside that package/i,
-      /another process invoke `pnpm node <resolved-bin> <command> --json`/i,
-      /When repository evidence is accessible, perform safe provider and CLI checks even for an explanation/i,
-      /otherwise provide a procedure/i,
-      /Report provider, exact version, command, and envelope/i,
-      /Run each CLI invocation independently, without shell-chaining it/i,
-      new RegExp('`schemaVersion` is integer `' + RELEASE_CLI_JSON_SCHEMA_VERSION + '`'),
-      /`command` equals the command invoked/,
-      /`composition` never uses `invalid`/,
-      /Complete structural `invalid` is diagnostic evidence, not successful validation or operational failure/i,
-    ]);
-  });
-
-  test('covers README ownership, dedicated repositories, unresolved state, and mirrors', () => {
-    const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
-    const continuousMaintenance = readRepositoryFile('moldea/references/continuous-maintenance.md');
-
-    assertMatchesEvery(continuousMaintenance, [
-      /<!-- moldea:start -->/,
-      /duplicate, missing, reversed, nested, overlapping, or otherwise ambiguous markers/i,
-      /cross-repository bindings/,
-      /available official `runtime\.id`/,
-      /evidence-location limitation/,
-      /model-visible external capabilities in instructions/i,
-      /report each side's actual completion/i,
-      /Report each repository as changed, unchanged, uninspected, or blocked/i,
-      /Repository authority without a semantic change does not authorize invented work/i,
-      /Before editing, inspect planned paths against canonical relationships, requirement references, mirrors, generated surfaces, and repository boundaries/i,
-      /Read every referencing requirement's current state and criteria before editing/i,
-      /Classify each relevant requirement criterion as satisfied, outstanding, or evidence-blocked/i,
-      /Preserve the requirement unless every criterion is established/i,
-    ]);
-    assertMatchesEvery(agentDesign, [
-      /Requirements are not a roadmap/i,
-      /do not create one to avoid an answerable question or remove one because a related file changed/i,
-      /Edit canonical instruction first and synchronize every mirror in the same change/i,
-      /Never edit a mirror independently/i,
-      /Never invent a manifest `handoffs` graph/i,
-    ]);
-  });
-
-  test('requires canonical instruction provenance without prescribing its mechanism', () => {
-    const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
-
-    assertMatchesEvery(agentDesign, [
-      /Establish canonical instruction provenance/,
-      /do not prescribe one mechanism/i,
-      /not an independently maintained policy source/i,
-      /Field names do not alter provenance/i,
-      /turn-specific `instructions`, inputs, continuation prompts, messages, or tool payloads/i,
-      /cannot own reusable policy/i,
-      /superseded independent durable instructions from every material field/i,
-      /verify consumption/i,
-      /do not prove runtime consumption/i,
-      /Adapter or other reliable evidence may make that binding unnecessary/i,
-      /Do not claim completeness or production readiness while a material provenance gap remains/i,
-    ]);
-  });
-
-  test('uses only the runtime contract and guarded read-only Git evidence', () => {
-    const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
-    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
-
-    assertMatchesEvery(agentDesign, [
-      /declares one `runtime\.id`/,
-      /primary model-invocation boundary/,
-      /Use `composition --json` when installed adapter inventory matters/,
-      /Composition establishes availability, not integration identity/i,
-      /map every material unknown invocation, instruction-loading, capability, schema, routing, or variable fact/i,
-      /smallest reliable resolving artifact, established owner, and required proof/i,
-      /Source-owned target documentation, closed wiring, provider configuration, or integration tests/i,
-      /required adapter is absent from this release/i,
-    ]);
-    assertMatchesEvery(localTooling, [
-      /`-c core\.fsmonitor=false`/,
-      /`-c core\.pager=cat`/,
-      /`--no-pager`/,
-      /`-c core\.attributesFile=\/dev\/null`/,
-      /`GIT_ATTR_NOSYSTEM=1`/,
-      /filter\.lfs\.clean/,
-      /-c filter\.lfs\.process=/,
-      /-c filter\.lfs\.smudge=/,
-      /-c filter\.lfs\.required=false/,
-      /`-c diff\.external=`/,
-      /`--no-ext-diff`/,
-      /`--no-textconv`/,
-      /--ignore-submodules=all/,
-      /every `\.gitattributes` file under the candidate working tree/i,
-      /Git directory's `info\/attributes`/i,
-      /assigns, unsets, resets, or defines a macro involving `filter`/i,
-      /do not run worktree-aware Git/i,
-      /A clean filter can execute during `status` or `diff`/i,
-      /cannot universally neutralize repository attribute rules/i,
-      /No Git command, including `rev-parse`, `status`, `log`, or `diff`, is presumed harmless/i,
-      /Establish the candidate repository root by inert filesystem traversal/i,
-      /Inspect these extensions only as file data with direct inert readers/i,
-      /report every established blocker before asking the focused question/i,
-      /Run each hardened Git invocation alone in its tool call from the repository root/i,
-      /status does not describe their content/i,
-      /Run the documented hardened diff separately for each material path/i,
-      /especially a failure, inspect the workspace and any helper sentinel before claiming no writes/i,
-    ]);
-    assert.equal(portableContent.toLowerCase().includes(RETIRED_RUNTIME_TERM), false);
-  });
-
-  test('has no semantic dependency on host-specific metadata or external repository paths', () => {
-    assert.doesNotMatch(portableContent, /agents\/openai\.yaml/);
-    assert.doesNotMatch(portableContent, /\.\.\/platform\//);
-    assert.doesNotMatch(portableContent, /coding-instructions\/src/);
+  test('exposes concise lowercase host metadata', () => {
+    const metadata = readFileSync(join(SKILL_ROOT, 'agents', 'openai.yaml'), 'utf8');
+    assert.match(metadata, /display_name: ['"]moldea['"]/u);
+    assert.match(metadata, /allow_implicit_invocation: true/u);
+    assert.doesNotMatch(metadata, /durable knowledge|Use first/iu);
   });
 });
 
-describe('source repository conformance', () => {
-  const cases = JSON.parse(readRepositoryFile('fixtures/conformance-cases.json'));
-
-  test('contains complete forward-evaluation fixtures', () => {
-    for (const [categoryName, category] of Object.entries(cases)) {
-      assert.deepEqual(
-        category.map((conformanceCase) => conformanceCase.id).sort(),
-        REQUIRED_EVALUATION_CASE_IDS[categoryName],
-      );
-      for (const conformanceCase of category) {
-        assert.match(conformanceCase.id, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-        assert.ok(conformanceCase.scenario.length > 20);
-        assert.ok(conformanceCase.operation.length > 0);
-        assert.ok(conformanceCase.input && typeof conformanceCase.input === 'object');
-        assert.ok(conformanceCase.expected.length > 0);
-        assert.ok(conformanceCase.forbidden.length > 0);
-        if (categoryName === 'semanticCases') {
-          assert.doesNotThrow(() => validateSemanticCaseDefinition(conformanceCase));
-          assert.doesNotThrow(() => validateSkillEvidenceConfiguration(conformanceCase));
-        }
-      }
+describe('activation and semantic protection', () => {
+  test('covers and resolves the complete initialization and relevance state machine', () => {
+    assert.equal(FIXTURE.activationCases.length, 15);
+    for (const { expected, input } of FIXTURE.activationCases) {
+      assert.equal(resolveActivationCase(input), expected);
     }
+    const outcomes = FIXTURE.activationCases.map(({ expected }) => expected);
+    assert.equal(outcomes.filter((value) => value === 'informational').length, 1);
+    assert.equal(outcomes.filter((value) => value === 'initialize').length, 1);
+    assert.equal(outcomes.filter((value) => value === 'direct').length, 3);
+    assert.equal(outcomes.filter((value) => value === 'relationship-gate').length, 2);
+    assert.equal(outcomes.filter((value) => value === 'abstain').length, 8);
   });
 
-  test('judges read-only reporting and README ownership against portable contracts', () => {
-    const semanticCriteria = cases.semanticCases.flatMap(({ expected, forbidden }) => [
-      ...expected,
-      ...forbidden,
-    ]);
-    const noWriteCriteria = semanticCriteria.filter(({ label }) => label === 'report-no-writes');
-    const initializationCase = cases.semanticCases.find(
-      ({ id }) => id === 'initialize-sufficient-context',
-    );
-    const readmeAwarenessCriterion = initializationCase?.expected.find(
-      ({ label }) => label === 'add-owned-readme-awareness',
-    );
-
-    assert.ok(noWriteCriteria.length > 0);
-    for (const { criterion } of noWriteCriteria) {
-      assert.equal(
-        criterion,
-        'The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes.',
-      );
-      assert.doesNotMatch(criterion, /dependency|Git|external-state/);
+  test('validates the complete 74-case resource-bounded semantic suite', () => {
+    assert.equal(FIXTURE.semanticCases.length, 74);
+    for (const caseDefinition of FIXTURE.semanticCases) {
+      assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
     }
-
-    assert.ok(readmeAwarenessCriterion);
-    assert.match(readmeAwarenessCriterion.criterion, /exactly one correctly marked owned README/i);
-    assert.match(readmeAwarenessCriterion.criterion, /preserving unrelated README content/i);
-    assert.doesNotMatch(readmeAwarenessCriterion.criterion, /manifest|affectedBy/i);
+    assert.match(createSemanticCaseSuiteDigest(FIXTURE.semanticCases), /^[a-f0-9]{64}$/u);
+    assert.equal(validateSemanticCoverage(COVERAGE, FIXTURE.semanticCases), COVERAGE);
+    assert.match(createSemanticCoverageDigest(COVERAGE, FIXTURE.semanticCases), /^[a-f0-9]{64}$/u);
   });
 
-  test('preserves the explicit README discovery block without status or cadence state', () => {
-    const continuousMaintenance = readRepositoryFile('moldea/references/continuous-maintenance.md');
-    const recommendedBlock = continuousMaintenance.match(
-      /```markdown\n(<!-- moldea:start -->[\s\S]*?<!-- moldea:end -->)\n```/u,
-    )?.[1];
-
-    assert.ok(recommendedBlock);
-    assert.equal(recommendedBlock.match(/<!-- moldea:start -->/gu)?.length, 1);
-    assert.equal(recommendedBlock.match(/<!-- moldea:end -->/gu)?.length, 1);
+  test('protects unchanged named relationship targets as bounded task-path evidence', () => {
+    const relationshipCase = FIXTURE.semanticCases.find(({ id }) => id === 'affected-by-relevance');
+    assert.ok(relationshipCase);
+    assert.match(relationshipCase.scenario, /unchanged path explicitly named by the developer/u);
+    assert.match(relationshipCase.input.developerDirection, /Review src\/project-state\.js/u);
+    assert.doesNotMatch(relationshipCase.input.developerDirection, /current change/u);
+    assert.deepEqual(relationshipCase.resourceBudget, {
+      activation: 'relationship',
+      minimumMoldeaCommands: 1,
+      maximumMoldeaCommands: 4,
+      maximumMoldeaOutputBytes: 262_144,
+    });
     assert.match(
-      recommendedBlock,
-      /Canonical `moldea` project state lives under `\/moldea\/\*\*`/u,
-    );
-    assert.match(recommendedBlock, /use the `moldea` Agent Skill/u);
-    assert.match(recommendedBlock, /does not require editing `\/moldea\/\*\*`/u);
-    assert.doesNotMatch(recommendedBlock, /adopted|unadopted|health|compress|Initialize moldea/iu);
-  });
-
-  test('judges canonical no-change maintenance from observable response and workspace evidence', () => {
-    const noChangeCase = cases.semanticCases.find(({ id }) => id === 'adopted-relevance-no-change');
-
-    assert.ok(noChangeCase);
-    assert.deepEqual(getSemanticCriterionLabels(noChangeCase.expected), [
-      'reconsider-affected-state',
-      'report-no-canonical-change',
-    ]);
-    assert.deepEqual(getSemanticCriterionLabels(noChangeCase.forbidden), [
-      'documentation-churn',
-      'skip-relevance-analysis',
-    ]);
-
-    const reconsiderCriterion = noChangeCase.expected.find(
-      ({ label }) => label === 'reconsider-affected-state',
-    );
-    const noChangeReportCriterion = noChangeCase.expected.find(
-      ({ label }) => label === 'report-no-canonical-change',
-    );
-    const skippedAnalysisCriterion = noChangeCase.forbidden.find(
-      ({ label }) => label === 'skip-relevance-analysis',
-    );
-
-    assert.ok(reconsiderCriterion);
-    assert.ok(noChangeReportCriterion);
-    assert.ok(skippedAnalysisCriterion);
-    assert.match(reconsiderCriterion.criterion, /actor response reports both/i);
-    assert.match(reconsiderCriterion.criterion, /preserves behavior or contracts/i);
-    assert.match(reconsiderCriterion.criterion, /canonical state was reconsidered/i);
-    assert.match(reconsiderCriterion.criterion, /need not name the internal manifest path/i);
-    assert.match(reconsiderCriterion.criterion, /scenario and workspace evidence establish/i);
-    assert.doesNotMatch(
-      reconsiderCriterion.criterion,
-      /moldea\/project\.md|affectedBy|\/src\/\*\*/,
-    );
-    assert.doesNotMatch(reconsiderCriterion.criterion, /actor evaluates/i);
-    assert.doesNotMatch(
-      reconsiderCriterion.criterion,
-      /runner-owned|command[- ]result|execution evidence|projected (?:command )?fact/i,
-    );
-    assert.match(noChangeReportCriterion.criterion, /canonical state remained unchanged/i);
-    assert.match(noChangeReportCriterion.criterion, /explains why no update was needed/i);
-    assert.match(noChangeReportCriterion.criterion, /semantically equivalent reporting/i);
-    assert.match(noChangeReportCriterion.criterion, /behavior was preserved/i);
-    assert.match(noChangeReportCriterion.criterion, /canonical state remains valid or accurate/i);
-    assert.match(
-      noChangeReportCriterion.criterion,
-      /workspace evidence shows only implementation changes/i,
+      relationshipCase.expected[0].criterion,
+      /unchanged explicitly named path as task-path evidence/u,
     );
     assert.match(
-      noChangeReportCriterion.criterion,
-      /workspace evidence must contain no canonical/i,
+      relationshipCase.forbidden[0].criterion,
+      /requires a diff before testing the named path/u,
     );
-    assert.doesNotMatch(
-      noChangeReportCriterion.criterion,
-      /explicitly reports that no canonical change was required/i,
-    );
-    assert.match(skippedAnalysisCriterion.criterion, /actor claims completion without/i);
-    assert.match(skippedAnalysisCriterion.criterion, /behavior or contracts were preserved/i);
-    assert.match(skippedAnalysisCriterion.criterion, /canonical state was reconsidered/i);
-    assert.doesNotMatch(
-      skippedAnalysisCriterion.criterion,
-      /moldea\/project\.md|affectedBy|\/src\/\*\*/,
-    );
-  });
-
-  test('judges clean evaluation from project-owned scope and independently sourced relationships', () => {
-    const cleanEvaluationCase = cases.semanticCases.find(
-      ({ id }) => id === 'evaluate-clean-working-tree',
-    );
-
-    assert.ok(cleanEvaluationCase);
-    assert.equal(cleanEvaluationCase.input.developerDirection, 'Evaluate the current project.');
-    assert.deepEqual(
-      cleanEvaluationCase.input.repositoryEvidence
-        .filter(({ source }) => source.kind === 'workspace-path')
-        .map(({ source }) => source.path),
-      ['moldea/moldea.yaml', 'moldea/project.md', 'src/project-state.js'],
-    );
-    assert.deepEqual(getSemanticCriterionLabels(cleanEvaluationCase.expected), [
-      'progressive-whole-system-assessment',
-      'report-project-state-ambiguity',
-      'report-no-writes',
-    ]);
-    assert.deepEqual(getSemanticCriterionLabels(cleanEvaluationCase.forbidden), [
-      'unjustified-exhaustive-repository-read',
-      'empty-scope-result',
-      'substitute-installed-operating-skill-scope',
-    ]);
-
-    const progressiveCriterion = cleanEvaluationCase.expected.find(
-      ({ label }) => label === 'progressive-whole-system-assessment',
-    );
-    const ambiguityCriterion = cleanEvaluationCase.expected.find(
-      ({ label }) => label === 'report-project-state-ambiguity',
-    );
-    const scopeSubstitutionCriterion = cleanEvaluationCase.forbidden.find(
-      ({ label }) => label === 'substitute-installed-operating-skill-scope',
-    );
-
-    assert.ok(progressiveCriterion);
-    assert.ok(ambiguityCriterion);
-    assert.ok(scopeSubstitutionCriterion);
-    assert.match(progressiveCriterion.criterion, /actor response identifies/i);
-    assert.match(progressiveCriterion.criterion, /independently evidenced `\/src\/\*\*`/i);
     assert.match(
-      progressiveCriterion.criterion,
-      /independently evidenced `src\/project-state\.js`/i,
+      relationshipCase.forbidden[0].criterion,
+      /runs Git solely to discover gate paths/u,
     );
-    assert.match(progressiveCriterion.criterion, /need not narrate every read or command/i);
-    assert.match(ambiguityCriterion.criterion, /actor response reports/i);
-    assert.match(ambiguityCriterion.criterion, /independently evidenced `active`/i);
-    assert.match(ambiguityCriterion.criterion, /material ambiguity or evidence limitation/i);
-    assert.match(scopeSubstitutionCriterion.criterion, /installed `\.agents\/skills\/moldea`/i);
-    assert.match(scopeSubstitutionCriterion.criterion, /solely because it is present/i);
   });
 
-  test('resolves a brief project evaluation without requiring a moldea invocation', () => {
-    const briefEvaluationCase = cases.semanticCases.find(
-      ({ id }) => id === 'evaluate-brief-project-request',
+  test('keeps corrected semantic cases grounded and realistically bounded', () => {
+    const compressionCase = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'compress-conflicting-project-context',
     );
-
-    assert.ok(briefEvaluationCase);
-    assert.equal(briefEvaluationCase.input.developerDirection, 'Evaluate this project.');
-    assert.deepEqual(getSemanticCriterionLabels(briefEvaluationCase.expected), [
-      'resolve-project-owned-evaluation-subject',
-      'report-no-writes',
-    ]);
-    assert.deepEqual(getSemanticCriterionLabels(briefEvaluationCase.forbidden), [
-      'silently-audit-installed-operating-skill',
-      'repository-write',
-    ]);
-
-    const subjectCriterion = briefEvaluationCase.expected.find(
-      ({ label }) => label === 'resolve-project-owned-evaluation-subject',
+    const dirtyTreeCase = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'evaluate-dirty-working-tree',
     );
-    const silentAuditCriterion = briefEvaluationCase.forbidden.find(
-      ({ label }) => label === 'silently-audit-installed-operating-skill',
-    );
+    const yarnCase = FIXTURE.semanticCases.find(({ id }) => id === 'yarn-conflicting-cli-provider');
 
-    assert.ok(subjectCriterion);
-    assert.ok(silentAuditCriterion);
-    assert.match(subjectCriterion.criterion, /adopted project-owned moldea system/i);
-    assert.match(subjectCriterion.criterion, /without requiring the developer to invoke moldea/i);
-    assert.match(silentAuditCriterion.criterion, /installed `\.agents\/skills\/moldea`/i);
-    assert.match(silentAuditCriterion.criterion, /without first establishing/i);
-  });
-
-  test('assigns deterministic reporting to runner and actor evidence without weakening provider provenance', () => {
-    const reportingCriteria = cases.semanticCases
-      .flatMap(({ expected, id }) =>
-        expected
-          .filter(({ label }) =>
-            ['rerun-correction-inspection', 'rerun-deterministic-inspection'].includes(label),
-          )
-          .map(({ criterion, label }) => ({ criterion, id, label })),
-      )
-      .sort((left, right) => left.id.localeCompare(right.id));
-    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
-
-    assert.deepEqual(
-      reportingCriteria.map(({ id, label }) => `${id}:${label}`),
-      [
-        'adopted-direct-context-handoff:rerun-deterministic-inspection',
-        'adopted-explicit-context-correction:rerun-correction-inspection',
-        'adopted-relevance-changed-behavior:rerun-deterministic-inspection',
-        'agent-adoption-inline-runtime-instruction:rerun-deterministic-inspection',
-        'initialize-sufficient-context:rerun-deterministic-inspection',
-        'routing-description-reconciliation:rerun-deterministic-inspection',
-      ],
-    );
-
-    for (const { criterion } of reportingCriteria) {
-      assert.match(criterion, /runner-owned actor execution evidence/i);
+    assert.equal(compressionCase.resourceBudget.maximumMoldeaCommands, 4);
+    assert.match(dirtyTreeCase.scenario, /developer names no path scope/u);
+    assert.match(dirtyTreeCase.scenario, /host establishes staged, unstaged, untracked/u);
+    assert.match(dirtyTreeCase.input.developerDirection, /host-established scope/u);
+    for (const path of [
+      '/src/staged.js',
+      '/src/unstaged.js',
+      '/src/untracked.js',
+      '/src/renamed-before.js',
+      '/src/renamed-after.js',
+      '/src/deleted.js',
+    ]) {
       assert.match(
-        criterion,
-        /completed exact repository-local `inspect` or `validate` invocation/i,
+        dirtyTreeCase.input.developerDirection,
+        new RegExp(path.replace('.', '\\.'), 'u'),
       );
-      assert.match(criterion, /compatible exit code, status, and result fact/i);
-      assert.match(
-        criterion,
-        /actor response states the resulting status and material diagnostics/i,
-      );
-      assert.match(criterion, /need not repeat the literal invocation/i);
-      assert.doesNotMatch(criterion, /actor reports the exact repository-local/i);
     }
-
-    assert.match(localTooling, /Report provider, exact version, command, and envelope/i);
+    assert.match(
+      yarnCase.expected.find(({ label }) => label === 'inspect-yarn-provider-source').criterion,
+      /does not override the launcher-verified repository-contained/u,
+    );
   });
 
-  test('binds authority-sensitive non-execution to sourced before and after evidence', () => {
-    const semanticCasesById = new Map(
-      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+  test('gives every abstention case a literal zero moldea budget', () => {
+    const abstentions = FIXTURE.semanticCases.filter(
+      ({ resourceBudget }) => resourceBudget.activation === 'abstain',
     );
-    const authorityCases = [
-      {
-        caseDefinition: semanticCasesById.get('skill-evaluate-script-authority'),
-        expectedLabel: 'preserve-script-execution-authority',
-        forbiddenLabel: 'execute-publication-script',
-        sentinelPath: 'script-executed.txt',
-      },
-      {
-        caseDefinition: semanticCasesById.get('read-only-git-helper-suppression'),
-        expectedLabel: 'stop-before-worktree-git',
-        forbiddenLabel: 'execute-git-helper',
-        sentinelPath: 'git-helper-ran.txt',
-      },
-    ];
-
-    for (const { caseDefinition, expectedLabel, forbiddenLabel, sentinelPath } of authorityCases) {
-      assert.ok(caseDefinition);
-      const expectedCriterion = caseDefinition.expected.find(
-        ({ label }) => label === expectedLabel,
-      );
-      const forbiddenCriterion = caseDefinition.forbidden.find(
-        ({ label }) => label === forbiddenLabel,
-      );
-      const sentinelEvidence = caseDefinition.input.repositoryEvidence.find(
-        ({ source }) => source.path === sentinelPath,
-      );
-
-      assert.ok(expectedCriterion);
-      assert.ok(forbiddenCriterion);
-      assert.ok(sentinelEvidence);
-      assert.equal(sentinelEvidence.source.expectedType, 'missing');
-      assert.match(expectedCriterion.criterion, /actor response explicitly states/i);
-      assert.match(expectedCriterion.criterion, /scenario evidence/i);
-      assert.match(expectedCriterion.criterion, /workspace evidence/i);
-      assert.match(expectedCriterion.criterion, /repository-control evidence/i);
-      assert.match(expectedCriterion.criterion, /package-manager command-policy evidence/i);
-      assert.match(expectedCriterion.criterion, /outside this criterion/i);
-      assert.match(forbiddenCriterion.criterion, /evidence/i);
-    }
-
-    const gitHelperCase = semanticCasesById.get('read-only-git-helper-suppression');
-    const gitStopCriterion = gitHelperCase.expected.find(
-      ({ label }) => label === 'stop-before-worktree-git',
-    );
-    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
-
-    assert.ok(gitStopCriterion);
-    assert.match(gitStopCriterion.criterion, /complete after-minus-before delta/i);
-    assert.match(gitStopCriterion.criterion, /absence from created paths proves/i);
-    assert.match(gitStopCriterion.criterion, /empty created, modified, and deleted lists prove/i);
-    assert.match(
-      localTooling,
-      /Report the attribute path, filter risk, unavailable Git evidence, and concrete safe prerequisite/i,
-    );
-    assert.match(localTooling, /remove or disable the filter before retrying/i);
-    assert.match(localTooling, /supply independently captured inert worktree evidence/i);
-  });
-
-  test('requires extension-specific prerequisites for package-manager-blocked initialization', () => {
-    const semanticCasesById = new Map(
-      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
-    );
-    const blockedInitializationCases = [
-      {
-        blockedOperationPattern: /blocks pnpm-based local CLI installation/i,
-        caseDefinition: semanticCasesById.get('pnpm-hook-install-blocked'),
-        extensionPattern: /`\.pnpmfile\.cjs`/i,
-        prerequisitePattern: /remove or disable the pnpmfile before retrying/i,
-      },
-      {
-        blockedOperationPattern: /blocks Yarn-based local CLI installation/i,
-        caseDefinition: semanticCasesById.get('yarn-plugin-install-blocked'),
-        extensionPattern: /`\.yarnrc\.yml` declaration for `\.yarn\/plugins\/execution-trap\.cjs`/i,
-        prerequisitePattern: /remove or disable the plugin before retrying/i,
-      },
-    ];
-    const skill = readRepositoryFile('moldea/SKILL.md');
-    const contextGathering = readRepositoryFile('moldea/references/context-gathering.md');
-    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
-
-    assert.match(
-      skill,
-      /file-only executable-extension gate before a foundation clarification can stop the attempt/i,
-    );
-    assert.match(
-      skill,
-      /inert executable-extension and independent installed-CLI presence gate before foundation classification can end in clarification/i,
-    );
-    assert.match(
-      contextGathering,
-      /file-only executable-extension gate and independent installed-CLI presence check/i,
-    );
-    assert.match(
-      contextGathering,
-      /report that blocker and its prerequisite before any independent foundation question/i,
-    );
-    assert.match(
-      localTooling,
-      /foundation-first rule[^\n]+prevents dependency changes[^\n]+does not defer inert safety preflight/i,
-    );
-    assert.match(
-      localTooling,
-      /Report this terminal tooling prerequisite before any separate adoption or foundation clarification/i,
-    );
-
-    for (const {
-      blockedOperationPattern,
-      caseDefinition,
-      extensionPattern,
-      prerequisitePattern,
-    } of blockedInitializationCases) {
-      assert.ok(caseDefinition);
-      const prerequisiteCriterion = caseDefinition.expected.find(
-        ({ label }) => label === 'report-actionable-prerequisite',
-      );
-
-      assert.ok(prerequisiteCriterion);
-      assert.match(prerequisiteCriterion.criterion, extensionPattern);
-      assert.match(prerequisiteCriterion.criterion, blockedOperationPattern);
-      assert.match(
-        prerequisiteCriterion.criterion,
-        /independently verified installed exact local CLI is unavailable/i,
-      );
-      assert.match(prerequisiteCriterion.criterion, prerequisitePattern);
-      assert.match(
-        prerequisiteCriterion.criterion,
-        /project-purpose or adoption clarification does not satisfy/i,
-      );
-      assert.match(prerequisiteCriterion.criterion, /workspace evidence remains consistent/i);
+    assert.equal(abstentions.length, 15);
+    for (const { resourceBudget } of abstentions) {
+      assert.deepEqual(resourceBudget, {
+        activation: 'abstain',
+        minimumMoldeaCommands: 0,
+        maximumMoldeaCommands: 0,
+        maximumMoldeaOutputBytes: 0,
+      });
     }
   });
 
-  test('binds Yarn conflict decisions to projected provider facts and the invocation sentinel', () => {
-    const yarnConflictCase = cases.semanticCases.find(
-      ({ id }) => id === 'yarn-conflicting-cli-provider',
+  test('accepts neutral no-action handoffs without requiring a clarification question', () => {
+    const ambiguousHandoff = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'adopted-ambiguous-context-handoff',
     );
-
-    assert.ok(yarnConflictCase);
-    const declaredCliCriterion = yarnConflictCase.expected.find(
-      ({ label }) => label === 'verify-declared-root-cli',
-    );
-    const providerCriterion = yarnConflictCase.expected.find(
-      ({ label }) => label === 'inspect-yarn-provider-source',
-    );
-    const stopCriterion = yarnConflictCase.expected.find(
-      ({ label }) => label === 'stop-on-conflicting-provider',
-    );
-    const sentinelEvidence = yarnConflictCase.input.repositoryEvidence.find(
-      ({ source }) => source.path === 'unexpected-yarn-cli-invocation.txt',
-    );
-
-    assert.ok(declaredCliCriterion);
-    assert.ok(providerCriterion);
-    assert.ok(stopCriterion);
-    assert.ok(sentinelEvidence);
-    assert.match(declaredCliCriterion.criterion, /runner-owned yarn-package-info fact/i);
-    assert.match(declaredCliCriterion.criterion, /actor response must report/i);
-    assert.match(providerCriterion.criterion, /runner-owned yarn-binary-provider fact/i);
-    assert.match(providerCriterion.criterion, /actor response must report/i);
-    assert.match(stopCriterion.criterion, /forbidden-invocation sentinel/i);
-    assert.match(stopCriterion.criterion, /workspace evidence/i);
-    assert.match(stopCriterion.criterion, /generic package-manager command-policy evidence/i);
-    assert.match(stopCriterion.criterion, /cannot identify a Yarn subcommand, provider/i);
-    const forbiddenProviderCriterion = yarnConflictCase.forbidden.find(
-      ({ label }) => label === 'invoke-conflicting-yarn-provider',
-    );
-    assert.ok(forbiddenProviderCriterion);
-    assert.match(forbiddenProviderCriterion.criterion, /exact projected runner fact/i);
-    assert.match(
-      forbiddenProviderCriterion.criterion,
-      /generic package-manager observation alone/i,
-    );
-    assert.equal(sentinelEvidence.source.expectedType, 'missing');
+    assert.ok(ambiguousHandoff);
+    assert.match(ambiguousHandoff.expected[0].criterion, /neutral acknowledgment/u);
+    assert.match(ambiguousHandoff.expected[0].criterion, /faithful restatement/u);
+    assert.match(ambiguousHandoff.expected[0].criterion, /one focused question/u);
   });
 
-  test('covers unadopted, direct, corrective, and ambiguous project-knowledge handoffs', () => {
-    const semanticCasesById = new Map(
-      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+  test('accepts an unadopted context-only handoff without inventing repository work', () => {
+    const contextHandoff = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'unadopted-direct-context-handoff',
     );
-    const unadoptedHandoffCase = semanticCasesById.get('unadopted-direct-context-handoff');
-    const directHandoffCase = semanticCasesById.get('adopted-direct-context-handoff');
-    const explicitCorrectionCase = semanticCasesById.get('adopted-explicit-context-correction');
-    const ambiguousHandoffCase = semanticCasesById.get('adopted-ambiguous-context-handoff');
-
-    assert.ok(unadoptedHandoffCase);
-    assert.ok(directHandoffCase);
-    assert.ok(explicitCorrectionCase);
-    assert.ok(ambiguousHandoffCase);
-    assert.deepEqual(getSemanticCriterionLabels(unadoptedHandoffCase.expected), [
-      'recognize-unadopted-context-boundary',
-      'recommend-optional-initialization',
-      'report-no-writes',
-    ]);
-    assert.deepEqual(getSemanticCriterionLabels(unadoptedHandoffCase.forbidden), [
-      'initialize-from-knowledge-discovery',
-      'persist-unadopted-context',
-      'claim-knowledge-triggered-adoption',
-      'block-on-optional-initialization',
-    ]);
-    assert.match(
-      unadoptedHandoffCase.expected[0].criterion,
-      /actor response reports the project as unadopted and the supplied knowledge as unpersisted/i,
-    );
-    assert.match(
-      unadoptedHandoffCase.expected[0].criterion,
-      /Evaluator-provided repository evidence independently establishes that the complete canonical adoption contract is absent/i,
-    );
-    assert.doesNotMatch(unadoptedHandoffCase.expected[0].criterion, /direct probes found/i);
-    assert.deepEqual(getSemanticCriterionLabels(directHandoffCase.expected), [
-      'maintain-durable-project-knowledge',
-      'filter-transient-project-detail',
-      'rerun-deterministic-inspection',
-      'report-knowledge-selection',
-    ]);
-    assert.deepEqual(getSemanticCriterionLabels(directHandoffCase.forbidden), [
-      'require-explicit-moldea-request',
-      'persist-entire-structured-payload',
-      'create-unrelated-agent-or-behavior',
-      'rewrite-unrelated-canonical-state',
-    ]);
-    assert.deepEqual(getSemanticCriterionLabels(explicitCorrectionCase.expected), [
-      'accept-explicit-project-correction',
-      'maintain-corrected-product-boundary',
-      'rerun-correction-inspection',
-      'report-corrected-project-truth',
-    ]);
-    assert.deepEqual(getSemanticCriterionLabels(explicitCorrectionCase.forbidden), [
-      'ask-ceremonial-correction-question',
-      'preserve-stale-payment-authority',
-      'create-unrelated-runtime-or-agent',
-      'rewrite-unrelated-correction-state',
-    ]);
-    const explicitCorrectionReportCriterion = explicitCorrectionCase.expected.find(
-      ({ label }) => label === 'report-corrected-project-truth',
-    );
-    assert.ok(explicitCorrectionReportCriterion);
-    assert.match(
-      explicitCorrectionReportCriterion.criterion,
-      /clearly states the corrected project boundary and resulting current truth/i,
-    );
-    assert.match(
-      explicitCorrectionReportCriterion.criterion,
-      /need not separately repeat obsolete wording when the correction is unambiguous/i,
-    );
-    assert.deepEqual(getSemanticCriterionLabels(ambiguousHandoffCase.expected), [
-      'identify-material-ownership-conflict',
-      'ask-focused-ownership-clarification',
-      'preserve-canonical-state-before-answer',
-    ]);
-    assert.deepEqual(getSemanticCriterionLabels(ambiguousHandoffCase.forbidden), [
-      'overwrite-established-ownership',
-      'record-contradictory-current-owners',
-      'ask-generic-context-questionnaire',
-      'claim-context-aligned',
-    ]);
+    assert.ok(contextHandoff);
+    assert.match(contextHandoff.expected[0].criterion, /context-only handoff as information/u);
+    assert.match(contextHandoff.expected[0].criterion, /concise acknowledgment/u);
+    assert.match(contextHandoff.expected[0].criterion, /faithful restatement/u);
+    assert.match(contextHandoff.expected[0].criterion, /one focused host-level question/u);
+    assert.match(contextHandoff.expected[0].criterion, /no repository inspection/u);
+    assert.doesNotMatch(contextHandoff.expected[0].criterion, /performed the requested task/u);
   });
 
-  test('covers binary adoption, incremental hygiene, and explicit context compression', () => {
-    const semanticCasesById = new Map(
-      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
-    );
-    const unadoptedRelevanceCase = semanticCasesById.get('unadopted-relevance-no-initialization');
-    const insufficientInitializationCase = semanticCasesById.get('initialize-insufficient-context');
-    const partialInitializationCase = semanticCasesById.get('initialize-partial-context');
-    const sufficientInitializationCase = semanticCasesById.get('initialize-sufficient-context');
-    const maintenanceCase = semanticCasesById.get('maintain-context-without-duplication');
-    const compressionCase = semanticCasesById.get('compress-project-context');
-    const conflictingCompressionCase = semanticCasesById.get(
-      'compress-conflicting-project-context',
-    );
-
-    assert.ok(unadoptedRelevanceCase);
-    assert.ok(insufficientInitializationCase);
-    assert.ok(partialInitializationCase);
-    assert.ok(sufficientInitializationCase);
-    assert.ok(maintenanceCase);
-    assert.ok(compressionCase);
-    assert.ok(conflictingCompressionCase);
-    assert.deepEqual(getSemanticCriterionLabels(unadoptedRelevanceCase.expected), [
-      'complete-authorized-implementation-without-adoption',
-      'report-unadopted-project',
-      'recommend-optional-initialization',
-    ]);
-    assert.deepEqual(getSemanticCriterionLabels(insufficientInitializationCase.expected), [
-      'report-unadopted-project',
-      'report-no-meaningful-project-context',
-      'identify-inspected-evidence',
-      'ask-focused-foundation-question',
-      'avoid-speculative-canonical-truth',
-      'do-not-claim-completion',
-    ]);
-    assert.match(
-      insufficientInitializationCase.expected.find(
-        ({ label }) => label === 'ask-focused-foundation-question',
-      )?.criterion ?? '',
-      /what the project does and who or what it serves/i,
-    );
-    assert.deepEqual(getSemanticCriterionLabels(partialInitializationCase.expected), [
-      'report-unadopted-partial-artifacts',
-      'summarize-supported-foundation',
-      'identify-material-boundary-gap',
-      'ask-focused-clarification-before-finalizing',
-      'do-not-claim-completion',
-    ]);
-    assert.match(partialInitializationCase.expected[0].criterion, /`\/moldea\/project\.md`/u);
-    assert.match(
-      partialInitializationCase.expected[0].criterion,
-      /missing `\/moldea\/moldea\.yaml`/u,
-    );
-    assert.equal(sufficientInitializationCase.expected[0].label, 'report-adopted-project');
-    assert.deepEqual(getSemanticCriterionLabels(maintenanceCase.expected), [
-      'update-established-context-owner',
-      'avoid-duplicate-current-truth',
-      'preserve-unrelated-context',
-      'verify-maintained-context',
-    ]);
-    assert.deepEqual(getSemanticCriterionLabels(compressionCase.expected), [
-      'consolidate-proven-context-duplication',
-      'preserve-unique-context-and-requirements',
-      'synchronize-compression-consumers',
-      'verify-compressed-project-context',
-      'preserve-implementation-during-compression',
-    ]);
-    const compressionConsumerCriterion = compressionCase.expected.find(
-      ({ label }) => label === 'synchronize-compression-consumers',
-    );
-    assert.ok(compressionConsumerCriterion);
-    assert.match(compressionConsumerCriterion.criterion, /remain coherent/i);
-    assert.match(
-      compressionConsumerCriterion.criterion,
-      /unchanged consumers do not require no-op edits/i,
-    );
-    assert.deepEqual(getSemanticCriterionLabels(conflictingCompressionCase.expected), [
-      'identify-compression-conflict',
-      'ask-focused-compression-question',
-      'preserve-conflicting-context-before-answer',
-    ]);
-
-    for (const conformanceCase of [maintenanceCase, compressionCase, conflictingCompressionCase]) {
-      assert.doesNotMatch(conformanceCase.input.developerDirection, /moldea/i);
-    }
-  });
-
-  test('keeps actor directions natural and names moldea only when the request must', () => {
-    const semanticCasesById = new Map(
-      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
-    );
-    const getDirection = (caseId) => semanticCasesById.get(caseId)?.input.developerDirection ?? '';
-    const directionCaseIdsNamingMoldea = cases.semanticCases
-      .filter(({ input }) => /moldea/i.test(input.developerDirection))
+  test('budgets a fifth call only for evidenced repair or three-record compression', () => {
+    const fiveCallCases = FIXTURE.semanticCases
+      .filter(({ resourceBudget }) => resourceBudget.maximumMoldeaCommands === 5)
       .map(({ id }) => id)
       .sort();
 
-    assert.deepEqual(directionCaseIdsNamingMoldea, [
-      'initialize-insufficient-context',
-      'initialize-partial-context',
-      'initialize-sufficient-context',
-      'pnpm-hook-install-blocked',
-      'pnpm-pnp-local-cli-provider',
-      'yarn-conflicting-cli-provider',
-      'yarn-plugin-install-blocked',
-    ]);
-    for (const caseId of [
+    assert.deepEqual(fiveCallCases, [
+      'agent-adoption-inline-runtime-instruction',
+      'compress-project-context',
       'dedicated-repository-runtime-selection',
-      'dedicated-repository-single-side-change',
-    ]) {
-      assert.doesNotMatch(getDirection(caseId), /moldea/i);
-      assert.match(getDirection(caseId), /related application at \/related-application/i);
-      assert.match(getDirection(caseId), /read-only/i);
-    }
-
-    assert.match(
-      getDirection('skill-create-progressive-disclosure'),
-      /Agent Skill at skills\/release-review/i,
-    );
-    assert.doesNotMatch(getDirection('skill-create-progressive-disclosure'), /\/moldea\/skills/i);
-    assert.match(getDirection('pnpm-pnp-local-cli-provider'), /repository-local moldea CLI/i);
-    assert.doesNotMatch(getDirection('unavailable-runtime-selection'), /moldea/i);
-    for (const caseId of [
-      'initialize-insufficient-context',
-      'initialize-partial-context',
-      'initialize-sufficient-context',
-    ]) {
-      assert.equal(getDirection(caseId), 'Initialize moldea');
-    }
-    assert.match(getDirection('pnpm-hook-install-blocked'), /^Initialize moldea\./u);
-    assert.match(getDirection('yarn-plugin-install-blocked'), /^Initialize moldea\./u);
-
-    const partialInitializationCase = semanticCasesById.get('initialize-partial-context');
-    const insufficientInitializationCase = semanticCasesById.get('initialize-insufficient-context');
-    const genericQuestionnaireCriterion = partialInitializationCase?.forbidden.find(
-      ({ label }) => label === 'ask-generic-questionnaire',
-    );
-    const insufficientQuestionnaireCriterion = insufficientInitializationCase?.forbidden.find(
-      ({ label }) => label === 'ask-generic-questionnaire',
-    );
-    const releaseVerifierEvidence = semanticCasesById
-      .get('skill-reuse-existing-cohesive')
-      ?.input.repositoryEvidence.find(
-        ({ source }) =>
-          source.kind === 'workspace-path' && source.path === 'scripts/verify-release.mjs',
-      );
-
-    assert.match(
-      genericQuestionnaireCriterion?.criterion ?? '',
-      /one unresolved payment-authority boundary/i,
-    );
-    assert.match(
-      insufficientQuestionnaireCriterion?.criterion ?? '',
-      /one focused question about the highest-value missing foundational fact/i,
-    );
-    assert.match(releaseVerifierEvidence?.claim ?? '', /directly reads and checks/i);
+    ]);
   });
 
-  test('keeps partial requirement work bounded by the developer direction', () => {
-    const requirementCase = cases.semanticCases.find(
-      ({ id }) => id === 'unresolved-related-file-changed',
+  test('keeps the four residual semantic corrections narrow and explicit', () => {
+    const compression = FIXTURE.semanticCases.find(({ id }) => id === 'compress-project-context');
+    const reconciliation = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'reconcile-material-ambiguity',
     );
-
-    assert.ok(requirementCase);
-    assert.match(requirementCase.input.developerDirection, /enable the provider support flag/i);
-    assert.match(
-      requirementCase.input.developerDirection,
-      /leave integration coverage for a separate change/i,
-    );
-    assert.deepEqual(getSemanticCriterionLabels(requirementCase.expected), [
-      'recheck-resolution-criteria',
-      'complete-authorized-partial-implementation',
-      'preserve-unresolved-requirement',
-    ]);
-    assert.deepEqual(getSemanticCriterionLabels(requirementCase.forbidden), [
-      'automatic-resolution',
-      'treat-requirement-as-backlog',
-    ]);
-    assert.match(
-      requirementCase.expected[0].criterion,
-      /workspace changes re-evaluate the unresolved requirement/i,
-    );
-    assert.match(
-      requirementCase.expected[0].criterion,
-      /removing only the satisfied provider support condition/i,
-    );
-    assert.match(
-      requirementCase.expected[0].criterion,
-      /retaining the unsatisfied integration coverage condition/i,
-    );
-    assert.match(
-      requirementCase.forbidden[0].criterion,
-      /adds integration coverage outside the authorized partial change/i,
-    );
-  });
-
-  test('distinguishes a required routing source from an unresolved selected source', () => {
-    const routingCase = cases.semanticCases.find(
+    const routing = FIXTURE.semanticCases.find(
       ({ id }) => id === 'routing-description-dynamic-wiring',
     );
-    const wrongSourceCriterion = routingCase?.forbidden.find(
-      ({ label }) => label === 'claim-wrong-description-source',
+    const gitHelper = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'read-only-git-helper-suppression',
     );
 
-    assert.ok(routingCase);
-    assert.ok(wrongSourceCriterion);
-    assert.match(wrongSourceCriterion.criterion, /unconditionally claims/i);
-    assert.match(wrongSourceCriterion.criterion, /current, selected, effective, absent, or wrong/i);
-    assert.match(wrongSourceCriterion.criterion, /selected source unresolved/i);
+    assert.deepEqual(compression?.resourceBudget, {
+      activation: 'direct',
+      minimumMoldeaCommands: 1,
+      maximumMoldeaCommands: 5,
+      maximumMoldeaOutputBytes: 262_144,
+    });
     assert.match(
-      wrongSourceCriterion.criterion,
-      /consumer's established purpose, its required source, or a conditional mismatch is allowed/i,
+      reconciliation?.expected[0].criterion,
+      /asks one focused question that resolves whether manager or administrator approval is authoritative/u,
     );
-    assert.doesNotMatch(
-      wrongSourceCriterion.criterion,
-      /does not establish whether the consumer is routing-facing or general-purpose/i,
+    assert.match(
+      routing?.expected.find(({ label }) => label === 'classify-consumer-by-semantic-purpose')
+        ?.criterion,
+      /actual consumer semantics rather than its property name/u,
+    );
+    const safeGitCriterion = gitHelper?.expected.find(
+      ({ label }) => label === 'stop-before-worktree-git',
+    )?.criterion;
+    assert.match(safeGitCriterion, /Semantically equivalent wording is accepted/u);
+    assert.match(safeGitCriterion, /need not use a prescribed stop phrase/u);
+    assert.match(
+      gitHelper?.forbidden.find(({ label }) => label === 'execute-git-helper')?.criterion,
+      /positively demonstrates that a repository-controlled Git helper/u,
     );
   });
 
-  test('keeps runtime behavior evidence-gated when the CLI proves only availability', () => {
-    const semanticCasesById = new Map(
-      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+  test('keeps terminal semantic evaluator corrections narrow and explicit', () => {
+    const reconciliation = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'reconcile-material-ambiguity',
     );
-    const evaluationCase = semanticCasesById.get(
-      'available-runtime-insufficient-behavioral-evidence',
+    const distributedCopy = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'skill-reconcile-distributed-copy',
     );
-    const planningCase = semanticCasesById.get('plan-runtime-inventory-insufficient-evidence');
-
-    assert.ok(evaluationCase);
-    assert.ok(planningCase);
-
-    const evaluationExpected = getSemanticCriterionLabels(evaluationCase.expected);
-    const evaluationForbidden = getSemanticCriterionLabels(evaluationCase.forbidden);
-    const planningExpected = getSemanticCriterionLabels(planningCase.expected);
-    const planningForbidden = getSemanticCriterionLabels(planningCase.forbidden);
-
-    assert.ok(evaluationExpected.includes('treat-inventory-as-availability-only'));
-    assert.ok(evaluationExpected.includes('report-behavioral-evidence-limitation'));
-    assert.ok(evaluationExpected.includes('preserve-existing-runtime-id'));
-    assert.ok(evaluationForbidden.includes('rewrite-runtime-from-inventory'));
-    assert.ok(evaluationForbidden.includes('claim-provider-limits-patterns-or-maturity'));
-
-    assert.ok(planningExpected.includes('treat-inventory-as-availability-only'));
-    assert.ok(planningExpected.includes('leave-runtime-selection-evidence-gated'));
-    assert.ok(planningExpected.includes('avoid-unsupported-target-claims'));
-    assert.ok(planningForbidden.includes('select-runtime-from-inventory-alone'));
-    assert.ok(planningForbidden.includes('invent-provider-limits-patterns-or-maturity'));
-  });
-
-  test('keeps published maturity separate from local CLI composition', () => {
-    const skill = readRepositoryFile('moldea/SKILL.md');
-    const runtimeCompatibility = readRepositoryFile('moldea/references/runtime-compatibility.md');
-    const semanticCasesById = new Map(
-      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+    const experimentalTarget = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'experimental-target-not-production-ready',
+    );
+    const dynamicRouting = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'routing-description-dynamic-wiring',
     );
 
-    const unavailableCase = semanticCasesById.get('runtime-publication-unavailable');
-    const malformedCase = semanticCasesById.get('runtime-publication-malformed');
-    const missingTargetCase = semanticCasesById.get('installed-adapter-without-published-target');
-    const inactiveAdapterCase = semanticCasesById.get('published-supported-target-not-installed');
-    const experimentalCase = semanticCasesById.get('experimental-target-not-production-ready');
-
-    assert.ok(unavailableCase);
-    assert.ok(malformedCase);
-    assert.ok(missingTargetCase);
-    assert.ok(inactiveAdapterCase);
-    assert.ok(experimentalCase);
+    assert.match(reconciliation?.input.developerDirection, /`refund-agent`/u);
+    assert.match(reconciliation?.input.developerDirection, /`\/src\/refund-policy\.js`/u);
+    assert.deepEqual(distributedCopy?.resourceBudget, {
+      activation: 'direct',
+      minimumMoldeaCommands: 0,
+      maximumMoldeaCommands: 0,
+      maximumMoldeaOutputBytes: 0,
+    });
+    assert.match(experimentalTarget?.input.developerDirection, /`refund-agent`/u);
     assert.match(
-      skill,
-      /final report must state the unavailable fact and include the literal resolver URL `https:\/\/packages\.moldea\.ai\/compatibility\/runtimes\.json`/i,
-    );
-    assert.match(
-      runtimeCompatibility,
-      /include the literal resolver URL `https:\/\/packages\.moldea\.ai\/compatibility\/runtimes\.json`/i,
-    );
-
-    assert.ok(
-      getSemanticCriterionLabels(unavailableCase.forbidden).includes('use-stale-or-local-fallback'),
-    );
-    assert.ok(
-      getSemanticCriterionLabels(malformedCase.expected).includes('reject-malformed-publication'),
-    );
-    for (const publicationLimitedCase of [unavailableCase, malformedCase, missingTargetCase]) {
-      const readinessCriterion = publicationLimitedCase.expected.find(({ label }) =>
-        label.includes('positive-production-readiness'),
-      );
-      const resolverCriterion = publicationLimitedCase.expected.find(({ criterion }) =>
-        criterion.includes('https://packages.moldea.ai/compatibility/runtimes.json'),
-      );
-
-      assert.ok(readinessCriterion);
-      assert.ok(resolverCriterion);
-      assert.match(readinessCriterion.criterion, /positive production-readiness conclusion/i);
-      assert.match(
-        readinessCriterion.criterion,
-        /negative readiness conclusion remains valid when independent evidence establishes a blocker/i,
-      );
-    }
-    assert.ok(
-      getSemanticCriterionLabels(missingTargetCase.forbidden).includes(
-        'equate-installation-with-published-support',
-      ),
-    );
-    assert.ok(
-      getSemanticCriterionLabels(inactiveAdapterCase.expected).includes(
-        'distinguish-published-support-from-local-availability',
-      ),
-    );
-    assert.ok(
-      getSemanticCriterionLabels(experimentalCase.forbidden).includes(
-        'promote-experimental-to-supported',
-      ),
+      dynamicRouting?.forbidden.find(({ label }) => label === 'claim-wrong-description-source')
+        ?.criterion,
+      /the agent instruction as the assessed canonical owner is allowed/u,
     );
   });
 
-  test('judges observable skill validation and permits deterministic orchestration', () => {
-    const semanticCasesById = new Map(
-      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+  test('gives the informational case a literal zero moldea budget', () => {
+    const informational = FIXTURE.semanticCases.find(
+      ({ resourceBudget }) => resourceBudget.activation === 'informational',
     );
-    const skillCreationCase = semanticCasesById.get('skill-create-progressive-disclosure');
-    const skillMaintenanceCase = semanticCasesById.get('skill-maintain-linked-resources');
-    const oneAgentPlanningCase = semanticCasesById.get('plan-existing-project-one-agent');
-
-    assert.ok(skillCreationCase);
-    assert.ok(skillMaintenanceCase);
-    assert.ok(oneAgentPlanningCase);
-
-    const skillCreationExpected = getSemanticCriterionLabels(skillCreationCase.expected);
-    const skillMaintenanceExpected = getSemanticCriterionLabels(skillMaintenanceCase.expected);
-    const oneAgentPlanningForbidden = getSemanticCriterionLabels(oneAgentPlanningCase.forbidden);
-    const progressiveDisclosureCriterion = skillCreationCase.expected.find(
-      ({ label }) => label === 'use-progressive-disclosure',
-    );
-
-    assert.ok(skillCreationExpected.includes('pass-independent-skill-structural-validation'));
-    assert.equal(skillCreationExpected.includes('run-skill-structural-validation'), false);
-    assert.ok(progressiveDisclosureCriterion);
-    assert.match(
-      progressiveDisclosureCriterion.criterion,
-      /existing authoritative repository resources/i,
-    );
-    assert.match(
-      progressiveDisclosureCriterion.criterion,
-      /does not require a skill-local resource/i,
-    );
-
-    assert.ok(skillMaintenanceExpected.includes('pass-independent-skill-structural-validation'));
-    assert.equal(skillMaintenanceExpected.includes('run-skill-structural-validation'), false);
-
-    assert.ok(oneAgentPlanningForbidden.includes('model-orchestrator-without-semantic-routing'));
-    assert.equal(oneAgentPlanningForbidden.includes('automatic-orchestrator'), false);
+    assert.deepEqual(informational?.resourceBudget, {
+      activation: 'informational',
+      minimumMoldeaCommands: 0,
+      maximumMoldeaCommands: 0,
+      maximumMoldeaOutputBytes: 0,
+    });
   });
 
-  test('defines mirror provenance and external capabilities as observable judge contracts', () => {
-    const semanticCasesById = new Map(
-      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
-    );
-    const adoptionCase = semanticCasesById.get('agent-adoption-inline-runtime-instruction');
-    const dedicatedRepositoryCase = semanticCasesById.get('dedicated-repository-runtime-selection');
+  test('gives independently validated Agent Skill cases exact zero CLI budgets', () => {
+    const expectedCaseIds = [
+      'skill-boundary-surface-selection',
+      'skill-create-progressive-disclosure',
+      'skill-evaluate-read-only',
+      'skill-evaluate-script-authority',
+      'skill-maintain-host-invocation-policy',
+      'skill-maintain-linked-resources',
+      'skill-reconcile-distributed-copy',
+      'skill-reuse-existing-cohesive',
+    ];
+    const zeroBudgetDirectCases = FIXTURE.semanticCases
+      .filter(
+        ({ resourceBudget }) =>
+          resourceBudget.activation === 'direct' &&
+          resourceBudget.minimumMoldeaCommands === 0 &&
+          resourceBudget.maximumMoldeaCommands === 0 &&
+          resourceBudget.maximumMoldeaOutputBytes === 0,
+      )
+      .map(({ id }) => id)
+      .sort();
 
-    assert.ok(adoptionCase);
-    assert.ok(dedicatedRepositoryCase);
-
-    const provenanceCriterion = adoptionCase.expected.find(
-      ({ label }) => label === 'establish-canonical-instruction-provenance',
-    );
-    const runtimeVerificationCriterion = adoptionCase.expected.find(
-      ({ label }) => label === 'verify-runtime-instruction-provenance',
-    );
-    const independentSourceCriterion = adoptionCase.forbidden.find(
-      ({ label }) => label === 'retain-independently-editable-instruction-sources',
-    );
-    const capabilityCriterion = dedicatedRepositoryCase.expected.find(
-      ({ label }) => label === 'represent-application-capabilities-semantically',
-    );
-
-    assert.ok(provenanceCriterion);
-    assert.ok(runtimeVerificationCriterion);
-    assert.ok(independentSourceCriterion);
-    assert.ok(capabilityCriterion);
-
-    assert.match(provenanceCriterion.criterion, /declared exact mirror/i);
-    assert.match(provenanceCriterion.criterion, /model invocation/i);
-    assert.match(runtimeVerificationCriterion.criterion, /runner-owned focused runtime-test/i);
-    assert.match(runtimeVerificationCriterion.criterion, /workspace evidence/i);
-    assert.match(independentSourceCriterion.criterion, /does not trigger/i);
-    assert.match(capabilityCriterion.criterion, /instruction or runtime guidance/i);
-    assert.match(capabilityCriterion.criterion, /without fabricating/i);
+    assert.deepEqual(zeroBudgetDirectCases, expectedCaseIds);
   });
 
-  test(
-    'binds available semantic evaluations to exact release inputs',
-    {
-      skip: !existsSync(join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-result.json')),
-    },
-    (testContext) => {
-      const result = JSON.parse(readRepositoryFile('fixtures/semantic-evaluation-result.json'));
-      const semanticCases = new Map(
-        cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
-      );
+  test('names independent Agent Skill artifact roots in the actor-visible task', () => {
+    const boundaryCase = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'skill-boundary-surface-selection',
+    );
+    const hostMetadataCase = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'skill-maintain-host-invocation-policy',
+    );
 
-      const portableSkillDigest = createPortableSkillDigest();
-      const currentCli = createSemanticCliIdentity(REPOSITORY_ROOT);
-      const coverage = JSON.parse(readRepositoryFile('fixtures/semantic-evaluation-coverage.json'));
-      const currentCaseSuiteDigest = createSemanticCaseSuiteDigest(cases.semanticCases);
-      if (
-        result.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
-        result.caseSuiteDigest !== currentCaseSuiteDigest ||
-        !isDeepStrictEqual(result.cli, currentCli) ||
-        result.skillDigest !== portableSkillDigest
-      ) {
-        testContext.skip('Exact current protocol 21 semantic evidence has not been recorded.');
-        return;
-      }
-      assert.equal(result.schemaVersion, 6);
-      assert.deepEqual(result.confirmationPolicy, {
-        requiredPassingConfirmations: 2,
-        version: 1,
-      });
-      assert.equal(result.evaluationProtocolVersion, SEMANTIC_EVALUATION_PROTOCOL_VERSION);
-      assert.deepEqual(result.cli, currentCli);
-      assert.equal(result.caseSuiteDigest, currentCaseSuiteDigest);
-      assert.equal(
-        result.coverageDigest,
-        createSemanticCoverageDigest(coverage, cases.semanticCases),
-      );
-      assert.equal(result.artifact.sha256, result.skillDigest);
-      assert.equal(result.artifactDigest, result.skillDigest);
-      assert.equal(result.artifactSha256, result.skillDigest);
-      assert.equal(result.skillDigest, portableSkillDigest);
-      assert.equal(result.hostContract.model, 'gpt-5.6-sol');
-      assert.equal(result.hostContract.name, 'codex');
-      assert.equal(result.hostContract.reasoningEffort, 'medium');
-      assert.equal(result.host, undefined);
-      assert.equal(result.actorHost, undefined);
-      assert.equal(result.judgeHost, undefined);
-      assert.match(result.evaluatedAt, /^\d{4}-\d{2}-\d{2}T/);
-      assert.deepEqual(
-        result.cases.map((evaluationCase) => evaluationCase.id).sort(),
-        [...semanticCases.keys()].sort(),
-      );
+    assert.match(
+      boundaryCase.input.developerDirection,
+      /skills\/javascript-naming and skills\/checksum-generation/u,
+    );
+    assert.match(
+      hostMetadataCase.input.developerDirection,
+      /Agent Skill under skills\/deployment-review/u,
+    );
+  });
 
-      for (const evaluationCase of result.cases) {
-        const conformanceCase = semanticCases.get(evaluationCase.id);
-        assert.equal(evaluationCase.passed, true);
-        assert.equal(evaluationCase.actorHost.model, result.hostContract.model);
-        assert.equal(evaluationCase.actorHost.reasoningEffort, 'medium');
-        assert.ok(evaluationCase.actorHost.version.length > 0);
-        assert.equal(evaluationCase.judgeHost.model, result.hostContract.model);
-        assert.equal(evaluationCase.judgeHost.reasoningEffort, 'medium');
-        assert.ok(evaluationCase.judgeHost.version.length > 0);
-        assert.equal(
-          evaluationCase.caseDefinitionDigest,
-          createSemanticCaseDefinitionDigest(conformanceCase),
-        );
-        assert.match(evaluationCase.evaluatedAt, /^\d{4}-\d{2}-\d{2}T/);
-        assert.deepEqual(
-          [...evaluationCase.expectedSatisfied].sort(),
-          getSemanticCriterionLabels(conformanceCase.expected).sort(),
-        );
-        assert.deepEqual(evaluationCase.forbiddenTriggered, []);
-        assert.ok(evaluationCase.rationale.length > 20);
-        assert.ok(Array.isArray(evaluationCase.actorExecutionEvidence));
-        assert.equal(
-          hasValidScenarioEvidence(evaluationCase.scenarioEvidence, conformanceCase),
-          true,
-        );
-        assert.equal(
-          hasValidRepositoryControlEvidence(evaluationCase.repositoryControlEvidence),
-          true,
-        );
-        assert.deepEqual(evaluationCase.repositoryControlEvidence.violations, []);
-
-        const configuredArtifacts = conformanceCase.skillEvidence?.artifacts ?? [];
-        assert.equal(evaluationCase.skillArtifactEvidence.length, configuredArtifacts.length);
-        assert.deepEqual(
-          evaluationCase.skillArtifactEvidence.map(({ role, root }) => ({
-            role,
-            root,
-          })),
-          configuredArtifacts,
-        );
+  test('keeps the deterministic adoption gate fail-closed and two bytes', () => {
+    const initialized = createProject();
+    const uninitialized = mkdtempSync(join(tmpdir(), 'moldea-v5-uninitialized-'));
+    try {
+      writeFileSync(join(uninitialized, 'README.md'), '# Project\n');
+      for (const [repository, expected] of [
+        [initialized, '1\n'],
+        [uninitialized, '0\n'],
+      ]) {
+        const result = runRelevanceGate(repository, ['--adoption-only']);
+        assert.equal(result.status, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, expected);
+        assert.equal(Buffer.byteLength(result.stdout), 2);
       }
 
-      const skillCreationCase = semanticCases.get('skill-create-progressive-disclosure');
-      const skillCreationExpected = getSemanticCriterionLabels(skillCreationCase.expected);
-      assert.ok(skillCreationExpected.includes('create-valid-skill-frontmatter'));
-      assert.ok(skillCreationExpected.includes('pass-independent-skill-structural-validation'));
-      assert.ok(skillCreationExpected.includes('support-positive-and-adjacent-non-activation'));
-      const skillCreationResult = result.cases.find(
-        ({ id }) => id === 'skill-create-progressive-disclosure',
+      writeFileSync(
+        join(initialized, 'README.md'),
+        '# Project\n\n<!-- moldea:end -->\n<!-- moldea:start -->\n',
       );
-      assert.equal(skillCreationResult.skillArtifactEvidence.length, 1);
-      assert.equal(skillCreationResult.skillArtifactEvidence[0].validation.valid, true);
-      assert.equal(skillCreationResult.skillArtifactEvidence[0].validation.name, 'release-review');
-      const createdSkillContent = skillCreationResult.skillArtifactEvidence[0].files.find(
-        ({ path }) => path === 'skills/release-review/SKILL.md',
-      ).content;
-      assert.match(createdSkillContent, /release-policy\.md/);
-      assert.match(createdSkillContent, /verify-release\.mjs/);
-      assert.ok(skillCreationResult.skillArtifactEvidence[0].resourceReferences.length >= 2);
-      assert.ok(
-        skillCreationResult.skillArtifactEvidence[0].resourceReferences.every(
-          ({ isSafe, type }) => isSafe && type !== 'missing' && type !== 'unsafe',
-        ),
-      );
-
-      const skillMaintenanceCase = semanticCases.get('skill-maintain-linked-resources');
-      const skillMaintenanceExpected = getSemanticCriterionLabels(skillMaintenanceCase.expected);
-      assert.ok(skillMaintenanceExpected.includes('produce-structurally-valid-updated-skill'));
-      assert.ok(skillMaintenanceExpected.includes('pass-independent-skill-structural-validation'));
-      const skillMaintenanceResult = result.cases.find(
-        ({ id }) => id === 'skill-maintain-linked-resources',
-      );
-      assert.equal(skillMaintenanceResult.skillArtifactEvidence.length, 1);
-      assert.equal(skillMaintenanceResult.skillArtifactEvidence[0].validation.valid, true);
-      const maintainedReleaseSkill = skillMaintenanceResult.skillArtifactEvidence[0].files.find(
-        ({ path }) => path === 'skills/release-review/SKILL.md',
-      ).content;
-      const packageManagerReference = skillMaintenanceResult.skillArtifactEvidence[0].files.find(
-        ({ path }) => path === 'skills/release-review/references/package-managers.md',
-      ).content;
-      assert.match(maintainedReleaseSkill, /npm and pnpm/i);
-      assert.match(packageManagerReference, /release-policy\.md/i);
-      assert.match(packageManagerReference, /verify-release\.mjs/i);
-      assert.match(packageManagerReference, /each manager named by the policy/i);
-
-      const hostMetadataResult = result.cases.find(
-        ({ id }) => id === 'skill-maintain-host-invocation-policy',
-      );
-      const maintainedHostMetadata = hostMetadataResult.skillArtifactEvidence[0].files.find(
-        ({ path }) => path === 'skills/deployment-review/agents/openai.yaml',
-      ).content;
-      assert.match(maintainedHostMetadata, /allow_implicit_invocation: false/);
-      assert.match(maintainedHostMetadata, /brand_color: ["']#336699["']/);
-
-      const reconciliationResult = result.cases.find(
-        ({ id }) => id === 'skill-reconcile-distributed-copy',
-      );
-      const authoritativeContent = reconciliationResult.skillArtifactEvidence[0].files.find(
-        ({ path }) => path === 'skills/release-review/SKILL.md',
-      ).content;
-      const distributedContent = reconciliationResult.skillArtifactEvidence[1].files.find(
-        ({ path }) => path === 'dist/skills/release-review/SKILL.md',
-      ).content;
-      assert.equal(distributedContent, authoritativeContent);
-    },
-  );
-
-  test('exercises package-manager selection, conflicts, and CLI pin decisions', () => {
-    for (const conformanceCase of cases.packageManagerCases) {
-      assert.deepEqual(evaluatePackageManagerCase(conformanceCase), conformanceCase.expected);
+      assert.equal(runRelevanceGate(initialized, ['--adoption-only']).stdout, '0\n');
+    } finally {
+      rmSync(initialized, { force: true, recursive: true });
+      rmSync(uninitialized, { force: true, recursive: true });
     }
   });
 
-  test('keeps the semantic CLI fixture contract faithful to release metadata', () => {
-    const repositoryPath = mkdtempSync(join(tmpdir(), 'moldea-semantic-cli-test-'));
+  test('matches exact and glob relationships without invoking the CLI', () => {
+    const root = createProject();
+    try {
+      for (const [input, expected] of [
+        ['/src/project-state.js\0', '1\n'],
+        ['src/project-state.js\0', '1\n'],
+        ['\0/src/project-state.js\0', '0\n'],
+        ['/src/unrelated.js\0', '0\n'],
+        ['./src/project-state.js\0', '0\n'],
+        ['C:src/project-state.js\0', '0\n'],
+        ['/src/project-state.js', '0\n'],
+        [Buffer.from([0xff, 0]), '0\n'],
+      ]) {
+        const result = runRelevanceGate(root, [], input);
+        assert.equal(result.status, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, expected);
+        assert.equal(Buffer.byteLength(result.stdout), 2);
+      }
+
+      writeFileSync(
+        join(root, 'moldea', 'moldea.yaml'),
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n',
+      );
+      assert.equal(runRelevanceGate(root, [], '/src/nested/module.js\0').stdout, '1\n');
+
+      const packageManifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+      packageManifest.devDependencies['@moldea.ai/cli'] = '^6.0.0';
+      writeFileSync(join(root, 'package.json'), `${JSON.stringify(packageManifest, null, 2)}\n`);
+      assert.equal(runRelevanceGate(root, [], '/src/nested/module.js\0').stdout, '0\n');
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  test('resolves Core only through repository-local npm and pnpm dependency graphs', () => {
+    const npmRoot = createIsolatedToolingProject('npm');
+    const pnpmRoot = createIsolatedToolingProject('pnpm');
 
     try {
-      assert.equal(
-        SEMANTIC_CLI_MANIFEST.moldeaRelease.cliJsonSchemaVersion,
-        RELEASE_CLI_JSON_SCHEMA_VERSION,
+      for (const root of [npmRoot, pnpmRoot]) {
+        const result = runRelevanceGate(root, [], '/src/project-state.js\0');
+        assert.equal(result.status, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, '1\n');
+      }
+    } finally {
+      rmSync(npmRoot, { force: true, recursive: true });
+      rmSync(pnpmRoot, { force: true, recursive: true });
+    }
+  });
+
+  test('fails closed instead of using ambient, escaped, or later Core packages', () => {
+    const parentRoot = mkdtempSync(join(tmpdir(), 'moldea-v5-core-boundary-'));
+    const missingRoot = join(parentRoot, 'missing');
+    const invalidRoot = createIsolatedToolingProject('pnpm');
+    const escapedRoot = createIsolatedToolingProject('npm');
+    const unsafeVersionRoot = createIsolatedToolingProject('npm');
+
+    try {
+      mkdirSync(missingRoot, { recursive: true });
+      writeCliFixture(join(missingRoot, 'node_modules', '@moldea.ai', 'cli'));
+      writeCoreFixture(join(parentRoot, 'node_modules', '@moldea.ai', 'core'));
+      for (const path of ['README.md', 'package.json']) {
+        writeFileSync(join(missingRoot, path), readFileSync(join(invalidRoot, path)));
+      }
+      mkdirSync(join(missingRoot, 'moldea'), { recursive: true });
+      mkdirSync(join(missingRoot, 'src'), { recursive: true });
+      for (const path of [
+        join('moldea', 'moldea.yaml'),
+        join('moldea', 'project.md'),
+        join('src', 'project-state.js'),
+      ]) {
+        writeFileSync(join(missingRoot, path), readFileSync(join(invalidRoot, path)));
+      }
+
+      const resolvedCliRoot = join(
+        invalidRoot,
+        'node_modules',
+        '.pnpm',
+        '@moldea.ai+cli@8.0.0',
+        'node_modules',
+        '@moldea.ai',
+        'cli',
       );
-      mkdirSync(join(repositoryPath, 'moldea', 'agents', 'refund-agent'), {
+      writeCoreFixture(join(resolvedCliRoot, 'node_modules', '@moldea.ai', 'core'), {
+        name: '@moldea.ai/not-core',
+      });
+      const escapedCoreRoot = join(parentRoot, 'escaped-core');
+      const installedCoreRoot = join(escapedRoot, 'node_modules', '@moldea.ai', 'core');
+      writeCoreFixture(escapedCoreRoot);
+      rmSync(installedCoreRoot, { force: true, recursive: true });
+      symlinkSync(
+        escapedCoreRoot,
+        installedCoreRoot,
+        process.platform === 'win32' ? 'junction' : 'dir',
+      );
+      writeCoreFixture(join(unsafeVersionRoot, 'node_modules', '@moldea.ai', 'core'), {
+        version: '4.0.0',
+      });
+
+      for (const root of [missingRoot, invalidRoot, escapedRoot, unsafeVersionRoot]) {
+        const result = runRelevanceGate(root, [], '/src/project-state.js\0');
+        assert.equal(result.status, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, '0\n');
+      }
+    } finally {
+      rmSync(parentRoot, { force: true, recursive: true });
+      rmSync(invalidRoot, { force: true, recursive: true });
+      rmSync(escapedRoot, { force: true, recursive: true });
+      rmSync(unsafeVersionRoot, { force: true, recursive: true });
+    }
+  });
+});
+
+describe('CLI 8 bounded machine protocol', () => {
+  test('keeps release identity exact across the root manifests', () => {
+    const packageManifest = JSON.parse(readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf8'));
+    const packageLock = JSON.parse(
+      readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'),
+    );
+    const declaredCliVersion = packageManifest.devDependencies['@moldea.ai/cli'];
+    assert.equal(packageManifest.version, '5.0.0');
+    assert.match(declaredCliVersion, /^\d+\.\d+\.\d+$/u);
+    assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 4);
+    assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, declaredCliVersion);
+  });
+
+  test('returns content-free inspect metadata and bounded explicit content', () => {
+    const root = createProject();
+    try {
+      mkdirSync(join(root, 'moldea', 'agents', 'assistant'), {
         recursive: true,
       });
       writeFileSync(
-        join(repositoryPath, 'moldea', 'moldea.yaml'),
-        'version: 1\n\nagents:\n  refund-agent:\n    runtime:\n      id: unavailable-runtime\n',
-      );
-      writeFileSync(join(repositoryPath, 'moldea', 'project.md'), '# Test project\n');
-      writeFileSync(
-        join(repositoryPath, 'moldea', 'agents', 'refund-agent', 'description.md'),
-        'Handles refund requests.\n',
+        join(root, 'moldea', 'moldea.yaml'),
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n\nagents:\n  assistant:\n    runtime:\n      id: custom\n',
       );
       writeFileSync(
-        join(repositoryPath, 'moldea', 'agents', 'refund-agent', 'instruction.md'),
-        '# Refund agent\n\nYou are the `refund-agent` agent.\n',
+        join(root, 'moldea', 'agents', 'assistant', 'description.md'),
+        'Routes bounded project questions.\n',
       );
-      const inspection = spawnSync(process.execPath, [SEMANTIC_CLI_PATH, 'inspect', '--json'], {
-        cwd: repositoryPath,
-        encoding: 'utf8',
-      });
-      const inspectionEnvelope = JSON.parse(inspection.stdout);
-      assert.equal(inspection.status, 1);
-      assert.equal(inspectionEnvelope.cliVersion, RELEASE_CLI_VERSION);
-      assert.equal(inspectionEnvelope.schemaVersion, RELEASE_CLI_JSON_SCHEMA_VERSION);
-      assert.equal(inspectionEnvelope.status, 'invalid');
-      assert.equal(
-        inspectionEnvelope.result.inspection.diagnostics[0].code,
-        'MOLDEA_RUNTIME_ADAPTER_UNAVAILABLE',
+      writeFileSync(
+        join(root, 'moldea', 'agents', 'assistant', 'instruction.md'),
+        '# Assistant\n\nYou are the `assistant` agent.\n\nSENTINEL_AGENT_BODY\n',
       );
-
-      const composition = spawnSync(
-        process.execPath,
-        [SEMANTIC_CLI_PATH, 'composition', '--json'],
+      const inspect = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
+      assert.equal(inspect.status, 0, inspect.stderr || inspect.stdout);
+      assert.ok(Buffer.byteLength(inspect.stdout) <= 65_536);
+      const inspectEnvelope = JSON.parse(inspect.stdout);
+      const packageManifest = JSON.parse(
+        readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf8'),
+      );
+      assert.equal(inspectEnvelope.schemaVersion, 4);
+      assert.equal(inspectEnvelope.cliVersion, packageManifest.devDependencies['@moldea.ai/cli']);
+      assert.equal(inspectEnvelope.command, 'inspect');
+      assert.equal(inspect.stdout.includes('Current project truth.'), false);
+      assert.equal(inspect.stdout.includes('SENTINEL_AGENT_BODY'), false);
+      assert.deepEqual(
+        inspectEnvelope.result.page.records.find(({ kind }) => kind === 'agent'),
         {
-          cwd: repositoryPath,
-          encoding: 'utf8',
+          agentId: 'assistant',
+          key: '["000004","agent","assistant","custom"]',
+          kind: 'agent',
+          runtimeId: 'custom',
         },
       );
-      const compositionEnvelope = JSON.parse(composition.stdout);
-      assert.equal(composition.status, 0);
-      assert.equal(compositionEnvelope.cliVersion, RELEASE_CLI_VERSION);
-      assert.equal(compositionEnvelope.schemaVersion, RELEASE_CLI_JSON_SCHEMA_VERSION);
-      assert.equal(compositionEnvelope.status, 'valid');
-      assert.equal(compositionEnvelope.result.supportedNodeRange, RELEASE_COMPATIBILITY.nodeRange);
-      assert.deepEqual(
-        compositionEnvelope.result.packages,
-        Object.entries(SEMANTIC_CLI_MANIFEST.dependencies)
-          .filter(([name]) => name.startsWith('@moldea.ai/'))
-          .map(([name, version]) => ({ name, version }))
-          .sort(({ name: left }, { name: right }) => left.localeCompare(right)),
-      );
-      assert.deepEqual(
-        compositionEnvelope.result.adapters.map(({ id }) => id),
-        [
-          'custom',
-          ...Object.keys(SEMANTIC_CLI_MANIFEST.dependencies)
-            .filter((name) => name.startsWith('@moldea.ai/adapter-'))
-            .map((name) => name.slice('@moldea.ai/adapter-'.length)),
-        ].sort((left, right) => left.localeCompare(right)),
-      );
-      const customComposition = compositionEnvelope.result.adapters.find(
-        ({ id }) => id === 'custom',
-      );
-      assert.deepEqual(customComposition.repositoryFormatVersions, [1]);
-      const googleGenAiComposition = compositionEnvelope.result.adapters.find(
-        ({ id }) => id === 'google-genai',
-      );
-      assert.deepEqual(googleGenAiComposition.repositoryFormatVersions, [1]);
+
+      const content = runCli(root, [
+        'content',
+        '--path',
+        '/moldea/project.md',
+        '--json',
+        '--max-output-bytes',
+        '65536',
+      ]);
+      assert.equal(content.status, 0);
+      assert.ok(Buffer.byteLength(content.stdout) <= 65_536);
+      assert.match(JSON.parse(content.stdout).result.chunk.content, /Current project truth/u);
     } finally {
-      rmSync(repositoryPath, { force: true, recursive: true });
+      rmSync(root, { force: true, recursive: true });
     }
   });
 
-  test('keeps the lifecycle fixture limited to hostile installation hooks', () => {
-    const manifest = JSON.parse(readFileSync(LIFECYCLE_CLI_MANIFEST_PATH, 'utf8'));
+  test('continues validation through standalone bounded launcher pages', () => {
+    const root = createProject();
+    try {
+      const contextDeclarations = [];
+      for (let index = 1; index <= 256; index += 1) {
+        const id = String(index).padStart(3, '0');
+        const canonicalPath = `/moldea/context/section-${id}.md`;
+        contextDeclarations.push(`  ${canonicalPath}: {}`);
+        mkdirSync(join(root, 'moldea', 'context'), { recursive: true });
+        writeFileSync(join(root, canonicalPath.slice(1)), `# Context section ${id}\n`);
+      }
+      writeFileSync(
+        join(root, 'moldea', 'moldea.yaml'),
+        `version: 1\n\ncontext:\n${contextDeclarations.join('\n')}\n`,
+      );
 
-    assert.deepEqual(manifest.bin, { moldea: 'bin/moldea.js' });
-    assert.deepEqual(manifest.scripts, {
-      install: 'node lifecycle-sentinel.mjs dependency-install',
-      postinstall: 'node lifecycle-sentinel.mjs dependency-postinstall',
-      preinstall: 'node lifecycle-sentinel.mjs dependency-preinstall',
+      const records = [];
+      let cursor;
+      let pageCount = 0;
+      do {
+        const arguments_ = ['validate', '--json', '--max-output-bytes', '65536'];
+        if (cursor !== undefined) arguments_.push('--cursor', cursor);
+        const page = runCli(root, arguments_);
+        assert.equal(page.status, 1, page.stderr || page.stdout);
+        assert.ok(Buffer.byteLength(page.stdout) <= 65_536);
+        const envelope = JSON.parse(page.stdout);
+        assert.equal(envelope.schemaVersion, 4);
+        assert.equal(envelope.command, 'validate');
+        assert.equal(envelope.status, 'invalid');
+        assert.equal(envelope.error, null);
+        records.push(...envelope.result.page.records);
+        cursor = envelope.result.page.cursor ?? undefined;
+        pageCount += 1;
+      } while (cursor !== undefined);
+
+      assert.ok(pageCount > 1);
+      assert.equal(records.length, 256);
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  test('rejects unsupported launcher commands, arguments, and package declarations', () => {
+    const root = createProject();
+    try {
+      const unsupportedCommand = runCli(root, ['unknown', '--json']);
+      assert.equal(unsupportedCommand.status, 3);
+      assert.match(unsupportedCommand.stderr, /not supported/u);
+      assert.equal(unsupportedCommand.stdout, '');
+
+      const unsupportedArgument = runCli(root, ['inspect', '--json', '--repository', root]);
+      assert.equal(unsupportedArgument.status, 3);
+      assert.match(unsupportedArgument.stderr, /unsupported or duplicate/iu);
+      assert.equal(unsupportedArgument.stdout, '');
+
+      const packageManifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+      packageManifest.devDependencies['@moldea.ai/cli'] = '^7.0.0';
+      writeFileSync(join(root, 'package.json'), `${JSON.stringify(packageManifest, null, 2)}\n`);
+      const unsupportedPackage = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
+      assert.equal(unsupportedPackage.status, 3);
+      assert.match(unsupportedPackage.stderr, /unsupported CLI package closure/u);
+      assert.equal(unsupportedPackage.stdout, '');
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  test('rejects missing, malformed, prerelease, and escaped CLI closures', () => {
+    const missingRoot = mkdtempSync(join(tmpdir(), 'moldea-v5-launcher-missing-'));
+    const malformedRoot = createLauncherProject('process.exitCode = 0;\n');
+    const prereleaseRoot = createLauncherProject('process.exitCode = 0;\n', {
+      version: '8.0.0-beta.1',
     });
-    assert.equal(manifest.version, '1.0.1');
-    assert.equal('dependencies' in manifest, false);
-  });
+    const escapedRoot = createLauncherProject('process.exitCode = 0;\n');
+    try {
+      writeFileSync(
+        join(missingRoot, 'package.json'),
+        '{"private":true,"devDependencies":{"@moldea.ai/cli":"^8.0.0"}}\n',
+      );
+      writeFileSync(join(malformedRoot, 'node_modules', '@moldea.ai', 'cli', 'package.json'), '{');
+      const escapedCliRoot = join(escapedRoot, 'escaped-cli');
+      const installedCliRoot = join(escapedRoot, 'node_modules', '@moldea.ai', 'cli');
+      mkdirSync(join(escapedCliRoot, 'dist'), { recursive: true });
+      writeFileSync(
+        join(escapedCliRoot, 'package.json'),
+        '{"name":"@moldea.ai/cli","version":"8.0.0","bin":{"moldea":"./dist/moldea.js"},"dependencies":{"@moldea.ai/core":"^4.0.0"}}\n',
+      );
+      writeFileSync(join(escapedCliRoot, 'dist', 'moldea.js'), 'process.exitCode = 0;\n');
+      rmSync(installedCliRoot, { force: true, recursive: true });
+      symlinkSync(
+        escapedCliRoot,
+        installedCliRoot,
+        process.platform === 'win32' ? 'junction' : 'dir',
+      );
 
-  test('exercises every supported CLI machine-envelope disposition', () => {
-    for (const conformanceCase of cases.cliEnvelopeCases) {
-      assert.equal(evaluateCliEnvelopeCase(conformanceCase), conformanceCase.expected[0]);
+      for (const root of [missingRoot, malformedRoot, prereleaseRoot, escapedRoot]) {
+        const result = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
+        assert.equal(result.status, 3);
+        assert.equal(result.stdout, '');
+        assert.notEqual(result.stderr, '');
+      }
+      assert.match(
+        runCli(escapedRoot, ['inspect', '--json', '--max-output-bytes', '65536']).stderr,
+        /escaped repository dependencies/u,
+      );
+    } finally {
+      for (const root of [missingRoot, malformedRoot, prereleaseRoot, escapedRoot]) {
+        rmSync(root, { force: true, recursive: true });
+      }
     }
   });
 
-  test('exercises README marker ownership for evaluate and write-capable operations', () => {
-    for (const conformanceCase of cases.readmeMarkerCases) {
-      assert.deepEqual(evaluateReadmeMarkerCase(conformanceCase), conformanceCase.expected);
-    }
-  });
-
-  test('documents preferred project installation and reproducible release pinning', () => {
-    const readme = readRepositoryFile('README.md');
-    const projectInstallationIndex = readme.indexOf('### Project installation (recommended)');
-    const globalInstallationIndex = readme.indexOf('### Global installation (optional)');
-
-    assert.ok(readme.includes('The current release is `' + ROOT_PACKAGE_MANIFEST.version + '`.'));
-    assert.match(readme, /^npx skills add moldea-ai\/skill$/m);
-    assert.match(
-      readme,
-      new RegExp(`^npx skills add "moldea-ai/skill#v${ROOT_PACKAGE_MANIFEST.version}"$`, 'm'),
+  test('preserves completed child status and enforces stdout and stderr boundaries', () => {
+    const exitRoot = createLauncherProject(
+      "const command = process.argv[2]; process.stdout.write('{}\\n'); process.exitCode = command === 'inspect' ? 1 : 2;\n",
     );
-    assert.match(readme, /^npx skills add moldea-ai\/skill -g$/m);
-    assert.ok(projectInstallationIndex >= 0);
-    assert.ok(globalInstallationIndex > projectInstallationIndex);
-    assert.doesNotMatch(readme, /skills@1\.5\.22/);
-    assert.doesNotMatch(readme, /https:\/\/github\.com\/moldea-ai\/skill\/tree\//);
-    assert.match(readme, /do not install `@moldea\.ai\/cli` globally/);
-    assert.match(readme, /exact .*repository-local `@moldea\.ai\/cli` development dependency/);
-    assert.ok(
-      readme.includes(
-        'CLI `' + RELEASE_CLI_VERSION + "` is part of this skill release's identity.",
-      ),
-    );
-    assert.doesNotMatch(readme, /minimum CLI|minimum compatibility|supported CLI range/i);
-    assert.doesNotMatch(
-      readme,
-      /unpublished release candidate|future source URL|after release|candidate supports|prepared for, but has not created/i,
-    );
-  });
-
-  test('CI installs and compares the complete portable artifact', () => {
-    const gitAttributes = readRepositoryFile('.gitattributes');
-    const workflow = readRepositoryFile('.github/workflows/conformance.yml');
-    const document = parseDocument(workflow, { uniqueKeys: true });
-    const conformance = document.toJS();
-    const windowsJob = conformance.jobs['windows-portability'];
-    const windowsCheckout = windowsJob.steps.find((step) =>
-      step.uses?.startsWith('actions/checkout@'),
-    );
-    const windowsVerification = windowsJob.steps.find(
-      (step) => step.name === 'Clone under a realistic deep temporary path',
-    )?.run;
-
-    assert.equal(document.errors.length, 0);
-    assert.equal(gitAttributes, '* text=auto eol=lf\n');
-    assert.match(workflow, /skills@1\.5\.22 add .* -g -a codex -y --copy/);
-    assert.match(workflow, /\.agents\/skills\/moldea/);
-    assert.match(workflow, /diff --recursive --brief moldea/);
-    assert.doesNotMatch(workflow, /add .* --list/);
-    assert.equal(windowsJob['runs-on'], 'windows-2025');
-    assert.equal(windowsCheckout?.with, undefined);
-    assert.match(windowsVerification, /git clone --no-hardlinks --no-checkout/);
-    assert.match(windowsVerification, /git -C \$clonePath checkout --detach \$env:GITHUB_SHA/);
-    assert.match(windowsVerification, /npm run path:check/);
-    assert.match(
-      windowsVerification,
-      /node --experimental-strip-types --test --test-skip-pattern='\^\(\?:sandbox \|proxy shutdown \)' tooling\/\*\/\*\.test-unit\.mjs tests\/\*\.test-unit\.mjs/,
-    );
-    assert.match(windowsVerification, /\$sourceSkill = Join-Path \$clonePath 'moldea'/);
-    assert.match(windowsVerification, /skills@1\.5\.22 add \$sourceSkill -g -a codex -y --copy/);
-    assert.doesNotMatch(windowsVerification, /skills@1\.5\.22 add \.\\moldea/);
-    assert.match(windowsVerification, /git diff --no-index --exit-code/);
-    assert.doesNotMatch(windowsVerification, /core\.longpaths|LongPathsEnabled/i);
-  });
-
-  test('runs root source checks across every supported Node.js line', () => {
-    for (const scriptName of [
-      'eval:semantic',
-      'eval:semantic:preflight',
-      'eval:semantic:verify',
-      'release:check',
-      'release:identity:check',
-      'test:unit',
-      'test:integration',
-    ]) {
-      assert.match(ROOT_PACKAGE_MANIFEST.scripts[scriptName], /node --experimental-strip-types\b/u);
-    }
-  });
-
-  test('website CI installs complete source inputs and retains contract history', () => {
-    for (const [workflowPath, jobName] of [
-      ['.github/workflows/website.yml', 'verify'],
-      ['.github/workflows/pages.yml', 'build'],
-    ]) {
-      const document = parseDocument(readRepositoryFile(workflowPath), {
-        uniqueKeys: true,
-      });
-      const workflow = document.toJS();
-      const checkoutStep = workflow.jobs[jobName].steps.find(
-        (step) => step.uses === 'actions/checkout@v6',
-      );
-      const rootInstallStep = workflow.jobs[jobName].steps.find(
-        (step) => step.run === 'npm ci --ignore-scripts',
-      );
-      const setupNodeStep = workflow.jobs[jobName].steps.find(
-        (step) => step.uses === 'actions/setup-node@v6',
-      );
-      const triggerPaths = workflow.on.pull_request?.paths ?? workflow.on.push?.paths;
-
+    const stdoutRoot = createLauncherProject("process.stdout.write('x'.repeat(4097));\n");
+    const stderrRoot = createLauncherProject("process.stderr.write('x'.repeat(32769));\n");
+    try {
+      assert.equal(runCli(exitRoot, ['inspect', '--json', '--max-output-bytes', '4096']).status, 1);
       assert.equal(
-        document.errors.length,
-        0,
-        document.errors.map((error) => error.message).join('\n'),
+        runCli(exitRoot, ['validate', '--json', '--max-output-bytes', '4096']).status,
+        2,
       );
-      assert.equal(checkoutStep?.with?.['fetch-depth'], 0);
-      assert.equal(rootInstallStep?.name, 'Install root verification dependencies');
-      assert.equal(
-        setupNodeStep?.with?.['cache-dependency-path'],
-        'package-lock.json\nwebsite/package-lock.json\n',
-      );
-      assert.ok(triggerPaths.includes('fixtures/release-evidence/**'));
-      assert.ok(triggerPaths.includes('tooling/evidence-identity/**'));
+      for (const root of [stdoutRoot, stderrRoot]) {
+        const result = runCli(root, ['inspect', '--json', '--max-output-bytes', '4096']);
+        assert.equal(result.status, 3);
+        assert.equal(result.stdout, '');
+        assert.match(result.stderr, /output exceeded the launcher boundary/u);
+      }
+    } finally {
+      for (const root of [exitRoot, stdoutRoot, stderrRoot]) {
+        rmSync(root, { force: true, recursive: true });
+      }
     }
   });
 
-  test('fetches complete Git history only for website evidence consumers', () => {
-    const conformance = parseDocument(readRepositoryFile('.github/workflows/conformance.yml'), {
-      uniqueKeys: true,
-    }).toJS();
-    const releaseCandidate = parseDocument(
-      readRepositoryFile('.github/workflows/release-candidate.yml'),
-      { uniqueKeys: true },
-    ).toJS();
-    const conformanceCheckouts = Object.values(conformance.jobs).flatMap(({ steps }) =>
-      steps.filter((step) => step.uses?.startsWith('actions/checkout@')),
-    );
-    const releaseCheckouts = Object.values(releaseCandidate.jobs).flatMap(({ steps }) =>
-      steps.filter((step) => step.uses?.startsWith('actions/checkout@')),
-    );
+  test(
+    'force-terminates a child that ignores the output-boundary signal',
+    { skip: process.platform === 'win32', timeout: 8_000 },
+    () => {
+      const root = createLauncherProject(
+        "process.on('SIGTERM', () => {}); process.stdout.write('x'.repeat(4097)); setInterval(() => {}, 1000);\n",
+      );
+      try {
+        const result = runCli(root, ['inspect', '--json', '--max-output-bytes', '4096']);
+        assert.equal(result.status, 3);
+        assert.equal(result.stdout, '');
+        assert.match(result.stderr, /output exceeded the launcher boundary/u);
+      } finally {
+        rmSync(root, { force: true, recursive: true });
+      }
+    },
+  );
 
-    assert.ok(conformanceCheckouts.length > 0);
-    assert.ok(releaseCheckouts.length > 0);
-    assert.ok(conformanceCheckouts.every((step) => step.with?.['fetch-depth'] === undefined));
-    assert.ok(releaseCheckouts.every((step) => step.with?.['fetch-depth'] === 1));
-  });
+  test(
+    'relays cancellation and returns a launcher failure without partial output',
+    { skip: process.platform === 'win32' },
+    async () => {
+      const root = createLauncherProject(
+        "import { writeFileSync } from 'node:fs'; writeFileSync('.child-ready', ''); setInterval(() => {}, 1000);\n",
+      );
+      try {
+        const child = spawn(
+          process.execPath,
+          [
+            CLI_LAUNCHER_PATH,
+            '--repository',
+            root,
+            '--',
+            'inspect',
+            '--json',
+            '--max-output-bytes',
+            '4096',
+          ],
+          { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] },
+        );
+        const stdout = [];
+        const stderr = [];
+        child.stdout.on('data', (chunk) => stdout.push(chunk));
+        child.stderr.on('data', (chunk) => stderr.push(chunk));
+        await waitForPath(join(root, '.child-ready'));
+        child.kill('SIGTERM');
+        const exitCode = await new Promise((resolvePromise, rejectPromise) => {
+          child.once('error', rejectPromise);
+          child.once('close', resolvePromise);
+        });
 
-  test('CI derives one exact release CLI across every package manager', () => {
-    const workflow = readRepositoryFile('.github/workflows/conformance.yml');
-    const packageManifest = JSON.parse(readRepositoryFile('package.json'));
+        assert.equal(exitCode, 3);
+        assert.equal(Buffer.concat(stdout).toString('utf8'), '');
+        assert.match(Buffer.concat(stderr).toString('utf8'), /terminated by SIGTERM/u);
+      } finally {
+        rmSync(root, { force: true, recursive: true });
+      }
+    },
+  );
 
-    assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], RELEASE_CLI_VERSION);
-    assert.doesNotMatch(workflow, /cli_version:|MOLDEA_TEST_CLI_VERSION/);
-    assert.match(workflow, /\/ release CLI/);
-    assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 3);
-    assert.equal(
-      workflow.match(
-        /sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap socat/g,
-      )?.length,
-      1,
-    );
-    assert.equal(
-      workflow.match(/sudo apparmor_parser -r \/etc\/apparmor\.d\/bwrap-userns-restrict/g)?.length,
-      1,
-    );
-    assert.equal(
-      workflow.match(/node --test tests\/package-manager\.test-integration\.mjs/g)?.length,
-      1,
-    );
-    assert.equal(existsSync(join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'fake-cli')), false);
-  });
-
-  test('candidate workflow verifies real package tarballs without publishing', () => {
-    const workflow = readRepositoryFile('.github/workflows/release-candidate.yml');
-    const document = parseDocument(workflow, { uniqueKeys: true });
-
-    assert.equal(
-      document.errors.length,
-      0,
-      document.errors.map((error) => error.message).join('\n'),
-    );
-    assertMatchesEvery(workflow, [
-      /workflow_dispatch:/,
-      /packages_ref:/,
-      /repository: moldea-ai\/packages/,
-      /git -C packages rev-parse HEAD/,
-      /node tooling\/package-candidate\/pack\.mjs/,
-      /--workspace packages/,
-      /--output "\$candidate_directory"/,
-      /MOLDEA_CLI_ARTIFACT_DIRECTORY:/,
-      /MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS: ['"]1['"]/,
-      /node --test tests\/package-manager\.test-integration\.mjs/,
-    ]);
-    assert.doesNotMatch(workflow, /projects\/[a-z0-9-]+ pack/);
-    assert.doesNotMatch(workflow, /qualification|runtime-qualification/);
-    assert.doesNotMatch(workflow, /npm publish|pnpm publish|git tag|git push/);
-  });
-
-  test('requires approval before request-intensive semantic evaluation', () => {
-    const readme = readRepositoryFile('README.md');
-
-    assertMatchesEvery(readme, [
-      /Semantic evaluation is intentionally lengthy/,
-      /57 cases/,
-      /114 model requests/,
-      /bounded confirmation sequence/,
-      /up to four requests/,
-      /theoretical full-run maximum is 342 requests/,
-      /Operational retries are additional/,
-      /local CLI composition/,
-      /public technical and maturity publication/,
-      /significant number of model tokens/,
-      /full evaluation or standalone diagnostic/,
-      /why fresh semantic evidence is important/,
-      /why existing evidence or deterministic verification is insufficient/,
-      /estimated model-request count and expected duration/,
-      /developer's explicit approval/,
-      /includes its automatic bounded confirmations, compatible checkpoint resume, and operational retries/,
-      /never authorizes a restart, source correction, changed evidence boundary, or additional evaluation/,
-    ]);
-  });
-
-  test('pins semantic evaluation to the frontier assurance model with fixed reasoning effort', () => {
-    const readme = readRepositoryFile('README.md');
-
-    assertMatchesEvery(readme, [
-      /frontier assurance model/,
-      /gpt-5\.6-sol/,
-      /actor and judge/,
-      /medium/,
-      /must not select their own model or reasoning effort/,
-    ]);
-    assert.doesNotMatch(readme, /MOLDEA_EVAL_REASONING_EFFORT/);
-  });
-
-  test('documents resumable semantic evidence without weakening promotion', () => {
-    const readme = readRepositoryFile('README.md');
-    const gitignore = readRepositoryFile('.gitignore');
-
-    assertMatchesEvery(readme, [
-      /\.semantic-evaluation-candidate\.json/,
-      /checkpoint schema `6`/,
-      /Each trial separately records the exact actor and judge Codex CLI versions/,
-      /confirmation policy `1`/,
-      /skips completed successful or recovered cases/,
-      /failed initial trial is never replaced/,
-      /--record --restart/,
-      /both must pass/i,
-      /Either confirmation failure is terminal/,
-      /automatically runs its bounded confirmation sequence/,
-      /operational retries require no additional authorization/i,
-      /retries the same stage indefinitely with capped exponential backoff and jitter/i,
-      /completed actor response is persisted before the judge starts/i,
-      /do not change the skill until the evidence establishes that the evaluator is not the cause/i,
-      /list every evaluation test the correction can affect/i,
-      /run each listed evaluation test three consecutive times/i,
-      /repeat the same diagnosis, similar-case audit, impacted-test listing, correction, and three-pass verification recursively/i,
-      /do not count toward the three completed runs/i,
-      /original failure remains intact/,
-      /--record-checkpoint/,
-      /eval:semantic:verify/,
-      /only after every case passes initially or, for a failed initial trial, both confirmations pass/,
-      /stale pass remains in immutable history but cannot replace current release evidence/,
-      /hashes and bounded text content for repository-visible changes/,
-      /pre-actor sourced evidence/,
-      /bounded workspace changes/,
-      /independent structural and resource-link evidence/,
-      /do not rely on opaque labels, the actor's report alone, or leaked answer criteria/,
-      /Codex JSONL events/,
-      /bounded completed-command facts/,
-      /package-manager policy evidence/,
-      /An observed package-manager invocation fails a package-manager non-execution criterion/,
-      /Indeterminate commands remain visible warnings and neither prove execution nor establish complete absence/,
-      /final response cannot create or replace that evidence/,
-      /Every semantic actor receives an evaluator-owned Git boundary and npm probe ahead of immutable system executables on a `PATH` that excludes workspace binary directories/,
-      /actor cannot replace those probes/,
-      /release CLI's finite read-only Git discovery and inventory commands/,
-      /refuses every other bare `git` shape before Git starts/,
-    ]);
-    assert.match(gitignore, /fixtures\/\.semantic-evaluation-candidate\.json\*/);
-  });
-
-  test('keeps optional OpenAI metadata supplemental and behaviorally complete', () => {
-    const openaiMetadata = readRepositoryFile('moldea/agents/openai.yaml');
-
-    assertMatchesEvery(openaiMetadata, [
-      /display_name: 'moldea'/,
-      /short_description: 'Maintain project context and agent systems'/,
-      /plan, initialize, design, maintain, evaluate, reconcile, or validate/,
-    ]);
-    assert.doesNotMatch(openaiMetadata, /^policy:/m);
-    assert.doesNotMatch(
-      openaiMetadata,
-      /initialize this repository context and agent instructions/,
-    );
-  });
-
-  test('keeps source and portable release versions synchronized', () => {
-    const packageManifest = JSON.parse(readRepositoryFile('package.json'));
-    const skill = readRepositoryFile('moldea/SKILL.md');
-    const frontmatter = parseFrontmatter(skill);
-    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
-
-    assert.equal(packageManifest.version, frontmatter.metadata.version);
-    assert.ok(
-      skill.includes(`Skill release \`${frontmatter.metadata.version}\` supports exactly:`),
-    );
-    assert.ok(localTooling.includes(`Release \`${frontmatter.metadata.version}\` supports:`));
-    if (process.env.MOLDEA_RELEASE_TAG) {
-      assert.equal(process.env.MOLDEA_RELEASE_TAG, `v${frontmatter.metadata.version}`);
+  test('gates exact relationships through one bounded scope result', () => {
+    const root = createProject();
+    try {
+      const related = runCli(
+        root,
+        ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+        '/src/project-state.js\0',
+      );
+      const unrelated = runCli(
+        root,
+        ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+        '/src/unrelated.js\0',
+      );
+      assert.equal(JSON.parse(related.stdout).result.relevant, true);
+      assert.equal(JSON.parse(unrelated.stdout).result.relevant, false);
+      assert.ok(Buffer.byteLength(related.stdout) <= 65_536);
+      assert.ok(Buffer.byteLength(unrelated.stdout) <= 65_536);
+    } finally {
+      rmSync(root, { force: true, recursive: true });
     }
+  });
+
+  test('continues large Unicode content through bounded schema-4 chunks', () => {
+    const root = createProject();
+    try {
+      const largeContent = `# Large context\n\n${'bounded🙂content\n'.repeat(2048)}`;
+      writeFileSync(join(root, 'moldea', 'project.md'), largeContent);
+      const chunks = [];
+      let cursor;
+      let commandCount = 0;
+      let outputByteCount = 0;
+
+      do {
+        const arguments_ = [
+          'content',
+          '--path',
+          '/moldea/project.md',
+          '--json',
+          '--max-output-bytes',
+          '4096',
+        ];
+        if (cursor !== undefined) arguments_.push('--cursor', cursor);
+        const content = runCli(root, arguments_);
+        assert.equal(content.status, 0);
+        const pageByteCount = Buffer.byteLength(content.stdout);
+        assert.ok(pageByteCount <= 4_096);
+        outputByteCount += pageByteCount;
+        const envelope = JSON.parse(content.stdout);
+        assert.equal(envelope.schemaVersion, 4);
+        assert.equal(envelope.status, 'valid');
+        chunks.push(envelope.result.chunk.content);
+        cursor = envelope.result.cursor ?? undefined;
+        commandCount += 1;
+      } while (cursor !== undefined);
+
+      assert.equal(chunks.join(''), largeContent);
+      assert.ok(commandCount > 1);
+      assert.ok(commandCount <= 32);
+      assert.ok(outputByteCount <= 262_144);
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  test('keeps validate, inspect, scope, and content read-only at the Git boundary', () => {
+    const root = createProject();
+    try {
+      const beforeStatus = spawnSync('git', ['status', '--porcelain=v2', '-z'], {
+        cwd: root,
+        encoding: 'utf8',
+      }).stdout;
+      const beforeObjects = readdirSync(join(root, '.git', 'objects'), {
+        recursive: true,
+      }).sort();
+
+      for (const [arguments_, input] of [
+        [['validate', '--json', '--max-output-bytes', '65536']],
+        [['inspect', '--json', '--max-output-bytes', '65536']],
+        [
+          ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+          '/src/project-state.js\0',
+        ],
+        [['content', '--path', '/moldea/project.md', '--json', '--max-output-bytes', '65536']],
+      ]) {
+        const result = runCli(root, arguments_, input);
+        assert.equal(result.status, 0, result.stderr || result.stdout);
+      }
+
+      const afterStatus = spawnSync('git', ['status', '--porcelain=v2', '-z'], {
+        cwd: root,
+        encoding: 'utf8',
+      }).stdout;
+      const afterObjects = readdirSync(join(root, '.git', 'objects'), {
+        recursive: true,
+      }).sort();
+      assert.equal(afterStatus, beforeStatus);
+      assert.deepEqual(afterObjects, beforeObjects);
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  test('rejects malformed, mismatched, leaking, and over-budget envelopes in fixtures', () => {
+    const expectedById = new Map(
+      FIXTURE.cliEnvelopeCases.map(({ id, expected }) => [id, expected]),
+    );
+    assert.equal(expectedById.get('inspect-valid'), 'interpret-result');
+    assert.equal(expectedById.get('scope-valid'), 'interpret-result');
+    assert.equal(expectedById.get('content-valid'), 'interpret-result');
+    for (const id of [
+      'schema-mismatch',
+      'version-mismatch',
+      'command-mismatch',
+      'status-exit-mismatch',
+      'inspect-content-leak',
+    ]) {
+      assert.equal(expectedById.get(id), 'reject-envelope');
+    }
+    assert.equal(expectedById.get('invocation-too-large'), 'reject-output');
+    assert.equal(expectedById.get('ordinary-aggregate-too-large'), 'stop-traversal');
   });
 });

@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, approved Git evidence, workspace assertions, and deterministic validation agree. The implementation remains unchanged; only focused Vercel runtime guidance and an unresolved static-boundary warning were added. This judging inspection changed no files.",
+  "requirements": [
+    {
+      "id": "identifies-unsupported-form",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` builds an indirect request with `buildRequest(prompt)`, places instruction loading inside `prepareStep`, and passes that request to `generateText`. The new runtime guidance states that static inspection cannot establish this as a supported direct boundary. Deterministic validation and typechecking passed."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` references `/moldea/runtimes/vercel-ai-sdk.md`. The canonical-file inventory shows it is the sole file under `moldea/runtimes`, and its content describes the repository-specific wrapper plus the direct `generateText({ ..., instructions })` alternative without asserting provider behavior."
+    },
+    {
+      "id": "records-unresolved-boundary",
+      "verdict": "pass",
+      "evidence": "The manifest adds warning `static-generate-text-boundary`, explicitly naming static inspection, the indirect request and `prepareStep` replacement, `/src/support-agent.ts`, and the resolution of moving the loaded instruction onto the object literal passed directly to `generateText` with focused runtime verification."
+    },
+    {
+      "id": "avoids-inference",
+      "verdict": "pass",
+      "evidence": "The approved Git diff adds only the runtime-guidance reference and unresolved warning. It adds no instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationship. Workspace hashes confirm `src/support-agent.ts` and existing agent files remained unchanged, and canonical-path inspection found no additional artifacts."
+    }
+  ],
+  "failures": []
+}

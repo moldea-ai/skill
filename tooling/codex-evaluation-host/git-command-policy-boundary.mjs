@@ -2,33 +2,74 @@ import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+const HARDENED_GIT_COMMON_CONFIGURATIONS = [
+  'core.attributesFile=/dev/null',
+  'core.fsmonitor=false',
+  'core.pager=cat',
+  'filter.lfs.clean=',
+  'filter.lfs.process=',
+  'filter.lfs.required=false',
+  'filter.lfs.smudge=',
+];
+const HARDENED_GIT_DIFF_CONFIGURATION = 'diff.external=';
+
+const createGitConfigurationArguments = (configurations) =>
+  configurations.flatMap((configuration) => ['-c', configuration]);
+
+// exact status arguments accepted by the evaluator-owned Git boundary
+export const CODEX_EVALUATION_GIT_STATUS_ARGUMENTS = Object.freeze([
+  ...createGitConfigurationArguments(HARDENED_GIT_COMMON_CONFIGURATIONS),
+  '--no-pager',
+  'status',
+  '--porcelain=v2',
+  '-z',
+  '--ignore-submodules=all',
+]);
+
+// exact prefix for a bounded diff followed by one or more repository-relative paths
+export const CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX = Object.freeze([
+  ...createGitConfigurationArguments([
+    ...HARDENED_GIT_COMMON_CONFIGURATIONS,
+    HARDENED_GIT_DIFF_CONFIGURATION,
+  ]),
+  '--no-pager',
+  'diff',
+  '--no-ext-diff',
+  '--no-textconv',
+  '--ignore-submodules=all',
+  '--',
+]);
 
 /**
- * Validates evaluator-owned top-level directories that the sandbox mounts read-only.
- * @param directoryNames The directory names that cannot contain actor-authored attributes.
- * @returns The normalized names embedded into the isolated Git wrapper.
+ * Validates evaluator-owned workspace paths that the sandbox mounts read-only.
+ * @param workspacePaths The relative paths that cannot contain actor-authored attributes.
+ * @returns The normalized paths embedded into the isolated Git wrapper.
  */
-const normalizeTrustedReadOnlyDirectoryNames = (directoryNames) => {
-  const normalizedDirectoryNames = [...new Set(directoryNames)];
-  for (const directoryName of normalizedDirectoryNames) {
+const normalizeTrustedReadOnlyWorkspacePaths = (workspacePaths) => {
+  const normalizedWorkspacePaths = [...new Set(workspacePaths)];
+  for (const workspacePath of normalizedWorkspacePaths) {
     if (
-      typeof directoryName !== 'string' ||
-      directoryName.length === 0 ||
-      directoryName === '.' ||
-      directoryName === '..' ||
-      directoryName === '.git' ||
-      directoryName.includes('/') ||
-      directoryName.includes('\\') ||
-      EXCLUDED_DIRECTORY_NAMES.has(directoryName)
+      typeof workspacePath !== 'string' ||
+      workspacePath.length === 0 ||
+      workspacePath.includes('\\') ||
+      workspacePath
+        .split('/')
+        .some(
+          (segment) =>
+            segment.length === 0 ||
+            segment === '.' ||
+            segment === '..' ||
+            EXCLUDED_DIRECTORY_NAMES.has(segment),
+        )
     ) {
-      throw new Error(`Invalid trusted read-only workspace directory: ${directoryName}.`);
+      throw new Error(`Invalid trusted read-only workspace path: ${workspacePath}.`);
     }
   }
-  return normalizedDirectoryNames.sort();
+  return normalizedWorkspacePaths.sort();
 };
 
-const TRUSTED_READ_ONLY_DIRECTORY_NAMES_PLACEHOLDER =
-  '__MOLDEA_TRUSTED_READ_ONLY_DIRECTORY_NAMES__';
+const TRUSTED_READ_ONLY_WORKSPACE_PATHS_PLACEHOLDER =
+  '__MOLDEA_TRUSTED_READ_ONLY_WORKSPACE_PATHS__';
 
 // wrapper source that prevents repository configuration from delegating Git execution
 const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
@@ -38,23 +79,15 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   "const { dirname, join, resolve, sep } = require('node:path');",
   '',
   "const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);",
-  `const TRUSTED_READ_ONLY_TOP_LEVEL_DIRECTORY_NAMES = new Set(${TRUSTED_READ_ONLY_DIRECTORY_NAMES_PLACEHOLDER});`,
+  `const TRUSTED_READ_ONLY_WORKSPACE_PATHS = new Set(${TRUSTED_READ_ONLY_WORKSPACE_PATHS_PLACEHOLDER});`,
   "const FILTER_ATTRIBUTE = Buffer.from('filter');",
   'const MAX_GIT_ATTRIBUTE_TRAVERSAL_DEPTH = 64;',
   'const MAX_GIT_ATTRIBUTE_TRAVERSAL_ENTRIES = 4_096;',
   'const MAX_GIT_FILE_BYTES = 32_768;',
   'const MAX_GIT_INSPECTION_BYTES = 32_768;',
   "const SAFE_GIT_ARGUMENTS = ['-c', 'log.showSignature=false'];",
-  'const HARDENED_GIT_COMMON_CONFIGURATIONS = new Set([',
-  "  'core.attributesFile=/dev/null',",
-  "  'core.fsmonitor=false',",
-  "  'core.pager=cat',",
-  "  'filter.lfs.clean=',",
-  "  'filter.lfs.process=',",
-  "  'filter.lfs.required=false',",
-  "  'filter.lfs.smudge=',",
-  ']);',
-  "const HARDENED_GIT_DIFF_CONFIGURATION = 'diff.external=';",
+  `const HARDENED_GIT_COMMON_CONFIGURATIONS = new Set(${JSON.stringify(HARDENED_GIT_COMMON_CONFIGURATIONS)});`,
+  `const HARDENED_GIT_DIFF_CONFIGURATION = ${JSON.stringify(HARDENED_GIT_DIFF_CONFIGURATION)};`,
   'const GIT_OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;',
   'const RELEASE_CLI_GIT_PREFIX = [',
   "  '--no-pager',",
@@ -156,7 +189,7 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '',
   'const assertWorkingTreeAttributesAreSafe = (repositoryRoot) => {',
   '  let inspectedEntryCount = 0;',
-  '  const visit = (directoryPath, depth, isWithinTrustedReadOnlyDirectory) => {',
+  '  const visit = (directoryPath, relativeDirectoryPath, depth) => {',
   '    if (depth > MAX_GIT_ATTRIBUTE_TRAVERSAL_DEPTH) {',
   "      throw new Error('Git attribute traversal exceeded the evaluator depth limit.');",
   '    }',
@@ -165,26 +198,18 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '      let entry;',
   '      while ((entry = directory.readSync()) !== null) {',
   "        if (entry.name === '.git') continue;",
-  '        const isTrustedReadOnlyDirectory =',
-  '          depth === 0 &&',
-  '          entry.isDirectory() &&',
-  '          TRUSTED_READ_ONLY_TOP_LEVEL_DIRECTORY_NAMES.has(entry.name);',
-  '        if (!isWithinTrustedReadOnlyDirectory && !isTrustedReadOnlyDirectory) {',
-  '          inspectedEntryCount += 1;',
-  '          if (inspectedEntryCount > MAX_GIT_ATTRIBUTE_TRAVERSAL_ENTRIES) {',
-  "            throw new Error('Git attribute traversal exceeded the evaluator entry limit.');",
-  '          }',
+  "        const relativePath = relativeDirectoryPath === '' ? entry.name : join(relativeDirectoryPath, entry.name);",
+  '        if (TRUSTED_READ_ONLY_WORKSPACE_PATHS.has(relativePath)) continue;',
+  '        inspectedEntryCount += 1;',
+  '        if (inspectedEntryCount > MAX_GIT_ATTRIBUTE_TRAVERSAL_ENTRIES) {',
+  "          throw new Error('Git attribute traversal exceeded the evaluator entry limit.');",
   '        }',
   '        const absolutePath = join(directoryPath, entry.name);',
   '        if (entry.isDirectory()) {',
   '          if (EXCLUDED_DIRECTORY_NAMES.has(entry.name)) {',
   "            throw new Error('An excluded directory prevents complete Git attribute inspection.');",
   '          }',
-  '          visit(',
-  '            absolutePath,',
-  '            depth + 1,',
-  '            isWithinTrustedReadOnlyDirectory || isTrustedReadOnlyDirectory,',
-  '          );',
+  '          visit(absolutePath, relativePath, depth + 1);',
   "        } else if (entry.name === '.gitattributes') {",
   '          assertAttributeFileIsSafe(absolutePath);',
   '        }',
@@ -193,7 +218,7 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '      directory.closeSync();',
   '    }',
   '  };',
-  '  visit(repositoryRoot, 0, false);',
+  "  visit(repositoryRoot, '', 0);",
   '};',
   '',
   'const listIndexedAttributePaths = (repositoryRoot) => {',
@@ -265,6 +290,38 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '  argumentsList.length === expectedArguments.length &&',
   '  argumentsList.every((argument, index) => argument === expectedArguments[index]);',
   '',
+  '/** Identifies the one literal canonical pathspec emitted by selected release CLI reads. */',
+  'const isApprovedReleaseCliPathspec = (pathspec) => {',
+  "  const prefix = ':(top,literal)';",
+  '  if (!pathspec.startsWith(prefix)) return false;',
+  '  const path = pathspec.slice(prefix.length);',
+  '  if (',
+  "    path.length === 0 || path.endsWith('/') || path.includes('\\\\') || /[\\0-\\x1f\\x7f?*[\\]{}]/u.test(path)",
+  '  ) {',
+  '    return false;',
+  '  }',
+  "  if (path.split('/').some((segment) => segment === '' || segment === '.' || segment === '..')) {",
+  '    return false;',
+  '  }',
+  '  return (',
+  "    path === 'moldea/moldea.yaml' ||",
+  "    path === 'moldea/project.md' ||",
+  '    /^moldea\\/context\\/(?:[^/]+\\/)*[^/]+\\.md$/u.test(path) ||',
+  '    /^moldea\\/decisions\\/[^/]+\\.md$/u.test(path) ||',
+  '    /^moldea\\/runtimes\\/(?:[^/]+\\/)*[^/]+\\.md$/u.test(path) ||',
+  '    /^moldea\\/agents\\/[^/]+\\/(?:description|instruction|handoff-description)\\.md$/u.test(path)',
+  '  );',
+  '};',
+  '',
+  '/** Matches a fixed release CLI inventory command with at most one canonical selection. */',
+  'const hasApprovedReleaseCliInventoryArguments = (argumentsList, expectedArguments) =>',
+  '  hasExactArguments(argumentsList, expectedArguments) ||',
+  '  (',
+  '    argumentsList.length === expectedArguments.length + 1 &&',
+  '    expectedArguments.every((argument, index) => argumentsList[index] === argument) &&',
+  '    isApprovedReleaseCliPathspec(argumentsList.at(-1))',
+  '  );',
+  '',
   "/** Allows the release CLI's finite read-only Git discovery and inventory commands. */",
   'const isApprovedReleaseCliGitCommand = (argumentsList) => {',
   '  if (',
@@ -306,7 +363,9 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   "    ['check-attr', '--stdin', '-z', 'filter', 'working-tree-encoding', 'ident'],",
   '  ];',
   '  return exactRepositoryCommands.some((expectedArguments) =>',
-  '    hasExactArguments(repositoryArguments, expectedArguments),',
+  "    expectedArguments[0] === 'ls-files'",
+  '      ? hasApprovedReleaseCliInventoryArguments(repositoryArguments, expectedArguments)',
+  '      : hasExactArguments(repositoryArguments, expectedArguments),',
   '  );',
   '};',
   '',
@@ -448,30 +507,30 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
 
 /**
  * Creates the Git wrapper source for the evaluator-owned read-only workspace paths.
- * @param trustedReadOnlyDirectoryNames Evaluator-owned top-level directories mounted read-only.
+ * @param trustedReadOnlyWorkspacePaths Evaluator-owned relative paths mounted read-only.
  * @returns The complete executable wrapper source.
  */
-const createGitCommandPolicyWrapperSource = (trustedReadOnlyDirectoryNames) =>
+const createGitCommandPolicyWrapperSource = (trustedReadOnlyWorkspacePaths) =>
   GIT_COMMAND_POLICY_WRAPPER_SOURCE.replace(
-    TRUSTED_READ_ONLY_DIRECTORY_NAMES_PLACEHOLDER,
-    JSON.stringify(trustedReadOnlyDirectoryNames),
+    TRUSTED_READ_ONLY_WORKSPACE_PATHS_PLACEHOLDER,
+    JSON.stringify(trustedReadOnlyWorkspacePaths),
   );
 
 /**
  * Installs the evaluator-owned Git boundary ahead of the system executable.
  * @param directoryPath The isolated command directory mounted first on actor PATH.
- * @param options Evaluator-owned read-only directories excluded from the repository entry budget.
+ * @param options Evaluator-owned read-only paths excluded from the repository entry budget.
  * @returns A promise that resolves to the installed wrapper path.
  * @throws
- * - If a trusted read-only directory name is invalid or conflicts with an excluded directory
+ * - If a trusted read-only workspace path is invalid or conflicts with an excluded directory
  */
 export const prepareGitCommandPolicyBoundary = async (
   directoryPath,
-  { trustedReadOnlyDirectoryNames = [] } = {},
+  { trustedReadOnlyWorkspacePaths = [] } = {},
 ) => {
   const wrapperPath = join(directoryPath, 'git');
   const wrapperSource = createGitCommandPolicyWrapperSource(
-    normalizeTrustedReadOnlyDirectoryNames(trustedReadOnlyDirectoryNames),
+    normalizeTrustedReadOnlyWorkspacePaths(trustedReadOnlyWorkspacePaths),
   );
   await mkdir(directoryPath, { recursive: true, mode: 0o700 });
   await writeFile(wrapperPath, wrapperSource, 'utf8');

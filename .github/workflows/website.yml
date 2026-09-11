@@ -13,7 +13,7 @@ on:
       - 'CNAME'
       - 'docs/**'
       - 'fixtures/conformance-cases.json'
-      - 'fixtures/release-evidence/**'
+      - 'fixtures/release-evidence.json'
       - 'fixtures/semantic-evaluation-result.json'
       - 'moldea/**'
       - 'package-lock.json'

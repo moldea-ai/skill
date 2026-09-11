@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Updated the canonical Vercel ToolLoopAgent boundaries while preserving all source. Recorded both preparation-hook inspection gaps as warnings. Strict TypeScript compilation passed, and canonical validation completed with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/vercel-ai-sdk.md"
+  ],
+  "observations": [
+    "support retains only its proved agent-definition and input-schema bindings.",
+    "step-support retains its proved agent definition, input/output schemas, and tool relationships.",
+    "All delegating-support relationships remain intact; no handoff, routing target, or subagent relationship was added.",
+    "workflowSupportAgent was not registered as a ToolLoopAgent target."
+  ],
+  "unresolved": [
+    "Runtime evidence is still required to prove support instruction, output-schema, and tool wiring survives prepareCall.",
+    "Runtime evidence is still required to prove loadStepSupportInstruction supplies the effective instruction for every prepared step."
+  ]
+}

@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-langchain-static-boundary
 title: Preserve the LangChain static boundary
 purpose: Verify conservative handling of middleware and unsupported LangChain relationship shapes.

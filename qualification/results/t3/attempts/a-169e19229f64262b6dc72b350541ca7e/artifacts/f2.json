@@ -1,0 +1,303 @@
+{
+  "caseId": "preserve-cloudflare-ai-chat-static-boundary",
+  "title": "Preserve the Cloudflare AIChatAgent static boundary",
+  "status": "failed",
+  "confirmationStatus": "rejected",
+  "durationMs": 2225209,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": true,
+      "dimensions": {
+        "semantic": false,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [
+        "semantic"
+      ],
+      "passed": false,
+      "durationMs": 546447,
+      "deterministicBeforePath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 328908,
+        "cachedInputTokens": 296448,
+        "outputTokens": 8208
+      },
+      "judgeUsage": {
+        "inputTokens": 434098,
+        "cachedInputTokens": 407168,
+        "outputTokens": 10176
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T05:54:59.939Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T05:59:50.617Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "preserves-open-tool-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/support-agent.ts directly calls streamText from SupportAgent, loads loadSupportInstruction, and combines status with ...createRuntimeTools(). moldea/moldea.yaml retains runtimeAgent and instructionLoader, declares no partial tools, and records the final registry as unresolved."
+        },
+        {
+          "id": "preserves-prepare-step-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/step-support-agent.ts directly calls streamText from StepSupportAgent and permits prepareStep to replace instructions. The step-support manifest entry retains only runtimeAgent and records instruction provenance as unresolved, without an instructionLoader binding."
+        },
+        {
+          "id": "does-not-infer-subagent-handoff",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest retains DelegatingSupportAgent, its instruction loader, delegate_support implementation, registration, and input/output schemas. src/delegation.ts merely references StepSupportAgent; neither the manifest nor runtime guide declares a handoff or routing target. Workspace hashes show all related source files unchanged."
+        },
+        {
+          "id": "preserves-unsupported-generation-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "IndirectSupportAgent and UnsupportedOutputAgent remain in their unchanged source files, while the manifest registers only support, step-support, and delegating-support. No direct-runtime or supported object-schema binding was invented for either negative control."
+        },
+        {
+          "id": "keeps-initialized-class-outside-target",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "RuntimeInitializedAgent remains unchanged in src/workflow-agent.mts and has no manifest agent entry or binding."
+        },
+        {
+          "id": "records-focused-guidance",
+          "evaluator": "judge",
+          "verdict": "fail",
+          "evidence": "Both support and step-support reference /moldea/runtimes/cloudflare-agents.md, and workspace evidence establishes it as the sole new runtime guide. It covers Durable Object bindings, new_sqlite_classes migration, provider binding/credentials, and coordinated Worker deployment, but it only describes the static limitations; it does not state alternatives such as a closed tool registry, a closed prepareStep instruction path, or focused runtime evidence."
+        },
+        {
+          "id": "records-unresolved-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml contains distinct warning records for runtime-selected-request-tools and prepare-step-instruction-provenance. Each names the relevant source path and provides a focused resolution criterion. Deterministic validation and type checking passed."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": [
+        "Requirement records-focused-guidance failed: Both support and step-support reference /moldea/runtimes/cloudflare-agents.md, and workspace evidence establishes it as the sole new runtime guide. It covers Durable Object bindings, new_sqlite_classes migration, provider binding/credentials, and coordinated Worker deployment, but it only describes the static limitations; it does not state alternatives such as a closed tool registry, a closed prepareStep instruction path, or focused runtime evidence.",
+        "Add concise static-resolution alternatives to moldea/runtimes/cloudflare-agents.md, such as using a closed tool registry or closed prepareStep instruction path, with focused runtime evidence as the fallback."
+      ]
+    },
+    {
+      "trialId": "confirmation-1",
+      "kind": "confirmation",
+      "confirmationIndex": 1,
+      "confirmationEligible": true,
+      "dimensions": {
+        "semantic": false,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [
+        "semantic"
+      ],
+      "passed": false,
+      "durationMs": 878837,
+      "deterministicBeforePath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/workspace-assertions.json",
+      "patchPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 368216,
+        "cachedInputTokens": 332800,
+        "outputTokens": 7080
+      },
+      "judgeUsage": {
+        "inputTokens": 373872,
+        "cachedInputTokens": 350464,
+        "outputTokens": 8226
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T06:06:25.098Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T06:14:29.458Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "preserves-open-tool-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml registers support with cloudflare-agents, SupportAgent, and loadSupportInstruction, while defining no partial tools binding and recording runtime-selected-request-tools as unresolved. src/support-agent.ts confirms the direct streamText call and open tools spread. Deterministic validation passed."
+        },
+        {
+          "id": "preserves-prepare-step-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "step-support registers only the cloudflare-agents runtime and StepSupportAgent, with no instructionLoader binding. src/step-support-agent.ts confirms prepareStep can replace instructions, and the manifest records that provenance as unresolved. Deterministic validation passed."
+        },
+        {
+          "id": "does-not-infer-subagent-handoff",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "delegating-support preserves its runtime agent, instruction loader, delegate_support tool, implementation, registration, and input/output schemas. src/delegation-tool.ts uses an ordinary ai tool and src/delegation.ts merely references StepSupportAgent; the manifest contains no handoff, routing, or target relationship. Workspace assertions show all related source files unchanged."
+        },
+        {
+          "id": "preserves-unsupported-generation-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/indirect-agent.ts and src/unsupported-output-agent.ts remain present and unchanged according to workspace hashes. The manifest registers only support, step-support, and delegating-support, so neither negative-control agent receives a direct runtime pattern or object-schema binding."
+        },
+        {
+          "id": "keeps-initialized-class-outside-target",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/workflow-agent.mts still defines RuntimeInitializedAgent with initializedAt = Date.now(), and workspace assertions show the file unchanged. No corresponding manifest agent or canonical agent directory exists."
+        },
+        {
+          "id": "records-focused-guidance",
+          "evaluator": "judge",
+          "verdict": "fail",
+          "evidence": "Both support and step-support reference /moldea/runtimes/cloudflare-agents.md, and targeted inspection shows it is the sole runtime Markdown guide added by the workspace patch. It covers Cloudflare Durable Object bindings, SQLite-backed migrations, provider binding, and Worker deployment configuration, but it does not describe any static alternative for closing SupportAgent's runtime tools spread or StepSupportAgent's prepareStep-controlled instruction selection."
+        },
+        {
+          "id": "records-unresolved-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest has separate warning entries for runtime-selected-request-tools and prepare-step-instruction-selection. Each names the relevant source path and provides a focused resolution criterion that distinguishes closed tool registration evidence from prepareStep instruction-provenance evidence. Deterministic validation passed."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": [
+        "Requirement records-focused-guidance failed: Both support and step-support reference /moldea/runtimes/cloudflare-agents.md, and targeted inspection shows it is the sole runtime Markdown guide added by the workspace patch. It covers Cloudflare Durable Object bindings, SQLite-backed migrations, provider binding, and Worker deployment configuration, but it does not describe any static alternative for closing SupportAgent's runtime tools spread or StepSupportAgent's prepareStep-controlled instruction selection.",
+        "Expand moldea/runtimes/cloudflare-agents.md with concise static alternatives for making the SupportAgent tool registry and StepSupportAgent instruction provenance statically inspectable, while retaining the existing Cloudflare deployment responsibilities."
+      ]
+    },
+    {
+      "trialId": "confirmation-2",
+      "kind": "confirmation",
+      "confirmationIndex": 2,
+      "confirmationEligible": true,
+      "dimensions": {
+        "semantic": false,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [
+        "semantic"
+      ],
+      "passed": false,
+      "durationMs": 799925,
+      "deterministicBeforePath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/workspace-assertions.json",
+      "patchPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-2/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 431653,
+        "cachedInputTokens": 374272,
+        "outputTokens": 8638
+      },
+      "judgeUsage": {
+        "inputTokens": 427904,
+        "cachedInputTokens": 399488,
+        "outputTokens": 10295
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T06:21:09.125Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T06:27:49.385Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "preserves-open-tool-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml binds support to cloudflare-agents, SupportAgent, and loadSupportInstruction; it declares no partial support tool set and records runtime-selected-tools with /src/support-agent.ts and a concrete resolution. src/support-agent.ts directly calls streamText and spreads createRuntimeTools()."
+        },
+        {
+          "id": "preserves-prepare-step-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "step-support binds only StepSupportAgent to cloudflare-agents and has no instructionLoader binding. src/step-support-agent.ts confirms prepareStep can provide instructions. Its hash is unchanged before and after."
+        },
+        {
+          "id": "does-not-infer-subagent-handoff",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "delegating-support retains runtime, instruction-loader, registration, implementation, input-schema, and output-schema bindings for delegate_support. No handoff or routing target appears. The relevant source hashes are unchanged, and only the manifest and runtime guide changed."
+        },
+        {
+          "id": "preserves-unsupported-generation-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/indirect-agent.ts and src/unsupported-output-agent.ts remain byte-identical to the before-state. Neither class appears in the manifest, and moldea/agents contains only support, step-support, and delegating-support."
+        },
+        {
+          "id": "keeps-initialized-class-outside-target",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/workflow-agent.mts still defines RuntimeInitializedAgent with initializedAt = Date.now() and is byte-identical to the before-state. The class has no manifest entry or canonical agent directory."
+        },
+        {
+          "id": "records-focused-guidance",
+          "evaluator": "judge",
+          "verdict": "fail",
+          "evidence": "support and step-support both reference /moldea/runtimes/cloudflare-agents.md, the sole runtime guide. It covers Durable Object bindings, SQLite new_sqlite_classes migration, provider credentials/binding, and Worker deployment responsibilities, but contains no static alternatives for closing the runtime-tools or prepareStep boundaries."
+        },
+        {
+          "id": "records-unresolved-boundaries",
+          "evaluator": "judge",
+          "verdict": "fail",
+          "evidence": "moldea/moldea.yaml has a focused runtime-selected-tools warning for support, including source path and resolution, but step-support has no unresolved warning describing prepareStep instruction replacement, no related /src/step-support-agent.ts path, and no resolution."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": [
+        "Requirement records-focused-guidance failed: support and step-support both reference /moldea/runtimes/cloudflare-agents.md, the sole runtime guide. It covers Durable Object bindings, SQLite new_sqlite_classes migration, provider credentials/binding, and Worker deployment responsibilities, but contains no static alternatives for closing the runtime-tools or prepareStep boundaries.",
+        "Requirement records-unresolved-boundaries failed: moldea/moldea.yaml has a focused runtime-selected-tools warning for support, including source path and resolution, but step-support has no unresolved warning describing prepareStep instruction replacement, no related /src/step-support-agent.ts path, and no resolution.",
+        "Add a distinct step-support unresolved warning for prepareStep instruction replacement, including /src/step-support-agent.ts and concrete resolution criteria.",
+        "Extend moldea/runtimes/cloudflare-agents.md with concise static alternatives for both the open tool registry and prepareStep-controlled instruction boundary."
+      ]
+    }
+  ],
+  "failures": [
+    "Requirement records-focused-guidance failed: support and step-support both reference /moldea/runtimes/cloudflare-agents.md, the sole runtime guide. It covers Durable Object bindings, SQLite new_sqlite_classes migration, provider credentials/binding, and Worker deployment responsibilities, but contains no static alternatives for closing the runtime-tools or prepareStep boundaries.",
+    "Requirement records-unresolved-boundaries failed: moldea/moldea.yaml has a focused runtime-selected-tools warning for support, including source path and resolution, but step-support has no unresolved warning describing prepareStep instruction replacement, no related /src/step-support-agent.ts path, and no resolution.",
+    "Add a distinct step-support unresolved warning for prepareStep instruction replacement, including /src/step-support-agent.ts and concrete resolution criteria.",
+    "Extend moldea/runtimes/cloudflare-agents.md with concise static alternatives for both the open tool registry and prepareStep-controlled instruction boundary."
+  ],
+  "reuse": null
+}

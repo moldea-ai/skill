@@ -1,11 +1,12 @@
-import type {
-  IQualificationAttemptCheckpoint,
-  IQualificationAttemptResult,
-  IQualificationRecordedLatestResult,
-} from '../contracts/index.ts';
+import type { IQualificationAttemptResult } from '../contracts/index.ts';
 import type { IQualificationImplementation } from '../compatibility/index.ts';
-import type { IUnavailableLocalAttempt } from '../execution/index.ts';
 import type { IQualificationResultVerification } from '../result/index.ts';
+import type {
+  IQualificationStatusAttempt,
+  IQualificationStatusLatestResult,
+  IQualificationStatusPage,
+  IQualificationStatusUnavailableAttempt,
+} from '../status/index.ts';
 
 /** Writes one stable JSON document or concise human report to stdout. */
 export const presentQualificationOutput = (
@@ -31,49 +32,62 @@ export const formatImplementationList = (
     .join('\n');
 
 /** Formats local checkpoints and committed latest pointers for status inspection. */
-export const formatQualificationStatus = (options: {
-  attempts: readonly IQualificationAttemptCheckpoint[];
-  unavailableAttempts: readonly IUnavailableLocalAttempt[];
-  latestResults: readonly IQualificationRecordedLatestResult[];
-}): string => {
-  const lines = ['Local attempts:'];
+export const formatQualificationStatus = (page: IQualificationStatusPage): string => {
+  const attempts = page.records.filter(
+    (record): record is IQualificationStatusAttempt => record.kind === 'attempt',
+  );
+  const unavailableAttempts = page.records.filter(
+    (record): record is IQualificationStatusUnavailableAttempt =>
+      record.kind === 'unavailable-attempt',
+  );
+  const latestResults = page.records.filter(
+    (record): record is IQualificationStatusLatestResult => record.kind === 'latest-result',
+  );
+  const lines = [
+    `Status scope: ${page.scope}`,
+    `Snapshot: ${page.snapshot}`,
+    `Page records: ${page.records.length} of ${page.counts.total}`,
+    'Local attempts:',
+  ];
 
-  if (options.attempts.length === 0) {
+  if (attempts.length === 0) {
     lines.push('  none');
   } else {
     lines.push(
-      ...options.attempts.map(
+      ...attempts.map(
         (attempt) =>
-          `  ${attempt.attemptId}  ${attempt.selection.adapterId}/${attempt.selection.implementationId}  ${attempt.status}`,
+          `  ${attempt.attemptId}  ${attempt.adapterId}/${attempt.implementationId}  ${attempt.status}`,
       ),
     );
   }
 
   lines.push('Unavailable local attempts:');
 
-  if (options.unavailableAttempts.length === 0) {
+  if (unavailableAttempts.length === 0) {
     lines.push('  none');
   } else {
     lines.push(
-      ...options.unavailableAttempts.map((attempt) => {
+      ...unavailableAttempts.map((attempt) => {
         const protocol = attempt.protocolVersion === null ? 'unknown' : attempt.protocolVersion;
-        return `  ${attempt.attemptId}  protocol ${protocol}  ${attempt.kind}`;
+        return `  ${attempt.attemptId}  protocol ${protocol}  ${attempt.reason}`;
       }),
     );
   }
 
   lines.push('Committed latest results:');
 
-  if (options.latestResults.length === 0) {
+  if (latestResults.length === 0) {
     lines.push('  none');
   } else {
     lines.push(
-      ...options.latestResults.map(
+      ...latestResults.map(
         (latest) =>
           `  ${latest.adapterId}/${latest.implementationId}  ${latest.latestStatus}  ${latest.latestAttemptId}`,
       ),
     );
   }
+
+  lines.push(`Next cursor: ${page.nextCursor ?? 'none'}`);
 
   return lines.join('\n');
 };

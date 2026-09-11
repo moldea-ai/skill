@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, deterministic post-actor validation, workspace assertions, and Git diff agree. The billing context is correctly registered and assigned, and the support instruction retains its opening identity while adding clear usage guidance. This inspection was read-only and changed no files.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "`/moldea/context/billing.md` exists with billing guidance. `moldea/moldea.yaml` registers it globally under `context`, declares exact `affectedBy: /src/billing.ts`, and assigns it to `agents.support.context`. The workspace patch shows those manifest additions; workspace assertions establish the context file was newly added; the scope result confirms the exact context-to-source relationship; deterministic validation reports valid structure, zero failures, and passing typecheck."
+    },
+    {
+      "id": "updates-instruction",
+      "verdict": "pass",
+      "evidence": "The current `moldea/agents/support/instruction.md` says to consult billing context for refund or invoice questions and explains evidence/escalation limits. The Git diff shows this paragraph was appended while preserving the opening heading and required identity sentence: `You are the support agent.`"
+    }
+  ],
+  "failures": []
+}

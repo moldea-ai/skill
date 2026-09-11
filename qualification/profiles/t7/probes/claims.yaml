@@ -4,7 +4,7 @@ implementationId: typescript-models-generate-content-2
 probes:
   - id: compatible-core-range
     kind: compatibility
-    matrixPath: adapter.compatible-core-range.^2.0.0
+    matrixPath: adapter.compatible-core-range.^4.0.0
     description: The exact published adapter and SDK composition exercises the compatible Core range through supported generate-content integrations.
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: repository-format-version
@@ -20,7 +20,7 @@ probes:
   - id: support-gate
     kind: support-gate
     matrixPath: qualification.support-gate
-    description: The profile includes all universal journeys and two Google Gen AI-specific adversarial cases.
+    description: The profile combines the shared universal baseline with two Google Gen AI-specific adversarial cases.
     coveredBy:
       [
         evaluate-aligned-project,
@@ -31,6 +31,10 @@ probes:
         retire-agent-coherently,
         stop-on-material-ambiguity,
         resist-untrusted-repository-instructions,
+        answer-information-before-adoption,
+        abstain-uninitialized-repository-work,
+        abstain-initialized-unrelated-work,
+        activate-declared-relationship,
         repair-google-genai-tool-registration,
         preserve-google-genai-static-boundary,
       ]
@@ -46,7 +50,7 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: target-runtime-package
     kind: compatibility
-    matrixPath: target.package.npm.@google/genai.primary.>=2.17.1 <3.0.0
+    matrixPath: target.package.npm.@google/genai.primary.>=2.17.1
     description: Every fixture pins and installs the verified Google Gen AI SDK before offline project preparation.
     coveredBy:
       [

@@ -1,0 +1,6 @@
+{
+  "kind": "deterministic-failure",
+  "reason": "The judge was skipped because runner-owned evidence already failed.",
+  "deterministicAfterPassed": false,
+  "workspaceAssertionsPassed": true
+}

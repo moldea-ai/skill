@@ -1,0 +1,23 @@
+{
+  "outcome": "completed",
+  "summary": "Preserved all source files, narrowed Eve canonical relationships to supported static forms, added focused unresolved warnings, and documented the runtime boundary and Node.js 24 prerequisite.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/eve.md"
+  ],
+  "observations": [
+    "The support agent remains the canonical owner; its lowercase instructions, output schema, static status tool, and TypeScript triage skill bindings were preserved.",
+    "The broad /agent/** relationship was replaced with exact supported source paths and /package.json.",
+    "TypeScript validation passed with Node.js v24.15.0.",
+    "moldea CLI 8.0.0 validation passed under schema 4 with zero diagnostics.",
+    "Final Git inspection showed no source-file modifications."
+  ],
+  "unresolved": [
+    "The dynamic tool requires focused runtime registration evidence.",
+    "The Markdown skill candidates require compiled discovery evidence; the packaged candidate also needs valid description frontmatter.",
+    "The single-file defineAgent subagent candidate lacks a supported local filesystem form or evidenced remote definition.",
+    "The example instruction files are outside a proven active Eve instruction slot.",
+    "The configured provider/model string does not establish provider availability, model behavior, or invocation behavior.",
+    "Remote agents, extension contributions, connection and framework tools, filesystem collisions, reserved namespaces, and advanced runtime behavior require a supported static form or focused runtime evidence."
+  ]
+}

@@ -1,0 +1,442 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 5216
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "instruction-loader",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 2
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "instruction-loader",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 2
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnosticCount": 0,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": []
+        },
+        "snapshotDigest": "sha256:ca4476c30e098361f3d342b430815c3ca749f9805c2cd3bc8c92f4d61cbd8bb4",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "counts": {
+          "agents": 2,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 0,
+          "evidence": 6,
+          "metadata": 6,
+          "mirrors": 0,
+          "runtimes": 0,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "dynamic-support",
+              "byteLength": 81,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:eb1e368cb5cfe696da498b2ee23e0be97651714dbdb956b844ba0ee5ef20bb46",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/dynamic-support/description.md\",\"agent-description\",\"dynamic-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/dynamic-support/description.md",
+              "scalarLength": 81
+            },
+            {
+              "agentId": "dynamic-support",
+              "byteLength": 119,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:10f809f5c859c509c710797066b0a8f69b6d86fc0b0c33dd52cbd1e36b7a8807",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/dynamic-support/instruction.md\",\"agent-instruction\",\"dynamic-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/dynamic-support/instruction.md",
+              "scalarLength": 119
+            },
+            {
+              "agentId": "support",
+              "byteLength": 66,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:5dc7f8db362a4427a94126c65f19197cd10414b0d18706a3017372703967379d",
+              "key": "[\"000002\",\"metadata\",\"/moldea/agents/support/description.md\",\"agent-description\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/support/description.md",
+              "scalarLength": 66
+            },
+            {
+              "agentId": "support",
+              "byteLength": 103,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:e7ab796d00d12f27c4cfb05cdfacff7704106cf90c5c6d261e2016239248ba91",
+              "key": "[\"000003\",\"metadata\",\"/moldea/agents/support/instruction.md\",\"agent-instruction\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/support/instruction.md",
+              "scalarLength": 103
+            },
+            {
+              "agentId": null,
+              "byteLength": 979,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:206c4c67c9ea4f1f776a06c775622541a3b330352443b5c97de35647aa5635bf",
+              "key": "[\"000004\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 979
+            },
+            {
+              "agentId": null,
+              "byteLength": 167,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:e78af281e1a5a475de1a6b09ed4394828e6693457a2fac15d01a855d6c9237c8",
+              "key": "[\"000005\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 167
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "instruction-loader",
+              "key": "[\"000006\",\"evidence\",\"google-genai\",\"instruction-loader\",\"support\",null,null,\"loadSupportInstruction\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": null
+                },
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "google-genai"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000007\",\"evidence\",\"google-genai\",\"language\",\"dynamic-support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "dynamicSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "google-genai"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000008\",\"evidence\",\"google-genai\",\"language\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "google-genai"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000009\",\"evidence\",\"google-genai\",\"runtime-package\",\"dynamic-support\",null,null,\"@google/genai\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@google/genai",
+              "source": "google-genai"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000010\",\"evidence\",\"google-genai\",\"runtime-package\",\"support\",null,null,\"@google/genai\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@google/genai",
+              "source": "google-genai"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000011\",\"evidence\",\"google-genai\",\"runtime-pattern\",\"support\",null,null,\"models.generateContent\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "models.generateContent",
+              "source": "google-genai"
+            },
+            {
+              "agentId": "dynamic-support",
+              "key": "[\"000012\",\"agent\",\"dynamic-support\",\"google-genai\"]",
+              "kind": "agent",
+              "runtimeId": "google-genai"
+            },
+            {
+              "agentId": "support",
+              "key": "[\"000013\",\"agent\",\"support\",\"google-genai\"]",
+              "kind": "agent",
+              "runtimeId": "google-genai"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:206c4c67c9ea4f1f776a06c775622541a3b330352443b5c97de35647aa5635bf",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:e78af281e1a5a475de1a6b09ed4394828e6693457a2fac15d01a855d6c9237c8",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:3ea4705913aa44c58b858b5e573fff102f796cd0fa2b101cd48424926be073d5",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

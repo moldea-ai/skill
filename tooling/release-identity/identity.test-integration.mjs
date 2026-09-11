@@ -11,14 +11,16 @@ import { inspectReleaseIdentity, readReleaseIdentity } from './identity.mjs';
 const REPOSITORY_ROOT = resolve(import.meta.dirname, '..', '..');
 const IDENTITY_PATHS = [
   ...Object.values(RELEASE_PATHS).filter(
-    (relativePath) => relativePath !== RELEASE_PATHS.semanticResult,
+    (relativePath) =>
+      relativePath !== RELEASE_PATHS.releaseEvidence &&
+      relativePath !== RELEASE_PATHS.semanticResult,
   ),
   'docs/compatibility-and-local-tooling.md',
 ];
 
 test('release identity inspection detects a stale maintained copy', () => {
   assert.deepEqual(inspectReleaseIdentity(REPOSITORY_ROOT), []);
-  const { cliVersion } = readReleaseIdentity(REPOSITORY_ROOT);
+  const { cliVersionRange } = readReleaseIdentity(REPOSITORY_ROOT);
   const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-identity-'));
 
   try {
@@ -61,7 +63,7 @@ test('release identity inspection detects a stale maintained copy', () => {
       'utf8',
     );
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), [
-      `The semantic CLI fixture JSON schema version is not ${semanticCliManifest.moldeaRelease.cliJsonSchemaVersion}.`,
+      `The semantic CLI fixture JSON schema version is not ${readReleaseIdentity(REPOSITORY_ROOT).cliJsonSchemaVersion}.`,
     ]);
     writeFileSync(
       semanticCliManifestPath,
@@ -70,17 +72,27 @@ test('release identity inspection detects a stale maintained copy', () => {
     );
 
     const compatibilityPath = join(temporaryRoot, 'docs', 'compatibility-and-local-tooling.md');
+    const compatibilitySource = readFileSync(compatibilityPath, 'utf8');
     writeFileSync(
       compatibilityPath,
-      readFileSync(compatibilityPath, 'utf8').replace(
-        `@moldea.ai/cli ${cliVersion}`,
-        '@moldea.ai/cli 0.0.0',
-      ),
+      compatibilitySource.replaceAll(cliVersionRange, '^999.0.0'),
       'utf8',
     );
 
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), [
-      `docs/compatibility-and-local-tooling.md is missing: - \`@moldea.ai/cli ${cliVersion}\``,
+      `docs/compatibility-and-local-tooling.md does not name CLI range ${cliVersionRange}.`,
+    ]);
+
+    writeFileSync(
+      compatibilityPath,
+      `${compatibilitySource}\nCLI v4.0.2 is unsupported.\n`,
+      'utf8',
+    );
+    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
+
+    writeFileSync(compatibilityPath, `${compatibilitySource}\nSkill 4.0.2 is supported.\n`, 'utf8');
+    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), [
+      'Current user-facing release text contains an obsolete release reference.',
     ]);
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });

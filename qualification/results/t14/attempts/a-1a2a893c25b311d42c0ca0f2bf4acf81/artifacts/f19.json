@@ -1,0 +1,48 @@
+{
+  "role": "actor",
+  "trialId": "confirmation-2",
+  "createdAt": "2026-09-11T08:19:01.080Z",
+  "durationMs": 198387,
+  "usage": {
+    "inputTokens": 288900,
+    "cachedInputTokens": 266880,
+    "outputTokens": 6870
+  },
+  "stageIdentity": "11e97c3b299a8ef18ceea6186bbff273abcd4e31515e153957b3868d3879c54f",
+  "sourceAttemptId": "20260911T054140998Z-vercel-ai-sdk-typescript-tool-loop-agent-7-40a0c844",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 16,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 63130,
+    "moldeaCommandCount": 3,
+    "moldeaOutputByteCount": 18189,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 4,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 4
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 4,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 4
+        }
+      ]
+    }
+  }
+}

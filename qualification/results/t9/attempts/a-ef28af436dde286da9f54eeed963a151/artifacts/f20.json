@@ -1,0 +1,38 @@
+{
+  "role": "actor",
+  "trialId": "confirmation-1",
+  "createdAt": "2026-09-11T07:04:21.766Z",
+  "durationMs": 172362,
+  "usage": {
+    "inputTokens": 378771,
+    "cachedInputTokens": 326784,
+    "outputTokens": 7136
+  },
+  "stageIdentity": "22069e4f24ac9da95fcbfbf3721fa9339d3be39e33497129339e09b0cd70710d",
+  "sourceAttemptId": "20260911T054140998Z-langgraph-typescript-functional-api-1-4-d536eaf3",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 16,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 31740,
+    "moldeaCommandCount": 2,
+    "moldeaOutputByteCount": 792,
+    "networkAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    },
+    "sensitiveAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    }
+  }
+}

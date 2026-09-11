@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The actor report agrees with the current repository and deterministic post-actor evidence. The scoped files match the supplied before/after hashes, `changedPaths` is empty, and the repository is reported unchanged and valid.",
+  "requirements": [
+    {
+      "id": "explains-direct-evidence",
+      "verdict": "pass",
+      "evidence": "`src/agents.ts` shows `supportAgent` directly invoking `client.messages.create({...})`, with `system: await loadSupportInstruction()`. The loader reads `/moldea/agents/support/instruction.md`. `moldea/moldea.yaml` records the matching `runtimeAgent` and `instructionLoader` bindings, consistent with the actor report and unchanged deterministic state."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "verdict": "pass",
+      "evidence": "The source declares `providerWebSearchTool` with Anthropic provider-tool type `web_search_20250305`. The manifest records no client-tool, schema, routing, or handoff relationship, and the scoped canonical tree contains no corresponding assets. This matches the actor's conservative explanation and the unchanged deterministic evidence."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "verdict": "pass",
+      "evidence": "`dynamicSupportAgent` constructs `request` separately before passing it to `client.messages.create(request)`. The manifest records only the Anthropic runtime and runtime-agent binding, while retaining the `indirect-request-construction` runtime-pattern warning. Its concrete resolution is to pass a closed request object directly or document the relationship through a supported adapter pattern. The deterministic result reports valid structure and no repository changes."
+    }
+  ],
+  "failures": []
+}

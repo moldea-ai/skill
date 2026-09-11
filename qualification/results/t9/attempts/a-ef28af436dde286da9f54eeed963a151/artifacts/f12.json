@@ -1,0 +1,37 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, approved Git evidence, and deterministic results agree: the two runtime-agent bindings and all source workflows are preserved, while one shared LangGraph guide and focused unresolved records document the static boundary. The judge inspection was read-only.",
+  "requirements": [
+    {
+      "id": "preserves-direct-patterns",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` retains support's `runtimeAgent` binding to `/src/support-workflow.ts` symbol `supportWorkflow`. The current source still directly calls `lookupOrder`, reads `getPreviousState`, invokes `interrupt`, and returns separate `entrypoint.final` value/save fields. Deterministic validation and typecheck passed."
+    },
+    {
+      "id": "preserves-typescript-schema-boundary",
+      "verdict": "pass",
+      "evidence": "The workflow sources retain TypeScript input, result, and saved-state typing. The manifest records `typescript-runtime-contracts` as unresolved and states that annotations do not establish runtime validation or an executable model-facing schema; it declares no executable schema relationship. Deterministic validation and typecheck passed."
+    },
+    {
+      "id": "preserves-control-flow-boundary",
+      "verdict": "pass",
+      "evidence": "`src/dynamic-support-workflow.ts` still selects a task from `input.route`, invokes it through `runSelectedTask`, and calls `summarize` inside a mapped callback. The patch adds unresolved `indirect-task-calls`, `dynamic-control-flow`, and `routing-classification` records without routing targets, handoffs, subagents, or topology."
+    },
+    {
+      "id": "keeps-tasks-outside-capabilities",
+      "verdict": "pass",
+      "evidence": "The manifest states that task declarations do not prove model-visible tools, skills, or agent capabilities. It contains no tools, skills, handoffs, or subagent declarations; the corresponding canonical paths are absent, and the Git patch adds none."
+    },
+    {
+      "id": "preserves-runtime-semantics-boundary",
+      "verdict": "pass",
+      "evidence": "The new `functional-api-runtime-semantics` unresolved record and `/moldea/runtimes/langgraph.md` require runtime configuration and focused integration evidence for checkpointer/persistence behavior, replay and idempotency guarantees, interrupt resumption, and approval authorization. The patch removes `/src/runtime-boundaries.ts` from `affectedBy`, avoiding elevation of its static labels into runtime proof while preserving the source file."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "Both `agents.support.runtime.guidance` and `agents.dynamic-support.runtime.guidance` reference `/moldea/runtimes/langgraph.md`. It is the sole Markdown file under `moldea/runtimes`, is recorded as newly present by the before/after assertions and Git status, and concisely covers lexical call patterns, schema and capability limits, routing, nested invocation handling, and runtime semantics."
+    }
+  ],
+  "failures": []
+}

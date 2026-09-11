@@ -6,14 +6,36 @@ import { homedir } from 'node:os';
 import { basename, delimiter, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
+
 import { prepareGitCommandPolicyBoundary } from './git-command-policy-boundary.mjs';
 
 // fixed model contract shared by local evaluation workflows
 export const CODEX_EVALUATION_MODEL = 'gpt-5.6-sol';
 export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
-export const CODEX_EVALUATION_REASONING_EFFORT = 'medium';
+export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT = 'xhigh';
+export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT = 'xhigh';
+const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
+  'You are running inside a closed local evaluation workspace. Do not use network clients unless ' +
+  'the natural task explicitly states that the evaluator provides a fixed local probe. A URL or a ' +
+  'need for current evidence does not grant network access. When the natural task explicitly grants ' +
+  'a current-publication probe, invoke it as `curl --fail --silent --show-error --location -- ' +
+  '<the exact publication URL named in task-owned instructions>`. Do not ' +
+  'perform Git network operations, invoke package managers or installers, call providers ' +
+  'or models, use subagents, inspect environment variables or authentication state, access the ' +
+  'evaluator home, or access filesystem paths outside the current workspace except evaluator-provided ' +
+  'read-only repositories explicitly named by the current task. Required dependencies and fixtures ' +
+  'are already present. Host-injected system-skill paths are unavailable; if an exact lookup fails, ' +
+  'do not search evaluator home for a substitute. Use only local workspace files and direct local executables. ' +
+  'When repository tests are needed, invoke Node directly with explicit repository-relative test paths.';
+const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG = JSON.stringify(
+  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS,
+);
+export const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 = createHash('sha256')
+  .update(CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS)
+  .digest('hex');
 
-export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS = 300_000;
+export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS = 900_000;
 export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS = [
   'api.openai.com',
   'auth.openai.com',
@@ -36,7 +58,7 @@ const RETRYABLE_CODEX_EVALUATION_HOST_FAILURE_KINDS = new Set([
 const EGRESS_PROXY_PATH = fileURLToPath(new URL('./proxy.mjs', import.meta.url));
 const EGRESS_PROXY_PORT = 3128;
 const EGRESS_PROXY_SHUTDOWN_TIMEOUT_MS = 5_000;
-const MAX_HOST_OUTPUT_BYTES = 16 * 1024 * 1024;
+const MAX_HOST_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostOutputBytes;
 const NODE_EXECUTABLE_PATH = realpathSync(process.execPath);
 const REQUIRED_CODEX_FLAGS = [
   '--ephemeral',
@@ -45,8 +67,16 @@ const REQUIRED_CODEX_FLAGS = [
   '--skip-git-repo-check',
 ];
 const REQUIRED_CODEX_CONFIG = ['shell_environment_policy.inherit=none'];
+const REQUIRED_CODEX_FEATURE = 'skip_host_skill_discovery';
 const SAFE_HOST_ENVIRONMENT_NAMES = ['OPENAI_API_KEY', 'OPENAI_BASE_URL', 'SSL_CERT_FILE'];
 const EXCLUDED_WORKSPACE_PATH_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+
+/** Resolves the runner-owned effort for one closed evaluation role. */
+const getCodexEvaluationReasoningEffort = (role) => {
+  if (role === 'actor') return CODEX_EVALUATION_ACTOR_REASONING_EFFORT;
+  if (role === 'judge') return CODEX_EVALUATION_JUDGE_REASONING_EFFORT;
+  throw new Error(`Unsupported Codex evaluation role: ${role}.`);
+};
 
 /** Identifies one controlled evaluation-host failure without exposing provider diagnostics. */
 export class CodexEvaluationHostError extends Error {
@@ -95,6 +125,12 @@ const resolveReadOnlyWorkspacePaths = (cwd, paths) =>
     }
     return { source, target: `/mnt/${path}` };
   });
+
+/** Returns the exact workspace paths protected by evaluator-owned read-only overlays. */
+const getProtectedWorkspacePaths = (readOnlyWorkspacePaths, includeWorkspaceBinaryDirectory) =>
+  includeWorkspaceBinaryDirectory
+    ? [...new Set([...readOnlyWorkspacePaths, 'node_modules'])]
+    : [...new Set(readOnlyWorkspacePaths)];
 
 /**
  * Parses one non-interactive Codex command from an environment variable.
@@ -172,8 +208,9 @@ const validateBaseHostCommand = (command) => {
   }
 };
 
-/** Returns one command-level Codex configuration assignment when present. */
-const identifyConfiguredValue = (command, key) => {
+/** Returns every command-level Codex configuration assignment for one exact key. */
+const identifyConfiguredValues = (command, key) => {
+  const configuredValues = [];
   for (const [index, commandPart] of command.entries()) {
     const assignment =
       commandPart === '-c' || commandPart === '--config'
@@ -187,12 +224,15 @@ const identifyConfiguredValue = (command, key) => {
     if (separatorIndex === -1) continue;
     if (assignment.slice(0, separatorIndex).trim() !== key) continue;
 
-    const configuredValue = assignment.slice(separatorIndex + 1).trim();
-    if (configuredValue) return configuredValue;
+    configuredValues.push(assignment.slice(separatorIndex + 1).trim());
   }
 
-  return undefined;
+  return configuredValues;
 };
+
+/** Returns the first non-empty command-level Codex configuration value when present. */
+const identifyConfiguredValue = (command, key) =>
+  identifyConfiguredValues(command, key).find((configuredValue) => configuredValue !== '');
 
 /**
  * Returns the explicit Codex model in one host command.
@@ -230,10 +270,12 @@ export const identifyConfiguredReasoningEffort = (command) => {
 /**
  * Adds the runner-owned model contract to one validated base command.
  * @param command The caller-provided base Codex command.
+ * @param role The closed evaluation role that owns reasoning effort.
  * @returns The complete executable command.
  */
-export const buildCodexEvaluationHostCommand = (command) => {
+export const buildCodexEvaluationHostCommand = (command, role) => {
   validateBaseHostCommand(command);
+  const reasoningEffort = getCodexEvaluationReasoningEffort(role);
   const hasModelOverride = command.some(
     (commandPart) =>
       commandPart === '--model' ||
@@ -252,33 +294,75 @@ export const buildCodexEvaluationHostCommand = (command) => {
       'The evaluation host command must not override the runner-owned reasoning effort.',
     );
   }
+  if (identifyConfiguredValues(command, 'developer_instructions').length > 0) {
+    throw new Error(
+      'The evaluation host command must not override the runner-owned developer instructions.',
+    );
+  }
+  if (
+    command.some(
+      (commandPart, index) =>
+        ((commandPart === '--enable' || commandPart === '--disable') &&
+          command[index + 1] === REQUIRED_CODEX_FEATURE) ||
+        commandPart === `--enable=${REQUIRED_CODEX_FEATURE}` ||
+        commandPart === `--disable=${REQUIRED_CODEX_FEATURE}`,
+    )
+  ) {
+    throw new Error('The evaluation host command must not override host skill discovery.');
+  }
 
   const effectiveCommand = [
     ...command.slice(0, -1),
+    '--enable',
+    REQUIRED_CODEX_FEATURE,
     '--model',
     CODEX_EVALUATION_MODEL,
     '-c',
-    `model_reasoning_effort=${CODEX_EVALUATION_REASONING_EFFORT}`,
+    `model_reasoning_effort=${reasoningEffort}`,
+    '-c',
+    `developer_instructions=${CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG}`,
     '-',
   ];
-  validateCodexEvaluationHostCommand(effectiveCommand);
+  validateCodexEvaluationHostCommand(effectiveCommand, role);
 
   return effectiveCommand;
 };
 
 /**
- * Requires the complete sandbox, model, and reasoning contract.
+ * Requires the complete sandbox, model, reasoning, and developer-policy contract.
  * @param command The complete Codex command.
+ * @param role The closed evaluation role that owns reasoning effort.
  */
-export const validateCodexEvaluationHostCommand = (command) => {
+export const validateCodexEvaluationHostCommand = (command, role) => {
   validateBaseHostCommand(command);
+  const enabledHostSkillDiscoveryFeatures = command.filter(
+    (commandPart, index) =>
+      (commandPart === '--enable' && command[index + 1] === REQUIRED_CODEX_FEATURE) ||
+      commandPart === `--enable=${REQUIRED_CODEX_FEATURE}`,
+  );
+  if (
+    enabledHostSkillDiscoveryFeatures.length !== 1 ||
+    command.some(
+      (commandPart, index) =>
+        (commandPart === '--disable' && command[index + 1] === REQUIRED_CODEX_FEATURE) ||
+        commandPart === `--disable=${REQUIRED_CODEX_FEATURE}`,
+    )
+  ) {
+    throw new Error('Codex evaluation must disable host skill discovery.');
+  }
+  const reasoningEffort = getCodexEvaluationReasoningEffort(role);
   if (identifyConfiguredModel(command) !== CODEX_EVALUATION_MODEL) {
     throw new Error(`Codex evaluation must use ${CODEX_EVALUATION_MODEL}.`);
   }
-  if (identifyConfiguredReasoningEffort(command) !== CODEX_EVALUATION_REASONING_EFFORT) {
-    throw new Error(
-      `Codex evaluation must use ${CODEX_EVALUATION_REASONING_EFFORT} reasoning effort.`,
-    );
+  if (identifyConfiguredReasoningEffort(command) !== reasoningEffort) {
+    throw new Error(`Codex evaluation ${role} must use ${reasoningEffort} reasoning effort.`);
+  }
+  const developerInstructions = identifyConfiguredValues(command, 'developer_instructions');
+  if (
+    developerInstructions.length !== 1 ||
+    developerInstructions[0] !== CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG
+  ) {
+    throw new Error('Codex evaluation must use the runner-owned developer instructions.');
   }
 };
 
@@ -322,17 +406,21 @@ export const resolveCodeModeHostPath = (hostExecutable) => {
 /**
  * Returns non-sensitive identity metadata for one configured Codex host.
  * @param command The complete Codex command.
+ * @param role The closed evaluation role represented by the command.
  * @returns The host identity recorded with evaluation evidence.
  */
-export const identifyCodexEvaluationHost = (command) => {
+export const identifyCodexEvaluationHost = (command, role) => {
+  validateCodexEvaluationHostCommand(command, role);
   const versionResult = spawnSync(command[0], ['--version'], {
     encoding: 'utf8',
   });
 
   return {
+    developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
     model: identifyConfiguredModel(command),
     name: basename(command[0]),
     reasoningEffort: identifyConfiguredReasoningEffort(command),
+    role,
     version:
       versionResult.status === 0
         ? versionResult.stdout.trim() || versionResult.stderr.trim()
@@ -348,6 +436,11 @@ export const identifyCodexEvaluationHost = (command) => {
 export const prepareCodexEvaluationHome = async (sandboxHome) => {
   const sandboxCodexHome = join(sandboxHome, '.codex');
   await mkdir(sandboxCodexHome, { recursive: true, mode: 0o700 });
+  await mkdir(join(sandboxCodexHome, 'skills'), {
+    recursive: true,
+    mode: 0o700,
+  });
+  await mkdir(join(sandboxHome, 'tmp'), { recursive: true, mode: 0o700 });
 
   const sourceCodexHome = process.env.CODEX_HOME ?? join(homedir(), '.codex');
   try {
@@ -453,9 +546,10 @@ export const buildCodexEvaluationBwrapArguments = ({
   statusFileDescriptor,
   workspaceAccess = 'read-write',
 }) => {
-  const protectedWorkspacePaths = includeWorkspaceBinaryDirectory
-    ? [...new Set([...readOnlyWorkspacePaths, 'node_modules'])]
-    : readOnlyWorkspacePaths;
+  const protectedWorkspacePaths = getProtectedWorkspacePaths(
+    readOnlyWorkspacePaths,
+    includeWorkspaceBinaryDirectory,
+  );
   const workspaceOverlays = resolveReadOnlyWorkspacePaths(cwd, protectedWorkspacePaths);
 
   return [
@@ -529,6 +623,9 @@ export const buildCodexEvaluationBwrapArguments = ({
     '--bind',
     sandboxHome,
     '/home/evaluator',
+    '--ro-bind-try',
+    join(sandboxHome, '.codex', 'skills'),
+    '/home/evaluator/.codex/skills',
     '--ro-bind',
     join(sandboxHome, 'bin'),
     '/home/evaluator/bin',
@@ -543,7 +640,8 @@ export const buildCodexEvaluationBwrapArguments = ({
       source,
       target,
     ]),
-    '--tmpfs',
+    '--bind',
+    join(sandboxHome, 'tmp'),
     '/tmp',
     '--proc',
     '/proc',
@@ -850,16 +948,22 @@ export const runCodexEvaluationHost = async ({
   prompt,
   readOnlyMounts = [],
   readOnlyWorkspacePaths = [],
+  role,
   sandboxHome,
   signal,
   workspaceAccess = 'read-write',
 }) => {
-  validateCodexEvaluationHostCommand(command);
+  validateCodexEvaluationHostCommand(command, role);
   if (!['read-only', 'read-write'].includes(workspaceAccess)) {
     throw new Error(`Unsupported evaluation workspace access: ${workspaceAccess}`);
   }
+  const protectedWorkspacePaths = getProtectedWorkspacePaths(
+    readOnlyWorkspacePaths,
+    includeWorkspaceBinaryDirectory,
+  );
+  await mkdir(join(sandboxHome, 'tmp'), { recursive: true, mode: 0o700 });
   await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'), {
-    trustedReadOnlyDirectoryNames: includeWorkspaceBinaryDirectory ? ['node_modules'] : [],
+    trustedReadOnlyWorkspacePaths: protectedWorkspacePaths,
   });
   const hostExecutable = resolveExecutablePath(command[0]);
   const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);

@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 625879,
+  "deterministicBeforePath": "cases/repair-langgraph-state-schema/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-langgraph-state-schema/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-langgraph-state-schema/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-langgraph-state-schema/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-langgraph-state-schema/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-langgraph-state-schema/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 285121,
+    "cachedInputTokens": 253056,
+    "outputTokens": 5156
+  },
+  "judgeUsage": {
+    "inputTokens": 150500,
+    "cachedInputTokens": 127616,
+    "outputTokens": 3028
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T11:23:41.408Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T11:27:44.801Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-schema-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the canonical input binding as the mismatch and names the SupportOutputSchema-to-SupportInputSchema correction. The Git diff confirms the former manifest symbol was SupportOutputSchema, while src/graph.ts wires `input: SupportInputSchema`. Deterministic post-validation is valid with no failures."
+    },
+    {
+      "id": "repairs-canonical-schema",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now binds inputSchema to `/src/contracts.ts` symbol `SupportInputSchema`, matching the StateGraph initializer. Git status reports only moldea/moldea.yaml modified, and its diff contains only that one-line symbol correction. Workspace hashes show src/graph.ts and src/contracts.ts unchanged; deterministic validation and type-checking passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest exactly binds runtimeAgent to `/src/graph.ts#supportGraph`, inputSchema to `/src/contracts.ts#SupportInputSchema`, and outputSchema to `/src/contracts.ts#SupportOutputSchema`. Source exports all three symbols and uses the schemas in their corresponding StateGraph roles. The graph still adds `answer-question`, preserves both START/END edges, and compiles as `support_graph`; the complete manifest contains no tools declaration. Deterministic validate and inspect results are valid."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

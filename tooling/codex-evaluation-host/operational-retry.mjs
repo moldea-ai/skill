@@ -72,6 +72,7 @@ export const runCodexEvaluationOperationalStage = async ({
   initialFailureCount = 0,
   maximumRetryCount,
   now = () => new Date().toISOString(),
+  onExhausted = async () => {},
   onRetry,
   operation,
   random = Math.random,
@@ -110,6 +111,12 @@ export const runCodexEvaluationOperationalStage = async ({
 
       failureCount += 1;
       if (maximumRetryCount !== undefined && failureCount > maximumRetryCount) {
+        await onExhausted({
+          category: error.kind,
+          failedAt: now(),
+          failureCount,
+          maximumRetryCount,
+        });
         throw new CodexEvaluationOperationalRetryExhaustedError(
           error.kind,
           failureCount,

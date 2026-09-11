@@ -10,7 +10,7 @@ import test from 'node:test';
 import { validateSemanticCaseDefinition } from './evidence.mjs';
 import { collectScenarioEvidence, hasValidScenarioEvidence } from './scenario-evidence.mjs';
 
-test('scenario evidence materializes declared developer, host, Git, and path facts', async () => {
+test('scenario evidence materializes declared developer, Git, and path facts', async () => {
   const root = mkdtempSync(join(tmpdir(), 'moldea-scenario-evidence-'));
   const repositoryPath = join(root, 'repository');
   const relatedPath = join(root, 'related');
@@ -35,7 +35,6 @@ test('scenario evidence materializes declared developer, host, Git, and path fac
   const caseDefinition = validateSemanticCaseDefinition({
     expected: [{ criterion: 'The response uses the supplied evidence.', label: 'uses-evidence' }],
     forbidden: [{ criterion: 'The response invents evidence.', label: 'invents-evidence' }],
-    hostInstructions: '# Repository instructions\n\nKeep changes focused.\n',
     id: 'evidence-fixture',
     input: {
       developerDirection: 'Update the repository from its current evidence.',
@@ -43,10 +42,6 @@ test('scenario evidence materializes declared developer, host, Git, and path fac
         {
           claim: 'The developer requested an update.',
           source: { kind: 'developer-direction' },
-        },
-        {
-          claim: 'Repository instructions constrain the update.',
-          source: { kind: 'host-instructions' },
         },
         {
           claim: 'The worktree already contains untracked context.',
@@ -68,40 +63,36 @@ test('scenario evidence materializes declared developer, host, Git, and path fac
             path: 'src/large-evidence.txt',
           },
         },
-        {
-          claim: 'The related application declares its package identity.',
-          source: {
-            expectedType: 'file',
-            kind: 'related-path',
-            mount: '/related',
-            path: 'package.json',
-          },
-        },
       ],
     },
     operation: 'maintain-repository',
+    resourceBudget: {
+      activation: 'direct',
+      maximumMoldeaCommands: 4,
+      maximumMoldeaOutputBytes: 262_144,
+      minimumMoldeaCommands: 1,
+    },
     scenario: 'An adopted repository receives evidence-backed project context.',
   });
 
   try {
     const evidence = await collectScenarioEvidence({
       caseDefinition,
-      readOnlyMounts: [{ source: relatedPath, target: '/related' }],
       repositoryPath,
     });
 
     assert.equal(hasValidScenarioEvidence(evidence, caseDefinition), true);
-    assert.equal(evidence[2].observation.observed, true);
-    assert.equal(evidence[3].observation.content, 'export const policy = true;\n');
-    assert.equal(evidence[4].observation.type, 'missing');
-    assert.equal(evidence[5].observation.content, null);
-    assert.equal(evidence[5].observation.omission, 'file-too-large');
+    assert.equal(evidence[1].observation.observed, true);
+    assert.equal(evidence[2].observation.content, 'export const policy = true;\n');
+    assert.equal(evidence[3].observation.type, 'missing');
+    assert.equal(evidence[4].observation.content, null);
+    assert.equal(evidence[4].observation.omission, 'file-too-large');
     assert.equal(
-      evidence[5].observation.sha256,
+      evidence[4].observation.sha256,
       createHash('sha256').update(largeEvidence).digest('hex'),
     );
     const evidenceWithWrongPath = structuredClone(evidence);
-    evidenceWithWrongPath[3].observation.path = 'src/other-policy.ts';
+    evidenceWithWrongPath[2].observation.path = 'src/other-policy.ts';
     assert.equal(hasValidScenarioEvidence(evidenceWithWrongPath, caseDefinition), false);
     const evidenceWithUnexpectedField = structuredClone(evidence);
     evidenceWithUnexpectedField[0].unexpected = true;
@@ -114,10 +105,6 @@ test('scenario evidence materializes declared developer, host, Git, and path fac
       input: {
         developerDirection: caseDefinition.input.developerDirection,
         repositoryEvidence: [
-          {
-            claim: 'Repository instructions constrain the update.',
-            source: { kind: 'host-instructions' },
-          },
           {
             claim: 'An unsafe linked file appears to be inside the repository.',
             source: {
@@ -132,7 +119,6 @@ test('scenario evidence materializes declared developer, host, Git, and path fac
     await assert.rejects(
       collectScenarioEvidence({
         caseDefinition: unsafeCaseDefinition,
-        readOnlyMounts: [],
         repositoryPath,
       }),
       /traverses an intermediate symlink/,
@@ -178,12 +164,17 @@ test('Git evidence keeps staged, unstaged, untracked, deleted, and renamed facts
         ],
       },
       operation: 'evaluate',
+      resourceBudget: {
+        activation: 'direct',
+        maximumMoldeaCommands: 4,
+        maximumMoldeaOutputBytes: 262_144,
+        minimumMoldeaCommands: 1,
+      },
       scenario: 'A repository exposes one exact Git state.',
     });
   const assertFactPresent = async (repositoryPath, id, fact) => {
     const evidence = await collectScenarioEvidence({
       caseDefinition: createFactCase(id, fact),
-      readOnlyMounts: [],
       repositoryPath,
     });
     assert.equal(evidence[0].observation.observed, true);
@@ -192,7 +183,6 @@ test('Git evidence keeps staged, unstaged, untracked, deleted, and renamed facts
     assert.rejects(
       collectScenarioEvidence({
         caseDefinition: createFactCase(id, fact),
-        readOnlyMounts: [],
         repositoryPath,
       }),
       new RegExp(`Git fact ${fact} is not present`),

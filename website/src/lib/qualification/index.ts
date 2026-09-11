@@ -18,14 +18,21 @@ export type {
   IQualificationJudgeSkipped,
   IQualificationOperationalRetry,
   IQualificationProfileCaseModel,
+  IQualificationProfileAssuranceModel,
+  IQualificationProjectChangeGroup,
+  IQualificationProjectEvidenceModel,
   IQualificationProfileModel,
   IQualificationProjectedExecutionEvent,
   IQualificationSourceStateResult,
   IQualificationStatus,
   IQualificationWebsiteModel,
   IQualificationTrialResult,
+  IQualificationTextArtifactModel,
   IWorkspaceAssertionResult,
 } from './types.ts';
+
+// project evidence
+export { createQualificationProjectEvidence } from './project-transformers.ts';
 
 // loader
 export { assertPublishableQualificationEvidence, loadQualificationWebsiteModel } from './loader.ts';

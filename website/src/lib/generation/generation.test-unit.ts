@@ -9,18 +9,22 @@ vi.mock('../qualification/index.ts', () => {
         {
           adapterId: 'custom',
           attempts: [],
+          boundBaseline: null,
           cases: [],
+          currentAssurance: null,
           currentLastPassing: null,
           currentLatest: null,
+          currentStatus: 'not-recorded',
           description: 'Exercises universal behavior.',
           implementationId: 'custom',
+          sharedCases: [],
           latest: {
             adapterId: 'custom',
             implementationId: 'custom',
             lastPassingAttemptId: 'attempt-pass',
             latestAttemptId: 'attempt-pass',
             latestStatus: 'passed',
-            protocolVersion: 6,
+            protocolVersion: 10,
             updatedAt: '2026-08-22T12:00:00.000Z',
           },
           probes: [],
@@ -31,6 +35,7 @@ vi.mock('../qualification/index.ts', () => {
         },
       ],
       route: '/evidence/qualification/',
+      uniqueJourneyCount: 0,
     })),
   };
 });
@@ -40,14 +45,14 @@ vi.mock('../semantic-evaluation/index.ts', () => {
     loadSemanticEvaluationWebsiteModel: vi.fn(() => ({
       artifactDigest: 'a'.repeat(64),
       attempts: [],
-      caseCount: 49,
+      caseCount: 14,
       caseSuiteDigest: 'b'.repeat(64),
       cli: {
         integrity: 'sha512-test',
-        jsonSchemaVersion: 2,
+        jsonSchemaVersion: 3,
         name: '@moldea.ai/cli',
         packageLockSha256: 'c'.repeat(64),
-        version: '4.0.0',
+        version: '6.0.0',
       },
       coverageDigest: 'd'.repeat(64),
       coverageUrl: 'https://example.com/semantic-coverage.json',
@@ -58,12 +63,12 @@ vi.mock('../semantic-evaluation/index.ts', () => {
           artifactDigest: 'a'.repeat(64),
           attemptId: 'semantic-attempt',
           failedCaseCount: 0,
-          passedCaseCount: 49,
+          passedCaseCount: 14,
           pendingCaseCount: 0,
           recoveredCaseCount: 0,
           status: 'passed',
           stopReason: 'complete',
-          totalCaseCount: 49,
+          totalCaseCount: 14,
         },
         route: '/evidence/semantic/attempts/semantic-attempt/',
       },
@@ -97,9 +102,9 @@ vi.mock('../semantic-evaluation/index.ts', () => {
               title: 'Semantic case',
             },
           ],
-          description: 'Adoption behavior.',
-          id: 'adoption',
-          title: 'Adoption and initialization',
+          description: 'Abstention behavior.',
+          id: 'abstention',
+          title: 'Unrelated work and host precedence',
         },
       ],
       lastPassing: null,
@@ -110,12 +115,12 @@ vi.mock('../semantic-evaluation/index.ts', () => {
         result: {
           attemptId: 'semantic-attempt',
           failedCaseCount: 0,
-          passedCaseCount: 49,
+          passedCaseCount: 14,
           pendingCaseCount: 0,
           recoveredCaseCount: 0,
           status: 'passed',
           stopReason: 'complete',
-          totalCaseCount: 49,
+          totalCaseCount: 14,
         },
         route: '/evidence/semantic/attempts/semantic-attempt/',
       },
@@ -127,7 +132,7 @@ vi.mock('../semantic-evaluation/index.ts', () => {
         updatedAt: '2026-08-22T12:00:00.000Z',
       },
       methodologyUrl: '/docs/semantic-evaluation/',
-      passedCaseCount: 49,
+      passedCaseCount: 14,
       pendingCaseCount: 0,
       recoveredCaseCount: 0,
       route: '/evidence/semantic/',
@@ -136,7 +141,16 @@ vi.mock('../semantic-evaluation/index.ts', () => {
   };
 });
 
+vi.mock('../release-evidence/index.ts', () => ({
+  loadReleaseEvidenceModel: vi.fn(() => ({
+    mode: 'not-recorded',
+    targetVersion: '5.0.0',
+  })),
+}));
+
 import { createWebsiteModel } from './generation.ts';
+import { assertPublishableQualificationEvidence } from '../qualification/index.ts';
+import { loadReleaseEvidenceModel } from '../release-evidence/index.ts';
 import {
   INSTALL_COMMAND,
   REQUIRED_DOCUMENT_ROUTES,
@@ -148,13 +162,14 @@ describe('createWebsiteModel', () => {
     const model = createWebsiteModel();
 
     expect(model.skill.name).toBe('moldea');
-    expect(model.skill.version).toBe('4.0.2');
+    expect(model.skill.version).toBe('5.0.0');
     expect(model.skill.description.length).toBeGreaterThan(0);
     expect(new Set(model.routes).size).toBe(model.routes.length);
     expect(model.documents.length).toBeGreaterThanOrEqual(18);
     expect(model.searchRecords.length).toBeGreaterThan(model.documents.length);
     expect(model.navigation.flatMap(({ documents }) => documents)).toStrictEqual(model.documents);
     expect(model.qualification.route).toBe('/evidence/qualification/');
+    expect(model.releaseEvidence).toStrictEqual({ mode: 'not-recorded', targetVersion: '5.0.0' });
     expect(model.semanticEvaluation.route).toBe('/evidence/semantic/');
     expect(model.qualification.profiles).toHaveLength(1);
     const qualificationProfile = model.qualification.profiles[0];
@@ -193,6 +208,32 @@ describe('createWebsiteModel', () => {
     expect(model.llmsText).toContain(SKILLS_DIRECTORY_URL);
     expect(model.llmsText).toContain(INSTALL_COMMAND);
     expect(model.llmsText).toContain('## Evidence');
+  });
+
+  test('bypasses current qualification checks only when qualification evidence is pinned', () => {
+    const publicationCheck = vi.mocked(assertPublishableQualificationEvidence);
+    publicationCheck.mockClear();
+    vi.mocked(loadReleaseEvidenceModel).mockReturnValueOnce({
+      mode: 'recorded',
+      qualification: {
+        mode: 'pinned',
+        reason: 'Release tooling only.',
+        sourceCommit: 'a'.repeat(40),
+        sourceLabel: 'v5.0.0',
+        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
+      },
+      semantic: {
+        mode: 'fresh',
+        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
+      },
+      targetVersion: '6.0.0',
+    });
+
+    const model = createWebsiteModel();
+
+    expect(model.releaseEvidence.mode).toBe('recorded');
+    expect(publicationCheck).not.toHaveBeenCalled();
+    expect(model.llmsText).toContain('Qualification evidence for release 6.0.0 is pinned');
   });
 
   test('requires reader-facing product mentions in Markdown to use inline code', () => {

@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent declaration with the OpenAI function tool by changing `find_order` to `lookup_order`. Local validation reports valid status with zero diagnostics, and strict TypeScript checking passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The final diff contains only the tool-name correction.",
+    "The direct Agent registration, function-tool declaration, implementation, input schema, and output schema remain unchanged.",
+    "Supported static evidence covers the agent registration, tool declaration, implementation, and schemas with no wiring diagnostic."
+  ],
+  "unresolved": [
+    "Static adapter validation does not prove runtime tool execution."
+  ]
+}

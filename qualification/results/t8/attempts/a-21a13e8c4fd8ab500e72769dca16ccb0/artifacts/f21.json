@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s canonical tool declaration with the registered LangChain tool name `lookup_order`, preserving all working source definitions and schemas.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Complete tool evidence remains declared: description, implementation, registration, and input schema.",
+    "Final validation returned `valid: true`, `diagnosticCount: 0`, and no wiring diagnostic.",
+    "Direct TypeScript validation passed.",
+    "Final Git status contains only the intended manifest modification."
+  ],
+  "unresolved": []
+}

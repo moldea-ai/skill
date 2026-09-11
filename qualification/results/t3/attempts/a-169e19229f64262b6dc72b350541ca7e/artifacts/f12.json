@@ -1,0 +1,44 @@
+{
+  "verdict": "fail",
+  "summary": "The static-boundary registrations and unresolved warnings are correct, source files remain unchanged, and deterministic validation passed. However, the sole runtime guide omits the required static alternatives for the dynamic tools and prepareStep boundaries.",
+  "requirements": [
+    {
+      "id": "preserves-open-tool-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml registers support with cloudflare-agents, SupportAgent, and loadSupportInstruction, while defining no partial tools binding and recording runtime-selected-request-tools as unresolved. src/support-agent.ts confirms the direct streamText call and open tools spread. Deterministic validation passed."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "verdict": "pass",
+      "evidence": "step-support registers only the cloudflare-agents runtime and StepSupportAgent, with no instructionLoader binding. src/step-support-agent.ts confirms prepareStep can replace instructions, and the manifest records that provenance as unresolved. Deterministic validation passed."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "pass",
+      "evidence": "delegating-support preserves its runtime agent, instruction loader, delegate_support tool, implementation, registration, and input/output schemas. src/delegation-tool.ts uses an ordinary ai tool and src/delegation.ts merely references StepSupportAgent; the manifest contains no handoff, routing, or target relationship. Workspace assertions show all related source files unchanged."
+    },
+    {
+      "id": "preserves-unsupported-generation-boundaries",
+      "verdict": "pass",
+      "evidence": "src/indirect-agent.ts and src/unsupported-output-agent.ts remain present and unchanged according to workspace hashes. The manifest registers only support, step-support, and delegating-support, so neither negative-control agent receives a direct runtime pattern or object-schema binding."
+    },
+    {
+      "id": "keeps-initialized-class-outside-target",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts still defines RuntimeInitializedAgent with initializedAt = Date.now(), and workspace assertions show the file unchanged. No corresponding manifest agent or canonical agent directory exists."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "fail",
+      "evidence": "Both support and step-support reference /moldea/runtimes/cloudflare-agents.md, and targeted inspection shows it is the sole runtime Markdown guide added by the workspace patch. It covers Cloudflare Durable Object bindings, SQLite-backed migrations, provider binding, and Worker deployment configuration, but it does not describe any static alternative for closing SupportAgent's runtime tools spread or StepSupportAgent's prepareStep-controlled instruction selection."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "pass",
+      "evidence": "The manifest has separate warning entries for runtime-selected-request-tools and prepare-step-instruction-selection. Each names the relevant source path and provides a focused resolution criterion that distinguishes closed tool registration evidence from prepareStep instruction-provenance evidence. Deterministic validation passed."
+    }
+  ],
+  "failures": [
+    "Expand moldea/runtimes/cloudflare-agents.md with concise static alternatives for making the SupportAgent tool registry and StepSupportAgent instruction provenance statically inspectable, while retaining the existing Cloudflare deployment responsibilities."
+  ]
+}

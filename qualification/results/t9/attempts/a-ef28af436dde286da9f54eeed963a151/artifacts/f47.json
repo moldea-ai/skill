@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s Functional API runtime binding from the nonexistent `removedSupportWorkflow` symbol to the directly exported `supportWorkflow`. Preserved the entrypoint, its direct `answerQuestion` task, and all unrelated source and manifest structure.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Local validation returned schema version 4, status `valid`, `diagnosticCount: 0`, and `cursor: null`, confirming complete evidence with no runtime-symbol diagnostic.",
+    "Strict TypeScript compilation passed with no errors.",
+    "Final Git inspection confirmed the runtime symbol is the only changed line."
+  ],
+  "unresolved": []
+}

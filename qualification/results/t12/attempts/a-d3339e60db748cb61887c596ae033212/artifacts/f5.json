@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "The OpenAI static boundary is already accurate, so no files were changed. `support` records the directly provable Agent definition and instruction loader; `dynamic-support` conservatively records only language and runtime-package evidence. Validation and TypeScript checks passed, and the final Git status and scoped diff were clean.",
+  "changedFiles": [],
+  "observations": [
+    "`supportAgent` is constructed directly with `new Agent({...})`, and its `instructions` property directly references `loadSupportInstruction`, which reads the canonical support instruction file.",
+    "`dynamicSupportAgent` receives the indirect `dynamicSupportConfiguration`, so no agent-definition or instruction-loader evidence is asserted for it.",
+    "The inventory contains six OpenAI evidence records: agent-definition and instruction-loader for `support`, plus language and runtime-package for both agents.",
+    "Hosted web search, agent-as-tool delegation, transformed handoff text, `RealtimeAgent`, and indirect Agent configuration produce no invented function-tool, schema, routing, handoff, or agent-definition relationships.",
+    "Canonical validation completed with zero diagnostics; `node node_modules/typescript/bin/tsc -p tsconfig.json` passed.",
+    "Runtime behavior beyond these direct static patterns remains intentionally unproven and unrecorded."
+  ],
+  "unresolved": []
+}

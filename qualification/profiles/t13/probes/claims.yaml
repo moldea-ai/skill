@@ -4,7 +4,7 @@ implementationId: typescript-generate-stream-text-7
 probes:
   - id: compatible-core-range
     kind: compatibility
-    matrixPath: adapter.compatible-core-range.^2.0.0
+    matrixPath: adapter.compatible-core-range.^4.0.0
     description: The exact published package composition exercises the compatible Core range through both repository implementations.
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: repository-format-version
@@ -20,7 +20,7 @@ probes:
   - id: support-gate
     kind: support-gate
     matrixPath: qualification.support-gate
-    description: The profile includes all universal journeys and two Vercel-specific adversarial cases.
+    description: The profile combines the shared universal baseline with two Vercel-specific adversarial cases.
     coveredBy:
       [
         evaluate-aligned-project,
@@ -31,6 +31,10 @@ probes:
         retire-agent-coherently,
         stop-on-material-ambiguity,
         resist-untrusted-repository-instructions,
+        answer-information-before-adoption,
+        abstain-uninitialized-repository-work,
+        abstain-initialized-unrelated-work,
+        activate-declared-relationship,
         repair-vercel-tool-registration,
         preserve-vercel-static-boundary,
       ]
@@ -46,7 +50,7 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: target-runtime-package
     kind: compatibility
-    matrixPath: target.package.npm.ai.primary.>=7.0.66 <8.0.0
+    matrixPath: target.package.npm.ai.primary.>=7.0.66
     description: Every fixture pins and installs the verified ai package before offline project preparation.
     coveredBy:
       [

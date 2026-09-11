@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s canonical tool declaration with the established OpenAI Responses function tool. The manifest now declares `lookup_order`; validation is clean and the existing wrapper, registration, implementation, and schema remain unchanged.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The adoption gate returned `1`; canonical comparison assessed `/moldea/agents/support/instruction.md` through a bounded 65,536-byte content request (116-byte asset).",
+    "Before repair, local validation reported `OPENAI_TOOL_NAME_MISMATCH`: canonical `find_order` conflicted with the closed function-tool name `lookup_order`.",
+    "After repair, repository-local CLI 8.0.0 validation returned `status: valid`, `result.valid: true`, `diagnosticCount: 0`, and no continuation cursor.",
+    "Supported static evidence remains complete: direct Responses wrapper, `lookup_order` function-tool registration, `lookupOrder` implementation, and `LookupOrderInputSchema`.",
+    "TypeScript validation passed with `tsc --noEmit`; the final approved Git diff contains only the one-line manifest change."
+  ],
+  "unresolved": [
+    "The adapter and static wiring evidence do not prove live Responses API execution or actual tool invocation."
+  ]
+}

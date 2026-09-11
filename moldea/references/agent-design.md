@@ -1,14 +1,18 @@
 # Agent design
 
-Read this reference before creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, runtime relationship, or unresolved requirement.
+Read this reference after moldea relevance is established for creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, runtime relationship, or unresolved requirement.
 
 Agent-system planning decides whether an agent should exist and proposes its responsibility. Agent design begins after a direct request or accepted candidate. Revalidate repository evidence rather than copying a recommendation into canonical state or model-facing instructions.
+
+When a direct request says to create, register, and make an existing runtime agent ready, and bounded repository source plus focused tests establish its current behavior, complete the coherent implementation rather than stopping because the current instruction is inline. Create the canonical agent assets, derive every material invocation from canonical instruction through a real loader or necessary exact mirror, remove the independently maintained inline policy, register the evidenced runtime, loader, mirror, and impact relationships, preserve or strengthen focused coverage, and complete all runtime, test, and canonical file writes before final validation. If any required behavior or runtime path is not evidenced, report that exact limitation instead of inventing it.
 
 ## Establish behavior before prose
 
 Establish the supported behavioral contract before drafting or broadly rewriting model-facing text. Include only material identity, purpose, responsibility, project context, inputs, outputs, rules, scope, exclusions, capabilities, variables, ambiguity, failure, escalation, routing, and quality expectations.
 
 Do not call an agent complete when correct behavior depends on hidden repository knowledge. Supply model-facing context and a real runtime path, narrow the behavior, implement authorized support, clarify intent, or preserve incomplete state.
+
+Separate the requested operation's outcome from agent or runtime readiness. A blocking unresolved requirement prevents claims that the affected behavior, agent, or runtime is complete or production-ready. It does not make a narrower maintenance operation blocked when every requested safe write, preservation obligation, and validation step is complete and the limitation is recorded. Report that operation as completed with the unresolved limitation; use a blocked task outcome only when the gap prevents the requested deliverable itself.
 
 ## Write minimum sufficient instructions
 
@@ -24,9 +28,9 @@ Preserve valid behavior during refinement. Prefer local edits while organization
 - `handoff-description.md` states when responsibility should transfer to the agent. Create it only for a real routing need.
 - `instruction.md` states how the agent operates after transfer and cannot depend on either description for core behavior.
 
-Every registered agent has one lowercase ASCII kebab-case ID, one `/moldea/agents/{agent-id}/` directory, mandatory `description.md` and `instruction.md`, and optional `handoff-description.md`. The instruction begins with the exact agent ID under the active format contract.
+Every registered agent has one lowercase ASCII kebab-case ID, one `/moldea/agents/{agent-id}/` directory, mandatory `description.md` and `instruction.md`, and optional `handoff-description.md`. After an optional Markdown heading, the first nonblank instruction line must contain the exact backtick-wrapped identity token `` `{agent-id}` ``. A heading that merely names the agent does not satisfy the identity contract.
 
-Routing-facing metadata uses the target handoff description when present and valid, otherwise the agent description. General-only metadata uses the agent description. Establish a consumer's routing, general, or shared role from runtime documentation, compatibility, adapter evidence, guidance, implementation, and developer direction rather than its property name. A property called `description` may be shared or routing-facing. Preserve an established shared-property contract and do not create a handoff description merely because such a property exists.
+Classify the consumer from runtime documentation, compatibility, adapter evidence, guidance, implementation, and developer direction before reading meaning into its property name. A runtime property literally named `description` can still be routing-facing; its name supplies no classification evidence. Routing-facing metadata uses the target handoff description when present and valid, otherwise the agent description. General-only metadata uses the agent description. Preserve an established shared-property contract and do not create a handoff description merely because such a property exists.
 
 Before changing a mapping, establish:
 
@@ -35,6 +39,8 @@ Before changing a mapping, establish:
 3. the source required by the established purpose
 
 A required source does not prove selection. Under dynamic wiring, state conditional outcomes and identify resolving wiring or tests; never call a candidate current, effective, absent, or wrong. Prove a mismatch before editing. Tests confirm a correction but do not justify it.
+
+Always state the consumer-purpose classification, including when dynamic wiring leaves the currently selected source unknown.
 
 ## Select the runtime honestly
 
@@ -49,6 +55,10 @@ Every registered agent declares one `runtime.id`. Use `composition --json` when 
 7. Reconcile runtime identity and semantic surfaces together. Update every affected surface as one coherent change. A `runtime.id`-only edit is incomplete when reliable evidence establishes model-visible or project-specific integration behavior.
 8. Report evidence paths, repository states, canonical inspection limits, and remaining unknowns.
 
+For a runtime-alignment review, report the declared runtime ID, the exact runtime-guidance path and its role, and the bound implementation path and symbol whenever those facts are established.
+
+Before a runtime write, retain a checklist of every externally evidenced model-visible capability. Do not validate or claim completion until each capability remains represented in canonical instruction or runtime guidance.
+
 If the required adapter is absent from this release, report a tooling prerequisite and stop without selecting another CLI version or replacement runtime. Composition establishes availability, not integration identity, target support, or maturity.
 
 Create runtime guidance only for material project-specific behavior or limitations. Optional manifest syntax is not a Core error. Do not infer compatibility from package names, composition, or general knowledge, dynamically install adapters, or claim behavioral support without a validated published target and repository evidence. Source-owned target documentation, closed wiring, provider configuration, or integration tests may resolve an evidence gap; evaluation remains incomplete without a resolver.
@@ -56,6 +66,44 @@ Create runtime guidance only for material project-specific behavior or limitatio
 ## Register real relationships
 
 Use only properties supported by repository format version `1` under the active CLI/Core contract.
+
+Use the established version `1` shapes directly instead of guessing alternate nesting or logical paths. Runtime guidance is a root-owned Markdown asset under `/moldea/runtimes/`; an agent references it from `runtime.guidance`, binds the real invocation from `bindings.runtimeAgent`, and declares material source impact through `affectedBy`. The example uses `custom` only for an integration already established as Custom; complete runtime selection before applying it.
+
+```yaml
+version: 1
+agents:
+  order-triage:
+    runtime:
+      id: custom
+      guidance: /moldea/runtimes/custom.md
+    bindings:
+      runtimeAgent:
+        path: /src/order-triage-agent.ts
+        symbol: createOrderTriageAgent
+    affectedBy:
+      - /src/order-triage-agent.ts
+```
+
+Register shared context by its complete `/moldea/context/*.md` logical path and let agents select that same path. Record an agent-owned unresolved requirement under the agent, with traceability expressed as `related` path records:
+
+```yaml
+context:
+  /moldea/context/billing.md:
+    affectedBy:
+      - /src/billing.ts
+agents:
+  support:
+    context:
+      - /moldea/context/billing.md
+    unresolved:
+      dynamic-tool-registration:
+        category: tool-registration
+        effect: warning
+        description: The final tool registry cannot be proven from static repository evidence.
+        resolution: Establish the runtime registration through explicit source or supported adapter evidence.
+        related:
+          - path: /src/dynamic-tools.ts
+```
 
 Register repository-root-absolute logical paths and symbols only for material implementation relationships that cannot be derived reliably, including runtime agents, executable schemas, instruction loaders, variable providers, capability implementation or registration, context, decisions, runtime guidance, and broader `affectedBy` paths.
 
@@ -113,6 +161,6 @@ Requirements are not a roadmap. Do not create one to avoid an answerable questio
 
 ## Verify agent readiness
 
-After writes, run relevant project checks, rerun `inspect --json`, and review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state.
+After all canonical, runtime, test, and relationship file writes, run the focused project-native tests that exercise every changed material invocation and canonical-loading path, correct any implementation or test defect, and only then run launcher-backed `validate` as the final moldea command. If validation reports a repairable structural defect, apply the complete repair and run one final validation afterward; this retry may be the fifth and final moldea call only when owner discovery or composition consumed the ordinary four-call budget. Never write after the last allowed validation, retry without a repair, or claim readiness for an unvalidated repair. Report the final status and material diagnostics, including their absence. A passing generic check or actor report is not a substitute for runner-owned focused test evidence. Review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state without loading unrelated canonical bodies.
 
 Do not claim production readiness when behavior lacks support, a material contract is hidden or contradictory, affected validation fails, or a blocking requirement remains.

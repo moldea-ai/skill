@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 910390,
+  "deterministicBeforePath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-openai-agents-sdk-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 267994,
+    "cachedInputTokens": 218880,
+    "outputTokens": 6095
+  },
+  "judgeUsage": {
+    "inputTokens": 223795,
+    "cachedInputTokens": 196352,
+    "outputTokens": 4001
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T11:53:03.062Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T11:59:21.877Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies `find_order` as the stale canonical declaration and `lookup_order` as the source-defined name. The Git diff confirms that exact mismatch, while `src/tools.ts` declares `name: 'lookup_order'` and `src/agent.ts` uses the closed `[lookupOrderTool]` array."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`. Approved status/diff evidence shows this is the only changed path and only semantic edit; workspace before/after hashes confirm `src/agent.ts`, `src/tools.ts`, `src/contracts.ts`, and `src/implementations.ts` are unchanged."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings to `supportAgent`, `loadSupportInstruction`, `lookupOrderTool`, `LookupOrderInputSchema`, and `lookupOrder`. Current inspection emits agent-definition, instruction-loader, input/output schema, runtime-package, and `lookup_order` tool-registration evidence, with `valid: true`, seven evidence records, and zero diagnostics. The implementation hash is unchanged, and the actor explicitly limits the result to static adapter validation without claiming or testing runtime execution."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

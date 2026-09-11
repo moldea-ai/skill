@@ -8,13 +8,24 @@ export const SEMANTIC_EVALUATION_GROUPS = {
     description: 'When moldea should be adopted, initialized, evaluated, or left out of the way.',
     title: 'Adoption and initialization',
   },
-  truth: {
-    description: 'How the skill resolves ambiguity and keeps canonical repository truth aligned.',
-    title: 'Repository truth and reconciliation',
+  abstention: {
+    description:
+      'How moldea answers product questions concisely and stays silent when repository work has no established relevance.',
+    title: 'Information, unrelated work, and host precedence',
   },
-  skills: {
-    description: 'Creating, maintaining, evaluating, and distributing reusable Agent Skills.',
-    title: 'Agent Skill lifecycle',
+  relevance: {
+    description:
+      'How direct canonical changes and declared relationships activate the smallest relevant moldea workflow.',
+    title: 'Bounded relevance',
+  },
+  scale: {
+    description:
+      'How zero-agent and large-context repositories remain valid without unbounded content output.',
+    title: 'Large-repository safety',
+  },
+  integrity: {
+    description: 'How read-only evaluation preserves repository files and Git control state.',
+    title: 'Read-only integrity',
   },
   planning: {
     description:
@@ -25,21 +36,29 @@ export const SEMANTIC_EVALUATION_GROUPS = {
     description: 'Keeping routing descriptions, runtime guidance, and provider boundaries precise.',
     title: 'Routing and provider boundaries',
   },
+  skills: {
+    description: 'Creating, maintaining, evaluating, and distributing reusable Agent Skills.',
+    title: 'Agent Skill lifecycle',
+  },
   tooling: {
     description: 'Respecting package-manager, host-command, and read-only tooling constraints.',
     title: 'Tooling and host safety',
   },
+  truth: {
+    description: 'How the skill resolves ambiguity and keeps canonical repository truth aligned.',
+    title: 'Repository truth and reconciliation',
+  },
 } as const;
 
-// presentation metadata must explicitly cover every semantic case before publication
-export const SEMANTIC_CASE_PRESENTATION = {
+// restored behavior from the complete pre-redesign semantic inventory
+const RESTORED_SEMANTIC_CASE_PRESENTATION = {
   'unadopted-direct-context-handoff': {
     groupId: 'adoption',
-    title: 'Checks adoption before retaining context',
+    title: 'Leaves unrelated context handoffs alone before adoption',
   },
   'unadopted-relevance-no-initialization': {
     groupId: 'adoption',
-    title: 'Avoids irrelevant adoption',
+    title: 'Completes unrelated implementation without adoption',
   },
   'initialize-insufficient-context': {
     groupId: 'adoption',
@@ -55,15 +74,15 @@ export const SEMANTIC_CASE_PRESENTATION = {
   },
   'adopted-direct-context-handoff': {
     groupId: 'truth',
-    title: 'Preserves a direct context handoff',
+    title: 'Leaves unrelated context handoffs outside canonical state',
   },
   'adopted-explicit-context-correction': {
     groupId: 'truth',
-    title: 'Applies an explicit context correction',
+    title: 'Does not capture unsolicited canonical corrections',
   },
   'adopted-ambiguous-context-handoff': {
     groupId: 'truth',
-    title: 'Clarifies an ambiguous context handoff',
+    title: 'Leaves ambiguous handoffs outside canonical state',
   },
   'adopted-relevance-no-change': {
     groupId: 'adoption',
@@ -82,8 +101,8 @@ export const SEMANTIC_CASE_PRESENTATION = {
     title: 'Evaluates a dirty working tree without editing it',
   },
   'evaluate-brief-project-request': {
-    groupId: 'adoption',
-    title: 'Resolves a brief project evaluation request',
+    groupId: 'abstention',
+    title: 'Preserves a brief host evaluation request',
   },
   'evaluate-clean-working-tree': {
     groupId: 'adoption',
@@ -168,10 +187,6 @@ export const SEMANTIC_CASE_PRESENTATION = {
   'yarn-conflicting-cli-provider': {
     groupId: 'tooling',
     title: 'Rejects a conflicting Yarn CLI provider',
-  },
-  'host-plan-command-precedence': {
-    groupId: 'tooling',
-    title: 'Respects the host plan command',
   },
   'plan-uninitialized-zero-agent': {
     groupId: 'planning',
@@ -261,4 +276,86 @@ export const SEMANTIC_CASE_PRESENTATION = {
     groupId: 'tooling',
     title: 'Blocks unsafe Yarn plugin installation',
   },
+} as const;
+
+// clean-slate scenarios added during the resource-bounded redesign
+const CLEAN_SLATE_SEMANTIC_CASE_PRESENTATION = {
+  'preinit-information': {
+    groupId: 'abstention',
+    title: 'Answers product questions before adoption',
+  },
+  'preinit-explicit-validation': {
+    groupId: 'abstention',
+    title: 'Explains that validation requires adoption',
+  },
+  'preinit-canonical-looking-review': {
+    groupId: 'abstention',
+    title: 'Ignores incomplete canonical-looking files',
+  },
+  'explicit-initialization': {
+    groupId: 'relevance',
+    title: 'Honors explicit repository initialization',
+  },
+  'unrelated-documentation-review': {
+    groupId: 'abstention',
+    title: 'Leaves unrelated documentation review alone',
+  },
+  'unrelated-source-review': {
+    groupId: 'abstention',
+    title: 'Leaves unrelated source review alone',
+  },
+  'readme-outside-managed-block': {
+    groupId: 'abstention',
+    title: 'Ignores README changes outside the managed block',
+  },
+  'generic-knowledge-handoff': {
+    groupId: 'abstention',
+    title: 'Does not capture generic durable knowledge',
+  },
+  'host-plan-command-precedence': {
+    groupId: 'abstention',
+    title: 'Preserves host planning workflow ownership',
+  },
+  'host-review-command-precedence': {
+    groupId: 'abstention',
+    title: 'Preserves host review workflow ownership',
+  },
+  'exact-binding-relevance': {
+    groupId: 'relevance',
+    title: 'Activates for an exact agent binding',
+  },
+  'affected-by-relevance': {
+    groupId: 'relevance',
+    title: 'Activates for an affectedBy relationship',
+  },
+  'direct-canonical-relevance': {
+    groupId: 'relevance',
+    title: 'Recognizes direct canonical changes',
+  },
+  'managed-readme-relevance': {
+    groupId: 'relevance',
+    title: 'Recognizes managed README changes',
+  },
+  'explicit-moldea-validation': {
+    groupId: 'relevance',
+    title: 'Honors explicit moldea validation',
+  },
+  'zero-agent-project-validation': {
+    groupId: 'scale',
+    title: 'Validates a project with no agents',
+  },
+  'large-context-bounded-evaluation': {
+    groupId: 'scale',
+    title: 'Pages large context without exposing bodies',
+  },
+  'moldea-evaluate-read-only': {
+    groupId: 'integrity',
+    title: 'Preserves repository state during evaluation',
+  },
+} as const;
+
+// presentation metadata must explicitly cover every semantic case before publication
+export const SEMANTIC_CASE_PRESENTATION = {
+  ...RESTORED_SEMANTIC_CASE_PRESENTATION,
+  ...CLEAN_SLATE_SEMANTIC_CASE_PRESENTATION,
 } as const;

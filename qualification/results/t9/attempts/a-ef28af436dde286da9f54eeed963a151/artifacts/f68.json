@@ -1,0 +1,48 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T06:48:46.555Z",
+  "durationMs": 326519,
+  "usage": {
+    "inputTokens": 426425,
+    "cachedInputTokens": 393728,
+    "outputTokens": 12052
+  },
+  "stageIdentity": "27b177860cafc55857b4630bec1e9bf4c767565f03d679ac2a1925210525a4c8",
+  "sourceAttemptId": "20260911T054140998Z-langgraph-typescript-functional-api-1-4-d536eaf3",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 18,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19623,
+    "modelVisibleToolOutputByteCount": 31701,
+    "moldeaCommandCount": 1,
+    "moldeaOutputByteCount": 224,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 5,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 5
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 5,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 5
+        }
+      ]
+    }
+  }
+}

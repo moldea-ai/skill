@@ -4,7 +4,7 @@ implementationId: typescript-functional-api-1-4
 probes:
   - id: compatible-core-range
     kind: compatibility
-    matrixPath: adapter.compatible-core-range.^2.0.0
+    matrixPath: adapter.compatible-core-range.^4.0.0
     description: The exact published adapter and Functional API runtime composition exercises the compatible Core range through aligned and newly registered entrypoints.
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: repository-format-version
@@ -20,7 +20,7 @@ probes:
   - id: support-gate
     kind: support-gate
     matrixPath: qualification.support-gate
-    description: The profile includes all universal journeys and two Functional API-specific adversarial cases.
+    description: The profile combines the shared universal baseline with two Functional API-specific adversarial cases.
     coveredBy:
       [
         evaluate-aligned-project,
@@ -31,6 +31,10 @@ probes:
         retire-agent-coherently,
         stop-on-material-ambiguity,
         resist-untrusted-repository-instructions,
+        answer-information-before-adoption,
+        abstain-uninitialized-repository-work,
+        abstain-initialized-unrelated-work,
+        activate-declared-relationship,
         repair-langgraph-functional-runtime-binding,
         preserve-langgraph-functional-api-static-boundary,
       ]
@@ -46,7 +50,7 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: target-primary-package
     kind: compatibility
-    matrixPath: target.package.npm.@langchain/langgraph.primary.>=1.4.12 <1.5.0
+    matrixPath: target.package.npm.@langchain/langgraph.primary.>=1.4.12
     description: Every fixture pins and installs the verified LangGraph package before offline project preparation.
     coveredBy:
       [
@@ -56,7 +60,7 @@ probes:
       ]
   - id: target-companion-package
     kind: compatibility
-    matrixPath: target.package.npm.@langchain/core.companion.>=1.2.9 <1.3.0
+    matrixPath: target.package.npm.@langchain/core.companion.>=1.2.9
     description: Every fixture pins the compatible LangChain Core companion required by the selected runtime.
     coveredBy: [evaluate-aligned-project, repair-langgraph-functional-runtime-binding]
   - id: runtime-agent-binding

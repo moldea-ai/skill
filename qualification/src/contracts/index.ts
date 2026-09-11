@@ -8,6 +8,8 @@ export type {
   IQualificationProfileCase,
   IQualificationSelection,
   IQualificationRequirementAssessment,
+  IQualificationResourceCalibration,
+  IQualificationResourceProfile,
 } from './types.ts';
 export {
   QualificationCaseCatalogSchema,
@@ -19,6 +21,8 @@ export {
   QualificationProfileSchema,
   QualificationSelectionSchema,
   QualificationRunnerCheckSchema,
+  QualificationResourceCalibrationSchema,
+  QualificationResourceProfileSchema,
 } from './types.ts';
 
 // candidate and execution contracts
@@ -55,8 +59,9 @@ export type {
   IQualificationAttemptCheckpoint,
   IQualificationAttemptResult,
   IQualificationCaseResult,
+  IQualificationCaseReuse,
+  IQualificationOperationalStop,
   IQualificationOperationalRetry,
-  IQualificationRecordedAttemptResult,
   IQualificationExecutionError,
   IQualificationLatestResult,
   IQualificationRecordedLatestResult,
@@ -72,11 +77,12 @@ export {
   QualificationAttemptResultSchema,
   QualificationAttemptStatusSchema,
   QualificationCaseResultSchema,
+  QualificationCaseReuseSchema,
   QualificationConfirmationPolicySchema,
   QualificationExecutionErrorSchema,
   QualificationLatestResultSchema,
   QualificationOperationalRetrySchema,
-  QualificationRecordedAttemptResultSchema,
+  QualificationOperationalStopSchema,
   QualificationRecordedLatestResultSchema,
   QualificationJudgeSkippedSchema,
   QualificationRequirementAssessmentSchema,

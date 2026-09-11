@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 742913,
+  "deterministicBeforePath": "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-anthropic-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-anthropic-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-anthropic-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-anthropic-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 245272,
+    "cachedInputTokens": 219776,
+    "outputTokens": 4471
+  },
+  "judgeUsage": {
+    "inputTokens": 230829,
+    "cachedInputTokens": 203264,
+    "outputTokens": 5175
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T10:37:21.393Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T10:42:02.635Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-evidence",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies the direct `client.messages.create({...})` call and `loadSupportInstruction`. In `src/agents.ts`, `supportAgent` passes an inline request, and the loader reads `/moldea/agents/support/instruction.md` for the `system` field. Adapter inspection records `messages.create` runtime-pattern and instruction-loader evidence for `support`; deterministic validation passed."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor explicitly treats `web_search_20250305` as provider-hosted. The source contains only the Anthropic descriptor passed in `tools`; adapter inspection emits no client-tool, capability, schema, routing, or handoff evidence. The manifest and canonical file inventory contain no such relationships or assets."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor explains that `dynamicSupportAgent` builds an intermediate request object. Adapter inspection records language and runtime-package evidence for `dynamic-support` but no runtime-pattern. `moldea/moldea.yaml` retains the `indirect-request-construction` warning and concretely resolves it by passing a closed request directly to `messages.create` or documenting a supported adapter pattern."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

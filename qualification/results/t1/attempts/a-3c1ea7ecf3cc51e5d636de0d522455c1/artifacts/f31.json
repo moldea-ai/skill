@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 781513,
+  "deterministicBeforePath": "cases/repair-anthropic-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-anthropic-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-anthropic-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-anthropic-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-anthropic-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-anthropic-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 324159,
+    "cachedInputTokens": 277248,
+    "outputTokens": 6041
+  },
+  "judgeUsage": {
+    "inputTokens": 153044,
+    "cachedInputTokens": 129408,
+    "outputTokens": 3031
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T10:24:09.294Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T10:29:39.720Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report explains that the canonical name was aligned with the working `lookup_order` registration and identifies the closed array as `tools: [lookupOrderTool]`. The Git diff supplies the exact mismatch (`find_order` versus `lookup_order`), while `src/tools.ts` declares `name: 'lookup_order'`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`. The approved diff shows this is the only edited line and Git status identifies only `moldea/moldea.yaml` as modified. Workspace hashes show all runtime source files unchanged; deterministic validation and typechecking passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains `supportAgent` and `loadSupportInstruction` in `/src/agent.ts`, `lookupOrderTool` in `/src/tools.ts`, `LookupOrderInputSchema` in `/src/contracts.ts`, and unchanged implementation `lookupOrder` in `/src/implementations.ts`. Source confirms the direct `client.messages.create` wrapper uses the loader and closed `tools: [lookupOrderTool]` array; the declaration uses the bound schema and `lookup_order`. Workspace assertions show only the manifest changed, and deterministic inspect/validate results are valid with no failures."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

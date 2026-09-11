@@ -1,0 +1,38 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T11:35:22.279Z",
+  "durationMs": 117803,
+  "usage": {
+    "inputTokens": 181177,
+    "cachedInputTokens": 155136,
+    "outputTokens": 4493
+  },
+  "stageIdentity": "8c2e3983603305ae3495887cca5dbb23279a0e023ecbed09c062f334278f1c26",
+  "sourceAttemptId": "20260911T101535112Z-google-genai-typescript-models-generate-content-2-70bcac8e",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 20,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 32168,
+    "moldeaCommandCount": 2,
+    "moldeaOutputByteCount": 946,
+    "networkAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    },
+    "sensitiveAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    }
+  }
+}

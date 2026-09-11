@@ -1,5 +1,6 @@
 import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
 
+import type { ICodexEvaluationCommandPolicyEvidence } from '../../../../tooling/codex-evaluation-host/index.mjs';
 import type { ISemanticCliIdentity } from '../../../../tooling/release-identity/identity.mjs';
 import type {
   ISemanticCaseDefinition as ISemanticCaseContract,
@@ -12,33 +13,108 @@ import type { ISemanticAttemptRecord, ISemanticLatestResult } from './validation
 export type ISemanticEvaluationGroupId = keyof typeof SEMANTIC_EVALUATION_GROUPS;
 export type ISemanticEvaluationCaseId = keyof typeof SEMANTIC_CASE_PRESENTATION;
 export type ISemanticEvaluationCaseStatus = 'failed' | 'passed' | 'pending' | 'recovered';
-export type ISemanticEvidenceMatch = 'compatible' | 'exact';
+export type ISemanticEvidenceMatch = 'exact';
 
 // exact actor or judge host shown with one trial
-export interface ISemanticEvaluationHostModel {
+export interface ISemanticEvaluationActorHostModel {
+  developerInstructionsSha256: string;
   model: 'gpt-5.6-sol';
   name: string;
-  reasoningEffort: 'medium';
+  reasoningEffort: 'high' | 'xhigh';
+  role: 'actor';
   version: string;
+}
+
+// exact independent judge host shown with one trial
+export interface ISemanticEvaluationJudgeHostModel {
+  developerInstructionsSha256: string;
+  model: 'gpt-5.6-sol';
+  name: string;
+  reasoningEffort: 'xhigh';
+  role: 'judge';
+  version: string;
+}
+
+export type ISemanticFailureClassification =
+  | 'semantic'
+  | 'resource'
+  | 'commandPolicy'
+  | 'repositoryControl'
+  | 'mountIntegrity'
+  | 'operational';
+
+// independently attributable public outcome dimensions
+export interface ISemanticResultDimensions {
+  semantic: boolean;
+  resource: boolean;
+  commandPolicy: boolean;
+  repositoryControl: boolean;
+  mountIntegrity: boolean;
+  operational: boolean;
 }
 
 // exact current trial provenance shown on public attempt pages
 export interface ISemanticAttemptTrialModel {
-  actorCommandPolicyEvidence: {
-    completedCommandCount: number;
-    indeterminateCommandCount: number;
-    packageManagerExecution: 'indeterminate' | 'not-observed' | 'observed';
-    packageManagerInvocationCount: number;
+  actorCommandPolicyEvidence: ICodexEvaluationCommandPolicyEvidence;
+  actorResourceEvidence: {
+    commandCount: number;
+    maximumInvocationByteCount: number;
+    modelVisibleToolOutputByteCount: number;
+    operations: Array<
+      'composition' | 'content' | 'inspect' | 'scope' | 'unrecognized' | 'validate'
+    >;
+    stdoutByteCount: number;
   };
-  actorHost: ISemanticEvaluationHostModel;
-  confirmationIndex: 1 | 2 | null;
+  actorHost: ISemanticEvaluationActorHostModel;
+  confirmationEligible: boolean;
+  confirmationIndex: 1 | 2 | 3 | null;
+  dimensions: ISemanticResultDimensions;
   evaluatedAt: string;
+  executionOrigin: 'executed' | 'reused';
   forbidden: string[];
-  judgeHost: ISemanticEvaluationHostModel;
+  failureClassifications: ISemanticFailureClassification[];
+  judgeCommandPolicyEvidence: ICodexEvaluationCommandPolicyEvidence;
+  judgeHost: ISemanticEvaluationJudgeHostModel;
   kind: 'confirmation' | 'initial';
   observed: string[];
   passed: boolean;
   rationale: string;
+  stageReuse: {
+    actor: {
+      identitySha256: string;
+      origin: 'reused';
+      schemaVersion: 1;
+      source: {
+        attemptId: string;
+        commit: string;
+        evidencePath: string;
+        evidenceSha256: string;
+        trial: {
+          caseId: string;
+          confirmationIndex: 1 | 2 | 3 | null;
+          kind: 'confirmation' | 'initial';
+        };
+      };
+      stage: 'actor';
+    };
+    judge: {
+      identitySha256: string;
+      origin: 'reused';
+      schemaVersion: 1;
+      source: {
+        attemptId: string;
+        commit: string;
+        evidencePath: string;
+        evidenceSha256: string;
+        trial: {
+          caseId: string;
+          confirmationIndex: 1 | 2 | 3 | null;
+          kind: 'confirmation' | 'initial';
+        };
+      };
+      stage: 'judge';
+    };
+  } | null;
 }
 
 // semantic contracts consumed directly from the repository-owned evaluator
@@ -80,7 +156,7 @@ export interface ISemanticAttemptModel {
   route: string;
 }
 
-// verified semantic attempt history embedded in the static website model
+// verified current semantic attempts embedded in the static website model
 export interface ISemanticEvaluationWebsiteModel {
   artifactDigest: string;
   attempts: ISemanticAttemptModel[];
@@ -92,7 +168,7 @@ export interface ISemanticEvaluationWebsiteModel {
   currentAssurance: ISemanticAttemptModel | null;
   evidenceMatch: ISemanticEvidenceMatch | null;
   evaluatedAt: string | null;
-  evaluationModel: ISemanticEvaluationHostModel['model'];
+  evaluationModel: ISemanticEvaluationActorHostModel['model'];
   failedCaseCount: number;
   groups: ISemanticEvaluationGroupModel[];
   hasAttempt: boolean;

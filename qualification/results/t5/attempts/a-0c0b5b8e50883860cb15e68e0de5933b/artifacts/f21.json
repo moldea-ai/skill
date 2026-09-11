@@ -1,0 +1,12 @@
+{
+  "outcome": "completed",
+  "summary": "Review completed with one correctness finding. TypeScript validation passed, and the final Git status and diff were clean.",
+  "changedFiles": [],
+  "observations": [
+    "[P2] `src/retry-policy.ts:1` retries every numeric value at or above 500, not only HTTP 5xx statuses. A runtime probe confirmed that `600` and `Infinity` return `true`. If the intended policy is “429 or 5xx,” the condition needs an upper bound of 599.",
+    "No callers or tests exist in the repository to establish that inputs are always prevalidated HTTP status codes."
+  ],
+  "unresolved": [
+    "The documented contract does not state whether `status` is guaranteed to be within the valid HTTP range. If that precondition exists externally, the reported boundary behavior may be unreachable."
+  ]
+}

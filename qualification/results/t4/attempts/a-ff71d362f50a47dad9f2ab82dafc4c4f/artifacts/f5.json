@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Documented the Cloudflare Think static boundary while preserving all source and proved integrations. Added a shared runtime guide and recorded only the two unsupported static conclusions. TypeScript passed, and canonical validation completed with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ],
+  "observations": [
+    "Support retains its Cloudflare runtime-agent and instruction-loader bindings; its open runtime-selected tool map is not registered as closed evidence.",
+    "Step-support retains only its proved runtime-agent binding; no instruction-loader binding was inferred from helper-built session construction.",
+    "All delegating-support runtime, loader, tool, implementation, registration, and schema relationships were preserved without adding a handoff or routing target.",
+    "RuntimeInitializedAgent remains unregistered, and no source files changed.",
+    "The runtime guide records static inspection limits plus Cloudflare binding, Durable Object migration, environment, routing, and deployment responsibilities.",
+    "`node node_modules/typescript/bin/tsc -p tsconfig.json --pretty false` passed. moldea CLI 8.0.0/schema 4 validation returned valid with zero diagnostics."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove SupportAgent's complete runtime-selected tool registry.",
+    "The selected StepSupportAgent class target cannot prove an instruction-loader binding supplied through its helper-built session."
+  ]
+}

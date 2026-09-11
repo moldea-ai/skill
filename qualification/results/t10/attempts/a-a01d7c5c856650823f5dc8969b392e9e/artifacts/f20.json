@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Documented LangGraph static boundaries without changing source. Preserved three `support` bindings and only the `dynamic-support` runtime-agent binding. Added shared runtime guidance plus explicit unresolved routing and composition requirements. TypeScript validation passed, and canonical validation completed with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/langgraph.md"
+  ],
+  "observations": [
+    "No routing targets, handoffs, subagents, tools, schema relationships, or complete-topology claims were added.",
+    "All files under src/ remain unchanged."
+  ],
+  "unresolved": [
+    "Runtime-selected destinations require closed routing configuration or integration tests.",
+    "Effective runtime composition and ToolNode registration require deployment configuration and integration evidence."
+  ]
+}

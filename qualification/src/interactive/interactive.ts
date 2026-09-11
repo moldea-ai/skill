@@ -1,8 +1,12 @@
 import { confirm, select } from '@inquirer/prompts';
 
 import { listQualificationImplementations } from '../compatibility/index.ts';
-import { QUALIFICATION_MODEL, QUALIFICATION_REASONING_EFFORT } from '../constants/index.ts';
-import { listLocalAttemptCheckpoints } from '../execution/index.ts';
+import {
+  QUALIFICATION_ACTOR_REASONING_EFFORT,
+  QUALIFICATION_JUDGE_REASONING_EFFORT,
+  QUALIFICATION_MODEL,
+} from '../constants/index.ts';
+import { listLocalQualificationStatusAttempts } from '../status/index.ts';
 
 export type IInteractiveQualificationAction =
   | { kind: 'resume'; attemptId: string }
@@ -13,11 +17,11 @@ export type IInteractiveQualificationAction =
 /** Prompts for the next local workflow action while prioritizing resumable attempts. */
 export const promptQualificationAction = async (): Promise<IInteractiveQualificationAction> => {
   const [attempts, implementations] = await Promise.all([
-    listLocalAttemptCheckpoints(),
+    listLocalQualificationStatusAttempts(),
     listQualificationImplementations(),
   ]);
   const resumableAttempts = attempts.filter(
-    ({ recordedAt, status }) => status === 'incomplete' && recordedAt === null,
+    ({ isRecorded, status }) => status === 'incomplete' && !isRecorded,
   );
   const action = await select<string>({
     message: 'Select a qualification action',
@@ -25,7 +29,7 @@ export const promptQualificationAction = async (): Promise<IInteractiveQualifica
       ...resumableAttempts.map((attempt) => ({
         name: `Resume ${attempt.attemptId}`,
         value: `resume:${attempt.attemptId}`,
-        description: `${attempt.selection.adapterId}/${attempt.selection.implementationId}`,
+        description: `${attempt.adapterId}/${attempt.implementationId}`,
       })),
       {
         name: 'Run qualification',
@@ -75,8 +79,9 @@ export const promptQualificationAction = async (): Promise<IInteractiveQualifica
 export const confirmPaidQualificationExecution = async (
   plannedCallCount: number,
   maximumCallCount: number,
+  maximumTokenCount: number,
 ): Promise<boolean> =>
   confirm({
-    message: `This attempt plans up to ${plannedCallCount} paid frontier-model calls and can make at most ${maximumCallCount} calls including bounded operational retries (${QUALIFICATION_MODEL}, ${QUALIFICATION_REASONING_EFFORT} reasoning effort). Continue?`,
+    message: `This attempt plans up to ${plannedCallCount} paid frontier-model calls and can make at most ${maximumCallCount} calls including bounded operational retries, with at most ${maximumTokenCount} total tokens across that envelope (${QUALIFICATION_MODEL}, ${QUALIFICATION_ACTOR_REASONING_EFFORT} actors, ${QUALIFICATION_JUDGE_REASONING_EFFORT} judges). Continue?`,
     default: false,
   });

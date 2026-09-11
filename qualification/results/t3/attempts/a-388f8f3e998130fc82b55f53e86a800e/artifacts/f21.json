@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state and runner-owned evidence agree that only the stale canonical output-schema symbol was repaired. The manifest now binds SupportOutputSchema, matching the direct Output.object request, while all protected bindings and source files remain unchanged. Deterministic validation and typechecking passed. This inspection was read-only.",
+  "requirements": [
+    {
+      "id": "explains-output-schema-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the prior LegacySupportOutputSchema binding and the direct Output.object request’s SupportOutputSchema. Current src/agent.ts imports SupportOutputSchema and passes it to Output.object. Replacing the manifest’s sole current SupportOutputSchema binding with LegacySupportOutputSchema reproduces the asserted pre-change SHA-256 exactly, confirming the reported mismatch; deterministic post-actor validation passed."
+    },
+    {
+      "id": "repairs-output-schema-binding",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now binds agents.support.bindings.outputSchema to /src/contracts.ts#SupportOutputSchema. Workspace assertions identify only moldea/moldea.yaml as changed, and every protected source file’s current SHA-256 matches its unchanged before/after assertion. The deterministic summary reports valid inspection, valid CLI validation, passing typecheck, and no failures."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The current manifest retains exact bindings for SupportAgent, loadSupportInstruction, SupportOutputSchema, lookupOrder, lookupOrderTool, LookupOrderInputSchema, and LookupOrderOutputSchema. The corresponding exports and consumption are present in src/agent.ts, src/contracts.ts, src/implementations.ts, and src/tools.ts. The only inputSchema binding is tool-scoped; no agent input schema was invented. Deterministic validation and typechecking both passed."
+    }
+  ],
+  "failures": []
+}

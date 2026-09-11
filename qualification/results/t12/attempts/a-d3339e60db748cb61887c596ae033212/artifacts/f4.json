@@ -1,0 +1,56 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T07:15:07.093Z",
+  "durationMs": 128427,
+  "usage": {
+    "inputTokens": 308855,
+    "cachedInputTokens": 275840,
+    "outputTokens": 4778
+  },
+  "stageIdentity": "4cb7afa9efc18761d3a207db55e90f7cc301e86f895a2bb9fb622c0ca6682555",
+  "sourceAttemptId": "20260911T054140998Z-openai-agents-sdk-typescript-agent-handoffs-0-16-bfecd9bd",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 16,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 37126,
+    "moldeaCommandCount": 4,
+    "moldeaOutputByteCount": 6662,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        },
+        {
+          "code": "unclassified-command",
+          "count": 1
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        },
+        {
+          "code": "unclassified-command",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

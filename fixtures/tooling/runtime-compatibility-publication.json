@@ -37,14 +37,14 @@
           "id": "typescript-responses-api-7",
           "kind": "package",
           "language": "typescript",
-          "lastVerifiedAt": "2026-08-26",
-          "maturity": "experimental",
+          "lastVerifiedAt": "2026-09-01",
+          "maturity": "supported",
           "packages": [
             {
               "ecosystem": "npm",
               "name": "openai",
               "role": "primary",
-              "versionRange": "^7.0.0"
+              "versionRange": ">=7.4.0"
             }
           ]
         }

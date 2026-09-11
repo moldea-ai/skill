@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor abstained from moldea-specific work while completing the unrelated documentation review. The clean repository status and empty targeted diff agree with the runner-owned unchanged-state evidence.",
+  "requirements": [
+    {
+      "id": "abstains-after-cheap-gate",
+      "verdict": "pass",
+      "evidence": "The actor output contains no moldea mention or skill-reference-derived content. The actor-command-policy reports moldeaCommandCount: 0 and moldeaOutputByteCount: 0."
+    }
+  ],
+  "failures": []
+}

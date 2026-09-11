@@ -13,13 +13,18 @@ export {
 
 // compatibility identity
 export {
+  calculateQualificationCaseModelInputDigests,
+  calculateQualificationCaseModelInputDigestsAtCommit,
   calculateQualificationEvaluatorDigest,
   calculateQualificationEvaluatorDigestAtCommit,
   calculateQualificationLogicalInputDigest,
   calculateQualificationLogicalInputDigestAtCommit,
+  calculateQualificationModelStageEvaluatorDigest,
+  calculateQualificationModelStageEvaluatorDigestAtCommit,
   createQualificationCompatibilityIdentity,
   createQualificationCompatibilityIdentityAtCommit,
   createQualificationLogicalInputBundle,
   createQualificationLogicalInputBundleAtCommit,
   isQualificationEvaluatorSourcePath,
+  isQualificationModelStageSourcePath,
 } from './identity.ts';

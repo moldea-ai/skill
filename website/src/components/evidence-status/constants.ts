@@ -5,8 +5,8 @@ export const EVIDENCE_STATUS_PRESENTATION: Record<
   IEvidenceDisplayStatus,
   { label: string; tone: 'danger' | 'info' | 'neutral' | 'success' | 'warning' }
 > = {
-  cached: {
-    label: 'Cached',
+  reused: {
+    label: 'Reused',
     tone: 'neutral',
   },
   errored: {
@@ -43,6 +43,10 @@ export const EVIDENCE_STATUS_PRESENTATION: Record<
   },
   skipped: {
     label: 'Skipped',
+    tone: 'warning',
+  },
+  stopped: {
+    label: 'Operationally stopped',
     tone: 'warning',
   },
 };

@@ -1,0 +1,56 @@
+{
+  "role": "actor",
+  "trialId": "confirmation-1",
+  "createdAt": "2026-09-11T07:11:12.307Z",
+  "durationMs": 194657,
+  "usage": {
+    "inputTokens": 349439,
+    "cachedInputTokens": 320512,
+    "outputTokens": 7064
+  },
+  "stageIdentity": "d5c678c93bb57cc34ff5f971ebb0e8fafdb8ffa469be199a54ece46d69013b88",
+  "sourceAttemptId": "20260911T054140998Z-langgraph-typescript-state-graph-1-4-6f1a2854",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 21,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 35081,
+    "moldeaCommandCount": 3,
+    "moldeaOutputByteCount": 1598,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 2
+        },
+        {
+          "code": "unclassified-command",
+          "count": 1
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 2
+        },
+        {
+          "code": "unclassified-command",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

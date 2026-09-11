@@ -3,6 +3,8 @@ import { ExternalLink } from '@lucide/astro';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { prettifyTime } from 'web-utils-kit';
 
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../tooling/resource-calibration/profiles.mjs';
+
 import type {
   IQualificationAttemptTrialModel,
   IQualificationProfileCaseModel,
@@ -27,9 +29,20 @@ const trialLabel =
       : 'Confirmation 2';
 const hasPassed = result.passed;
 const getTokenTotal = (usage: typeof result.actorUsage): number | null =>
-  usage === null ? null : usage.inputTokens + usage.cachedInputTokens + usage.outputTokens;
+  usage === null ? null : usage.inputTokens + usage.outputTokens;
 const actorTokenTotal = getTokenTotal(result.actorUsage);
 const judgeTokenTotal = getTokenTotal(result.judgeUsage);
+const resourceProfile = MOLDEA_SKILL_RESOURCE_PROFILES[scenario.resourceProfile];
+const formatPolicyObservation = (
+  observation:
+    | IQualificationAttemptTrialModel['actorCommandPolicy']['credentialExposure']
+    | IQualificationAttemptTrialModel['actorCommandPolicy']['networkAccess'],
+): string =>
+  observation.reasons.length === 0
+    ? observation.status
+    : `${observation.status}: ${observation.reasons
+        .map(({ code, count }) => `${code} (${count})`)
+        .join(', ')}`;
 const headingId = `${caseId}-${trialId}-title`;
 const retryCount = evidence.retries.actor.length + evidence.retries.judge.length;
 const deterministicRows = [
@@ -274,6 +287,11 @@ const getArtifactLabel = (artifactPath: string): string =>
             <span class="sr-only">{trialLabel}: </span>
             Model evidence
           </h6>
+          <p class="mt-1 text-xs text-muted-foreground">
+            Resource profile: <span class="font-mono text-foreground"
+              >{scenario.resourceProfile}</span
+            >
+          </p>
           <dl class="mt-3 grid gap-2 text-sm">
             <div class="rounded-lg border border-border p-3">
               <dt class="text-muted-foreground">Actor</dt>
@@ -281,21 +299,61 @@ const getArtifactLabel = (artifactPath: string): string =>
                 Outcome: <span class="font-mono text-foreground">{actor.outcome}</span>
               </dd>
               <dd class="mt-1 text-xs text-muted-foreground">
-                Commands recorded:{' '}
+                Commands recorded / limit:{' '}
                 <span class="font-mono text-foreground">
-                  {evidence.actorCommandPolicy.completedCommandCount}
+                  {evidence.actorCommandPolicy.completedCommandCount} / {
+                    resourceProfile.maxCompletedCommandCount
+                  }
+                </span>
+              </dd>
+              <dd class="mt-1 text-xs text-muted-foreground">
+                <code class="font-mono text-foreground">moldea</code> calls / limit:{' '}
+                <span class="font-mono text-foreground">
+                  {evidence.actorCommandPolicy.moldeaCommandCount} / {
+                    resourceProfile.maxMoldeaCommandCount
+                  }
+                </span>
+              </dd>
+              <dd class="mt-1 text-xs text-muted-foreground">
+                Largest command output / limit:{' '}
+                <span class="font-mono text-foreground">
+                  {evidence.actorCommandPolicy.maximumCommandOutputByteCount} / {
+                    resourceProfile.maxCommandOutputBytes
+                  } bytes
+                </span>
+              </dd>
+              <dd class="mt-1 text-xs text-muted-foreground">
+                Model-visible output / limit:{' '}
+                <span class="font-mono text-foreground">
+                  {evidence.actorCommandPolicy.modelVisibleToolOutputByteCount} / {
+                    resourceProfile.maxModelVisibleToolOutputBytes
+                  } bytes
+                </span>
+              </dd>
+              <dd class="mt-1 text-xs text-muted-foreground">
+                <code class="font-mono text-foreground">moldea</code> output / limit:{' '}
+                <span class="font-mono text-foreground">
+                  {evidence.actorCommandPolicy.moldeaOutputByteCount} / {
+                    resourceProfile.maxAggregateMoldeaOutputBytes
+                  } bytes
                 </span>
               </dd>
               <dd class="mt-1 text-xs text-muted-foreground">
                 Network access:{' '}
                 <span class="font-mono text-foreground">
-                  {evidence.actorCommandPolicy.networkAccess.status}
+                  {formatPolicyObservation(evidence.actorCommandPolicy.networkAccess)}
                 </span>
               </dd>
               <dd class="mt-1 text-xs text-muted-foreground">
                 Sensitive access:{' '}
                 <span class="font-mono text-foreground">
-                  {evidence.actorCommandPolicy.sensitiveAccess.status}
+                  {formatPolicyObservation(evidence.actorCommandPolicy.sensitiveAccess)}
+                </span>
+              </dd>
+              <dd class="mt-1 text-xs text-muted-foreground">
+                Credential exposure:{' '}
+                <span class="font-mono text-foreground">
+                  {formatPolicyObservation(evidence.actorCommandPolicy.credentialExposure)}
                 </span>
               </dd>
               <dd class="mt-1 text-xs text-muted-foreground">
@@ -304,10 +362,19 @@ const getArtifactLabel = (artifactPath: string): string =>
                 </time>
               </dd>
               <dd class="mt-2 font-mono text-xs break-all">
-                {result.actorCacheSourceAttemptId ?? 'Fresh evidence'}
+                {
+                  result.actorReuseSourceAttemptId === null
+                    ? 'Direct evidence'
+                    : `Reused from ${result.actorReuseSourceAttemptId}`
+                }
               </dd>
               <dd class="mt-1 text-xs text-muted-foreground">
-                {actorTokenTotal === null ? 'Token usage unavailable' : `${actorTokenTotal} tokens`}
+                Tokens / limit:{' '}
+                <span class="font-mono text-foreground">
+                  {actorTokenTotal === null ? 'unavailable' : actorTokenTotal} / {
+                    resourceProfile.maxHostTokenCount
+                  }
+                </span>
               </dd>
             </div>
             <div class="rounded-lg border border-border p-3">
@@ -339,13 +406,80 @@ const getArtifactLabel = (artifactPath: string): string =>
               </dd>
               <dd class="mt-2 font-mono text-xs break-all">
                 {
-                  result.judgeCacheSourceAttemptId ??
-                    (judge === null ? 'Skipped' : 'Fresh evidence')
+                  result.judgeReuseSourceAttemptId === null
+                    ? judge === null
+                      ? 'Skipped'
+                      : 'Direct evidence'
+                    : `Reused from ${result.judgeReuseSourceAttemptId}`
                 }
               </dd>
               <dd class="mt-1 text-xs text-muted-foreground">
-                {judgeTokenTotal === null ? 'Token usage unavailable' : `${judgeTokenTotal} tokens`}
+                Tokens / limit:{' '}
+                <span class="font-mono text-foreground">
+                  {judgeTokenTotal === null ? 'unavailable' : judgeTokenTotal} / {
+                    resourceProfile.maxHostTokenCount
+                  }
+                </span>
               </dd>
+              {
+                evidence.judgeCommandPolicy !== null && (
+                  <>
+                    <dd class="mt-1 text-xs text-muted-foreground">
+                      Commands recorded / limit:{' '}
+                      <span class="font-mono text-foreground">
+                        {evidence.judgeCommandPolicy.completedCommandCount} /{' '}
+                        {resourceProfile.maxCompletedCommandCount}
+                      </span>
+                    </dd>
+                    <dd class="mt-1 text-xs text-muted-foreground">
+                      <code class="font-mono text-foreground">moldea</code> calls / limit:{' '}
+                      <span class="font-mono text-foreground">
+                        {evidence.judgeCommandPolicy.moldeaCommandCount} /{' '}
+                        {resourceProfile.maxMoldeaCommandCount}
+                      </span>
+                    </dd>
+                    <dd class="mt-1 text-xs text-muted-foreground">
+                      Largest command output / limit:{' '}
+                      <span class="font-mono text-foreground">
+                        {evidence.judgeCommandPolicy.maximumCommandOutputByteCount} /{' '}
+                        {resourceProfile.maxCommandOutputBytes} bytes
+                      </span>
+                    </dd>
+                    <dd class="mt-1 text-xs text-muted-foreground">
+                      Model-visible output / limit:{' '}
+                      <span class="font-mono text-foreground">
+                        {evidence.judgeCommandPolicy.modelVisibleToolOutputByteCount} /{' '}
+                        {resourceProfile.maxModelVisibleToolOutputBytes} bytes
+                      </span>
+                    </dd>
+                    <dd class="mt-1 text-xs text-muted-foreground">
+                      <code class="font-mono text-foreground">moldea</code> output / limit:{' '}
+                      <span class="font-mono text-foreground">
+                        {evidence.judgeCommandPolicy.moldeaOutputByteCount} /{' '}
+                        {resourceProfile.maxAggregateMoldeaOutputBytes} bytes
+                      </span>
+                    </dd>
+                    <dd class="mt-1 text-xs text-muted-foreground">
+                      Network access:{' '}
+                      <span class="font-mono text-foreground">
+                        {formatPolicyObservation(evidence.judgeCommandPolicy.networkAccess)}
+                      </span>
+                    </dd>
+                    <dd class="mt-1 text-xs text-muted-foreground">
+                      Sensitive access:{' '}
+                      <span class="font-mono text-foreground">
+                        {formatPolicyObservation(evidence.judgeCommandPolicy.sensitiveAccess)}
+                      </span>
+                    </dd>
+                    <dd class="mt-1 text-xs text-muted-foreground">
+                      Credential exposure:{' '}
+                      <span class="font-mono text-foreground">
+                        {formatPolicyObservation(evidence.judgeCommandPolicy.credentialExposure)}
+                      </span>
+                    </dd>
+                  </>
+                )
+              }
             </div>
           </dl>
         </section>
@@ -438,7 +572,7 @@ const getArtifactLabel = (artifactPath: string): string =>
               evidence.artifacts.map((artifact) => (
                 <li class="min-w-0">
                   <a
-                    class="inline-flex min-w-0 items-center gap-2 font-mono text-xs font-semibold text-link hover:underline"
+                    class="inline-flex min-w-0 items-center gap-2 text-link font-mono text-xs font-semibold hover:underline"
                     href={artifact.rawUrl}
                     target="_blank"
                     rel="noopener noreferrer"

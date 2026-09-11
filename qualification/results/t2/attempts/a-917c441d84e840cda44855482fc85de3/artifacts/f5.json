@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Reviewed the static Claude Agent SDK boundary and left the clean repository unchanged. The recorded relationships match what the adapter can prove; TypeScript validation passed. Canonical validation completed as invalid with the single expected unsupported MCP-key diagnostic.",
+  "changedFiles": [],
+  "observations": [
+    "`src/agents.ts` directly binds `supportAgent` to `query` and `loadSupportInstruction` to the canonical support prompt; `moldea/moldea.yaml` records exactly those relationships.",
+    "The `boundary/tools` SDK MCP server key requires unsupported runtime-name normalization. No capability relationship is invented for it.",
+    "`dynamicSupportAgent` receives factory-built options. Its prompt array, main-thread selection, dynamic subagent, restrictions, aliases, preset tools, external MCP configuration, observer fields, critical reminder, server instructions, and skills remain explicit warning or informational boundaries rather than inferred relationships.",
+    "`CLAUDE.md`, `.claude/settings.json`, and `.claude/agents/filesystem-support.md` remain impact evidence only; no settings, hooks, plugins, or filesystem-agent relationships are invented.",
+    "`node node_modules/typescript/bin/tsc -p tsconfig.json --noEmit` passed.",
+    "Final approved Git diff and status were empty, matching the initial clean status."
+  ],
+  "unresolved": [
+    "Canonical validation returned `CLAUDE_AGENT_SDK_MCP_SERVER_KEY_UNSUPPORTED` for `boundary/tools` at `/src/agents.ts`; the key cannot establish a canonical runtime-name segment, so validation remains invalid with one diagnostic."
+  ]
+}

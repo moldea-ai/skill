@@ -1,0 +1,34 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 7cf7049..a1fece8 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,9 +3,19 @@ agents:
+   support:
+     runtime:
+       id: vercel-ai-sdk
++      guidance: /moldea/runtimes/vercel-ai-sdk.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+         symbol: supportAgent
+     affectedBy:
+       - /src/support-agent.ts
++    unresolved:
++      indirect-instruction-boundary:
++        category: instruction-provenance
++        effect: warning
++        description: Static inspection cannot prove that the canonical support instruction is effective at the generateText boundary because the request is indirect and prepareStep may replace instructions.
++        resolution: Change supportAgent in /src/support-agent.ts to call generateText({ ... }) directly with the canonical instruction in instructions, without replacing it in prepareStep, and verify that boundary with a focused test.
++        related:
++          - path: /src/support-agent.ts
++          - path: /moldea/agents/support/instruction.md
+
+diff --git a/moldea/runtimes/vercel-ai-sdk.md b/moldea/runtimes/vercel-ai-sdk.md
+new file mode 100644
+index 0000000..102c31c
+--- /dev/null
++++ b/moldea/runtimes/vercel-ai-sdk.md
+@@ -0,0 +1,3 @@
++# Vercel AI SDK static boundary
++
++`supportAgent` passes `buildRequest(prompt)` to `generateText`, so static inspection cannot verify the final request object at that boundary. The request also defines `prepareStep`, which may replace `instructions` before generation. Do not treat the canonical support instruction as proven effective at runtime from this structure alone.

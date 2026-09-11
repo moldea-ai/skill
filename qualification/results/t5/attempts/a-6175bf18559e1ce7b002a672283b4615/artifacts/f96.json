@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 328623,
+  "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 357876,
+    "cachedInputTokens": 307328,
+    "outputTokens": 6434
+  },
+  "judgeUsage": {
+    "inputTokens": 133383,
+    "cachedInputTokens": 109312,
+    "outputTokens": 4209
+  },
+  "actorEvidenceCreatedAt": "2026-09-10T22:11:12.462Z",
+  "judgeEvidenceCreatedAt": "2026-09-10T22:13:38.249Z",
+  "actorReuseSourceAttemptId": "20260910T220756999Z-custom-custom-3c86e131",
+  "judgeReuseSourceAttemptId": "20260910T220756999Z-custom-custom-3c86e131",
+  "requirementAssessments": [
+    {
+      "id": "grounds-project",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/project.md` describes invoice-line review, findings returned to a human finance operator, and the boundary that the service never authorizes or sends payment. It accurately grounds deterministic duplicate-reference detection in `src/invoice-review.ts` and explicitly avoids asserting unsupported arithmetic-mismatch behavior. The README independently states the same project purpose and non-authorizing boundary."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The canonical tree contains only `moldea/moldea.yaml` and `moldea/project.md`; the manifest is exactly `version: 1` plus a trailing LF and declares no agents, runtimes, relationships, decisions, or requirements. Git status/diff and workspace assertions show only those two canonical files and the README awareness block were added or changed, while the original README content was preserved."
+    },
+    {
+      "id": "preserves-existing-work",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

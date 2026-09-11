@@ -1,148 +1,70 @@
-# Local tooling
+# Local moldea tooling
 
-Read this reference after the skill entrypoint and before any Git, package-manager, deterministic CLI, or tooling-establishment command. Finish reading it before the first governed command; do not combine reference loading and that command in one shell expression. Establish the candidate repository root by inert filesystem traversal before using Git.
+Read this reference only after direct relevance or a successful relationship gate when the selected operation needs deterministic CLI evidence. Explicit initialization may read only its executable-configuration stop contract before foundation classification after bounded inert project metadata establishes that the exact local CLI is absent and installation would load that configuration; otherwise read it after `continuous-maintenance.md` selects the required tooling step.
 
-## Compatibility contract
+For a direct request to prove or safely invoke the local CLI, apply this reference before inspecting a declared dependency, package-manager provider, binary link, or other provider evidence and before reaching any conclusion. The required first proof attempt is the closed launcher `composition --json` call below.
 
-Release `4.0.2` supports:
+## Supported contract
 
-- Git `>=2.30.0`
-- Node.js `>=22.11.0`
-- `@moldea.ai/cli 5.0.3`
-- CLI JSON schema `2`
-- npm `>=7.0.0`
-- pnpm `>=8.3.1`
-- Yarn `>=4.14.1`
+Skill 5.0.0 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^4.0.1`, stable `@moldea.ai/cli` releases satisfying `^8.0.0`, repository format 1, and CLI JSON schema 4. Never substitute a global, transient, out-of-range, or prerelease CLI.
 
-Use node-semver range semantics for the Node.js and package-manager entries. Do not substitute another CLI release or select a prerelease CLI.
+Use only `<installed-skill-root>/scripts/moldea-cli.mjs`. The launcher resolves the repository-root-local package and executable, verifies the package name, exact installed stable version, supported repository declaration, declared `moldea` binary, Core dependency range, and resolved-path containment from inert package metadata, then invokes the executable without a shell. Require the exact envelope version to match that installed version. Do not reproduce these probes, inspect links manually, search parent workspaces, inspect unrelated repositories, use package-manager launchers, or search `PATH` for another copy.
 
-`plan` may use an already available verified release CLI read-only but never establishes tooling. Otherwise continue from sufficient repository evidence and disclose unavailable deterministic evidence without selecting a manager or changing files.
+A declaration, lockfile entry, package name, reported version, Plug'n'Play package location, or package-manager binary shim is not launcher-verifiable installation provenance. The closed launcher supports only the repository-contained package and executable closure it can resolve and validate directly. A Plug'n'Play-only layout without that closure is unavailable; do not guess another provider. A package-manager shim that selects a different provider does not override a launcher-verified package-owned executable, and the package manager must not be invoked to resolve the disagreement.
 
-## Determine the package manager
+For every direct request to prove or safely invoke local CLI availability, invoke the installed skill launcher once with `composition --json` after adoption is established. This attempted launcher proof is required even when repository metadata already suggests that the closure is unavailable or a package-manager provider conflicts. Do not stop at package declarations or manually execute a package-manager shim. If the launcher cannot resolve a Plug'n'Play-only package location into its required repository-contained `node_modules` closure, report that the declared compatible dependency exists but the launcher-verifiable package and executable provenance is unavailable in that layout. If the launcher verifies its package-owned executable while supplied Yarn evidence identifies another `node_modules/.bin/moldea` provider, report both facts separately: the conflicting symlink is not authority for the supported launcher path, and neither Yarn nor that provider was invoked. The launcher owns executable provenance; when the direct task explicitly asks to compare an already identified conflicting provider, one inert exact-path symlink-target read may establish that separate Yarn-provider fact without invoking it.
 
-Before invoking a manager, inspect root `package.json`, recognized lockfiles, workspace configuration, and applicable manager configuration as file data.
+When explicit initialization or another authorized write-capable moldea operation requires a missing CLI, use the repository's established package manager and root development-dependency location. Before invoking it, inspect only the exact package-manager configuration needed to identify repository-supplied executable extensions. This security preflight is mandatory whenever bounded inert metadata establishes both a missing compatible local CLI and a package-manager configuration that installation would load; it does not depend on the developer naming the hazard. It precedes foundation-sufficiency inspection and questioning because the operation cannot safely reach a foundation write without installation. A `.pnpmfile.cjs` hook blocks pnpm-based installation until the developer removes or disables that exact file. For Yarn, inspect `.yarnrc.yml` and the exact repository plugin path it declares, such as `.yarn/plugins/execution-trap.cjs`, without loading or invoking the plugin. Any such plugin blocks Yarn-based installation until the developer removes or disables its exact declaration.
 
-1. A concrete `packageManager` value is strong identity and version evidence.
-2. A sole recognized lockfile establishes its manager family when explicit metadata does not contradict it: `package-lock.json` or `npm-shrinkwrap.json` for npm, `pnpm-lock.yaml` for pnpm, and `yarn.lock` for Yarn.
-3. Matching metadata and lockfile evidence select that manager.
-4. Conflicting metadata, multiple manager lockfiles, or materially ambiguous workspace evidence require investigation and, if unresolved, developer clarification. Never guess, delete a lockfile, or switch managers.
-5. An explicitly established unsupported manager is a prerequisite conflict.
-6. When no manager is established, select npm because it ships with Node.js.
+Return one blocked-install result containing all four fields below. Omitting or merging a field into a partial summary is incomplete.
 
-Before any npm, pnpm, Yarn, Corepack, or related command, inspect pnpmfiles, hook-bearing pnpm configuration, Yarn plugins, and equivalent executable extensions. A `.yarnrc.yml` `plugins[].path` is executable even when unread. Any such extension blocks manager execution, including version discovery, because this release cannot prove it stays unloaded.
+1. State that no compatible exact local CLI was independently verified as installed.
+2. Name the exact configuration and executable hook or plugin, and state that it blocks the named package manager's local CLI installation.
+3. State that execution stopped before invoking the package manager.
+4. Give the exact prerequisite to remove or disable that configuration or executable mechanism before retrying.
 
-Inspect these extensions only as file data with direct inert readers; do not load or parse them through Node.js, a package manager, a repository executable, or a project script. Once one is established, stop executable discovery for manager-dependent work; finish only the minimum inert file inspection needed to identify independent prerequisites, then report every established blocker before asking the focused question that can resolve the remaining ambiguity.
+Do not ask a project-purpose question, execute, rewrite, or disable the extension. Otherwise install `@moldea.ai/cli@^8.0.0` with lifecycle scripts disabled and update the ordinary lockfile. The manifest may retain a compatible caret range or the exact stable version selected by the lockfile. Do not load or execute repository-supplied package-manager extensions. Read-only work never authorizes installation or dependency changes; after direct relevance, report that deterministic evidence is unavailable.
 
-For Initialize, complete this file-only extension gate and the independent installed-CLI presence check before foundation classification can end the attempt in clarification. The foundation-first rule in `context-gathering.md` prevents dependency changes before sufficient context; it does not defer inert safety preflight or allow a project-purpose question to replace an established tooling blocker.
+These rules govern only moldea CLI establishment. They never govern host-owned package-manager, planning, review, Git, commit, or publication commands.
 
-This gate blocks only manager-dependent work. Report each extension path, blocked operation, unavailable evidence, and safe prerequisite. When the exact local CLI is absent, state that the independent local-CLI path is unavailable and the extension therefore blocks manager-based installation. Remove or disable the extension and retry; invoke without the manager only for an already declared and installed exact CLI. Report this terminal tooling prerequisite before any separate adoption or foundation clarification. Never bypass, trust, or execute the extension.
+## Machine commands
 
-After the file-only gate passes, verify the selected executable with `npm --version`, `pnpm --version`, or `yarn --version`. It must satisfy the release range and exactly match concrete `packageManager` metadata. Do not silently install or upgrade Node.js or a manager.
-
-## Establish the exact local CLI
-
-Release tooling state requires all of the following:
-
-- `@moldea.ai/cli` is a root `devDependency` declared as one exact semantic version, not a range, tag, URL, workspace protocol, alias, or other floating specifier.
-- the declared version is exactly `5.0.3`
-- the installed repository-local package manifest reports the same exact version
-- the established manager resolves the repository-local `moldea` executable from that root package
-- the machine envelope reports the same exact `cliVersion` and schema `2`
-
-Preserve the exact version `5.0.3`. Another installed version belongs to another skill release. If the exact release CLI lacks a required official adapter or machine capability, report the release defect rather than selecting another version.
-
-Inspect the manager-specific manifest and executable directly; Git or `rg` omission does not prove absence.
-
-During a write-capable workflow:
-
-- if the installed repository-local CLI is exactly `5.0.3` but the declaration floats, pin `5.0.3` exactly and update the ordinary lockfile
-- if the exact release CLI is absent or another version is installed, verify published registry metadata for `5.0.3`, install that version exactly, and update the ordinary lockfile
-- if installed and declared state conflict in a way that cannot be established reliably, stop and report the prerequisite instead of guessing
-
-During `plan`, `evaluate`, or `validate`, do not create manifests, change dependencies or lockfiles, or install packages. Report the state and relevant write-capable remediation.
-
-When authorized tooling work lacks a root `package.json`, create only the minimal private manifest needed for the dependency; do not invent other metadata or dependencies.
-
-## Suppress executable installation surfaces
-
-Automatic installation or pinning must suppress project and dependency lifecycle scripts and must not load repository-supplied executable package-manager extensions, hooks, or plugins. Substitute only an actually resolved exact version:
+Invoke the launcher with an argument array, never through a shell or package-manager command. The launcher permits only the closed commands and options below, requires an absolute repository root, requires JSON, supplies the CLI repository argument itself, and preserves the child's exit status:
 
 ```text
-npm install --save-dev --save-exact --ignore-scripts @moldea.ai/cli@<resolved-version>
-pnpm add --save-dev --save-exact --ignore-scripts @moldea.ai/cli@<resolved-version>
-pnpm add --workspace-root --save-dev --save-exact --ignore-scripts @moldea.ai/cli@<resolved-version>
-yarn add --dev --exact --mode=skip-build @moldea.ai/cli@<resolved-version>
+node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- scope --paths-stdin --json --max-output-bytes 65536
+node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- validate --json --max-output-bytes 65536
+node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- inspect --json --max-output-bytes 65536
+node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- content --path <canonical-path> --json --max-output-bytes 65536
+node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- composition --json
 ```
 
-Use pnpm `--workspace-root` only for a root workspace. Yarn uses `skip-build`; npm and pnpm use `ignore-scripts`. Replace the placeholder with the exact version `5.0.3`, never a range.
+`scope` is the single pre-reference relationship query, `validate` returns structural diagnostics, `inspect` returns content-free inventory, `content` reads one explicit canonical asset, and `composition` is used only when installed package composition matters. The launcher's fixed 65,536-byte composition boundary replaces a caller-supplied page budget.
 
-The file-only gate precedes command selection. Lifecycle-script suppression does not neutralize repository-supplied extensions and cannot bypass the manager prohibition.
+Repository-logical paths begin with `/`. For stdin scope, encode each path's UTF-8 bytes followed by one NUL, never put a delimiter before the first path, and pass the complete stream once. Never call `scope` separately per path.
 
-If the manager rejects the control, configuration defeats it, or suppression materially changes resolution, report the prerequisite. A moldea request never implies lifecycle-script authority.
+## Envelope verification
 
-## Preserve decision gates
+Interpret JSON only after the child process completes. Require:
 
-Run every command whose safety or authority depends on earlier output separately. Accept the completed result before authorizing the next command; never batch a result-dependent sequence.
+- integer `schemaVersion: 4`
+- string `cliVersion` equal to the exact installed stable CLI version satisfying `^8.0.0`
+- the exact invoked `command`
+- `status` equal to `valid`, `invalid`, or `error`
+- `error: null` and a non-null result only for `valid` or `invalid`
+- a non-null machine error and `result: null` only for `error`
+- exit code 0 for `valid`, 1 for `invalid`, and 2 or 3 for `error`
 
-This applies to manager configuration and versions, installed identity, provider proof, executable resolution, invocation, and deterministic CLI operations.
+Signals, launcher failures, output-boundary termination, malformed output, contradictory status, version mismatch, unsupported schema, and incomplete output establish no conclusion. The launcher sends the requested termination signal first and force-terminates a child that remains active after five seconds. An `invalid` result is diagnostic evidence, not validity.
 
-## Invoke only the root-local CLI
+Every paged result carries a snapshot identity. Continue only with the opaque cursor returned by the preceding page. Repeat the same standalone launcher operation, append `--cursor "<opaque-cursor>"`, and retain `--json --max-output-bytes 65536`. Keep every page as one raw launcher envelope instead of using a pipeline, command substitution, scripted loop, parser, output filter, or aggregate wrapper. Never restart and merge pages from different snapshots, and never claim completeness before the final raw envelope returns a null cursor.
 
-Resolve the executable from the exact root dependency through the established manager. Yarn may use Plug'n'Play and need not expose `node_modules`.
+## Resource limits
 
-### Prove and invoke the repository-local executable
+Use a 65,536-byte output page for ordinary work and stop after obtaining the relevant record, diagnostic, or passage. Keep ordinary aggregate moldea output within 262,144 bytes. Explicitly required large traversal remains purpose-bounded and paginated, with each invocation below 1 MiB. The launcher rejects missing, malformed, smaller-than-4-KiB, or larger-than-1-MiB page budgets and terminates a child that exceeds the declared stdout boundary. It also bounds stderr independently.
 
-Retain cumulative proof of the root declaration, installed identity and version, exported `bin.moldea`, and effective provider. Never use a bare `moldea`, `npx`, `pnpx`, `pnpm dlx`, `yarn dlx`, or another form that can download or use a global fallback.
+`OUTPUT_BUDGET_TOO_SMALL` means the next complete record cannot fit and increasing the page within the 1 MiB ceiling may be appropriate when the record is necessary. `RESOURCE_LIMIT_EXCEEDED` means repository reading exceeded a configured compute or storage guard; do not treat it as an output-page problem or retry unboundedly. Report the observed operation, safe error code, and missing conclusion after direct activation.
 
-- For npm, resolve the root `node_modules/@moldea.ai/cli/package.json`, validate its exact name and version, read its `bin.moldea` entry, and canonicalize both that target and `node_modules/.bin/moldea`. Require the executable to resolve inside that same installed package before invoking the canonical local path.
-- For pnpm with the `isolated` or `hoisted` linker, perform the same manifest, `bin.moldea`, canonical-target, package-name, and exact-version checks before invoking the canonical root `node_modules/.bin/moldea` path.
-- For pnpm with `nodeLinker: pnp` or another configuration without a root `node_modules/.bin`, first pass the file-only extension gate, then run `pnpm --version` as its own process. In a separate repository-root `pnpm node` process, use the active `pnpapi.resolveToUnqualified('@moldea.ai/cli', '<root-package-json>')` to locate the package. Read that root's manifest; require exact name `@moldea.ai/cli`, the exact release version, and a relative `bin.moldea`. Canonicalize the package root and resolved bin and require the bin to remain inside that package. Only after accepting those checks may another process invoke `pnpm node <resolved-bin> <command> --json`. Do not use `pnpm exec moldea`: it does not prove a project-local provider. If the active linker cannot prove and invoke the exact provider without fallback, stop rather than changing linker configuration.
-- For supported Yarn releases at or above 4, after the file-only safety gate, prove each stage separately: exact root declaration; installed identity, version, and exported `bin.moldea` through `yarn info @moldea.ai/cli --json`; then effective provider through `yarn bin -v --json`. Parse its newline-delimited JSON records and require exactly one `moldea` entry sourced by `@moldea.ai/cli`; `source` identifies the package, not its version. Any missing, malformed, duplicate, conflicting, or non-CLI provider ends this proof branch. Do not then resolve or invoke the executable through Yarn, symlink inspection, `readlink`, `realpath`, Node.js filesystem APIs, or another tool. Report accepted stages and later stages as unattempted; unrelated safe reporting checks may continue. Only an accepted provider record permits a new `yarn bin moldea` process; require its canonical path to equal the recorded path before another process runs `yarn exec moldea`.
+Evaluation and qualification record command count and emitted bytes from the completed process evidence. Host failure-containment ceilings do not define normal skill consumption and must never be presented as repository-capacity limits.
 
-When repository evidence is accessible, perform safe provider and CLI checks even for an explanation; otherwise provide a procedure. Report provider, exact version, command, and envelope. Version alone does not prove provider.
-
-`inspect --json` is primary. Use `composition --json` only when installed package composition, adapter IDs, formats, or runtime requirements matter; it proves no behavioral or maturity claims. Use `validate --json` for narrower structure. Load `runtime-compatibility.md` separately when current published target compatibility matters.
-
-## Verify the machine envelope
-
-Run each CLI invocation independently, without shell-chaining it to manager checks, project verification, mirror comparison, Git inspection, or another CLI command. After completion, validate the version `2` envelope before reading `result`:
-
-- `schemaVersion` is integer `2`
-- `cliVersion` is exactly `5.0.3` and equals the declared and installed CLI version
-- `command` equals the command invoked
-- `status` is `valid`, `invalid`, or `error`
-- `valid` has non-null `result` and null `error`
-- `invalid` is accepted only for `inspect` or `validate`, has non-null `result`, and has null `error`
-- `error` has null `result` and a non-null safe error object
-- `composition` never uses `invalid`
-
-Expected handled exit codes are `0` for `valid`, `1` for `invalid`, `2` or `3` for `error`, `130` for `SIGINT`, and `143` for `SIGTERM`. A package-manager launcher can fail before the CLI starts; distinguish that from a CLI envelope.
-
-Only the completed process, exit code, and matching envelope establish a result. Failure, incompleteness, aggregation, unsupported schema, command mismatch, invalid payload, malformed JSON, contradictory version, or exit/envelope disagreement stops interpretation.
-
-Complete structural `invalid` is diagnostic evidence, not successful validation or operational failure. `error` is an operational failure. Never report either as `valid`.
-
-## Preserve responsibility boundaries
-
-Consume public CLI, Core, and adapter results rather than reimplementing their mechanics or importing private CLI modules.
-
-When additional read-only Git evidence is materially necessary, no Git command, including `rev-parse`, `status`, `log`, or `diff`, is presumed harmless. Before worktree-aware Git, inspect every `.gitattributes` file under the candidate working tree and the applicable Git directory's `info/attributes` as inert file data. Resolve a `.git` file only by reading its declared Git-directory path. Do not use Git, repository code, a project script, or a language runtime for this preflight.
-
-If any inspected attribute source assigns, unsets, resets, or defines a macro involving `filter`, or if every applicable source cannot be located and read completely, do not run worktree-aware Git. Report the attribute path, filter risk, unavailable Git evidence, and concrete safe prerequisite: remove or disable the filter before retrying, or supply independently captured inert worktree evidence. A clean filter can execute during `status` or `diff`; command-line Git configuration cannot universally neutralize repository attribute rules.
-
-Only after that preflight passes, use command-specific hardened options instead of a bare Git command. Set `GIT_ATTR_NOSYSTEM=1` and `-c core.attributesFile=/dev/null` to disable system and global attributes. For every command, disable fsmonitor and pagers with `-c core.fsmonitor=false`, `-c core.pager=cat`, and `--no-pager`. Disable LFS clean, process, and smudge settings where relevant with empty `filter.lfs.clean`, `filter.lfs.process`, and `filter.lfs.smudge` values plus `-c filter.lfs.required=false`. For `diff`, `show`, or another patch-producing command, also use `-c diff.external=`, `--no-ext-diff`, and `--no-textconv`. Avoid submodule recursion and request explicit machine-oriented output such as porcelain or NUL-delimited paths. Apply only options supported by the selected Git subcommand.
-
-Use these command shapes, adding only the required pathspec or supported output options:
-
-```text
-env GIT_ATTR_NOSYSTEM=1 git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.clean= -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false --no-pager status --porcelain=v2 -z --ignore-submodules=all
-env GIT_ATTR_NOSYSTEM=1 git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.clean= -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false -c diff.external= --no-pager diff --no-ext-diff --no-textconv --ignore-submodules=all -- <pathspec>
-```
-
-Run each hardened Git invocation alone in its tool call from the repository root. Run workspace and helper-sentinel checks in separate later calls; do not combine the Git invocation with chaining, piping, redirection, substitution, or inline parsing.
-
-When hardened status reports changes and the operation requires evaluating them, status does not describe their content. Run the documented hardened diff separately for each material path before drawing semantic conclusions; file reads, Git history, and the final report do not replace that diff evidence. This remains conditional on the completed attribute preflight.
-
-After every supplemental Git command, especially a failure, inspect the workspace and any helper sentinel before claiming no writes. Report observed changes truthfully. If the required evidence cannot be gathered without executing repository code, use other reliable evidence or report the limitation instead of weakening these controls.
-
-Treat `inspect --json` as sensitive local content. Use it only for the active task; do not persist the raw envelope, expose canonical content unnecessarily, or copy machine output into README guidance.
+The operating targets come from the source-controlled resource profiles and reproducible calibration corpus. Every qualification scenario declares `ordinary` or `largeTraversal`. Both profiles allow 64 completed host commands, 16 moldea calls, 1,625,000 input-plus-output model tokens, and at most 131,072 model-visible bytes from one completed host command. This host-command ceiling is separate from the unchanged 65,536-byte limit on each raw moldea CLI response page. The ordinary profile also allows 262,144 moldea-output bytes and 1,048,576 aggregate model-visible tool-output bytes. The large-traversal profile also allows 1,048,576 moldea-output bytes and 4,194,304 aggregate model-visible tool-output bytes. Absolute host ceilings remain higher failure containment. Each operating limit is enforced independently before judging, and failures identify the profile, dimension, observed value, and limit.

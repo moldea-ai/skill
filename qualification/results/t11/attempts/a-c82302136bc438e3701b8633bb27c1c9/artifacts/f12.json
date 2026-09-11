@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository preserves the OpenAI static boundary exactly as required. Source, canonical state, clean Git evidence, and deterministic post-actor validation all agree that no edit was needed.",
+  "requirements": [
+    {
+      "id": "explains-direct-evidence",
+      "verdict": "pass",
+      "evidence": "In src/agents.ts, supportAgent directly invokes client.responses.create with instructions from loadSupportInstruction; that loader reads moldea/agents/support/instruction.md. moldea/moldea.yaml binds both supportAgent and loadSupportInstruction. The actor report identifies both facts, and deterministic validation and typechecking passed."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "verdict": "pass",
+      "evidence": "src/agents.ts represents web search only as the provider-hosted { type: 'web_search' } Responses API tool. The manifest and agent assets contain no function-tool, schema, routing, or handoff relationship; expected moldea/tools, moldea/schemas, moldea/routes, and moldea/handoffs paths are absent. Git status and the scoped diff are clean."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "verdict": "pass",
+      "evidence": "dynamicSupportAgent builds request as an intermediate object before passing it to client.responses.create. moldea/moldea.yaml retains indirect-request-construction as an unresolved runtime-pattern warning and gives a concrete resolution: pass a closed object directly or document the relationship through a supported adapter pattern. This matches the actor report and passed deterministic checks."
+    }
+  ],
+  "failures": []
+}

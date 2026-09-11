@@ -8,7 +8,10 @@ import {
   type IEvaluationReplayWorkspaceStep,
 } from '@moldea.ai/website-ui/evaluation-replay-model';
 
-import { createSemanticCaseDefinitionDigest } from '../../../../tooling/semantic-evaluation/index.mjs';
+import {
+  createSemanticCaseDefinitionDigest,
+  createSemanticStageValueDigest,
+} from '../../../../tooling/semantic-evaluation/index.mjs';
 
 import type { ISemanticCaseDefinition } from './types.ts';
 import type {
@@ -35,7 +38,7 @@ export interface ISemanticEvaluationReplayProjection {
 
 // truthful replacement when an older artifact did not retain developer-direction evidence
 const UNAVAILABLE_DEVELOPER_DIRECTION =
-  'The exact developer direction was not retained in this historical artifact.';
+  'The exact developer direction was not retained in this recorded artifact.';
 
 /** Returns the deterministic public label and short result for one projected command fact. */
 const createCommandPresentation = (
@@ -43,34 +46,21 @@ const createCommandPresentation = (
 ): ICommandPresentation | null => {
   const fact = command.item.outputEvidence.facts[0];
   if (fact === undefined) return null;
-
-  switch (fact.kind) {
-    case 'focused-runtime-test':
-      return {
-        operation: 'Focused runtime test',
-        results: [`${fact.path}: ${fact.status}.`],
-      };
-    case 'moldea-cli-envelope':
-      return {
-        operation: `moldea ${fact.command}`,
-        results: [`CLI ${fact.cliVersion} returned ${fact.status}.`],
-      };
-    case 'workspace-paths':
-      return {
-        operation: 'Resolve evaluator-owned workspace paths',
-        results: fact.paths.map((path) => `Resolved ${path}.`),
-      };
-    case 'yarn-package-info':
-      return {
-        operation: 'Inspect the Yarn package',
-        results: [`Resolved ${fact.packageName} ${fact.version} with ${fact.binaries.join(', ')}.`],
-      };
-    case 'yarn-binary-provider':
-      return {
-        operation: 'Inspect the Yarn binary provider',
-        results: [`${fact.binaryName} resolves from ${fact.source}.`],
-      };
+  if (fact.kind === 'node-test-summary') {
+    return {
+      operation: `Repository ${fact.testKind} tests`,
+      results: [`${fact.passedCount} of ${fact.testCount} tests passed.`],
+    };
   }
+
+  return {
+    operation: `moldea ${fact.command}`,
+    results: [
+      fact.errorCode === null
+        ? `CLI ${fact.cliVersion} returned ${fact.status}.`
+        : `CLI ${fact.cliVersion} returned ${fact.status} (${fact.errorCode}).`,
+    ],
+  };
 };
 
 /** Returns whether one completed command represents a failed operation. */
@@ -174,18 +164,25 @@ const createWorkspaceStep = (trial: ISemanticReplaySourceTrial): IEvaluationRepl
 const createTrialSummary = (
   trial: ISemanticReplaySourceTrial,
   kind: 'confirmation' | 'initial',
-  confirmationIndex: 1 | 2 | null,
+  confirmationIndex: 1 | 2 | 3 | null,
 ): ISemanticAttemptRecord['cases'][number]['trials'][number] => ({
   actorCommandPolicyEvidence: trial.actorCommandPolicyEvidence,
+  actorResourceEvidence: trial.actorResourceEvidence,
   actorHost: trial.actorHost,
+  confirmationEligible: trial.confirmationEligible,
   confirmationIndex,
+  dimensions: trial.dimensions,
   evaluatedAt: trial.evaluatedAt,
+  executionOrigin: trial.executionOrigin,
   forbidden: trial.forbidden,
+  failureClassifications: trial.failureClassifications,
+  judgeCommandPolicyEvidence: trial.judgeCommandPolicyEvidence,
   judgeHost: trial.judgeHost,
   kind,
   observed: trial.observed,
   passed: trial.passed,
   rationale: trial.rationale,
+  stageReuse: trial.stageReuse,
 });
 
 /** Returns raw initial and confirmation evidence in immutable trial order. */
@@ -193,7 +190,7 @@ const getSourceTrials = (
   candidate: ISemanticReplayCandidate,
   caseId: string,
 ): Array<{
-  confirmationIndex: 1 | 2 | null;
+  confirmationIndex: 1 | 2 | 3 | null;
   kind: 'confirmation' | 'initial';
   source: ISemanticReplaySourceTrial;
 }> => {
@@ -273,7 +270,10 @@ export const createSemanticEvaluationReplay = (
 
   const trials = sourceTrials.map(({ confirmationIndex, kind, source }, index) => {
     const sourceSummary = createTrialSummary(source, kind, confirmationIndex);
-    if (JSON.stringify(sourceSummary) !== JSON.stringify(attemptCase.trials[index])) {
+    if (
+      createSemanticStageValueDigest(sourceSummary) !==
+      createSemanticStageValueDigest(attemptCase.trials[index])
+    ) {
       throw new Error(`Semantic replay case ${attemptCase.id} contradicts trial ${index + 1}.`);
     }
     if (

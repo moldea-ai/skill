@@ -1,0 +1,84 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 853408,
+  "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 393155,
+    "cachedInputTokens": 367360,
+    "outputTokens": 7582
+  },
+  "judgeUsage": {
+    "inputTokens": 207083,
+    "cachedInputTokens": 185600,
+    "outputTokens": 5186
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T12:17:12.429Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T12:23:37.570Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-prepare-call-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains only support.runtimeAgent and support.inputSchema. Its warning-level prepare-call-runtime-wiring entry explicitly marks effective instructions, output schema, and tool registry unresolved because prepareCall is the call boundary. Deterministic inspection and validation passed."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "step-support retains runtimeAgent, inputSchema, outputSchema, and the complete get-status tool bindings. Only instructionLoader was removed, with prepare-step-instruction-loader recording the prepareStep replacement boundary as a warning."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "delegating-support still declares delegate_support with its implementation, registration, input-schema, and output-schema bindings. src/delegation.ts directly calls stepSupportAgent.generate(), while the manifest contains no handoff, routing, or subagent relationship. The workspace patch and hashes show the delegation sources were unchanged."
+    },
+    {
+      "id": "keeps-workflow-agent-outside-target",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts still exports workflowSupportAgent using WorkflowAgent, but moldea/moldea.yaml has no workflow target or reference. Expected workflow-agent canonical paths are absent, and neither the source nor such a registration appears in the patch."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Both support and step-support reference /moldea/runtimes/vercel-ai-sdk.md. It is the sole file under moldea/runtimes and separately describes prepareCall as affecting effective instruction/output/tool wiring and prepareStep as affecting replacement instructions, without asserting provider behavior."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest has separate prepare-call-runtime-wiring and prepare-step-instruction-loader entries, each with effect: warning, explicit callback-boundary descriptions, and related source paths. Their resolutions require runtime evidence exercising prepareCall or every prepareStep instruction result to establish the specific unresolved relationships. Deterministic canonical validation reported zero failures."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

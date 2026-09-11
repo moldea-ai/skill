@@ -4,8 +4,72 @@ import path from 'node:path';
 
 import { parseRepositoryPath } from '@moldea.ai/repository';
 import { createMemoryRepositoryReader } from '@moldea.ai/repository/memory';
-import { createFilesystemRepositoryReader } from '@moldea.ai/repository-fs';
+import {
+  DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS,
+  createFilesystemRepositoryReader,
+} from '@moldea.ai/repository-fs';
 import { createCore } from '@moldea.ai/core';
+
+/** Collects every selected repository entry through bounded continuation pages. */
+const collectRepositoryEntries = async (repository) => {
+  const entries = [];
+  let cursor;
+
+  while (cursor !== null) {
+    const page = await repository.listEntriesPage({
+      ...(cursor === undefined ? {} : { cursor }),
+      maxEntries: DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS.maxPageEntries,
+    });
+    entries.push(...page.entries);
+
+    if (page.isComplete) {
+      return entries;
+    }
+
+    if (page.nextCursor === null) {
+      throw new TypeError('An incomplete repository entry page requires a continuation cursor.');
+    }
+
+    cursor = page.nextCursor;
+  }
+
+  return entries;
+};
+
+/** Reads one selected regular file through bounded byte pages. */
+const readRepositoryFile = async (repository, repositoryPath) => {
+  const chunks = [];
+  let offset = 0;
+
+  while (offset !== null) {
+    const page = await repository.readFilePage(repositoryPath, {
+      maxBytes: DEFAULT_FILESYSTEM_REPOSITORY_RESOURCE_LIMITS.maxReadBytes,
+      offset,
+    });
+    chunks.push(page.bytes);
+
+    if (page.isComplete) {
+      return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)));
+    }
+
+    if (page.nextOffset === null) {
+      throw new TypeError('An incomplete repository file page requires a continuation offset.');
+    }
+
+    offset = page.nextOffset;
+  }
+
+  return Buffer.alloc(0);
+};
+
+/** Removes source-specific snapshot identity before comparing validation semantics. */
+const toComparableValidation = ({ diagnostics, evidence, formatVersion, summary, valid }) => ({
+  diagnostics,
+  evidence,
+  formatVersion,
+  summary,
+  valid,
+});
 
 const [projectDirectory, adapterId, adapterPackage] = process.argv.slice(2);
 
@@ -45,12 +109,12 @@ const filesystemRepository = await createFilesystemRepositoryReader({
 });
 const memoryEntries = [];
 
-for await (const entry of filesystemRepository.listEntries()) {
+for (const entry of await collectRepositoryEntries(filesystemRepository)) {
   if (entry.type === 'file') {
     memoryEntries.push({
       path: entry.path,
       type: 'file',
-      content: await filesystemRepository.readFile(entry.path),
+      content: await readRepositoryFile(filesystemRepository, entry.path),
     });
   } else {
     memoryEntries.push({ path: entry.path, type: entry.type });
@@ -78,9 +142,11 @@ if (adapterId !== 'custom') {
 }
 
 const core = createCore({ adapters });
-const filesystemResult = await core.inspectProject({ repository: filesystemRepository });
-const memoryResult = await core.inspectProject({ repository: memoryRepository });
-const equivalent = JSON.stringify(filesystemResult) === JSON.stringify(memoryResult);
+const filesystemResult = await core.validateProject({ repository: filesystemRepository });
+const memoryResult = await core.validateProject({ repository: memoryRepository });
+const equivalent =
+  JSON.stringify(toComparableValidation(filesystemResult)) ===
+  JSON.stringify(toComparableValidation(memoryResult));
 
 process.stdout.write(
   `${JSON.stringify({
@@ -91,7 +157,7 @@ process.stdout.write(
       diagnosticCodes: filesystemResult.diagnostics.map(({ code }) => code),
       evidenceKinds: filesystemResult.evidence.map(({ kind }) => kind),
       evidenceCount: filesystemResult.evidence.length,
-      agentCount: filesystemResult.project?.agents.length ?? 0,
+      agentCount: filesystemResult.summary?.counts.agents ?? 0,
     },
     memory: {
       valid: memoryResult.valid,
@@ -99,7 +165,7 @@ process.stdout.write(
       diagnosticCodes: memoryResult.diagnostics.map(({ code }) => code),
       evidenceKinds: memoryResult.evidence.map(({ kind }) => kind),
       evidenceCount: memoryResult.evidence.length,
-      agentCount: memoryResult.project?.agents.length ?? 0,
+      agentCount: memoryResult.summary?.counts.agents ?? 0,
     },
   })}\n`,
 );

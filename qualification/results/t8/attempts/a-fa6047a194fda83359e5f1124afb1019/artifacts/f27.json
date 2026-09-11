@@ -1,0 +1,56 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T06:46:21.610Z",
+  "durationMs": 202441,
+  "usage": {
+    "inputTokens": 419053,
+    "cachedInputTokens": 363008,
+    "outputTokens": 7668
+  },
+  "stageIdentity": "b060a4de485a95dac87460c546b8384a13207c78106bdfcd5ba473bcae7fe3a4",
+  "sourceAttemptId": "20260911T054140998Z-langchain-typescript-create-agent-1-5-6a023965",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 26,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 33127,
+    "moldeaCommandCount": 1,
+    "moldeaOutputByteCount": 223,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 5,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 2
+        },
+        {
+          "code": "unclassified-command",
+          "count": 3
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 5,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 2
+        },
+        {
+          "code": "unclassified-command",
+          "count": 3
+        }
+      ]
+    }
+  }
+}

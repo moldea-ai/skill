@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: retire-agent-coherently
 title: Retire an agent coherently
 purpose: Verify that removing an implementation also removes its complete obsolete canonical surface.

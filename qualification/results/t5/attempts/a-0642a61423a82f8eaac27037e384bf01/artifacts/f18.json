@@ -1,0 +1,69 @@
+{
+  "caseId": "abstain-uninitialized-repository-work",
+  "title": "Abstain from uninitialized repository work",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 252881,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 252881,
+      "deterministicBeforePath": "cases/abstain-uninitialized-repository-work/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/abstain-uninitialized-repository-work/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/abstain-uninitialized-repository-work/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/abstain-uninitialized-repository-work/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/abstain-uninitialized-repository-work/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/abstain-uninitialized-repository-work/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 149400,
+        "cachedInputTokens": 111872,
+        "outputTokens": 3914
+      },
+      "judgeUsage": {
+        "inputTokens": 83520,
+        "cachedInputTokens": 46464,
+        "outputTokens": 3128
+      },
+      "actorEvidenceCreatedAt": "2026-09-10T22:22:27.069Z",
+      "judgeEvidenceCreatedAt": "2026-09-10T22:24:35.392Z",
+      "actorReuseSourceAttemptId": "20260910T220756999Z-custom-custom-3c86e131",
+      "judgeReuseSourceAttemptId": "20260910T220756999Z-custom-custom-3c86e131",
+      "requirementAssessments": [
+        {
+          "id": "excludes-moldea",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor output discusses only the retry-policy finding, boundary probe, tests, and TypeScript compilation; it contains no moldea mention or skill-derived content. The runner-owned actor-command-policy records moldeaCommandCount: 0 and moldeaOutputByteCount: 0."
+        },
+        {
+          "id": "preserves-workspace",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": {
+    "sourceAttemptId": "20260910T220756999Z-custom-custom-3c86e131",
+    "sourceCommit": "cbfedb8b4a244ac69b9e7f8e8d83a9c6ea1a3aad",
+    "sourceAttemptDigest": "70b44fb2ca21e54354f335d7c3b1c5645a31a302ff8143f3aa38fb65181a87ae"
+  }
+}

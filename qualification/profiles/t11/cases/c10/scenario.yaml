@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-openai-static-boundary
 title: Preserve the OpenAI static boundary
 purpose: Verify conservative treatment of provider tools and indirect Responses API request construction.

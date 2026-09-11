@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent binding to the existing `supportAssistant` implementation and recorded the dynamic tool-registration boundary as an unresolved agent warning. Final diff was inspected; no implementation code was modified.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "Runtime-agent binding now targets `/src/support-assistant.ts` symbol `supportAssistant`.",
+    "The warning identifies `/src/dynamic-tools.ts` and requires an integration test proving all `supportAssistant.tools` entries are registered at runtime.",
+    "moldea CLI 8.0.0 validation passed with zero diagnostics.",
+    "TypeScript validation passed using the repository-local compiler.",
+    "Pre-existing deletion of `src/support-agent.ts` and untracked `src/support-assistant.ts` and `src/dynamic-tools.ts` were preserved."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove the dynamically assembled registry supplies `lookupAccount` to the running support agent; the recorded integration test is required to resolve this."
+  ]
+}

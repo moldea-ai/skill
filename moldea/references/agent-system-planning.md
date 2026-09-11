@@ -1,6 +1,6 @@
 # Agent-system planning
 
-Read this reference before planning an AI- or agent-enabled system, decomposing agent responsibilities, or recommending orchestration.
+Read this reference after explicit moldea relevance is established for agent-system planning, responsibility decomposition, or orchestration design.
 
 ## Select this operation narrowly
 
@@ -12,12 +12,12 @@ Generic implementation, architecture, migration, refactor, deployment, and host-
 
 Planning may precede adoption and changes no repository, dependency, Git, protected instruction, generated artifact, or external system. It creates no canonical plan, cache, or planning database.
 
-Use an available compatible root-local CLI read-only. If runtime identity is requested and provider proof is available, run `composition --json`; its inventory proves availability only. Load `runtime-compatibility.md` and retrieve the current public publication when target support or maturity matters. Never create metadata, select a manager, install tooling, or use global or transient launchers to plan. Without compatible tooling, continue from evidence and disclose the limitation.
+Use the installed skill's closed launcher read-only only when runtime identity is material. If provider proof is available, run its `composition --json` operation; the launcher applies a fixed 65,536-byte boundary, and the returned inventory proves availability only. Load `runtime-compatibility.md` and retrieve the current public publication when target support or maturity matters. Never create metadata, install tooling, reproduce package-resolution probes, or use global or transient launchers to plan. Without compatible tooling, continue from evidence and disclose the limitation.
 
 ## Plan from the objective
 
 1. Establish the outcome, recipient, trigger or cadence, deliverables, success criteria, constraints, and prohibited outcomes that materially shape the system.
-2. Apply `context-gathering.md`: discovery queues candidates, and every material accessible candidate must be read and mapped to a fact and responsibility before absence claims or allocation.
+2. Apply `context-gathering.md`: reuse host evidence and inspect only candidates that can change a material responsibility or absence claim.
 3. Decompose every evidence-established outcome into the smallest cohesive responsibilities before naming components.
 4. Classify each responsibility as deterministic application or data logic, an existing or proposed service or runtime-native tool, a reusable Agent Skill, an AI agent, human control, or a deliberate combination with explicit boundaries.
 5. Keep fixed calculations, eligibility, filtering, storage, delivery, and predictable sequencing deterministic unless evidence establishes a need for model reasoning.
@@ -52,7 +52,11 @@ Describe the principal inputs, outputs, events, service and tool contracts, and 
 
 ## Treat runtime compatibility honestly
 
-Runtime selection is optional unless requested or material. CLI composition establishes adapter availability, while the validated packages website publication establishes current technical targets and maturity. Neither establishes repository use or behavioral fit. Without sufficient repository evidence, state runtime requirements or considerations and leave the final `runtime.id` for later design and implementation.
+Use only facts stated by the bounded source or projected evidence actually inspected. A claim that an injected client is opaque establishes an evidence gap, not that tools, schemas, state, persistence, retries, or other behaviors are absent. Keep those dimensions as explicit evidence prerequisites and name the source contract, closed wiring, source-owned documentation, or focused integration test that must prove them.
+
+Runtime selection is optional unless requested or material. Keep four conclusions separate: the canonical declared runtime identity; the repository's actual wiring and behavioral fit; launcher-verified local adapter composition; and the validated packages website publication's current target support and maturity. Missing evidence in one layer withholds only that layer's conclusion and never erases a fact established by another.
+
+Composition establishes availability only. Publication establishes current technical support and maturity only. Neither establishes repository use or behavioral fit. When fit is incomplete, name the material facts still required for the repository, such as model API and control flow, instruction loading, tools and schemas, continuation, state or handoffs, error and retry semantics, lifecycle, and persistence. Name reliable resolvers such as current source contracts, closed runtime wiring, source-owned target documentation, and focused integration tests. Preserve an existing `runtime.id`; for a new plan, leave it undecided until the required evidence exists rather than defaulting to `custom` or inferring from a package name.
 
 ## Produce one actionable recommendation
 

@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: initialize-grounded-project
 title: Initialize a grounded project
 purpose: Verify minimal evidence-backed adoption without speculative agent state.

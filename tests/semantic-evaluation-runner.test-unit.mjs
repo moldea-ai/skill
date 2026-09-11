@@ -1,1859 +1,1259 @@
-// @vitest-environment node
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
-import test from 'node:test';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { test } from 'node:test';
 
 import {
+  CODEX_EVALUATION_LOCAL_PROBE_KINDS,
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
-  isRetryableCodexEvaluationHostError,
+  CodexEvaluationHostError,
+  runCodexEvaluationOperationalStage,
 } from '../tooling/codex-evaluation-host/index.mjs';
-import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../tooling/release-identity/constants.mjs';
 
 import {
-  appendSemanticCandidateConfirmation,
-  appendSemanticCandidateInitialResult,
-  attachSemanticActiveTrialActorEvidence,
   assessJudgeOutput,
+  assertNoOrphanedSemanticWorkerState,
+  assertSemanticCandidatePaidStageCapacity,
   buildActorPrompt,
   buildJudgePrompt,
-  buildSemanticEvaluationHostCommand,
-  collectProductionPackageRoots,
-  createSemanticCaseDefinitionDigest,
-  createSemanticCaseSuiteDigest,
-  createSemanticActiveTrial,
-  createSemanticEvaluationCandidate,
-  createSemanticEvaluationHostContract,
-  createSemanticEvaluationRecord,
-  getPendingSemanticCaseDefinitions,
-  getSemanticCaseResolution,
-  getSemanticCriterionLabels,
-  getSemanticToolingSource,
+  createSemanticDiagnosticBatchOutput,
+  createSemanticDiagnosticBatchRecord,
+  createSemanticDiagnosticOutput,
+  createSemanticEvaluationCostEstimate,
+  createSemanticResultDimensions,
+  getNextSemanticTrial,
+  getSemanticCandidatePaidTokenCount,
+  getSemanticWorkerPaidTokenCount,
+  hasMatchingSemanticReusedSourceTrial,
+  isSemanticActiveTrialOperationallyStopped,
+  isSemanticCoordinatorStopCaseKnown,
+  isSemanticConfirmationEligible,
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
-  recordSemanticCandidateCheckpoint,
+  readSemanticDiagnosticState,
+  resolveSemanticDiagnosticCaseDefinitions,
   runSemanticCaseTrial,
-  shouldFailSemanticEvaluation,
-  validateSemanticCandidateCompatibility,
-  validateSemanticCandidateCheckpointCompatibility,
-  validateSemanticCaseDefinition,
-  validateSemanticResultRecording,
-  validateSkillDocument,
-  validateSkillEvidenceConfiguration,
+  selectSemanticWorkerTrialHistory,
+  SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT,
+  SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT,
+  SEMANTIC_DIAGNOSTIC_RATIONALE_MAXIMUM_BYTE_COUNT,
+  SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT,
+  SEMANTIC_DIAGNOSTIC_SUMMARY_MAXIMUM_BYTE_COUNT,
+  writeSemanticDiagnosticCheckpoint,
+  writeSemanticDiagnosticLedger,
 } from './semantic-evaluation-runner.mjs';
 
-const EXPECTED_CRITERION = {
-  criterion: 'The supplied evidence demonstrates the expected secret behavior.',
-  label: 'expected-secret-label',
-};
-const FORBIDDEN_CRITERION = {
-  criterion: 'The supplied evidence demonstrates the forbidden secret behavior.',
-  label: 'forbidden-secret-label',
-};
-const CASE_DEFINITION = {
-  expected: [EXPECTED_CRITERION],
-  forbidden: [FORBIDDEN_CRITERION],
-  id: 'blind-evaluation',
+const CASE = {
+  id: 'unrelated-review',
+  scenario: 'An unrelated review must not activate moldea.',
+  operation: 'unrelated-review',
   input: {
-    developerDirection: 'Evaluate this repository without changing it.',
+    developerDirection: 'Review docs/example.md.',
     repositoryEvidence: [
       {
-        claim: 'The developer requested a read-only repository evaluation.',
-        source: { kind: 'developer-direction' },
+        claim: 'The file exists.',
+        source: {
+          kind: 'workspace-path',
+          path: 'docs/example.md',
+          expectedType: 'file',
+        },
       },
     ],
   },
-  operation: 'evaluate-repository',
-  scenario: 'An adopted repository needs a read-only evaluation.',
-};
-const SECOND_CASE_DEFINITION = {
-  expected: [
-    {
-      criterion: 'The supplied evidence demonstrates the second expected behavior.',
-      label: 'second-expected-label',
-    },
-  ],
-  forbidden: [
-    {
-      criterion: 'The supplied evidence demonstrates the second forbidden behavior.',
-      label: 'second-forbidden-label',
-    },
-  ],
-  id: 'second-evaluation',
-  input: {
-    developerDirection: 'Evaluate a second repository scenario without changing it.',
-    repositoryEvidence: [
-      {
-        claim: 'The developer requested a second read-only evaluation.',
-        source: { kind: 'developer-direction' },
-      },
-    ],
+  resourceBudget: {
+    activation: 'abstain',
+    minimumMoldeaCommands: 0,
+    maximumMoldeaCommands: 0,
+    maximumMoldeaOutputBytes: 0,
   },
-  operation: 'evaluate-repository',
-  scenario: 'A second adopted repository needs a read-only evaluation.',
-};
-const SKILL_CASE_DEFINITION = {
-  expected: [EXPECTED_CRITERION],
-  forbidden: [FORBIDDEN_CRITERION],
-  id: 'skill-evaluation',
-  input: {
-    developerDirection: 'Create a release-review skill.',
-    repositoryEvidence: [
-      {
-        claim: 'The developer requested a release-review skill.',
-        source: { kind: 'developer-direction' },
-      },
-    ],
-  },
-  operation: 'create-agent-skill',
-  scenario: 'A repository needs a reusable release-review workflow.',
-  skillEvidence: {
-    activationScenarios: [
-      { request: 'Review this release.', shouldActivate: true },
-      { request: 'Update package.json.', shouldActivate: false },
-    ],
-    artifacts: [{ role: 'authoritative-source', root: 'skills/release-review' }],
-  },
-};
-const HOST_INSTRUCTIONS =
-  '# Evaluation coding instructions\n\nEnd every `plan` response by stating that no repository files were changed.\n';
-const HOST_CASE_DEFINITION = {
-  ...SKILL_CASE_DEFINITION,
-  hostInstructions: HOST_INSTRUCTIONS,
-  id: 'host-plan-command',
-  input: {
-    developerDirection: SKILL_CASE_DEFINITION.input.developerDirection,
-    repositoryEvidence: [
-      ...SKILL_CASE_DEFINITION.input.repositoryEvidence,
-      {
-        claim: 'Repository coding instructions require a read-only planning response.',
-        source: { kind: 'host-instructions' },
-      },
-    ],
-  },
-};
-const ACTOR_HOST = {
-  model: 'gpt-5.6-sol',
-  name: 'codex',
-  reasoningEffort: 'medium',
-  version: '1.2.3',
-};
-const JUDGE_HOST = {
-  model: 'gpt-5.6-sol',
-  name: 'codex',
-  reasoningEffort: 'medium',
-  version: '1.2.3',
-};
-const ARTIFACT_DIGEST = 'a'.repeat(64);
-const COVERAGE_DIGEST = 'e'.repeat(64);
-const CLI_IDENTITY = {
-  integrity: `sha512-${'a'.repeat(86)}`,
-  jsonSchemaVersion: 2,
-  name: '@moldea.ai/cli',
-  packageLockSha256: 'd'.repeat(64),
-  version: '4.0.0',
-};
-const ACTOR_EXECUTION_EVIDENCE_OPTIONS = {
-  cliVersion: CLI_IDENTITY.version,
-  jsonSchemaVersion: CLI_IDENTITY.jsonSchemaVersion,
-};
-const BASE_HOST_COMMAND = [
-  'codex',
-  'exec',
-  '--ignore-user-config',
-  '--ignore-rules',
-  '--ephemeral',
-  '--skip-git-repo-check',
-  '--dangerously-bypass-approvals-and-sandbox',
-  '-c',
-  'shell_environment_policy.inherit=none',
-  '-',
-];
-const EVALUATED_AT = '2026-08-16T12:00:00.000Z';
-const BEFORE_SNAPSHOT_STATE = {
-  content: 'before',
-  mode: 33_204,
-  omission: null,
-  sha256: 'b'.repeat(64),
-  type: 'file',
-};
-const AFTER_SNAPSHOT_STATE = {
-  content: 'after',
-  mode: 33_204,
-  omission: null,
-  sha256: 'c'.repeat(64),
-  type: 'file',
-};
-const REPOSITORY_CONTROL_STATE = {
-  gitDigest: '1'.repeat(64),
-  head: { commit: '2'.repeat(40), symbolicRef: 'refs/heads/main' },
-  indexDigest: '3'.repeat(64),
-  installedSkillDigest: '4'.repeat(64),
-  localConfigDigest: '5'.repeat(64),
-  refs: [],
-};
-const EMPTY_COMMAND_POLICY_EVIDENCE = {
-  completedCommandCount: 0,
-  indeterminateCommandCount: 0,
-  packageManagerExecution: 'not-observed',
-  packageManagerInvocationCount: 0,
+  expected: [{ label: 'abstain', criterion: 'The actor does not activate moldea.' }],
+  forbidden: [{ label: 'activate', criterion: 'The actor activates moldea.' }],
 };
 
-const createScenarioEvidence = (caseDefinition) =>
-  caseDefinition.input.repositoryEvidence.map(({ claim, source }) => {
-    if (source.kind === 'developer-direction') {
-      return {
-        claim,
-        observation: {
-          content: caseDefinition.input.developerDirection,
-          type: 'developer-direction',
-        },
-        source,
-      };
-    }
-    if (source.kind === 'host-instructions') {
-      return {
-        claim,
-        observation: {
-          content: caseDefinition.hostInstructions,
-          type: 'host-instructions',
-        },
-        source,
-      };
-    }
-    throw new Error(`Unsupported test scenario evidence source: ${source.kind}`);
-  });
+const SEMANTIC_CASES = JSON.parse(
+  readFileSync(new URL('../fixtures/conformance-cases.json', import.meta.url), 'utf8'),
+).semanticCases;
 
-const createCaseResult = (caseDefinition, passed) => ({
-  actorHost: ACTOR_HOST,
-  actorCommandPolicyEvidence: EMPTY_COMMAND_POLICY_EVIDENCE,
-  actorExecutionEvidence: [],
-  actorResponse: `Actor response for ${caseDefinition.id}`,
-  caseId: caseDefinition.id,
-  forbidden: [],
-  id: caseDefinition.id,
-  judgeHost: JUDGE_HOST,
-  observed: passed ? getSemanticCriterionLabels(caseDefinition.expected) : [],
-  operationalRetries: {
-    actorFailureCount: 0,
-    judgeFailureCount: 0,
-    lastFailure: null,
+const PASSING_DIMENSIONS = {
+  semantic: true,
+  resource: true,
+  commandPolicy: true,
+  repositoryControl: true,
+  mountIntegrity: true,
+  operational: true,
+};
+const SEMANTIC_FAILURE_DIMENSIONS = { ...PASSING_DIMENSIONS, semantic: false };
+const createCommandPolicyEvidence = (completedCommandCount = 0) => ({
+  completedCommandCount,
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
+  networkAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
   },
-  passed,
-  rationale: passed ? 'The expected behavior was demonstrated.' : 'Expected evidence was missing.',
-  readOnlyMountControlEvidence: [],
-  repositoryControlEvidence: {
-    after: REPOSITORY_CONTROL_STATE,
-    before: REPOSITORY_CONTROL_STATE,
-    violations: [],
-  },
-  scenarioEvidence: createScenarioEvidence(caseDefinition),
-  skillArtifactEvidence: [],
-  workspaceChanges: {
-    created: [],
-    deleted: [],
-    modified: [
-      {
-        after: AFTER_SNAPSHOT_STATE,
-        before: BEFORE_SNAPSHOT_STATE,
-        path: 'src/example.js',
-      },
-    ],
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
   },
 });
 
-const createActorEvidence = (caseDefinition) => {
-  const result = createCaseResult(caseDefinition, true);
-  return {
-    actorHost: result.actorHost,
-    actorCommandPolicyEvidence: result.actorCommandPolicyEvidence,
-    actorExecutionEvidence: result.actorExecutionEvidence,
-    actorResponse: result.actorResponse,
-    readOnlyMountControlEvidence: result.readOnlyMountControlEvidence,
-    repositoryControlEvidence: result.repositoryControlEvidence,
-    scenarioEvidence: result.scenarioEvidence,
-    skillArtifactEvidence: result.skillArtifactEvidence,
-    workspaceChanges: result.workspaceChanges,
+const createRepositoryControlEvidence = () => {
+  const state = {
+    gitDigest: 'a'.repeat(64),
+    head: { commit: 'b'.repeat(40), symbolicRef: 'refs/heads/main' },
+    indexDigest: 'c'.repeat(64),
+    installedSkillDigest: 'd'.repeat(64),
+    localConfigDigest: 'e'.repeat(64),
+    refs: [{ name: 'refs/heads/main', oid: 'b'.repeat(40) }],
   };
+  return { after: state, before: state, violations: [] };
 };
 
-test('actor prompt contains only the user scenario', () => {
-  const actorPrompt = buildActorPrompt(CASE_DEFINITION);
-
-  assert.equal(actorPrompt, CASE_DEFINITION.input.developerDirection);
-  assert.doesNotMatch(actorPrompt, /expected-secret-label|forbidden-secret-label/);
-  assert.doesNotMatch(actorPrompt, /expected secret behavior|forbidden secret behavior/);
-});
-
-test('semantic evaluation arguments separate runs, diagnostics, and verification', () => {
+test('requires an explicit semantic model-execution mode', () => {
+  assert.throws(
+    () => parseSemanticEvaluationArguments([]),
+    /requires --record, --case <id>, or --diagnose-batch/u,
+  );
   assert.deepEqual(parseSemanticEvaluationArguments(['--record']), {
+    diagnosticBatchSelector: null,
+    isDiagnoseBatchRequested: false,
     isPreflightRequested: false,
-    isRecordRequested: true,
     isRecordCheckpointRequested: false,
+    isRecordRequested: true,
     isRestartRequested: false,
+    isResumeStoppedStageRequested: false,
     isVerifyAttemptsRequested: false,
     requestedCaseId: undefined,
+    workerCount: 4,
   });
-  assert.throws(
-    () => parseSemanticEvaluationArguments(['--case', 'blind-evaluation', '--record']),
-    /diagnostic-only/,
-  );
-  assert.throws(
-    () => parseSemanticEvaluationArguments(['--confirm', 'blind-evaluation', '--record']),
-    /Unsupported semantic evaluation option/,
-  );
-  assert.throws(
-    () => parseSemanticEvaluationArguments(['--stop-on-failure']),
-    /Unsupported semantic evaluation option/,
-  );
-  assert.throws(
-    () => parseSemanticEvaluationArguments(['--migrate-checkpoint']),
-    /Unsupported semantic evaluation option/,
-  );
-});
-
-test('a recovered case cannot make an incomplete recorded suite exit cleanly', () => {
-  const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
-  let candidate = createSemanticEvaluationCandidate({
-    actorHost: ACTOR_HOST,
-    artifactDigest: ARTIFACT_DIGEST,
-    caseDefinitions,
-    cli: CLI_IDENTITY,
-    coverageDigest: COVERAGE_DIGEST,
-    generatedAt: EVALUATED_AT,
-    judgeHost: JUDGE_HOST,
+  assert.deepEqual(parseSemanticEvaluationArguments(['--record', '--restart']), {
+    diagnosticBatchSelector: null,
+    isDiagnoseBatchRequested: false,
+    isPreflightRequested: false,
+    isRecordCheckpointRequested: false,
+    isRecordRequested: true,
+    isRestartRequested: true,
+    isResumeStoppedStageRequested: false,
+    isVerifyAttemptsRequested: false,
+    requestedCaseId: undefined,
+    workerCount: 4,
   });
-  candidate = appendSemanticCandidateInitialResult(
-    candidate,
-    CASE_DEFINITION,
-    createCaseResult(CASE_DEFINITION, false),
-    EVALUATED_AT,
-  );
-  candidate = appendSemanticCandidateConfirmation(
-    candidate,
-    CASE_DEFINITION,
-    createCaseResult(CASE_DEFINITION, true),
-    '2026-08-16T12:01:00.000Z',
-  );
-  candidate = appendSemanticCandidateConfirmation(
-    candidate,
-    CASE_DEFINITION,
-    createCaseResult(CASE_DEFINITION, true),
-    '2026-08-16T12:02:00.000Z',
-  );
-
   assert.equal(
-    shouldFailSemanticEvaluation({
-      candidate,
-      caseDefinitions,
-      hasFailures: false,
-      isRecordRequested: true,
-    }),
+    parseSemanticEvaluationArguments(['--record', '--resume-stopped-stage'])
+      .isResumeStoppedStageRequested,
     true,
   );
-});
-
-test('structured actor prompt excludes evaluation criteria', () => {
-  const actorPrompt = buildActorPrompt(HOST_CASE_DEFINITION);
-
-  assert.equal(actorPrompt, HOST_CASE_DEFINITION.input.developerDirection);
-  assert.doesNotMatch(actorPrompt, /expected-secret-label|forbidden-secret-label/);
-  assert.doesNotMatch(actorPrompt, /expected secret behavior|forbidden secret behavior/);
-  assert.doesNotMatch(actorPrompt, /Review this release|shouldActivate|authoritative-source/);
-  assert.doesNotMatch(
-    actorPrompt,
-    /Evaluation coding instructions|no repository files were changed/,
+  assert.throws(() =>
+    parseSemanticEvaluationArguments(['--record', '--restart', '--resume-stopped-stage']),
   );
 });
 
-test('semantic host command enables runner-owned JSONL events exactly once', () => {
-  const command = buildSemanticEvaluationHostCommand(BASE_HOST_COMMAND);
-
-  assert.equal(command.at(-1), '-');
-  assert.equal(command.filter((part) => part === '--json').length, 1);
-  assert.match(command.join(' '), /--model gpt-5\.6-sol/);
-  assert.match(command.join(' '), /model_reasoning_effort=medium/);
-
-  const preconfiguredCommand = buildSemanticEvaluationHostCommand([
-    ...BASE_HOST_COMMAND.slice(0, -1),
-    '--json',
-    '-',
-  ]);
-  assert.equal(preconfiguredCommand.filter((part) => part === '--json').length, 1);
-});
-
-test('semantic host output separates final response from runner-owned execution evidence', () => {
-  const commandItem = {
-    command: 'bash -lc \"yarn bin -v --json\"',
-    id: 'item-1',
-    status: 'in_progress',
-    type: 'command_execution',
+test('keeps a contained activation miss eligible for semantic confirmation', () => {
+  const caseDefinition = {
+    ...CASE,
+    resourceBudget: {
+      activation: 'relationship',
+      minimumMoldeaCommands: 1,
+      maximumMoldeaCommands: 4,
+      maximumMoldeaOutputBytes: 262_144,
+    },
   };
-  const completedCommandItem = {
-    ...commandItem,
-    aggregated_output: '',
-    exit_code: 0,
-    status: 'completed',
-  };
-  const focusedTestItem = {
-    aggregated_output: 'TAP version 13\n1..1\n',
-    command: "/bin/bash -lc 'node --test src/support-agent.test-integration.js'",
-    exit_code: 0,
-    id: 'item-2',
-    status: 'completed',
-    type: 'command_execution',
-  };
-  const toolItem = {
-    arguments: { command: 'yarn info @moldea.ai/cli --json' },
-    id: 'item-3',
-    name: 'exec_command',
-    status: 'completed',
-    type: 'mcp_tool_call',
-  };
-  const output = [
-    { thread_id: 'thread-1', type: 'thread.started' },
-    { item: commandItem, type: 'item.started' },
-    { item: completedCommandItem, type: 'item.completed' },
-    { item: focusedTestItem, type: 'item.completed' },
-    { item: toolItem, type: 'item.completed' },
+  const dimensions = createSemanticResultDimensions(
+    caseDefinition,
     {
-      item: {
-        id: 'item-4',
-        text: '{\"observed\":[],\"forbidden\":[],\"rationale\":\"done\"}',
-        type: 'agent_message',
+      actorCommandPolicyEvidence: createCommandPolicyEvidence(),
+      actorResourceEvidence: {
+        commandCount: 0,
+        maximumInvocationByteCount: 0,
+        modelVisibleToolOutputByteCount: 0,
+        operations: [],
+        stdoutByteCount: 0,
       },
-      type: 'item.completed',
+      judgeCommandPolicyEvidence: createCommandPolicyEvidence(),
+      readOnlyMountControlEvidence: [],
+      repositoryControlEvidence: createRepositoryControlEvidence(),
     },
-  ]
-    .map((event) => JSON.stringify(event))
-    .join('\n');
+    true,
+  );
 
-  assert.deepEqual(parseSemanticEvaluationHostOutput(output, ACTOR_EXECUTION_EVIDENCE_OPTIONS), {
-    actorCommandPolicyEvidence: {
-      completedCommandCount: 2,
-      indeterminateCommandCount: 1,
-      packageManagerExecution: 'observed',
-      packageManagerInvocationCount: 1,
-    },
-    actorExecutionEvidence: [
-      {
-        eventType: 'item.completed',
-        item: {
-          exitCode: 0,
-          outputEvidence: { byteCount: 0, disposition: 'empty', facts: [] },
-          status: 'completed',
-          type: 'command_execution',
-        },
-      },
-      {
-        eventType: 'item.completed',
-        item: {
-          exitCode: 0,
-          outputEvidence: {
-            byteCount: 20,
-            disposition: 'projected',
-            facts: [
-              {
-                kind: 'focused-runtime-test',
-                path: '/src/support-agent.test-integration.js',
-                status: 'passed',
-              },
-            ],
-          },
-          status: 'completed',
-          type: 'command_execution',
-        },
-      },
-    ],
-    response: '{\"observed\":[],\"forbidden\":[],\"rationale\":\"done\"}',
+  assert.deepEqual(dimensions, {
+    semantic: false,
+    resource: true,
+    commandPolicy: true,
+    repositoryControl: true,
+    mountIntegrity: true,
+    operational: true,
   });
-  assert.doesNotMatch(
-    JSON.stringify(parseSemanticEvaluationHostOutput(output, ACTOR_EXECUTION_EVIDENCE_OPTIONS)),
-    /yarn bin|yarn info|arguments/u,
-  );
+  assert.equal(isSemanticConfirmationEligible(dimensions), true);
 });
 
-test('semantic host output accepts approved and boundary-refused Git policy evidence', () => {
-  const output = [
-    {
-      item: {
-        aggregated_output: '',
-        command:
-          'env GIT_ATTR_NOSYSTEM=1 git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.clean= -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false --no-pager status --porcelain=v2 -z --ignore-submodules=all',
-        exit_code: 0,
-        id: 'item-1',
-        status: 'completed',
-        type: 'command_execution',
-      },
-      type: 'item.completed',
-    },
-    {
-      item: {
-        aggregated_output: 'Git command blocked: command shape is not evaluator-approved.\n',
-        command: "git -c alias.pm='!pnpm --version' pm",
-        exit_code: 2,
-        id: 'item-2',
-        status: 'completed',
-        type: 'command_execution',
-      },
-      type: 'item.completed',
-    },
-    {
-      item: { id: 'item-3', text: 'No package-manager command ran.', type: 'agent_message' },
-      type: 'item.completed',
-    },
-  ]
-    .map((event) => JSON.stringify(event))
-    .join('\n');
-
-  const result = parseSemanticEvaluationHostOutput(output, {
-    ...ACTOR_EXECUTION_EVIDENCE_OPTIONS,
-    hasGitCommandPolicyBoundary: true,
+test('parses one diagnostic case without authorizing recording', () => {
+  assert.deepEqual(parseSemanticEvaluationArguments(['--case', 'unrelated-review']), {
+    diagnosticBatchSelector: null,
+    isDiagnoseBatchRequested: false,
+    isPreflightRequested: false,
+    isRecordCheckpointRequested: false,
+    isRecordRequested: false,
+    isRestartRequested: false,
+    isResumeStoppedStageRequested: false,
+    isVerifyAttemptsRequested: false,
+    requestedCaseId: 'unrelated-review',
+    workerCount: null,
   });
+  assert.throws(() => parseSemanticEvaluationArguments(['--case', 'unrelated-review', '--record']));
+  assert.throws(() =>
+    parseSemanticEvaluationArguments(['--case', 'unrelated-review', '--case', 'other-case']),
+  );
+});
 
-  assert.deepEqual(result.actorCommandPolicyEvidence, {
-    completedCommandCount: 2,
-    indeterminateCommandCount: 0,
-    packageManagerExecution: 'not-observed',
-    packageManagerInvocationCount: 0,
+test('parses one exact diagnostic batch selector', () => {
+  assert.deepEqual(parseSemanticEvaluationArguments(['--diagnose-batch', '--all']), {
+    diagnosticBatchSelector: { kind: 'all', value: null },
+    isDiagnoseBatchRequested: true,
+    isPreflightRequested: false,
+    isRecordCheckpointRequested: false,
+    isRecordRequested: false,
+    isRestartRequested: false,
+    isResumeStoppedStageRequested: false,
+    isVerifyAttemptsRequested: false,
+    requestedCaseId: undefined,
+    workerCount: 4,
   });
-  assert.equal(result.response, 'No package-manager command ran.');
+  assert.equal(
+    parseSemanticEvaluationArguments(['--diagnose-batch', '--all', '--workers', '2']).workerCount,
+    2,
+  );
+  assert.throws(
+    () => parseSemanticEvaluationArguments(['--record', '--workers', '3']),
+    /must be 1, 2, or 4/u,
+  );
+  assert.deepEqual(
+    parseSemanticEvaluationArguments([
+      '--diagnose-batch',
+      '--claims',
+      'activation-abstention,bounded-relevance',
+      '--restart',
+    ]).diagnosticBatchSelector,
+    { kind: 'claims', value: 'activation-abstention,bounded-relevance' },
+  );
+  assert.equal(
+    parseSemanticEvaluationArguments(['--diagnose-batch', '--all', '--resume-stopped-stage'])
+      .isResumeStoppedStageRequested,
+    true,
+  );
+  assert.throws(
+    () => parseSemanticEvaluationArguments(['--diagnose-batch']),
+    /exactly one diagnostic selector/u,
+  );
+  assert.throws(() =>
+    parseSemanticEvaluationArguments(['--diagnose-batch', '--all', '--cases', 'one']),
+  );
+  assert.throws(() => parseSemanticEvaluationArguments(['--cases', 'one']));
+  assert.throws(() => parseSemanticEvaluationArguments(['--diagnose-batch', '--cases', 'one,one']));
 });
 
-test('semantic host output does not derive execution evidence from the final response', () => {
-  const output = JSON.stringify({
-    item: {
-      id: 'item-1',
-      text: 'I ran yarn bin -v --json and it succeeded.',
-      type: 'agent_message',
-    },
-    type: 'item.completed',
-  });
-
-  assert.deepEqual(parseSemanticEvaluationHostOutput(output, ACTOR_EXECUTION_EVIDENCE_OPTIONS), {
-    actorCommandPolicyEvidence: EMPTY_COMMAND_POLICY_EVIDENCE,
-    actorExecutionEvidence: [],
-    response: 'I ran yarn bin -v --json and it succeeded.',
-  });
-  assert.throws(
-    () => parseSemanticEvaluationHostOutput('{not-json}\n', ACTOR_EXECUTION_EVIDENCE_OPTIONS),
-    /malformed JSONL output/,
-  );
-  assert.throws(
-    () =>
-      parseSemanticEvaluationHostOutput(
-        JSON.stringify({
-          item: {
-            command: 'yarn bin -v --json',
-            id: 'item-1',
-            type: 'command_execution',
-          },
-          type: 'item.completed',
-        }),
-        ACTOR_EXECUTION_EVIDENCE_OPTIONS,
-      ),
-    /did not include its result evidence/,
-  );
-});
-
-test('semantic host output classifies provider error events as retryable operational failures', () => {
-  assert.throws(
-    () =>
-      parseSemanticEvaluationHostOutput(
-        `${JSON.stringify({ type: 'turn.failed' })}\n`,
-        ACTOR_EXECUTION_EVIDENCE_OPTIONS,
-      ),
-    (error) => {
-      assert.equal(isRetryableCodexEvaluationHostError(error), true);
-      assert.equal(error.kind, CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed);
-      return true;
-    },
-  );
-});
-
-test('semantic host output rejects unbounded evidence without retaining oversized commands', () => {
-  const commandEvents = Array.from({ length: 129 }, (_, index) => ({
-    item: {
-      aggregated_output: '',
-      command: `echo ${index}`,
-      exit_code: 0,
-      id: `item-${index}`,
-      status: 'completed',
-      type: 'command_execution',
-    },
-    type: 'item.completed',
-  }));
-  const finalResponseEvent = {
-    item: { id: 'response', text: 'done', type: 'agent_message' },
-    type: 'item.completed',
-  };
-
-  assert.throws(
-    () =>
-      parseSemanticEvaluationHostOutput(
-        [...commandEvents, finalResponseEvent].map((event) => JSON.stringify(event)).join('\n'),
-        ACTOR_EXECUTION_EVIDENCE_OPTIONS,
-      ),
-    /exceeded its item limit/,
-  );
-  const oversizedCommandResult = parseSemanticEvaluationHostOutput(
-    [
+test('resolves explicit and coverage-claim diagnostic selections deterministically', () => {
+  const caseDefinitions = [{ id: 'one' }, { id: 'two' }, { id: 'three' }];
+  const coverage = {
+    claims: [
       {
-        item: {
-          aggregated_output: '',
-          command: 'x'.repeat(32_769),
-          exit_code: 0,
-          id: 'oversized-command',
-          status: 'completed',
-          type: 'command_execution',
-        },
-        type: 'item.completed',
-      },
-      finalResponseEvent,
-    ]
-      .map((event) => JSON.stringify(event))
-      .join('\n'),
-    ACTOR_EXECUTION_EVIDENCE_OPTIONS,
-  );
-  assert.doesNotMatch(JSON.stringify(oversizedCommandResult.actorExecutionEvidence), /x{16}/u);
-});
-
-test('judge prompt enforces bidirectional source attribution after actor execution', () => {
-  const judgePrompt = buildJudgePrompt(
-    HOST_CASE_DEFINITION,
-    'Actor response',
-    {
-      created: [],
-      deleted: [],
-      modified: [],
-    },
-    [
-      {
-        directories: ['skills/release-review'],
-        excludedDirectoryCount: 0,
-        files: [],
-        resourceReferences: [],
-        role: 'authoritative-source',
-        root: 'skills/release-review',
-        rootType: 'directory',
-        truncatedDirectoryCount: 0,
-        truncatedFileCount: 0,
-        validation: {
-          description: 'Reviews releases.',
-          errors: [],
-          name: 'release-review',
-          valid: true,
-        },
-      },
-    ],
-    [
-      {
-        eventType: 'item.completed',
-        item: {
-          exitCode: 0,
-          outputEvidence: { byteCount: 0, disposition: 'empty', facts: [] },
-          status: 'completed',
-          type: 'command_execution',
-        },
-      },
-      {
-        eventType: 'item.completed',
-        item: {
-          exitCode: 0,
-          outputEvidence: {
-            byteCount: 20,
-            disposition: 'projected',
-            facts: [
-              {
-                kind: 'focused-runtime-test',
-                path: '/src/support-agent.test-integration.js',
-                status: 'passed',
-              },
-            ],
-          },
-          status: 'completed',
-          type: 'command_execution',
-        },
-      },
-    ],
-    createScenarioEvidence(HOST_CASE_DEFINITION),
-    {
-      after: REPOSITORY_CONTROL_STATE,
-      before: REPOSITORY_CONTROL_STATE,
-      violations: [],
-    },
-    [],
-    {
-      completedCommandCount: 2,
-      indeterminateCommandCount: 1,
-      packageManagerExecution: 'indeterminate',
-      packageManagerInvocationCount: 0,
-    },
-  );
-
-  assert.match(judgePrompt, /expected-secret-label/);
-  assert.match(judgePrompt, /forbidden-secret-label/);
-  assert.match(judgePrompt, /expected secret behavior/);
-  assert.match(judgePrompt, /forbidden secret behavior/);
-  assert.match(judgePrompt, /exact evidence rule/);
-  assert.match(judgePrompt, /Actor response/);
-  assert.match(judgePrompt, /Independent skill artifact evidence/);
-  assert.match(judgePrompt, /"valid": true/);
-  assert.match(judgePrompt, /untrusted artifact evidence/);
-  assert.match(judgePrompt, /Runner-owned actor execution evidence/);
-  assert.match(judgePrompt, /focused-runtime-test/);
-  assert.match(judgePrompt, /\/src\/support-agent\.test-integration\.js/);
-  assert.match(judgePrompt, /"status": "passed"/);
-  assert.match(judgePrompt, /requires a corresponding completed runner-owned event/);
-  assert.match(judgePrompt, /requires the relevant exit code and projected result fact/);
-  assert.match(judgePrompt, /supplies no result fact/);
-  assert.match(judgePrompt, /Raw command output,\s+command text/);
-  assert.match(judgePrompt, /started commands, and MCP events are intentionally unavailable/);
-  assert.match(judgePrompt, /Evidence sources are\s+not interchangeable/i);
-  assert.match(judgePrompt, /actor's final response cannot prove execution or command results/i);
-  assert.match(
-    judgePrompt,
-    /runner-owned execution evidence cannot prove what the actor reported/i,
-  );
-  assert.match(judgePrompt, /Runner-owned actor command-policy evidence/);
-  assert.match(judgePrompt, /Runner-owned related read-only mount control evidence/);
-  assert.match(judgePrompt, /full-tree digests before and after\s+actor execution/);
-  assert.match(judgePrompt, /"observed" proves at least one invocation/);
-  assert.match(judgePrompt, /"indeterminate" is retained\s+as a warning/);
-  assert.match(judgePrompt, /cannot replace an observed invocation/);
-  assert.match(
-    judgePrompt,
-    /Apply this aggregate only to criteria\s+that explicitly concern whether any package-manager\s+invocation occurred/,
-  );
-  assert.match(
-    judgePrompt,
-    /Do not use it to decide\s+whether an unrelated script, Git helper, tool, or authority-sensitive action ran/,
-  );
-  assert.match(
-    judgePrompt,
-    /cannot identify a package-manager subcommand, binary provider, executable, result, or\s+ordering/,
-  );
-  assert.match(judgePrompt, /complete after-minus-before delta for ordinary repository paths/);
-  assert.match(
-    judgePrompt,
-    /absence from the created-path\s+delta establishes that it remained missing after actor execution/,
-  );
-  assert.match(
-    judgePrompt,
-    /Empty created, modified, and\s+deleted lists establish that the ordinary workspace did not change/,
-  );
-  assert.match(judgePrompt, /"packageManagerExecution": "indeterminate"/);
-  assert.match(judgePrompt, /each clause must be established by that source/i);
-  assert.match(judgePrompt, /Evaluator-only activation scenarios/);
-  assert.match(judgePrompt, /Review this release/);
-  assert.match(judgePrompt, /Independently collected pre-actor scenario evidence/);
-  assert.match(judgePrompt, /no repository files were changed/);
-});
-
-test('semantic case definitions require strict unique evaluator criteria', () => {
-  assert.doesNotThrow(() => validateSemanticCaseDefinition(CASE_DEFINITION));
-  assert.throws(
-    () =>
-      validateSemanticCaseDefinition({
-        ...CASE_DEFINITION,
-        expected: ['string-label'],
-      }),
-    /invalid evaluator criteria/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticCaseDefinition({
-        ...CASE_DEFINITION,
-        expected: [{ ...EXPECTED_CRITERION, unsupported: true }],
-      }),
-    /invalid evaluator criteria/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticCaseDefinition({
-        ...CASE_DEFINITION,
-        forbidden: [
-          {
-            criterion: 'The expected label cannot also be forbidden.',
-            label: EXPECTED_CRITERION.label,
-          },
+        id: 'second-and-first',
+        evidence: [
+          { kind: 'semantic-case', id: 'two' },
+          { kind: 'semantic-case', id: 'one' },
         ],
-      }),
-    /duplicate evaluator labels/,
-  );
-});
-
-test('semantic case digests include evaluator criterion text', () => {
-  const changedCriterionCase = {
-    ...CASE_DEFINITION,
-    expected: [
-      {
-        ...EXPECTED_CRITERION,
-        criterion: 'A materially different expected evidence contract.',
       },
     ],
   };
-
-  assert.notEqual(
-    createSemanticCaseDefinitionDigest(CASE_DEFINITION),
-    createSemanticCaseDefinitionDigest(changedCriterionCase),
+  assert.deepEqual(
+    resolveSemanticDiagnosticCaseDefinitions({
+      caseDefinitions,
+      coverage,
+      selector: { kind: 'cases', value: 'three,one' },
+    }).map(({ id }) => id),
+    ['three', 'one'],
   );
-  assert.notEqual(
-    createSemanticCaseSuiteDigest([CASE_DEFINITION]),
-    createSemanticCaseSuiteDigest([changedCriterionCase]),
+  assert.deepEqual(
+    resolveSemanticDiagnosticCaseDefinitions({
+      caseDefinitions,
+      coverage,
+      selector: { kind: 'claims', value: 'second-and-first' },
+    }).map(({ id }) => id),
+    ['one', 'two'],
+  );
+  assert.throws(() =>
+    resolveSemanticDiagnosticCaseDefinitions({
+      caseDefinitions,
+      coverage,
+      selector: { kind: 'cases', value: 'missing' },
+    }),
+  );
+  assert.deepEqual(
+    resolveSemanticDiagnosticCaseDefinitions({
+      caseDefinitions,
+      coverage,
+      selector: { kind: 'unresolved-from', value: 'semantic-attempt' },
+      unresolvedEvidence: {
+        confirmations: [],
+        results: [
+          { id: 'one', passed: true },
+          { id: 'two', passed: false },
+        ],
+      },
+    }).map(({ id }) => id),
+    ['two', 'three'],
   );
 });
 
-test('skill evidence configuration validates roles, paths, and activation scenarios', () => {
-  assert.deepEqual(validateSkillEvidenceConfiguration(SKILL_CASE_DEFINITION), {
-    activationScenarios: SKILL_CASE_DEFINITION.skillEvidence.activationScenarios,
-    artifacts: SKILL_CASE_DEFINITION.skillEvidence.artifacts,
-  });
-  assert.deepEqual(validateSkillEvidenceConfiguration(CASE_DEFINITION), {
-    activationScenarios: [],
-    artifacts: [],
-  });
+test('creates one bounded content-free semantic diagnostic', () => {
+  const diagnostic = JSON.parse(
+    createSemanticDiagnosticOutput({
+      actorCommandPolicyEvidence: createCommandPolicyEvidence(3),
+      actorExecutionEvidence: [{ command: 'secret command' }],
+      actorResourceEvidence: {
+        commandCount: 1,
+        maximumInvocationByteCount: 128,
+        modelVisibleToolOutputByteCount: 128,
+        operations: ['validate'],
+        stdoutByteCount: 128,
+      },
+      actorResponse: 'private actor output',
+      actorUsage: {
+        cachedInputTokens: 5,
+        inputTokens: 13,
+        outputTokens: 8,
+        private: 'actor token body',
+      },
+      forbidden: ['forbidden-behavior'],
+      confirmationEligible: true,
+      dimensions: SEMANTIC_FAILURE_DIMENSIONS,
+      failureClassifications: ['semantic'],
+      id: 'bounded-diagnostic',
+      judgeCommandPolicyEvidence: createCommandPolicyEvidence(),
+      judgeUsage: {
+        cachedInputTokens: 3,
+        inputTokens: 8,
+        outputTokens: 5,
+        private: 'judge token body',
+      },
+      observed: ['expected-behavior'],
+      passed: false,
+      rationale: 'The expected behavior was not demonstrated.',
+      repositoryControlEvidence: { private: 'repository body' },
+      scenarioEvidence: [{ private: 'scenario body' }],
+      workspaceChanges: { private: 'workspace body' },
+    }),
+  );
 
-  for (const root of [
-    '/skills/release-review',
-    '../skills/release-review',
-    'skills\\release-review',
-    'skills/_archive/release-review',
-  ]) {
+  assert.deepEqual(diagnostic, {
+    schemaVersion: 3,
+    evaluationProtocolVersion: 25,
+    caseId: 'bounded-diagnostic',
+    confirmationEligible: true,
+    dimensions: SEMANTIC_FAILURE_DIMENSIONS,
+    failureClassifications: ['semantic'],
+    verdict: 'failed',
+    criteria: {
+      observed: ['expected-behavior'],
+      forbidden: ['forbidden-behavior'],
+    },
+    rationale: 'The expected behavior was not demonstrated.',
+    rationaleTruncated: false,
+    resources: {
+      commandPolicy: {
+        actor: createCommandPolicyEvidence(3),
+        judge: createCommandPolicyEvidence(),
+      },
+      moldea: {
+        commandCount: 1,
+        maximumInvocationByteCount: 128,
+        modelVisibleToolOutputByteCount: 128,
+        operations: ['validate'],
+        stdoutByteCount: 128,
+      },
+      modelTokens: {
+        actor: { cachedInputTokens: 5, inputTokens: 13, outputTokens: 8 },
+        judge: { cachedInputTokens: 3, inputTokens: 8, outputTokens: 5 },
+      },
+    },
+  });
+  assert.doesNotMatch(
+    JSON.stringify(diagnostic),
+    /private actor output|secret command|repository body|scenario body|workspace body|token body/u,
+  );
+});
+
+test('truncates only semantic rationale on UTF-8 code-point boundaries', () => {
+  const observed = Array.from({ length: 64 }, (_, index) => `expected-${index}`);
+  const forbidden = Array.from({ length: 64 }, (_, index) => `forbidden-${index}`);
+  const output = createSemanticDiagnosticOutput({
+    actorCommandPolicyEvidence: createCommandPolicyEvidence(64),
+    actorResourceEvidence: {
+      commandCount: 1,
+      maximumInvocationByteCount: 65_536,
+      modelVisibleToolOutputByteCount: 65_536,
+      operations: ['validate'],
+      stdoutByteCount: 65_536,
+    },
+    actorUsage: {
+      cachedInputTokens: 512,
+      inputTokens: 1_024,
+      outputTokens: 256,
+    },
+    forbidden,
+    confirmationEligible: false,
+    dimensions: PASSING_DIMENSIONS,
+    failureClassifications: [],
+    id: 'large-multibyte-rationale',
+    judgeCommandPolicyEvidence: createCommandPolicyEvidence(),
+    judgeUsage: { cachedInputTokens: 256, inputTokens: 512, outputTokens: 128 },
+    observed,
+    passed: true,
+    rationale: 'évidence-🙂-'.repeat(16_384),
+  });
+  const diagnostic = JSON.parse(output);
+  const outputByteCount = Buffer.byteLength(output, 'utf8');
+
+  assert.ok(outputByteCount <= SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT);
+  assert.ok(SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT - outputByteCount < 4);
+  assert.equal(diagnostic.rationaleTruncated, true);
+  assert.equal(diagnostic.verdict, 'passed');
+  assert.deepEqual(diagnostic.criteria.observed, observed);
+  assert.deepEqual(diagnostic.criteria.forbidden, forbidden);
+  assert.ok(diagnostic.rationale.length > 0);
+  assert.doesNotMatch(diagnostic.rationale, /\uFFFD/u);
+});
+
+test('projects bounded batch records and a compact all-case summary', () => {
+  const record = createSemanticDiagnosticBatchRecord({
+    actorCommandPolicyEvidence: createCommandPolicyEvidence(3),
+    actorExecutionEvidence: [{ command: 'private command' }],
+    actorResourceEvidence: {
+      commandCount: 1,
+      maximumInvocationByteCount: 128,
+      modelVisibleToolOutputByteCount: 128,
+      operations: ['validate'],
+      stdoutByteCount: 128,
+    },
+    actorResponse: 'private actor output',
+    actorUsage: { cachedInputTokens: 5, inputTokens: 13, outputTokens: 8 },
+    forbidden: ['forbidden-behavior'],
+    confirmationEligible: true,
+    dimensions: SEMANTIC_FAILURE_DIMENSIONS,
+    failureClassifications: ['semantic'],
+    id: 'bounded-diagnostic',
+    judgeCommandPolicyEvidence: createCommandPolicyEvidence(),
+    judgeUsage: { cachedInputTokens: 3, inputTokens: 8, outputTokens: 5 },
+    observed: ['expected-behavior'],
+    operationalRetries: {
+      actorFailureCount: 1,
+      judgeFailureCount: 0,
+      lastFailure: {
+        category: 'timed-out',
+        failedAt: '2026-09-07T12:00:00.000Z',
+        retryDelayMs: 1_000,
+        stage: 'actor',
+      },
+    },
+    passed: false,
+    rationale: '🙂'.repeat(8_192),
+    repositoryControlEvidence: { private: 'repository body' },
+    scenarioEvidence: [{ private: 'scenario body' }],
+    workspaceChanges: { private: 'workspace body' },
+  });
+  assert.equal(record.rationale, 'Failed dimensions: semantic.');
+  assert.ok(
+    Buffer.byteLength(record.rationale, 'utf8') <= SEMANTIC_DIAGNOSTIC_RATIONALE_MAXIMUM_BYTE_COUNT,
+  );
+  assert.equal(record.rationaleRedacted, true);
+  assert.equal(record.rationaleTruncated, false);
+  assert.deepEqual(record.resources.operationalFailures, {
+    actor: 1,
+    judge: 0,
+  });
+  assert.doesNotMatch(
+    JSON.stringify(record),
+    /private actor output|private command|repository body|scenario body|workspace body|🙂/u,
+  );
+
+  const results = Array.from({ length: 74 }, (_, index) => ({
+    ...record,
+    caseId: `case-${index}`,
+    rationale: '',
+    verdict: index % 2 === 0 ? 'passed' : 'failed',
+  }));
+  const output = createSemanticDiagnosticBatchOutput({
+    identitySha256: 'a'.repeat(64),
+    results,
+    selection: { caseIds: results.map(({ caseId }) => caseId) },
+  });
+  const summary = JSON.parse(output);
+  assert.equal(summary.selectedCount, 74);
+  assert.equal(summary.passedCount, 37);
+  assert.equal(summary.failedCount, 37);
+  assert.ok(Buffer.byteLength(output, 'utf8') <= SEMANTIC_DIAGNOSTIC_SUMMARY_MAXIMUM_BYTE_COUNT);
+  assert.equal(summary.results.length, 74);
+  assert.equal(summary.results[0].rationale, undefined);
+});
+
+test('rejects semantic worker state without an owning candidate', async () => {
+  const workerRoot = await mkdtemp(join(tmpdir(), 'moldea-semantic-worker-'));
+
+  try {
     assert.throws(
-      () =>
-        validateSkillEvidenceConfiguration({
-          ...SKILL_CASE_DEFINITION,
-          skillEvidence: {
-            activationScenarios: [],
-            artifacts: [{ role: 'authoritative-source', root }],
-          },
-        }),
-      /invalid skill artifact root|unsafe skill artifact root/,
+      () => assertNoOrphanedSemanticWorkerState(null, workerRoot),
+      /worker state has no owning candidate/u,
     );
+    assert.doesNotThrow(() => assertNoOrphanedSemanticWorkerState({}, workerRoot));
+    await rm(workerRoot, { force: true, recursive: true });
+    assert.doesNotThrow(() => assertNoOrphanedSemanticWorkerState(null, workerRoot));
+  } finally {
+    await rm(workerRoot, { force: true, recursive: true });
   }
+});
 
-  assert.throws(
-    () =>
-      validateSkillEvidenceConfiguration({
-        ...SKILL_CASE_DEFINITION,
-        skillEvidence: {
-          activationScenarios: [],
-          artifacts: [
-            { role: 'authoritative-source', root: 'skills/release-review' },
-            { role: 'distributed-copy', root: 'skills/release-review' },
-          ],
-        },
-      }),
-    /unsafe skill artifact root/,
+test('recognizes a stopped semantic case before or after durable commit', () => {
+  const candidate = {
+    confirmations: [{ id: 'confirmed' }],
+    results: [{ id: 'recorded' }],
+  };
+  const trials = [{ caseDefinition: { id: 'pending' } }];
+
+  assert.equal(isSemanticCoordinatorStopCaseKnown(candidate, trials, 'pending'), true);
+  assert.equal(isSemanticCoordinatorStopCaseKnown(candidate, trials, 'recorded'), true);
+  assert.equal(isSemanticCoordinatorStopCaseKnown(candidate, trials, 'confirmed'), true);
+  assert.equal(isSemanticCoordinatorStopCaseKnown(candidate, trials, 'unknown'), false);
+});
+
+test('seeds isolated confirmation workers with only their required case history', () => {
+  const failedInitial = {
+    confirmationEligible: true,
+    id: 'failed-case',
+    passed: false,
+  };
+  const firstConfirmation = {
+    confirmationIndex: 1,
+    id: 'failed-case',
+    passed: true,
+  };
+  const initialSourceCandidate = {
+    confirmations: [{ confirmationIndex: 1, id: 'other-case', passed: true }],
+    results: [failedInitial, { id: 'other-case', passed: false }],
+  };
+  const confirmedSourceCandidate = {
+    ...initialSourceCandidate,
+    confirmations: [firstConfirmation, ...initialSourceCandidate.confirmations],
+  };
+
+  assert.deepEqual(selectSemanticWorkerTrialHistory(initialSourceCandidate, 'failed-case', null), {
+    confirmations: [],
+    results: [],
+  });
+  assert.deepEqual(selectSemanticWorkerTrialHistory(initialSourceCandidate, 'failed-case', 1), {
+    confirmations: [],
+    results: [failedInitial],
+  });
+  assert.deepEqual(selectSemanticWorkerTrialHistory(confirmedSourceCandidate, 'failed-case', 2), {
+    confirmations: [firstConfirmation],
+    results: [failedInitial],
+  });
+  assert.deepEqual(
+    selectSemanticWorkerTrialHistory(
+      {
+        confirmations: [{ ...firstConfirmation, passed: false }],
+        results: [failedInitial],
+      },
+      'failed-case',
+      2,
+    ).confirmations.map(({ passed }) => passed),
+    [false],
   );
   assert.throws(
     () =>
-      validateSkillEvidenceConfiguration({
-        ...SKILL_CASE_DEFINITION,
-        skillEvidence: {
-          activationScenarios: [{ request: '', shouldActivate: true }],
-          artifacts: SKILL_CASE_DEFINITION.skillEvidence.artifacts,
+      selectSemanticWorkerTrialHistory(
+        {
+          confirmations: [firstConfirmation, { ...firstConfirmation, confirmationIndex: 2 }],
+          results: [failedInitial],
         },
-      }),
-    /invalid skill activation scenarios/,
+        'failed-case',
+        3,
+      ),
+    /invalid prior case history/u,
+  );
+  assert.equal(
+    getSemanticWorkerPaidTokenCount({
+      activeTrial: null,
+      confirmations: [firstConfirmation],
+      results: [failedInitial],
+    }),
+    0,
   );
 });
 
-test('skill document validation enforces identity, activation, and body contracts', () => {
-  assert.deepEqual(
-    validateSkillDocument(
-      [
-        '---',
-        'name: release-review',
-        'description: Reviews npm and pnpm releases when publication readiness is requested.',
-        '---',
-        '',
-        '# Release review',
-      ].join('\n'),
-      'release-review',
-    ),
-    {
-      description: 'Reviews npm and pnpm releases when publication readiness is requested.',
-      errors: [],
-      name: 'release-review',
-      valid: true,
+test('enforces each diagnostic state ceiling before writing oversized bytes', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-diagnostic-limit-'));
+  const checkpointPath = join(root, 'checkpoint.json');
+  const ledgerPath = join(root, 'ledger.json');
+  const smallState = { state: 'bounded' };
+  const oversizedState = {
+    state: 'x'.repeat(SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT),
+  };
+
+  try {
+    await writeSemanticDiagnosticCheckpoint(smallState, checkpointPath);
+    await writeSemanticDiagnosticLedger(smallState, ledgerPath);
+    assert.deepEqual(JSON.parse(await readFile(checkpointPath, 'utf8')), smallState);
+    assert.deepEqual(JSON.parse(await readFile(ledgerPath, 'utf8')), smallState);
+    await assert.rejects(
+      writeSemanticDiagnosticCheckpoint(oversizedState, checkpointPath),
+      /limit is 1048576 bytes/u,
+    );
+    await assert.rejects(
+      writeSemanticDiagnosticLedger(oversizedState, ledgerPath),
+      /limit is 1048576 bytes/u,
+    );
+    assert.deepEqual(JSON.parse(await readFile(checkpointPath, 'utf8')), smallState);
+    assert.deepEqual(JSON.parse(await readFile(ledgerPath, 'utf8')), smallState);
+    await writeFile(checkpointPath, Buffer.alloc(SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT + 1));
+    await assert.rejects(
+      readSemanticDiagnosticState(checkpointPath),
+      /not one bounded regular file/u,
+    );
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
+test('stops before the judge when private actor evidence exceeds the checkpoint ceiling', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-diagnostic-actor-limit-'));
+  const checkpointPath = join(root, 'checkpoint.json');
+  let actorCallCount = 0;
+  let judgeCallCount = 0;
+
+  try {
+    await assert.rejects(
+      runSemanticCaseTrial({
+        activeTrial: null,
+        actorCommand: ['codex'],
+        caseDefinition: CASE,
+        cli: { jsonSchemaVersion: 4, version: '7.0.0' },
+        evaluateActor: async () => {
+          actorCallCount += 1;
+          return { response: 'private actor output' };
+        },
+        evaluateJudge: async () => {
+          judgeCallCount += 1;
+          return { id: CASE.id, passed: true };
+        },
+        judgeCommand: ['codex'],
+        persistActiveTrial: async (activeTrial) =>
+          writeSemanticDiagnosticCheckpoint(
+            activeTrial.phase === 'judge-pending'
+              ? {
+                  activeTrial,
+                  padding: 'x'.repeat(SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT),
+                }
+              : { activeTrial },
+            checkpointPath,
+          ),
+        runOperationalStage: async ({ operation }) => operation(),
+        writeStatus: () => {},
+      }),
+      /limit is 1048576 bytes/u,
+    );
+    assert.equal(actorCallCount, 1);
+    assert.equal(judgeCallCount, 0);
+    assert.equal(
+      JSON.parse(await readFile(checkpointPath, 'utf8')).activeTrial.phase,
+      'actor-pending',
+    );
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
+test('selects every missing initial before any confirmation', () => {
+  const caseDefinitions = [{ id: 'failed-first' }, { id: 'pending-second' }];
+  const candidate = {
+    activeTrial: null,
+    confirmations: [],
+    results: [{ id: 'failed-first', passed: false, confirmationEligible: true }],
+  };
+  assert.deepEqual(getNextSemanticTrial(candidate, caseDefinitions), {
+    caseDefinition: caseDefinitions[1],
+    confirmationIndex: null,
+  });
+  const afterInitials = {
+    ...candidate,
+    results: [...candidate.results, { id: 'pending-second', passed: true }],
+  };
+  assert.deepEqual(getNextSemanticTrial(afterInitials, caseDefinitions), {
+    caseDefinition: caseDefinitions[0],
+    confirmationIndex: 1,
+  });
+  afterInitials.confirmations.push({
+    confirmationIndex: 1,
+    id: 'failed-first',
+    passed: false,
+  });
+  assert.deepEqual(getNextSemanticTrial(afterInitials, caseDefinitions), {
+    caseDefinition: caseDefinitions[0],
+    confirmationIndex: 2,
+  });
+  afterInitials.confirmations.push({
+    confirmationIndex: 2,
+    id: 'failed-first',
+    passed: false,
+  });
+  assert.equal(getNextSemanticTrial(afterInitials, caseDefinitions), null);
+});
+
+test('resumes exact actor and judge boundaries without repeating completed model stages', async () => {
+  let actorCallCount = 0;
+  let judgeCallCount = 0;
+  let durableTrial = null;
+  let interruptionPhase = 'judge-pending';
+  let timestampIndex = 0;
+  const now = () => `2026-09-07T00:00:0${timestampIndex++}.000Z`;
+  const persistActiveTrial = async (activeTrial) => {
+    durableTrial = structuredClone(activeTrial);
+    if (activeTrial.phase === interruptionPhase) {
+      throw new Error(`interrupted after ${interruptionPhase}`);
+    }
+  };
+  const parameters = {
+    actorCommand: ['codex'],
+    caseDefinition: CASE,
+    cli: { jsonSchemaVersion: 4, version: '7.0.0' },
+    evaluateActor: async () => {
+      actorCallCount += 1;
+      return { marker: 'actor-evidence' };
     },
+    evaluateJudge: async () => {
+      judgeCallCount += 1;
+      return { id: CASE.id, passed: true };
+    },
+    judgeCommand: ['codex'],
+    now,
+    persistActiveTrial,
+    runOperationalStage: async ({ operation }) => operation(),
+    writeStatus: () => {},
+  };
+
+  await assert.rejects(
+    runSemanticCaseTrial({ ...parameters, activeTrial: null }),
+    /interrupted after judge-pending/u,
+  );
+  assert.equal(durableTrial.phase, 'judge-pending');
+  assert.equal(actorCallCount, 1);
+  assert.equal(judgeCallCount, 0);
+
+  interruptionPhase = 'trial-complete';
+  await assert.rejects(
+    runSemanticCaseTrial({ ...parameters, activeTrial: durableTrial }),
+    /interrupted after trial-complete/u,
+  );
+  assert.equal(durableTrial.phase, 'trial-complete');
+  assert.equal(actorCallCount, 1);
+  assert.equal(judgeCallCount, 1);
+
+  const resumed = await runSemanticCaseTrial({
+    ...parameters,
+    activeTrial: durableTrial,
+  });
+  assert.equal(resumed.activeTrial.phase, 'trial-complete');
+  assert.equal(resumed.result.passed, true);
+  assert.equal(actorCallCount, 1);
+  assert.equal(judgeCallCount, 1);
+});
+
+test('persists retry exhaustion and permits only explicit one-attempt resumes', async () => {
+  let actorCallCount = 0;
+  let durableTrial = null;
+  let shouldActorFail = true;
+  const parameters = {
+    activeTrial: null,
+    actorCommand: ['codex'],
+    caseDefinition: CASE,
+    cli: { jsonSchemaVersion: 4, version: '7.0.0' },
+    evaluateActor: async () => {
+      actorCallCount += 1;
+      if (shouldActorFail) {
+        throw new CodexEvaluationHostError(
+          CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
+          'Provider request timed out.',
+        );
+      }
+      return { response: 'actor evidence' };
+    },
+    evaluateJudge: async () => ({ id: CASE.id, passed: true }),
+    judgeCommand: ['codex'],
+    persistActiveTrial: async (activeTrial) => {
+      durableTrial = structuredClone(activeTrial);
+    },
+    runOperationalStage: (options) =>
+      runCodexEvaluationOperationalStage({
+        ...options,
+        random: () => 0,
+        wait: async () => {},
+      }),
+    writeStatus: () => {},
+  };
+
+  await assert.rejects(runSemanticCaseTrial(parameters), /exhausted 1 operational retry/u);
+  assert.equal(actorCallCount, 2);
+  assert.equal(durableTrial.operationalRetries.actorFailureCount, 2);
+  assert.equal(durableTrial.operationalRetries.lastFailure.retryDelayMs, 0);
+  assert.equal(isSemanticActiveTrialOperationallyStopped(durableTrial), true);
+  assert.equal(
+    getSemanticCandidatePaidTokenCount({
+      activeTrial: durableTrial,
+      confirmations: [],
+      results: [],
+    }),
+    2 * 2_097_152,
   );
 
+  await assert.rejects(
+    runSemanticCaseTrial({ ...parameters, activeTrial: durableTrial }),
+    /use --resume-stopped-stage/u,
+  );
+  assert.equal(actorCallCount, 2);
+
+  await assert.rejects(
+    runSemanticCaseTrial({
+      ...parameters,
+      activeTrial: durableTrial,
+      isOperationalResumeRequested: true,
+    }),
+    /exhausted 1 operational retry/u,
+  );
+  assert.equal(actorCallCount, 3);
+  assert.equal(durableTrial.operationalRetries.actorFailureCount, 3);
+
+  shouldActorFail = false;
+  const resumed = await runSemanticCaseTrial({
+    ...parameters,
+    activeTrial: durableTrial,
+    isOperationalResumeRequested: true,
+  });
+  assert.equal(actorCallCount, 4);
+  assert.equal(resumed.result.operationalRetries.actorFailureCount, 3);
+  assert.equal(resumed.result.passed, true);
+});
+
+test('reserves the absolute next-stage maximum without double-counting cached input', () => {
+  const emptyCandidate = { activeTrial: null, confirmations: [], results: [] };
+  const absoluteStageMaximum = 2_097_152;
   assert.deepEqual(
-    validateSkillDocument(
-      ['---', 'name: ReleaseReview', 'description: ""', 'unsupported: true', '---'].join('\n'),
-      'release-review',
+    assertSemanticCandidatePaidStageCapacity(
+      emptyCandidate,
+      SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT - absoluteStageMaximum,
     ),
     {
-      description: '',
-      errors: [
-        'unsupported-frontmatter-key:unsupported',
-        'invalid-name',
-        'invalid-description',
-        'empty-body',
-      ],
-      name: 'ReleaseReview',
-      valid: false,
+      consumedTokenCount: SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT - absoluteStageMaximum,
+      maximumTokenCount: SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT,
+      reservedTokenCount: absoluteStageMaximum,
     },
+  );
+  assert.throws(
+    () =>
+      assertSemanticCandidatePaidStageCapacity(
+        emptyCandidate,
+        SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT - absoluteStageMaximum + 1,
+      ),
+    /stopped before a paid stage/u,
   );
 
   assert.equal(
-    validateSkillDocument(
-      [
-        '---',
-        'name: release-review',
-        'description: Review <repository> releases.',
-        '---',
-        '',
-        '# Release review',
-      ].join('\n'),
-      'release-review',
-    ).valid,
+    getSemanticCandidatePaidTokenCount({
+      activeTrial: null,
+      confirmations: [
+        {
+          actorUsage: {
+            cachedInputTokens: 90,
+            inputTokens: 100,
+            outputTokens: 10,
+          },
+          executionOrigin: 'reused',
+          judgeUsage: {
+            cachedInputTokens: 40,
+            inputTokens: 50,
+            outputTokens: 5,
+          },
+          operationalRetries: { actorFailureCount: 0, judgeFailureCount: 0 },
+        },
+      ],
+      results: [
+        {
+          actorUsage: {
+            cachedInputTokens: 90,
+            inputTokens: 100,
+            outputTokens: 10,
+          },
+          executionOrigin: 'executed',
+          judgeUsage: {
+            cachedInputTokens: 40,
+            inputTokens: 50,
+            outputTokens: 5,
+          },
+          operationalRetries: { actorFailureCount: 1, judgeFailureCount: 0 },
+        },
+      ],
+    }),
+    165 + absoluteStageMaximum,
+  );
+});
+
+test('rebinds reuse provenance without accepting changed source content', () => {
+  const sourceTrial = {
+    actorResponse: 'Use the canonical project context.',
+    executionOrigin: 'executed',
+    passed: true,
+    stageReuse: null,
+  };
+  const reusedTrial = {
+    ...sourceTrial,
+    executionOrigin: 'reused',
+    stageReuse: { actor: { source: 'immediate-attempt' } },
+  };
+
+  assert.equal(hasMatchingSemanticReusedSourceTrial(sourceTrial, reusedTrial), true);
+  assert.equal(
+    hasMatchingSemanticReusedSourceTrial(
+      {
+        ...sourceTrial,
+        executionOrigin: 'reused',
+        stageReuse: { actor: { source: 'original-attempt' } },
+      },
+      reusedTrial,
+    ),
+    true,
+  );
+  assert.equal(
+    hasMatchingSemanticReusedSourceTrial(sourceTrial, {
+      ...reusedTrial,
+      actorResponse: 'Changed behavior.',
+    }),
     false,
   );
 });
 
-test('assessment derives failure when expected evidence is missing', () => {
-  const assessment = assessJudgeOutput(
-    CASE_DEFINITION,
-    JSON.stringify({
-      forbidden: [],
-      observed: [],
-      rationale: 'No supporting evidence.',
-    }),
-  );
-
-  assert.equal(assessment.isPassed, false);
+test('keeps evaluator criteria out of the actor prompt', () => {
+  assert.equal(buildActorPrompt(CASE), 'Review docs/example.md.');
 });
 
-test('assessment derives failure when forbidden behavior is observed', () => {
-  const assessment = assessJudgeOutput(
-    CASE_DEFINITION,
-    JSON.stringify({
-      forbidden: ['forbidden-secret-label'],
-      observed: ['expected-secret-label'],
-      rationale: 'Both behaviors were present.',
-    }),
+test('exposes a fixed publication probe only to explicitly granted actor tasks', () => {
+  const grantedCase = SEMANTIC_CASES.find(
+    ({ id }) => id === 'agent-adoption-inline-runtime-instruction',
   );
+  const ungrantedCase = SEMANTIC_CASES.find(
+    ({ id }) => id === 'plan-runtime-inventory-insufficient-evidence',
+  );
+  assert.ok(grantedCase);
+  assert.ok(ungrantedCase);
 
-  assert.equal(assessment.isPassed, false);
+  assert.match(buildActorPrompt(grantedCase), /explicitly provides a fixed local/u);
+  assert.match(buildActorPrompt(grantedCase), /compatibility\/runtimes\.json/u);
+  assert.equal(buildActorPrompt(ungrantedCase), ungrantedCase.input.developerDirection);
 });
 
-test('assessment rejects labels outside the declared case contract', () => {
-  assert.throws(
-    () =>
-      assessJudgeOutput(
-        CASE_DEFINITION,
-        JSON.stringify({
-          forbidden: ['undeclared-label'],
-          observed: ['expected-secret-label'],
-          rationale: 'Unsupported label.',
-        }),
-      ),
-    /undeclared behavior label/,
-  );
-});
+test('judges insufficient initialization context without duplicate phrase requirements', () => {
+  const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'initialize-insufficient-context');
+  assert.ok(caseDefinition);
 
-test('semantic candidates bind exact evidence and stable host contracts', () => {
-  const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
-  const candidate = createSemanticEvaluationCandidate({
-    actorHost: ACTOR_HOST,
-    artifactDigest: ARTIFACT_DIGEST,
-    caseDefinitions,
-    cli: CLI_IDENTITY,
-    coverageDigest: COVERAGE_DIGEST,
-    generatedAt: EVALUATED_AT,
-    judgeHost: JUDGE_HOST,
-  });
-
-  assert.equal(
-    createSemanticCaseSuiteDigest(caseDefinitions),
-    createSemanticCaseSuiteDigest([...caseDefinitions].reverse()),
+  const expectedByLabel = new Map(
+    caseDefinition.expected.map(({ criterion, label }) => [label, criterion]),
   );
-  assert.throws(
-    () => createSemanticCaseSuiteDigest([CASE_DEFINITION, CASE_DEFINITION]),
-    /case IDs must be unique/,
+  assert.match(
+    expectedByLabel.get('report-no-meaningful-project-context'),
+    /asking for the missing purpose and audience is an explicit synthesis/u,
   );
-  assert.doesNotThrow(() =>
-    validateSemanticCandidateCompatibility(candidate, {
-      actorHost: ACTOR_HOST,
-      artifactDigest: ARTIFACT_DIGEST,
-      caseDefinitions,
-      cli: CLI_IDENTITY,
-      coverageDigest: COVERAGE_DIGEST,
-      judgeHost: JUDGE_HOST,
-    }),
+  assert.match(
+    expectedByLabel.get('report-unadopted-project'),
+    /not adopted or was not initialized/u,
   );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCompatibility(
-        { ...candidate, evaluationProtocolVersion: 14 },
-        {
-          actorHost: ACTOR_HOST,
-          artifactDigest: ARTIFACT_DIGEST,
-          caseDefinitions,
-          cli: CLI_IDENTITY,
-          coverageDigest: COVERAGE_DIGEST,
-          judgeHost: JUDGE_HOST,
-        },
-      ),
-    /different semantic evaluation protocol.*--restart/s,
+  assert.match(
+    expectedByLabel.get('ask-focused-foundation-question'),
+    /what the project does and who or what it serves/u,
   );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCompatibility(candidate, {
-        actorHost: ACTOR_HOST,
-        artifactDigest: 'b'.repeat(64),
-        caseDefinitions,
-        cli: CLI_IDENTITY,
-        coverageDigest: COVERAGE_DIGEST,
-        judgeHost: JUDGE_HOST,
-      }),
-    /different portable artifact/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCompatibility(candidate, {
-        actorHost: ACTOR_HOST,
-        artifactDigest: ARTIFACT_DIGEST,
-        caseDefinitions: [
-          {
-            ...CASE_DEFINITION,
-            input: {
-              ...CASE_DEFINITION.input,
-              developerDirection: 'Evaluate the changed repository without modifying it.',
-            },
-          },
-          SECOND_CASE_DEFINITION,
-        ],
-        cli: CLI_IDENTITY,
-        coverageDigest: COVERAGE_DIGEST,
-        judgeHost: JUDGE_HOST,
-      }),
-    /different case suite/,
-  );
-  const populatedCandidate = appendSemanticCandidateInitialResult(
-    candidate,
-    CASE_DEFINITION,
-    createCaseResult(CASE_DEFINITION, true),
-    EVALUATED_AT,
-  );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCompatibility(populatedCandidate, {
-        actorHost: ACTOR_HOST,
-        artifactDigest: ARTIFACT_DIGEST,
-        caseDefinitions: [
-          {
-            ...CASE_DEFINITION,
-            expected: [
-              {
-                criterion: 'The supplied evidence demonstrates changed expected behavior.',
-                label: 'changed-expected-label',
-              },
-            ],
-          },
-          SECOND_CASE_DEFINITION,
-        ],
-        cli: CLI_IDENTITY,
-        coverageDigest: COVERAGE_DIGEST,
-        judgeHost: JUDGE_HOST,
-      }),
-    /different case suite/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCompatibility(candidate, {
-        actorHost: ACTOR_HOST,
-        artifactDigest: ARTIFACT_DIGEST,
-        caseDefinitions,
-        cli: { ...CLI_IDENTITY, version: '3.3.8' },
-        coverageDigest: COVERAGE_DIGEST,
-        judgeHost: JUDGE_HOST,
-      }),
-    /different release CLI/,
-  );
-  assert.doesNotThrow(() =>
-    validateSemanticCandidateCompatibility(candidate, {
-      actorHost: { ...ACTOR_HOST, version: '2.0.0' },
-      artifactDigest: ARTIFACT_DIGEST,
-      caseDefinitions,
-      cli: CLI_IDENTITY,
-      coverageDigest: COVERAGE_DIGEST,
-      judgeHost: JUDGE_HOST,
-    }),
-  );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCompatibility(candidate, {
-        actorHost: { ...ACTOR_HOST, reasoningEffort: 'high' },
-        artifactDigest: ARTIFACT_DIGEST,
-        caseDefinitions,
-        cli: CLI_IDENTITY,
-        coverageDigest: COVERAGE_DIGEST,
-        judgeHost: { ...JUDGE_HOST, reasoningEffort: 'high' },
-      }),
-    /requires gpt-5\.6-sol medium actor and judge Codex hosts/,
+  assert.match(
+    expectedByLabel.get('ask-focused-foundation-question'),
+    /need not add generic product-benefit prose/u,
   );
 });
 
-test('checkpoint recording rejects stale release inputs and unofficial hosts', () => {
-  const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
-  const candidate = createSemanticEvaluationCandidate({
-    actorHost: ACTOR_HOST,
-    artifactDigest: ARTIFACT_DIGEST,
-    caseDefinitions,
-    cli: CLI_IDENTITY,
-    coverageDigest: COVERAGE_DIGEST,
-    generatedAt: EVALUATED_AT,
-    judgeHost: JUDGE_HOST,
-  });
-  const currentBoundary = {
-    artifactDigest: ARTIFACT_DIGEST,
-    caseDefinitions,
-    cli: CLI_IDENTITY,
-    coverageDigest: COVERAGE_DIGEST,
-  };
+test('accepts a specific missing integration contract as runtime evidence resolver', () => {
+  const caseDefinition = SEMANTIC_CASES.find(
+    ({ id }) => id === 'available-runtime-insufficient-behavioral-evidence',
+  );
+  assert.ok(caseDefinition);
 
-  assert.doesNotThrow(() =>
-    validateSemanticCandidateCheckpointCompatibility(candidate, currentBoundary),
+  const limitation = caseDefinition.expected.find(
+    ({ label }) => label === 'report-behavioral-evidence-limitation',
   );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCheckpointCompatibility(candidate, {
-        ...currentBoundary,
-        artifactDigest: 'b'.repeat(64),
-      }),
-    /different portable artifact/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCheckpointCompatibility(candidate, {
-        ...currentBoundary,
-        caseDefinitions: [
-          {
-            ...CASE_DEFINITION,
-            scenario: 'A changed semantic evaluation scenario.',
-          },
-          SECOND_CASE_DEFINITION,
-        ],
-      }),
-    /different case suite/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCheckpointCompatibility(candidate, {
-        ...currentBoundary,
-        coverageDigest: 'f'.repeat(64),
-      }),
-    /different coverage contract/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCheckpointCompatibility(candidate, {
-        ...currentBoundary,
-        cli: { ...CLI_IDENTITY, version: '4.0.1' },
-      }),
-    /different release CLI/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCheckpointCompatibility(
-        {
-          ...candidate,
-          hostContract: { ...candidate.hostContract, model: 'gpt-5.6-terra' },
-        },
-        currentBoundary,
-      ),
-    /does not use the required gpt-5\.6-sol medium Codex host contract/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticCandidateCheckpointCompatibility(
-        {
-          ...candidate,
-          hostContract: { ...candidate.hostContract, reasoningEffort: 'high' },
-        },
-        currentBoundary,
-      ),
-    /does not use the required gpt-5\.6-sol medium Codex host contract/,
-  );
+  assert.match(limitation?.criterion, /specific missing approved integration contract/u);
+  assert.match(limitation?.criterion, /resolve both behavioral fit and integration wiring/u);
 });
 
-test('checkpoint recording validates exact evidence before persistence', async () => {
-  const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
-  const candidate = createSemanticEvaluationCandidate({
-    actorHost: ACTOR_HOST,
-    artifactDigest: ARTIFACT_DIGEST,
-    caseDefinitions,
-    cli: CLI_IDENTITY,
-    coverageDigest: COVERAGE_DIGEST,
-    generatedAt: EVALUATED_AT,
-    judgeHost: JUDGE_HOST,
-  });
-  const candidateEvidenceText = `${JSON.stringify(candidate, null, 2)}\n`;
-  const recordedEvidence = [];
-  const recordAttempt = async (evidenceText) => {
-    recordedEvidence.push(evidenceText);
-    return { attemptId: 'recorded-attempt' };
-  };
-
-  await assert.rejects(
-    recordSemanticCandidateCheckpoint({
-      candidateEvidenceText,
-      currentBoundary: {
-        artifactDigest: 'b'.repeat(64),
-        caseDefinitions,
-        cli: CLI_IDENTITY,
-        coverageDigest: COVERAGE_DIGEST,
-      },
-      recordAttempt,
-    }),
-    /different portable artifact/,
+test('projects every bounded runtime-planning fact the judge may verify', () => {
+  const caseDefinition = SEMANTIC_CASES.find(
+    ({ id }) => id === 'plan-runtime-inventory-insufficient-evidence',
   );
-  assert.deepEqual(recordedEvidence, []);
-
-  await assert.rejects(
-    recordSemanticCandidateCheckpoint({
-      candidateEvidenceText: `${JSON.stringify(
-        {
-          ...candidate,
-          activeTrial: createSemanticActiveTrial(CASE_DEFINITION, null, '2026-08-27T16:00:00.000Z'),
-        },
-        null,
-        2,
-      )}\n`,
-      currentBoundary: {
-        artifactDigest: ARTIFACT_DIGEST,
-        caseDefinitions,
-        cli: CLI_IDENTITY,
-        coverageDigest: COVERAGE_DIGEST,
-      },
-      recordAttempt,
-    }),
-    /active model stage/,
-  );
-  assert.deepEqual(recordedEvidence, []);
-
-  const attempt = await recordSemanticCandidateCheckpoint({
-    candidateEvidenceText,
-    currentBoundary: {
-      artifactDigest: ARTIFACT_DIGEST,
-      caseDefinitions,
-      cli: CLI_IDENTITY,
-      coverageDigest: COVERAGE_DIGEST,
-    },
-    recordAttempt,
-  });
-  assert.deepEqual(attempt, { attemptId: 'recorded-attempt' });
-  assert.deepEqual(recordedEvidence, [candidateEvidenceText]);
-});
-
-test('semantic trials persist retries and every actor-judge stage boundary', async () => {
-  const persistedTrials = [];
-  const timestamps = [
-    '2026-08-27T16:00:00.000Z',
-    '2026-08-27T16:00:01.000Z',
-    '2026-08-27T16:00:02.000Z',
-  ];
-  let stageIndex = 0;
-
-  const { activeTrial, result } = await runSemanticCaseTrial({
-    activeTrial: null,
-    actorCommand: ['actor'],
-    caseDefinition: CASE_DEFINITION,
-    cli: CLI_IDENTITY,
-    evaluateActor: async () => createActorEvidence(CASE_DEFINITION),
-    evaluateJudge: async () => createCaseResult(CASE_DEFINITION, true),
-    judgeCommand: ['judge'],
-    now: () => timestamps.shift(),
-    persistActiveTrial: async (trial) => {
-      persistedTrials.push(structuredClone(trial));
-    },
-    runOperationalStage: async ({ initialFailureCount, onRetry, operation }) => {
-      stageIndex += 1;
-      if (stageIndex === 1) {
-        await onRetry({
-          category: CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
-          failedAt: '2026-08-27T16:00:00.500Z',
-          failureCount: initialFailureCount + 1,
-          retryDelayMs: 5_000,
-        });
-      }
-      return operation();
-    },
-    writeStatus: () => {},
-  });
+  assert.ok(caseDefinition);
 
   assert.deepEqual(
-    persistedTrials.map(({ phase }) => phase),
-    ['actor-pending', 'actor-pending', 'judge-pending', 'trial-complete'],
+    caseDefinition.input.repositoryEvidence.map(({ source }) => source.path),
+    [
+      'README.md',
+      'package.json',
+      'src/model-runtime.js',
+      'docs/runtime-candidates.md',
+      'moldea/moldea.yaml',
+      'moldea/project.md',
+      'src/project-state.js',
+    ],
   );
-  assert.equal(activeTrial.operationalRetries.actorFailureCount, 1);
-  assert.equal(activeTrial.operationalRetries.judgeFailureCount, 0);
-  assert.deepEqual(result.operationalRetries, activeTrial.operationalRetries);
-  assert.equal(result.caseDefinitionDigest, createSemanticCaseDefinitionDigest(CASE_DEFINITION));
 });
 
-test('semantic trials resume the judge from persisted actor evidence without another actor call', async () => {
-  const actorEvidence = createActorEvidence(CASE_DEFINITION);
-  const activeTrial = attachSemanticActiveTrialActorEvidence(
-    createSemanticActiveTrial(CASE_DEFINITION, null, '2026-08-27T16:00:00.000Z'),
-    actorEvidence,
-    '2026-08-27T16:01:00.000Z',
-  );
-  let actorCallCount = 0;
-  let judgeCallCount = 0;
-
-  const completed = await runSemanticCaseTrial({
-    activeTrial,
-    actorCommand: ['actor'],
-    caseDefinition: CASE_DEFINITION,
-    cli: CLI_IDENTITY,
-    evaluateActor: async () => {
-      actorCallCount += 1;
-      return actorEvidence;
-    },
-    evaluateJudge: async (_caseDefinition, persistedActorEvidence) => {
-      judgeCallCount += 1;
-      assert.deepEqual(persistedActorEvidence, actorEvidence);
-      return createCaseResult(CASE_DEFINITION, true);
-    },
-    judgeCommand: ['judge'],
-    now: () => '2026-08-27T16:02:00.000Z',
-    persistActiveTrial: async () => {},
-  });
-
-  assert.equal(actorCallCount, 0);
-  assert.equal(judgeCallCount, 1);
-  assert.equal(completed.activeTrial.phase, 'trial-complete');
-});
-
-test('semantic candidates retain failures and require two passing confirmations', () => {
-  const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
-  let candidate = createSemanticEvaluationCandidate({
-    actorHost: ACTOR_HOST,
-    artifactDigest: ARTIFACT_DIGEST,
-    caseDefinitions,
-    cli: CLI_IDENTITY,
-    coverageDigest: COVERAGE_DIGEST,
-    generatedAt: EVALUATED_AT,
-    judgeHost: JUDGE_HOST,
-  });
-
-  candidate = appendSemanticCandidateInitialResult(
-    candidate,
-    CASE_DEFINITION,
-    createCaseResult(CASE_DEFINITION, true),
-    EVALUATED_AT,
-  );
-  candidate = appendSemanticCandidateInitialResult(
-    candidate,
-    SECOND_CASE_DEFINITION,
-    createCaseResult(SECOND_CASE_DEFINITION, false),
-    EVALUATED_AT,
-  );
-
-  assert.deepEqual(
-    getPendingSemanticCaseDefinitions(candidate, caseDefinitions).map(({ id }) => id),
+test('keeps runner-enforced moldea budgets outside semantic judgment', () => {
+  const prompt = buildJudgePrompt(
+    CASE,
+    'No findings.',
+    { created: [], deleted: [], modified: [] },
     [],
-  );
-  assert.equal(
-    getSemanticCaseResolution(candidate, SECOND_CASE_DEFINITION.id),
-    'awaiting-confirmation',
-  );
-  assert.throws(
-    () => validateSemanticResultRecording({ candidate, caseDefinitions }),
-    /incomplete or failing/,
-  );
-
-  assert.throws(
-    () =>
-      appendSemanticCandidateInitialResult(
-        candidate,
-        SECOND_CASE_DEFINITION,
-        createCaseResult(SECOND_CASE_DEFINITION, true),
-        '2026-08-16T12:01:00.000Z',
-      ),
-    /already has an initial trial/,
+    [],
+    null,
+    createCommandPolicyEvidence(128),
+    {
+      commandCount: 0,
+      maximumInvocationByteCount: 0,
+      modelVisibleToolOutputByteCount: 0,
+      operations: [],
+      stdoutByteCount: 0,
+    },
   );
 
-  candidate = appendSemanticCandidateConfirmation(
-    candidate,
-    SECOND_CASE_DEFINITION,
-    createCaseResult(SECOND_CASE_DEFINITION, true),
-    '2026-08-16T12:01:00.000Z',
+  assert.match(
+    prompt,
+    /runner independently evaluated the\s+declared moldea activation mode, minimum command count, and operation order/u,
   );
-  assert.equal(
-    getSemanticCaseResolution(candidate, SECOND_CASE_DEFINITION.id),
-    'awaiting-confirmation',
+  assert.match(prompt, /deterministic\s+activation check passed/u);
+  assert.match(prompt, /deterministic resource-containment check passed/u);
+  assert.match(prompt, /Do not compare the\s+total completed-command count/u);
+  assert.match(prompt, /Judge only the remaining semantic\s+clauses/u);
+  assert.match(prompt, /spell the human-facing product name as lowercase `moldea`/u);
+  assert.match(
+    prompt,
+    /commandKind `moldea`[\s\S]+fixed portable launcher[\s\S]+repository-bound CLI execution/u,
   );
-  candidate = appendSemanticCandidateConfirmation(
-    candidate,
-    SECOND_CASE_DEFINITION,
-    createCaseResult(SECOND_CASE_DEFINITION, true),
-    '2026-08-16T12:02:00.000Z',
+  assert.match(
+    prompt,
+    /projected `node-test-summary` fact[\s\S]+every discovered test passed[\s\S]+`testKind` establishes the recognized test level/u,
   );
-  assert.equal(getSemanticCaseResolution(candidate, SECOND_CASE_DEFINITION.id), 'recovered');
-  assert.doesNotThrow(() => validateSemanticResultRecording({ candidate, caseDefinitions }));
-
-  const record = createSemanticEvaluationRecord({
-    candidate,
-    caseDefinitions,
-    generatedAt: '2026-08-16T12:03:00.000Z',
-  });
-  assert.equal(record.evaluationProtocolVersion, SEMANTIC_EVALUATION_PROTOCOL_VERSION);
-  assert.equal(record.schemaVersion, 6);
-  assert.equal(record.actorHost, undefined);
-  assert.equal(record.host, undefined);
-  assert.equal(record.judgeHost, undefined);
-  assert.deepEqual(record.confirmationPolicy, {
-    requiredPassingConfirmations: 2,
-    version: 1,
-  });
-  assert.equal(record.caseHistories[1].resolution, 'recovered');
-  assert.equal(record.caseHistories[1].confirmations.length, 2);
-  assert.equal(record.coverageDigest, COVERAGE_DIGEST);
-  assert.deepEqual(record.cli, CLI_IDENTITY);
-  assert.equal(record.caseSuiteDigest, createSemanticCaseSuiteDigest(caseDefinitions));
-  assert.deepEqual(
-    record.cases.map(({ id }) => id),
-    caseDefinitions.map(({ id }) => id),
+  assert.match(
+    prompt,
+    /criterion explicitly accepts a concise no-finding response[\s\S]+do not require the actor to restate that evidence/u,
   );
-  assert.deepEqual(
-    record.cases.map(({ caseDefinitionDigest }) => caseDefinitionDigest),
-    caseDefinitions.map(createSemanticCaseDefinitionDigest),
+  assert.match(
+    prompt,
+    /criterion explicitly accepts one focused question as the complete response[\s\S]+do not invent an unrequested task/u,
   );
-  assert.deepEqual(record.cases[0].actorCommandPolicyEvidence, EMPTY_COMMAND_POLICY_EVIDENCE);
 });
 
-test('semantic candidates accept explicitly truncated skill artifact evidence', () => {
-  const caseDefinitions = [SKILL_CASE_DEFINITION];
-  const result = createCaseResult(SKILL_CASE_DEFINITION, true);
-  result.skillArtifactEvidence = [
+test('passes case-budget misses to semantic judgment as a deterministic failure', () => {
+  const prompt = buildJudgePrompt(
+    CASE,
+    'No findings.',
+    { created: [], deleted: [], modified: [] },
+    [],
+    [],
+    null,
+    createCommandPolicyEvidence(1),
     {
-      directories: ['skills/release-review'],
-      excludedDirectoryCount: 0,
-      files: [
+      commandCount: 1,
+      maximumInvocationByteCount: 512,
+      modelVisibleToolOutputByteCount: 512,
+      operations: ['validate'],
+      stdoutByteCount: 512,
+    },
+  );
+
+  assert.match(prompt, /deterministic\s+activation check did not pass/u);
+  assert.match(prompt, /deterministic resource-containment check did not pass/u);
+});
+
+test('prevents a green judge result from carrying incorrect product casing', () => {
+  const output = JSON.stringify({
+    observed: ['abstain'],
+    forbidden: [],
+    rationale: 'The actor kept moldea inactive.',
+  });
+
+  assert.deepEqual(assessJudgeOutput(CASE, output, 'Moldea remained inactive.'), {
+    forbidden: ['incorrect-moldea-product-name-casing'],
+    isPassed: false,
+    observed: ['abstain'],
+    rationale: 'The actor kept moldea inactive.',
+  });
+  assert.deepEqual(assessJudgeOutput(CASE, output, 'moldea remained inactive.'), {
+    forbidden: [],
+    isPassed: true,
+    observed: ['abstain'],
+    rationale: 'The actor kept moldea inactive.',
+  });
+  assert.deepEqual(
+    assessJudgeOutput(
+      CASE,
+      JSON.stringify({
+        observed: ['abstain'],
+        forbidden: [],
+        rationale: 'The actor kept Moldea inactive.',
+      }),
+      'moldea remained inactive.',
+    ),
+    {
+      forbidden: ['incorrect-moldea-product-name-casing'],
+      isPassed: false,
+      observed: ['abstain'],
+      rationale: 'The actor kept Moldea inactive.',
+    },
+  );
+});
+
+test('reports safe resource aggregates when malformed judge input is rejected', () => {
+  assert.throws(
+    () =>
+      buildJudgePrompt(
+        CASE,
+        'No findings.',
+        { created: [], deleted: [], modified: [] },
+        [],
+        [],
+        null,
+        createCommandPolicyEvidence(1),
         {
-          content: null,
-          mode: 33_204,
-          omission: 'file-too-large',
-          path: 'skills/release-review/large-reference.md',
-          sha256: null,
+          commandCount: 1,
+          maximumInvocationByteCount: 512,
+          modelVisibleToolOutputByteCount: 512,
+          operations: [],
+          stdoutByteCount: 512,
         },
-      ],
-      isTraversalTruncated: true,
-      resourceReferences: [],
-      role: 'authoritative-source',
-      root: 'skills/release-review',
-      rootType: 'directory',
-      truncatedDirectoryCount: 1,
-      truncatedFileCount: 1,
-      truncatedResourceReferenceCount: 8,
-      validation: {
-        description: null,
-        errors: ['missing-skill-document'],
-        name: null,
-        valid: false,
-      },
-    },
-  ];
-  const candidate = appendSemanticCandidateInitialResult(
-    createSemanticEvaluationCandidate({
-      actorHost: ACTOR_HOST,
-      artifactDigest: ARTIFACT_DIGEST,
-      caseDefinitions,
-      cli: CLI_IDENTITY,
-      coverageDigest: COVERAGE_DIGEST,
-      generatedAt: EVALUATED_AT,
-      judgeHost: JUDGE_HOST,
-    }),
-    SKILL_CASE_DEFINITION,
-    result,
-    EVALUATED_AT,
-  );
-
-  assert.doesNotThrow(() => validateSemanticResultRecording({ candidate, caseDefinitions }));
-  assert.throws(
-    () =>
-      validateSemanticResultRecording({
-        candidate: {
-          ...candidate,
-          results: [
-            {
-              ...candidate.results[0],
-              skillArtifactEvidence: [
-                {
-                  ...candidate.results[0].skillArtifactEvidence[0],
-                  files: [
-                    {
-                      ...candidate.results[0].skillArtifactEvidence[0].files[0],
-                      omission: 'non-utf8',
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-        caseDefinitions,
-      }),
-    /invalid case evidence/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticResultRecording({
-        candidate: {
-          ...candidate,
-          results: [
-            {
-              ...candidate.results[0],
-              actorCommandPolicyEvidence: {
-                ...candidate.results[0].actorCommandPolicyEvidence,
-                packageManagerExecution: 'not-observed',
-                packageManagerInvocationCount: 1,
-              },
-            },
-          ],
-        },
-        caseDefinitions,
-      }),
-    /invalid case evidence/,
+      ),
+    /valid bounded moldea resource evidence: \{"commandCount":1,"maximumInvocationByteCount":512,"modelVisibleToolOutputByteCount":512,"operations":\[\],"stdoutByteCount":512\}/u,
   );
 });
 
-test('semantic candidate validation rejects internally inconsistent evidence', () => {
-  const caseDefinitions = [CASE_DEFINITION];
-  const candidate = appendSemanticCandidateInitialResult(
-    createSemanticEvaluationCandidate({
-      actorHost: ACTOR_HOST,
-      artifactDigest: ARTIFACT_DIGEST,
-      caseDefinitions,
-      cli: CLI_IDENTITY,
-      coverageDigest: COVERAGE_DIGEST,
-      generatedAt: EVALUATED_AT,
-      judgeHost: JUDGE_HOST,
-    }),
-    CASE_DEFINITION,
-    createCaseResult(CASE_DEFINITION, false),
-    EVALUATED_AT,
-  );
-
-  assert.throws(
-    () =>
-      validateSemanticResultRecording({
-        candidate: {
-          ...candidate,
-          results: [{ ...candidate.results[0], passed: true }],
-        },
-        caseDefinitions,
-      }),
-    /invalid case evidence/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticResultRecording({
-        candidate: {
-          ...candidate,
-          results: [
-            {
-              ...candidate.results[0],
-              workspaceChanges: {
-                created: [
-                  {
-                    path: 'src/oversized.js',
-                    state: {
-                      content: 'é'.repeat(16_385),
-                      mode: 33_204,
-                      omission: null,
-                      sha256: 'd'.repeat(64),
-                      type: 'file',
-                    },
-                  },
-                ],
-                deleted: [],
-                modified: [],
-              },
-            },
-          ],
-        },
-        caseDefinitions,
-      }),
-    /invalid case evidence/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticResultRecording({
-        candidate: {
-          ...candidate,
-          results: [
-            {
-              ...candidate.results[0],
-              workspaceChanges: {
-                created: [],
-                deleted: [],
-                modified: [
-                  {
-                    ...candidate.results[0].workspaceChanges.modified[0],
-                    after: {
-                      mode: AFTER_SNAPSHOT_STATE.mode,
-                      sha256: AFTER_SNAPSHOT_STATE.sha256,
-                      type: 'file',
-                    },
-                  },
-                ],
-              },
-            },
-          ],
-        },
-        caseDefinitions,
-      }),
-    /invalid case evidence/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticResultRecording({
-        candidate: {
-          ...candidate,
-          results: [
-            {
-              ...candidate.results[0],
-              workspaceChanges: {
-                created: [],
-                deleted: [],
-                modified: ['src/example.js'],
-              },
-            },
-          ],
-        },
-        caseDefinitions,
-      }),
-    /invalid case evidence/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticResultRecording({
-        candidate: {
-          ...candidate,
-          results: [{ ...candidate.results[0], skillArtifactEvidence: [{}] }],
-        },
-        caseDefinitions,
-      }),
-    /invalid case evidence/,
-  );
+test('reports the clean 74-case paid execution boundary without reusable predecessors', () => {
+  assert.deepEqual(createSemanticEvaluationCostEstimate(74), {
+    absoluteTokenContainmentLimit: 2_483_027_968,
+    absoluteTokensPerInvocation: 2_097_152,
+    candidatePaidTokenMaximum: 32_000_000,
+    caseCount: 74,
+    confirmationInclusivePaidStageLimit: 592,
+    initialStageCount: 148,
+    model: 'gpt-5.6-sol',
+    operationalRetryInclusiveInvocationLimit: 1184,
+    paidInitialStageCount: 148,
+    actorReasoningEffort: 'xhigh',
+    judgeReasoningEffort: 'xhigh',
+    reusedCaseCount: 0,
+    reusedStageCount: 0,
+    stageReservationTokenCount: 2_097_152,
+  });
 });
 
-test('semantic candidate validation applies the package-manager non-execution verdict', () => {
-  const packageManagerCaseDefinition = {
-    ...CASE_DEFINITION,
-    id: 'package-manager-non-execution',
-    expected: [
-      {
-        criterion: 'No package-manager command can be invoked.',
-        label: 'stop-before-package-manager-execution',
-      },
-    ],
-  };
-  const caseDefinitions = [packageManagerCaseDefinition];
-  const candidate = appendSemanticCandidateInitialResult(
-    createSemanticEvaluationCandidate({
-      actorHost: ACTOR_HOST,
-      artifactDigest: ARTIFACT_DIGEST,
-      caseDefinitions,
-      cli: CLI_IDENTITY,
-      coverageDigest: COVERAGE_DIGEST,
-      generatedAt: EVALUATED_AT,
-      judgeHost: JUDGE_HOST,
-    }),
-    packageManagerCaseDefinition,
-    createCaseResult(packageManagerCaseDefinition, true),
-    EVALUATED_AT,
-  );
-  const indeterminateCandidate = {
-    ...candidate,
-    results: [
-      {
-        ...candidate.results[0],
-        actorCommandPolicyEvidence: {
-          completedCommandCount: 1,
-          indeterminateCommandCount: 1,
-          packageManagerExecution: 'indeterminate',
-          packageManagerInvocationCount: 0,
-        },
-      },
-    ],
-  };
+test('extracts final response and zero moldea consumption from host JSONL', () => {
+  const output = `${JSON.stringify({
+    type: 'item.completed',
+    item: { type: 'agent_message', text: 'No findings.' },
+  })}\n`;
+  const result = parseSemanticEvaluationHostOutput(output, {
+    cliVersion: '7.0.0',
+    jsonSchemaVersion: 4,
+  });
+  assert.equal(result.response, 'No findings.');
+  assert.deepEqual(result.commandPolicyEvidence, createCommandPolicyEvidence());
+  assert.deepEqual(result.actorResourceEvidence, {
+    commandCount: 0,
+    maximumInvocationByteCount: 0,
+    modelVisibleToolOutputByteCount: 0,
+    operations: [],
+    stdoutByteCount: 0,
+  });
+});
 
-  assert.doesNotThrow(() =>
-    validateSemanticResultRecording({
-      candidate: indeterminateCandidate,
-      caseDefinitions,
-    }),
-  );
-
-  const observedCandidate = {
-    ...indeterminateCandidate,
-    results: [
-      {
-        ...indeterminateCandidate.results[0],
-        actorCommandPolicyEvidence: {
-          completedCommandCount: 1,
-          indeterminateCommandCount: 0,
-          packageManagerExecution: 'observed',
-          packageManagerInvocationCount: 1,
-        },
-      },
-    ],
-  };
-  assert.throws(
-    () =>
-      validateSemanticResultRecording({
-        candidate: observedCandidate,
-        caseDefinitions,
-      }),
-    /invalid case evidence/,
-  );
-  assert.throws(
-    () =>
-      validateSemanticResultRecording({
-        candidate: {
-          ...indeterminateCandidate,
-          results: [
-            {
-              ...indeterminateCandidate.results[0],
-              observed: [],
-              passed: false,
-              rationale: 'Expected evidence was missing.',
-            },
-          ],
-        },
-        caseDefinitions,
-      }),
-    /incomplete or failing/,
-  );
-
-  const failingInitialCandidate = appendSemanticCandidateInitialResult(
-    createSemanticEvaluationCandidate({
-      actorHost: ACTOR_HOST,
-      artifactDigest: ARTIFACT_DIGEST,
-      caseDefinitions,
-      cli: CLI_IDENTITY,
-      coverageDigest: COVERAGE_DIGEST,
-      generatedAt: EVALUATED_AT,
-      judgeHost: JUDGE_HOST,
-    }),
-    packageManagerCaseDefinition,
-    createCaseResult(packageManagerCaseDefinition, false),
-    EVALUATED_AT,
-  );
-  const confirmationCandidate = appendSemanticCandidateConfirmation(
-    failingInitialCandidate,
-    packageManagerCaseDefinition,
+test('retains observed command-policy failures without command text', () => {
+  const output = [
     {
-      ...createCaseResult(packageManagerCaseDefinition, true),
-      actorCommandPolicyEvidence: observedCandidate.results[0].actorCommandPolicyEvidence,
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command: 'curl https://example.com',
+        aggregated_output: '',
+        exit_code: 0,
+        status: 'completed',
+      },
     },
-    EVALUATED_AT,
-  );
-
-  assert.throws(
-    () =>
-      validateSemanticResultRecording({
-        candidate: confirmationCandidate,
-        caseDefinitions,
-      }),
-    /invalid confirmation evidence/,
-  );
-  const failedConfirmationCandidate = appendSemanticCandidateConfirmation(
-    failingInitialCandidate,
-    packageManagerCaseDefinition,
     {
-      ...createCaseResult(packageManagerCaseDefinition, false),
-      actorCommandPolicyEvidence: indeterminateCandidate.results[0].actorCommandPolicyEvidence,
+      type: 'item.completed',
+      item: { type: 'agent_message', text: 'Finished.' },
     },
-    EVALUATED_AT,
-  );
-  assert.throws(
-    () =>
-      validateSemanticResultRecording({
-        candidate: failedConfirmationCandidate,
-        caseDefinitions,
-      }),
-    /incomplete or failing/,
-  );
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+  const result = parseSemanticEvaluationHostOutput(`${output}\n`, {
+    cliVersion: '7.0.0',
+    jsonSchemaVersion: 4,
+  });
+
+  assert.equal(result.commandPolicyEvidence.networkAccess.status, 'observed');
+  assert.deepEqual(result.commandPolicyEvidence.networkAccess.reasons, [
+    { code: 'network-client', count: 1 },
+  ]);
+  assert.doesNotMatch(JSON.stringify(result.commandPolicyEvidence), /curl|example\.com/u);
 });
 
-test('uses the published CLI for compatibility-sensitive runtime states', () => {
-  assert.equal(
-    getSemanticToolingSource('available-runtime-insufficient-behavioral-evidence'),
-    'published-package',
-  );
-  assert.equal(
-    getSemanticToolingSource('dedicated-repository-runtime-selection'),
-    'published-package',
-  );
-  assert.equal(getSemanticToolingSource('unavailable-runtime-selection'), 'published-package');
-  assert.equal(
-    getSemanticToolingSource('agent-adoption-inline-runtime-instruction'),
-    'published-package',
-  );
-  assert.equal(getSemanticToolingSource('adopted-relevance-no-change'), 'published-package');
-  assert.equal(
-    getSemanticToolingSource('maintain-context-without-duplication'),
-    'published-package',
-  );
-  assert.equal(getSemanticToolingSource('compress-project-context'), 'published-package');
-  assert.equal(
-    getSemanticToolingSource('compress-conflicting-project-context'),
-    'published-package',
-  );
-  assert.equal(getSemanticToolingSource('initialize-insufficient-context'), 'published-package');
-  assert.equal(getSemanticToolingSource('initialize-partial-context'), 'published-package');
-  assert.equal(getSemanticToolingSource('initialize-sufficient-context'), 'published-package');
-  assert.equal(
-    getSemanticToolingSource('plan-runtime-inventory-insufficient-evidence'),
-    'published-package',
-  );
-  assert.equal(getSemanticToolingSource('runtime-publication-unavailable'), 'published-package');
-  assert.equal(getSemanticToolingSource('runtime-publication-malformed'), 'published-package');
-  assert.equal(
-    getSemanticToolingSource('installed-adapter-without-published-target'),
-    'published-package',
-  );
-  assert.equal(
-    getSemanticToolingSource('published-supported-target-not-installed'),
-    'published-package',
-  );
-  assert.equal(
-    getSemanticToolingSource('experimental-target-not-production-ready'),
-    'published-package',
-  );
-  assert.equal(getSemanticToolingSource('pnpm-pnp-local-cli-provider'), 'scenario-specific');
-  assert.equal(getSemanticToolingSource('unadopted-direct-context-handoff'), 'scenario-specific');
-  assert.equal(getSemanticToolingSource('yarn-conflicting-cli-provider'), 'scenario-specific');
-});
+test('grants the fixed runtime-publication probe only through explicit semantic options', () => {
+  const publicationUrl = 'https://packages.moldea.ai/compatibility/runtimes.json';
+  const output = [
+    {
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command: `curl -fsSL ${publicationUrl}`,
+        aggregated_output: '{}\n',
+        exit_code: 0,
+        status: 'completed',
+      },
+    },
+    {
+      type: 'item.completed',
+      item: { type: 'agent_message', text: 'Finished.' },
+    },
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+  const releaseIdentity = { cliVersion: '7.0.0', jsonSchemaVersion: 4 };
+  const defaultResult = parseSemanticEvaluationHostOutput(output, releaseIdentity);
+  const runtimeResult = parseSemanticEvaluationHostOutput(output, {
+    ...releaseIdentity,
+    localProbeKind: CODEX_EVALUATION_LOCAL_PROBE_KINDS.RuntimeCompatibilityPublication,
+  });
 
-test('collects the exact published CLI production dependency closure', () => {
-  const rootNodeModules = join(process.cwd(), 'node_modules');
-  const packageEntries = collectProductionPackageRoots(
-    join(process.cwd(), 'node_modules', '@moldea.ai', 'cli'),
-  ).map((packageRoot) => ({
-    lockPath: `node_modules/${relative(rootNodeModules, packageRoot).split(sep).join('/')}`,
-    manifest: JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8')),
-  }));
-  const manifestsByName = new Map(packageEntries.map(({ manifest }) => [manifest.name, manifest]));
-  const rootLock = JSON.parse(readFileSync(join(process.cwd(), 'package-lock.json'), 'utf8'));
-  const rootManifest = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'));
-  const cliManifest = manifestsByName.get('@moldea.ai/cli');
-
-  assert.equal(cliManifest.version, rootManifest.devDependencies['@moldea.ai/cli']);
-  for (const dependencyName of Object.keys(cliManifest.dependencies)) {
-    assert.ok(manifestsByName.has(dependencyName), `Missing CLI dependency ${dependencyName}.`);
-  }
-  for (const { lockPath, manifest } of packageEntries) {
-    assert.equal(rootLock.packages[lockPath]?.version, manifest.version);
-  }
+  assert.equal(defaultResult.commandPolicyEvidence.networkAccess.status, 'observed');
+  assert.equal(runtimeResult.commandPolicyEvidence.networkAccess.status, 'not-observed');
+  assert.doesNotMatch(
+    JSON.stringify(runtimeResult.commandPolicyEvidence),
+    /curl|packages\.moldea/u,
+  );
 });

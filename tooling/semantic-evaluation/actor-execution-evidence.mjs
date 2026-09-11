@@ -1,40 +1,38 @@
-import { posix } from 'node:path';
+import {
+  identifyMoldeaCliLauncherOperation,
+  identifyRepositoryTestCommandKind,
+} from '../codex-evaluation-host/index.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
 
 const COMMAND_COMPLETED_STATUSES = new Set(['completed', 'failed']);
-const MOLDEA_COMMANDS = new Set(['composition', 'inspect', 'validate']);
+const MOLDEA_COMMANDS = new Set(['composition', 'content', 'inspect', 'scope', 'validate']);
 const MOLDEA_STATUSES = new Set(['error', 'invalid', 'valid']);
+const MOLDEA_ERROR_CODE_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/u;
 const OUTPUT_DISPOSITIONS = new Set(['empty', 'projected', 'too-large', 'unrecognized']);
-const YARN_CLI_PACKAGE_NAME = '@moldea.ai/cli';
-const YARN_CONFLICTING_PROVIDER_NAME = 'conflicting-moldea-provider';
-const YARN_PACKAGE_INFO_COMMAND = `yarn info ${YARN_CLI_PACKAGE_NAME} --json`;
-const YARN_PROVIDER_INSPECTION_COMMAND = 'yarn bin -v --json';
-const FOCUSED_RUNTIME_TEST_PATH = '/src/support-agent.test-integration.js';
-const FOCUSED_RUNTIME_TEST_COMMAND = `node --test ${FOCUSED_RUNTIME_TEST_PATH.slice(1)}`;
-const FOCUSED_RUNTIME_TEST_STATUSES = new Set(['failed', 'passed']);
-const RECOGNIZED_WORKSPACE_PATHS = new Set([
-  '/.pnp/node_modules/@moldea.ai/cli',
-  '/.pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
-]);
-const RECOGNIZED_MOLDEA_EXECUTABLE_PATHS = [
-  'node_modules/.bin/moldea',
-  './node_modules/.bin/moldea',
-  '/mnt/node_modules/.bin/moldea',
-  'node_modules/@moldea.ai/cli/dist/moldea.js',
-  './node_modules/@moldea.ai/cli/dist/moldea.js',
-  '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js',
+const MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS =
+  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxActorExecutionEvidenceItems;
+const MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES =
+  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxActorExecutionEvidenceItemBytes;
+const MAX_MOLDEA_OUTPUT_BYTES =
+  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaInvocationOutputBytes;
+const MAX_OTHER_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes;
+const MAX_RECORDED_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostOutputBytes;
+const MAX_AGGREGATE_MOLDEA_OUTPUT_BYTES =
+  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaOutputBytes;
+const MAX_MOLDEA_COMMAND_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaCommandCount;
+const MOLDEA_RESOURCE_OPERATIONS = new Set([...MOLDEA_COMMANDS, 'unrecognized']);
+const NODE_TEST_SUMMARY_FIELDS = [
+  'cancelled',
+  'fail',
+  'pass',
+  'skipped',
+  'suites',
+  'tests',
+  'todo',
 ];
-const RECOGNIZED_MOLDEA_INVOCATION_PREFIXES = [
-  ...RECOGNIZED_MOLDEA_EXECUTABLE_PATHS,
-  ...RECOGNIZED_MOLDEA_EXECUTABLE_PATHS.flatMap((executablePath) => [
-    `node ${executablePath}`,
-    `/opt/node ${executablePath}`,
-  ]),
-  'pnpm node .pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
-  'pnpm node /mnt/.pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
-];
-const MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS = 128;
-const MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES = 32_768;
-const MAX_COMMAND_OUTPUT_PROJECTION_BYTES = 32_768;
+const NODE_TEST_SUMMARY_LINE_PATTERN =
+  /^(?:#|ℹ) (cancelled|fail|pass|skipped|suites|tests|todo) (\d+)$/u;
+const NODE_TEST_DURATION_LINE_PATTERN = /^(?:#|ℹ) duration_ms \d+(?:\.\d+)?$/u;
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
@@ -48,9 +46,6 @@ const hasExactKeys = (record, expectedKeys) => {
   );
 };
 
-const isBoundedEvidenceText = (input, maximumBytes) =>
-  typeof input === 'string' && Buffer.byteLength(input, 'utf8') <= maximumBytes;
-
 const hasValidProjectionOptions = (options) =>
   isPlainRecord(options) &&
   typeof options.cliVersion === 'string' &&
@@ -58,240 +53,93 @@ const hasValidProjectionOptions = (options) =>
   Number.isSafeInteger(options.jsonSchemaVersion) &&
   options.jsonSchemaVersion > 0;
 
-/** Checks one complete command against its direct and fixed Bash-wrapped forms. */
-const matchesExactCommand = (command, directCommand) =>
-  command === directCommand ||
-  command === `/bin/bash -lc '${directCommand}'` ||
-  command === `/bin/bash -lc "${directCommand}"`;
-
-/** Returns whether a command exactly resolves the projected evaluator-owned paths. */
-const hasRecognizedWorkspacePathCommand = (command, paths) => {
-  const mountedPaths = paths.map((path) => `/mnt${path}`);
-  return ['realpath', 'readlink -f'].some((operation) =>
-    ['; ', ' && '].some((separator) =>
-      matchesExactCommand(
-        command,
-        mountedPaths.map((path) => `${operation} ${path}`).join(separator),
-      ),
-    ),
+const containsContentField = (value) => {
+  if (Array.isArray(value)) return value.some(containsContentField);
+  if (!isPlainRecord(value)) return false;
+  return Object.entries(value).some(
+    ([key, child]) =>
+      (key === 'content' && typeof child === 'string') || containsContentField(child),
   );
 };
 
-/** Returns evaluator-owned workspace paths only when the complete output is a recognized list. */
-const projectWorkspacePaths = (source, command) => {
-  const lines = source
-    .trim()
-    .split(/\r?\n/gu)
-    .filter((line) => line.length > 0);
-  if (lines.length === 0 || lines.length > RECOGNIZED_WORKSPACE_PATHS.size) return null;
+const countPageRecords = (result) =>
+  isPlainRecord(result) && isPlainRecord(result.page) && Array.isArray(result.page.records)
+    ? result.page.records.length
+    : 0;
 
-  const paths = [];
-  for (const line of lines) {
-    if (line.includes('\\') || line.includes('\0') || !posix.isAbsolute(line)) return null;
-    const normalizedPath = posix.normalize(line);
-    if (
-      normalizedPath !== line ||
-      (normalizedPath !== '/mnt' && !normalizedPath.startsWith('/mnt/'))
-    ) {
-      return null;
-    }
-    const relativePath = posix.relative('/mnt', normalizedPath);
-    if (relativePath.startsWith('..') || posix.isAbsolute(relativePath)) return null;
-    const publicPath = relativePath === '' ? '/' : `/${relativePath}`;
-    if (!RECOGNIZED_WORKSPACE_PATHS.has(publicPath) || paths.includes(publicPath)) return null;
-    paths.push(publicPath);
-  }
+const hasNextPage = (result) =>
+  isPlainRecord(result) &&
+  isPlainRecord(result.page) &&
+  typeof result.page.cursor === 'string' &&
+  result.page.cursor.length > 0;
 
-  if (!hasRecognizedWorkspacePathCommand(command, paths)) return null;
-  return { kind: 'workspace-paths', paths };
-};
-
-/** Returns the recognized moldea operation for one exact repository-local invocation. */
-const getRecognizedMoldeaOperation = (command) => {
-  for (const operation of MOLDEA_COMMANDS) {
-    if (
-      RECOGNIZED_MOLDEA_INVOCATION_PREFIXES.some((invocationPrefix) =>
-        matchesExactCommand(command, `${invocationPrefix} ${operation} --json`),
-      )
-    ) {
-      return operation;
-    }
-  }
-  return null;
-};
-
-/** Returns whether one moldea envelope has a consistent command, status, and exit code. */
-const hasConsistentMoldeaEnvelope = (envelope, exitCode, options) => {
+const hasConsistentMoldeaEnvelope = (envelope, operation, exitCode, options) => {
   if (
     !isPlainRecord(envelope) ||
     envelope.schemaVersion !== options.jsonSchemaVersion ||
     envelope.cliVersion !== options.cliVersion ||
-    typeof envelope.command !== 'string' ||
-    !MOLDEA_COMMANDS.has(envelope.command) ||
-    typeof envelope.status !== 'string' ||
+    envelope.command !== operation ||
     !MOLDEA_STATUSES.has(envelope.status) ||
     !Object.hasOwn(envelope, 'result') ||
     !Object.hasOwn(envelope, 'error')
   ) {
     return false;
   }
-
   if (envelope.status === 'valid') {
     return exitCode === 0 && envelope.result !== null && envelope.error === null;
   }
   if (envelope.status === 'invalid') {
-    return (
-      envelope.command !== 'composition' &&
-      exitCode === 1 &&
-      envelope.result !== null &&
-      envelope.error === null
-    );
+    return exitCode === 1 && envelope.result !== null && envelope.error === null;
   }
-  return [2, 3].includes(exitCode) && envelope.result === null && envelope.error !== null;
+  return (
+    [2, 3].includes(exitCode) &&
+    envelope.result === null &&
+    isPlainRecord(envelope.error) &&
+    typeof envelope.error.code === 'string' &&
+    MOLDEA_ERROR_CODE_PATTERN.test(envelope.error.code)
+  );
 };
 
-/** Returns safe release-bound fields only when the complete output is one moldea envelope. */
-const projectMoldeaEnvelope = (source, command, exitCode, options) => {
+const projectMoldeaEnvelope = (source, operation, exitCode, options) => {
   let envelope;
   try {
     envelope = JSON.parse(source);
   } catch {
     return null;
   }
-  if (
-    !hasConsistentMoldeaEnvelope(envelope, exitCode, options) ||
-    getRecognizedMoldeaOperation(command) !== envelope.command
-  ) {
-    return null;
-  }
-
+  if (!hasConsistentMoldeaEnvelope(envelope, operation, exitCode, options)) return null;
+  const result = envelope.result;
   return {
     cliVersion: envelope.cliVersion,
     command: envelope.command,
+    containsContent: result !== null && containsContentField(result),
+    errorCode: envelope.status === 'error' ? envelope.error.code : null,
     errorPresent: envelope.error !== null,
+    hasNextPage: hasNextPage(result),
     kind: 'moldea-cli-envelope',
-    resultPresent: envelope.result !== null,
+    pageRecordCount: countPageRecords(result),
+    relevant:
+      operation === 'scope' && isPlainRecord(result) && typeof result.relevant === 'boolean'
+        ? result.relevant
+        : null,
+    resultPresent: result !== null,
     schemaVersion: envelope.schemaVersion,
     status: envelope.status,
   };
 };
 
-/** Returns one bounded test result only for the evaluator-owned runtime-provenance test. */
-const projectFocusedRuntimeTest = (command, exitCode) => {
-  if (!matchesExactCommand(command, FOCUSED_RUNTIME_TEST_COMMAND)) return null;
-
-  return {
-    kind: 'focused-runtime-test',
-    path: FOCUSED_RUNTIME_TEST_PATH,
-    status: exitCode === 0 ? 'passed' : 'failed',
-  };
-};
-
-/** Returns release-bound Yarn package metadata only for the exact safe inspection. */
-const projectYarnPackageInfo = (source, command, exitCode, options) => {
-  if (!matchesExactCommand(command, YARN_PACKAGE_INFO_COMMAND) || exitCode !== 0) return null;
-
-  let packageInfo;
-  try {
-    packageInfo = JSON.parse(source);
-  } catch {
-    return null;
-  }
-  if (
-    !isPlainRecord(packageInfo) ||
-    !hasExactKeys(packageInfo, ['children', 'value']) ||
-    packageInfo.value !== `${YARN_CLI_PACKAGE_NAME}@npm:${options.cliVersion}` ||
-    !isPlainRecord(packageInfo.children) ||
-    !hasExactKeys(packageInfo.children, ['Exported Binaries', 'Version']) ||
-    packageInfo.children.Version !== options.cliVersion ||
-    !Array.isArray(packageInfo.children['Exported Binaries']) ||
-    packageInfo.children['Exported Binaries'].length !== 1 ||
-    packageInfo.children['Exported Binaries'][0] !== 'moldea'
-  ) {
-    return null;
-  }
-
-  return {
-    binaries: ['moldea'],
-    kind: 'yarn-package-info',
-    packageName: YARN_CLI_PACKAGE_NAME,
-    version: options.cliVersion,
-  };
-};
-
-/** Returns the conflicting Yarn provider only for the exact safe inspection. */
-const projectYarnBinaryProvider = (source, command, exitCode) => {
-  if (!matchesExactCommand(command, YARN_PROVIDER_INSPECTION_COMMAND) || exitCode !== 0) {
-    return null;
-  }
-
-  let provider;
-  try {
-    provider = JSON.parse(source);
-  } catch {
-    return null;
-  }
-  if (
-    !isPlainRecord(provider) ||
-    !hasExactKeys(provider, ['name', 'path', 'source']) ||
-    provider.name !== 'moldea' ||
-    provider.source !== YARN_CONFLICTING_PROVIDER_NAME ||
-    provider.path !== `/mnt/node_modules/${YARN_CONFLICTING_PROVIDER_NAME}/bin/moldea.cjs`
-  ) {
-    return null;
-  }
-
-  return {
-    binaryName: 'moldea',
-    kind: 'yarn-binary-provider',
-    source: YARN_CONFLICTING_PROVIDER_NAME,
-  };
-};
-
-/** Projects one command output into safe evaluator-owned facts without retaining its content. */
-const createCommandOutputEvidence = (source, command, exitCode, options) => {
-  const byteCount = Buffer.byteLength(source, 'utf8');
-  if (byteCount > MAX_COMMAND_OUTPUT_PROJECTION_BYTES) {
-    return { byteCount, disposition: 'too-large', facts: [] };
-  }
-  if (source.trim() === '') {
-    return { byteCount, disposition: 'empty', facts: [] };
-  }
-  if (source.includes('\0')) {
-    return { byteCount, disposition: 'unrecognized', facts: [] };
-  }
-
-  const fact =
-    projectMoldeaEnvelope(source, command, exitCode, options) ??
-    projectWorkspacePaths(source, command) ??
-    projectFocusedRuntimeTest(command, exitCode) ??
-    projectYarnPackageInfo(source, command, exitCode, options) ??
-    projectYarnBinaryProvider(source, command, exitCode);
-  return fact === null
-    ? { byteCount, disposition: 'unrecognized', facts: [] }
-    : { byteCount, disposition: 'projected', facts: [fact] };
-};
-
-const hasValidWorkspacePathsFact = (fact) =>
-  hasExactKeys(fact, ['kind', 'paths']) &&
-  fact.kind === 'workspace-paths' &&
-  Array.isArray(fact.paths) &&
-  fact.paths.length > 0 &&
-  fact.paths.length <= RECOGNIZED_WORKSPACE_PATHS.size &&
-  new Set(fact.paths).size === fact.paths.length &&
-  fact.paths.every(
-    (path) =>
-      typeof path === 'string' &&
-      RECOGNIZED_WORKSPACE_PATHS.has(path) &&
-      posix.normalize(path) === path,
-  );
-
-const hasValidMoldeaEnvelopeFact = (fact, exitCode, options) =>
+const hasValidMoldeaFact = (fact, exitCode, options) =>
+  isPlainRecord(fact) &&
   hasExactKeys(fact, [
     'cliVersion',
     'command',
+    'containsContent',
+    'errorCode',
     'errorPresent',
+    'hasNextPage',
     'kind',
+    'pageRecordCount',
+    'relevant',
     'resultPresent',
     'schemaVersion',
     'status',
@@ -299,131 +147,169 @@ const hasValidMoldeaEnvelopeFact = (fact, exitCode, options) =>
   fact.kind === 'moldea-cli-envelope' &&
   fact.cliVersion === options.cliVersion &&
   fact.schemaVersion === options.jsonSchemaVersion &&
-  typeof fact.command === 'string' &&
   MOLDEA_COMMANDS.has(fact.command) &&
-  typeof fact.status === 'string' &&
   MOLDEA_STATUSES.has(fact.status) &&
-  typeof fact.resultPresent === 'boolean' &&
-  typeof fact.errorPresent === 'boolean' &&
-  ((fact.status === 'valid' && exitCode === 0 && fact.resultPresent && !fact.errorPresent) ||
+  typeof fact.containsContent === 'boolean' &&
+  (fact.errorCode === null ||
+    (typeof fact.errorCode === 'string' && MOLDEA_ERROR_CODE_PATTERN.test(fact.errorCode))) &&
+  typeof fact.hasNextPage === 'boolean' &&
+  Number.isSafeInteger(fact.pageRecordCount) &&
+  fact.pageRecordCount >= 0 &&
+  (fact.relevant === null || typeof fact.relevant === 'boolean') &&
+  ((fact.command === 'content' &&
+    (fact.status === 'valid' ? fact.containsContent : !fact.containsContent)) ||
+    (fact.command !== 'content' && !fact.containsContent)) &&
+  ((fact.status === 'valid' &&
+    exitCode === 0 &&
+    fact.resultPresent &&
+    !fact.errorPresent &&
+    fact.errorCode === null) ||
     (fact.status === 'invalid' &&
-      fact.command !== 'composition' &&
       exitCode === 1 &&
       fact.resultPresent &&
-      !fact.errorPresent) ||
+      !fact.errorPresent &&
+      fact.errorCode === null) ||
     (fact.status === 'error' &&
       [2, 3].includes(exitCode) &&
       !fact.resultPresent &&
-      fact.errorPresent));
+      fact.errorPresent &&
+      fact.errorCode !== null));
 
-const hasValidFocusedRuntimeTestFact = (fact, exitCode) =>
-  hasExactKeys(fact, ['kind', 'path', 'status']) &&
-  fact.kind === 'focused-runtime-test' &&
-  fact.path === FOCUSED_RUNTIME_TEST_PATH &&
-  typeof fact.status === 'string' &&
-  FOCUSED_RUNTIME_TEST_STATUSES.has(fact.status) &&
-  ((fact.status === 'passed' && exitCode === 0) || (fact.status === 'failed' && exitCode !== 0));
-
-const hasValidYarnPackageInfoFact = (fact, exitCode, options) =>
-  hasExactKeys(fact, ['binaries', 'kind', 'packageName', 'version']) &&
-  fact.kind === 'yarn-package-info' &&
-  fact.packageName === YARN_CLI_PACKAGE_NAME &&
-  fact.version === options.cliVersion &&
-  Array.isArray(fact.binaries) &&
-  fact.binaries.length === 1 &&
-  fact.binaries[0] === 'moldea' &&
-  exitCode === 0;
-
-const hasValidYarnBinaryProviderFact = (fact, exitCode) =>
-  hasExactKeys(fact, ['binaryName', 'kind', 'source']) &&
-  fact.kind === 'yarn-binary-provider' &&
-  fact.binaryName === 'moldea' &&
-  fact.source === YARN_CONFLICTING_PROVIDER_NAME &&
-  exitCode === 0;
-
-const hasValidCommandOutputEvidence = (outputEvidence, exitCode, options) => {
+/** Projects a successful native Node test summary without retaining test output. */
+const projectNodeTestSummary = (source, exitCode, testKind) => {
+  if (exitCode !== 0) return null;
+  const summary = new Map();
+  let durationCount = 0;
+  for (const line of source.replaceAll('\r\n', '\n').split('\n')) {
+    const match = NODE_TEST_SUMMARY_LINE_PATTERN.exec(line);
+    if (match !== null) {
+      const [, field, rawCount] = match;
+      if (summary.has(field)) return null;
+      const count = Number(rawCount);
+      if (!Number.isSafeInteger(count)) return null;
+      summary.set(field, count);
+      continue;
+    }
+    if (NODE_TEST_DURATION_LINE_PATTERN.test(line)) durationCount += 1;
+  }
   if (
-    !isPlainRecord(outputEvidence) ||
-    !hasExactKeys(outputEvidence, ['byteCount', 'disposition', 'facts']) ||
-    !Number.isSafeInteger(outputEvidence.byteCount) ||
-    outputEvidence.byteCount < 0 ||
-    typeof outputEvidence.disposition !== 'string' ||
-    !OUTPUT_DISPOSITIONS.has(outputEvidence.disposition) ||
-    !Array.isArray(outputEvidence.facts)
+    durationCount !== 1 ||
+    NODE_TEST_SUMMARY_FIELDS.some((field) => !summary.has(field)) ||
+    summary.get('tests') === 0 ||
+    summary.get('pass') !== summary.get('tests') ||
+    ['cancelled', 'fail', 'skipped', 'todo'].some((field) => summary.get(field) !== 0)
+  ) {
+    return null;
+  }
+  return {
+    cancelledCount: summary.get('cancelled'),
+    failedCount: summary.get('fail'),
+    kind: 'node-test-summary',
+    passedCount: summary.get('pass'),
+    skippedCount: summary.get('skipped'),
+    status: 'passed',
+    testCount: summary.get('tests'),
+    testKind,
+    todoCount: summary.get('todo'),
+  };
+};
+
+const hasValidNodeTestFact = (fact, exitCode) =>
+  isPlainRecord(fact) &&
+  hasExactKeys(fact, [
+    'cancelledCount',
+    'failedCount',
+    'kind',
+    'passedCount',
+    'skippedCount',
+    'status',
+    'testCount',
+    'testKind',
+    'todoCount',
+  ]) &&
+  fact.kind === 'node-test-summary' &&
+  fact.status === 'passed' &&
+  exitCode === 0 &&
+  Number.isSafeInteger(fact.testCount) &&
+  fact.testCount > 0 &&
+  ['correctness', 'e2e', 'integration', 'unit'].includes(fact.testKind) &&
+  Number.isSafeInteger(fact.passedCount) &&
+  fact.passedCount === fact.testCount &&
+  ['cancelledCount', 'failedCount', 'skippedCount', 'todoCount'].every(
+    (field) => Number.isSafeInteger(fact[field]) && fact[field] === 0,
+  );
+
+const createOutputEvidence = (source, operation, exitCode, options, testKind) => {
+  const byteCount = Buffer.byteLength(source, 'utf8');
+  const maximumBytes = operation === null ? MAX_OTHER_OUTPUT_BYTES : MAX_MOLDEA_OUTPUT_BYTES;
+  if (byteCount > maximumBytes) return { byteCount, disposition: 'too-large', facts: [] };
+  if (source.trim() === '') return { byteCount, disposition: 'empty', facts: [] };
+  if (source.includes('\0')) return { byteCount, disposition: 'unrecognized', facts: [] };
+  const fact =
+    operation === null
+      ? testKind !== null
+        ? projectNodeTestSummary(source, exitCode, testKind)
+        : null
+      : projectMoldeaEnvelope(source, operation, exitCode, options);
+  return fact === null
+    ? { byteCount, disposition: 'unrecognized', facts: [] }
+    : { byteCount, disposition: 'projected', facts: [fact] };
+};
+
+const hasValidOutputEvidence = (evidence, commandKind, exitCode, options) => {
+  if (
+    !isPlainRecord(evidence) ||
+    !hasExactKeys(evidence, ['byteCount', 'disposition', 'facts']) ||
+    !Number.isSafeInteger(evidence.byteCount) ||
+    evidence.byteCount < 0 ||
+    !OUTPUT_DISPOSITIONS.has(evidence.disposition) ||
+    !Array.isArray(evidence.facts)
   ) {
     return false;
   }
-
-  if (outputEvidence.disposition === 'empty') {
+  const maximumBytes = commandKind === 'moldea' ? MAX_MOLDEA_OUTPUT_BYTES : MAX_OTHER_OUTPUT_BYTES;
+  if (evidence.disposition === 'too-large') {
     return (
-      outputEvidence.byteCount <= MAX_COMMAND_OUTPUT_PROJECTION_BYTES &&
-      outputEvidence.facts.length === 0
+      evidence.byteCount > (commandKind === 'moldea' ? maximumBytes : 0) &&
+      evidence.byteCount <= MAX_RECORDED_OUTPUT_BYTES &&
+      evidence.facts.length === 0
     );
   }
-  if (outputEvidence.disposition === 'too-large') {
-    return (
-      outputEvidence.byteCount > MAX_COMMAND_OUTPUT_PROJECTION_BYTES &&
-      outputEvidence.facts.length === 0
-    );
+  if (evidence.byteCount > maximumBytes) return false;
+  if (evidence.disposition === 'empty') {
+    return evidence.facts.length === 0;
   }
-  if (outputEvidence.disposition === 'unrecognized') {
-    return (
-      outputEvidence.byteCount > 0 &&
-      outputEvidence.byteCount <= MAX_COMMAND_OUTPUT_PROJECTION_BYTES &&
-      outputEvidence.facts.length === 0
-    );
+  if (evidence.disposition === 'unrecognized') {
+    return evidence.byteCount > 0 && evidence.facts.length === 0;
   }
-  if (
-    outputEvidence.byteCount === 0 ||
-    outputEvidence.byteCount > MAX_COMMAND_OUTPUT_PROJECTION_BYTES ||
-    outputEvidence.facts.length !== 1
-  ) {
-    return false;
-  }
-
-  const [fact] = outputEvidence.facts;
   return (
-    isPlainRecord(fact) &&
-    (hasValidWorkspacePathsFact(fact) ||
-      hasValidMoldeaEnvelopeFact(fact, exitCode, options) ||
-      hasValidFocusedRuntimeTestFact(fact, exitCode) ||
-      hasValidYarnPackageInfoFact(fact, exitCode, options) ||
-      hasValidYarnBinaryProviderFact(fact, exitCode))
+    evidence.byteCount > 0 &&
+    evidence.facts.length === 1 &&
+    (commandKind === 'moldea'
+      ? hasValidMoldeaFact(evidence.facts[0], exitCode, options)
+      : hasValidNodeTestFact(evidence.facts[0], exitCode))
   );
 };
 
-const hasValidCommandItem = (item, options) => {
-  return (
-    hasExactKeys(item, ['exitCode', 'outputEvidence', 'status', 'type']) &&
-    COMMAND_COMPLETED_STATUSES.has(item.status) &&
-    Number.isSafeInteger(item.exitCode) &&
-    hasValidCommandOutputEvidence(item.outputEvidence, item.exitCode, options)
-  );
-};
+const hasValidEntry = (entry, options) =>
+  isPlainRecord(entry) &&
+  hasExactKeys(entry, ['eventType', 'item']) &&
+  entry.eventType === 'item.completed' &&
+  isPlainRecord(entry.item) &&
+  hasExactKeys(entry.item, ['commandKind', 'exitCode', 'outputEvidence', 'status', 'type']) &&
+  ['moldea', 'other'].includes(entry.item.commandKind) &&
+  COMMAND_COMPLETED_STATUSES.has(entry.item.status) &&
+  Number.isSafeInteger(entry.item.exitCode) &&
+  entry.item.type === 'command_execution' &&
+  hasValidOutputEvidence(
+    entry.item.outputEvidence,
+    entry.item.commandKind,
+    entry.item.exitCode,
+    options,
+  ) &&
+  Buffer.byteLength(JSON.stringify(entry), 'utf8') <= MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES;
 
-const hasValidActorExecutionEvidenceEntry = (entry, options) => {
-  if (
-    !isPlainRecord(entry) ||
-    !hasExactKeys(entry, ['eventType', 'item']) ||
-    entry.eventType !== 'item.completed' ||
-    !isPlainRecord(entry.item) ||
-    entry.item.type !== 'command_execution' ||
-    !isBoundedEvidenceText(JSON.stringify(entry), MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES)
-  ) {
-    return false;
-  }
-
-  return hasValidCommandItem(entry.item, options);
-};
-
-/**
- * Selects one strict completed-command evidence entry from a Codex JSONL event.
- * @param event The parsed Codex event.
- * @param options The exact release CLI envelope identity.
- * @returns The selected entry, or null for an unrelated event.
- * @throws
- * - If a completed command event has an invalid shape
- */
+/** Projects one completed command event without retaining command text or output bodies. */
 export const projectActorExecutionEvidenceEvent = (event, options) => {
   if (!hasValidProjectionOptions(options)) {
     throw new Error('Actor execution evidence requires a valid release CLI identity.');
@@ -436,7 +322,6 @@ export const projectActorExecutionEvidenceEvent = (event, options) => {
   ) {
     return null;
   }
-
   const item = event.item;
   if (
     typeof item.command !== 'string' ||
@@ -447,31 +332,118 @@ export const projectActorExecutionEvidenceEvent = (event, options) => {
   ) {
     throw new Error('A completed Codex command event did not include its result evidence.');
   }
-  const selectedItem = {
-    exitCode: item.exit_code,
-    outputEvidence: createCommandOutputEvidence(
-      item.aggregated_output,
-      item.command,
-      item.exit_code,
-      options,
-    ),
-    status: item.status,
-    type: item.type,
+  const operation = identifyMoldeaCliLauncherOperation(item.command);
+  const testKind = operation === null ? identifyRepositoryTestCommandKind(item.command) : null;
+  const entry = {
+    eventType: event.type,
+    item: {
+      commandKind: operation === null ? 'other' : 'moldea',
+      exitCode: item.exit_code,
+      outputEvidence: createOutputEvidence(
+        item.aggregated_output,
+        operation,
+        item.exit_code,
+        options,
+        testKind,
+      ),
+      status: item.status,
+      type: item.type,
+    },
   };
-
-  const entry = { eventType: event.type, item: selectedItem };
-  if (!isBoundedEvidenceText(JSON.stringify(entry), MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES)) {
-    throw new Error('A Codex actor execution evidence item exceeded its byte limit.');
-  }
-  if (!hasValidActorExecutionEvidenceEntry(entry, options)) {
+  if (!hasValidEntry(entry, options)) {
     throw new Error('A Codex actor execution evidence item has an unsupported shape.');
   }
   return entry;
 };
 
-/** Checks whether persisted actor execution evidence has the strict bounded protocol shape. */
+/** Checks the strict bounded protocol for a complete projected command sequence. */
 export const hasValidActorExecutionEvidence = (executionEvidence, options) =>
   hasValidProjectionOptions(options) &&
   Array.isArray(executionEvidence) &&
   executionEvidence.length <= MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS &&
-  executionEvidence.every((entry) => hasValidActorExecutionEvidenceEntry(entry, options));
+  executionEvidence.every((entry) => hasValidEntry(entry, options));
+
+/** Summarizes moldea command and model-visible output consumption without retaining content. */
+export const createMoldeaResourceEvidence = (executionEvidence, options) => {
+  if (!hasValidActorExecutionEvidence(executionEvidence, options)) {
+    throw new Error('Cannot summarize invalid actor execution evidence.');
+  }
+  const moldeaEntries = executionEvidence.filter(({ item }) => item.commandKind === 'moldea');
+  const operations = moldeaEntries.map(({ item }) => {
+    const [fact] = item.outputEvidence.facts;
+    return isPlainRecord(fact) && fact.kind === 'moldea-cli-envelope'
+      ? fact.command
+      : 'unrecognized';
+  });
+  const stdoutByteCount = moldeaEntries.reduce(
+    (total, { item }) => total + item.outputEvidence.byteCount,
+    0,
+  );
+  return {
+    commandCount: moldeaEntries.length,
+    maximumInvocationByteCount: moldeaEntries.reduce(
+      (maximum, { item }) => Math.max(maximum, item.outputEvidence.byteCount),
+      0,
+    ),
+    modelVisibleToolOutputByteCount: stdoutByteCount,
+    operations,
+    stdoutByteCount,
+  };
+};
+
+/** Checks one content-free moldea resource aggregate against absolute containment limits. */
+export const hasValidMoldeaResourceEvidence = (evidence) =>
+  isPlainRecord(evidence) &&
+  hasExactKeys(evidence, [
+    'commandCount',
+    'maximumInvocationByteCount',
+    'modelVisibleToolOutputByteCount',
+    'operations',
+    'stdoutByteCount',
+  ]) &&
+  Number.isSafeInteger(evidence.commandCount) &&
+  evidence.commandCount >= 0 &&
+  evidence.commandCount <= MAX_MOLDEA_COMMAND_COUNT &&
+  Number.isSafeInteger(evidence.maximumInvocationByteCount) &&
+  evidence.maximumInvocationByteCount >= 0 &&
+  evidence.maximumInvocationByteCount <= MAX_MOLDEA_OUTPUT_BYTES &&
+  Number.isSafeInteger(evidence.modelVisibleToolOutputByteCount) &&
+  evidence.modelVisibleToolOutputByteCount >= 0 &&
+  evidence.modelVisibleToolOutputByteCount <= MAX_AGGREGATE_MOLDEA_OUTPUT_BYTES &&
+  Number.isSafeInteger(evidence.stdoutByteCount) &&
+  evidence.stdoutByteCount >= 0 &&
+  evidence.stdoutByteCount <= MAX_AGGREGATE_MOLDEA_OUTPUT_BYTES &&
+  evidence.modelVisibleToolOutputByteCount === evidence.stdoutByteCount &&
+  Array.isArray(evidence.operations) &&
+  evidence.operations.length === evidence.commandCount &&
+  evidence.operations.every((operation) => MOLDEA_RESOURCE_OPERATIONS.has(operation)) &&
+  evidence.maximumInvocationByteCount <= evidence.stdoutByteCount &&
+  (evidence.commandCount > 0 ||
+    (evidence.maximumInvocationByteCount === 0 && evidence.stdoutByteCount === 0));
+
+/** Checks one scenario's required moldea activation and operation order. */
+export const hasPassingMoldeaActivation = (evidence, budget) => {
+  if (!hasValidMoldeaResourceEvidence(evidence)) return false;
+  if (evidence.commandCount < budget.minimumMoldeaCommands) return false;
+  if (budget.activation === 'abstain' || budget.activation === 'informational') {
+    return evidence.commandCount === 0;
+  }
+  if (budget.activation === 'relationship') {
+    return evidence.operations[0] === 'scope' && !evidence.operations.includes('inspect');
+  }
+  if (budget.activation === 'direct') return true;
+  return evidence.operations[0] !== 'scope';
+};
+
+/** Checks one scenario's upper moldea command and output containment limits. */
+export const hasPassingMoldeaResourceContainment = (evidence, budget) =>
+  hasValidMoldeaResourceEvidence(evidence) &&
+  evidence.commandCount <= budget.maximumMoldeaCommands &&
+  evidence.stdoutByteCount <= budget.maximumMoldeaOutputBytes &&
+  evidence.modelVisibleToolOutputByteCount <= budget.maximumMoldeaOutputBytes &&
+  evidence.maximumInvocationByteCount <= MAX_MOLDEA_OUTPUT_BYTES;
+
+/** Checks measured moldea activation and containment against one complete scenario budget. */
+export const hasPassingMoldeaResourceBudget = (evidence, budget) =>
+  hasPassingMoldeaActivation(evidence, budget) &&
+  hasPassingMoldeaResourceContainment(evidence, budget);

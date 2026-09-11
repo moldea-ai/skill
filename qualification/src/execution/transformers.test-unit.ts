@@ -6,6 +6,7 @@ import {
   QualificationAttemptResultDraftSchema,
   QualificationAttemptResultSchema,
 } from '../contracts/index.ts';
+import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import type { IQualificationExecutionProvenance } from './types.ts';
 import { createQualificationAttemptResult } from './transformers.ts';
 
@@ -23,14 +24,17 @@ const createCandidatePackage = (name: string, version: string, marker: string) =
 describe('qualification result transformation', () => {
   test('permits a dirty passing dry-run draft without making it publishable', () => {
     const checkpoint = QualificationAttemptCheckpointSchema.parse({
-      protocolVersion: 6,
+      protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
       attemptId: 'dry-run-attempt',
       parentAttemptId: null,
       selection: { adapterId: 'custom', implementationId: 'custom' },
       status: 'running',
       isDryRun: true,
       mode: 'dry-run',
-      useCache: false,
+      reuseEvidence: false,
+      candidateTokenLimit: 32_000_000,
+      candidateTokensConsumed: 0,
+      candidateTokensReserved: 0,
       createdAt: '2026-08-20T10:00:00.000Z',
       updatedAt: '2026-08-20T10:00:00.000Z',
       completedAt: null,
@@ -43,9 +47,9 @@ describe('qualification result transformation', () => {
       targetDigest: 'f'.repeat(64),
       candidate: {
         fingerprint: '0'.repeat(64),
-        cliVersion: '4.0.1',
-        cliJsonSchemaVersion: 2,
-        packages: [createCandidatePackage('@moldea.ai/cli', '4.0.1', '1')],
+        cliVersion: '6.0.0',
+        cliJsonSchemaVersion: 3,
+        packages: [createCandidatePackage('@moldea.ai/cli', '6.0.0', '1')],
         runtimePackages: [createCandidatePackage('ai', '7.0.77', '2')],
         typeScriptPackage: {
           ...createCandidatePackage('typescript', '6.0.3', '3'),
@@ -60,17 +64,20 @@ describe('qualification result transformation', () => {
           startedAt: '2026-08-20T10:00:00.000Z',
           completedAt: '2026-08-20T10:00:01.000Z',
           durationMs: 1_000,
-          cacheKey: null,
-          cacheSourceAttemptId: null,
+          stageIdentity: null,
+          reuseSourceAttemptId: null,
           error: null,
+          hasUsedOperationalStopResume: false,
           operationalRetries: [],
+          operationalStops: [],
         },
       },
       workspaceDirectories: {},
     });
     const provenance: IQualificationExecutionProvenance = {
       model: 'gpt-5.6-sol',
-      reasoningEffort: 'medium',
+      actorReasoningEffort: 'xhigh',
+      judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',
@@ -79,6 +86,7 @@ describe('qualification result transformation', () => {
       hostTimeoutMs: 120_000,
       modelEndpoint: null,
       sslCertificateFileSha256: null,
+      candidateFingerprint: null,
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'd'.repeat(64),
       packagesRepositoryDirty: true,

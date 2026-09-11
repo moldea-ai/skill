@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository preserves the Anthropic static boundary. Source, canonical records, adapter inspection, deterministic validation, and empty Git status/diff all agree; no repository files changed.",
+  "requirements": [
+    {
+      "id": "explains-direct-evidence",
+      "verdict": "pass",
+      "evidence": "The actor identifies the direct `client.messages.create({...})` call and `loadSupportInstruction`. In `src/agents.ts`, `supportAgent` passes an inline request, and the loader reads `/moldea/agents/support/instruction.md` for the `system` field. Adapter inspection records `messages.create` runtime-pattern and instruction-loader evidence for `support`; deterministic validation passed."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "verdict": "pass",
+      "evidence": "The actor explicitly treats `web_search_20250305` as provider-hosted. The source contains only the Anthropic descriptor passed in `tools`; adapter inspection emits no client-tool, capability, schema, routing, or handoff evidence. The manifest and canonical file inventory contain no such relationships or assets."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "verdict": "pass",
+      "evidence": "The actor explains that `dynamicSupportAgent` builds an intermediate request object. Adapter inspection records language and runtime-package evidence for `dynamic-support` but no runtime-pattern. `moldea/moldea.yaml` retains the `indirect-request-construction` warning and concretely resolves it by passing a closed request directly to `messages.create` or documenting a supported adapter pattern."
+    }
+  ],
+  "failures": []
+}

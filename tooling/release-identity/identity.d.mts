@@ -11,6 +11,11 @@ export interface IReleaseIdentity {
   cliIntegrity: string;
   cliJsonSchemaVersion: number;
   cliVersion: string;
+  cliVersionRange: string;
+  cliCoreVersionRange: string;
+  coreIntegrity: string;
+  coreVersion: string;
+  coreVersionRange: string;
   packageLock: Record<string, unknown>;
   packageLockSha256: string;
   packageManifest: Record<string, unknown>;
@@ -18,7 +23,10 @@ export interface IReleaseIdentity {
 }
 
 export const parseStableVersion: (version: unknown) => string;
+export const createCompatibleMajorRange: (version: unknown) => string;
+export const parseCompatibleMajorRange: (versionRange: unknown) => string;
+export const parseCompatibleStableRange: (versionRange: unknown) => string;
 export const readReleaseIdentity: (repositoryRoot: string) => IReleaseIdentity;
 export const createSemanticCliIdentity: (repositoryRoot: string) => ISemanticCliIdentity;
 export const inspectReleaseIdentity: (repositoryRoot: string) => string[];
-export const assertReleaseIdentity: (repositoryRoot: string) => void;
+export const assertReleaseIdentity: (repositoryRoot: string) => IReleaseIdentity;

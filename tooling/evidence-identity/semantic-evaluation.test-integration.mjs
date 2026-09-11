@@ -90,12 +90,12 @@ const createRepository = () => {
   writeFixtureFile(
     repositoryRoot,
     'moldea/SKILL.md',
-    "---\nname: moldea\nmetadata:\n  version: '4.0.0'\n---\n\nSkill release `4.0.0` supports exactly:\n",
+    "---\nname: moldea\nmetadata:\n  version: '5.0.0'\n---\n\n# moldea\n",
   );
   writeFixtureFile(
     repositoryRoot,
     'moldea/references/local-tooling.md',
-    '# Local tooling\n\nRelease `4.0.0` supports:\n',
+    '# Local tooling\n\nSkill 5.0.0 supports Git >=2.30.0 and compatible repository-local tooling.\n',
   );
   writeFixtureFile(repositoryRoot, 'fixtures/conformance-cases.json', '{}\n');
   writeFixtureFile(repositoryRoot, 'fixtures/semantic-evaluation-coverage.json', '{}\n');
@@ -106,20 +106,21 @@ const createRepository = () => {
     'tooling/evidence-identity/portable-skill.mjs',
     'tooling/evidence-identity/semantic-evaluation-child.mjs',
     'tooling/evidence-identity/semantic-evaluation.mjs',
-    'tooling/evidence-identity/semantic-compatibility.mjs',
+    'tooling/evidence-identity/semantic-inputs.mjs',
     'tooling/evidence-identity/semantic-identity.mjs',
     'tooling/release-identity/constants.mjs',
     'tooling/release-identity/identity.mjs',
     'tooling/release-identity/index.mjs',
+    'tooling/resource-calibration/profiles.mjs',
     'tooling/semantic-evaluation/index.mjs',
   ]) {
     writeFixtureFile(repositoryRoot, relativePath);
   }
   const packageManifest = {
     name: 'semantic-wrapper-fixture',
-    version: '4.0.0',
-    moldeaRelease: { cliJsonSchemaVersion: 2 },
-    devDependencies: { '@moldea.ai/cli': '5.0.0' },
+    version: '5.0.0',
+    moldeaRelease: { cliJsonSchemaVersion: 3 },
+    devDependencies: { '@moldea.ai/cli': '6.0.0' },
   };
   const packageLock = {
     name: packageManifest.name,
@@ -132,7 +133,7 @@ const createRepository = () => {
         devDependencies: packageManifest.devDependencies,
       },
       'node_modules/@moldea.ai/cli': {
-        version: '5.0.0',
+        version: '6.0.0',
         integrity: 'sha512-cli',
       },
     },
@@ -153,11 +154,11 @@ const createRepository = () => {
   return repositoryRoot;
 };
 
-const writeHistoricalResult = (
+const writePreexistingResult = (
   repositoryRoot,
   attemptId = '20260830T054330932Z-semantic-441e439c',
 ) => {
-  const evidenceText = '{"historical":true}\n';
+  const evidenceText = '{"preexisting":true}\n';
   const evidenceSha256 = createHash('sha256').update(evidenceText).digest('hex');
   const attemptDirectory = join(
     repositoryRoot,
@@ -441,9 +442,9 @@ test(
   },
 );
 
-test('does not identify a historical result when a recording fails before creating an attempt', async () => {
+test('does not identify a preexisting result when recording fails before creating an attempt', async () => {
   const repositoryRoot = createRepository();
-  const historicalAttemptDirectory = writeHistoricalResult(repositoryRoot);
+  const preexistingAttemptDirectory = writePreexistingResult(repositoryRoot);
   const outcome = await runSemanticEvaluation({
     arguments_: ['--record'],
     environment: createEnvironment({
@@ -454,7 +455,7 @@ test('does not identify a historical result when a recording fails before creati
   });
 
   assert.deepEqual(outcome, { exitCode: 7, signal: null });
-  assert.equal(existsSync(join(historicalAttemptDirectory, 'identity.json')), false);
+  assert.equal(existsSync(join(preexistingAttemptDirectory, 'identity.json')), false);
   assert.equal(existsSync(join(repositoryRoot, SEMANTIC_IDENTITY_RECEIPT_PATH)), false);
 });
 
@@ -479,11 +480,11 @@ test(
 );
 
 test(
-  'does not identify a historical result when termination precedes attempt creation',
+  'does not identify a preexisting result when termination precedes attempt creation',
   { timeout: 10_000 },
   async () => {
     const repositoryRoot = createRepository();
-    const historicalAttemptDirectory = writeHistoricalResult(repositoryRoot);
+    const preexistingAttemptDirectory = writePreexistingResult(repositoryRoot);
     const { child, completion } = startHarness(repositoryRoot, ['--record'], {
       MOLDEA_FAKE_MODE: 'wait',
     });
@@ -492,7 +493,7 @@ test(
     const result = await completion;
 
     assert.equal(result.signal, 'SIGTERM');
-    assert.equal(existsSync(join(historicalAttemptDirectory, 'identity.json')), false);
+    assert.equal(existsSync(join(preexistingAttemptDirectory, 'identity.json')), false);
     assert.equal(existsSync(join(repositoryRoot, SEMANTIC_IDENTITY_RECEIPT_PATH)), false);
   },
 );

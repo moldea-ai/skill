@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s stale canonical tool declaration from `find_order` to the source-defined `lookup_order`. Local moldea validation returned `valid: true` with zero diagnostics, and the final diff contains only the intended one-line repair.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The direct Agent definition remains unchanged with its closed `[lookupOrderTool]` array.",
+    "Registration, implementation, description, input schema, and output schema evidence remain complete and unchanged.",
+    "The final Git status reports only `moldea/moldea.yaml` as modified."
+  ],
+  "unresolved": [
+    "Static adapter validation does not prove actual OpenAI Agents SDK runtime execution; runtime execution was not claimed or tested."
+  ]
+}

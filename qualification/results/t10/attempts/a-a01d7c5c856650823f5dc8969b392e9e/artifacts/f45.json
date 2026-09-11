@@ -1,0 +1,89 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": true,
+  "dimensions": {
+    "semantic": false,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [
+    "semantic"
+  ],
+  "passed": false,
+  "durationMs": 699964,
+  "deterministicBeforePath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 315342,
+    "cachedInputTokens": 271232,
+    "outputTokens": 8281
+  },
+  "judgeUsage": {
+    "inputTokens": 393864,
+    "cachedInputTokens": 364544,
+    "outputTokens": 11456
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T06:58:42.998Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T07:06:09.826Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-closed-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml preserves support's runtimeAgent→supportGraph, inputSchema→SupportInputSchema, and outputSchema→SupportOutputSchema bindings. src/support-graph.ts retains the closed StateGraph initializer and direct graph operations; source hashes are unchanged and deterministic validation/typecheck passed."
+    },
+    {
+      "id": "preserves-opaque-schema-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "dynamic-support has only runtimeAgent→dynamicSupportGraph under bindings. No inputSchema or outputSchema was added for the factory-created schema in src/dynamic-support-graph.ts."
+    },
+    {
+      "id": "preserves-routing-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest records runtime-selected conditional, Command, and Send destinations and complete topology as unresolved. The Git diff adds no routing targets, handoffs, subagents, or parent-navigation claims, and relevant source files remain unchanged."
+    },
+    {
+      "id": "keeps-nodes-outside-capabilities",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml declares no tools, skills, handoffs, or subagents. The guide explicitly describes lookupOrder as node-local and the ToolNode as unregistered; expected capability paths are absent."
+    },
+    {
+      "id": "preserves-runtime-semantics-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The effective-langgraph-composition unresolved record explicitly covers reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, ToolNode registration, and supervisor composition, with deployment wiring or focused integration tests as resolution."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "Both agents reference /moldea/runtimes/langgraph.md, and it is the sole Markdown file under moldea/runtimes. It accurately contrasts support with the opaque dynamic schema and documents runtime boundaries, but it never explains the supported alternative: using a closed modern StateGraph initializer with direct input/output schema identifiers to establish canonical schema evidence."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": [
+    "Requirement records-focused-guidance failed: Both agents reference /moldea/runtimes/langgraph.md, and it is the sole Markdown file under moldea/runtimes. It accurately contrasts support with the opaque dynamic schema and documents runtime boundaries, but it never explains the supported alternative: using a closed modern StateGraph initializer with direct input/output schema identifiers to establish canonical schema evidence.",
+    "Update moldea/runtimes/langgraph.md to explicitly state that canonical schema evidence is supported through a closed modern StateGraph initializer using direct input and output schema identifiers."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Updated the support agent’s runtime binding to `/src/support-assistant.ts` and `supportAssistant`. Added a keyed agent-level unresolved warning for the dynamically assembled tool registry, including a concrete integration-test resolution and `/src/dynamic-tools.ts`. TypeScript compilation passed and the final Git diff was inspected.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "No implementation files were modified by this task.",
+    "The pre-existing deletion of `src/support-agent.ts` and untracked `src/support-assistant.ts` and `src/dynamic-tools.ts` were preserved.",
+    "The final binding matches the exported symbol in `src/support-assistant.ts`."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove that the registry created by `createToolRegistry` is consumed for the support agent; the recorded runtime integration test is required to resolve this relationship."
+  ]
+}

@@ -33,7 +33,7 @@ describe('qualification checkpoints', () => {
       isDryRun: true,
       mode: 'dry-run',
       selectedCaseId: null,
-      useCache: true,
+      reuseEvidence: true,
       packagesRepository: '/packages',
       skillRepository: '/skill',
       profileDigest: 'a'.repeat(64),
@@ -44,7 +44,8 @@ describe('qualification checkpoints', () => {
       targetDigest: 'f'.repeat(64),
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        reasoningEffort: 'medium',
+        actorReasoningEffort: 'xhigh',
+        judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,
         pnpmVersion: '11.9.0',
@@ -83,7 +84,8 @@ describe('qualification checkpoints', () => {
       recordedAt: null,
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        reasoningEffort: 'medium',
+        actorReasoningEffort: 'xhigh',
+        judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
       },
       stages: {
@@ -112,7 +114,7 @@ describe('qualification checkpoints', () => {
       isDryRun: true,
       mode: 'dry-run',
       selectedCaseId: null,
-      useCache: false,
+      reuseEvidence: false,
       packagesRepository: '/packages',
       skillRepository: '/skill',
       profileDigest: 'a'.repeat(64),
@@ -123,7 +125,8 @@ describe('qualification checkpoints', () => {
       targetDigest: 'f'.repeat(64),
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        reasoningEffort: 'medium',
+        actorReasoningEffort: 'xhigh',
+        judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,
         pnpmVersion: '11.9.0',
@@ -143,7 +146,7 @@ describe('qualification checkpoints', () => {
           ...checkpoint.stages[actorStageId],
           status: 'running',
           startedAt: '2026-08-27T16:00:00.000Z',
-          cacheKey: 'a'.repeat(64),
+          stageIdentity: 'a'.repeat(64),
         },
       },
     });
@@ -170,7 +173,7 @@ describe('qualification checkpoints', () => {
 
     expect(skippedCheckpoint.stages[actorStageId]).toMatchObject({
       status: 'pending',
-      cacheKey: 'a'.repeat(64),
+      stageIdentity: 'a'.repeat(64),
       operationalRetries: [
         {
           category: 'proxy-unavailable',
@@ -184,7 +187,7 @@ describe('qualification checkpoints', () => {
         id: stageId,
         status: 'skipped',
         durationMs: 0,
-        cacheKey: null,
+        stageIdentity: null,
         operationalRetries: [],
       });
     }

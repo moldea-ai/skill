@@ -1,0 +1,48 @@
+{
+  "role": "actor",
+  "trialId": "confirmation-2",
+  "createdAt": "2026-09-11T06:19:59.985Z",
+  "durationMs": 218416,
+  "usage": {
+    "inputTokens": 270033,
+    "cachedInputTokens": 243200,
+    "outputTokens": 5766
+  },
+  "stageIdentity": "574fe7040666562ceb0b3f922333216360fef8d8c13a5fe06fdafc53a7cdc5b3",
+  "sourceAttemptId": "20260911T054140998Z-anthropic-typescript-messages-api-0-117-3c166588",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 22,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 34474,
+    "moldeaCommandCount": 3,
+    "moldeaOutputByteCount": 1622,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

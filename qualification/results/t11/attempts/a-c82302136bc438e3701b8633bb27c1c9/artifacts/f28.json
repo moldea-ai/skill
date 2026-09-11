@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, one-line Git diff, and deterministic validation agree: the manifest name is repaired to `lookup_order`, all OpenAI Responses bindings remain intact, validation reports zero diagnostics with complete evidence, and runtime execution is not overclaimed. The judge inspection was read-only.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor explains that the manifest declared `find_order` while the closed Responses function tool uses `lookup_order`. The Git diff confirms that exact prior mismatch, and `src/tools.ts` declares `name: 'lookup_order'`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, matching `src/tools.ts`. The targeted diff changes only that manifest line, while deterministic validation reports `valid: true`, zero diagnostics, and a null cursor."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings to `supportAgent`, `loadSupportInstruction`, `lookupOrderTool`, `LookupOrderInputSchema`, and `lookupOrder`. Current source confirms direct `client.responses.create`, instruction loading, the closed function-tool registration, unchanged schema and implementation. Inspect emits instruction-loader, runtime, schema, and tool-registration evidence with zero diagnostics and `cursor: null`; type checking passed. The actor explicitly states that no live Responses request ran, so adapter evidence is not misrepresented as runtime execution proof."
+    }
+  ],
+  "failures": []
+}

@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: stop-on-material-ambiguity
 title: Stop on material ambiguity
 purpose: Verify that material uncertainty produces a focused blocked outcome without speculative writes.

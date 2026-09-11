@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The working implementation remains byte-identical, while the two authorized changes document the static-analysis boundary without adding unsupported relationships. Runner validation and type checking passed with zero reported failures. This evaluation was read-only.",
+  "requirements": [
+    {
+      "id": "identifies-unsupported-form",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` passes `buildRequest(prompt)` indirectly to `generateText`, with `prepareStep` loading and returning `instructions`. The new runtime guidance explicitly states that static inspection cannot prove this is a supported direct invocation pattern or whether step preparation preserves or replaces instructions at runtime."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` references `/moldea/runtimes/vercel-ai-sdk.md`, the only file under `moldea/runtimes`. That file describes the repository-specific `buildRequest` wrapper and recommends `generateText({ ... })` with top-level `instructions` plus focused runtime verification. It makes no provider-behavior claim."
+    },
+    {
+      "id": "records-unresolved-boundary",
+      "verdict": "pass",
+      "evidence": "`agents.support.unresolved.indirect-generate-text-request` is an agent-level warning whose description names the static-inspection limitation, whose `related` path is `/src/support-agent.ts`, and whose resolution requires a direct `generateText` options object with top-level instructions and a focused runtime test."
+    },
+    {
+      "id": "avoids-inference",
+      "verdict": "pass",
+      "evidence": "The Git diff adds only the runtime-guidance reference and unresolved warning to the manifest; the workspace patch adds only the referenced guidance file. Neither change adds instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationships. Workspace hashes also confirm `src/support-agent.ts` and existing agent files were unchanged."
+    }
+  ],
+  "failures": []
+}

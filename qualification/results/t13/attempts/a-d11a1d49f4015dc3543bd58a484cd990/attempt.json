@@ -1,0 +1,1402 @@
+{
+  "protocolVersion": 10,
+  "attemptId": "20260911T101535112Z-vercel-ai-sdk-typescript-generate-stream-text-7-4a096e9c",
+  "parentAttemptId": null,
+  "selection": {
+    "adapterId": "vercel-ai-sdk",
+    "implementationId": "typescript-generate-stream-text-7"
+  },
+  "status": "passed",
+  "createdAt": "2026-09-11T11:42:01.720Z",
+  "completedAt": "2026-09-11T12:51:19.011Z",
+  "evidenceGeneratedAt": "2026-09-11T11:52:02.818Z",
+  "summary": "Qualification passed with 1 recovered case(s).",
+  "artifactDigests": {
+    "baseline.json": "6d5a49450f68ec9cf76f139f3b19a8c2d9ee425fb9eda6a1cac978c815511e43",
+    "cases/preserve-vercel-static-boundary/case-result.json": "68364c30e22fee845094cb6f628da4bf5bdd7a979c87502c3584793b49f2c7fc",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/actor-events.jsonl": "af85a6a1d7277c665deabd29fa89c525aa67db266840bae2abc23e7699842501",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/actor-evidence.json": "25c400b00116a2047a5ceb0a96c4be7efe8ee689e24eca135f0351504081dff3",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/actor-output.json": "5a12e93bcd12dace172c5b642aed00438ad5eb755de5497053d0fcaed7195e3c",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/actor-prompt.md": "efa0a18696942f1d530f9437490afac7474cf1f589b832cb160a089b13c67131",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/deterministic-after.json": "8e34e768e582255765daf54aac99cebcb5dae89e1865d90284fc02795650d474",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/deterministic-before.json": "8c1e26c99a8819bd2faa59c9c44f8e2050cd627a9250a6e9da1192502819de01",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/judge-events.jsonl": "b416281982a3e1aec2e06d385c36dbb217314708e9378f0e9bba02097a539aba",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/judge-evidence.json": "c599789806fe37200216198fb70972b81d71038b0faafc488523e4c4c59fe8eb",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/judge-output.json": "c46647aa8dc26567443d1683f250b022a388f497423b844c47691e166e5a3eba",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/judge-prompt.md": "5af94945ec1fae1d23147a7581ad72633e83694eb6827bc480bcf88fd54f0996",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/trial-result.json": "ed5818723115276e0285ebd12bf5fe070b823ba876cd1264d6823c97849b4f38",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/workspace-assertions.json": "c75b0fbc751e49a4c6bdd6b4885a393e2acdb9e1be05895566f4528851d1f387",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-1/workspace.patch": "11b5819634ae77ecd3c75ebda139cb10c382f33de05c7fb5e9a15325f7f76083",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/actor-events.jsonl": "2c4f34ced35766729207d615568c5bac31d4ba3ddb4562d8ca91679e3b8e2f73",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/actor-evidence.json": "2f1d59ea4b96b7cca7c8b6edcb0f4b94f0305e9c452fd6ad63d0f44d03c604e7",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/actor-output.json": "71f843af7d42196e9c43e4c84b453b2ab760da4f6cdb397a330d4b7720a076b2",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/actor-prompt.md": "efa0a18696942f1d530f9437490afac7474cf1f589b832cb160a089b13c67131",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/deterministic-after.json": "00511d95524cde64839e19cc14ed044fda679e031c4d214ebde0a09ec54d854c",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/deterministic-before.json": "da5d96b3725c05e77046401196a053bb6e4bfd63d6925c987cb45d881a341da7",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/judge-events.jsonl": "e794c7e6deb3a9d7cb5098172ae4df5847d7edcbb459bf8ea2ecf11e77610221",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/judge-evidence.json": "a4516ed76ede92d18f410f97140c1478e1f7a8ff08cd7f812b6b123a1237fb41",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/judge-output.json": "01a98940754deebc75bf78b196ff456f8381c0f9e1f249cd53c1e79cc64be8ce",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/judge-prompt.md": "d4f089e67db22a214316cfb0e7a180df5f6cd8428771f1c87d07f7242f7e5745",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/trial-result.json": "bc50ddfe4ea669e27e48cc88c1cff2ae78013fa7a2ea622629710dc786dbd916",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/workspace-assertions.json": "6f103fa2c5431840201adf8efed4643027836456a84dafa64f47ada3a9d2e827",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-2/workspace.patch": "536ee0cbeb55dc96c568ee6a11f36e2cc69fe752c7b9b4ede1036506ca360110",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/actor-events.jsonl": "7492bfb29a2a6a36a6af7939790a885b31f22d25594df3e6e1778f29b01ebb89",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/actor-evidence.json": "c212dcad8d57b75d682d0e7d3893e03dfd954ecdde09cf049f7a31f9e0a229ab",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/actor-output.json": "70286fca88c0e3821c241cc95f7444f5e101251581222937c8c4316134d304f0",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/actor-prompt.md": "efa0a18696942f1d530f9437490afac7474cf1f589b832cb160a089b13c67131",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/deterministic-after.json": "5fb3decc7aa9a23859661d4f7af2ec861b43446863d5892d2357dfda80cc397b",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/deterministic-before.json": "c52b2b41a55aebd54df52aa3b7cdd89cd84508e11121102941c0e6f82bb42ec5",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/judge-events.jsonl": "4b6086528746f27b67d8b098f4ef0dfdaaf777f2398a1c9e82f9919956fc7858",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/judge-evidence.json": "fdc5016b3682b72fd3b8f895b11443ed6fe3eb8bb1ed21589dd32e1db7ca79a9",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/judge-output.json": "2dac6551bfe25b500d6cf2068ae96e6b305cc167ef3f95d6401e828cdc85b39d",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/judge-prompt.md": "da799cd3e0146da7231b6b62f0b26370bd2a7cf51a652cebc6783354ca3bf06f",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/trial-result.json": "efe5fb451bac17784766edf9a4eb079ddf93014d075b986fb4c89eca8a506e24",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/workspace-assertions.json": "6d662db069bc4553ba614d79f16c3b2d5739bfda1f40dbfac6cf7568244a5d63",
+    "cases/preserve-vercel-static-boundary/trials/confirmation-3/workspace.patch": "f7d7baa2d000baa2ffba54f9cc09d554004fb0f88d5bac9b1010ee7a4e0fb810",
+    "cases/preserve-vercel-static-boundary/trials/initial/actor-events.jsonl": "87ab1a8aa8667bc835299fa04f720075a3e37010c6d551f64916bcfce53bda5f",
+    "cases/preserve-vercel-static-boundary/trials/initial/actor-evidence.json": "c9925fd99576780de515ed81ada539919b4d0a1f5d2bce236a44ddc43308e854",
+    "cases/preserve-vercel-static-boundary/trials/initial/actor-output.json": "175cb40c3a00d83adbe053ba2466cfe28a8aaf4dc1dff31869d3e8b8091bc7e6",
+    "cases/preserve-vercel-static-boundary/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/preserve-vercel-static-boundary/trials/initial/actor-prompt.md": "efa0a18696942f1d530f9437490afac7474cf1f589b832cb160a089b13c67131",
+    "cases/preserve-vercel-static-boundary/trials/initial/deterministic-after.json": "f092e756df6c63366a700b198f0dd466ba6c466409ddad9fc05350baf2362a7f",
+    "cases/preserve-vercel-static-boundary/trials/initial/deterministic-before.json": "094dcc74d249c26cc908ceedffbcab1cb23a230e76c9af1a7b003ea15721a327",
+    "cases/preserve-vercel-static-boundary/trials/initial/judge-events.jsonl": "296103c8b2d676d7332b37a0242bdc13abb02037d133113e349de160f7cd0b94",
+    "cases/preserve-vercel-static-boundary/trials/initial/judge-evidence.json": "c40581eaa95e5f683b9df04eace25b87cac0e6f17fc088f2d0559592abfd7828",
+    "cases/preserve-vercel-static-boundary/trials/initial/judge-output.json": "80754d67b9972c85a85468f6bfc595bcb25b88c0050fd206e65968fcf68c61c7",
+    "cases/preserve-vercel-static-boundary/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/preserve-vercel-static-boundary/trials/initial/judge-prompt.md": "286ebedc5d000081b174b1a8a04b8e006fb21fc8fdf209c0e3158d7e05ebb5de",
+    "cases/preserve-vercel-static-boundary/trials/initial/trial-result.json": "a085d5adb0f293667a4a1f2ce253f7465b012d6e9e6ad62c74411e64990d1fb8",
+    "cases/preserve-vercel-static-boundary/trials/initial/workspace-assertions.json": "3435337278600df268490915d893a931934d1ad53539d6036edb5bfa93a7fdde",
+    "cases/preserve-vercel-static-boundary/trials/initial/workspace.patch": "57fe8c80ba3ca52e8b2c533d9e893fa279012205600f1c4ae183f4f4a7d1d743",
+    "cases/repair-vercel-tool-registration/case-result.json": "98b076378832b7da26f0f8693069200ae10983b080e25b607376337bec99dc6c",
+    "cases/repair-vercel-tool-registration/trials/initial/actor-events.jsonl": "cae27a87f20ad11fbd7d76db0a42408fa91bd9313891fe99bcb541eb9f357b4d",
+    "cases/repair-vercel-tool-registration/trials/initial/actor-evidence.json": "4ee8963cda182cabfe53d6a192c79486034a923142861c9f4d6c94e413fc0f01",
+    "cases/repair-vercel-tool-registration/trials/initial/actor-output.json": "f695e4e153f2937846dca0a9ccc3f543bf546cd597d036b66570552f4f7451f2",
+    "cases/repair-vercel-tool-registration/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/repair-vercel-tool-registration/trials/initial/actor-prompt.md": "38a5cee4d7f39a9f5bf7656636adbc3b589314c0340e353913c2c1072413f554",
+    "cases/repair-vercel-tool-registration/trials/initial/deterministic-after.json": "54e52a2b973a97041ed65583b7ff919509dc14bcde9a0017c52077019be9a1f3",
+    "cases/repair-vercel-tool-registration/trials/initial/deterministic-before.json": "981f01a01f6a1fc5105c8ba7a4708cdc5f3483928ae69c4a1f9752759b65c580",
+    "cases/repair-vercel-tool-registration/trials/initial/judge-events.jsonl": "925046c3d71e276d3e4432dc34b3e16fb731d9f22bf6423418a6ddf5b83d3690",
+    "cases/repair-vercel-tool-registration/trials/initial/judge-evidence.json": "7f793d8dd118e0448853e83bf53560df0b18449249f19fbd5d3ee3766b79240e",
+    "cases/repair-vercel-tool-registration/trials/initial/judge-output.json": "c3d06e988662065140f7e27ad303d349f7f0dac00be3288b2694302c0678a79d",
+    "cases/repair-vercel-tool-registration/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/repair-vercel-tool-registration/trials/initial/judge-prompt.md": "22eda3c76d676b16e88e2dde527110f3496b54c98007b7f4fc5be01748bd7330",
+    "cases/repair-vercel-tool-registration/trials/initial/trial-result.json": "6cc1f3a0d71eab2dc8150ed7bcecb1a48437bf4472bc5011f7ad596f4496a21e",
+    "cases/repair-vercel-tool-registration/trials/initial/workspace-assertions.json": "f08a014c0b6f0f391dc4cdf4540435bec14b50b243cdb91c040b8b8beeb13d95",
+    "cases/repair-vercel-tool-registration/trials/initial/workspace.patch": "2631402f46d59e0a4f6fd91c6dd91c85673e7a4bc0162e80efcd14a527e519b8",
+    "coverage.json": "9ed0c5188333a94775eaf0820ffefe9f4874f1f3b3d9125d36bf59e434fdcf92",
+    "source-state.json": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+  },
+  "confirmationPolicy": {
+    "version": 2,
+    "requiredPassingConfirmations": 2,
+    "requiredFailingConfirmations": 2,
+    "maximumConfirmations": 3
+  },
+  "mode": "official",
+  "provenance": {
+    "model": "gpt-5.6-sol",
+    "actorReasoningEffort": "xhigh",
+    "judgeReasoningEffort": "xhigh",
+    "codexVersion": "codex-cli 0.154.0",
+    "nodeVersion": "v24.15.0",
+    "pnpmVersion": "12.4.0",
+    "gitVersion": "git version 2.53.0",
+    "allowedEgressHosts": [
+      "api.openai.com",
+      "auth.openai.com",
+      "chatgpt.com"
+    ],
+    "hostTimeoutMs": 900000,
+    "modelEndpoint": null,
+    "sslCertificateFileSha256": null,
+    "candidateFingerprint": "a643dc83778adb9a9469c637bda7540453bfc90b75f7bf27b7ba22cb0543f87b",
+    "packagesRepositoryCommit": "4707c8154abcc7a544ca4c300e59bdb5968042c5",
+    "packagesRepositoryFingerprint": "7c109a9faf389c5cd6afb027140839d0b42e884beda4b8d2e48b11abd7d396e0",
+    "packagesRepositoryDirty": false,
+    "qualificationRepositoryCommit": "526a06a7de1374a260af7346fd2f55bacb9930dd",
+    "qualificationRepositoryDirty": false,
+    "skillRepositoryCommit": "526a06a7de1374a260af7346fd2f55bacb9930dd",
+    "skillRepositoryFingerprint": "4998939c7894a6f72948f245970546e7dbbdab0309c3e0f83d9871bd52cfeb3c",
+    "skillRepositoryDirty": false,
+    "profileDigest": "6288623481473163c467f55326725c0c4e3d85cd1d6903a1d33e2eb0a182886d",
+    "qualificationDigest": "880f652f39f6f30629396fc59cdca3dacb8ff2e8baf00cb71efccc1481249ee0",
+    "targetDigest": "e6156f12c29ebd9e75e8cbaae6a2ab5c1590d45be3af6e3f751bc2c204893b22",
+    "baselineAttemptId": "20260911T100223103Z-custom-custom-825bf6c1",
+    "packages": [
+      {
+        "name": "@moldea.ai/repository",
+        "version": "2.0.0",
+        "registryIntegrity": "sha512-inhtMPmNtW/YnWZikBLMy+FsW3UyVsMaL0pKkV75ZX6VFP2yEFuc1puKyLu2kd8unvE5fAc+oO4lnuYKY77Rcw==",
+        "registryShasum": "d7797b382ae0116f8b6bfa4bfc2d1a51de306f7b",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository/-/repository-2.0.0.tgz",
+        "tarballName": "repository-2.0.0.tgz",
+        "sha256": "455a53c5b21de44f1b1173ff7bdacfe7c838f9eec46f4b3a8a651393deb80ea7"
+      },
+      {
+        "name": "@moldea.ai/core",
+        "version": "4.0.1",
+        "registryIntegrity": "sha512-WHVxnOk5l0MpZxOu/ZsdCjPser+0D49ADtPpmhBxgXZpdntf+5rIptllmysycyTS8ijlk+qsIcFGU8YMWtvoFw==",
+        "registryShasum": "26a3763f46bd68a6af2512d6b9c75314d36591b7",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/core/-/core-4.0.1.tgz",
+        "tarballName": "core-4.0.1.tgz",
+        "sha256": "7237869331c22ab17e2b38c0d2d4e7f2eca82d0ec2a7274d792429e0d61c7d1d"
+      },
+      {
+        "name": "@moldea.ai/adapter-anthropic",
+        "version": "4.0.0",
+        "registryIntegrity": "sha512-Ta8+UPKDLvJK4XauhCR25FYO5C7hxt2LcAIkRr6AtDqq4VMtvjDbFAOaciUay0sRXpnB/Jm/wT3aqEG/9UFWkw==",
+        "registryShasum": "20d99df517dbec6049e4e598bd9390b6c961322c",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-anthropic/-/adapter-anthropic-4.0.0.tgz",
+        "tarballName": "adapter-anthropic-4.0.0.tgz",
+        "sha256": "e037698c4916c77ee44f1bf8b4c3415fd7d640ac2d3421ab012cd52d480e3e22"
+      },
+      {
+        "name": "@moldea.ai/adapter-claude-agent-sdk",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-5Pfy2lpsMhW+eWzIQSkyWRgNB+9z5cCZhaCGKGGDAXIV/H+GfJ49uLq0aSibxvrsibUrJ0ZuARiepB5QthHQag==",
+        "registryShasum": "77e97c197d765a09600a3c4da2a7cb5ead7f2931",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-claude-agent-sdk/-/adapter-claude-agent-sdk-3.0.0.tgz",
+        "tarballName": "adapter-claude-agent-sdk-3.0.0.tgz",
+        "sha256": "d552c6176ecb4394daed4936aef997b1482961a084f424a8cbc6ca90afa8c20e"
+      },
+      {
+        "name": "@moldea.ai/adapter-cloudflare-agents",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-fBPaC2HijnXCiOHFQGoo2zsFsPJFeG4eVy7XHdc08yIY2/GSPD8s+DoYnSnTNjbonNfX3MYePVYGNQn4QqIZKQ==",
+        "registryShasum": "c35cdf0201c2ca5a1d8a19674604d74bd98ab95e",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-cloudflare-agents/-/adapter-cloudflare-agents-3.0.0.tgz",
+        "tarballName": "adapter-cloudflare-agents-3.0.0.tgz",
+        "sha256": "fe66d4b24beb6fdc489dc711a42370c6f0cf020ec26e659d2648854f4d47b6a5"
+      },
+      {
+        "name": "@moldea.ai/adapter-eve",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-Ow/oOaA7gd4al+Iz0rG8LamAOEhQf05ivBXkpHCoA29Ao6YkC7l3GiQgdjO7nW987oqANdGEN2ovRzIpFDv0lA==",
+        "registryShasum": "ebab0ed0f83355c90e33330658db24e4d2cd9e85",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-eve/-/adapter-eve-3.0.0.tgz",
+        "tarballName": "adapter-eve-3.0.0.tgz",
+        "sha256": "7bcf450369e9a5bca96b715fc829959e68d7e626af630f18bfb727fed20d1c9f"
+      },
+      {
+        "name": "@moldea.ai/adapter-google-genai",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-10FOcFvMQwazWOhVMiZDnVBqUq5r1YCaWIpW4coNJBAcrVPMwqM64Np+VfwVrv9j/KeroMiPgXLCxwTCZH5+tQ==",
+        "registryShasum": "c6b8785b5f3b29ef7a7f33c0fb5f013066ab47ba",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-google-genai/-/adapter-google-genai-3.0.0.tgz",
+        "tarballName": "adapter-google-genai-3.0.0.tgz",
+        "sha256": "0a1ddb42f15e40b7907403701bec13b13574c6600030f76a6eab96d5ce582014"
+      },
+      {
+        "name": "@moldea.ai/adapter-langchain",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-vH2zTMDf2GNVFBgt0gBJXhxCh0IIffcUsk/XSHzRCfNZ8UJVlpIxhwLrzhIeVjqpy6uFOqYoP+RuW7Awt/K09Q==",
+        "registryShasum": "2edcc28ff66f1237ef663400f169dd2d36452cd0",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langchain/-/adapter-langchain-3.0.0.tgz",
+        "tarballName": "adapter-langchain-3.0.0.tgz",
+        "sha256": "b37cc8b50976ab1a445a86ba1bf095b74c4ad030915d79fee87e863769ee563f"
+      },
+      {
+        "name": "@moldea.ai/adapter-langgraph",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-nQoR2iRraGLgsBt/uh1yymUvUZN9Js6ObmvieOWnrTiweyn/B2GB/T1SJ1FZCZi2wroZhigsHcWAEN6rhPAx6Q==",
+        "registryShasum": "0f8735f09aaab19af1eff0469ec7c04b2a4647c5",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langgraph/-/adapter-langgraph-3.0.0.tgz",
+        "tarballName": "adapter-langgraph-3.0.0.tgz",
+        "sha256": "b39e1a0e7ce41fe767d1189192074073bca5230aee3389a7ed8b67432e558fab"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai",
+        "version": "4.0.0",
+        "registryIntegrity": "sha512-jbme+AFOBcSX7urrev2g/Saj3NIEVAT8Oc7iuoInVEqwxU3uf1MozcTqSfi+eJJAldEGo8RvShyN1a6XcTCiKg==",
+        "registryShasum": "86857a22d11352f2505e3df756ef67fdadae58a3",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai/-/adapter-openai-4.0.0.tgz",
+        "tarballName": "adapter-openai-4.0.0.tgz",
+        "sha256": "4726a5b5b4753c79f0bfdd656c72f55a8f15a8c7f512300c8244d34f812eec93"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai-agents-sdk",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-wdU1YWIsVj73p0gpJmnEloALXVUcc93frRaZkrObj0SrvsGq672cFVOiKJz+o8xuwIlVpALKSI4XRI4R5HuulA==",
+        "registryShasum": "4305a001c5a831d6290fa4a37c369fbdce99abf7",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai-agents-sdk/-/adapter-openai-agents-sdk-3.0.0.tgz",
+        "tarballName": "adapter-openai-agents-sdk-3.0.0.tgz",
+        "sha256": "98b4af5df48021a4e84edfb97250cc22d47ddef844cd71eaf790c6439adca0e0"
+      },
+      {
+        "name": "@moldea.ai/adapter-vercel-ai-sdk",
+        "version": "3.0.0",
+        "registryIntegrity": "sha512-UE4KKBFNVf4icPEeQnNIAIeN6DHQwJlLOAIFegtgXph/sbjVkOnifBMPJUViT4I+in6PIuAprUew/gieZ7yEAA==",
+        "registryShasum": "1ecfea76b8979e179ec08e062c8441700c529f3d",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-vercel-ai-sdk/-/adapter-vercel-ai-sdk-3.0.0.tgz",
+        "tarballName": "adapter-vercel-ai-sdk-3.0.0.tgz",
+        "sha256": "4b0827ca082e0da3db927f720f4ab73acd512ce565067f3a62c484bc67db0907"
+      },
+      {
+        "name": "@moldea.ai/repository-fs",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-TCTHwIUc2asuA8JvNwIjpKtTkDweVU4Y0hSMlG87qf+qgkOjQOinmhM7F+oFaEhT9Ch3RdWNZYiLuVWaC1kyuw==",
+        "registryShasum": "c5ba310dd260a541a1a2334bafcb198444b8bac7",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository-fs/-/repository-fs-2.0.1.tgz",
+        "tarballName": "repository-fs-2.0.1.tgz",
+        "sha256": "8fd204625ecb5b7d1ec46fd3b970c9b11576ab75d810c5ee7a194bc6c3e07fe8"
+      },
+      {
+        "name": "@moldea.ai/cli",
+        "version": "8.0.0",
+        "registryIntegrity": "sha512-70tcl+3IEI62DVN0NL/6QILSrCCE9sHPttrwVOZXKOsHF6Hrh2XP8q0+iVio3VI8NvQ9wi5aAdgFeRGsIi42Pw==",
+        "registryShasum": "08281a3bb64dc99a498e7ae939e0f1c44d406f24",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/cli/-/cli-8.0.0.tgz",
+        "tarballName": "cli-8.0.0.tgz",
+        "sha256": "4a80f5293d7d790ea174e0295337c1efed2887b67b6b595cb92712fd29b5179a"
+      },
+      {
+        "name": "@types/json-schema",
+        "version": "7.0.15",
+        "registryIntegrity": "sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==",
+        "registryShasum": "596a1747233694d50f6ad8a7869fcb6f56cf5841",
+        "registryTarballUrl": "https://registry.npmjs.org/@types/json-schema/-/json-schema-7.0.15.tgz",
+        "tarballName": "json-schema-7.0.15.tgz",
+        "sha256": "12dcb1dcff7099bff0663fc220551ba53fcf23c136a22375e323bb6626d95724"
+      },
+      {
+        "name": "@types/node",
+        "version": "22.20.1",
+        "registryIntegrity": "sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==",
+        "registryShasum": "84e7cdf63cdaa20c134aa317ccc901aa21e16f0e",
+        "registryTarballUrl": "https://registry.npmjs.org/@types/node/-/node-22.20.1.tgz",
+        "tarballName": "node-22.20.1.tgz",
+        "sha256": "6f99aae8d4a2bdecdce5a41a922b10943316edd4e6e6d4350f442d6c1688485f"
+      },
+      {
+        "name": "ai",
+        "version": "7.0.77",
+        "registryIntegrity": "sha512-muLtBSTAUCreR77L16w4AFBiX2gK/RNt84EKp8m03SN9+MfNlC5EGqYYttRjYKV3xe0a33yj1Zawj1EnjejIWw==",
+        "registryShasum": "58a2f4d4fa18c86041c7bc715ebd3d1ae3b856fd",
+        "registryTarballUrl": "https://registry.npmjs.org/ai/-/ai-7.0.77.tgz",
+        "tarballName": "ai-7.0.77.tgz",
+        "sha256": "0306d49c1991ad57b4eefa2ed128c582101400aa665de6813faec68896098b90"
+      },
+      {
+        "name": "zod",
+        "version": "4.3.6",
+        "registryIntegrity": "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==",
+        "registryShasum": "89c56e0aa7d2b05107d894412227087885ab112a",
+        "registryTarballUrl": "https://registry.npmjs.org/zod/-/zod-4.3.6.tgz",
+        "tarballName": "zod-4.3.6.tgz",
+        "sha256": "29ee4d2418c0fb6ddc545c28c03ec80b701e345a3f779e50ae23cda0700b1682"
+      },
+      {
+        "name": "typescript",
+        "version": "6.0.3",
+        "registryIntegrity": "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==",
+        "registryShasum": "90251dc007916e972786cb94d74d15b185577d21",
+        "registryTarballUrl": "https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz",
+        "tarballName": "typescript-6.0.3.tgz",
+        "sha256": "33cd0ee1beaa8c9e9d15a9da836c62ddea4c34a42d7c2d349dbc80d94165d22a"
+      }
+    ]
+  },
+  "stages": [
+    {
+      "id": "source-state",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:42:10.684Z",
+      "completedAt": "2026-09-11T11:42:10.687Z",
+      "durationMs": 3,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "coverage",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:42:10.688Z",
+      "completedAt": "2026-09-11T11:42:10.692Z",
+      "durationMs": 4,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "candidate",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:42:10.693Z",
+      "completedAt": "2026-09-11T11:42:40.431Z",
+      "durationMs": 29738,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "baseline",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:42:40.495Z",
+      "completedAt": "2026-09-11T11:44:37.586Z",
+      "durationMs": 117091,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:44:37.589Z",
+      "completedAt": "2026-09-11T11:44:38.162Z",
+      "durationMs": 573,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:44:38.164Z",
+      "completedAt": "2026-09-11T11:44:41.622Z",
+      "durationMs": 3458,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:44:41.625Z",
+      "completedAt": "2026-09-11T11:52:14.264Z",
+      "durationMs": 452639,
+      "stageIdentity": "f71f5a83685f5d987b44f57a0086630c95b8d7d10ac911c8637b94a12e7976d3",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:52:14.268Z",
+      "completedAt": "2026-09-11T11:52:26.895Z",
+      "durationMs": 12627,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:52:26.924Z",
+      "completedAt": "2026-09-11T11:52:38.590Z",
+      "durationMs": 11666,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:52:38.680Z",
+      "completedAt": "2026-09-11T11:57:53.154Z",
+      "durationMs": 314474,
+      "stageIdentity": "321fee4e6090433b95eb7df4f568ba1a1c820e3c693a6f6a4bbc1e54125977dc",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-1:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-1:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-1:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-1:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-1:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-1:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-3:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-3:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-3:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-3:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-3:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:trial:confirmation-3:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-11T12:13:10.628Z",
+      "completedAt": "2026-09-11T12:13:10.628Z",
+      "durationMs": 0,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:repair-vercel-tool-registration:result",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:13:10.629Z",
+      "completedAt": "2026-09-11T12:13:10.630Z",
+      "durationMs": 1,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:57:53.184Z",
+      "completedAt": "2026-09-11T11:58:16.961Z",
+      "durationMs": 23777,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:58:16.966Z",
+      "completedAt": "2026-09-11T11:58:30.219Z",
+      "durationMs": 13253,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-09-11T11:58:30.357Z",
+      "completedAt": "2026-09-11T12:06:37.585Z",
+      "durationMs": 487228,
+      "stageIdentity": "e9c94b731bc817eb34ffb0cbd0d8ded3f68db1ce46cf39ff4af042861f9936ae",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:06:37.587Z",
+      "completedAt": "2026-09-11T12:06:51.870Z",
+      "durationMs": 14283,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:06:51.873Z",
+      "completedAt": "2026-09-11T12:06:52.343Z",
+      "durationMs": 470,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:06:52.443Z",
+      "completedAt": "2026-09-11T12:13:10.626Z",
+      "durationMs": 378183,
+      "stageIdentity": "8cd32b170eb0ce8bcf3d7fd869e101827fc1e13ff9a00763316cd3b1b0f99090",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-1:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:13:10.631Z",
+      "completedAt": "2026-09-11T12:13:11.123Z",
+      "durationMs": 492,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-1:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:13:11.124Z",
+      "completedAt": "2026-09-11T12:13:14.215Z",
+      "durationMs": 3091,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-1:actor",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:13:14.218Z",
+      "completedAt": "2026-09-11T12:18:18.861Z",
+      "durationMs": 304643,
+      "stageIdentity": "c568e2e3d260114f50ba021eba675c676b27a40917230e449d2cbbbb28284bf8",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-1:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:18:18.894Z",
+      "completedAt": "2026-09-11T12:18:35.218Z",
+      "durationMs": 16324,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-1:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:18:35.251Z",
+      "completedAt": "2026-09-11T12:18:35.828Z",
+      "durationMs": 577,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-1:judge",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:18:35.920Z",
+      "completedAt": "2026-09-11T12:28:17.018Z",
+      "durationMs": 581098,
+      "stageIdentity": "3481398c3ac106caa7a53ea576bdd66b8258900f8529a82429d477ea6cf05126",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-2:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:28:17.021Z",
+      "completedAt": "2026-09-11T12:28:17.523Z",
+      "durationMs": 502,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-2:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:28:17.524Z",
+      "completedAt": "2026-09-11T12:28:20.885Z",
+      "durationMs": 3361,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-2:actor",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:28:20.888Z",
+      "completedAt": "2026-09-11T12:37:02.895Z",
+      "durationMs": 522007,
+      "stageIdentity": "44c284d09d725f0b2c7bf770f455e858b47e248b6f0237b2f4dc602da8c01145",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-2:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:37:02.897Z",
+      "completedAt": "2026-09-11T12:37:06.020Z",
+      "durationMs": 3123,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-2:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:37:06.021Z",
+      "completedAt": "2026-09-11T12:37:06.240Z",
+      "durationMs": 219,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-2:judge",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:37:06.340Z",
+      "completedAt": "2026-09-11T12:40:39.185Z",
+      "durationMs": 212845,
+      "stageIdentity": "c77a9f6cd36317e9b582a1e0547e12f56e1ba6a5697e916a5eac1dd87a6bac9a",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-3:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:40:39.189Z",
+      "completedAt": "2026-09-11T12:40:39.680Z",
+      "durationMs": 491,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-3:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:40:39.681Z",
+      "completedAt": "2026-09-11T12:40:42.861Z",
+      "durationMs": 3180,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-3:actor",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:40:42.864Z",
+      "completedAt": "2026-09-11T12:46:22.550Z",
+      "durationMs": 339686,
+      "stageIdentity": "f99efb8df08fff8ae42687300a15f7a8045aecc00a40b02fbdc507254fe0dc9d",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-3:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:46:22.552Z",
+      "completedAt": "2026-09-11T12:46:25.649Z",
+      "durationMs": 3097,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-3:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:46:25.650Z",
+      "completedAt": "2026-09-11T12:46:25.875Z",
+      "durationMs": 225,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:trial:confirmation-3:judge",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:46:25.972Z",
+      "completedAt": "2026-09-11T12:50:16.351Z",
+      "durationMs": 230379,
+      "stageIdentity": "96fcd64d24387c2926060bd2194dd3a6ffab525db9da21b43464549249c41c58",
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    },
+    {
+      "id": "case:preserve-vercel-static-boundary:result",
+      "status": "passed",
+      "startedAt": "2026-09-11T12:50:16.354Z",
+      "completedAt": "2026-09-11T12:50:16.355Z",
+      "durationMs": 1,
+      "stageIdentity": null,
+      "reuseSourceAttemptId": null,
+      "error": null,
+      "hasUsedOperationalStopResume": false,
+      "operationalRetries": [],
+      "operationalStops": []
+    }
+  ],
+  "cases": [
+    {
+      "caseId": "repair-vercel-tool-registration",
+      "title": "Repair Vercel tool registration",
+      "status": "passed",
+      "confirmationStatus": "not-required",
+      "durationMs": 795570,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "confirmationEligible": false,
+          "dimensions": {
+            "semantic": true,
+            "resource": true,
+            "commandPolicy": true,
+            "repositoryControl": true,
+            "mountIntegrity": true,
+            "operational": true
+          },
+          "failureClassifications": [],
+          "passed": true,
+          "durationMs": 795570,
+          "deterministicBeforePath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/repair-vercel-tool-registration/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/repair-vercel-tool-registration/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/repair-vercel-tool-registration/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/repair-vercel-tool-registration/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 352935,
+            "cachedInputTokens": 320128,
+            "outputTokens": 5371
+          },
+          "judgeUsage": {
+            "inputTokens": 195351,
+            "cachedInputTokens": 170752,
+            "outputTokens": 3241
+          },
+          "actorEvidenceCreatedAt": "2026-09-11T11:52:02.818Z",
+          "judgeEvidenceCreatedAt": "2026-09-11T11:57:53.151Z",
+          "actorReuseSourceAttemptId": null,
+          "judgeReuseSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-name-mismatch",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor identified `find_order` versus `lookup_order`. This is corroborated by the diff showing the former manifest value and `src/agent.ts` registering the closed map as `tools: { lookup_order: lookupOrderTool }`."
+            },
+            {
+              "id": "repairs-canonical-name",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`. Git status and diff show only this one-line manifest correction, while deterministic post-actor validation reports `valid` with no failures."
+            },
+            {
+              "id": "preserves-binding-closure",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The manifest still binds `supportAgent`, `loadSupportInstruction`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema` to their exact source exports. Workspace assertions show all source, schema, instruction, and wrapper files unchanged; deterministic validation, inspection, and typechecking all passed."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": [],
+      "reuse": null
+    },
+    {
+      "caseId": "preserve-vercel-static-boundary",
+      "title": "Preserve the Vercel static boundary",
+      "status": "recovered",
+      "confirmationStatus": "passed",
+      "durationMs": 3143163,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "confirmationEligible": true,
+          "dimensions": {
+            "semantic": false,
+            "resource": true,
+            "commandPolicy": true,
+            "repositoryControl": true,
+            "mountIntegrity": true,
+            "operational": true
+          },
+          "failureClassifications": [
+            "semantic"
+          ],
+          "passed": false,
+          "durationMs": 917443,
+          "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 382942,
+            "cachedInputTokens": 347520,
+            "outputTokens": 6096
+          },
+          "judgeUsage": {
+            "inputTokens": 194892,
+            "cachedInputTokens": 178816,
+            "outputTokens": 3472
+          },
+          "actorEvidenceCreatedAt": "2026-09-11T12:06:36.935Z",
+          "judgeEvidenceCreatedAt": "2026-09-11T12:13:10.625Z",
+          "actorReuseSourceAttemptId": null,
+          "judgeReuseSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "identifies-unsupported-form",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "`src/support-agent.ts` passes `buildRequest(prompt)` indirectly to `generateText`, and `prepareStep` supplies replaceable `instructions`. The new guidance and manifest warning explicitly state that these prevent static proof of the final request and effective canonical instruction."
+            },
+            {
+              "id": "records-focused-guidance",
+              "evaluator": "judge",
+              "verdict": "fail",
+              "evidence": "`moldea/moldea.yaml` references the sole new file `/moldea/runtimes/vercel-ai-sdk.md`, and that file accurately describes the repository wrapper without provider claims. However, the file only documents the unsupported indirect form; it never describes the supported direct `generateText({ ... })` object-literal alternative. That alternative appears only in the manifest warning’s resolution."
+            },
+            {
+              "id": "records-unresolved-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "`agents.support.unresolved.indirect-instruction-boundary` has `effect: warning`, names the static-inspection limitation and `prepareStep` risk, relates `/src/support-agent.ts` and the canonical instruction, and specifies direct `generateText({ ... })` plus a focused test as resolution."
+            },
+            {
+              "id": "avoids-inference",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The approved diff adds only the runtime-guidance reference and unresolved warning to the manifest. The new guidance adds no instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationship, and the workspace assertions identify only these two changed paths."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+            }
+          ],
+          "failures": [
+            "Requirement records-focused-guidance failed: `moldea/moldea.yaml` references the sole new file `/moldea/runtimes/vercel-ai-sdk.md`, and that file accurately describes the repository wrapper without provider claims. However, the file only documents the unsupported indirect form; it never describes the supported direct `generateText({ ... })` object-literal alternative. That alternative appears only in the manifest warning’s resolution.",
+            "Add the supported direct object-literal `generateText({ ... })` alternative to `moldea/runtimes/vercel-ai-sdk.md` itself, without asserting provider behavior."
+          ]
+        },
+        {
+          "trialId": "confirmation-1",
+          "kind": "confirmation",
+          "confirmationIndex": 1,
+          "confirmationEligible": true,
+          "dimensions": {
+            "semantic": false,
+            "resource": true,
+            "commandPolicy": true,
+            "repositoryControl": true,
+            "mountIntegrity": true,
+            "operational": true
+          },
+          "failureClassifications": [
+            "semantic"
+          ],
+          "passed": false,
+          "durationMs": 906390,
+          "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/deterministic-before.json",
+          "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/deterministic-after.json",
+          "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/workspace-assertions.json",
+          "patchPath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 289790,
+            "cachedInputTokens": 269184,
+            "outputTokens": 6512
+          },
+          "judgeUsage": {
+            "inputTokens": 173811,
+            "cachedInputTokens": 135424,
+            "outputTokens": 5000
+          },
+          "actorEvidenceCreatedAt": "2026-09-11T12:18:18.241Z",
+          "judgeEvidenceCreatedAt": "2026-09-11T12:28:17.003Z",
+          "actorReuseSourceAttemptId": null,
+          "judgeReuseSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "identifies-unsupported-form",
+              "evaluator": "judge",
+              "verdict": "fail",
+              "evidence": "The actor report, moldea/runtimes/vercel-ai-sdk.md, and agents.support.unresolved explain that buildRequest and prepareStep prevent proving which instructions are effective. They do not state that the indirect argument also prevents direct runtime-pattern proof."
+            },
+            {
+              "id": "records-focused-guidance",
+              "evaluator": "judge",
+              "verdict": "fail",
+              "evidence": "The manifest diff adds guidance: /moldea/runtimes/vercel-ai-sdk.md, and targeted workspace inventory confirms it is the sole runtime-guidance file. It describes buildRequest and prepareStep without provider claims, but only refers generically to a “direct request pattern”; it never describes the required direct object-literal alternative such as generateText({ ... })."
+            },
+            {
+              "id": "records-unresolved-boundary",
+              "evaluator": "judge",
+              "verdict": "fail",
+              "evidence": "agents.support.unresolved names the instruction-provenance boundary and relates /src/support-agent.ts and the canonical instruction. Its resolution identifies the source path and runtime verification, but “a supported generateText request pattern” does not concretely specify the supported direct object-literal form."
+            },
+            {
+              "id": "avoids-inference",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The path-scoped diff adds only runtime guidance and an unresolved warning. The new guidance adds no instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationship; deterministic validation and workspace assertions also passed."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+            }
+          ],
+          "failures": [
+            "Requirement identifies-unsupported-form failed: The actor report, moldea/runtimes/vercel-ai-sdk.md, and agents.support.unresolved explain that buildRequest and prepareStep prevent proving which instructions are effective. They do not state that the indirect argument also prevents direct runtime-pattern proof.",
+            "Requirement records-focused-guidance failed: The manifest diff adds guidance: /moldea/runtimes/vercel-ai-sdk.md, and targeted workspace inventory confirms it is the sole runtime-guidance file. It describes buildRequest and prepareStep without provider claims, but only refers generically to a “direct request pattern”; it never describes the required direct object-literal alternative such as generateText({ ... }).",
+            "Requirement records-unresolved-boundary failed: agents.support.unresolved names the instruction-provenance boundary and relates /src/support-agent.ts and the canonical instruction. Its resolution identifies the source path and runtime verification, but “a supported generateText request pattern” does not concretely specify the supported direct object-literal form.",
+            "State explicitly that generateText(buildRequest(prompt)) is outside direct runtime-pattern proof and that prepareStep prevents instruction-loader proof.",
+            "Document the concrete supported alternative, for example a direct generateText({ ... }) object literal with the canonical instructions supplied at the invocation boundary.",
+            "Replace the unresolved warning’s generic “supported generateText request pattern” wording with the concrete direct object-literal pattern."
+          ]
+        },
+        {
+          "trialId": "confirmation-2",
+          "kind": "confirmation",
+          "confirmationIndex": 2,
+          "confirmationEligible": false,
+          "dimensions": {
+            "semantic": true,
+            "resource": true,
+            "commandPolicy": true,
+            "repositoryControl": true,
+            "mountIntegrity": true,
+            "operational": true
+          },
+          "failureClassifications": [],
+          "passed": true,
+          "durationMs": 742167,
+          "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/deterministic-before.json",
+          "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/deterministic-after.json",
+          "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/workspace-assertions.json",
+          "patchPath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 258937,
+            "cachedInputTokens": 229888,
+            "outputTokens": 5980
+          },
+          "judgeUsage": {
+            "inputTokens": 195743,
+            "cachedInputTokens": 171392,
+            "outputTokens": 3779
+          },
+          "actorEvidenceCreatedAt": "2026-09-11T12:37:02.676Z",
+          "judgeEvidenceCreatedAt": "2026-09-11T12:40:39.183Z",
+          "actorReuseSourceAttemptId": null,
+          "judgeReuseSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "identifies-unsupported-form",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "`src/support-agent.ts` passes `buildRequest(prompt)` indirectly to `generateText`, with `prepareStep` loading and returning `instructions`. The new runtime guidance explicitly states that static inspection cannot prove this is a supported direct invocation pattern or whether step preparation preserves or replaces instructions at runtime."
+            },
+            {
+              "id": "records-focused-guidance",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "`moldea/moldea.yaml` references `/moldea/runtimes/vercel-ai-sdk.md`, the only file under `moldea/runtimes`. That file describes the repository-specific `buildRequest` wrapper and recommends `generateText({ ... })` with top-level `instructions` plus focused runtime verification. It makes no provider-behavior claim."
+            },
+            {
+              "id": "records-unresolved-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "`agents.support.unresolved.indirect-generate-text-request` is an agent-level warning whose description names the static-inspection limitation, whose `related` path is `/src/support-agent.ts`, and whose resolution requires a direct `generateText` options object with top-level instructions and a focused runtime test."
+            },
+            {
+              "id": "avoids-inference",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The Git diff adds only the runtime-guidance reference and unresolved warning to the manifest; the workspace patch adds only the referenced guidance file. Neither change adds instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationships. Workspace hashes also confirm `src/support-agent.ts` and existing agent files were unchanged."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+            }
+          ],
+          "failures": []
+        },
+        {
+          "trialId": "confirmation-3",
+          "kind": "confirmation",
+          "confirmationIndex": 3,
+          "confirmationEligible": false,
+          "dimensions": {
+            "semantic": true,
+            "resource": true,
+            "commandPolicy": true,
+            "repositoryControl": true,
+            "mountIntegrity": true,
+            "operational": true
+          },
+          "failureClassifications": [],
+          "passed": true,
+          "durationMs": 577163,
+          "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/confirmation-3/deterministic-before.json",
+          "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/confirmation-3/deterministic-after.json",
+          "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/confirmation-3/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/confirmation-3/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/confirmation-3/workspace-assertions.json",
+          "patchPath": "cases/preserve-vercel-static-boundary/trials/confirmation-3/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 297385,
+            "cachedInputTokens": 275840,
+            "outputTokens": 6990
+          },
+          "judgeUsage": {
+            "inputTokens": 173833,
+            "cachedInputTokens": 149248,
+            "outputTokens": 3497
+          },
+          "actorEvidenceCreatedAt": "2026-09-11T12:46:22.324Z",
+          "judgeEvidenceCreatedAt": "2026-09-11T12:50:16.338Z",
+          "actorReuseSourceAttemptId": null,
+          "judgeReuseSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "identifies-unsupported-form",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor report and both current files explain that generateText receives buildRequest(prompt) indirectly and prepareStep may replace instructions, so static inspection cannot prove a supported direct runtime pattern or determine the effective loaded instructions."
+            },
+            {
+              "id": "records-focused-guidance",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml references /moldea/runtimes/vercel-ai-sdk.md. Targeted inspection and workspace assertions establish it as the sole new runtime-guidance file. It documents buildRequest(prompt), prepareStep, and the direct generateText({ ... }) alternative without asserting provider behavior."
+            },
+            {
+              "id": "records-unresolved-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "agents.support.unresolved.indirect-generate-text-request is an effect: warning entry naming the static-inspection limitation, relating /src/support-agent.ts, and resolving through a documented direct generateText({ ... }) call at supportAgent plus a focused runtime test."
+            },
+            {
+              "id": "avoids-inference",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The approved diff adds only runtime.guidance and the unresolved warning. Workspace assertions show all agent instruction/description and implementation files unchanged, and no instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationship was added."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": [],
+      "reuse": null
+    }
+  ]
+}

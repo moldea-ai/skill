@@ -1,0 +1,77 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 291072,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 291072,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 428013,
+        "cachedInputTokens": 373504,
+        "outputTokens": 7448
+      },
+      "judgeUsage": {
+        "inputTokens": 155960,
+        "cachedInputTokens": 132224,
+        "outputTokens": 2639
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T04:43:41.712Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T04:45:14.529Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current workspace contains `/moldea/context/billing.md`. `moldea/moldea.yaml` registers it under top-level `context`, declares `affectedBy: /src/billing.ts`, and assigns it to `agents.support.context`. The Git patch shows those exact additions, and deterministic-after reports valid inspection, CLI validation, typecheck success, and no repository mutation."
+        },
+        {
+          "id": "updates-instruction",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The Git patch preserves the opening identity, `You are the support agent`, and adds explicit direction to use billing context for refund, invoice, and billing-dispute questions, escalating when policy is not established. The current instruction matches the patch."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

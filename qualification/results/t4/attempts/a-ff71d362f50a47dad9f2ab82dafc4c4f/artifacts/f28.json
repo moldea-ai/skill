@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, one-line Git diff, workspace assertions, and deterministic validation agree: only moldea/moldea.yaml changed, replacing stale find_order with lookup_order. This now matches SupportAgent.getTools(), while all runtime, loader, implementation, registration, and schema bindings remain intact. Validation is valid with zero failures, and typechecking passed.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the stale declared name find_order versus the closed getTools map. Current src/agent.ts returns { lookup_order: lookupOrderTool }, while the Git diff shows the manifest previously declared name: find_order and was changed to lookup_order."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml declares name: lookup_order. The Git diff contains only that one-line name replacement, and deterministic post-actor evidence reports valid inspection, valid CLI validation, passing typecheck, and no failures."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml retains SupportAgent and loadSupportInstruction bindings, lookupOrder implementation, lookupOrderTool registration, and LookupOrderInputSchema/LookupOrderOutputSchema bindings, with no agent schema added. The corresponding source exports and getTools registration exist exactly as declared. Workspace assertions show only moldea/moldea.yaml changed, and deterministic validation reports valid inspection and no wiring failures."
+    }
+  ],
+  "failures": []
+}

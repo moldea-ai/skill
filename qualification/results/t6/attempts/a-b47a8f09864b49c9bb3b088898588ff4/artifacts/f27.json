@@ -1,0 +1,67 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": false,
+    "resource": false,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [
+    "semantic",
+    "resource"
+  ],
+  "passed": false,
+  "durationMs": 320784,
+  "deterministicBeforePath": "cases/repair-eve-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-eve-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-eve-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "skipped",
+  "judgeOutputPath": null,
+  "judgeSkippedPath": "cases/repair-eve-tool-registration/trials/initial/judge-skipped.json",
+  "workspaceAssertionsPath": "cases/repair-eve-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-eve-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 939624,
+    "cachedInputTokens": 875136,
+    "outputTokens": 7256
+  },
+  "judgeUsage": null,
+  "actorEvidenceCreatedAt": "2026-09-11T06:32:08.420Z",
+  "judgeEvidenceCreatedAt": null,
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Actor resource profile ordinary exceeded maximum-command-output-bytes: observed 463402, limit 131072."
+  ]
+}

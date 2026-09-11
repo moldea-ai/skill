@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 475360,
+  "deterministicBeforePath": "cases/preserve-openai-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-openai-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-openai-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-openai-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-openai-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-openai-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 271615,
+    "cachedInputTokens": 221184,
+    "outputTokens": 5431
+  },
+  "judgeUsage": {
+    "inputTokens": 328803,
+    "cachedInputTokens": 299008,
+    "outputTokens": 6258
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T07:16:35.026Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T07:20:34.422Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-evidence",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/agents.ts:14-20 directly calls client.responses.create({...}) and supplies instructions via loadSupportInstruction(); lines 5-6 load moldea/agents/support/instruction.md. moldea/moldea.yaml:3-14 assigns support to runtime openai and binds both supportAgent and loadSupportInstruction. package.json:3 declares openai 7.8.0. Deterministic-after reports valid inspection and passing typecheck."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/agents.ts:10-12 defines only the provider-hosted { type: 'web_search' } object, used at lines 19-20. moldea/moldea.yaml contains no function-tool, schema, routing, handoff, or web-search capability relationship, and the bounded canonical file inventory contains no tool or schema assets. Runner-owned before/after hashes are identical."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/agents.ts:22-28 constructs request separately and passes it indirectly to client.responses.create(request). moldea/moldea.yaml:15-32 records the OpenAI runtime and runtimeAgent binding without a direct runtime-pattern relationship, while retaining the indirect-request-construction warning and the concrete resolution to pass a closed object directly or document a supported adapter pattern."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

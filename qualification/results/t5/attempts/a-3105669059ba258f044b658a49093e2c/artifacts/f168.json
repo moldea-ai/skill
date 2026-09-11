@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The repository coherently retires the support agent. The judge made no repository changes.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/moldea.yaml contains only version 1 and the project context declaration; it has no agents.support entry, runtime binding, or custom guidance reference. The support instruction, description, and custom runtime guidance files are absent. Workspace patch: Git diff removes the complete agents.support manifest block and deletes all three obsolete canonical files, matching the removed src/support-agent.ts implementation. Deterministic-after reports valid inspection, CLI validation, typecheck success, repository equivalence, and no failures; workspace assertions confirm exactly the four intended moldea paths changed."
+    }
+  ],
+  "failures": []
+}

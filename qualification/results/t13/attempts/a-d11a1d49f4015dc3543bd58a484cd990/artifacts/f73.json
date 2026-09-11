@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "Repository state, runner evidence, and Git diff agree: the sole change corrects the manifest tool name to `lookup_order`; all runtime bindings remain intact, and deterministic validation, inspection, and typechecking pass.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identified `find_order` versus `lookup_order`. This is corroborated by the diff showing the former manifest value and `src/agent.ts` registering the closed map as `tools: { lookup_order: lookupOrderTool }`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`. Git status and diff show only this one-line manifest correction, while deterministic post-actor validation reports `valid` with no failures."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest still binds `supportAgent`, `loadSupportInstruction`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema` to their exact source exports. Workspace assertions show all source, schema, instruction, and wrapper files unchanged; deterministic validation, inspection, and typechecking all passed."
+    }
+  ],
+  "failures": []
+}

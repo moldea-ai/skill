@@ -6,24 +6,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { prepareGitCommandPolicyBoundary } from './git-command-policy-boundary.mjs';
-
-const COMMON_GIT_OPTIONS = [
-  '-c',
-  'core.fsmonitor=false',
-  '-c',
-  'core.pager=cat',
-  '-c',
-  'core.attributesFile=/dev/null',
-  '-c',
-  'filter.lfs.clean=',
-  '-c',
-  'filter.lfs.process=',
-  '-c',
-  'filter.lfs.smudge=',
-  '-c',
-  'filter.lfs.required=false',
-];
+import {
+  CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
+  CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+  prepareGitCommandPolicyBoundary,
+} from './git-command-policy-boundary.mjs';
 const RELEASE_CLI_GIT_OPTIONS = [
   '--no-pager',
   '-c',
@@ -71,14 +58,7 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
     ]);
 
     const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'));
-    const statusArguments = [
-      ...COMMON_GIT_OPTIONS,
-      '--no-pager',
-      'status',
-      '--porcelain=v2',
-      '-z',
-      '--ignore-submodules=all',
-    ];
+    const statusArguments = [...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS];
     const safeResult = runWrappedGit(wrapperPath, repositoryPath, statusArguments);
 
     assert.equal(safeResult.status, 0, safeResult.stderr);
@@ -94,6 +74,49 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
 
     assert.equal(releaseCliResult.status, 0, releaseCliResult.stderr);
     assert.equal(releaseCliResult.stdout.trim(), repositoryPath);
+
+    const selectedInventoryArguments = [
+      ...RELEASE_CLI_GIT_OPTIONS,
+      '-C',
+      repositoryPath,
+      'ls-files',
+      '--cached',
+      '--stage',
+      '--full-name',
+      '--no-abbrev',
+      '--no-recurse-submodules',
+      '-z',
+      '--',
+    ];
+    const selectedManifestResult = runWrappedGit(wrapperPath, repositoryPath, [
+      ...selectedInventoryArguments,
+      ':(top,literal)moldea/moldea.yaml',
+    ]);
+
+    assert.equal(selectedManifestResult.status, 0, selectedManifestResult.stderr);
+
+    for (const rejectedPathspec of [
+      ':(top,literal)README.md',
+      ':(top,literal)moldea/context/../project.md',
+      ':(top,literal)moldea/context/*.md',
+    ]) {
+      const rejectedSelectionResult = runWrappedGit(wrapperPath, repositoryPath, [
+        ...selectedInventoryArguments,
+        rejectedPathspec,
+      ]);
+
+      assert.equal(rejectedSelectionResult.status, 2);
+      assert.match(rejectedSelectionResult.stderr, /command shape is not evaluator-approved/u);
+    }
+
+    const multipleSelectionResult = runWrappedGit(wrapperPath, repositoryPath, [
+      ...selectedInventoryArguments,
+      ':(top,literal)moldea/project.md',
+      ':(top,literal)moldea/moldea.yaml',
+    ]);
+
+    assert.equal(multipleSelectionResult.status, 2);
+    assert.match(multipleSelectionResult.stderr, /command shape is not evaluator-approved/u);
 
     const unsupportedCommandSentinelPath = join(repositoryPath, 'unsupported-git-command-ran.txt');
     runSystemGit(repositoryPath, [
@@ -159,18 +182,7 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
     runSystemGit(repositoryPath, ['config', 'filter.execution-trap.clean', './git-filter.sh']);
     writeFileSync(join(repositoryPath, 'project-state.js'), 'export const state = "changed";\n');
 
-    const diffArguments = [
-      ...COMMON_GIT_OPTIONS,
-      '-c',
-      'diff.external=',
-      '--no-pager',
-      'diff',
-      '--no-ext-diff',
-      '--no-textconv',
-      '--ignore-submodules=all',
-      '--',
-      'project-state.js',
-    ];
+    const diffArguments = [...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX, 'project-state.js'];
     const blockedResult = runWrappedGit(wrapperPath, repositoryPath, diffArguments);
 
     assert.equal(blockedResult.status, 2);
@@ -189,18 +201,12 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
   }
 });
 
-test('Git command-policy boundary budgets trusted read-only top-level dependencies separately', async () => {
+test('Git command-policy boundary budgets exact trusted read-only workspace paths separately', async () => {
   const testRoot = mkdtempSync(join(tmpdir(), 'moldea-git-read-only-dependencies-test-'));
   const repositoryPath = join(testRoot, 'repository');
   const dependencyDirectoryPath = join(repositoryPath, 'node_modules');
-  const statusArguments = [
-    ...COMMON_GIT_OPTIONS,
-    '--no-pager',
-    'status',
-    '--porcelain=v2',
-    '-z',
-    '--ignore-submodules=all',
-  ];
+  const skillDirectoryPath = join(repositoryPath, '.agents', 'skills', 'moldea');
+  const statusArguments = [...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS];
 
   try {
     mkdirSync(dependencyDirectoryPath, { recursive: true });
@@ -230,49 +236,59 @@ test('Git command-policy boundary budgets trusted read-only top-level dependenci
     const trustedWrapperPath = await prepareGitCommandPolicyBoundary(
       join(testRoot, 'trusted-bin'),
       {
-        trustedReadOnlyDirectoryNames: ['node_modules'],
+        trustedReadOnlyWorkspacePaths: ['.agents/skills/moldea', 'node_modules'],
       },
     );
     const trustedResult = runWrappedGit(trustedWrapperPath, repositoryPath, statusArguments);
 
     assert.equal(trustedResult.status, 0, trustedResult.stderr);
 
-    const trustedDependencyAttributesPath = join(dependencyDirectoryPath, '.gitattributes');
-    writeFileSync(trustedDependencyAttributesPath, '*.js filter=execution-trap\n', 'utf8');
-    const trustedDependencyAttributesResult = runWrappedGit(
+    mkdirSync(skillDirectoryPath, { recursive: true });
+    for (let entryIndex = 0; entryIndex < 4_097; entryIndex += 1) {
+      writeFileSync(join(skillDirectoryPath, `entry-${entryIndex}`), '');
+    }
+    const nestedTrustedResult = runWrappedGit(trustedWrapperPath, repositoryPath, statusArguments);
+
+    assert.equal(nestedTrustedResult.status, 0, nestedTrustedResult.stderr);
+
+    const writableSiblingPath = join(repositoryPath, '.agents', 'scratch');
+    mkdirSync(writableSiblingPath, { recursive: true });
+    for (let entryIndex = 0; entryIndex < 4_097; entryIndex += 1) {
+      writeFileSync(join(writableSiblingPath, `entry-${entryIndex}`), '');
+    }
+    const writableSiblingResult = runWrappedGit(
       trustedWrapperPath,
       repositoryPath,
       statusArguments,
     );
 
-    assert.equal(trustedDependencyAttributesResult.status, 2);
-    assert.match(
-      trustedDependencyAttributesResult.stderr,
-      /repository attribute safety was not established/u,
-    );
-    rmSync(trustedDependencyAttributesPath);
+    assert.equal(writableSiblingResult.status, 2);
+    assert.match(writableSiblingResult.stderr, /repository attribute safety was not established/u);
 
-    const nestedDependencyDirectoryPath = join(repositoryPath, 'src', 'node_modules');
-    mkdirSync(nestedDependencyDirectoryPath, { recursive: true });
+    rmSync(writableSiblingPath, { force: true, recursive: true });
+    mkdirSync(writableSiblingPath, { recursive: true });
     writeFileSync(
-      join(nestedDependencyDirectoryPath, '.gitattributes'),
+      join(writableSiblingPath, '.gitattributes'),
       '*.js filter=execution-trap\n',
       'utf8',
     );
-    const nestedAttributesResult = runWrappedGit(
+    const writableAttributesResult = runWrappedGit(
       trustedWrapperPath,
       repositoryPath,
       statusArguments,
     );
 
-    assert.equal(nestedAttributesResult.status, 2);
-    assert.match(nestedAttributesResult.stderr, /repository attribute safety was not established/u);
+    assert.equal(writableAttributesResult.status, 2);
+    assert.match(
+      writableAttributesResult.stderr,
+      /repository attribute safety was not established/u,
+    );
 
     await assert.rejects(
       prepareGitCommandPolicyBoundary(join(testRoot, 'invalid-bin'), {
-        trustedReadOnlyDirectoryNames: ['_backup'],
+        trustedReadOnlyWorkspacePaths: ['.agents/_backup/evidence'],
       }),
-      /Invalid trusted read-only workspace directory/u,
+      /Invalid trusted read-only workspace path/u,
     );
   } finally {
     rmSync(testRoot, { force: true, recursive: true });
@@ -329,15 +345,7 @@ test('Git command-policy boundary refuses linked-worktree common attributes', as
 
     const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'));
     const blockedResult = runWrappedGit(wrapperPath, linkedWorktreePath, [
-      ...COMMON_GIT_OPTIONS,
-      '-c',
-      'diff.external=',
-      '--no-pager',
-      'diff',
-      '--no-ext-diff',
-      '--no-textconv',
-      '--ignore-submodules=all',
-      '--',
+      ...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
       'project-state.js',
     ]);
 

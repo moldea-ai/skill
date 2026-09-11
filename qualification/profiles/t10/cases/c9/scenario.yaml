@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: repair-langgraph-state-schema
 title: Repair LangGraph StateGraph schema binding
 purpose: Verify precise diagnostic-driven repair of a closed graph input-schema relationship.

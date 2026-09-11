@@ -29,13 +29,14 @@ Run the normal project installation from the repository root:
 npx skills add moldea-ai/skill
 ```
 
-Project scope is recommended because the installed skill can travel with the repository through version control. The installer handles host detection; you do not need a different `moldea` package or instruction set for each coding agent.
+Repository scope is required for supported `moldea` use so the installed skill version can travel with the project through version control. The installer handles host detection; you do not need a different `moldea` package or instruction set for each coding agent.
 
 ## What remains consistent
 
 Every compatible host consumes the same portable semantic core:
 
-- `SKILL.md` defines activation, authority, compatibility, operation selection, and reporting. Potentially durable knowledge is its first activation signal, regardless of whether it arrives as prose, an answer, a table, structured data, or an accessible source; loading then checks adoption and never establishes it.
+- `SKILL.md` defines activation, authority, compatibility, operation selection, and reporting. The managed README block tells repository-aware hosts to select its entrypoint for every repository task so the deterministic gate can test host-known paths. Both gate modes invoke repository-local Core directly and return only `0` or `1`. Explicit operations, canonical path changes, and managed README hunks use adoption-only proof before bounded direct work; standalone ordinary-path work must match a declared binding or `affectedBy` relationship before the CLI runs. Direct canonical agent or runtime work retains task-named ordinary implementation evidence without changing that gate choice. Canonical and managed paths never enter `scope`, while an ordinary path enters it only when another owner must be resolved. Before acting on an ordinary developer-named path, the host forms and retains one leading-slash repository-logical set from every exact developer-named path, including unchanged paths, and every changed path already supplied by the host. An exact gate match sends that same set to one `scope`; the host loads every matched owner and binds the coherent change before writing. A gate miss returns immediately to unrelated host work without loading workflow references or mentioning `moldea`.
+- The gate accepts Git-style repository-relative paths and leading-slash repository-logical paths, normalizes them to the repository-logical form, and rejects drive-relative paths, UNC paths, traversal, invalid logical paths, and malformed input. Each stdin record starts with one path's UTF-8 bytes and ends with one NUL; the stream never starts with a delimiter. This keeps host path spelling from changing relevance while preserving the strict canonical path contract.
 - Focused references are loaded only for the workflows that require them.
 - Repository-local `@moldea.ai/cli` tooling owns deterministic inspection and validation.
 - Canonical project and agent state remains under `/moldea/**`.
@@ -47,7 +48,7 @@ The optional `agents/openai.yaml` file adds OpenAI-host presentation, default-pr
 
 Coding agents can differ in how they discover and install skills, present them in the interface, apply invocation policies, combine them with project instructions, expose tools, and report work. Those host-level differences do not create separate `moldea` formats or sources of truth, and an installed copy does not prove activation or runtime registration.
 
-Use a frontier-capability coding model for the strongest results. Official release assurance runs with `gpt-5.6-sol` at `medium` reasoning effort.
+Use a frontier-capability coding model for the strongest results. Official release assurance runs actors and independent judges with `gpt-5.6-sol` at `xhigh` reasoning effort.
 
 Before installation, confirm that the host supports Agent Skills or is recognized by the current `skills` CLI. A host logo on this site identifies compatibility; it does not imply sponsorship or endorsement by that vendor.
 

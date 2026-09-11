@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor report accurately describes the aligned support-agent setup. The repository is clean, the relevant Git diff is empty, and deterministic post-actor validation passed with the repository unchanged. The reported runtime-consumption limitation genuinely remains but does not contradict the required alignment judgment.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "The actor identifies the `support` agent and cites `moldea/moldea.yaml`, which registers runtime ID `custom`, guidance `/moldea/runtimes/custom.md`, and runtime binding `/src/support-agent.ts` symbol `supportAgent`. Current workspace files confirm those declarations; the guidance describes the exported record, and `src/support-agent.ts` exports `supportAgent` with ID `support` and channel `email`. No instruction loader or model-invocation implementation is declared or present in the scoped source. Deterministic-after reports valid CLI validation/inspection, passing typecheck, and `repositoryUnchanged: true`; approved Git status and relevant-path diff are empty."
+    }
+  ],
+  "failures": []
+}

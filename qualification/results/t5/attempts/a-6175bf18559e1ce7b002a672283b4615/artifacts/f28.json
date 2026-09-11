@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor correctly performed only the repository review. Its report matches the retry-policy implementation, while the clean Git status/diff and absent canonical project files confirm no repository changes or initialized canonical state.",
+  "requirements": [
+    {
+      "id": "excludes-moldea",
+      "verdict": "pass",
+      "evidence": "The actor output discusses only the retry-policy finding, boundary probe, tests, and TypeScript compilation; it contains no moldea mention or skill-derived content. The runner-owned actor-command-policy records moldeaCommandCount: 0 and moldeaOutputByteCount: 0."
+    }
+  ],
+  "failures": []
+}

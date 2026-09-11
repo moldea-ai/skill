@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
@@ -11,7 +11,10 @@ import {
   writeAttemptCheckpoint,
 } from '../checkpoint/index.ts';
 import { QualificationAttemptResultDraftSchema } from '../contracts/index.ts';
-import { QUALIFICATION_CONFIRMATION_POLICY } from '../constants/index.ts';
+import {
+  QUALIFICATION_CONFIRMATION_POLICY,
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+} from '../constants/index.ts';
 import { ensureDirectory, writeJsonFileAtomically } from '../filesystem/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
 import {
@@ -37,7 +40,7 @@ const createIncompleteAttemptFixture = async (options: {
     isDryRun: false,
     mode,
     selectedCaseId: mode === 'diagnostic' ? 'evaluate-aligned-project' : null,
-    useCache: true,
+    reuseEvidence: true,
     packagesRepository: '/packages',
     skillRepository: '/skill',
     profileDigest: 'a'.repeat(64),
@@ -48,7 +51,8 @@ const createIncompleteAttemptFixture = async (options: {
     targetDigest: 'f'.repeat(64),
     executionEnvironment: {
       model: 'gpt-5.6-sol',
-      reasoningEffort: 'medium',
+      actorReasoningEffort: 'xhigh',
+      judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',
@@ -71,7 +75,7 @@ const createIncompleteAttemptFixture = async (options: {
     'utf8',
   );
   const result = QualificationAttemptResultDraftSchema.parse({
-    protocolVersion: 6,
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     mode,
     attemptId: options.attemptId,
@@ -84,6 +88,7 @@ const createIncompleteAttemptFixture = async (options: {
     summary: 'The attempt was interrupted.',
     provenance: {
       ...checkpoint.executionEnvironment,
+      candidateFingerprint: null,
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'd'.repeat(64),
       packagesRepositoryDirty: false,
@@ -127,11 +132,15 @@ describe('qualification incomplete attempt recording', () => {
       attemptDirectory,
       attemptId,
     });
+    await ensureDirectory(path.join(attemptDirectory, 'internal'));
+    await ensureDirectory(path.join(attemptDirectory, 'workspaces'));
 
     const recordedResult = await recordIncompleteAttempt(attemptId, resultsRoot);
 
     expect(recordedResult.status).toBe('incomplete');
     expect((await readAttemptCheckpoint(attemptDirectory)).recordedAt).not.toBeNull();
+    await expect(access(path.join(attemptDirectory, 'internal'))).rejects.toThrow();
+    await expect(access(path.join(attemptDirectory, 'workspaces'))).rejects.toThrow();
     expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
       passed: true,
       attempts: 1,
@@ -148,11 +157,15 @@ describe('qualification incomplete attempt recording', () => {
       attemptId,
       hasMalformedArtifact: true,
     });
+    await ensureDirectory(path.join(attemptDirectory, 'internal'));
+    await ensureDirectory(path.join(attemptDirectory, 'runtime'));
 
     await expect(
       recordIncompleteAttempt(attemptId, path.join(temporaryRoot, 'results')),
     ).rejects.toThrow();
     expect((await readAttemptCheckpoint(attemptDirectory)).recordedAt).not.toBeNull();
+    await expect(access(path.join(attemptDirectory, 'internal'))).rejects.toThrow();
+    await expect(access(path.join(attemptDirectory, 'runtime'))).rejects.toThrow();
   });
 
   test('rejects diagnostic attempts before public recording', async () => {
@@ -194,7 +207,7 @@ describe('qualification attempt discovery', () => {
       isDryRun: true,
       mode: 'dry-run',
       selectedCaseId: null,
-      useCache: false,
+      reuseEvidence: false,
       packagesRepository: '/packages',
       skillRepository: '/skill',
       profileDigest: 'a'.repeat(64),
@@ -205,7 +218,8 @@ describe('qualification attempt discovery', () => {
       targetDigest: 'f'.repeat(64),
       executionEnvironment: {
         model: 'gpt-5.6-sol',
-        reasoningEffort: 'medium',
+        actorReasoningEffort: 'xhigh',
+        judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,
         pnpmVersion: '11.9.0',
@@ -231,7 +245,7 @@ describe('qualification attempt discovery', () => {
     await writeFile(path.join(attemptsRoot, unreadableAttemptId, 'checkpoint.json'), '{', 'utf8');
     const invalidAttemptId = '20260820T000004000Z-custom-custom-invalid';
     await writeJsonFileAtomically(path.join(attemptsRoot, invalidAttemptId, 'checkpoint.json'), {
-      protocolVersion: 6,
+      protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     });
     const mismatchedAttemptId = '20260820T000005000Z-custom-custom-mismatched';
     await writeJsonFileAtomically(
@@ -247,14 +261,16 @@ describe('qualification attempt discovery', () => {
       attemptId: mismatchedAttemptId,
       kind: 'invalid-checkpoint',
       message: `Checkpoint attempt id ${validAttemptId} does not match its directory and was left unchanged.`,
-      protocolVersion: 6,
+      protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     });
     expect(inspection.unavailableAttempts[1]?.attemptId).toBe(invalidAttemptId);
     expect(inspection.unavailableAttempts[1]?.kind).toBe('invalid-checkpoint');
     expect(inspection.unavailableAttempts[1]?.message).toContain(
       'Checkpoint is invalid and was left unchanged.',
     );
-    expect(inspection.unavailableAttempts[1]?.protocolVersion).toBe(6);
+    expect(inspection.unavailableAttempts[1]?.protocolVersion).toBe(
+      QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+    );
     expect(inspection.unavailableAttempts.slice(2)).toStrictEqual([
       {
         attemptId: unreadableAttemptId,
@@ -265,8 +281,7 @@ describe('qualification attempt discovery', () => {
       {
         attemptId: unsupportedAttemptId,
         kind: 'unsupported-protocol',
-        message:
-          'Checkpoint protocol version 7 is not supported by protocol version 6 and was left unchanged.',
+        message: `Checkpoint protocol version 7 is not supported by protocol version ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION} and was left unchanged.`,
         protocolVersion: 7,
       },
     ]);

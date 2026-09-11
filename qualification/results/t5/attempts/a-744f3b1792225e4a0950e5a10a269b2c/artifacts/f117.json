@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing context, registered it against `/src/billing.ts`, and assigned it to the `support` agent for refund and invoice questions. Preserved the required opening identity and existing Custom runtime integration. TypeScript compilation passed, and moldea validation returned valid with zero diagnostics. The complete permitted Git diff and final status were inspected.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md"
+  ],
+  "observations": [
+    "The context records the evidenced 30-day refund window without implying automatic eligibility or approval.",
+    "Pre-existing changes to `src/operator-notes.ts` and the untracked `notes/` directory were preserved untouched.",
+    "No project test files exist; validation used the repository TypeScript compiler and moldea CLI 8.0.0."
+  ],
+  "unresolved": [
+    "The repository establishes no invoice-specific rules; the new context explicitly requires evidence-based handling and escalation instead of invented policy."
+  ]
+}

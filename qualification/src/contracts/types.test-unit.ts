@@ -4,6 +4,9 @@ import { describe, expect, test } from 'vitest';
 import {
   QualificationCaseResultSchema,
   QualificationCaseScenarioSchema,
+  QualificationCommandPolicyEvidenceSchema,
+  QualificationExecutionEnvironmentSchema,
+  ModelUsageSchema,
   QualificationProfileSchema,
   QualificationStageCheckpointSchema,
   QualificationTrialResultSchema,
@@ -15,6 +18,7 @@ const createScenario = (pathPattern: string) => ({
   id: 'path-pattern',
   title: 'Path pattern',
   purpose: 'Validate a workspace path pattern.',
+  resourceProfile: 'ordinary',
   taskFile: 'task.md',
   seedDirectory: 'seed',
   removePaths: [],
@@ -52,6 +56,145 @@ const createScenario = (pathPattern: string) => ({
       evaluation: { kind: 'runner', checks: ['workspace-assertions'] },
     },
   ],
+});
+
+test('accepts only xhigh actors and xhigh judges for current qualification execution', () => {
+  const environment = {
+    model: 'gpt-5.6-sol',
+    actorReasoningEffort: 'xhigh',
+    judgeReasoningEffort: 'xhigh',
+    codexVersion: 'codex-cli test',
+    nodeVersion: process.version,
+    pnpmVersion: '11.9.0',
+    gitVersion: 'git version test',
+    allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
+    hostTimeoutMs: 900_000,
+    modelEndpoint: null,
+    sslCertificateFileSha256: null,
+  };
+
+  expect(QualificationExecutionEnvironmentSchema.safeParse(environment).success).toBe(true);
+  expect(
+    QualificationExecutionEnvironmentSchema.safeParse({
+      ...environment,
+      actorReasoningEffort: 'high',
+    }).success,
+  ).toBe(false);
+});
+
+test('validates model usage structure independently from source-committed resource profiles', () => {
+  expect(
+    ModelUsageSchema.safeParse({
+      cachedInputTokens: 524_288,
+      inputTokens: 524_288,
+      outputTokens: 524_288,
+    }).success,
+  ).toBe(true);
+  expect(
+    ModelUsageSchema.safeParse({
+      cachedInputTokens: 2,
+      inputTokens: 1,
+      outputTokens: 0,
+    }).success,
+  ).toBe(false);
+  expect(
+    ModelUsageSchema.safeParse({
+      cachedInputTokens: 0,
+      inputTokens: 2_097_152,
+      outputTokens: 1,
+    }).success,
+  ).toBe(true);
+});
+
+test('requires privacy-safe command-policy reasons to be counted, unique, and sorted', () => {
+  const evidence = {
+    completedCommandCount: 2,
+    credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+    maximumCommandOutputByteCount: 0,
+    modelVisibleToolOutputByteCount: 0,
+    moldeaCommandCount: 0,
+    moldeaOutputByteCount: 0,
+    networkAccess: {
+      status: 'observed',
+      observedCount: 1,
+      indeterminateCount: 1,
+      reasons: [
+        { code: 'dynamic-execution', count: 1 },
+        { code: 'network-client', count: 1 },
+      ],
+    },
+    sensitiveAccess: {
+      status: 'not-observed',
+      observedCount: 0,
+      indeterminateCount: 0,
+      reasons: [],
+    },
+  };
+
+  expect(QualificationCommandPolicyEvidenceSchema.safeParse(evidence).success).toBe(true);
+  for (const reasons of [
+    [{ code: 'network-client', count: 1 }],
+    [
+      { code: 'network-client', count: 1 },
+      { code: 'dynamic-execution', count: 1 },
+    ],
+    [
+      { code: 'dynamic-execution', count: 1 },
+      { code: 'dynamic-execution', count: 1 },
+    ],
+  ]) {
+    expect(
+      QualificationCommandPolicyEvidenceSchema.safeParse({
+        ...evidence,
+        networkAccess: { ...evidence.networkAccess, reasons },
+      }).success,
+    ).toBe(false);
+  }
+
+  expect(
+    QualificationCommandPolicyEvidenceSchema.safeParse({
+      ...evidence,
+      networkAccess: {
+        status: 'observed',
+        observedCount: 1,
+        indeterminateCount: 0,
+        reasons: [{ code: 'broad-filesystem-read', count: 1 }],
+      },
+    }).success,
+  ).toBe(false);
+  expect(
+    QualificationCommandPolicyEvidenceSchema.safeParse({
+      ...evidence,
+      sensitiveAccess: {
+        status: 'observed',
+        observedCount: 1,
+        indeterminateCount: 0,
+        reasons: [{ code: 'network-client', count: 1 }],
+      },
+    }).success,
+  ).toBe(false);
+  expect(
+    QualificationCommandPolicyEvidenceSchema.safeParse({
+      ...evidence,
+      maximumCommandOutputByteCount: 1,
+      modelVisibleToolOutputByteCount: 0,
+    }).success,
+  ).toBe(false);
+  expect(
+    QualificationCommandPolicyEvidenceSchema.safeParse({
+      ...evidence,
+      completedCommandCount: 0,
+      maximumCommandOutputByteCount: 1,
+      modelVisibleToolOutputByteCount: 1,
+    }).success,
+  ).toBe(false);
+  expect(
+    QualificationCommandPolicyEvidenceSchema.safeParse({
+      ...evidence,
+      completedCommandCount: 0,
+      moldeaCommandCount: 1,
+    }).success,
+  ).toBe(false);
 });
 
 test.each(['moldea/runtimes/*.md', 'moldea/runtimes/**/*.md'])(
@@ -188,6 +331,16 @@ const createTrial = (
     trialId,
     kind: trialId === 'initial' ? 'initial' : 'confirmation',
     confirmationIndex,
+    confirmationEligible: !passed,
+    dimensions: {
+      semantic: passed,
+      resource: true,
+      commandPolicy: true,
+      repositoryControl: true,
+      mountIntegrity: true,
+      operational: true,
+    },
+    failureClassifications: passed ? [] : ['semantic'],
     passed,
     durationMs: 1,
     deterministicBeforePath: `${trialRoot}/deterministic-before.json`,
@@ -202,8 +355,8 @@ const createTrial = (
     judgeUsage: null,
     actorEvidenceCreatedAt: '2026-08-27T16:00:00.000Z',
     judgeEvidenceCreatedAt: '2026-08-27T16:00:01.000Z',
-    actorCacheSourceAttemptId: null,
-    judgeCacheSourceAttemptId: null,
+    actorReuseSourceAttemptId: null,
+    judgeReuseSourceAttemptId: null,
     requirementAssessments: [
       {
         id: 'test-requirement',
@@ -216,7 +369,18 @@ const createTrial = (
   });
 };
 
-describe('protocol 6 qualification contracts', () => {
+const createTerminalNonSemanticTrial = (): IQualificationTrialResult => {
+  const trial = createTrial('initial', false);
+
+  return QualificationTrialResultSchema.parse({
+    ...trial,
+    confirmationEligible: false,
+    dimensions: { ...trial.dimensions, semantic: true, repositoryControl: false },
+    failureClassifications: ['repositoryControl'],
+  });
+};
+
+describe('protocol 10 qualification contracts', () => {
   test.each([
     ['passed', 'not-required', [createTrial('initial', true)], []],
     [
@@ -232,8 +396,12 @@ describe('protocol 6 qualification contracts', () => {
     [
       'failed',
       'rejected',
-      [createTrial('initial', false), createTrial('confirmation-1', false)],
-      ['confirmation-1 failed.'],
+      [
+        createTrial('initial', false),
+        createTrial('confirmation-1', false),
+        createTrial('confirmation-2', false),
+      ],
+      ['confirmation-2 failed.'],
     ],
     [
       'failed',
@@ -242,9 +410,23 @@ describe('protocol 6 qualification contracts', () => {
         createTrial('initial', false),
         createTrial('confirmation-1', true),
         createTrial('confirmation-2', false),
+        createTrial('confirmation-3', false),
       ],
-      ['confirmation-2 failed.'],
+      ['confirmation-3 failed.'],
     ],
+    [
+      'recovered',
+      'passed',
+      [
+        createTrial('initial', false),
+        createTrial('confirmation-1', false),
+        createTrial('confirmation-2', true),
+        createTrial('confirmation-3', true),
+      ],
+      [],
+    ],
+    ['failed', 'not-applicable', [createTerminalNonSemanticTrial()], ['initial failed.']],
+    ['failed', 'not-run', [createTrial('initial', false)], ['initial failed.']],
   ] as const)(
     'accepts the %s terminal confirmation decision',
     (status, confirmationStatus, trials, failures) => {
@@ -257,15 +439,16 @@ describe('protocol 6 qualification contracts', () => {
           durationMs: trials.length,
           trials,
           failures,
+          reuse: null,
         }).success,
       ).toBe(true);
     },
   );
 
-  test('rejects incomplete and cache-derived confirmation histories', () => {
-    const cachedConfirmation = {
+  test('rejects incomplete and partially reused confirmation histories', () => {
+    const partiallyReusedConfirmation = {
       ...createTrial('confirmation-1', true),
-      actorCacheSourceAttemptId: 'prior-attempt',
+      actorReuseSourceAttemptId: 'prior-attempt',
     };
 
     expect(
@@ -277,9 +460,37 @@ describe('protocol 6 qualification contracts', () => {
         durationMs: 1,
         trials: [createTrial('initial', false)],
         failures: ['initial failed.'],
+        reuse: null,
       }).success,
     ).toBe(false);
-    expect(QualificationTrialResultSchema.safeParse(cachedConfirmation).success).toBe(false);
+    expect(
+      QualificationCaseResultSchema.safeParse({
+        caseId: 'test-case',
+        title: 'Test case',
+        status: 'failed',
+        confirmationStatus: 'not-applicable',
+        durationMs: 1,
+        trials: [createTrial('initial', false)],
+        failures: ['initial failed.'],
+        reuse: null,
+      }).success,
+    ).toBe(false);
+    expect(
+      QualificationCaseResultSchema.safeParse({
+        caseId: 'test-case',
+        title: 'Test case',
+        status: 'recovered',
+        confirmationStatus: 'passed',
+        durationMs: 3,
+        trials: [
+          createTrial('initial', false),
+          partiallyReusedConfirmation,
+          createTrial('confirmation-2', true),
+        ],
+        failures: [],
+        reuse: null,
+      }).success,
+    ).toBe(false);
   });
 
   test('accepts contiguous model retries and rejects unsafe retry state', () => {
@@ -295,11 +506,19 @@ describe('protocol 6 qualification contracts', () => {
       startedAt: '2026-08-27T16:00:00.000Z',
       completedAt: null,
       durationMs: null,
-      cacheKey: 'a'.repeat(64),
-      cacheSourceAttemptId: null,
+      stageIdentity: 'a'.repeat(64),
+      reuseSourceAttemptId: null,
       error: null,
+      hasUsedOperationalStopResume: false,
       operationalRetries: [retry],
+      operationalStops: [],
     };
+    const stop = {
+      category: 'timed-out',
+      failedAt: '2026-08-27T16:01:00.000Z',
+      failureCount: 2,
+      maximumRetryCount: 1,
+    } as const;
 
     expect(QualificationStageCheckpointSchema.safeParse(stage).success).toBe(true);
     expect(
@@ -317,9 +536,41 @@ describe('protocol 6 qualification contracts', () => {
     expect(
       QualificationStageCheckpointSchema.safeParse({
         ...stage,
-        status: 'cached',
+        status: 'reused',
       }).success,
     ).toBe(false);
+    expect(
+      QualificationStageCheckpointSchema.safeParse({
+        ...stage,
+        status: 'stopped',
+        operationalStops: [stop],
+      }).success,
+    ).toBe(true);
+    expect(
+      QualificationStageCheckpointSchema.safeParse({
+        ...stage,
+        status: 'pending',
+        startedAt: null,
+        hasUsedOperationalStopResume: true,
+        operationalStops: [stop],
+      }).success,
+    ).toBe(true);
+    expect(
+      QualificationStageCheckpointSchema.safeParse({
+        ...stage,
+        status: 'stopped',
+        hasUsedOperationalStopResume: true,
+        operationalStops: [stop],
+      }).success,
+    ).toBe(false);
+    expect(
+      QualificationStageCheckpointSchema.safeParse({
+        ...stage,
+        status: 'stopped',
+        hasUsedOperationalStopResume: true,
+        operationalStops: [stop, { ...stop, failedAt: '2026-08-27T16:02:00.000Z' }],
+      }).success,
+    ).toBe(true);
     expect(
       QualificationStageCheckpointSchema.safeParse({
         ...stage,

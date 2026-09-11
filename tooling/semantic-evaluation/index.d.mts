@@ -3,6 +3,23 @@ export interface ISemanticCriterion {
   label: string;
 }
 
+// deterministic public model-prose contract
+export interface ISemanticProductNameAssessment {
+  forbidden: string[];
+  isPassed: boolean;
+  observed: string[];
+  rationale: string;
+}
+
+export const INCORRECT_MOLDEA_PRODUCT_NAME_CASING_LABEL: string;
+
+export const hasValidMoldeaProductNameCasing: (text: unknown) => boolean;
+
+export const enforceMoldeaProductNameCasing: (
+  assessment: ISemanticProductNameAssessment,
+  actorResponse: unknown,
+) => ISemanticProductNameAssessment;
+
 // release identity required to recognize safe moldea CLI envelopes
 export interface ISemanticActorExecutionEvidenceOptions {
   cliVersion: string;
@@ -12,33 +29,29 @@ export interface ISemanticActorExecutionEvidenceOptions {
 // evaluator-owned facts that may be derived from complete recognized command output
 export type ISemanticActorExecutionOutputFact =
   | {
-      kind: 'focused-runtime-test';
-      path: '/src/support-agent.test-integration.js';
-      status: 'failed' | 'passed';
-    }
-  | {
       kind: 'moldea-cli-envelope';
       cliVersion: string;
-      command: 'composition' | 'inspect' | 'validate';
+      command: 'composition' | 'content' | 'inspect' | 'scope' | 'validate';
+      containsContent: boolean;
+      errorCode: string | null;
       errorPresent: boolean;
+      hasNextPage: boolean;
+      pageRecordCount: number;
+      relevant: boolean | null;
       resultPresent: boolean;
       schemaVersion: number;
       status: 'error' | 'invalid' | 'valid';
     }
   | {
-      kind: 'workspace-paths';
-      paths: string[];
-    }
-  | {
-      binaries: ['moldea'];
-      kind: 'yarn-package-info';
-      packageName: '@moldea.ai/cli';
-      version: string;
-    }
-  | {
-      binaryName: 'moldea';
-      kind: 'yarn-binary-provider';
-      source: 'conflicting-moldea-provider';
+      cancelledCount: 0;
+      failedCount: 0;
+      kind: 'node-test-summary';
+      passedCount: number;
+      skippedCount: 0;
+      status: 'passed';
+      testCount: number;
+      testKind: 'correctness' | 'e2e' | 'integration' | 'unit';
+      todoCount: 0;
     };
 
 // safe command-output metadata persisted without raw command output
@@ -52,6 +65,7 @@ export interface ISemanticActorExecutionOutputEvidence {
 export interface ISemanticActorExecutionEvidence {
   eventType: 'item.completed';
   item: {
+    commandKind: 'moldea' | 'other';
     exitCode: number;
     outputEvidence: ISemanticActorExecutionOutputEvidence;
     status: 'completed' | 'failed';
@@ -69,32 +83,42 @@ export const hasValidActorExecutionEvidence: (
   options: ISemanticActorExecutionEvidenceOptions,
 ) => boolean;
 
-export type ISemanticActorCommandClassification = 'indeterminate' | 'not-observed' | 'observed';
-
-export interface ISemanticActorCommandPolicyOptions {
-  hasGitCommandPolicyBoundary?: boolean;
+export interface IMoldeaResourceEvidence {
+  commandCount: number;
+  maximumInvocationByteCount: number;
+  modelVisibleToolOutputByteCount: number;
+  operations: Array<'composition' | 'content' | 'inspect' | 'scope' | 'unrecognized' | 'validate'>;
+  stdoutByteCount: number;
 }
 
-// strict aggregate retained after raw actor command text is discarded
-export interface ISemanticActorCommandPolicyEvidence {
-  completedCommandCount: number;
-  indeterminateCommandCount: number;
-  packageManagerExecution: ISemanticActorCommandClassification;
-  packageManagerInvocationCount: number;
+export interface IMoldeaResourceBudget {
+  activation: 'abstain' | 'blocked' | 'direct' | 'informational' | 'relationship';
+  maximumMoldeaCommands: number;
+  maximumMoldeaOutputBytes: number;
+  minimumMoldeaCommands: number;
 }
 
-export const classifyActorCommandPolicyEvent: (
-  event: unknown,
-  options?: ISemanticActorCommandPolicyOptions,
-) => ISemanticActorCommandClassification | null;
+export const createMoldeaResourceEvidence: (
+  executionEvidence: ISemanticActorExecutionEvidence[],
+  options: ISemanticActorExecutionEvidenceOptions,
+) => IMoldeaResourceEvidence;
 
-export const createActorCommandPolicyEvidence: (
-  classifications: ISemanticActorCommandClassification[],
-) => ISemanticActorCommandPolicyEvidence;
+export const hasValidMoldeaResourceEvidence: (evidence: unknown) => boolean;
 
-export const hasValidActorCommandPolicyEvidence: (evidence: unknown) => boolean;
+export const hasPassingMoldeaActivation: (
+  evidence: unknown,
+  budget: IMoldeaResourceBudget,
+) => boolean;
 
-export const hasPassingPackageManagerNonExecutionPolicy: (evidence: unknown) => boolean;
+export const hasPassingMoldeaResourceBudget: (
+  evidence: unknown,
+  budget: IMoldeaResourceBudget,
+) => boolean;
+
+export const hasPassingMoldeaResourceContainment: (
+  evidence: unknown,
+  budget: IMoldeaResourceBudget,
+) => boolean;
 
 export type ISemanticGitStateFact =
   | 'has-deleted-paths'
@@ -109,7 +133,6 @@ export type ISemanticGitStateFact =
 
 export type ISemanticRepositoryEvidenceSource =
   | { kind: 'developer-direction' }
-  | { kind: 'host-instructions' }
   | {
       fact: ISemanticGitStateFact;
       kind: 'git-state';
@@ -119,6 +142,7 @@ export type ISemanticRepositoryEvidenceSource =
       kind: 'workspace-path';
       path: string;
     }
+  | { kind: 'host-instructions' }
   | {
       expectedType: 'directory' | 'file' | 'missing' | 'symlink';
       kind: 'related-path';
@@ -131,6 +155,18 @@ export interface ISemanticRepositoryEvidenceDeclaration {
   source: ISemanticRepositoryEvidenceSource;
 }
 
+/** Declares one evaluator-owned local capability and its case-specific behavior. */
+export interface ISemanticLocalProbe {
+  kind: 'runtime-compatibility-publication';
+  variant:
+    | 'current-supported-target'
+    | 'experimental-current-target'
+    | 'future-supported-target'
+    | 'malformed'
+    | 'missing-current-target'
+    | 'unavailable';
+}
+
 export interface ISemanticCaseDefinition {
   expected: ISemanticCriterion[];
   forbidden: ISemanticCriterion[];
@@ -140,7 +176,9 @@ export interface ISemanticCaseDefinition {
     developerDirection: string;
     repositoryEvidence: ISemanticRepositoryEvidenceDeclaration[];
   };
+  localProbe?: ISemanticLocalProbe;
   operation: string;
+  resourceBudget: IMoldeaResourceBudget;
   scenario: string;
   skillEvidence?: {
     activationScenarios: Array<{
@@ -168,6 +206,28 @@ export interface ISemanticCoverage {
   schemaVersion: 1;
 }
 
+export type ISemanticDispositionValue =
+  | 'restored-bounded-blocker'
+  | 'restored-explicit'
+  | 'restored-relationship'
+  | 'retained-current'
+  | 'rewritten-abstention';
+
+export interface ISemanticDispositions {
+  activeSemanticCaseCount: 74;
+  cases: Array<{
+    activeId: string;
+    disposition: ISemanticDispositionValue;
+    formerId: string;
+    rationale: string;
+  }>;
+  schemaVersion: 1;
+  source: {
+    ref: 'v4.0.2';
+    semanticCaseCount: 57;
+  };
+}
+
 export type ISemanticScenarioObservation =
   | { content: string; type: 'developer-direction' }
   | { content: string; type: 'host-instructions' }
@@ -184,6 +244,15 @@ export type ISemanticScenarioObservation =
   | {
       content: string | null;
       mode: number;
+      omission: 'file-too-large' | 'non-utf8' | null;
+      path: string;
+      sha256: string;
+      type: 'file';
+    }
+  | {
+      content: string | null;
+      mode: number;
+      mount: string;
       omission: 'file-too-large' | 'non-utf8' | null;
       path: string;
       sha256: string;
@@ -225,13 +294,11 @@ export interface ISemanticRepositoryControlEvidence {
   violations: ISemanticRepositoryControlViolation[];
 }
 
-// full-tree state for one evaluator-owned related read-only mount
 export interface ISemanticReadOnlyMountControlState {
   mount: string;
   treeDigest: string;
 }
 
-// independently captured before-and-after state for one related read-only mount
 export interface ISemanticReadOnlyMountControlEvidence {
   after: ISemanticReadOnlyMountControlState;
   before: ISemanticReadOnlyMountControlState;
@@ -254,18 +321,140 @@ export const createSemanticCoverageDigest: (
   coverage: unknown,
   caseDefinitions: ISemanticCaseDefinition[],
 ) => string;
+export const validateSemanticDispositions: <T extends ISemanticDispositions>(
+  dispositions: T,
+  activeCaseDefinitions: ISemanticCaseDefinition[],
+) => T;
 export const collectScenarioEvidence: (options: {
   caseDefinition: ISemanticCaseDefinition;
-  readOnlyMounts: Array<{
-    source: string;
-    target: string;
-  }>;
+  readOnlyMounts?: Array<{ source: string; target: string }>;
   repositoryPath: string;
 }) => Promise<ISemanticScenarioEvidence[]>;
 export const hasValidScenarioEvidence: (
   evidence: unknown,
   caseDefinition: ISemanticCaseDefinition,
 ) => boolean;
+export interface ISemanticSkillArtifactEvidence {
+  directories: string[];
+  excludedDirectoryCount: number;
+  files: Array<{
+    content: string | null;
+    mode: number;
+    omission: 'file-too-large' | 'non-utf8' | 'symlink' | null;
+    path: string;
+    sha256: string | null;
+  }>;
+  isTraversalTruncated: boolean;
+  resourceReferences: Array<{
+    isSafe: boolean;
+    reference: string;
+    resolvedPath: string;
+    type: 'directory' | 'file' | 'missing' | 'symlink' | 'unsafe';
+  }>;
+  role: 'authoritative-source' | 'distributed-copy' | 'installed-copy';
+  root: string;
+  rootType: 'directory' | 'file' | 'missing' | 'symlink';
+  truncatedDirectoryCount: number;
+  truncatedFileCount: number;
+  truncatedResourceReferenceCount: number;
+  validation: {
+    description: string | null;
+    errors: string[];
+    name: string | null;
+    valid: boolean;
+  };
+}
+export const validateSkillEvidenceConfiguration: (
+  caseDefinition: ISemanticCaseDefinition,
+) => NonNullable<ISemanticCaseDefinition['skillEvidence']>;
+export const validateSkillDocument: (
+  content: string,
+  directoryName: string,
+) => ISemanticSkillArtifactEvidence['validation'];
+export const collectSkillArtifactEvidence: (
+  repositoryPath: string,
+  caseDefinition: ISemanticCaseDefinition,
+) => Promise<ISemanticSkillArtifactEvidence[]>;
+export const hasValidSkillArtifactEvidence: (
+  evidence: unknown,
+  caseDefinition: ISemanticCaseDefinition,
+) => boolean;
+export interface ISemanticStageIdentity {
+  contract: Record<string, unknown>;
+  sha256: string;
+}
+export interface ISemanticStageTrialIdentity {
+  caseId: string;
+  confirmationIndex: 1 | 2 | 3 | null;
+  kind: 'confirmation' | 'initial';
+}
+export interface ISemanticStageReuseRecord {
+  identitySha256: string;
+  origin: 'reused';
+  schemaVersion: 1;
+  source: {
+    attemptId: string;
+    commit: string;
+    evidencePath: string;
+    evidenceSha256: string;
+    trial: ISemanticStageTrialIdentity;
+  };
+  stage: 'actor' | 'judge';
+}
+export const createSemanticStageValueDigest: (value: unknown) => string;
+export const createSemanticActorStageIdentity: (options: {
+  actorHost: Record<string, unknown>;
+  actorPrompt: string;
+  artifactDigest: string;
+  caseDefinitionDigest: string;
+  cli: Record<string, unknown>;
+  evaluationProtocolVersion: number;
+  readOnlyMountControlEvidence: ISemanticReadOnlyMountControlEvidence[];
+  repositoryControlBefore: Record<string, unknown>;
+  resourceProfileDigest: string;
+  scenarioEvidence: unknown[];
+}) => ISemanticStageIdentity;
+export const createSemanticJudgeStageIdentity: (options: {
+  actorEvidence: Record<string, unknown>;
+  actorIdentitySha256: string;
+  caseDefinitionDigest: string;
+  evaluationProtocolVersion: number;
+  judgeHost: Record<string, unknown>;
+  judgePrompt: string;
+}) => ISemanticStageIdentity;
+export const createSemanticStageReuseRecord: (options: {
+  identitySha256: string;
+  sourceAttemptId: string;
+  sourceCommit: string;
+  sourceEvidencePath: string;
+  sourceEvidenceSha256: string;
+  stage: 'actor' | 'judge';
+  trial: ISemanticStageTrialIdentity;
+}) => ISemanticStageReuseRecord;
+export const hasValidSemanticStageReuseRecord: (
+  record: unknown,
+  expected: {
+    identitySha256: string;
+    sourceAttemptId?: string;
+    sourceCommit?: string;
+    sourceEvidencePath?: string;
+    sourceEvidenceSha256?: string;
+    stage: 'actor' | 'judge';
+    trial: ISemanticStageTrialIdentity;
+  },
+) => boolean;
+export const selectSemanticStageReuse: (
+  candidates: ISemanticStageReuseRecord[],
+  expected: {
+    identitySha256: string;
+    sourceAttemptId?: string;
+    sourceCommit?: string;
+    sourceEvidencePath?: string;
+    sourceEvidenceSha256?: string;
+    stage: 'actor' | 'judge';
+    trial: ISemanticStageTrialIdentity;
+  },
+) => ISemanticStageReuseRecord | null;
 export const createEvaluationTreeDigest: (root: string) => Promise<string>;
 export const captureReadOnlyMountControlState: (mount: {
   source: string;

@@ -5,6 +5,7 @@ import type {
   IQualificationProfile,
   IQualificationSelection,
 } from '../contracts/index.ts';
+import type { IGitRepositoryState } from '../repository-state/index.ts';
 
 const RuntimePackageRequirementSchema = z.object({
   ecosystem: z.string().min(1),
@@ -76,6 +77,12 @@ export const RuntimeCompatibilityMatrixSchema = z.object({
 export type IRuntimeAdapterEntry = z.infer<typeof RuntimeAdapterEntrySchema>;
 export type IRuntimeCompatibilityMatrix = z.infer<typeof RuntimeCompatibilityMatrixSchema>;
 export type IRuntimeTarget = z.infer<typeof RuntimeTargetSchema>;
+
+// immutable compatibility source consumed by one qualification execution
+export type IRuntimeCompatibilitySnapshot = {
+  matrix: IRuntimeCompatibilityMatrix;
+  repositoryState: IGitRepositoryState;
+};
 
 // one matrix target enriched with local profile availability for CLI presentation
 export type IQualificationImplementation = {

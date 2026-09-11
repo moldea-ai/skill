@@ -1,19 +1,33 @@
+import {
+  EVALUATION_BATCH_DEFAULT_WORKER_COUNT,
+  EVALUATION_BATCH_WORKER_COUNTS,
+  type IEvaluationBatchWorkerCount,
+} from '../../../tooling/evaluation-batch/index.mjs';
+
 import type { IQualificationCommand } from './types.ts';
 
 const VALUE_OPTIONS = new Set([
   '--adapter',
   '--attempt',
   '--case',
+  '--cases',
+  '--claims',
+  '--cursor',
   '--implementation',
   '--packages-repository',
   '--skill-repository',
+  '--targets',
+  '--unresolved-from',
+  '--workers',
 ]);
 const BOOLEAN_OPTIONS = new Set([
   '--all',
   '--confirm-paid-execution',
   '--dry-run',
   '--json',
-  '--no-cache',
+  '--no-reuse',
+  '--restart',
+  '--resume-stopped-stage',
 ]);
 
 type IParsedOptions = {
@@ -83,6 +97,22 @@ const rejectOptions = (options: IParsedOptions, allowedOptions: ReadonlySet<stri
   }
 };
 
+const parseWorkerCount = (options: IParsedOptions): IEvaluationBatchWorkerCount => {
+  const workerCountValue = options.values.get('--workers');
+
+  if (workerCountValue === undefined) {
+    return EVALUATION_BATCH_DEFAULT_WORKER_COUNT;
+  }
+
+  const workerCount = Number(workerCountValue);
+
+  if (!EVALUATION_BATCH_WORKER_COUNTS.includes(workerCount as IEvaluationBatchWorkerCount)) {
+    throw new Error('--workers must be 1, 2, or 4.');
+  }
+
+  return workerCount as IEvaluationBatchWorkerCount;
+};
+
 /** Parses the strict local qualification command contract without accepting positional ambiguity. */
 export const parseQualificationCommand = (args: readonly string[]): IQualificationCommand => {
   const [commandName, ...optionArgs] = args;
@@ -99,8 +129,13 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
       rejectOptions(options, new Set(['--json']));
       return { kind: 'list', isJson };
     case 'status':
-      rejectOptions(options, new Set(['--all', '--json']));
-      return { kind: 'status', isAll: options.booleans.has('--all'), isJson };
+      rejectOptions(options, new Set(['--all', '--cursor', '--json']));
+      return {
+        kind: 'status',
+        ...(options.values.has('--cursor') ? { cursor: requireValue(options, '--cursor') } : {}),
+        isAll: options.booleans.has('--all'),
+        isJson,
+      };
     case 'verify':
       rejectOptions(options, new Set(['--json']));
       return { kind: 'verify', isJson };
@@ -108,12 +143,34 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
       rejectOptions(options, new Set(['--attempt', '--json']));
       return { kind: 'record', attemptId: requireValue(options, '--attempt'), isJson };
     case 'resume':
-    case 'retry':
-      rejectOptions(options, new Set(['--attempt', '--confirm-paid-execution', '--json']));
+      rejectOptions(
+        options,
+        new Set([
+          '--attempt',
+          '--confirm-paid-execution',
+          '--json',
+          '--resume-stopped-stage',
+          '--workers',
+        ]),
+      );
       return {
-        kind: commandName,
+        kind: 'resume',
         attemptId: requireValue(options, '--attempt'),
         hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
+        resumeStoppedStage: options.booleans.has('--resume-stopped-stage'),
+        workerCount: parseWorkerCount(options),
+        isJson,
+      };
+    case 'retry':
+      rejectOptions(
+        options,
+        new Set(['--attempt', '--confirm-paid-execution', '--json', '--workers']),
+      );
+      return {
+        kind: 'retry',
+        attemptId: requireValue(options, '--attempt'),
+        hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
+        workerCount: parseWorkerCount(options),
         isJson,
       };
     case 'run':
@@ -125,9 +182,10 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           '--dry-run',
           '--implementation',
           '--json',
-          '--no-cache',
+          '--no-reuse',
           '--packages-repository',
           '--skill-repository',
+          '--workers',
         ]),
       );
       return {
@@ -143,10 +201,71 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           ? { skillRepository: requireValue(options, '--skill-repository') }
           : {}),
         isDryRun: options.booleans.has('--dry-run'),
-        useCache: !options.booleans.has('--no-cache'),
+        reuseEvidence: !options.booleans.has('--no-reuse'),
+        workerCount: parseWorkerCount(options),
         hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
         isJson,
       };
+    case 'run-batch': {
+      rejectOptions(
+        options,
+        new Set([
+          '--all',
+          '--confirm-paid-execution',
+          '--dry-run',
+          '--json',
+          '--no-reuse',
+          '--packages-repository',
+          '--restart',
+          '--resume-stopped-stage',
+          '--skill-repository',
+          '--targets',
+          '--unresolved-from',
+          '--workers',
+        ]),
+      );
+      if (options.booleans.has('--restart') && options.booleans.has('--resume-stopped-stage')) {
+        throw new Error('--restart and --resume-stopped-stage cannot be combined.');
+      }
+      const selectors = [
+        ...(options.booleans.has('--all') ? [{ kind: 'all' as const, value: null }] : []),
+        ...(options.values.has('--targets')
+          ? [{ kind: 'targets' as const, value: requireValue(options, '--targets') }]
+          : []),
+        ...(options.values.has('--unresolved-from')
+          ? [
+              {
+                kind: 'unresolved-from' as const,
+                value: requireValue(options, '--unresolved-from'),
+              },
+            ]
+          : []),
+      ];
+      if (selectors.length !== 1) {
+        throw new Error('run-batch requires exactly one profile selector.');
+      }
+      const selector = selectors[0];
+      if (selector === undefined) {
+        throw new Error('run-batch requires exactly one profile selector.');
+      }
+      return {
+        kind: 'run-batch',
+        selector,
+        ...(options.values.has('--packages-repository')
+          ? { packagesRepository: requireValue(options, '--packages-repository') }
+          : {}),
+        ...(options.values.has('--skill-repository')
+          ? { skillRepository: requireValue(options, '--skill-repository') }
+          : {}),
+        isDryRun: options.booleans.has('--dry-run'),
+        reuseEvidence: !options.booleans.has('--no-reuse'),
+        restart: options.booleans.has('--restart'),
+        resumeStoppedStage: options.booleans.has('--resume-stopped-stage'),
+        workerCount: parseWorkerCount(options),
+        hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
+        isJson,
+      };
+    }
     case 'diagnose':
       rejectOptions(
         options,
@@ -156,7 +275,6 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           '--confirm-paid-execution',
           '--implementation',
           '--json',
-          '--no-cache',
           '--packages-repository',
           '--skill-repository',
         ]),
@@ -174,10 +292,75 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
         ...(options.values.has('--skill-repository')
           ? { skillRepository: requireValue(options, '--skill-repository') }
           : {}),
-        useCache: !options.booleans.has('--no-cache'),
         hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
         isJson,
       };
+    case 'diagnose-batch': {
+      rejectOptions(
+        options,
+        new Set([
+          '--adapter',
+          '--all',
+          '--cases',
+          '--claims',
+          '--confirm-paid-execution',
+          '--implementation',
+          '--json',
+          '--packages-repository',
+          '--restart',
+          '--resume-stopped-stage',
+          '--skill-repository',
+          '--unresolved-from',
+          '--workers',
+        ]),
+      );
+      if (options.booleans.has('--restart') && options.booleans.has('--resume-stopped-stage')) {
+        throw new Error('--restart and --resume-stopped-stage cannot be combined.');
+      }
+      const selectors = [
+        ...(options.booleans.has('--all') ? [{ kind: 'all' as const, value: null }] : []),
+        ...(options.values.has('--cases')
+          ? [{ kind: 'cases' as const, value: requireValue(options, '--cases') }]
+          : []),
+        ...(options.values.has('--claims')
+          ? [{ kind: 'claims' as const, value: requireValue(options, '--claims') }]
+          : []),
+        ...(options.values.has('--unresolved-from')
+          ? [
+              {
+                kind: 'unresolved-from' as const,
+                value: requireValue(options, '--unresolved-from'),
+              },
+            ]
+          : []),
+      ];
+      if (selectors.length !== 1) {
+        throw new Error('diagnose-batch requires exactly one diagnostic selector.');
+      }
+      const selector = selectors[0];
+      if (selector === undefined) {
+        throw new Error('diagnose-batch requires exactly one diagnostic selector.');
+      }
+      return {
+        kind: 'diagnose-batch',
+        selection: {
+          adapterId: requireValue(options, '--adapter'),
+          implementationId: requireValue(options, '--implementation'),
+        },
+        selector,
+        ...(options.values.has('--packages-repository')
+          ? { packagesRepository: requireValue(options, '--packages-repository') }
+          : {}),
+        ...(options.values.has('--skill-repository')
+          ? { skillRepository: requireValue(options, '--skill-repository') }
+          : {}),
+        restart: options.booleans.has('--restart'),
+        resumeStoppedStage: options.booleans.has('--resume-stopped-stage'),
+        workerCount: parseWorkerCount(options),
+        hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
+        isJson,
+      };
+    }
     default:
       throw new Error(`Unknown qualification command: ${commandName}`);
   }

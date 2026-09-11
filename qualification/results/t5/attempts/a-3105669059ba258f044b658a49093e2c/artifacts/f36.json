@@ -1,0 +1,48 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T09:33:55.470Z",
+  "durationMs": 102748,
+  "usage": {
+    "inputTokens": 229084,
+    "cachedInputTokens": 194432,
+    "outputTokens": 3140
+  },
+  "stageIdentity": "5416f6ab81267ac89b8e6e8ad6d2cbe2aa3332e07319efa8d326e8669722ffc6",
+  "sourceAttemptId": "20260911T092156960Z-custom-custom-fb757bcc",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 15,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 30824,
+    "moldeaCommandCount": 2,
+    "moldeaOutputByteCount": 1418,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

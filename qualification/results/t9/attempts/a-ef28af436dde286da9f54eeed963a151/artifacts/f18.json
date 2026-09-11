@@ -1,0 +1,282 @@
+{
+  "caseId": "repair-langgraph-functional-runtime-binding",
+  "title": "Repair LangGraph Functional API runtime binding",
+  "status": "recovered",
+  "confirmationStatus": "passed",
+  "durationMs": 2030725,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": true,
+      "dimensions": {
+        "semantic": false,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [
+        "semantic"
+      ],
+      "passed": false,
+      "durationMs": 747145,
+      "deterministicBeforePath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 322202,
+        "cachedInputTokens": 293504,
+        "outputTokens": 4640
+      },
+      "judgeUsage": {
+        "inputTokens": 426425,
+        "cachedInputTokens": 393728,
+        "outputTokens": 12052
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T06:40:38.344Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T06:48:46.555Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-runtime-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor identifies `supportWorkflow` as the existing exported entrypoint; `src/workflow.ts` confirms that export and the direct `answerQuestion` task. The task records the prior runtime-symbol mismatch, while workspace assertions show source remained unchanged and only the manifest changed."
+        },
+        {
+          "id": "repairs-canonical-runtime-binding",
+          "evaluator": "judge",
+          "verdict": "fail",
+          "evidence": "Current `moldea/moldea.yaml` binds `runtimeAgent.symbol` to `supportWorkflow`, exactly matching `src/workflow.ts`, and its hash matches the runner’s after-state. However, both evaluator-approved Git probes exited with `repository attribute safety was not established`, so the required Git diff agreement and exact before-to-after patch could not be verified."
+        },
+        {
+          "id": "preserves-binding-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest contains only the exact runtime-agent binding and `affectedBy` relationship; it declares no tool, skill, handoff, capability, or schema binding. Expected corresponding canonical paths are absent. `src/workflow.ts` still directly exports the entrypoint and invokes its LangGraph `task`; deterministic validation and typechecking passed."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": [
+        "Requirement repairs-canonical-runtime-binding failed: Current `moldea/moldea.yaml` binds `runtimeAgent.symbol` to `supportWorkflow`, exactly matching `src/workflow.ts`, and its hash matches the runner’s after-state. However, both evaluator-approved Git probes exited with `repository attribute safety was not established`, so the required Git diff agreement and exact before-to-after patch could not be verified.",
+        "Supply independently collected inert Git status and path-bounded diff evidence, or establish repository attribute safety so the approved Git probes can run and the manifest patch can be verified."
+      ]
+    },
+    {
+      "trialId": "confirmation-1",
+      "kind": "confirmation",
+      "confirmationIndex": 1,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": false,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": false,
+        "operational": true
+      },
+      "failureClassifications": [
+        "semantic",
+        "mountIntegrity"
+      ],
+      "passed": false,
+      "durationMs": 262604,
+      "deterministicBeforePath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-1/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-1/deterministic-after.json",
+      "actorOutputPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-1/actor-output.json",
+      "judgeStatus": "skipped",
+      "judgeOutputPath": null,
+      "judgeSkippedPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-1/judge-skipped.json",
+      "workspaceAssertionsPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-1/workspace-assertions.json",
+      "patchPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-1/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 378771,
+        "cachedInputTokens": 326784,
+        "outputTokens": 7136
+      },
+      "judgeUsage": null,
+      "actorEvidenceCreatedAt": "2026-09-11T07:04:21.766Z",
+      "judgeEvidenceCreatedAt": null,
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-runtime-mismatch",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "repairs-canonical-runtime-binding",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "preserves-binding-boundary",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": [
+        "Changes escaped the declared allowlist: moldea/agents/support/instruction.md.",
+        "Required preserved path changed: moldea/agents/support/instruction.md."
+      ]
+    },
+    {
+      "trialId": "confirmation-2",
+      "kind": "confirmation",
+      "confirmationIndex": 2,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 470456,
+      "deterministicBeforePath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-2/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-2/deterministic-after.json",
+      "actorOutputPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-2/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-2/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-2/workspace-assertions.json",
+      "patchPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-2/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 221063,
+        "cachedInputTokens": 196864,
+        "outputTokens": 4496
+      },
+      "judgeUsage": {
+        "inputTokens": 438899,
+        "cachedInputTokens": 418816,
+        "outputTokens": 6116
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T07:07:35.101Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T07:12:16.177Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-runtime-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor report identifies `removedSupportWorkflow` as stale and `supportWorkflow` as the directly exported entrypoint. `src/workflow.ts` exports `supportWorkflow`, while the Git diff proves the prior manifest named `removedSupportWorkflow`; deterministic validation is now valid with no failures."
+        },
+        {
+          "id": "repairs-canonical-runtime-binding",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current `moldea/moldea.yaml` binds `/src/workflow.ts` to symbol `supportWorkflow`, exactly matching the source export. Git status identifies only `moldea/moldea.yaml` as modified, and its diff contains only the symbol replacement. Deterministic validation and inspection both report valid."
+        },
+        {
+          "id": "preserves-binding-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest contains only the support runtime, exact runtime-agent binding, and `affectedBy` relationship; it declares no tool, skill, handoff, capability, or schema binding. `src/workflow.ts` retains the direct `answerQuestion` task and exported Functional API entrypoint. Deterministic validation and typechecking pass."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    },
+    {
+      "trialId": "confirmation-3",
+      "kind": "confirmation",
+      "confirmationIndex": 3,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 550520,
+      "deterministicBeforePath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-3/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-3/deterministic-after.json",
+      "actorOutputPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-3/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-3/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-3/workspace-assertions.json",
+      "patchPath": "cases/repair-langgraph-functional-runtime-binding/trials/confirmation-3/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 346863,
+        "cachedInputTokens": 317312,
+        "outputTokens": 4912
+      },
+      "judgeUsage": {
+        "inputTokens": 393435,
+        "cachedInputTokens": 363776,
+        "outputTokens": 6875
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T07:15:51.733Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T07:21:26.730Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-runtime-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor identifies `removedSupportWorkflow` as nonexistent and `supportWorkflow` as the directly exported entrypoint. `src/workflow.ts` exports `supportWorkflow`, while the Git patch shows the prior manifest symbol was `removedSupportWorkflow`; deterministic validation is valid with no failures."
+        },
+        {
+          "id": "repairs-canonical-runtime-binding",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/moldea.yaml` now binds `/src/workflow.ts` to symbol `supportWorkflow`, exactly matching the export in `src/workflow.ts`. Git status identifies only `moldea/moldea.yaml` as modified, and the diff contains only that symbol replacement. Deterministic validation and inspection both report valid."
+        },
+        {
+          "id": "preserves-binding-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The complete manifest contains only the support agent runtime, exact runtimeAgent binding, and `affectedBy` relationship—no tool, skill, handoff, or schema binding. `src/workflow.ts` retains the directly exported `supportWorkflow`, its direct `answerQuestion` task, and TypeScript `string` annotations. Workspace hashes confirm the source was unchanged, and deterministic typechecking passed."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

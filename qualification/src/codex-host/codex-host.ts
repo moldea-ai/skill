@@ -25,6 +25,7 @@ import { createCodexExecCommand } from './utilities.ts';
 
 const SANDBOX_OUTPUT_PATH = '/home/evaluator/output.json';
 const SANDBOX_SCHEMA_PATH = '/home/evaluator/output.schema.json';
+const READ_ONLY_WORKSPACE_PATHS = ['.git', '.agents/skills/moldea', 'node_modules'];
 
 /** Production Codex CLI host fixed to the evaluation model and structured-output protocol. */
 export class CodexCliHost implements ICodexHost {
@@ -34,8 +35,10 @@ export class CodexCliHost implements ICodexHost {
       identifyCodexEvaluationHost(
         createCodexExecCommand({
           outputPath: SANDBOX_OUTPUT_PATH,
+          role: 'actor',
           schemaPath: SANDBOX_SCHEMA_PATH,
         }),
+        'actor',
       ).version,
     );
   }
@@ -71,6 +74,7 @@ export class CodexCliHost implements ICodexHost {
       await writeJsonFileAtomically(schemaPath, z.toJSONSchema(input.schema));
       const command = createCodexExecCommand({
         outputPath: SANDBOX_OUTPUT_PATH,
+        role,
         schemaPath: SANDBOX_SCHEMA_PATH,
       });
       const startedAt = performance.now();
@@ -80,12 +84,17 @@ export class CodexCliHost implements ICodexHost {
         defaultHostTimeoutMs: QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS,
         includeWorkspaceBinaryDirectory: role === 'actor',
         prompt: input.prompt,
+        readOnlyWorkspacePaths: READ_ONLY_WORKSPACE_PATHS,
+        role,
         sandboxHome,
         ...(input.signal === undefined ? {} : { signal: input.signal }),
         workspaceAccess,
       });
       const output = input.schema.parse(JSON.parse(await readFile(outputPath, 'utf8')) as unknown);
       const executionEvidence = projectCodexEvaluationExecutionEvidence(rawEvents);
+      if (executionEvidence.usage === null) {
+        throw new Error('Codex qualification execution did not report model token usage.');
+      }
 
       return {
         output,

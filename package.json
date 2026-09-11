@@ -1,6 +1,6 @@
 {
   "name": "@moldea.ai/skill-conformance",
-  "version": "4.0.2",
+  "version": "5.0.0",
   "private": true,
   "description": "Development-only conformance checks for the moldea Agent Skill.",
   "type": "module",
@@ -8,31 +8,34 @@
     "node": ">=22.11.0"
   },
   "moldeaRelease": {
-    "cliJsonSchemaVersion": 2
+    "cliJsonSchemaVersion": 4,
+    "coreVersionRange": "^4.0.1"
   },
   "scripts": {
     "docs:check": "npm --prefix website run docs:check",
     "docs:generate": "npm --prefix website run docs:generate",
     "eval:semantic": "node --experimental-strip-types tooling/evidence-identity/run-semantic-evaluation.mjs",
+    "eval:semantic:diagnose": "node --experimental-strip-types tooling/evidence-identity/run-semantic-evaluation.mjs --diagnose-batch",
     "eval:semantic:identity": "node --experimental-strip-types tooling/evidence-identity/record-semantic-identity.mjs",
     "eval:semantic:preflight": "node --experimental-strip-types tests/semantic-evaluation-runner.mjs --preflight",
     "eval:semantic:verify": "node --experimental-strip-types tests/semantic-evaluation-runner.mjs --verify-attempts",
     "qualification": "npm --prefix qualification run qualification --",
     "qualification:dry-run": "npm --prefix qualification run qualification -- run --adapter custom --implementation custom --dry-run --json",
+    "qualification:dry-run:all": "npm run qualification:dry-run && npm --prefix qualification run qualification -- run-batch --all --dry-run --workers 4 --json",
     "qualification:format:check": "npm --prefix qualification run format:check",
     "qualification:lint": "npm --prefix qualification run lint",
     "qualification:list": "npm --prefix qualification run qualification -- list",
-    "qualification:storage:migrate": "node --experimental-strip-types tooling/qualification-storage-migration/index.mjs",
     "qualification:test": "npm --prefix qualification test",
     "qualification:test:integration": "npm --prefix qualification run test:integration",
     "qualification:test:unit": "npm --prefix qualification run test:unit",
     "qualification:typecheck": "npm --prefix qualification run typecheck",
     "qualification:verify": "npm --prefix qualification run qualification -- verify",
     "path:check": "node tooling/path-portability/index.mjs",
-    "release:check": "npm test && npm run eval:semantic:verify && npm run qualification:verify && node --experimental-strip-types tooling/release-identity/check-release.mjs",
-    "release:carry-forward:write": "node --experimental-strip-types tooling/release-identity/carry-forward-4-0-1.mjs --write",
-    "release:compatibility-bridge:check-packages": "node --experimental-strip-types tooling/release-identity/compatibility-bridge-4-0-2.mjs --check-packages",
-    "release:compatibility-bridge:write": "node --experimental-strip-types tooling/release-identity/compatibility-bridge-4-0-2.mjs --write",
+    "resource:calibrate": "node tooling/resource-calibration/index.mjs --record --samples 3",
+    "resource:check": "node tooling/resource-calibration/index.mjs --check",
+    "release:check": "npm test && node --experimental-strip-types tooling/release-identity/check-release.mjs",
+    "release:evidence:pin": "node --experimental-strip-types tooling/release-identity/pin-evidence.mjs",
+    "release:evidence:record": "node --experimental-strip-types tooling/release-identity/record-evidence.mjs",
     "release:identity:check": "node --experimental-strip-types tooling/release-identity/check-release.mjs --identity-only",
     "release:update-cli": "node tooling/release-identity/update-cli.mjs",
     "test": "npm run test:unit && npm run test:integration",
@@ -43,7 +46,7 @@
     "website:dev": "npm --prefix website run dev"
   },
   "devDependencies": {
-    "@moldea.ai/cli": "5.0.3",
+    "@moldea.ai/cli": "8.0.0",
     "semver": "7.8.5",
     "yaml": "2.9.0"
   }

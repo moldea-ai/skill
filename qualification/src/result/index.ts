@@ -13,3 +13,4 @@ export {
   recordQualificationResult,
   verifyQualificationResults,
 } from './recorder.ts';
+export { validateQualificationAttemptEvidence } from './evidence.ts';

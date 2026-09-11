@@ -1,0 +1,38 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T09:26:30.655Z",
+  "durationMs": 104671,
+  "usage": {
+    "inputTokens": 284542,
+    "cachedInputTokens": 256256,
+    "outputTokens": 3612
+  },
+  "stageIdentity": "3291b8383cef5edb120cf54b84250c74949a36e77fb342f9df71e6fdfdd3ee4d",
+  "sourceAttemptId": "20260911T092156960Z-custom-custom-fb757bcc",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 17,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 47030,
+    "moldeaCommandCount": 1,
+    "moldeaOutputByteCount": 495,
+    "networkAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    },
+    "sensitiveAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    }
+  }
+}

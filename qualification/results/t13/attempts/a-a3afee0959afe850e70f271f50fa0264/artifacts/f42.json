@@ -1,0 +1,29 @@
+{
+  "verdict": "fail",
+  "summary": "Three requirements pass, but the runtime-guidance file omits the required supported direct object-literal alternative. The manifest warning mentions that alternative, which does not satisfy the requirement that the guidance file itself describe it.",
+  "requirements": [
+    {
+      "id": "identifies-unsupported-form",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` calls `generateText(buildRequest(prompt))`, and `buildRequest` supplies `prepareStep` that may replace instructions. The runtime guidance and manifest warning explicitly explain that this indirect form prevents static proof of the effective instructions."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "fail",
+      "evidence": "`moldea/moldea.yaml` references the sole file `moldea/runtimes/vercel-ai-sdk.md`, and that file accurately describes the repository wrapper without provider claims. However, the file does not describe the supported direct `generateText({ ... })` object-literal alternative; that detail appears only in the manifest warning."
+    },
+    {
+      "id": "records-unresolved-boundary",
+      "verdict": "pass",
+      "evidence": "The manifest adds an agent-level warning named `static-instruction-boundary`, identifies `/src/support-agent.ts`, explains the static-analysis limitation, and gives the concrete resolution of migrating to direct `generateText({ ... })` with focused runtime coverage. Deterministic validation passed."
+    },
+    {
+      "id": "avoids-inference",
+      "verdict": "pass",
+      "evidence": "The Git diff adds only the guidance reference and unresolved warning. It adds no instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationship, and the existing source and bindings remain unchanged."
+    }
+  ],
+  "failures": [
+    "Update `moldea/runtimes/vercel-ai-sdk.md` itself to describe the supported direct `generateText({ ... })` object-literal alternative, without adding provider-behavior claims."
+  ]
+}

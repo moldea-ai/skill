@@ -1,0 +1,77 @@
+{
+  "caseId": "repair-vercel-tool-registration",
+  "title": "Repair Vercel tool registration",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 363671,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 363671,
+      "deterministicBeforePath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-vercel-tool-registration/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-vercel-tool-registration/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-vercel-tool-registration/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-vercel-tool-registration/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 330610,
+        "cachedInputTokens": 303232,
+        "outputTokens": 5813
+      },
+      "judgeUsage": {
+        "inputTokens": 152097,
+        "cachedInputTokens": 137344,
+        "outputTokens": 2440
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T07:27:34.278Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T07:29:50.512Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-name-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor identifies the original mismatch, and the patch confirms it: `moldea/moldea.yaml` changed from `name: find_order` to `name: lookup_order`, while `src/agent.ts` registers `tools: { lookup_order: lookupOrderTool }`."
+        },
+        {
+          "id": "repairs-canonical-name",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The current manifest declares `name: lookup_order`. Git status and diff show `moldea/moldea.yaml` as the only changed path and only this name correction. Deterministic validation reports `valid`, zero failures, and passing typecheck."
+        },
+        {
+          "id": "preserves-binding-closure",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The current manifest exactly binds `supportAgent`, `loadSupportInstruction`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema` to their existing source declarations. Workspace hashes show all source and instruction files unchanged, and deterministic inspection, validation, and typechecking all pass."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

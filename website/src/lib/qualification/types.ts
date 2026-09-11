@@ -1,10 +1,20 @@
 import { posix } from 'node:path';
 
-import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
+import type {
+  IEvaluationReplayModel,
+  IEvaluationReplayPathTreeNode,
+  IEvaluationReplayWorkspaceChange,
+  IEvaluationReplayWorkspaceChangeStatus,
+} from '@moldea.ai/website-ui/evaluation-replay-model';
 import { z } from 'zod';
 
+import {
+  EVALUATION_CONFIRMATION_POLICY,
+  getEvaluationConfirmationResolution,
+} from '../../../../tooling/evaluation-confirmation-policy/index.mjs';
+
 const QUALIFICATION_PROTOCOL_VERSION = 2;
-const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 6;
+const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 10;
 const INITIAL_OPERATIONAL_RETRY_DELAY_MS = 5_000;
 const MAXIMUM_OPERATIONAL_RETRY_DELAY_MS = 60_000;
 const StableIdSchema = z
@@ -26,6 +36,16 @@ const RelativePathSchema = z
   }, 'Expected a normalized repository-relative POSIX path.');
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
 const AttemptStatusSchema = z.enum(['errored', 'failed', 'incomplete', 'passed']);
+const QualificationConfirmationPolicySchema = z.strictObject({
+  version: z.literal(EVALUATION_CONFIRMATION_POLICY.version),
+  requiredPassingConfirmations: z.literal(
+    EVALUATION_CONFIRMATION_POLICY.requiredPassingConfirmations,
+  ),
+  requiredFailingConfirmations: z.literal(
+    EVALUATION_CONFIRMATION_POLICY.requiredFailingConfirmations,
+  ),
+  maximumConfirmations: z.literal(EVALUATION_CONFIRMATION_POLICY.maximumConfirmations),
+});
 
 /** Calculates the independently validated retry-delay range for one failure count. */
 const getOperationalRetryDelayRange = (
@@ -101,6 +121,7 @@ export const QualificationScenarioSchema = z.object({
   id: StableIdSchema,
   title: z.string().trim().min(1),
   purpose: z.string().trim().min(1),
+  resourceProfile: z.enum(['largeTraversal', 'ordinary']),
   taskFile: RelativePathSchema,
   seedDirectory: RelativePathSchema,
   overlayDirectory: RelativePathSchema.optional(),
@@ -176,6 +197,28 @@ export const QualificationScenarioSchema = z.object({
     .min(1),
 });
 
+// operating profile persisted by the qualification source commit
+export const QualificationResourceProfileSchema = z.strictObject({
+  maxCompletedCommandCount: z.number().int().positive(),
+  maxCommandOutputBytes: z.number().int().positive(),
+  maxHostTokenCount: z.number().int().positive(),
+  maxModelVisibleToolOutputBytes: z.number().int().positive(),
+  maxAggregateMoldeaOutputBytes: z.number().int().positive(),
+  maxMoldeaCommandCount: z.number().int().positive(),
+  maxOutputPageBytes: z.number().int().positive(),
+});
+
+// minimum historical calibration contract independently consumed by the website
+export const QualificationResourceCalibrationSchema = z.object({
+  schemaVersion: z.literal(1),
+  profiles: z.object({
+    ordinary: QualificationResourceProfileSchema,
+    largeTraversal: QualificationResourceProfileSchema,
+  }),
+});
+
+export type IQualificationResourceProfile = z.infer<typeof QualificationResourceProfileSchema>;
+
 // website read models select the current evidence fields rendered by public pages
 const QualificationLatestResultShape = {
   adapterId: StableIdSchema,
@@ -189,11 +232,16 @@ export const QualificationLatestResultSchema = z.object({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationLatestResultShape,
 });
-const ModelUsageSchema = z.object({
-  inputTokens: z.number().int().nonnegative(),
-  cachedInputTokens: z.number().int().nonnegative(),
-  outputTokens: z.number().int().nonnegative(),
-});
+const ModelUsageSchema = z
+  .object({
+    inputTokens: z.number().int().nonnegative(),
+    cachedInputTokens: z.number().int().nonnegative(),
+    outputTokens: z.number().int().nonnegative(),
+  })
+  .refine(
+    (usage) => usage.cachedInputTokens <= usage.inputTokens,
+    'Cached model input tokens exceed total model input tokens.',
+  );
 const CandidatePackageSchema = z.object({
   name: z.string().trim().min(1),
   version: z.string().trim().min(1),
@@ -203,8 +251,10 @@ const CandidatePackageSchema = z.object({
   tarballName: z.string().trim().min(1),
   sha256: Sha256Schema,
 });
+
 const QualificationProvenanceShape = {
-  reasoningEffort: z.literal('medium'),
+  actorReasoningEffort: z.literal('xhigh'),
+  judgeReasoningEffort: z.literal('xhigh'),
   codexVersion: z.string().trim().min(1),
   nodeVersion: z.string().trim().min(1),
   pnpmVersion: z.string().trim().min(1),
@@ -218,6 +268,7 @@ const QualificationProvenanceShape = {
     })
     .nullable(),
   sslCertificateFileSha256: Sha256Schema.nullable(),
+  candidateFingerprint: Sha256Schema.nullable(),
   packagesRepositoryCommit: z.string().trim().min(1),
   packagesRepositoryFingerprint: Sha256Schema,
   packagesRepositoryDirty: z.boolean(),
@@ -232,15 +283,34 @@ const QualificationProvenanceShape = {
   baselineAttemptId: z.string().trim().min(1).nullable(),
   packages: z.array(CandidatePackageSchema).min(1),
 };
-const QualificationCurrentProvenanceSchema = z.object({
+const QualificationCurrentProvenanceSchema = z.strictObject({
   model: z.literal('gpt-5.6-sol'),
   ...QualificationProvenanceShape,
 });
+const QualificationTrialDimensionsSchema = z.strictObject({
+  semantic: z.boolean(),
+  resource: z.boolean(),
+  commandPolicy: z.boolean(),
+  repositoryControl: z.boolean(),
+  mountIntegrity: z.boolean(),
+  operational: z.boolean(),
+});
+const QualificationFailureClassificationSchema = z.enum([
+  'semantic',
+  'resource',
+  'commandPolicy',
+  'repositoryControl',
+  'mountIntegrity',
+  'operational',
+]);
 export const QualificationTrialResultSchema = z
-  .object({
-    trialId: z.enum(['initial', 'confirmation-1', 'confirmation-2']),
+  .strictObject({
+    trialId: z.enum(['initial', 'confirmation-1', 'confirmation-2', 'confirmation-3']),
     kind: z.enum(['confirmation', 'initial']),
-    confirmationIndex: z.number().int().min(1).max(2).nullable(),
+    confirmationIndex: z.number().int().min(1).max(3).nullable(),
+    confirmationEligible: z.boolean(),
+    dimensions: QualificationTrialDimensionsSchema,
+    failureClassifications: z.array(QualificationFailureClassificationSchema),
     passed: z.boolean(),
     durationMs: z.number().int().nonnegative(),
     deterministicBeforePath: RelativePathSchema,
@@ -255,8 +325,8 @@ export const QualificationTrialResultSchema = z
     judgeUsage: ModelUsageSchema.nullable(),
     actorEvidenceCreatedAt: z.iso.datetime(),
     judgeEvidenceCreatedAt: z.iso.datetime().nullable(),
-    actorCacheSourceAttemptId: z.string().nullable(),
-    judgeCacheSourceAttemptId: z.string().nullable(),
+    actorReuseSourceAttemptId: z.string().nullable(),
+    judgeReuseSourceAttemptId: z.string().nullable(),
     requirementAssessments: z
       .array(
         z.object({
@@ -286,55 +356,126 @@ export const QualificationTrialResultSchema = z
     }
 
     if (
-      trial.passed !== (trial.failures.length === 0) ||
-      (trial.kind === 'confirmation' &&
-        (trial.actorCacheSourceAttemptId !== null || trial.judgeCacheSourceAttemptId !== null))
+      (trial.passed && trial.failures.length > 0) ||
+      (!trial.passed && trial.failures.length === 0)
     ) {
       context.addIssue({
         code: 'custom',
-        message: 'Trial verdict and cache provenance are contradictory.',
+        message: 'Trial pass state must agree with its recorded failures.',
         path: ['failures'],
+      });
+    }
+
+    const dimensionEntries = Object.entries(trial.dimensions);
+    const isPassing = dimensionEntries.every(([, passed]) => passed);
+    const failureClassifications = dimensionEntries
+      .filter(([, passed]) => !passed)
+      .map(([dimension]) => dimension);
+    const isConfirmationEligible =
+      !trial.dimensions.semantic &&
+      dimensionEntries
+        .filter(([dimension]) => dimension !== 'semantic')
+        .every(([, passed]) => passed);
+    if (
+      trial.passed !== isPassing ||
+      trial.confirmationEligible !== isConfirmationEligible ||
+      JSON.stringify(trial.failureClassifications) !== JSON.stringify(failureClassifications)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Trial verdict and confirmation eligibility must derive from its dimensions.',
+        path: ['dimensions'],
+      });
+    }
+
+    if (
+      new Set(trial.requirementAssessments.map(({ id }) => id)).size !==
+      trial.requirementAssessments.length
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Trial requirement assessments must have unique ids.',
+        path: ['requirementAssessments'],
       });
     }
   });
 export const QualificationCurrentCaseResultSchema = z
-  .object({
+  .strictObject({
     caseId: StableIdSchema,
     title: z.string().trim().min(1),
     status: z.enum(['failed', 'passed', 'recovered']),
     confirmationStatus: z.enum(['not-applicable', 'not-required', 'passed', 'rejected']),
     durationMs: z.number().int().nonnegative(),
-    trials: z.array(QualificationTrialResultSchema).min(1).max(3),
+    trials: z
+      .array(QualificationTrialResultSchema)
+      .min(1)
+      .max(EVALUATION_CONFIRMATION_POLICY.maximumConfirmations + 1),
     failures: z.array(z.string()),
+    reuse: z
+      .strictObject({
+        sourceAttemptId: z.string().trim().min(1),
+        sourceCommit: z.string().regex(/^[a-f0-9]{40}$/u),
+        sourceAttemptDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+      })
+      .nullable(),
   })
   .superRefine((caseResult, context) => {
-    const [initial, confirmation1, confirmation2] = caseResult.trials;
-    const hasValidHistory =
-      initial?.trialId === 'initial' &&
-      (initial.passed
-        ? caseResult.trials.length === 1 &&
-          caseResult.status === 'passed' &&
-          caseResult.confirmationStatus === 'not-required'
-        : confirmation1?.trialId === 'confirmation-1' &&
-          (confirmation1.passed
-            ? confirmation2?.trialId === 'confirmation-2' &&
-              caseResult.trials.length === 3 &&
-              (confirmation2.passed
-                ? caseResult.status === 'recovered' && caseResult.confirmationStatus === 'passed'
-                : caseResult.status === 'failed' && caseResult.confirmationStatus === 'rejected')
-            : caseResult.trials.length === 2 &&
+    const [initial] = caseResult.trials;
+    const confirmations = caseResult.trials.slice(1);
+    let hasValidHistory = initial?.trialId === 'initial';
+
+    if (initial?.passed) {
+      hasValidHistory =
+        hasValidHistory &&
+        caseResult.trials.length === 1 &&
+        caseResult.status === 'passed' &&
+        caseResult.confirmationStatus === 'not-required';
+    } else if (initial !== undefined && !initial.confirmationEligible) {
+      hasValidHistory =
+        hasValidHistory &&
+        caseResult.trials.length === 1 &&
+        caseResult.status === 'failed' &&
+        caseResult.confirmationStatus === 'not-applicable';
+    } else {
+      try {
+        const resolution = getEvaluationConfirmationResolution(
+          confirmations.map(({ passed }) => passed),
+        );
+        hasValidHistory =
+          hasValidHistory &&
+          confirmations.length > 0 &&
+          confirmations.every(
+            (trial, index) =>
+              trial.trialId === `confirmation-${index + 1}` &&
+              trial.confirmationIndex === index + 1,
+          ) &&
+          ((resolution === 'recovered' &&
+            caseResult.status === 'recovered' &&
+            caseResult.confirmationStatus === 'passed') ||
+            (resolution === 'confirmed-failure' &&
               caseResult.status === 'failed' &&
               caseResult.confirmationStatus === 'rejected'));
+      } catch {
+        hasValidHistory = false;
+      }
+    }
+    const expectedReuseSourceAttemptId = caseResult.reuse?.sourceAttemptId ?? null;
+    const reuseSourceAttemptIds = caseResult.trials.flatMap((trial) => [
+      trial.actorReuseSourceAttemptId,
+      ...(trial.judgeStatus === 'completed' ? [trial.judgeReuseSourceAttemptId] : []),
+    ]);
 
     if (
       !hasValidHistory ||
       new Set(caseResult.trials.map(({ trialId }) => trialId)).size !== caseResult.trials.length ||
-      (caseResult.status === 'failed') !== caseResult.failures.length > 0
+      (caseResult.status === 'failed') !== caseResult.failures.length > 0 ||
+      (caseResult.reuse !== null && caseResult.status === 'failed') ||
+      reuseSourceAttemptIds.some((attemptId) => attemptId !== expectedReuseSourceAttemptId)
     ) {
       context.addIssue({
         code: 'custom',
-        message: 'Case verdict contradicts its ordered trial history.',
-        path: ['trials'],
+        message: 'Case verdict, ordered trials, and reuse source are contradictory.',
+        path: ['reuse'],
       });
     }
   });
@@ -342,7 +483,7 @@ export const QualificationCaseResultSchema = QualificationCurrentCaseResultSchem
 const QualificationAttemptResultShape = {
   attemptId: z.string().trim().min(1),
   parentAttemptId: z.string().trim().min(1).nullable(),
-  selection: z.object({
+  selection: z.strictObject({
     adapterId: StableIdSchema,
     implementationId: StableIdSchema,
   }),
@@ -353,18 +494,28 @@ const QualificationAttemptResultShape = {
   summary: z.string().trim().min(1),
   artifactDigests: z.record(RelativePathSchema, Sha256Schema),
 };
-const QualificationStageSchema = z.object({
+const QualificationStageSchema = z.strictObject({
   id: z.string().trim().min(1),
-  status: z.enum(['cached', 'errored', 'failed', 'passed', 'pending', 'running', 'skipped']),
+  status: z.enum([
+    'reused',
+    'errored',
+    'failed',
+    'passed',
+    'pending',
+    'running',
+    'skipped',
+    'stopped',
+  ]),
   startedAt: z.iso.datetime().nullable(),
   completedAt: z.iso.datetime().nullable(),
   durationMs: z.number().int().nonnegative().nullable(),
-  cacheKey: Sha256Schema.nullable(),
-  cacheSourceAttemptId: z.string().nullable(),
+  stageIdentity: Sha256Schema.nullable(),
+  reuseSourceAttemptId: z.string().nullable(),
   error: z.string().nullable(),
+  hasUsedOperationalStopResume: z.boolean(),
 });
 const QualificationOperationalRetrySchema = z
-  .object({
+  .strictObject({
     category: z.enum(['execution-failed', 'proxy-unavailable', 'timed-out']),
     failedAt: z.iso.datetime(),
     failureCount: z.number().int().positive(),
@@ -383,8 +534,18 @@ const QualificationOperationalRetrySchema = z
   });
 const QualificationCurrentStageSchema = QualificationStageSchema.extend({
   operationalRetries: z.array(QualificationOperationalRetrySchema).max(1),
+  operationalStops: z
+    .array(
+      z.strictObject({
+        category: z.enum(['execution-failed', 'proxy-unavailable', 'timed-out']),
+        failedAt: z.iso.datetime(),
+        failureCount: z.literal(2),
+        maximumRetryCount: z.literal(1),
+      }),
+    )
+    .max(2),
 }).superRefine((stage, context) => {
-  const isModelStage = /:trial:(?:initial|confirmation-[12]):(?:actor|judge)$/u.test(stage.id);
+  const isModelStage = /:trial:(?:initial|confirmation-[123]):(?:actor|judge)$/u.test(stage.id);
 
   for (const [index, retry] of stage.operationalRetries.entries()) {
     if (retry.failureCount !== index + 1) {
@@ -397,9 +558,12 @@ const QualificationCurrentStageSchema = QualificationStageSchema.extend({
   }
 
   if (
-    (stage.operationalRetries.length > 0 && !isModelStage) ||
-    (stage.operationalRetries.length > 0 &&
-      (stage.status === 'cached' || stage.status === 'skipped'))
+    ((stage.operationalRetries.length > 0 ||
+      stage.operationalStops.length > 0 ||
+      stage.hasUsedOperationalStopResume) &&
+      !isModelStage) ||
+    ((stage.operationalRetries.length > 0 || stage.operationalStops.length > 0) &&
+      (stage.status === 'reused' || stage.status === 'skipped'))
   ) {
     context.addIssue({
       code: 'custom',
@@ -407,14 +571,26 @@ const QualificationCurrentStageSchema = QualificationStageSchema.extend({
       path: ['operationalRetries'],
     });
   }
+
+  const hasValidStopState = stage.hasUsedOperationalStopResume
+    ? stage.operationalStops.length >= 1 &&
+      (stage.status !== 'stopped' || stage.operationalStops.length === 2)
+    : stage.status === 'stopped'
+      ? stage.operationalStops.length === 1
+      : stage.operationalStops.length === 0;
+
+  if (!hasValidStopState) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Operational stop history contradicts the explicit resume state.',
+      path: ['operationalStops'],
+    });
+  }
 });
-export const QualificationAttemptResultSchema = z.object({
+export const QualificationAttemptResultSchema = z.strictObject({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationAttemptResultShape,
-  confirmationPolicy: z.object({
-    version: z.literal(1),
-    requiredPassingConfirmations: z.literal(2),
-  }),
+  confirmationPolicy: QualificationConfirmationPolicySchema,
   mode: z.literal('official'),
   stages: z.array(QualificationCurrentStageSchema),
   cases: z.array(QualificationCurrentCaseResultSchema),
@@ -523,36 +699,107 @@ export const QualificationJudgeSkippedSchema = z.object({
   deterministicAfterPassed: z.boolean(),
   workspaceAssertionsPassed: z.boolean(),
 });
+const QualificationCommandPolicyReasonSchema = z.strictObject({
+  code: z.enum([
+    'broad-filesystem-read',
+    'credential-material',
+    'dynamic-execution',
+    'environment-dump',
+    'environment-value-read',
+    'evaluator-auth-file',
+    'evaluator-home',
+    'git-network',
+    'network-client',
+    'oversized-command',
+    'package-manager-network',
+    'process-environment',
+    'unclassified-command',
+  ]),
+  count: z.number().int().positive(),
+});
+
+// reason-code status ownership encoded by the runner's deterministic classifier
+const NETWORK_OBSERVED_REASON_CODES = new Set([
+  'git-network',
+  'network-client',
+  'package-manager-network',
+]);
+const NETWORK_INDETERMINATE_REASON_CODES = new Set([
+  'dynamic-execution',
+  'oversized-command',
+  'unclassified-command',
+]);
+const SENSITIVE_OBSERVED_REASON_CODES = new Set([
+  'environment-dump',
+  'environment-value-read',
+  'evaluator-auth-file',
+  'evaluator-home',
+  'process-environment',
+]);
+const SENSITIVE_INDETERMINATE_REASON_CODES = new Set([
+  'broad-filesystem-read',
+  'dynamic-execution',
+  'oversized-command',
+  'unclassified-command',
+]);
+
+const QualificationCommandPolicyObservationSchema = z.strictObject({
+  status: z.enum(['indeterminate', 'not-observed', 'observed']),
+  observedCount: z.number().int().nonnegative(),
+  indeterminateCount: z.number().int().nonnegative(),
+  reasons: z.array(QualificationCommandPolicyReasonSchema),
+});
 const QualificationCommandPolicyEvidenceSchema = z
   .strictObject({
     completedCommandCount: z.number().int().min(0).max(128),
     credentialExposure: z.strictObject({
       status: z.enum(['not-observed', 'observed']),
       observedCount: z.number().int().nonnegative(),
+      reasons: z.array(QualificationCommandPolicyReasonSchema),
     }),
-    networkAccess: z.strictObject({
-      status: z.enum(['indeterminate', 'not-observed', 'observed']),
-      observedCount: z.number().int().nonnegative(),
-      indeterminateCount: z.number().int().nonnegative(),
-    }),
-    sensitiveAccess: z.strictObject({
-      status: z.enum(['indeterminate', 'not-observed', 'observed']),
-      observedCount: z.number().int().nonnegative(),
-      indeterminateCount: z.number().int().nonnegative(),
-    }),
+    maximumCommandOutputByteCount: z.number().int().min(0).max(16_777_216),
+    modelVisibleToolOutputByteCount: z.number().int().min(0).max(16_777_216),
+    moldeaCommandCount: z.number().int().min(0).max(32),
+    moldeaOutputByteCount: z.number().int().min(0).max(8_388_608),
+    networkAccess: QualificationCommandPolicyObservationSchema,
+    sensitiveAccess: QualificationCommandPolicyObservationSchema,
   })
   .superRefine((evidence, context) => {
     for (const field of ['networkAccess', 'sensitiveAccess'] as const) {
       const observation = evidence[field];
+      const observedReasonCodes =
+        field === 'networkAccess' ? NETWORK_OBSERVED_REASON_CODES : SENSITIVE_OBSERVED_REASON_CODES;
+      const indeterminateReasonCodes =
+        field === 'networkAccess'
+          ? NETWORK_INDETERMINATE_REASON_CODES
+          : SENSITIVE_INDETERMINATE_REASON_CODES;
       const expectedStatus =
         observation.observedCount > 0
           ? 'observed'
           : observation.indeterminateCount > 0
             ? 'indeterminate'
             : 'not-observed';
+      const observedReasonCount = observation.reasons.reduce(
+        (total, reason) => total + (observedReasonCodes.has(reason.code) ? reason.count : 0),
+        0,
+      );
+      const indeterminateReasonCount = observation.reasons.reduce(
+        (total, reason) => total + (indeterminateReasonCodes.has(reason.code) ? reason.count : 0),
+        0,
+      );
       if (
         observation.status !== expectedStatus ||
-        observation.observedCount + observation.indeterminateCount > evidence.completedCommandCount
+        observation.observedCount + observation.indeterminateCount >
+          evidence.completedCommandCount ||
+        observedReasonCount !== observation.observedCount ||
+        indeterminateReasonCount !== observation.indeterminateCount ||
+        observation.reasons.reduce((total, reason) => total + reason.count, 0) !==
+          observation.observedCount + observation.indeterminateCount ||
+        new Set(observation.reasons.map(({ code }) => code)).size !== observation.reasons.length ||
+        observation.reasons.some(
+          (reason, index) =>
+            index > 0 && (observation.reasons[index - 1]?.code ?? '') >= reason.code,
+        )
       ) {
         context.addIssue({
           code: 'custom',
@@ -570,22 +817,59 @@ const QualificationCommandPolicyEvidenceSchema = z
         path: ['credentialExposure'],
       });
     }
+    if (
+      evidence.credentialExposure.reasons.reduce((total, reason) => total + reason.count, 0) !==
+        evidence.credentialExposure.observedCount ||
+      (evidence.credentialExposure.observedCount > 0 &&
+        (evidence.credentialExposure.reasons.length !== 1 ||
+          evidence.credentialExposure.reasons[0]?.code !== 'credential-material')) ||
+      (evidence.credentialExposure.observedCount === 0 &&
+        evidence.credentialExposure.reasons.length !== 0)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Credential-exposure reasons must match the observed count.',
+        path: ['credentialExposure', 'reasons'],
+      });
+    }
+    if (
+      evidence.moldeaCommandCount > evidence.completedCommandCount ||
+      (evidence.moldeaCommandCount === 0 && evidence.moldeaOutputByteCount !== 0) ||
+      evidence.moldeaOutputByteCount > evidence.modelVisibleToolOutputByteCount
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'moldea resource totals must remain consistent with completed command output.',
+        path: ['moldeaCommandCount'],
+      });
+    }
+    if (
+      evidence.maximumCommandOutputByteCount > evidence.modelVisibleToolOutputByteCount ||
+      (evidence.completedCommandCount === 0 && evidence.maximumCommandOutputByteCount !== 0)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Command-output totals must remain consistent with completed commands.',
+        path: ['maximumCommandOutputByteCount'],
+      });
+    }
   });
 // current trial-scoped model provenance consumed independently by the website
 export const QualificationModelStageEvidenceSchema = z.strictObject({
   role: z.enum(['actor', 'judge']),
-  trialId: z.enum(['initial', 'confirmation-1', 'confirmation-2']),
+  trialId: z.enum(['initial', 'confirmation-1', 'confirmation-2', 'confirmation-3']),
   createdAt: z.iso.datetime(),
   durationMs: z.number().int().nonnegative(),
   usage: ModelUsageSchema.nullable(),
-  cacheKey: Sha256Schema,
+  stageIdentity: Sha256Schema,
   sourceAttemptId: z.string().trim().min(1),
-  cacheSourceAttemptId: z.string().trim().min(1).nullable(),
+  reuseSourceAttemptId: z.string().trim().min(1).nullable(),
   commandPolicy: QualificationCommandPolicyEvidenceSchema,
 });
 export const QualificationProjectedExecutionEventSchema = z.strictObject({
   eventType: z.literal('command.completed'),
   exitCode: z.number().int(),
+  moldeaCommandCount: z.number().int().min(0).max(32),
   outputByteCount: z.number().int().nonnegative(),
   status: z.enum(['completed', 'failed']),
 });
@@ -622,18 +906,29 @@ export interface IQualificationArtifactModel {
   sha256: string | null;
 }
 
+// one verified text artifact embedded in a public evidence view
+export interface IQualificationTextArtifactModel extends IQualificationArtifactModel {
+  content: string;
+  sha256: string;
+}
+
+// one exact workspace-change group derived from the validated before and after snapshots
+export interface IQualificationProjectChangeGroup {
+  changes: readonly IEvaluationReplayWorkspaceChange[];
+  status: IEvaluationReplayWorkspaceChangeStatus;
+  tree: readonly IEvaluationReplayPathTreeNode[];
+}
+
+// bounded project structure and changes shown to qualification visitors
+export interface IQualificationProjectEvidenceModel {
+  changeGroups: readonly IQualificationProjectChangeGroup[];
+  startingTree: readonly IEvaluationReplayPathTreeNode[];
+}
+
 // repository location from which one website attempt was resolved at build time
-export type IQualificationEvidenceSourceModel =
-  | {
-      commit: null;
-      kind: 'current';
-      release: null;
-    }
-  | {
-      commit: string;
-      kind: 'historical';
-      release: string;
-    };
+export interface IQualificationEvidenceSourceModel {
+  kind: 'current';
+}
 
 // one transparent case and project selected by a qualification profile
 export interface IQualificationProfileCaseModel {
@@ -660,6 +955,7 @@ export interface IQualificationAttemptTrialModel {
   deterministicBefore: IDeterministicVerification;
   developerTask: string;
   judge: IJudgeOutput | null;
+  judgeCommandPolicy: IQualificationCommandPolicyEvidence | null;
   judgeSkipped: IQualificationJudgeSkipped | null;
   result: IQualificationTrialResult;
   retries: {
@@ -667,6 +963,7 @@ export interface IQualificationAttemptTrialModel {
     judge: IQualificationOperationalRetry[];
   };
   workspaceAssertions: IWorkspaceAssertionResult;
+  workspacePatch: IQualificationTextArtifactModel;
 }
 
 // complete evidence for one case in an immutable attempt
@@ -691,15 +988,25 @@ export interface IQualificationAttemptModel {
   sourceState: IQualificationSourceStateResult | null;
 }
 
+// exact current evidence required to present one profile as effectively qualified
+export interface IQualificationProfileAssuranceModel {
+  baselineAttempt: IQualificationAttemptModel | null;
+  directAttempt: IQualificationAttemptModel;
+}
+
 // one committed adapter implementation profile and its complete result history
 export interface IQualificationProfileModel {
   adapterId: string;
   attempts: IQualificationAttemptModel[];
+  boundBaseline: IQualificationAttemptModel | null;
   cases: IQualificationProfileCaseModel[];
+  currentAssurance: IQualificationProfileAssuranceModel | null;
   currentLastPassing: IQualificationAttemptModel | null;
   currentLatest: IQualificationAttemptModel | null;
+  currentStatus: IQualificationStatus | 'not-recorded';
   description: string;
   implementationId: string;
+  sharedCases: IQualificationProfileCaseModel[];
   latest: IQualificationLatestResult | null;
   probes: z.infer<typeof QualificationProbesSchema>['probes'];
   probesSourceUrl: string;
@@ -712,4 +1019,5 @@ export interface IQualificationProfileModel {
 export interface IQualificationWebsiteModel {
   profiles: IQualificationProfileModel[];
   route: string;
+  uniqueJourneyCount: number;
 }

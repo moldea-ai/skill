@@ -24,6 +24,7 @@ const PROFILE_CASE: IQualificationProfileCaseModel = {
     id: 'release-case',
     title: 'Release case',
     purpose: 'Verify the complete public replay.',
+    resourceProfile: 'ordinary',
     taskFile: 'task.md',
     seedDirectory: 'seed',
     removePaths: [],
@@ -89,6 +90,7 @@ const DETERMINISTIC_VERIFICATION: IDeterministicVerification = {
 const createCommandEvent = (exitCode: number): IQualificationProjectedExecutionEvent => ({
   eventType: 'command.completed',
   exitCode,
+  moldeaCommandCount: 0,
   outputByteCount: exitCode === 0 ? 12 : 24,
   status: exitCode === 0 ? 'completed' : 'failed',
 });
@@ -110,7 +112,7 @@ const createWorkspace = (): IWorkspaceAssertionResult => ({
 const createTrial = (
   options: {
     actorExecutionEvents?: IQualificationProjectedExecutionEvent[];
-    confirmationIndex?: 1 | 2;
+    confirmationIndex?: 1 | 2 | 3;
     passed?: boolean;
     workspaceAssertions?: IWorkspaceAssertionResult;
   } = {},
@@ -120,6 +122,35 @@ const createTrial = (
   const passed = options.passed ?? true;
   const trialId: IQualificationTrialResult['trialId'] =
     confirmationIndex === null ? 'initial' : `confirmation-${confirmationIndex}`;
+  const commandPolicy = {
+    completedCommandCount: actorExecutionEvents.length,
+    credentialExposure: { status: 'not-observed' as const, observedCount: 0, reasons: [] },
+    maximumCommandOutputByteCount: Math.max(
+      0,
+      ...actorExecutionEvents.map(({ outputByteCount }) => outputByteCount),
+    ),
+    modelVisibleToolOutputByteCount: actorExecutionEvents.reduce(
+      (total, event) => total + event.outputByteCount,
+      0,
+    ),
+    moldeaCommandCount: actorExecutionEvents.reduce(
+      (total, event) => total + event.moldeaCommandCount,
+      0,
+    ),
+    moldeaOutputByteCount: 0,
+    networkAccess: {
+      status: 'not-observed' as const,
+      observedCount: 0,
+      indeterminateCount: 0,
+      reasons: [],
+    },
+    sensitiveAccess: {
+      status: 'not-observed' as const,
+      observedCount: 0,
+      indeterminateCount: 0,
+      reasons: [],
+    },
+  };
 
   return {
     actor: {
@@ -129,20 +160,7 @@ const createTrial = (
       observations: ['The runtime binding is grounded in the project implementation.'],
       unresolved: ['The external runtime remains outside this repository.'],
     },
-    actorCommandPolicy: {
-      completedCommandCount: actorExecutionEvents.length,
-      credentialExposure: { status: 'not-observed', observedCount: 0 },
-      networkAccess: {
-        status: 'not-observed',
-        observedCount: 0,
-        indeterminateCount: 0,
-      },
-      sensitiveAccess: {
-        status: 'not-observed',
-        observedCount: 0,
-        indeterminateCount: 0,
-      },
-    },
+    actorCommandPolicy: commandPolicy,
     actorExecutionEvents,
     artifacts: [],
     deterministicAfter: DETERMINISTIC_VERIFICATION,
@@ -162,11 +180,22 @@ const createTrial = (
       ],
       failures: passed ? [] : ['The complete evidence failed.'],
     },
+    judgeCommandPolicy: commandPolicy,
     judgeSkipped: null,
     result: {
       trialId,
       kind: confirmationIndex === null ? 'initial' : 'confirmation',
       confirmationIndex,
+      confirmationEligible: !passed,
+      dimensions: {
+        semantic: passed,
+        resource: true,
+        commandPolicy: true,
+        repositoryControl: true,
+        mountIntegrity: true,
+        operational: true,
+      },
+      failureClassifications: passed ? [] : ['semantic'],
       passed,
       durationMs: 1_000,
       deterministicBeforePath: `cases/release-case/trials/${trialId}/deterministic-before.json`,
@@ -181,8 +210,8 @@ const createTrial = (
       judgeUsage: null,
       actorEvidenceCreatedAt: '2026-08-29T12:00:00.000Z',
       judgeEvidenceCreatedAt: '2026-08-29T12:01:00.000Z',
-      actorCacheSourceAttemptId: null,
-      judgeCacheSourceAttemptId: null,
+      actorReuseSourceAttemptId: null,
+      judgeReuseSourceAttemptId: null,
       requirementAssessments: [
         {
           id: 'complete-evidence',
@@ -195,6 +224,12 @@ const createTrial = (
     },
     retries: { actor: [], judge: [] },
     workspaceAssertions: options.workspaceAssertions ?? createWorkspace(),
+    workspacePatch: {
+      content: 'diff --git a/README.md b/README.md\n-old\n+new\n',
+      path: `cases/release-case/trials/${trialId}/workspace.patch`,
+      rawUrl: 'https://example.com/workspace.patch',
+      sha256: 'e'.repeat(64),
+    },
   };
 };
 
@@ -208,6 +243,7 @@ const createCaseResult = (
   durationMs: trials.reduce((total, trial) => total + trial.result.durationMs, 0),
   trials: trials.map(({ result }) => result),
   failures: [],
+  reuse: null,
 });
 
 describe('createQualificationReplay', () => {
@@ -265,15 +301,17 @@ describe('createQualificationReplay', () => {
 
   test('preserves initial and confirmation trials in recorded order', () => {
     const initial = createTrial({ passed: false });
-    const confirmation1 = createTrial({ confirmationIndex: 1 });
+    const confirmation1 = createTrial({ confirmationIndex: 1, passed: false });
     const confirmation2 = createTrial({ confirmationIndex: 2 });
-    const trials = [initial, confirmation1, confirmation2];
+    const confirmation3 = createTrial({ confirmationIndex: 3 });
+    const trials = [initial, confirmation1, confirmation2, confirmation3];
     const replay = createQualificationReplay(createCaseResult(trials), trials);
 
     expect(replay.trials.map(({ id, title }) => ({ id, title }))).toStrictEqual([
       { id: 'initial', title: 'Initial trial' },
       { id: 'confirmation-1', title: 'Confirmation 1' },
       { id: 'confirmation-2', title: 'Confirmation 2' },
+      { id: 'confirmation-3', title: 'Confirmation 3' },
     ]);
     expect(replay.trials[0]?.steps.at(-1)).toMatchObject({
       source: 'derived',

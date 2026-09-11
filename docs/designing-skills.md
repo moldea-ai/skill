@@ -27,7 +27,7 @@ Different surfaces own different behavior:
 - ordinary documentation explains concepts for humans
 - Agent Skills package reusable coding-agent knowledge, workflows, and supporting resources
 
-A skill is not an independently executing agent, hidden authority, or substitute for missing implementation.
+A skill is not an independently executing agent, hidden authority, or substitute for missing implementation. When a supplied Agent Skill artifact establishes the requested work boundary, creation, maintenance, evaluation, and validation stay inside that artifact; a surrounding `moldea` repository does not activate canonical inspection or validation.
 
 The coding agent names the owning surface before creating a skill. Selecting protected coding instructions as the owner never authorizes changing them, and predictable checksum or validation behavior remains in deterministic software.
 

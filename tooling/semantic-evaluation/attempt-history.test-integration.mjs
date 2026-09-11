@@ -1,10 +1,11 @@
-// @vitest-environment node
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
+import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../codex-evaluation-host/index.mjs';
+import { EVALUATION_CONFIRMATION_POLICY } from '../evaluation-confirmation-policy/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
 
 import {
@@ -13,51 +14,113 @@ import {
   verifySemanticEvaluationAttempts,
 } from './attempt-history.mjs';
 
+const EMPTY_COMMAND_POLICY_EVIDENCE = {
+  completedCommandCount: 0,
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
+  networkAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+};
+
 const createEvidence = (id, passed, updatedAt) => ({
   activeTrial: null,
   artifactDigest: 'a'.repeat(64),
   caseSuiteDigest: 'b'.repeat(64),
   cli: { name: '@moldea.ai/cli', version: '5.0.0' },
   confirmations: [],
+  confirmationPolicy: EVALUATION_CONFIRMATION_POLICY,
   coverageDigest: 'c'.repeat(64),
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt: updatedAt,
   hostContract: {
-    model: 'gpt-5.6-sol',
-    name: 'codex',
-    reasoningEffort: 'medium',
+    actor: {
+      developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
+      model: 'gpt-5.6-sol',
+      name: 'codex',
+      reasoningEffort: 'high',
+      role: 'actor',
+    },
+    judge: {
+      developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
+      model: 'gpt-5.6-sol',
+      name: 'codex',
+      reasoningEffort: 'xhigh',
+      role: 'judge',
+    },
   },
   results: [
     {
-      actorCommandPolicyEvidence: {
-        completedCommandCount: 0,
-        indeterminateCommandCount: 0,
-        packageManagerExecution: 'not-observed',
-        packageManagerInvocationCount: 0,
+      actorCommandPolicyEvidence: EMPTY_COMMAND_POLICY_EVIDENCE,
+      actorResourceEvidence: {
+        commandCount: 0,
+        maximumInvocationByteCount: 0,
+        modelVisibleToolOutputByteCount: 0,
+        operations: [],
+        stdoutByteCount: 0,
       },
       actorHost: {
+        developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
         model: 'gpt-5.6-sol',
         name: 'codex',
-        reasoningEffort: 'medium',
+        reasoningEffort: 'high',
+        role: 'actor',
         version: 'codex-cli test',
       },
+      actorUsage: {
+        cachedInputTokens: 4_000,
+        inputTokens: 8_000,
+        outputTokens: 1_000,
+      },
+      confirmationEligible: !passed,
+      dimensions: {
+        semantic: passed,
+        resource: true,
+        commandPolicy: true,
+        repositoryControl: true,
+        mountIntegrity: true,
+        operational: true,
+      },
       evaluatedAt: updatedAt,
+      executionOrigin: 'executed',
       forbidden: [],
       id,
+      failureClassifications: passed ? [] : ['semantic'],
+      judgeCommandPolicyEvidence: EMPTY_COMMAND_POLICY_EVIDENCE,
       judgeHost: {
+        developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
         model: 'gpt-5.6-sol',
         name: 'codex',
-        reasoningEffort: 'medium',
+        reasoningEffort: 'xhigh',
+        role: 'judge',
         version: 'codex-cli test',
+      },
+      judgeUsage: {
+        cachedInputTokens: 4_000,
+        inputTokens: 8_000,
+        outputTokens: 1_000,
       },
       observed: passed ? ['required-behavior'] : [],
       passed,
       rationale: passed
         ? 'The required behavior was observed.'
         : 'The required behavior was missing.',
+      stageReuse: null,
     },
   ],
-  schemaVersion: 6,
+  schemaVersion: 10,
   updatedAt,
 });
 
@@ -137,7 +200,7 @@ test('semantic attempt recording rejects a noncurrent evidence protocol', async 
     const noncurrentEvidence = `${JSON.stringify(
       {
         ...createEvidence('noncurrent-case', true, '2026-08-25T00:00:00.000Z'),
-        evaluationProtocolVersion: 22,
+        evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION - 1,
       },
       null,
       2,

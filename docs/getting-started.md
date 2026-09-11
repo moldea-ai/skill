@@ -21,10 +21,10 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.2"
+npx skills add "moldea-ai/skill#v5.0.0"
 ```
 
-Project installation is recommended because the team can share the skill through version control. Add `-g` when you deliberately want a global installation across projects.
+Repository installation is required for supported `moldea` use because the team must share the selected skill version with the project. A global installation does not establish repository adoption and is not a supported installation path.
 
 ## Initialize project context
 
@@ -37,7 +37,7 @@ This request explicitly authorizes adoption. The coding agent handles the initia
 1. Inspect the Git working tree, repository structure, code, configuration, documentation, and other high-information evidence.
 2. Select the `initialize` operation and confirm that the repository and developer authority permit the required writes.
 3. Determine whether the evidence establishes a sufficient project foundation, requires focused clarification, or provides no meaningful project context yet.
-4. Once the foundation is sufficient, establish this skill release's exact repository-local `@moldea.ai/cli` development dependency through the repository's package manager when needed. An already installed exact CLI may provide earlier read-only evidence after direct verification. It never relies on a global CLI fallback.
+4. Once the foundation is sufficient, establish this skill release's compatible repository-local `@moldea.ai/cli` development dependency through the repository's package manager when needed. A stable installed CLI 8 may provide earlier read-only evidence after its declaration, exact lockfile-selected version, composition, and containment are verified. It never relies on a global CLI fallback.
 5. Once the foundation is sufficient, create the minimum canonical state and the owned README awareness block.
 6. Run deterministic inspection and relevant project-native checks, then map the material sources to the foundation conclusions they established and report files, decisions, verification, and practical next actions.
 
@@ -74,12 +74,12 @@ Open the project in a compatible coding agent and describe the outcome:
 Create a support agent for this application.
 ```
 
-The coding agent should understand the repository before inventing behavior. If the project has not adopted `moldea` and the request authorizes creating the agent, the agent can establish the minimum useful project foundation as part of the work. You do not have to initialize `moldea` separately unless project context itself is the outcome you want.
+The coding agent should understand the repository before inventing behavior. If the project has not adopted `moldea`, initialize it explicitly first. Other repository-dependent requests abstain until the manifest, project document, and managed README block establish adoption.
 
 To design the system before implementation, ask:
 
 ```text
-Plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software and what genuinely needs model reasoning.
+Use moldea to plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software and what genuinely needs model reasoning.
 ```
 
 Planning is read-only and may recommend no agents at all.
@@ -96,29 +96,25 @@ You do not need to:
 
 The coding agent owns the safe interaction with the skill and repository-local tooling.
 
-If an ordinary request activates `moldea` in an unadopted project, initialization remains optional. The coding agent completes the authorized request, does not persist durable project knowledge, and briefly explains that initialization gives future coding agents durable Git-owned context. It can point to `Initialize moldea` without turning adoption into a prerequisite or interrupting the work with a question.
+During initialization, it writes the complete three-file foundation before making one final validation call. With no evidenced relationships, `/moldea/moldea.yaml` contains only `version: 1` and its final LF. A successful validation ends the operation without a follow-up inspection. If bounded structural diagnostics identify a repairable foundation error, the agent may correct it and validate once more.
+
+Ordinary requests that do not pass the relevance gate activate no `moldea` work, whether or not the repository is adopted. Initialization adds a managed README block that tells a supported repository-aware host to select the repository-bound skill for each repository task. The selected entrypoint runs the two-byte gate, but a miss loads no workflow reference, runs no CLI command, and produces no `moldea` report. Initialization remains an explicit operation and never interrupts unrelated work.
 
 ## Update the skill
 
-An installation from `main` follows the repository's current development branch. Rerun the same command to refresh the project installation:
+An unpinned installation follows the repository's current `main` branch. Rerun the same command to refresh the project installation:
 
 ```bash
 npx skills add moldea-ai/skill
 ```
 
-For a global branch-tracking installation, rerun it with `-g`:
-
-```bash
-npx skills add moldea-ai/skill -g
-```
-
 A release-pinned installation never moves to another tag automatically. To update it, choose the desired published release and rerun the installation command with that tag. For example, the current release is:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.2"
+npx skills add "moldea-ai/skill#v5.0.0"
 ```
 
-Replace `v4.0.2` with the newer published tag when one becomes available. Add `-g` to the tagged command only when updating a global installation.
+Replace `v5.0.0` with the desired newer published tag when one becomes available.
 
 Updating the skill refreshes its portable instructions and references. It does not initialize a project, change `/moldea/**`, install the `moldea` CLI globally, or alter a repository's canonical project state.
 
@@ -129,5 +125,3 @@ Remove a project installation with:
 ```bash
 npx skills remove moldea
 ```
-
-Add `-g` only when removing a global installation.

@@ -1,0 +1,56 @@
+{
+  "role": "judge",
+  "trialId": "confirmation-1",
+  "createdAt": "2026-09-11T06:15:08.834Z",
+  "durationMs": 228691,
+  "usage": {
+    "inputTokens": 340589,
+    "cachedInputTokens": 312064,
+    "outputTokens": 6045
+  },
+  "stageIdentity": "a7a0565324c09b88f84d1fdd5dcca3de07cce1e8bde9bc5d65dc0de54ccc33d9",
+  "sourceAttemptId": "20260911T054140998Z-anthropic-typescript-messages-api-0-117-3c166588",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 25,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 32073,
+    "moldeaCommandCount": 1,
+    "moldeaOutputByteCount": 223,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 4,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 3
+        },
+        {
+          "code": "unclassified-command",
+          "count": 1
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 4,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 3
+        },
+        {
+          "code": "unclassified-command",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

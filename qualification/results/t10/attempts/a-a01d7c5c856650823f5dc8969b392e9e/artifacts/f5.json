@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Documented LangGraph static boundaries while preserving all source implementations. Canonical validation passed with zero diagnostics, and TypeScript type-checking passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/langgraph.md"
+  ],
+  "observations": [
+    "support retains exactly its runtimeAgent, inputSchema, and outputSchema bindings.",
+    "dynamic-support retains only its runtimeAgent binding; no routing targets, handoffs, subagents, tools, schema relationships, or complete-topology claims were added.",
+    "The runtime guide records the factory schema, node-local lookup, runtime-selected Command and Send destinations, unregistered ToolNode, and runtime composition boundary."
+  ],
+  "unresolved": [
+    "Allowed dynamic destinations remain dependent on closed runtime wiring or focused integration tests.",
+    "Effective reducers, node-metadata use, subgraphs, checkpointers, stores, caches, runtime context, compiled-description use, prebuilt agents, and supervisor composition remain runtime-configured."
+  ]
+}

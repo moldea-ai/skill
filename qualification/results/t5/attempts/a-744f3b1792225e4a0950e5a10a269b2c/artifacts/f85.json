@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The support-agent setup is structurally valid and its declared runtime facts agree with the source. No repository files were changed.",
+  "changedFiles": [],
+  "observations": [
+    "`moldea/moldea.yaml` declares runtime `custom`, guidance `/moldea/runtimes/custom.md`, and binds `/src/support-agent.ts` symbol `supportAgent`.",
+    "The runtime guidance accurately describes the exported record; `src/support-agent.ts` exports `supportAgent` with ID `support` and channel `email`.",
+    "The canonical description and instruction consistently describe email-based customer support, evidence-based answers, and escalation of uncertain requests.",
+    "moldea CLI 8.0.0 validation returned `valid: true` with zero diagnostics under schema version 4.",
+    "TypeScript compilation passed. No focused project tests exist.",
+    "Final Git status and the relevant Git diff were empty."
+  ],
+  "unresolved": [
+    "The repository has no model-invocation or instruction-loading implementation, so actual runtime consumption of the canonical instruction cannot be proven; production/runtime readiness therefore remains unverified."
+  ]
+}

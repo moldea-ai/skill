@@ -1,0 +1,77 @@
+{
+  "caseId": "repair-langchain-tool-registration",
+  "title": "Repair LangChain tool registration",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 1119488,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 1119488,
+      "deterministicBeforePath": "cases/repair-langchain-tool-registration/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-langchain-tool-registration/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-langchain-tool-registration/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-langchain-tool-registration/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-langchain-tool-registration/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-langchain-tool-registration/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 292113,
+        "cachedInputTokens": 256512,
+        "outputTokens": 4595
+      },
+      "judgeUsage": {
+        "inputTokens": 243521,
+        "cachedInputTokens": 226432,
+        "outputTokens": 3832
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T11:10:49.812Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T11:20:29.550Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-name-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor identifies reconciliation of the canonical declaration with registered name `lookup_order`. The manifest diff proves the prior declaration was `find_order`, while src/agent.ts closes registration to `[lookupOrderTool]` and src/tools.ts defines that tool as `lookup_order`."
+        },
+        {
+          "id": "repairs-canonical-name",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml now declares `name: lookup_order`; the Git diff shows the sole change from `find_order`. Workspace hashes and Git status show the runtime source remained unchanged, and current validation returns `valid: true` with `diagnosticCount: 0`."
+        },
+        {
+          "id": "preserves-binding-closure",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest bindings exactly resolve to supportAgent and loadSupportInstruction in src/agent.ts, SupportOutputSchema and LookupOrderInputSchema in src/contracts.ts, lookupOrder in src/implementations.ts, and lookupOrderTool in src/tools.ts. Source consumption confirms the instruction loader, providerStrategy output schema, implementation/schema-backed tool declaration, and `[lookupOrderTool]` registration. Workspace assertions show these files unchanged; current TypeScript checking succeeds."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

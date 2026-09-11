@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "attemptKey": "a-936be8ceaf0158e8a739e4efa2eddb78",
+  "attemptId": "20260911T101535112Z-vercel-ai-sdk-typescript-tool-loop-agent-7-d2468f39",
+  "attemptIdDigest": "936be8ceaf0158e8a739e4efa2eddb78cd69d0eb6201bfaf29464bd18bfe27ba",
+  "attemptDigest": "e0ceb2397ea70e27ede2f3bd274a40b881cb30cef8d551368a39750d76ea7c71",
+  "sourceCommit": "526a06a7de1374a260af7346fd2f55bacb9930dd",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "e9cf6e97d1d5862c4d5c040a4afa73b50a3237d1f83b352f564e51130b3dc297",
+    "qualificationLogicalInputDigest": "b1fb1fd9b41e1d376b031d92677a626e0ed7d9ac663c0717de0e53b77af08cbe",
+    "qualificationBaselineEvaluatorDigest": "f127211dad0153b4cb328ff4cb0f2f927624b4db2ffe4ea55652d8c526043fcb"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "6d5a49450f68ec9cf76f139f3b19a8c2d9ee425fb9eda6a1cac978c815511e43"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/case-result.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "46fd39c76d3c0c135dc4ccd57c2d090b35256841b0a867fa3682dc098220c575"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f3.jsonl",
+      "sha256": "854a646e5b91c22a75add2c12621e8c886534e0b7eba0a6ba3afb6d1f356fdb3"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f4.json",
+      "sha256": "24bc438db65807aeab0115934668738e1a3d4aebacaf1145f5f2ec8ef60f6799"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f5.json",
+      "sha256": "8e2728ecc1f47c9c9bb2e31c4c2b9fe86effbb7c72d453e26be8ad773a1abad2"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f6.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f7.md",
+      "sha256": "f2fe64ed47c28c74164392394ef88e09b2a1300c68856fa08ee9944e3ec1c2fc"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f8.json",
+      "sha256": "70124db6c639dbed82d79180f6cb3f8691aa655a998cf56516729967d87c048b"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f9.json",
+      "sha256": "bc04b2e7a51379cabdbb3bc8ed3e468eec2f75256d1d2f1f136bc9df0fe60ec6"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f10.jsonl",
+      "sha256": "1f88e3047910e5a1b8ab583ce5fc85577415a82e3ddcdb4c77e2b2f32ec6510a"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f11.json",
+      "sha256": "b654912315261f324912e15fdfed6a2177ee207c3ffdb0d12434c4cac28901b8"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f12.json",
+      "sha256": "3395c01656c7e874396f33b3cc53c0575a73a78065054038d9d4eb5e0366afe6"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f13.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f14.md",
+      "sha256": "233b059c08854c826b6170c499e89b6e9c6b183aa8e1412b819e7a4ee91b01c6"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f15.json",
+      "sha256": "2d5b3023b3a1f95f60ced795c6dada3cac42504d621b0ecaa2e362f1eb4de879"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f16.json",
+      "sha256": "b1d635ca389843d2c803d4ee543d2235fbb4b0ad762476d006e8ede3ad663911"
+    },
+    {
+      "logicalPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f17.patch",
+      "sha256": "98a34f4d1e893aff201abb1d9d08c307b4e87ebf3d5ebdd96d89cec9f4821314"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/case-result.json",
+      "physicalPath": "artifacts/f18.json",
+      "sha256": "075c566532ba7568ee39344c36df016a881e9fba3c57259efa6f64c3ce02f9e7"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f19.jsonl",
+      "sha256": "99469905f286b0d79825579f374005e61fe99774a3dfc4b6a6efadc9ad3c1efa"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f20.json",
+      "sha256": "46afb4e93fce8fbb5ef1d8d23fe148191d86a8124f550ea0419887fbeca646af"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f21.json",
+      "sha256": "b7c3074489863d615ae51edaaf825acdb9197dfdff6cf31a72cc5565dc93075a"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f22.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f23.md",
+      "sha256": "294aa7f7d6ff29197c44143e8ebd9b35f94746c389b27c73c1d65f54273bd818"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f24.json",
+      "sha256": "51b91b5982a5c350c3fed1b68fdb7c8e3207bd3e5af06f73d57f74f25513c714"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f25.json",
+      "sha256": "bcf2f7a11ea1414b5197e925aecc1cd3a46b17e7dcbd5a0096dc404dd8bfc923"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f26.jsonl",
+      "sha256": "c08df3b67cce215956b78facbfd53dbb5b4d785b13930b4856c1e91e854777dd"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f27.json",
+      "sha256": "9ed123f8504d9fd283bbdde0a68dd98191d89d460251f7895cc75cd3a8279ca0"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f28.json",
+      "sha256": "4a32e39973c6e1527266d39d95364790d15401178d4084636807968d561473fc"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f29.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f30.md",
+      "sha256": "ba4ca07f121ea224fd665763dc766a321dba120611cea36335179cfef169fdb1"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f31.json",
+      "sha256": "37771c3bb8f88f41f3f873831dc36b1bad240bb295038f1220b21de8a7569f66"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f32.json",
+      "sha256": "5c9fcdff214d52998a963aa03778144da1cbc64ab939e31f0f73f2eb6d0f8688"
+    },
+    {
+      "logicalPath": "cases/repair-vercel-tool-registration/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f33.patch",
+      "sha256": "a84c41823f50a28806cd14c6759b571b431447d41fa120a74fc3cae7ebafd41b"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f34.json",
+      "sha256": "ff7a5a6024df57ff55839b20920725e4a82d3fd819d44dce04f3d2ed7794dce5"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f35.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

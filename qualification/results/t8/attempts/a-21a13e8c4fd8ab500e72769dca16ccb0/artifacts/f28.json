@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The one-line manifest repair aligns the canonical tool name with the unchanged LangChain registration. Current validation reports valid with zero diagnostics, direct TypeScript checking passes, and Git evidence shows only moldea/moldea.yaml changed. This evaluation modified no files.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies reconciliation of the canonical declaration with registered name `lookup_order`. The manifest diff proves the prior declaration was `find_order`, while src/agent.ts closes registration to `[lookupOrderTool]` and src/tools.ts defines that tool as `lookup_order`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now declares `name: lookup_order`; the Git diff shows the sole change from `find_order`. Workspace hashes and Git status show the runtime source remained unchanged, and current validation returns `valid: true` with `diagnosticCount: 0`."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest bindings exactly resolve to supportAgent and loadSupportInstruction in src/agent.ts, SupportOutputSchema and LookupOrderInputSchema in src/contracts.ts, lookupOrder in src/implementations.ts, and lookupOrderTool in src/tools.ts. Source consumption confirms the instruction loader, providerStrategy output schema, implementation/schema-backed tool declaration, and `[lookupOrderTool]` registration. Workspace assertions show these files unchanged; current TypeScript checking succeeds."
+    }
+  ],
+  "failures": []
+}

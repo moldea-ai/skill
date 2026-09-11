@@ -11,20 +11,21 @@ order: 30
 The normal experience has three steps:
 
 1. You describe the outcome to your coding agent.
-2. The coding agent uses `moldea` when you share potentially durable knowledge, explicitly request it, or make a relevant change in an adopted project.
+2. The managed README block routes the repository-aware host to the repository-bound skill, whose two-byte local gate decides whether the task explicitly requests a `moldea` operation or changes canonical state, the managed README block, or a path reached through a declared relationship.
 3. The coding agent returns the implementation, analysis, or plan with an evidence-based report.
 
 There is no separate `moldea` chat surface to operate.
 
 ## Activation
 
-The coding agent can activate the skill in three ways:
+The coding agent can activate the skill in four ways:
 
 - **Explicit activation:** you request initialization, agent-system planning, agent creation or refinement, evaluation, reconciliation, validation, or another `moldea` outcome.
-- **Knowledge-triggered activation:** in an adopted repository, you supply, confirm, or correct potentially durable project knowledge through terse prose, an answer, a table, YAML, JSON, or an accessible source. This is the first activation signal even without a persistence request.
-- **Relevance-triggered activation:** an ordinary authorized change may affect declared project or agent behavior in a repository that already uses or is adopting `moldea`.
+- **Canonical activation:** the task changes a path under `/moldea/**`.
+- **Managed README activation:** a changed README hunk intersects the content between the full-line `moldea` markers.
+- **Declared-relationship activation:** in an adopted repository, a known task path exactly matches a binding or `affectedBy` declaration. The task-path set combines exact repository paths explicitly named or targeted by the developer, whether changed or unchanged, with the complete changed-path set already established by the host when applicable.
 
-A knowledge handoff can load the skill before adoption is known so it can inspect that boundary. Loading never establishes adoption or authorizes persistence. A project is adopted only when direct probes establish the complete canonical foundation and owned README awareness block; otherwise it is unadopted. Partial or inconsistent artifacts remain unadopted and are reported precisely rather than becoming a third status. In an unadopted repository, the coding agent completes the authorized request, creates no canonical state, reports that durable knowledge was not persisted, and gives one non-blocking recommendation that explains the benefit of initialization and points to `Initialize moldea`, while leaving initialization optional. Once canonical adoption is established, the coding agent does not ask you to adopt again or choose a storage path. It determines whether the information is current, durable, material, sufficiently established, and authorized for persistence, then selects the appropriate canonical surface.
+Generic references to project context, outdated context, durable knowledge, canonical alignment, documentation, or maintenance do not by themselves activate `moldea` work. Neither does an answer to a question or a host planning, review, Git, commit, or publication command. The managed README block makes entrypoint selection deterministic for repository-aware hosts; it does not make every task relevant. For a repository-dependent task, the repository-bound skill entrypoint runs the deterministic gate first without running Git or searching for a canonical destination solely to discover paths. If no activation path matches, it abstains silently without loading workflow references, running the CLI, recommending adoption, adding a `moldea` status line, or later reactivating from a path discovered during the same request. A generic fact handoff never makes the host workflow search for or edit `/moldea/**` as an invented destination. Loading never establishes adoption or authorizes persistence. A project is adopted only when the complete canonical foundation and owned README awareness block exist.
 
 ## Operation selection
 
@@ -53,7 +54,7 @@ Before a semantic write, the coding agent directly establishes adoption, inspect
 
 ## Deterministic local tooling
 
-When an operation needs mechanical repository evidence, the coding agent verifies the exact repository-local `@moldea.ai/cli` dependency and executable before invoking it. The CLI owns Git inventory, repository snapshots, format parsing, path and placeholder validation, mirrors, diagnostics, and the installed package and adapter composition. The packages website publication owns current technical targets and maturity.
+When an operation needs mechanical repository evidence, the coding agent uses the installed skill's closed launcher. The launcher verifies the compatible repository-local `@moldea.ai/cli` declaration, exact lockfile-selected installation, CLI/Core closure, executable, and path containment before invoking Node without a shell. The CLI owns Git inventory, repository snapshots, format parsing, path and placeholder validation, mirrors, diagnostics, and the installed package and adapter composition. The packages website publication owns current technical targets and maturity.
 
 The developer should not need to run these commands. This boundary exists so the coding agent does not guess deterministic mechanics.
 
@@ -63,4 +64,4 @@ Write-capable operations update the smallest authorized set of affected represen
 
 This context compression applies only to Git-owned project state. It does not manage a coding host's context window, conversation compaction, prompt cache, token budget, or internal model behavior, and it does not claim token savings.
 
-After writes, it reruns deterministic inspection and the relevant project-native checks, then reports the selected operation, scope, files, tooling, evidence, decisions, limitations, and verification.
+After every canonical and mirror write is complete, it runs one final deterministic validation and the relevant project-native checks. A validation that precedes a later repair does not verify the resulting state. The coding agent then reports the selected operation, scope, files, tooling, evidence, decisions, limitations, and verification.

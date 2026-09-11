@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "attemptKey": "a-ce16e82ccbf40f06146fe1c72a31c53e",
+  "attemptId": "20260911T054140998Z-openai-typescript-responses-api-7-1f646450",
+  "attemptIdDigest": "ce16e82ccbf40f06146fe1c72a31c53e17d80f0ea3eaa524bd1285ce53d8d3f0",
+  "attemptDigest": "fa07358fc3ba6c63b1fd6a2974292727a27e702c6b4980f122df4439ca9a341a",
+  "sourceCommit": "12611e22eefd2591cf1c60c4e2c20440f1e96426",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "0991be62597f1951465dd0bf20ee0c5fb8cc877d320e6c8c504e14494584593e",
+    "qualificationLogicalInputDigest": "6d6c5dfb274fec920ffbcda17b21471277a20cb8995ed4b957f42b09c8b60f5b",
+    "qualificationBaselineEvaluatorDigest": "c08dde0c0ea2b6c11d95972555545bf786a8f6e6b44925e01c5a3f011b2b7c30"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "a360bee1876e891542e720db9ab311511d75ad26fcaa1e310c5096ec55610c40"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/case-result.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "6db7b23a803d73247f28f0c24cdbc03005ba6763942aa6ae9f5ef3d66e99b5f5"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f3.jsonl",
+      "sha256": "b2075607f5ee4fd33d7c86e3681a91bf1568185634a21b2bdf18be65f69a64eb"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f4.json",
+      "sha256": "a3b781c0ea32117a8784555640fd90e04cffd567b2253a0a704a895e3fc755a1"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f5.json",
+      "sha256": "e597aa13c8bc27c0bfbbe415ca9e84f447e61aaa57eac6e72df9eee3263c6865"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f6.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f7.md",
+      "sha256": "85abf8cc91c5afcc53c6ac158ddd9def5660d6c95a0b6e1fd671b3413890f319"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f8.json",
+      "sha256": "c731511406894faaf3794e9619f815ceea518f6641fbd8c6ff169a1e58ee15b6"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f9.json",
+      "sha256": "15377f5d511dc64d9c464ccfdfa1b5d762e0b47734a36694ef4aab84973e2fc2"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f10.jsonl",
+      "sha256": "47e74bd10ec139d6923a7c256d1fc1bd51d2e46bf2da940ded3477443b937d11"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f11.json",
+      "sha256": "f703ac5bba4b3c2a8b31789ecadf5a324d8a9629353278290c746dfbcf4a5064"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f12.json",
+      "sha256": "584c6b7e11627bbc98031fee2f648c05a4d1e2f07cd84525f87d6dac5138ef6d"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f13.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f14.md",
+      "sha256": "f8f1f7f9df86b4986b8cc69d587c01e3396c8d2fbc3ddb92c6eea4c60195d136"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f15.json",
+      "sha256": "5b4a357ac1c5eac497a8d5f8677f49e7ef08d982462dfea65748721c55130271"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f16.json",
+      "sha256": "376efaf57f0cc764010e889ef8c5ec4bff4b38980d8630fa8d2902553da31833"
+    },
+    {
+      "logicalPath": "cases/preserve-openai-static-boundary/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f17.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/case-result.json",
+      "physicalPath": "artifacts/f18.json",
+      "sha256": "35f63bfa27a6b69bb646c295ac2a3a46d19d38d48f2e73c367ead5b690a6ab49"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f19.jsonl",
+      "sha256": "5daf264112868773a13b8c15c405580993102683aae08207f601d8239ee27f58"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f20.json",
+      "sha256": "fc28bf9fba4a6c08c4d88148070add9b249135cf3f7039a756de8b8a219dfaa1"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f21.json",
+      "sha256": "7475149824e28ca0ca299599176ec3439473c439c99ac80d0c90a2c7d55fb4cb"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f22.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f23.md",
+      "sha256": "e051ecee15f88dba21e2f8214973e0e420aa88989de494873340bc3316d7d9ac"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f24.json",
+      "sha256": "ad091da008aba6f86184e962b9df7a04e77ce177bf6dd586be846d7b241fa28f"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f25.json",
+      "sha256": "19cee256239f166213893ec2be24aeff286b036f5462e2b1fa892077fa57dcf2"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f26.jsonl",
+      "sha256": "0058f456cf78a5faa3c1668a84d15e2dc840dc1ad14846a156a3bbae35fb8323"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f27.json",
+      "sha256": "3f6a1a1f120d118826e8f6bdbc083bb37212375a0cdabddbe8d8fc943da3bddc"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f28.json",
+      "sha256": "777b84374c3d8654f4633d51c75cc4ca1a92abd21285768256e8f42b76770c04"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f29.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f30.md",
+      "sha256": "15aada0499b9dfeb708f98689eb931547aebdb52b3bfe232ef675c31bbb6858a"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f31.json",
+      "sha256": "a590035f7f2c486aee7d95e097a0ce42884e9396e4a057e370e23fe6958b0c22"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f32.json",
+      "sha256": "6cf1459f664e311e7f25dbea0279b6570a62cffc4df5310b9619f66997ea2b50"
+    },
+    {
+      "logicalPath": "cases/repair-openai-tool-registration/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f33.patch",
+      "sha256": "abda1b22432a71ed9d77ed02319da91e93bd782bbdf4cd64f776bc8591ffa1b3"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f34.json",
+      "sha256": "525ffb772495b8ab715cc1f53bbb94268f7f3e4697332378cbbf224075a3b711"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f35.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

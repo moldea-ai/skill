@@ -1,6 +1,6 @@
 # Vercel AI SDK ToolLoopAgent profile
 
-This profile qualifies `@moldea.ai/adapter-vercel-ai-sdk` target `typescript-tool-loop-agent-7` against ten transparent projects. It runs the eight universal moldea journeys plus two adapter-specific cases for closed tool registration and conservative handling of preparation overrides.
+This profile qualifies `@moldea.ai/adapter-vercel-ai-sdk` target `typescript-tool-loop-agent-7` with the shared eight-case `custom/custom` baseline and two adapter-specific projects for closed tool registration and conservative handling of preparation overrides. This profile executes only its adapter-specific projects; the universal baseline executes and publishes once under `custom/custom`.
 
 Each project pins `ai@7.0.77`, its `zod@4.3.6` peer, `@types/json-schema@7.0.15`, `@types/node@22.20.1`, and `typescript@6.0.3`. The profile also pins `@ai-sdk/workflow@2.0.7` with its required `workflow@5.0.0-beta.42` peer so the negative-control boundary fixture uses the real unsupported API. Qualification downloads and verifies the exact published runtime and type artifacts once, records their checksums with the candidate evidence, primes the attempt-local package store, and installs the projects offline. The deterministic stages typecheck against the real SDK packages but never call a provider, execute an agent, or execute a tool.
 

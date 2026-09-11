@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s canonical input-schema binding to match the closed StateGraph initializer without modifying runtime source. Local validation is complete and reports valid status with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Changed only inputSchema.symbol from SupportOutputSchema to SupportInputSchema.",
+    "Preserved the compiled graph, node and edge operations, and all source schema declarations.",
+    "moldea validation returned schema version 4, valid: true, diagnosticCount: 0, and cursor: null.",
+    "TypeScript validation passed via the repository-local compiler.",
+    "Final Git inspection shows only the intended manifest change."
+  ],
+  "unresolved": []
+}

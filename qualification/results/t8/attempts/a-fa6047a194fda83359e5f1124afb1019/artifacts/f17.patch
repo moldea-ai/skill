@@ -1,0 +1,66 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 68b7ac0..56faf6b 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: langchain
++      guidance: /moldea/runtimes/langchain.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -13,9 +14,35 @@ agents:
+       - /src/instructions.ts
+       - /src/status-tools.ts
+       - /src/implementations.ts
++    unresolved:
++      middleware-instruction-resolution:
++        category: instruction-loading
++        effect: warning
++        description: Non-empty middleware means static inspection cannot prove the effective instruction used by supportAgent.
++        resolution: Establish the post-middleware instruction through explicit runtime wiring or supported adapter evidence.
++        related:
++          - path: /src/support-agent.ts
++          - path: /src/instructions.ts
++      middleware-output-resolution:
++        category: output-schema
++        effect: warning
++        description: Non-empty middleware means static inspection cannot prove the effective output relationship used by supportAgent.
++        resolution: Establish the post-middleware output relationship through explicit runtime wiring or supported adapter evidence.
++        related:
++          - path: /src/support-agent.ts
++          - path: /src/contracts.ts
++      middleware-tool-registration:
++        category: tool-registration
++        effect: warning
++        description: Non-empty middleware means static inspection cannot prove the effective tool registry used by supportAgent.
++        resolution: Establish the post-middleware tool registry through explicit runtime wiring or supported adapter evidence.
++        related:
++          - path: /src/support-agent.ts
++          - path: /src/status-tools.ts
+   step-support:
+     runtime:
+       id: langchain
++      guidance: /moldea/runtimes/langchain.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+@@ -31,6 +58,7 @@ agents:
+   delegating-support:
+     runtime:
+       id: langchain
++      guidance: /moldea/runtimes/langchain.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/langchain.md b/moldea/runtimes/langchain.md
+new file mode 100644
+index 0000000..9a80b37
+--- /dev/null
++++ b/moldea/runtimes/langchain.md
+@@ -0,0 +1,3 @@
++# LangChain runtime boundaries
++
++This project registers direct `createAgent` exports as LangChain targets. Non-empty middleware on `supportAgent` prevents static proof of its effective instruction, output relationship, and tool registry. The multiple response formats, state and context schemas, and headless client tool on `stepSupportAgent` remain runtime configuration rather than canonical input, output, or tool relationships. `delegateSupportTool` is a normal function tool; its implementation calling `stepSupportAgent` does not establish a handoff, routing target, or subagent relationship. `workflowSupportAgent` is a direct LangGraph `StateGraph` and is outside this target.

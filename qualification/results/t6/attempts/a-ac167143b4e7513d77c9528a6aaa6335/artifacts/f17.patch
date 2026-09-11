@@ -1,0 +1,69 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index e2c0ffe..fd8b220 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: eve
++      guidance: /moldea/runtimes/eve.md
+     bindings:
+       runtimeAgent:
+         path: /agent/agent.ts
+@@ -39,4 +40,41 @@ agents:
+           path: /agent/skills/triage.ts
+           symbol: default
+     affectedBy:
+-      - /agent/**
++      - /agent/agent.ts
++      - /agent/instructions.md
++      - /agent/contracts.ts
++      - /agent/implementations.ts
++      - /agent/tools/status.ts
++      - /agent/skills/triage.ts
++    unresolved:
++      dynamic-tool-registration:
++        category: tool-registration
++        effect: warning
++        description: Static inspection does not establish which tools /agent/tools/runtime.ts contributes through Eve defineDynamic at runtime.
++        resolution: Prove the contributed tool registration with focused runtime evidence, or replace it with a supported statically discoverable tool file.
++        related:
++          - path: /agent/tools/runtime.ts
++      markdown-skill-registration:
++        category: skill-registration
++        effect: warning
++        description: Static inspection does not establish the flat reference.md or packaged guide/SKILL.md files as registered Eve skills.
++        resolution: Prove their runtime discovery and registration, or express each required skill through the supported TypeScript defineSkill form.
++        related:
++          - path: /agent/skills/reference.md
++          - path: /agent/skills/guide/SKILL.md
++      single-file-subagent-registration:
++        category: agent-registration
++        effect: warning
++        description: Static inspection does not establish /agent/subagents/quick.ts as a registered Eve subagent.
++        resolution: Prove its runtime registration, or move the required behavior to a supported statically discoverable agent form.
++        related:
++          - path: /agent/subagents/quick.ts
++      example-instruction-loading:
++        category: instruction-loading
++        effect: warning
++        description: Case-varied, legacy system, and composed-part examples are not proven active Eve instruction forms by static inspection.
++        resolution: Prove the applicable runtime instruction loading, or use the supported exact lowercase instructions.md form.
++        related:
++          - path: /examples/instructions/Instructions.md
++          - path: /examples/instructions/system.md
++          - path: /examples/instructions/instructions/part.md
+
+diff --git a/moldea/runtimes/eve.md b/moldea/runtimes/eve.md
+new file mode 100644
+index 0000000..6b3dd7c
+--- /dev/null
++++ b/moldea/runtimes/eve.md
+@@ -0,0 +1,7 @@
++# Eve runtime guide
++
++Run this project with Node.js 24 or newer, as required by `package.json`.
++
++The supported static forms are the default nested `agent/agent.ts` definition, exact lowercase `agent/instructions.md`, the bound TypeScript output schema, one default `defineTool` module such as `agent/tools/status.ts`, and one default `defineSkill` module such as `agent/skills/triage.ts`. Prefer these forms when replacing a runtime-dependent equivalent.
++
++Do not infer remote-agent registration, extension contributions, connection or framework tools, filesystem-collision precedence, reserved-name handling, or advanced runtime behavior from filesystem shape alone. Establish each through focused runtime evidence or a supported static form; provider and model behavior remain outside this repository's evidence.

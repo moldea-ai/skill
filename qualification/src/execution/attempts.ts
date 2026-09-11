@@ -14,6 +14,7 @@ import {
 import { readAttemptCheckpoint, writeAttemptCheckpoint } from '../checkpoint/index.ts';
 import { readJsonFile } from '../filesystem/index.ts';
 import { recordQualificationResult } from '../result/index.ts';
+import { cleanupQualificationAttemptRuntime } from './attempt-runtime.ts';
 import type { ILocalAttemptCheckpointInspection, IUnavailableLocalAttempt } from './types.ts';
 
 const ATTEMPT_ID_PATTERN = /^[A-Za-z0-9._-]+$/u;
@@ -200,17 +201,20 @@ export const recordIncompleteAttempt = async (
     recordedAt,
   });
 
-  const recordedResult = await recordQualificationResult(
-    {
-      artifactDirectory: path.join(attemptDirectory, 'public'),
-      result,
-      sanitizationContext: {
-        attemptDirectory,
-        packagesRepository: checkpoint.packagesRepository,
-        skillRepository: checkpoint.skillRepository,
+  try {
+    return await recordQualificationResult(
+      {
+        artifactDirectory: path.join(attemptDirectory, 'public'),
+        result,
+        sanitizationContext: {
+          attemptDirectory,
+          packagesRepository: checkpoint.packagesRepository,
+          skillRepository: checkpoint.skillRepository,
+        },
       },
-    },
-    resultsRoot,
-  );
-  return recordedResult;
+      resultsRoot,
+    );
+  } finally {
+    await cleanupQualificationAttemptRuntime(attemptDirectory, false);
+  }
 };

@@ -62,6 +62,18 @@ const CONTROL_PLANE_FILE_PATHS = new Set([
   'qualification/src/result/recorder.ts',
   'qualification/src/result/index.ts',
 ]);
+const MODEL_STAGE_SOURCE_FILE_PATHS = new Set([
+  'qualification/src/execution/workspaces.ts',
+  'tooling/resource-calibration/profiles.mjs',
+  QUALIFICATION_PACKAGE_MANIFEST_PATH,
+  QUALIFICATION_PACKAGE_LOCK_PATH,
+  TOOLING_PACKAGE_MANIFEST_PATH,
+  TOOLING_PACKAGE_LOCK_PATH,
+]);
+const MODEL_STAGE_SOURCE_DIRECTORY_PREFIXES = [
+  'qualification/src/codex-host/',
+  'tooling/codex-evaluation-host/',
+] as const;
 
 type IGitTreeEntry = {
   mode: '100644' | '100755' | '120000';
@@ -93,6 +105,9 @@ const normalizeRecord = (input: unknown): unknown => {
       .map(([fieldName, fieldValue]) => [fieldName, normalizeRecord(fieldValue)]),
   );
 };
+
+const isPlainRecord = (input: unknown): input is Record<string, unknown> =>
+  input !== null && typeof input === 'object' && !Array.isArray(input);
 
 const getDefaultRoots = (repositoryRoot: string = SKILL_REPOSITORY_ROOT): IIdentityRoots => ({
   qualificationRoot: path.join(repositoryRoot, 'qualification'),
@@ -215,7 +230,7 @@ const createLogicalEntry = (
   sha256: calculateSha256(content),
 });
 
-/** Returns whether version 1 treats one repository path as evaluator-bearing source. */
+/** Returns whether one repository path is evaluator-bearing source. */
 export const isQualificationEvaluatorSourcePath = (relativePath: string): boolean => {
   if (!relativePath.startsWith('qualification/src/')) {
     return false;
@@ -232,6 +247,11 @@ export const isQualificationEvaluatorSourcePath = (relativePath: string): boolea
     !CONTROL_PLANE_DIRECTORY_PREFIXES.some((prefix) => relativePath.startsWith(prefix))
   );
 };
+
+/** Returns whether one evaluator input can change the model-visible execution boundary. */
+export const isQualificationModelStageSourcePath = (relativePath: string): boolean =>
+  MODEL_STAGE_SOURCE_FILE_PATHS.has(relativePath) ||
+  MODEL_STAGE_SOURCE_DIRECTORY_PREFIXES.some((prefix) => relativePath.startsWith(prefix));
 
 const createNormalizedEntry = (
   relativePath: string,
@@ -261,29 +281,38 @@ const createCurrentEvaluatorEntries = async (
       }));
   };
 
-  const [qualificationEntries, hostEntries, candidateEntries] = await Promise.all([
-    collectSourceEntries(
-      path.join(roots.qualificationRoot, 'src'),
-      'qualification/src',
-      isQualificationEvaluatorSourcePath,
-    ),
-    collectSourceEntries(
-      path.join(roots.repositoryRoot, 'tooling/codex-evaluation-host'),
-      'tooling/codex-evaluation-host',
-      (relativePath) =>
-        isQualificationBehaviorBearingSourcePath(
-          relativePath.slice('tooling/codex-evaluation-host/'.length),
-        ),
-    ),
-    collectSourceEntries(
-      path.join(roots.repositoryRoot, 'tooling/package-candidate'),
-      'tooling/package-candidate',
-      (relativePath) =>
-        isQualificationBehaviorBearingSourcePath(
-          relativePath.slice('tooling/package-candidate/'.length),
-        ),
-    ),
-  ]);
+  const [qualificationEntries, hostEntries, candidateEntries, resourceProfileEntries] =
+    await Promise.all([
+      collectSourceEntries(
+        path.join(roots.qualificationRoot, 'src'),
+        'qualification/src',
+        isQualificationEvaluatorSourcePath,
+      ),
+      collectSourceEntries(
+        path.join(roots.repositoryRoot, 'tooling/codex-evaluation-host'),
+        'tooling/codex-evaluation-host',
+        (relativePath) =>
+          isQualificationBehaviorBearingSourcePath(
+            relativePath.slice('tooling/codex-evaluation-host/'.length),
+          ),
+      ),
+      collectSourceEntries(
+        path.join(roots.repositoryRoot, 'tooling/package-candidate'),
+        'tooling/package-candidate',
+        (relativePath) =>
+          isQualificationBehaviorBearingSourcePath(
+            relativePath.slice('tooling/package-candidate/'.length),
+          ),
+      ),
+      collectSourceEntries(
+        path.join(roots.repositoryRoot, 'tooling/resource-calibration'),
+        'tooling/resource-calibration',
+        (relativePath) => relativePath === 'tooling/resource-calibration/profiles.mjs',
+      ),
+    ]);
+  if (resourceProfileEntries.length !== 1) {
+    throw new Error('Qualification evaluator identity requires the shared resource profile.');
+  }
   const qualificationManifestPath = path.join(
     roots.repositoryRoot,
     QUALIFICATION_PACKAGE_MANIFEST_PATH,
@@ -335,9 +364,13 @@ const createCurrentEvaluatorEntries = async (
     ),
   ]);
 
-  return [...qualificationEntries, ...hostEntries, ...candidateEntries, ...normalizedEntries].sort(
-    (left, right) => left.path.localeCompare(right.path, 'en'),
-  );
+  return [
+    ...qualificationEntries,
+    ...hostEntries,
+    ...candidateEntries,
+    ...resourceProfileEntries,
+    ...normalizedEntries,
+  ].sort((left, right) => left.path.localeCompare(right.path, 'en'));
 };
 
 const createGitEvaluatorEntries = async (
@@ -348,6 +381,7 @@ const createGitEvaluatorEntries = async (
     'qualification/src',
     'tooling/codex-evaluation-host',
     'tooling/package-candidate',
+    'tooling/resource-calibration/profiles.mjs',
     QUALIFICATION_PACKAGE_MANIFEST_PATH,
     QUALIFICATION_PACKAGE_LOCK_PATH,
     TOOLING_PACKAGE_MANIFEST_PATH,
@@ -366,6 +400,9 @@ const createGitEvaluatorEntries = async (
       return isQualificationBehaviorBearingSourcePath(
         relativePath.slice('tooling/package-candidate/'.length),
       );
+    }
+    if (relativePath === 'tooling/resource-calibration/profiles.mjs') {
+      return true;
     }
     return false;
   });
@@ -463,6 +500,29 @@ export const calculateQualificationEvaluatorDigestAtCommit = async (
 ): Promise<string> =>
   calculateSha256(`${JSON.stringify(await createGitEvaluatorEntries(repositoryRoot, commit))}\n`);
 
+/** Calculates the model-stage evaluator digest without scheduling or result aggregation. */
+export const calculateQualificationModelStageEvaluatorDigest = async (
+  repositoryRoot: string = SKILL_REPOSITORY_ROOT,
+): Promise<string> => {
+  const entries = (await createCurrentEvaluatorEntries(getDefaultRoots(repositoryRoot))).filter(
+    ({ path: relativePath }) => isQualificationModelStageSourcePath(relativePath),
+  );
+
+  return calculateSha256(`${JSON.stringify(entries)}\n`);
+};
+
+/** Calculates the model-stage evaluator digest from one immutable Git tree. */
+export const calculateQualificationModelStageEvaluatorDigestAtCommit = async (
+  commit: string,
+  repositoryRoot: string = SKILL_REPOSITORY_ROOT,
+): Promise<string> => {
+  const entries = (await createGitEvaluatorEntries(repositoryRoot, commit)).filter(
+    ({ path: relativePath }) => isQualificationModelStageSourcePath(relativePath),
+  );
+
+  return calculateSha256(`${JSON.stringify(entries)}\n`);
+};
+
 const createCanonicalProfile = (profile: IQualificationProfile): unknown =>
   normalizeRecord({
     version: profile.version,
@@ -502,13 +562,9 @@ const createLogicalInputBundle = async (options: {
     parseYaml(options.caseCatalogSource) as unknown,
   );
   const catalogIds = new Set(caseCatalog.cases.map(({ id }) => id));
-  const missingUniversalCaseIds = caseCatalog.cases
-    .filter(({ layer }) => layer === 'universal-baseline')
-    .map(({ id }) => id)
-    .filter((caseId) => !caseIds.includes(caseId));
   const unknownCaseIds = caseIds.filter((caseId) => !catalogIds.has(caseId));
 
-  if (missingUniversalCaseIds.length > 0 || unknownCaseIds.length > 0) {
+  if (unknownCaseIds.length > 0) {
     throw new Error('Qualification logical profile does not match the canonical case catalog.');
   }
 
@@ -555,9 +611,7 @@ const createLogicalInputBundle = async (options: {
     profile: createCanonicalProfile(profile),
     caseCatalog: normalizeRecord({
       version: caseCatalog.version,
-      cases: caseCatalog.cases.filter(
-        ({ id, layer }) => layer === 'universal-baseline' || caseIds.includes(id),
-      ),
+      cases: caseCatalog.cases.filter(({ id }) => caseIds.includes(id)),
     }),
     files: logicalEntries,
   });
@@ -682,6 +736,73 @@ export const calculateQualificationLogicalInputDigestAtCommit = async (options: 
 }): Promise<string> =>
   calculateSha256(
     `${JSON.stringify(await createQualificationLogicalInputBundleAtCommit(options))}\n`,
+  );
+
+/** Projects the exact shared and case-owned inputs visible to one qualification case. */
+const createQualificationCaseModelInput = (
+  bundle: IQualificationLogicalInputBundle,
+  caseId: string,
+): unknown => {
+  if (!isPlainRecord(bundle.profile) || !Array.isArray(bundle.profile['cases'])) {
+    throw new Error('Qualification case identity requires a canonical profile.');
+  }
+  if (!isPlainRecord(bundle.caseCatalog) || !Array.isArray(bundle.caseCatalog['cases'])) {
+    throw new Error('Qualification case identity requires a canonical case catalog.');
+  }
+  const profileCases = bundle.profile['cases'].filter(
+    (profileCase) => isPlainRecord(profileCase) && profileCase['id'] === caseId,
+  );
+  const catalogCases = bundle.caseCatalog['cases'].filter(
+    (catalogCase) => isPlainRecord(catalogCase) && catalogCase['id'] === caseId,
+  );
+  if (profileCases.length !== 1 || catalogCases.length !== 1) {
+    throw new Error(`Qualification case identity cannot resolve ${caseId}.`);
+  }
+
+  return {
+    version: 1,
+    selection: bundle.selection,
+    profile: { ...bundle.profile, cases: profileCases },
+    caseCatalog: { ...bundle.caseCatalog, cases: catalogCases },
+    files: bundle.files.filter(
+      ({ path: relativePath }) =>
+        relativePath.startsWith('profile/') || relativePath.startsWith(`cases/${caseId}/`),
+    ),
+  };
+};
+
+const calculateCaseModelInputDigests = (
+  bundle: IQualificationLogicalInputBundle,
+  caseIds: readonly string[],
+): Record<string, string> =>
+  Object.fromEntries(
+    caseIds.map((caseId) => [
+      caseId,
+      calculateSha256(`${JSON.stringify(createQualificationCaseModelInput(bundle, caseId))}\n`),
+    ]),
+  );
+
+/** Calculates exact model-input digests for selected cases from current storage. */
+export const calculateQualificationCaseModelInputDigests = async (options: {
+  caseIds: readonly string[];
+  qualificationRoot?: string;
+  selection: IQualificationSelection;
+}): Promise<Record<string, string>> =>
+  calculateCaseModelInputDigests(
+    await createQualificationLogicalInputBundle(options),
+    options.caseIds,
+  );
+
+/** Calculates exact model-input digests for selected cases from one immutable Git tree. */
+export const calculateQualificationCaseModelInputDigestsAtCommit = async (options: {
+  caseIds: readonly string[];
+  commit: string;
+  repositoryRoot?: string;
+  selection: IQualificationSelection;
+}): Promise<Record<string, string>> =>
+  calculateCaseModelInputDigests(
+    await createQualificationLogicalInputBundleAtCommit(options),
+    options.caseIds,
   );
 
 const calculateBaselineEvaluatorDigest = (

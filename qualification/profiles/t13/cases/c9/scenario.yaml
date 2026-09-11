@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: repair-vercel-tool-registration
 title: Repair Vercel tool registration
 purpose: Verify precise diagnostic-driven repair of closed tools-map identity.

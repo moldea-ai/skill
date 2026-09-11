@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the removed `support` agent from canonical moldea state. The existing deletion of `src/support-agent.ts` removed the `supportAgent` email runtime record; `moldea/moldea.yaml` still bound that exact missing path and symbol, both agent assets described the same support role, and `moldea/runtimes/custom.md` explicitly claimed that removed export as its runtime definition. Those canonical claims were removed while preserving project context and unrelated implementation.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The pre-existing unstaged deletion of `src/support-agent.ts` was preserved.",
+    "The final Git diff contains only that pre-existing source deletion and the four canonical retirement changes.",
+    "`node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json` passed.",
+    "Final moldea validation returned `status: valid`, `result.valid: true`, and zero diagnostics."
+  ],
+  "unresolved": []
+}

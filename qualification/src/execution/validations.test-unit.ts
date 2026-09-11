@@ -1,6 +1,8 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
+
 import type {
   IActorOutput,
   ICandidateClosure,
@@ -18,6 +20,7 @@ import {
   haveQualificationExecutionInputsChanged,
   createRunnerRequirementAssessments,
   deriveQualificationCommandPolicyFailures,
+  inspectQualificationResourceUsage,
   inspectQualificationSourceState,
   validateJudgeOutput,
 } from './validations.ts';
@@ -34,6 +37,7 @@ const scenario = {
   id: 'test-case',
   title: 'Test case',
   purpose: 'Exercise exact judge requirements.',
+  resourceProfile: 'ordinary',
   taskFile: 'task.md',
   seedDirectory: 'seed',
   removePaths: [],
@@ -96,7 +100,8 @@ const createPassingOutput = (): IJudgeOutput => ({
 
 const executionEnvironment: IQualificationExecutionEnvironment = {
   model: 'gpt-5.6-sol',
-  reasoningEffort: 'medium',
+  actorReasoningEffort: 'xhigh',
+  judgeReasoningEffort: 'xhigh',
   codexVersion: 'codex-cli 1',
   nodeVersion: 'v24.15.0',
   pnpmVersion: '11.9.0',
@@ -157,13 +162,28 @@ const createCommandPolicyEvidence = (
   status: 'indeterminate' | 'not-observed' | 'observed',
 ): IQualificationCommandPolicyEvidence => ({
   completedCommandCount: status === 'not-observed' ? 0 : 1,
-  credentialExposure: { status: 'not-observed', observedCount: 0 },
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
   networkAccess: {
     status,
     observedCount: status === 'observed' ? 1 : 0,
     indeterminateCount: status === 'indeterminate' ? 1 : 0,
+    reasons:
+      status === 'observed'
+        ? [{ code: 'network-client', count: 1 }]
+        : status === 'indeterminate'
+          ? [{ code: 'unclassified-command', count: 1 }]
+          : [],
   },
-  sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
 });
 
 describe('runner-owned command-policy assessment', () => {
@@ -238,6 +258,176 @@ describe('mandatory command-policy failures', () => {
   });
 });
 
+describe('scenario resource profiles', () => {
+  const ordinaryProfile = MOLDEA_SKILL_RESOURCE_PROFILES.ordinary;
+  const exactBoundaryEvidence = {
+    commandPolicy: {
+      ...createCommandPolicyEvidence('not-observed'),
+      completedCommandCount: ordinaryProfile.maxCompletedCommandCount,
+      maximumCommandOutputByteCount: ordinaryProfile.maxCommandOutputBytes,
+      moldeaCommandCount: ordinaryProfile.maxMoldeaCommandCount,
+      moldeaOutputByteCount: ordinaryProfile.maxAggregateMoldeaOutputBytes,
+      modelVisibleToolOutputByteCount: ordinaryProfile.maxModelVisibleToolOutputBytes,
+    },
+    usage: {
+      cachedInputTokens: 0,
+      inputTokens: ordinaryProfile.maxHostTokenCount - 1,
+      outputTokens: 1,
+    },
+  };
+
+  test('accepts every ordinary dimension at its exact boundary', () => {
+    expect(
+      inspectQualificationResourceUsage({
+        allowMissingUsage: false,
+        evidence: exactBoundaryEvidence,
+        role: 'Actor',
+        scenario,
+      }),
+    ).toStrictEqual({ failures: [], hasJudgeBlocker: false, violations: [] });
+  });
+
+  test('uses an explicitly supplied historical profile instead of the active profile', () => {
+    const historicalProfile = { ...ordinaryProfile, maxCompletedCommandCount: 32 };
+    const observed = historicalProfile.maxCompletedCommandCount + 1;
+
+    expect(
+      inspectQualificationResourceUsage({
+        allowMissingUsage: false,
+        evidence: {
+          ...exactBoundaryEvidence,
+          commandPolicy: {
+            ...exactBoundaryEvidence.commandPolicy,
+            completedCommandCount: observed,
+          },
+        },
+        profile: historicalProfile,
+        role: 'Actor',
+        scenario,
+      }),
+    ).toStrictEqual({
+      failures: [
+        `Actor resource profile ordinary exceeded completed-host-commands: observed ${observed}, limit ${historicalProfile.maxCompletedCommandCount}.`,
+      ],
+      hasJudgeBlocker: false,
+      violations: [
+        {
+          dimension: 'completed-host-commands',
+          kind: 'exceeded',
+          limit: historicalProfile.maxCompletedCommandCount,
+          observed,
+        },
+      ],
+    });
+  });
+
+  test.each([
+    [
+      'completedCommandCount',
+      'completed-host-commands',
+      ordinaryProfile.maxCompletedCommandCount,
+      false,
+    ],
+    ['moldeaCommandCount', 'moldea-commands', ordinaryProfile.maxMoldeaCommandCount, false],
+    [
+      'moldeaOutputByteCount',
+      'moldea-output-bytes',
+      ordinaryProfile.maxAggregateMoldeaOutputBytes,
+      true,
+    ],
+    [
+      'maximumCommandOutputByteCount',
+      'maximum-command-output-bytes',
+      ordinaryProfile.maxCommandOutputBytes,
+      true,
+    ],
+    [
+      'modelVisibleToolOutputByteCount',
+      'model-visible-tool-output-bytes',
+      ordinaryProfile.maxModelVisibleToolOutputBytes,
+      true,
+    ],
+  ] as const)('reports %s independently', (field, dimension, limit, hasJudgeBlocker) => {
+    expect(
+      inspectQualificationResourceUsage({
+        allowMissingUsage: false,
+        evidence: {
+          ...exactBoundaryEvidence,
+          commandPolicy: { ...exactBoundaryEvidence.commandPolicy, [field]: limit + 1 },
+        },
+        role: 'Actor',
+        scenario,
+      }),
+    ).toStrictEqual({
+      failures: [
+        `Actor resource profile ordinary exceeded ${dimension}: observed ${limit + 1}, limit ${limit}.`,
+      ],
+      hasJudgeBlocker,
+      violations: [{ dimension, kind: 'exceeded', limit, observed: limit + 1 }],
+    });
+  });
+
+  test('reports token excess and unavailable official usage without blocking dry runs', () => {
+    expect(
+      inspectQualificationResourceUsage({
+        allowMissingUsage: false,
+        evidence: {
+          ...exactBoundaryEvidence,
+          usage: {
+            cachedInputTokens: 0,
+            inputTokens: ordinaryProfile.maxHostTokenCount,
+            outputTokens: 1,
+          },
+        },
+        role: 'Judge',
+        scenario,
+      }),
+    ).toStrictEqual({
+      failures: [
+        `Judge resource profile ordinary exceeded total-model-tokens: observed ${ordinaryProfile.maxHostTokenCount + 1}, limit ${ordinaryProfile.maxHostTokenCount}.`,
+      ],
+      hasJudgeBlocker: false,
+      violations: [
+        {
+          dimension: 'total-model-tokens',
+          kind: 'exceeded',
+          limit: ordinaryProfile.maxHostTokenCount,
+          observed: ordinaryProfile.maxHostTokenCount + 1,
+        },
+      ],
+    });
+    expect(
+      inspectQualificationResourceUsage({
+        allowMissingUsage: false,
+        evidence: { ...exactBoundaryEvidence, usage: null },
+        role: 'Actor',
+        scenario,
+      }),
+    ).toStrictEqual({
+      failures: [
+        `Actor resource profile ordinary could not establish total-model-tokens: observed unavailable, limit ${ordinaryProfile.maxHostTokenCount}.`,
+      ],
+      hasJudgeBlocker: true,
+      violations: [
+        {
+          dimension: 'total-model-tokens',
+          kind: 'unavailable',
+          limit: ordinaryProfile.maxHostTokenCount,
+          observed: null,
+        },
+      ],
+    });
+    expect(
+      inspectQualificationResourceUsage({
+        allowMissingUsage: true,
+        evidence: { ...exactBoundaryEvidence, usage: null },
+        role: 'Actor',
+        scenario,
+      }),
+    ).toStrictEqual({ failures: [], hasJudgeBlocker: false, violations: [] });
+  });
+});
+
 describe('judge output validation', () => {
   test('accepts an exact and internally consistent pass', () => {
     const output = createPassingOutput();
@@ -303,7 +493,8 @@ describe('judge output validation', () => {
 describe('qualification source-state validation', () => {
   test('accepts clean inputs for an official run', () => {
     const inputState = {
-      modelHostDigest: 'a'.repeat(64),
+      caseDigests: { case: 'a'.repeat(64) },
+      evaluatorStageDigest: 'a'.repeat(64),
       packagesDigest: 'a'.repeat(64),
       packagesState: createRepositoryState(false),
       qualificationBaselineDigest: 'a'.repeat(64),
@@ -401,7 +592,8 @@ describe('qualification source-state validation', () => {
     ['skill', { skillDigest: 'b'.repeat(64) }],
   ])('detects a changed %s fingerprint before publication', (_source, changedDigest) => {
     const inputState = {
-      modelHostDigest: 'a'.repeat(64),
+      caseDigests: { case: 'a'.repeat(64) },
+      evaluatorStageDigest: 'a'.repeat(64),
       packagesDigest: 'a'.repeat(64),
       packagesState: createRepositoryState(false),
       qualificationBaselineDigest: 'a'.repeat(64),
@@ -421,7 +613,8 @@ describe('qualification source-state validation', () => {
 
   test('retains resume when unrelated package source changes but selected behavior does not', () => {
     const inputState = {
-      modelHostDigest: 'a'.repeat(64),
+      caseDigests: { case: 'a'.repeat(64) },
+      evaluatorStageDigest: 'a'.repeat(64),
       packagesDigest: 'a'.repeat(64),
       packagesState: {
         ...createRepositoryState(false),
@@ -489,7 +682,7 @@ describe('qualification source-state validation', () => {
 describe('qualification resume identity validation', () => {
   const candidate: ICandidateClosure = {
     cliJsonSchemaVersion: 2,
-    cliVersion: '4.0.0',
+    cliVersion: '6.0.0',
     fingerprint: 'a'.repeat(64),
     packages: [
       {
@@ -519,6 +712,21 @@ describe('qualification resume identity validation', () => {
   test('rejects changed host tooling while accepting the exact checkpoint identity', () => {
     expect(
       haveQualificationExecutionInputsChanged(executionEnvironment, executionEnvironment),
+    ).toBe(false);
+    expect(
+      haveQualificationExecutionInputsChanged(executionEnvironment, {
+        actorReasoningEffort: executionEnvironment.actorReasoningEffort,
+        judgeReasoningEffort: executionEnvironment.judgeReasoningEffort,
+        model: executionEnvironment.model,
+        codexVersion: executionEnvironment.codexVersion,
+        nodeVersion: executionEnvironment.nodeVersion,
+        pnpmVersion: executionEnvironment.pnpmVersion,
+        gitVersion: executionEnvironment.gitVersion,
+        allowedEgressHosts: executionEnvironment.allowedEgressHosts,
+        hostTimeoutMs: executionEnvironment.hostTimeoutMs,
+        modelEndpoint: executionEnvironment.modelEndpoint,
+        sslCertificateFileSha256: executionEnvironment.sslCertificateFileSha256,
+      }),
     ).toBe(false);
     for (const environmentChange of [
       { codexVersion: 'codex-cli 2' },

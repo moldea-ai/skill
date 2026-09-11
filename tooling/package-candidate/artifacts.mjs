@@ -4,10 +4,12 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { basename, join } from 'node:path';
 import { gunzipSync } from 'node:zlib';
+import semver from 'semver';
 
 const CLI_PACKAGE_NAME = '@moldea.ai/cli';
 const MOLDEA_PACKAGE_PREFIX = '@moldea.ai/';
 const STABLE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
+const COMPATIBLE_MAJOR_RANGE_PATTERN = /^\^[1-9]\d*\.0\.0$/u;
 
 /** Returns whether a package belongs to the local moldea package namespace. */
 const isMoldeaPackageName = (packageName) => packageName.startsWith(MOLDEA_PACKAGE_PREFIX);
@@ -48,22 +50,22 @@ const getInternalRuntimeDependencies = (manifest) =>
     .filter(([packageName]) => isMoldeaPackageName(packageName))
     .sort(([left], [right]) => left.localeCompare(right, 'en'));
 
-/** Validates an exact internal dependency when the declaring package requires one. */
+/** Validates one compatible-major dependency against its candidate artifact. */
 const validateInternalDependencyVersion = ({
   dependencyArtifact,
   dependencyName,
   dependencyVersion,
   manifest,
 }) => {
-  const isExactVersion = STABLE_VERSION_PATTERN.test(dependencyVersion);
-  if (manifest.name === CLI_PACKAGE_NAME && !isExactVersion) {
-    throw new Error(`${CLI_PACKAGE_NAME} must exact-pin ${dependencyName}.`);
-  }
-  if (isExactVersion && dependencyArtifact.manifest.version !== dependencyVersion) {
+  if (!COMPATIBLE_MAJOR_RANGE_PATTERN.test(dependencyVersion)) {
     throw new Error(
-      `${dependencyName} must be exact-pinned to its supplied candidate artifact.`,
+      `${manifest.name} must declare ${dependencyName} with a compatible-major range.`,
     );
   }
+  assert.ok(
+    semver.satisfies(dependencyArtifact.manifest.version, dependencyVersion),
+    `${dependencyName}@${dependencyArtifact.manifest.version} does not satisfy ${dependencyVersion}.`,
+  );
 };
 
 /**

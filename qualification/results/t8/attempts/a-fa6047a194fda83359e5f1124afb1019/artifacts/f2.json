@@ -1,0 +1,95 @@
+{
+  "caseId": "preserve-langchain-static-boundary",
+  "title": "Preserve the LangChain static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 572847,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 572847,
+      "deterministicBeforePath": "cases/preserve-langchain-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-langchain-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-langchain-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-langchain-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-langchain-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-langchain-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 435432,
+        "cachedInputTokens": 396032,
+        "outputTokens": 7357
+      },
+      "judgeUsage": {
+        "inputTokens": 546203,
+        "cachedInputTokens": 480640,
+        "outputTokens": 12420
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T06:50:20.999Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T06:55:54.458Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "preserves-middleware-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml gives support only a runtimeAgent binding. Three warning-level unresolved entries separately cover post-middleware instruction, output, and tool-registration uncertainty, matching the non-empty middleware in src/support-agent.ts. Deterministic inspection and validation are valid."
+        },
+        {
+          "id": "preserves-unsupported-shape-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "step-support has only runtimeAgent and instructionLoader bindings. It has no canonical input, output, or tool relationship despite src/step-support-agent.ts using multiple response formats and state/context schemas and src/status-tools.ts defining a headless tool. Deterministic checks passed."
+        },
+        {
+          "id": "does-not-infer-subagent-handoff",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "delegating-support retains its runtime-agent, instruction-loader, output-schema, and complete delegate-support function-tool bindings. No handoff, routing-target, or subagent declaration exists. src/delegation.ts still directly invokes stepSupportAgent, and runner hashes show all related source files were unchanged."
+        },
+        {
+          "id": "keeps-langgraph-outside-target",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/workflow-agent.mts still exports workflowSupportAgent as a direct StateGraph, with the same before/after hash. No workflow agent entry or canonical agent directory exists; the manifest registers only support, step-support, and delegating-support."
+        },
+        {
+          "id": "records-focused-guidance",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/runtimes/langchain.md is the sole runtime guide and is referenced by both support and step-support. It concisely identifies direct createAgent targets, middleware uncertainty, unsupported step-support shapes, normal function-tool semantics, and the excluded StateGraph without asserting provider behavior. The patch inventory identifies this as the sole added guide."
+        },
+        {
+          "id": "records-unresolved-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest contains focused warning entries for middleware instruction, output, and tool-registry uncertainty, each with an explicit resolution and related source paths. The shared guide separately characterizes multiple response formats, state/context schemas, and the headless client tool as unsupported canonical relationship shapes. Current hashes agree with the runner after-state and deterministic validation is valid."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

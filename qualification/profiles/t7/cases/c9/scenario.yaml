@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: repair-google-genai-tool-registration
 title: Repair Google Gen AI tool registration
 purpose: Verify precise diagnostic-driven repair of closed function-declaration identity.

@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s canonical tool name with its closed Cloudflare Think map by changing `find_order` to `lookup_order`. Source definitions and schemas remain untouched.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The support tool retains complete registration, implementation, input-schema, output-schema, runtime-agent, and instruction-loader evidence.",
+    "moldea CLI 8.0.0 validation returned valid=true with diagnosticCount=0 and no continuation cursor.",
+    "TypeScript validation passed with no errors.",
+    "Final Git diff contains only the intended one-line tool-name correction."
+  ],
+  "unresolved": []
+}

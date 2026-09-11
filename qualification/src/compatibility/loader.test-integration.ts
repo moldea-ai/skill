@@ -5,31 +5,36 @@ import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 
 import { DEFAULT_PACKAGES_REPOSITORY } from '../constants/index.ts';
+import { QualificationCaseScenarioSchema } from '../contracts/index.ts';
 import { inspectQualificationCoverage } from '../coverage/index.ts';
-import { ensureDirectory } from '../filesystem/index.ts';
-import { resolveQualificationTarget } from './loader.ts';
+import { ensureDirectory, readYamlFile } from '../filesystem/index.ts';
+import { executeProcess } from '../process/index.ts';
+import { loadQualificationProfileIndex } from '../storage/index.ts';
+import { loadRuntimeCompatibilitySnapshot, resolveQualificationTarget } from './loader.ts';
 
 // cases that intentionally begin without the complete moldea adoption contract
 const UNADOPTED_QUALIFICATION_CASE_IDS = new Set([
+  'answer-information-before-adoption',
+  'abstain-uninitialized-repository-work',
   'initialize-grounded-project',
   'stop-on-material-ambiguity',
 ]);
 
 test.each([
-  ['custom', 'custom', 8],
-  ['anthropic', 'typescript-messages-api-0-117', 10],
-  ['claude-agent-sdk', 'typescript-query-subagents-0-3', 10],
-  ['vercel-ai-sdk', 'typescript-generate-stream-text-7', 10],
-  ['vercel-ai-sdk', 'typescript-tool-loop-agent-7', 10],
-  ['openai', 'typescript-responses-api-7', 10],
-  ['openai-agents-sdk', 'typescript-agent-handoffs-0-16', 10],
-  ['google-genai', 'typescript-models-generate-content-2', 10],
-  ['langchain', 'typescript-create-agent-1-5', 10],
-  ['langgraph', 'typescript-state-graph-1-4', 10],
-  ['langgraph', 'typescript-functional-api-1-4', 10],
-  ['cloudflare-agents', 'typescript-think-0-16-ai-sdk-7', 10],
-  ['cloudflare-agents', 'typescript-ai-chat-agent-0-10-ai-sdk-7', 10],
-  ['eve', 'typescript-filesystem-agent-0-39', 10],
+  ['custom', 'custom', 12],
+  ['anthropic', 'typescript-messages-api-0-117', 2],
+  ['claude-agent-sdk', 'typescript-query-subagents-0-3', 2],
+  ['vercel-ai-sdk', 'typescript-generate-stream-text-7', 2],
+  ['vercel-ai-sdk', 'typescript-tool-loop-agent-7', 2],
+  ['openai', 'typescript-responses-api-7', 2],
+  ['openai-agents-sdk', 'typescript-agent-handoffs-0-16', 2],
+  ['google-genai', 'typescript-models-generate-content-2', 2],
+  ['langchain', 'typescript-create-agent-1-5', 2],
+  ['langgraph', 'typescript-state-graph-1-4', 2],
+  ['langgraph', 'typescript-functional-api-1-4', 2],
+  ['cloudflare-agents', 'typescript-think-0-16-ai-sdk-7', 2],
+  ['cloudflare-agents', 'typescript-ai-chat-agent-0-10-ai-sdk-7', 2],
+  ['eve', 'typescript-filesystem-agent-0-39', 2],
 ] as const)(
   'preflights every %s/%s scenario with its intended adoption state',
   async (adapterId, implementationId, expectedCaseCount) => {
@@ -59,7 +64,196 @@ test.each([
   },
 );
 
+test('loads compatibility from an immutable packages commit instead of its worktree', async () => {
+  const temporaryPackagesRepository = await mkdtemp(
+    path.join(os.tmpdir(), 'moldea-qualification-packages-snapshot-'),
+  );
+  const compatibilityDirectory = path.join(temporaryPackagesRepository, 'compatibility');
+  const compatibilityPath = path.join(compatibilityDirectory, 'runtimes.yaml');
+  await ensureDirectory(compatibilityDirectory);
+  const matrixSource = await readFile(
+    path.join(DEFAULT_PACKAGES_REPOSITORY, 'compatibility', 'runtimes.yaml'),
+    'utf8',
+  );
+  await writeFile(compatibilityPath, matrixSource, 'utf8');
+  await executeProcess({
+    command: 'git',
+    args: ['init', '--initial-branch=main'],
+    cwd: temporaryPackagesRepository,
+  });
+  await executeProcess({
+    command: 'git',
+    args: ['add', '-A'],
+    cwd: temporaryPackagesRepository,
+  });
+  await executeProcess({
+    command: 'git',
+    args: [
+      '-c',
+      'user.name=moldea qualification',
+      '-c',
+      'user.email=qualification@moldea.local',
+      'commit',
+      '-m',
+      'test: establish compatibility snapshot',
+    ],
+    cwd: temporaryPackagesRepository,
+  });
+
+  try {
+    const initialSnapshot = await loadRuntimeCompatibilitySnapshot(temporaryPackagesRepository);
+    await writeFile(compatibilityPath, 'version: 99\n', 'utf8');
+    await writeFile(path.join(temporaryPackagesRepository, 'unrelated.md'), '# Work\n', 'utf8');
+    const unchangedSnapshot = await loadRuntimeCompatibilitySnapshot(temporaryPackagesRepository);
+    const target = await resolveQualificationTarget(
+      { adapterId: 'custom', implementationId: 'custom' },
+      temporaryPackagesRepository,
+      unchangedSnapshot.matrix,
+    );
+
+    expect(unchangedSnapshot).toStrictEqual(initialSnapshot);
+    expect(target.selection).toStrictEqual({
+      adapterId: 'custom',
+      implementationId: 'custom',
+    });
+  } finally {
+    await rm(temporaryPackagesRepository, { force: true, recursive: true });
+  }
+});
+
 describe('Custom qualification profile', () => {
+  test('keeps focused-test allowances exact and limited to behavior-authoring cases', async () => {
+    const index = await loadQualificationProfileIndex();
+    const testAllowances: Array<{
+      adapterId: string;
+      caseId: string;
+      path: string;
+    }> = [];
+
+    for (const indexedTarget of index.targets) {
+      const target = await resolveQualificationTarget({
+        adapterId: indexedTarget.adapterId,
+        implementationId: indexedTarget.implementationId,
+      });
+
+      for (const profileCase of target.profile.cases) {
+        const scenario = await readYamlFile(
+          path.join(
+            target.profileDirectory,
+            profileCase.projectDirectory,
+            profileCase.scenarioFile,
+          ),
+          QualificationCaseScenarioSchema,
+        );
+
+        for (const allowedPath of scenario.workspace.allowedChangePaths) {
+          if (allowedPath.startsWith('test/') || allowedPath.startsWith('tests/')) {
+            testAllowances.push({
+              adapterId: target.profile.adapterId,
+              caseId: scenario.id,
+              path: allowedPath,
+            });
+          }
+        }
+
+        expect(
+          scenario.workspace.allowedChangePathPatterns.some(
+            (allowedPattern) =>
+              allowedPattern.startsWith('test/') || allowedPattern.startsWith('tests/'),
+          ),
+        ).toBe(false);
+      }
+    }
+
+    expect(testAllowances).toStrictEqual([
+      {
+        adapterId: 'custom',
+        caseId: 'create-grounded-agent',
+        path: 'test/order-triage-agent.test.mjs',
+      },
+    ]);
+  });
+
+  test('keeps abstention verdicts limited to moldea behavior and repository preservation', async () => {
+    const target = await resolveQualificationTarget({
+      adapterId: 'custom',
+      implementationId: 'custom',
+    });
+    const expectedRequirements = new Map([
+      ['abstain-uninitialized-repository-work', ['excludes-moldea', 'preserves-workspace']],
+      [
+        'abstain-initialized-unrelated-work',
+        ['abstains-after-cheap-gate', 'preserves-valid-project'],
+      ],
+    ]);
+
+    for (const [caseId, requirementIds] of expectedRequirements) {
+      const profileCase = target.profile.cases.find(({ id }) => id === caseId);
+
+      if (profileCase === undefined) {
+        throw new Error(`The Custom profile is missing its ${caseId} case.`);
+      }
+
+      const scenario = await readYamlFile(
+        path.join(target.profileDirectory, profileCase.projectDirectory, profileCase.scenarioFile),
+        QualificationCaseScenarioSchema,
+      );
+
+      expect(scenario.expectedActorOutcome).toBe('completed');
+      expect(scenario.workspace.expectation).toBe('unchanged');
+      expect(scenario.judgeRequirements.map(({ id }) => id)).toStrictEqual(requirementIds);
+      expect(scenario.judgeRequirements.some(({ id }) => id.startsWith('reviews-'))).toBe(false);
+    }
+  });
+
+  test('makes canonical-maintenance cases explicitly relevant before repository inspection', async () => {
+    const target = await resolveQualificationTarget({
+      adapterId: 'custom',
+      implementationId: 'custom',
+    });
+    const explicitCaseIds = [
+      'evaluate-aligned-project',
+      'create-grounded-agent',
+      'maintain-dirty-project',
+      'reconcile-drift-and-boundaries',
+      'retire-agent-coherently',
+      'resist-untrusted-repository-instructions',
+    ];
+
+    for (const caseId of explicitCaseIds) {
+      const profileCase = target.profile.cases.find(({ id }) => id === caseId);
+      if (profileCase === undefined) {
+        throw new Error(`The Custom profile is missing its ${caseId} case.`);
+      }
+      const task = await readFile(
+        path.join(target.profileDirectory, profileCase.projectDirectory, 'task.md'),
+        'utf8',
+      );
+
+      expect(task).toContain('moldea');
+    }
+
+    const dirtyTask = await readFile(
+      path.join(target.profileDirectory, 'cases/c4/task.md'),
+      'utf8',
+    );
+    const reconciliationTask = await readFile(
+      path.join(target.profileDirectory, 'cases/c5/task.md'),
+      'utf8',
+    );
+    const untrustedTask = await readFile(
+      path.join(target.profileDirectory, 'cases/c8/task.md'),
+      'utf8',
+    );
+
+    expect(dirtyTask).toContain('`src/billing.ts`');
+    expect(dirtyTask).toContain('`moldea/agents/support/instruction.md`');
+    expect(reconciliationTask).toContain('`agents.support.unresolved`');
+    expect(reconciliationTask).toContain('canonical support instruction remains accurate');
+    expect(reconciliationTask).toContain('without inventing field names');
+    expect(untrustedTask).toContain('`src/support-agent.ts`');
+  });
+
   test('matches the matrix and covers every declared semantic case and claim', async () => {
     const target = await resolveQualificationTarget({
       adapterId: 'custom',
@@ -81,6 +275,10 @@ describe('Custom qualification profile', () => {
       'retire-agent-coherently',
       'stop-on-material-ambiguity',
       'resist-untrusted-repository-instructions',
+      'answer-information-before-adoption',
+      'abstain-uninitialized-repository-work',
+      'abstain-initialized-unrelated-work',
+      'activate-declared-relationship',
     ]);
     expect(coverage).toStrictEqual({
       passed: true,
@@ -108,9 +306,9 @@ describe('Custom qualification profile', () => {
       'compatible Core range',
       (adapter: Awaited<ReturnType<typeof resolveQualificationTarget>>['adapter']) => ({
         ...adapter,
-        compatibleCoreRange: '^3.0.0',
+        compatibleCoreRange: '^5.0.0',
       }),
-      'adapter.compatible-core-range.^3.0.0',
+      'adapter.compatible-core-range.^5.0.0',
     ],
   ] as const)(
     'invalidates coverage when the matrix adds or changes its %s claim',
@@ -203,14 +401,6 @@ describe('Anthropic Messages API qualification profile', () => {
       { name: '@types/node', version: '22.20.1' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-anthropic-tool-registration',
       'preserve-anthropic-static-boundary',
     ]);
@@ -246,14 +436,6 @@ describe('Claude Agent SDK qualification profile', () => {
       { name: 'zod', version: '4.3.6' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-claude-agent-sdk-tool-registration',
       'preserve-claude-agent-sdk-static-boundary',
     ]);
@@ -288,14 +470,6 @@ describe('Vercel AI SDK direct-generation qualification profile', () => {
       { name: 'zod', version: '4.3.6' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-vercel-tool-registration',
       'preserve-vercel-static-boundary',
     ]);
@@ -323,8 +497,8 @@ describe('Vercel AI SDK direct-generation qualification profile', () => {
     await ensureDirectory(compatibilityDirectory);
     const matrixSource = await readFile(sourceMatrixPath, 'utf8');
     const incompatibleMatrixSource = matrixSource.replace(
-      /(id: typescript-generate-stream-text-7[\s\S]*?name: ai[\s\S]*?versionRange:) '>=7\.0\.66 <8\.0\.0'/u,
-      "$1 '>=8.0.0 <9.0.0'",
+      /(id: typescript-generate-stream-text-7[\s\S]*?name: ai[\s\S]*?versionRange:) '>=7\.0\.66'/u,
+      "$1 '>=8.0.0'",
     );
     await writeFile(temporaryMatrixPath, incompatibleMatrixSource, 'utf8');
 
@@ -339,7 +513,7 @@ describe('Vercel AI SDK direct-generation qualification profile', () => {
           temporaryPackagesRepository,
         ),
       ).rejects.toThrow(
-        'Qualification profile has incompatible target runtime packages: ai@7.0.77 does not satisfy >=8.0.0 <9.0.0.',
+        'Qualification profile has incompatible target runtime packages: ai@7.0.77 does not satisfy >=8.0.0.',
       );
     } finally {
       await rm(temporaryPackagesRepository, { force: true, recursive: true });
@@ -369,14 +543,6 @@ describe('Vercel AI SDK ToolLoopAgent qualification profile', () => {
       { name: 'zod', version: '4.3.6' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-vercel-tool-registration',
       'preserve-vercel-static-boundary',
     ]);
@@ -409,14 +575,6 @@ describe('OpenAI Responses API qualification profile', () => {
       { name: '@types/node', version: '22.20.1' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-openai-tool-registration',
       'preserve-openai-static-boundary',
     ]);
@@ -451,14 +609,6 @@ describe('OpenAI Agents SDK qualification profile', () => {
       { name: 'zod', version: '4.3.6' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-openai-agents-sdk-tool-registration',
       'preserve-openai-agents-sdk-static-boundary',
     ]);
@@ -492,14 +642,6 @@ describe('LangGraph Functional API qualification profile', () => {
       { name: '@types/node', version: '22.20.1' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-langgraph-functional-runtime-binding',
       'preserve-langgraph-functional-api-static-boundary',
     ]);

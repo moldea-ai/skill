@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor’s alignment report agrees with the repository and deterministic evidence. The support agent is registered with the custom runtime, its guidance matches the exported runtime record, and its binding points to the correct source symbol. Validation and typechecking passed, and the repository remained unchanged with clean status and scoped diff. The actor appropriately preserved runtime instruction consumption as an unresolved evidence limitation rather than claiming production readiness.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "The actor identifies `support`, runtime `custom`, guidance `/moldea/runtimes/custom.md`, and binding `/src/support-agent.ts` symbol `supportAgent`. `moldea/moldea.yaml` confirms those declarations; the runtime guidance describes the exported record’s identifier/channel contract; and `src/support-agent.ts` exports `supportAgent` with `id: 'support'` and `channel: 'email'`. The description and instruction consistently cover email customer support, evidence-based answers, and escalation. Deterministic-after evidence reports valid CLI validation/inspection, a passing TypeScript check, and an unchanged repository. Approved Git status and scoped diff are empty."
+    }
+  ],
+  "failures": []
+}

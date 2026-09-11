@@ -22,14 +22,12 @@ test('validates the narrow development publication fixture', () => {
   const publication = parseRuntimeCompatibilityPublication(readFileSync(FIXTURE_PATH, 'utf8'));
 
   assert.equal(publication.adapters.custom.targets[0].maturity, 'supported');
-  assert.equal(publication.adapters.openai.targets[0].maturity, 'experimental');
+  assert.equal(publication.adapters.openai.targets[0].maturity, 'supported');
+  assert.equal(publication.adapters.openai.targets[0].packages[0].versionRange, '>=7.4.0');
 });
 
 test('rejects malformed roots, unsupported target maturity, and duplicate target identities', () => {
-  assert.throws(
-    () => parseRuntimeCompatibilityPublication('{'),
-    /not valid JSON/u,
-  );
+  assert.throws(() => parseRuntimeCompatibilityPublication('{'), /not valid JSON/u);
   assert.throws(
     () => validateRuntimeCompatibilityPublication({ schemaVersion: 2 }),
     /unsupported root contract/u,

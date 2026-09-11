@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 593030,
+  "deterministicBeforePath": "cases/repair-eve-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-eve-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-eve-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-eve-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-eve-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-eve-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 840352,
+    "cachedInputTokens": 800512,
+    "outputTokens": 8668
+  },
+  "judgeUsage": {
+    "inputTokens": 176473,
+    "cachedInputTokens": 151936,
+    "outputTokens": 3023
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T13:08:58.131Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T13:11:50.100Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the original `find_order` declaration as differing from Eve 0.39.1's path-derived `orders-find` name. The Git diff confirms the old declaration, while the current registration path is `/agent/tools/orders/find.ts`; deterministic post-actor validation reports `passed: true`, `cliValidateStatus: valid`, and no failures."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` currently sets the tool name to `orders-find`. The diff contains exactly the intended one-line change from `find_order` to `orders-find`, and Git status identifies only `moldea/moldea.yaml` as modified."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings for runtime agent `/agent/agent.ts#default`, instruction `/agent/instructions.md`, agent output schema `/agent/contracts.ts#SupportOutputSchema`, implementation `/agent/implementations.ts#findOrder`, registration `/agent/tools/orders/find.ts#default`, input schema `FindOrderInputSchema`, and tool output schema `FindOrderOutputSchema`. The referenced source files contain the corresponding imports, schemas, implementation, and `defineTool` wiring. Workspace assertions show every source and schema hash unchanged, and deterministic evidence reports repository filesystem validity, CLI validity, and passing typecheck."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

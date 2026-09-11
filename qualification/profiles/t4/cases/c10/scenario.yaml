@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-cloudflare-think-static-boundary
 title: Preserve the Cloudflare Think static boundary
 purpose: Verify conservative handling of dynamic Think relationships and initialization-sensitive classes.

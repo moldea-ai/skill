@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Documented the LangGraph Functional API static boundaries while preserving both workflow implementations and runtime-agent bindings. Added one shared runtime guide, recorded unsupported behavior as unresolved, and removed the nonexistent affectedBy path. TypeScript validation passed, and moldea validation completed with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/langgraph.md"
+  ],
+  "observations": [
+    "Both runtimeAgent bindings retain their original source paths and symbols.",
+    "No source, tools, skills, handoffs, subagents, schemas, approval authority, or topology relationships were added.",
+    "The final Git status contains only the intended manifest modification and new runtime-guide directory."
+  ],
+  "unresolved": [
+    "Runtime validation and executable schema consumption for the TypeScript contracts.",
+    "Checkpointer, persistence, replay, idempotency, interrupt resumption, and approval authorization semantics.",
+    "Whether declared tasks are model-visible capabilities or workflow-internal only.",
+    "Runtime handling of indirect or nested task calls, dynamic control flow, and routing classification."
+  ]
+}

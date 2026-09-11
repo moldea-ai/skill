@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, runner evidence, and Git diff agree: the sole change replaces the stale runtime symbol with the exported `supportWorkflow`. Validation and typechecking pass with no diagnostics. The evaluation was read-only and changed no files.",
+  "requirements": [
+    {
+      "id": "explains-runtime-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies `removedSupportWorkflow` as stale and `supportWorkflow` as the directly exported entrypoint. `src/workflow.ts` exports `supportWorkflow`, while the Git diff proves the prior manifest named `removedSupportWorkflow`; deterministic validation is now valid with no failures."
+    },
+    {
+      "id": "repairs-canonical-runtime-binding",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` binds `/src/workflow.ts` to symbol `supportWorkflow`, exactly matching the source export. Git status identifies only `moldea/moldea.yaml` as modified, and its diff contains only the symbol replacement. Deterministic validation and inspection both report valid."
+    },
+    {
+      "id": "preserves-binding-boundary",
+      "verdict": "pass",
+      "evidence": "The manifest contains only the support runtime, exact runtime-agent binding, and `affectedBy` relationship; it declares no tool, skill, handoff, capability, or schema binding. `src/workflow.ts` retains the direct `answerQuestion` task and exported Functional API entrypoint. Deterministic validation and typechecking pass."
+    }
+  ],
+  "failures": []
+}

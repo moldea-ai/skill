@@ -1,0 +1,398 @@
+{
+  "summary": {
+    "passed": false,
+    "inspectionStatus": "invalid",
+    "repositoryFilesystemValid": false,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": false,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "invalid",
+    "cliInspectStatus": "invalid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [
+      "Repository FS inspection was invalid; expected valid.",
+      "Installed CLI validate reported invalid.",
+      "Installed CLI inspect reported invalid."
+    ],
+    "durationMs": 1097
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "MOLDEA_MANIFEST_VALUE_INVALID",
+          "MOLDEA_MANIFEST_VALUE_INVALID",
+          "MOLDEA_MANIFEST_PROPERTY_UNKNOWN",
+          "MOLDEA_MANIFEST_PROPERTY_UNKNOWN"
+        ],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 0
+      },
+      "memory": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "MOLDEA_MANIFEST_VALUE_INVALID",
+          "MOLDEA_MANIFEST_VALUE_INVALID",
+          "MOLDEA_MANIFEST_PROPERTY_UNKNOWN",
+          "MOLDEA_MANIFEST_PROPERTY_UNKNOWN"
+        ],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 0
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "invalid",
+      "result": {
+        "diagnosticCount": 4,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "code": "MOLDEA_MANIFEST_PROPERTY_UNKNOWN",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"diagnostic\",\"core\",\"MOLDEA_MANIFEST_PROPERTY_UNKNOWN\",\"/moldea/moldea.yaml\",\"/agents/support/unresolved/dynamic-tool-registry/relatedPaths\",3]",
+              "kind": "diagnostic",
+              "message": "The manifest contains an unknown property.",
+              "path": "/moldea/moldea.yaml",
+              "pointer": "/agents/support/unresolved/dynamic-tool-registry/relatedPaths",
+              "range": {
+                "end": {
+                  "column": 21,
+                  "line": 16,
+                  "offset": 619
+                },
+                "start": {
+                  "column": 9,
+                  "line": 16,
+                  "offset": 607
+                }
+              },
+              "source": "core"
+            },
+            {
+              "code": "MOLDEA_MANIFEST_PROPERTY_UNKNOWN",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"diagnostic\",\"core\",\"MOLDEA_MANIFEST_PROPERTY_UNKNOWN\",\"/moldea/moldea.yaml\",\"/agents/support/unresolved/dynamic-tool-registry/severity\",2]",
+              "kind": "diagnostic",
+              "message": "The manifest contains an unknown property.",
+              "path": "/moldea/moldea.yaml",
+              "pointer": "/agents/support/unresolved/dynamic-tool-registry/severity",
+              "range": {
+                "end": {
+                  "column": 17,
+                  "line": 13,
+                  "offset": 271
+                },
+                "start": {
+                  "column": 9,
+                  "line": 13,
+                  "offset": 263
+                }
+              },
+              "source": "core"
+            },
+            {
+              "code": "MOLDEA_MANIFEST_VALUE_INVALID",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"diagnostic\",\"core\",\"MOLDEA_MANIFEST_VALUE_INVALID\",\"/moldea/moldea.yaml\",\"/agents/support/unresolved/dynamic-tool-registry/category\",0]",
+              "kind": "diagnostic",
+              "message": "The manifest value is invalid.",
+              "path": "/moldea/moldea.yaml",
+              "pointer": "/agents/support/unresolved/dynamic-tool-registry/category",
+              "range": null,
+              "source": "core"
+            },
+            {
+              "code": "MOLDEA_MANIFEST_VALUE_INVALID",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"diagnostic\",\"core\",\"MOLDEA_MANIFEST_VALUE_INVALID\",\"/moldea/moldea.yaml\",\"/agents/support/unresolved/dynamic-tool-registry/effect\",1]",
+              "kind": "diagnostic",
+              "message": "The manifest value is invalid.",
+              "path": "/moldea/moldea.yaml",
+              "pointer": "/agents/support/unresolved/dynamic-tool-registry/effect",
+              "range": null,
+              "source": "core"
+            }
+          ]
+        },
+        "snapshotDigest": "sha256:2cbb8cec7fede3a05bae1a078be2d0f6e52c25866f68bb3c6f170a6a5e61ede1",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "invalid",
+      "result": {
+        "counts": {
+          "agents": 0,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 4,
+          "evidence": 0,
+          "metadata": 0,
+          "mirrors": 0,
+          "runtimes": 0,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "code": "MOLDEA_MANIFEST_PROPERTY_UNKNOWN",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"000000\",\"diagnostic\",\"core\",\"MOLDEA_MANIFEST_PROPERTY_UNKNOWN\"]",
+              "kind": "diagnostic",
+              "message": "The manifest contains an unknown property.",
+              "path": "/moldea/moldea.yaml",
+              "pointer": "/agents/support/unresolved/dynamic-tool-registry/relatedPaths",
+              "range": {
+                "end": {
+                  "column": 21,
+                  "line": 16,
+                  "offset": 619
+                },
+                "start": {
+                  "column": 9,
+                  "line": 16,
+                  "offset": 607
+                }
+              },
+              "source": "core"
+            },
+            {
+              "code": "MOLDEA_MANIFEST_PROPERTY_UNKNOWN",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"000001\",\"diagnostic\",\"core\",\"MOLDEA_MANIFEST_PROPERTY_UNKNOWN\"]",
+              "kind": "diagnostic",
+              "message": "The manifest contains an unknown property.",
+              "path": "/moldea/moldea.yaml",
+              "pointer": "/agents/support/unresolved/dynamic-tool-registry/severity",
+              "range": {
+                "end": {
+                  "column": 17,
+                  "line": 13,
+                  "offset": 271
+                },
+                "start": {
+                  "column": 9,
+                  "line": 13,
+                  "offset": 263
+                }
+              },
+              "source": "core"
+            },
+            {
+              "code": "MOLDEA_MANIFEST_VALUE_INVALID",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"000002\",\"diagnostic\",\"core\",\"MOLDEA_MANIFEST_VALUE_INVALID\"]",
+              "kind": "diagnostic",
+              "message": "The manifest value is invalid.",
+              "path": "/moldea/moldea.yaml",
+              "pointer": "/agents/support/unresolved/dynamic-tool-registry/category",
+              "range": null,
+              "source": "core"
+            },
+            {
+              "code": "MOLDEA_MANIFEST_VALUE_INVALID",
+              "entity": {
+                "agentId": "support"
+              },
+              "key": "[\"000003\",\"diagnostic\",\"core\",\"MOLDEA_MANIFEST_VALUE_INVALID\"]",
+              "kind": "diagnostic",
+              "message": "The manifest value is invalid.",
+              "path": "/moldea/moldea.yaml",
+              "pointer": "/agents/support/unresolved/dynamic-tool-registry/effect",
+              "range": null,
+              "source": "core"
+            }
+          ]
+        },
+        "project": null,
+        "snapshotDigest": "sha256:ad6d9be4a18c84733f1ec1c66d347a8e9fcacdaa09f6418ef5070e1076da9fa9",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

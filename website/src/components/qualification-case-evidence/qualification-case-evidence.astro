@@ -11,6 +11,7 @@ import type {
   IQualificationProfileCaseModel,
 } from '../../lib/qualification/index.ts';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import QualificationProjectEvidence from '../qualification-project-evidence/qualification-project-evidence.astro';
 import QualificationTrialEvidence from '../qualification-trial-evidence/qualification-trial-evidence.astro';
 
 interface Props {
@@ -21,6 +22,7 @@ interface Props {
 
 const TABS = [
   { id: 'replay', label: 'Replay', slotName: 'replay' },
+  { id: 'project', label: 'Project', slotName: 'project' },
   { id: 'evidence', label: 'Evidence', slotName: 'evidence' },
   { id: 'technical', label: 'Technical', slotName: 'technical' },
 ] as const;
@@ -162,6 +164,12 @@ const resultRationaleHtml = await renderMarkdownFragment(resultRationale, markdo
         slot="replay"
         id={`qualification-${result.caseId}`}
         replay={evidence.replay}
+      />
+
+      <QualificationProjectEvidence
+        slot="project"
+        evidence={evidence}
+        profileCase={profileCase}
       />
 
       <div slot="evidence">

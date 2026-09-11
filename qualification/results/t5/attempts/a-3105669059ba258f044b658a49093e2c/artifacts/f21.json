@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Found one correctness issue in src/retry-policy.ts:1. The predicate treats every numeric value >=500 as retryable, including invalid HTTP statuses such as 600 and Infinity. It should bound the server-error range at 599 unless callers guarantee validated status codes.",
+  "changedFiles": [],
+  "observations": [
+    "Runtime probe confirmed: 429, 500, and 599 return true; 600 and Infinity also return true.",
+    "TypeScript validation passed with `node ./node_modules/typescript/bin/tsc -p ./tsconfig.json --noEmit`.",
+    "Final Git status and diff were empty; no files were changed."
+  ],
+  "unresolved": [
+    "The repository contains no tests, callers, or documented input precondition establishing whether `shouldRetry` receives only valid HTTP status codes."
+  ]
+}

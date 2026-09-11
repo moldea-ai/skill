@@ -31,6 +31,7 @@ import type {
   IWebsiteDocument,
   IWebsiteModel,
 } from '../model/types.ts';
+import { loadReleaseEvidenceModel } from '../release-evidence/index.ts';
 import { DEFAULT_SITE_URL } from '../site/constants.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
@@ -272,7 +273,7 @@ export const createSemanticEvaluationSearchRecords = (
 ): ISearchRecord[] => {
   const landingRecord: ISearchRecord = {
     description: semanticEvaluation.hasAttempt
-      ? `Review the latest ${semanticEvaluation.status} semantic attempt, immutable history, and ${semanticEvaluation.caseCount} behavioral scenarios.`
+      ? `Review the latest semantic attempt, current-contract history, and ${semanticEvaluation.caseCount} behavioral scenarios.`
       : `Review ${semanticEvaluation.caseCount} behavioral scenarios and the semantic evaluation methodology before the first attempt is recorded.`,
     route: semanticEvaluation.route,
     searchText: normalizeSearchText(
@@ -319,8 +320,19 @@ export const createLlmsText = (
   documents: IWebsiteDocument[],
   skill: ISkillMetadata,
   qualification: IQualificationWebsiteModel,
+  releaseEvidence: IWebsiteModel['releaseEvidence'],
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
 ): string => {
+  const releaseEvidenceLines =
+    releaseEvidence.mode === 'not-recorded'
+      ? [`Release evidence has not been recorded for ${releaseEvidence.targetVersion}.`]
+      : (['semantic', 'qualification'] as const).map((kind) => {
+          const section = releaseEvidence[kind];
+          const label = kind === 'semantic' ? 'Semantic' : 'Qualification';
+          return section.mode === 'pinned'
+            ? `${label} evidence for release ${releaseEvidence.targetVersion} is pinned from [${section.sourceLabel}](${section.sourceUrl}). Reason: ${section.reason}`
+            : `${label} evidence for release ${releaseEvidence.targetVersion} is fresh.`;
+        });
   const lines = [
     '# `moldea` Agent Skill',
     '',
@@ -355,9 +367,11 @@ export const createLlmsText = (
   lines.push(
     '## Evidence',
     '',
+    ...releaseEvidenceLines,
+    '',
     `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
     semanticEvaluation.hasAttempt
-      ? `- [Semantic evaluation](${semanticEvaluation.route}): Review the latest ${semanticEvaluation.status} attempt, ${semanticEvaluation.caseCount} scenarios, and immutable history.`
+      ? `- [Semantic evaluation](${semanticEvaluation.route}): Review the latest attempt, ${semanticEvaluation.caseCount} scenarios, and current-contract history.`
       : `- [Semantic evaluation](${semanticEvaluation.route}): Review ${semanticEvaluation.caseCount} behavioral scenarios and the methodology before the first attempt is recorded.`,
     `- [Adapter qualification](${qualification.route}): Inspect the support gate, transparent profiles, passing outcomes, and immutable attempt history.`,
   );
@@ -429,10 +443,13 @@ export const createWebsiteModel = (
 ): IWebsiteModel => {
   const repositoryRoot = getRepositoryRoot();
   const documents = discoverDocuments(repositoryRoot);
-  const qualification = loadQualificationWebsiteModel(qualificationRepositoryRoot);
-  assertPublishableQualificationEvidence(qualification);
-  const semanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
   const skill = readSkillMetadata(repositoryRoot);
+  const releaseEvidence = loadReleaseEvidenceModel(repositoryRoot, skill.version);
+  const qualification = loadQualificationWebsiteModel(qualificationRepositoryRoot);
+  if (releaseEvidence.mode === 'not-recorded' || releaseEvidence.qualification.mode === 'fresh') {
+    assertPublishableQualificationEvidence(qualification);
+  }
+  const semanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
   const productionHostname = new URL(DEFAULT_SITE_URL).hostname;
@@ -450,9 +467,10 @@ export const createWebsiteModel = (
   return {
     documents,
     generatedNotice: GENERATED_NOTICE,
-    llmsText: createLlmsText(documents, skill, qualification, semanticEvaluation),
+    llmsText: createLlmsText(documents, skill, qualification, releaseEvidence, semanticEvaluation),
     navigation: createNavigation(documents),
     qualification,
+    releaseEvidence,
     routes: createRouteManifest(documents, qualification, semanticEvaluation),
     searchRecords: [
       ...createSearchRecords(documents),

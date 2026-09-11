@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent with the existing Functional API implementation. The runtime binding now targets `supportWorkflow`, and validation completed successfully with zero diagnostics, including no runtime-symbol diagnostic.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Updated canonical owner `/moldea/agents/support/instruction.md` to match the source-supported review behavior.",
+    "Preserved `src/workflow.ts`, its directly exported entrypoint, and direct `answerQuestion` task unchanged.",
+    "Added no manifest capability or TypeScript schema binding.",
+    "Final moldea validation reported `valid: true`, `diagnosticCount: 0`, and no remaining records.",
+    "Final Git status contained only the two intended modified files."
+  ],
+  "unresolved": []
+}

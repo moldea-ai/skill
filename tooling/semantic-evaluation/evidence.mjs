@@ -18,17 +18,30 @@ const GIT_STATE_FACTS = new Set([
 ]);
 const STABLE_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SEMANTIC_CRITERION_KEYS = new Set(['criterion', 'label']);
-// maximum evaluator-authored host instruction context for one isolated case
-const MAX_HOST_INSTRUCTIONS_BYTES = 16_384;
 const SEMANTIC_CASE_KEYS = new Set([
   'expected',
   'forbidden',
   'hostInstructions',
   'id',
   'input',
+  'localProbe',
   'operation',
+  'resourceBudget',
   'scenario',
   'skillEvidence',
+]);
+const RUNTIME_COMPATIBILITY_PUBLICATION_PROBE_VARIANTS = new Set([
+  'current-supported-target',
+  'experimental-current-target',
+  'future-supported-target',
+  'malformed',
+  'missing-current-target',
+  'unavailable',
+]);
+const SKILL_ARTIFACT_ROLES = new Set([
+  'authoritative-source',
+  'distributed-copy',
+  'installed-copy',
 ]);
 
 const isPlainRecord = (input) =>
@@ -72,9 +85,6 @@ const isValidRepositoryEvidence = (entry) => {
   if (entry.source.kind === 'developer-direction') {
     return Object.keys(entry.source).length === 1;
   }
-  if (entry.source.kind === 'host-instructions') {
-    return Object.keys(entry.source).length === 1;
-  }
   if (entry.source.kind === 'git-state') {
     return Object.keys(entry.source).length === 2 && GIT_STATE_FACTS.has(entry.source.fact);
   }
@@ -85,18 +95,66 @@ const isValidRepositoryEvidence = (entry) => {
       ['directory', 'file', 'missing', 'symlink'].includes(entry.source.expectedType)
     );
   }
+  if (entry.source.kind === 'host-instructions') {
+    return Object.keys(entry.source).length === 1;
+  }
   if (entry.source.kind === 'related-path') {
     return (
       Object.keys(entry.source).length === 4 &&
       typeof entry.source.mount === 'string' &&
-      /^\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(entry.source.mount) &&
+      /^\/[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?$/u.test(entry.source.mount) &&
       isSafeEvidencePath(entry.source.path) &&
       ['directory', 'file', 'missing', 'symlink'].includes(entry.source.expectedType)
     );
   }
-
   return false;
 };
+
+/** Returns whether evaluator-only Agent Skill evidence has a bounded safe shape. */
+const isValidSkillEvidence = (skillEvidence) => {
+  if (!isPlainRecord(skillEvidence) || Object.keys(skillEvidence).length !== 2) return false;
+  const { activationScenarios, artifacts } = skillEvidence;
+  if (
+    !Array.isArray(activationScenarios) ||
+    activationScenarios.length > 8 ||
+    !activationScenarios.every(
+      (scenario) =>
+        isPlainRecord(scenario) &&
+        Object.keys(scenario).length === 2 &&
+        typeof scenario.request === 'string' &&
+        scenario.request.trim().length > 0 &&
+        Buffer.byteLength(scenario.request, 'utf8') <= 1_024 &&
+        typeof scenario.shouldActivate === 'boolean',
+    ) ||
+    !Array.isArray(artifacts) ||
+    artifacts.length === 0 ||
+    artifacts.length > 8
+  ) {
+    return false;
+  }
+
+  const roots = new Set();
+  return artifacts.every((artifact) => {
+    if (
+      !isPlainRecord(artifact) ||
+      Object.keys(artifact).length !== 2 ||
+      !SKILL_ARTIFACT_ROLES.has(artifact.role) ||
+      !isSafeEvidencePath(artifact.root) ||
+      roots.has(artifact.root)
+    ) {
+      return false;
+    }
+    roots.add(artifact.root);
+    return true;
+  });
+};
+
+/** Returns whether one evaluator-owned local probe has a bounded explicit contract. */
+const isValidLocalProbe = (localProbe) =>
+  isPlainRecord(localProbe) &&
+  Object.keys(localProbe).length === 2 &&
+  localProbe.kind === 'runtime-compatibility-publication' &&
+  RUNTIME_COMPATIBILITY_PUBLICATION_PROBE_VARIANTS.has(localProbe.variant);
 
 /** Hashes one JSON-compatible semantic-evaluation contract exactly. */
 const createJsonDigest = (value) =>
@@ -111,11 +169,11 @@ export const getSemanticCriterionLabels = (criteria) => criteria.map(({ label })
  * @returns The validated semantic case contract.
  * @throws
  * - If the case identity, scenario, or criteria collection is incomplete
- * - If declared host instructions are empty, oversized, or contain a null byte
  * - If an evaluator criterion has an unsupported shape
  * - If evaluator labels are duplicated
  */
 export const validateSemanticCaseDefinition = (caseDefinition) => {
+  const hasSkillEvidence = isPlainRecord(caseDefinition) && 'skillEvidence' in caseDefinition;
   const hasStructuredScenario =
     isPlainRecord(caseDefinition) &&
     Object.keys(caseDefinition).every((key) => SEMANTIC_CASE_KEYS.has(key)) &&
@@ -132,12 +190,70 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
     Array.isArray(caseDefinition.input.repositoryEvidence) &&
     caseDefinition.input.repositoryEvidence.length > 0 &&
     caseDefinition.input.repositoryEvidence.every(isValidRepositoryEvidence);
+  const resourceBudget = caseDefinition?.resourceBudget;
+  const hasValidResourceBudget =
+    isPlainRecord(resourceBudget) &&
+    Object.keys(resourceBudget).length === 4 &&
+    ['abstain', 'blocked', 'direct', 'informational', 'relationship'].includes(
+      resourceBudget.activation,
+    ) &&
+    Number.isSafeInteger(resourceBudget.minimumMoldeaCommands) &&
+    resourceBudget.minimumMoldeaCommands >= 0 &&
+    Number.isSafeInteger(resourceBudget.maximumMoldeaCommands) &&
+    resourceBudget.maximumMoldeaCommands >= resourceBudget.minimumMoldeaCommands &&
+    resourceBudget.maximumMoldeaCommands <= 16 &&
+    Number.isSafeInteger(resourceBudget.maximumMoldeaOutputBytes) &&
+    resourceBudget.maximumMoldeaOutputBytes >= 0 &&
+    resourceBudget.maximumMoldeaOutputBytes <= 1_048_576 &&
+    (!['abstain', 'informational'].includes(resourceBudget.activation) ||
+      (resourceBudget.minimumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaOutputBytes === 0)) &&
+    (['abstain', 'blocked', 'informational'].includes(resourceBudget.activation) ||
+      resourceBudget.minimumMoldeaCommands > 0 ||
+      (resourceBudget.activation === 'direct' &&
+        resourceBudget.minimumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaOutputBytes === 0 &&
+        isValidSkillEvidence(caseDefinition?.skillEvidence))) &&
+    (!hasSkillEvidence ||
+      (resourceBudget.activation === 'direct' &&
+        resourceBudget.minimumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaOutputBytes === 0)) &&
+    (resourceBudget.activation !== 'blocked' || resourceBudget.maximumMoldeaCommands <= 4);
+  const hostInstructionEvidenceCount =
+    isPlainRecord(caseDefinition?.input) && Array.isArray(caseDefinition.input.repositoryEvidence)
+      ? caseDefinition.input.repositoryEvidence.filter(
+          (entry) =>
+            isPlainRecord(entry) &&
+            isPlainRecord(entry.source) &&
+            entry.source.kind === 'host-instructions',
+        ).length
+      : 0;
+  const hasHostInstructions = isPlainRecord(caseDefinition) && 'hostInstructions' in caseDefinition;
+  const hasValidHostInstructions = hasHostInstructions
+    ? typeof caseDefinition.hostInstructions === 'string' &&
+      caseDefinition.hostInstructions.trim().length > 0 &&
+      Buffer.byteLength(caseDefinition.hostInstructions, 'utf8') <= 16_384 &&
+      hostInstructionEvidenceCount === 1
+    : hostInstructionEvidenceCount === 0;
+  const hasValidConfiguredSkillEvidence =
+    isPlainRecord(caseDefinition) &&
+    (!('skillEvidence' in caseDefinition) || isValidSkillEvidence(caseDefinition.skillEvidence));
+  const hasValidConfiguredLocalProbe =
+    isPlainRecord(caseDefinition) &&
+    (!('localProbe' in caseDefinition) || isValidLocalProbe(caseDefinition.localProbe));
   if (
     !isPlainRecord(caseDefinition) ||
     'prompt' in caseDefinition ||
     typeof caseDefinition.id !== 'string' ||
     !STABLE_ID_PATTERN.test(caseDefinition.id) ||
     !hasStructuredScenario ||
+    !hasValidResourceBudget ||
+    !hasValidHostInstructions ||
+    !hasValidConfiguredSkillEvidence ||
+    !hasValidConfiguredLocalProbe ||
     !Array.isArray(caseDefinition.expected) ||
     caseDefinition.expected.length === 0 ||
     !Array.isArray(caseDefinition.forbidden) ||
@@ -152,26 +268,6 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
   if (new Set(evidenceClaims).size !== evidenceClaims.length) {
     throw new Error(`Semantic case ${caseDefinition.id} has duplicate evidence claims.`);
   }
-  const hasDeclaredHostInstructions = caseDefinition.input.repositoryEvidence.some(
-    ({ source }) => source.kind === 'host-instructions',
-  );
-  const hasHostInstructions = 'hostInstructions' in caseDefinition;
-  if (hasDeclaredHostInstructions !== hasHostInstructions) {
-    throw new Error(
-      `Semantic case ${caseDefinition.id} must source every applicable host instruction.`,
-    );
-  }
-
-  if (
-    'hostInstructions' in caseDefinition &&
-    (typeof caseDefinition.hostInstructions !== 'string' ||
-      caseDefinition.hostInstructions.trim().length === 0 ||
-      Buffer.byteLength(caseDefinition.hostInstructions, 'utf8') > MAX_HOST_INSTRUCTIONS_BYTES ||
-      caseDefinition.hostInstructions.includes('\0'))
-  ) {
-    throw new Error(`Semantic case ${caseDefinition.id} has invalid host instructions.`);
-  }
-
   const criteria = [...caseDefinition.expected, ...caseDefinition.forbidden];
   if (
     !criteria.every(

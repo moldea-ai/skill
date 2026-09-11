@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Created the canonical order-triage moldea agent, bound it to the custom runtime factory, added scoped runtime guidance, and validated the complete project.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The agent classifies orders for human review and explicitly cannot approve refunds.",
+    "The manifest binds createOrderTriageAgent in /src/order-triage-agent.ts and declares that source as affectedBy.",
+    "TypeScript compilation passed.",
+    "moldea validation passed with zero diagnostics.",
+    "The final Git diff contains only the authorized changes; the tree was initially clean."
+  ],
+  "unresolved": [
+    "The injected canonical-instruction loader has no repository implementation or integration test proving deployed path resolution. This is recorded as a blocking agent requirement with explicit resolution criteria."
+  ]
+}

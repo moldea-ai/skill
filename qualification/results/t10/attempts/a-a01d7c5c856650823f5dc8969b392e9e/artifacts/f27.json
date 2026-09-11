@@ -1,0 +1,37 @@
+{
+  "verdict": "pass",
+  "summary": "The canonical state preserves the proved bindings while keeping opaque schemas, runtime-selected routing, graph nodes, ToolNode registration, and deployment composition outside static claims. Only the manifest and one shared runtime guide changed; runner evidence confirms source preservation, successful validation, and typechecking. This evaluation was read-only and changed no files.",
+  "requirements": [
+    {
+      "id": "preserves-closed-bindings",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains support.runtimeAgent -> /src/support-graph.ts#supportGraph, inputSchema -> SupportInputSchema, and outputSchema -> SupportOutputSchema. src/support-graph.ts contains those exports and its direct StateGraph operations; workspace hashes confirm the source remained unchanged."
+    },
+    {
+      "id": "preserves-opaque-schema-boundary",
+      "verdict": "pass",
+      "evidence": "dynamic-support declares only runtimeAgent -> /src/dynamic-support-graph.ts#dynamicSupportGraph. No inputSchema or outputSchema relationship exists, matching the unchanged source's factory-produced schema."
+    },
+    {
+      "id": "preserves-routing-boundary",
+      "verdict": "pass",
+      "evidence": "dynamic-support.unresolved.dynamic-routing explicitly leaves runtime-state, Command, and Send destinations unresolved and requires closed runtime configuration or integration tests. The canonical inventory contains no routing targets, handoffs, subagents, parent navigation, or complete-topology claim."
+    },
+    {
+      "id": "keeps-nodes-outside-capabilities",
+      "verdict": "pass",
+      "evidence": "The manifest declares no tools, skills, handoffs, or subagents. The guide identifies the order lookup as node-local and the empty ToolNode as unregistered and not an agent tool."
+    },
+    {
+      "id": "preserves-runtime-semantics-boundary",
+      "verdict": "pass",
+      "evidence": "The top-level runtime-composition unresolved record explicitly covers reducers, effective node metadata, subgraphs, checkpointer, store, cache, runtime context, compiled descriptions, prebuilt agents, supervisor composition, and ToolNode registration, with deployment configuration and integration evidence as resolution."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "Both support and dynamic-support reference /moldea/runtimes/langgraph.md. Targeted canonical-path inspection found it is the sole runtime Markdown guide; it contrasts directly declared schemas with the opaque factory boundary and documents runtime routing and composition evidence requirements."
+    }
+  ],
+  "failures": []
+}

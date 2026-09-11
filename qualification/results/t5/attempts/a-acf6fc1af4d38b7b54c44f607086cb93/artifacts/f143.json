@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 382197,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 519283,
+    "cachedInputTokens": 483968,
+    "outputTokens": 9300
+  },
+  "judgeUsage": {
+    "inputTokens": 153039,
+    "cachedInputTokens": 128896,
+    "outputTokens": 3048
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T05:04:43.308Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T05:06:24.036Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-binding",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` binds `/src/support-assistant.ts` symbol `supportAssistant`, matching the existing export. Approved Git status/diff shows `src/support-agent.ts` deleted, and a direct existence check confirms it remains absent. Deterministic validation and typecheck passed."
+    },
+    {
+      "id": "records-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`agents.support.unresolved.dynamic-tool-registration` is an agent-level warning describing the static-inspection limitation, resolving it through a project-owned runtime/integration assertion against `createToolRegistry()`, and relating `/src/dynamic-tools.ts`. The manifest contains no invented tool binding; bounded scope and deterministic validation report valid state."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

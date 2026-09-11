@@ -1,124 +1,159 @@
 ---
 title: Semantic evaluation
 navigationTitle: Semantic evaluation
-description: Understand how the release gate proves portable skill behavior through natural requests, sourced scenarios, independent judgment, and protected repositories.
+description: How the current portable skill is tested for relevance, bounded evidence use, read-only behavior, and concise reporting.
 section: reference
 order: 172
 ---
 
 # Semantic evaluation
 
-Semantic evaluation tests whether the portable `moldea` skill behaves correctly in difficult repository situations. It complements deterministic conformance and adapter qualification. It does not replace either one.
+Deterministic tests can prove schemas, files, commands, and byte limits. Semantic evaluation tests whether a coding agent applies those contracts correctly inside realistic repository tasks.
 
-The current source suite contains 57 scenarios. Each initial trial uses one actor call and one independent judge call, for 114 model requests when every scenario passes initially. One bounded confirmation sequence adds up to four requests, and the theoretical full-run maximum is 342 requests when every case needs both confirmations. Operational retries are additional. Both processes use the fixed frontier assurance model, `gpt-5.6-sol`, at `medium` reasoning effort and have a five-minute per-call timeout by default. A timeout starts an operational retry instead of consuming the semantic trial.
+The active suite contains 74 cases. It restores all 57 scenarios from the former suite, retains 17 scenarios added by the resource-bounded redesign, and counts the one shared scenario only once. `fixtures/semantic-evaluation-dispositions.json` records the clean-slate disposition of every former identifier so a reduced suite cannot silently replace established coverage again.
 
-## What each scenario proves
+## What the suite proves
 
-Every case declares four separate contracts:
+The cases cover:
 
-- a natural developer direction that is the actor's complete prompt
-- an evaluator-only scenario and requested operation
-- sourced repository evidence that the runner materializes before execution
-- explicit expected and forbidden criteria that only the judge receives
+- `moldea`-only silent abstention while unrelated documentation and source reviews continue normally
+- `moldea`-only silent abstention while README changes outside the managed block continue normally
+- host planning and review command precedence
+- no activation from generic durable-knowledge language
+- direct activation for canonical files and the managed README block
+- bounded relationship activation for exact bindings and `affectedBy` paths
+- explicit `moldea` validation
+- valid zero-agent projects
+- large canonical inventories without full-content inspection
+- read-only evaluation across repository and Git control state
+- initialization from insufficient, partial, and sufficient evidence
+- canonical maintenance, reconciliation, compression, and exact relationship behavior
+- Agent Skill creation, maintenance, distribution, and script-authority boundaries
+- grounded agent-system planning and runtime selection
+- provider capability and routing-description ownership
+- package-manager, Git-helper, host-command, and related-repository safety
 
-The actor never receives the evaluator scenario, operation, evidence declarations, labels, or answer criteria. This tests ordinary skill activation and reasoning instead of response matching against a test description.
+Each case defines a natural developer request, sourced repository facts, expected behavior, prohibited behavior, and a resource budget. The actor receives the request and the portable skill. It does not receive the answer criteria.
 
-The natural direction still identifies information a developer would need to supply, such as a required related-repository path, an intended artifact location, or the product-specific surface under discussion. Materializing hidden evaluator state does not make that state fair actor input, and scenario wording does not disclose the expected conclusion.
+A separate judge receives the declared criteria plus runner-owned evidence. No actor response can manufacture command evidence, repository state, or byte counts.
 
-Actor directions name `moldea` only when the developer must explicitly authorize initialization or when the repository-local CLI itself is the subject. Safety scenarios may append an explicit non-execution constraint to `Initialize moldea`. Ordinary project evaluation, maintenance, agent, runtime, and context-compression directions stay natural so the suite proves automatic discovery instead of prompting the actor with an internal invocation hint.
+## Resource evidence
 
-The suite covers binary adopted or unadopted reporting, non-blocking recommendations that leave initialization optional, exact initialization language, bounded incremental context hygiene, loss-preserving explicit compression, manifest and consumer synchronization, and conflict-safe stopping. These cases observe repository outcomes and response behavior. They do not claim exact token savings or inspect host context-window management, conversation compaction, prompt caching, token budgets, or model internals.
+For every completed actor and judge command, the runner observes the command and output in memory, projects only safe facts, and discards raw command text and output bodies.
 
-Repository evidence must identify an inspectable source. Supported sources include the developer direction, applicable host instructions, Git state, a path in the evaluation repository, or a path in an explicitly mounted related repository. The model-free preflight creates every repository and rejects missing, mismatched, unsafe, or unsourced evidence before a paid run can begin.
+The committed result records:
 
-Dirty-tree scenarios combine categorical Git-state facts with bounded snapshots of every material changed path and the canonical relationships needed for semantic assessment. Judges can therefore compare the actor's claimed scope and reasoning with independent evidence without receiving raw actor commands or arbitrary command output.
+- number and order of recognized `moldea` operations
+- emitted `moldea` bytes
+- maximum bytes emitted by one recognized invocation
+- total model-visible tool-output bytes
+- actor and judge command-policy status with bounded reason codes and counts
+- completed host-command count and total input-plus-output model tokens
+- whether a non-content command attempted to return canonical content
 
-Clean-tree scenarios source the canonical foundation and material related implementation needed for the expected assessment. Progressive scope is judged from the actor's concise starting-scope and expansion conclusion together with that independent project evidence. It is not inferred from discarded command text or internal reasoning. The installed `moldea` skill remains protected operating guidance and does not become project-owned scenario evidence merely because the actor uses it.
+Abstention cases require zero recognized `moldea` commands and zero `moldea` bytes. Each semantic case owns its exact activation and `moldea` budget. The activation label records how the case became eligible; it does not require a CLI call when independent artifact evidence owns the operation. Direct Agent Skill artifact cases therefore use exact zero-call budgets when repository validation would add no relevant fact. A direct case may begin with `scope` when explicit `moldea` intent targets ordinary repository paths, while a relationship case always begins with `scope` and never uses `inspect`. Ordinary direct, relationship, and discovery-dependent blocked cases permit at most four `moldea` calls and 262,144 `moldea`-output bytes, while simpler blocked cases retain smaller case-specific limits. An entrypoint route-5 direct mutation that needs owner discovery or composition may permit one fifth call for validation after a real repair. The explicit three-record compression case also permits five calls: one inventory inspection, three selected content reads, and final validation. The dedicated large-context case permits at most 16 calls and 1,048,576 output bytes while still requiring paginated, purpose-bounded traversal. The evaluation host separately enforces its absolute command, output, and token containment ceilings. Each actor and judge stage has a finite fifteen-minute timeout, and both roles use `xhigh` reasoning. Both roles receive the evaluator-owned closed-host developer instruction before the natural task, and host skill discovery is disabled so external skill state cannot affect the fixture. Caller overrides are rejected, and the exact instruction digest is part of each role's reusable stage identity. A runtime-publication case explicitly grants one evaluator-owned fixed local compatibility probe in the natural task and declares its exact response variant in the case definition. That variant is therefore part of the case and stage identities, so a changed probe response invalidates only affected evidence. A publication URL or evidence need does not grant network access. The capability is absent from judges, ungranted semantic cases, and qualification, and every arbitrary network command remains prohibited.
+
+When pre-adoption abstention consumes the complete request, the actor reports only a neutral repository outcome such as `No files were changed.` It does not name `moldea`, describe an unavailable operation or result, or recommend initialization. When an independent host review remains, the actor completes that review and reports its normal actionable findings without mentioning `moldea`.
+
+Initialization writes its complete foundation before the first CLI call, using the exact minimal `version: 1` manifest when no relationship is evidenced, then uses one final `validate`. It stops on success; one diagnostic-driven correction and validation retry is the only structural retry. It does not follow successful validation with `inspect`.
+
+Case budgets are declared in `fixtures/conformance-cases.json`; their maximum values and the evaluation host's absolute containment ceilings are owned by `tooling/resource-calibration/profiles.mjs`. `fixtures/resource-calibration.json` records deterministic CLI and repository-operation measurements for ordinary, 1,024-path, large-Unicode, diagnostic-heavy, and adversarial inputs, with at least 25 percent cumulative headroom for non-attack cases. It does not stand in for complete model-stage calibration. `fixtures/model-stage-resource-calibration.json` separately preserves a self-contained privacy-safe record of aggregate observations from judged qualification and proves at least 25 percent cumulative operating headroom without retaining commands, output bodies, or an active qualification-result dependency.
+
+Recognized machine commands must use the installed skill's `scripts/moldea-cli.mjs` launcher with an absolute repository root, `--json`, and the required output boundary. Bare, package-manager, unbounded, escaped, or output-filtered forms do not count as valid proof.
+
+Paged proof keeps every page independently attributable. The actor repeats the same standalone launcher operation with the exact cursor from the immediately preceding raw envelope, keeps the 65,536-byte boundary, and may report complete traversal only after the final raw envelope returns a null cursor. Pipelines, command substitutions, scripted loops, parsers, filters, and aggregate wrappers do not establish page-level proof.
+
+Relationship cases begin from structurally valid adopted repositories. Their first CLI operation is one bounded `scope` call, which serves as complete candidate-owner inventory instead of being followed by `inspect`. Overlapping matches do not require every owner or asset to be read. The coding agent selects the smallest task-affected owner set, preferring an exact relationship over a broad glob unless evidence shows both contracts change. The scope call is included in the four-command ordinary budget; remaining calls are limited to final validation and the implicated content of selected owners.
+
+Direct context compression uses at most one content-free `inspect` followed by one `content` call per distinct in-scope context record. It never repeats a path or requests manifest content, and it stops as soon as retrieved evidence establishes a consequential conflict. The three-record fixture therefore allows five bounded calls when final validation follows a completed repair.
+
+Every adopted semantic repository contains the current managed README discovery bridge. This proves that repository-aware hosts can select the cheap gate even when a relationship is visible only inside the manifest, while unrelated cases must still stop before any CLI call or workflow-reference load.
+
+Relationship cases begin from ordinary Git-style task paths. They cover both a host-provided changed path and an unchanged path explicitly named by the developer. The gate normalizes those repository-relative spellings before Core matching, and the actor must use the corresponding leading-slash repository-logical paths for the CLI query. This prevents false abstention without weakening canonical manifest path validation or adding `moldea`-owned Git discovery.
+
+The runner records semantic, resource, command-policy, repository-control, read-only-mount, and operational results as separate dimensions. The semantic dimension combines the independent judge verdict with required activation mode, minimum call count, and operation order. The resource dimension covers only upper command and output containment. Overall pass is their strict conjunction. Only a semantic failure with every other dimension passing is eligible for confirmation; deterministic, resource, policy, repository, mount, and operational failures are terminal and do not spend confirmation calls. The judge evaluates only the behavioral clauses and projected command-result facts. It must not reinterpret the total host command count or output from non-`moldea` commands as `moldea` resource consumption.
+
+When a criterion requires a repository correctness test, the runner recognizes only one static repository-root `node --test` invocation over explicit portable colocated test paths. A successful command contributes one `node-test-summary` fact containing the recognized test level and native aggregate counts. Projection requires a zero exit code, a complete native summary, at least one test, every discovered test passing, and zero failures, cancellations, skips, or todo results. Raw command text, test names, assertions, paths, durations, and output bodies are discarded. Package-manager commands remain prohibited network-capable observations and cannot produce correctness evidence. Unrecognized, incomplete, contradictory, failed, or oversized output supplies no result fact.
 
 ## Repository controls
 
-Actors can edit the ordinary working tree when a scenario authorizes changes. Bubblewrap overlays the repository's `.git` metadata and installed `.agents/skills/moldea` tree as read-only. The runner captures Git metadata, HEAD, refs, staged state, local configuration, and the installed skill before and after every actor.
+The actor works in an isolated writable repository. The installed skill, Git control state, and evaluator-owned boundaries are read-only. The runner captures pre- and post-execution evidence for:
 
-A case cannot pass when any protected control changes, even if the judge otherwise approves the response. Judges run in separate read-only workspaces. After every success, failure, timeout, or cancellation, the host destroys active relay tunnels, gives the relay five seconds to exit, then kills only that exact child if necessary and waits for it to close.
+- ordinary repository files
+- the Git index and refs
+- repository and Git configuration
+- submodule control state
+- the installed portable skill
+- any declared related repository mount
 
-## Coverage and release identity
+The read-only case fails if evaluation changes any protected or ordinary repository state, even when the actor's final message claims otherwise.
 
-The committed [coverage map](https://github.com/moldea-ai/skill/blob/main/fixtures/semantic-evaluation-coverage.json) connects portable skill claims to semantic cases, deterministic suites, or qualification profiles. Every semantic case must appear in that map.
+## Fresh evidence by default
 
-Recorded evidence retains exact provenance for the portable skill, semantic case suite, coverage map, published CLI identity, semantic protocol 21, confirmation policy, and fixed Codex, `gpt-5.6-sol`, medium host contract. Each completed trial records the exact actor and judge Codex CLI versions independently. Release compatibility normalizes only the three authoritative skill release-version occurrences and compares the exact CLI dependency closure separately, so release metadata alone does not discard compatible paid work. Any other distributed-skill change, CLI-closure change, or change to semantic cases, coverage, runner, host, evaluator, or protocol invalidates semantic reuse. The canonical result exists only after all 57 cases pass initially or satisfy the bounded recovery policy. Until a separately authorized paid run records the changed suite, existing result pages remain historical evidence for their original contract and do not establish a current pass for these 57 source scenarios.
+Semantic protocol 25 accepts current assurance only from schema-9 evidence produced by the current suite, current portable bytes, current CLI closure, current runner, current coverage map, current resource profiles, and current role-specific host contract. Immutable attempts from an earlier host identity remain verifiable audit history, but they cannot become current assurance or reusable model evidence after an identity change.
 
-For release `4.0.2`, the compatibility bridge chains to the checked-in `4.0.1` carry-forward attestation and its unchanged passing `v4.0.0` semantic result. Release verification accepts that historical result only when its immutable attempt files still match, the exact `5.0.0` to `5.0.3` CLI and package projection is attested, every concrete historical Node decision is preserved, and the current portable-skill behavior, semantic suite, coverage, runner, host, evaluator, and protocol match the authorized projection. The widened ranges and package-manager checks are current deterministic evidence, not model evidence. Neither bridge generator performs a model run, and any other behavior-bearing mismatch requires new semantic evidence.
+Evidence applies only to exact behavior-bearing actor and judge stage identities. Actor identity binds the portable skill bytes, case definition, natural prompt, deterministic fixture, scenario evidence, complete related-repository mount state, resource-profile file, CLI closure, protocol, and exact host. The source resource profile is read from the immutable commit that contains the reused evidence rather than inferred from the current checkout. Judge identity additionally binds its exact prompt and the complete projected actor evidence it assessed. A verified immutable stage may be reused only when all of those inputs match byte-for-byte. Every mismatch is a cache miss.
 
-Only a complete protocol 21 run for the current suite can provide semantic release evidence.
+Reused stages retain their original evaluation time and carry the source attempt, source commit, evidence digest, trial identity, stage identity, and explicit `reused` origin. The current runner rematerializes deterministic fixtures, reruns repository and read-only-mount controls, and verifies the committed source artifact before accepting reuse. An independently passing or recovered case group may come from a valid committed failed attempt; failed, incomplete, tampered, or uncommitted case groups remain ineligible. The runner never labels reuse as a new model invocation.
 
-Every terminal recorded run is published under `fixtures/semantic-evaluation-results/attempts/` with a derived summary and the exact source checkpoint. `latest.json` tracks the newest attempt and the last passing attempt independently. Failed and incomplete history remains public but cannot satisfy the release gate. The canonical result is never assembled or edited by hand.
+The public evidence site generates routes and visible audit history for structurally valid protocol-25 attempts that match the current 74-case contract. It presents current assurance only when the latest attempt also matches the exact active portable, CLI, evaluator, developer-instruction, actor, and judge identity.
 
-The root `eval:semantic` command preserves the runner and protocol while adding source attribution around recording operations. Before `--record` or `--record-checkpoint`, it requires the distributed skill, semantic runner, cases, coverage, host and protocol sources, CLI declaration, and CLI lock closure to match one exact `HEAD` commit. It starts the evaluator behind an IPC barrier and records the complete relevant-source inventory, exact argument digest, portable-skill behavior identity, CLI closure identity, semantic compatibility identity, existing attempt inventory, wrapper process, and evaluator process in the ignored atomic receipt at `fixtures/.semantic-evaluation-identity-receipt.json` before releasing that barrier. The supervised evaluator terminates when its wrapper disappears. The receipt contains no prompts, model responses, environment values, or credentials.
+This is the normal release path. A maintainer may explicitly pin only semantic evidence to valid passing evidence from an immutable release tag or full commit when the current change cannot affect portable skill behavior. Qualification evidence remains independently fresh or pinned. A semantic pin is presented as pinned evidence, never as a fresh run, and must pass the source integrity and resource checks described in [Release evidence](/docs/release-evidence/).
 
-After the unchanged runner records an attempt, the wrapper writes `identity.json` beside `attempt.json` and `evidence.json`. The sidecar binds the exact attempt and evidence digests to the pre-run receipt, including the portable-skill behavior, CLI closure, and semantic compatibility identities used by future release selection, without changing checkpoint schema 6, attempt schema 4, protocol 21, or the runner's recorder. Failed and incomplete recorded attempts are finalized before their nonzero status is returned. Non-recording options do not create a receipt or sidecar.
-
-Checkpoint schema 6 records the active actor or judge stage before its model request. It also records safe operational retry metadata and persists completed actor evidence before the judge starts. Repeating the same compatible full command resumes that exact stage without repeating completed paid work.
-
-A full evaluation authorization includes automatic bounded confirmations, compatible resume, and operational retries. Retryable provider, network, proxy, and timeout failures are persisted and retried indefinitely with capped exponential backoff and jitter. They do not consume a trial, count as model variance, or require another authorization. Explicit cancellation, a changed evidence boundary, and deterministic local failures stop the process. An initial semantic failure starts at most two confirmations automatically. Both must pass for recovery. Either confirmation failure is terminal, and the original failure and every confirmation remain visible.
-
-## Handling variance and evaluator defects
-
-After a semantic failure, preserve and inspect the actor response, runner facts, workspace evidence, repository controls, judge rationale, and exact evaluator inputs. Establish whether the failure is caused by the skill, the evaluator, or plausible model variance. Do not change the skill until the evidence establishes that the evaluator is not the cause.
-
-Search the evaluator and fixtures for analogous cases, then list every evaluation test the correction can affect. After the correction, run each listed evaluation test three consecutive times. If any selected test fails semantically, repeat the diagnosis, similar-case audit, impacted-test listing, correction, and three-pass verification recursively until all selected tests pass. Operational failures do not count toward those completed runs because the runner persists and retries them automatically.
-
-After correcting a source, fixture, or evaluator defect, when a confirmation rejects the candidate, or when the local checkpoint does not match the current contract, `--record --restart` begins a new full attempt. Restart removes only the ignored local checkpoint.
-
-For a final release-candidate cycle, maintainers first review, commit, and push the source correction, then freeze the portable skill, semantic cases, coverage map, runner, qualification engine, and ready profiles. A deterministic violation, terminal confirmation failure, repeated material product failure, or genuinely undecidable evaluator contract blocks that candidate and ends the cycle. It does not trigger an automatic source edit or restart.
-
-An interrupted compatible checkpoint remains resumable locally. Repeat the same full command to resume an active actor or judge stage. `--record-checkpoint` can publish a checkpoint only when it is between trials, and `npm run eval:semantic:verify` validates every immutable evidence digest, summary, directory identity, and pointer. An incompatible checkpoint must be replaced through an explicit `--record --restart` run.
-
-If interruption occurs after receipt creation, run `npm run eval:semantic:identity` after the wrapper and evaluator processes have ended. This recovery-only command never invokes the semantic runner or a model. It finalizes one exact new attempt when the receipt, source, attempt bytes, and current candidate or canonical result identify it unambiguously. Unpublished sidecar staging remains outside immutable attempt directories and is discarded only after its writer is inactive, so interruption before or after sidecar publication does not corrupt attempt inventory. When both processes are inactive and the source plus immutable attempt inventory prove that no attempt was created, recovery retires the receipt without a sidecar. Recovery also completes one exact interrupted receipt-consumption claim whether the canonical receipt still exists or must be restored from that claim. Active processes, source drift, changed history, multiple new attempts, multiple or mismatched claims, and any other ambiguity preserve the recovery state and block another recording for manual investigation.
-
-## Command-result evidence
-
-The runner reads Codex JSONL command events directly. A completed command records its safe integer exit code, but its raw output is never placed in a checkpoint, judge prompt, attempt, canonical result, log, or website model.
-
-Started commands, command text, command identifiers, and MCP events are discarded. Output is inspected only in memory and only when it stays within the projection bound. The invocation must match an exact evaluator-owned repository-local command contract before the runner creates a fact. `moldea` envelope projection recognizes only a finite set of security-equivalent complete commands: the direct repository-local binary or installed CLI entry point, an optional `./` prefix, a fixed `node` or `/opt/node` launcher, the existing pnpm Plug'n'Play form, and exact single-quoted or double-quoted `/bin/bash -lc` wrappers around those commands. Environment assignments, command substitution, pipes, redirects, output filters, directory changes, package-manager execution fallbacks, extra arguments, multiple commands, and other paths remain unrecognized.
-
-Recognized facts include:
-
-- the evaluator-owned pnpm Plug'n'Play CLI package root, executable path, or both, published without the sandbox's `/mnt` prefix
-- the release-bound Yarn package identity and exported binary from the exact safe package-info inspection
-- the conflicting effective Yarn binary provider from the exact safe provider inspection, without retaining its sandbox path
-- one `moldea` JSON envelope matching the release CLI version and schema, reduced to `schemaVersion`, `cliVersion`, `command`, `status`, `resultPresent`, and `errorPresent`
-- the pass/fail result for the exact `node --test src/support-agent.test-integration.js` runtime-provenance test, reduced to its repository path and exit-code-derived status
-
-Path, package-manager, and envelope facts require the complete output to match their recognized shape. The focused runtime-test fact requires bounded non-empty output; the test source remains visible in workspace evidence so a passing command cannot substitute for meaningful coverage. Empty, unrecognized, mismatched, and oversized outputs retain only a byte count and an explicit disposition. They provide no result fact. A result-dependent criterion can pass only when the judge receives the relevant completed event, exit code, and projected fact. Actor prose cannot prove execution. Conversely, runner-owned evidence cannot prove what the actor reported. Criteria that require status or diagnostic reporting must be established by the actor response, while workspace and repository-control evidence establish resulting state. Related repositories receive separate privacy-safe full-tree digests before and after actor execution, allowing the judge to establish that each evaluator-mounted read-only source remained unchanged without exposing its host path. A concise response need not repeat the literal command when runner-owned evidence proves the exact invocation.
-
-Before command text is discarded, a separate policy classifier examines every completed top-level command. It recognizes direct, absolute, relative, Corepack-mediated, and fixed-shell-wrapped npm, npx, pnpm, pnpx, Yarn, and Yarnpkg invocations. Bare inert executable names, static conditional and loop structures, and status-only printing from the evaluator-controlled path remain classifiable. Every actor receives an evaluator-owned Git boundary and npm probe mounted read-only over its executable directory ahead of writable workspace binaries on `PATH`. The Git boundary performs bounded scans of working-tree, indexed-fallback, and Git-directory attribute sources at invocation time, ignores system and global Git configuration, disables optional locks, and overrides signature display. Only exact Git version discovery, the helper-suppressed Git status and diff forms documented by the portable skill, bounded metadata-only log forms including fixed `--format=fuller --name-status` with a numeric maximum, the fixed-commit `show --format=fuller --stat --summary` form, and the release CLI's finite read-only Git discovery and inventory commands can reach system Git. Other bare `git` shapes are refused before Git starts. A bare `git` command resolved through that enforced boundary is therefore classifiable whether it executes an approved shape or is refused. Git outside the boundary, path or environment overrides, unknown executables, dynamic executable expansion, command substitution, nested interpreters, other path-qualified executables, and forms that conceal the invoked executable remain indeterminate. Only aggregate counts and a derived `not-observed`, `observed`, or `indeterminate` status are retained. No command, argument, path, output, or hash enters the public evidence.
-
-An observed package-manager invocation fails the runner-owned package-manager non-execution clause. Indeterminate commands remain visible warnings and neither prove invocation nor establish complete absence. The criterion can pass only when zero observed invocations are combined with every named actor-response, sentinel, workspace, and repository-control clause.
-
-That aggregate applies only to criteria asking whether any package-manager process ran. It cannot prove or disprove execution of an unrelated repository script, Git helper, or other authority-sensitive action. An observed aggregate also cannot identify a package-manager subcommand, provider, executable, result, or ordering. Those claims require the exact projected command fact or scenario-owned before-and-after evidence. Script and Git-helper authority cases therefore combine the developer request, the sourced executable contract, an initially missing sentinel, the actor response, final workspace evidence, and unchanged repository controls. Positive runner or sentinel evidence of the prohibited action fails the criterion.
-
-Workspace changes are a complete after-minus-before delta for ordinary repository paths. If scenario evidence establishes that a sentinel was missing before execution and it does not appear in the created-path delta, it remained missing afterward. Empty created, modified, and deleted lists establish that the ordinary workspace did not change; they are evidence, not an omitted observation.
-
-Criteria require the actor to report material semantic conclusions and their reasons. They do not require internal manifest paths or relationship identifiers when sourced scenario and workspace evidence establish those details and repeating them would not improve the developer's decision.
+Attempt storage remains append-only during one current release cycle. Failed initial trials remain visible, and a failed case can recover only after two passing confirmations. Operational host retries do not consume semantic trials.
 
 ## Run the free preflight
-
-Maintainers can verify all scenario contracts without model calls:
 
 ```bash
 npm run eval:semantic:preflight
 ```
 
-This command validates the coverage map, materializes all 57 repositories, collects every declared evidence source, verifies protected repository controls, and confirms that every actor prompt is exactly the natural developer direction.
+Preflight validates all case definitions, source evidence, portable skill structure, CLI identity, resource budgets, and repository setup without making a model call.
 
-The [semantic evidence page](/evidence/semantic/) presents the latest status, last passing attempt, complete history, methodology, coverage map, and current case criteria. Each completed scenario also includes an evidence-grounded replay built from its immutable artifact. The replay shows the exact developer direction and recorded actor response, normalized safe command facts with short results, every recorded created, modified, or deleted file and symlink path, the independent judge rationale, and the verdict. It preserves initial and confirmation trials in order.
+It also prints the ordered paid case IDs, total initial stage count, exact reusable case and stage counts, remaining paid initial stage count, confirmation-inclusive paid stage limit, retry-inclusive invocation limit, candidate paid-token maximum, next-stage reservation, and absolute token containment limit. These are deliberately named limits, not forecasts. The paid IDs make source invalidation reviewable before model execution instead of requiring private instrumentation. The confirmation limit assumes that every newly evaluated case needs two confirmation trials after its initial trial, while the invocation limit additionally assumes that every paid actor and judge stage consumes its one bounded operational retry. Each completed tool-using Codex invocation may report at most 2,097,152 cumulative input-plus-output tokens. Before every paid stage, the runner reserves that complete per-invocation maximum and launches only when recorded direct consumption plus the reservation is at or below the 32,000,000-token candidate ceiling. Equality is accepted; one token beyond it stops before launch and preserves the resumable candidate. Reused stages do not count as new work. The larger aggregate containment limit describes the theoretical protocol envelope if every permitted invocation reached its individual ceiling, so it must not be presented as expected consumption or spend. The per-invocation ceiling was selected above an observed 1,264,666-token qualification stage so normal tool-using work retains more than 25 percent headroom. Cached input is reported separately without being added to input a second time.
 
-The replay is a bounded reconstruction, not a verbatim tool transcript or hidden reasoning. Successful commands without a projected fact are accounted for in contiguous activity groups, while commands with a safe fact and every failed command remain individual cards. Workspace snapshots record files and symlinks rather than directory entries, so replay folders organize affected paths without claiming an independent folder lifecycle. File contents, hashes, modes, symlink targets, raw command text, arbitrary command output, command identifiers, MCP metadata, and hidden reasoning remain absent from the website model. Replay messages, command facts, rationales, and changed paths are not indexed as documentation prose or included in `llms.txt`. The raw committed artifact remains available for complete technical provenance, including per-trial actor and judge versions and package-manager command-policy aggregates.
+## Record and verify
 
-Every replay validates its raw command projection through the evaluator-owned protocol contract and binds the developer message to the trial's case-definition digest. If a historical digest no longer matches the current suite, the attempt page uses the recorded developer direction when the artifact retained it, otherwise discloses that the direction is unavailable. It also marks retired criterion text unavailable and never substitutes current criteria into an older attempt.
+Use one explicit case for a non-recording diagnostic:
+
+```bash
+npm run eval:semantic -- --case <case-id>
+```
+
+The diagnostic emits one content-free JSON result with the verdict, complete observed and forbidden criterion identifiers, a UTF-8-safe rationale excerpt with explicit truncation state, and separate actor and judge command-policy aggregates plus resource and token evidence. Policy aggregates contain only statuses, bounded reason codes, and counts. Output cannot exceed 65,536 UTF-8 bytes. Running `npm run eval:semantic` without `--case` or `--record` fails before host discovery and makes no model call.
+
+## Correct failures efficiently
+
+Do not restart the complete paid suite after each correction. Run one bounded diagnostic batch and collect every failure before editing so one correction can address shared causes:
+
+```bash
+npm run eval:semantic:diagnose -- --all
+npm run eval:semantic:diagnose -- --cases <comma-separated-case-ids>
+npm run eval:semantic:diagnose -- --claims <comma-separated-claim-ids>
+npm run eval:semantic:diagnose -- --unresolved-from <attempt-id>
+```
+
+Exactly one selector is required. The batch performs one initial actor and judge trial per selected case, without confirmations, evidence reuse, or official evidence writes. It accepts `--workers 1`, `--workers 2`, or `--workers 4` and defaults to four isolated workers. Worker count is operational rather than evidence-bearing, so a stopped batch may resume at another accepted count without repeating completed stages. Aggregate writes remain serialized in fixture order.
+
+Each worker checkpoints after actor and judge boundaries. The coordinator continues across semantic failures, stops new dispatch when an operational or capacity failure becomes known, and drains active siblings to safe checkpoints. Concurrent token admission reserves every possible next stage, so this stop can precede actual candidate exhaustion. Resume the exact checkpoint with two workers, then one if needed, before considering stop-loss recalibration; completed stages are reused rather than repeated. The terminal failed invocation is persisted before exit, and an ordinary rerun refuses to repeat it. Add `--resume-stopped-stage` to the same exact command to authorize one additional attempt; if that attempt fails, the checkpoint stops again. Use `--restart` only to discard the current diagnostic batch intentionally.
+
+Each worker receives a 2,147,483,648-byte temporary-storage ceiling. Four workers may reserve at most 8,589,934,592 bytes while preserving at least 2,147,483,648 free bytes before dispatch. The runner checks worker-owned storage before, during, and after every model boundary and aborts the boundary on overage. These limits bound disposable evaluation storage; they do not change CLI pagination or content-page limits.
+
+The ignored diagnostic state contains a coordinator, a content-free ledger, and up to four private worker checkpoints. Each file is limited to 1,048,576 bytes, so the complete four-worker diagnostic metadata is limited to 6,291,456 bytes. The ledger retains only case IDs, verdicts, criteria identifiers, deterministic content-free explanations, aggregate resource counts, and operational-failure counts. The model-authored rationale is never copied into it. Each content-free explanation is limited to 4,096 UTF-8 bytes. Successful completion deletes private checkpoints and prints at most 16,384 UTF-8 bytes.
+
+After the batch correction passes deterministic checks and is published, rerun only the residual failed case IDs. If another residual remains, collect the complete residual set before the next edit. Start one official recording only after the targeted gate is green. Diagnostic passes are never promoted or reused as evidence. Official recording may reuse independently passing or recovered groups from committed attempts only when every behavior-bearing stage identity still matches the final inputs; otherwise it executes them again.
+
+The complete paid suite requires explicit recording:
+
+```bash
+npm run eval:semantic -- --record --workers 4
+npm run eval:semantic:verify
+```
+
+Recording uses the same accepted worker counts and defaults to four. It completes every missing initial case before running confirmations, merges results in fixture order, and records one immutable complete attempt whether it passes or fails. It continues across semantic failures; exhausted operational retries and pre-launch resource stops preserve exact resumable state instead of inventing results. After a stage exhausts its one automatic retry, the same command refuses to launch it again. Add `--resume-stopped-stage` for one explicit additional attempt. Each terminal failure is recorded and conservatively charged as a complete 2,097,152-token invocation, so repeated explicit resumes cannot bypass the candidate ceiling. Only a complete passing candidate is promoted as current release evidence. Verification recalculates every digest and rejects missing, stale, incomplete, over-budget, or mutated evidence.
 
 ## Relationship to adapter qualification
 
-Semantic evaluation asks whether the portable skill follows its behavioral contract across controlled repository situations. [Adapter qualification](/docs/adapter-qualification/) runs the skill against transparent mock projects and exact published package compositions, with deterministic checks around Repository, Repository FS, Core, CLI, and the selected adapter implementation.
+Semantic evaluation owns universal skill behavior and runs once. Adapter qualification owns current adapter-specific compatibility and repair behavior.
 
-A release needs both forms of evidence. A semantic pass does not prove an adapter package composition, and an adapter qualification does not replace broad skill behavior coverage.
+The Custom qualification profile contains the universal qualification journeys. Every published adapter profile contains only its adapter-specific cases. This separation prevents the same universal work from being multiplied across all adapter targets.

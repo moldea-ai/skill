@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, deterministic post-actor checks, and Git diff agree: the stale binding was repaired, the obsolete source remains absent, and the dynamic tool-registration boundary is recorded canonically without an invented binding.",
+  "requirements": [
+    {
+      "id": "repairs-binding",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` binds `/src/support-assistant.ts#supportAssistant`; that file exports `supportAssistant`, while `src/support-agent.ts` is absent. The Git diff replaces `/src/support-agent.ts#supportAgent` and shows the obsolete file deleted. Deterministic validation and typechecking passed."
+    },
+    {
+      "id": "records-boundary",
+      "verdict": "pass",
+      "evidence": "Current `agents.support.unresolved.dynamic-tool-registration` contains the canonical `category`, warning `effect`, current-state `description`, concrete `resolution`, and `related` path `/src/dynamic-tools.ts`. The Git diff adds this block without adding a tool binding or changing the support instruction. Deterministic validation passed with no failures, and workspace assertions show only `moldea/moldea.yaml` changed during the actor run."
+    }
+  ],
+  "failures": []
+}

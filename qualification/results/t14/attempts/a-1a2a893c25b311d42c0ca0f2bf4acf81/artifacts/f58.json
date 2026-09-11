@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, approved Git evidence, and deterministic validation agree: the sole change replaces stale `find_order` with `lookup_order` in `moldea/moldea.yaml`; all runtime bindings and source files remain intact, validation and inspection are valid, typechecking passes, and no failures remain.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies `find_order` as the stale declaration and `lookup_order` as the closed tools-map key. The Git diff confirms that exact mismatch and repair, while `src/agent.ts` defines `tools: { lookup_order: lookupOrderTool }`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, matching `src/agent.ts`. Approved Git status reports only `moldea/moldea.yaml` modified, and its diff contains only `name: find_order` → `name: lookup_order`. Deterministic validation and inspection are valid."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest and source exactly retain all bindings: `supportAgent`, `loadSupportInstruction`, `SupportInputSchema`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema`. Source imports and registrations close correctly, scoped source hashes equal the runner's unchanged after-state, deterministic validation/inspection are valid, and typechecking passed."
+    }
+  ],
+  "failures": []
+}

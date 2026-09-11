@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Updated canonical state while preserving all source. Support retains its runtime-agent and instruction-loader bindings with its open tool registry recorded as unresolved. Step-support retains only its proved runtime-agent binding with instruction provenance unresolved. Delegating-support retains all proved ordinary-tool relationships without handoff or routing metadata. Added a shared Cloudflare runtime guide. TypeScript and moldea validation both pass with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ],
+  "observations": [
+    "Only support, step-support, and delegating-support remain registered.",
+    "IndirectSupportAgent, UnsupportedOutputAgent, and RuntimeInitializedAgent were not registered.",
+    "The runtime guide covers static boundary alternatives, Durable Object bindings, SQLite migration, provider configuration, and Worker deployment responsibilities.",
+    "Final canonical validation reported valid format version 1 with zero diagnostics."
+  ],
+  "unresolved": [
+    "SupportAgent’s final model-visible tool registry remains statically unprovable because runtime-selected tools are spread into the direct request.",
+    "StepSupportAgent’s effective per-step instruction provenance remains statically unprovable because prepareStep may replace the direct request instruction."
+  ]
+}

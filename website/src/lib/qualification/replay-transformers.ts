@@ -1,21 +1,11 @@
 import {
-  buildEvaluationReplayPathTree,
   type IEvaluationReplayCommandStep,
   type IEvaluationReplayModel,
   type IEvaluationReplayStep,
-  type IEvaluationReplayWorkspaceChange,
-  type IEvaluationReplayWorkspaceChangeStatus,
 } from '@moldea.ai/website-ui/evaluation-replay-model';
 
-import type {
-  IQualificationAttemptTrialModel,
-  IQualificationCurrentCaseResult,
-  IWorkspaceAssertionResult,
-} from './types.ts';
-
-const WORKSPACE_CHANGE_STATUSES = ['created', 'modified', 'deleted'] as const;
-
-type IWorkspaceChangeStatus = (typeof WORKSPACE_CHANGE_STATUSES)[number];
+import { createQualificationProjectEvidence } from './project-transformers.ts';
+import type { IQualificationAttemptTrialModel, IQualificationCurrentCaseResult } from './types.ts';
 
 /** Converts recorded command outcomes into concise activity without inventing command text. */
 const createCommandSteps = (
@@ -83,72 +73,14 @@ const createCommandSteps = (
   return steps;
 };
 
-/** Returns whether two recorded workspace states describe the same entry. */
-const isWorkspaceStateEqual = (
-  left: IWorkspaceAssertionResult['before'][number],
-  right: IWorkspaceAssertionResult['after'][number],
-): boolean =>
-  left.path === right.path &&
-  left.kind === right.kind &&
-  left.mode === right.mode &&
-  left.sha256 === right.sha256;
-
-/** Derives exact path-only workspace changes from validated before and after snapshots. */
-const createWorkspaceChanges = (
-  workspace: IWorkspaceAssertionResult,
-): Record<IWorkspaceChangeStatus, IEvaluationReplayWorkspaceChange[]> => {
-  const beforeByPath = new Map(workspace.before.map((entry) => [entry.path, entry]));
-  const afterByPath = new Map(workspace.after.map((entry) => [entry.path, entry]));
-  const changedPaths = new Set(workspace.changedPaths);
-  const derivedChangedPaths = new Set(
-    [...new Set([...beforeByPath.keys(), ...afterByPath.keys()])].filter((path) => {
-      const before = beforeByPath.get(path);
-      const after = afterByPath.get(path);
-
-      return before === undefined || after === undefined || !isWorkspaceStateEqual(before, after);
-    }),
-  );
-
-  if (
-    changedPaths.size !== workspace.changedPaths.length ||
-    changedPaths.size !== derivedChangedPaths.size ||
-    [...changedPaths].some((path) => !derivedChangedPaths.has(path))
-  ) {
-    throw new Error('Qualification replay workspace snapshots contradict their changed paths.');
-  }
-
-  const changes: Record<IWorkspaceChangeStatus, IEvaluationReplayWorkspaceChange[]> = {
-    created: [],
-    deleted: [],
-    modified: [],
-  };
-  for (const path of workspace.changedPaths) {
-    const before = beforeByPath.get(path);
-    const after = afterByPath.get(path);
-    if (before === undefined && after !== undefined) {
-      changes.created.push({ path, type: after.kind });
-    } else if (before !== undefined && after === undefined) {
-      changes.deleted.push({ path, type: before.kind });
-    } else if (before !== undefined && after !== undefined) {
-      changes.modified.push({ path, type: after.kind });
-    }
-  }
-
-  return changes;
-};
-
 /** Creates the shared replay workspace step from exact qualification snapshots. */
 const createWorkspaceStep = (
-  workspace: IWorkspaceAssertionResult,
+  workspace: IQualificationAttemptTrialModel['workspaceAssertions'],
 ): Extract<IEvaluationReplayStep, { kind: 'workspace' }> => {
-  const changes = createWorkspaceChanges(workspace);
+  const projectEvidence = createQualificationProjectEvidence(workspace);
 
   return {
-    groups: WORKSPACE_CHANGE_STATUSES.map((status) => ({
-      changes: changes[status],
-      status: status satisfies IEvaluationReplayWorkspaceChangeStatus,
-      tree: buildEvaluationReplayPathTree(changes[status]),
-    })),
+    groups: projectEvidence.changeGroups,
     kind: 'workspace',
   };
 };

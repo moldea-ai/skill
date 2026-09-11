@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: create-grounded-agent
 title: Create a grounded agent
 purpose: Verify evidence-backed agent creation across canonical and executable boundaries.
@@ -42,6 +43,7 @@ workspace:
     - moldea/agents/order-triage/instruction.md
     - moldea/moldea.yaml
     - moldea/runtimes/custom.md
+    - test/order-triage-agent.test.mjs
   allowedChangePathPatterns:
     - moldea/runtimes/**/*.md
   mustChangePathPatterns:

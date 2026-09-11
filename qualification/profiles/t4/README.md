@@ -1,6 +1,6 @@
 # Cloudflare Think profile
 
-This profile covers the eight universal qualification journeys plus diagnostic repair and conservative static-boundary cases for the `typescript-think-0-16-ai-sdk-7` target.
+This profile qualifies the `typescript-think-0-16-ai-sdk-7` target with the shared eight-case `custom/custom` baseline and two adapter-specific projects for diagnostic repair and conservative static-boundary behavior. This profile executes only its adapter-specific projects; the universal baseline executes and publishes once under `custom/custom`.
 
 Each project pins `@cloudflare/think@0.16.0`, `agents@0.21.0`, `ai@7.0.85`, `zod@4.3.6`, `@cloudflare/workers-types@5.20260830.1`, `@types/node@22.20.1`, and `typescript@6.0.3`. Qualification downloads and verifies the exact published artifacts once, records their checksums with candidate evidence, primes the attempt-local package store, and installs projects offline. Deterministic stages typecheck against the real packages but never call a model provider, invoke an agent, or execute a tool.
 

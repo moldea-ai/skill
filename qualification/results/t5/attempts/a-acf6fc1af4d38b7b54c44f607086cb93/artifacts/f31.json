@@ -1,0 +1,54 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 219854,
+  "deterministicBeforePath": "cases/abstain-uninitialized-repository-work/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/abstain-uninitialized-repository-work/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/abstain-uninitialized-repository-work/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/abstain-uninitialized-repository-work/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/abstain-uninitialized-repository-work/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/abstain-uninitialized-repository-work/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 205474,
+    "cachedInputTokens": 163584,
+    "outputTokens": 4776
+  },
+  "judgeUsage": {
+    "inputTokens": 104689,
+    "cachedInputTokens": 92800,
+    "outputTokens": 2311
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T04:53:17.586Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T04:54:24.671Z",
+  "actorReuseSourceAttemptId": "20260911T044013787Z-custom-custom-d7336457",
+  "judgeReuseSourceAttemptId": "20260911T044013787Z-custom-custom-d7336457",
+  "requirementAssessments": [
+    {
+      "id": "excludes-moldea",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor output contains only retry-policy findings and validation results, with no moldea mention or skill-reference content. Runner-owned actor-command-policy reports moldeaCommandCount: 0 and moldeaOutputByteCount: 0. Canonical files moldea/moldea.yaml and moldea/project.md are absent; README.md has no managed marker content; approved Git status and scoped diff are empty. package.json declares @moldea.ai/cli but contains no canonical initialization reference."
+    },
+    {
+      "id": "preserves-workspace",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

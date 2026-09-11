@@ -1,0 +1,92 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": true,
+  "dimensions": {
+    "semantic": false,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [
+    "semantic"
+  ],
+  "passed": false,
+  "durationMs": 492922,
+  "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 320657,
+    "cachedInputTokens": 296576,
+    "outputTokens": 6296
+  },
+  "judgeUsage": {
+    "inputTokens": 461623,
+    "cachedInputTokens": 428032,
+    "outputTokens": 8301
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T07:59:26.274Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T08:03:57.232Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-prepare-call-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains only support.runtimeAgent and support.inputSchema bindings. Its warning states that prepareCall leaves instruction, output, and tool wiring unresolved; src/support-agent.ts confirms those settings coexist with prepareCall."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains step-support runtimeAgent, inputSchema, outputSchema, and the complete get-status tool relationships, while only its instruction loader is unresolved because prepareStep may replace it. src/step-support-agent.ts and the related source files confirm this structure."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "The current manifest preserves delegating-support’s direct agent, schema, instruction-loader, and delegate_support tool bindings without routing, handoff, or subagent fields. Source hashes are unchanged and deterministic validation passed, but the required workspace diff was unavailable, so patch agreement could not be established."
+    },
+    {
+      "id": "keeps-workflow-agent-outside-target",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "workflowSupportAgent remains in src/workflow-agent.mts, while the current manifest and canonical agent paths contain no workflow target. Its source hash is unchanged, but the required Git diff could not be inspected."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "Both prepared agents reference /moldea/runtimes/vercel-ai-sdk.md, the only runtime-guidance file found. The guidance distinguishes prepareCall from prepareStep without asserting provider behavior, and runner assertions identify it as newly added, but the required workspace diff was unavailable."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "The current manifest has separate prepare-call and prepare-step unresolved entries, each with effect: warning, related source paths, and relationship-specific runtime-proof or closed-wiring resolutions. Deterministic validation passed, but required Git patch agreement could not be verified."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": [
+    "Requirement does-not-infer-subagent-handoff failed: The current manifest preserves delegating-support’s direct agent, schema, instruction-loader, and delegate_support tool bindings without routing, handoff, or subagent fields. Source hashes are unchanged and deterministic validation passed, but the required workspace diff was unavailable, so patch agreement could not be established.",
+    "Requirement keeps-workflow-agent-outside-target failed: workflowSupportAgent remains in src/workflow-agent.mts, while the current manifest and canonical agent paths contain no workflow target. Its source hash is unchanged, but the required Git diff could not be inspected.",
+    "Requirement records-focused-guidance failed: Both prepared agents reference /moldea/runtimes/vercel-ai-sdk.md, the only runtime-guidance file found. The guidance distinguishes prepareCall from prepareStep without asserting provider behavior, and runner assertions identify it as newly added, but the required workspace diff was unavailable.",
+    "Requirement records-unresolved-boundaries failed: The current manifest has separate prepare-call and prepare-step unresolved entries, each with effect: warning, related source paths, and relationship-specific runtime-proof or closed-wiring resolutions. Deterministic validation passed, but required Git patch agreement could not be verified.",
+    "Provide an inert evaluator-approved Git status and diff for moldea/moldea.yaml and moldea/runtimes/vercel-ai-sdk.md; both prescribed commands currently exit 2 because repository attribute safety was not established."
+  ]
+}

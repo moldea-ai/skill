@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 3,
+  "qualificationAttempt": {
+    "id": "20260906T001339470Z-custom-custom-a5849f5a",
+    "sha256": "b140be764f6c12c6ca897ae56936676507f2110d6b1a3fdbd72b1c90764089a6"
+  },
+  "commandOutputQualificationAttempt": {
+    "id": "20260906T020821962Z-custom-custom-a87c791d",
+    "sha256": "7b65e60942d076c735ef6e103a12d515dab292036bda854e588f9d8e7a9d4097"
+  },
+  "commandOutputObservations": [
+    {
+      "caseId": "create-grounded-agent",
+      "trialId": "confirmation-1",
+      "resourceProfile": "ordinary",
+      "disposition": "accepted",
+      "checks": {
+        "commandPolicy": "pass",
+        "deterministic": "pass",
+        "workspace": "pass"
+      },
+      "evidence": {
+        "deterministicSha256": "bdd8ee56579628cdbe87f3046e1b9ed67c5216db314ad3c2ae6b221bb6067c63",
+        "trialResultSha256": "a7223c75ac3a02db99b9fc6d2907e73bddf5ad1dae57b61c4840f620b3ac7b54",
+        "workspaceAssertionsSha256": "774b106ef8cdf63ef6907ad2d9f7005f641a28dfd9ada4d128483a70289f2e80"
+      },
+      "stage": {
+        "role": "actor",
+        "sourceAttemptId": "20260906T020821962Z-custom-custom-a87c791d",
+        "evidenceSha256": "0c5e6b6a79d2b6489208991c48edb58fe287be3ada5e85bd2fce5a0c07cb1edc",
+        "durationMs": 224248,
+        "completedCommandCount": 50,
+        "maximumCommandOutputByteCount": 76312,
+        "modelVisibleToolOutputByteCount": 153412,
+        "moldeaCommandCount": 4,
+        "moldeaOutputByteCount": 3043,
+        "inputTokenCount": 1048797,
+        "cachedInputTokenCount": 988544,
+        "outputTokenCount": 7954,
+        "totalTokenCount": 1056751
+      }
+    },
+    {
+      "caseId": "create-grounded-agent",
+      "trialId": "initial",
+      "resourceProfile": "ordinary",
+      "disposition": "rejected",
+      "checks": {
+        "commandPolicy": "pass",
+        "deterministic": "pass",
+        "workspace": "pass"
+      },
+      "evidence": {
+        "deterministicSha256": "b765b74ffb7c08b1800af5c71146ed393c09fb255f7e850c5c0594274c3d6905",
+        "trialResultSha256": "da66cdc813f4a857c472f3e0bf005d78ad1a51a9f77aa1f3ad527e0b70048ab9",
+        "workspaceAssertionsSha256": "c533b0c3d18df431d971a3dfdd24763c984b9c0cc81a3c4bf4fb89deb20c9c58"
+      },
+      "stage": {
+        "role": "actor",
+        "sourceAttemptId": "20260906T020821962Z-custom-custom-a87c791d",
+        "evidenceSha256": "6754923748a1332560480840d84aa562c8121be5a75b589b69fa9247b6819963",
+        "durationMs": 165458,
+        "completedCommandCount": 22,
+        "maximumCommandOutputByteCount": 449948,
+        "modelVisibleToolOutputByteCount": 523073,
+        "moldeaCommandCount": 1,
+        "moldeaOutputByteCount": 318,
+        "inputTokenCount": 672089,
+        "cachedInputTokenCount": 608896,
+        "outputTokenCount": 5709,
+        "totalTokenCount": 677798
+      }
+    }
+  ],
+  "commandOutputObservationsSha256": "9b93dcf5dcb428d9d8324ce597afc7d6724dfedbc9b22d591f433e3ca3c1c2b8",
+  "minimumHeadroomPercent": 25,
+  "modelStageObservations": [
+    {
+      "caseId": "create-grounded-agent",
+      "trialId": "initial",
+      "resourceProfile": "ordinary",
+      "checks": {
+        "calibrationEligible": true,
+        "commandPolicy": "pass",
+        "deterministic": "pass",
+        "outputBounds": "pass",
+        "profile": "fail",
+        "semantic": "pass",
+        "workspace": "pass"
+      },
+      "evidence": {
+        "deterministicSha256": "12bd165fec2d46b69c9488b3a3f49f1f803e2a5d74ef09d2546c99055af89921",
+        "judgeOutputSha256": "b28a8f22e667abfc6281c45c605e9278c514a2b1e547f6e4f5c6641e7013930a",
+        "trialResultSha256": "9e1a3de1747626013935e6c8f41fd9d7c170b2d6902abd68114659a15e9a155d",
+        "workspaceAssertionsSha256": "7912a24728f9f84cf4297661f26033003ea1645973c4ce71d8e4a461088bb3d3"
+      },
+      "stages": [
+        {
+          "role": "actor",
+          "sourceAttemptId": "20260905T225312033Z-custom-custom-681c7376",
+          "evidenceSha256": "4c645fc7b71eccfeb21e15b522637d04ec17f0eef7340f06aa4bf19f5ab715bc",
+          "durationMs": 256363,
+          "completedCommandCount": 47,
+          "maximumCommandOutputByteCount": 21828,
+          "modelVisibleToolOutputByteCount": 121329,
+          "moldeaCommandCount": 3,
+          "moldeaOutputByteCount": 1698,
+          "inputTokenCount": 961814,
+          "cachedInputTokenCount": 918016,
+          "outputTokenCount": 8100,
+          "totalTokenCount": 969914
+        },
+        {
+          "role": "judge",
+          "sourceAttemptId": "20260906T001339470Z-custom-custom-a5849f5a",
+          "evidenceSha256": "cc4e36835ed1ebee9b2fbf2556ef2c958c9275fd939b51181c5fee0ed8ff8f47",
+          "durationMs": 53640,
+          "completedCommandCount": 12,
+          "maximumCommandOutputByteCount": 14473,
+          "modelVisibleToolOutputByteCount": 25307,
+          "moldeaCommandCount": 1,
+          "moldeaOutputByteCount": 318,
+          "inputTokenCount": 140860,
+          "cachedInputTokenCount": 119296,
+          "outputTokenCount": 1876,
+          "totalTokenCount": 142736
+        }
+      ]
+    },
+    {
+      "caseId": "create-grounded-agent",
+      "trialId": "confirmation-1",
+      "resourceProfile": "ordinary",
+      "checks": {
+        "calibrationEligible": true,
+        "commandPolicy": "pass",
+        "deterministic": "pass",
+        "outputBounds": "pass",
+        "profile": "fail",
+        "semantic": "pass",
+        "workspace": "pass"
+      },
+      "evidence": {
+        "deterministicSha256": "b7e6ee6cd26ccd5ad2bfc476a137bea4293621a0ab83b035adf182a21f379ae7",
+        "judgeOutputSha256": "cefad249036d9128c6fa5d884a3528acb776adf8166b90aba58e7d49683f37f3",
+        "trialResultSha256": "8a1728311631607eedea41c7292d5796078ac6185d1beb3f4be58313552bc652",
+        "workspaceAssertionsSha256": "5ae1c6856e5aa9e2f8c65f8897d9535fa945d6bb0910db8db81bcda3302e2a27"
+      },
+      "stages": [
+        {
+          "role": "actor",
+          "sourceAttemptId": "20260906T001339470Z-custom-custom-a5849f5a",
+          "evidenceSha256": "7ce4ba29bc314f50308f8cca3d874a30cb7b0df5e190a88a59c6e10130aae18f",
+          "durationMs": 277166,
+          "completedCommandCount": 37,
+          "maximumCommandOutputByteCount": 14473,
+          "modelVisibleToolOutputByteCount": 44609,
+          "moldeaCommandCount": 8,
+          "moldeaOutputByteCount": 6662,
+          "inputTokenCount": 610697,
+          "cachedInputTokenCount": 546560,
+          "outputTokenCount": 9425,
+          "totalTokenCount": 620122
+        },
+        {
+          "role": "judge",
+          "sourceAttemptId": "20260906T001339470Z-custom-custom-a5849f5a",
+          "evidenceSha256": "15be7113cd4459e6be627ea589eff3ee2ed62c2109e9330ed5235af155e69dfb",
+          "durationMs": 75471,
+          "completedCommandCount": 17,
+          "maximumCommandOutputByteCount": 14478,
+          "modelVisibleToolOutputByteCount": 23983,
+          "moldeaCommandCount": 1,
+          "moldeaOutputByteCount": 318,
+          "inputTokenCount": 165055,
+          "cachedInputTokenCount": 123008,
+          "outputTokenCount": 3032,
+          "totalTokenCount": 168087
+        }
+      ]
+    }
+  ],
+  "modelStageObservationsSha256": "295530609d06c6150dd463cd350405bf8a3d830a62b83d9183da46329381a3da"
+}

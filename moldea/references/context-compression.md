@@ -1,6 +1,6 @@
 # Context compression
 
-Read this reference before explicit broad context consolidation, deduplication, organization, cleanup, or compression.
+Read this reference after moldea relevance is established for explicit canonical-context consolidation, deduplication, organization, cleanup, or compression.
 
 ## Keep compression inside project state
 
@@ -15,6 +15,8 @@ Broad compression requires explicit developer intent expressed naturally through
 3. Identify the established owner of every fact, rationale, requirement, unresolved boundary, relationship, and consumer in scope.
 4. Classify apparent duplication as exact duplication, overlapping responsibility, useful controlled repetition, stale superseded wording, or consequential conflict. Similar wording is not enough to prove duplication.
 
+Use at most one content-free `inspect`, then one `content` call for each distinct in-scope context record. Use the record's exact `asset.path`; never repeat a path or request manifest content. Stop immediately when retrieved evidence establishes a consequential conflict.
+
 Do not compress implementation, tests, protected coding instructions, generated evidence, history, or unrelated documentation unless the developer explicitly includes them and another governing workflow authorizes the change. Compression may update consumers and state-bearing documentation only when canonical reorganization would otherwise leave them stale or broken.
 
 ## Preserve meaning before removing content
@@ -27,7 +29,7 @@ Do not use arbitrary file-count, word-count, character-count, age, or size thres
 
 ## Stop on consequential conflict
 
-When two in-scope sources make consequential same-scope claims that cannot both be current, do not choose one, merge them into ambiguous wording, or write a compromise. Identify the exact conflicting claims and their evidence roles, then ask one focused question that distinguishes the current replacement from proposed or future state. Make no semantic write before the answer.
+When two in-scope sources make consequential same-scope claims that cannot both be current, do not choose one, merge them into ambiguous wording, or write a compromise. Identify the exact conflicting claims and their evidence roles, state explicitly that compression is blocked pending the answer, then ask one focused question that distinguishes the current replacement from proposed or future state. Make no semantic write before the answer and confirm that no repository files changed.
 
 ## Verify the compressed result
 
@@ -36,7 +38,7 @@ After authorized writes:
 1. Re-read every changed canonical file and affected consumer to confirm that all distinct established meaning remains represented once by its authoritative owner.
 2. Confirm that removed or moved paths have no stale manifest relationship, reference, index entry, consumer, or directly affected documentation.
 3. Confirm that unrelated context and implementation remain unchanged.
-4. Run relevant project-native checks and rerun repository-local `inspect --json` as separate completed processes.
-5. Review diagnostics, mirrors, requirements, semantic readiness, and unrelated invalidity without claiming whole-project validity from a narrower result.
+4. Run relevant project-native checks and the narrowest repository-local schema-4 metadata command as separate completed processes.
+5. Review only the diagnostics, mirrors, requirements, and semantic readiness relevant to the changed owners without claiming whole-project validity from a narrower result.
 
-Report the requested scope, authoritative owners selected, content consolidated or retained, unique truth and unresolved state preserved, relationships and consumers updated, intentionally unchanged surfaces, deterministic status, checks, and limitations. If conflict blocked compression, report the binary adoption state, exact conflict, focused question, and that no repository files changed.
+Report the requested scope, authoritative owners selected, content consolidated or retained, unique truth and unresolved state preserved, relationships and consumers updated, intentionally unchanged surfaces, deterministic status, checks, and limitations. If conflict blocked compression, report the binary adoption state, exact conflict, that compression is blocked pending the focused answer, the question, and that no repository files changed.

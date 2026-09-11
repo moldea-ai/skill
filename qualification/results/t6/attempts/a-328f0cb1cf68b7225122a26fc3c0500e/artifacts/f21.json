@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired Eve tool registration by changing the canonical name from `find_order` to the path-derived `orders-find`. Local moldea validation now reports `valid: true`, zero diagnostics, and no continuation cursor; EVE_TOOL_NAME_MISMATCH is eliminated.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Eve 0.39.1 derives `tools/orders/find.ts` as `orders-find`.",
+    "The final Git diff contains only the one-field canonical registration correction.",
+    "The working agent, instruction source, tool implementation, registration path, and schemas remain unchanged.",
+    "Assessed canonical owner: `/moldea/agents/support/instruction.md`; its behavior remains aligned and required no edit."
+  ],
+  "unresolved": []
+}

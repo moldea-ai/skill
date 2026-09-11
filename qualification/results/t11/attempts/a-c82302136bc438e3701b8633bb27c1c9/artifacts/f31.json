@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 862559,
+  "deterministicBeforePath": "cases/repair-openai-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-openai-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-openai-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-openai-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-openai-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-openai-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 429085,
+    "cachedInputTokens": 375680,
+    "outputTokens": 6867
+  },
+  "judgeUsage": {
+    "inputTokens": 197974,
+    "cachedInputTokens": 154368,
+    "outputTokens": 3567
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T11:49:04.266Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T11:56:46.905Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor explains that the manifest declared `find_order` while the closed Responses function tool uses `lookup_order`. The Git diff confirms that exact prior mismatch, and `src/tools.ts` declares `name: 'lookup_order'`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, matching `src/tools.ts`. The targeted diff changes only that manifest line, while deterministic validation reports `valid: true`, zero diagnostics, and a null cursor."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings to `supportAgent`, `loadSupportInstruction`, `lookupOrderTool`, `LookupOrderInputSchema`, and `lookupOrder`. Current source confirms direct `client.responses.create`, instruction loading, the closed function-tool registration, unchanged schema and implementation. Inspect emits instruction-loader, runtime, schema, and tool-registration evidence with zero diagnostics and `cursor: null`; type checking passed. The actor explicitly states that no live Responses request ran, so adapter evidence is not misrepresented as runtime execution proof."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

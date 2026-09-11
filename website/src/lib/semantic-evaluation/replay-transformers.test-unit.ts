@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
+import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../../../../tooling/codex-evaluation-host/index.mjs';
 import { createSemanticCaseDefinitionDigest } from '../../../../tooling/semantic-evaluation/index.mjs';
+import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../../../../tooling/release-identity/constants.mjs';
 
 import { createSemanticEvaluationReplay } from './replay-transformers.ts';
 import type { ISemanticCaseDefinition } from './types.ts';
@@ -12,17 +14,43 @@ import {
   type ISemanticReplayCommand,
 } from './validations.ts';
 
-const HOST = {
+const ACTOR_HOST = {
+  developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   model: 'gpt-5.6-sol',
   name: 'codex',
-  reasoningEffort: 'medium',
+  reasoningEffort: 'high',
+  role: 'actor',
   version: 'codex-cli test',
+} as const;
+const JUDGE_HOST = {
+  ...ACTOR_HOST,
+  reasoningEffort: 'xhigh',
+  role: 'judge',
+} as const;
+const MODEL_USAGE = {
+  cachedInputTokens: 0,
+  inputTokens: 1,
+  outputTokens: 1,
 } as const;
 const createCommandPolicyEvidence = (completedCommandCount: number) => ({
   completedCommandCount,
-  indeterminateCommandCount: 0,
-  packageManagerExecution: 'not-observed',
-  packageManagerInvocationCount: 0,
+  credentialExposure: { status: 'not-observed' as const, observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
+  networkAccess: {
+    status: 'not-observed' as const,
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+  sensitiveAccess: {
+    status: 'not-observed' as const,
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
 });
 const CASE_DEFINITION = {
   expected: [{ criterion: 'The agent must finish.', label: 'finished' }],
@@ -38,6 +66,12 @@ const CASE_DEFINITION = {
     ],
   },
   operation: 'change-repository',
+  resourceBudget: {
+    activation: 'direct',
+    maximumMoldeaCommands: 4,
+    maximumMoldeaOutputBytes: 262_144,
+    minimumMoldeaCommands: 1,
+  },
   scenario: 'A developer requests a bounded change.',
 } satisfies ISemanticCaseDefinition;
 const CASE_DEFINITION_DIGEST = 'a'.repeat(64);
@@ -48,6 +82,7 @@ const createCommand = (
 ): Record<string, unknown> => ({
   eventType: 'item.completed',
   item: {
+    commandKind: fact?.kind === 'moldea-cli-envelope' ? 'moldea' : 'other',
     exitCode,
     outputEvidence: {
       byteCount: fact === null ? (exitCode === 0 ? 12 : 24) : 24,
@@ -60,24 +95,62 @@ const createCommand = (
 });
 
 const createRawTrial = (overrides: Record<string, unknown> = {}): Record<string, unknown> => {
+  const passed = overrides['passed'] === undefined ? true : overrides['passed'] === true;
   const actorExecutionEvidence = overrides['actorExecutionEvidence'] ?? [];
   const completedCommandCount = Array.isArray(actorExecutionEvidence)
     ? actorExecutionEvidence.length
     : 0;
+  const moldeaCommands = Array.isArray(actorExecutionEvidence)
+    ? (
+        actorExecutionEvidence as Array<{
+          item?: {
+            commandKind?: string;
+            outputEvidence?: { byteCount?: number; facts?: Array<{ command?: string }> };
+          };
+        }>
+      ).filter(({ item }) => item?.commandKind === 'moldea')
+    : [];
+  const moldeaOutputByteCounts = moldeaCommands.map(
+    ({ item }) => item?.outputEvidence?.byteCount ?? 0,
+  );
+  const moldeaOutputByteCount = moldeaOutputByteCounts.reduce((total, count) => total + count, 0);
 
   return {
     actorCommandPolicyEvidence: createCommandPolicyEvidence(completedCommandCount),
     actorExecutionEvidence,
-    actorHost: HOST,
+    actorResourceEvidence: {
+      commandCount: moldeaCommands.length,
+      maximumInvocationByteCount: Math.max(0, ...moldeaOutputByteCounts),
+      modelVisibleToolOutputByteCount: moldeaOutputByteCount,
+      operations: moldeaCommands.map(
+        ({ item }) => item?.outputEvidence?.facts?.[0]?.command ?? 'unrecognized',
+      ),
+      stdoutByteCount: moldeaOutputByteCount,
+    },
+    actorHost: ACTOR_HOST,
+    actorUsage: MODEL_USAGE,
     actorResponse: 'I completed the requested change and verified the result.',
     caseDefinitionDigest: CASE_DEFINITION_DIGEST,
     caseId: CASE_DEFINITION.id,
+    confirmationEligible: !passed,
+    dimensions: {
+      semantic: passed,
+      resource: true,
+      commandPolicy: true,
+      repositoryControl: true,
+      mountIntegrity: true,
+      operational: true,
+    },
     evaluatedAt: '2026-08-28T12:00:00.000Z',
+    executionOrigin: 'executed',
     forbidden: [],
+    failureClassifications: passed ? [] : ['semantic'],
     id: CASE_DEFINITION.id,
-    judgeHost: HOST,
+    judgeCommandPolicyEvidence: createCommandPolicyEvidence(0),
+    judgeHost: JUDGE_HOST,
+    judgeUsage: MODEL_USAGE,
     observed: ['finished'],
-    passed: true,
+    passed,
     rationale: 'The recorded result satisfies the required behavior.',
     scenarioEvidence: [
       {
@@ -88,6 +161,7 @@ const createRawTrial = (overrides: Record<string, unknown> = {}): Record<string,
         source: { kind: 'developer-direction' },
       },
     ],
+    stageReuse: null,
     workspaceChanges: { created: [], deleted: [], modified: [] },
     ...overrides,
   };
@@ -96,18 +170,25 @@ const createRawTrial = (overrides: Record<string, unknown> = {}): Record<string,
 const createTrialSummary = (
   trial: ISemanticReplayCandidate['results'][number],
   kind: 'confirmation' | 'initial' = 'initial',
-  confirmationIndex: 1 | 2 | null = null,
+  confirmationIndex: 1 | 2 | 3 | null = null,
 ): ISemanticAttemptRecord['cases'][number]['trials'][number] => ({
   actorCommandPolicyEvidence: trial.actorCommandPolicyEvidence,
+  actorResourceEvidence: trial.actorResourceEvidence,
   actorHost: trial.actorHost,
+  confirmationEligible: trial.confirmationEligible,
   confirmationIndex,
+  dimensions: trial.dimensions,
   evaluatedAt: trial.evaluatedAt,
+  executionOrigin: trial.executionOrigin,
   forbidden: trial.forbidden,
+  failureClassifications: trial.failureClassifications,
+  judgeCommandPolicyEvidence: trial.judgeCommandPolicyEvidence,
   judgeHost: trial.judgeHost,
   kind,
   observed: trial.observed,
   passed: trial.passed,
   rationale: trial.rationale,
+  stageReuse: trial.stageReuse,
 });
 
 const createAttemptCase = (
@@ -134,10 +215,16 @@ const parseCandidate = (
   confirmations: Record<string, unknown>[] = [],
 ): ISemanticReplayCandidate =>
   SemanticReplayCandidateSchema.parse({
+    confirmationPolicy: {
+      version: 2,
+      requiredPassingConfirmations: 2,
+      requiredFailingConfirmations: 2,
+      maximumConfirmations: 3,
+    },
     confirmations,
-    evaluationProtocolVersion: 21,
+    evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     results: [initial],
-    schemaVersion: 6,
+    schemaVersion: 10,
   });
 
 describe('createSemanticEvaluationReplay', () => {
@@ -148,13 +235,29 @@ describe('createSemanticEvaluationReplay', () => {
           createCommand(0, null),
           createCommand(0, null),
           createCommand(0, {
-            cliVersion: '5.0.0',
+            cliVersion: '6.0.0',
             command: 'validate',
+            containsContent: false,
+            errorCode: null,
             errorPresent: false,
+            hasNextPage: false,
             kind: 'moldea-cli-envelope',
+            pageRecordCount: 1,
+            relevant: null,
             resultPresent: true,
-            schemaVersion: 2,
+            schemaVersion: 3,
             status: 'valid',
+          }),
+          createCommand(0, {
+            cancelledCount: 0,
+            failedCount: 0,
+            kind: 'node-test-summary',
+            passedCount: 4,
+            skippedCount: 0,
+            status: 'passed',
+            testCount: 4,
+            testKind: 'integration',
+            todoCount: 0,
           }),
           createCommand(7, null),
           createCommand(0, null),
@@ -211,6 +314,12 @@ describe('createSemanticEvaluationReplay', () => {
     expect(commandSteps).toMatchObject([
       { commandCount: 2, isAggregate: true, status: 'passed' },
       { commandCount: 1, operation: 'moldea validate', status: 'passed' },
+      {
+        commandCount: 1,
+        operation: 'Repository integration tests',
+        results: ['4 of 4 tests passed.'],
+        status: 'passed',
+      },
       { commandCount: 1, exitCode: 7, operation: 'Recorded command', status: 'failed' },
       { commandCount: 1, isAggregate: true, status: 'passed' },
     ]);
@@ -239,56 +348,6 @@ describe('createSemanticEvaluationReplay', () => {
     });
   });
 
-  test.each([
-    [
-      {
-        kind: 'focused-runtime-test',
-        path: '/src/support-agent.test-integration.js',
-        status: 'passed',
-      },
-      'Focused runtime test',
-      '/src/support-agent.test-integration.js: passed.',
-    ],
-    [
-      { kind: 'workspace-paths', paths: ['/.pnp/node_modules/@moldea.ai/cli'] },
-      'Resolve evaluator-owned workspace paths',
-      'Resolved /.pnp/node_modules/@moldea.ai/cli.',
-    ],
-    [
-      {
-        binaries: ['moldea'],
-        kind: 'yarn-package-info',
-        packageName: '@moldea.ai/cli',
-        version: '5.0.0',
-      },
-      'Inspect the Yarn package',
-      'Resolved @moldea.ai/cli 5.0.0 with moldea.',
-    ],
-    [
-      {
-        binaryName: 'moldea',
-        kind: 'yarn-binary-provider',
-        source: 'conflicting-moldea-provider',
-      },
-      'Inspect the Yarn binary provider',
-      'moldea resolves from conflicting-moldea-provider.',
-    ],
-  ])('renders projected fact %o as a concise command result', (fact, operation, result) => {
-    const candidate = parseCandidate(
-      createRawTrial({ actorExecutionEvidence: [createCommand(0, fact as never)] }),
-    );
-    const replay = createSemanticEvaluationReplay(
-      CASE_DEFINITION,
-      createAttemptCase(candidate),
-      candidate,
-    ).replay;
-
-    expect(replay.trials[0]?.steps.find(({ kind }) => kind === 'command')).toMatchObject({
-      operation,
-      results: [result],
-    });
-  });
-
   test('keeps the initial failure and confirmations in immutable order', () => {
     const candidate = parseCandidate(
       createRawTrial({
@@ -298,10 +357,14 @@ describe('createSemanticEvaluationReplay', () => {
         rationale: 'The initial requirement was not satisfied.',
       }),
       [
-        createRawTrial({ confirmationIndex: 1 }),
+        createRawTrial({ confirmationIndex: 1, passed: false }),
         createRawTrial({
           confirmationIndex: 2,
           evaluatedAt: '2026-08-28T12:05:00.000Z',
+        }),
+        createRawTrial({
+          confirmationIndex: 3,
+          evaluatedAt: '2026-08-28T12:10:00.000Z',
         }),
       ],
     );
@@ -316,6 +379,7 @@ describe('createSemanticEvaluationReplay', () => {
       { id: 'initial', title: 'Initial trial' },
       { id: 'confirmation-1', title: 'Confirmation 1' },
       { id: 'confirmation-2', title: 'Confirmation 2' },
+      { id: 'confirmation-3', title: 'Confirmation 3' },
     ]);
     expect(replay.trials[0]?.steps.at(-1)).toStrictEqual({
       kind: 'verdict',
@@ -349,7 +413,7 @@ describe('createSemanticEvaluationReplay', () => {
     });
   });
 
-  test('discloses when historical evidence did not retain developer direction', () => {
+  test('discloses when recorded evidence did not retain developer direction', () => {
     const candidate = parseCandidate(createRawTrial({ scenarioEvidence: [] }));
 
     const projection = createSemanticEvaluationReplay(
@@ -360,7 +424,7 @@ describe('createSemanticEvaluationReplay', () => {
 
     expect(projection.developerDirection).toBeNull();
     expect(projection.replay.trials[0]?.steps[0]).toStrictEqual({
-      content: 'The exact developer direction was not retained in this historical artifact.',
+      content: 'The exact developer direction was not retained in this recorded artifact.',
       kind: 'message',
       role: 'developer',
       source: 'derived',

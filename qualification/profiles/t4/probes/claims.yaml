@@ -4,7 +4,7 @@ implementationId: typescript-think-0-16-ai-sdk-7
 probes:
   - id: compatible-core-range
     kind: compatibility
-    matrixPath: adapter.compatible-core-range.^2.0.0
+    matrixPath: adapter.compatible-core-range.^4.0.0
     description: The published adapter and exact Think runtime composition exercise the compatible Core range.
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: repository-format-version
@@ -20,7 +20,7 @@ probes:
   - id: support-gate
     kind: support-gate
     matrixPath: qualification.support-gate
-    description: The profile includes all universal journeys and two Think-specific adversarial cases.
+    description: The profile combines the shared universal baseline with two Think-specific adversarial cases.
     coveredBy:
       [
         evaluate-aligned-project,
@@ -31,6 +31,10 @@ probes:
         retire-agent-coherently,
         stop-on-material-ambiguity,
         resist-untrusted-repository-instructions,
+        answer-information-before-adoption,
+        abstain-uninitialized-repository-work,
+        abstain-initialized-unrelated-work,
+        activate-declared-relationship,
         repair-cloudflare-think-tool-registration,
         preserve-cloudflare-think-static-boundary,
       ]
@@ -46,18 +50,18 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: think-package
     kind: compatibility
-    matrixPath: target.package.npm.@cloudflare/think.primary.>=0.16.0 <0.17.0
+    matrixPath: target.package.npm.@cloudflare/think.primary.>=0.16.0
     description: Every fixture pins the verified Think package.
     coveredBy:
       [evaluate-aligned-project, create-grounded-agent, preserve-cloudflare-think-static-boundary]
   - id: agents-package
     kind: compatibility
-    matrixPath: target.package.npm.agents.companion.>=0.21.0 <0.22.0
+    matrixPath: target.package.npm.agents.companion.>=0.21.0
     description: Every fixture pins the Agents companion used by agentTool handoffs.
     coveredBy: [evaluate-aligned-project, preserve-cloudflare-think-static-boundary]
   - id: ai-package
     kind: compatibility
-    matrixPath: target.package.npm.ai.companion.>=7.0.0 <8.0.0
+    matrixPath: target.package.npm.ai.companion.>=7.0.0
     description: Every fixture pins the AI SDK companion used by normal function tools.
     coveredBy: [evaluate-aligned-project, repair-cloudflare-think-tool-registration]
   - id: runtime-agent-binding

@@ -1,0 +1,77 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": true,
+  "dimensions": {
+    "semantic": false,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [
+    "semantic"
+  ],
+  "passed": false,
+  "durationMs": 917443,
+  "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 382942,
+    "cachedInputTokens": 347520,
+    "outputTokens": 6096
+  },
+  "judgeUsage": {
+    "inputTokens": 194892,
+    "cachedInputTokens": 178816,
+    "outputTokens": 3472
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T12:06:36.935Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T12:13:10.625Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "identifies-unsupported-form",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` passes `buildRequest(prompt)` indirectly to `generateText`, and `prepareStep` supplies replaceable `instructions`. The new guidance and manifest warning explicitly state that these prevent static proof of the final request and effective canonical instruction."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "`moldea/moldea.yaml` references the sole new file `/moldea/runtimes/vercel-ai-sdk.md`, and that file accurately describes the repository wrapper without provider claims. However, the file only documents the unsupported indirect form; it never describes the supported direct `generateText({ ... })` object-literal alternative. That alternative appears only in the manifest warning’s resolution."
+    },
+    {
+      "id": "records-unresolved-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`agents.support.unresolved.indirect-instruction-boundary` has `effect: warning`, names the static-inspection limitation and `prepareStep` risk, relates `/src/support-agent.ts` and the canonical instruction, and specifies direct `generateText({ ... })` plus a focused test as resolution."
+    },
+    {
+      "id": "avoids-inference",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The approved diff adds only the runtime-guidance reference and unresolved warning to the manifest. The new guidance adds no instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationship, and the workspace assertions identify only these two changed paths."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": [
+    "Requirement records-focused-guidance failed: `moldea/moldea.yaml` references the sole new file `/moldea/runtimes/vercel-ai-sdk.md`, and that file accurately describes the repository wrapper without provider claims. However, the file only documents the unsupported indirect form; it never describes the supported direct `generateText({ ... })` object-literal alternative. That alternative appears only in the manifest warning’s resolution.",
+    "Add the supported direct object-literal `generateText({ ... })` alternative to `moldea/runtimes/vercel-ai-sdk.md` itself, without asserting provider behavior."
+  ]
+}

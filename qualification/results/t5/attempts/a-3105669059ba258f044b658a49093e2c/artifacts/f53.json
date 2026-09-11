@@ -1,0 +1,7 @@
+{
+  "outcome": "completed",
+  "summary": "moldea maintains project context without owning the work. An adopted project keeps its canonical state in the repository’s `/moldea/` directory.",
+  "changedFiles": [],
+  "observations": [],
+  "unresolved": []
+}

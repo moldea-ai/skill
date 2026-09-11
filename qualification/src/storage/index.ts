@@ -2,7 +2,6 @@
 export type {
   IQualificationArtifactStorageEntry,
   IQualificationAttemptStorage,
-  IQualificationCarryForwardSource,
   IQualificationProfileIndex,
   IQualificationProfileIndexTarget,
 } from './types.ts';
@@ -19,6 +18,9 @@ export {
   resolveQualificationResultTargetDirectory,
   resolveQualificationTargetKey,
 } from './profile-paths.ts';
+
+// committed evidence
+export { isQualificationAttemptCommitted } from './committed-attempt.ts';
 
 // result artifacts
 export {

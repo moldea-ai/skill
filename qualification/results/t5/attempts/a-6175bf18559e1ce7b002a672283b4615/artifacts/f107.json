@@ -1,0 +1,73 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": false,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": false,
+    "operational": true
+  },
+  "failureClassifications": [
+    "semantic",
+    "mountIntegrity"
+  ],
+  "passed": false,
+  "durationMs": 113728,
+  "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+  "judgeStatus": "skipped",
+  "judgeOutputPath": null,
+  "judgeSkippedPath": "cases/maintain-dirty-project/trials/initial/judge-skipped.json",
+  "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 60055,
+    "cachedInputTokens": 42880,
+    "outputTokens": 4052
+  },
+  "judgeUsage": null,
+  "actorEvidenceCreatedAt": "2026-09-11T01:54:39.066Z",
+  "judgeEvidenceCreatedAt": null,
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "adds-context",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "updates-instruction",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "preserves-dirty-state",
+      "evaluator": "runner",
+      "verdict": "fail",
+      "evidence": "Runner checks failed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Actor outcome blocked did not match expected outcome completed.",
+    "Expected a project mutation, but no project files changed.",
+    "Actor outcome was blocked; expected completed.",
+    "Required mutation was not observed: moldea/moldea.yaml.",
+    "Required mutation was not observed: moldea/agents/support/instruction.md.",
+    "Required path is missing: moldea/context/billing.md.",
+    "Requirement preserves-dirty-state failed: Runner checks failed: workspace-assertions."
+  ]
+}

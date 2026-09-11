@@ -1,0 +1,84 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 644235,
+  "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/preserve-vercel-static-boundary/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 567957,
+    "cachedInputTokens": 514048,
+    "outputTokens": 10247
+  },
+  "judgeUsage": {
+    "inputTokens": 405114,
+    "cachedInputTokens": 370048,
+    "outputTokens": 8559
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T08:09:32.800Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T08:14:41.470Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-prepare-call-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains only support.runtimeAgent and support.inputSchema as proved bindings. Its separate prepare-call-static-boundary warning identifies instruction, output schema, and tool wiring as unresolved because prepareCall may replace them, with related source paths and a focused prepared-call runtime-evidence resolver. src/support-agent.ts confirms this constructor wiring and prepareCall."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "step-support retains runtimeAgent, inputSchema, outputSchema, and the complete get-status tool registration, implementation, and schemas. Only instruction provenance is unresolved under prepare-step-instruction-static-boundary with effect warning. src/step-support-agent.ts confirms prepareStep is the relevant dynamic boundary."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "delegating-support preserves its runtime agent, instruction loader, input/output schemas, and complete delegate-support function-tool bindings. The manifest contains no handoff, routing-target, or subagent relationship. src/delegation.ts still calls stepSupportAgent.generate, while runner assertions show all delegation source files remained byte-identical."
+    },
+    {
+      "id": "keeps-workflow-agent-outside-target",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts remains present and byte-identical, exporting workflowSupportAgent through @ai-sdk/workflow. The complete agents manifest registers only support, step-support, and delegating-support; no workflow ToolLoopAgent target or workflow-derived binding appears."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The sole Markdown file under moldea/runtimes is moldea/runtimes/vercel-ai-sdk.md. Both support and step-support reference it. Its guidance distinguishes the project-specific prepareCall and prepareStep proof limits, function-tool non-handoff boundary, and WorkflowAgent exclusion without asserting provider behavior."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "support and step-support have separate unresolved entries with effect: warning. Each names its preparation boundary, lists the relevant source paths, identifies the exact relationship that static inspection cannot prove, and specifies focused runtime observation proving the callback preserves the relationship. Deterministic validation reports zero failures and successful typechecking."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 254569,
+  "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 351653,
+    "cachedInputTokens": 323456,
+    "outputTokens": 5382
+  },
+  "judgeUsage": {
+    "inputTokens": 193623,
+    "cachedInputTokens": 148224,
+    "outputTokens": 2676
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T04:48:24.733Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T04:49:52.957Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "removes-obsolete-declaration",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` contains only version 1 and the project context declaration; it has no `support` agent, `/src/support-agent.ts` binding, `supportAgent` symbol, or `/moldea/runtimes/custom.md` guidance reference. The support description, instruction, custom runtime guidance, and implementation paths are absent. The Git diff explicitly removes the full agent declaration and all three canonical assets while preserving the existing source deletion. Workspace assertions identify exactly those four canonical retirement changes, and deterministic-after reports valid inspection/validation, passing typecheck, repository equivalence, and no failures."
+    },
+    {
+      "id": "removes-orphaned-assets",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "preserves-surviving-context",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

@@ -1,46 +1,285 @@
 import { z } from 'zod';
 
 import {
+  CODEX_EVALUATION_MODEL,
+  hasPassingCodexEvaluationCommandPolicy,
+} from '../../../../tooling/codex-evaluation-host/index.mjs';
+import {
+  EVALUATION_CONFIRMATION_POLICY,
+  getEvaluationConfirmationResolution,
+} from '../../../../tooling/evaluation-confirmation-policy/index.mjs';
+import {
   hasValidActorExecutionEvidence,
   type ISemanticActorExecutionEvidenceOptions,
 } from '../../../../tooling/semantic-evaluation/index.mjs';
+import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../../../../tooling/release-identity/constants.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../tooling/resource-calibration/profiles.mjs';
 
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
 const StableIdSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
 const AttemptStatusSchema = z.enum(['failed', 'incomplete', 'passed']);
+const SemanticConfirmationPolicySchema = z.strictObject({
+  version: z.literal(EVALUATION_CONFIRMATION_POLICY.version),
+  requiredPassingConfirmations: z.literal(
+    EVALUATION_CONFIRMATION_POLICY.requiredPassingConfirmations,
+  ),
+  requiredFailingConfirmations: z.literal(
+    EVALUATION_CONFIRMATION_POLICY.requiredFailingConfirmations,
+  ),
+  maximumConfirmations: z.literal(EVALUATION_CONFIRMATION_POLICY.maximumConfirmations),
+});
 
 // website read models select the current evidence fields rendered by public pages
-const SemanticHostSchema = z.object({
-  model: z.literal('gpt-5.6-sol'),
+const SemanticActorHostSchema = z.strictObject({
+  developerInstructionsSha256: Sha256Schema,
+  model: z.literal(CODEX_EVALUATION_MODEL),
   name: z.literal('codex'),
-  reasoningEffort: z.literal('medium'),
+  reasoningEffort: z.enum(['high', 'xhigh']),
+  role: z.literal('actor'),
   version: z.string().trim().min(1),
 });
-const SemanticHostContractSchema = SemanticHostSchema.omit({ version: true });
-const SemanticActorCommandPolicyEvidenceSchema = z
-  .object({
-    completedCommandCount: z.number().int().nonnegative(),
-    indeterminateCommandCount: z.number().int().nonnegative(),
-    packageManagerExecution: z.enum(['indeterminate', 'not-observed', 'observed']),
-    packageManagerInvocationCount: z.number().int().nonnegative(),
+const SemanticJudgeHostSchema = z.strictObject({
+  developerInstructionsSha256: Sha256Schema,
+  model: z.literal(CODEX_EVALUATION_MODEL),
+  name: z.literal('codex'),
+  reasoningEffort: z.literal('xhigh'),
+  role: z.literal('judge'),
+  version: z.string().trim().min(1),
+});
+const SemanticHostContractSchema = z
+  .strictObject({
+    actor: SemanticActorHostSchema.omit({ version: true }),
+    judge: SemanticJudgeHostSchema.omit({ version: true }),
+  })
+  .refine(
+    ({ actor, judge }) => actor.developerInstructionsSha256 === judge.developerInstructionsSha256,
+    'Semantic host roles must share one developer-instruction contract.',
+  );
+const SemanticFailureClassificationSchema = z.enum([
+  'semantic',
+  'resource',
+  'commandPolicy',
+  'repositoryControl',
+  'mountIntegrity',
+  'operational',
+]);
+const SEMANTIC_FAILURE_CLASSIFICATIONS = SemanticFailureClassificationSchema.options;
+const SemanticResultDimensionsSchema = z.strictObject({
+  semantic: z.boolean(),
+  resource: z.boolean(),
+  commandPolicy: z.boolean(),
+  repositoryControl: z.boolean(),
+  mountIntegrity: z.boolean(),
+  operational: z.boolean(),
+});
+
+/** Derives the exact content-free failure classification for one public trial. */
+const getSemanticFailureClassifications = (
+  dimensions: z.infer<typeof SemanticResultDimensionsSchema>,
+): Array<z.infer<typeof SemanticFailureClassificationSchema>> =>
+  SEMANTIC_FAILURE_CLASSIFICATIONS.filter((dimension) => !dimensions[dimension]);
+
+/** Limits confirmation eligibility to semantic-only failures. */
+const isSemanticConfirmationEligible = (
+  dimensions: z.infer<typeof SemanticResultDimensionsSchema>,
+): boolean =>
+  !dimensions.semantic &&
+  SEMANTIC_FAILURE_CLASSIFICATIONS.filter((dimension) => dimension !== 'semantic').every(
+    (dimension) => dimensions[dimension],
+  );
+const SemanticModelUsageSchema = z
+  .strictObject({
+    cachedInputTokens: z.number().int().nonnegative(),
+    inputTokens: z.number().int().nonnegative(),
+    outputTokens: z.number().int().nonnegative(),
+  })
+  .refine(
+    (usage) =>
+      usage.cachedInputTokens <= usage.inputTokens &&
+      usage.inputTokens + usage.outputTokens <=
+        MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
+    'Model usage exceeds the semantic token boundary.',
+  );
+const SemanticCommandPolicyReasonSchema = z.strictObject({
+  code: z.enum([
+    'broad-filesystem-read',
+    'credential-material',
+    'dynamic-execution',
+    'environment-dump',
+    'environment-value-read',
+    'evaluator-auth-file',
+    'evaluator-home',
+    'git-network',
+    'network-client',
+    'oversized-command',
+    'package-manager-network',
+    'process-environment',
+    'unclassified-command',
+  ]),
+  count: z.number().int().positive(),
+});
+const NETWORK_OBSERVED_REASON_CODES = new Set([
+  'git-network',
+  'network-client',
+  'package-manager-network',
+]);
+const NETWORK_INDETERMINATE_REASON_CODES = new Set([
+  'dynamic-execution',
+  'oversized-command',
+  'unclassified-command',
+]);
+const SENSITIVE_OBSERVED_REASON_CODES = new Set([
+  'environment-dump',
+  'environment-value-read',
+  'evaluator-auth-file',
+  'evaluator-home',
+  'process-environment',
+]);
+const SENSITIVE_INDETERMINATE_REASON_CODES = new Set([
+  'broad-filesystem-read',
+  'dynamic-execution',
+  'oversized-command',
+  'unclassified-command',
+]);
+const SemanticCommandPolicyObservationSchema = z.strictObject({
+  status: z.enum(['indeterminate', 'not-observed', 'observed']),
+  observedCount: z.number().int().nonnegative(),
+  indeterminateCount: z.number().int().nonnegative(),
+  reasons: z.array(SemanticCommandPolicyReasonSchema),
+});
+const SemanticCommandPolicyEvidenceSchema = z
+  .strictObject({
+    completedCommandCount: z
+      .number()
+      .int()
+      .min(0)
+      .max(MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCompletedCommandCount),
+    credentialExposure: z.strictObject({
+      status: z.enum(['not-observed', 'observed']),
+      observedCount: z.number().int().nonnegative(),
+      reasons: z.array(SemanticCommandPolicyReasonSchema),
+    }),
+    maximumCommandOutputByteCount: z
+      .number()
+      .int()
+      .min(0)
+      .max(MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxModelVisibleToolOutputBytes),
+    modelVisibleToolOutputByteCount: z
+      .number()
+      .int()
+      .min(0)
+      .max(MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxModelVisibleToolOutputBytes),
+    moldeaCommandCount: z
+      .number()
+      .int()
+      .min(0)
+      .max(MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaCommandCount),
+    moldeaOutputByteCount: z
+      .number()
+      .int()
+      .min(0)
+      .max(MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaOutputBytes),
+    networkAccess: SemanticCommandPolicyObservationSchema,
+    sensitiveAccess: SemanticCommandPolicyObservationSchema,
   })
   .superRefine((evidence, context) => {
-    const expectedStatus =
-      evidence.packageManagerInvocationCount > 0
-        ? 'observed'
-        : evidence.indeterminateCommandCount > 0
-          ? 'indeterminate'
-          : 'not-observed';
+    for (const field of ['networkAccess', 'sensitiveAccess'] as const) {
+      const observation = evidence[field];
+      const observedReasonCodes =
+        field === 'networkAccess' ? NETWORK_OBSERVED_REASON_CODES : SENSITIVE_OBSERVED_REASON_CODES;
+      const indeterminateReasonCodes =
+        field === 'networkAccess'
+          ? NETWORK_INDETERMINATE_REASON_CODES
+          : SENSITIVE_INDETERMINATE_REASON_CODES;
+      const expectedStatus =
+        observation.observedCount > 0
+          ? 'observed'
+          : observation.indeterminateCount > 0
+            ? 'indeterminate'
+            : 'not-observed';
+      const observedReasonCount = observation.reasons.reduce(
+        (total, reason) => total + (observedReasonCodes.has(reason.code) ? reason.count : 0),
+        0,
+      );
+      const indeterminateReasonCount = observation.reasons.reduce(
+        (total, reason) => total + (indeterminateReasonCodes.has(reason.code) ? reason.count : 0),
+        0,
+      );
+      if (
+        observation.status !== expectedStatus ||
+        observation.observedCount + observation.indeterminateCount >
+          evidence.completedCommandCount ||
+        observedReasonCount !== observation.observedCount ||
+        indeterminateReasonCount !== observation.indeterminateCount ||
+        observation.reasons.reduce((total, reason) => total + reason.count, 0) !==
+          observation.observedCount + observation.indeterminateCount ||
+        new Set(observation.reasons.map(({ code }) => code)).size !== observation.reasons.length ||
+        observation.reasons.some(
+          (reason, index) =>
+            index > 0 && (observation.reasons[index - 1]?.code ?? '') >= reason.code,
+        )
+      ) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Command-policy status must match its bounded counts.',
+          path: [field],
+        });
+      }
+    }
+    const expectedCredentialStatus =
+      evidence.credentialExposure.observedCount > 0 ? 'observed' : 'not-observed';
     if (
-      evidence.indeterminateCommandCount + evidence.packageManagerInvocationCount >
-        evidence.completedCommandCount ||
-      evidence.packageManagerExecution !== expectedStatus
+      evidence.credentialExposure.status !== expectedCredentialStatus ||
+      evidence.credentialExposure.reasons.reduce((total, reason) => total + reason.count, 0) !==
+        evidence.credentialExposure.observedCount ||
+      (evidence.credentialExposure.observedCount > 0 &&
+        (evidence.credentialExposure.reasons.length !== 1 ||
+          evidence.credentialExposure.reasons[0]?.code !== 'credential-material')) ||
+      (evidence.credentialExposure.observedCount === 0 &&
+        evidence.credentialExposure.reasons.length !== 0)
     ) {
-      context.addIssue({ code: 'custom', message: 'Invalid command-policy aggregate.' });
+      context.addIssue({
+        code: 'custom',
+        message: 'Credential-exposure evidence is inconsistent.',
+        path: ['credentialExposure'],
+      });
+    }
+    if (
+      evidence.maximumCommandOutputByteCount > evidence.modelVisibleToolOutputByteCount ||
+      (evidence.completedCommandCount === 0 && evidence.maximumCommandOutputByteCount !== 0) ||
+      evidence.moldeaCommandCount > evidence.completedCommandCount ||
+      (evidence.moldeaCommandCount === 0 && evidence.moldeaOutputByteCount !== 0) ||
+      evidence.moldeaOutputByteCount > evidence.modelVisibleToolOutputByteCount
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Command-policy resource totals are inconsistent.',
+      });
+    }
+  });
+const SemanticActorResourceEvidenceSchema = z
+  .strictObject({
+    commandCount: z.number().int().min(0).max(16),
+    maximumInvocationByteCount: z.number().int().min(0).max(1_048_576),
+    modelVisibleToolOutputByteCount: z.number().int().min(0).max(1_048_576),
+    operations: z
+      .array(z.enum(['composition', 'content', 'inspect', 'scope', 'unrecognized', 'validate']))
+      .max(16),
+    stdoutByteCount: z.number().int().min(0).max(1_048_576),
+  })
+  .superRefine((evidence, context) => {
+    if (
+      evidence.operations.length !== evidence.commandCount ||
+      evidence.maximumInvocationByteCount > evidence.stdoutByteCount ||
+      evidence.modelVisibleToolOutputByteCount !== evidence.stdoutByteCount ||
+      (evidence.commandCount === 0 &&
+        (evidence.maximumInvocationByteCount !== 0 || evidence.stdoutByteCount !== 0))
+    ) {
+      context.addIssue({ code: 'custom', message: 'Invalid moldea resource aggregate.' });
     }
   });
 
-export const SemanticCliIdentitySchema = z.object({
+export const SemanticCliIdentitySchema = z.strictObject({
   integrity: z.string().startsWith('sha512-'),
   jsonSchemaVersion: z.number().int().positive(),
   name: z.literal('@moldea.ai/cli'),
@@ -48,63 +287,147 @@ export const SemanticCliIdentitySchema = z.object({
   version: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
 });
 
-const SemanticAttemptTrialSchema = z.object({
-  actorCommandPolicyEvidence: SemanticActorCommandPolicyEvidenceSchema,
-  actorHost: SemanticHostSchema,
-  confirmationIndex: z.union([z.literal(1), z.literal(2)]).nullable(),
-  evaluatedAt: z.iso.datetime(),
-  forbidden: z.array(StableIdSchema),
-  judgeHost: SemanticHostSchema,
+const SemanticStageTrialIdentitySchema = z.strictObject({
+  caseId: StableIdSchema,
+  confirmationIndex: z.union([z.literal(1), z.literal(2), z.literal(3)]).nullable(),
   kind: z.enum(['confirmation', 'initial']),
-  observed: z.array(StableIdSchema),
-  passed: z.boolean(),
-  rationale: z.string().trim().min(1),
 });
+const SemanticStageReuseRecordShape = {
+  identitySha256: Sha256Schema,
+  origin: z.literal('reused'),
+  schemaVersion: z.literal(1),
+  source: z.strictObject({
+    attemptId: z.string().trim().min(1),
+    commit: z.string().regex(/^[a-f0-9]{40,64}$/u),
+    evidencePath: z
+      .string()
+      .startsWith('fixtures/semantic-evaluation-results/attempts/')
+      .endsWith('/evidence.json'),
+    evidenceSha256: Sha256Schema,
+    trial: SemanticStageTrialIdentitySchema,
+  }),
+};
+const SemanticStageReuseSchema = z.strictObject({
+  actor: z.strictObject({ ...SemanticStageReuseRecordShape, stage: z.literal('actor') }),
+  judge: z.strictObject({ ...SemanticStageReuseRecordShape, stage: z.literal('judge') }),
+});
+type ISemanticStageReuseSource = z.infer<typeof SemanticStageReuseRecordShape.source>;
 
-const SemanticAttemptEvidenceReferenceBaseSchema = z.object({
+/** Compares actor and judge provenance for one shared source trial. */
+const hasMatchingStageReuseSource = (
+  actorSource: ISemanticStageReuseSource,
+  judgeSource: ISemanticStageReuseSource,
+): boolean =>
+  actorSource.attemptId === judgeSource.attemptId &&
+  actorSource.commit === judgeSource.commit &&
+  actorSource.evidencePath === judgeSource.evidencePath &&
+  actorSource.evidenceSha256 === judgeSource.evidenceSha256 &&
+  actorSource.trial.caseId === judgeSource.trial.caseId &&
+  actorSource.trial.confirmationIndex === judgeSource.trial.confirmationIndex &&
+  actorSource.trial.kind === judgeSource.trial.kind;
+
+const SemanticAttemptTrialSchema = z
+  .strictObject({
+    actorCommandPolicyEvidence: SemanticCommandPolicyEvidenceSchema,
+    actorResourceEvidence: SemanticActorResourceEvidenceSchema,
+    actorHost: SemanticActorHostSchema,
+    confirmationEligible: z.boolean(),
+    confirmationIndex: z.union([z.literal(1), z.literal(2), z.literal(3)]).nullable(),
+    dimensions: SemanticResultDimensionsSchema,
+    evaluatedAt: z.iso.datetime(),
+    executionOrigin: z.enum(['executed', 'reused']),
+    forbidden: z.array(StableIdSchema),
+    failureClassifications: z.array(SemanticFailureClassificationSchema),
+    judgeCommandPolicyEvidence: SemanticCommandPolicyEvidenceSchema,
+    judgeHost: SemanticJudgeHostSchema,
+    kind: z.enum(['confirmation', 'initial']),
+    observed: z.array(StableIdSchema),
+    passed: z.boolean(),
+    rationale: z.string().trim().min(1),
+    stageReuse: SemanticStageReuseSchema.nullable(),
+  })
+  .superRefine((trial, context) => {
+    const failureClassifications = getSemanticFailureClassifications(trial.dimensions);
+    const commandPolicyPassed =
+      hasPassingCodexEvaluationCommandPolicy(trial.actorCommandPolicyEvidence) &&
+      hasPassingCodexEvaluationCommandPolicy(trial.judgeCommandPolicyEvidence);
+    if (
+      (trial.executionOrigin === 'executed' && trial.stageReuse !== null) ||
+      (trial.executionOrigin === 'reused' &&
+        (trial.stageReuse === null ||
+          trial.stageReuse.actor.stage !== 'actor' ||
+          trial.stageReuse.judge.stage !== 'judge' ||
+          !hasMatchingStageReuseSource(
+            trial.stageReuse.actor.source,
+            trial.stageReuse.judge.source,
+          ) ||
+          trial.stageReuse.actor.source.trial.caseId !==
+            trial.stageReuse.judge.source.trial.caseId ||
+          trial.stageReuse.actor.source.trial.confirmationIndex !== trial.confirmationIndex ||
+          trial.stageReuse.actor.source.trial.kind !== trial.kind))
+    ) {
+      context.addIssue({ code: 'custom', message: 'Invalid semantic execution provenance.' });
+    }
+    if (
+      trial.dimensions.commandPolicy !== commandPolicyPassed ||
+      trial.passed !== (failureClassifications.length === 0) ||
+      trial.confirmationEligible !== isSemanticConfirmationEligible(trial.dimensions) ||
+      JSON.stringify(trial.failureClassifications) !== JSON.stringify(failureClassifications)
+    ) {
+      context.addIssue({ code: 'custom', message: 'Invalid semantic result dimensions.' });
+    }
+  });
+
+const SemanticAttemptEvidenceReferenceBaseSchema = z.strictObject({
   kind: z.literal('candidate'),
   path: z.literal('evidence.json'),
   sha256: Sha256Schema,
 });
 const SemanticAttemptEvidenceReferenceSchema = SemanticAttemptEvidenceReferenceBaseSchema.extend({
-  evaluationProtocolVersion: z.literal(21),
-  schemaVersion: z.literal(6),
+  evaluationProtocolVersion: z.literal(SEMANTIC_EVALUATION_PROTOCOL_VERSION),
+  schemaVersion: z.literal(10),
 });
 
+const SemanticReplayMoldeaOutputFactSchema = z.object({
+  cliVersion: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
+  command: z.enum(['composition', 'content', 'inspect', 'scope', 'validate']),
+  containsContent: z.boolean(),
+  errorCode: z
+    .string()
+    .regex(/^[A-Z][A-Z0-9_]{0,63}$/u)
+    .nullable(),
+  errorPresent: z.boolean(),
+  hasNextPage: z.boolean(),
+  kind: z.literal('moldea-cli-envelope'),
+  pageRecordCount: z.number().int().nonnegative(),
+  relevant: z.boolean().nullable(),
+  resultPresent: z.boolean(),
+  schemaVersion: z.number().int().positive(),
+  status: z.enum(['error', 'invalid', 'valid']),
+});
+const SemanticReplayNodeTestSummaryFactSchema = z
+  .object({
+    cancelledCount: z.literal(0),
+    failedCount: z.literal(0),
+    kind: z.literal('node-test-summary'),
+    passedCount: z.number().int().positive(),
+    skippedCount: z.literal(0),
+    status: z.literal('passed'),
+    testCount: z.number().int().positive(),
+    testKind: z.enum(['correctness', 'e2e', 'integration', 'unit']),
+    todoCount: z.literal(0),
+  })
+  .refine(({ passedCount, testCount }) => passedCount === testCount, {
+    message: 'Projected repository test totals must describe a complete passing run.',
+  });
 const SemanticReplayOutputFactSchema = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('focused-runtime-test'),
-    path: z.literal('/src/support-agent.test-integration.js'),
-    status: z.enum(['failed', 'passed']),
-  }),
-  z.object({
-    cliVersion: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
-    command: z.enum(['composition', 'inspect', 'validate']),
-    errorPresent: z.boolean(),
-    kind: z.literal('moldea-cli-envelope'),
-    resultPresent: z.boolean(),
-    schemaVersion: z.number().int().positive(),
-    status: z.enum(['error', 'invalid', 'valid']),
-  }),
-  z.object({
-    kind: z.literal('workspace-paths'),
-    paths: z.array(z.string().trim().min(1)).min(1),
-  }),
-  z.object({
-    binaries: z.tuple([z.literal('moldea')]),
-    kind: z.literal('yarn-package-info'),
-    packageName: z.literal('@moldea.ai/cli'),
-    version: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
-  }),
-  z.object({
-    binaryName: z.literal('moldea'),
-    kind: z.literal('yarn-binary-provider'),
-    source: z.literal('conflicting-moldea-provider'),
-  }),
+  SemanticReplayMoldeaOutputFactSchema,
+  SemanticReplayNodeTestSummaryFactSchema,
 ]);
 const SemanticReplayCommandSchema = z.object({
   eventType: z.literal('item.completed'),
   item: z.object({
+    commandKind: z.enum(['moldea', 'other']),
     exitCode: z.number().int(),
     outputEvidence: z.object({
       byteCount: z.number().int().nonnegative(),
@@ -183,25 +506,43 @@ const SemanticReplayWorkspaceChangesSchema = z.object({
   ),
 });
 const SemanticReplayTrialShape = {
-  actorCommandPolicyEvidence: SemanticActorCommandPolicyEvidenceSchema,
+  actorCommandPolicyEvidence: SemanticCommandPolicyEvidenceSchema,
+  actorResourceEvidence: SemanticActorResourceEvidenceSchema,
   actorExecutionEvidence: z.array(SemanticReplayCommandSchema).max(128),
-  actorHost: SemanticHostSchema,
+  actorHost: SemanticActorHostSchema,
+  actorUsage: SemanticModelUsageSchema,
   actorResponse: z.string(),
   caseDefinitionDigest: Sha256Schema,
   caseId: StableIdSchema,
+  confirmationEligible: z.boolean(),
+  dimensions: SemanticResultDimensionsSchema,
   evaluatedAt: z.iso.datetime(),
+  executionOrigin: z.enum(['executed', 'reused']),
   forbidden: z.array(StableIdSchema),
+  judgeCommandPolicyEvidence: SemanticCommandPolicyEvidenceSchema,
+  failureClassifications: z.array(SemanticFailureClassificationSchema),
   id: StableIdSchema,
-  judgeHost: SemanticHostSchema,
+  judgeHost: SemanticJudgeHostSchema,
+  judgeUsage: SemanticModelUsageSchema,
   observed: z.array(StableIdSchema),
   passed: z.boolean(),
   rationale: z.string().trim().min(1),
+  stageReuse: SemanticStageReuseSchema.nullable(),
   workspaceChanges: SemanticReplayWorkspaceChangesSchema,
 };
 const SemanticReplayInitialTrialSchema = z
   .object({
     ...SemanticReplayTrialShape,
     scenarioEvidence: SemanticReplayDeveloperDirectionSchema,
+  })
+  .superRefine((trial, context) => {
+    if (
+      trial.dimensions.commandPolicy !==
+      (hasPassingCodexEvaluationCommandPolicy(trial.actorCommandPolicyEvidence) &&
+        hasPassingCodexEvaluationCommandPolicy(trial.judgeCommandPolicyEvidence))
+    ) {
+      context.addIssue({ code: 'custom', message: 'Invalid semantic command-policy dimension.' });
+    }
   })
   .transform(({ scenarioEvidence: developerDirection, ...trial }) => ({
     ...trial,
@@ -210,20 +551,30 @@ const SemanticReplayInitialTrialSchema = z
 const SemanticReplayConfirmationTrialSchema = z
   .object({
     ...SemanticReplayTrialShape,
-    confirmationIndex: z.union([z.literal(1), z.literal(2)]),
+    confirmationIndex: z.union([z.literal(1), z.literal(2), z.literal(3)]),
     scenarioEvidence: SemanticReplayDeveloperDirectionSchema,
+  })
+  .superRefine((trial, context) => {
+    if (
+      trial.dimensions.commandPolicy !==
+      (hasPassingCodexEvaluationCommandPolicy(trial.actorCommandPolicyEvidence) &&
+        hasPassingCodexEvaluationCommandPolicy(trial.judgeCommandPolicyEvidence))
+    ) {
+      context.addIssue({ code: 'custom', message: 'Invalid semantic command-policy dimension.' });
+    }
   })
   .transform(({ scenarioEvidence: developerDirection, ...trial }) => ({
     ...trial,
     developerDirection,
   }));
 
-// public-safe projection selected from one digest-verified protocol-21 evidence artifact
+// public-safe projection selected from one digest-verified current evidence artifact
 export const SemanticReplayCandidateSchema = z.object({
+  confirmationPolicy: SemanticConfirmationPolicySchema,
   confirmations: z.array(SemanticReplayConfirmationTrialSchema),
-  evaluationProtocolVersion: z.literal(21),
+  evaluationProtocolVersion: z.literal(SEMANTIC_EVALUATION_PROTOCOL_VERSION),
   results: z.array(SemanticReplayInitialTrialSchema),
-  schemaVersion: z.literal(6),
+  schemaVersion: z.literal(10),
 });
 
 /**
@@ -244,40 +595,184 @@ export const hasValidSemanticReplayExecutionEvidence = (
   );
 };
 
-export const SemanticAttemptRecordSchema = z.object({
-  artifactDigest: Sha256Schema,
-  attemptId: z.string().trim().min(1),
-  caseSuiteDigest: Sha256Schema,
-  cases: z.array(
-    z.object({
-      confirmationStatus: z.enum(['not-required', 'passed', 'rejected', 'required']),
-      id: StableIdSchema,
-      status: z.enum(['failed', 'passed', 'recovered']),
-      trials: z.array(SemanticAttemptTrialSchema).min(1),
-    }),
-  ),
-  cli: SemanticCliIdentitySchema,
-  coverageDigest: Sha256Schema,
-  createdAt: z.iso.datetime(),
-  evidence: SemanticAttemptEvidenceReferenceSchema,
-  failedCaseCount: z.number().int().nonnegative(),
-  hostContract: SemanticHostContractSchema,
-  passedCaseCount: z.number().int().nonnegative(),
-  pendingCaseCount: z.number().int().nonnegative(),
-  recordedAt: z.iso.datetime(),
-  recoveredCaseCount: z.number().int().nonnegative(),
-  schemaVersion: z.literal(4),
-  status: AttemptStatusSchema,
-  stopReason: z.enum([
-    'case-failure',
-    'complete',
-    'confirmation-failure',
-    'confirmations-passed',
-    'operator-recorded',
-  ]),
-  totalCaseCount: z.number().int().positive(),
-  updatedAt: z.iso.datetime(),
-});
+type ISemanticAttemptCase = {
+  confirmationStatus: 'not-applicable' | 'not-required' | 'passed' | 'rejected' | 'required';
+  id: string;
+  status: 'failed' | 'passed' | 'recovered';
+  trials: Array<z.infer<typeof SemanticAttemptTrialSchema>>;
+};
+
+/** Validates the complete ordered trial history and derived status for one semantic case. */
+const hasValidSemanticAttemptCaseHistory = (attemptCase: ISemanticAttemptCase): boolean => {
+  const [initial] = attemptCase.trials;
+  if (initial?.kind !== 'initial' || initial.confirmationIndex !== null) return false;
+  if (
+    attemptCase.trials.length > EVALUATION_CONFIRMATION_POLICY.maximumConfirmations + 1 ||
+    attemptCase.trials
+      .slice(1)
+      .some(
+        (trial, index) => trial.kind !== 'confirmation' || trial.confirmationIndex !== index + 1,
+      )
+  ) {
+    return false;
+  }
+
+  if (initial.passed) {
+    return (
+      attemptCase.trials.length === 1 &&
+      attemptCase.status === 'passed' &&
+      attemptCase.confirmationStatus === 'not-required'
+    );
+  }
+  if (!initial.confirmationEligible) {
+    return (
+      attemptCase.trials.length === 1 &&
+      attemptCase.status === 'failed' &&
+      attemptCase.confirmationStatus === 'not-applicable'
+    );
+  }
+  let resolution: ReturnType<typeof getEvaluationConfirmationResolution>;
+  try {
+    resolution = getEvaluationConfirmationResolution(
+      attemptCase.trials.slice(1).map(({ passed }) => passed),
+    );
+  } catch {
+    return false;
+  }
+
+  if (resolution === 'awaiting-confirmation') {
+    return attemptCase.status === 'failed' && attemptCase.confirmationStatus === 'required';
+  }
+  if (resolution === 'recovered') {
+    return attemptCase.status === 'recovered' && attemptCase.confirmationStatus === 'passed';
+  }
+  return attemptCase.status === 'failed' && attemptCase.confirmationStatus === 'rejected';
+};
+
+export const SemanticAttemptRecordSchema = z
+  .strictObject({
+    artifactDigest: Sha256Schema,
+    attemptId: z.string().trim().min(1),
+    caseSuiteDigest: Sha256Schema,
+    cases: z.array(
+      z.strictObject({
+        confirmationStatus: z.enum([
+          'not-applicable',
+          'not-required',
+          'passed',
+          'rejected',
+          'required',
+        ]),
+        id: StableIdSchema,
+        status: z.enum(['failed', 'passed', 'recovered']),
+        trials: z
+          .array(SemanticAttemptTrialSchema)
+          .min(1)
+          .max(EVALUATION_CONFIRMATION_POLICY.maximumConfirmations + 1),
+      }),
+    ),
+    cli: SemanticCliIdentitySchema,
+    confirmationPolicy: SemanticConfirmationPolicySchema,
+    coverageDigest: Sha256Schema,
+    createdAt: z.iso.datetime(),
+    evidence: SemanticAttemptEvidenceReferenceSchema,
+    failedCaseCount: z.number().int().nonnegative(),
+    executedStageCount: z.number().int().nonnegative(),
+    executedTrialCount: z.number().int().nonnegative(),
+    hostContract: SemanticHostContractSchema,
+    passedCaseCount: z.number().int().nonnegative(),
+    pendingCaseCount: z.number().int().nonnegative(),
+    recordedAt: z.iso.datetime(),
+    recoveredCaseCount: z.number().int().nonnegative(),
+    reusedStageCount: z.number().int().nonnegative(),
+    reusedTrialCount: z.number().int().nonnegative(),
+    schemaVersion: z.literal(7),
+    status: AttemptStatusSchema,
+    stopReason: z.enum([
+      'case-failure',
+      'complete',
+      'complete-with-failures',
+      'confirmation-failure',
+      'confirmations-passed',
+      'operator-recorded',
+    ]),
+    totalCaseCount: z.number().int().positive(),
+    updatedAt: z.iso.datetime(),
+  })
+  .superRefine((attempt, context) => {
+    const passedCaseCount = attempt.cases.filter(({ status }) => status === 'passed').length;
+    const recoveredCaseCount = attempt.cases.filter(({ status }) => status === 'recovered').length;
+    const failedCaseCount = attempt.cases.filter(({ status }) => status === 'failed').length;
+    const pendingCaseCount = attempt.totalCaseCount - attempt.cases.length;
+    const status = failedCaseCount > 0 ? 'failed' : pendingCaseCount > 0 ? 'incomplete' : 'passed';
+    const hasRejectedConfirmation = attempt.cases.some(
+      ({ confirmationStatus }) => confirmationStatus === 'rejected',
+    );
+    const hasUnconfirmedInitialFailure = attempt.cases.some(
+      ({ confirmationStatus, trials: caseTrials }) =>
+        confirmationStatus === 'required' && caseTrials.length === 1,
+    );
+    const hasValidStopReason =
+      attempt.stopReason === 'operator-recorded' ||
+      (attempt.stopReason === 'complete' && status === 'passed') ||
+      (attempt.stopReason === 'complete-with-failures' &&
+        status === 'failed' &&
+        pendingCaseCount === 0 &&
+        !hasUnconfirmedInitialFailure) ||
+      (attempt.stopReason === 'case-failure' && hasUnconfirmedInitialFailure) ||
+      (attempt.stopReason === 'confirmation-failure' && hasRejectedConfirmation) ||
+      (attempt.stopReason === 'confirmations-passed' &&
+        failedCaseCount === 0 &&
+        recoveredCaseCount > 0);
+    if (
+      new Set(attempt.cases.map(({ id }) => id)).size !== attempt.cases.length ||
+      pendingCaseCount < 0 ||
+      attempt.passedCaseCount !== passedCaseCount ||
+      attempt.recoveredCaseCount !== recoveredCaseCount ||
+      attempt.failedCaseCount !== failedCaseCount ||
+      attempt.pendingCaseCount !== pendingCaseCount ||
+      attempt.status !== status ||
+      !hasValidStopReason ||
+      attempt.cases.some((attemptCase) => !hasValidSemanticAttemptCaseHistory(attemptCase))
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Semantic attempt case history and aggregate result are contradictory.',
+      });
+    }
+
+    const trials = attempt.cases.flatMap(({ trials: caseTrials }) => caseTrials);
+    const executedTrialCount = trials.filter(
+      ({ executionOrigin }) => executionOrigin === 'executed',
+    ).length;
+    const reusedTrialCount = trials.length - executedTrialCount;
+    if (
+      attempt.executedTrialCount !== executedTrialCount ||
+      attempt.reusedTrialCount !== reusedTrialCount ||
+      attempt.executedStageCount !== executedTrialCount * 2 ||
+      attempt.reusedStageCount !== reusedTrialCount * 2
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Semantic execution counts are contradictory.',
+      });
+    }
+
+    for (const [caseIndex, attemptCase] of attempt.cases.entries()) {
+      for (const [trialIndex, trial] of attemptCase.trials.entries()) {
+        if (
+          trial.executionOrigin === 'reused' &&
+          trial.stageReuse?.actor.source.trial.caseId !== attemptCase.id
+        ) {
+          context.addIssue({
+            code: 'custom',
+            message: 'Semantic reuse provenance references another case.',
+            path: ['cases', caseIndex, 'trials', trialIndex, 'stageReuse'],
+          });
+        }
+      }
+    }
+  });
 
 export const SemanticLatestResultSchema = z.object({
   lastPassingAttemptId: z.string().trim().min(1).nullable(),

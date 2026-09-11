@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: reconcile-drift-and-boundaries
 title: Reconcile drift and boundaries
 purpose: Verify stale-reference repair and conservative unresolved reporting for dynamic code.

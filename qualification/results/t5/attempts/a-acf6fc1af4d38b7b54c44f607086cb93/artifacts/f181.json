@@ -1,0 +1,15 @@
+{
+  "outcome": "blocked",
+  "summary": "moldea was not initialized because the repository evidence cannot support one truthful foundation: it leaves transfer behavior explicitly undecided between preview-only simulation and value-moving execution.",
+  "changedFiles": [],
+  "observations": [
+    "README.md documents both interpretations and says no approved decision selects one.",
+    "src/transfer-operation.ts returns requests unchanged pending that decision.",
+    "The repository has none of the three adoption elements: /moldea/moldea.yaml, /moldea/project.md, or the managed README awareness block.",
+    "The compatible repository-local @moldea.ai/cli 8.0.0 is declared and installed.",
+    "TypeScript validation passed. Final Git status and diff were clean."
+  ],
+  "unresolved": [
+    "Should this repository own a preview-only transfer simulator or a value-moving execution service, and who or what is the intended caller it serves?"
+  ]
+}

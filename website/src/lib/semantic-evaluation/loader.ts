@@ -1,6 +1,7 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { readSemanticAttemptIdentity } from '../../../../tooling/evidence-identity/index.mjs';
 import {
   createPortableSkillDigest,
   createSemanticCaseDefinitionDigest,
@@ -11,10 +12,15 @@ import {
 } from '../../../../tooling/semantic-evaluation/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../../../../tooling/release-identity/constants.mjs';
 import { createSemanticCliIdentity } from '../../../../tooling/release-identity/identity.mjs';
+import {
+  CODEX_EVALUATION_ACTOR_REASONING_EFFORT,
+  CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
+  CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
+  CODEX_EVALUATION_MODEL,
+} from '../../../../tooling/codex-evaluation-host/index.mjs';
 
 import { RAW_SOURCE_REPOSITORY_URL } from '../model/constants.ts';
 
-import { resolveCompatibleSemanticAttemptId } from './compatibility.ts';
 import {
   SEMANTIC_CASE_PRESENTATION,
   SEMANTIC_EVALUATION_GROUPS,
@@ -42,15 +48,25 @@ const CONFORMANCE_CASES_PATH = 'fixtures/conformance-cases.json';
 const SEMANTIC_ATTEMPTS_PATH = 'fixtures/semantic-evaluation-results';
 const SEMANTIC_COVERAGE_PATH = 'fixtures/semantic-evaluation-coverage.json';
 
-const isOfficialSemanticHost = (host: {
-  model: string;
-  name: string;
-  reasoningEffort: string;
-  version?: string;
-}): boolean =>
-  host.model === 'gpt-5.6-sol' &&
+const isCurrentSemanticHost = (
+  host: {
+    developerInstructionsSha256: string;
+    model: string;
+    name: string;
+    reasoningEffort: string;
+    role: string;
+    version?: string;
+  },
+  role: 'actor' | 'judge',
+): boolean =>
+  host.developerInstructionsSha256 === CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 &&
+  host.model === CODEX_EVALUATION_MODEL &&
   host.name === 'codex' &&
-  host.reasoningEffort === 'medium' &&
+  host.role === role &&
+  host.reasoningEffort ===
+    (role === 'actor'
+      ? CODEX_EVALUATION_ACTOR_REASONING_EFFORT
+      : CODEX_EVALUATION_JUDGE_REASONING_EFFORT) &&
   (host.version === undefined ||
     (host.version.trim().length > 0 && host.version !== 'unavailable'));
 
@@ -80,12 +96,11 @@ const loadCaseDefinitions = (repositoryRoot: string): ISemanticCaseDefinition[] 
   );
 };
 
-const hasCurrentAttemptIdentity = (
+/** Checks whether an attempt belongs to the complete active semantic contract. */
+const hasCurrentAttemptContract = (
   attempt: ISemanticAttemptRecord,
   caseDefinitions: ISemanticCaseDefinition[],
   coverage: unknown,
-  repositoryRoot: string,
-  compatibleAttemptId: string | null,
 ): boolean => {
   const caseIds = caseDefinitions.map(({ id }) => id);
   const presentationIds = Object.keys(SEMANTIC_CASE_PRESENTATION);
@@ -97,31 +112,36 @@ const hasCurrentAttemptIdentity = (
   }
 
   const attemptCaseIds = attempt.cases.map(({ id }) => id);
-  const hasCompatibleIdentity = attempt.attemptId === compatibleAttemptId;
+  return (
+    attempt.caseSuiteDigest === createSemanticCaseSuiteDigest(caseDefinitions) &&
+    attempt.coverageDigest === createSemanticCoverageDigest(coverage, caseDefinitions) &&
+    attempt.evidence.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION &&
+    attempt.totalCaseCount === caseDefinitions.length &&
+    new Set(attemptCaseIds).size === attemptCaseIds.length &&
+    attemptCaseIds.every((id) => caseIds.includes(id))
+  );
+};
+
+const hasCurrentAttemptIdentity = (
+  attempt: ISemanticAttemptRecord,
+  caseDefinitions: ISemanticCaseDefinition[],
+  coverage: unknown,
+  repositoryRoot: string,
+): boolean => {
   const hasInputMismatch =
-    (attempt.artifactDigest !== createPortableSkillDigest(repositoryRoot) &&
-      !hasCompatibleIdentity) ||
-    attempt.caseSuiteDigest !== createSemanticCaseSuiteDigest(caseDefinitions) ||
-    attempt.coverageDigest !== createSemanticCoverageDigest(coverage, caseDefinitions) ||
-    attempt.evidence.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
-    (JSON.stringify(attempt.cli) !== JSON.stringify(createSemanticCliIdentity(repositoryRoot)) &&
-      !hasCompatibleIdentity) ||
-    attempt.totalCaseCount !== caseDefinitions.length ||
-    new Set(attemptCaseIds).size !== attemptCaseIds.length ||
-    attemptCaseIds.some((id) => !caseIds.includes(id));
-  const hasOfficialHosts =
-    isOfficialSemanticHost(attempt.hostContract) &&
+    !hasCurrentAttemptContract(attempt, caseDefinitions, coverage) ||
+    attempt.artifactDigest !== createPortableSkillDigest(repositoryRoot) ||
+    JSON.stringify(attempt.cli) !== JSON.stringify(createSemanticCliIdentity(repositoryRoot));
+  const hasCurrentHosts =
+    isCurrentSemanticHost(attempt.hostContract.actor, 'actor') &&
+    isCurrentSemanticHost(attempt.hostContract.judge, 'judge') &&
     attempt.cases.every(({ trials }) =>
       trials.every(
         ({ actorHost, judgeHost }) =>
-          isOfficialSemanticHost(actorHost) && isOfficialSemanticHost(judgeHost),
+          isCurrentSemanticHost(actorHost, 'actor') && isCurrentSemanticHost(judgeHost, 'judge'),
       ),
     );
-  if (!hasOfficialHosts) {
-    throw new Error('Latest semantic attempt does not use its schema-owned host configuration.');
-  }
-
-  return !hasInputMismatch;
+  return !hasInputMismatch && hasCurrentHosts;
 };
 
 const createCaseModel = (
@@ -185,6 +205,10 @@ const createAttemptModel = (
   repositoryRoot: string,
 ): ISemanticAttemptModel => {
   const attemptPath = `${SEMANTIC_ATTEMPTS_PATH}/attempts/${attempt.attemptId}`;
+  const identity = readSemanticAttemptIdentity(repositoryRoot, attempt.attemptId);
+  if (existsSync(join(repositoryRoot, '.git')) && identity === null) {
+    throw new Error(`Semantic attempt ${attempt.attemptId} lacks source-bound identity.`);
+  }
   const rawReplayCandidate = readJson(join(repositoryRoot, attemptPath, 'evidence.json'));
   if (
     !hasValidSemanticReplayExecutionEvidence(rawReplayCandidate, {
@@ -229,61 +253,48 @@ export const loadSemanticEvaluationWebsiteModel = (
   const attempts = loadedHistory.attempts.map((attempt) =>
     SemanticAttemptRecordSchema.parse(attempt),
   );
-  const latestPointer =
+  const recordedLatestPointer =
     loadedHistory.latest === null ? null : SemanticLatestResultSchema.parse(loadedHistory.latest);
-  const attemptModels = attempts.map((attempt) =>
+  const recordedLatest =
+    recordedLatestPointer === null
+      ? null
+      : (attempts.find(({ attemptId }) => attemptId === recordedLatestPointer.latestAttemptId) ??
+        null);
+  if (recordedLatestPointer !== null && recordedLatest === null) {
+    throw new Error('Semantic latest pointer does not resolve to an immutable attempt.');
+  }
+
+  const currentContractAttempts = attempts.filter((attempt) =>
+    hasCurrentAttemptContract(attempt, caseDefinitions, coverage),
+  );
+  const attemptModels = currentContractAttempts.map((attempt) =>
     createAttemptModel(attempt, caseDefinitions, repositoryRoot),
   );
   const latest =
-    latestPointer === null
-      ? null
-      : (attemptModels.find(({ result }) => result.attemptId === latestPointer.latestAttemptId) ??
-        null);
-  if (latestPointer !== null && latest === null) {
-    throw new Error('Semantic latest pointer does not resolve to an immutable attempt.');
-  }
-  const hasExactCurrentEvaluation =
-    latest !== null &&
-    hasCurrentAttemptIdentity(latest.result, caseDefinitions, coverage, repositoryRoot, null);
-  const compatibleAttemptId = hasExactCurrentEvaluation
-    ? null
-    : resolveCompatibleSemanticAttemptId(repositoryRoot);
-  const compatible =
-    compatibleAttemptId === null
-      ? null
-      : (attemptModels.find(({ result }) => result.attemptId === compatibleAttemptId) ?? null);
-  if (compatibleAttemptId !== null && compatible === null) {
-    throw new Error('Compatible semantic evidence does not resolve to an immutable attempt.');
-  }
-  const hasCompatibleCurrentEvaluation =
-    compatible !== null &&
-    hasCurrentAttemptIdentity(
-      compatible.result,
-      caseDefinitions,
-      coverage,
-      repositoryRoot,
-      compatibleAttemptId,
-    );
-  const currentAssurance = hasExactCurrentEvaluation
-    ? latest
-    : hasCompatibleCurrentEvaluation
-      ? compatible
-      : null;
-  const evidenceMatch = hasExactCurrentEvaluation
-    ? 'exact'
-    : hasCompatibleCurrentEvaluation
-      ? 'compatible'
-      : null;
-
-  const lastPassing =
-    latestPointer?.lastPassingAttemptId == null
+    recordedLatestPointer === null
       ? null
       : (attemptModels.find(
-          ({ result }) => result.attemptId === latestPointer.lastPassingAttemptId,
+          ({ result }) => result.attemptId === recordedLatestPointer.latestAttemptId,
         ) ?? null);
-  if (latestPointer?.lastPassingAttemptId != null && lastPassing === null) {
-    throw new Error('Semantic last-passing pointer does not resolve to an immutable attempt.');
-  }
+  const hasExactCurrentEvaluation =
+    latest !== null &&
+    hasCurrentAttemptIdentity(latest.result, caseDefinitions, coverage, repositoryRoot);
+  const currentAssurance = hasExactCurrentEvaluation ? latest : null;
+  const evidenceMatch = hasExactCurrentEvaluation ? 'exact' : null;
+
+  const lastPassing =
+    recordedLatestPointer?.lastPassingAttemptId == null
+      ? null
+      : (attemptModels.find(
+          ({ result }) => result.attemptId === recordedLatestPointer.lastPassingAttemptId,
+        ) ?? null);
+  const latestPointer =
+    latest === null || recordedLatestPointer === null
+      ? null
+      : {
+          ...recordedLatestPointer,
+          lastPassingAttemptId: lastPassing?.result.attemptId ?? null,
+        };
 
   const cases = caseDefinitions.map((caseDefinition) => {
     if (currentAssurance === null) return createCaseModel(caseDefinition, null, null);
@@ -322,7 +333,7 @@ export const loadSemanticEvaluationWebsiteModel = (
     evaluationModel: 'gpt-5.6-sol',
     failedCaseCount: currentAssurance?.result.failedCaseCount ?? 0,
     groups,
-    hasAttempt: currentAssurance !== null,
+    hasAttempt: attemptModels.length > 0,
     lastPassing,
     latest,
     latestPointer,

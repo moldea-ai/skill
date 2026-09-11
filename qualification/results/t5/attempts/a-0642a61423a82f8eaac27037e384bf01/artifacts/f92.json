@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor’s alignment explanation matches the repository, deterministic checks, and clean Git evidence. The unresolved instruction-loading limitation does not contradict the sole declared requirement.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "The actor identifies `support`, runtime `custom`, guidance `/moldea/runtimes/custom.md`, and runtime binding `/src/support-agent.ts` symbol `supportAgent`. `moldea/moldea.yaml` confirms all four facts; the guidance identifies the exported record and its identifier/channel constraint; `src/support-agent.ts` exports `supportAgent` with ID `support` and channel `email`. Deterministic evidence reports valid CLI validation/inspection, passing typecheck, and an unchanged repository; before/after hashes match. The approved Git status and scoped diff are empty."
+    }
+  ],
+  "failures": []
+}

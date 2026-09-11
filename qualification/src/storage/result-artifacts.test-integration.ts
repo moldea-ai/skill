@@ -8,7 +8,10 @@ import {
   QualificationAttemptResultSchema,
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
-import { QUALIFICATION_CONFIRMATION_POLICY } from '../constants/index.ts';
+import {
+  QUALIFICATION_CONFIRMATION_POLICY,
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+} from '../constants/index.ts';
 import {
   calculateSha256,
   ensureDirectory,
@@ -24,7 +27,7 @@ import {
 
 const createResult = (attemptId: string, artifactDigest: string): IQualificationAttemptResult =>
   QualificationAttemptResultSchema.parse({
-    protocolVersion: 6,
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     mode: 'official',
     attemptId,
@@ -37,7 +40,8 @@ const createResult = (attemptId: string, artifactDigest: string): IQualification
     summary: 'Fixture error.',
     provenance: {
       model: 'gpt-5.6-sol',
-      reasoningEffort: 'medium',
+      actorReasoningEffort: 'xhigh',
+      judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',
@@ -46,6 +50,7 @@ const createResult = (attemptId: string, artifactDigest: string): IQualification
       hostTimeoutMs: 120_000,
       modelEndpoint: null,
       sslCertificateFileSha256: null,
+      candidateFingerprint: null,
       packagesRepositoryCommit: 'a'.repeat(40),
       packagesRepositoryFingerprint: 'a'.repeat(64),
       packagesRepositoryDirty: false,

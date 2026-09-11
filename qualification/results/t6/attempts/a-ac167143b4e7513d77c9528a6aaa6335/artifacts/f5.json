@@ -1,0 +1,21 @@
+{
+  "outcome": "completed",
+  "summary": "Preserved every source file while narrowing Eve’s canonical relationships to statically supported forms. Added focused warning-level requirements for unsupported surfaces and a concise Eve runtime guide without asserting provider or model behavior.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/eve.md"
+  ],
+  "observations": [
+    "Canonical relationships now cover the nested support agent, lowercase instructions.md, output and tool schemas, static status tool, and TypeScript triage skill.",
+    "The runtime guide documents supported alternatives, Node.js >=24, and the runtime-evidence boundary for remote agents, extension contributions, connection/framework tools, filesystem collisions, reserved names, and advanced behavior.",
+    "Node v24.15.0 satisfies the prerequisite; TypeScript validation passed.",
+    "moldea validation completed successfully with zero diagnostics.",
+    "Final Git inspection showed only the two intended canonical changes."
+  ],
+  "unresolved": [
+    "The defineDynamic tool contribution requires focused runtime registration evidence or a supported static tool form.",
+    "The flat and packaged Markdown skills require runtime discovery evidence or supported TypeScript defineSkill forms.",
+    "The single-file subagent candidate requires runtime registration evidence or a supported statically discoverable agent form.",
+    "The case-varied, legacy-system, and composed instruction examples require runtime loading evidence or the supported lowercase instructions.md form."
+  ]
+}

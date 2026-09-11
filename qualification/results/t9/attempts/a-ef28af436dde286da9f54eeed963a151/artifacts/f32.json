@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the Functional API runtime binding by changing the support agent’s stale symbol from `removedSupportWorkflow` to the directly exported `supportWorkflow`. Validation reports `valid: true` with zero diagnostics, and TypeScript compilation passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the `supportWorkflow` entrypoint and its direct `answerQuestion` task unchanged.",
+    "Added neither manifest capabilities nor TypeScript schema bindings.",
+    "Final Git diff contains only the runtime-agent symbol correction."
+  ],
+  "unresolved": []
+}

@@ -1,0 +1,75 @@
+{
+  "caseId": "answer-information-before-adoption",
+  "title": "Answer information before adoption",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 103119,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 103119,
+      "deterministicBeforePath": "cases/answer-information-before-adoption/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/answer-information-before-adoption/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/answer-information-before-adoption/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/answer-information-before-adoption/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/answer-information-before-adoption/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/answer-information-before-adoption/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 43076,
+        "cachedInputTokens": 24960,
+        "outputTokens": 937
+      },
+      "judgeUsage": {
+        "inputTokens": 103494,
+        "cachedInputTokens": 91904,
+        "outputTokens": 1903
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T09:30:53.506Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T09:32:00.993Z",
+      "actorReuseSourceAttemptId": "20260911T092156960Z-custom-custom-fb757bcc",
+      "judgeReuseSourceAttemptId": "20260911T092156960Z-custom-custom-fb757bcc",
+      "requirementAssessments": [
+        {
+          "id": "answers-concisely",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor output is exactly two short sentences: it explains that moldea maintains project context without owning the work and identifies `/moldea/` as the adopted project's canonical-state directory, without claiming this repository is adopted."
+        },
+        {
+          "id": "avoids-repository-activation",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Runner-owned command evidence reports `moldeaCommandCount: 0`. Workspace assertions report identical before/after modes and SHA-256 hashes with `changedPaths: []`; approved Git status and targeted Git diff both returned no changes."
+        },
+        {
+          "id": "preserves-uninitialized-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": {
+    "sourceAttemptId": "20260911T092156960Z-custom-custom-fb757bcc",
+    "sourceCommit": "612d06b37a80a10ce50836c533837fed34c9ef59",
+    "sourceAttemptDigest": "ae489b67a9363048f401b3c6e50c56b7661acc4b5873037f3f3376f0259853ee"
+  }
+}

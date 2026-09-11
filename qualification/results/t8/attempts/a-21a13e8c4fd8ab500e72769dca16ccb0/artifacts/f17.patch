@@ -1,0 +1,94 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 68b7ac0..97bc312 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: langchain
++      guidance: /moldea/runtimes/langchain.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -13,9 +14,35 @@ agents:
+       - /src/instructions.ts
+       - /src/status-tools.ts
+       - /src/implementations.ts
++    unresolved:
++      middleware-instruction-provenance:
++        category: instruction-provenance
++        effect: warning
++        description: Non-empty middleware prevents static inspection from proving which instruction reaches the model.
++        resolution: Establish the effective instruction after middleware through supported adapter evidence or focused runtime coverage.
++        related:
++          - path: /src/support-agent.ts
++          - path: /src/instructions.ts
++      middleware-output-schema:
++        category: output-schema
++        effect: warning
++        description: Non-empty middleware prevents static inspection from proving the effective output contract.
++        resolution: Establish the effective response format after middleware through supported adapter evidence or focused runtime coverage.
++        related:
++          - path: /src/support-agent.ts
++          - path: /src/contracts.ts
++      middleware-tool-registration:
++        category: tool-registration
++        effect: warning
++        description: Non-empty middleware prevents static inspection from proving the final model-visible tool registry.
++        resolution: Establish the effective tool registry after middleware through explicit source, supported adapter evidence, or focused runtime coverage.
++        related:
++          - path: /src/support-agent.ts
++          - path: /src/status-tools.ts
+   step-support:
+     runtime:
+       id: langchain
++      guidance: /moldea/runtimes/langchain.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+@@ -28,9 +55,35 @@ agents:
+       - /src/contracts.ts
+       - /src/instructions.ts
+       - /src/status-tools.ts
++    unresolved:
++      state-context-input-relationship:
++        category: input-schema
++        effect: warning
++        description: Static inspection cannot reduce the separate state and context schemas to one proved agent input relationship.
++        resolution: Establish the runtime input contract and schema mapping through supported adapter evidence or focused runtime coverage.
++        related:
++          - path: /src/step-support-agent.ts
++          - path: /src/contracts.ts
++      multiple-response-formats:
++        category: output-schema
++        effect: warning
++        description: Multiple configured response formats do not prove one canonical output-schema relationship.
++        resolution: Establish the runtime selection semantics for every response format through supported adapter evidence or focused runtime coverage.
++        related:
++          - path: /src/step-support-agent.ts
++          - path: /src/contracts.ts
++      headless-client-tool:
++        category: tool-registration
++        effect: warning
++        description: The headless client tool declaration does not prove a repository-local implementation relationship.
++        resolution: Establish the client-supplied implementation and runtime registration through explicit source, supported adapter evidence, or focused runtime coverage.
++        related:
++          - path: /src/step-support-agent.ts
++          - path: /src/status-tools.ts
+   delegating-support:
+     runtime:
+       id: langchain
++      guidance: /moldea/runtimes/langchain.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/langchain.md b/moldea/runtimes/langchain.md
+new file mode 100644
+index 0000000..9466888
+--- /dev/null
++++ b/moldea/runtimes/langchain.md
+@@ -0,0 +1,3 @@
++# LangChain runtime
++
++`support` uses non-empty middleware, so static inspection does not bind its effective instruction, output contract, or tool registry. `step-support` configures multiple response formats, separate state and context schemas, and a headless client tool; only its runtime agent and instruction loader are bound. `delegating-support` exposes a normal function tool whose implementation invokes `stepSupportAgent`; that call is not a handoff, routing target, or subagent relationship. `workflowSupportAgent` is a direct LangGraph `StateGraph` and is not a LangChain agent target.

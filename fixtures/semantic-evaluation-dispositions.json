@@ -1,0 +1,352 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "ref": "v4.0.2",
+    "semanticCaseCount": 57
+  },
+  "activeSemanticCaseCount": 74,
+  "cases": [
+    {
+      "formerId": "unadopted-direct-context-handoff",
+      "activeId": "unadopted-direct-context-handoff",
+      "disposition": "rewritten-abstention",
+      "rationale": "The former case depended on implicit activation without an explicit moldea request or a host-known relevant path, so it now proves silent abstention."
+    },
+    {
+      "formerId": "unadopted-relevance-no-initialization",
+      "activeId": "unadopted-relevance-no-initialization",
+      "disposition": "rewritten-abstention",
+      "rationale": "The former case depended on implicit activation without an explicit moldea request or a host-known relevant path, so it now proves silent abstention."
+    },
+    {
+      "formerId": "initialize-insufficient-context",
+      "activeId": "initialize-insufficient-context",
+      "disposition": "restored-bounded-blocker",
+      "rationale": "The capability remains current, but material ambiguity or unsafe tooling may stop it before a successful CLI result, so the relevant path has a bounded blocker budget."
+    },
+    {
+      "formerId": "initialize-partial-context",
+      "activeId": "initialize-partial-context",
+      "disposition": "restored-bounded-blocker",
+      "rationale": "The capability remains current, but material ambiguity or unsafe tooling may stop it before a successful CLI result, so the relevant path has a bounded blocker budget."
+    },
+    {
+      "formerId": "initialize-sufficient-context",
+      "activeId": "initialize-sufficient-context",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "adopted-direct-context-handoff",
+      "activeId": "adopted-direct-context-handoff",
+      "disposition": "rewritten-abstention",
+      "rationale": "The former case depended on implicit activation without an explicit moldea request or a host-known relevant path, so it now proves silent abstention."
+    },
+    {
+      "formerId": "adopted-explicit-context-correction",
+      "activeId": "adopted-explicit-context-correction",
+      "disposition": "rewritten-abstention",
+      "rationale": "The former case depended on implicit activation without an explicit moldea request or a host-known relevant path, so it now proves silent abstention."
+    },
+    {
+      "formerId": "adopted-ambiguous-context-handoff",
+      "activeId": "adopted-ambiguous-context-handoff",
+      "disposition": "rewritten-abstention",
+      "rationale": "The former case depended on implicit activation without an explicit moldea request or a host-known relevant path, so it now proves silent abstention."
+    },
+    {
+      "formerId": "adopted-relevance-no-change",
+      "activeId": "adopted-relevance-no-change",
+      "disposition": "restored-relationship",
+      "rationale": "The scenario names a path with a declared exact binding or affectedBy relationship and therefore retains relationship-gated coverage."
+    },
+    {
+      "formerId": "adopted-relevance-changed-behavior",
+      "activeId": "adopted-relevance-changed-behavior",
+      "disposition": "restored-relationship",
+      "rationale": "The scenario names a path with a declared exact binding or affectedBy relationship and therefore retains relationship-gated coverage."
+    },
+    {
+      "formerId": "maintain-context-without-duplication",
+      "activeId": "maintain-context-without-duplication",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "compress-project-context",
+      "activeId": "compress-project-context",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "compress-conflicting-project-context",
+      "activeId": "compress-conflicting-project-context",
+      "disposition": "restored-bounded-blocker",
+      "rationale": "The capability remains current, but material ambiguity or unsafe tooling may stop it before a successful CLI result, so the relevant path has a bounded blocker budget."
+    },
+    {
+      "formerId": "agent-adoption-inline-runtime-instruction",
+      "activeId": "agent-adoption-inline-runtime-instruction",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "evaluate-dirty-working-tree",
+      "activeId": "evaluate-dirty-working-tree",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "evaluate-brief-project-request",
+      "activeId": "evaluate-brief-project-request",
+      "disposition": "rewritten-abstention",
+      "rationale": "The former case depended on implicit activation without an explicit moldea request or a host-known relevant path, so it now proves silent abstention."
+    },
+    {
+      "formerId": "evaluate-clean-working-tree",
+      "activeId": "evaluate-clean-working-tree",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "evaluate-unborn-repository",
+      "activeId": "evaluate-unborn-repository",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "reconcile-material-ambiguity",
+      "activeId": "reconcile-material-ambiguity",
+      "disposition": "restored-bounded-blocker",
+      "rationale": "The capability remains current, but material ambiguity or unsafe tooling may stop it before a successful CLI result, so the relevant path has a bounded blocker budget."
+    },
+    {
+      "formerId": "dedicated-repository-single-side-change",
+      "activeId": "dedicated-repository-single-side-change",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "unresolved-related-file-changed",
+      "activeId": "unresolved-related-file-changed",
+      "disposition": "restored-relationship",
+      "rationale": "The scenario names a path with a declared exact binding or affectedBy relationship and therefore retains relationship-gated coverage."
+    },
+    {
+      "formerId": "canonical-instruction-changed",
+      "activeId": "canonical-instruction-changed",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "provider-hosted-capability",
+      "activeId": "provider-hosted-capability",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "skill-boundary-surface-selection",
+      "activeId": "skill-boundary-surface-selection",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "skill-create-progressive-disclosure",
+      "activeId": "skill-create-progressive-disclosure",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "skill-maintain-linked-resources",
+      "activeId": "skill-maintain-linked-resources",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "skill-reuse-existing-cohesive",
+      "activeId": "skill-reuse-existing-cohesive",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "skill-maintain-host-invocation-policy",
+      "activeId": "skill-maintain-host-invocation-policy",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "skill-reconcile-distributed-copy",
+      "activeId": "skill-reconcile-distributed-copy",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "skill-evaluate-read-only",
+      "activeId": "skill-evaluate-read-only",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "skill-evaluate-script-authority",
+      "activeId": "skill-evaluate-script-authority",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "skill-provider-registration-boundary",
+      "activeId": "skill-provider-registration-boundary",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "pnpm-pnp-local-cli-provider",
+      "activeId": "pnpm-pnp-local-cli-provider",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "yarn-conflicting-cli-provider",
+      "activeId": "yarn-conflicting-cli-provider",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "host-plan-command-precedence",
+      "activeId": "host-plan-command-precedence",
+      "disposition": "retained-current",
+      "rationale": "The clean-slate case already covers this former identifier with host workflow precedence and zero moldea work."
+    },
+    {
+      "formerId": "plan-uninitialized-zero-agent",
+      "activeId": "plan-uninitialized-zero-agent",
+      "disposition": "rewritten-abstention",
+      "rationale": "The former case depended on implicit activation without an explicit moldea request or a host-known relevant path, so it now proves silent abstention."
+    },
+    {
+      "formerId": "plan-existing-project-one-agent",
+      "activeId": "plan-existing-project-one-agent",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "plan-justified-multi-agent",
+      "activeId": "plan-justified-multi-agent",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "plan-material-ambiguity",
+      "activeId": "plan-material-ambiguity",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "plan-runtime-inventory-insufficient-evidence",
+      "activeId": "plan-runtime-inventory-insufficient-evidence",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "available-runtime-insufficient-behavioral-evidence",
+      "activeId": "available-runtime-insufficient-behavioral-evidence",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "runtime-publication-unavailable",
+      "activeId": "runtime-publication-unavailable",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "runtime-publication-malformed",
+      "activeId": "runtime-publication-malformed",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "installed-adapter-without-published-target",
+      "activeId": "installed-adapter-without-published-target",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "published-supported-target-not-installed",
+      "activeId": "published-supported-target-not-installed",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "experimental-target-not-production-ready",
+      "activeId": "experimental-target-not-production-ready",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "dedicated-repository-runtime-selection",
+      "activeId": "dedicated-repository-runtime-selection",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "routing-description-dynamic-wiring",
+      "activeId": "routing-description-dynamic-wiring",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "routing-description-fallback",
+      "activeId": "routing-description-fallback",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "routing-description-property-name",
+      "activeId": "routing-description-property-name",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "routing-description-reconciliation",
+      "activeId": "routing-description-reconciliation",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "routing-description-separate-properties",
+      "activeId": "routing-description-separate-properties",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "routing-description-shared-property",
+      "activeId": "routing-description-shared-property",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "unavailable-runtime-selection",
+      "activeId": "unavailable-runtime-selection",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "read-only-git-helper-suppression",
+      "activeId": "read-only-git-helper-suppression",
+      "disposition": "restored-explicit",
+      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+    },
+    {
+      "formerId": "pnpm-hook-install-blocked",
+      "activeId": "pnpm-hook-install-blocked",
+      "disposition": "restored-bounded-blocker",
+      "rationale": "The capability remains current, but material ambiguity or unsafe tooling may stop it before a successful CLI result, so the relevant path has a bounded blocker budget."
+    },
+    {
+      "formerId": "yarn-plugin-install-blocked",
+      "activeId": "yarn-plugin-install-blocked",
+      "disposition": "restored-bounded-blocker",
+      "rationale": "The capability remains current, but material ambiguity or unsafe tooling may stop it before a successful CLI result, so the relevant path has a bounded blocker budget."
+    }
+  ]
+}

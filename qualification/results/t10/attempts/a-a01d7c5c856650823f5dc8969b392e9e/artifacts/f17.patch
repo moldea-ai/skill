@@ -1,0 +1,58 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index d2d73ee..cc1691c 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,8 +1,20 @@
+ version: 1
++unresolved:
++  runtime-composition:
++    category: runtime-composition
++    effect: warning
++    description: Static inspection does not establish the effective reducers, node-metadata use, subgraphs, checkpointers, stores, caches, runtime context, compiled-description use, prebuilt agents, or supervisor composition.
++    resolution: Establish the effective composition through explicit deployment wiring or focused integration tests.
++    related:
++      - path: /src/support-graph.ts
++      - path: /src/dynamic-support-graph.ts
++      - path: /src/runtime-boundaries.ts
++      - path: /src/prebuilt-boundary.ts
+ agents:
+   support:
+     runtime:
+       id: langgraph
++      guidance: /moldea/runtimes/langgraph.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-graph.ts
+@@ -18,6 +30,7 @@ agents:
+   dynamic-support:
+     runtime:
+       id: langgraph
++      guidance: /moldea/runtimes/langgraph.md
+     bindings:
+       runtimeAgent:
+         path: /src/dynamic-support-graph.ts
+@@ -26,3 +39,12 @@ agents:
+       - /src/dynamic-support-graph.ts
+       - /src/runtime-boundaries.ts
+       - /src/prebuilt-boundary.ts
++    unresolved:
++      dynamic-routing:
++        category: routing
++        effect: blocking
++        description: The conditional route and Command and Send destinations are selected from runtime values, so static inspection cannot establish the allowed destinations or complete graph topology.
++        resolution: Provide closed runtime routing configuration or focused integration tests that establish the accepted destination set and resulting registered graph behavior.
++        related:
++          - path: /src/dynamic-support-graph.ts
++          - path: /src/runtime-boundaries.ts
+
+diff --git a/moldea/runtimes/langgraph.md b/moldea/runtimes/langgraph.md
+new file mode 100644
+index 0000000..2b6a35d
+--- /dev/null
++++ b/moldea/runtimes/langgraph.md
+@@ -0,0 +1,5 @@
++# LangGraph static boundary
++
++Static inspection establishes `supportGraph`, its direct graph construction, and its exported input and output schemas; `lookupOrder` remains node-local. For `dynamicSupportGraph`, the state schema comes from a factory and destinations come from runtime state, so only the runtime-agent binding is canonical. Runtime-selected `Command` and `Send` destinations do not establish route targets, and an unregistered `ToolNode` does not establish a tool.
++
++Deployment wiring or focused integration tests must establish the allowed dynamic destinations and effective reducers, node-metadata use, subgraphs, checkpointers, stores, caches, runtime context, compiled-description use, prebuilt agents, and supervisor composition. Until then, dynamic routing and complete runtime composition remain unresolved.

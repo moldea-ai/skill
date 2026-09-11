@@ -1,0 +1,81 @@
+{
+  "caseId": "create-grounded-agent",
+  "title": "Create a grounded agent",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 281255,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 281255,
+      "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 269978,
+        "cachedInputTokens": 215424,
+        "outputTokens": 7325
+      },
+      "judgeUsage": {
+        "inputTokens": 234087,
+        "cachedInputTokens": 205696,
+        "outputTokens": 3527
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T04:43:22.483Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T04:45:04.712Z",
+      "actorReuseSourceAttemptId": "20260911T044013787Z-custom-custom-d7336457",
+      "judgeReuseSourceAttemptId": "20260911T044013787Z-custom-custom-d7336457",
+      "requirementAssessments": [
+        {
+          "id": "grounds-behavior",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/agents/order-triage/description.md` says the agent classifies orders for human review without refund-approval authority. Its canonical instruction repeats both constraints and forbids implying approval. This matches `src/order-triage-agent.ts`, where `action` is `classify-for-human-review` and `canApproveRefunds` is `false`. Workspace hashes match the supplied post-actor assertions."
+        },
+        {
+          "id": "binds-implementation",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/moldea.yaml` declares runtime `custom`, binds `runtimeAgent.path` to `/src/order-triage-agent.ts` with symbol `createOrderTriageAgent`, and lists that exact source under `affectedBy`. The export exists in the unchanged source, and the deterministic post-actor summary reports valid inspection, validation, typechecking, and repository equivalence."
+        },
+        {
+          "id": "defines-runtime-guidance",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest references `/moldea/runtimes/custom.md`, and targeted inventory found it to be the sole Markdown file under `moldea/runtimes`. The guidance accurately states that the runtime-owned loader receives `/moldea/agents/order-triage/instruction.md` and returns its exact content to `createOrderTriageAgent`, matching the factory signature and constant in source. It explicitly declines to assume any caller, provider adapter, tool registry, or loader implementation."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": {
+    "sourceAttemptId": "20260911T044013787Z-custom-custom-d7336457",
+    "sourceCommit": "5bfa7a9ade6b4fc906e1edab2368f4e8b85d84f6",
+    "sourceAttemptDigest": "1def1e41750bc753bb09a6e62b5f47f026bd369ccd30d05f71ab1340538718fd"
+  }
+}

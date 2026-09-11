@@ -19,35 +19,50 @@ import {
   QualificationRequirementAssessmentSchema,
   QualificationProbesSchema,
   QualificationProfileSchema,
+  QualificationResourceCalibrationSchema,
   QualificationSourceStateResultSchema,
   QualificationTrialResultSchema,
   WorkspaceAssertionResultSchema,
   type IActorOutput,
   type IDeterministicVerificationArtifact,
   type IQualificationAttemptResult,
+  type IQualificationProvenance,
   type IJudgeOutput,
   type IQualificationCaseResult,
   type IQualificationCaseScenario,
   type IQualificationModelStageEvidence,
+  type IQualificationResourceProfile,
   type IQualificationStageCheckpoint,
   type IQualificationTrialResult,
   type IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
 import { QualificationCoverageResultSchema } from '../coverage/index.ts';
+import {
+  calculateQualificationCaseModelInputDigestsAtCommit,
+  calculateQualificationModelStageEvaluatorDigestAtCommit,
+} from '../evidence-identity/index.ts';
 import { readJsonFile, type IBoundarySchema } from '../filesystem/index.ts';
 import { matchesWorkspacePathContract } from '../project-fixture/index.ts';
 import {
   createQualificationStageIds,
   createQualificationTrialStageIds,
 } from '../execution/stages.ts';
+import type { IQualificationResourceProfiles } from '../execution/types.ts';
+import { inspectQualificationResourceUsage } from '../execution/validations.ts';
 import {
+  createQualificationAttemptKey,
   readQualificationAttemptStorage,
   resolveQualificationArtifactPath,
   resolveQualificationProfilesRootForResults,
+  resolveQualificationResultTargetDirectory,
   resolveQualificationTargetKey,
   verifyQualificationAttemptStorage,
 } from '../storage/index.ts';
-import { readQualificationContractYaml } from './contract-reader.ts';
+import {
+  type IQualificationCommittedSource,
+  readCommittedQualificationSource,
+} from '../reuse/index.ts';
+import { readQualificationContractJson, readQualificationContractYaml } from './contract-reader.ts';
 
 const JsonObjectSchema = z.record(z.string(), z.unknown());
 
@@ -107,12 +122,180 @@ const readOptionalArtifact = async <TResult>(
   return (await hasPath(artifactPath)) ? readJsonFile(artifactPath, schema) : null;
 };
 
+type IValidatedQualificationReuseSource = {
+  currentCaseDigests: Record<string, string>;
+  source: IQualificationCommittedSource;
+  sourceCaseDigests: Record<string, string>;
+};
+
+const selectQualificationReuseIdentity = (input: {
+  provenance: IQualificationProvenance;
+  selection: IQualificationAttemptResult['selection'];
+}): unknown => ({
+  selection: input.selection,
+  provenance: {
+    allowedEgressHosts: input.provenance.allowedEgressHosts,
+    baselineAttemptId: input.provenance.baselineAttemptId,
+    candidateFingerprint: input.provenance.candidateFingerprint,
+    codexVersion: input.provenance.codexVersion,
+    gitVersion: input.provenance.gitVersion,
+    hostTimeoutMs: input.provenance.hostTimeoutMs,
+    model: input.provenance.model,
+    modelEndpoint: input.provenance.modelEndpoint,
+    nodeVersion: input.provenance.nodeVersion,
+    packages: input.provenance.packages,
+    packagesRepositoryFingerprint: input.provenance.packagesRepositoryFingerprint,
+    pnpmVersion: input.provenance.pnpmVersion,
+    actorReasoningEffort: input.provenance.actorReasoningEffort,
+    judgeReasoningEffort: input.provenance.judgeReasoningEffort,
+    skillRepositoryFingerprint: input.provenance.skillRepositoryFingerprint,
+    sslCertificateFileSha256: input.provenance.sslCertificateFileSha256,
+    targetDigest: input.provenance.targetDigest,
+  },
+});
+
+/** Loads and independently validates one direct failed attempt used as a case source. */
+const loadQualificationReuseSource = async (options: {
+  currentResult: IQualificationAttemptResult;
+  resultsRoot: string;
+  sourceAttemptId: string;
+  sourceAttemptDigest: string;
+  sourceCommit: string;
+  validatedSources: Map<string, IValidatedQualificationReuseSource>;
+}): Promise<IValidatedQualificationReuseSource> => {
+  const sourceKey = `${options.sourceCommit}:${options.sourceAttemptId}`;
+  const validatedSource = options.validatedSources.get(sourceKey);
+
+  if (validatedSource !== undefined) {
+    return validatedSource;
+  }
+
+  const targetRoot = await resolveQualificationResultTargetDirectory(
+    options.resultsRoot,
+    options.currentResult.selection,
+  );
+  const qualificationRoot = path.resolve(options.resultsRoot, '..');
+  const repositoryRoot = path.resolve(qualificationRoot, '..');
+  const attemptRelativeDirectory = path
+    .relative(
+      repositoryRoot,
+      path.join(targetRoot, 'attempts', createQualificationAttemptKey(options.sourceAttemptId)),
+    )
+    .split(path.sep)
+    .join(path.posix.sep);
+  const source = await readCommittedQualificationSource({
+    attemptRelativeDirectory,
+    attemptSha256: options.sourceAttemptDigest,
+    evidenceCommit: options.sourceCommit,
+    repositoryRoot,
+  });
+  const currentCaseIds = new Set(options.currentResult.cases.map(({ caseId }) => caseId));
+  const sharedCaseIds = source.cases
+    .map(({ caseId }) => caseId)
+    .filter((caseId) => currentCaseIds.has(caseId));
+  const [
+    currentEvaluatorStageDigest,
+    sourceEvaluatorStageDigest,
+    currentCaseDigests,
+    sourceCaseDigests,
+  ] = await Promise.all([
+    calculateQualificationModelStageEvaluatorDigestAtCommit(
+      options.currentResult.provenance.qualificationRepositoryCommit,
+      repositoryRoot,
+    ),
+    calculateQualificationModelStageEvaluatorDigestAtCommit(
+      source.provenance.qualificationRepositoryCommit,
+      repositoryRoot,
+    ),
+    calculateQualificationCaseModelInputDigestsAtCommit({
+      caseIds: sharedCaseIds,
+      commit: options.currentResult.provenance.qualificationRepositoryCommit,
+      repositoryRoot,
+      selection: options.currentResult.selection,
+    }),
+    calculateQualificationCaseModelInputDigestsAtCommit({
+      caseIds: sharedCaseIds,
+      commit: source.provenance.qualificationRepositoryCommit,
+      repositoryRoot,
+      selection: source.selection,
+    }),
+  ]);
+
+  if (
+    source.attemptId !== options.sourceAttemptId ||
+    source.mode !== 'official' ||
+    source.status !== 'failed' ||
+    JSON.stringify(selectQualificationReuseIdentity(source)) !==
+      JSON.stringify(selectQualificationReuseIdentity(options.currentResult)) ||
+    currentEvaluatorStageDigest !== sourceEvaluatorStageDigest ||
+    source.cases.some(
+      (caseResult) =>
+        caseResult.reuse !== null ||
+        caseResult.trials.some(
+          (trial) =>
+            trial.actorReuseSourceAttemptId !== null || trial.judgeReuseSourceAttemptId !== null,
+        ),
+    ) ||
+    source.stages.some(({ reuseSourceAttemptId }) => reuseSourceAttemptId !== null)
+  ) {
+    throw new Error(`Qualification reuse source ${options.sourceAttemptId} is not exact.`);
+  }
+
+  const validated = { currentCaseDigests, source, sourceCaseDigests };
+  options.validatedSources.set(sourceKey, validated);
+  return validated;
+};
+
+/** Validates one reused case against its exact direct source case and attempt digest. */
+const validateQualificationCaseReuse = async (options: {
+  caseResult: IQualificationCaseResult;
+  currentResult: IQualificationAttemptResult;
+  resultsRoot: string;
+  validatedSources: Map<string, IValidatedQualificationReuseSource>;
+}): Promise<void> => {
+  if (options.caseResult.reuse === null) {
+    return;
+  }
+
+  const source = await loadQualificationReuseSource({
+    currentResult: options.currentResult,
+    resultsRoot: options.resultsRoot,
+    sourceAttemptId: options.caseResult.reuse.sourceAttemptId,
+    sourceAttemptDigest: options.caseResult.reuse.sourceAttemptDigest,
+    sourceCommit: options.caseResult.reuse.sourceCommit,
+    validatedSources: options.validatedSources,
+  });
+  const sourceCase = source.source.cases.find(({ caseId }) => caseId === options.caseResult.caseId);
+  const normalizedCurrentCase = {
+    ...options.caseResult,
+    reuse: null,
+    trials: options.caseResult.trials.map((trial) => ({
+      ...trial,
+      actorReuseSourceAttemptId: null,
+      judgeReuseSourceAttemptId: null,
+    })),
+  };
+
+  if (
+    source.currentCaseDigests[options.caseResult.caseId] !==
+      source.sourceCaseDigests[options.caseResult.caseId] ||
+    source.source.storage.attemptDigest !== options.caseResult.reuse.sourceAttemptDigest ||
+    sourceCase === undefined ||
+    (sourceCase.status !== 'passed' && sourceCase.status !== 'recovered') ||
+    JSON.stringify(normalizedCurrentCase) !== JSON.stringify(sourceCase)
+  ) {
+    throw new Error(
+      `Qualification case ${options.caseResult.caseId} contradicts its exact reuse source.`,
+    );
+  }
+};
+
 /** Validates every JSON and JSON Lines artifact against the current protocol schema. */
 const validateArtifactSchemas = async (
   attemptDirectory: string,
   result: IQualificationAttemptResult,
 ): Promise<void> => {
-  const trialRootPattern = /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\//u;
+  const trialRootPattern = /^cases\/[^/]+\/trials\/(?:initial|confirmation-[123])\//u;
   const storage = await readQualificationAttemptStorage(attemptDirectory);
 
   for (const relativePath of Object.keys(result.artifactDigests)) {
@@ -145,31 +328,31 @@ const validateArtifactSchemas = async (
     } else if (relativePath === 'error.json' || relativePath === 'interruption.json') {
       await readJsonFile(artifactPath, QualificationExecutionErrorSchema);
     } else if (
-      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/actor-output\.json$/u.test(
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[123])\/actor-output\.json$/u.test(
         relativePath,
       )
     ) {
       await readJsonFile(artifactPath, ActorOutputSchema);
     } else if (
-      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/judge-output\.json$/u.test(
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[123])\/judge-output\.json$/u.test(
         relativePath,
       )
     ) {
       await readJsonFile(artifactPath, JudgeOutputSchema);
     } else if (
-      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/deterministic-(?:after|before)\.json$/u.test(
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[123])\/deterministic-(?:after|before)\.json$/u.test(
         relativePath,
       )
     ) {
       await readJsonFile(artifactPath, DeterministicVerificationArtifactSchema);
     } else if (
-      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/workspace-assertions\.json$/u.test(
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[123])\/workspace-assertions\.json$/u.test(
         relativePath,
       )
     ) {
       await readJsonFile(artifactPath, WorkspaceAssertionResultSchema);
     } else if (
-      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/judge-skipped\.json$/u.test(
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[123])\/judge-skipped\.json$/u.test(
         relativePath,
       )
     ) {
@@ -177,19 +360,19 @@ const validateArtifactSchemas = async (
     } else if (/^cases\/[^/]+\/case-result\.json$/u.test(relativePath)) {
       await readJsonFile(artifactPath, QualificationCaseResultSchema);
     } else if (
-      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/trial-result\.json$/u.test(
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[123])\/trial-result\.json$/u.test(
         relativePath,
       )
     ) {
       await readJsonFile(artifactPath, QualificationTrialResultSchema);
     } else if (
-      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/(?:actor|judge)-evidence\.json$/u.test(
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[123])\/(?:actor|judge)-evidence\.json$/u.test(
         relativePath,
       )
     ) {
       await readJsonFile(artifactPath, QualificationModelStageEvidenceSchema);
     } else if (
-      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/(?:actor|judge)-output\.schema\.json$/u.test(
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[123])\/(?:actor|judge)-output\.schema\.json$/u.test(
         relativePath,
       )
     ) {
@@ -445,10 +628,12 @@ const assertUnusedCurrentStage = (
     stage === undefined ||
     stage.status !== expectedStatus ||
     !hasExpectedTiming ||
-    stage.cacheKey !== null ||
-    stage.cacheSourceAttemptId !== null ||
+    stage.stageIdentity !== null ||
+    stage.reuseSourceAttemptId !== null ||
     stage.error !== null ||
-    stage.operationalRetries.length > 0
+    stage.hasUsedOperationalStopResume ||
+    stage.operationalRetries.length > 0 ||
+    stage.operationalStops.length > 0
   ) {
     throw new Error(
       `Qualification stage ${stage?.id ?? '<missing>'} has contradictory ${expectedStatus} state.`,
@@ -470,23 +655,26 @@ const assertCurrentModelEvidence = (options: {
       : options.trial.judgeEvidenceCreatedAt;
   const expectedUsage =
     options.role === 'actor' ? options.trial.actorUsage : options.trial.judgeUsage;
-  const expectedCacheSourceAttemptId =
+  const expectedReuseSourceAttemptId =
     options.role === 'actor'
-      ? options.trial.actorCacheSourceAttemptId
-      : options.trial.judgeCacheSourceAttemptId;
-  const isCached = expectedCacheSourceAttemptId !== null;
+      ? options.trial.actorReuseSourceAttemptId
+      : options.trial.judgeReuseSourceAttemptId;
+  const isReused = expectedReuseSourceAttemptId !== null;
 
   if (
     options.evidence.role !== options.role ||
     options.evidence.trialId !== options.trial.trialId ||
     options.evidence.createdAt !== expectedCreatedAt ||
     JSON.stringify(options.evidence.usage) !== JSON.stringify(expectedUsage) ||
-    options.evidence.cacheSourceAttemptId !== expectedCacheSourceAttemptId ||
-    options.evidence.sourceAttemptId !== (expectedCacheSourceAttemptId ?? options.attemptId) ||
-    options.stage.cacheKey !== options.evidence.cacheKey ||
-    options.stage.cacheSourceAttemptId !== expectedCacheSourceAttemptId ||
-    options.stage.status !== (isCached ? 'cached' : 'passed') ||
-    (options.trial.kind === 'confirmation' && isCached)
+    options.evidence.reuseSourceAttemptId !== expectedReuseSourceAttemptId ||
+    options.evidence.sourceAttemptId !== (expectedReuseSourceAttemptId ?? options.attemptId) ||
+    options.stage.stageIdentity !== options.evidence.stageIdentity ||
+    options.stage.reuseSourceAttemptId !== expectedReuseSourceAttemptId ||
+    options.stage.status !== (isReused ? 'reused' : 'passed') ||
+    (isReused &&
+      (options.stage.hasUsedOperationalStopResume ||
+        options.stage.operationalRetries.length > 0 ||
+        options.stage.operationalStops.length > 0))
   ) {
     throw new Error(
       `Case ${options.caseId} trial ${options.trial.trialId} has contradictory ${options.role} provenance.`,
@@ -498,8 +686,10 @@ const deriveTrialFailures = (options: {
   actor: IActorOutput;
   actorEvidence: IQualificationModelStageEvidence;
   deterministicAfter: IDeterministicVerificationArtifact;
+  isDryRun: boolean;
   judge: IJudgeOutput | null;
   judgeEvidence: IQualificationModelStageEvidence | null;
+  resourceProfile: IQualificationResourceProfile;
   scenario: IQualificationCaseScenario;
   requirementAssessments: IQualificationTrialResult['requirementAssessments'];
   workspaceAssertions: IWorkspaceAssertionResult;
@@ -520,6 +710,22 @@ const deriveTrialFailures = (options: {
     : [
         'Judge command policy observed prohibited credential, network, or sensitive evaluator access.',
       ]),
+  ...inspectQualificationResourceUsage({
+    allowMissingUsage: options.isDryRun,
+    evidence: options.actorEvidence,
+    profile: options.resourceProfile,
+    role: 'Actor',
+    scenario: options.scenario,
+  }).failures,
+  ...(options.judgeEvidence === null
+    ? []
+    : inspectQualificationResourceUsage({
+        allowMissingUsage: options.isDryRun,
+        evidence: options.judgeEvidence,
+        profile: options.resourceProfile,
+        role: 'Judge',
+        scenario: options.scenario,
+      }).failures),
   ...options.deterministicAfter.summary.failures,
   ...options.workspaceAssertions.failures,
   ...options.requirementAssessments
@@ -527,6 +733,60 @@ const deriveTrialFailures = (options: {
     .map(({ evidence, id }) => `Requirement ${id} failed: ${evidence}`),
   ...(options.judge?.verdict === 'fail' ? options.judge.failures : []),
 ];
+
+const deriveTrialDimensions = (options: {
+  actor: IActorOutput;
+  actorEvidence: IQualificationModelStageEvidence;
+  deterministicAfter: IDeterministicVerificationArtifact;
+  isDryRun: boolean;
+  judge: IJudgeOutput | null;
+  judgeEvidence: IQualificationModelStageEvidence | null;
+  resourceProfile: IQualificationResourceProfile;
+  requirementAssessments: IQualificationTrialResult['requirementAssessments'];
+  scenario: IQualificationCaseScenario;
+  workspaceAssertions: IWorkspaceAssertionResult;
+}): IQualificationTrialResult['dimensions'] => {
+  const actorOutcomePassed = options.actor.outcome === options.scenario.expectedActorOutcome;
+  const commandPolicyPassed =
+    hasPassingCodexEvaluationCommandPolicy(options.actorEvidence.commandPolicy) &&
+    (options.judgeEvidence === null ||
+      hasPassingCodexEvaluationCommandPolicy(options.judgeEvidence.commandPolicy));
+  const resourcePassed =
+    inspectQualificationResourceUsage({
+      allowMissingUsage: options.isDryRun,
+      evidence: options.actorEvidence,
+      profile: options.resourceProfile,
+      role: 'Actor',
+      scenario: options.scenario,
+    }).failures.length === 0 &&
+    (options.judgeEvidence === null ||
+      inspectQualificationResourceUsage({
+        allowMissingUsage: options.isDryRun,
+        evidence: options.judgeEvidence,
+        profile: options.resourceProfile,
+        role: 'Judge',
+        scenario: options.scenario,
+      }).failures.length === 0);
+  const hasJudgeRequirements = options.scenario.judgeRequirements.some(
+    (requirement) => requirement.evaluation.kind === 'judge',
+  );
+
+  return {
+    semantic:
+      options.isDryRun ||
+      (!hasJudgeRequirements && actorOutcomePassed) ||
+      (actorOutcomePassed &&
+        options.judge?.verdict === 'pass' &&
+        !options.requirementAssessments.some(
+          ({ evaluator, verdict }) => evaluator === 'judge' && verdict === 'fail',
+        )),
+    resource: resourcePassed,
+    commandPolicy: commandPolicyPassed,
+    repositoryControl: options.deterministicAfter.summary.passed,
+    mountIntegrity: options.workspaceAssertions.passed,
+    operational: true,
+  };
+};
 
 const deriveRequirementAssessments = (options: {
   actor: IActorOutput;
@@ -590,6 +850,7 @@ const assertCurrentTrialEvidence = async (options: {
   attemptDirectory: string;
   caseId: string;
   result: IQualificationAttemptResult;
+  resourceProfile: IQualificationResourceProfile;
   scenario: IQualificationCaseScenario;
   stages: ReadonlyMap<string, IQualificationStageCheckpoint>;
   trial: IQualificationTrialResult;
@@ -696,17 +957,25 @@ const assertCurrentTrialEvidence = async (options: {
   const hasFailedActorCommandPolicy = !hasPassingCodexEvaluationCommandPolicy(
     actorEvidence.commandPolicy,
   );
-  const shouldSkipJudge =
+  const actorResourceAssessment = inspectQualificationResourceUsage({
+    allowMissingUsage: options.result.mode === 'dry-run',
+    evidence: actorEvidence,
+    profile: options.resourceProfile,
+    role: 'Actor',
+    scenario: options.scenario,
+  });
+  const mustSkipJudge =
     !deterministicAfter.summary.passed ||
     !assertions.passed ||
     hasFailedRunnerRequirement ||
     hasFailedActorCommandPolicy ||
+    actorResourceAssessment.hasJudgeBlocker ||
     !hasJudgeRequirements;
   let judge: IJudgeOutput | null = null;
   let judgeEvidence: IQualificationModelStageEvidence | null = null;
 
   if (options.trial.judgeStatus === 'completed') {
-    if (shouldSkipJudge) {
+    if (mustSkipJudge) {
       throw new Error(
         `Case ${options.caseId} trial ${options.trial.trialId} ran a judge after runner-owned failure.`,
       );
@@ -747,7 +1016,7 @@ const assertCurrentTrialEvidence = async (options: {
     );
 
     if (
-      !shouldSkipJudge ||
+      !mustSkipJudge ||
       judgeSkipped.kind !==
         (!hasJudgeRequirements ? 'no-judge-requirements' : 'deterministic-failure') ||
       judgeSkipped.deterministicAfterPassed !== deterministicAfter.summary.passed ||
@@ -771,17 +1040,43 @@ const assertCurrentTrialEvidence = async (options: {
     actor,
     actorEvidence,
     deterministicAfter,
+    isDryRun: options.result.mode === 'dry-run',
     judge,
     judgeEvidence,
+    resourceProfile: options.resourceProfile,
     requirementAssessments: derivedRequirementAssessments,
     scenario: options.scenario,
     workspaceAssertions: assertions,
   });
+  const derivedDimensions = deriveTrialDimensions({
+    actor,
+    actorEvidence,
+    deterministicAfter,
+    isDryRun: options.result.mode === 'dry-run',
+    judge,
+    judgeEvidence,
+    resourceProfile: options.resourceProfile,
+    requirementAssessments: derivedRequirementAssessments,
+    scenario: options.scenario,
+    workspaceAssertions: assertions,
+  });
+  const derivedFailureClassifications = Object.entries(derivedDimensions)
+    .filter(([, passed]) => !passed)
+    .map(([dimension]) => dimension);
+  const derivedConfirmationEligibility =
+    !derivedDimensions.semantic &&
+    Object.entries(derivedDimensions)
+      .filter(([dimension]) => dimension !== 'semantic')
+      .every(([, passed]) => passed);
 
   if (
     JSON.stringify(options.trial.requirementAssessments) !==
       JSON.stringify(derivedRequirementAssessments) ||
-    options.trial.passed !== (derivedFailures.length === 0) ||
+    JSON.stringify(options.trial.dimensions) !== JSON.stringify(derivedDimensions) ||
+    JSON.stringify(options.trial.failureClassifications) !==
+      JSON.stringify(derivedFailureClassifications) ||
+    options.trial.confirmationEligible !== derivedConfirmationEligibility ||
+    options.trial.passed !== Object.values(derivedDimensions).every(Boolean) ||
     JSON.stringify(options.trial.failures) !== JSON.stringify(derivedFailures)
   ) {
     throw new Error(
@@ -825,7 +1120,7 @@ const assertCurrentTrialEvidence = async (options: {
 
   const stagePrefix = `case:${options.caseId}:trial:${options.trial.trialId}`;
   const actorStage = requireCompletedCurrentStage(options.stages.get(`${stagePrefix}:actor`), [
-    'cached',
+    'reused',
     'passed',
   ]);
   assertCurrentModelEvidence({
@@ -855,9 +1150,11 @@ const assertCurrentTrialEvidence = async (options: {
 
   for (const stage of [prepareStage, beforeStage, afterStage, assertionsStage]) {
     if (
-      stage.cacheKey !== null ||
-      stage.cacheSourceAttemptId !== null ||
-      stage.operationalRetries.length > 0
+      stage.stageIdentity !== null ||
+      stage.reuseSourceAttemptId !== null ||
+      stage.hasUsedOperationalStopResume ||
+      stage.operationalRetries.length > 0 ||
+      stage.operationalStops.length > 0
     ) {
       throw new Error(`Non-model qualification stage ${stage.id} has model-stage evidence.`);
     }
@@ -866,7 +1163,7 @@ const assertCurrentTrialEvidence = async (options: {
   const judgeStage = options.stages.get(`${stagePrefix}:judge`);
 
   if (options.trial.judgeStatus === 'completed' && judgeEvidence !== null) {
-    const completedJudgeStage = requireCompletedCurrentStage(judgeStage, ['cached', 'passed']);
+    const completedJudgeStage = requireCompletedCurrentStage(judgeStage, ['reused', 'passed']);
     assertCurrentModelEvidence({
       attemptId: options.result.attemptId,
       caseId: options.caseId,
@@ -879,9 +1176,11 @@ const assertCurrentTrialEvidence = async (options: {
     const skippedJudgeStage = requireCompletedCurrentStage(judgeStage, ['skipped']);
 
     if (
-      skippedJudgeStage.cacheKey !== null ||
-      skippedJudgeStage.cacheSourceAttemptId !== null ||
-      skippedJudgeStage.operationalRetries.length > 0
+      skippedJudgeStage.stageIdentity !== null ||
+      skippedJudgeStage.reuseSourceAttemptId !== null ||
+      skippedJudgeStage.hasUsedOperationalStopResume ||
+      skippedJudgeStage.operationalRetries.length > 0 ||
+      skippedJudgeStage.operationalStops.length > 0
     ) {
       throw new Error(`Skipped judge stage ${skippedJudgeStage.id} has model-stage evidence.`);
     }
@@ -892,6 +1191,7 @@ const assertCurrentCaseEvidence = async (options: {
   attemptDirectory: string;
   caseResult: IQualificationCaseResult;
   result: IQualificationAttemptResult;
+  resourceProfile: IQualificationResourceProfile;
   scenario: IQualificationCaseScenario;
   stages: ReadonlyMap<string, IQualificationStageCheckpoint>;
 }): Promise<void> => {
@@ -915,6 +1215,7 @@ const assertCurrentCaseEvidence = async (options: {
       attemptDirectory: options.attemptDirectory,
       caseId: options.caseResult.caseId,
       result: options.result,
+      resourceProfile: options.resourceProfile,
       scenario: options.scenario,
       stages: options.stages,
       trial,
@@ -945,9 +1246,11 @@ const assertCurrentCaseEvidence = async (options: {
   );
 
   if (
-    resultStage.cacheKey !== null ||
-    resultStage.cacheSourceAttemptId !== null ||
-    resultStage.operationalRetries.length > 0
+    resultStage.stageIdentity !== null ||
+    resultStage.reuseSourceAttemptId !== null ||
+    resultStage.hasUsedOperationalStopResume ||
+    resultStage.operationalRetries.length > 0 ||
+    resultStage.operationalStops.length > 0
   ) {
     throw new Error(`Case ${options.caseResult.caseId} result stage has model-stage evidence.`);
   }
@@ -957,23 +1260,27 @@ const validateCurrentTerminalAttempt = async (
   attemptDirectory: string,
   result: IQualificationAttemptResult,
   resultsRoot: string,
-  contractSource: 'current' | 'recorded',
 ): Promise<void> => {
   const profilesRoot = await resolveQualificationProfilesRootForResults(resultsRoot);
   const currentTargetKey = await resolveQualificationTargetKey(result.selection, profilesRoot);
-  const profileRelativeDirectory = path.join(
-    'profiles',
-    contractSource === 'current'
-      ? currentTargetKey
-      : path.join(result.selection.adapterId, result.selection.implementationId),
-  );
-  const profile = await readQualificationContractYaml({
-    contractSource,
-    qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
-    relativePath: path.join(profileRelativeDirectory, 'profile.yaml'),
-    resultsRoot,
-    schema: QualificationProfileSchema,
-  });
+  const profileRelativeDirectory = path.join('profiles', currentTargetKey);
+  const [profile, resourceCalibration] = await Promise.all([
+    readQualificationContractYaml({
+      qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
+      relativePath: path.join(profileRelativeDirectory, 'profile.yaml'),
+      resultsRoot,
+      schema: QualificationProfileSchema,
+    }),
+    readQualificationContractJson({
+      contractRoot: 'repository',
+      qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
+      relativePath: path.join('fixtures', 'resource-calibration.json'),
+      resultsRoot,
+      schema: QualificationResourceCalibrationSchema,
+    }),
+  ]);
+  const resourceProfiles: IQualificationResourceProfiles = resourceCalibration.profiles;
+  const validatedReuseSources = new Map<string, IValidatedQualificationReuseSource>();
 
   if (
     profile.adapterId !== result.selection.adapterId ||
@@ -987,14 +1294,11 @@ const validateCurrentTerminalAttempt = async (
   requireUniqueMembers(profileCaseIds, 'Qualification profile case ids');
   requireUniqueMembers(resultCaseIds, 'Qualification result case ids');
 
-  const expectedCaseIds =
-    result.status === 'passed' ? profileCaseIds : profileCaseIds.slice(0, resultCaseIds.length);
+  const expectedCaseIds = profileCaseIds;
   const hasExpectedCaseVerdict =
     result.status === 'passed'
       ? result.cases.every(({ status }) => status !== 'failed')
-      : result.cases.length > 0 &&
-        result.cases.at(-1)?.status === 'failed' &&
-        result.cases.slice(0, -1).every(({ status }) => status !== 'failed');
+      : result.cases.some(({ status }) => status === 'failed');
 
   if (
     JSON.stringify(resultCaseIds) !== JSON.stringify(expectedCaseIds) ||
@@ -1009,14 +1313,13 @@ const validateCurrentTerminalAttempt = async (
   );
 
   if (JSON.stringify(actualArtifactPaths) !== JSON.stringify(expectedArtifactPaths)) {
-    throw new Error('Qualification evidence has an incomplete protocol 6 artifact inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 10 artifact inventory.');
   }
 
   const [baseline, coverage, probes, sourceState] = await Promise.all([
     requireArtifact(attemptDirectory, result, 'baseline.json', QualificationBaselineCheckSchema),
     requireArtifact(attemptDirectory, result, 'coverage.json', QualificationCoverageResultSchema),
     readQualificationContractYaml({
-      contractSource,
       qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
       relativePath: path.join(profileRelativeDirectory, profile.probesFile),
       resultsRoot,
@@ -1072,7 +1375,7 @@ const validateCurrentTerminalAttempt = async (
   const actualStageIds = result.stages.map(({ id }) => id);
 
   if (JSON.stringify(actualStageIds) !== JSON.stringify(expectedStageIds)) {
-    throw new Error('Qualification evidence has an incomplete protocol 6 stage inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 10 stage inventory.');
   }
 
   const stages = new Map(result.stages.map((stage) => [stage.id, stage]));
@@ -1081,9 +1384,11 @@ const validateCurrentTerminalAttempt = async (
     const stage = requireCompletedCurrentStage(stages.get(controlStageId), ['passed']);
 
     if (
-      stage.cacheKey !== null ||
-      stage.cacheSourceAttemptId !== null ||
-      stage.operationalRetries.length > 0
+      stage.stageIdentity !== null ||
+      stage.reuseSourceAttemptId !== null ||
+      stage.hasUsedOperationalStopResume ||
+      stage.operationalRetries.length > 0 ||
+      stage.operationalStops.length > 0
     ) {
       throw new Error(`Control stage ${controlStageId} has model-stage evidence.`);
     }
@@ -1095,19 +1400,10 @@ const validateCurrentTerminalAttempt = async (
     const caseResult = result.cases[index];
 
     if (caseResult === undefined) {
-      for (const stageId of [
-        ...QUALIFICATION_TRIAL_IDS.flatMap((trialId) =>
-          createQualificationTrialStageIds(profileCase.id, trialId),
-        ),
-        `case:${profileCase.id}:result`,
-      ]) {
-        assertUnusedCurrentStage(stages.get(stageId), 'pending');
-      }
-      continue;
+      throw new Error(`Qualification evidence is missing case ${profileCase.id}.`);
     }
 
     const scenario = await readQualificationContractYaml({
-      contractSource,
       qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
       relativePath: path.join(
         profileRelativeDirectory,
@@ -1122,10 +1418,17 @@ const validateCurrentTerminalAttempt = async (
       throw new Error(`Qualification case ${profileCase.id} contradicts its profile identity.`);
     }
 
+    await validateQualificationCaseReuse({
+      caseResult,
+      currentResult: result,
+      resultsRoot,
+      validatedSources: validatedReuseSources,
+    });
     await assertCurrentCaseEvidence({
       attemptDirectory,
       caseResult,
       result,
+      resourceProfile: resourceProfiles[scenario.resourceProfile],
       scenario,
       stages,
     });
@@ -1149,7 +1452,6 @@ const validateCurrentTerminalAttempt = async (
 /** Validates the public artifacts and status contract for one committed attempt. */
 export const validateQualificationAttemptEvidence = async (options: {
   attemptDirectory: string;
-  contractSource?: 'current' | 'recorded';
   result: IQualificationAttemptResult;
   resultsRoot: string;
 }): Promise<void> => {
@@ -1188,7 +1490,6 @@ export const validateQualificationAttemptEvidence = async (options: {
       options.attemptDirectory,
       options.result,
       options.resultsRoot,
-      options.contractSource ?? 'recorded',
     );
   }
 };

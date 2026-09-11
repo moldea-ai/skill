@@ -1,0 +1,66 @@
+{
+  "trialId": "confirmation-2",
+  "kind": "confirmation",
+  "confirmationIndex": 2,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 585078,
+  "deterministicBeforePath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/deterministic-after.json",
+  "actorOutputPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/workspace-assertions.json",
+  "patchPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 270033,
+    "cachedInputTokens": 243200,
+    "outputTokens": 5766
+  },
+  "judgeUsage": {
+    "inputTokens": 402505,
+    "cachedInputTokens": 370176,
+    "outputTokens": 6723
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T06:19:59.985Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T06:24:53.925Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies `find_order` as the stale canonical name and `lookup_order` as the closed client-tool name. This is independently corroborated by the Git diff (`find_order` → `lookup_order`) and `src/tools.ts`, where `lookupOrderTool.name` is `lookup_order`. The deterministic result reports valid inspection and zero failures."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` declares `name: lookup_order`, exactly matching `lookupOrderTool` in `src/tools.ts`. Approved status reports only `moldea/moldea.yaml` modified, and its diff contains only this name replacement. The current manifest SHA-256 matches the asserted post-actor hash."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains runtime `anthropic`; runtime agent `/src/agent.ts#supportAgent`; instruction loader `/src/agent.ts#loadSupportInstruction`; registration `/src/tools.ts#lookupOrderTool`; implementation `/src/implementations.ts#lookupOrder`; and schema `/src/contracts.ts#LookupOrderInputSchema`. Source confirms `supportAgent` directly calls `client.messages.create`, loads the canonical instruction, registers `[lookupOrderTool]`, and the declaration uses `LookupOrderInputSchema`. Relevant source hashes are identical before and after, while deterministic validation, inspection, and typechecking all pass."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: repair-openai-agents-sdk-tool-registration
 title: Repair OpenAI Agents SDK tool registration
 purpose: Verify precise diagnostic-driven repair of closed function-tool identity.

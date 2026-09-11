@@ -1,0 +1,56 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T06:38:47.444Z",
+  "durationMs": 338254,
+  "usage": {
+    "inputTokens": 750641,
+    "cachedInputTokens": 650880,
+    "outputTokens": 15958
+  },
+  "stageIdentity": "3455fe317d225852fd361014dc9fe46008bffe1ee4e0627aa424c30d3111573a",
+  "sourceAttemptId": "20260911T054140998Z-eve-typescript-filesystem-agent-0-39-f8eec1c0",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 41,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 23040,
+    "modelVisibleToolOutputByteCount": 197866,
+    "moldeaCommandCount": 3,
+    "moldeaOutputByteCount": 1077,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 6,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        },
+        {
+          "code": "unclassified-command",
+          "count": 5
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 6,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        },
+        {
+          "code": "unclassified-command",
+          "count": 5
+        }
+      ]
+    }
+  }
+}

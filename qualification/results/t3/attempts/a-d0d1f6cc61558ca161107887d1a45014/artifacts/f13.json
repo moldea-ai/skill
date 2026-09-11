@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "fail",
+        "pass"
+      ],
+      "description": "The independent verdict for the complete case."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A concise explanation grounded in the workspace and evidence."
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$",
+            "description": "The exact declared requirement id."
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "fail",
+              "pass"
+            ],
+            "description": "The verdict for this declared requirement."
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Concrete repository or deterministic evidence for the verdict."
+          }
+        },
+        "required": [
+          "id",
+          "verdict",
+          "evidence"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Actionable case failures, empty only when the verdict passes."
+    }
+  },
+  "required": [
+    "verdict",
+    "summary",
+    "requirements",
+    "failures"
+  ],
+  "additionalProperties": false
+}

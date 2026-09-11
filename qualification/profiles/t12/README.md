@@ -1,6 +1,6 @@
 # OpenAI Agents SDK profile
 
-This profile qualifies `@moldea.ai/adapter-openai-agents-sdk` target `typescript-agent-handoffs-0-16` against ten transparent projects. It runs the eight universal moldea journeys plus two adapter-specific cases for function-tool registration, handoffs, and conservative handling of unsupported dynamic configuration and SDK surfaces.
+This profile qualifies `@moldea.ai/adapter-openai-agents-sdk` target `typescript-agent-handoffs-0-16` with the shared eight-case `custom/custom` baseline and two adapter-specific projects for function-tool registration, handoffs, and conservative handling of unsupported dynamic configuration and SDK surfaces. This profile executes only its adapter-specific projects; the universal baseline executes and publishes once under `custom/custom`.
 
 Each project pins `@openai/agents@0.16.1`, `@openai/agents-realtime@0.16.1`, `zod@4.3.6`, `@types/node@22.20.1`, and `typescript@6.0.3`. Qualification downloads and verifies the exact published runtime and type artifacts once, records their checksums with the candidate evidence, primes the attempt-local package store, and installs the projects offline. The deterministic stages typecheck against the real SDK packages but never call a provider, execute an agent, or execute a tool.
 

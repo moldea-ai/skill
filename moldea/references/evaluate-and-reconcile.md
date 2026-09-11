@@ -1,81 +1,68 @@
 # Evaluate and reconcile
 
-Read this reference before `evaluate`, `reconcile`, or a scoped semantic alignment assessment.
+Read this reference only after moldea relevance is established for a requested moldea evaluation or authorized reconciliation.
 
-## Build the evidence scope
+## Select one operation
 
-Both operations use supported local tooling, `inspect --json`, material local composition and published runtime compatibility data, canonical state, Agent Skill source and resources, implementation, executable contracts, tests, runtime integration, adapter evidence, developer intent, and unresolved state.
+Select exactly one operation before gathering evidence:
 
-Resolve the subject before collecting target evidence:
+1. For reconciliation, apply the complete Reconcile procedure next. Do not apply canonical-first evaluation instructions.
+2. For evaluation, apply Preserve host workflow ownership and then Evaluate progressively.
 
-1. Establish adoption from project-owned canonical state.
-2. In an adopted repository, a brief natural project-evaluation request targets the project-owned moldea system. Ask one focused question before evaluating when material subject ambiguity remains.
-3. Use the installed `.agents/skills/moldea` entrypoint and operation-triggered references only as operating guidance. Do not inventory, validate, or report that tree as target evidence unless the developer explicitly scopes it or repository evidence establishes project ownership.
+Never enter both branches. Evidence discovered during reconciliation does not turn it into evaluation.
 
-After resolving the subject, select initial evidence from repository state:
+## Reconcile
 
-- **HEAD exists and the tree is dirty:** include staged, unstaged, untracked, renamed, and deleted paths relative to HEAD, then expand through registered and semantic relationships into materially affected moldea surfaces.
-- **HEAD exists and the tree is clean:** begin with the project-owned foundation, relationships, decisions, agents, capabilities, schemas, runtime guidance, requirements, and adapter evidence, then inspect relevant implementation progressively rather than exhaustively.
-- **HEAD does not exist:** treat every current path as newly introduced for initial scope selection.
+Reconciliation requires write authority from the host task. A generic reconcile request authorizes correction but selects no claim. Existing repository content is not a current developer choice, and neither conflicting asset nor its canonical designation, relationships, mirror agreement, tests, implementation, or recency can resolve itself. Select only from a current developer statement that chooses one claim or a third independent source that explicitly resolves the alternatives. Otherwise stop all moldea calls and semantic writes, state both claims, and ask which governs.
 
-An explicit agent, Agent Skill, capability, domain, path, runtime, change, or contradiction supplies the starting point but does not prohibit inspection of materially related evidence. An explicit or project-owned Agent Skill evaluation retains its complete artifact scope.
+Compare the task-named implementation with the canonical instruction only to identify agreement or conflict, never to rank asset types. For a direct named agent, first inspect only exact implementation evidence named by the task or one bounded host search keyed to that agent or domain, then use at most one canonical `content` call total for the agent instruction. Complete that comparison before any aligned, reconciled, or no-change conclusion. If the claims conflict and no permitted resolver selects one, apply the stop above immediately. If they agree, or a permitted resolver selects one conflicting claim, establish the repair target from that agreement or selected claim and only aligned supporting evidence.
 
-## Evaluate read-only
+Do not read project context, a second canonical owner, inventory, or structural status after an unresolved conflict; none can resolve it. Do not validate or repair a preferred claim, persist a developer-answerable ambiguity as an unresolved requirement, or report alignment before the required authority answer.
 
-`evaluate` changes no repository, dependency, lockfile, mirror, or Git state.
+Apply the smallest coherent repair across directly affected canonical owners, declarations, relationships, mirrors, consumers, and tests. Remove superseded parallel paths made unnecessary by the repair. Preserve unrelated state and rerun only the checks affected by the changed contract.
 
-1. Run root-local `inspect --json` and verify its completed machine envelope before interpreting it.
-2. Run root-local `composition --json` only when installed executable composition can change a conclusion. Load `runtime-compatibility.md` and retrieve its publication only when current technical compatibility or maturity can change a conclusion.
-3. Preserve Core and adapter diagnostics with their actual meaning.
-4. Compare affected surfaces in both directions; no asset type automatically wins.
-5. Limit findings to structural and semantic moldea alignment unless registered behavior makes another concern relevant.
-6. Stop when evidence supports reliable scoped conclusions.
+## Preserve host workflow ownership
 
-Semantic alignment requires reliable evidence of each material behavior's intended meaning and relevant consumption. A relationship proves scope and implementation proves current behavior; neither alone proves agreement. Report an exact evidence limitation instead of claiming alignment when intent or consumption remains unknown.
+Evaluation is read-only. Reuse the host review or task workflow's root, HEAD, exact named or targeted task paths, changed paths, hunks, branch state, diffs, and completed checks. Do not create temporary indexes, Git objects, candidate trees, fingerprints, repeated status probes, or publication checks for moldea. The host workflow decides readiness, commit identity, and publication.
 
-For every scoped agent, establish how canonical instruction content reaches each material runtime invocation or provider-side configuration. An unused canonical instruction, independent runtime instruction, or material path that bypasses canonical provenance is a confirmed semantic problem. Bindings, mirrors, and deterministic inspection do not alone prove consumption. Unavailable implementation creates an evidence limitation, not an assumed connection or disconnection.
+For a relationship-triggered operation, use the one completed `scope` result as the canonical expansion boundary. For direct canonical evaluation, start at the named owner without running `scope` or `inspect`. An exact path, stable agent ID, or unambiguous agent name identifies its standard canonical owner; use one `content` call when its body is required. Do not turn a clean or unscoped host review into a whole-project moldea audit.
 
-For runtime description consumers, establish the consumer purpose, required canonical source, selected source, and resolver using `agent-design.md`. An absent handoff description is aligned fallback when the consumer uses the agent description. Under unresolved dynamic wiring, state conditional outcomes and call a source required, never current, effective, absent, correct, or wrong.
+A current-change review or evaluation must retain every staged, unstaged, untracked, renamed-source, renamed-destination, and deleted path. Normalize the complete set, then partition direct canonical paths or known managed hunks from ordinary paths. With any direct item, run the adoption-only gate once, assess each canonical owner or managed hunk directly, and run one `scope` only over remaining ordinary paths; an irrelevant ordinary subset adds no owner and cannot cancel direct relevance. With ordinary paths only, run the full relationship gate and one `scope` over that set. Report the complete path scope, canonical assessment, and explicitly that the operation is read-only and changed no files. A path inventory alone is not a moldea evaluation. This is host work followed by bounded moldea work, not moldea-only Git discovery, and it cannot reactivate moldea after an implicit unrelated-task gate miss. Never run Git to expand the completed scope.
 
-For Agent Skills, apply `skill-design.md` to the authoritative artifact, activation, resources, scripts, dependencies, metadata, copies, distribution, consumers, documentation, agent use, and runtime registration. Structural validation alone does not prove useful activation, workflow quality, consumption, or registration.
+If already supplied repository evidence identifies an executable Git filter, text conversion, external diff, fsmonitor, or other repository-controlled helper, stop before worktree-aware Git can execute it. The response must say explicitly that evaluation stopped before worktree-aware Git because the named mechanism could execute, state which Git evidence remains unavailable, and give the smallest safe prerequisite, such as removing or disabling that mechanism or supplying independently collected inert evidence. For an attribute filter, name the supplied `.gitattributes` declaration and its filter or text-conversion mechanism exactly instead of generalizing it to a Git hook. Do not execute, rewrite, or disable repository configuration during evaluation.
 
-Core invalidity can prevent adapters from running. In that state `evidence: []` means unavailable evidence, not absent runtime behavior. External implementation can create the same limitation in dedicated-repository mode.
+## Evaluate progressively
 
-Report the binary adoption state and five separate finding categories. Project status is only adopted or unadopted; diagnostics, drift, conflicts, requirements, and evidence gaps do not create another status.
+For direct evaluation of a named owner, begin with its exact `content` instead of steps 1 or 2 below. Add structural or inventory evidence only when the question actually depends on it.
 
-- **Deterministic diagnostics:** mechanically proven Core or adapter problems.
-- **Confirmed semantic problems:** evidence-backed contradiction, drift, stale relationship, or material instruction-quality concern.
-- **Material ambiguities:** consequential questions with multiple plausible resolutions.
-- **Relevant unresolved requirements:** existing requirements affecting the scope and their declared effect.
-- **Material evidence limitations:** each unknown fact, its smallest reliable resolving artifact and established owner, and what that artifact must prove.
+1. Run `validate` when structural validity is material.
+2. Run content-free `inspect` only when inventory, diagnostics, requirements, mirrors, or runtime declarations are needed.
+3. Read one canonical owner with `content` when semantic comparison requires its body.
+4. Compare it with only the relevant implementation, consumer, test, or public contract.
+5. Stop when more evidence cannot change a material finding.
 
-Reliable resolvers include source-owned target documentation, closed wiring, provider configuration, and integration tests. Do not invent a path or owner. A missing-evidence list without an unknown-to-resolver mapping leaves evaluation incomplete.
+The conclusion must name the canonical owner or declared relationship actually assessed. Accounting for host paths without reporting the related canonical assessment is incomplete.
 
-Report repository-specific runtime guidance gaps semantically rather than inventing Core diagnostics or changing `runtime.id` to `custom`. Do not fabricate PR Assurance, Cloud acceptance, merge readiness, billable semantics, confidence thresholds, or style-only findings.
+Assess separately:
 
-For an unscoped clean evaluation, state the project-owned starting scope, the canonical relationship that expanded implementation evidence or why none was material, and the conclusion. Every evaluation reports scope, deterministic state, all five categories, tooling and checks, and that no repository files changed.
+- structural diagnostics
+- confirmed semantic contradictions or drift
+- requirements relevant to the exact scope
+- evidence limitations that prevent a conclusion
+- unrelated invalidity observed incidentally
 
-## Reconcile with established intent
+A valid manifest does not prove semantic alignment. A declaration does not prove runtime consumption. A passing test does not prove an instruction activates correctly. State the missing evidence rather than broadening the audit without cause.
 
-Reconciliation uses the evaluation evidence model and may write only within established authority. It corrects known drift; it does not select policy, permission, ownership, or behavior.
+Observed implementation state is not automatically durable canonical truth. When canonical state does not establish whether an observed value or behavior is intended to persist, report that precise ambiguity or evidence limitation and do not declare complete semantic alignment.
 
-1. Establish intended state from question-specific evidence and developer direction. Authorization to reconcile does not choose among unresolved alternatives.
-2. Treat code, tests, schemas, context, decisions, instructions, runtime guidance, and adapter evidence according to their evidence roles.
-3. Ask before choosing among materially different intended states and make no semantic write while the answer is pending.
-4. Use unresolved requirements for genuine incomplete state, not answerable clarification.
-5. Apply the smallest coherent change across every genuinely affected canonical, Agent Skill, metadata, copy, consumer, runtime, implementation, schema, test, relationship, variable, requirement, and mirror surface.
-6. Preserve still-valid behavior and unrelated defects. Remove superseded paths only when established resulting state makes them unnecessary.
-7. Remove a requirement only after every resolution criterion is established; do not broaden work merely to close it.
-8. Run relevant project-native verification, synchronize mirrors, rerun `inspect --json`, and review semantic readiness.
+When an evaluation asks whether an agent or runtime description consumer selects the correct canonical source, load `agent-design.md` as the second and owning reference before classifying or reporting the mapping. Apply its consumer-semantic contract to the repository evidence; a property name is not classification evidence. Do not report an established aligned mapping as defective.
 
-For a consequential same-scope contradiction, name both claims and the evidence role of each. State that neither implementation nor synchronized canonical or mirror content selects intended state, ask the exact choice, and change nothing while awaiting the answer.
+Treat consumer-purpose classification and structural or source-selection diagnostics as independent conclusions. A missing impact relationship, invalid structure, or unknown selected source can withhold only the conclusions it prevents; it cannot erase a purpose classification already established by task-named runtime guidance and implementation. State the established classification even when canonical source selection remains unresolved.
 
-When establishing canonical instruction provenance, update the canonical asset, runtime loading or provisioning, material bindings, tests, mirrors, and runtime guidance together where applicable. Remove an independent instruction source only when intended behavior and implementation authority are established.
+## Read-only proof
 
-Distinguish successful scoped reconciliation from complete repository validity when unrelated invalidity remains. Do not claim alignment while relevant conflict or ambiguity remains.
+When evaluation evidence must prove non-mutation, compare the host-provided before and after state for worktree files, index, refs, Git configuration, submodules, and Git object database. Do not create the proof by running commands that themselves write objects or configuration. A changed state makes the evaluation incomplete until the cause is established.
 
-## Validate
+## Reporting
 
-`validate` is read-only and deterministic. Use root-local `validate --json` when the developer requests structural validation and the project index is unnecessary. Apply the same provider, version, envelope, status, sensitivity, and failure rules as `inspect`.
-
-`status: invalid` with diagnostics is a completed result, not successful validation or operational failure. `status: error` is operational failure. Validation does not prove semantic alignment.
+Every read-only evaluation report explicitly states that no repository files changed, including an aligned routing fallback or a safety stop. For no-change relevant evaluation, report at most one moldea line unless detail was requested. Identify the assessed canonical owner, state that behavior or contracts remain unchanged, and conclude that no canonical edit was required. For a material finding or reconciliation, report the exact activation path, canonical owner, bounded commands and byte counts when measured, semantic conclusion, changes, unresolved limits, and checks. Never append moldea status to an unrelated host review.

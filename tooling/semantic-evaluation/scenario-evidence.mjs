@@ -202,7 +202,7 @@ const collectGitFacts = (repositoryPath) => {
 /** Collects evaluator-owned scenario evidence before actor execution. */
 export const collectScenarioEvidence = async ({
   caseDefinition,
-  readOnlyMounts,
+  readOnlyMounts = [],
   repositoryPath,
 }) => {
   const gitFacts = caseDefinition.input.repositoryEvidence.some(
@@ -210,7 +210,6 @@ export const collectScenarioEvidence = async ({
   )
     ? collectGitFacts(repositoryPath)
     : null;
-  const mountsByTarget = new Map(readOnlyMounts.map(({ source, target }) => [target, source]));
   const evidence = [];
 
   for (const declaration of caseDefinition.input.repositoryEvidence) {
@@ -221,8 +220,6 @@ export const collectScenarioEvidence = async ({
         content: caseDefinition.input.developerDirection,
         type: 'developer-direction',
       };
-    } else if (source.kind === 'host-instructions') {
-      observation = { content: caseDefinition.hostInstructions, type: 'host-instructions' };
     } else if (source.kind === 'git-state') {
       observation = {
         fact: source.fact,
@@ -232,19 +229,63 @@ export const collectScenarioEvidence = async ({
       if (!observation.observed) {
         throw new Error(`Scenario Git fact ${source.fact} is not present.`);
       }
-    } else if (source.kind === 'workspace-path') {
-      observation = await inspectEvidencePath(repositoryPath, source.path, source.expectedType);
+    } else if (source.kind === 'host-instructions') {
+      observation = {
+        content: caseDefinition.hostInstructions,
+        type: 'host-instructions',
+      };
+    } else if (source.kind === 'related-path') {
+      const mount = readOnlyMounts.find(({ target }) => target === source.mount);
+      if (!mount) throw new Error(`Scenario evidence mount ${source.mount} is unavailable.`);
+      observation = {
+        ...(await inspectEvidencePath(mount.source, source.path, source.expectedType)),
+        mount: source.mount,
+      };
     } else {
-      const mountSource = mountsByTarget.get(source.mount);
-      if (!mountSource) {
-        throw new Error(`Scenario evidence requires missing mount ${source.mount}.`);
-      }
-      observation = await inspectEvidencePath(mountSource, source.path, source.expectedType);
+      observation = await inspectEvidencePath(repositoryPath, source.path, source.expectedType);
     }
     evidence.push({ claim: declaration.claim, observation, source });
   }
 
   return evidence;
+};
+
+/** Validates one persisted workspace or read-only-mount path observation. */
+const hasValidPathObservation = (observation, source) => {
+  if (observation.type !== source.expectedType || observation.path !== source.path) {
+    return false;
+  }
+  if (observation.type === 'missing') {
+    return hasExactKeys(observation, ['path', 'type']) && typeof observation.path === 'string';
+  }
+  if (observation.type === 'directory') {
+    return (
+      hasExactKeys(observation, ['mode', 'path', 'type']) &&
+      typeof observation.path === 'string' &&
+      Number.isSafeInteger(observation.mode)
+    );
+  }
+  if (observation.type === 'symlink') {
+    return (
+      hasExactKeys(observation, ['mode', 'path', 'sha256', 'target', 'type']) &&
+      typeof observation.path === 'string' &&
+      Number.isSafeInteger(observation.mode) &&
+      typeof observation.target === 'string' &&
+      SHA256_PATTERN.test(observation.sha256)
+    );
+  }
+  if (observation.type === 'file') {
+    return (
+      hasExactKeys(observation, ['content', 'mode', 'omission', 'path', 'sha256', 'type']) &&
+      typeof observation.path === 'string' &&
+      Number.isSafeInteger(observation.mode) &&
+      SHA256_PATTERN.test(observation.sha256) &&
+      (typeof observation.content === 'string' || observation.content === null) &&
+      [null, 'file-too-large', 'non-utf8'].includes(observation.omission) &&
+      (observation.content === null) !== (observation.omission === null)
+    );
+  }
+  return false;
 };
 
 /** Validates persisted scenario evidence against its exact case declarations. */
@@ -277,13 +318,6 @@ export const hasValidScenarioEvidence = (evidence, caseDefinition) => {
         observation.content === caseDefinition.input.developerDirection
       );
     }
-    if (declaration.source.kind === 'host-instructions') {
-      return (
-        hasExactKeys(observation, ['content', 'type']) &&
-        observation.type === 'host-instructions' &&
-        observation.content === caseDefinition.hostInstructions
-      );
-    }
     if (declaration.source.kind === 'git-state') {
       return (
         hasExactKeys(observation, ['fact', 'observed', 'type']) &&
@@ -292,42 +326,25 @@ export const hasValidScenarioEvidence = (evidence, caseDefinition) => {
         observation.observed === true
       );
     }
-    if (
-      observation.type !== declaration.source.expectedType ||
-      observation.path !== declaration.source.path
-    ) {
-      return false;
-    }
-    if (observation.type === 'missing') {
-      return hasExactKeys(observation, ['path', 'type']) && typeof observation.path === 'string';
-    }
-    if (observation.type === 'directory') {
+    if (declaration.source.kind === 'host-instructions') {
       return (
-        hasExactKeys(observation, ['mode', 'path', 'type']) &&
-        typeof observation.path === 'string' &&
-        Number.isSafeInteger(observation.mode)
+        hasExactKeys(observation, ['content', 'type']) &&
+        observation.type === 'host-instructions' &&
+        observation.content === caseDefinition.hostInstructions
       );
     }
-    if (observation.type === 'symlink') {
-      return (
-        hasExactKeys(observation, ['mode', 'path', 'sha256', 'target', 'type']) &&
-        typeof observation.path === 'string' &&
-        Number.isSafeInteger(observation.mode) &&
-        typeof observation.target === 'string' &&
-        SHA256_PATTERN.test(observation.sha256)
-      );
+    if (declaration.source.kind === 'related-path') {
+      if (
+        observation.mount !== declaration.source.mount ||
+        observation.type !== declaration.source.expectedType ||
+        observation.path !== declaration.source.path
+      ) {
+        return false;
+      }
+      const localObservation = { ...observation };
+      delete localObservation.mount;
+      return hasValidPathObservation(localObservation, declaration.source);
     }
-    if (observation.type === 'file') {
-      return (
-        hasExactKeys(observation, ['content', 'mode', 'omission', 'path', 'sha256', 'type']) &&
-        typeof observation.path === 'string' &&
-        Number.isSafeInteger(observation.mode) &&
-        SHA256_PATTERN.test(observation.sha256) &&
-        (typeof observation.content === 'string' || observation.content === null) &&
-        [null, 'file-too-large', 'non-utf8'].includes(observation.omission) &&
-        (observation.content === null) !== (observation.omission === null)
-      );
-    }
-    return false;
+    return hasValidPathObservation(observation, declaration.source);
   });
 };

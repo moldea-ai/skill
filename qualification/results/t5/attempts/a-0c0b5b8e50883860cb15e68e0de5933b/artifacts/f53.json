@@ -1,0 +1,9 @@
+{
+  "outcome": "completed",
+  "summary": "moldea maintains durable project context without owning the work. An adopted project keeps its canonical state in the repository-root `/moldea/` directory.",
+  "changedFiles": [],
+  "observations": [
+    "No repository inspection or validation was performed because the task explicitly prohibited inspecting the repository."
+  ],
+  "unresolved": []
+}

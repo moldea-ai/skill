@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import semver from 'semver';
 
 import {
   parseRuntimeCompatibilityPublication,
@@ -64,33 +65,42 @@ const readSourcePackageManifest = (manifestPath, projectDirectory) => {
   };
 };
 
-/** Returns local dependency entries in deterministic name order. */
+/** Returns local dependency entries in deterministic name and field order. */
 const getLocalDependencies = (manifest, fields) =>
   fields
-    .flatMap((fieldName) => Object.entries(manifest[fieldName]))
+    .flatMap((fieldName) =>
+      Object.entries(manifest[fieldName]).map(([packageName, dependencyVersion]) => [
+        packageName,
+        dependencyVersion,
+        fieldName,
+      ]),
+    )
     .filter(([packageName]) => isMoldeaPackageName(packageName))
-    .sort(([left], [right]) => left.localeCompare(right, 'en'));
+    .sort(
+      ([leftName, , leftField], [rightName, , rightField]) =>
+        leftName.localeCompare(rightName, 'en') || leftField.localeCompare(rightField, 'en'),
+    );
 
-/** Validates one exact source dependency whenever the declaring package requires one. */
+/** Validates one source dependency against its local compatible-major package. */
 const validateSourceDependencyVersion = ({
   dependency,
   dependencyName,
   dependencyVersion,
+  fieldName,
   owner,
 }) => {
-  const normalizedVersion = dependencyVersion.startsWith('workspace:')
-    ? dependencyVersion.slice('workspace:'.length)
-    : dependencyVersion;
-  const isExactVersion = STABLE_VERSION_PATTERN.test(normalizedVersion);
+  if (fieldName === 'devDependencies' && dependencyVersion === 'workspace:*') return;
 
-  if (owner.name === CLI_PACKAGE_NAME && !isExactVersion) {
-    throw new Error(`${CLI_PACKAGE_NAME} must exact-pin ${dependencyName}.`);
-  }
-  if (isExactVersion && dependency.version !== normalizedVersion) {
+  const expectedRange = `workspace:^${semver.major(dependency.version)}.0.0`;
+  if (dependencyVersion !== expectedRange) {
     throw new Error(
-      `${dependencyName} must be exact-pinned to its source package version ${dependency.version}.`,
+      `${owner.name} must declare ${dependencyName} as compatible source range ${expectedRange}.`,
     );
   }
+  assert.ok(
+    semver.satisfies(dependency.version, dependencyVersion.slice('workspace:'.length)),
+    `${dependencyName}@${dependency.version} does not satisfy ${dependencyVersion}.`,
+  );
 };
 
 /**
@@ -105,9 +115,9 @@ export const discoverSourcePackageManifests = (workspaceRoot) => {
     const collectionDirectory = join(workspaceRoot, collectionName);
     if (!existsSync(collectionDirectory)) continue;
 
-    for (const directoryEntry of readdirSync(collectionDirectory, { withFileTypes: true }).sort(
-      ({ name: left }, { name: right }) => left.localeCompare(right, 'en'),
-    )) {
+    for (const directoryEntry of readdirSync(collectionDirectory, {
+      withFileTypes: true,
+    }).sort(({ name: left }, { name: right }) => left.localeCompare(right, 'en'))) {
       if (!directoryEntry.isDirectory()) continue;
       const projectDirectory = join(collectionName, directoryEntry.name);
       const manifestPath = join(workspaceRoot, projectDirectory, 'package.json');
@@ -149,7 +159,7 @@ export const resolveRuntimePackageClosure = (manifests, selectedRootPackageNames
     }
 
     visiting.add(packageName);
-    for (const [dependencyName, dependencyVersion] of getLocalDependencies(manifest, [
+    for (const [dependencyName, dependencyVersion, fieldName] of getLocalDependencies(manifest, [
       'dependencies',
       'optionalDependencies',
     ])) {
@@ -161,6 +171,7 @@ export const resolveRuntimePackageClosure = (manifests, selectedRootPackageNames
         dependency,
         dependencyName,
         dependencyVersion,
+        fieldName,
         owner: manifest,
       });
       visitPackage(dependencyName);
@@ -197,7 +208,7 @@ export const resolveBuildPackageClosure = (manifests, runtimeClosure) => {
     }
 
     visiting.add(manifest.name);
-    for (const [dependencyName, dependencyVersion] of getLocalDependencies(manifest, [
+    for (const [dependencyName, dependencyVersion, fieldName] of getLocalDependencies(manifest, [
       'dependencies',
       'devDependencies',
       'optionalDependencies',
@@ -210,6 +221,7 @@ export const resolveBuildPackageClosure = (manifests, runtimeClosure) => {
         dependency,
         dependencyName,
         dependencyVersion,
+        fieldName,
         owner: manifest,
       });
       visitPackage(dependency);
@@ -271,9 +283,7 @@ export const packSourceWorkspaceCandidate = ({
     throw new Error('Candidate artifact directory must not contain a runtime publication.');
   }
   if (runtimeCompatibilityPublicationPath !== undefined) {
-    parseRuntimeCompatibilityPublication(
-      readFileSync(runtimeCompatibilityPublicationPath, 'utf8'),
-    );
+    parseRuntimeCompatibilityPublication(readFileSync(runtimeCompatibilityPublicationPath, 'utf8'));
     copyFileSync(runtimeCompatibilityPublicationPath, publicationArtifactPath);
   }
 

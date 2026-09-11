@@ -1,0 +1,84 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 1162461,
+  "deterministicBeforePath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 318386,
+    "cachedInputTokens": 279168,
+    "outputTokens": 8602
+  },
+  "judgeUsage": {
+    "inputTokens": 238337,
+    "cachedInputTokens": 210048,
+    "outputTokens": 5313
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T11:36:32.009Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T11:47:07.295Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-closed-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml retains support.runtimeAgent -> supportGraph, support.inputSchema -> SupportInputSchema, and support.outputSchema -> SupportOutputSchema. src/support-graph.ts remains unchanged and uses the closed { state, input, output } StateGraph initializer with direct addNode/addEdge operations. Deterministic validation and typechecking passed."
+    },
+    {
+      "id": "preserves-opaque-schema-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "dynamic-support declares only runtimeAgent -> dynamicSupportGraph; it has no inputSchema or outputSchema binding. src/dynamic-support-graph.ts obtains its schema from getDynamicSupportStateSchema(), and the guide explicitly prohibits inferring schema relationships from that factory."
+    },
+    {
+      "id": "preserves-routing-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea.yaml adds dynamic-routing as unresolved, covering the state-selected conditional route and runtime-created Command and Send destinations, with runtime configuration and integration tests as resolution evidence. Neither the manifest nor its diff adds routing targets, handoffs, subagents, parent navigation, or complete-topology claims."
+    },
+    {
+      "id": "keeps-nodes-outside-capabilities",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest declares no tools, skills, handoffs, or subagents. The runtime guide explicitly classifies lookupOrder as node-local behavior rather than a tool and states that constructing unregisteredToolNode does not register a model-visible tool. The relevant source files are unchanged."
+    },
+    {
+      "id": "preserves-runtime-semantics-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The langgraph-runtime-composition unresolved entry and runtime guide explicitly leave reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, and supervisor composition to deployed runtime evidence and integration tests rather than claiming static proof."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Both support and dynamic-support reference /moldea/runtimes/langgraph.md. Targeted inspection found it is the sole Markdown file under moldea/runtimes. It documents the closed-initializer alternative that supports canonical input/output schema evidence, the opaque factory boundary, dynamic routing limits, node-local and ToolNode exclusions, and unresolved runtime composition. Workspace assertions identify only moldea/moldea.yaml and this guide as changed."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

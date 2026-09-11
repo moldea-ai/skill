@@ -76,7 +76,6 @@ const hasExactCurrentSourceIdentity = (options: {
   candidate: ICandidateClosure;
   checkpoint: IQualificationAttemptCheckpoint;
   executionEnvironment: IQualificationExecutionEnvironment;
-  packagesRepositoryCommit: string;
   result: IQualificationAttemptResult;
 }): boolean => {
   const { checkpoint, result } = options;
@@ -86,7 +85,6 @@ const hasExactCurrentSourceIdentity = (options: {
     result.selection.adapterId === checkpoint.selection.adapterId &&
     result.selection.implementationId === checkpoint.selection.implementationId &&
     result.provenance.candidateFingerprint === options.candidate.fingerprint &&
-    result.provenance.packagesRepositoryCommit === options.packagesRepositoryCommit &&
     result.provenance.packagesRepositoryFingerprint === checkpoint.packagesRepositoryFingerprint &&
     result.provenance.skillRepositoryFingerprint === checkpoint.skillDigest &&
     result.provenance.targetDigest === checkpoint.targetDigest &&
@@ -110,7 +108,6 @@ const hasExactCommittedSourceIdentity = (options: {
   candidate: ICandidateClosure;
   checkpoint: IQualificationAttemptCheckpoint;
   executionEnvironment: IQualificationExecutionEnvironment;
-  packagesRepositoryCommit: string;
   source: IQualificationCommittedSource;
 }): boolean => {
   const source = options.source;
@@ -122,7 +119,6 @@ const hasExactCommittedSourceIdentity = (options: {
     source.selection.adapterId === options.checkpoint.selection.adapterId &&
     source.selection.implementationId === options.checkpoint.selection.implementationId &&
     provenance.candidateFingerprint === options.candidate.fingerprint &&
-    provenance.packagesRepositoryCommit === options.packagesRepositoryCommit &&
     provenance.packagesRepositoryFingerprint === options.checkpoint.packagesRepositoryFingerprint &&
     provenance.skillRepositoryFingerprint === options.checkpoint.skillDigest &&
     provenance.targetDigest === options.checkpoint.targetDigest &&
@@ -146,7 +142,6 @@ export const loadReusableQualificationCases = async (options: {
   checkpoint: IQualificationAttemptCheckpoint;
   evaluatorStageDigest: string;
   executionEnvironment: IQualificationExecutionEnvironment;
-  packagesRepositoryCommit: string;
   qualificationRepositoryCommit: string;
   repositoryRoot: string;
   resultsRoot: string;
@@ -178,7 +173,6 @@ export const loadReusableQualificationCases = async (options: {
             candidate: options.candidate,
             checkpoint: options.checkpoint,
             executionEnvironment: options.executionEnvironment,
-            packagesRepositoryCommit: options.packagesRepositoryCommit,
             result,
           }) ||
           !(await isQualificationAttemptCommitted({
@@ -293,7 +287,6 @@ export const loadReusableQualificationCases = async (options: {
           candidate: options.candidate,
           checkpoint: options.checkpoint,
           executionEnvironment: options.executionEnvironment,
-          packagesRepositoryCommit: options.packagesRepositoryCommit,
           source,
         })
       ) {

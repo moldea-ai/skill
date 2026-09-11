@@ -880,7 +880,6 @@ export const runQualification = async (
             checkpoint,
             evaluatorStageDigest: inputState.evaluatorStageDigest,
             executionEnvironment,
-            packagesRepositoryCommit: packagesState.commit,
             qualificationRepositoryCommit: qualificationState.commit,
             repositoryRoot: SKILL_REPOSITORY_ROOT,
             resultsRoot,

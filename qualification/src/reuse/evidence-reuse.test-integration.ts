@@ -199,7 +199,7 @@ describe('qualification case evidence reuse', () => {
     });
   });
 
-  test('loads an exact passing group from committed failed evidence and rejects tampering', async () => {
+  test('loads an exact group across unrelated package commits and rejects tampering', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-reuse-'));
     const repositoryRoot = path.join(temporaryRoot, 'repository');
     await executeProcess({
@@ -212,6 +212,7 @@ describe('qualification case evidence reuse', () => {
       rm(path.join(repositoryRoot, 'qualification', 'cases'), { force: true, recursive: true }),
       rm(path.join(repositoryRoot, 'qualification', 'profiles'), { force: true, recursive: true }),
       rm(resultsRoot, { force: true, recursive: true }),
+      rm(path.join(repositoryRoot, 'qualification', 'reuse-sources.json'), { force: true }),
     ]);
     const sourceArtifactDirectory = path.join(temporaryRoot, 'source-artifacts');
     const sourceDraft = await seedPassingQualificationEvidenceFixture({
@@ -345,7 +346,6 @@ describe('qualification case evidence reuse', () => {
         checkpoint,
         evaluatorStageDigest: identityOverrides.evaluatorStageDigest ?? evaluatorStageDigest,
         executionEnvironment,
-        packagesRepositoryCommit: sourceResult.provenance.packagesRepositoryCommit,
         qualificationRepositoryCommit: evidenceCommit,
         repositoryRoot,
         resultsRoot,

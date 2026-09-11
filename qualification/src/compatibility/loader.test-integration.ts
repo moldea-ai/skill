@@ -237,6 +237,10 @@ describe('Custom qualification profile', () => {
       path.join(target.profileDirectory, 'cases/c4/task.md'),
       'utf8',
     );
+    const reconciliationTask = await readFile(
+      path.join(target.profileDirectory, 'cases/c5/task.md'),
+      'utf8',
+    );
     const untrustedTask = await readFile(
       path.join(target.profileDirectory, 'cases/c8/task.md'),
       'utf8',
@@ -244,6 +248,9 @@ describe('Custom qualification profile', () => {
 
     expect(dirtyTask).toContain('`src/billing.ts`');
     expect(dirtyTask).toContain('`moldea/agents/support/instruction.md`');
+    expect(reconciliationTask).toContain('`agents.support.unresolved`');
+    expect(reconciliationTask).toContain('canonical support instruction remains accurate');
+    expect(reconciliationTask).toContain('without inventing field names');
     expect(untrustedTask).toContain('`src/support-agent.ts`');
   });
 

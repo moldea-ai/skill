@@ -220,10 +220,15 @@ const prepareTarget = (root, version = '6.0.0', cliVersion = '8.0.0') => {
 };
 
 test('reports an absent release selection without invoking current evidence readers', async () => {
-  const issues = await inspectReleaseEvidence(REPOSITORY_ROOT);
-  assert.deepEqual(issues, [
-    'Release evidence is not recorded. Record fresh evidence or select an explicit pin.',
-  ]);
+  const root = mkdtempSync(join(tmpdir(), 'moldea-release-evidence-absent-'));
+  try {
+    const issues = await inspectReleaseEvidence(root);
+    assert.deepEqual(issues, [
+      'Release evidence is not recorded. Record fresh evidence or select an explicit pin.',
+    ]);
+  } finally {
+    rmSync(root, { force: true, recursive: true });
+  }
 });
 
 test('records deterministic fresh evidence only after its verifier passes', async () => {

@@ -8,7 +8,11 @@ const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
 test('presents both evidence types with their current status', async ({ page }) => {
-  const { semanticEvaluation } = loadWebsiteModel();
+  const { qualification, releaseEvidence, semanticEvaluation } = loadWebsiteModel();
+  const semanticReleaseEvidence =
+    releaseEvidence.mode === 'recorded' ? releaseEvidence.semantic : null;
+  const qualificationReleaseEvidence =
+    releaseEvidence.mode === 'recorded' ? releaseEvidence.qualification : null;
   await page.goto(toPublicPath('/evidence/qualification/'));
   const qualificationStatuses = await page
     .getByRole('link', { name: /qualification/iu })
@@ -23,6 +27,11 @@ test('presents both evidence types with their current status', async ({ page }) 
       : qualificationStatuses.includes('not-recorded')
         ? 'not-recorded'
         : 'passed';
+  const qualificationProjectCount = qualification.uniqueJourneyCount;
+  const qualificationClaimCount = qualification.profiles.reduce(
+    (total, profile) => total + profile.probes.length,
+    0,
+  );
 
   await page.goto(toPublicPath('/evidence/'));
 
@@ -33,14 +42,25 @@ test('presents both evidence types with their current status', async ({ page }) 
   const qualificationLink = page.getByRole('link', { name: /Adapter qualification/ });
   await expect(semanticLink.locator('[data-evidence-status]')).toHaveAttribute(
     'data-evidence-status',
-    semanticEvaluation.currentAssurance === null ? 'not-recorded' : 'passed',
+    semanticReleaseEvidence?.mode === 'pinned'
+      ? 'passed'
+      : semanticEvaluation.currentAssurance === null
+        ? 'not-recorded'
+        : 'passed',
   );
   await expect(semanticLink).toContainText(
-    `${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful for current assurance`,
+    semanticReleaseEvidence?.mode === 'pinned'
+      ? `Evidence pinned from ${semanticReleaseEvidence.sourceLabel}`
+      : `${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful for current assurance`,
   );
   await expect(qualificationLink.locator('[data-evidence-status]')).toHaveAttribute(
     'data-evidence-status',
-    qualificationStatus,
+    qualificationReleaseEvidence?.mode === 'pinned' ? 'passed' : qualificationStatus,
+  );
+  await expect(qualificationLink).toContainText(
+    qualificationReleaseEvidence?.mode === 'pinned'
+      ? `Evidence pinned from ${qualificationReleaseEvidence.sourceLabel}`
+      : `${qualificationProjectCount} ${qualificationProjectCount === 1 ? 'project' : 'projects'} covering ${qualificationClaimCount} ${qualificationClaimCount === 1 ? 'claim' : 'claims'}`,
   );
 });
 

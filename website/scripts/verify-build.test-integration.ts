@@ -39,7 +39,7 @@ describe('verifyProductionBuild', () => {
     expect(llmsText).toContain(gettingStartedUrl);
   });
 
-  test('publishes exact current semantic state across human and machine surfaces', () => {
+  test('publishes selected semantic evidence across human and machine surfaces', () => {
     const siteUrl = process.env['SITE_URL'] ?? DEFAULT_SITE_URL;
     const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
     const model = loadWebsiteModel();
@@ -58,6 +58,8 @@ describe('verifyProductionBuild', () => {
       ({ url }) => url === withBase(model.semanticEvaluation.route, basePath),
     );
     const currentAssurance = model.semanticEvaluation.currentAssurance;
+    const semanticReleaseEvidence =
+      model.releaseEvidence.mode === 'recorded' ? model.releaseEvidence.semantic : null;
     const hasAttemptHistory = model.semanticEvaluation.attempts.length > 0;
     const successfulCaseCount =
       model.semanticEvaluation.passedCaseCount + model.semanticEvaluation.recoveredCaseCount;
@@ -66,7 +68,9 @@ describe('verifyProductionBuild', () => {
     expect(model.semanticEvaluation.evidenceMatch).toBe(currentAssurance === null ? null : 'exact');
     expect(homeHtml).toContain(`${successfulCaseCount}/${model.semanticEvaluation.caseCount}`);
     expect(evidenceHtml).toContain(
-      `${successfulCaseCount} of ${model.semanticEvaluation.caseCount} scenarios successful for current assurance`,
+      semanticReleaseEvidence?.mode === 'pinned'
+        ? `Evidence pinned from ${semanticReleaseEvidence.sourceLabel}`
+        : `${successfulCaseCount} of ${model.semanticEvaluation.caseCount} scenarios successful for current assurance`,
     );
     expect(semanticHtml).toContain(
       `${successfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios`,

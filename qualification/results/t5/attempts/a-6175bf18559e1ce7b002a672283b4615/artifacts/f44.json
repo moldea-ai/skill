@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The manifest declares /moldea/project.md as the sole owner affected by /src/project-state.ts, and both files declare the state as operational. Deterministic checks passed, workspace hashes were unchanged, and approved Git status and scoped diff were clean.",
+  "requirements": [
+    {
+      "id": "identifies-owning-context",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml contains one context entry, /moldea/project.md, whose affectedBy list contains /src/project-state.ts. The actor reported that exact canonical owner, and deterministic-after confirms valid scope/inspection with an unchanged repository."
+    },
+    {
+      "id": "uses-bounded-moldea-evidence",
+      "verdict": "pass",
+      "evidence": "Runner-owned actor-command-policy records exactly 2 moldea CLI calls, within the required 1–4 range. The actor report identifies only /moldea/project.md and the reviewed src/project-state.ts behavior, without enumerating unrelated canonical content."
+    }
+  ],
+  "failures": []
+}

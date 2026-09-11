@@ -176,6 +176,100 @@ describe('qualification execution', () => {
     });
   });
 
+  test('resumes a model stage paused at the paid approval boundary', async () => {
+    temporaryResultsRoot = await mkdtemp(path.join(QUALIFICATION_ROOT, '.qualification-results-'));
+    const resultsRoot = temporaryResultsRoot;
+    const inspectRepositoryState = repositoryState.inspectGitRepositoryState;
+    vi.spyOn(repositoryState, 'inspectGitRepositoryState').mockImplementation(
+      async (repositoryRoot, options) => ({
+        ...(await inspectRepositoryState(repositoryRoot, options)),
+        isDirty: false,
+      }),
+    );
+    let pausedActorCalls = 0;
+    const pausedOutcome = await runQualification({
+      caseId: 'answer-information-before-adoption',
+      host: new FakeCodexHost({
+        actor: () => {
+          pausedActorCalls += 1;
+          return Promise.reject(new Error('Actor must not run before paid approval.'));
+        },
+      }),
+      mode: 'diagnostic',
+      requestPaidExecutionApproval: () => Promise.resolve(false),
+      resultsRoot,
+      reuseEvidence: false,
+      selection: { adapterId: 'custom', implementationId: 'custom' },
+      skillRepository: DEFAULT_SKILL_REPOSITORY,
+      workerCount: 1,
+    });
+    temporaryAttemptDirectory = pausedOutcome.attemptDirectory;
+    const actorStageId = 'case:answer-information-before-adoption:trial:initial:actor';
+
+    expect(pausedOutcome.result.status).toBe('incomplete');
+    expect(pausedOutcome.wasRecorded).toBe(false);
+    expect(pausedActorCalls).toBe(0);
+    expect(pausedOutcome.result.stages.find(({ id }) => id === actorStageId)?.status).toBe(
+      'pending',
+    );
+
+    let resumedActorCalls = 0;
+    let resumedJudgeCalls = 0;
+    const usage = { cachedInputTokens: 0, inputTokens: 1, outputTokens: 1 };
+    const resumedOutcome = await runQualification({
+      host: new FakeCodexHost({
+        actor: (input) => {
+          resumedActorCalls += 1;
+          return Promise.resolve({
+            output: {
+              outcome: input.scenario.expectedActorOutcome,
+              summary: `Completed ${input.caseId}.`,
+              changedFiles: input.scenario.workspace.allowedChangePaths,
+              observations: [],
+              unresolved: [],
+            },
+            usage,
+            durationMs: 0,
+            commandPolicy: emptyCommandPolicy,
+            events: '',
+          });
+        },
+        judge: (input) => {
+          resumedJudgeCalls += 1;
+          return Promise.resolve({
+            output: {
+              verdict: 'pass',
+              summary: `Accepted ${input.caseId}.`,
+              requirements: input.scenario.judgeRequirements
+                .filter((requirement) => requirement.evaluation.kind === 'judge')
+                .map(({ id }) => ({
+                  id,
+                  verdict: 'pass' as const,
+                  evidence: 'The deterministic fixture evidence passed.',
+                })),
+              failures: [],
+            },
+            usage,
+            durationMs: 0,
+            commandPolicy: emptyCommandPolicy,
+            events: '',
+          });
+        },
+      }),
+      requestPaidExecutionApproval: () => Promise.resolve(true),
+      resultsRoot,
+      resumeAttemptId: pausedOutcome.result.attemptId,
+      workerCount: 1,
+    });
+
+    expect(resumedOutcome.result.status).toBe('passed');
+    expect(resumedActorCalls).toBe(1);
+    expect(resumedJudgeCalls).toBe(1);
+    expect(resumedOutcome.result.stages.find(({ id }) => id === actorStageId)?.status).toBe(
+      'passed',
+    );
+  }, 120_000);
+
   test('resumes the complete Custom state machine without repeating completed cases', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-resume-'));
     const skillRepository = path.join(temporaryRoot, 'skill-repository');

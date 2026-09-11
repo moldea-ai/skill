@@ -1508,6 +1508,7 @@ export const runQualification = async (
 
     const isBatchInterruption = (error: unknown): boolean =>
       options.signal?.aborted === true ||
+      error instanceof PaidExecutionApprovalError ||
       error instanceof CodexEvaluationOperationalRetryExhaustedError ||
       error instanceof QualificationCandidateTokenLimitError ||
       (error instanceof Error && error.name === 'EvaluationBatchDiskLimitError');

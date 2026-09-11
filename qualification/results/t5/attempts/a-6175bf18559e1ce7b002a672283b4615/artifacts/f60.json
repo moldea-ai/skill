@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The actor gave an accurate two-sentence, repository-independent explanation. Runner evidence reports zero moldea CLI calls, workspace hashes are unchanged, and Git status and targeted diff are empty.",
+  "requirements": [
+    {
+      "id": "answers-concisely",
+      "verdict": "pass",
+      "evidence": "Actor output consists of two short sentences: it accurately describes moldea as maintaining project context and systems without owning the work, and identifies `/moldea/` as an adopted project's canonical-state location without making a conclusion about this repository."
+    },
+    {
+      "id": "avoids-repository-activation",
+      "verdict": "pass",
+      "evidence": "Runner-owned policy reports moldeaCommandCount 0 and moldeaOutputByteCount 0. Workspace assertions report identical before/after hashes and no changed paths; Git status and the targeted diff are also empty."
+    }
+  ],
+  "failures": []
+}

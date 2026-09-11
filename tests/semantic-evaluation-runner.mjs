@@ -4559,6 +4559,10 @@ const createRelatedApplicationRepository = async (root) => {
     ['add', '--all'],
     [
       '-c',
+      'gc.auto=0',
+      '-c',
+      'maintenance.auto=false',
+      '-c',
       'user.name=moldea Evaluation',
       '-c',
       'user.email=evaluation@invalid.example',
@@ -4620,6 +4624,10 @@ export const createActorRepository = async (root, caseDefinition) => {
     gitCommands.push(
       ['add', '--all'],
       [
+        '-c',
+        'gc.auto=0',
+        '-c',
+        'maintenance.auto=false',
         '-c',
         'user.name=moldea Evaluation',
         '-c',

@@ -694,6 +694,22 @@ describe('portable skill contract', () => {
     assert.match(agentDesign, /exact backtick-wrapped identity token/u);
     assert.match(agentDesign, /A heading that merely names the agent does not satisfy/u);
     assert.match(agentDesign, /retry may be the fifth and final moldea call/u);
+    assert.match(
+      agentDesign,
+      /Separate the requested operation's outcome from agent or runtime readiness/u,
+    );
+    assert.match(
+      agentDesign,
+      /blocking unresolved requirement prevents claims that the affected behavior, agent, or runtime is complete or production-ready/u,
+    );
+    assert.match(
+      agentDesign,
+      /does not make a narrower maintenance operation blocked when every requested safe write, preservation obligation, and validation step is complete/u,
+    );
+    assert.match(
+      agentDesign,
+      /use a blocked task outcome only when the gap prevents the requested deliverable itself/u,
+    );
     const agentSystemPlanning = readFileSync(
       join(SKILL_ROOT, 'references', 'agent-system-planning.md'),
       'utf8',

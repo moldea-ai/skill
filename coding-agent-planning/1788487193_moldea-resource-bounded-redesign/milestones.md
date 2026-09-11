@@ -263,20 +263,55 @@ Make direct canonical agent and runtime maintenance unambiguous when the task al
 
 Inspect route precedence, one-gate ownership, scope input, reference loading, abstention, resource bounds, and portable artifact identity.
 
-## Milestone 103: Re-establish semantic evidence under the corrected skill
+## Milestone 103: Clarify bounded task completion versus readiness
 
 ### Objective
 
-Prove the route correction on the exact dirty-project task, then produce one complete verified 74-case semantic baseline for the new portable identity.
+Prevent an unresolved readiness limitation from falsely blocking a narrower maintenance task that was completed safely and honestly.
 
 ### Dependencies
 
 - Milestone 102 is published and all deterministic/model-free checks pass.
+- Diagnostic `20260911T031327625Z-custom-custom-5032255a` remains ignored non-release evidence of the exact actor-outcome mismatch.
+
+### Scope and implementation
+
+- Clarify in the owning agent-design reference that `blocking` unresolved state prevents affected agent/runtime readiness or behavior-completeness claims.
+- Define the overall task outcome independently: a bounded maintenance task is completed when every requested safe change, preservation obligation, and validation step is finished and every remaining limitation is recorded.
+- Reserve a blocked task outcome for a gap that prevents the requested deliverable itself.
+- Keep the dirty-project scenario, expected state, evaluator, model settings, budgets, safety controls, and unresolved-state requirements unchanged.
+- Add a focused conformance regression and synchronize only directly affected public guidance.
+
+### Tests and verification
+
+- Run the focused conformance test, complete root correctness suites, artifact validation, documentation, resource, release-identity, path, formatting, privacy, website, and qualification model-free checks affected by the portable reference bytes.
+- Prove that the correction neither suppresses blocking unresolved requirements nor permits agent/runtime readiness claims while one remains.
+
+### Acceptance criteria
+
+- A completed bounded maintenance operation can report a blocking readiness limitation without returning a blocked task outcome.
+- A gap that prevents the requested deliverable still returns a blocked outcome.
+- Blocking unresolved state remains canonical and continues to prohibit readiness claims.
+- Review is ready and publication is signed, signed off, explicit, and pushed.
+
+### Review checkpoint
+
+Inspect task-versus-readiness semantics, unresolved-state honesty, conformance coverage, portable artifact identity, and absence of evaluator weakening.
+
+## Milestone 104: Re-establish semantic evidence under the corrected skill
+
+### Objective
+
+Prove the combined route and completion-semantics corrections on the exact dirty-project task, then produce one complete verified 74-case semantic baseline for the new portable identity.
+
+### Dependencies
+
+- Milestone 103 is published and all deterministic/model-free checks pass.
 - Disk bytes and inodes are sufficient and no evaluator process is active.
 
 ### Scope and implementation
 
-- Run one non-publishing `maintain-dirty-project` qualification diagnostic and require every dimension to pass before official semantic work.
+- Run one unchanged non-publishing `maintain-dirty-project` qualification diagnostic and require every dimension to pass before official semantic work.
 - Run one complete four-worker semantic recording with no model-stage reuse from prior portable skill bytes.
 - Use the existing two-pass/two-fail confirmation quorum and exact lower-worker resume for an operational capacity stop.
 - Preserve all previous semantic attempts as immutable historical evidence; promote only the verified current-identity passing attempt.
@@ -295,9 +330,9 @@ Prove the route correction on the exact dirty-project task, then produce one com
 
 ### Review checkpoint
 
-Inspect the focused route proof, full distribution, confirmations, resources, source identity, immutable predecessors, and promotion truth.
+Inspect the focused route and outcome proof, full distribution, confirmations, resources, source identity, immutable predecessors, and promotion truth.
 
-## Milestone 104: Close the Custom qualification baseline
+## Milestone 105: Close the Custom qualification baseline
 
 ### Objective
 
@@ -305,7 +340,7 @@ Produce one verified 12-case Custom baseline under the corrected portable skill 
 
 ### Dependencies
 
-- Milestone 103 provides verified current semantic evidence and a passing dirty-project diagnostic.
+- Milestone 104 provides verified current semantic evidence and a passing dirty-project diagnostic.
 - Custom preflight proves prior cross-skill stages are not reusable.
 
 ### Scope and implementation
@@ -330,7 +365,7 @@ Produce one verified 12-case Custom baseline under the corrected portable skill 
 
 Inspect the complete distribution, quorum use, package isolation, resources, stage identity, and promotion truth.
 
-## Milestone 105: Produce and close the adapter-specific ledger
+## Milestone 106: Produce and close the adapter-specific ledger
 
 ### Objective
 
@@ -338,7 +373,7 @@ Qualify all 13 official adapters against the exact current Custom baseline while
 
 ### Dependencies
 
-- Milestone 104 provides one verified current passing Custom baseline.
+- Milestone 105 provides one verified current passing Custom baseline.
 - Adapter preflight binds every profile to that exact baseline and current package closure.
 
 ### Scope and implementation
@@ -364,7 +399,7 @@ Qualify all 13 official adapters against the exact current Custom baseline while
 
 Inspect cross-profile patterns, isolation, concurrency, rerun scope, package closure, provenance, counts, public composition, and absence of legacy evidence.
 
-## Milestone 106: Publish the clean skill 5.0 release
+## Milestone 107: Publish the clean skill 5.0 release
 
 ### Objective
 
@@ -372,7 +407,7 @@ Integrate and publish one clean skill 5.0 release against verified packages and 
 
 ### Dependencies
 
-- Milestones 95, 98 through 100, and 101 through 105 provide verified current passing evidence.
+- Milestones 95, 98 through 100, and 101 through 106 provide verified current passing evidence.
 - Target branches, identities, registry state, workflows, and hosted destinations are freshly resolved.
 
 ### Scope and implementation
@@ -396,7 +431,7 @@ Integrate and publish one clean skill 5.0 release against verified packages and 
 
 Inspect evidence selection, clean-slate removal, freshness, signed integration, workflows, registry state, and hosted presentation.
 
-## Milestone 107: Complete the cross-repository launch audit
+## Milestone 108: Complete the cross-repository launch audit
 
 ### Objective
 
@@ -404,7 +439,7 @@ Prove that specifications, packages, platform, skill, fixtures, websites, and kn
 
 ### Dependencies
 
-- Milestone 106 is complete or has only a precisely documented external publication prerequisite.
+- Milestone 107 is complete or has only a precisely documented external publication prerequisite.
 
 ### Scope and implementation
 
@@ -430,4 +465,4 @@ Inspect exact tips, claims, counts, links, closure, fixture parity, hosted state
 
 ## Execution scope
 
-Preserve completed Milestones 1 through 100 and every immutable attempt. Publish the final granular-reuse validator correction, then correct direct canonical agent/runtime routing when tasks also name ordinary implementation evidence. Prove that fix in one dirty-project diagnostic, run a fresh 74-case semantic recording because portable behavior changed, establish a fresh 12-case Custom baseline without cross-skill reuse, qualify all 13 adapters in batches of at most four, publish clean skill 5.0, and complete the cross-repository launch audit. Do not alter another agent's Vite/Vitest work, preserve compatibility code, relabel evidence, weaken criteria or containment, duplicate paid stages, exceed four workers, modify protected instructions, or incorporate unrelated work.
+Preserve completed Milestones 1 through 102 and every immutable attempt. Clarify bounded task completion versus agent/runtime readiness without weakening unresolved-state truth, then publish the correction. Prove the combined route and outcome behavior in one unchanged dirty-project diagnostic, run a fresh 74-case semantic recording because portable behavior changed, establish a fresh 12-case Custom baseline without cross-skill reuse, qualify all 13 adapters in batches of at most four, publish clean skill 5.0, and complete the cross-repository launch audit. Do not alter another agent's Vite/Vitest work, preserve compatibility code, relabel evidence, weaken criteria or containment, duplicate paid stages, exceed four workers, modify protected instructions, or incorporate unrelated work.

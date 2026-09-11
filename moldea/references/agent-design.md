@@ -12,6 +12,8 @@ Establish the supported behavioral contract before drafting or broadly rewriting
 
 Do not call an agent complete when correct behavior depends on hidden repository knowledge. Supply model-facing context and a real runtime path, narrow the behavior, implement authorized support, clarify intent, or preserve incomplete state.
 
+Separate the requested operation's outcome from agent or runtime readiness. A blocking unresolved requirement prevents claims that the affected behavior, agent, or runtime is complete or production-ready. It does not make a narrower maintenance operation blocked when every requested safe write, preservation obligation, and validation step is complete and the limitation is recorded. Report that operation as completed with the unresolved limitation; use a blocked task outcome only when the gap prevents the requested deliverable itself.
+
 ## Write minimum sufficient instructions
 
 Every `instruction.md` must be complete after the runtime assigns responsibility. Keep it grounded, actionable, scoped where boundaries matter, aligned with executable contracts, precise about consequential ambiguity and failure, internally consistent, and concise enough that every runtime token earns its cost.

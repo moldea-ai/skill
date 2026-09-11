@@ -16,6 +16,8 @@ The supported contract can include identity, purpose, responsibility, context, i
 
 An agent is not complete when the model would need hidden repository knowledge. The coding agent must provide the necessary context, bind the runtime mechanism, narrow the responsibility, implement authorized support, clarify intent, or preserve genuine incomplete state.
 
+That readiness judgment is separate from the outcome of a narrower maintenance request. When every requested safe change, preservation obligation, and validation step is complete, the coding agent reports the maintenance operation as completed and records any remaining blocking readiness limitation. It reports the task as blocked only when that limitation prevents the requested deliverable itself.
+
 ## Keep model-facing assets distinct
 
 - `description.md` explains what the agent does.

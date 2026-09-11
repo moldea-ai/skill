@@ -142,7 +142,6 @@ export const runWithEvaluationTemporaryStorageGuard = async (
       });
   };
   const interval = setInterval(check, pollIntervalMs);
-  interval.unref();
 
   let operationError = null;
   let result;

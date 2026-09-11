@@ -1,0 +1,54 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index a5ba2f9..33f0848 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -4,3 +4,15 @@ context:
+   /moldea/project.md:
+     affectedBy:
+       - /src/**
++
++agents:
++  order-triage:
++    runtime:
++      id: custom
++      guidance: /moldea/runtimes/custom.md
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: createOrderTriageAgent
++    affectedBy:
++      - /src/order-triage-agent.ts
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..62855c3
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review without authority to approve refunds.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..fd491ff
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,7 @@
++# Order triage
++
++`order-triage` classifies orders for human review.
++
++Evaluate the available order information and provide a concise classification for the human reviewer, including the relevant facts and any material uncertainty.
++
++Never approve a refund or claim decision authority. Do not invent missing order details. If the information is insufficient or ambiguous, state that clearly and leave the decision to human review.
+
+diff --git a/moldea/runtimes/custom.md b/moldea/runtimes/custom.md
+new file mode 100644
+index 0000000..b09aed2
+--- /dev/null
++++ b/moldea/runtimes/custom.md
+@@ -0,0 +1,5 @@
++# Custom order-triage runtime
++
++`createOrderTriageAgent` receives an asynchronous canonical-instruction loader. The custom runtime must supply that loader, resolve `/moldea/agents/order-triage/instruction.md`, and use the returned content as the agent instruction.
++
++The factory fixes the runtime-facing ID to `order-triage`, its action to `classify-for-human-review`, and `canApproveRefunds` to `false`. This repository does not establish an order schema, model-visible tools, provider capabilities, or a refund execution path.

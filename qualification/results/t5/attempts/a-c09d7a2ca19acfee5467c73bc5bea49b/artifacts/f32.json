@@ -1,0 +1,57 @@
+{
+  "passed": true,
+  "failures": [],
+  "before": [
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "d3ee19f96268a3a844c5700cca7ea239ef48d5af4a4ffa2f86546d4deadc628f"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0461b45e640dea04b9459dcf169479fa7e2eb7447d8435610935cfc5d9f73b7c"
+    },
+    {
+      "path": "src/retry-policy.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "784b148e7172a097de44113c1933d7a5031f9e48e25ca4dafbdc9abb996f255c"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "8f4b476e05efd85f7186e1f526b4f270a6dc8e847df5e64eeee3ae30fc6fd79b"
+    }
+  ],
+  "after": [
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "d3ee19f96268a3a844c5700cca7ea239ef48d5af4a4ffa2f86546d4deadc628f"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0461b45e640dea04b9459dcf169479fa7e2eb7447d8435610935cfc5d9f73b7c"
+    },
+    {
+      "path": "src/retry-policy.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "784b148e7172a097de44113c1933d7a5031f9e48e25ca4dafbdc9abb996f255c"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "8f4b476e05efd85f7186e1f526b4f270a6dc8e847df5e64eeee3ae30fc6fd79b"
+    }
+  ],
+  "changedPaths": []
+}

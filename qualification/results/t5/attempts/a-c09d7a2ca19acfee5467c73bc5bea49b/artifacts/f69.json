@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Added the order-triage moldea agent, bound it to the custom runtime and `createOrderTriageAgent`, and documented its human-review-only behavior and refund-approval restriction. TypeScript compilation and final moldea validation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The runtime binding and `affectedBy` relationship both reference `/src/order-triage-agent.ts`.",
+    "Runtime guidance explicitly records that no order schema, model-visible tools, provider capabilities, or refund execution path are established.",
+    "`node node_modules/typescript/bin/tsc -p tsconfig.json` passed.",
+    "Final moldea validation returned `status: valid` with zero diagnostics.",
+    "The initial bounded canonical-content lookup returned `GIT_OUTPUT_INVALID`; no unsupported conclusion was inferred from it."
+  ],
+  "unresolved": []
+}

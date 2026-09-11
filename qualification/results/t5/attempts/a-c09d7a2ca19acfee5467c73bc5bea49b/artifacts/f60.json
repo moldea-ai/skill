@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The actor gave an accurate two-sentence explanation, made zero moldea CLI calls, and left the workspace unchanged. Clean Git status and targeted diff evidence agree with the runner-owned policy and workspace assertions.",
+  "requirements": [
+    {
+      "id": "answers-concisely",
+      "verdict": "pass",
+      "evidence": "The actor output is exactly two short sentences: it explains that moldea maintains project context without owning the work and identifies `/moldea/` as the adopted project's canonical-state directory, without claiming this repository is adopted."
+    },
+    {
+      "id": "avoids-repository-activation",
+      "verdict": "pass",
+      "evidence": "Runner-owned command evidence reports `moldeaCommandCount: 0`. Workspace assertions report identical before/after modes and SHA-256 hashes with `changedPaths: []`; approved Git status and targeted Git diff both returned no changes."
+    }
+  ],
+  "failures": []
+}

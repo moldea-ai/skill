@@ -1,0 +1,86 @@
+{
+  "caseId": "reconcile-drift-and-boundaries",
+  "title": "Reconcile drift and boundaries",
+  "status": "failed",
+  "confirmationStatus": "not-applicable",
+  "durationMs": 369835,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": false,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": false,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [
+        "semantic",
+        "repositoryControl"
+      ],
+      "passed": false,
+      "durationMs": 369835,
+      "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+      "judgeStatus": "skipped",
+      "judgeOutputPath": null,
+      "judgeSkippedPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-skipped.json",
+      "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 511196,
+        "cachedInputTokens": 463232,
+        "outputTokens": 12636
+      },
+      "judgeUsage": null,
+      "actorEvidenceCreatedAt": "2026-09-11T09:45:15.820Z",
+      "judgeEvidenceCreatedAt": null,
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "repairs-binding",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "records-boundary",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "preserves-source",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "fail",
+          "evidence": "Runner checks failed: deterministic-after."
+        }
+      ],
+      "failures": [
+        "Repository FS inspection was invalid; expected valid.",
+        "Installed CLI validate reported invalid.",
+        "Installed CLI inspect reported invalid.",
+        "Requirement validates-project failed: Runner checks failed: deterministic-after."
+      ]
+    }
+  ],
+  "failures": [
+    "Repository FS inspection was invalid; expected valid.",
+    "Installed CLI validate reported invalid.",
+    "Installed CLI inspect reported invalid.",
+    "Requirement validates-project failed: Runner checks failed: deterministic-after."
+  ],
+  "reuse": null
+}

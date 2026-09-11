@@ -39,7 +39,7 @@ describe('verifyProductionBuild', () => {
     expect(llmsText).toContain(gettingStartedUrl);
   });
 
-  test('publishes selected semantic evidence across human and machine surfaces', () => {
+  test('publishes current semantic evidence across human and machine surfaces', () => {
     const siteUrl = process.env['SITE_URL'] ?? DEFAULT_SITE_URL;
     const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
     const model = loadWebsiteModel();
@@ -58,31 +58,22 @@ describe('verifyProductionBuild', () => {
       ({ url }) => url === withBase(model.semanticEvaluation.route, basePath),
     );
     const currentAssurance = model.semanticEvaluation.currentAssurance;
-    const releaseAssurance = model.semanticReleaseAssurance;
-    const semanticReleaseEvidence =
-      model.releaseEvidence.mode === 'recorded' ? model.releaseEvidence.semantic : null;
     const hasAttemptHistory = model.semanticEvaluation.attempts.length > 0;
     const successfulCaseCount =
-      (releaseAssurance?.result.passedCaseCount ?? 0) +
-      (releaseAssurance?.result.recoveredCaseCount ?? 0);
+      (currentAssurance?.result.passedCaseCount ?? 0) +
+      (currentAssurance?.result.recoveredCaseCount ?? 0);
 
     expect(model.semanticEvaluation.status).toBe(currentAssurance?.result.status ?? 'not-recorded');
     expect(model.semanticEvaluation.evidenceMatch).toBe(currentAssurance === null ? null : 'exact');
     expect(homeHtml).toContain(`${successfulCaseCount}/${model.semanticEvaluation.caseCount}`);
     expect(evidenceHtml).toContain(
-      semanticReleaseEvidence?.mode === 'pinned'
-        ? `Evidence pinned from ${semanticReleaseEvidence.sourceLabel}`
-        : `${successfulCaseCount} of ${model.semanticEvaluation.caseCount} scenarios successful for current assurance`,
+      `${successfulCaseCount} of ${model.semanticEvaluation.caseCount} scenarios have current assurance`,
     );
     expect(semanticHtml).toContain(
       `${successfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios`,
     );
     expect(semanticHtml).toContain(
-      currentAssurance !== null
-        ? 'Exact release inputs'
-        : releaseAssurance === null
-          ? 'No release evidence'
-          : 'Pinned release evidence',
+      currentAssurance !== null ? 'Exact current inputs' : 'No exact current evidence',
     );
     expect(semanticHtml).toContain(
       !hasAttemptHistory
@@ -91,6 +82,9 @@ describe('verifyProductionBuild', () => {
     );
     expect(llmsText).toContain(
       hasAttemptHistory ? 'Review the latest' : 'before the first attempt is recorded',
+    );
+    expect(llmsText).toContain(
+      `Current semantic contract: ${successfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios have exact current assurance.`,
     );
     expect(semanticSearchRecord?.description).toContain(
       hasAttemptHistory ? 'latest' : 'before the first attempt is recorded',

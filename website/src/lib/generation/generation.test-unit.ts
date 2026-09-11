@@ -173,6 +173,7 @@ describe('createWebsiteModel', () => {
     expect(model.navigation.flatMap(({ documents }) => documents)).toStrictEqual(model.documents);
     expect(model.qualification.route).toBe('/evidence/qualification/');
     expect(model.releaseEvidence).toStrictEqual({ mode: 'not-recorded', targetVersion: '5.0.0' });
+    expect(model.currentSemanticAssurance).toBe(model.semanticEvaluation.currentAssurance);
     expect(model.semanticEvaluation.route).toBe('/evidence/semantic/');
     expect(model.qualification.profiles).toHaveLength(1);
     const qualificationProfile = model.qualification.profiles[0];
@@ -236,16 +237,27 @@ describe('createWebsiteModel', () => {
 
     expect(model.releaseEvidence.mode).toBe('recorded');
     expect(publicationCheck).not.toHaveBeenCalled();
-    expect(model.llmsText).toContain('Qualification evidence for release 6.0.0 is pinned');
+    expect(model.qualification.profiles[0]).toMatchObject({
+      attempts: [],
+      currentAssurance: null,
+      currentLatest: null,
+      currentStatus: 'not-recorded',
+    });
+    expect(model.llmsText).toContain(
+      'Qualification release provenance uses verified prior evidence from',
+    );
+    expect(model.llmsText).toContain(
+      'Current qualification contracts: 0/1 profiles have exact current assurance.',
+    );
   });
 
-  test('resolves the exact pinned semantic attempt as release assurance', () => {
+  test('keeps pinned semantic provenance separate from unmatched current assurance', () => {
     const semanticEvaluation = loadSemanticEvaluationWebsiteModel('unused');
     const pinnedAttempt = semanticEvaluation.currentAssurance;
     if (pinnedAttempt === null) throw new Error('Expected a semantic test attempt.');
     vi.mocked(loadSemanticEvaluationWebsiteModel).mockReturnValueOnce({
       ...semanticEvaluation,
-      attempts: [pinnedAttempt],
+      attempts: [],
       currentAssurance: null,
       evidenceMatch: null,
       failedCaseCount: 0,
@@ -273,7 +285,15 @@ describe('createWebsiteModel', () => {
 
     const model = createWebsiteModel();
 
-    expect(model.semanticReleaseAssurance).toBe(pinnedAttempt);
+    expect(model.currentSemanticAssurance).toBeNull();
+    expect(model.semanticEvaluation.attempts).toStrictEqual([]);
+    expect(model.llmsText).toContain(
+      'Semantic release provenance uses verified prior evidence from',
+    );
+    expect(model.llmsText).toContain(
+      `Current semantic contract: 0/${semanticEvaluation.caseCount} scenarios have exact current assurance.`,
+    );
+    expect(model.llmsText).not.toContain(pinnedAttempt.result.attemptId);
   });
 
   test('requires reader-facing product mentions in Markdown to use inline code', () => {

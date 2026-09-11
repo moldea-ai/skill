@@ -52,7 +52,7 @@ const evidenceLayers = [
 
 <BaseLayout
   title="Adapter qualification evidence"
-  description="Inspect the transparent adapter support gate, exact project profiles, complete attempt history, and raw committed evidence."
+  description="Inspect the transparent adapter support gate, exact project profiles, current-contract attempt history, and raw committed evidence."
   {breadcrumbs}
 >
   <div class="page-shell pt-7">
@@ -73,8 +73,8 @@ const evidenceLayers = [
         Realistic projects exercise exact published package artifacts, the portable skill,
         deterministic repository behavior, and separate actor and judge stages using the frontier
         assurance model. Current short storage and immutable release history are validated together
-        at build time, so every recorded outcome remains inspectable without restoring long paths to
-        the working tree.
+        at build time. This page exposes current-contract attempts, while verified prior release
+        provenance remains available through the source identified above.
       </p>
       <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
         The suite executes {qualification.uniqueJourneyCount} unique projects: 12 once in the Custom baseline
@@ -126,7 +126,7 @@ const evidenceLayers = [
         </div>
         <p class="text-sm text-muted-foreground">
           {
-            `${profileCount} ${profileCount === 1 ? 'profile' : 'profiles'} · ${attemptCount} recorded ${attemptCount === 1 ? 'attempt' : 'attempts'}`
+            `${profileCount} ${profileCount === 1 ? 'profile' : 'profiles'} · ${attemptCount} current-contract ${attemptCount === 1 ? 'attempt' : 'attempts'}`
           }
         </p>
       </div>
@@ -232,8 +232,9 @@ const evidenceLayers = [
         <div>
           <h2 class="text-2xl font-semibold tracking-tight">Every outcome remains inspectable.</h2>
           <p class="mt-3 max-w-3xl leading-7 text-muted-foreground">
-            Website generation validates each profile's current record and resolves its newest and
-            last-passing attempts. Every artifact link points to the current release evidence.
+            Website generation validates each current profile contract and resolves its newest and
+            last-passing current-contract attempts. Every artifact link in these profiles points to
+            current-contract evidence. Verified prior release provenance remains separate above.
           </p>
         </div>
         <ActionLink

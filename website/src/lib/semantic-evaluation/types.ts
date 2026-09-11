@@ -121,7 +121,7 @@ export interface ISemanticAttemptTrialModel {
 export type ISemanticCriterion = ISemanticCriterionContract;
 export type ISemanticCaseDefinition = ISemanticCaseContract;
 
-// current case state derived from the release-assurance attempt
+// current case state derived from the exact current-contract attempt
 export interface ISemanticEvaluationCaseModel {
   confirmationStatus: ISemanticAttemptRecord['cases'][number]['confirmationStatus'] | null;
   developerDirection: string | null;

@@ -531,18 +531,16 @@ describe('loadQualificationWebsiteModel', () => {
     const universalCaseIds = new Set(
       caseCatalog.cases.filter(({ layer }) => layer === 'universal-baseline').map(({ id }) => id),
     );
-    const completeFailedAttempt = customProfile?.attempts.find(
-      ({ result }) =>
-        result.status === 'failed' &&
-        result.cases.length === universalCaseIds.size &&
-        result.cases.at(-1)?.status !== 'failed',
-    );
+    const currentProfileDigest = customProfile?.currentLatest?.result.provenance.profileDigest;
 
     expect(model.profiles).toHaveLength(14);
     expect(model.uniqueJourneyCount).toBe(38);
-    expect(completeFailedAttempt?.result.cases.some(({ status }) => status === 'failed')).toBe(
-      true,
-    );
+    expect(currentProfileDigest).toMatch(/^[a-f0-9]{64}$/u);
+    expect(
+      customProfile?.attempts.every(
+        ({ result }) => result.provenance.profileDigest === currentProfileDigest,
+      ),
+    ).toBe(true);
     expect(customProfile?.cases.map(({ id }) => id)).toStrictEqual([...universalCaseIds]);
     expect(
       model.profiles
@@ -850,12 +848,6 @@ cases:
         ].join('\n'),
       }).trim()}\n`,
     );
-    writeText(
-      root,
-      'qualification/profiles/t1/cases/c1/task.md',
-      '# Current task\n\nThis newer profile text must not replace the recorded attempt task.\n',
-    );
-
     const replay = loadQualificationWebsiteModel(root).profiles[0]?.currentLatest?.cases[0]?.replay;
 
     expect(replay?.trials[0]?.steps[0]).toStrictEqual({
@@ -869,6 +861,36 @@ cases:
       kind: 'message',
       role: 'developer',
       source: 'recorded',
+    });
+  });
+
+  test('excludes obsolete profile attempts without loading current-schema bodies or artifacts', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-obsolete-profile';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    writeText(
+      root,
+      'qualification/profiles/t1/cases/c1/task.md',
+      '# Current task\n\nThis changed task creates a new profile identity.\n',
+    );
+    const attemptPath = join(getAttemptDirectory(root, attemptId), 'attempt.json');
+    const obsoleteAttempt = JSON.parse(readFileSync(attemptPath, 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    delete obsoleteAttempt['cases'];
+    writeFileSync(attemptPath, `${JSON.stringify(obsoleteAttempt, null, 2)}\n`, 'utf8');
+    writeFileSync(getArtifactPath(root, attemptId, 'coverage.json'), '{invalid', 'utf8');
+
+    const profile = loadQualificationWebsiteModel(root).profiles[0];
+
+    expect(profile).toMatchObject({
+      attempts: [],
+      currentAssurance: null,
+      currentLastPassing: null,
+      currentLatest: null,
+      currentStatus: 'not-recorded',
+      latest: null,
     });
   });
 

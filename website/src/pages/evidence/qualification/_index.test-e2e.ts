@@ -194,7 +194,9 @@ test('presents profile definitions and the exact current evidence state', async 
       );
     }
     if (profile.currentLatest === null) {
-      await expect(page.getByText(/No protocol 10 Sol attempt has been committed/u)).toBeVisible();
+      await expect(
+        page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
+      ).toBeVisible();
       await expect(
         page.getByRole('link', {
           name: /Inspect the (?:execution-error|failed|passing) attempt/u,
@@ -216,7 +218,9 @@ test('replays qualification evidence through human-readable and technical views'
   const customProfile = getProfile('custom', 'custom');
   await page.goto(toPublicPath(customProfile.route));
   if (customProfile.currentLatest === null) {
-    await expect(page.getByText(/No protocol 10 Sol attempt has been committed/u)).toBeVisible();
+    await expect(
+      page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
+    ).toBeVisible();
     return;
   }
   const groundedAgentCase = customProfile.currentLatest.cases.find(

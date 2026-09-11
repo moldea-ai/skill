@@ -12,7 +12,7 @@ import BaseLayout from '../../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
 
 const model = loadWebsiteModel();
-const { semanticEvaluation, semanticReleaseAssurance } = model;
+const { currentSemanticAssurance, semanticEvaluation } = model;
 const basePath = import.meta.env.BASE_URL;
 const breadcrumbs = [
   { href: '/', label: 'Home' },
@@ -21,14 +21,14 @@ const breadcrumbs = [
 ];
 let caseNumber = 0;
 const successfulCaseCount =
-  (semanticReleaseAssurance?.result.passedCaseCount ?? 0) +
-  (semanticReleaseAssurance?.result.recoveredCaseCount ?? 0);
-const releaseGroups =
-  semanticReleaseAssurance === null
+  (currentSemanticAssurance?.result.passedCaseCount ?? 0) +
+  (currentSemanticAssurance?.result.recoveredCaseCount ?? 0);
+const currentGroups =
+  currentSemanticAssurance === null
     ? semanticEvaluation.groups
     : semanticEvaluation.groups.map((group) => ({
         ...group,
-        cases: semanticReleaseAssurance.cases.filter(({ groupId }) => groupId === group.id),
+        cases: currentSemanticAssurance.cases.filter(({ groupId }) => groupId === group.id),
       }));
 ---
 
@@ -51,22 +51,21 @@ const releaseGroups =
     <header class="mt-7 border-b border-border pb-10">
       <div class="flex flex-wrap items-center gap-3">
         <EvidenceStatus
-          status={semanticReleaseAssurance?.result.status ?? semanticEvaluation.status}
+          status={currentSemanticAssurance?.result.status ?? semanticEvaluation.status}
         />
         <span class="font-mono text-sm font-bold">
-          Release suite: {successfulCaseCount}/{semanticEvaluation.caseCount} scenarios
+          Current suite: {successfulCaseCount}/{semanticEvaluation.caseCount} scenarios
         </span>
       </div>
       <p class="eyebrow mt-5">Behavioral release evidence</p>
       <h1 class="section-title mt-3 max-w-5xl font-semibold">Semantic evaluation</h1>
       <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-        Attempts for the current evaluation contract are shown as they happened, but only evidence
-        verified against the current skill behavior, CLI closure, scenario suite, coverage, and Sol
-        protocol counts as fresh release assurance. An explicitly pinned release identifies its
-        original passing source above. The status and scenario details below follow the evidence
-        selected for this release. Each completed scenario uses a blind actor and an independent
-        judge. Open a scenario to replay the recorded interaction, safe command results, workspace
-        changes, and verdict before inspecting its evaluation criteria.
+        The release notice above records whether this version uses fresh evidence or verified prior
+        evidence. The status and scenario details below always describe the current skill behavior,
+        CLI closure, scenario suite, coverage, and Sol protocol. Each completed scenario uses a
+        blind actor and an independent judge. Open a scenario to replay the recorded interaction,
+        safe command results, workspace changes, and verdict before inspecting its evaluation
+        criteria.
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
@@ -81,15 +80,15 @@ const releaseGroups =
           />
         </ActionLink>
         {
-          semanticReleaseAssurance !== null && (
+          currentSemanticAssurance !== null && (
             <ActionLink
               class="font-bold"
-              href={semanticReleaseAssurance.rawEvidenceUrl}
+              href={currentSemanticAssurance.rawEvidenceUrl}
               target="_blank"
               rel="noopener noreferrer"
               variant="outline"
             >
-              Inspect release raw evidence
+              Inspect current raw evidence
               <ExternalLink
                 class="size-4"
                 aria-hidden="true"
@@ -118,34 +117,34 @@ const releaseGroups =
       aria-label="Semantic evaluation summary"
     >
       <div class="surface-card p-4">
-        <p class="text-sm text-muted-foreground">Release scenarios passed</p>
+        <p class="text-sm text-muted-foreground">Current scenarios passed</p>
         <p class="mt-2 font-mono text-2xl font-bold">
-          {semanticReleaseAssurance?.result.passedCaseCount ?? 0}
+          {currentSemanticAssurance?.result.passedCaseCount ?? 0}
         </p>
       </div>
       <div class="surface-card p-4">
-        <p class="text-sm text-muted-foreground">Release recoveries</p>
+        <p class="text-sm text-muted-foreground">Current recoveries</p>
         <p class="mt-2 font-mono text-2xl font-bold">
-          {semanticReleaseAssurance?.result.recoveredCaseCount ?? 0}
+          {currentSemanticAssurance?.result.recoveredCaseCount ?? 0}
         </p>
       </div>
       <div class="surface-card p-4">
-        <p class="text-sm text-muted-foreground">Release failures</p>
+        <p class="text-sm text-muted-foreground">Current failures</p>
         <p class="mt-2 font-mono text-2xl font-bold">
-          {semanticReleaseAssurance?.result.failedCaseCount ?? 0}
+          {currentSemanticAssurance?.result.failedCaseCount ?? 0}
         </p>
       </div>
       <div class="surface-card p-4">
-        <p class="text-sm text-muted-foreground">Release pending</p>
+        <p class="text-sm text-muted-foreground">Current pending</p>
         <p class="mt-2 font-mono text-2xl font-bold">
-          {semanticReleaseAssurance?.result.pendingCaseCount ?? semanticEvaluation.caseCount}
+          {currentSemanticAssurance?.result.pendingCaseCount ?? semanticEvaluation.caseCount}
         </p>
       </div>
     </section>
 
     <div class="py-12">
       {
-        releaseGroups.map((group) => (
+        currentGroups.map((group) => (
           <section
             id={group.id}
             class="scroll-mt-24 border-b border-border py-10 first:pt-0 last:border-0 last:pb-0"
@@ -211,8 +210,8 @@ const releaseGroups =
         ) : (
           <ol class="mt-7 grid gap-3">
             {[...semanticEvaluation.attempts].reverse().map(({ result, route }) => {
-              const isReleaseAttempt =
-                result.attemptId === semanticReleaseAssurance?.result.attemptId;
+              const isCurrentAssuranceAttempt =
+                result.attemptId === currentSemanticAssurance?.result.attemptId;
               return (
                 <li>
                   <a
@@ -223,8 +222,8 @@ const releaseGroups =
                       <span class="flex flex-wrap items-center gap-2">
                         <EvidenceStatus status={result.status} />
                         <span class="text-xs font-bold text-muted-foreground">
-                          {isReleaseAttempt
-                            ? 'Selected release attempt'
+                          {isCurrentAssuranceAttempt
+                            ? 'Current assurance attempt'
                             : 'Earlier current-contract attempt'}
                         </span>
                         {result.attemptId === semanticEvaluation.latestPointer?.latestAttemptId && (
@@ -273,10 +272,8 @@ const releaseGroups =
             <dd class="mt-1 font-mono break-all">
               {
                 semanticEvaluation.evidenceMatch === 'exact'
-                  ? 'Exact release inputs'
-                  : semanticReleaseAssurance === null
-                    ? 'No release evidence'
-                    : 'Pinned release evidence'
+                  ? 'Exact current inputs'
+                  : 'No exact current evidence'
               }
             </dd>
           </div>
@@ -284,14 +281,14 @@ const releaseGroups =
             <dt class="text-muted-foreground">Source attempt</dt>
             <dd class="mt-1 font-mono break-all">
               {
-                semanticReleaseAssurance === null ? (
+                currentSemanticAssurance === null ? (
                   'Not recorded'
                 ) : (
                   <a
                     class="text-link underline-offset-4 hover:underline"
-                    href={withBase(semanticReleaseAssurance.route, basePath)}
+                    href={withBase(currentSemanticAssurance.route, basePath)}
                   >
-                    {semanticReleaseAssurance.result.attemptId}
+                    {currentSemanticAssurance.result.attemptId}
                   </a>
                 )
               }
@@ -300,7 +297,7 @@ const releaseGroups =
           <div>
             <dt class="text-muted-foreground">Evaluated at</dt>
             <dd class="mt-1 font-mono break-all">
-              {semanticReleaseAssurance?.result.updatedAt ?? 'Not recorded'}
+              {currentSemanticAssurance?.result.updatedAt ?? 'Not recorded'}
             </dd>
           </div>
           <div>
@@ -316,7 +313,7 @@ const releaseGroups =
           <div>
             <dt class="text-muted-foreground">Evaluated artifact digest</dt>
             <dd class="mt-1 font-mono text-xs break-all">
-              {semanticReleaseAssurance?.result.artifactDigest ?? 'Not recorded'}
+              {currentSemanticAssurance?.result.artifactDigest ?? 'Not recorded'}
             </dd>
           </div>
           <div>

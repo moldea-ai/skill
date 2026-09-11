@@ -9,27 +9,23 @@ import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 
 const model = loadWebsiteModel();
 const { qualification, semanticEvaluation } = model;
-const semanticEvidence =
-  model.releaseEvidence.mode === 'recorded' ? model.releaseEvidence.semantic : null;
-const qualificationEvidence =
-  model.releaseEvidence.mode === 'recorded' ? model.releaseEvidence.qualification : null;
 const basePath = import.meta.env.BASE_URL;
-const projectCount = qualification.uniqueJourneyCount;
-const claimCount = qualification.profiles.reduce(
-  (total, profile) => total + profile.probes.length,
-  0,
-);
+const successfulSemanticCaseCount =
+  (model.currentSemanticAssurance?.result.passedCaseCount ?? 0) +
+  (model.currentSemanticAssurance?.result.recoveredCaseCount ?? 0);
 const qualificationStatuses = qualification.profiles.map((profile) => profile.currentStatus);
-const qualificationStatus =
-  qualificationEvidence?.mode === 'pinned'
-    ? 'passed'
-    : qualificationStatuses.includes('errored')
-      ? 'errored'
-      : qualificationStatuses.includes('failed')
-        ? 'failed'
-        : qualificationStatuses.includes('not-recorded')
-          ? 'not-recorded'
-          : 'passed';
+const qualificationStatus = qualificationStatuses.includes('errored')
+  ? 'errored'
+  : qualificationStatuses.includes('failed')
+    ? 'failed'
+    : qualificationStatuses.includes('incomplete')
+      ? 'incomplete'
+      : qualificationStatuses.includes('not-recorded')
+        ? 'not-recorded'
+        : 'passed';
+const qualifiedProfileCount = qualification.profiles.filter(
+  ({ currentAssurance }) => currentAssurance !== null,
+).length;
 const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
 ---
 
@@ -53,8 +49,8 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         Semantic evaluation answers whether the skill behaves correctly across difficult situations.
         Qualification answers whether the published packages, adapter, CLI, and skill work together
         in realistic projects. Each card shows the current result. Semantic history stays scoped to
-        the active evaluation contract, while qualification keeps prior project attempts available
-        for inspection.
+        the active evaluation contract, while qualification keeps current-contract project attempts
+        available for inspection. Verified prior release provenance remains identified separately.
       </p>
     </header>
 
@@ -66,10 +62,8 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         title="Semantic evaluation"
         description="Review the behavioral scenarios, exact success and failure criteria, and evidence-based rationale for every current-contract outcome."
         href={semanticEvaluation.route}
-        metric={semanticEvidence?.mode === 'pinned'
-          ? `Evidence pinned from ${semanticEvidence.sourceLabel}`
-          : `${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful for current assurance`}
-        status={semanticEvidence?.mode === 'pinned' ? 'passed' : semanticEvaluation.status}
+        metric={`${successfulSemanticCaseCount} of ${semanticEvaluation.caseCount} scenarios have current assurance`}
+        status={semanticEvaluation.status}
         questions={[
           'Does the skill make the right decision when context is incomplete or conflicting?',
           'Does it respect repository truth, host constraints, and safety boundaries?',
@@ -86,9 +80,7 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         title="Adapter qualification"
         description="Review realistic project journeys, compatibility claims, deterministic checks, independent judgment, and raw attempt artifacts."
         href={qualification.route}
-        metric={qualificationEvidence?.mode === 'pinned'
-          ? `Evidence pinned from ${qualificationEvidence.sourceLabel}`
-          : `${projectCount} ${projectCount === 1 ? 'project' : 'projects'} covering ${claimCount} ${claimCount === 1 ? 'claim' : 'claims'}`}
+        metric={`${qualifiedProfileCount} of ${qualification.profiles.length} profiles have current assurance`}
         status={qualificationStatus}
         questions={[
           'Does this adapter implementation work with the exact published package artifacts?',

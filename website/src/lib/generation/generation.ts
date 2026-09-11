@@ -13,7 +13,6 @@ import {
 } from '../qualification/index.ts';
 import {
   loadSemanticEvaluationWebsiteModel,
-  type ISemanticAttemptModel,
   type ISemanticEvaluationWebsiteModel,
 } from '../semantic-evaluation/index.ts';
 import {
@@ -324,6 +323,13 @@ export const createLlmsText = (
   releaseEvidence: IWebsiteModel['releaseEvidence'],
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
 ): string => {
+  const currentSemanticSuccessfulCaseCount = semanticEvaluation.currentAssurance
+    ? semanticEvaluation.currentAssurance.result.passedCaseCount +
+      semanticEvaluation.currentAssurance.result.recoveredCaseCount
+    : 0;
+  const currentQualifiedProfileCount = qualification.profiles.filter(
+    ({ currentAssurance }) => currentAssurance !== null,
+  ).length;
   const releaseEvidenceLines =
     releaseEvidence.mode === 'not-recorded'
       ? [`Release evidence has not been recorded for ${releaseEvidence.targetVersion}.`]
@@ -331,7 +337,7 @@ export const createLlmsText = (
           const section = releaseEvidence[kind];
           const label = kind === 'semantic' ? 'Semantic' : 'Qualification';
           return section.mode === 'pinned'
-            ? `${label} evidence for release ${releaseEvidence.targetVersion} is pinned from [${section.sourceLabel}](${section.sourceUrl}). Reason: ${section.reason}`
+            ? `${label} release provenance uses verified prior evidence from [${section.sourceLabel}](${section.sourceUrl}). Reason: ${section.reason}`
             : `${label} evidence for release ${releaseEvidence.targetVersion} is fresh.`;
         });
   const lines = [
@@ -369,6 +375,9 @@ export const createLlmsText = (
     '## Evidence',
     '',
     ...releaseEvidenceLines,
+    '',
+    `Current semantic contract: ${currentSemanticSuccessfulCaseCount}/${semanticEvaluation.caseCount} scenarios have exact current assurance.`,
+    `Current qualification contracts: ${currentQualifiedProfileCount}/${qualification.profiles.length} profiles have exact current assurance.`,
     '',
     `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
     semanticEvaluation.hasAttempt
@@ -434,24 +443,6 @@ export const createRouteManifest = (
   return [...routes].sort();
 };
 
-/** Resolves the exact semantic attempt selected for the current release. */
-const resolveSemanticReleaseAssurance = (
-  releaseEvidence: IWebsiteModel['releaseEvidence'],
-  semanticEvaluation: ISemanticEvaluationWebsiteModel,
-): ISemanticAttemptModel | null => {
-  if (releaseEvidence.mode !== 'recorded' || releaseEvidence.semantic.mode !== 'pinned') {
-    return semanticEvaluation.currentAssurance;
-  }
-  const sourceAttemptId = releaseEvidence.semantic.sourceAttemptId;
-  const pinnedAttempt = semanticEvaluation.attempts.find(
-    ({ result }) => result.attemptId === sourceAttemptId,
-  );
-  if (pinnedAttempt === undefined || pinnedAttempt.result.status !== 'passed') {
-    throw new Error('Pinned semantic release evidence does not resolve to a passing attempt.');
-  }
-  return pinnedAttempt;
-};
-
 /**
  * Builds the complete deterministic website model without writing generated output.
  * @param qualificationRepositoryRoot Repository root used to load qualification evidence.
@@ -469,10 +460,6 @@ export const createWebsiteModel = (
     assertPublishableQualificationEvidence(qualification);
   }
   const semanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
-  const semanticReleaseAssurance = resolveSemanticReleaseAssurance(
-    releaseEvidence,
-    semanticEvaluation,
-  );
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
   const productionHostname = new URL(DEFAULT_SITE_URL).hostname;
@@ -488,6 +475,7 @@ export const createWebsiteModel = (
   }
 
   return {
+    currentSemanticAssurance: semanticEvaluation.currentAssurance,
     documents,
     generatedNotice: GENERATED_NOTICE,
     llmsText: createLlmsText(documents, skill, qualification, releaseEvidence, semanticEvaluation),
@@ -510,7 +498,6 @@ export const createWebsiteModel = (
       ...createQualificationSearchRecords(qualification),
     ],
     semanticEvaluation,
-    semanticReleaseAssurance,
     skill,
   };
 };

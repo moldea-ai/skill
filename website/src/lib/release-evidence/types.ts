@@ -12,7 +12,7 @@ export type IReleaseEvidenceSectionModel =
       sourceUrl: string;
     };
 
-// semantic provenance also identifies the exact attempt rendered as release evidence
+// semantic provenance also identifies its independently verified source attempt
 export type ISemanticReleaseEvidenceSectionModel =
   | Extract<IReleaseEvidenceSectionModel, { mode: 'fresh' }>
   | (Extract<IReleaseEvidenceSectionModel, { mode: 'pinned' }> & {

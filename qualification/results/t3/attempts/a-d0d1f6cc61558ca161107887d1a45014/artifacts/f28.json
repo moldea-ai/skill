@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, approved Git evidence, workspace assertions, and deterministic validation agree: the sole change replaces the stale manifest output-schema symbol with SupportOutputSchema, while all valid source and remaining bindings are preserved.",
+  "requirements": [
+    {
+      "id": "explains-output-schema-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies that src/agent.ts uses Output.object({ schema: SupportOutputSchema }) while the prior canonical binding named LegacySupportOutputSchema. Current src/agent.ts corroborates the direct request, and the approved Git diff shows the exact LegacySupportOutputSchema-to-SupportOutputSchema correction. Deterministic validation reports valid status with no failures."
+    },
+    {
+      "id": "repairs-output-schema-binding",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml currently binds agents.support.bindings.outputSchema to /src/contracts.ts#SupportOutputSchema. The Git diff contains only that one symbol replacement, status lists only moldea/moldea.yaml, workspace assertions identify only that changed path, and deterministic post-actor validation passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "Current workspace evidence confirms SupportAgent and loadSupportInstruction in src/agent.ts; SupportOutputSchema, LookupOrderInputSchema, and LookupOrderOutputSchema in src/contracts.ts; lookupOrder in src/implementations.ts; and lookupOrderTool in src/tools.ts. These exactly match the manifest’s runtime-agent, instruction-loader, agent output-schema, tool implementation, registration, and tool input/output-schema bindings. The agent manifest has no inputSchema binding. Workspace hashes show every source file unchanged, and deterministic validation and typechecking passed."
+    }
+  ],
+  "failures": []
+}

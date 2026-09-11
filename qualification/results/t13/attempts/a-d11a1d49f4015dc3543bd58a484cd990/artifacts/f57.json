@@ -1,0 +1,29 @@
+{
+  "verdict": "fail",
+  "summary": "Three requirements pass, but the runtime-guidance file omits the required supported direct object-literal alternative. This evaluation was read-only; no repository files changed.",
+  "requirements": [
+    {
+      "id": "identifies-unsupported-form",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` passes `buildRequest(prompt)` indirectly to `generateText`, and `prepareStep` supplies replaceable `instructions`. The new guidance and manifest warning explicitly state that these prevent static proof of the final request and effective canonical instruction."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "fail",
+      "evidence": "`moldea/moldea.yaml` references the sole new file `/moldea/runtimes/vercel-ai-sdk.md`, and that file accurately describes the repository wrapper without provider claims. However, the file only documents the unsupported indirect form; it never describes the supported direct `generateText({ ... })` object-literal alternative. That alternative appears only in the manifest warning’s resolution."
+    },
+    {
+      "id": "records-unresolved-boundary",
+      "verdict": "pass",
+      "evidence": "`agents.support.unresolved.indirect-instruction-boundary` has `effect: warning`, names the static-inspection limitation and `prepareStep` risk, relates `/src/support-agent.ts` and the canonical instruction, and specifies direct `generateText({ ... })` plus a focused test as resolution."
+    },
+    {
+      "id": "avoids-inference",
+      "verdict": "pass",
+      "evidence": "The approved diff adds only the runtime-guidance reference and unresolved warning to the manifest. The new guidance adds no instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationship, and the workspace assertions identify only these two changed paths."
+    }
+  ],
+  "failures": [
+    "Add the supported direct object-literal `generateText({ ... })` alternative to `moldea/runtimes/vercel-ai-sdk.md` itself, without asserting provider behavior."
+  ]
+}

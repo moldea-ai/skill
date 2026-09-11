@@ -1,0 +1,13 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 00cba39..d3644ff 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -9,7 +9,7 @@ agents:
+         symbol: supportGraph
+       inputSchema:
+         path: /src/contracts.ts
+-        symbol: SupportOutputSchema
++        symbol: SupportInputSchema
+       outputSchema:
+         path: /src/contracts.ts
+         symbol: SupportOutputSchema

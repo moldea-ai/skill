@@ -1,0 +1,84 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 1093636,
+  "deterministicBeforePath": "cases/preserve-langchain-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-langchain-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-langchain-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-langchain-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-langchain-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-langchain-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 501213,
+    "cachedInputTokens": 450048,
+    "outputTokens": 10100
+  },
+  "judgeUsage": {
+    "inputTokens": 301744,
+    "cachedInputTokens": 250752,
+    "outputTokens": 5260
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T11:30:06.399Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T11:38:43.188Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-middleware-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml gives support only a runtimeAgent binding to /src/support-agent.ts#supportAgent. Three warning-level unresolved entries separately cover middleware instruction provenance, output schema, and tool registration, with source paths and resolution criteria. src/support-agent.ts confirms middleware is non-empty."
+    },
+    {
+      "id": "preserves-unsupported-shape-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "step-support has only runtimeAgent and instructionLoader bindings. Its separate warning entries cover state/context input ambiguity, multiple response formats, and the headless client tool. src/step-support-agent.ts and src/status-tools.ts confirm those unsupported shapes, while deterministic validation passed."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "delegating-support retains its runtime, instruction, output-schema, tool registration, implementation, input-schema, and affectedBy declarations. The manifest contains no handoff, routing, or subagent relationship; the diff adds only runtime guidance. Source confirms delegate_support is a normal function tool whose implementation invokes stepSupportAgent."
+    },
+    {
+      "id": "keeps-langgraph-outside-target",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts still exports workflowSupportAgent as a direct StateGraph. The complete agents manifest registers only support, step-support, and delegating-support; expected workflow agent canonical paths are absent, and the Git diff adds no workflow target."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "support and step-support both reference /moldea/runtimes/langchain.md. Targeted inspection found this as the sole Markdown file under moldea/runtimes. The concise guide describes the supported direct bindings, normal function-tool treatment, and LangGraph exclusion without asserting provider behavior."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The six focused warning entries distinguish middleware-mediated instruction/output/tool uncertainty from state-context input, multiple-response-format, and headless-tool uncertainty. Every entry includes relevant /src paths and a concrete resolution criterion; deterministic canonical validation reported valid with zero diagnostics."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

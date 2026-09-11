@@ -2,8 +2,8 @@
   "protocolVersion": 10,
   "adapterId": "google-genai",
   "implementationId": "typescript-models-generate-content-2",
-  "latestAttemptId": "20260911T054140998Z-google-genai-typescript-models-generate-content-2-bb3004a2",
+  "latestAttemptId": "20260911T101535112Z-google-genai-typescript-models-generate-content-2-70bcac8e",
   "latestStatus": "passed",
-  "lastPassingAttemptId": "20260911T054140998Z-google-genai-typescript-models-generate-content-2-bb3004a2",
-  "updatedAt": "2026-09-11T06:59:03.378Z"
+  "lastPassingAttemptId": "20260911T101535112Z-google-genai-typescript-models-generate-content-2-70bcac8e",
+  "updatedAt": "2026-09-11T11:38:12.763Z"
 }

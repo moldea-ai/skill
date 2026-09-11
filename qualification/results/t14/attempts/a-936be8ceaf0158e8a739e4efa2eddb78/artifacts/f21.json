@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s canonical Vercel tool name with its closed tools-map key by changing `find_order` to `lookup_order`. The direct agent definition, tool declaration, implementation, and schemas remain unchanged. Final validation is valid with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Initial validation reported one VERCEL_AI_SDK_TOOL_NAME_MISMATCH diagnostic.",
+    "Final moldea validation reported `valid: true`, `diagnosticCount: 0`, and no records.",
+    "The final Git diff contains only the intended one-line tool-name correction."
+  ],
+  "unresolved": []
+}

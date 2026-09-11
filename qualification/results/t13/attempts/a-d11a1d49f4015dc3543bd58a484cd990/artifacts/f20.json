@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Documented the Vercel static boundary without changing the working support implementation. Added project-local runtime guidance and an agent-owned warning with a direct generateText/top-level instructions resolution path.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/vercel-ai-sdk.md"
+  ],
+  "observations": [
+    "moldea identified support as the canonical owner.",
+    "TypeScript validation passed.",
+    "moldea validation passed with zero diagnostics.",
+    "Final Git inspection showed no unrelated changes."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove how the indirect request object or prepareStep instruction replacement behaves at runtime; the recorded warning requires a direct supported call pattern and focused runtime verification."
+  ]
+}

@@ -1,0 +1,35 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 7cf7049..fbc1d35 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,9 +3,18 @@ agents:
+   support:
+     runtime:
+       id: vercel-ai-sdk
++      guidance: /moldea/runtimes/vercel-ai-sdk.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+         symbol: supportAgent
+     affectedBy:
+       - /src/support-agent.ts
++    unresolved:
++      indirect-generate-text-request:
++        category: runtime-integration
++        effect: warning
++        description: Static inspection cannot prove how the indirect request object or prepareStep instruction replacement behaves at runtime.
++        resolution: Refactor supportAgent in /src/support-agent.ts to call generateText with a direct options object that supplies the support instruction through top-level instructions, then verify the effective instruction with a focused runtime test.
++        related:
++          - path: /src/support-agent.ts
+
+diff --git a/moldea/runtimes/vercel-ai-sdk.md b/moldea/runtimes/vercel-ai-sdk.md
+new file mode 100644
+index 0000000..a02a9cb
+--- /dev/null
++++ b/moldea/runtimes/vercel-ai-sdk.md
+@@ -0,0 +1,5 @@
++# Vercel AI SDK runtime guidance
++
++In `/src/support-agent.ts`, `generateText` receives the object returned by `buildRequest`, and `prepareStep` returns an `instructions` value. Type checking and static inspection do not establish that this indirect request shape follows a supported direct invocation pattern or whether step preparation preserves or replaces instructions at runtime.
++
++When changing this boundary, prefer a direct `generateText({ ... })` call with the support instruction supplied through the top-level `instructions` option, then verify the effective instruction with a focused runtime test.

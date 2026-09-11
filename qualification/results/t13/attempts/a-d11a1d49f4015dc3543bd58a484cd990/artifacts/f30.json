@@ -1,0 +1,72 @@
+{
+  "trialId": "confirmation-2",
+  "kind": "confirmation",
+  "confirmationIndex": 2,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 742167,
+  "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/workspace-assertions.json",
+  "patchPath": "cases/preserve-vercel-static-boundary/trials/confirmation-2/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 258937,
+    "cachedInputTokens": 229888,
+    "outputTokens": 5980
+  },
+  "judgeUsage": {
+    "inputTokens": 195743,
+    "cachedInputTokens": 171392,
+    "outputTokens": 3779
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T12:37:02.676Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T12:40:39.183Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "identifies-unsupported-form",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` passes `buildRequest(prompt)` indirectly to `generateText`, with `prepareStep` loading and returning `instructions`. The new runtime guidance explicitly states that static inspection cannot prove this is a supported direct invocation pattern or whether step preparation preserves or replaces instructions at runtime."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` references `/moldea/runtimes/vercel-ai-sdk.md`, the only file under `moldea/runtimes`. That file describes the repository-specific `buildRequest` wrapper and recommends `generateText({ ... })` with top-level `instructions` plus focused runtime verification. It makes no provider-behavior claim."
+    },
+    {
+      "id": "records-unresolved-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`agents.support.unresolved.indirect-generate-text-request` is an agent-level warning whose description names the static-inspection limitation, whose `related` path is `/src/support-agent.ts`, and whose resolution requires a direct `generateText` options object with top-level instructions and a focused runtime test."
+    },
+    {
+      "id": "avoids-inference",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The Git diff adds only the runtime-guidance reference and unresolved warning to the manifest; the workspace patch adds only the referenced guidance file. Neither change adds instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationships. Workspace hashes also confirm `src/support-agent.ts` and existing agent files were unchanged."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

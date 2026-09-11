@@ -1,0 +1,68 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index e2c0ffe..22a4e34 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: eve
++      guidance: /moldea/runtimes/eve.md
+     bindings:
+       runtimeAgent:
+         path: /agent/agent.ts
+@@ -39,4 +40,42 @@ agents:
+           path: /agent/skills/triage.ts
+           symbol: default
+     affectedBy:
+-      - /agent/**
++      - /agent/agent.ts
++      - /agent/contracts.ts
++      - /agent/implementations.ts
++      - /agent/instructions.md
++      - /agent/skills/triage.ts
++      - /agent/tools/status.ts
++      - /package.json
++    unresolved:
++      dynamic-tool-registration:
++        category: tool-registration
++        effect: warning
++        description: The tools returned by the session-started resolver are runtime-selected, so static inspection does not establish the final registration.
++        resolution: Establish the resolved tool set with a focused runtime test, or replace it with a supported static tool registration before adding a canonical relationship.
++        related:
++          - path: /agent/tools/runtime.ts
++      markdown-skill-discovery:
++        category: skill-registration
++        effect: warning
++        description: The flat and packaged Markdown skills use documented Eve alternatives, but the available static inspection did not establish their registration for this agent.
++        resolution: Establish their compiled or runtime registration with focused Eve evidence, or use a statically evidenced skill form before registering them canonically.
++        related:
++          - path: /agent/skills/reference.md
++          - path: /agent/skills/guide/SKILL.md
++      single-file-subagent-candidate:
++        category: subagent-registration
++        effect: warning
++        description: The single-file quick candidate exports a local agent definition, while Eve documents local subagents as directories and reserves the single-file form for remote-agent definitions.
++        resolution: Use /agent/subagents/quick/agent.ts for a local subagent, use defineRemoteAgent for the supported single-file form, or provide runtime evidence that establishes another registration.
++        related:
++          - path: /agent/subagents/quick.ts
++      example-instruction-discovery:
++        category: instruction-loading
++        effect: warning
++        description: The case-varied, legacy-named, and composed example files are outside the active agent instruction slots, so static inspection does not establish that they contribute instructions.
++        resolution: Put intended content in exact instructions.md or instructions.ts, or in a non-recursive instructions directory entry, and establish the resulting load path.
++        related:
++          - path: /examples/instructions/Instructions.md
++          - path: /examples/instructions/system.md
++          - path: /examples/instructions/instructions/part.md
+
+diff --git a/moldea/runtimes/eve.md b/moldea/runtimes/eve.md
+new file mode 100644
+index 0000000..f804d0e
+--- /dev/null
++++ b/moldea/runtimes/eve.md
+@@ -0,0 +1,5 @@
++# Eve runtime
++
++This project uses the nested `agent/` layout and requires Node.js 24 or newer. Eve supports exact lowercase `instructions.md`, `instructions.ts`, or non-recursive `.md`/`.ts` entries under `instructions/`; it rejects colliding root `instructions.md` and `instructions.ts`. Static tools use `tools/<name>.ts`. Skills may be flat `<name>.md`, packaged `<name>/SKILL.md` with description frontmatter, or `<name>.ts` using `defineSkill`. Local subagents use `subagents/<id>/agent.ts`; the single-file `subagents/<id>.ts` alternative is for `defineRemoteAgent`.
++
++Dynamic resolution must be verified at its lifecycle event. Remote agents, extension contributions, connection-provided and framework tools, filesystem-name collisions, reserved names, and advanced runtime behavior require focused runtime evidence or a supported static form before they become canonical relationships. Do not infer provider or model behavior from an identifier alone.

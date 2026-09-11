@@ -1,0 +1,546 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 12982
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern"
+        ],
+        "evidenceCount": 12,
+        "agentCount": 2
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern"
+        ],
+        "evidenceCount": 12,
+        "agentCount": 2
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnosticCount": 0,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": []
+        },
+        "snapshotDigest": "sha256:f3324f8b7181d5e6d86194ab866e7f8f8b7c4205327be47e0ea450bf20472a40",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "counts": {
+          "agents": 2,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 0,
+          "evidence": 12,
+          "metadata": 6,
+          "mirrors": 0,
+          "runtimes": 0,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "dynamic-support",
+              "byteLength": 98,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:c1f5d7eef2bc16a1d01c38e2a7950711ae9e604ad22c87ae120f50187bd5c4d0",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/dynamic-support/description.md\",\"agent-description\",\"dynamic-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/dynamic-support/description.md",
+              "scalarLength": 98
+            },
+            {
+              "agentId": "dynamic-support",
+              "byteLength": 232,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:039f1e0344f887cf7a39b550c2bf236b9d072017262603f98fdbde7e84bf1994",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/dynamic-support/instruction.md\",\"agent-instruction\",\"dynamic-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/dynamic-support/instruction.md",
+              "scalarLength": 232
+            },
+            {
+              "agentId": "support",
+              "byteLength": 89,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:f52d112690e28447502b802168ec333e5d5cc9ee5f3adc10d6e393c6ef5539cb",
+              "key": "[\"000002\",\"metadata\",\"/moldea/agents/support/description.md\",\"agent-description\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/support/description.md",
+              "scalarLength": 89
+            },
+            {
+              "agentId": "support",
+              "byteLength": 90,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46",
+              "key": "[\"000003\",\"metadata\",\"/moldea/agents/support/instruction.md\",\"agent-instruction\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/support/instruction.md",
+              "scalarLength": 90
+            },
+            {
+              "agentId": null,
+              "byteLength": 481,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:3a7edaa6ac8702c42a115f0bd957e7ab44efd4fecb5ebd5a1e62cf2a6311b980",
+              "key": "[\"000004\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 481
+            },
+            {
+              "agentId": null,
+              "byteLength": 186,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:5ca7c9762af50a64e49d1cac8cf01e99f47dee9c1961b943faad4dbf94d319ee",
+              "key": "[\"000005\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 186
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000006\",\"evidence\",\"langgraph\",\"agent-definition\",\"dynamic-support\",null,null,\"dynamic_support_workflow\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-workflow.ts",
+                  "symbol": "dynamicSupportWorkflow"
+                }
+              ],
+              "runtimeName": "dynamic_support_workflow",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000007\",\"evidence\",\"langgraph\",\"agent-definition\",\"support\",null,null,\"support_workflow\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts",
+                  "symbol": "supportWorkflow"
+                }
+              ],
+              "runtimeName": "support_workflow",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000008\",\"evidence\",\"langgraph\",\"language\",\"dynamic-support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-workflow.ts",
+                  "symbol": "dynamicSupportWorkflow"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000009\",\"evidence\",\"langgraph\",\"language\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts",
+                  "symbol": "supportWorkflow"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000010\",\"evidence\",\"langgraph\",\"runtime-package\",\"dynamic-support\",null,null,\"@langchain/core\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000011\",\"evidence\",\"langgraph\",\"runtime-package\",\"dynamic-support\",null,null,\"@langchain/langgraph\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/langgraph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000012\",\"evidence\",\"langgraph\",\"runtime-package\",\"support\",null,null,\"@langchain/langgraph\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/langgraph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000013\",\"evidence\",\"langgraph\",\"runtime-package\",\"support\",null,null,\"@langchain/core\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000014\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"support\",null,null,\"lookup_order\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "lookup_order",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000015\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000016\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000017\",\"evidence\",\"langgraph\",\"runtime-pattern\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "key": "[\"000018\",\"agent\",\"dynamic-support\",\"langgraph\"]",
+              "kind": "agent",
+              "runtimeId": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "key": "[\"000019\",\"agent\",\"support\",\"langgraph\"]",
+              "kind": "agent",
+              "runtimeId": "langgraph"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:3a7edaa6ac8702c42a115f0bd957e7ab44efd4fecb5ebd5a1e62cf2a6311b980",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:5ca7c9762af50a64e49d1cac8cf01e99f47dee9c1961b943faad4dbf94d319ee",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:6607a5e3a55432b81b3f2846dcb179ac68a7f35b9715394f5711d660d9c8c0b2",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

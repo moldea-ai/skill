@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The Anthropic static boundary is already accurate, so no files were changed. `supportAgent` directly wraps `client.messages.create`, while `loadSupportInstruction` reads the support instruction and supplies it as `system`. Canonical inspection records the Anthropic runtime/package and language evidence for both agents, but records the `messages.create` runtime pattern and instruction loader only for `support`. Validation succeeded with zero diagnostics, and the final Git diff and status were clean.",
+  "changedFiles": [],
+  "observations": [
+    "`src/agents.ts` passes an inline request to `client.messages.create` for `supportAgent` and loads `moldea/agents/support/instruction.md` into `system`.",
+    "`dynamicSupportAgent` constructs an indirect local request object before passing it to `client.messages.create`; no runtime-pattern relationship is recorded for it.",
+    "The provider-hosted `web_search_20250305` descriptor does not establish a separate client-tool, schema, routing, or handoff relationship, and none is recorded.",
+    "moldea validation returned `valid: true` with `diagnosticCount: 0`.",
+    "Approved final diff inspection produced no output; final porcelain status was empty."
+  ],
+  "unresolved": [
+    "Provider execution semantics and any dynamic client-tool, schema, runtime-pattern, routing, or handoff behavior remain unproven by static repository evidence and are intentionally unasserted."
+  ]
+}

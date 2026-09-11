@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Updated canonical state while preserving all source. TypeScript validation passed, and canonical validation completed with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ],
+  "observations": [
+    "Preserved support runtime-agent and instruction-loader bindings without registering its open tool map.",
+    "Preserved step-support runtime-agent binding without adding an instruction loader.",
+    "Preserved all delegating-support relationships without adding a handoff or routing target.",
+    "IndirectSupportAgent, UnsupportedOutputAgent, and RuntimeInitializedAgent remain unregistered.",
+    "Added one Cloudflare runtime guide covering static closure alternatives, bindings, SQLite Durable Object migration, provider binding, and Worker deployment responsibilities."
+  ],
+  "unresolved": [
+    "SupportAgent’s final tool registry remains unprovable until its runtime spread is replaced by a closed static tool map.",
+    "StepSupportAgent’s instruction provenance remains unprovable until prepareStep can no longer replace the instruction."
+  ]
+}

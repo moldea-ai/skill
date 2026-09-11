@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, approved Git evidence, and deterministic validation agree: the manifest’s input-schema binding was corrected to SupportInputSchema, while the compiled graph, schemas, nodes, edges, and remaining bindings were preserved.",
+  "requirements": [
+    {
+      "id": "explains-schema-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the canonical input binding as the mismatch and names the SupportOutputSchema-to-SupportInputSchema correction. The Git diff confirms the former manifest symbol was SupportOutputSchema, while src/graph.ts wires `input: SupportInputSchema`. Deterministic post-validation is valid with no failures."
+    },
+    {
+      "id": "repairs-canonical-schema",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now binds inputSchema to `/src/contracts.ts` symbol `SupportInputSchema`, matching the StateGraph initializer. Git status reports only moldea/moldea.yaml modified, and its diff contains only that one-line symbol correction. Workspace hashes show src/graph.ts and src/contracts.ts unchanged; deterministic validation and type-checking passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest exactly binds runtimeAgent to `/src/graph.ts#supportGraph`, inputSchema to `/src/contracts.ts#SupportInputSchema`, and outputSchema to `/src/contracts.ts#SupportOutputSchema`. Source exports all three symbols and uses the schemas in their corresponding StateGraph roles. The graph still adds `answer-question`, preserves both START/END edges, and compiles as `support_graph`; the complete manifest contains no tools declaration. Deterministic validate and inspect results are valid."
+    }
+  ],
+  "failures": []
+}

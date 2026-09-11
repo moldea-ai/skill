@@ -2,8 +2,8 @@
   "protocolVersion": 10,
   "adapterId": "cloudflare-agents",
   "implementationId": "typescript-think-0-16-ai-sdk-7",
-  "latestAttemptId": "20260911T054140998Z-cloudflare-agents-typescript-think-0-16-ai-sdk-7-f0433bee",
+  "latestAttemptId": "20260911T101535112Z-cloudflare-agents-typescript-think-0-16-ai-sdk-7-835397e9",
   "latestStatus": "passed",
-  "lastPassingAttemptId": "20260911T054140998Z-cloudflare-agents-typescript-think-0-16-ai-sdk-7-f0433bee",
-  "updatedAt": "2026-09-11T06:08:14.976Z"
+  "lastPassingAttemptId": "20260911T101535112Z-cloudflare-agents-typescript-think-0-16-ai-sdk-7-835397e9",
+  "updatedAt": "2026-09-11T10:59:20.588Z"
 }

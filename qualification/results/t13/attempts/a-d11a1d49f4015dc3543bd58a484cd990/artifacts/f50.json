@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Documented the Vercel static boundary while preserving the existing support implementation. Added runtime guidance and a warning-level unresolved requirement with a direct `generateText({ ... })` resolution path.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/vercel-ai-sdk.md"
+  ],
+  "observations": [
+    "`src/support-agent.ts` remains unchanged.",
+    "No unsupported runtime-pattern, loader, schema, provider, model, routing, handoff, or subagent claims were added.",
+    "TypeScript validation passed.",
+    "moldea validation passed with zero diagnostics.",
+    "The final Git status and diff contain only the two intended paths."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove that the canonical support instruction is effective at generation time because the request is indirect and `prepareStep` may replace instructions; this is now recorded under the support agent with concrete resolution criteria."
+  ]
+}

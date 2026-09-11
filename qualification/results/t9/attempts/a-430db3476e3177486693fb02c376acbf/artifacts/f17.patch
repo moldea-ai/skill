@@ -1,0 +1,100 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 5a1cc56..5c3699d 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,15 +3,40 @@ agents:
+   support:
+     runtime:
+       id: langgraph
++      guidance: /moldea/runtimes/langgraph.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-workflow.ts
+         symbol: supportWorkflow
+     affectedBy:
+       - /src/support-workflow.ts
++    unresolved:
++      nested-task-execution:
++        category: runtime-behavior
++        effect: warning
++        description: Static inspection establishes the direct lookupOrder call but not its nested runtime execution topology or registration as an agent capability.
++        resolution: Supply deployed LangGraph configuration and focused runtime evidence that establishes task registration and execution behavior.
++        related:
++          - path: /src/support-workflow.ts
++      runtime-state-interrupt-semantics:
++        category: runtime-behavior
++        effect: blocking
++        description: The source reads previous state, requests an interrupt response, and separates returned and saved values, but static inspection cannot establish checkpointer, replay, idempotency, interrupt/resume, or approval semantics.
++        resolution: Supply the deployed runtime configuration and integration tests that establish persistence, replay, task idempotency, interrupt safety, and approval policy.
++        related:
++          - path: /src/support-workflow.ts
++          - path: /src/runtime-boundaries.ts
++      executable-schema-contract:
++        category: schema
++        effect: warning
++        description: TypeScript input, saved-state, and result types do not establish runtime validation or an executable schema binding.
++        resolution: Supply an executable schema and consumption evidence, or focused runtime tests that establish the enforced input and result contract.
++        related:
++          - path: /src/support-workflow.ts
+   dynamic-support:
+     runtime:
+       id: langgraph
++      guidance: /moldea/runtimes/langgraph.md
+     bindings:
+       runtimeAgent:
+         path: /src/dynamic-support-workflow.ts
+@@ -19,3 +44,40 @@ agents:
+     affectedBy:
+       - /src/dynamic-support-workflow.ts
+       - /src/runtime-boundaries.ts
++    unresolved:
++      dynamic-task-control-flow:
++        category: runtime-behavior
++        effect: warning
++        description: Static inspection sees input-based task selection plus task calls through a helper and map callbacks, but cannot establish the resulting nested runtime execution paths.
++        resolution: Supply focused runtime traces or integration tests covering each task selection and callback path.
++        related:
++          - path: /src/dynamic-support-workflow.ts
++      task-capability-registration:
++        category: tool-registration
++        effect: warning
++        description: Task definitions and calls do not establish summarize or escalate as model-visible tools or registered agent capabilities.
++        resolution: Supply runtime registration and invocation evidence before declaring either task as an agent capability.
++        related:
++          - path: /src/dynamic-support-workflow.ts
++      routing-topology:
++        category: routing
++        effect: warning
++        description: The route input controls a local task branch but does not establish agent routing, handoffs, subagents, approval authority, or runtime topology.
++        resolution: Supply deployed routing configuration and integration evidence that establishes any routing or topology relationship.
++        related:
++          - path: /src/dynamic-support-workflow.ts
++      runtime-semantics:
++        category: runtime-behavior
++        effect: blocking
++        description: Static inspection cannot establish configured checkpointer, replay, task idempotency, interrupt, or approval behavior for the deployed workflow.
++        resolution: Supply the deployed runtime configuration and integration tests that establish those behaviors.
++        related:
++          - path: /src/dynamic-support-workflow.ts
++          - path: /src/runtime-boundaries.ts
++      executable-schema-contract:
++        category: schema
++        effect: warning
++        description: TypeScript input and inferred result types do not establish runtime validation or executable schema bindings.
++        resolution: Supply executable schemas and consumption evidence, or focused runtime tests that establish the enforced input and result contract.
++        related:
++          - path: /src/dynamic-support-workflow.ts
+
+diff --git a/moldea/runtimes/langgraph.md b/moldea/runtimes/langgraph.md
+new file mode 100644
+index 0000000..448dee3
+--- /dev/null
++++ b/moldea/runtimes/langgraph.md
+@@ -0,0 +1,7 @@
++# LangGraph Functional API boundaries
++
++Static inspection establishes `supportWorkflow` as `support_workflow` and `dynamicSupportWorkflow` as `dynamic_support_workflow`. The support source directly calls `lookupOrder`, reads previous state, requests an interrupt response, and returns a value separately from saved state. The dynamic source selects a task from input, invokes it through `runSelectedTask`, and reaches `summarize` through map callbacks.
++
++These are code-shape observations, not a runtime capability registry or call topology. TypeScript input and result types do not establish executable schema bindings. Do not infer tools, skills, handoffs, subagents, agent routing, approval authority, task capabilities, or topology from task definitions, helper/callback reachability, or the `route` field.
++
++Deployment configuration and focused runtime evidence must establish checkpointer and previous-state behavior, replay, task idempotency, interrupt/resume safety and semantics, and approval policy.

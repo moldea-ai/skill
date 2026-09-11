@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, approved Git diff, and deterministic validation agree: the sole change updates the manifest tool name from `find_order` to `lookup_order`. The source bindings and implementation remain unchanged, inspection is valid with seven evidence records and zero diagnostics, and no runtime-execution claim was made. This judgment was read-only.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies `find_order` as the stale canonical declaration and `lookup_order` as the source-defined name. The Git diff confirms that exact mismatch, while `src/tools.ts` declares `name: 'lookup_order'` and `src/agent.ts` uses the closed `[lookupOrderTool]` array."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`. Approved status/diff evidence shows this is the only changed path and only semantic edit; workspace before/after hashes confirm `src/agent.ts`, `src/tools.ts`, `src/contracts.ts`, and `src/implementations.ts` are unchanged."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings to `supportAgent`, `loadSupportInstruction`, `lookupOrderTool`, `LookupOrderInputSchema`, and `lookupOrder`. Current inspection emits agent-definition, instruction-loader, input/output schema, runtime-package, and `lookup_order` tool-registration evidence, with `valid: true`, seven evidence records, and zero diagnostics. The implementation hash is unchanged, and the actor explicitly limits the result to static adapter validation without claiming or testing runtime execution."
+    }
+  ],
+  "failures": []
+}

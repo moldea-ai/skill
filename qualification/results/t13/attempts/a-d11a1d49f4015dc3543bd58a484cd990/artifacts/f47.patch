@@ -1,0 +1,35 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 7cf7049..3b5aaf6 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,9 +3,18 @@ agents:
+   support:
+     runtime:
+       id: vercel-ai-sdk
++      guidance: /moldea/runtimes/vercel-ai-sdk.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+         symbol: supportAgent
+     affectedBy:
+       - /src/support-agent.ts
++    unresolved:
++      indirect-generate-text-request:
++        category: runtime-pattern
++        effect: warning
++        description: Static inspection cannot establish whether passing the object returned by buildRequest(prompt) to generateText, with prepareStep configured to return instructions, is a supported direct SDK invocation pattern or which instructions become effective at runtime.
++        resolution: Replace the indirect boundary only after a source-owned SDK contract establishes a documented direct generateText({ ... }) call; pass the options at the supportAgent call site and add a focused runtime test that verifies the effective instructions against the pinned SDK.
++        related:
++          - path: /src/support-agent.ts
+
+diff --git a/moldea/runtimes/vercel-ai-sdk.md b/moldea/runtimes/vercel-ai-sdk.md
+new file mode 100644
+index 0000000..b6894d2
+--- /dev/null
++++ b/moldea/runtimes/vercel-ai-sdk.md
+@@ -0,0 +1,5 @@
++# Vercel AI SDK runtime guidance
++
++`/src/support-agent.ts` passes the value returned by `buildRequest(prompt)` to `generateText`; that value configures `prepareStep` to return `instructions`. Static inspection cannot establish whether this indirect request shape and step-time instruction replacement are a supported direct SDK invocation pattern or which instructions become effective at runtime.
++
++Preserve this boundary until a source-owned SDK contract and a focused runtime test establish the behavior. If the boundary must be made explicit, use the documented direct `generateText({ ... })` pattern at the `supportAgent` call site and test the effective instructions against the pinned SDK.

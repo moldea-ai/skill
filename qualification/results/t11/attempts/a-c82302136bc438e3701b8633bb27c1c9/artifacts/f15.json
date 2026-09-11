@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 827629,
+  "deterministicBeforePath": "cases/preserve-openai-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-openai-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-openai-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-openai-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-openai-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-openai-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 272675,
+    "cachedInputTokens": 241280,
+    "outputTokens": 6053
+  },
+  "judgeUsage": {
+    "inputTokens": 247271,
+    "cachedInputTokens": 220544,
+    "outputTokens": 4288
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T12:03:51.075Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T12:10:34.535Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-evidence",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "In src/agents.ts, supportAgent directly invokes client.responses.create with instructions from loadSupportInstruction; that loader reads moldea/agents/support/instruction.md. moldea/moldea.yaml binds both supportAgent and loadSupportInstruction. The actor report identifies both facts, and deterministic validation and typechecking passed."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/agents.ts represents web search only as the provider-hosted { type: 'web_search' } Responses API tool. The manifest and agent assets contain no function-tool, schema, routing, or handoff relationship; expected moldea/tools, moldea/schemas, moldea/routes, and moldea/handoffs paths are absent. Git status and the scoped diff are clean."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "dynamicSupportAgent builds request as an intermediate object before passing it to client.responses.create. moldea/moldea.yaml retains indirect-request-construction as an unresolved runtime-pattern warning and gives a concrete resolution: pass a closed object directly or document the relationship through a supported adapter pattern. This matches the actor report and passed deterministic checks."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "attemptKey": "a-917c441d84e840cda44855482fc85de3",
+  "attemptId": "20260911T101535112Z-claude-agent-sdk-typescript-query-subagents-0-3-c30d70b8",
+  "attemptIdDigest": "917c441d84e840cda44855482fc85de387074dd89ad294276d0631e8d85f7bca",
+  "attemptDigest": "9e33ac093a9cc5148cdfcd666782a96ba4840371054bc085e5bb977b2cc6b8bf",
+  "sourceCommit": "526a06a7de1374a260af7346fd2f55bacb9930dd",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "e9cf6e97d1d5862c4d5c040a4afa73b50a3237d1f83b352f564e51130b3dc297",
+    "qualificationLogicalInputDigest": "86e630342a68d17dbd9c2bd0e4526ee0e074f6ddbb5b1a852c7400cd70cc1f78",
+    "qualificationBaselineEvaluatorDigest": "f127211dad0153b4cb328ff4cb0f2f927624b4db2ffe4ea55652d8c526043fcb"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "6d5a49450f68ec9cf76f139f3b19a8c2d9ee425fb9eda6a1cac978c815511e43"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/case-result.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "c19dd6eea098db12a7b9d94620473bc3031771d3bc20c9048787a6dfa02a3681"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f3.jsonl",
+      "sha256": "536f455c185445b9c88a0056d700a56f62139394f5525251acaf1acd38f6d6b0"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f4.json",
+      "sha256": "9bb51b21cd6dc0adc802b1a7d57b93d461ff21f36bee0d44910ff9d8e48d1395"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f5.json",
+      "sha256": "be83e95c6adc8517dffeed2797888371e5941bbad4b1796192a805f4f15615d7"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f6.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f7.md",
+      "sha256": "4e9e576a38f1d114c87ee1bc3b73072e7d2c2e558f14c60f014012c4e762797f"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f8.json",
+      "sha256": "5169fc8f3a8532f9f87310b8e31c7cb18f3c82bb5e6a32147938313c3ec75657"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f9.json",
+      "sha256": "698b0963c1958610dc22a684e7590921d9bed2ba1125417aa37c96f6f401609b"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f10.jsonl",
+      "sha256": "c978645ee6e12eaecf293ab17c7bec6c01e73034b4cb741dc0bddbfb96abd6d3"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f11.json",
+      "sha256": "33595a30b39f61a94e6ce49ab62675134c0633468f2714204a01571439a3f502"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f12.json",
+      "sha256": "04dcfed56f56b2d701bd8b568e4969e5918e6ffd92df57c56b78d33b4ddc303a"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f13.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f14.md",
+      "sha256": "aeae3c1ee77e70a285779b23a8900b7fb03693286ddfc30681888ebc38d0712c"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f15.json",
+      "sha256": "74fbac9b7b430e12e78041e4efa89485eb2a7f272576c2f128821f12ebe51a01"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f16.json",
+      "sha256": "dfaaacb094f904ebc0c88d3504eb88a374b38e18fc5d31f4af1e16b98a2458f1"
+    },
+    {
+      "logicalPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f17.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/case-result.json",
+      "physicalPath": "artifacts/f18.json",
+      "sha256": "ac05fca9988ca654a71d79805c667b42af35acddb03101f0f307c7c1dbb537db"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f19.jsonl",
+      "sha256": "e332716eeac4c25b12d8e174bb4e9f9e9ec969ec5abe2914d7b0f91539879377"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f20.json",
+      "sha256": "5d2103e703b727d2e9b3e3c969a6b04b0b7cc310c711092dc9dfd3cda25af8ba"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f21.json",
+      "sha256": "c458bb6509af6a1fea42ea4b6b9b40d951fb6750726c40933f4a132c7f6b10da"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f22.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f23.md",
+      "sha256": "88f0d6dc5196d58b81d37530f75edba55c1153587a0c13ba6c3fcbb69b6b7bad"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f24.json",
+      "sha256": "dab4989cd8b06c810494fed145baeac82c9a0b031bb60a78e85103de4b435083"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f25.json",
+      "sha256": "02eba92a32bd174ec436e4051f882c24b75674b1a9ba592ec13d2e358ce4335f"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f26.jsonl",
+      "sha256": "130245094ee463530c0a28840b9869224650cbdeeba558209d77d682b0330fcc"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f27.json",
+      "sha256": "06382b7bdfb7c2808a2bf4ef5226ad9a72c4dbcde71bb34549dc1bca0f5b314d"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f28.json",
+      "sha256": "e1fdf56705ede18c717d37447e2eccf239bf5c46a78aeff0c3db3ae0bc18f9bf"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f29.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f30.md",
+      "sha256": "a8ece28231f2b015607b8712c4cefc95e1b1afafd3723e76635596d5ad79841d"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f31.json",
+      "sha256": "d20e9ac94157e8221fe6cc08b622f174134a461feb12c7951b1e802cc341ba31"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f32.json",
+      "sha256": "7500cc5628cc135bf8d6c744b68c2cb299a36c60bdf968a0bb9ec733becf8533"
+    },
+    {
+      "logicalPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f33.patch",
+      "sha256": "55ed2b5b9f215ece44956ee20462ecbb6986076de96fea3631f99664dc9c1700"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f34.json",
+      "sha256": "f67321a6adf6a94329dd005dd50b67f26106f062e92acaa4ff2dedbf04104ce4"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f35.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

@@ -1,0 +1,706 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 13316
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "agent-definition",
+          "instruction-loader",
+          "instruction-loader",
+          "language",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 17,
+        "agentCount": 3
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "agent-definition",
+          "instruction-loader",
+          "instruction-loader",
+          "language",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 17,
+        "agentCount": 3
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnosticCount": 0,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": []
+        },
+        "snapshotDigest": "sha256:1e1b9ec9a9864fc416b5beb313a32dc6936c8f996f17c81369d12c94e6748340",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "counts": {
+          "agents": 3,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 0,
+          "evidence": 17,
+          "metadata": 9,
+          "mirrors": 0,
+          "runtimes": 1,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "delegating-support",
+              "byteLength": 73,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:a8117aea31bc38216e01077f15274cf9a991062b8d572773837a18878ce7bc8d",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/delegating-support/description.md\",\"agent-description\",\"delegating-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/delegating-support/description.md",
+              "scalarLength": 73
+            },
+            {
+              "agentId": "delegating-support",
+              "byteLength": 198,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:d60acb50fd78839aa7852812d99ef93b6634170434cd65085978b775debbd865",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/delegating-support/instruction.md\",\"agent-instruction\",\"delegating-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/delegating-support/instruction.md",
+              "scalarLength": 198
+            },
+            {
+              "agentId": "step-support",
+              "byteLength": 76,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:0756b0c13fe196cb4a2cb3e39de296a8b10be60f84a6b6bb31301de6c2dfe8da",
+              "key": "[\"000002\",\"metadata\",\"/moldea/agents/step-support/description.md\",\"agent-description\",\"step-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/step-support/description.md",
+              "scalarLength": 76
+            },
+            {
+              "agentId": "step-support",
+              "byteLength": 118,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:0b3e175e2a6a8e5952010629d7c187bc234093d4e7f2e6a72d6fd2de965ef345",
+              "key": "[\"000003\",\"metadata\",\"/moldea/agents/step-support/instruction.md\",\"agent-instruction\",\"step-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/step-support/instruction.md",
+              "scalarLength": 118
+            },
+            {
+              "agentId": "support",
+              "byteLength": 74,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:ab6d3f651ca3971a36a0922b7ec353354febb630009c6ff5a3ca72d287c2bddc",
+              "key": "[\"000004\",\"metadata\",\"/moldea/agents/support/description.md\",\"agent-description\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/support/description.md",
+              "scalarLength": 74
+            },
+            {
+              "agentId": "support",
+              "byteLength": 90,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46",
+              "key": "[\"000005\",\"metadata\",\"/moldea/agents/support/instruction.md\",\"agent-instruction\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/support/instruction.md",
+              "scalarLength": 90
+            },
+            {
+              "agentId": null,
+              "byteLength": 4650,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:975205b83e703a724e01adfb74eef4fad95d671f33aff861d2c3b64e36f63598",
+              "key": "[\"000006\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 4650
+            },
+            {
+              "agentId": null,
+              "byteLength": 244,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:d9eae67c9fe0ad071ef235d82e129d40b34d770495bb2cc53070885ea512e39f",
+              "key": "[\"000007\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 244
+            },
+            {
+              "agentId": null,
+              "byteLength": 595,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:c66c8813fd43e4e680c877e03385d2b705fed0acaf5770108c90328131b672e5",
+              "key": "[\"000008\",\"metadata\",\"/moldea/runtimes/langchain.md\",\"runtime-guidance\",null]",
+              "kind": "metadata",
+              "metadataKind": "runtime-guidance",
+              "path": "/moldea/runtimes/langchain.md",
+              "scalarLength": 595
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000009\",\"evidence\",\"langchain\",\"agent-definition\",\"delegating-support\",null,null,\"delegating-support-runtime\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                }
+              ],
+              "runtimeName": "delegating-support-runtime",
+              "source": "langchain"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000010\",\"evidence\",\"langchain\",\"agent-definition\",\"step-support\",null,null,\"step-support-runtime\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/step-support-agent.ts",
+                  "symbol": "stepSupportAgent"
+                }
+              ],
+              "runtimeName": "step-support-runtime",
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000011\",\"evidence\",\"langchain\",\"agent-definition\",\"support\",null,null,\"support-runtime\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "support-runtime",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "instruction-loader",
+              "key": "[\"000012\",\"evidence\",\"langchain\",\"instruction-loader\",\"delegating-support\",null,null,\"loadDelegatingSupportInstruction\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                },
+                {
+                  "path": "/src/instructions.ts",
+                  "symbol": "loadDelegatingSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadDelegatingSupportInstruction",
+              "source": "langchain"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "instruction-loader",
+              "key": "[\"000013\",\"evidence\",\"langchain\",\"instruction-loader\",\"step-support\",null,null,\"loadStepSupportInstruction\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/instructions.ts",
+                  "symbol": "loadStepSupportInstruction"
+                },
+                {
+                  "path": "/src/step-support-agent.ts",
+                  "symbol": "stepSupportAgent"
+                }
+              ],
+              "runtimeName": "loadStepSupportInstruction",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000014\",\"evidence\",\"langchain\",\"language\",\"delegating-support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langchain"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000015\",\"evidence\",\"langchain\",\"language\",\"step-support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/step-support-agent.ts",
+                  "symbol": "stepSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000016\",\"evidence\",\"langchain\",\"language\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000017\",\"evidence\",\"langchain\",\"runtime-package\",\"delegating-support\",null,null,\"langchain\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "langchain",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000018\",\"evidence\",\"langchain\",\"runtime-package\",\"delegating-support\",null,null,\"@langchain/core\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langchain"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000019\",\"evidence\",\"langchain\",\"runtime-package\",\"step-support\",null,null,\"langchain\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "langchain",
+              "source": "langchain"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000020\",\"evidence\",\"langchain\",\"runtime-package\",\"step-support\",null,null,\"@langchain/core\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000021\",\"evidence\",\"langchain\",\"runtime-package\",\"support\",null,null,\"langchain\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "langchain",
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000022\",\"evidence\",\"langchain\",\"runtime-package\",\"support\",null,null,\"@langchain/core\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "schema",
+              "key": "[\"000023\",\"evidence\",\"langchain\",\"schema\",\"delegating-support\",null,null,\"SupportOutputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                },
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": "delegate-support",
+              "capabilityKind": "tool",
+              "evidenceKind": "schema",
+              "key": "[\"000024\",\"evidence\",\"langchain\",\"schema\",\"delegating-support\",\"tool\",\"delegate-support\",\"DelegateSupportInputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "DelegateSupportInputSchema"
+                },
+                {
+                  "path": "/src/delegation-tool.ts",
+                  "symbol": "delegateSupportTool"
+                }
+              ],
+              "runtimeName": "DelegateSupportInputSchema",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": "delegate-support",
+              "capabilityKind": "tool",
+              "evidenceKind": "tool-registration",
+              "key": "[\"000025\",\"evidence\",\"langchain\",\"tool-registration\",\"delegating-support\",\"tool\",\"delegate-support\",\"delegate_support\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "DelegateSupportInputSchema"
+                },
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                },
+                {
+                  "path": "/src/delegation-tool.ts",
+                  "symbol": "delegateSupportTool"
+                },
+                {
+                  "path": "/src/delegation.ts",
+                  "symbol": "delegateSupport"
+                }
+              ],
+              "runtimeName": "delegate_support",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "key": "[\"000026\",\"agent\",\"delegating-support\",\"langchain\"]",
+              "kind": "agent",
+              "runtimeId": "langchain"
+            },
+            {
+              "agentId": "step-support",
+              "key": "[\"000027\",\"agent\",\"step-support\",\"langchain\"]",
+              "kind": "agent",
+              "runtimeId": "langchain"
+            },
+            {
+              "agentId": "support",
+              "key": "[\"000028\",\"agent\",\"support\",\"langchain\"]",
+              "kind": "agent",
+              "runtimeId": "langchain"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:975205b83e703a724e01adfb74eef4fad95d671f33aff861d2c3b64e36f63598",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:d9eae67c9fe0ad071ef235d82e129d40b34d770495bb2cc53070885ea512e39f",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:5de555fa90fb850062bc936aca142c0fc9168b6e24905cf17d1d6b1ad004a737",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

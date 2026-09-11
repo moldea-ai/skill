@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "Repository state, approved Git evidence, and runner-owned validation agree: the sole change corrects the canonical tool name from `find_order` to `lookup_order`, matching the unchanged Anthropic registration while preserving every binding and implementation reference. Deterministic validation and typechecking passed with no failures.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report explains that the canonical name was aligned with the working `lookup_order` registration and identifies the closed array as `tools: [lookupOrderTool]`. The Git diff supplies the exact mismatch (`find_order` versus `lookup_order`), while `src/tools.ts` declares `name: 'lookup_order'`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`. The approved diff shows this is the only edited line and Git status identifies only `moldea/moldea.yaml` as modified. Workspace hashes show all runtime source files unchanged; deterministic validation and typechecking passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains `supportAgent` and `loadSupportInstruction` in `/src/agent.ts`, `lookupOrderTool` in `/src/tools.ts`, `LookupOrderInputSchema` in `/src/contracts.ts`, and unchanged implementation `lookupOrder` in `/src/implementations.ts`. Source confirms the direct `client.messages.create` wrapper uses the loader and closed `tools: [lookupOrderTool]` array; the declaration uses the bound schema and `lookup_order`. Workspace assertions show only the manifest changed, and deterministic inspect/validate results are valid with no failures."
+    }
+  ],
+  "failures": []
+}

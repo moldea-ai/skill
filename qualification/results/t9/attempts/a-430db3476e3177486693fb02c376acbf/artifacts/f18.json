@@ -1,0 +1,77 @@
+{
+  "caseId": "repair-langgraph-functional-runtime-binding",
+  "title": "Repair LangGraph Functional API runtime binding",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 996714,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 996714,
+      "deterministicBeforePath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-langgraph-functional-runtime-binding/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 242731,
+        "cachedInputTokens": 212480,
+        "outputTokens": 5329
+      },
+      "judgeUsage": {
+        "inputTokens": 171135,
+        "cachedInputTokens": 126720,
+        "outputTokens": 3392
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T11:12:47.370Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T11:20:28.941Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-runtime-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor identifies the replacement of `removedSupportWorkflow` with the directly exported `supportWorkflow`. The diff confirms that exact replacement, while `src/workflow.ts` exports `supportWorkflow` and contains no `removedSupportWorkflow`; deterministic validation reports valid output with no failures."
+        },
+        {
+          "id": "repairs-canonical-runtime-binding",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current `moldea/moldea.yaml` binds `/src/workflow.ts` to symbol `supportWorkflow`, exactly matching `export const supportWorkflow` in source. The approved diff shows only the one-line symbol repair, and deterministic validation and typechecking passed."
+        },
+        {
+          "id": "preserves-binding-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The source still defines `answerQuestion` with LangGraph `task()` and directly invokes it from the exported `entrypoint()`. The complete manifest contains only the runtime binding and `affectedBy`; it has no tool, skill, handoff, capability, or schema binding. Expected `moldea/tools`, `moldea/skills`, `moldea/handoffs`, and `moldea/schemas` paths are absent. Git status reports only `moldea/moldea.yaml`, and its diff changes only the runtime symbol."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

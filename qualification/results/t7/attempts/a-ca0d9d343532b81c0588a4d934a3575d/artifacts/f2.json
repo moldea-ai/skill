@@ -1,0 +1,77 @@
+{
+  "caseId": "preserve-google-genai-static-boundary",
+  "title": "Preserve the Google Gen AI static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 895698,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": true,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [],
+      "passed": true,
+      "durationMs": 895698,
+      "deterministicBeforePath": "cases/preserve-google-genai-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-google-genai-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-google-genai-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-google-genai-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-google-genai-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-google-genai-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 327498,
+        "cachedInputTokens": 297728,
+        "outputTokens": 5391
+      },
+      "judgeUsage": {
+        "inputTokens": 181177,
+        "cachedInputTokens": 155136,
+        "outputTokens": 4493
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T11:26:55.247Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T11:35:22.279Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-evidence",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`src/agents.ts` passes a closed object literal directly to `client.models.generateContent`; its `systemInstruction` awaits `loadSupportInstruction`, which reads `moldea/agents/support/instruction.md`. `moldea/moldea.yaml` binds both symbols to `support` under runtime `google-genai`. The actor reported these facts, and deterministic validation and typechecking passed."
+        },
+        {
+          "id": "preserves-provider-tool-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`src/agents.ts` represents Google Search only as `{ googleSearch: {} }` in the provider request. The complete targeted `moldea/**` inventory contains only project, manifest, and agent description/instruction files; the manifest contains no function-declaration, schema, tool-registration, routing, or handoff relationships. The actor explicitly preserved that limitation, while Git status and the targeted diff were empty."
+        },
+        {
+          "id": "preserves-indirect-request-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`dynamicSupportAgent` constructs an intermediate `request` before passing it to `generateContent`. The `dynamic-support` manifest retains the `runtime-pattern` warning stating that runtime relationships cannot be proved and gives a concrete resolution: pass a closed object directly or document a supported adapter pattern. Its instruction adds no runtime claims. The actor explains this boundary, and deterministic validation passed with the repository unchanged."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "reuse": null
+}

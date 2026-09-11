@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Aligned the support agent’s canonical Anthropic tool name with the working `lookup_order` registration while preserving the wrapper, declaration, implementation, and input schema.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The closed client array remains `tools: [lookupOrderTool]`.",
+    "Canonical validation returned valid with zero diagnostics and no remaining pages.",
+    "TypeScript compilation passed with no errors.",
+    "Final diff contains only the intended tool-name correction."
+  ],
+  "unresolved": []
+}

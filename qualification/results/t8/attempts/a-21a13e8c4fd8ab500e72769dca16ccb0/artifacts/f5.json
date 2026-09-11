@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Documented the LangChain static boundaries without changing source. Preserved the supported bindings and delegating tool relationships, recorded six static-inspection uncertainties, excluded the direct LangGraph workflow, and added one shared runtime guide. TypeScript validation and canonical validation passed with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/langchain.md"
+  ],
+  "observations": [
+    "support retains only its runtime-agent binding.",
+    "step-support retains only its runtime-agent and instruction-loader bindings.",
+    "delegating-support retains all existing bindings, tool registration, implementation, schema, and affectedBy relationships.",
+    "workflowSupportAgent remains unregistered.",
+    "Final canonical validation reported valid=true and diagnosticCount=0."
+  ],
+  "unresolved": [
+    "For support, middleware prevents static proof of the effective instruction, output contract, and model-visible tool registry.",
+    "For step-support, static inspection cannot prove a single input relationship, a single output-schema relationship, or a repository-local implementation relationship for the headless client tool."
+  ]
+}

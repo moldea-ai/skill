@@ -1,0 +1,42 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical state preserves all supported Cloudflare AIChatAgent boundaries and records only the two unprovable relationships. Repository state, the focused patch, workspace assertions, and deterministic validation agree. The judge inspection was read-only and changed no files.",
+  "requirements": [
+    {
+      "id": "preserves-open-tool-boundary",
+      "verdict": "pass",
+      "evidence": "In moldea/moldea.yaml, support retains the cloudflare-agents runtime, SupportAgent runtimeAgent binding, and loadSupportInstruction binding, has no tools registration, and records open-request-tools as unresolved. src/support-agent.ts confirms direct streamText generation with a runtime-spread tool map. Deterministic validation and typechecking passed."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "verdict": "pass",
+      "evidence": "In moldea/moldea.yaml, step-support binds StepSupportAgent to cloudflare-agents but declares no instructionLoader. src/step-support-agent.ts confirms direct streamText generation whose prepareStep may supply instructions. The distinct provenance boundary is unresolved, and deterministic validation passed."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "pass",
+      "evidence": "The manifest preserves delegating-support's runtime agent, instruction loader, delegate_support registration, implementation, and input/output schema bindings. src/delegation-tool.ts uses an ordinary AI SDK function tool, while src/delegation.ts merely references StepSupportAgent. No handoff or routing declaration appears in the manifest, and the workspace patch changes none of these source files."
+    },
+    {
+      "id": "preserves-unsupported-generation-boundaries",
+      "verdict": "pass",
+      "evidence": "src/indirect-agent.ts and src/unsupported-output-agent.ts remain byte-identical according to the workspace assertions. The former generates through a helper outside onChatMessage, and the latter uses Output.array. Neither class or source path is registered in moldea/moldea.yaml; deterministic checks passed."
+    },
+    {
+      "id": "keeps-initialized-class-outside-target",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts still exports RuntimeInitializedAgent with executable field initialization and is unchanged in the workspace assertions. RuntimeInitializedAgent and workflow-agent.mts are absent from manifest references, so the class is not registered as a supported target."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "Both support and step-support reference /moldea/runtimes/cloudflare-agents.md. Targeted runtime inventory shows this is the sole file under moldea/runtimes. Its concise guidance covers explicit static tool maps, statically traceable instruction loading, Cloudflare bindings, new_sqlite_classes migrations, provider bindings, and Worker deployment responsibilities. The workspace patch contains only the manifest update and this new guide."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "pass",
+      "evidence": "The manifest separately records open-request-tools as a tool-registration warning related to /src/support-agent.ts and prepare-step-instruction-provenance as an instruction-provenance blocker related to /src/step-support-agent.ts. Each entry gives a specific static resolution, and deterministic canonical validation completed with zero failures."
+    }
+  ],
+  "failures": []
+}

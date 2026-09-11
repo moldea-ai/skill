@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 795570,
+  "deterministicBeforePath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-vercel-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-vercel-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-vercel-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-vercel-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 352935,
+    "cachedInputTokens": 320128,
+    "outputTokens": 5371
+  },
+  "judgeUsage": {
+    "inputTokens": 195351,
+    "cachedInputTokens": 170752,
+    "outputTokens": 3241
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T11:52:02.818Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T11:57:53.151Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identified `find_order` versus `lookup_order`. This is corroborated by the diff showing the former manifest value and `src/agent.ts` registering the closed map as `tools: { lookup_order: lookupOrderTool }`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`. Git status and diff show only this one-line manifest correction, while deterministic post-actor validation reports `valid` with no failures."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest still binds `supportAgent`, `loadSupportInstruction`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema` to their exact source exports. Workspace assertions show all source, schema, instruction, and wrapper files unchanged; deterministic validation, inspection, and typechecking all passed."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

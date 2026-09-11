@@ -1,0 +1,463 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "invalid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "invalid",
+    "cliInspectStatus": "invalid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1495
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "EVE_TOOL_NAME_MISMATCH"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 7,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "EVE_TOOL_NAME_MISMATCH"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 7,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "invalid",
+      "result": {
+        "diagnosticCount": 1,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "code": "EVE_TOOL_NAME_MISMATCH",
+              "entity": {
+                "adapterId": "eve",
+                "agentId": "support",
+                "capabilityId": "find-order",
+                "capabilityKind": "tool"
+              },
+              "key": "[\"diagnostic\",\"eve\",\"EVE_TOOL_NAME_MISMATCH\",\"/agent/tools/orders/find.ts\",null,0]",
+              "kind": "diagnostic",
+              "message": "The declared tool name does not match the Eve path-derived runtime name.",
+              "path": "/agent/tools/orders/find.ts",
+              "pointer": null,
+              "range": null,
+              "source": "eve"
+            }
+          ]
+        },
+        "snapshotDigest": "sha256:f8ac3e06f99a0d8d79cdcb51df297dc7125c864511cf62269189bfcd9238af91",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "invalid",
+      "result": {
+        "counts": {
+          "agents": 1,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 1,
+          "evidence": 7,
+          "metadata": 4,
+          "mirrors": 0,
+          "runtimes": 0,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "support",
+              "byteLength": 56,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:0f4919e2778f71917e747cec6d6c51ec8b093d710437bb5a02b8c61272ecb7cf",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/support/description.md\",\"agent-description\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/support/description.md",
+              "scalarLength": 56
+            },
+            {
+              "agentId": "support",
+              "byteLength": 139,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:e008e7277af78edb9b1e3f9635afe0365ca4a117cd162e06dd3582ea8a6ed7a0",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/support/instruction.md\",\"agent-instruction\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/support/instruction.md",
+              "scalarLength": 139
+            },
+            {
+              "agentId": null,
+              "byteLength": 817,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:79b29c4149d7ed669336058e03ff8f59cfe70bebaba7a608f6a8a9c5a3d1e16c",
+              "key": "[\"000002\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 817
+            },
+            {
+              "agentId": null,
+              "byteLength": 125,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:ac0c1e5cdd7218f1df5231aa7137465ac66a1cfa0d52e10d0ab4d3ca9e72d257",
+              "key": "[\"000003\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 125
+            },
+            {
+              "code": "EVE_TOOL_NAME_MISMATCH",
+              "entity": {
+                "adapterId": "eve",
+                "agentId": "support",
+                "capabilityId": "find-order",
+                "capabilityKind": "tool"
+              },
+              "key": "[\"000004\",\"diagnostic\",\"eve\",\"EVE_TOOL_NAME_MISMATCH\"]",
+              "kind": "diagnostic",
+              "message": "The declared tool name does not match the Eve path-derived runtime name.",
+              "path": "/agent/tools/orders/find.ts",
+              "pointer": null,
+              "range": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000005\",\"evidence\",\"eve\",\"agent-definition\",\"support\",null,null,\"moldea-qualification-eve-tool-repair\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/agent/agent.ts",
+                  "symbol": "default"
+                }
+              ],
+              "runtimeName": "moldea-qualification-eve-tool-repair",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "instruction-loader",
+              "key": "[\"000006\",\"evidence\",\"eve\",\"instruction-loader\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/agent/instructions.md",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000007\",\"evidence\",\"eve\",\"language\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/agent/agent.ts",
+                  "symbol": "default"
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000008\",\"evidence\",\"eve\",\"runtime-package\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "schema",
+              "key": "[\"000009\",\"evidence\",\"eve\",\"schema\",\"support\",null,null,\"SupportOutputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/agent/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "find-order",
+              "capabilityKind": "tool",
+              "evidenceKind": "schema",
+              "key": "[\"000010\",\"evidence\",\"eve\",\"schema\",\"support\",\"tool\",\"find-order\",\"FindOrderInputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/agent/contracts.ts",
+                  "symbol": "FindOrderInputSchema"
+                }
+              ],
+              "runtimeName": "FindOrderInputSchema",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "find-order",
+              "capabilityKind": "tool",
+              "evidenceKind": "schema",
+              "key": "[\"000011\",\"evidence\",\"eve\",\"schema\",\"support\",\"tool\",\"find-order\",\"FindOrderOutputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/agent/contracts.ts",
+                  "symbol": "FindOrderOutputSchema"
+                }
+              ],
+              "runtimeName": "FindOrderOutputSchema",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "key": "[\"000012\",\"agent\",\"support\",\"eve\"]",
+              "kind": "agent",
+              "runtimeId": "eve"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:79b29c4149d7ed669336058e03ff8f59cfe70bebaba7a608f6a8a9c5a3d1e16c",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:ac0c1e5cdd7218f1df5231aa7137465ac66a1cfa0d52e10d0ab4d3ca9e72d257",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:b448c9747d05b71dac0ce02a5b120fa9fbe271b9da808aa34210a98ac24776b0",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

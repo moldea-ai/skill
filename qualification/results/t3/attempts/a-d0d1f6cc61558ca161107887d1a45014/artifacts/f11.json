@@ -1,0 +1,48 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T10:56:03.744Z",
+  "durationMs": 136589,
+  "usage": {
+    "inputTokens": 278167,
+    "cachedInputTokens": 247936,
+    "outputTokens": 5427
+  },
+  "stageIdentity": "8fbf2aa031a9a5ed71f793f827866c47ec0623d34cb46abc26a6ee0037ef7167",
+  "sourceAttemptId": "20260911T101535112Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-17659d26",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 25,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 40513,
+    "moldeaCommandCount": 0,
+    "moldeaOutputByteCount": 0,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

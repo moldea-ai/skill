@@ -1,0 +1,48 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-09-11T12:03:51.075Z",
+  "durationMs": 176356,
+  "usage": {
+    "inputTokens": 272675,
+    "cachedInputTokens": 241280,
+    "outputTokens": 6053
+  },
+  "stageIdentity": "1e7daf3ea796521eae12f3083c38a9cdb56a2401a6c5ce9c28294a408f501f44",
+  "sourceAttemptId": "20260911T101535112Z-openai-typescript-responses-api-7-14744fb8",
+  "reuseSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 18,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 19618,
+    "modelVisibleToolOutputByteCount": 32580,
+    "moldeaCommandCount": 3,
+    "moldeaOutputByteCount": 1264,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 2
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2,
+      "reasons": [
+        {
+          "code": "dynamic-execution",
+          "count": 2
+        }
+      ]
+    }
+  }
+}

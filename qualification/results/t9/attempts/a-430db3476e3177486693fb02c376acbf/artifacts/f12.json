@@ -1,0 +1,37 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, approved Git evidence, workspace assertions, and deterministic post-actor results agree. Both runtime-agent bindings and all source files are preserved; the manifest adds only focused unresolved boundaries and two references to the sole LangGraph runtime guide. Validation, inspection, and TypeScript checks passed.",
+  "requirements": [
+    {
+      "id": "preserves-direct-patterns",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` retains support’s `/src/support-workflow.ts#supportWorkflow` binding. `src/support-workflow.ts` still directly calls `lookupOrder`, uses `getPreviousState` and `interrupt`, and returns separate `value` and `save` fields through `entrypoint.final`. No executable schema relationship was added."
+    },
+    {
+      "id": "preserves-typescript-schema-boundary",
+      "verdict": "pass",
+      "evidence": "The unchanged TypeScript sources retain support input/saved-state/output types and dynamic-support input/result types. Both agents have an `executable-schema-contract` unresolved entry, the shared guide states TypeScript types do not establish executable schema bindings, and the manifest has no `schemas` declaration. Deterministic typecheck and validation passed."
+    },
+    {
+      "id": "preserves-control-flow-boundary",
+      "verdict": "pass",
+      "evidence": "`src/dynamic-support-workflow.ts` still selects tasks from `input.route`, calls through `runSelectedTask`, and invokes `summarize` inside a map callback. The manifest records dynamic task control flow and routing topology as unresolved, while the diff adds no routing targets, handoffs, subagents, or topology relationships."
+    },
+    {
+      "id": "keeps-tasks-outside-capabilities",
+      "verdict": "pass",
+      "evidence": "The manifest contains no tool, skill, handoff, subagent, or capability declaration keys; targeted expected canonical paths for those declarations are absent. The only task references added are negative unresolved guidance stating that task definitions do not establish registered capabilities."
+    },
+    {
+      "id": "preserves-runtime-semantics-boundary",
+      "verdict": "pass",
+      "evidence": "Both the manifest and `/moldea/runtimes/langgraph.md` explicitly require deployed configuration and runtime evidence for checkpointer persistence, replay, task idempotency, interrupt/resume safety, and approval policy. The patch does not claim these behaviors as statically proved."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "Both agents set `runtime.guidance: /moldea/runtimes/langgraph.md`. A targeted runtime-guide listing contains only that Markdown file, and workspace assertions identify it as the sole new runtime-guidance path. Its three concise paragraphs cover lexical/code-shape observations, capability/schema/routing limits, and unresolved runtime semantics."
+    }
+  ],
+  "failures": []
+}

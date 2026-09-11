@@ -1,0 +1,442 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 12030
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 2
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 2
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "4.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "3.0.0"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "4.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnosticCount": 0,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": []
+        },
+        "snapshotDigest": "sha256:4554a03267d1bd4645fab12db980df21c83b3fc6e974b79e2a5b74fb6f9667a4",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "8.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "counts": {
+          "agents": 2,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 0,
+          "evidence": 6,
+          "metadata": 6,
+          "mirrors": 0,
+          "runtimes": 0,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "dynamic-support",
+              "byteLength": 74,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:98ccb48cdc60075c14b7e24318bccc76ea1c4125bfbc51d3789d580df5a5de9e",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/dynamic-support/description.md\",\"agent-description\",\"dynamic-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/dynamic-support/description.md",
+              "scalarLength": 74
+            },
+            {
+              "agentId": "dynamic-support",
+              "byteLength": 119,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:10f809f5c859c509c710797066b0a8f69b6d86fc0b0c33dd52cbd1e36b7a8807",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/dynamic-support/instruction.md\",\"agent-instruction\",\"dynamic-support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/dynamic-support/instruction.md",
+              "scalarLength": 119
+            },
+            {
+              "agentId": "support",
+              "byteLength": 70,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:9925f3747f8c7c720ced97eaa961ce0b9aae3c2208b57ac155cce45022344d1e",
+              "key": "[\"000002\",\"metadata\",\"/moldea/agents/support/description.md\",\"agent-description\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/support/description.md",
+              "scalarLength": 70
+            },
+            {
+              "agentId": "support",
+              "byteLength": 103,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:e7ab796d00d12f27c4cfb05cdfacff7704106cf90c5c6d261e2016239248ba91",
+              "key": "[\"000003\",\"metadata\",\"/moldea/agents/support/instruction.md\",\"agent-instruction\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/support/instruction.md",
+              "scalarLength": 103
+            },
+            {
+              "agentId": null,
+              "byteLength": 987,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:4ce144a56031f84ae9dbea63008b7adb91d9d5f343d870431cf82d1489d464ec",
+              "key": "[\"000004\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 987
+            },
+            {
+              "agentId": null,
+              "byteLength": 164,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:d526075240a10930f564026463abde8b6a5c58a73fd6ed8796f71a25fc055c3c",
+              "key": "[\"000005\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 164
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000006\",\"evidence\",\"openai-agents-sdk\",\"agent-definition\",\"support\",null,null,\"support\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "support",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "instruction-loader",
+              "key": "[\"000007\",\"evidence\",\"openai-agents-sdk\",\"instruction-loader\",\"support\",null,null,\"loadSupportInstruction\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": null
+                },
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000008\",\"evidence\",\"openai-agents-sdk\",\"language\",\"dynamic-support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "dynamicSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000009\",\"evidence\",\"openai-agents-sdk\",\"language\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000010\",\"evidence\",\"openai-agents-sdk\",\"runtime-package\",\"dynamic-support\",null,null,\"@openai/agents\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@openai/agents",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000011\",\"evidence\",\"openai-agents-sdk\",\"runtime-package\",\"support\",null,null,\"@openai/agents\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@openai/agents",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "dynamic-support",
+              "key": "[\"000012\",\"agent\",\"dynamic-support\",\"openai-agents-sdk\"]",
+              "kind": "agent",
+              "runtimeId": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "key": "[\"000013\",\"agent\",\"support\",\"openai-agents-sdk\"]",
+              "kind": "agent",
+              "runtimeId": "openai-agents-sdk"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:4ce144a56031f84ae9dbea63008b7adb91d9d5f343d870431cf82d1489d464ec",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:d526075240a10930f564026463abde8b6a5c58a73fd6ed8796f71a25fc055c3c",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:0ee76c811c1da4dcd0b460cbd0cd10e2f9a8418d3478a499c213583b7f335de9",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": true,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

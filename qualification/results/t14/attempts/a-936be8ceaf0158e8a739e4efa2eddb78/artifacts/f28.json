@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, approved Git diff, and deterministic post-actor evidence agree: only the manifest tool name changed from `find_order` to `lookup_order`, matching the unchanged Vercel tools-map key. Validation is valid with zero diagnostics, and all required bindings remain intact. Inspection was read-only and changed no files.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies the original declared-name/tools-map mismatch. The diff independently confirms the manifest previously declared `find_order`, while unchanged `src/agent.ts` registers `tools: { lookup_order: lookupOrderTool }`; workspace hashes confirm the source was unchanged."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, exactly matching the closed map key in `src/agent.ts`. The Git diff contains only this one-line manifest correction. Deterministic validation, inspection, and typecheck all passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings for `supportAgent`, `loadSupportInstruction`, `SupportInputSchema`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema`. Current source resolves each symbol, all corresponding source hashes are unchanged, and inspection emits the complete `lookup_order` tool-registration evidence with both schemas and zero diagnostics."
+    }
+  ],
+  "failures": []
+}

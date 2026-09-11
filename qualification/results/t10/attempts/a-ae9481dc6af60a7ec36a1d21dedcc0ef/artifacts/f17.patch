@@ -1,0 +1,55 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index d2d73ee..54701b3 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,8 +1,28 @@
+ version: 1
++unresolved:
++  dynamic-routing:
++    category: routing
++    effect: warning
++    description: Static inspection does not establish the complete destination set for the state-selected conditional route or runtime-created Command and Send instances.
++    resolution: Supply the runtime routing configuration and integration tests that exercise and assert every permitted destination.
++    related:
++      - path: /src/dynamic-support-graph.ts
++      - path: /src/runtime-boundaries.ts
++  langgraph-runtime-composition:
++    category: runtime-composition
++    effect: warning
++    description: Static inspection does not establish the effective reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, or supervisor composition.
++    resolution: Supply the deployed LangGraph composition and integration tests that prove each effective component and the resulting topology.
++    related:
++      - path: /src/support-graph.ts
++      - path: /src/dynamic-support-graph.ts
++      - path: /src/runtime-boundaries.ts
++      - path: /src/prebuilt-boundary.ts
+ agents:
+   support:
+     runtime:
+       id: langgraph
++      guidance: /moldea/runtimes/langgraph.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-graph.ts
+@@ -18,6 +38,7 @@ agents:
+   dynamic-support:
+     runtime:
+       id: langgraph
++      guidance: /moldea/runtimes/langgraph.md
+     bindings:
+       runtimeAgent:
+         path: /src/dynamic-support-graph.ts
+
+diff --git a/moldea/runtimes/langgraph.md b/moldea/runtimes/langgraph.md
+new file mode 100644
+index 0000000..7901a53
+--- /dev/null
++++ b/moldea/runtimes/langgraph.md
+@@ -0,0 +1,7 @@
++# LangGraph runtime boundaries
++
++`supportGraph` uses a closed object initializer and direct graph operations. Its order lookup is node-local behavior, not a registered tool; preserve only the registered graph, input-schema, and output-schema bindings.
++
++`dynamicSupportGraph` obtains state through a schema factory, and its conditional route plus `Command` and `Send` destinations depend on runtime values. Preserve only its registered graph binding; do not infer schema relationships, routing targets, handoffs, subagents, or complete topology.
++
++Constructing `unregisteredToolNode` does not register a model-visible tool. Runtime configuration remains authoritative for effective reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, and supervisor composition.

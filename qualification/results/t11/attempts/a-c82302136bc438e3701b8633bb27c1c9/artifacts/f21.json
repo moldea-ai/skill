@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s canonical tool declaration from `find_order` to `lookup_order`, matching the closed OpenAI Responses function-tool array while preserving all source wiring and schemas.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "moldea 8.0.0 validation completed with `valid: true`, zero diagnostics, and a complete result (`cursor: null`).",
+    "TypeScript validation passed with `tsc --noEmit`.",
+    "Final Git diff contains only the one-line canonical name correction; the direct wrapper, function-tool declaration, `lookupOrder` implementation, and `LookupOrderInputSchema` remain unchanged."
+  ],
+  "unresolved": [
+    "No live OpenAI Responses request was executed; static adapter wiring and validation do not prove runtime API execution."
+  ]
+}

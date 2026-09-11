@@ -1,0 +1,37 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree and patch satisfy all six requirements. Only moldea/moldea.yaml and the new focused runtime-guidance file changed; implementation sources remain preserved, and deterministic validation and typechecking passed.",
+  "requirements": [
+    {
+      "id": "preserves-prepare-call-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains only support.runtimeAgent and support.inputSchema. Its warning-level prepare-call-runtime-wiring entry explicitly marks effective instructions, output schema, and tool registry unresolved because prepareCall is the call boundary. Deterministic inspection and validation passed."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "verdict": "pass",
+      "evidence": "step-support retains runtimeAgent, inputSchema, outputSchema, and the complete get-status tool bindings. Only instructionLoader was removed, with prepare-step-instruction-loader recording the prepareStep replacement boundary as a warning."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "pass",
+      "evidence": "delegating-support still declares delegate_support with its implementation, registration, input-schema, and output-schema bindings. src/delegation.ts directly calls stepSupportAgent.generate(), while the manifest contains no handoff, routing, or subagent relationship. The workspace patch and hashes show the delegation sources were unchanged."
+    },
+    {
+      "id": "keeps-workflow-agent-outside-target",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts still exports workflowSupportAgent using WorkflowAgent, but moldea/moldea.yaml has no workflow target or reference. Expected workflow-agent canonical paths are absent, and neither the source nor such a registration appears in the patch."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "Both support and step-support reference /moldea/runtimes/vercel-ai-sdk.md. It is the sole file under moldea/runtimes and separately describes prepareCall as affecting effective instruction/output/tool wiring and prepareStep as affecting replacement instructions, without asserting provider behavior."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "pass",
+      "evidence": "The manifest has separate prepare-call-runtime-wiring and prepare-step-instruction-loader entries, each with effect: warning, explicit callback-boundary descriptions, and related source paths. Their resolutions require runtime evidence exercising prepareCall or every prepareStep instruction result to establish the specific unresolved relationships. Deterministic canonical validation reported zero failures."
+    }
+  ],
+  "failures": []
+}

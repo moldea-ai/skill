@@ -1,0 +1,21 @@
+{
+  "outcome": "completed",
+  "summary": "Preserved the Eve static boundary, narrowed canonical relationships to evidenced sources, documented unsupported surfaces as warnings, and added concise Eve runtime guidance. TypeScript and canonical validation pass.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/eve.md"
+  ],
+  "observations": [
+    "All agent, example, and other source files remain unchanged.",
+    "The `support` agent remains assigned to runtime `eve`; its lowercase instructions, output schema, static `status` tool, and TypeScript `triage` skill retain canonical bindings.",
+    "The broad `/agent/**` relationship was replaced with exact evidenced paths.",
+    "`node node_modules/typescript/bin/tsc --noEmit --pretty false -p tsconfig.json` passed.",
+    "Final moldea validation reported `valid: true` with zero diagnostics."
+  ],
+  "unresolved": [
+    "Dynamic tool registration requires focused runtime evidence or a static registration.",
+    "Markdown skill discovery requires compiled/runtime evidence before canonical registration.",
+    "The single-file local subagent candidate and example instruction forms are not proven active Eve surfaces.",
+    "Native `eve info` could not complete because the placeholder `provider/model` triggered unavailable model-metadata resolution; no provider or model behavior was inferred."
+  ]
+}

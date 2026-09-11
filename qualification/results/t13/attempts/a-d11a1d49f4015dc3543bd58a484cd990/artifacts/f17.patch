@@ -1,0 +1,34 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 7cf7049..bc5957b 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,9 +3,19 @@ agents:
+   support:
+     runtime:
+       id: vercel-ai-sdk
++      guidance: /moldea/runtimes/vercel-ai-sdk.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+         symbol: supportAgent
+     affectedBy:
+       - /src/support-agent.ts
++    unresolved:
++      indirect-instruction-boundary:
++        category: instruction-provenance
++        effect: warning
++        description: Static inspection cannot prove which instructions are effective when generateText receives an indirect request object and prepareStep can replace instructions.
++        resolution: Update /src/support-agent.ts to pass the canonical instruction directly through a supported generateText request pattern, and add a focused runtime test that verifies the canonical instruction remains effective at the invocation boundary.
++        related:
++          - path: /src/support-agent.ts
++          - path: /moldea/agents/support/instruction.md
+
+diff --git a/moldea/runtimes/vercel-ai-sdk.md b/moldea/runtimes/vercel-ai-sdk.md
+new file mode 100644
+index 0000000..71e0812
+--- /dev/null
++++ b/moldea/runtimes/vercel-ai-sdk.md
+@@ -0,0 +1,3 @@
++# Vercel AI SDK runtime guidance
++
++For `support`, `/src/support-agent.ts` passes `generateText` an object built by `buildRequest`, and its `prepareStep` callback can replace instructions. Static inspection therefore does not establish which instructions are effective during generation. Preserve the current wrapper unless the unresolved requirement under `agents.support` is resolved through the direct request pattern and runtime verification described there.

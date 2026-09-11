@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Documented the support integration’s static boundary without changing its working implementation. TypeScript validation passed, and final project validation completed with zero diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/vercel-ai-sdk.md"
+  ],
+  "observations": [
+    "The support agent remains bound to /src/support-agent.ts at symbol supportAgent.",
+    "Runtime guidance now records the limits of static inspection.",
+    "No new runtime-pattern, instruction-loader, input-schema, provider, model, routing, handoff, or subagent evidence was claimed."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove that the indirect generateText request and prepareStep instruction replacement are a supported direct SDK pattern or determine the effective runtime instructions. The warning requires a documented direct call-site pattern and focused runtime test to resolve this."
+  ]
+}

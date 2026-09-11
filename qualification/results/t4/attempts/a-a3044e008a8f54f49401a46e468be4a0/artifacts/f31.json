@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 1023506,
+  "deterministicBeforePath": "cases/repair-cloudflare-think-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 305483,
+    "cachedInputTokens": 273792,
+    "outputTokens": 5347
+  },
+  "judgeUsage": {
+    "inputTokens": 170099,
+    "cachedInputTokens": 155136,
+    "outputTokens": 2350
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T10:27:09.616Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T10:34:18.934Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report explains that the canonical declaration used `find_order` while the closed Cloudflare Think tool map uses `lookup_order`. This is corroborated by `src/agent.ts`, where `getTools()` returns `{ lookup_order: lookupOrderTool }`, and by the Git diff replacing `name: find_order` with `name: lookup_order`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, exactly matching the key returned by `SupportAgent.getTools()`. The approved Git diff shows this as the sole edit, and deterministic post-actor validation is valid with no failures or wiring diagnostic."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest still binds runtime agent `SupportAgent` and instruction loader `loadSupportInstruction` in `src/agent.ts`, implementation `lookupOrder` in `src/implementations.ts`, registration `lookupOrderTool` in `src/tools.ts`, and both lookup schemas in `src/contracts.ts`. Source inspection confirms the registration uses those schemas and implementation. Workspace hashes show every source and instruction file unchanged, no agent schema was added, and deterministic validation and typechecking passed."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

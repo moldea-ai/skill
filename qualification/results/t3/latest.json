@@ -2,8 +2,8 @@
   "protocolVersion": 10,
   "adapterId": "cloudflare-agents",
   "implementationId": "typescript-ai-chat-agent-0-10-ai-sdk-7",
-  "latestAttemptId": "20260911T083743802Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-1c4f2192",
-  "latestStatus": "incomplete",
-  "lastPassingAttemptId": null,
-  "updatedAt": "2026-09-11T08:50:38.433Z"
+  "latestAttemptId": "20260911T101535112Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-17659d26",
+  "latestStatus": "passed",
+  "lastPassingAttemptId": "20260911T101535112Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-17659d26",
+  "updatedAt": "2026-09-11T10:58:23.872Z"
 }

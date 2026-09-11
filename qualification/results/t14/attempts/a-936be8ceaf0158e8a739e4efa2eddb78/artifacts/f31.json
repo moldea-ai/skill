@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 1118015,
+  "deterministicBeforePath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-vercel-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-vercel-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-vercel-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-vercel-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 266777,
+    "cachedInputTokens": 219648,
+    "outputTokens": 4799
+  },
+  "judgeUsage": {
+    "inputTokens": 218573,
+    "cachedInputTokens": 191872,
+    "outputTokens": 3117
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T12:01:44.042Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T12:09:24.162Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies the original declared-name/tools-map mismatch. The diff independently confirms the manifest previously declared `find_order`, while unchanged `src/agent.ts` registers `tools: { lookup_order: lookupOrderTool }`; workspace hashes confirm the source was unchanged."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, exactly matching the closed map key in `src/agent.ts`. The Git diff contains only this one-line manifest correction. Deterministic validation, inspection, and typecheck all passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings for `supportAgent`, `loadSupportInstruction`, `SupportInputSchema`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema`. Current source resolves each symbol, all corresponding source hashes are unchanged, and inspection emits the complete `lookup_order` tool-registration evidence with both schemas and zero diagnostics."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

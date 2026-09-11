@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent runtime binding to target the directly exported `supportWorkflow` entrypoint. Validation completed successfully with zero diagnostics, including no runtime-symbol diagnostic; TypeScript compilation also passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Changed only `runtimeAgent.symbol` from `removedSupportWorkflow` to `supportWorkflow`.",
+    "Preserved the exported Functional API entrypoint, its direct `answerQuestion` task, capabilities, and schemas unchanged.",
+    "Final validation reported `valid: true`, `diagnosticCount: 0`, and complete pagination (`cursor: null`).",
+    "Final Git inspection confirmed this single intended one-line change."
+  ],
+  "unresolved": []
+}

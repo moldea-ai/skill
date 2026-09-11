@@ -1,0 +1,11 @@
+{
+  "outcome": "blocked",
+  "summary": "No actionable request was provided, so no repository work was performed.",
+  "changedFiles": [],
+  "observations": [
+    "The message contains environment context and available plugins but no task or desired outcome."
+  ],
+  "unresolved": [
+    "Please specify what you want changed, reviewed, diagnosed, or built."
+  ]
+}

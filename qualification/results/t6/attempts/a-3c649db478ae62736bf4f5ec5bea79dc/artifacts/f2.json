@@ -1,0 +1,89 @@
+{
+  "caseId": "preserve-eve-static-boundary",
+  "title": "Preserve the Eve static boundary",
+  "status": "failed",
+  "confirmationStatus": "not-applicable",
+  "durationMs": 1404517,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "confirmationEligible": false,
+      "dimensions": {
+        "semantic": true,
+        "resource": false,
+        "commandPolicy": true,
+        "repositoryControl": true,
+        "mountIntegrity": true,
+        "operational": true
+      },
+      "failureClassifications": [
+        "resource"
+      ],
+      "passed": false,
+      "durationMs": 1404517,
+      "deterministicBeforePath": "cases/preserve-eve-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-eve-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-eve-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-eve-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-eve-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-eve-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1958106,
+        "cachedInputTokens": 1878144,
+        "outputTokens": 18404
+      },
+      "judgeUsage": {
+        "inputTokens": 391422,
+        "cachedInputTokens": 316288,
+        "outputTokens": 7938
+      },
+      "actorEvidenceCreatedAt": "2026-09-11T11:04:49.848Z",
+      "judgeEvidenceCreatedAt": "2026-09-11T11:14:52.471Z",
+      "actorReuseSourceAttemptId": null,
+      "judgeReuseSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "preserves-supported-static-relationships",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/moldea.yaml` canonically binds `support` to Eve, `/agent/agent.ts` default, lowercase `/agent/instructions.md`, `SupportOutputSchema`, the static `status` tool, and the TypeScript `triage` skill. The corresponding sources export the declared symbols. The Git diff leaves these bindings intact while narrowing `affectedBy`; before/after hashes preserve all sources. Deterministic validation, inspection, and typechecking passed."
+        },
+        {
+          "id": "records-dynamic-and-markdown-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest records warning-level unresolved entries for `/agent/tools/runtime.ts` and both Markdown skill paths, with focused runtime/static resolution criteria. None is added to the canonical `tools` or `skills` registrations. Workspace assertions preserve all three source files, and deterministic validation reports zero failures."
+        },
+        {
+          "id": "records-subagent-and-instruction-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Warning-level unresolved entries reference `/agent/subagents/quick.ts` and all three example instruction files without claiming registration. They identify supported alternatives: `subagents/<id>/agent.ts` for local agents, `defineRemoteAgent` for the single-file form, and exact lowercase root or non-recursive directory instruction forms. Targeted checks confirm `/agent/subagents/quick/agent.ts`, `/agent/instructions.ts`, and `/agent/instructions/` are absent; source hashes remain unchanged."
+        },
+        {
+          "id": "records-operational-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The sole new guide, `/moldea/runtimes/eve.md`, is linked through `runtime.guidance`. It concisely covers supported instruction, tool, skill, and subagent forms; states Node.js 24 or newer, matching `package.json`; and separately requires runtime evidence or a supported static form for remote agents, extension contributions, connection/framework tools, collisions, reserved names, and advanced behavior. It also rejects provider/model inference."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": [
+        "Actor resource profile ordinary exceeded total-model-tokens: observed 1976510, limit 1625000."
+      ]
+    }
+  ],
+  "failures": [
+    "Actor resource profile ordinary exceeded total-model-tokens: observed 1976510, limit 1625000."
+  ],
+  "reuse": null
+}

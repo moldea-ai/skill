@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 884581,
+  "deterministicBeforePath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 263490,
+    "cachedInputTokens": 235648,
+    "outputTokens": 4105
+  },
+  "judgeUsage": {
+    "inputTokens": 153399,
+    "cachedInputTokens": 128640,
+    "outputTokens": 2767
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T10:24:54.785Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T10:32:06.875Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor reports reconciling the canonical declaration with the working Claude Agent SDK wiring. The Git diff identifies the mismatch precisely: `mcp__support__find_order` was replaced by `mcp__support__lookup_order`; `src/agent.ts` mounts `supportServer` as `support` and permits `mcp__support__lookup_order`, while `src/tools.ts` registers `lookup_order`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` currently declares `name: mcp__support__lookup_order`. The approved diff shows this as the sole one-line correction, Git status lists only `moldea/moldea.yaml`, and deterministic validation reports `valid` with no failures."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains runtime `claude-agent-sdk`, runtimeAgent `supportAgent`, instructionLoader `loadSupportInstruction`, registration `lookupOrderTool`, implementation `lookupOrder`, and input schema `LookupOrderInputSchema`. Current source confirms the direct `query()` wrapper, instruction loading, `support` MCP mount, SDK `tool('lookup_order', ...)` registration, implementation, and schema. Workspace hashes show all corresponding source and instruction files unchanged, while deterministic validation and typechecking passed."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

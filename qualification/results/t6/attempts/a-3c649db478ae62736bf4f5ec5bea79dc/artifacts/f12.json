@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, approved Git evidence, workspace assertions, and deterministic post-actor results agree: only the canonical manifest and one Eve runtime guide changed, all source files were preserved, and every declared boundary is represented without unsupported canonical claims. This evaluation was read-only and changed no files.",
+  "requirements": [
+    {
+      "id": "preserves-supported-static-relationships",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` canonically binds `support` to Eve, `/agent/agent.ts` default, lowercase `/agent/instructions.md`, `SupportOutputSchema`, the static `status` tool, and the TypeScript `triage` skill. The corresponding sources export the declared symbols. The Git diff leaves these bindings intact while narrowing `affectedBy`; before/after hashes preserve all sources. Deterministic validation, inspection, and typechecking passed."
+    },
+    {
+      "id": "records-dynamic-and-markdown-boundaries",
+      "verdict": "pass",
+      "evidence": "The manifest records warning-level unresolved entries for `/agent/tools/runtime.ts` and both Markdown skill paths, with focused runtime/static resolution criteria. None is added to the canonical `tools` or `skills` registrations. Workspace assertions preserve all three source files, and deterministic validation reports zero failures."
+    },
+    {
+      "id": "records-subagent-and-instruction-boundaries",
+      "verdict": "pass",
+      "evidence": "Warning-level unresolved entries reference `/agent/subagents/quick.ts` and all three example instruction files without claiming registration. They identify supported alternatives: `subagents/<id>/agent.ts` for local agents, `defineRemoteAgent` for the single-file form, and exact lowercase root or non-recursive directory instruction forms. Targeted checks confirm `/agent/subagents/quick/agent.ts`, `/agent/instructions.ts`, and `/agent/instructions/` are absent; source hashes remain unchanged."
+    },
+    {
+      "id": "records-operational-boundaries",
+      "verdict": "pass",
+      "evidence": "The sole new guide, `/moldea/runtimes/eve.md`, is linked through `runtime.guidance`. It concisely covers supported instruction, tool, skill, and subagent forms; states Node.js 24 or newer, matching `package.json`; and separately requires runtime evidence or a supported static form for remote agents, extension contributions, connection/framework tools, collisions, reserved names, and advanced behavior. It also rejects provider/model inference."
+    }
+  ],
+  "failures": []
+}

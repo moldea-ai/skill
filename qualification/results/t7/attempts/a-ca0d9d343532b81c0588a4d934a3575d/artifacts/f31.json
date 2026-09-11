@@ -1,0 +1,66 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "confirmationEligible": false,
+  "dimensions": {
+    "semantic": true,
+    "resource": true,
+    "commandPolicy": true,
+    "repositoryControl": true,
+    "mountIntegrity": true,
+    "operational": true
+  },
+  "failureClassifications": [],
+  "passed": true,
+  "durationMs": 1192006,
+  "deterministicBeforePath": "cases/repair-google-genai-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-google-genai-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-google-genai-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-google-genai-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-google-genai-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-google-genai-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 441540,
+    "cachedInputTokens": 389760,
+    "outputTokens": 6147
+  },
+  "judgeUsage": {
+    "inputTokens": 155427,
+    "cachedInputTokens": 131072,
+    "outputTokens": 3035
+  },
+  "actorEvidenceCreatedAt": "2026-09-11T11:09:40.456Z",
+  "judgeEvidenceCreatedAt": "2026-09-11T11:20:26.608Z",
+  "actorReuseSourceAttemptId": null,
+  "judgeReuseSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the mismatch and correction from `find_order` to `lookup_order`. The Git diff confirms the former manifest name, while `src/tools.ts` declares `lookupOrderDeclaration.name` as `lookup_order` and `src/agent.ts` registers that declaration in the closed `functionDeclarations` array."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, matching `src/tools.ts`. The approved Git diff contains only this one-line name change, and the deterministic post-actor summary reports valid inspection, zero listed failures, and passing typecheck."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The current manifest retains exact bindings for `supportAgent`, `loadSupportInstruction`, `lookupOrder`, `lookupOrderDeclaration`, and `LookupOrderInputSchema`. The corresponding source files resolve those symbols and preserve the direct `client.models.generateContent` wrapper with `tools: [{ functionDeclarations: [lookupOrderDeclaration] }]`. Current hashes match the supplied after-state, where every relevant source hash is unchanged; deterministic evidence reports structural validity and typecheck success without claiming runtime execution."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

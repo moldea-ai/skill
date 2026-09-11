@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository preserves the intended static boundary. Source, canonical manifest, actor report, deterministic validation, unchanged workspace hashes, and empty approved Git status/diff all agree. The sole invalid diagnostic is the expected unsupported SDK MCP server key.",
+  "requirements": [
+    {
+      "id": "explains-direct-evidence",
+      "verdict": "pass",
+      "evidence": "`src/agents.ts` directly calls `query` from `supportAgent` and supplies `systemPrompt: await loadSupportInstruction()`. `moldea/moldea.yaml` binds those exact symbols as `runtimeAgent` and `instructionLoader`. Validation reports only `CLAUDE_AGENT_SDK_MCP_SERVER_KEY_UNSUPPORTED` for `boundary/tools`, explicitly stating that it cannot establish a canonical runtime-name segment; no capability relationship exists in the canonical file inventory."
+    },
+    {
+      "id": "preserves-dynamic-query-boundary",
+      "verdict": "pass",
+      "evidence": "`dynamicSupportAgent` passes `options: await buildDynamicOptions()`, whose factory includes main-thread selection, a prompt array, aliases, a preset, dynamic definitions/descriptions, and restrictions. The manifest records only the direct `dynamicSupportAgent` runtime binding and focused unresolved entries `dynamic-query-configuration` and `dynamic-routing-and-tools`; it adds no instruction-loader, delegation, routing, or tool relationship. Deterministic checks passed."
+    },
+    {
+      "id": "preserves-sdk-feature-boundary",
+      "verdict": "pass",
+      "evidence": "The source contains observer fields, a critical reminder, SDK server instructions, external and per-agent MCP configuration, and skills, while `.claude/settings.json`, `CLAUDE.md`, and `.claude/agents/filesystem-support.md` contain settings/hooks/plugins/filesystem-agent evidence. The manifest keeps these outside inferred relationships through the informational `sdk-and-filesystem-features` unresolved record and uses `.claude/**` and `CLAUDE.md` only as impact evidence. Workspace before/after hashes match and approved Git status/diff are empty."
+    }
+  ],
+  "failures": []
+}

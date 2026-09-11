@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "attemptKey": "a-ae9481dc6af60a7ec36a1d21dedcc0ef",
+  "attemptId": "20260911T101535112Z-langgraph-typescript-state-graph-1-4-3a719657",
+  "attemptIdDigest": "ae9481dc6af60a7ec36a1d21dedcc0efa31714bfbf79958c2a5f4c18210024cc",
+  "attemptDigest": "552c8947f22e1830db3ac68672e8b6a401d8a6bcdc7067731079f99b41147f30",
+  "sourceCommit": "526a06a7de1374a260af7346fd2f55bacb9930dd",
+  "compatibility": {
+    "version": 1,
+    "qualificationEvaluatorDigest": "e9cf6e97d1d5862c4d5c040a4afa73b50a3237d1f83b352f564e51130b3dc297",
+    "qualificationLogicalInputDigest": "e942de33973a359b5b4423a88a3e6d15bbb08352db260187c79e2c99efa50590",
+    "qualificationBaselineEvaluatorDigest": "f127211dad0153b4cb328ff4cb0f2f927624b4db2ffe4ea55652d8c526043fcb"
+  },
+  "portableSkillBehaviorDigest": "e373b94b7ce978708297052946f1a014aa01bcb1fa5f9de210f41ba820424467",
+  "cliClosureDigest": "4c6207db8e6a25d4a331526ce3448c76c12b768bde85aadf0fa745d9c9d39513",
+  "artifacts": [
+    {
+      "logicalPath": "baseline.json",
+      "physicalPath": "artifacts/f1.json",
+      "sha256": "6d5a49450f68ec9cf76f139f3b19a8c2d9ee425fb9eda6a1cac978c815511e43"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/case-result.json",
+      "physicalPath": "artifacts/f2.json",
+      "sha256": "204c78c2f81124af2567d430efeca31aa4bc63e1e85c0b4b8aa8039863969337"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f3.jsonl",
+      "sha256": "31d1e6f851ff4e38b863b0bce1d05f92af0baffd277cc1cf97cf2106d1c281c8"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f4.json",
+      "sha256": "d2336c387fc3cf3b6de3a1d6e946f59f7e1ac5fa8cd34911aad8f0ed6dd71416"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f5.json",
+      "sha256": "6a835bc8d61d2e5e5d8bff1dadf4f693be06054ef6e89cc82b2f7f02bdfb1228"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f6.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f7.md",
+      "sha256": "b7df8f73e53229c7d7100493280abbc5829a968d9707444d8b523fc177a8261b"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f8.json",
+      "sha256": "5507d50f3c9bd0977d7cbaa2bf6dbe2b12df415c1876541e5f2c053bfe7d8203"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f9.json",
+      "sha256": "7f13814309f9da606ccb13b0b9632372a12709b5095ea7a1a55374fa0d6ee2b8"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f10.jsonl",
+      "sha256": "ebd981f00d6ce7bc9fc0e2a0e89c65a0b5678419cb35966b50339d767a8aadb9"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f11.json",
+      "sha256": "439c91ec1938f0c9ee58d741e1a89bf03d7ad290bdb37ba2e904ced63b441eca"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f12.json",
+      "sha256": "de3b1726e3270645e3d76be1c8ec66c5de8ca9cae325b6d27d57fd13f294ed11"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f13.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f14.md",
+      "sha256": "45d536d7a4dd9a81a095f8a6de1e3c0e2297259fda77b74412e339993ebe257c"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f15.json",
+      "sha256": "7594531a964c3644e0d216aa4c60a747d2c219d61e093e01e1c81cf39cb90c3b"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f16.json",
+      "sha256": "992395eb03bc3e3654c0a189dcb25975f2756ad9d848cbcc591f03f38567e79f"
+    },
+    {
+      "logicalPath": "cases/preserve-langgraph-state-graph-static-boundary/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f17.patch",
+      "sha256": "fadbc474f87d482f6a966acef9850f6ec31a8e33e3bc166f0743f0308eb07fd1"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/case-result.json",
+      "physicalPath": "artifacts/f18.json",
+      "sha256": "28f35c2af2718389ac805dd2f8c25c735243deee2d7de5a94d0c20651e215c74"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/actor-events.jsonl",
+      "physicalPath": "artifacts/f19.jsonl",
+      "sha256": "e54f959c69c37df958fabc4b0ca81359533e0efe8566de9bd0e1455e36899666"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/actor-evidence.json",
+      "physicalPath": "artifacts/f20.json",
+      "sha256": "06bd8aa4a023507e0256ecca409e3011b50e494c496fac7a4542d2d4540f0217"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/actor-output.json",
+      "physicalPath": "artifacts/f21.json",
+      "sha256": "51cb5abc37cf1063b08a86f96b2b14daf26ff878c6fef1e2cc93e9302544e919"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/actor-output.schema.json",
+      "physicalPath": "artifacts/f22.json",
+      "sha256": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/actor-prompt.md",
+      "physicalPath": "artifacts/f23.md",
+      "sha256": "71ed6b8f80a8f8b461ce9b80fb1fa8cbc33d44bd4e8e374e87990abd698b18e9"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/deterministic-after.json",
+      "physicalPath": "artifacts/f24.json",
+      "sha256": "6e76ecb21a087c9f70536502c9d83138a16a51818fbcc982fe6372b34ca75e4f"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/deterministic-before.json",
+      "physicalPath": "artifacts/f25.json",
+      "sha256": "221ca1dc5d4fcb0894b6cd2c5c39f846e0d97f381210bbb3d6c15e512452a82d"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/judge-events.jsonl",
+      "physicalPath": "artifacts/f26.jsonl",
+      "sha256": "c3f670f75733dc4bd8f700d4f3b0cb2da12d2f3142dd7ea86600df4c8fda1aff"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/judge-evidence.json",
+      "physicalPath": "artifacts/f27.json",
+      "sha256": "cb5461751d3581c074c214935347f20ca47a94cef18aed13b8d0399759c93bd8"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/judge-output.json",
+      "physicalPath": "artifacts/f28.json",
+      "sha256": "dbd67d35ef07b9df3281b0b13aff519a846857b6974f592a6f276c97071fda57"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/judge-output.schema.json",
+      "physicalPath": "artifacts/f29.json",
+      "sha256": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/judge-prompt.md",
+      "physicalPath": "artifacts/f30.md",
+      "sha256": "fae427097cee6d880ae25fc1495156214109cd35369e5da6482a521070ab2beb"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/trial-result.json",
+      "physicalPath": "artifacts/f31.json",
+      "sha256": "7e485d21bc472a0b3ee6b2eda3ae4f947d7f7f6c763f2487bcd19918ed6c97f0"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/workspace-assertions.json",
+      "physicalPath": "artifacts/f32.json",
+      "sha256": "871d6c40a949815d7c09b0d5a62b17a204ba1e09b74302070aee62a9048e4988"
+    },
+    {
+      "logicalPath": "cases/repair-langgraph-state-schema/trials/initial/workspace.patch",
+      "physicalPath": "artifacts/f33.patch",
+      "sha256": "a82086b0551e079c6feca671280824f260078976ef5ffbf67e917e2407091ad6"
+    },
+    {
+      "logicalPath": "coverage.json",
+      "physicalPath": "artifacts/f34.json",
+      "sha256": "a5b44e081145bad9c5ca8c7990e384abb74d1efec1f7381f230013d2d56457e5"
+    },
+    {
+      "logicalPath": "source-state.json",
+      "physicalPath": "artifacts/f35.json",
+      "sha256": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+    }
+  ]
+}

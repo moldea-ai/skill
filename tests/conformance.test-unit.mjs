@@ -1291,7 +1291,7 @@ describe('CLI 8 bounded machine protocol', () => {
         '# Assistant\n\nYou are the `assistant` agent.\n\nSENTINEL_AGENT_BODY\n',
       );
       const inspect = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
-      assert.equal(inspect.status, 0);
+      assert.equal(inspect.status, 0, inspect.stderr);
       assert.ok(Buffer.byteLength(inspect.stdout) <= 65_536);
       const inspectEnvelope = JSON.parse(inspect.stdout);
       const packageManifest = JSON.parse(
@@ -1351,7 +1351,7 @@ describe('CLI 8 bounded machine protocol', () => {
         const arguments_ = ['validate', '--json', '--max-output-bytes', '65536'];
         if (cursor !== undefined) arguments_.push('--cursor', cursor);
         const page = runCli(root, arguments_);
-        assert.equal(page.status, 1);
+        assert.equal(page.status, 1, page.stderr);
         assert.ok(Buffer.byteLength(page.stdout) <= 65_536);
         const envelope = JSON.parse(page.stdout);
         assert.equal(envelope.schemaVersion, 4);
@@ -1609,7 +1609,8 @@ describe('CLI 8 bounded machine protocol', () => {
         ],
         [['content', '--path', '/moldea/project.md', '--json', '--max-output-bytes', '65536']],
       ]) {
-        assert.equal(runCli(root, arguments_, input).status, 0);
+        const result = runCli(root, arguments_, input);
+        assert.equal(result.status, 0, result.stderr);
       }
 
       const afterStatus = spawnSync('git', ['status', '--porcelain=v2', '-z'], {

@@ -10,10 +10,14 @@ import type {
 import type { SEMANTIC_CASE_PRESENTATION, SEMANTIC_EVALUATION_GROUPS } from './constants.ts';
 import type { ISemanticAttemptRecord, ISemanticLatestResult } from './validations.ts';
 
-export type ISemanticEvaluationGroupId = keyof typeof SEMANTIC_EVALUATION_GROUPS;
+export type ISemanticEvaluationGroupId =
+  keyof typeof SEMANTIC_EVALUATION_GROUPS | 'source-contract';
 export type ISemanticEvaluationCaseId = keyof typeof SEMANTIC_CASE_PRESENTATION;
 export type ISemanticEvaluationCaseStatus = 'failed' | 'passed' | 'pending' | 'recovered';
 export type ISemanticEvidenceMatch = 'exact';
+
+// repository location from which one website attempt was resolved at build time
+export type ISemanticEvidenceSource = { kind: 'current' } | { commit: string; kind: 'pinned' };
 
 // exact actor or judge host shown with one trial
 export interface ISemanticEvaluationActorHostModel {
@@ -150,6 +154,7 @@ export interface ISemanticEvaluationGroupModel {
 // one immutable attempt with public routes to its summary and exact evidence
 export interface ISemanticAttemptModel {
   cases: ISemanticEvaluationCaseModel[];
+  evidenceSource: ISemanticEvidenceSource;
   rawAttemptUrl: string;
   rawEvidenceUrl: string;
   result: ISemanticAttemptRecord;

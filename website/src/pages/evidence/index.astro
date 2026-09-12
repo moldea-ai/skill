@@ -1,9 +1,14 @@
 ---
-import { FlaskConical, PanelsTopLeft } from '@lucide/astro';
+import { Bot, FlaskConical, GitCompareArrows, PanelsTopLeft, ShieldCheck } from '@lucide/astro';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
+import ConnectionLabel from '@moldea.ai/website-ui/connection-label';
+import FilePreview from '@moldea.ai/website-ui/file-preview';
+import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
+import ResultSummary from '@moldea.ai/website-ui/result-summary';
+import StatusBadge from '@moldea.ai/website-ui/status-badge';
 
 import EvidenceOptionCard from '../../components/evidence-option-card/evidence-option-card.astro';
-import ReleaseEvidenceNotice from '../../components/release-evidence-notice/release-evidence-notice.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import {
@@ -32,15 +37,15 @@ const qualificationStatus = qualificationStatuses.includes('errored')
       : qualificationStatuses.includes('not-recorded')
         ? 'not-recorded'
         : 'passed';
-const qualifiedProfileCount = qualification.profiles.filter(
-  (_, index) => qualificationSummaries[index]?.status === 'passed',
+const qualifiedProfileCount = qualificationSummaries.filter(
+  ({ status }) => status === 'passed',
 ).length;
 const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
 ---
 
 <BaseLayout
   title="Evidence"
-  description="Choose between behavioral semantic evaluation and real-project adapter qualification evidence."
+  description="See how moldea is tested in difficult decisions and realistic coding projects before release."
   {breadcrumbs}
 >
   <div class="page-shell pt-7">
@@ -48,34 +53,53 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
       basePath={basePath}
       items={breadcrumbs}
     />
+  </div>
 
-    <ReleaseEvidenceNotice evidence={model.releaseEvidence} />
+  <header class="relative mt-6 overflow-hidden border-y border-border">
+    <HeroBackdrop />
+    <div class="page-shell relative py-14 sm:py-18 lg:py-20">
+      <div class="max-w-4xl">
+        <p class="eyebrow mb-4">Tested before release</p>
+        <h1 class="section-title font-semibold">Proof you can follow, not just a score.</h1>
+        <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+          Watch coding agents use <code class="inline-code">moldea</code> in difficult situations, see
+          what changed in real projects, and read the independent verdict. Start with the story. Open
+          the technical record only when you need it.
+        </p>
+      </div>
+      <dl class="mt-9 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-3">
+        <div class="rounded-xl border border-border bg-background/80 p-4 backdrop-blur-sm">
+          <dt class="text-xs font-semibold text-muted-foreground">Decisions tested</dt>
+          <dd class="mt-2 font-mono text-2xl font-bold">{semanticEvaluation.caseCount}</dd>
+        </div>
+        <div class="rounded-xl border border-border bg-background/80 p-4 backdrop-blur-sm">
+          <dt class="text-xs font-semibold text-muted-foreground">Integrations tested</dt>
+          <dd class="mt-2 font-mono text-2xl font-bold">{qualification.profiles.length}</dd>
+        </div>
+        <div
+          class="col-span-2 rounded-xl border border-border bg-background/80 p-4 backdrop-blur-sm sm:col-span-1"
+        >
+          <dt class="text-xs font-semibold text-muted-foreground">Evidence path</dt>
+          <dd class="mt-2 text-sm font-bold">Request to verdict</dd>
+        </div>
+      </dl>
+    </div>
+  </header>
 
-    <header class="mt-7 border-b border-border pb-10">
-      <p class="eyebrow mb-4">Tested before release</p>
-      <h1 class="section-title max-w-5xl font-semibold">Choose the evidence you need.</h1>
-      <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-        Semantic evaluation answers whether the skill behaves correctly across difficult situations.
-        Qualification answers whether the published packages, adapter, CLI, and skill work together
-        in realistic projects. Each card shows the evidence accepted for this release and identifies
-        whether it is fresh current-contract evidence or a verified source retained by an explicit
-        release pin.
-      </p>
-    </header>
-
+  <div class="page-shell">
     <section
       class="grid gap-5 py-12 lg:grid-cols-2"
       aria-label="Evidence types"
     >
       <EvidenceOptionCard
         title="Semantic evaluation"
-        description="Review the behavioral scenarios, exact success and failure criteria, and evidence-based rationale for every current-contract outcome."
+        description="Difficult situations reveal whether the skill helps a coding agent make the right decision, especially when information is missing or instructions conflict."
         href={semanticEvaluation.route}
-        metric={`${successfulSemanticCaseCount} of ${semanticEvaluation.caseCount} scenarios have verified release evidence`}
+        metric={`${successfulSemanticCaseCount} of ${semanticEvaluation.caseCount} decisions verified`}
         status={semanticReleaseSummary.result?.status ?? 'not-recorded'}
         questions={[
-          'Does the skill make the right decision when context is incomplete or conflicting?',
-          'Does it respect repository truth, host constraints, and safety boundaries?',
+          'The skill activates only when it is relevant.',
+          'The agent respects project truth and safety boundaries.',
         ]}
       >
         <FlaskConical
@@ -83,17 +107,55 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
           class="size-5"
           aria-hidden="true"
         />
+        <div
+          slot="visual"
+          class="grid min-w-0 gap-2"
+        >
+          <FilePreview
+            path="moldea/project.md"
+            label="Project truth"
+          >
+            <p class="p-3 text-sm leading-6 text-muted-foreground">
+              Refunds after 30 days require approval.
+            </p>
+          </FilePreview>
+          <ConnectionLabel>
+            <Bot
+              slot="icon"
+              class="size-4"
+              aria-hidden="true"
+            />
+            The agent checks before changing policy
+          </ConnectionLabel>
+          <ResultSummary
+            title="Safe decision verified"
+            description="The agent asks for approval instead of inventing an exception."
+            tone="success"
+          >
+            <ShieldCheck
+              slot="icon"
+              class="size-5"
+              aria-hidden="true"
+            />
+            <StatusBadge
+              slot="status"
+              label="Passed"
+              size="sm"
+              tone="success"
+            />
+          </ResultSummary>
+        </div>
       </EvidenceOptionCard>
 
       <EvidenceOptionCard
         title="Adapter qualification"
-        description="Review realistic project journeys, compatibility claims, deterministic checks, independent judgment, and raw attempt artifacts."
+        description="Real project journeys prove that the skill, command-line tools, packages, and each supported coding-agent integration work together."
         href={qualification.route}
-        metric={`${qualifiedProfileCount} of ${qualification.profiles.length} profiles have passing release evidence`}
+        metric={`${qualifiedProfileCount} of ${qualification.profiles.length} integrations verified`}
         status={qualificationStatus}
         questions={[
-          'Does this adapter implementation work with the exact published package artifacts?',
-          'Which project journeys and compatibility claims were exercised end to end?',
+          'The integration works in realistic repositories.',
+          'The final project matches the task without unrelated changes.',
         ]}
       >
         <PanelsTopLeft
@@ -101,6 +163,46 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
           class="size-5"
           aria-hidden="true"
         />
+        <div
+          slot="visual"
+          class="grid min-w-0 gap-2"
+        >
+          <FilePreview
+            path="src/order-triage.ts"
+            label="Verified project change"
+          >
+            <CodeBlock
+              language="diff"
+              source={`+ export const createOrderTriageAgent = () =>\n+   createAgent({ instructions, tools });`}
+              variant="plain"
+            />
+          </FilePreview>
+          <ConnectionLabel>
+            <GitCompareArrows
+              slot="icon"
+              class="size-4"
+              aria-hidden="true"
+            />
+            Project and runtime checked together
+          </ConnectionLabel>
+          <ResultSummary
+            title="Project journey verified"
+            description="The requested agent works and unrelated files remain untouched."
+            tone="success"
+          >
+            <ShieldCheck
+              slot="icon"
+              class="size-5"
+              aria-hidden="true"
+            />
+            <StatusBadge
+              slot="status"
+              label="Passed"
+              size="sm"
+              tone="success"
+            />
+          </ResultSummary>
+        </div>
       </EvidenceOptionCard>
     </section>
   </div>

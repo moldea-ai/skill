@@ -36,6 +36,7 @@ export {
 export {
   assertPinnedReleaseEvidenceSection,
   assertTargetReleaseTagIdentity,
+  loadPinnedReleaseEvidenceSection,
   resolveReleaseEvidenceSectionSource,
   resolveReleaseTagCommit,
 } from './release-evidence-source.mjs';

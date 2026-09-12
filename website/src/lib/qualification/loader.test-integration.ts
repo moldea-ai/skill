@@ -956,6 +956,31 @@ cases:
     expect(attempt?.cases[0]?.result.trials[0]?.confirmationEligible).toBe(false);
   });
 
+  test('requires authenticated qualification evidence to identify a pinned source', () => {
+    expect(() =>
+      loadQualificationWebsiteModel('unused', {
+        isAuthenticatedSource: true,
+      }),
+    ).toThrow('Authenticated qualification evidence must identify a pinned source.');
+  });
+
+  test('requires authenticated qualification evidence to select exactly one attempt', async () => {
+    const root = createTemporaryRoot();
+    await seedCurrentQualificationAttempt(root, 'attempt-authenticated-one');
+    await seedCurrentQualificationAttempt(root, 'attempt-authenticated-two');
+
+    expect(() =>
+      loadQualificationWebsiteModel(root, {
+        evidenceSource: {
+          commit: '0123456789abcdef0123456789abcdef01234567',
+          kind: 'pinned',
+        },
+        isAuthenticatedSource: true,
+        revision: '0123456789abcdef0123456789abcdef01234567',
+      }),
+    ).toThrow('Authenticated qualification evidence must select exactly one attempt.');
+  });
+
   test('rejects a current actor prompt with altered execution rules', async () => {
     const root = createTemporaryRoot();
     const attemptId = 'attempt-invalid-actor-prompt';

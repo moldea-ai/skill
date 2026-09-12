@@ -6,6 +6,7 @@ import { QUALIFICATION_ROOT, SKILL_REPOSITORY_ROOT } from '../constants/index.ts
 import {
   collectDirectoryFingerprintEntries,
   calculateSha256,
+  normalizePortableFilesystemMode,
   type IDirectoryFingerprintEntry,
 } from '../filesystem/index.ts';
 import {
@@ -85,15 +86,24 @@ const collectPrefixedSourceEntries = async (
 ): Promise<IDirectoryFingerprintEntry[]> =>
   (await collectDirectoryFingerprintEntries(rootDirectory))
     .filter(isBehaviorBearingSourceEntry)
-    .map((entry) => ({ ...entry, path: path.posix.join(pathPrefix, entry.path) }));
+    .map((entry) => ({
+      ...entry,
+      mode: normalizePortableFilesystemMode(entry.kind, entry.mode),
+      path: path.posix.join(pathPrefix, entry.path),
+    }));
 
 const collectQualificationProfileEntries = async (
   profileDirectory: string,
 ): Promise<IDirectoryFingerprintEntry[]> =>
-  (await collectDirectoryFingerprintEntries(profileDirectory)).filter(
-    (entry) =>
-      entry.path !== PROFILE_DOCUMENTATION_PATH && !isQualificationTestFilePath(entry.path),
-  );
+  (await collectDirectoryFingerprintEntries(profileDirectory))
+    .filter(
+      (entry) =>
+        entry.path !== PROFILE_DOCUMENTATION_PATH && !isQualificationTestFilePath(entry.path),
+    )
+    .map((entry) => ({
+      ...entry,
+      mode: normalizePortableFilesystemMode(entry.kind, entry.mode),
+    }));
 
 /** Collects the single behavior-bearing resource profile shared by model execution. */
 const collectResourceProfileEntries = async (
@@ -129,7 +139,7 @@ const createNormalizedFileEntry = async (
   return {
     path: relativePath,
     kind: 'file',
-    mode: stats.mode,
+    mode: normalizePortableFilesystemMode('file', stats.mode),
     sha256: calculateSha256(`${JSON.stringify(normalizedContent)}\n`),
   };
 };

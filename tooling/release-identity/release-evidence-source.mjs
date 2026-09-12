@@ -19,8 +19,19 @@ import {
 
 const MAX_GIT_JSON_BYTES = 16 * 1_048_576;
 const MAX_MATERIALIZED_FILE_BYTES = 32 * 1_048_576;
+const MAX_SELECTED_EVIDENCE_FILE_BYTES = 16 * 1_048_576;
+const MAX_SELECTED_EVIDENCE_FILE_COUNT = 8_192;
+const MAX_SELECTED_EVIDENCE_TOTAL_BYTES = 64 * 1_048_576;
+const MAX_SELECTED_EVIDENCE_LISTING_BYTES = 4 * 1_048_576;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const STABLE_ID_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,126}[a-z0-9])?$/u;
+const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+const WINDOWS_RESERVED_PATH_PATTERN = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu;
+const SELECTED_EVIDENCE_LIMITS = {
+  maximumFileByteCount: MAX_SELECTED_EVIDENCE_FILE_BYTES,
+  maximumFileCount: MAX_SELECTED_EVIDENCE_FILE_COUNT,
+  maximumTotalByteCount: MAX_SELECTED_EVIDENCE_TOTAL_BYTES,
+};
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
@@ -28,11 +39,19 @@ const isPlainRecord = (input) =>
 const createJsonDigest = (input) =>
   createHash('sha256').update(JSON.stringify(input)).digest('hex');
 
+const hasInvalidPathCharacter = (segment) =>
+  [...segment].some((character) => {
+    const codePoint = character.codePointAt(0);
+    return codePoint <= 31 || codePoint === 127 || '<>:"|?*'.includes(character);
+  });
+
 const runGit = (repositoryRoot, arguments_, options = {}) => {
   const result = spawnSync('git', arguments_, {
     cwd: repositoryRoot,
     encoding: options.encoding,
+    input: options.input,
     maxBuffer: options.maxBuffer ?? MAX_GIT_JSON_BYTES,
+    shell: false,
     windowsHide: true,
   });
   if (result.error?.code === 'ENOBUFS') {
@@ -52,16 +71,220 @@ const runGit = (repositoryRoot, arguments_, options = {}) => {
 };
 
 const requireRepositoryPath = (path, label) => {
+  const segments = typeof path === 'string' ? path.split('/') : [];
   if (
     typeof path !== 'string' ||
     path.length === 0 ||
+    Buffer.byteLength(path, 'utf8') > 160 ||
     path.includes('\\') ||
     posix.isAbsolute(path) ||
-    path.split('/').some((segment) => segment === '' || segment === '.' || segment === '..')
+    segments.some(
+      (segment) =>
+        segment === '' ||
+        segment === '.' ||
+        segment === '..' ||
+        Buffer.byteLength(segment, 'utf8') > 64 ||
+        hasInvalidPathCharacter(segment) ||
+        /[. ]$/u.test(segment) ||
+        WINDOWS_RESERVED_PATH_PATTERN.test(segment),
+    )
   ) {
     throw new Error(`${label} is not a safe repository-relative path.`);
   }
   return path;
+};
+
+const hasExcludedDirectory = (path) =>
+  path.split('/').some((segment) => EXCLUDED_DIRECTORY_NAMES.has(segment));
+
+const isWithinRepositoryPrefix = (path, prefix) => path === prefix || path.startsWith(`${prefix}/`);
+
+const readGitEvidenceBatch = (repositoryRoot, entries) => {
+  const output = runGit(repositoryRoot, ['cat-file', '--batch'], {
+    encoding: null,
+    input: Buffer.from(`${entries.map(({ objectId }) => objectId).join('\n')}\n`, 'utf8'),
+    maxBuffer: MAX_SELECTED_EVIDENCE_TOTAL_BYTES + MAX_SELECTED_EVIDENCE_LISTING_BYTES,
+  });
+  const files = new Map();
+  let cursor = 0;
+
+  for (const entry of entries) {
+    const headerEnd = output.indexOf(0x0a, cursor);
+    if (headerEnd === -1) {
+      throw new Error(`Git evidence batch ended before ${entry.path}.`);
+    }
+    const header = output.subarray(cursor, headerEnd).toString('utf8');
+    const match = /^([a-f0-9]{40}|[a-f0-9]{64}) blob (\d+)$/u.exec(header);
+    if (match === null || match[1] !== entry.objectId || Number(match[2]) !== entry.byteCount) {
+      throw new Error(`Git evidence batch returned an invalid object for ${entry.path}.`);
+    }
+    const contentStart = headerEnd + 1;
+    const contentEnd = contentStart + entry.byteCount;
+    if (contentEnd >= output.length || output[contentEnd] !== 0x0a) {
+      throw new Error(`Git evidence batch returned a truncated object for ${entry.path}.`);
+    }
+    files.set(entry.path, Buffer.from(output.subarray(contentStart, contentEnd)));
+    cursor = contentEnd + 1;
+  }
+
+  if (cursor !== output.length) {
+    throw new Error('Git evidence batch returned unrequested object data.');
+  }
+  return files;
+};
+
+/** Validates one content-free Git tree listing before any selected blob is read. */
+export const parseSelectedEvidenceListing = (
+  listing,
+  isAllowedPath,
+  limits = SELECTED_EVIDENCE_LIMITS,
+) => {
+  const records = String(listing).split('\0').filter(Boolean);
+  if (records.length === 0) {
+    throw new Error('Pinned evidence source selection is empty.');
+  }
+  if (records.length > limits.maximumFileCount) {
+    throw new Error(
+      `Pinned evidence source exceeds the ${limits.maximumFileCount}-file limit.`,
+    );
+  }
+
+  const entries = records.map((record) => {
+    const match = /^(\d{6}) (\S+) ([a-f0-9]{40}|[a-f0-9]{64})\s+(\d+)\t(.+)$/u.exec(record);
+    if (match === null) {
+      throw new Error('Pinned evidence source contains an invalid Git tree record.');
+    }
+    const path = requireRepositoryPath(match[5], 'Git evidence path');
+    const byteCount = Number(match[4]);
+    if (match[1] !== '100644' && match[1] !== '100755') {
+      throw new Error(`Pinned evidence source contains unsupported mode ${match[1]} at ${path}.`);
+    }
+    if (match[2] !== 'blob') {
+      throw new Error(`Pinned evidence source contains unsupported object type at ${path}.`);
+    }
+    if (hasExcludedDirectory(path) || !isAllowedPath(path)) {
+      throw new Error(`Pinned evidence source selected an unapproved path: ${path}.`);
+    }
+    if (!Number.isSafeInteger(byteCount) || byteCount > limits.maximumFileByteCount) {
+      throw new Error(
+        `Pinned evidence source file ${path} exceeds the ${limits.maximumFileByteCount}-byte limit.`,
+      );
+    }
+    return {
+      byteCount,
+      mode: match[1],
+      objectId: match[3],
+      path,
+    };
+  });
+  const orderedEntries = [...entries].sort((left, right) =>
+    left.path.localeCompare(right.path, 'en'),
+  );
+  if (new Set(orderedEntries.map(({ path }) => path)).size !== orderedEntries.length) {
+    throw new Error('Pinned evidence source contains duplicate paths.');
+  }
+  const totalByteCount = orderedEntries.reduce((total, { byteCount }) => total + byteCount, 0);
+  if (totalByteCount > limits.maximumTotalByteCount) {
+    throw new Error(
+      `Pinned evidence source exceeds the ${limits.maximumTotalByteCount}-byte total limit.`,
+    );
+  }
+
+  return { entries: orderedEntries, totalByteCount };
+};
+
+const loadGitEvidenceSnapshot = (repositoryRoot, commit, pathspecs, isAllowedPath) => {
+  const listing = runGit(
+    repositoryRoot,
+    ['ls-tree', '-r', '-z', '-l', '--full-tree', commit, '--', ...pathspecs],
+    {
+      encoding: 'utf8',
+      maxBuffer: MAX_SELECTED_EVIDENCE_LISTING_BYTES,
+    },
+  );
+  const { entries, totalByteCount } = parseSelectedEvidenceListing(listing, isAllowedPath);
+
+  return {
+    entries,
+    files: readGitEvidenceBatch(repositoryRoot, entries),
+    totalByteCount,
+  };
+};
+
+const createSemanticSourceSnapshot = (repositoryRoot, commit, semantic) => {
+  const attemptRoot = `fixtures/semantic-evaluation-results/attempts/${requireRepositoryPath(
+    semantic.attemptId,
+    'Semantic attempt identity',
+  )}`;
+  const exactPaths = new Set([
+    RELEASE_PATHS.packageManifest,
+    RELEASE_PATHS.packageLock,
+    RELEASE_PATHS.conformanceCases,
+    RELEASE_PATHS.semanticCoverage,
+    RELEASE_PATHS.semanticResult,
+    'fixtures/semantic-evaluation-results/latest.json',
+  ]);
+  const pathspecs = [...exactPaths, 'moldea', attemptRoot];
+  const snapshot = loadGitEvidenceSnapshot(
+    repositoryRoot,
+    commit,
+    pathspecs,
+    (path) =>
+      exactPaths.has(path) ||
+      isWithinRepositoryPrefix(path, 'moldea') ||
+      isWithinRepositoryPrefix(path, attemptRoot),
+  );
+  for (const requiredPath of exactPaths) {
+    if (!snapshot.files.has(requiredPath)) {
+      throw new Error(`Pinned semantic source is missing ${requiredPath}.`);
+    }
+  }
+  return snapshot;
+};
+
+const createQualificationSourceSnapshot = (repositoryRoot, commit, qualification) => {
+  const exactPaths = new Set(['fixtures/resource-calibration.json']);
+  const attemptRoots = [];
+  for (const target of qualification.targets) {
+    const targetKey = requireRepositoryPath(target.key, 'Qualification target key');
+    const attemptKey = requireRepositoryPath(target.attemptKey, 'Qualification attempt key');
+    exactPaths.add(`qualification/results/${targetKey}/latest.json`);
+    attemptRoots.push(`qualification/results/${targetKey}/attempts/${attemptKey}`);
+  }
+  const pathspecs = [
+    ...exactPaths,
+    'moldea',
+    'qualification/cases',
+    'qualification/profiles',
+    ...attemptRoots,
+  ];
+  const snapshot = loadGitEvidenceSnapshot(
+    repositoryRoot,
+    commit,
+    pathspecs,
+    (path) =>
+      exactPaths.has(path) ||
+      isWithinRepositoryPrefix(path, 'moldea') ||
+      isWithinRepositoryPrefix(path, 'qualification/cases') ||
+      isWithinRepositoryPrefix(path, 'qualification/profiles') ||
+      attemptRoots.some((attemptRoot) => isWithinRepositoryPrefix(path, attemptRoot)),
+  );
+  for (const requiredPath of [
+    'fixtures/resource-calibration.json',
+    'qualification/cases/cases.yaml',
+    'qualification/profiles/index.yaml',
+    ...qualification.targets.flatMap(({ key, attemptKey }) => [
+      `qualification/profiles/${key}/profile.yaml`,
+      `qualification/results/${key}/latest.json`,
+      `qualification/results/${key}/attempts/${attemptKey}/attempt.json`,
+      `qualification/results/${key}/attempts/${attemptKey}/storage.json`,
+    ]),
+  ]) {
+    if (!snapshot.files.has(requiredPath)) {
+      throw new Error(`Pinned qualification source is missing ${requiredPath}.`);
+    }
+  }
+  return snapshot;
 };
 
 /** Resolves one exact stable tag to its full commit object id. */
@@ -94,20 +317,38 @@ export const assertTargetReleaseTagIdentity = (repositoryRoot, releaseVersion, r
   }
 };
 
-const readGitFile = (repositoryRoot, commit, relativePath, maximumBytes = MAX_GIT_JSON_BYTES) => {
+const readGitFile = (
+  repositoryRoot,
+  commit,
+  relativePath,
+  maximumBytes = MAX_GIT_JSON_BYTES,
+  selectedFiles = null,
+) => {
   requireRepositoryPath(relativePath, 'Git evidence path');
+  if (selectedFiles !== null) {
+    const source = selectedFiles.get(relativePath);
+    if (source === undefined) {
+      throw new Error(`Pinned evidence source did not select ${relativePath}.`);
+    }
+    if (source.byteLength > maximumBytes) {
+      throw new Error(`Pinned evidence file ${relativePath} exceeds its read limit.`);
+    }
+    return source;
+  }
   return runGit(repositoryRoot, ['show', `${commit}:${relativePath}`], {
     encoding: null,
     maxBuffer: maximumBytes,
   });
 };
 
-const readGitText = (repositoryRoot, commit, relativePath) =>
-  readGitFile(repositoryRoot, commit, relativePath).toString('utf8');
+const readGitText = (repositoryRoot, commit, relativePath, selectedFiles = null) =>
+  readGitFile(repositoryRoot, commit, relativePath, MAX_GIT_JSON_BYTES, selectedFiles).toString(
+    'utf8',
+  );
 
-const readGitJson = (repositoryRoot, commit, relativePath) => {
+const readGitJson = (repositoryRoot, commit, relativePath, selectedFiles = null) => {
   try {
-    return JSON.parse(readGitText(repositoryRoot, commit, relativePath));
+    return JSON.parse(readGitText(repositoryRoot, commit, relativePath, selectedFiles));
   } catch (error) {
     throw new Error(`Release evidence JSON is invalid at ${relativePath}.`, {
       cause: error,
@@ -115,16 +356,40 @@ const readGitJson = (repositoryRoot, commit, relativePath) => {
   }
 };
 
-const hashGitFile = (repositoryRoot, commit, relativePath) =>
-  createReleaseEvidenceSha256(readGitFile(repositoryRoot, commit, relativePath));
+const hashGitFile = (repositoryRoot, commit, relativePath, selectedFiles = null) =>
+  createReleaseEvidenceSha256(
+    readGitFile(repositoryRoot, commit, relativePath, MAX_GIT_JSON_BYTES, selectedFiles),
+  );
 
-const assertGitFileDigest = (repositoryRoot, commit, relativePath, expectedSha256) => {
-  if (hashGitFile(repositoryRoot, commit, relativePath) !== expectedSha256) {
+const assertGitFileDigest = (
+  repositoryRoot,
+  commit,
+  relativePath,
+  expectedSha256,
+  selectedFiles = null,
+) => {
+  if (hashGitFile(repositoryRoot, commit, relativePath, selectedFiles) !== expectedSha256) {
     throw new Error(`Release evidence digest does not match ${relativePath}.`);
   }
 };
 
-const createGitPortableSkillDigest = (repositoryRoot, commit) => {
+const createGitPortableSkillDigest = (repositoryRoot, commit, selectedFiles = null) => {
+  if (selectedFiles !== null) {
+    const paths = [...selectedFiles.keys()]
+      .filter((path) => path.startsWith('moldea/'))
+      .sort((left, right) => left.localeCompare(right, 'en'));
+    if (paths.length === 0) {
+      throw new Error('Pinned source commit has no portable moldea skill files.');
+    }
+    const hash = createHash('sha256');
+    for (const path of paths) {
+      hash.update(path.slice('moldea/'.length));
+      hash.update('\0');
+      hash.update(selectedFiles.get(path));
+      hash.update('\0');
+    }
+    return hash.digest('hex');
+  }
   const listing = String(
     runGit(repositoryRoot, ['ls-tree', '-rz', commit, '--', 'moldea'], {
       encoding: 'utf8',
@@ -151,11 +416,16 @@ const createGitPortableSkillDigest = (repositoryRoot, commit) => {
   return hash.digest('hex');
 };
 
-const createGitSemanticCliIdentity = (repositoryRoot, commit) => {
+const createGitSemanticCliIdentity = (repositoryRoot, commit, selectedFiles = null) => {
   const packageManifest = JSON.parse(
-    readGitText(repositoryRoot, commit, RELEASE_PATHS.packageManifest),
+    readGitText(repositoryRoot, commit, RELEASE_PATHS.packageManifest, selectedFiles),
   );
-  const packageLockText = readGitText(repositoryRoot, commit, RELEASE_PATHS.packageLock);
+  const packageLockText = readGitText(
+    repositoryRoot,
+    commit,
+    RELEASE_PATHS.packageLock,
+    selectedFiles,
+  );
   const packageLock = JSON.parse(packageLockText);
   const cliVersion = packageManifest.devDependencies?.[CLI_PACKAGE_NAME];
   const cliJsonSchemaVersion = packageManifest.moldeaRelease?.cliJsonSchemaVersion;
@@ -344,20 +614,32 @@ const createSemanticSourceProjection = (attempt, caseDefinitions) => {
   };
 };
 
-const assertSemanticSource = (repositoryRoot, commit, semantic, portableSkillSha256) => {
-  const result = readGitJson(repositoryRoot, commit, RELEASE_PATHS.semanticResult);
+const assertSemanticSource = (
+  repositoryRoot,
+  commit,
+  semantic,
+  portableSkillSha256,
+  selectedFiles = null,
+) => {
+  const result = readGitJson(repositoryRoot, commit, RELEASE_PATHS.semanticResult, selectedFiles);
   const caseDefinitions = readGitJson(
     repositoryRoot,
     commit,
     RELEASE_PATHS.conformanceCases,
+    selectedFiles,
   ).semanticCases;
-  const coverage = readGitJson(repositoryRoot, commit, RELEASE_PATHS.semanticCoverage);
+  const coverage = readGitJson(
+    repositoryRoot,
+    commit,
+    RELEASE_PATHS.semanticCoverage,
+    selectedFiles,
+  );
   const caseSuiteDigest = createSemanticSourceCaseSuiteDigest(caseDefinitions);
   const coverageDigest = createSemanticSourceCoverageDigest(coverage);
   const latestPath = 'fixtures/semantic-evaluation-results/latest.json';
   const attemptPath = `fixtures/semantic-evaluation-results/attempts/${semantic.attemptId}/attempt.json`;
-  const attempt = readGitJson(repositoryRoot, commit, attemptPath);
-  const latest = readGitJson(repositoryRoot, commit, latestPath);
+  const attempt = readGitJson(repositoryRoot, commit, attemptPath, selectedFiles);
+  const latest = readGitJson(repositoryRoot, commit, latestPath, selectedFiles);
   if (
     result.semanticAttemptId !== semantic.attemptId ||
     result.evaluationProtocolVersion !== semantic.protocolVersion ||
@@ -366,7 +648,7 @@ const assertSemanticSource = (repositoryRoot, commit, semantic, portableSkillSha
     result.caseSuiteDigest !== caseSuiteDigest ||
     result.coverageDigest !== coverageDigest ||
     JSON.stringify(result.cli) !==
-      JSON.stringify(createGitSemanticCliIdentity(repositoryRoot, commit)) ||
+      JSON.stringify(createGitSemanticCliIdentity(repositoryRoot, commit, selectedFiles)) ||
     attempt.attemptId !== semantic.attemptId ||
     attempt.artifactDigest !== portableSkillSha256 ||
     attempt.status !== 'passed' ||
@@ -376,9 +658,15 @@ const assertSemanticSource = (repositoryRoot, commit, semantic, portableSkillSha
   ) {
     throw new Error('Pinned semantic evidence is not one self-consistent passing attempt.');
   }
-  assertGitFileDigest(repositoryRoot, commit, RELEASE_PATHS.semanticResult, semantic.resultSha256);
-  assertGitFileDigest(repositoryRoot, commit, attemptPath, semantic.attemptSha256);
-  assertGitFileDigest(repositoryRoot, commit, latestPath, semantic.latestSha256);
+  assertGitFileDigest(
+    repositoryRoot,
+    commit,
+    RELEASE_PATHS.semanticResult,
+    semantic.resultSha256,
+    selectedFiles,
+  );
+  assertGitFileDigest(repositoryRoot, commit, attemptPath, semantic.attemptSha256, selectedFiles);
+  assertGitFileDigest(repositoryRoot, commit, latestPath, semantic.latestSha256, selectedFiles);
   const evidencePath = `${posix.dirname(attemptPath)}/${requireRepositoryPath(
     attempt.evidence?.path,
     'Semantic raw evidence path',
@@ -386,7 +674,7 @@ const assertSemanticSource = (repositoryRoot, commit, semantic, portableSkillSha
   if (attempt.evidence?.sha256 !== semantic.evidenceSha256) {
     throw new Error('Pinned semantic attempt does not match its envelope evidence digest.');
   }
-  assertGitFileDigest(repositoryRoot, commit, evidencePath, semantic.evidenceSha256);
+  assertGitFileDigest(repositoryRoot, commit, evidencePath, semantic.evidenceSha256, selectedFiles);
   assertSemanticResourceEvidence(caseDefinitions, result);
   return createSemanticSourceProjection(attempt, caseDefinitions);
 };
@@ -408,9 +696,9 @@ const assertQualificationResourceEvidence = (artifact, relativePath) => {
   }
 };
 
-const assertQualificationSource = (repositoryRoot, commit, qualification) => {
+const assertQualificationSource = (repositoryRoot, commit, qualification, selectedFiles = null) => {
   const profileIndex = parse(
-    readGitText(repositoryRoot, commit, 'qualification/profiles/index.yaml'),
+    readGitText(repositoryRoot, commit, 'qualification/profiles/index.yaml', selectedFiles),
   );
   const sourceTargets = profileIndex?.targets;
   if (
@@ -439,20 +727,25 @@ const assertQualificationSource = (repositoryRoot, commit, qualification) => {
   for (const target of qualification.targets) {
     const targetRoot = `qualification/results/${target.key}`;
     const profile = parse(
-      readGitText(repositoryRoot, commit, `qualification/profiles/${target.key}/profile.yaml`),
+      readGitText(
+        repositoryRoot,
+        commit,
+        `qualification/profiles/${target.key}/profile.yaml`,
+        selectedFiles,
+      ),
     );
     const latestPath = `${targetRoot}/latest.json`;
     const attemptRoot = `${targetRoot}/attempts/${target.attemptKey}`;
     const attemptPath = `${attemptRoot}/attempt.json`;
     const storagePath = `${attemptRoot}/storage.json`;
-    const latest = readGitJson(repositoryRoot, commit, latestPath);
-    const attemptInput = readGitJson(repositoryRoot, commit, attemptPath);
+    const latest = readGitJson(repositoryRoot, commit, latestPath, selectedFiles);
+    const attemptInput = readGitJson(repositoryRoot, commit, attemptPath, selectedFiles);
     const parsedAttempt = QualificationAttemptResultSchema.safeParse(attemptInput);
     if (!parsedAttempt.success) {
       throw new Error(`Pinned qualification target ${target.key} has an invalid attempt record.`);
     }
     const attempt = parsedAttempt.data;
-    const storage = readGitJson(repositoryRoot, commit, storagePath);
+    const storage = readGitJson(repositoryRoot, commit, storagePath, selectedFiles);
     if (
       latest.adapterId !== target.adapterId ||
       latest.implementationId !== target.implementationId ||
@@ -486,9 +779,9 @@ const assertQualificationSource = (repositoryRoot, commit, qualification) => {
         `Pinned qualification target ${target.key} is not self-consistent and passing.`,
       );
     }
-    assertGitFileDigest(repositoryRoot, commit, latestPath, target.latestSha256);
-    assertGitFileDigest(repositoryRoot, commit, attemptPath, target.attemptSha256);
-    assertGitFileDigest(repositoryRoot, commit, storagePath, target.storageSha256);
+    assertGitFileDigest(repositoryRoot, commit, latestPath, target.latestSha256, selectedFiles);
+    assertGitFileDigest(repositoryRoot, commit, attemptPath, target.attemptSha256, selectedFiles);
+    assertGitFileDigest(repositoryRoot, commit, storagePath, target.storageSha256, selectedFiles);
     if (storage.attemptDigest !== target.attemptSha256) {
       throw new Error(`Pinned qualification target ${target.key} has a stale attempt digest.`);
     }
@@ -528,6 +821,7 @@ const assertQualificationSource = (repositoryRoot, commit, qualification) => {
         commit,
         artifactPath,
         MAX_MATERIALIZED_FILE_BYTES,
+        selectedFiles,
       );
       if (createReleaseEvidenceSha256(artifact) !== expectedSha256) {
         throw new Error(`Qualification artifact digest does not match ${logicalPath}.`);
@@ -634,8 +928,8 @@ const createPinnedSectionSource = (repositoryRoot, commit, tag, kind) => {
   };
 };
 
-/** Verifies one pinned semantic or qualification section against immutable Git evidence. */
-export const assertPinnedReleaseEvidenceSection = (repositoryRoot, section, kind) => {
+/** Loads and verifies one bounded pinned evidence source from immutable Git objects. */
+export const loadPinnedReleaseEvidenceSection = (repositoryRoot, section, kind) => {
   const { source } = section;
   if (
     source.tag !== null &&
@@ -643,21 +937,42 @@ export const assertPinnedReleaseEvidenceSection = (repositoryRoot, section, kind
   ) {
     throw new Error(`Pinned ${kind} source tag does not match its recorded commit.`);
   }
-  if (createGitPortableSkillDigest(repositoryRoot, source.commit) !== source.portableSkillSha256) {
-    throw new Error(`Pinned ${kind} source portable skill digest does not match its commit.`);
-  }
   if (createFreshEvidenceSectionSha256(source.evidence) !== source.evidenceSha256) {
     throw new Error(`Pinned ${kind} evidence descriptor digest does not match.`);
   }
-  if (kind === 'semantic') {
-    return assertSemanticSource(
-      repositoryRoot,
-      source.commit,
-      source.evidence,
-      source.portableSkillSha256,
-    );
+  const snapshot =
+    kind === 'semantic'
+      ? createSemanticSourceSnapshot(repositoryRoot, source.commit, source.evidence)
+      : createQualificationSourceSnapshot(repositoryRoot, source.commit, source.evidence);
+  if (
+    createGitPortableSkillDigest(repositoryRoot, source.commit, snapshot.files) !==
+    source.portableSkillSha256
+  ) {
+    throw new Error(`Pinned ${kind} source portable skill digest does not match its commit.`);
   }
-  return assertQualificationSource(repositoryRoot, source.commit, source.evidence);
+  const projection =
+    kind === 'semantic'
+      ? assertSemanticSource(
+          repositoryRoot,
+          source.commit,
+          source.evidence,
+          source.portableSkillSha256,
+          snapshot.files,
+        )
+      : assertQualificationSource(repositoryRoot, source.commit, source.evidence, snapshot.files);
+
+  return {
+    commit: source.commit,
+    fileCount: snapshot.entries.length,
+    files: snapshot.files,
+    projection,
+    totalByteCount: snapshot.totalByteCount,
+  };
+};
+
+/** Verifies one pinned semantic or qualification section against immutable Git evidence. */
+export const assertPinnedReleaseEvidenceSection = (repositoryRoot, section, kind) => {
+  return loadPinnedReleaseEvidenceSection(repositoryRoot, section, kind).projection;
 };
 
 /** Resolves one exact commit or stable tag to a direct immutable evidence source. */

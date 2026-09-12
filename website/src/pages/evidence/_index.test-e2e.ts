@@ -40,25 +40,10 @@ test('presents both evidence types with their current status', async ({ page }) 
   await page.goto(toPublicPath('/evidence/'));
 
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Choose the evidence you need.' }),
+    page.getByRole('heading', { level: 1, name: 'Proof you can follow, not just a score.' }),
   ).toBeVisible();
-  if (releaseEvidence.mode === 'recorded') {
-    for (const [kind, section] of [
-      ['Semantic', releaseEvidence.semantic],
-      ['Qualification', releaseEvidence.qualification],
-    ] as const) {
-      if (section.mode === 'pinned') {
-        await expect(
-          page.getByText(
-            new RegExp(
-              `${kind} release ${releaseEvidence.targetVersion} uses verified prior evidence from`,
-              'u',
-            ),
-          ),
-        ).toBeVisible();
-      }
-    }
-  }
+  await expect(page.getByText('Safe decision verified', { exact: true })).toBeVisible();
+  await expect(page.getByText('Project journey verified', { exact: true })).toBeVisible();
   const semanticLink = page.getByRole('link', { name: /Semantic evaluation/ });
   const qualificationLink = page.getByRole('link', { name: /Adapter qualification/ });
   await expect(semanticLink.locator('[data-evidence-status]')).toHaveAttribute(
@@ -66,14 +51,14 @@ test('presents both evidence types with their current status', async ({ page }) 
     semanticReleaseSummary.result?.status ?? 'not-recorded',
   );
   await expect(semanticLink).toContainText(
-    `${successfulSemanticCaseCount} of ${semanticEvaluation.caseCount} scenarios have verified release evidence`,
+    `${successfulSemanticCaseCount} of ${semanticEvaluation.caseCount} decisions verified`,
   );
   await expect(qualificationLink.locator('[data-evidence-status]')).toHaveAttribute(
     'data-evidence-status',
     qualificationStatus,
   );
   await expect(qualificationLink).toContainText(
-    `${qualifiedProfileCount} of ${qualification.profiles.length} profiles have passing release evidence`,
+    `${qualifiedProfileCount} of ${qualification.profiles.length} integrations verified`,
   );
 });
 

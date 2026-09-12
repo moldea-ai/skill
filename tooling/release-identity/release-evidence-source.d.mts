@@ -46,6 +46,15 @@ export interface ISemanticEvidenceAttemptProjection {
   updatedAt: string;
 }
 
+// authenticated bounded source retained for one static website generation
+export interface IPinnedReleaseEvidenceSourceSnapshot<Projection> {
+  commit: string;
+  fileCount: number;
+  files: ReadonlyMap<string, Buffer>;
+  projection: Projection;
+  totalByteCount: number;
+}
+
 export const assertPinnedReleaseEvidenceSection: {
   (
     repositoryRoot: string,
@@ -57,6 +66,19 @@ export const assertPinnedReleaseEvidenceSection: {
     section: IPinnedSemanticReleaseEvidenceSection,
     kind: 'semantic',
   ): ISemanticEvidenceAttemptProjection;
+};
+
+export const loadPinnedReleaseEvidenceSection: {
+  (
+    repositoryRoot: string,
+    section: IPinnedQualificationReleaseEvidenceSection,
+    kind: 'qualification',
+  ): IPinnedReleaseEvidenceSourceSnapshot<IQualificationEvidenceTargetProjection[]>;
+  (
+    repositoryRoot: string,
+    section: IPinnedSemanticReleaseEvidenceSection,
+    kind: 'semantic',
+  ): IPinnedReleaseEvidenceSourceSnapshot<ISemanticEvidenceAttemptProjection>;
 };
 export const assertTargetReleaseTagIdentity: (
   repositoryRoot: string,

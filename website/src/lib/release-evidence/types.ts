@@ -3,8 +3,14 @@ import type {
   ISemanticEvidenceAttemptProjection,
 } from '../../../../tooling/release-identity/release-evidence-source.mjs';
 
-import type { IQualificationProfileModel } from '../qualification/index.ts';
-import type { ISemanticAttemptModel } from '../semantic-evaluation/index.ts';
+import type {
+  IQualificationProfileModel,
+  IQualificationWebsiteModel,
+} from '../qualification/index.ts';
+import type {
+  ISemanticAttemptModel,
+  ISemanticEvaluationWebsiteModel,
+} from '../semantic-evaluation/index.ts';
 
 // authenticated qualification source attempt with its immutable public location
 export interface IQualificationReleaseEvidenceTargetModel extends IQualificationEvidenceTargetProjection {
@@ -52,6 +58,13 @@ export type IReleaseEvidenceModel =
       semantic: ISemanticReleaseEvidenceSectionModel;
       targetVersion: string;
     };
+
+// complete build-time state with hydrated pinned models kept outside the public provenance model
+export interface IReleaseEvidenceWebsiteState {
+  pinnedQualification: IQualificationWebsiteModel | null;
+  pinnedSemantic: ISemanticEvaluationWebsiteModel | null;
+  releaseEvidence: IReleaseEvidenceModel;
+}
 
 // release-facing semantic result selected without changing current-contract state
 export type ISemanticReleaseEvidenceSummary =

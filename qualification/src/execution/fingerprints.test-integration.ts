@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
@@ -295,6 +295,23 @@ describe('qualification input fingerprint', () => {
     await writeFile(projectReadme, '# Revised project fixture\n');
     expect(await calculateQualificationProfileDigest(temporaryRoot)).not.toBe(initialDigest);
   });
+
+  test.skipIf(process.platform === 'win32')(
+    'ignores host-only permission differences while retaining executability',
+    async () => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-profile-permissions-'));
+      const profilePath = path.join(temporaryRoot, 'profile.yaml');
+      await writeFile(profilePath, 'version: 2\n');
+      await chmod(profilePath, 0o644);
+      const readOnlyDigest = await calculateQualificationProfileDigest(temporaryRoot);
+
+      await chmod(profilePath, 0o664);
+      expect(await calculateQualificationProfileDigest(temporaryRoot)).toBe(readOnlyDigest);
+
+      await chmod(profilePath, 0o755);
+      expect(await calculateQualificationProfileDigest(temporaryRoot)).not.toBe(readOnlyDigest);
+    },
+  );
 
   test('isolates one compatibility target and its selected package input', () => {
     const selectedTarget = {

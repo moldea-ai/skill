@@ -2,6 +2,7 @@
 export type {
   IReleaseEvidenceModel,
   IReleaseEvidenceSectionModel,
+  IReleaseEvidenceWebsiteState,
   IQualificationReleaseEvidenceTargetModel,
   IQualificationReleaseEvidenceSummary,
   IQualificationReleaseEvidenceSectionModel,
@@ -10,7 +11,7 @@ export type {
 } from './types.ts';
 
 // loading
-export { loadReleaseEvidenceModel } from './loader.ts';
+export { loadReleaseEvidenceModel, loadReleaseEvidenceWebsiteState } from './loader.ts';
 
 // release-facing evidence selection
 export {

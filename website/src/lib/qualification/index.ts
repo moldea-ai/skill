@@ -40,5 +40,6 @@ export { createQualificationProjectEvidence } from './project-transformers.ts';
 export {
   assertPublishableQualificationEvidence,
   attachPinnedQualificationEvidence,
+  composeQualificationProfile,
   loadQualificationWebsiteModel,
 } from './loader.ts';

@@ -36,6 +36,12 @@ const isExcludedRelativePath = (
 export const calculateSha256 = (content: string | Uint8Array): string =>
   createHash('sha256').update(content).digest('hex');
 
+/** Normalizes host permissions to the executable distinction preserved by Git. */
+export const normalizePortableFilesystemMode = (kind: 'file' | 'symlink', mode: number): number => {
+  if (kind === 'symlink') return 0o120000;
+  return (mode & 0o111) === 0 ? 0o100644 : 0o100755;
+};
+
 /** Creates a directory and every missing parent without changing existing content. */
 export const ensureDirectory = async (directoryPath: string): Promise<void> => {
   await mkdir(directoryPath, { recursive: true });

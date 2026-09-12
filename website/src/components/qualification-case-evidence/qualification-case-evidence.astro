@@ -17,6 +17,7 @@ import QualificationTrialEvidence from '../qualification-trial-evidence/qualific
 interface Props {
   evidence: IQualificationAttemptCaseModel;
   number: number;
+  origin: string;
   profileCase: IQualificationProfileCaseModel;
 }
 
@@ -27,7 +28,7 @@ const TABS = [
   { id: 'technical', label: 'Technical', slotName: 'technical' },
 ] as const;
 
-const { evidence, number, profileCase } = Astro.props;
+const { evidence, number, origin, profileCase } = Astro.props;
 const { result, trials } = evidence;
 const terminalTrial = trials.at(-1);
 if (terminalTrial === undefined) {
@@ -125,6 +126,11 @@ const resultRationaleHtml = await renderMarkdownFragment(resultRationale, markdo
           />
         </h3>
         <EvidenceStatus status={result.status} />
+        <span
+          class="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground"
+        >
+          {origin}
+        </span>
       </span>
       <span class="mt-2 block text-sm leading-6 text-muted-foreground">
         <InlineBrandText

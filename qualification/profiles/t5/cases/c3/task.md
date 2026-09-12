@@ -1,5 +1,5 @@
-# Create the order-triage moldea agent
+# Complete the order-triage agent
 
-Add the order-triage agent implemented by `createOrderTriageAgent` in `src/order-triage-agent.ts` as a moldea agent. Ground its description and instruction in the actual implementation: it classifies orders for human review and cannot approve refunds.
+Complete the order-triage agent implemented by `createOrderTriageAgent` in `src/order-triage-agent.ts`. Keep its documented behavior and model instructions grounded in the implementation: it classifies orders for human review and cannot approve refunds.
 
-Use the project's custom runtime, establish the real runtime-agent binding and affected source path, add only useful project-local runtime guidance, and validate the complete project. Do not invent tools, provider capabilities, or decision authority.
+Use the project's existing custom runtime. Make the agent's behavior maintainable, connect it to the actual implementation, document only useful runtime guidance, and verify the result. Do not invent tools, provider capabilities, or decision authority.

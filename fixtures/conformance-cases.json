@@ -125,6 +125,56 @@
         "initialized": true
       },
       "expected": "abstain"
+    },
+    {
+      "id": "first-agent-planning",
+      "input": { "initialized": true, "agentWorkIntent": true, "paths": [] },
+      "expected": "direct"
+    },
+    {
+      "id": "unbound-agent-creation",
+      "input": {
+        "initialized": true,
+        "agentWorkIntent": true,
+        "paths": ["/src/triage.ts"],
+        "relationshipMatch": false
+      },
+      "expected": "direct"
+    },
+    {
+      "id": "agent-review",
+      "input": { "initialized": true, "agentWorkIntent": true, "hostCommand": "review" },
+      "expected": "direct"
+    },
+    {
+      "id": "agent-task-continuation",
+      "input": { "initialized": true, "activeAgentTask": true, "continuesActiveTask": true },
+      "expected": "direct"
+    },
+    {
+      "id": "preinit-agent-planning",
+      "input": { "initialized": false, "agentWorkIntent": true },
+      "expected": "abstain"
+    },
+    {
+      "id": "changed-topic-after-agent-task",
+      "input": {
+        "initialized": true,
+        "activeAgentTask": true,
+        "continuesActiveTask": false,
+        "paths": ["/docs/branding.md"]
+      },
+      "expected": "abstain"
+    },
+    {
+      "id": "sdk-installation-only",
+      "input": { "initialized": true, "agentWorkIntent": false, "paths": ["/package.json"] },
+      "expected": "abstain"
+    },
+    {
+      "id": "ambiguous-continuation",
+      "input": { "initialized": true, "activeAgentTask": true },
+      "expected": "abstain"
     }
   ],
   "cliEnvelopeCases": [
@@ -1949,7 +1999,7 @@
       "scenario": "An adopted project has an existing customer-support runtime that sends an independently maintained inline instruction to two Responses-style model calls, and the developer asks to create and register that runtime agent in moldea.",
       "operation": "create-agent",
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Create and register the existing customer-support runtime agent and make it ready.",
+        "developerDirection": "Earlier in this task I asked you to finish the customer-support agent. We agreed to preserve its existing behavior, connect its maintained instructions to both model calls, keep the integration tests, and verify the result. Please carry out that agreed work now.",
         "repositoryEvidence": [
           {
             "claim": "A repository-local support runtime sends one inline instruction through two model calls.",
@@ -3663,7 +3713,7 @@
       "scenario": "An adopted moldea project with compatible local inspection needs a plan for semantically triaging support messages while keeping authorization and state transitions deterministic.",
       "operation": "plan-agent-system",
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Plan the smallest agent system for support triage.",
+        "developerDirection": "Plan the smallest agent system for support triage.",
         "repositoryEvidence": [
           {
             "claim": "The support API and deterministic authorization and persistence boundaries are implemented.",
@@ -3739,7 +3789,7 @@
       "scenario": "A promotion workflow needs public-market research and privileged customer-specific recommendation reasoning with distinct data permissions and failure domains.",
       "operation": "plan-agent-system",
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Plan the agent and software architecture for personalized promotions.",
+        "developerDirection": "Plan the agent and software architecture for personalized promotions.",
         "repositoryEvidence": [
           {
             "claim": "Public and private data boundaries are documented.",
@@ -3815,7 +3865,7 @@
       "scenario": "The repository does not establish whether a proposed refund agent may execute refunds or may only recommend them for human approval.",
       "operation": "plan-agent-system",
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Plan the refund agent system.",
+        "developerDirection": "Plan the refund agent system.",
         "repositoryEvidence": [
           {
             "claim": "The refund API can execute an irreversible reversal.",
@@ -3883,7 +3933,7 @@
       "scenario": "An adopted project needs an agent-system plan and the exact published CLI lists possible runtime adapters, but the repository contains only an opaque application-owned model client and no reliable evidence for one adapter's behavioral fit.",
       "operation": "plan-agent-system",
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Plan the smallest agent system and identify the runtime only if current evidence supports that decision.",
+        "developerDirection": "Plan the smallest agent system and identify the runtime only if current evidence supports that decision.",
         "repositoryEvidence": [
           {
             "claim": "The README routes runtime planning to the exact repository evidence.",

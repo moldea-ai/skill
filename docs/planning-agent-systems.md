@@ -8,7 +8,7 @@ order: 50
 
 # Plan from the objective, not from an agent count
 
-Ask for `moldea` planning when you want to decide how an AI-enabled objective should be divided among agents, reusable Agent Skills, deterministic software, services or tools, and human control.
+After initialization, describe the agent system you want to build. Your coding agent uses `moldea` to help divide responsibilities among agents, reusable Agent Skills, ordinary software, services, and human control. No special terminology or existing agent setup is required.
 
 ```text
 Plan an agent system for personalized ecommerce promotions. Decide which responsibilities should remain deterministic.

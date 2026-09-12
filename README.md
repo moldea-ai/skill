@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The current release is `5.0.4`. Install the latest version from `main`:
+The current release is `5.0.5`. Install the latest version from `main`:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the release:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.4"
+npx skills add "moldea-ai/skill#v5.0.5"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account.
@@ -30,7 +30,7 @@ The skill helps a coding agent:
 - evaluate and reconcile established relationships
 - validate repository structure with the exact local CLI
 
-Ordinary engineering work remains ordinary engineering work. In an adopted repository, the skill abstains silently when a task does not concern `/moldea/**`, the managed README block, an exact declared binding, an `affectedBy` relationship, or an explicit `moldea` request. Before adoption, initialization is the only repository-dependent `moldea` operation; host-owned planning and engineering continue independently.
+After initialization, ask naturally to plan, build, review, or maintain AI agents. You do not need to name `moldea`, know its paths, or create bindings first. A continuation follows the active agent task and its authorization, not a special phrase. Ordinary engineering work still abstains silently unless it concerns canonical state, a managed README hunk, a declared relationship, or an explicit `moldea` operation. Before adoption, initialization is the only repository-dependent `moldea` operation; host-owned planning and engineering continue independently.
 
 Initialization uses the bundled deterministic writer to create one canonical managed README block. It tells repository-aware hosts to select the installed skill for its two-byte gate before ordinary repository work. This is a discovery bridge, not broad activation: a gate miss continues the host task without a CLI call, workflow-reference load, progress update, or final-report mention. The writer rejects unsafe README structures and preserves every byte outside the managed region.
 
@@ -54,7 +54,7 @@ npx skills remove moldea
 
 ## Compatibility
 
-Release `5.0.4` supports exactly:
+Release `5.0.5` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -75,7 +75,7 @@ The entrypoint decides relevance before loading references or running the CLI:
 
 1. Answer a non-repository informational question concisely without inspection.
 2. Before initialization, continue moldea only for an explicit initialization request. Every other host-owned repository task continues normally while moldea abstains silently. If no independent host task remains, report only a neutral repository outcome such as `No files were changed.` without naming moldea, describing an unavailable operation or result, or recommending initialization.
-3. After initialization, activate directly for an explicit repository-dependent moldea request, a changed `/moldea/**` path, or a changed hunk inside the full-line managed README markers.
+3. After initialization, use the adoption-only gate for clear AI-agent planning, creation, runtime integration, behavior maintenance, or review intent, including an unambiguous continuation of that task. No agent, binding, named path, or product-name cue is required. Explicit repository-dependent moldea operations, changed `/moldea/**` paths, and managed README hunks also activate directly.
 4. The managed README block tells repository-aware hosts to select this entrypoint for every repository task. For every other known task-path set, run the skill's deterministic two-byte relevance gate. It uses Core's release-bundled matcher and returns only `0` or `1`, without executing repository dependencies.
 5. Only after `1`, run one bounded launcher-backed CLI relationship query to identify the matching canonical owners. Otherwise continue the host-owned task normally with no moldea CLI command, reference load, progress update, or final-report mention.
 
@@ -83,7 +83,7 @@ The gate accepts the ordinary repository-relative paths produced by Git as well 
 
 Host commands such as planning, reviewing, committing, and publishing retain ownership of their workflows. Their names alone never activate `moldea`, and the skill's local tooling rules never replace host-owned Git or package-manager procedures.
 
-Broad ideas such as “potentially durable knowledge” do not activate the skill. Relevance must be established by the current task and canonical relationship graph.
+The README selects the skill entrypoint, whose router chooses adoption-only or relationship gating. Broad ideas such as “potentially durable knowledge,” SDK installation alone, and unrelated mentions of agents do not establish agent-work intent. A changed topic does not inherit an earlier task's relevance or authority.
 
 ## Bounded CLI evidence
 
@@ -108,7 +108,7 @@ The numeric profile is source-controlled in `tooling/resource-calibration/profil
 | Outcome          | Example request                                                  |
 | ---------------- | ---------------------------------------------------------------- |
 | Initialize       | `Initialize moldea for this repository.`                         |
-| Plan             | `Use moldea to plan an agent system for this adopted project.`   |
+| Plan             | `Plan the agents for this project's support-triage workflow.`    |
 | Create an agent  | `Create a support agent grounded in the current project policy.` |
 | Maintain context | `Update moldea context for the approved refund policy.`          |
 | Evaluate         | `Evaluate the current moldea project.`                           |
@@ -278,7 +278,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-Release `5.0.4` uses tag `v5.0.4`.
+Release `5.0.5` uses tag `v5.0.5`.
 
 See [Release evidence](docs/release-evidence.md) for the exact fresh and pinned workflows. `npm run release:check` is read-only and validates each section through its selected path before running current-only verification for fresh sections.
 

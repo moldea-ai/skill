@@ -67,11 +67,14 @@ const parseFrontmatter = () => {
   return document.toJS();
 };
 
+// models already-classified host intent, not natural-language recognition
 const resolveActivationCase = (input) => {
   if (input.informationalRequest === true) return 'informational';
   if (input.initializationRequest === true) return 'initialize';
   if (input.initialized !== true) return 'abstain';
   if (input.explicitMoldeaRequest === true) return 'direct';
+  if (input.agentWorkIntent === true) return 'direct';
+  if (input.activeAgentTask === true && input.continuesActiveTask === true) return 'direct';
   if (input.paths?.some((path) => path === '/moldea' || path.startsWith('/moldea/'))) {
     return 'direct';
   }
@@ -293,23 +296,22 @@ describe('portable skill contract', () => {
   test('uses lowercase identity, repository-bound initialization, and a narrow description', () => {
     const frontmatter = parseFrontmatter();
     assert.deepEqual(frontmatter.metadata, {
-      version: '5.0.4',
+      version: '5.0.5',
       cliVersionRange: '^8.0.0',
       coreVersionRange: '^4.0.1',
       cliJsonSchemaVersion: 4,
     });
     assert.equal(frontmatter.name, 'moldea');
-    assert.match(frontmatter.description, /initialize moldea only when explicitly requested/u);
-    assert.match(frontmatter.description, /only after adoption and relevance are established/u);
-    assert.match(frontmatter.description, /declared binding or affectedBy relationship/u);
-    assert.match(frontmatter.description, /Do not use for other uninitialized work/u);
-    assert.match(frontmatter.description, /when this skill is installed in the repository/u);
-    assert.match(frontmatter.description, /Use for every repository-dependent task/u);
-    assert.match(frontmatter.description, /including reviews, plans, and implementation/u);
-    assert.match(frontmatter.description, /two-byte relevance gate/u);
-    assert.match(frontmatter.description, /A gate miss abstains silently/u);
-    assert.match(frontmatter.description, /independently supplied Agent Skill artifact/u);
-    assert.match(frontmatter.description, /without gating the surrounding repository/u);
+    assert.match(frontmatter.description, /Initialize only when explicitly requested/u);
+    assert.match(frontmatter.description, /after repository initialization/u);
+    assert.match(frontmatter.description, /abstain from other uninitialized repository work/u);
+    assert.match(frontmatter.description, /natural-language AI-agent planning, creation/u);
+    assert.match(frontmatter.description, /contextual continuations/u);
+    assert.match(frontmatter.description, /Users need not name moldea or know canonical paths/u);
+    assert.match(frontmatter.description, /every other repository task/u);
+    assert.match(frontmatter.description, /two-byte relationship gate/u);
+    assert.match(frontmatter.description, /abstain silently on a miss/u);
+    assert.match(frontmatter.description, /independent Agent Skill artifacts/u);
     assert.doesNotMatch(frontmatter.description, /potentially durable knowledge|Use first/iu);
     const skill = readSkill();
     assert.match(skill, /Before responding, scan for violations/u);
@@ -357,9 +359,9 @@ describe('portable skill contract', () => {
     assert.match(skill, /Never replace the gate by inspecting canonical state directly/u);
     assert.match(
       skill,
-      /Generic phrases such as project context, outdated context, durable knowledge, canonical alignment, documentation, or maintenance do not name `moldea`/u,
+      /Generic context, documentation, architecture, SDK installation alone, or incidental agent terminology/u,
     );
-    assert.match(skill, /never create a direct request/u);
+    assert.match(skill, /never creates agent-work intent/u);
     assert.match(skill, /calls existing project context outdated/u);
     assert.match(skill, /do not search for a canonical destination/u);
     assert.match(skill, /abstention is final for the current request/u);
@@ -380,8 +382,8 @@ describe('portable skill contract', () => {
     );
     assert.match(skill, /never use it for unchanged retry or extra inspection/u);
     assert.match(skill, /direct request supplies intent, not a canonical owner/u);
-    assert.match(skill, /Direct canonical agent or runtime work/u);
-    assert.match(skill, /Canonical agent or runtime work uses one adoption-only gate/u);
+    assert.match(skill, /Direct agent or runtime work/u);
+    assert.match(skill, /Agent or runtime work uses one adoption-only gate/u);
     assert.match(skill, /even with task-named ordinary implementation or `affectedBy` evidence/u);
     assert.match(skill, /Never send canonical or managed paths to `scope`/u);
     assert.match(skill, /query ordinary paths for another owner/u);
@@ -391,8 +393,8 @@ describe('portable skill contract', () => {
       /For reconciliation, inspect only task-named implementation evidence.*then at most one named-owner `content`/su,
     );
     assert.match(skill, /never CLI `inspect`/u);
-    assert.match(skill, /otherwise use content-free `inspect` to resolve the owner and mirrors/u);
-    assert.match(skill, /Write owner first, derive mirrors/u);
+    assert.match(skill, /use content-free `inspect` only to resolve the owner and mirrors/u);
+    assert.match(skill, /write owner first, derive mirrors/u);
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
     assert.match(skill, /retain one deduplicated leading-slash repository-logical set/u);
     assert.match(skill, /send it to one `scope`/u);
@@ -418,13 +420,16 @@ describe('portable skill contract', () => {
     assert.match(skill, /contradictions cannot remain or be called accurate/u);
     assert.match(skill, /On `0` or failure, continue without moldea/u);
     assert.match(skill, /work as if the skill were absent/u);
-    assert.match(skill, /For ordinary repository paths, use the full relationship gate/u);
+    assert.match(
+      skill,
+      /Only ordinary work without direct intent uses the full relationship gate/u,
+    );
     assert.match(skill, /every path's UTF-8 bytes followed by one NUL/u);
     assert.match(skill, /never begin with a delimiter/iu);
     assert.match(skill, /After `1`, pass the exact same byte stream/u);
     assert.match(skill, /Classify requirement criteria/u);
     assert.match(skill, /bind necessary `description` and `resolution` rewrites/u);
-    assert.match(skill, /existing independent inline instruction is migration input/u);
+    assert.match(skill, /existing inline instruction is migration input/u);
     assert.match(skill, /direct request to prove, invoke, inspect, or explain/u);
     assert.match(skill, /before inspecting providers or concluding/u);
     assert.match(skill, /Validate only after writes/u);
@@ -802,7 +807,7 @@ describe('portable skill contract', () => {
       '**Repository-local tooling:**',
       '**Explicit initialization:**',
       '**Current-change review or evaluation:**',
-      '**Direct canonical agent or runtime work:**',
+      '**Direct agent or runtime work:**',
       '**Repository-independent information:**',
       '**Every other repository task:**',
     ];
@@ -849,10 +854,7 @@ describe('portable skill contract', () => {
       ...REFERENCE_NAMES.map((name) => readFileSync(join(SKILL_ROOT, 'references', name), 'utf8')),
     ].join('\n');
     assert.match(distributedText, /abstains silently/u);
-    assert.match(
-      distributedText,
-      /Host planning, review, implementation, package-manager, Git, commit, and publication workflows always retain ownership/u,
-    );
+    assert.match(distributedText, /Host workflows retain ownership/u);
     assert.match(distributedText, /65,536-byte output page/u);
     assert.match(distributedText, /262,144 bytes/u);
     assert.match(distributedText, /1 MiB/u);
@@ -895,16 +897,88 @@ describe('portable skill contract', () => {
 
 describe('activation and semantic protection', () => {
   test('covers and resolves the complete initialization and relevance state machine', () => {
-    assert.equal(FIXTURE.activationCases.length, 15);
+    assert.equal(FIXTURE.activationCases.length, 23);
     for (const { expected, input } of FIXTURE.activationCases) {
       assert.equal(resolveActivationCase(input), expected);
     }
     const outcomes = FIXTURE.activationCases.map(({ expected }) => expected);
     assert.equal(outcomes.filter((value) => value === 'informational').length, 1);
     assert.equal(outcomes.filter((value) => value === 'initialize').length, 1);
-    assert.equal(outcomes.filter((value) => value === 'direct').length, 3);
+    assert.equal(outcomes.filter((value) => value === 'direct').length, 7);
     assert.equal(outcomes.filter((value) => value === 'relationship-gate').length, 2);
-    assert.equal(outcomes.filter((value) => value === 'abstain').length, 8);
+    assert.equal(outcomes.filter((value) => value === 'abstain').length, 12);
+  });
+
+  test('routes conversational agent work without product-name or phrase triggers', () => {
+    const skill = readSkill();
+    assert.match(skill, /Infer intent from the request and relevant conversation, not keywords/u);
+    assert.match(skill, /continuation retains only its active task and authorization/u);
+    assert.match(skill, /topic change resets relevance/u);
+    assert.match(skill, /Ambiguity grants no permission/u);
+    assert.match(
+      skill,
+      /Zero agents, absent bindings, and unnamed paths do not prevent this route/u,
+    );
+    assert.match(skill, /For direct agent-work intent, use route 5 instead/u);
+    assert.match(skill, /`references\/agent-system-planning.md` for read-only planning/u);
+    assert.match(skill, /Review is read-only/u);
+    const evaluation = readFileSync(
+      join(SKILL_ROOT, 'references/evaluate-and-reconcile.md'),
+      'utf8',
+    );
+    assert.match(
+      evaluation,
+      /Clear agent-work intent uses the entrypoint's adoption-only route even without bindings/u,
+    );
+    assert.match(
+      evaluation,
+      /Only without direct intent or items, run the full relationship gate/u,
+    );
+    assert.match(evaluation, /Reuse the entrypoint's completed gate rather than running it again/u);
+    assert.doesNotMatch(skill, /developer explicitly names `moldea`|go ahead/iu);
+
+    for (const id of [
+      'agent-adoption-inline-runtime-instruction',
+      'plan-existing-project-one-agent',
+      'plan-justified-multi-agent',
+      'plan-material-ambiguity',
+      'plan-runtime-inventory-insufficient-evidence',
+    ]) {
+      const scenario = FIXTURE.semanticCases.find((entry) => entry.id === id);
+      assert.ok(scenario, id);
+      assert.doesNotMatch(scenario.input.developerDirection, /moldea|canonical|affectedBy/iu);
+      assert.equal(scenario.resourceBudget.activation, 'direct');
+    }
+    const qualificationTask = readFileSync(
+      join(REPOSITORY_ROOT, 'qualification/profiles/t5/cases/c3/task.md'),
+      'utf8',
+    );
+    assert.doesNotMatch(qualificationTask, /moldea|canonical|affectedBy/iu);
+    assert.match(qualificationTask, /cannot approve refunds/u);
+  });
+
+  test('keeps first-agent adoption independent from relationships without changing files', () => {
+    const root = createProject();
+    try {
+      const manifestPath = join(root, 'moldea', 'moldea.yaml');
+      const readmePath = join(root, 'README.md');
+      writeFileSync(manifestPath, 'version: 1\n');
+      const readmeBefore = readFileSync(readmePath);
+      for (const [arguments_, input, expected] of [
+        [['--adoption-only'], undefined, '1\n'],
+        [[], '/src/new-agent.ts\0', '0\n'],
+        [[], '/docs/branding.md\0', '0\n'],
+      ]) {
+        const result = runRelevanceGate(root, arguments_, input);
+        assert.equal(result.status, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, expected);
+      }
+      assert.equal(readFileSync(manifestPath, 'utf8'), 'version: 1\n');
+      assert.deepEqual(readFileSync(readmePath), readmeBefore);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   test('validates the complete 74-case resource-bounded semantic suite', () => {
@@ -1441,7 +1515,7 @@ describe('CLI 8 bounded machine protocol', () => {
       readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'),
     );
     const declaredCliVersion = packageManifest.devDependencies['@moldea.ai/cli'];
-    assert.equal(packageManifest.version, '5.0.4');
+    assert.equal(packageManifest.version, '5.0.5');
     assert.match(declaredCliVersion, /^\d+\.\d+\.\d+$/u);
     assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 4);
     assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, declaredCliVersion);

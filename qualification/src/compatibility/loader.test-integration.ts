@@ -226,14 +226,13 @@ describe('Custom qualification profile', () => {
     }
   });
 
-  test('makes canonical-maintenance cases explicitly relevant before repository inspection', async () => {
+  test('keeps direct-operation tasks explicit while agent creation uses natural intent', async () => {
     const target = await resolveQualificationTarget({
       adapterId: 'custom',
       implementationId: 'custom',
     });
     const explicitCaseIds = [
       'evaluate-aligned-project',
-      'create-grounded-agent',
       'maintain-dirty-project',
       'reconcile-drift-and-boundaries',
       'retire-agent-coherently',
@@ -252,6 +251,15 @@ describe('Custom qualification profile', () => {
 
       expect(task).toContain('moldea');
     }
+
+    const creationTask = await readFile(
+      path.join(target.profileDirectory, 'cases/c3/task.md'),
+      'utf8',
+    );
+    expect(creationTask).not.toMatch(/moldea|canonical|affectedBy/iu);
+    expect(creationTask).toContain('Complete the order-triage agent');
+    expect(creationTask).toContain('cannot approve refunds');
+    expect(creationTask).toContain('connect it to the actual implementation');
 
     const dirtyTask = await readFile(
       path.join(target.profileDirectory, 'cases/c4/task.md'),

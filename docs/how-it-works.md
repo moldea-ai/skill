@@ -11,7 +11,7 @@ order: 30
 The normal experience has three steps:
 
 1. You describe the outcome to your coding agent.
-2. The managed README block routes the repository-aware host to the repository-bound skill, whose two-byte local gate decides whether the task explicitly requests a `moldea` operation or changes canonical state, the managed README block, or a path reached through a declared relationship.
+2. The managed README block points your coding agent to the installed skill. The skill recognizes agent-work intent from your conversation and checks initialization. Other tasks use a small local relationship check.
 3. The coding agent returns the implementation, analysis, or plan with an evidence-based report.
 
 There is no separate `moldea` chat surface to operate.
@@ -20,12 +20,14 @@ There is no separate `moldea` chat surface to operate.
 
 The coding agent can activate the skill in four ways:
 
-- **Explicit activation:** you request initialization, or you request agent-system planning, agent creation or refinement, evaluation, reconciliation, validation, or another repository-dependent `moldea` outcome in an adopted repository.
+- **Direct activation:** after initialization, you ask to plan, build, review, or maintain AI agents, or request a specific `moldea` operation. Normal conversation is enough, even before the first agent or binding exists. Initialization itself requires an explicit request.
 - **Canonical activation:** the task changes a path under `/moldea/**`.
 - **Managed README activation:** a changed README hunk intersects the content between the full-line `moldea` markers.
 - **Declared-relationship activation:** in an adopted repository, a known task path exactly matches a binding or `affectedBy` declaration. The task-path set combines exact repository paths explicitly named or targeted by the developer, whether changed or unchanged, with the complete changed-path set already established by the host when applicable.
 
-Generic references to project context, outdated context, durable knowledge, canonical alignment, documentation, or maintenance do not by themselves activate `moldea` work. Neither does an answer to a question or a host planning, review, Git, commit, or publication command. The managed README block makes entrypoint selection deterministic for repository-aware hosts; it does not make every task relevant. For a repository-dependent task, the repository-bound skill entrypoint runs the deterministic gate first without running Git or searching for a canonical destination solely to discover paths. If no activation path matches, it abstains silently without loading workflow references, running the CLI, recommending adoption, adding a `moldea` status line, or later reactivating from a path discovered during the same request. Before adoption, initialization is the only repository-dependent `moldea` operation; the host can still perform its own generic planning and engineering workflows independently. A generic fact handoff never makes the host workflow search for or edit `/moldea/**` as an invented destination. Loading never establishes adoption or authorizes persistence. A project is adopted only when the complete canonical foundation and owned README awareness block exist.
+You do not need special commands or `moldea` terminology. A follow-up continues the active task within its existing authorization; it does not activate from a particular phrase. Changing the subject resets that relevance. Unclear intent does not grant permission to write.
+
+Generic context, documentation, architecture, SDK installation alone, and incidental mentions of agents do not activate agent work. Host command names alone do not activate it either. The README selects the entrypoint, not the workflow: direct agent work uses the adoption-only check; other known paths use relationship matching. A non-match continues the host task silently, without workflow references, CLI calls, or `moldea` reporting. Before adoption, only explicit initialization activates repository-dependent `moldea` work. Selection never establishes adoption or permission to write; the complete project foundation and owned README block must exist.
 
 ## Operation selection
 

@@ -1,7 +1,7 @@
 {
   "qualification": {
     "mode": "pinned",
-    "reason": "Release 5.0.4 bundles the locked Core matcher for relevance, removes pre-activation dependency execution, bounds repository reads and CLI containment, and replaces compatibility web lookup with installed-adapter evidence. Current fixtures and both harness policies remove compatibility-network exemptions. Pinned website rendering compares authenticated attempts with their original host contracts. Deterministic gate, launcher, real local Eve, harness, pin-authentication and website regression checks cover these corrections. Prior model runs did not evaluate these changes; no new semantic evaluation or adapter qualification was run.",
+    "reason": "Release 5.0.5 restores natural-language agent planning, creation and contextual continuation without product-name cues or existing bindings. It strengthens semantic and shared qualification prompts while retaining all scenarios, and preserves the 5.0.4 local-eligibility, bundled-gate and containment corrections. Deterministic activation, empty-project gate, launcher, harness and website regression checks cover the release candidate. Original model runs did not evaluate these changed instructions or prompts; both evidence domains are explicitly reused, with no new paid semantic evaluation or adapter qualification.",
     "source": {
       "commit": "c3416c52ae69a3f26d2e38c07ba98aa8531e358d",
       "evidence": {
@@ -158,7 +158,7 @@
   "schemaVersion": 2,
   "semantic": {
     "mode": "pinned",
-    "reason": "Release 5.0.4 bundles the locked Core matcher for relevance, removes pre-activation dependency execution, bounds repository reads and CLI containment, and replaces compatibility web lookup with installed-adapter evidence. Current fixtures and both harness policies remove compatibility-network exemptions. Pinned website rendering compares authenticated attempts with their original host contracts. Deterministic gate, launcher, real local Eve, harness, pin-authentication and website regression checks cover these corrections. Prior model runs did not evaluate these changes; no new semantic evaluation or adapter qualification was run.",
+    "reason": "Release 5.0.5 restores natural-language agent planning, creation and contextual continuation without product-name cues or existing bindings. It strengthens semantic and shared qualification prompts while retaining all scenarios, and preserves the 5.0.4 local-eligibility, bundled-gate and containment corrections. Deterministic activation, empty-project gate, launcher, harness and website regression checks cover the release candidate. Original model runs did not evaluate these changed instructions or prompts; both evidence domains are explicitly reused, with no new paid semantic evaluation or adapter qualification.",
     "source": {
       "commit": "926907e26feac6a55929f68ca134aeaf41a6a4b5",
       "evidence": {
@@ -176,8 +176,8 @@
     }
   },
   "target": {
-    "dependencyClosureSha256": "2f6bed77bd9900c64bc052bc18dd7b7c3834ee69173c7fcce53801c5445c7a2d",
-    "portableSkillSha256": "fb4d1df806e45ef7d656d9206635b92d9c95f712e16af318db6aaefa2917e171",
-    "version": "5.0.4"
+    "dependencyClosureSha256": "9ca71389bbd740bf47da5bf884881963a3985ca8677f19451563f0c9291859f9",
+    "portableSkillSha256": "51e777e54409c627988627ea7a9cd667a9986a86ced2b4c4f1208f848a91afc2",
+    "version": "5.0.5"
   }
 }

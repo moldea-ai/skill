@@ -1,9 +1,9 @@
 ---
 name: moldea
 description: >-
-  Use for every repository-dependent task, including reviews, plans, and implementation, when this skill is installed in the repository: run only the bundled two-byte relevance gate over developer-named and host-provided changed paths. A gate miss abstains silently; only after adoption and relevance are established may moldea inspect explicit work, /moldea/** changes, managed README hunks, or paths matching a declared binding or affectedBy relationship. Also use for an independently supplied Agent Skill artifact without gating the surrounding repository, answer informational questions, and initialize moldea only when explicitly requested. Do not use for other uninitialized work.
+  Use for natural-language AI-agent planning, creation, runtime integration, behavior changes, and review, including contextual continuations, after repository initialization. Users need not name moldea or know canonical paths. For every other repository task, use only the bundled two-byte relationship gate over known paths and abstain silently on a miss. Also use for explicit moldea operations, independent Agent Skill artifacts, and informational questions. Initialize only when explicitly requested; abstain from other uninitialized repository work.
 metadata:
-  version: '5.0.4'
+  version: '5.0.5'
   cliVersionRange: '^8.0.0'
   coreVersionRange: '^4.0.1'
   cliJsonSchemaVersion: 4
@@ -19,13 +19,13 @@ Canonical status identifies storage, not conflict precedence. A generic reconcil
 
 ## Establish the entry state first
 
-Use the first matching route.
+First matching route wins. The README selects this entrypoint; this router selects the gate.
 
 1. **Independent Agent Skill artifact:** When Agent Skill creation, maintenance, or evaluation is the deliverable and no `/moldea/**` or declared-relationship work is separately requested, take this route before repository gating, regardless of `Use moldea` direction or repository-local placement. Load only `references/skill-design.md`; keep work and validation artifact-local. Never invoke CLI, inspect or validate canonical state, or append moldea status. Evaluation is read-only.
 2. **Repository-local tooling:** Apply this route to a direct request to prove, invoke, inspect, or explain the repository's moldea CLI. Reuse adoption evidence or run the adoption-only gate once. On `1`, load only `references/local-tooling.md`, attempt the closed launcher's content-free `composition` operation, and follow that reference before inspecting providers or concluding. Never invoke Yarn, pnpm, a global binary, a transient download, or an unverified `.bin` provider to prove the CLI.
 3. **Explicit initialization:** Continue only when the developer asks to initialize or adopt moldea. Before foundation analysis, inspect `package.json`, its exact lockfile entry when needed, and declared root package metadata to determine whether an exact compatible repository-local `@moldea.ai/cli` is declared and independently verified installed. Never execute the package manager or enumerate dependencies. If installation is required, inspect `.pnpmfile.cjs` when declared or `.yarnrc.yml` and its exact repository plugin paths. Executable install configuration preempts foundation analysis: load only `references/local-tooling.md`, return its complete four-field blocked-install result, and stop before foundation classification, package-manager execution, questions, or writes. Never substitute a partial summary. Otherwise load only `references/continuous-maintenance.md` and apply its foundation decision.
-4. **Current-change review or evaluation:** The host must retain every staged, unstaged, untracked, rename-source, rename-destination, and deleted path through final reporting. Normalize them to leading-slash repository-logical form and separate canonical paths or known managed hunks from ordinary paths. With any direct item, run the adoption-only gate once, assess canonical owners or managed hunks without `scope`, and run one `scope` only when ordinary paths remain; `relevant: false` adds no owner and never cancels direct relevance. With ordinary paths only, run the full relationship gate and then `scope`. Report the complete path scope, canonical assessment, and that no repository files changed. Never conclude from the host review alone or reactivate after an unrelated-task gate miss.
-5. **Direct canonical agent or runtime work:** Canonical agent or runtime work uses one adoption-only gate, even with task-named ordinary implementation or `affectedBy` evidence. Never send canonical or managed paths to `scope`; query ordinary paths for another owner. On `1`, load only `references/agent-design.md` for writes or `references/evaluate-and-reconcile.md` for reconciliation. For reconciliation, inspect only task-named implementation evidence or run one bounded agent/domain-keyed host search, then at most one named-owner `content`; never CLI `inspect`. For other work, request named `content` directly; otherwise use content-free `inspect` to resolve the owner and mirrors, then `content`. Write owner first, derive mirrors, reserve final validation.
+4. **Current-change review or evaluation:** For direct agent-work intent, use route 5 instead. In either route the host must retain every staged, unstaged, untracked, rename-source, rename-destination, and deleted path through final reporting. Normalize them to leading-slash repository-logical form and separate canonical paths or known managed hunks from ordinary paths. With any direct item, run the adoption-only gate once, assess canonical owners or managed hunks without `scope`, and run one `scope` only when ordinary paths remain; `relevant: false` adds no owner and never cancels direct relevance. With ordinary paths only, run the full relationship gate and then `scope`. Report the complete path scope, canonical assessment, and that no repository files changed. Never conclude from the host review alone or reactivate after an unrelated-task gate miss.
+5. **Direct agent or runtime work:** Agent or runtime work uses one adoption-only gate, even with task-named ordinary implementation or `affectedBy` evidence. Zero agents, absent bindings, and unnamed paths do not prevent this route. On `1`, load `references/agent-system-planning.md` for read-only planning, `references/agent-design.md` for authorized writes, or `references/evaluate-and-reconcile.md` for review or reconciliation. Review is read-only. Never send canonical or managed paths to `scope`; query ordinary paths for another owner. For reconciliation, inspect only task-named implementation evidence or run one bounded agent/domain-keyed host search, then at most one named-owner `content`; never CLI `inspect`. Otherwise request named `content` directly; use content-free `inspect` only to resolve the owner and mirrors, then `content`. For writes, write owner first, derive mirrors, reserve final validation.
 6. **Repository-independent information:** Answer repository-independent moldea questions concisely. Do not inspect the repository, load a reference, or run a moldea command.
 7. **Every other repository task:** Before host work on named paths, retain one deduplicated leading-slash repository-logical set of named and host-established changed paths, then run the full gate once. On `1`, send it to one `scope`, bind selected owners and mirrors before writing, and synchronize every contradicted owner before completing implementation; contradictions cannot remain or be called accurate. Classify requirement criteria and bind necessary `description` and `resolution` rewrites. If scoped work preserves owner-governed behavior and contracts, leave canonical state byte-identical and report that the owner was reconsidered and remains accurate without an edit. On `0` or failure, continue without moldea. Generic wording and host commands never activate moldea.
 
@@ -37,12 +37,12 @@ When abstention consumes the request and no host work remains, reply only with a
 
 Activation classes:
 
-- **Direct:** the developer explicitly names `moldea` and requests a repository-dependent operation. Generic phrases such as project context, outdated context, durable knowledge, canonical alignment, documentation, or maintenance do not name `moldea` and never create a direct request.
+- **Direct:** clear AI-agent planning, creation, runtime integration, behavior maintenance, review, or reconciliation intent, or an explicit repository-dependent moldea operation. Infer intent from the request and relevant conversation, not keywords. A continuation retains only its active task and authorization; a topic change resets relevance. Ambiguity grants no permission. Generic context, documentation, architecture, SDK installation alone, or incidental agent terminology never creates agent-work intent.
 - **Canonical:** a normalized task path matches root-relative `moldea/**` or repository-logical `/moldea/**`.
 - **Managed README:** an already known changed hunk intersects content strictly between the exact moldea markers. A README path or outside hunk is not relevant.
 - **Relationship:** another already known task path matches an exact binding or `affectedBy` declaration.
 
-For a canonical or managed-block change, reuse adoption evidence or run the adoption-only gate once. Also use it for a direct create, plan, design, maintain, change, validate, or evaluate request not handled by an earlier route:
+For direct, canonical, or managed-block work, reuse adoption evidence or run the adoption-only gate once:
 
 ```text
 node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root> --adoption-only
@@ -50,7 +50,7 @@ node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-re
 
 Continue only when complete stdout is exactly `1`; otherwise abstain silently.
 
-A direct request supplies intent, not a canonical owner. For ordinary repository paths, use the full relationship gate, then `scope`.
+A direct request supplies intent, not a canonical owner. Only ordinary work without direct intent uses the full relationship gate, then `scope`.
 
 For any ordinary-path route, use the retained route-owned normalized set; named paths may be changed or unchanged. Never run Git or broaden repository inspection solely to discover gate paths. Never replace the gate by inspecting canonical state directly. With no path set, abstain silently even if the developer supplies durable facts or calls existing project context outdated; do not search for a canonical destination. For this route, abstention is final for the current request: paths discovered later by the host cannot reactivate `moldea`, and the host must not open, read, search for, or edit `/moldea/**` as an invented destination. When a generic fact handoff is the complete request, acknowledge it without inventing persistence.
 
@@ -79,7 +79,7 @@ After adoption and relevance are established, select one operation and read only
 - Initialize or maintain canonical truth: `references/continuous-maintenance.md`
 - Prove CLI provenance or interpret machine envelopes: `references/local-tooling.md`
 - Gather canonical evidence or explicit content: `references/context-gathering.md`
-- Plan an explicitly requested agent system: `references/agent-system-planning.md`
+- Plan an agent system: `references/agent-system-planning.md`
 - Compress explicitly selected context: `references/context-compression.md`
 - Create or change an agent or runtime: `references/agent-design.md`
 - Create, change, or evaluate an Agent Skill: `references/skill-design.md`
@@ -88,9 +88,9 @@ After adoption and relevance are established, select one operation and read only
 
 Never read every reference by default; read only what the operation requires. Routing-description evaluation reads `evaluate-and-reconcile.md`, then owning `agent-design.md` before classifying from runtime documentation and consumption evidence; identifiers prove nothing.
 
-Host planning, review, implementation, package-manager, Git, commit, and publication workflows always retain ownership. Their names never activate moldea. When one contains a relevant path, perform only the bounded canonical operation and return control to the host.
+Host workflows retain ownership. Their names never activate moldea; agent-work intent or relevant paths permit only the bounded canonical operation.
 
-For direct agent creation, an existing independent inline instruction is migration input. When source and tests establish behavior and runtime integration is authorized, complete the canonical, runtime, relationship, test, and final-validation change.
+For agent creation, an existing inline instruction is migration input. When source and tests establish behavior and runtime integration is authorized, complete the canonical, runtime, relationship, test, and final-validation change.
 
 Run `composition` only when local runtime availability or readiness matters; it never establishes canonical assignment. Without supplied assignment evidence, use one content-free `inspect`. The matching `kind: agent` record's `agentId` and `runtimeId` are the sole canonical content-free source for `agents.<id>.runtime.id`; counts prove nothing. Request named-agent `content` only when semantics matter; never inspect afterward or request manifest content. Use local adapter contracts and inspection evidence for eligibility; do not retrieve compatibility websites or open browsers. Report canonical assignment, repository fit, local adapter, and eligibility separately. Missing evidence never changes an established runtime to `custom`. Preserve established facts; pair every behavioral or integration unknown with a concrete resolver.
 

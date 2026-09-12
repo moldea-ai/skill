@@ -12,7 +12,7 @@ const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../
 
 describe('loadReleaseEvidenceWebsiteState', () => {
   test('hydrates complete authenticated semantic and qualification models', () => {
-    const state = loadReleaseEvidenceWebsiteState(REPOSITORY_ROOT, '5.0.4');
+    const state = loadReleaseEvidenceWebsiteState(REPOSITORY_ROOT, '5.0.5');
 
     expect(state.releaseEvidence.mode).toBe('recorded');
     if (state.releaseEvidence.mode !== 'recorded') {

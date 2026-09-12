@@ -1,10 +1,10 @@
 # Agent-system planning
 
-Read this reference after explicit moldea relevance is established for agent-system planning, responsibility decomposition, or orchestration design.
+Read this reference after adoption and agent-system planning intent are established. Ordinary conversation about agent responsibilities or orchestration is sufficient; the developer need not name moldea, canonical paths, or existing agents.
 
 ## Select this operation narrowly
 
-Use `plan` only when the developer asks what agent-and-software system should accomplish an objective, what should be agents versus deterministic components, or how agent responsibilities should be separated and orchestrated.
+Select planning when the developer asks what agent-and-software system should accomplish an objective, what should be agents versus deterministic components, or how agent responsibilities should be separated and orchestrated.
 
 Generic implementation, architecture, migration, refactor, deployment, and host-defined `plan` commands remain outside. Relevance-triggered maintenance does not create a planning exercise without clear intent.
 

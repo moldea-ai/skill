@@ -26,7 +26,7 @@ I will detail the contracts, permissions, failure paths, and implementation sequ
 
 ## Coding agent and `moldea` under the hood
 
-1. The coding agent recognizes explicit agent-system planning and selects the read-only `plan` operation.
+1. In the initialized repository, the coding agent recognizes agent-system planning from the request and uses the adoption-only check, without requiring existing agents or bindings.
 2. The skill directs it to read the planning and context-gathering references.
 3. It inspects the current promotion, catalog, pricing, campaign, approval, and delivery paths.
 4. It decomposes outcome responsibilities before naming agents.

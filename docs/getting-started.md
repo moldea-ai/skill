@@ -21,7 +21,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.4"
+npx skills add "moldea-ai/skill#v5.0.5"
 ```
 
 Repository installation is required for supported `moldea` use because the team must share the selected skill version with the project. A global installation does not establish repository adoption and is not a supported installation path.
@@ -63,6 +63,8 @@ Canonical moldea project state lives under `/moldea/**`; start at `/moldea/proje
 The blank line after the opening marker separates the ownership marker from the Markdown paragraph. The writer preserves existing README bytes outside the managed region, follows the file's consistent CRLF style when applicable, and otherwise writes LF. It rejects duplicate, unpaired, reversed, linked, invalid, or oversized README input instead of guessing.
 
 Initialization does not create an agent automatically. It also does not create ceremonial empty directories, speculative context, or a parallel source of truth. An adopted project turns the same request into focused foundation maintenance. Partial or inconsistent artifacts leave the project unadopted: the coding agent identifies the exact existing artifacts and missing contract elements, preserves valid content, and does not initialize or repair over them until the request authorizes that work and any consequential ambiguity is resolved.
+
+Once initialized, ask naturally to plan, build, review, or maintain AI agents. You do not need to mention `moldea` again or set up bindings first. The README selects the skill; its router checks adoption for agent work and relationships for other tasks. A follow-up continues the active task within its authorization, while unrelated work remains unaffected.
 
 ## When the repository does not explain itself
 
@@ -123,10 +125,10 @@ npx skills add moldea-ai/skill
 A release-pinned installation never moves to another tag automatically. To update it, choose the desired published release and rerun the installation command with that tag. For example, the current release is:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.4"
+npx skills add "moldea-ai/skill#v5.0.5"
 ```
 
-Replace `v5.0.4` with the desired newer published tag when one becomes available.
+Replace `v5.0.5` with the desired newer published tag when one becomes available.
 
 Updating the skill refreshes its portable instructions and references. It does not initialize a project, change `/moldea/**`, install the `moldea` CLI globally, or alter a repository's canonical project state.
 

@@ -65,7 +65,7 @@ Clarify that authenticated pinned evidence may be hydrated during static generat
 
 - Compact-envelope meaning, immutable-source authentication, build-time scope, freshness terminology, and concurrency isolation passed review.
 
-## Milestone 7: Hydrate and compose selected release evidence
+## Milestone 7: Hydrate and compose selected release evidence (completed)
 
 ### Objective
 
@@ -109,7 +109,7 @@ Load complete authenticated pinned attempts within explicit resource budgets and
 
 - Inspect trust ownership, Git process count, path containment, resource accounting, cleanup, model amplification, immutable links, provenance separation, composition, and test depth.
 
-## Milestone 8: Redesign the complete Evidence experience
+## Milestone 8: Redesign the complete Evidence experience (completed)
 
 ### Objective
 
@@ -141,9 +141,9 @@ Make semantic and qualification proof immediately understandable, visual, concis
 
 ### Verification
 
-- Test pinned/fresh route parity, 74 semantic scenarios, 12/14 qualification journeys, replay, visible diff, unchanged result, and secondary provenance.
-- Run axe, keyboard, focus, heading, search, sitemap, no-JavaScript, link, unit, integration, artifact, and browser checks.
-- Inspect 320 px, tablet, and desktop layouts in light and dark themes for overflow, density, code readability, touch targets, hierarchy, motion, and reduced motion.
+- Pinned/fresh route parity, 74 semantic decisions, 12/14 qualification journeys, replay, visible diff, unchanged results, and secondary provenance passed focused unit, integration, artifact, and browser coverage.
+- The complete 43-case default browser suite and recovered protocol-10 fixture passed after the only stale branding assertion was corrected and rerun.
+- Visual inspection covered Evidence, semantic, qualification, combined-profile, and expanded Project views at 320 px and desktop widths in light and dark themes.
 
 ### Acceptance criteria
 
@@ -202,4 +202,4 @@ Publish the exact reviewed implementation as a complete signed skill release wit
 
 ## Execution scope
 
-Milestones 1 through 6 are complete. Execute Milestone 7 to implement bounded authenticated source hydration and one selected evidence model; Milestone 8 to redesign and verify the complete Evidence experience; and Milestone 9 to update identity, preserve accepted evidence, review, merge, tag, create the GitHub Release, deploy, and verify `moldea` skill `5.0.3`. Do not run paid evaluations, modify packages or app-ui, copy historical attempt stores, touch unrelated platform work, or introduce legacy evidence paths.
+Milestones 1 through 8 are complete. Execute Milestone 9 to update identity, preserve accepted evidence, review, merge, tag, create the GitHub Release, deploy, and verify `moldea` skill `5.0.3`. Do not run paid evaluations, modify packages or app-ui, copy historical attempt stores, touch unrelated platform work, or introduce legacy evidence paths.

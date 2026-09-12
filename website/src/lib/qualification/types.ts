@@ -993,7 +993,6 @@ export interface IQualificationAttemptModel {
   evidenceSource: IQualificationEvidenceSourceModel;
   rawAttemptUrl: string;
   result: IQualificationAttemptResult;
-  route: string;
   sourceState: IQualificationSourceStateResult | null;
 }
 

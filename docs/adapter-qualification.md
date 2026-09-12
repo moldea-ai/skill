@@ -79,9 +79,9 @@ Qualification protocol 10 accepts only evidence matching the current:
 
 Every current target must have a current passing attempt for its exact current inputs. A current attempt may reuse only complete passed or recovered case groups from a byte-valid committed failed attempt with the same behavior-bearing identity. Direct and reused work remain visibly distinct, and failed, incomplete, diagnostic, uncommitted, chained, mismatched, or tampered evidence is rejected. Current protocol-10 history is revalidated against the contracts at each attempt's recorded source commit.
 
-This is the normal release path. An explicit qualification-scoped release evidence pin may reuse original passing qualification evidence from an immutable release tag or full commit when a maintainer has established that qualification behavior is unchanged. Semantic evidence remains independently fresh or pinned. The qualification pages count each authenticated target projection as one verified source attempt, disclose its immutable source and exact executed package closure, and do not relabel it as current. See [Release evidence](/docs/release-evidence/).
+This is the normal release path. An explicit qualification-scoped release evidence pin may reuse original passing qualification evidence from an immutable release tag or full commit when a maintainer has established that qualification behavior is unchanged. Semantic evidence remains independently fresh or pinned. Fresh and pinned qualification results use the same project-journey presentation. Immutable source identity, the maintainer reason, exact executed package closure, and current-contract distinction remain available in technical details. See [Release evidence](/docs/release-evidence/).
 
-The public target page separates three facts: the current profile's configured runtime-package inputs, the exact package closure and timestamps recorded by a matching current attempt, and the exact package closure and timestamps from pinned verified source evidence. The source attempt remains a passed historical execution and is never relabeled as current-contract assurance. A profile with either current or pinned evidence does not use the no-attempt empty state.
+Each public adapter profile is the canonical effective result. It combines the 12 journeys from the exact bound Custom foundation with the adapter's 2 direct journeys on one page; Custom presents its 12 journeys directly. Visitors do not have to navigate separate Custom and direct attempt pages. The primary view follows developer requests, coding-agent work, workspace changes, and independent verdicts. Configured package inputs, executed closures, source commits, matrix claims, and raw artifacts remain available through progressive technical disclosure.
 
 An adapter attempt requires a passing current Custom baseline. A Custom attempt does not require another baseline.
 
@@ -89,7 +89,7 @@ An adapter attempt requires a passing current Custom baseline. A Custom attempt 
 
 Current results use the target keys declared in `qualification/profiles/index.yaml`. Each target has an append-only current attempt directory and a `latest.json` pointer. Artifact manifests bind every recorded file by SHA-256.
 
-The website validates these current artifacts before rendering evidence pages. Replays are bounded reconstructions from validated outputs and projected execution facts, not terminal transcripts.
+The website validates current or authenticated pinned artifacts before rendering evidence pages. Replays are bounded reconstructions from validated outputs and projected execution facts, not terminal transcripts. Qualification attempt identities are technical source records rather than separate public routes.
 
 ## When qualification must run again
 

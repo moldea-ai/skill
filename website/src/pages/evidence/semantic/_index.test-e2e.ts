@@ -25,46 +25,35 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
 
   await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
   await expect(
-    page.getByText(
-      `${releaseSummary.kind === 'pinned' ? 'Verified source' : 'Current'}: ${successfulCaseCount}/${semanticEvaluation.caseCount} scenarios`,
-      {
+    page
+      .getByText(`${successfulCaseCount}/${semanticEvaluation.caseCount} decisions verified`, {
         exact: true,
-      },
-    ),
+      })
+      .first(),
   ).toBeVisible();
-  const technicalProvenance = page.locator('details').filter({ hasText: 'Technical provenance' });
+  const technicalProvenance = page
+    .locator('details')
+    .filter({ hasText: 'Technical provenance and raw sources' });
   await technicalProvenance.locator('summary').click();
   await expect(
     technicalProvenance.getByText(
-      releaseSummary.kind === 'pinned'
-        ? 'Verified pinned source'
-        : semanticEvaluation.evidenceMatch === 'exact'
-          ? 'Exact current inputs'
-          : 'No exact current evidence',
+      releaseSummary.kind === 'pinned' ? 'Verified release source' : 'Current release',
       { exact: true },
     ),
   ).toBeVisible();
   await expect(
     page.getByRole('heading', {
       level: 2,
-      name: 'Every current-contract outcome remains available.',
+      name: 'Every trial remains available.',
     }),
   ).toBeVisible();
-  const attemptLinks = page.getByRole('link', { name: /Inspect attempt/u });
+  const attemptLinks = page.getByRole('link', { name: /Open the complete attempt/u });
   await expect(attemptLinks).toHaveCount(semanticEvaluation.attempts.length);
-  await expect(page.getByText('Earlier current-contract attempt', { exact: true })).toHaveCount(
-    semanticEvaluation.attempts.filter(
-      ({ result }) => result.attemptId !== currentSemanticAssurance?.result.attemptId,
-    ).length,
-  );
-  await expect(page.getByText('Current assurance attempt', { exact: true })).toHaveCount(
-    currentSemanticAssurance === null ? 0 : 1,
-  );
-  await expect(page.getByRole('link', { name: 'Read the methodology' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'How the evaluation works' })).toHaveAttribute(
     'href',
     toPublicPath('/docs/semantic-evaluation/'),
   );
-  await expect(page.getByRole('link', { name: 'Inspect coverage map' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Inspect the coverage map' })).toHaveAttribute(
     'href',
     /semantic-evaluation-coverage\.json$/u,
   );
@@ -72,25 +61,19 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
     await expect(
       page.getByText(releaseSummary.result.attemptId, { exact: true }).first(),
     ).toBeVisible();
+    await expect(page.getByText('No semantic evaluation has been recorded yet.')).toHaveCount(0);
     await expect(
-      page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
-    ).toHaveCount(0);
-    await expect(
-      page.getByRole('link', { name: 'Inspect verified source attempt' }),
-    ).toHaveAttribute('href', releaseSummary.sourceUrl);
+      technicalProvenance.getByText('Verified release source', { exact: true }),
+    ).toBeVisible();
   }
 
   const presentationAssurance = semanticEvaluation.currentAssurance;
   if (presentationAssurance === null) {
     if (semanticEvaluation.attempts.length === 0) {
-      await expect(
-        page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
-      ).toBeVisible();
+      await expect(page.getByText('No semantic evaluation has been recorded yet.')).toBeVisible();
     } else {
-      await expect(
-        page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
-      ).toHaveCount(0);
-      await expect(attemptLinks.filter({ hasText: 'Latest' })).toBeVisible();
+      await expect(page.getByText('No semantic evaluation has been recorded yet.')).toHaveCount(0);
+      await expect(attemptLinks.first()).toBeVisible();
     }
     return;
   }
@@ -157,7 +140,7 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
   await expect(replayTab).toBeFocused();
   await expect(replayTab).toHaveAttribute('aria-selected', 'true');
 
-  await attemptLinks.filter({ hasText: 'Latest' }).click();
+  await attemptLinks.first().click();
   const attemptScenario = page.locator('main details').filter({ hasText: firstCase.title });
   await attemptScenario.locator(':scope > summary').click();
   await expect(attemptScenario.getByRole('tab', { name: 'Replay' })).toHaveAttribute(

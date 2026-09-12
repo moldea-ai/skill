@@ -24,21 +24,16 @@ const getProfile = (adapterId: string, implementationId: string) => {
 
 test('represents the current qualification evidence state', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/qualification/'));
-  const verifiedSourceAttemptCount = qualificationModel.profiles
-    .map(getQualificationReleaseEvidenceSummary)
-    .filter(({ kind }) => kind === 'pinned').length;
 
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Adapter qualification evidence' }),
+    page.getByRole('heading', { level: 1, name: 'Adapter qualification' }),
   ).toBeVisible();
+  await expect(page.getByText('Unique projects', { exact: true }).locator('..')).toContainText(
+    String(qualificationModel.uniqueJourneyCount),
+  );
   await expect(
-    page.getByText(`${qualificationModel.uniqueJourneyCount} unique projects`, { exact: false }),
+    page.getByRole('heading', { level: 2, name: 'Open one result. See every journey.' }),
   ).toBeVisible();
-  if (verifiedSourceAttemptCount > 0) {
-    await expect(
-      page.getByText(`${verifiedSourceAttemptCount} verified source attempts`, { exact: false }),
-    ).toBeVisible();
-  }
   for (const profile of qualificationModel.profiles) {
     const releaseSummary = getQualificationReleaseEvidenceSummary(profile);
     const profileLink = page.getByRole('link', { name: profile.title });
@@ -46,22 +41,14 @@ test('represents the current qualification evidence state', async ({ page }) => 
       'data-evidence-status',
       releaseSummary.status,
     );
-    await expect(profileLink.getByText('Attempts', { exact: true }).locator('..')).toContainText(
-      String(releaseSummary.attemptCount),
-    );
+    const journeyCount = profile.sharedCases.length + profile.cases.length;
     await expect(
-      profileLink.getByText(
-        releaseSummary.kind === 'pinned'
-          ? 'Verified source attempt'
-          : releaseSummary.kind === 'current'
-            ? 'Current-contract result'
-            : 'No release evidence',
-        { exact: true },
-      ),
-    ).toBeVisible();
-    await expect(profileLink.getByText('Journeys', { exact: true }).locator('..')).toContainText(
-      String(profile.sharedCases.length + profile.cases.length),
+      profileLink.getByText('Project journeys', { exact: true }).locator('..'),
+    ).toContainText(String(journeyCount));
+    await expect(profileLink.getByText('Verified', { exact: true }).locator('..')).toContainText(
+      `${releaseSummary.status === 'passed' ? journeyCount : 0}/${journeyCount}`,
     );
+    await expect(profileLink.getByText('Follow the journeys', { exact: true })).toBeVisible();
   }
 
   const customProfileLink = page.getByRole('link', { name: /Custom runtime qualification/ });
@@ -182,7 +169,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   ).toBe(true);
 });
 
-test('presents profile definitions and the exact current evidence state', async ({ page }) => {
+test('presents one combined result with technical evidence kept secondary', async ({ page }) => {
   for (const [adapterId, implementationId] of [
     ['anthropic', 'typescript-messages-api-0-117'],
     ['custom', 'custom'],
@@ -194,79 +181,53 @@ test('presents profile definitions and the exact current evidence state', async 
     await page.goto(toPublicPath(profile.route));
     await expect(page.getByRole('heading', { level: 1, name: profile.title })).toBeVisible();
     await expect(
-      page.getByRole('heading', {
-        name: `${profile.sharedCases.length + profile.cases.length} realistic journey${profile.sharedCases.length + profile.cases.length === 1 ? '' : 's'}`,
-      }),
+      page.getByRole('heading', { level: 2, name: 'What happened in every project' }),
     ).toBeVisible();
     await expect(page.locator('[data-evidence-status]').first()).toHaveAttribute(
       'data-evidence-status',
       releaseSummary.status,
     );
-    await expect(
-      page.getByRole('heading', { name: 'Package inputs and executed evidence' }),
-    ).toBeVisible();
+    await expect(page.getByText('Project journeys', { exact: true }).locator('..')).toContainText(
+      String(profile.sharedCases.length + profile.cases.length),
+    );
+    await expect(page.getByText('Verified results', { exact: true }).locator('..')).toContainText(
+      String(profile.sharedCases.length + profile.cases.length),
+    );
+    await expect(page.getByText('How this result was produced', { exact: true })).toBeVisible();
+    const packageSource = page.locator('#qualification-package-source');
+    await packageSource.locator(':scope > summary').click();
     if (profile.runtimePackages.length === 0) {
       await expect(
-        page.getByText('This universal baseline has no runtime-specific package inputs.'),
+        packageSource.getByText('The Custom foundation has no runtime-specific package inputs.'),
       ).toBeVisible();
     } else {
-      const inputTable = page.getByRole('region', { name: 'Current profile package inputs' });
+      const inputTable = packageSource.getByRole('region', {
+        name: 'Current profile package inputs',
+      });
       for (const { name, version } of profile.runtimePackages) {
         await expect(inputTable).toContainText(name);
         await expect(inputTable).toContainText(version);
       }
     }
-    if (profile.pinnedPriorEvidence !== null) {
-      await expect(
-        page.getByRole('heading', { name: 'Pinned prior executed closure' }),
-      ).toBeVisible();
-      await expect(
-        page.getByText(profile.pinnedPriorEvidence.attemptId, { exact: true }).first(),
-      ).toBeVisible();
-      await expect(
-        page.getByText(/it is not relabeled as current-contract assurance/u),
-      ).toBeVisible();
-    }
     if (profile.adapterId === 'custom') {
-      await expect(page.getByText('Universal Custom baseline', { exact: true })).toHaveCount(
+      await expect(page.getByText('Core behavior', { exact: true })).toHaveCount(
         profile.cases.length,
       );
     } else {
-      await expect(page.getByText('Shared Custom baseline', { exact: true })).toHaveCount(
+      await expect(page.getByText('Shared foundation', { exact: true })).toHaveCount(
         profile.sharedCases.length,
       );
-      await expect(page.getByText('Direct adapter project', { exact: true })).toHaveCount(
+      await expect(page.getByText('Adapter-specific', { exact: true })).toHaveCount(
         profile.cases.length,
       );
     }
-    if (profile.currentLatest === null) {
-      if (profile.pinnedPriorEvidence === null) {
-        await expect(
-          page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
-        ).toBeVisible();
-      } else {
-        await expect(page.getByText('Verified source result', { exact: true })).toBeVisible();
-        await expect(page.getByText('Verified source attempt', { exact: true })).toBeVisible();
-        await expect(
-          page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
-        ).toHaveCount(0);
-        await expect(page.getByText('No official attempt has been committed.')).toHaveCount(0);
-        await expect(page.getByRole('link', { name: 'Inspect verified source' })).toHaveAttribute(
-          'href',
-          profile.pinnedPriorEvidence.sourceAttemptUrl,
-        );
-      }
+    await expect(page.getByRole('link', { name: /Inspect the .* attempt/u })).toHaveCount(0);
+    if (releaseSummary.kind === 'pinned') {
+      const resultSource = page.locator('#qualification-result-source');
+      await resultSource.locator(':scope > summary').click();
       await expect(
-        page.getByRole('link', {
-          name: /Inspect the (?:execution-error|failed|passing) attempt/u,
-        }),
-      ).toHaveCount(0);
-    } else {
-      await expect(
-        page.getByRole('link', {
-          name: /Inspect the (?:execution-error|failed|passing) attempt/u,
-        }),
-      ).toHaveAttribute('href', new RegExp(`${profile.route}attempts/`, 'u'));
+        resultSource.getByRole('heading', { name: 'Verified release source' }),
+      ).toBeVisible();
     }
   }
 });
@@ -277,13 +238,7 @@ test('replays qualification evidence through human-readable and technical views'
   const customProfile = getProfile('custom', 'custom');
   await page.goto(toPublicPath(customProfile.route));
   if (customProfile.currentLatest === null) {
-    if (customProfile.pinnedPriorEvidence === null) {
-      await expect(
-        page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
-      ).toBeVisible();
-    } else {
-      await expect(page.getByText('Verified source result', { exact: true })).toBeVisible();
-    }
+    await expect(page.getByText('No complete journey evidence is available.')).toBeVisible();
     return;
   }
   const groundedAgentCase = customProfile.currentLatest.cases.find(
@@ -300,11 +255,6 @@ test('replays qualification evidence through human-readable and technical views'
   }
   const initialRetryCount =
     initialGroundedAgentTrial.retries.actor.length + initialGroundedAgentTrial.retries.judge.length;
-  const attemptRoute = await page
-    .getByRole('link', { name: /Inspect the (?:execution-error|failed|passing) attempt/u })
-    .getAttribute('href');
-  if (attemptRoute === null) throw new Error('The Custom profile has no passing attempt route.');
-  await page.goto(attemptRoute);
 
   const journey = page
     .locator('main details')
@@ -355,10 +305,10 @@ test('replays qualification evidence through human-readable and technical views'
     'href',
     /\.patch$/u,
   );
-  await expect(journey.getByLabel('Final workspace patch')).toBeVisible();
-  await expect(journey.getByLabel('Final workspace patch').locator('code > span > *')).toHaveCount(
-    0,
-  );
+  const projectPatch = journey.locator('[data-project-patch]');
+  await expect(projectPatch.getByText('Verified workspace diff', { exact: true })).toBeVisible();
+  await expect(projectPatch.locator('pre')).toBeVisible();
+  await expect(projectPatch.locator('pre')).not.toBeEmpty();
 
   await projectTab.press('ArrowRight');
   await expect(evidenceTab).toBeFocused();
@@ -419,7 +369,7 @@ test('keeps the qualification project story readable without JavaScript', async 
     viewport: { height: 740, width: 320 },
   });
   const page = await context.newPage();
-  await page.goto(toPublicPath(currentAttempt.route));
+  await page.goto(toPublicPath(customProfile.route));
   const journey = page
     .locator('main details')
     .filter({ has: page.getByRole('heading', { level: 3, name: groundedAgentCase.result.title }) })
@@ -487,19 +437,6 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
       toolLoopProfileRoute,
     ];
 
-    await page.goto(profileRoute);
-    const attemptLink = page.getByRole('link', { name: /^Inspect the .* attempt$/u });
-
-    if ((await attemptLink.count()) > 0) {
-      const currentAttemptRoute = await attemptLink.getAttribute('href');
-
-      if (currentAttemptRoute === null) {
-        throw new Error('The qualification profile does not link to its current attempt.');
-      }
-
-      routes.push(currentAttemptRoute);
-    }
-
     for (const route of routes) {
       await page.goto(route);
       const widths = await page.evaluate(() => ({
@@ -537,25 +474,21 @@ test(
         viewport: { height: 900, width: 320 },
       });
       const page = await context.newPage();
-      await page.goto(
-        toPublicPath('/evidence/qualification/custom/custom/attempts/attempt-recovered/'),
-      );
+      await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
 
       await expect(
-        page.getByRole('heading', { level: 1, name: 'attempt-recovered' }),
+        page.getByRole('heading', { level: 1, name: recoveredProfile.title }),
       ).toBeVisible();
       await expect(
-        page.getByText('Recovered cases', { exact: true }).locator('..').getByText('1'),
+        page
+          .getByText('Recovered after confirmation', { exact: true })
+          .locator('..')
+          .getByText('1'),
       ).toBeVisible();
+      const packageDetails = page.locator('#qualification-package-source');
+      await packageDetails.locator(':scope > summary').click();
       await expect(
-        page.getByText('Operational retries', { exact: true }).locator('..').getByText('1'),
-      ).toBeVisible();
-      const attemptDetails = page.locator('main details').filter({
-        has: page.getByText('Attempt coverage, provenance, and raw artifacts', { exact: true }),
-      });
-      await attemptDetails.locator(':scope > summary').click();
-      await expect(
-        attemptDetails.getByRole('heading', { name: 'Exact executed package closure' }),
+        packageDetails.getByRole('heading', { name: 'Exact executed closure' }),
       ).toBeVisible();
 
       const caseEvidence = page

@@ -158,7 +158,7 @@ moldea/
 - `tooling/semantic-evaluation/` owns the current semantic evidence contract.
 - `tooling/release-identity/` owns exact release identity plus the fresh or explicitly pinned evidence selection.
 - `qualification/` owns adapter-specific qualification. Universal skill behavior runs once in the Custom profile; published adapters retain only adapter-specific probes and cases.
-- `website/` validates and renders current documentation and current committed evidence.
+- `website/` validates documentation and authenticated fresh or pinned evidence, then presents semantic decisions and combined adapter journeys with technical provenance behind progressive disclosure.
 - `.github/workflows/conformance.yml` runs portable correctness checks.
 - `.github/workflows/release-candidate.yml` validates exact package candidates without publishing them.
 
@@ -262,7 +262,7 @@ npm run release:evidence:pin -- --scope semantic --from-commit <full-commit> --r
 npm run release:evidence:pin -- --scope qualification --from v5.0.0 --reason "Qualification behavior is unchanged."
 ```
 
-The scope may be `semantic`, `qualification`, or `all`. Every unselected section must have valid fresh current evidence. A pin is an explicit repository-bound maintainer risk decision. Its reason must identify what changed, name the deterministic checks used for the candidate, and avoid claiming that the earlier model run evaluated the new contracts. Public evidence pages count an authenticated pinned attempt as verified release evidence, show its immutable source, and keep pending current-contract assurance separate. They do not present that retained result as a fresh run. The pin validates the immutable source commit, optional source tag, portable skill digest, committed suite and coverage digests, complete passing inventory, referenced artifacts, attempt linkage, and resource limits without reinterpreting the source through the current evaluator vocabulary. It does not bypass release signing or publication credentials. Run the same command with `--clear` to remove an envelope containing a pin.
+The scope may be `semantic`, `qualification`, or `all`. Every unselected section must have valid fresh current evidence. A pin is an explicit repository-bound maintainer risk decision. Its reason must identify what changed, name the deterministic checks used for the candidate, and avoid claiming that the earlier model run evaluated the new contracts. Public evidence pages present authenticated pinned and fresh results through the same human-readable journey interface. Immutable source identity, the maintainer reason, and the distinction from current-contract assurance remain available in the technical details. The pin validates the immutable source commit, optional source tag, portable skill digest, committed suite and coverage digests, complete passing inventory, referenced artifacts, attempt linkage, and resource limits without reinterpreting the source through the current evaluator vocabulary. It does not bypass release signing or publication credentials. Run the same command with `--clear` to remove an envelope containing a pin.
 
 ## Releases
 

@@ -223,7 +223,7 @@ export const createSearchRecords = (documents: IWebsiteDocument[]): ISearchRecor
   }));
 };
 
-/** Creates bounded search records for qualification profiles and attempts without transcripts. */
+/** Creates bounded search records for qualification profiles without indexing transcripts. */
 export const createQualificationSearchRecords = (
   qualification: IQualificationWebsiteModel,
 ): ISearchRecord[] => {
@@ -231,18 +231,15 @@ export const createQualificationSearchRecords = (
     (profile) => getQualificationReleaseEvidenceSummary(profile).kind === 'pinned',
   ).length;
   const landingRecord: ISearchRecord = {
-    description:
-      verifiedSourceAttemptCount === 0
-        ? 'Inspect adapter support-gate methodology, transparent project profiles, and complete recorded evidence.'
-        : `Inspect adapter support-gate methodology, transparent project profiles, and ${verifiedSourceAttemptCount} verified source attempts.`,
+    description: `Follow realistic coding projects that verify ${qualification.profiles.length} integrations${verifiedSourceAttemptCount === 0 ? '.' : `, including ${verifiedSourceAttemptCount} results backed by authenticated release sources.`}`,
     route: qualification.route,
     searchText: normalizeSearchText(
       'Adapter qualification support gate methodology profiles projects attempts evidence results',
     ),
     title: 'Adapter qualification',
   };
-  const profileRecords = qualification.profiles.flatMap((profile): ISearchRecord[] => {
-    const profileRecord: ISearchRecord = {
+  const profileRecords = qualification.profiles.map((profile): ISearchRecord => {
+    return {
       description: profile.description,
       route: profile.route,
       searchText: normalizeSearchText(
@@ -274,24 +271,6 @@ export const createQualificationSearchRecords = (
       ),
       title: profile.title,
     };
-    const attemptRecords = profile.attempts.map(({ result, route }): ISearchRecord => ({
-      description: `Recorded ${result.status} qualification attempt for ${profile.adapterId}/${profile.implementationId}.`,
-      route,
-      searchText: normalizeSearchText(
-        [
-          result.attemptId,
-          result.status,
-          result.summary,
-          profile.adapterId,
-          profile.implementationId,
-          ...result.cases.flatMap(({ caseId, failures, title }) => [caseId, title, ...failures]),
-          ...result.provenance.packages.flatMap(({ name, version }) => [name, version]),
-        ].join(' '),
-      ),
-      title: `${profile.title}: ${result.attemptId}`,
-    }));
-
-    return [profileRecord, ...attemptRecords];
   });
 
   return [landingRecord, ...profileRecords];
@@ -307,12 +286,7 @@ export const createSemanticEvaluationSearchRecords = (
     semanticEvaluation.currentAssurance,
   );
   const landingRecord: ISearchRecord = {
-    description:
-      releaseSummary.kind === 'pinned'
-        ? `Review the verified source attempt, current-contract history, and ${semanticEvaluation.caseCount} behavioral scenarios.`
-        : semanticEvaluation.hasAttempt
-          ? `Review the latest semantic attempt, current-contract history, and ${semanticEvaluation.caseCount} behavioral scenarios.`
-          : `Review ${semanticEvaluation.caseCount} behavioral scenarios and the semantic evaluation methodology before the first attempt is recorded.`,
+    description: `Follow ${semanticEvaluation.caseCount} difficult coding-agent decisions from developer request to independent verdict.`,
     route: semanticEvaluation.route,
     searchText: normalizeSearchText(
       [
@@ -451,12 +425,8 @@ export const createLlmsText = (
     `Current qualification contracts: ${currentQualifiedProfileCount}/${qualification.profiles.length} profiles have exact current assurance.`,
     '',
     `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
-    semanticReleaseSummary.kind === 'pinned'
-      ? `- [Semantic evaluation](${semanticEvaluation.route}): Review the verified source attempt, ${semanticEvaluation.caseCount} scenarios, and current-contract history.`
-      : semanticEvaluation.hasAttempt
-        ? `- [Semantic evaluation](${semanticEvaluation.route}): Review the latest attempt, ${semanticEvaluation.caseCount} scenarios, and current-contract history.`
-        : `- [Semantic evaluation](${semanticEvaluation.route}): Review ${semanticEvaluation.caseCount} behavioral scenarios and the methodology before the first attempt is recorded.`,
-    `- [Adapter qualification](${qualification.route}): Inspect the support gate, transparent profiles, passing outcomes, and immutable attempt history.`,
+    `- [Semantic evaluation](${semanticEvaluation.route}): Follow ${semanticEvaluation.caseCount} difficult coding-agent decisions from request to independent verdict.`,
+    `- [Adapter qualification](${qualification.route}): Follow realistic project journeys that verify the complete skill, tooling, packages, and supported integrations.`,
   );
 
   for (const profile of qualification.profiles) {
@@ -502,13 +472,7 @@ export const createRouteManifest = (
     routes.add(document.route);
   }
 
-  for (const route of [
-    qualification.route,
-    ...qualification.profiles.flatMap((profile) => [
-      profile.route,
-      ...profile.attempts.map(({ route }) => route),
-    ]),
-  ]) {
+  for (const route of [qualification.route, ...qualification.profiles.map(({ route }) => route)]) {
     if (routes.has(route)) throw new Error(`Two public items resolve to ${route}.`);
     routes.add(route);
   }

@@ -331,7 +331,6 @@ describe('createWebsiteModel', () => {
         status: 'passed',
         summary: 'Current qualification passed.',
       },
-      route: '/evidence/qualification/custom/custom/attempts/current-qualification-attempt/',
     } as unknown as NonNullable<(typeof qualification.profiles)[number]['currentLatest']>;
     const currentQualification = {
       ...qualification,

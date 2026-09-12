@@ -1,0 +1,332 @@
+---
+import { ExternalLink } from '@lucide/astro';
+import Accordion from '@moldea.ai/website-ui/accordion';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+
+import type {
+  IQualificationAttemptModel,
+  IQualificationProfileModel,
+} from '../../lib/qualification/index.ts';
+import type { IReleaseEvidenceModel } from '../../lib/release-evidence/index.ts';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+
+interface Props {
+  attempts: IQualificationAttemptModel[];
+  profile: IQualificationProfileModel;
+  releaseEvidence: IReleaseEvidenceModel;
+}
+
+const { attempts, profile, releaseEvidence } = Astro.props;
+const isCustomProfile = profile.adapterId === 'custom' && profile.implementationId === 'custom';
+const qualificationReleaseEvidence =
+  releaseEvidence.mode === 'recorded' ? releaseEvidence.qualification : null;
+const executedPackages = [
+  ...new Map(
+    attempts
+      .flatMap(({ result }) => result.provenance.packages)
+      .map((packageRecord) => [`${packageRecord.name}\0${packageRecord.version}`, packageRecord]),
+  ).values(),
+].sort(
+  (left, right) => left.name.localeCompare(right.name) || left.version.localeCompare(right.version),
+);
+const getAttemptRole = (index: number): string =>
+  isCustomProfile || attempts.length === 1
+    ? 'Complete result'
+    : index === 0
+      ? 'Shared foundation attempt'
+      : 'Adapter-specific result';
+---
+
+<div class="grid gap-3">
+  <Accordion
+    id="qualification-result-source"
+    group="qualification-technical-details"
+    title="How this result was produced"
+    description="Attempt identity, release source, model configuration, and immutable artifacts."
+  >
+    <div class="grid gap-6 border-t border-border pt-5">
+      {
+        qualificationReleaseEvidence?.mode === 'pinned' ? (
+          <section aria-labelledby="qualification-release-source-title">
+            <h3
+              id="qualification-release-source-title"
+              class="text-lg font-semibold"
+            >
+              Verified release source
+            </h3>
+            <p class="mt-2 max-w-4xl text-sm leading-6 text-muted-foreground">
+              This release reuses authenticated passing evidence from{' '}
+              <a
+                class="text-link font-semibold"
+                href={qualificationReleaseEvidence.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {qualificationReleaseEvidence.sourceLabel}
+              </a>
+              .{' '}
+              <InlineBrandText
+                text={qualificationReleaseEvidence.reason}
+                variant="compact"
+              />
+            </p>
+          </section>
+        ) : qualificationReleaseEvidence?.mode === 'fresh' ? (
+          <p class="text-sm leading-6 text-muted-foreground">
+            This result was recorded for the current release.
+          </p>
+        ) : (
+          <p class="text-sm leading-6 text-muted-foreground">
+            No release evidence source has been recorded.
+          </p>
+        )
+      }
+
+      <section aria-labelledby="qualification-effective-attempts-title">
+        <h3
+          id="qualification-effective-attempts-title"
+          class="text-lg font-semibold"
+        >
+          Evidence used by this result
+        </h3>
+        {
+          attempts.length === 0 ? (
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">
+              No complete evidence attempt is available for this profile.
+            </p>
+          ) : (
+            <ol class="mt-4 grid gap-3">
+              {attempts.map((attempt, index) => (
+                <li class="min-w-0 rounded-lg border border-border p-4">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <p class="font-semibold">{getAttemptRole(index)}</p>
+                    <EvidenceStatus status={attempt.result.status} />
+                  </div>
+                  <dl class="mt-3 grid min-w-0 gap-3 text-sm sm:grid-cols-2">
+                    <div>
+                      <dt class="text-muted-foreground">Attempt</dt>
+                      <dd class="mt-1 font-mono text-xs break-all">
+                        <a
+                          class="text-link"
+                          href={attempt.rawAttemptUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {attempt.result.attemptId}
+                          <ExternalLink
+                            class="ml-1 inline size-3"
+                            aria-hidden="true"
+                          />
+                        </a>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-muted-foreground">Recorded</dt>
+                      <dd class="mt-1 text-xs">
+                        <time datetime={attempt.result.createdAt}>{attempt.result.createdAt}</time>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-muted-foreground">Model</dt>
+                      <dd class="mt-1 font-mono text-xs break-all">
+                        {attempt.result.provenance.model}, actor{' '}
+                        {attempt.result.provenance.actorReasoningEffort}, judge{' '}
+                        {attempt.result.provenance.judgeReasoningEffort}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-muted-foreground">Skill commit</dt>
+                      <dd class="mt-1 font-mono text-xs break-all">
+                        {attempt.result.provenance.skillRepositoryCommit}
+                      </dd>
+                    </div>
+                  </dl>
+                </li>
+              ))}
+            </ol>
+          )
+        }
+      </section>
+    </div>
+  </Accordion>
+
+  <Accordion
+    id="qualification-package-source"
+    group="qualification-technical-details"
+    title="Packages and source"
+    description="Configured inputs, exact executed package closure, and profile definitions."
+  >
+    <div class="grid min-w-0 gap-6 border-t border-border pt-5 lg:grid-cols-2">
+      <section
+        class="min-w-0"
+        aria-labelledby="qualification-profile-inputs-title"
+      >
+        <h3
+          id="qualification-profile-inputs-title"
+          class="text-lg font-semibold"
+        >
+          Current profile inputs
+        </h3>
+        {
+          profile.runtimePackages.length === 0 ? (
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">
+              The Custom foundation has no runtime-specific package inputs.
+            </p>
+          ) : (
+            <div
+              class="table-scroll mt-4 overflow-x-auto rounded-lg border border-border"
+              tabindex="0"
+              role="region"
+              aria-label="Current profile package inputs"
+            >
+              <table class="w-full min-w-[24rem] border-collapse text-left text-sm">
+                <thead class="bg-muted">
+                  <tr>
+                    <th class="px-3 py-2 font-semibold">Package</th>
+                    <th class="px-3 py-2 font-semibold">Version</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                  {profile.runtimePackages.map(({ name, version }) => (
+                    <tr>
+                      <td class="px-3 py-2">
+                        <code class="break-all">{name}</code>
+                      </td>
+                      <td class="px-3 py-2">
+                        <code class="break-all">{version}</code>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        }
+      </section>
+
+      <section
+        class="min-w-0"
+        aria-labelledby="qualification-executed-packages-title"
+      >
+        <h3
+          id="qualification-executed-packages-title"
+          class="text-lg font-semibold"
+        >
+          Exact executed closure
+        </h3>
+        {
+          executedPackages.length === 0 ? (
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">
+              No executed package closure is available.
+            </p>
+          ) : (
+            <div
+              class="table-scroll mt-4 overflow-x-auto rounded-lg border border-border"
+              tabindex="0"
+              role="region"
+              aria-label="Exact executed package closure"
+            >
+              <table class="w-full min-w-[24rem] border-collapse text-left text-sm">
+                <thead class="bg-muted">
+                  <tr>
+                    <th class="px-3 py-2 font-semibold">Package</th>
+                    <th class="px-3 py-2 font-semibold">Version</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                  {executedPackages.map(({ name, version }) => (
+                    <tr>
+                      <td class="px-3 py-2">
+                        <code class="break-all">{name}</code>
+                      </td>
+                      <td class="px-3 py-2">
+                        <code class="break-all">{version}</code>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        }
+      </section>
+
+      <div class="flex min-w-0 flex-wrap gap-4 text-sm lg:col-span-2">
+        <a
+          class="inline-flex items-center gap-1.5 text-link font-semibold"
+          href={profile.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Profile definition
+          <ExternalLink
+            class="size-3.5"
+            aria-hidden="true"
+          />
+        </a>
+        <a
+          class="inline-flex items-center gap-1.5 text-link font-semibold"
+          href={profile.probesSourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Compatibility matrix
+          <ExternalLink
+            class="size-3.5"
+            aria-hidden="true"
+          />
+        </a>
+      </div>
+    </div>
+  </Accordion>
+
+  <Accordion
+    id="qualification-compatibility-coverage"
+    group="qualification-technical-details"
+    title="Compatibility coverage"
+    description={`${profile.probes.length} behavior ${profile.probes.length === 1 ? 'claim' : 'claims'} mapped to project journeys.`}
+  >
+    <div
+      class="table-scroll overflow-x-auto border-t border-border pt-5"
+      tabindex="0"
+      role="region"
+      aria-label="Qualification compatibility coverage"
+    >
+      <table class="w-full min-w-[48rem] border-collapse text-left text-sm">
+        <thead class="bg-muted">
+          <tr>
+            <th class="px-4 py-3 font-semibold">Claim</th>
+            <th class="px-4 py-3 font-semibold">Covered by</th>
+            <th class="px-4 py-3 font-semibold">Purpose</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          {
+            profile.probes.map((probe) => (
+              <tr>
+                <td class="px-4 py-3 align-top">
+                  <code class="break-all">{probe.matrixPath}</code>
+                </td>
+                <td class="px-4 py-3 align-top">
+                  <ul class="grid gap-1">
+                    {probe.coveredBy.map((caseId) => (
+                      <li>
+                        <code>{caseId}</code>
+                      </li>
+                    ))}
+                  </ul>
+                </td>
+                <td class="px-4 py-3 leading-6 text-muted-foreground">
+                  <InlineBrandText
+                    text={probe.description}
+                    variant="compact"
+                  />
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </Accordion>
+</div>

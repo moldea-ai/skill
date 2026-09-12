@@ -835,7 +835,6 @@ const loadAttempt = (
     evidenceSource: source.evidenceSource,
     rawAttemptUrl: createRawSourceUrl(source.attemptPath, revision),
     result,
-    route: `${QUALIFICATION_ROUTE}${adapterId}/${implementationId}/attempts/${result.attemptId}/`,
     sourceState,
   };
 

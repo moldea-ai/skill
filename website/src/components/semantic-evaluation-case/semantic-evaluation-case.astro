@@ -21,6 +21,8 @@ const TABS = [
 ] as const;
 
 const { evaluationCase, number, showTrialProvenance = false } = Astro.props;
+const hasRecordedCriteria =
+  evaluationCase.expectedCriteria.length > 0 || evaluationCase.forbiddenCriteria.length > 0;
 const resultHeading =
   evaluationCase.status === 'failed'
     ? 'Why it failed'
@@ -89,7 +91,7 @@ const rationaleHtml =
 
       <div slot="evidence">
         {
-          evaluationCase.hasCurrentCaseDefinition ? (
+          hasRecordedCriteria ? (
             <div class="grid gap-6 lg:grid-cols-2">
               <section aria-labelledby={`${evaluationCase.id}-expected`}>
                 <h4

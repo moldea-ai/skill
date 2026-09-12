@@ -77,17 +77,17 @@ describe('verifyProductionBuild', () => {
     );
     expect(homeHtml).toContain(`${successfulCaseCount}/${model.semanticEvaluation.caseCount}`);
     expect(evidenceHtml).toContain(
-      `${successfulCaseCount} of ${model.semanticEvaluation.caseCount} scenarios have verified release evidence`,
+      `${successfulCaseCount} of ${model.semanticEvaluation.caseCount} decisions verified`,
     );
     expect(semanticHtml).toContain(
-      `${successfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios`,
+      `${successfulCaseCount}/${model.semanticEvaluation.caseCount} decisions verified`,
     );
     expect(semanticHtml).toContain(
-      currentAssurance !== null
-        ? 'Exact current inputs'
-        : releaseSummary.kind === 'pinned'
-          ? 'Verified pinned source'
-          : 'No exact current evidence',
+      releaseSummary.kind === 'pinned'
+        ? 'Verified release source'
+        : releaseSummary.kind === 'not-recorded'
+          ? 'Not recorded'
+          : 'Current release',
     );
     expect(semanticHtml).toContain(
       hasAttemptHistory
@@ -98,10 +98,10 @@ describe('verifyProductionBuild', () => {
     );
     expect(llmsText).toContain(
       releaseSummary.kind === 'pinned'
-        ? 'Review the verified source attempt'
-        : hasAttemptHistory
-          ? 'Review the latest'
-          : 'before the first attempt is recorded',
+        ? `from verified source attempt [${releaseSummary.result.attemptId}]`
+        : releaseSummary.kind === 'not-recorded'
+          ? 'Semantic release evidence: not recorded.'
+          : 'scenarios have exact current assurance.',
     );
     expect(llmsText).toContain(
       `Semantic release evidence: ${successfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios successful`,
@@ -109,12 +109,8 @@ describe('verifyProductionBuild', () => {
     expect(llmsText).toContain(
       `Current semantic contract: ${currentSuccessfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios have exact current assurance.`,
     );
-    expect(semanticSearchRecord?.description).toContain(
-      releaseSummary.kind === 'pinned'
-        ? 'verified source attempt'
-        : hasAttemptHistory
-          ? 'latest'
-          : 'before the first attempt is recorded',
+    expect(semanticSearchRecord?.description).toBe(
+      `Follow ${model.semanticEvaluation.caseCount} difficult coding-agent decisions from developer request to independent verdict.`,
     );
 
     for (const route of [

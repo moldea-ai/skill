@@ -83,6 +83,7 @@ const loadQualificationSectionModel = (
   const websiteModel = withMaterializedEvidenceSource(source.files, (sourceRoot) =>
     loadQualificationWebsiteModel(sourceRoot, {
       evidenceSource: { commit: section.source.commit, kind: 'pinned' },
+      isAuthenticatedSource: true,
       revision: section.source.commit,
     }),
   );

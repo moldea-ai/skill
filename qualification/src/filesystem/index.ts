@@ -15,6 +15,7 @@ export {
   copyFileWithParents,
   ensureDirectory,
   listDirectoryFiles,
+  normalizePortableFilesystemMode,
   readJsonFile,
   readYamlFile,
   resolveContainedPath,

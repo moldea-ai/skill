@@ -14,6 +14,7 @@ import {
 import {
   calculateSha256,
   collectDirectoryFingerprintEntries,
+  normalizePortableFilesystemMode,
   resolveContainedPath,
 } from '../filesystem/index.ts';
 import {
@@ -118,10 +119,9 @@ const normalizeFilesystemMode = (
   kind: 'file' | 'symlink',
   mode: number,
 ): IQualificationLogicalSourceEntry['mode'] => {
-  if (kind === 'symlink') {
-    return '120000';
-  }
-  return (mode & 0o111) === 0 ? '100644' : '100755';
+  return normalizePortableFilesystemMode(kind, mode).toString(
+    8,
+  ) as IQualificationLogicalSourceEntry['mode'];
 };
 
 const assertBoundedEntries = (entries: readonly unknown[], label: string): void => {

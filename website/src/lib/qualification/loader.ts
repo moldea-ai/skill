@@ -14,6 +14,7 @@ import {
 } from '../../../../qualification/src/storage/index.ts';
 import { buildActorPrompt } from '../../../../qualification/src/prompts/index.ts';
 import { isQualificationTestFilePath } from '../../../../qualification/src/input-identity/index.ts';
+import { normalizePortableFilesystemMode } from '../../../../qualification/src/filesystem/index.ts';
 
 import {
   ActorOutputSchema,
@@ -180,7 +181,10 @@ const calculateCurrentProfileDigest = (profileDirectory: string): string => {
       entries.push({
         path: relativePath,
         kind: stats.isSymbolicLink() ? 'symlink' : 'file',
-        mode: stats.mode,
+        mode: normalizePortableFilesystemMode(
+          stats.isSymbolicLink() ? 'symlink' : 'file',
+          stats.mode,
+        ),
         sha256: createHash('sha256').update(content).digest('hex'),
       });
     }
@@ -850,6 +854,7 @@ const loadAttempts = (
   implementationId: string,
   currentProfileDigest: string,
   evidenceSource: IQualificationEvidenceSourceModel,
+  isAuthenticatedSource: boolean,
   revision: string,
 ): {
   attempts: ILoadedQualificationAttempt[];
@@ -880,9 +885,14 @@ const loadAttempts = (
         left.summary.createdAt.localeCompare(right.summary.createdAt, 'en') ||
         left.summary.attemptId.localeCompare(right.summary.attemptId, 'en'),
     );
-  const currentAttemptRecords = attemptRecords.filter(
-    ({ summary }) => summary.provenance.profileDigest === currentProfileDigest,
-  );
+  if (isAuthenticatedSource && attemptRecords.length !== 1) {
+    throw new Error('Authenticated qualification evidence must select exactly one attempt.');
+  }
+  const currentAttemptRecords = isAuthenticatedSource
+    ? attemptRecords
+    : attemptRecords.filter(
+        ({ summary }) => summary.provenance.profileDigest === currentProfileDigest,
+      );
   const attempts = currentAttemptRecords.map(({ attemptSource, directory, input }) => {
     const result = parseQualificationJsonInput(
       join(directory, 'attempt.json'),
@@ -949,6 +959,7 @@ const loadProfile = (
   resultsRoot: string,
   target: IQualificationProfileIndexTarget,
   evidenceSource: IQualificationEvidenceSourceModel,
+  isAuthenticatedSource: boolean,
   revision: string,
 ): ILoadedQualificationProfile => {
   const profilePath = join(profileDirectory, 'profile.yaml');
@@ -1027,6 +1038,7 @@ const loadProfile = (
     profile.implementationId,
     calculateCurrentProfileDigest(profileDirectory),
     evidenceSource,
+    isAuthenticatedSource,
     revision,
   );
   const currentAttemptModels = attempts.map(({ model }) => model);
@@ -1154,16 +1166,26 @@ const verifyResultTargetsHaveProfiles = (
   }
 };
 
-/** Loads every transparent profile and validates its current committed evidence. */
+/**
+ * Loads every transparent profile and validates its current committed evidence.
+ * @throws
+ * - Authenticated qualification evidence must identify a pinned source.
+ * - Authenticated qualification evidence must select exactly one attempt.
+ */
 export const loadQualificationWebsiteModel = (
   repositoryRoot: string,
   options: {
     evidenceSource?: IQualificationEvidenceSourceModel;
+    isAuthenticatedSource?: boolean;
     revision?: string;
   } = {},
 ): IQualificationWebsiteModel => {
+  const isAuthenticatedSource = options.isAuthenticatedSource === true;
   const evidenceSource = options.evidenceSource ?? { kind: 'current' };
   const revision = options.revision ?? 'main';
+  if (isAuthenticatedSource && evidenceSource.kind !== 'pinned') {
+    throw new Error('Authenticated qualification evidence must identify a pinned source.');
+  }
   const qualificationRoot = join(repositoryRoot, 'qualification');
   const profilesRoot = join(qualificationRoot, 'profiles');
   const resultsRoot = join(qualificationRoot, 'results');
@@ -1190,6 +1212,7 @@ export const loadQualificationWebsiteModel = (
         resultsRoot,
         target,
         evidenceSource,
+        isAuthenticatedSource,
         revision,
       ),
     )

@@ -78,6 +78,8 @@ The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,
 
 Qualification protocol 10 is the sole accepted contract. A passing attempt must match the current skill bytes, CLI closure, evaluator, role-specific actor and judge hosts, resource profile, probes, cases, target, execution environment, and package closure.
 
+Behavior-bearing filesystem identity preserves file contents, paths, symlinks, and executability while ignoring host-only read and write permission differences.
+
 An official run may reuse a passed or recovered case group from a committed failed attempt only while every behavior-bearing identity, source commit, artifact digest, Custom baseline, and package closure remains exact. Failed and incomplete case groups, diagnostic attempts, uncommitted evidence, chained reuse, and tampered artifacts are never eligible.
 
 Adapter qualification requires a current passing Custom baseline. Custom itself requires no baseline. Every target must produce one current passing attempt for this release. That attempt identifies direct and exactly reused case groups separately instead of claiming that reused model work ran again.

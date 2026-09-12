@@ -1,7 +1,7 @@
 {
   "qualification": {
     "mode": "pinned",
-    "reason": "Release 5.0.3 changes only authenticated evidence hydration, public presentation, navigation, release tooling, and directly affected documentation; normalized portable behavior is unchanged. Unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate these website and release-tooling changes.",
+    "reason": "Release 5.0.3 changes only authenticated evidence hydration, cross-platform qualification identity, public presentation, navigation, release tooling, and directly affected documentation; normalized portable skill behavior is unchanged. Unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate these website, qualification-identity, and release-tooling changes.",
     "source": {
       "commit": "c3416c52ae69a3f26d2e38c07ba98aa8531e358d",
       "evidence": {
@@ -158,7 +158,7 @@
   "schemaVersion": 2,
   "semantic": {
     "mode": "pinned",
-    "reason": "Release 5.0.3 changes only authenticated evidence hydration, public presentation, navigation, release tooling, and directly affected documentation; normalized portable behavior is unchanged. Unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate these website and release-tooling changes.",
+    "reason": "Release 5.0.3 changes only authenticated evidence hydration, cross-platform qualification identity, public presentation, navigation, release tooling, and directly affected documentation; normalized portable skill behavior is unchanged. Unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate these website, qualification-identity, and release-tooling changes.",
     "source": {
       "commit": "926907e26feac6a55929f68ca134aeaf41a6a4b5",
       "evidence": {

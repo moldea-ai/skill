@@ -32,13 +32,31 @@ export interface IQualificationEvidenceTargetProjection {
   }>;
 }
 
+// bounded public projection derived while authenticating one semantic source
+export interface ISemanticEvidenceAttemptProjection {
+  artifactDigest: string;
+  attemptId: string;
+  createdAt: string;
+  failedCaseCount: number;
+  passedCaseCount: number;
+  pendingCaseCount: number;
+  recoveredCaseCount: number;
+  status: 'passed';
+  totalCaseCount: number;
+  updatedAt: string;
+}
+
 export const assertPinnedReleaseEvidenceSection: {
   (
     repositoryRoot: string,
     section: IPinnedQualificationReleaseEvidenceSection,
     kind: 'qualification',
   ): IQualificationEvidenceTargetProjection[];
-  (repositoryRoot: string, section: IPinnedSemanticReleaseEvidenceSection, kind: 'semantic'): null;
+  (
+    repositoryRoot: string,
+    section: IPinnedSemanticReleaseEvidenceSection,
+    kind: 'semantic',
+  ): ISemanticEvidenceAttemptProjection;
 };
 export const assertTargetReleaseTagIdentity: (
   repositoryRoot: string,

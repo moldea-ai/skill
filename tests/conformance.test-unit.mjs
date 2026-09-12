@@ -283,7 +283,7 @@ describe('portable skill contract', () => {
   test('uses lowercase identity, repository-bound initialization, and a narrow description', () => {
     const frontmatter = parseFrontmatter();
     assert.deepEqual(frontmatter.metadata, {
-      version: '5.0.1',
+      version: '5.0.2',
       cliVersionRange: '^8.0.0',
       coreVersionRange: '^4.0.1',
       cliJsonSchemaVersion: 4,
@@ -727,8 +727,14 @@ describe('portable skill contract', () => {
       join(SKILL_ROOT, 'references', 'agent-system-planning.md'),
       'utf8',
     );
-    assert.match(agentSystemPlanning, /Repository-dependent moldea planning requires an adopted repository/u);
-    assert.match(agentSystemPlanning, /host may still perform its own generic planning workflow independently/u);
+    assert.match(
+      agentSystemPlanning,
+      /Repository-dependent moldea planning requires an adopted repository/u,
+    );
+    assert.match(
+      agentSystemPlanning,
+      /host may still perform its own generic planning workflow independently/u,
+    );
     assert.doesNotMatch(agentSystemPlanning, /Planning may precede adoption/u);
     assert.match(agentSystemPlanning, /Use only facts stated by the bounded source/u);
     assert.match(agentSystemPlanning, /Keep those dimensions as explicit evidence prerequisites/u);
@@ -762,8 +768,14 @@ describe('portable skill contract', () => {
     );
     assert.match(runtime, /best-effort eligibility gate, not a blanket compatibility promise/u);
     assert.match(runtime, /lower bound records the verified minimum/u);
-    assert.match(runtime, /including later stable releases that were not themselves used in qualification/u);
-    assert.match(runtime, /Qualification proves only the exact package closure and verification date/u);
+    assert.match(
+      runtime,
+      /including later stable releases that were not themselves used in qualification/u,
+    );
+    assert.match(
+      runtime,
+      /Qualification proves only the exact package closure and verification date/u,
+    );
     assert.doesNotMatch(runtime, /maturity/iu);
     assert.match(runtime, /retain every independently evidenced model-visible capability/u);
     assert.doesNotMatch(runtime, /composition --json --max-output-bytes/u);
@@ -1325,7 +1337,7 @@ describe('CLI 8 bounded machine protocol', () => {
       readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'),
     );
     const declaredCliVersion = packageManifest.devDependencies['@moldea.ai/cli'];
-    assert.equal(packageManifest.version, '5.0.1');
+    assert.equal(packageManifest.version, '5.0.2');
     assert.match(declaredCliVersion, /^\d+\.\d+\.\d+$/u);
     assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 4);
     assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, declaredCliVersion);

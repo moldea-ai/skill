@@ -7,6 +7,7 @@ import { createCanonicalUrl, DEFAULT_BASE_PATH, withBase } from '@moldea.ai/webs
 
 import { getRepositoryRoot, loadWebsiteModel } from '../src/lib/generation/generation.ts';
 import { SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
+import { getSemanticReleaseEvidenceSummary } from '../src/lib/release-evidence/index.ts';
 import {
   DEFAULT_SITE_URL,
   SITE_ALTERNATE_NAMES,
@@ -39,7 +40,7 @@ describe('verifyProductionBuild', () => {
     expect(llmsText).toContain(gettingStartedUrl);
   });
 
-  test('publishes current semantic evidence across human and machine surfaces', () => {
+  test('publishes release semantic evidence while preserving current machine status', () => {
     const siteUrl = process.env['SITE_URL'] ?? DEFAULT_SITE_URL;
     const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
     const model = loadWebsiteModel();
@@ -59,7 +60,14 @@ describe('verifyProductionBuild', () => {
     );
     const currentAssurance = model.semanticEvaluation.currentAssurance;
     const hasAttemptHistory = model.semanticEvaluation.attempts.length > 0;
+    const releaseSummary = getSemanticReleaseEvidenceSummary(
+      model.releaseEvidence,
+      currentAssurance,
+    );
     const successfulCaseCount =
+      (releaseSummary.result?.passedCaseCount ?? 0) +
+      (releaseSummary.result?.recoveredCaseCount ?? 0);
+    const currentSuccessfulCaseCount =
       (currentAssurance?.result.passedCaseCount ?? 0) +
       (currentAssurance?.result.recoveredCaseCount ?? 0);
 
@@ -67,27 +75,44 @@ describe('verifyProductionBuild', () => {
     expect(model.semanticEvaluation.evidenceMatch).toBe(currentAssurance === null ? null : 'exact');
     expect(homeHtml).toContain(`${successfulCaseCount}/${model.semanticEvaluation.caseCount}`);
     expect(evidenceHtml).toContain(
-      `${successfulCaseCount} of ${model.semanticEvaluation.caseCount} scenarios have current assurance`,
+      `${successfulCaseCount} of ${model.semanticEvaluation.caseCount} scenarios have verified release evidence`,
     );
     expect(semanticHtml).toContain(
       `${successfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios`,
     );
     expect(semanticHtml).toContain(
-      currentAssurance !== null ? 'Exact current inputs' : 'No exact current evidence',
+      currentAssurance !== null
+        ? 'Exact current inputs'
+        : releaseSummary.kind === 'pinned'
+          ? 'Verified pinned source'
+          : 'No exact current evidence',
     );
     expect(semanticHtml).toContain(
-      !hasAttemptHistory
-        ? 'No semantic attempt has been recorded for this release candidate yet.'
-        : model.semanticEvaluation.latest?.result.attemptId,
+      hasAttemptHistory
+        ? model.semanticEvaluation.latest?.result.attemptId
+        : releaseSummary.kind === 'pinned'
+          ? releaseSummary.result.attemptId
+          : 'No semantic attempt has been recorded for this release candidate yet.',
     );
     expect(llmsText).toContain(
-      hasAttemptHistory ? 'Review the latest' : 'before the first attempt is recorded',
+      releaseSummary.kind === 'pinned'
+        ? 'Review the verified source attempt'
+        : hasAttemptHistory
+          ? 'Review the latest'
+          : 'before the first attempt is recorded',
     );
     expect(llmsText).toContain(
-      `Current semantic contract: ${successfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios have exact current assurance.`,
+      `Semantic release evidence: ${successfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios successful`,
+    );
+    expect(llmsText).toContain(
+      `Current semantic contract: ${currentSuccessfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios have exact current assurance.`,
     );
     expect(semanticSearchRecord?.description).toContain(
-      hasAttemptHistory ? 'latest' : 'before the first attempt is recorded',
+      releaseSummary.kind === 'pinned'
+        ? 'verified source attempt'
+        : hasAttemptHistory
+          ? 'latest'
+          : 'before the first attempt is recorded',
     );
 
     for (const route of [

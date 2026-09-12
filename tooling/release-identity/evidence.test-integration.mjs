@@ -99,8 +99,11 @@ const seedFreshEvidence = async (
   root,
   {
     hasActivationMismatch = false,
+    hasContradictorySemanticSummary = false,
     isCorrupt = false,
     hasDuplicateCaseInventory = false,
+    hasInvalidSemanticAttemptInventory = false,
+    hasInvalidSemanticTimestamp = false,
     hasSourceSchemaDrift = false,
     isFailed = false,
     isMissing = false,
@@ -154,14 +157,28 @@ const seedFreshEvidence = async (
   const semanticAttemptId = '20260905T000000000Z-semantic-12345678';
   const semanticAttemptRoot = `fixtures/semantic-evaluation-results/attempts/${semanticAttemptId}`;
   const semanticEvidence = `${JSON.stringify({ kind: 'candidate' })}\n`;
+  const semanticArtifactDigest = createPortableSkillDigest(root);
+  const semanticTimestamp = '2026-09-05T00:00:00.000Z';
   writeText(root, `${semanticAttemptRoot}/evidence.json`, semanticEvidence);
   writeJson(root, `${semanticAttemptRoot}/attempt.json`, {
+    artifactDigest: semanticArtifactDigest,
     attemptId: semanticAttemptId,
-    status: 'passed',
+    cases: semanticCases.map(({ id }) => ({
+      id: hasInvalidSemanticAttemptInventory ? 'different-case' : id,
+      status: 'passed',
+    })),
+    createdAt: hasInvalidSemanticTimestamp ? 'not-a-timestamp' : semanticTimestamp,
     evidence: {
       path: 'evidence.json',
       sha256: createReleaseEvidenceSha256(semanticEvidence),
     },
+    failedCaseCount: 0,
+    passedCaseCount: hasContradictorySemanticSummary ? 0 : semanticCases.length,
+    pendingCaseCount: 0,
+    recoveredCaseCount: 0,
+    status: 'passed',
+    totalCaseCount: semanticCases.length,
+    updatedAt: semanticTimestamp,
   });
   writeJson(root, 'fixtures/semantic-evaluation-results/latest.json', {
     latestAttemptId: semanticAttemptId,
@@ -169,8 +186,8 @@ const seedFreshEvidence = async (
     lastPassingAttemptId: semanticAttemptId,
   });
   writeJson(root, 'fixtures/semantic-evaluation-result.json', {
-    artifactDigest: createPortableSkillDigest(root),
-    artifactSha256: createPortableSkillDigest(root),
+    artifactDigest: semanticArtifactDigest,
+    artifactSha256: semanticArtifactDigest,
     caseSuiteDigest: isSemanticDigestMismatch
       ? '0'.repeat(64)
       : hasSourceSchemaDrift || hasDuplicateCaseInventory
@@ -350,9 +367,21 @@ test('represents commit-pinned semantic evidence beside fresh qualification evid
         sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
       },
       semantic: {
+        attempt: {
+          artifactDigest: envelope.semantic.source.portableSkillSha256,
+          attemptId: envelope.semantic.source.evidence.attemptId,
+          createdAt: '2026-09-05T00:00:00.000Z',
+          failedCaseCount: 0,
+          passedCaseCount: 1,
+          pendingCaseCount: 0,
+          recoveredCaseCount: 0,
+          status: 'passed',
+          totalCaseCount: 1,
+          updatedAt: '2026-09-05T00:00:00.000Z',
+        },
         mode: 'pinned',
         reason: 'The target changes release tooling without changing evaluated behavior.',
-        sourceAttemptId: envelope.semantic.source.evidence.attemptId,
+        sourceAttemptUrl: `https://github.com/moldea-ai/skill/blob/${sourceCommit}/fixtures/semantic-evaluation-results/attempts/${envelope.semantic.source.evidence.attemptId}/attempt.json`,
         sourceCommit,
         sourceLabel: sourceCommit.slice(0, 12),
         sourceUrl: `https://github.com/moldea-ai/skill/tree/${sourceCommit}`,
@@ -402,7 +431,8 @@ test('flattens tagged pinned sections to their original source', async () => {
     });
     assert.equal(envelope.semantic.source.tag, 'v5.0.0');
     assert.equal(envelope.qualification.source.tag, 'v5.0.0');
-    assert.equal(envelope.semantic.source.commit, runGit(root, 'rev-parse', 'v5.0.0^{commit}'));
+    const sourceCommit = runGit(root, 'rev-parse', 'v5.0.0^{commit}');
+    assert.equal(envelope.semantic.source.commit, sourceCommit);
     const model = loadReleaseEvidenceModel(root, '9.0.0');
     assert.equal(model.mode, 'recorded');
     assert.deepEqual(model.qualification.targets, [
@@ -413,6 +443,7 @@ test('flattens tagged pinned sections to their original source', async () => {
         createdAt: '2026-08-20T10:00:00.000Z',
         implementationId: 'custom',
         packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+        sourceAttemptUrl: `https://github.com/moldea-ai/skill/blob/${sourceCommit}/qualification/results/t1/attempts/${createQualificationAttemptKey('qualification-attempt')}/attempt.json`,
       },
     ]);
   } finally {
@@ -439,8 +470,11 @@ test('pins immutable semantic evidence after current evaluator vocabulary change
 test('rejects self-reference, pre-envelope tags, corrupt artifacts, and over-budget evidence', async () => {
   const scenarios = [
     [{ hasActivationMismatch: true }, /failed or over budget/],
+    [{ hasContradictorySemanticSummary: true }, /contradictory result summary/],
     [{ isCorrupt: true }, /artifact digest does not match/],
     [{ hasDuplicateCaseInventory: true }, /case IDs must be unique/],
+    [{ hasInvalidSemanticAttemptInventory: true }, /contradictory result summary/],
+    [{ hasInvalidSemanticTimestamp: true }, /contradictory result summary/],
     [{ isFailed: true }, /failed or over budget/],
     [{ isMissing: true }, /exists on disk|does not exist/],
     [{ isOverBudget: true }, /failed or over budget/],

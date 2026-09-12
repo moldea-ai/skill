@@ -1041,6 +1041,7 @@ export interface IQualificationPriorEvidenceModel {
   createdAt: string;
   implementationId: string;
   packages: IQualificationPackageVersionModel[];
+  sourceAttemptUrl: string;
 }
 
 // deterministic qualification data embedded in the generated static website model

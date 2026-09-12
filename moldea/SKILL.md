@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Use for every repository-dependent task, including reviews, plans, and implementation, when this skill is installed in the repository: run only the bundled two-byte relevance gate over developer-named and host-provided changed paths. A gate miss abstains silently; only after adoption and relevance are established may moldea inspect explicit work, /moldea/** changes, managed README hunks, or paths matching a declared binding or affectedBy relationship. Also use for an independently supplied Agent Skill artifact without gating the surrounding repository, answer informational questions, and initialize moldea only when explicitly requested. Do not use for other uninitialized work.
 metadata:
-  version: '5.0.1'
+  version: '5.0.2'
   cliVersionRange: '^8.0.0'
   coreVersionRange: '^4.0.1'
   cliJsonSchemaVersion: 4

@@ -1,7 +1,7 @@
 {
   "qualification": {
     "mode": "pinned",
-    "reason": "Release 5.0.1 clarifies the initialization boundary, claim-specific evidence authority, best-effort runtime package eligibility, and public qualification provenance without running new model stages. By maintainer decision, prior passing evidence is retained; unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, and path checks validate the candidate, and the prior models did not evaluate these clarified contracts.",
+    "reason": "Release 5.0.2 changes only authenticated public evidence projection and presentation; normalized portable behavior is unchanged. Maintainer-selected unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate this presentation correction.",
     "source": {
       "commit": "c3416c52ae69a3f26d2e38c07ba98aa8531e358d",
       "evidence": {
@@ -158,7 +158,7 @@
   "schemaVersion": 2,
   "semantic": {
     "mode": "pinned",
-    "reason": "Release 5.0.1 clarifies the initialization boundary, claim-specific evidence authority, best-effort runtime package eligibility, and public qualification provenance without running new model stages. By maintainer decision, prior passing evidence is retained; unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, and path checks validate the candidate, and the prior models did not evaluate these clarified contracts.",
+    "reason": "Release 5.0.2 changes only authenticated public evidence projection and presentation; normalized portable behavior is unchanged. Maintainer-selected unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate this presentation correction.",
     "source": {
       "commit": "926907e26feac6a55929f68ca134aeaf41a6a4b5",
       "evidence": {
@@ -176,8 +176,8 @@
     }
   },
   "target": {
-    "dependencyClosureSha256": "96841dfaeb6003c0357e83a2a27b554a02ae7466d8cd5130171a8ca0726a7b6a",
-    "portableSkillSha256": "088f35c43ff351ddc1459e5146bc668c966fbc34cce0d40fa01a871cfebf3992",
-    "version": "5.0.1"
+    "dependencyClosureSha256": "62e9bf3dfb517c8e0985683d7144d2753773e923bb7eba9c7733347179d59b73",
+    "portableSkillSha256": "9b90f5bd732c2fc8bdf93b426dca75371afc7514f854710be79b3b1636c546cc",
+    "version": "5.0.2"
   }
 }

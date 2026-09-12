@@ -4,6 +4,10 @@ import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import { PACKAGES_WEBSITE_URL, SKILLS_DIRECTORY_URL } from '../../lib/model/constants.ts';
+import {
+  getQualificationReleaseEvidenceSummary,
+  getSemanticReleaseEvidenceSummary,
+} from '../../lib/release-evidence/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -97,10 +101,15 @@ test('leads with the durable system around coding-agent work', async ({ page }) 
 });
 
 test('presents value and proof before adoption reassurance', async ({ page }) => {
-  const { currentSemanticAssurance, qualification, semanticEvaluation } = loadWebsiteModel();
-  const qualifiedProfileCount = qualification.profiles.filter(
-    ({ currentAssurance }) => currentAssurance !== null,
-  ).length;
+  const model = loadWebsiteModel();
+  const { currentSemanticAssurance, qualification, releaseEvidence, semanticEvaluation } = model;
+  const qualifiedProfileCount = qualification.profiles
+    .map(getQualificationReleaseEvidenceSummary)
+    .filter(({ status }) => status === 'passed').length;
+  const semanticReleaseSummary = getSemanticReleaseEvidenceSummary(
+    releaseEvidence,
+    currentSemanticAssurance,
+  );
   await page.goto(toPublicPath('/'));
 
   const orderedHeadings = [
@@ -164,7 +173,7 @@ test('presents value and proof before adoption reassurance', async ({ page }) =>
   );
   await expect(
     page.getByText(
-      `${(currentSemanticAssurance?.result.passedCaseCount ?? 0) + (currentSemanticAssurance?.result.recoveredCaseCount ?? 0)}/${semanticEvaluation.caseCount}`,
+      `${(semanticReleaseSummary.result?.passedCaseCount ?? 0) + (semanticReleaseSummary.result?.recoveredCaseCount ?? 0)}/${semanticEvaluation.caseCount}`,
       { exact: true },
     ),
   ).toBeVisible();

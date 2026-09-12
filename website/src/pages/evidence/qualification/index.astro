@@ -11,15 +11,34 @@ import ReleaseEvidenceNotice from '../../../components/release-evidence-notice/r
 import BaseLayout from '../../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
 import { SOURCE_REPOSITORY_URL } from '../../../lib/model/constants.ts';
+import { getQualificationReleaseEvidenceSummary } from '../../../lib/release-evidence/index.ts';
 
 const model = loadWebsiteModel();
 const { qualification } = model;
 const basePath = import.meta.env.BASE_URL;
 const profileCount = qualification.profiles.length;
-const attemptCount = qualification.profiles.reduce(
-  (total, profile) => total + profile.attempts.length,
+const profilesWithSummary = qualification.profiles.map((profile) => ({
+  profile,
+  summary: getQualificationReleaseEvidenceSummary(profile),
+}));
+const currentAttemptCount = profilesWithSummary.reduce(
+  (total, { profile }) => total + profile.attempts.length,
   0,
 );
+const verifiedSourceAttemptCount = profilesWithSummary.filter(
+  ({ summary }) => summary.kind === 'pinned',
+).length;
+const attemptSummary = [
+  currentAttemptCount > 0
+    ? `${currentAttemptCount} current-contract ${currentAttemptCount === 1 ? 'attempt' : 'attempts'}`
+    : null,
+  verifiedSourceAttemptCount > 0
+    ? `${verifiedSourceAttemptCount} verified source ${verifiedSourceAttemptCount === 1 ? 'attempt' : 'attempts'}`
+    : null,
+]
+  .filter((summary) => summary !== null)
+  .join(' · ');
+const displayedAttemptSummary = attemptSummary === '' ? 'no recorded attempts' : attemptSummary;
 const adapterCount = qualification.profiles.filter(
   ({ adapterId }) => adapterId !== 'custom',
 ).length;
@@ -73,8 +92,8 @@ const evidenceLayers = [
         Realistic projects exercise exact published package artifacts, the portable skill,
         deterministic repository behavior, and separate actor and judge stages using the frontier
         assurance model. Current short storage and immutable release history are validated together
-        at build time. This page exposes current-contract attempts, while verified prior release
-        provenance remains available through the source identified above.
+        at build time. Each profile below identifies whether its release result comes from a fresh
+        current-contract attempt or a verified source retained by an explicit release pin.
       </p>
       <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
         The suite executes {qualification.uniqueJourneyCount} unique projects: 12 once in the Custom baseline
@@ -126,21 +145,30 @@ const evidenceLayers = [
         </div>
         <p class="text-sm text-muted-foreground">
           {
-            `${profileCount} ${profileCount === 1 ? 'profile' : 'profiles'} · ${attemptCount} current-contract ${attemptCount === 1 ? 'attempt' : 'attempts'}`
+            `${profileCount} ${profileCount === 1 ? 'profile' : 'profiles'} · ${displayedAttemptSummary}`
           }
         </p>
       </div>
 
       <div class="grid gap-4 lg:grid-cols-2">
         {
-          qualification.profiles.map((profile) => (
+          profilesWithSummary.map(({ profile, summary }) => (
             <a
               class="surface-card interactive-card flex min-w-0 flex-col p-5 sm:p-6"
               href={withBase(profile.route, basePath)}
             >
               <div class="flex items-start justify-between gap-3">
                 <AdapterCompanyLogo adapterId={profile.adapterId} />
-                <EvidenceStatus status={profile.currentStatus} />
+                <div class="grid justify-items-end gap-1.5">
+                  <EvidenceStatus status={summary.status} />
+                  <span class="text-right text-xs font-bold text-muted-foreground">
+                    {summary.kind === 'pinned'
+                      ? 'Verified source attempt'
+                      : summary.kind === 'current'
+                        ? 'Current-contract result'
+                        : 'No release evidence'}
+                  </span>
+                </div>
               </div>
               <code class="mt-5 text-xs text-muted-foreground">
                 {profile.adapterId}/{profile.implementationId}
@@ -169,11 +197,11 @@ const evidenceLayers = [
                 </div>
                 <div>
                   <dt class="text-muted-foreground">Attempts</dt>
-                  <dd class="mt-1 font-mono font-bold">{profile.attempts.length}</dd>
+                  <dd class="mt-1 font-mono font-bold">{summary.attemptCount}</dd>
                 </div>
               </dl>
               <span class="mt-5 inline-flex items-center gap-2 text-link font-semibold">
-                Inspect profile and history
+                Inspect profile and evidence
                 <ArrowRight
                   class="size-4"
                   aria-hidden="true"
@@ -232,9 +260,9 @@ const evidenceLayers = [
         <div>
           <h2 class="text-2xl font-semibold tracking-tight">Every outcome remains inspectable.</h2>
           <p class="mt-3 max-w-3xl leading-7 text-muted-foreground">
-            Website generation validates each current profile contract and resolves its newest and
-            last-passing current-contract attempts. Every artifact link in these profiles points to
-            current-contract evidence. Verified prior release provenance remains separate above.
+            Website generation validates each current profile contract and resolves fresh attempts
+            independently from authenticated pinned sources. Artifact links never relabel retained
+            source evidence as a current-contract run.
           </p>
         </div>
         <ActionLink

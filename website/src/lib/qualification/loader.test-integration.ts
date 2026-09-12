@@ -580,6 +580,7 @@ describe('loadQualificationWebsiteModel', () => {
       createdAt: '2026-09-11T10:00:00.000Z',
       implementationId,
       packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+      sourceAttemptUrl: `https://example.com/attempt-${index}`,
     }));
 
     const joined = attachPinnedQualificationEvidence(model, targets);

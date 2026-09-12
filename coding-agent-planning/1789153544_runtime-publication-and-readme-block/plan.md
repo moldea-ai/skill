@@ -1,157 +1,133 @@
-# Plan: Complete `moldea` 5.0.1 with coherent adoption, authority, and runtime eligibility
+# Plan: Complete the `moldea` evidence-release correction
 
 ## Task contract
 
-Complete the already-started `moldea` 5.0.1 release by preserving the reviewed runtime-maturity and managed-README work and resolving three additional production-readiness contradictions across the skill, packages, platform specifications, packages website, skill website, and public knowledge base:
+Complete the already-started `moldea` release by preserving the production-readiness work already published as `v5.0.1` and correcting a newly observed public evidence defect before declaring the task finished.
 
-1. A user must initialize `moldea` before any repository-dependent `moldea` operation, including agent-system planning. Before adoption, only concise repository-independent product information and an explicit initialization request are valid `moldea` routes. Generic host-owned planning remains available without `moldea`.
-2. Instruction precedence, efficient investigation order, and claim-specific evidence authority must be separate concepts. Retrieval order must never decide which conflicting factual claim wins. Each source establishes only the fact type it can support, and unresolved contradictions remain explicit unless a current developer selection or an independent resolver establishes the governing claim.
-3. Runtime package requirements remain flexible minimum-only ranges in the canonical form `>=x.y.z`. They are best-effort inspection-eligibility ranges, not claims that every later stable release has been empirically qualified. Exact executed package versions and evidence dates remain owned by immutable adapter-qualification evidence and must be visible on the relevant qualification surfaces.
+The work began because the skill and its supporting packages were consuming excessive time, tokens, stdout, memory, and local resources for unrelated repository tasks. It also exposed contradictory adoption rules, maturity-dependent runtime selection, overly narrow dependency ranges, stale and truncated public evidence totals, evaluator instability, avoidable repeated evaluation work, and insufficiently bounded inspection behavior. The completed implementation establishes a cheap relevance gate, content-free bounded inspection, initialization before repository-dependent `moldea` behavior, claim-specific evidence authority, minimum-only best-effort runtime eligibility, bounded memory and output behavior, authenticated evidence reuse, deterministic diagnostic batching, recovery-aware evaluation accounting, stronger semantic and adapter coverage, and exact qualification provenance.
 
-The packages website remains the sole owner of optional maturity presentation. Maturity must not enter skill activation, runtime selection, package eligibility, technical compatibility, deterministic adapter behavior, qualification, or canonical unresolved state.
+The remaining defect is presentation-specific but release-blocking: the live skill website authenticates and pins a passing 74-case semantic source attempt and one passing source attempt for each of 14 adapter qualification profiles, yet its primary evidence summaries count only fresh current-contract attempts. Consequently, the semantic and qualification pages visibly say `No recorded attempt`, `0/74`, and `0 current-contract attempts` even though the release has verified pinned evidence. The final implementation must make retained verified source attempts visible and comprehensible without calling them fresh current-contract runs or implying that prior models evaluated the revised contracts.
 
-No paid semantic evaluation or adapter qualification will run for this release. Both evidence families will remain explicitly pinned to the previously accepted evidence through the existing repository-bound release-evidence mechanism. The public release must retain the original source provenance and the maintainer reason and must not imply that the earlier models evaluated the revised contracts. Deterministic tests, conformance checks, semantic preflight, qualification dry runs, website checks, builds, and release verification remain required.
+No paid semantic evaluation and no non-dry adapter qualification will run for this correction. The release must reuse the already authenticated source evidence through the repository-bound release-evidence mechanism. It must not edit historical attempt artifacts, fabricate current attempts, weaken source authentication, copy large evidence bodies into the release envelope, or restore obsolete historical routes.
 
-Hosted-platform findings from the external specification review are excluded. The observed `skill-mock` repository, Eve runtime implementation, Cloud behavior, PR Assurance implementation, historical evidence artifacts, immutable tags, and unrelated work from concurrent agents are also excluded.
+The correction will be released as `5.0.2` because `v5.0.1` is already public and immutable. This is a clean current implementation, not a compatibility layer: public pages consume one canonical release-evidence model, distinguish fresh current attempts from verified pinned source attempts, and remove misleading empty-state behavior whenever verified source evidence exists.
 
 ## Current state and repository evidence
 
-### Skill repository
+### Completed cross-repository work
 
-- `/home/jesusgraterol/Documents/projects/moldea/skill` is clean on `development` at `1e7ba9675a5fa038753f26bb73ee256ae24b52e2`, matching `origin/development`. `main` and `origin/main` remain at `0c56584525ecba2ea7ca784196aa5023f3fc37bb`. Tag `v5.0.1` does not exist.
-- The earlier website provenance boundary is complete and published on `development` as `fc49341e30505ee53063302152d731bbdb6d7aed`.
-- The runtime-maturity removal, canonical managed README writer, exact adoption gate, current semantic-case replacement, qualification-fixture normalization, immutable-source verification, 5.0.1 version update, and explicit dual-domain evidence pin are complete and published on `development` as `1e7ba9675a5fa038753f26bb73ee256ae24b52e2`.
-- `fixtures/release-evidence.json` currently pins qualification to `v5.0.0` at commit `c3416c52ae69a3f26d2e38c07ba98aa8531e358d` and semantic evidence directly to commit `926907e26feac6a55929f68ca134aeaf41a6a4b5`. The envelope already states that the prior models did not evaluate the 5.0.1 contracts.
-- `moldea/SKILL.md` and `fixtures/semantic-evaluation-coverage.json` already establish the intended strict pre-adoption gate, but `moldea/references/agent-system-planning.md` says planning may precede adoption.
-- `moldea/references/context-gathering.md` defines a fixed “Evidence hierarchy,” while the top-level conflict rule in `moldea/SKILL.md` requires claim-specific resolution and preserves unresolved conflicts. The portable reference therefore risks turning an efficient lookup sequence into factual precedence.
-- `moldea/references/runtime-compatibility.md`, current conformance wording, and related public documentation still use “package compatibility” where the publication establishes only minimum-based package eligibility plus separately inspected source patterns.
-- Qualification profiles already declare exact `runtimePackages`, and immutable results already record the complete executed package closure under `result.provenance.packages` with `createdAt` and `completedAt`. The website search model indexes current values, but profile pages do not display configured runtime package inputs and attempt pages do not render the executed package closure visibly. For pinned releases, `website/src/lib/release-evidence/loader.ts` authenticates the immutable source through `assertPinnedReleaseEvidenceSection` but projects only its source label, link, and reason, so the exact executed packages and evidence time accepted for 5.0.1 are not visible on a current website route.
+- Platform `main` contains the corrected adoption, authority, runtime-eligibility, and adapter specification contracts at merge commit `c48e9f7133d522233fd02c2c131a9641554e506f`.
+- Packages `main` contains the corrected minimum-only eligibility publication and documentation at merge commit `f1d1054e77bf50400e46e24ede77dbc07af3e7b8`.
+- Knowledge-base `main` contains the synchronized public guidance at merge commit `1dd5e700238d7b183447b9a847124f5ccbf373ff`.
+- `@moldea.ai/adapter-eve@3.0.1`, `@moldea.ai/adapter-langchain@3.0.1`, and `@moldea.ai/adapter-langgraph@3.0.1` are published. No other adapter package needed a release because its npm artifact did not change and its technical ranges were already minimum-only.
+- Skill pull request 15 was merged to `main` as `84d810332cab28b350a5d1e9fc62e0984bb1c0f1`. Signed annotated tag `v5.0.1` points to that commit through tag object `2c2a1548ffe0892420693af98b5874c88025b6c5`.
+- The exact `v5.0.1` checkout passed the full deterministic release boundary: 280 unit tests, 73 integration tests, semantic preflight, adapter qualification dry runs, typechecking, linting, formatting, path checks, website checks, build checks, and tag conformance on Node 22, 24, 26, and Windows.
 
-### Packages repository
+### Current skill repository
 
-- `/home/jesusgraterol/Documents/projects/moldea/packages` was clean on `development` at `4707c8154abcc7a544ca4c300e59bdb5968042c5`, matching `origin/development`, `origin/main`, and local `main` when this plan was revised.
-- `compatibility/runtimes.yaml` already has the intended canonical minimum-only runtime requirements, including Eve `>=0.39.1`, LangChain `>=1.5.9`, and LangGraph `>=1.4.12`. Those requirements and their `lastVerifiedAt` values must remain unchanged because no new adapter qualification is being executed.
-- `scripts/runtime-compatibility/generator.ts` and generated `docs/runtime-compatibility.md` label every requirement a “Verified range.” `apps/website/src/components/adapter-details.astro` presents the same values generically as “Range.”
-- The Eve, LangChain, and LangGraph package READMEs and focused target documents describe bounded `0.39.x`, `1.5.x`, and `1.4.x` families despite the canonical minimum-only contract. The OpenAI and OpenAI Agents SDK diagnostic documentation also uses “verified range” for eligibility failures.
-- The root packages README still describes Core as version `3.1` and CLI as version `7.1`; the repository contains Core `4.0.1` and CLI `8.0.0`.
-- Package-owned `docs/**` changes do not select npm releases, but package `README.md` changes do. Eve, LangChain, and LangGraph are currently `3.0.0`, so their corrected public package READMEs require clean patch releases `3.0.1` under the established release workflow. Their existing adapter implementation ranges already admit compatible 3.x patches.
+- `/home/jesusgraterol/Documents/projects/moldea/skill` remains based on `development` commit `d1659aa7f514d0676b342902d3fb59c40432b3f0`, matching `origin/development`; `origin/main` is `84d810332cab28b350a5d1e9fc62e0984bb1c0f1`. Milestone 6 implementation is now uncommitted on top of that base: the authenticator projection, shared website derivation, affected pages, and focused tests are implemented and have passed their first targeted verification, while documentation, `5.0.2` identity, final evidence pin, full verification, review, and publication remain incomplete.
+- Release `5.0.1` is recorded in `package.json`, root documentation, release-evidence target identity, and public installation guidance.
+- `fixtures/release-evidence.json` pins qualification to `v5.0.0` at commit `c3416c52ae69a3f26d2e38c07ba98aa8531e358d` and semantic evidence directly to commit `926907e26feac6a55929f68ca134aeaf41a6a4b5`. Its reasons state that prior models did not evaluate the revised `5.0.1` contracts.
+- The authenticated semantic source attempt is `20260911T014030371Z-semantic-09da55eb`. It passed all 74 cases: 70 initial passes, 4 recovered cases, 0 failures, and 0 pending cases.
+- The authenticated qualification source supplies one passing attempt projection for each of all 14 current adapter profiles, including exact executed package versions and recorded timestamps.
+- `tooling/release-identity/release-evidence-source.mjs` authenticates the entire pinned semantic result but discards its compact result projection. Its qualification branch already returns compact per-profile projections.
+- `website/src/lib/release-evidence/types.ts` and `website/src/lib/release-evidence/loader.ts` expose only the semantic source attempt id, while qualification projections include attempt id, timestamps, and executed packages.
+- `website/src/pages/evidence/semantic/index.astro`, `website/src/pages/evidence/qualification/index.astro`, `website/src/pages/evidence/index.astro`, and `website/src/components/home-page/home-page.astro` calculate headline totals only from current attempts.
+- `website/src/pages/evidence/qualification/[adapterId]/[implementationId]/index.astro` shows pinned package provenance in a lower section but still presents `No recorded attempt` and no official attempt in its primary result and history surfaces.
+- Current end-to-end and generation tests encode the misleading empty-state behavior, so passing tests did not protect the public meaning of retained evidence.
 
-### Platform specification repository
+### Live website observation
 
-- `/home/jesusgraterol/Documents/projects/moldea/platform` was clean on `development` at `63267649` when this plan was revised. Another agent may create unrelated changes; they are not part of this plan and must not be overwritten, reviewed as this work, staged, or published with it.
-- `moldea/context/product-and-operating-model.md` explicitly permits repository-dependent agent-system planning before initialization in several locations and still permits the skill to consume website maturity for runtime readiness.
-- `moldea/context/agent-skill.md` correctly says initialization is the only repository-dependent pre-adoption operation, but calls its retrieval sequence an “authority order” and still names release `5.0.0`.
-- `moldea/context/context-gathering.md` already contains the desired question-specific authority model and rejects universal source-type hierarchies. It is the specification baseline for the portable correction.
-- `moldea/context/runtime-compatibility-matrix.md` correctly defines minimum-only `>=x.y.z` ranges and the oldest verified release, but still permits semantic consumers to use website maturity for production-readiness conclusions.
-- All ten adapter package specifications contain “complete range” or equivalent wording that overstates what an open-ended minimum-only range proves. LangChain, LangGraph, and Claude Agent SDK contain additional complete-package-range assertions.
-
-### Knowledge-base repository
-
-- `/home/jesusgraterol/Documents/projects/moldea/knowledge-base` was clean on `main` at `39fc62f` when this plan was revised.
-- `content/011_frequently-asked-questions/002_getting-started-faq.md` currently tells users that agent-system planning can occur before initialization.
-- `content/003_open-source-tools/007_validation-and-diagnostics.md` already describes explicit evidence pinning accurately. It is the appropriate concise public location to explain minimum-based runtime eligibility, exact qualification inputs, and the boundary between best-effort inspection and executed evidence.
+- `/evidence/semantic/` shows the pinned-release notice but presents `No recorded attempt`, `0/74`, and `No semantic attempt has been recorded for this release candidate yet`.
+- `/evidence/qualification/` shows `14 profiles · 0 current-contract attempts`, and profile cards present `No recorded attempt` and zero attempts despite their authenticated pinned projections.
+- The evidence landing page and home-page release evidence cards also use current-only totals and therefore understate the release evidence.
+- This is not evidence corruption or evidence loss. It is a derivation and labeling defect in the website model and presentation.
 
 ## Desired final behavior
 
-### Adoption and planning
+### Evidence semantics
 
-- Before adoption, `moldea` answers only repository-independent questions about the product or performs explicit initialization. It does not inspect the repository, load workflow references, run the CLI, or provide repository-specific agent-system planning.
-- A request for repository-specific agent-system planning activates only after the canonical project and exact managed README block establish adoption. Planning remains read-only after activation.
-- Generic planning owned by the host coding workflow remains available in any repository. The absence of `moldea` adoption disables only `moldea` behavior, not the user's independent task.
-- Initialization remains the single transition into repository-dependent `moldea` use. No pre-adoption planning exception, alias, fallback, or legacy route remains.
+- A fresh current-contract attempt remains distinct from a verified pinned source attempt.
+- A release with no fresh attempt but with authenticated pinned evidence must present the verified source attempt as the release's retained evidence. It must never use a no-attempt empty state for that release.
+- The words `current`, `current-contract`, and equivalent labels apply only to fresh attempts whose portable behavior identity matches the release.
+- Pinned source evidence is labeled `Verified source attempt`, `Verified release evidence`, or equally explicit wording. Its source version or commit, attempt id, recorded time, maintainer reason, and source link remain visible.
+- Current scenario/profile definitions may remain pending under the revised contract, but that secondary state must not erase or visually dominate the verified release evidence.
 
-### Instruction precedence, investigation order, and evidence authority
+### Semantic evidence
 
-- Instruction precedence determines which valid instruction governs agent conduct. It does not automatically establish repository facts.
-- Investigation order is a cost- and relevance-oriented sequence for retrieving evidence. It is not a truth hierarchy and cannot resolve a contradiction merely because one source was inspected earlier.
-- Evidence authority is claim-specific:
-  - current developer direction establishes the intended change or explicit current selection;
-  - executable code and runtime behavior establish what is implemented;
-  - schemas and configuration establish their executable contracts;
-  - canonical `moldea` assets establish declared project truth;
-  - accepted decisions establish rationale;
-  - tests establish expected or verified behavior without automatically overriding implementation or declared truth;
-  - runtime-adapter evidence establishes only the runtime-native patterns it proves;
-  - source-owned external publication establishes only its declared current public facts.
-- Evidence that answers different questions may coexist without contradiction. When two independent sources make incompatible claims about the same fact, the skill investigates a bounded independent resolver or preserves both claims and asks the developer. It does not use recency, labels, canonical status, tests, implementation, or source type alone to invent a winner.
+- The public release summary displays `74/74` verified source cases, with 70 passed directly, 4 recovered, 0 failed, and 0 pending.
+- The semantic page displays the authenticated source attempt id and recorded timestamps and links to its immutable source.
+- The current 74-case definition remains visible as the current suite. The page explains that no fresh current-contract run exists only in language that also states the retained verified source result.
+- The evidence landing page and home page derive their semantic release assurance from the current attempt when one exists, otherwise from the pinned source projection.
 
-### Runtime eligibility and qualification
+### Adapter qualification evidence
 
-- The field name `versionRange` and its canonical `>=x.y.z` machine shape remain unchanged. No bounded major/minor range, verified-version registry, compatibility alias, migration schema, or parallel matrix is introduced.
-- A runtime package range means “eligible for deterministic inspection from this verified minimum onward.” Later stable releases are accepted on a best-effort basis and must still match the adapter's documented source patterns. Package metadata alone never proves source compatibility, behavioral fit, production readiness, or successful qualification.
-- `lastVerifiedAt` continues to identify the existing technical-target verification date and is not advanced by wording changes.
-- Qualification profiles own the exact package versions intended for an execution. Passing immutable attempt provenance owns the exact package closure actually executed and its recorded time.
-- Packages documentation and website surfaces label only target runtime package requirements as “Eligible versions,” explain the best-effort boundary, retain links to qualification evidence, and do not call the open-ended interval fully verified. Adapter implementation ranges and compatible Core ranges retain their distinct existing labels and meanings.
-- Skill qualification profile pages display exact configured runtime package inputs as inputs, not as passing evidence. Immutable current attempt pages display the exact executed package closure and recorded timestamps as evidence. When qualification is pinned, the existing authenticated source traversal projects a bounded per-target summary containing the source attempt id, exact executed package closure, and recorded evidence time onto the matching current profile as pinned prior evidence. The release envelope remains compact, and no historical attempt route, copied package registry, or current-contract pass is created.
-- Website maturity remains presentation metadata only. It may be displayed on the packages website, but neither the skill nor technical matrix consumers use it to choose a runtime or declare technical or production readiness.
+- The qualification index presents 14 verified source attempts for the release rather than zero attempts.
+- Every profile with pinned evidence displays a passed verified-source result, its source attempt id, evidence time, and exact executed package closure. It does not say `No recorded attempt` or `No official attempt` for that profile.
+- A future fresh current-contract attempt takes precedence for current-result presentation, while the pinned source remains provenance and is never merged into the current attempt history.
+- Qualification counts, labels, filtering, and search remain bounded to the 14 profile models and their compact projections.
+
+### Resource and evidence integrity
+
+- The release envelope remains compact and contains source identity and maintainer reason, not copied transcripts, case bodies, or full result artifacts.
+- Source traversal remains bounded and authenticated. Tampered status, counts, timestamps, packages, attempt ids, or source identity fail closed before website models are returned.
+- Website rendering adds no runtime repository reads, model calls, unbounded lists, client-side evidence parsing, or duplicated evidence registry.
+- No paid evaluation or qualification is needed because the portable skill behavior is unchanged and this correction only exposes already authenticated evidence accurately.
 
 ## Architecture and ownership
 
-### Skill repository changes
+### Authenticated semantic projection
 
-- Update `moldea/references/agent-system-planning.md` to require adoption before repository-specific planning and to distinguish activated `moldea` planning from generic host planning.
-- Replace the fixed hierarchy in `moldea/references/context-gathering.md` with an investigation-order section aligned with the platform's claim-specific authority contract. Keep `moldea/SKILL.md` as the activation and conflict-resolution authority, adjusting only wording needed to make the three concepts explicit and noncontradictory.
-- Update `moldea/references/runtime-compatibility.md` and directly affected wording in `moldea/references/agent-design.md` so publication ranges establish package eligibility rather than universal package compatibility.
-- Synchronize `README.md`, `docs/planning-agent-systems.md`, `docs/how-it-works.md`, `docs/compatibility-and-local-tooling.md`, `docs/designing-agents.md`, `docs/adapter-qualification.md`, and `docs/release-evidence.md` where they describe adoption, authority, package-range meaning, exact qualification provenance, or the reason for the 5.0.1 evidence pin.
-- Strengthen `fixtures/conformance-cases.json`, `fixtures/semantic-evaluation-coverage.json`, and `tests/conformance.test-unit.mjs` to prove that repository-dependent planning has no pre-adoption exception, retrieval order is not evidence precedence, conflicting same-fact claims remain unresolved without an allowed resolver, and minimum-only ranges are eligibility rather than blanket compatibility. Update `tests/semantic-evaluation-runner.mjs` and its focused unit coverage only where evaluator-owned publication wording still says package compatibility. Keep exactly 74 semantic cases and do not add a paid-evaluation requirement.
-- Extend `website/src/lib/qualification/types.ts` and `website/src/lib/qualification/loader.ts` so `IQualificationProfileModel` exposes the profile's exact configured `runtimePackages` without inventing evidence. Include those inputs in `website/src/lib/generation/generation.ts` search text.
-- Refactor the qualification branch of `tooling/release-identity/release-evidence-source.mjs` so the same bounded traversal that authenticates each pinned attempt returns a compact per-target projection of its attempt id, `result.provenance.packages`, `createdAt`, and `completedAt`. Extend `website/src/lib/release-evidence/types.ts` and `website/src/lib/release-evidence/loader.ts` with a qualification-specific pinned section model that exposes this already-authenticated projection. Do not copy it into `fixtures/release-evidence.json`, weaken source authentication, perform repository reads outside the established bounded source loader, or introduce a second evidence authority.
-- Update `website/src/pages/evidence/qualification/[adapterId]/[implementationId]/index.astro` to show exact configured runtime package inputs with pending/current-state wording and, when applicable, the matching authenticated pinned-source package closure and evidence time as prior evidence. Update `website/src/pages/evidence/qualification/[adapterId]/[implementationId]/attempts/[attemptId]/index.astro` to show current `result.provenance.packages`, `createdAt`, and `completedAt` as the exact executed closure and evidence time. Do not restore obsolete attempt routes or relabel pinned evidence as current.
-- Update `tooling/release-identity/evidence.test-integration.mjs`, `website/src/lib/release-evidence/loader.test-integration.ts`, `website/src/lib/qualification/loader.test-integration.ts`, `website/src/lib/generation/generation.test-unit.ts`, and `website/src/pages/evidence/qualification/_index.test-e2e.ts` for source authentication, bounded provenance projection, rejection of tampered provenance, model propagation, honest labels, exact visible versions, timestamps, accessibility, responsive table behavior, and current-versus-pinned separation.
-- Regenerate `fixtures/release-evidence.json` after every portable-skill byte change with `--scope all --from v5.0.0`. Keep the same direct qualification and semantic sources, update the target portable digest, and use one reason covering the initialization, maturity, adoption, authority, and eligibility corrections plus the deterministic checks replacing fresh model work.
+- Extend `assertSemanticSource` in `tooling/release-identity/release-evidence-source.mjs` to return one compact projection from the already authenticated source attempt and result: attempt id, status, created and updated timestamps, total case count, and passed, recovered, failed, and pending counts.
+- Preserve complete source validation before projection. Do not add a second loader, trust the release envelope for result counts, or retain case bodies in the projection.
+- Update the semantic branch of `assertPinnedReleaseEvidenceSection` to return that projection in the same way its qualification branch returns per-target projections.
 
-### Packages repository changes
+### Website release-evidence model
 
-- Update `scripts/runtime-compatibility/generator.ts` and `scripts/runtime-compatibility/generator.test-unit.ts` to generate “Eligible versions” rather than “Verified range” only for target runtime package requirements, add one concise explanation that the minimum is verified while later stable releases are admitted on a best-effort source-pattern basis, and regenerate `docs/runtime-compatibility.md` through the existing generator. Preserve distinct adapter implementation and compatible-Core terminology.
-- Update `apps/website/src/components/adapter-details.astro` to label only runtime package requirements “Eligible versions” and explain that exact executed versions and dates live in qualification evidence. Preserve the separate maturity badge as website-only presentation and preserve existing adapter implementation and compatible-Core labels.
-- Update the existing runtime-publication website tests, including `apps/website/src/lib/runtime-compatibility-publication/runtime-compatibility-publication.test-unit.ts` and `apps/website/src/lib/runtime-compatibility-response/runtime-compatibility-response.test-integration.ts`, only where visible terminology or response-to-presentation behavior changes. The public JSON field remains `versionRange` and its values remain unchanged.
-- Correct `projects/adapter-eve/README.md`, `projects/adapter-langchain/README.md`, and `projects/adapter-langgraph/README.md` so they name the verified minimum and documented pattern family without presenting an upper-bounded `x` series as the compatibility contract. Apply the same correction to each package's `docs/index.md` and `docs/verified-target.md`.
-- Correct “verified range” diagnostic prose in `projects/adapter-openai/docs/evidence-and-diagnostics.md` and `projects/adapter-openai-agents-sdk/docs/evidence-and-diagnostics.md` where it describes a package eligibility mismatch. Do not change diagnostic codes or runtime messages unless inspection shows the public code itself contains the same overclaim.
-- Bump only the release-selected adapter manifests from `3.0.0` to `3.0.1`: `projects/adapter-eve/package.json`, `projects/adapter-langchain/package.json`, and `projects/adapter-langgraph/package.json`. Update `pnpm-lock.yaml` only if the repository's package manager deterministically changes workspace-version metadata. Do not change dependency ranges solely for these patch releases.
-- Correct the Core and CLI version descriptions in the root `README.md` to `4.0.1` and `8.0.0` and verify every other current-version statement against package manifests.
-- Do not modify `compatibility/runtimes.yaml`, its minimum versions, `lastVerifiedAt`, adapter pattern claims, `apps/website/content/runtime-target-maturity.yaml`, adapter runtime behavior, or qualification URLs unless a direct deterministic drift check proves a generated copy must change.
+- Update `website/src/lib/release-evidence/types.ts` so the pinned semantic section has one canonical compact attempt projection rather than a loose source-attempt id detached from result data.
+- Update `website/src/lib/release-evidence/loader.ts` to propagate the authenticated semantic projection and construct the immutable source URL.
+- Add small pure derived-state helpers in the nearest existing website model module when sharing current-versus-pinned selection across the home page, evidence landing page, and detail pages avoids duplicated conditionals. Do not create a parallel evidence store or broad abstraction.
+- Keep `semanticEvaluation.currentAssurance` and qualification `currentStatus` unchanged as the current-contract facts. The release-facing derivation chooses current evidence when present and verified pinned evidence otherwise.
 
-### Platform specification changes
+### Public pages
 
-- Update `moldea/context/product-and-operating-model.md` so repository-dependent planning requires initialization, generic planning remains host-owned, and website maturity cannot enter skill runtime selection or readiness conclusions.
-- Update `moldea/context/agent-skill.md` to name release `5.0.1`, call its ordered retrieval sequence an investigation order, state that the sequence is not evidence precedence, and align planning and runtime-range language with the portable skill.
-- Use `moldea/context/context-gathering.md` as the claim-specific authority source. Add only the smallest wording needed to define efficient investigation order separately; do not replace its existing question-specific authority model.
-- Update `moldea/context/runtime-compatibility-matrix.md` so minimum-only ranges are explicitly eligibility ranges, exact executed versions belong to qualification evidence, and website maturity is display-only rather than an input to semantic, technical, runtime-selection, or production-readiness conclusions.
-- Replace complete-range overclaims in `moldea/context/adapter-anthropic-package.md`, `adapter-claude-agent-sdk-package.md`, `adapter-cloudflare-agents-package.md`, `adapter-eve-package.md`, `adapter-google-genai-package.md`, `adapter-langchain-package.md`, `adapter-langgraph-package.md`, `adapter-openai-package.md`, `adapter-openai-agents-sdk-package.md`, and `adapter-vercel-ai-sdk-package.md`. Each specification will state that fixtures qualify an exact package closure and documented source-pattern claims, while later eligible versions remain subject to deterministic source inspection.
-- Preserve Hosted platform behavior and every unrelated platform file. Before editing, recheck the worktree and the exact affected paths. If concurrent changes overlap one of these files, inspect and integrate without overwriting them; if unrelated changes exist elsewhere, isolate this work on a dedicated branch or worktree so the other agent's files cannot enter this task's commit.
+- Update `website/src/components/home-page/home-page.astro` and `website/src/pages/evidence/index.astro` to show verified release totals and honest source labels.
+- Update `website/src/pages/evidence/semantic/index.astro` to present the verified source result, attempt identity, timestamps, and source link when no current attempt exists. Retain current suite definitions and the explicit no-fresh-run distinction without a misleading no-evidence empty state.
+- Update `website/src/pages/evidence/qualification/index.astro` to count and label current or pinned evidence per profile, with current evidence taking precedence.
+- Update `website/src/pages/evidence/qualification/[adapterId]/[implementationId]/index.astro` so the top result and history area acknowledge the pinned source attempt instead of rendering empty-state copy. Reuse the existing pinned package-closure section and avoid duplicating the same table unnecessarily.
+- Update `website/src/components/release-evidence-notice/release-evidence-notice.astro` only if a concise attempt identifier improves comprehension without duplicating detail-page content.
+- Preserve accessibility, semantic headings, keyboard behavior, responsive layout down to 320 px, light/dark themes, and the current static-rendering architecture. No animation is introduced.
 
-### Knowledge-base changes
+### Tests and documentation
 
-- Correct `content/011_frequently-asked-questions/002_getting-started-faq.md` to say users initialize `moldea` before repository-specific agent-system planning and that ordinary planning remains available independently.
-- Extend `content/003_open-source-tools/007_validation-and-diagnostics.md` with one concise public explanation of eligible minimum versions, best-effort later-release inspection, exact versions in qualification evidence, and the fact that pinned evidence remains prior evidence rather than a fresh run.
-- Regenerate `content/manifest.json` only if the established validator or content-generation workflow requires it for these body-only edits. Do not alter slugs, ordering, categories, relationships, or unrelated articles.
+- Update `tooling/release-identity/evidence.test-integration.mjs` to prove authenticated semantic projection and fail-closed behavior for tampered result counts and identity.
+- Update `website/src/lib/release-evidence/loader.test-integration.ts` and `website/src/lib/generation/generation.test-unit.ts` for the projected semantic result and current-versus-pinned separation.
+- Update the evidence landing, home page, semantic page, qualification index, and qualification profile end-to-end tests so they fail if authenticated pinned evidence is displayed as zero or no attempt.
+- Preserve tests proving that pinned evidence is not current evidence. Add assertions for 74/74, 70 passed, 4 recovered, 14 verified qualification source attempts, source attempt ids, timestamps, links, and no misleading empty-state text.
+- Synchronize `README.md`, `docs/release-evidence.md`, `docs/semantic-evaluation.md`, and `docs/adapter-qualification.md` only where they describe the visible release-evidence contract or current release version.
+- Bump `package.json`, lockfile identity, public installation guidance, release metadata, and directly affected generated/version references from `5.0.1` to `5.0.2` through the established release-identity workflow.
 
 ## Public contracts and release effects
 
-- Skill release identity remains `5.0.1`; the existing unpublished candidate is corrected before merge and tag rather than creating `5.0.2`.
-- The portable skill digest changes, so the 5.0.1 release-evidence envelope must be regenerated. Its prior qualification tag and semantic source commit remain unchanged.
-- The technical compatibility publication schema remains version `2`, and `versionRange` remains its field name. This is a semantic clarification, not a schema migration.
-- The qualification protocol, profiles, runtime package versions, attempt artifacts, result schemas, release-envelope schema, semantic protocol, and 74-case count remain unchanged. Website model projection adds already-recorded configured inputs plus an authenticated, bounded view of pinned and current attempt provenance, but no evidence mutation or duplicate persistence.
-- Eve, LangChain, and LangGraph receive documentation-only patch releases `3.0.1` because their npm-visible READMEs are corrected. No adapter behavior, compatibility minimum, verification date, or implementation-major range changes.
-- There is no database, persisted customer data, environment, authentication, authorization, billing, queue, webhook, or Cloud deployment change.
+- Skill `5.0.2` is a presentation and release-model correction over `5.0.1`. Only the two established portable release-version markers may change; the normalized portable behavior digest must remain identical. Any other portable-byte change requires re-evaluating the no-rerun evidence decision before proceeding.
+- The release-evidence schema may gain the bounded authenticated semantic projection in the in-memory website model, but `fixtures/release-evidence.json` remains the compact repository-bound source envelope rather than an evidence copy.
+- Current semantic attempt records, qualification attempts, profile inputs, compatibility data, maturity data, and historical evidence remain unchanged.
+- Existing URLs remain stable. No legacy page, redirect, alias, fallback, schema adapter, or compatibility bridge is introduced.
+- The public website behavior changes from misleading current-only empty states to a release-evidence view that selects fresh current evidence when available and otherwise presents authenticated pinned evidence explicitly.
 
 ## Ordered implementation steps
 
-1. Preserve the completed skill commits and establish clean, non-overlapping task branches or isolated worktrees for the packages, platform, and knowledge-base repositories as needed. Record each repository's base commit and changed-path scope before editing; never reset, stash, clean, or absorb unrelated agent work.
-2. Correct the platform specifications first so one canonical contract defines adoption, claim-specific authority, minimum-only eligibility, exact qualification evidence, and display-only maturity. Run the platform documentation validator and a focused contradiction search, but do not publish yet.
-3. Correct the packages generator, generated technical document, packages website presentation, three bounded-family package documentation sets, two diagnostic documents, root version overview, and the three required patch versions. Verify that the canonical matrix, maturity registry, runtime code, minimums, and verification dates remain byte-identical.
-4. Correct and validate the two knowledge-base articles against the revised platform specification. Preserve slugs, relationships, and manifest structure.
-5. Align the portable skill references, top-level wording, public skill documentation, conformance fixtures, and deterministic tests with the canonical contract. Keep the current 74-case suite and prior immutable evidence untouched.
-6. Expose exact configured and executed qualification package versions and evidence times through the existing skill website model and pages. Refactor the authenticated pinned-source traversal to return its bounded per-target provenance projection, then join it to current profiles for public presentation. Reuse existing table, typography, status, theme, and responsive patterns; do not introduce a new component system, duplicate evidence persistence, or legacy attempt pages.
-7. Run focused skill tests, semantic preflight, qualification dry runs, website tests, and the full deterministic release boundary. Regenerate the dual-domain 5.0.1 evidence pin only after all portable bytes are final, verify its unchanged source provenance and changed target digest, then rerun every check affected by the regenerated envelope.
-8. Perform a cross-repository contradiction audit for pre-adoption planning, “authority order,” universal evidence hierarchies, technical use of maturity, “Verified range,” bounded `x` compatibility claims, complete-range claims, stale Core/CLI versions, and lowercase `moldea`. Review every repository diff against its recorded scope and exclude unrelated work.
-9. Review and publish the repositories through their established branch protections in dependency order: prepare all reviewed candidates first; publish the platform specification correction, packages correction and selected patch releases, and knowledge-base correction; then review the complete skill `development` range against refreshed `main`, merge the exact candidate, create immutable tag `v5.0.1`, and require tag-bound release and website verification. Do not publish the skill tag while a directly affected public repository still contains a known contradiction.
+1. Preserve completed milestones 1 through 5 and record the `v5.0.1` public identities and exact live presentation defect.
+2. Extend the existing source authenticator and release-evidence model with a bounded semantic attempt projection, retaining full authentication and adding tamper regression coverage.
+3. Centralize the minimal current-versus-pinned release derivation and update all affected public summary, semantic, qualification, and profile surfaces.
+4. Update focused tests and state-bearing documentation so verified pinned attempts cannot regress to zero/no-attempt presentation while current-versus-pinned meaning remains explicit.
+5. Update release identity to `5.0.2` and pin both evidence families to the same accepted immutable source evidence with a presentation-only maintainer reason. Confirm the portable skill behavior digest remains unchanged.
+6. Run focused website and release-evidence tests, then the full deterministic release boundary. Inspect built pages at mobile and desktop widths in light and dark modes and verify public totals and labels.
+7. Run a read-only review of the exact candidate, correct in-scope findings, and repeat until ready. Publish the signed candidate to `development`, merge the exact reviewed branch into `main` through branch protection, create signed immutable tag `v5.0.2`, and verify tag conformance and the deployed website.
 
 ## Tests and verification
 
-### Skill repository
-
-Run focused tests while implementing, then run:
+Run focused checks while implementing, followed by:
 
 ```bash
 npm run managed-readme:check
@@ -164,109 +140,64 @@ npm run qualification:typecheck
 npm run qualification:lint
 npm run qualification:format:check
 npm run path:check
-npm run release:evidence:pin -- --scope all --from v5.0.0 --reason "<honest 5.0.1 maintainer reason>"
 npm run website:check
 npm run release:check
 ```
 
-Run the skill website end-to-end suite through its established package script when it is not already included by `website:check`. Verify profile and attempt pages at 320 px and desktop widths, keyboard access, focus visibility, light and dark themes, readable overflow for package tables, and no serious accessibility violations. The UI change adds no animation and must not add avoidable client-side rendering work.
+Use the established evidence-pin command for target `5.0.2` with both existing source domains and an honest reason stating that the correction changes only public evidence projection and presentation. Do not run `npm run eval:semantic -- --record`, a paid non-recording semantic diagnostic, `npm run qualification` without `--dry-run`, or any other model-backed stage.
 
-Focused release-evidence coverage must prove that an authenticated pinned qualification target supplies the exact source attempt id, executed package closure, and recorded time to the public model; that the matching current profile renders those values explicitly as pinned prior evidence while remaining pending under the current contract; and that tampered source attempt provenance is rejected before any public model is returned.
+Focused verification must prove:
 
-Do not run `npm run eval:semantic -- --record`, any non-recording paid semantic diagnostic, `npm run qualification` without `--dry-run`, or any other model-backed semantic or adapter-qualification command. Do not edit a result, disposition, attempt, or historical evidence file to manufacture a pass.
+- semantic source authentication returns exactly the recorded 74-case passing projection and rejects mismatched or tampered counts;
+- qualification source authentication still returns exactly 14 bounded per-profile projections and rejects tampering;
+- fresh current evidence takes precedence when present;
+- pinned-only releases display verified attempt counts and source provenance instead of zero/no-attempt text;
+- current-contract status is not rewritten or fabricated;
+- no full evidence body or transcript enters the release envelope or website model;
+- all affected static pages build successfully and expose correct accessible text;
+- the built website at 320 px and desktop widths has no horizontal page overflow, maintains readable evidence tables, keyboard focus, accessible labels, and light/dark contrast;
+- the `5.0.2` portable behavior digest exactly matches `5.0.1`, while release metadata and the authenticated source projection match the new target release;
+- the tag checkout passes the deterministic release boundary on supported Node and Windows lanes.
 
-### Packages repository
+## Failure handling and rollback
 
-Run focused generator and runtime-publication tests first, regenerate through the established command, and then run:
-
-```bash
-pnpm compatibility:generate
-pnpm compatibility:check
-pnpm docs:check
-pnpm website:check
-pnpm test
-pnpm typecheck
-pnpm lint
-pnpm format:check
-pnpm build
-```
-
-Confirm regeneration is deterministic, `git diff --check` passes for touched files, the three package manifests are exactly `3.0.1`, release selection contains only the intended packages, packed artifacts contain the corrected READMEs, and no runtime matrix or maturity-registry bytes changed. The pull-request and main-branch release workflows remain the final cross-platform and npm-publication boundaries.
-
-### Platform specification repository
-
-Run:
-
-```bash
-pnpm docs:moldea:check
-```
-
-Run the installed Prettier check against only the touched specification files and `git diff --check`. Application, browser, database, and Hosted-platform tests are unnecessary because this scope changes specifications only and no executable platform behavior.
-
-### Knowledge-base repository
-
-Run:
-
-```bash
-npm run validate
-npm test
-```
-
-Run formatting only if the repository exposes an established formatter, then inspect the generated manifest state and `git diff --check`. No browser or application test is required for body-only content whose repository validator and tests pass.
-
-### Cross-repository verification
-
-- Re-run bounded searches in only the affected current files for every prohibited contradictory phrase and inspect each remaining match semantically rather than deleting technically correct uses.
-- Verify that platform specifications, package documentation, packages website labels, skill references, skill website evidence, and knowledge-base prose use the same definitions.
-- Verify exact source provenance in `fixtures/release-evidence.json`: qualification remains `v5.0.0` / `c3416c52ae69a3f26d2e38c07ba98aa8531e358d`, and semantic evidence remains `926907e26feac6a55929f68ca134aeaf41a6a4b5`.
-- Verify that every pinned qualification summary displayed for 5.0.1 is derived from the authenticated immutable source attempt, not from the current profile, compatibility matrix, maturity registry, or a copied release-envelope field.
-- Verify that `compatibility/runtimes.yaml`, qualification profiles, immutable attempts, historical evidence, maturity registry, Hosted-platform files, and `skill-mock` are unchanged.
-
-## Failure handling, compatibility, and rollback
-
-- A deterministic failure is triaged against the agreed contracts before production code or expectations change. Stale wording tests are updated only when current implementation and canonical specifications establish the new intended behavior.
-- A paid-evidence mismatch is not repaired by running models. Correct deterministic pin validation or public representation while retaining source provenance; if the prior source itself fails immutable cryptographic or passing-result validation, stop because the no-rerun constraint cannot produce valid release evidence. Missing or malformed package provenance in a pinned source fails closed rather than falling back to current profile inputs.
-- Package patch publication failure leaves already-published packages intact. Retry only the exact unchanged release candidate through the documented recovery path; do not lower versions, reuse an occupied version, or broaden ranges.
-- Before the skill tag exists, rollback is a normal corrective commit on the affected task branch. After any repository release, corrections use new commits and versions according to that repository's release rules. Do not move tags, force-push, rewrite published history, or restore contradictory compatibility paths.
-- No compatibility shim is required because the machine range schema and behavior remain stable. Remove superseded wording and assertions outright rather than retaining aliases or dual definitions.
+- If an authenticated source does not contain the expected passing attempt or its counts, identity, timestamps, package closure, or digest fail validation, stop. Do not manufacture or reinterpret evidence.
+- If a focused test reveals that a page relied on `current` to mean release-effective evidence, fix the derivation and copy while preserving the underlying current-attempt model.
+- If changing the public model would require copying full case or artifact content, retain source links and compact metadata instead.
+- If portable skill bytes change beyond the two normalized release-version markers, do not reuse the prior evaluation decision automatically; inspect and re-plan before publication.
+- Before the `v5.0.2` tag exists, corrections are normal signed commits. After publication, do not move tags, rewrite history, force-push, or add a compatibility layer. A later correction requires a new version.
 
 ## Risks and controls
 
-- **Pinned evidence may be mistaken for fresh evidence.** Keep the prior source label, source link, maintainer reason, source attempt id and time, and current-contract pending state visible. Exact current profile inputs must not be labeled as executed until an attempt records them.
-- **Open-ended ranges may be read as unconditional support.** Every public surface will pair runtime-package “Eligible versions” with the verified-minimum, best-effort later-release, and source-pattern boundary. Adapter implementation and compatible-Core ranges retain distinct labels. `lastVerifiedAt` will remain unchanged.
-- **Qualification package data may be duplicated as a second authority.** Website pages will project current profile inputs, current attempt provenance, or authenticated pinned-source attempt provenance directly. No `verifiedVersions` registry, copied release-envelope package ledger, or packages-repository ledger will be added.
-- **Authority wording may weaken conflict handling.** Deterministic tests will distinguish question-specific facts from same-fact contradictions and preserve the existing requirement for a current developer selection or independent resolver.
-- **Strict adoption may accidentally disable generic planning.** Skill and knowledge-base wording will explicitly scope abstention to `moldea`; host-owned planning continues normally.
-- **README corrections trigger package releases.** Only the three npm-visible READMEs that currently contradict the matrix will select patch releases. Adapter code, package minimums, and verification dates remain unchanged.
-- **Concurrent platform work may be bundled accidentally.** Recheck status and touched paths before every edit, review, commit, and publication. Use isolation when unrelated work is present and never use a complete-worktree publication command in a worktree containing another agent's changes.
-- **Cross-repository publication is not atomic.** Prepare and review every candidate before the first merge, publish authoritative and public documentation before the skill tag, and keep the temporary transition limited to wording that does not change executable compatibility.
+- **Pinned evidence could be mislabeled as fresh.** Every fallback display explicitly names verified source evidence and retains its source identity and maintainer reason.
+- **Current pending definitions could be mistaken for failed release evidence.** Present release evidence first and current definition status second, with distinct headings and labels.
+- **Headline totals could diverge between pages.** Use one small shared derivation over the canonical model and test home, evidence landing, and detail surfaces against the same fixture.
+- **Projection could increase memory or output materially.** Return only scalar counts, ids, timestamps, status, and the already bounded qualification package closure. Never return case bodies or transcripts.
+- **Tests could preserve the old defect.** Replace no-attempt expectations for pinned fixtures with affirmative verified-source assertions while retaining separate unpinned-empty-state fixtures.
+- **A presentation correction could accidentally invalidate evidence reuse.** Change only the two established portable release-version markers and verify that the normalized behavior digest still matches `v5.0.1`.
+- **Public deployment could lag the tag.** Verify workflow conclusions and inspect the deployed routes after the tag-bound build finishes.
 
 ## Acceptance criteria
 
-- Every current skill, platform specification, and knowledge-base statement requires initialization before repository-dependent `moldea` planning while preserving generic host planning.
-- No active document calls an investigation sequence an authority hierarchy or uses source type, retrieval order, recency, tests, implementation, or canonical status alone to resolve a same-fact contradiction.
-- The platform and portable skill use the same claim-specific authority model and preserve unresolved conflicts when no allowed resolver exists.
-- All canonical runtime package requirements remain minimum-only `>=x.y.z`; the field remains `versionRange`; no upper bounds or duplicate verified-version registry are introduced.
-- Packages documentation and websites call target runtime package requirements eligible versions, identify the verified minimum and best-effort later-release boundary, and do not claim complete empirical verification of an open-ended range. Adapter implementation ranges and compatible Core ranges retain separate, accurate labels.
-- Exact configured runtime package inputs are visible on qualification profile pages. Exact executed package closures and evidence timestamps are visible on current immutable attempt pages and, for pinned releases without current attempts, on the matching current profile through an authenticated bounded projection of the immutable source attempt. Labels distinguish inputs, executed evidence, current status, and pinned prior provenance.
-- Pinned qualification provenance is not copied into the release envelope or another registry, and deterministic coverage rejects tampered source provenance before rendering it.
-- Website maturity remains display-only and is absent from skill runtime selection, compatibility, qualification, and readiness logic.
-- `compatibility/runtimes.yaml`, its `lastVerifiedAt` values, adapter runtime behavior, qualification profiles, historical attempts, and historical semantic evidence remain unchanged.
-- Platform release references name skill `5.0.1`; the packages root README names Core `4.0.1` and CLI `8.0.0`.
-- Eve, LangChain, and LangGraph are prepared as documentation-only patch releases `3.0.1`, and no other package is selected without a release-relevant change.
-- The current semantic suite remains exactly 74 cases. All required deterministic skill checks pass without any paid semantic or adapter-qualification execution.
-- The regenerated 5.0.1 envelope pins both evidence domains to the same previously accepted sources and explicitly says that prior models did not evaluate the revised contracts.
-- Knowledge-base validation, platform specification validation, packages compatibility generation/checks, packages website checks, package regression boundaries, skill website checks, and release checks pass for the exact reviewed candidates.
-- No Hosted-platform behavior, `skill-mock`, Eve adapter implementation, historical evidence, immutable tag, protected coding instruction, or unrelated concurrent-agent file is modified or published.
-- The final implementation contains one current contract with no pre-adoption planning exception, fixed evidence hierarchy, bounded-family compatibility claim, maturity-based skill branch, legacy evidence page, alias, fallback, or parallel registry.
+- The semantic evidence page presents the authenticated source attempt as 74/74 verified cases, including 70 direct passes, 4 recovered cases, 0 failures, 0 pending cases, attempt id, time, reason, and source link.
+- The qualification evidence index presents all 14 profiles as having verified source attempts where pinned evidence exists and never labels those profiles `No recorded attempt`.
+- Each qualification profile presents its verified source result, source attempt identity, time, and exact executed package closure without claiming a fresh current-contract attempt.
+- The home page and evidence landing page show release-effective verified totals rather than current-only zeros.
+- A genuinely unpinned release with no attempt still uses the appropriate empty state.
+- Fresh current evidence takes precedence without erasing pinned provenance, and current suite/profile status remains truthful.
+- Release-evidence source authentication remains fail-closed and bounded. The release envelope contains no copied case bodies, transcripts, or large evidence payloads.
+- Public docs explain the distinction between current attempts and verified pinned source attempts without contradictions.
+- Skill release identity is `5.0.2`, its portable behavior digest matches `5.0.1`, and its evidence envelope points to the same accepted qualification and semantic source identities with a presentation-only reason.
+- All focused and full deterministic checks pass. No paid semantic evaluation or non-dry adapter qualification runs.
+- The exact reviewed candidate is merged, signed tag `v5.0.2` is published, tag conformance passes, and the deployed website no longer presents retained evidence as zero or absent.
+- No platform, packages, knowledge-base, historical evidence, maturity data, compatibility data, `skill-mock`, protected coding instruction, excluded archive/backup content, or unrelated concurrent-agent file is changed by this correction.
 
 ## Assumptions and developer decisions
 
-- The developer has selected strict adoption, claim-specific evidence authority, minimum-only best-effort eligibility, and explicit dual-domain evidence pinning. No material product decision remains open.
-- The package patch versions are required by the packages repository's documented README release-selection contract. If repository or npm state changes before implementation, recompute the smallest valid stable versions without changing the agreed compatibility semantics.
-- Repository states recorded above are revision-time evidence. Revalidate them before implementation because another agent is active in the platform repository.
-- The developer has renewed the existing end-to-end autonomous sequence through publication of the corrected skill. After this revision is challenged successfully, execution proceeds through breakdown, sequential implementation, read-only review and correction loops, repository publication, final skill merge, tag, and release verification without further approval unless a genuine blocker arises.
+- The developer requires a clean current implementation and explicitly forbids another semantic evaluation or adapter qualification for this correction.
+- The already accepted evidence remains valid because this milestone changes only deterministic website projection, wording, tests, and release metadata; after normalizing the two release-version markers, portable skill behavior must remain byte-identical.
+- The developer has authorized the existing end-to-end autonomous sequence through review, publication, merge, tagging, and deployment. A genuine evidence-integrity or portable-behavior mismatch remains a blocker rather than a reason to fabricate evidence or silently expand scope.
 
 ## Execution scope
 
-Preserve the completed `moldea` 5.0.1 runtime-maturity and canonical-README work, then synchronize the skill, packages, platform specifications, packages and skill websites, and knowledge base around three final contracts: initialization precedes all repository-dependent `moldea` work, investigation order never substitutes for claim-specific evidence authority, and minimum-only runtime package ranges express best-effort eligibility while immutable qualification attempts own exact executed versions and expose them through an authenticated bounded public projection. Publish three required adapter documentation patch releases and the corrected skill 5.0.1 only after deterministic cross-repository verification, while pinning both evaluation families to their existing immutable evidence and running no paid evaluations or qualifications.
+Preserve the completed cross-repository production-readiness work and public `v5.0.1` history, then release `moldea` `5.0.2` as one clean evidence-presentation correction: project the already authenticated 74-case semantic source result, use the existing 14 bounded qualification projections, make verified pinned attempts visible across every release-evidence summary and detail surface, retain an explicit current-versus-pinned distinction, update focused tests and state-bearing documentation, pin the same accepted source evidence, and publish the reviewed signed release without any paid semantic evaluation or non-dry adapter qualification.

@@ -6,14 +6,23 @@ import EvidenceOptionCard from '../../components/evidence-option-card/evidence-o
 import ReleaseEvidenceNotice from '../../components/release-evidence-notice/release-evidence-notice.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+import {
+  getQualificationReleaseEvidenceSummary,
+  getSemanticReleaseEvidenceSummary,
+} from '../../lib/release-evidence/index.ts';
 
 const model = loadWebsiteModel();
 const { qualification, semanticEvaluation } = model;
 const basePath = import.meta.env.BASE_URL;
+const semanticReleaseSummary = getSemanticReleaseEvidenceSummary(
+  model.releaseEvidence,
+  model.currentSemanticAssurance,
+);
 const successfulSemanticCaseCount =
-  (model.currentSemanticAssurance?.result.passedCaseCount ?? 0) +
-  (model.currentSemanticAssurance?.result.recoveredCaseCount ?? 0);
-const qualificationStatuses = qualification.profiles.map((profile) => profile.currentStatus);
+  (semanticReleaseSummary.result?.passedCaseCount ?? 0) +
+  (semanticReleaseSummary.result?.recoveredCaseCount ?? 0);
+const qualificationSummaries = qualification.profiles.map(getQualificationReleaseEvidenceSummary);
+const qualificationStatuses = qualificationSummaries.map(({ status }) => status);
 const qualificationStatus = qualificationStatuses.includes('errored')
   ? 'errored'
   : qualificationStatuses.includes('failed')
@@ -24,7 +33,7 @@ const qualificationStatus = qualificationStatuses.includes('errored')
         ? 'not-recorded'
         : 'passed';
 const qualifiedProfileCount = qualification.profiles.filter(
-  ({ currentAssurance }) => currentAssurance !== null,
+  (_, index) => qualificationSummaries[index]?.status === 'passed',
 ).length;
 const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
 ---
@@ -48,9 +57,9 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
       <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
         Semantic evaluation answers whether the skill behaves correctly across difficult situations.
         Qualification answers whether the published packages, adapter, CLI, and skill work together
-        in realistic projects. Each card shows the current result. Semantic history stays scoped to
-        the active evaluation contract, while qualification keeps current-contract project attempts
-        available for inspection. Verified prior release provenance remains identified separately.
+        in realistic projects. Each card shows the evidence accepted for this release and identifies
+        whether it is fresh current-contract evidence or a verified source retained by an explicit
+        release pin.
       </p>
     </header>
 
@@ -62,8 +71,8 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         title="Semantic evaluation"
         description="Review the behavioral scenarios, exact success and failure criteria, and evidence-based rationale for every current-contract outcome."
         href={semanticEvaluation.route}
-        metric={`${successfulSemanticCaseCount} of ${semanticEvaluation.caseCount} scenarios have current assurance`}
-        status={semanticEvaluation.status}
+        metric={`${successfulSemanticCaseCount} of ${semanticEvaluation.caseCount} scenarios have verified release evidence`}
+        status={semanticReleaseSummary.result?.status ?? 'not-recorded'}
         questions={[
           'Does the skill make the right decision when context is incomplete or conflicting?',
           'Does it respect repository truth, host constraints, and safety boundaries?',
@@ -80,7 +89,7 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         title="Adapter qualification"
         description="Review realistic project journeys, compatibility claims, deterministic checks, independent judgment, and raw attempt artifacts."
         href={qualification.route}
-        metric={`${qualifiedProfileCount} of ${qualification.profiles.length} profiles have current assurance`}
+        metric={`${qualifiedProfileCount} of ${qualification.profiles.length} profiles have passing release evidence`}
         status={qualificationStatus}
         questions={[
           'Does this adapter implementation work with the exact published package artifacts?',

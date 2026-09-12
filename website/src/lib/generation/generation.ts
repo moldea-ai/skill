@@ -32,7 +32,12 @@ import type {
   IWebsiteDocument,
   IWebsiteModel,
 } from '../model/types.ts';
-import { loadReleaseEvidenceModel } from '../release-evidence/index.ts';
+import {
+  getQualificationReleaseEvidenceSummary,
+  getSemanticReleaseEvidenceSummary,
+  loadReleaseEvidenceModel,
+  type ISemanticReleaseEvidenceSummary,
+} from '../release-evidence/index.ts';
 import { DEFAULT_SITE_URL } from '../site/constants.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
@@ -215,9 +220,14 @@ export const createSearchRecords = (documents: IWebsiteDocument[]): ISearchRecor
 export const createQualificationSearchRecords = (
   qualification: IQualificationWebsiteModel,
 ): ISearchRecord[] => {
+  const verifiedSourceAttemptCount = qualification.profiles.filter(
+    (profile) => getQualificationReleaseEvidenceSummary(profile).kind === 'pinned',
+  ).length;
   const landingRecord: ISearchRecord = {
     description:
-      'Inspect adapter support-gate methodology, transparent project profiles, and complete recorded evidence.',
+      verifiedSourceAttemptCount === 0
+        ? 'Inspect adapter support-gate methodology, transparent project profiles, and complete recorded evidence.'
+        : `Inspect adapter support-gate methodology, transparent project profiles, and ${verifiedSourceAttemptCount} verified source attempts.`,
     route: qualification.route,
     searchText: normalizeSearchText(
       'Adapter qualification support gate methodology profiles projects attempts evidence results',
@@ -283,14 +293,25 @@ export const createQualificationSearchRecords = (
 /** Creates concise semantic evidence search records without indexing actor transcripts. */
 export const createSemanticEvaluationSearchRecords = (
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
+  releaseEvidence: IWebsiteModel['releaseEvidence'],
 ): ISearchRecord[] => {
+  const releaseSummary = getSemanticReleaseEvidenceSummary(
+    releaseEvidence,
+    semanticEvaluation.currentAssurance,
+  );
   const landingRecord: ISearchRecord = {
-    description: semanticEvaluation.hasAttempt
-      ? `Review the latest semantic attempt, current-contract history, and ${semanticEvaluation.caseCount} behavioral scenarios.`
-      : `Review ${semanticEvaluation.caseCount} behavioral scenarios and the semantic evaluation methodology before the first attempt is recorded.`,
+    description:
+      releaseSummary.kind === 'pinned'
+        ? `Review the verified source attempt, current-contract history, and ${semanticEvaluation.caseCount} behavioral scenarios.`
+        : semanticEvaluation.hasAttempt
+          ? `Review the latest semantic attempt, current-contract history, and ${semanticEvaluation.caseCount} behavioral scenarios.`
+          : `Review ${semanticEvaluation.caseCount} behavioral scenarios and the semantic evaluation methodology before the first attempt is recorded.`,
     route: semanticEvaluation.route,
     searchText: normalizeSearchText(
-      'Semantic evaluation behavioral scenarios expected behavior forbidden behavior passing evidence',
+      [
+        'Semantic evaluation behavioral scenarios expected behavior forbidden behavior passing evidence',
+        releaseSummary.result?.attemptId ?? '',
+      ].join(' '),
     ),
     title: 'Semantic evaluation',
   };
@@ -328,6 +349,18 @@ export const createSemanticEvaluationSearchRecords = (
   return [landingRecord, ...groupRecords, ...attemptRecords];
 };
 
+/** Describes the release-effective semantic result without relabeling pinned evidence as current. */
+const createSemanticReleaseEvidenceLine = (summary: ISemanticReleaseEvidenceSummary): string => {
+  if (summary.kind === 'not-recorded') return 'Semantic release evidence: not recorded.';
+
+  const successfulCaseCount = summary.result.passedCaseCount + summary.result.recoveredCaseCount;
+  if (summary.kind === 'pinned') {
+    return `Semantic release evidence: ${successfulCaseCount}/${summary.result.totalCaseCount} scenarios successful (${summary.result.passedCaseCount} direct passes, ${summary.result.recoveredCaseCount} recoveries, ${summary.result.failedCaseCount} failed, ${summary.result.pendingCaseCount} pending) from verified source attempt [${summary.result.attemptId}](${summary.sourceUrl}).`;
+  }
+
+  return `Semantic release evidence: ${successfulCaseCount}/${summary.result.totalCaseCount} scenarios have exact current assurance.`;
+};
+
 /** Creates the concise machine-oriented skill map from canonical public sources. */
 export const createLlmsText = (
   documents: IWebsiteDocument[],
@@ -336,6 +369,19 @@ export const createLlmsText = (
   releaseEvidence: IWebsiteModel['releaseEvidence'],
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
 ): string => {
+  const semanticReleaseSummary = getSemanticReleaseEvidenceSummary(
+    releaseEvidence,
+    semanticEvaluation.currentAssurance,
+  );
+  const qualificationReleaseSummaries = qualification.profiles.map(
+    getQualificationReleaseEvidenceSummary,
+  );
+  const releaseQualifiedProfileCount = qualificationReleaseSummaries.filter(
+    ({ status }) => status === 'passed',
+  ).length;
+  const verifiedQualificationSourceCount = qualificationReleaseSummaries.filter(
+    ({ kind }) => kind === 'pinned',
+  ).length;
   const currentSemanticSuccessfulCaseCount = semanticEvaluation.currentAssurance
     ? semanticEvaluation.currentAssurance.result.passedCaseCount +
       semanticEvaluation.currentAssurance.result.recoveredCaseCount
@@ -389,13 +435,18 @@ export const createLlmsText = (
     '',
     ...releaseEvidenceLines,
     '',
+    createSemanticReleaseEvidenceLine(semanticReleaseSummary),
+    `Qualification release evidence: ${releaseQualifiedProfileCount}/${qualification.profiles.length} profiles passing${verifiedQualificationSourceCount === 0 ? '.' : `, including ${verifiedQualificationSourceCount} verified source ${verifiedQualificationSourceCount === 1 ? 'attempt' : 'attempts'}.`}`,
+    '',
     `Current semantic contract: ${currentSemanticSuccessfulCaseCount}/${semanticEvaluation.caseCount} scenarios have exact current assurance.`,
     `Current qualification contracts: ${currentQualifiedProfileCount}/${qualification.profiles.length} profiles have exact current assurance.`,
     '',
     `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
-    semanticEvaluation.hasAttempt
-      ? `- [Semantic evaluation](${semanticEvaluation.route}): Review the latest attempt, ${semanticEvaluation.caseCount} scenarios, and current-contract history.`
-      : `- [Semantic evaluation](${semanticEvaluation.route}): Review ${semanticEvaluation.caseCount} behavioral scenarios and the methodology before the first attempt is recorded.`,
+    semanticReleaseSummary.kind === 'pinned'
+      ? `- [Semantic evaluation](${semanticEvaluation.route}): Review the verified source attempt, ${semanticEvaluation.caseCount} scenarios, and current-contract history.`
+      : semanticEvaluation.hasAttempt
+        ? `- [Semantic evaluation](${semanticEvaluation.route}): Review the latest attempt, ${semanticEvaluation.caseCount} scenarios, and current-contract history.`
+        : `- [Semantic evaluation](${semanticEvaluation.route}): Review ${semanticEvaluation.caseCount} behavioral scenarios and the methodology before the first attempt is recorded.`,
     `- [Adapter qualification](${qualification.route}): Inspect the support gate, transparent profiles, passing outcomes, and immutable attempt history.`,
   );
 
@@ -517,7 +568,7 @@ export const createWebsiteModel = (
         ),
         title: 'Evidence',
       },
-      ...createSemanticEvaluationSearchRecords(semanticEvaluation),
+      ...createSemanticEvaluationSearchRecords(semanticEvaluation, releaseEvidence),
       ...createQualificationSearchRecords(qualification),
     ],
     semanticEvaluation,

@@ -145,7 +145,7 @@ test('selects evidence mode before current-only verification in release scripts 
   const packageManifest = JSON.parse(readFileSync(resolve('package.json'), 'utf8'));
   assert.equal(
     packageManifest.scripts['release:check'],
-    'npm run managed-readme:check && npm test && node --experimental-strip-types tooling/release-identity/check-release.mjs',
+    'npm run managed-readme:check && npm run matcher:check && npm test && node --experimental-strip-types tooling/release-identity/check-release.mjs',
   );
   assert.equal(packageManifest.scripts['release:check'].includes('eval:semantic:verify'), false);
   assert.equal(packageManifest.scripts['release:check'].includes('qualification:verify'), false);

@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The current release is `5.0.3`. Install the latest version from `main`:
+The current release is `5.0.4`. Install the latest version from `main`:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the release:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.3"
+npx skills add "moldea-ai/skill#v5.0.4"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account.
@@ -54,7 +54,7 @@ npx skills remove moldea
 
 ## Compatibility
 
-Release `5.0.3` supports exactly:
+Release `5.0.4` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -76,7 +76,7 @@ The entrypoint decides relevance before loading references or running the CLI:
 1. Answer a non-repository informational question concisely without inspection.
 2. Before initialization, continue moldea only for an explicit initialization request. Every other host-owned repository task continues normally while moldea abstains silently. If no independent host task remains, report only a neutral repository outcome such as `No files were changed.` without naming moldea, describing an unavailable operation or result, or recommending initialization.
 3. After initialization, activate directly for an explicit repository-dependent moldea request, a changed `/moldea/**` path, or a changed hunk inside the full-line managed README markers.
-4. The managed README block tells repository-aware hosts to select this entrypoint for every repository task. For every other known task-path set, run the skill's deterministic two-byte relevance gate. It invokes repository-local Core directly and returns only `0` or `1`.
+4. The managed README block tells repository-aware hosts to select this entrypoint for every repository task. For every other known task-path set, run the skill's deterministic two-byte relevance gate. It uses Core's release-bundled matcher and returns only `0` or `1`, without executing repository dependencies.
 5. Only after `1`, run one bounded launcher-backed CLI relationship query to identify the matching canonical owners. Otherwise continue the host-owned task normally with no moldea CLI command, reference load, progress update, or final-report mention.
 
 The gate accepts the ordinary repository-relative paths produced by Git as well as leading-slash repository-logical paths. It normalizes that host boundary before calling Core, so a harmless path-spelling difference cannot create a false abstention. The subsequent CLI query receives the normalized leading-slash form.
@@ -142,12 +142,15 @@ moldea/
 │   └── skill-design.md
 └── scripts/
     ├── managed-readme.mjs
+    ├── manifest-scope.cjs
+    ├── manifest-scope.license.txt
     ├── moldea-cli.mjs
     ├── relevance-gate.mjs
+    ├── repository-files.mjs
     └── repository-package.mjs
 ```
 
-`SKILL.md` owns activation, operation selection, evidence limits, boundaries, and reporting. `assets/managed-readme-block.md` owns the canonical managed text, and the generated `scripts/managed-readme.mjs` performs the bounded atomic README update during explicit initialization. `scripts/relevance-gate.mjs` reuses that script's canonical parser for the bounded pre-activation decision without a CLI invocation or canonical content output. `scripts/moldea-cli.mjs` owns the closed CLI launch boundary, and `scripts/repository-package.mjs` provides the shared package/version/containment checks used by both paths. References are loaded only after relevance is established and only when the selected operation needs them. `agents/openai.yaml` adds optional host metadata without redefining the portable contract.
+`SKILL.md` owns activation, operation selection, evidence limits, boundaries, and reporting. `assets/managed-readme-block.md` owns the canonical managed text, and the generated `scripts/managed-readme.mjs` performs the bounded atomic README update during explicit initialization. `scripts/relevance-gate.mjs` reuses that script's canonical parser and the release-bundled `manifest-scope.cjs` matcher without a CLI invocation, repository dependency execution, or canonical content output. `scripts/repository-files.mjs` bounds reads and checks resolved containment. `scripts/moldea-cli.mjs` owns the closed CLI launch boundary; `scripts/repository-package.mjs` verifies the CLI and Core from inert metadata before invocation. The dependency directory itself must remain inside the repository; npm and pnpm layouts inside that boundary are supported. These checks do not authenticate executable contents or provide an OS sandbox. References are loaded only after relevance is established and only when the selected operation needs them. `agents/openai.yaml` adds optional host metadata without redefining the portable contract.
 
 ## Project blueprint
 
@@ -157,6 +160,7 @@ moldea/
 - `tooling/codex-evaluation-host/` owns isolated model execution and privacy-safe resource accounting.
 - `tooling/semantic-evaluation/` owns the current semantic evidence contract.
 - `tooling/release-identity/` owns exact release identity plus the fresh or explicitly pinned evidence selection.
+- `tooling/relevance-gate/` generates the portable matcher from the locked Core API and dependencies, with license notices and only Node built-in runtime imports. Run `npm run matcher:generate` after changing its locked inputs and `npm run matcher:check` to verify committed output. The artifact has a 1 MiB build limit; it is executed rather than loaded into model context. Each gate reads one bounded manifest and needs no persistent cache.
 - `qualification/` owns adapter-specific qualification. Universal skill behavior runs once in the Custom profile; published adapters retain only adapter-specific probes and cases.
 - `website/` validates documentation and authenticated fresh or pinned evidence, then presents semantic decisions and combined adapter journeys with technical provenance behind progressive disclosure.
 - `.github/workflows/conformance.yml` runs portable correctness checks.
@@ -224,7 +228,7 @@ npm run eval:semantic -- --record --workers 4
 npm run eval:semantic:verify
 ```
 
-Official recording also completes all missing initial cases before confirmations and records one complete attempt even when failures remain. Actors and independent judges run at `xhigh`, and every stage has a fifteen-minute ceiling. Semantic and qualification stages receive the same runner-owned closed-host developer instruction before their natural task. Host skill discovery is disabled, and the sandbox overlays an empty read-only host-skill tree, so external skill files cannot alter the closed fixture or expose evaluator-home content. The host rejects caller overrides and binds the instruction's SHA-256 digest into model-stage identity without storing its body in public evidence. Selected semantic runtime-publication cases grant one exact evaluator-owned fixed local probe and instruct the actor to use it when current publication evidence is required; qualification and every other command remain under the ordinary no-network policy. Semantic, resource, command-policy, repository-control, read-only-mount, and operational dimensions are recorded separately. Only semantic-only failures receive confirmations. Confirmations run sequentially until two pass or two fail, with at most three confirmations, so one isolated verdict cannot decide recovery or terminal failure and no work runs after a quorum. Independently passing or recovered case groups from a configured valid committed attempt may be reused only when their complete actor and judge inputs still match. Reused stages retain their original provenance and do not count as new model work. Before every paid stage, the runner reserves the 2,097,152-token per-invocation maximum and refuses to exceed the 32,000,000-token direct-work ceiling for one candidate. A stage that exhausts its one automatic retry is persisted as terminally stopped before the command exits. An ordinary rerun refuses to repeat it; use `--resume-stopped-stage` to authorize exactly one additional attempt without discarding the candidate. A compatible resume clears the superseded interruption marker after identity validation so terminal evidence cannot retain stale interruption state. Every failed invocation is charged conservatively against the same ceiling.
+Official recording also completes all missing initial cases before confirmations and records one complete attempt even when failures remain. Actors and independent judges run at `xhigh`, and every stage has a fifteen-minute ceiling. Semantic and qualification stages receive the same runner-owned closed-host developer instruction before their natural task. Host skill discovery is disabled, and the sandbox overlays an empty read-only host-skill tree, so external skill files cannot alter the closed fixture or expose evaluator-home content. The host rejects caller overrides and binds the instruction's SHA-256 digest into model-stage identity without storing its body in public evidence. Semantic and qualification runtime work shares the no-network policy; no compatibility-publication probe or per-case network exception is installed. Semantic, resource, command-policy, repository-control, read-only-mount, and operational dimensions are recorded separately. Only semantic-only failures receive confirmations. Confirmations run sequentially until two pass or two fail, with at most three confirmations, so one isolated verdict cannot decide recovery or terminal failure and no work runs after a quorum. Independently passing or recovered case groups from a configured valid committed attempt may be reused only when their complete actor and judge inputs still match. Reused stages retain their original provenance and do not count as new model work. Before every paid stage, the runner reserves the 2,097,152-token per-invocation maximum and refuses to exceed the 32,000,000-token direct-work ceiling for one candidate. A stage that exhausts its one automatic retry is persisted as terminally stopped before the command exits. An ordinary rerun refuses to repeat it; use `--resume-stopped-stage` to authorize exactly one additional attempt without discarding the candidate. A compatible resume clears the superseded interruption marker after identity validation so terminal evidence cannot retain stale interruption state. Every failed invocation is charged conservatively against the same ceiling.
 
 Run free qualification preflight and Custom first. Custom cases accept one, two, or four isolated workers and default to four. After Custom passes, run all 13 adapters with one bounded profile batch. It continues across semantic failures while the host remains operationally safe, preserves each isolated attempt and result root, and commits summaries in profile-index order:
 
@@ -274,7 +278,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-Release `5.0.3` uses tag `v5.0.3`.
+Release `5.0.4` uses tag `v5.0.4`.
 
 See [Release evidence](docs/release-evidence.md) for the exact fresh and pinned workflows. `npm run release:check` is read-only and validates each section through its selected path before running current-only verification for fresh sections.
 

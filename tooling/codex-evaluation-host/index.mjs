@@ -36,7 +36,6 @@ export {
 
 // execution evidence
 export {
-  CODEX_EVALUATION_LOCAL_PROBE_KINDS,
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,

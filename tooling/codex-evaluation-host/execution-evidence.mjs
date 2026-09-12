@@ -188,18 +188,6 @@ const SAFE_EVALUATOR_EXECUTABLE_PATHS = new Set([
   `${EVALUATOR_HOME_PATH}/bin/git`,
   `${EVALUATOR_HOME_PATH}/bin/npm`,
 ]);
-// fixed local probe capabilities granted by owning evaluation scenarios
-export const CODEX_EVALUATION_LOCAL_PROBE_KINDS = {
-  RuntimeCompatibilityPublication: 'runtime-compatibility-publication',
-};
-const RUNTIME_COMPATIBILITY_PUBLICATION_URL =
-  'https://packages.moldea.ai/compatibility/runtimes.json';
-const SAFE_RUNTIME_COMPATIBILITY_CURL_LONG_OPTIONS = new Set([
-  '--fail',
-  '--location',
-  '--show-error',
-  '--silent',
-]);
 const NETWORK_GIT_SUBCOMMANDS = new Set([
   'clone',
   'fetch',
@@ -841,25 +829,6 @@ const isSafeNodeVersionCommand = (words) =>
   words.length === 2 &&
   ['--version', '-v'].includes(words[1]);
 
-/** Checks one standalone evaluator-owned runtime-publication probe command. */
-const isSafeRuntimeCompatibilityProbeCommand = (words, localProbeKind) => {
-  if (
-    localProbeKind !== CODEX_EVALUATION_LOCAL_PROBE_KINDS.RuntimeCompatibilityPublication ||
-    !['curl', `${EVALUATOR_HOME_PATH}/bin/curl`].includes(words[0]) ||
-    words.length < 2 ||
-    words.at(-1) !== RUNTIME_COMPATIBILITY_PUBLICATION_URL
-  ) {
-    return false;
-  }
-
-  const commandOptions = words.slice(1, -1);
-  if (commandOptions.at(-1) === '--') commandOptions.pop();
-  return commandOptions.every(
-    (option) =>
-      SAFE_RUNTIME_COMPATIBILITY_CURL_LONG_OPTIONS.has(option) || /^-[fLsS]+$/u.test(option),
-  );
-};
-
 /** Checks a non-executing sed invocation limited to a numeric print range. */
 const isSafeSedInspectionCommand = (words) => {
   if (words.length < 3 || words[1] !== '-n' || !SAFE_SED_PRINT_SCRIPT_PATTERN.test(words[2])) {
@@ -874,12 +843,7 @@ const isSafeSedInspectionCommand = (words) => {
 const isTrustedGitExecutable = (word) => ['git', '/home/evaluator/bin/git'].includes(word);
 
 /** Classifies whether one static command can use a network boundary. */
-const classifyNetworkCommand = (
-  words,
-  localProbeKind = null,
-  canUseLocalProbe = false,
-  canUseLocalSkillOperation = false,
-) => {
+const classifyNetworkCommand = (words, canUseLocalSkillOperation = false) => {
   const assignmentPrefixes = [];
   while (/^[A-Za-z_][A-Za-z0-9_]*=.*/u.test(words[0] ?? '')) {
     assignmentPrefixes.push(words.shift());
@@ -899,14 +863,6 @@ const classifyNetworkCommand = (
     return assignmentPrefixes.length === 0 && isSafeNpmProbeCommand(words)
       ? 'not-observed'
       : 'observed';
-  if (
-    executable === 'curl' &&
-    canUseLocalProbe &&
-    assignmentPrefixes.length === 0 &&
-    isSafeRuntimeCompatibilityProbeCommand(words, localProbeKind)
-  ) {
-    return 'not-observed';
-  }
   if (NETWORK_EXECUTABLES.has(executable)) return 'observed';
   if (
     executable === 'node' &&
@@ -1014,7 +970,7 @@ const classifyUntokenizedSensitiveAccess = (source) => {
 };
 
 /** Classifies one complete command without retaining its content. */
-const classifyCommand = (command, localProbeKind) => {
+const classifyCommand = (command) => {
   if (Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
     return {
       moldeaCommandCount: 0,
@@ -1040,12 +996,10 @@ const classifyCommand = (command, localProbeKind) => {
     };
   }
   const sensitiveClassification = classifyDecodedSensitiveAccess(commands);
-  const canUseLocalProbe =
-    commands.length === 1 && commandWithoutSafeRedirections === directCommand;
   const canUseLocalSkillOperation =
     commands.length === 1 && commandWithoutSafeRedirections === directCommand;
   const networkClassifications = commands.map((words) =>
-    classifyNetworkCommand([...words], localProbeKind, canUseLocalProbe, canUseLocalSkillOperation),
+    classifyNetworkCommand([...words], canUseLocalSkillOperation),
   );
   const networkAccess = networkClassifications.includes('observed')
     ? 'observed'
@@ -1319,21 +1273,11 @@ export const hasPassingCodexEvaluationCommandPolicy = (evidence) => {
 /**
  * Projects Codex JSONL into bounded execution facts and discards raw commands and output.
  * @param source The complete successful Codex JSONL stream.
- * @param options Optional evaluator-owned local probe capability.
  * @returns Safe projected events, token usage, and command-policy evidence.
  * @throws If the stream or a completed command event has an unsupported shape.
  */
-export const projectCodexEvaluationExecutionEvidence = (source, options = {}) => {
+export const projectCodexEvaluationExecutionEvidence = (source) => {
   if (typeof source !== 'string') throw new TypeError('Codex execution evidence must be JSONL.');
-  if (
-    !isPlainRecord(options) ||
-    Object.keys(options).some((key) => key !== 'localProbeKind') ||
-    (options.localProbeKind !== undefined &&
-      !Object.values(CODEX_EVALUATION_LOCAL_PROBE_KINDS).includes(options.localProbeKind))
-  ) {
-    throw new TypeError('Codex execution evidence options contain an unsupported local probe.');
-  }
-  const localProbeKind = options.localProbeKind ?? null;
   const projectedEvents = [];
   const classifications = [];
   let credentialExposureCount = 0;
@@ -1380,7 +1324,7 @@ export const projectCodexEvaluationExecutionEvidence = (source, options = {}) =>
       throw new Error('Codex execution evidence exceeded its completed-command limit.');
     }
 
-    const classification = classifyCommand(event.item.command, localProbeKind);
+    const classification = classifyCommand(event.item.command);
     const outputByteCount = Buffer.byteLength(event.item.aggregated_output, 'utf8');
     maximumCommandOutputByteCount = Math.max(maximumCommandOutputByteCount, outputByteCount);
     modelVisibleToolOutputByteCount += outputByteCount;

@@ -1,7 +1,7 @@
-import { lstat, readFile, realpath } from 'node:fs/promises';
+import { lstat, realpath } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { isAbsolute, join, relative, sep } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { isPathWithin, readRepositoryFile } from './repository-files.mjs';
 
 // package identities accepted by this portable skill release
 export const EXPECTED_CLI_RANGE = '^8.0.0';
@@ -60,29 +60,9 @@ export const isSupportedCliDeclaration = (declaration, installedVersion) => {
   );
 };
 
-/** Returns whether a resolved path remains inside the trusted root. */
-export const isPathWithin = (trustedRoot, candidatePath) => {
-  const relativePath = relative(trustedRoot, candidatePath);
-
-  return (
-    relativePath === '' ||
-    (!relativePath.startsWith(`..${sep}`) && relativePath !== '..' && !isAbsolute(relativePath))
-  );
-};
-
 /** Reads one bounded regular JSON object without following a file-level symbolic link. */
-export const readBoundedJsonObject = async (filePath) => {
-  const fileStat = await lstat(filePath);
-
-  if (!fileStat.isFile() || fileStat.size > MAXIMUM_PACKAGE_MANIFEST_BYTES) {
-    throw new Error('Package metadata is not a bounded regular file.');
-  }
-
-  const bytes = await readFile(filePath);
-
-  if (bytes.byteLength > MAXIMUM_PACKAGE_MANIFEST_BYTES) {
-    throw new Error('Package metadata exceeds its byte limit.');
-  }
+const readBoundedJsonObject = async (repositoryRoot, filePath) => {
+  const bytes = await readRepositoryFile(repositoryRoot, filePath, MAXIMUM_PACKAGE_MANIFEST_BYTES);
 
   const parsed = JSON.parse(utf8Decoder.decode(bytes));
 
@@ -106,16 +86,25 @@ export const resolveRepositoryCli = async (repositoryRoot) => {
     throw new Error('The repository root must be a directory.');
   }
 
-  const projectManifest = await readBoundedJsonObject(join(resolvedRepositoryRoot, 'package.json'));
+  const projectManifest = await readBoundedJsonObject(
+    resolvedRepositoryRoot,
+    join(resolvedRepositoryRoot, 'package.json'),
+  );
   const declaredCliRange = projectManifest.devDependencies?.['@moldea.ai/cli'];
   const nodeModulesRoot = await realpath(join(resolvedRepositoryRoot, 'node_modules'));
+  if (
+    nodeModulesRoot === resolvedRepositoryRoot ||
+    !isPathWithin(resolvedRepositoryRoot, nodeModulesRoot)
+  ) {
+    throw new Error('The dependency directory escaped the repository.');
+  }
   const cliRoot = await realpath(join(nodeModulesRoot, '@moldea.ai', 'cli'));
 
   if (!isPathWithin(nodeModulesRoot, cliRoot)) {
     throw new Error('The CLI package escaped repository dependencies.');
   }
 
-  const cliManifest = await readBoundedJsonObject(join(cliRoot, 'package.json'));
+  const cliManifest = await readBoundedJsonObject(cliRoot, join(cliRoot, 'package.json'));
   const cliBinaryDeclaration = cliManifest.bin?.moldea;
 
   if (
@@ -131,18 +120,21 @@ export const resolveRepositoryCli = async (repositoryRoot) => {
 
   if (
     !isPathWithin(cliRoot, cliBinaryPath) ||
+    !(await lstat(cliBinaryPath)).isFile() ||
     relative(cliRoot, cliBinaryPath).split(sep).join('/') !== 'dist/moldea.js'
   ) {
     throw new Error('The CLI executable escaped its package.');
   }
 
-  return {
+  const resolvedCli = {
     cliBinaryPath,
     cliRoot,
     cliVersion: cliManifest.version,
     nodeModulesRoot,
     repositoryRoot: resolvedRepositoryRoot,
   };
+  await validateRepositoryCore(resolvedCli);
+  return resolvedCli;
 };
 
 /** Returns the first Core package visible to the CLI inside repository dependencies. */
@@ -180,20 +172,20 @@ const resolveRepositoryCoreRoot = async (resolvedCli) => {
   throw new Error('The repository-local Core package could not be resolved.');
 };
 
-/** Loads the repository-root Core implementation declared by the validated CLI closure. */
-export const loadRepositoryCore = async (repositoryRoot) => {
-  const resolvedCli = await resolveRepositoryCli(repositoryRoot);
+/** Validates the CLI's Core dependency from inert metadata without executing it. */
+const validateRepositoryCore = async (resolvedCli) => {
   const coreRoot = await resolveRepositoryCoreRoot(resolvedCli);
   const coreEntry = await realpath(join(coreRoot, 'dist', 'index.js'));
 
   if (
     !isPathWithin(resolvedCli.nodeModulesRoot, coreRoot) ||
+    !(await lstat(coreEntry)).isFile() ||
     relative(coreRoot, coreEntry).split(sep).join('/') !== 'dist/index.js'
   ) {
     throw new Error('The Core entry escaped repository dependencies.');
   }
 
-  const coreManifest = await readBoundedJsonObject(join(coreRoot, 'package.json'));
+  const coreManifest = await readBoundedJsonObject(coreRoot, join(coreRoot, 'package.json'));
 
   if (
     coreManifest.name !== '@moldea.ai/core' ||
@@ -201,12 +193,4 @@ export const loadRepositoryCore = async (repositoryRoot) => {
   ) {
     throw new Error('The repository has an unsupported Core package.');
   }
-
-  const coreModule = await import(pathToFileURL(coreEntry).href);
-
-  if (typeof coreModule.createCore !== 'function') {
-    throw new Error('The Core package has an invalid public entry.');
-  }
-
-  return coreModule.createCore();
 };

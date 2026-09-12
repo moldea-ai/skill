@@ -4,13 +4,15 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, test } from 'vitest';
 
+import { CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 } from '../../../../tooling/codex-evaluation-host/index.mjs';
+
 import { loadReleaseEvidenceWebsiteState } from './loader.ts';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 
 describe('loadReleaseEvidenceWebsiteState', () => {
   test('hydrates complete authenticated semantic and qualification models', () => {
-    const state = loadReleaseEvidenceWebsiteState(REPOSITORY_ROOT, '5.0.3');
+    const state = loadReleaseEvidenceWebsiteState(REPOSITORY_ROOT, '5.0.4');
 
     expect(state.releaseEvidence.mode).toBe('recorded');
     if (state.releaseEvidence.mode !== 'recorded') {
@@ -34,10 +36,21 @@ describe('loadReleaseEvidenceWebsiteState', () => {
       '/c3416c52ae69a3f26d2e38c07ba98aa8531e358d/',
     );
     expect(state.pinnedSemantic?.attempts).toHaveLength(1);
+    expect(
+      state.pinnedSemantic?.currentAssurance?.result.hostContract.actor.developerInstructionsSha256,
+    ).not.toBe(CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256);
     expect(state.pinnedSemantic?.currentAssurance?.cases).toHaveLength(74);
     expect(
-      state.pinnedSemantic?.groups.find(({ id }) => id === 'source-contract')?.cases,
-    ).toHaveLength(2);
+      state.pinnedSemantic?.groups
+        .find(({ id }) => id === 'source-contract')
+        ?.cases.map(({ id }) => id),
+    ).toStrictEqual([
+      'runtime-publication-unavailable',
+      'runtime-publication-malformed',
+      'installed-adapter-without-published-target',
+      'published-supported-target-not-installed',
+      'experimental-target-not-production-ready',
+    ]);
     expect(state.pinnedSemantic?.currentAssurance?.rawAttemptUrl).toContain(
       '/926907e26feac6a55929f68ca134aeaf41a6a4b5/',
     );

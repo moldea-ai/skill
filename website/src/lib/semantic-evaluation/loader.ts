@@ -66,7 +66,7 @@ const createAuthenticatedSemanticCaseSuiteDigest = (
       .sort(({ id: left }, { id: right }) => left.localeCompare(right, 'en')),
   );
 
-const isCurrentSemanticHost = (
+const matchesSemanticHostContract = (
   host: {
     developerInstructionsSha256: string;
     model: string;
@@ -75,16 +75,13 @@ const isCurrentSemanticHost = (
     role: string;
     version?: string;
   },
-  role: 'actor' | 'judge',
+  expected: ISemanticAttemptRecord['hostContract']['actor' | 'judge'],
 ): boolean =>
-  host.developerInstructionsSha256 === CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256 &&
-  host.model === CODEX_EVALUATION_MODEL &&
-  host.name === 'codex' &&
-  host.role === role &&
-  host.reasoningEffort ===
-    (role === 'actor'
-      ? CODEX_EVALUATION_ACTOR_REASONING_EFFORT
-      : CODEX_EVALUATION_JUDGE_REASONING_EFFORT) &&
+  host.developerInstructionsSha256 === expected.developerInstructionsSha256 &&
+  host.model === expected.model &&
+  host.name === expected.name &&
+  host.role === expected.role &&
+  host.reasoningEffort === expected.reasoningEffort &&
   (host.version === undefined ||
     (host.version.trim().length > 0 && host.version !== 'unavailable'));
 
@@ -178,13 +175,33 @@ const hasCurrentAttemptIdentity = (
     !hasCurrentAttemptContract(attempt, caseDefinitions, coverage, isAuthenticatedSource) ||
     attempt.artifactDigest !== createPortableSkillDigest(repositoryRoot) ||
     JSON.stringify(attempt.cli) !== JSON.stringify(createSemanticCliIdentity(repositoryRoot));
+  // authenticated pins retain their source host contract, not today's evaluator policy
+  const expectedHosts: ISemanticAttemptRecord['hostContract'] = isAuthenticatedSource
+    ? attempt.hostContract
+    : {
+        actor: {
+          developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
+          model: CODEX_EVALUATION_MODEL,
+          name: 'codex',
+          reasoningEffort: CODEX_EVALUATION_ACTOR_REASONING_EFFORT,
+          role: 'actor',
+        },
+        judge: {
+          developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
+          model: CODEX_EVALUATION_MODEL,
+          name: 'codex',
+          reasoningEffort: CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
+          role: 'judge',
+        },
+      };
   const hasCurrentHosts =
-    isCurrentSemanticHost(attempt.hostContract.actor, 'actor') &&
-    isCurrentSemanticHost(attempt.hostContract.judge, 'judge') &&
+    matchesSemanticHostContract(attempt.hostContract.actor, expectedHosts.actor) &&
+    matchesSemanticHostContract(attempt.hostContract.judge, expectedHosts.judge) &&
     attempt.cases.every(({ trials }) =>
       trials.every(
         ({ actorHost, judgeHost }) =>
-          isCurrentSemanticHost(actorHost, 'actor') && isCurrentSemanticHost(judgeHost, 'judge'),
+          matchesSemanticHostContract(actorHost, expectedHosts.actor) &&
+          matchesSemanticHostContract(judgeHost, expectedHosts.judge),
       ),
     );
   return !hasInputMismatch && hasCurrentHosts;

@@ -155,18 +155,6 @@ export interface ISemanticRepositoryEvidenceDeclaration {
   source: ISemanticRepositoryEvidenceSource;
 }
 
-/** Declares one evaluator-owned local capability and its case-specific behavior. */
-export interface ISemanticLocalProbe {
-  kind: 'runtime-compatibility-publication';
-  variant:
-    | 'current-target'
-    | 'future-target'
-    | 'malformed'
-    | 'missing-current-target'
-    | 'unavailable'
-    | 'version-mismatched-current-target';
-}
-
 export interface ISemanticCaseDefinition {
   expected: ISemanticCriterion[];
   forbidden: ISemanticCriterion[];
@@ -176,7 +164,6 @@ export interface ISemanticCaseDefinition {
     developerDirection: string;
     repositoryEvidence: ISemanticRepositoryEvidenceDeclaration[];
   };
-  localProbe?: ISemanticLocalProbe;
   operation: string;
   resourceBudget: IMoldeaResourceBudget;
   scenario: string;

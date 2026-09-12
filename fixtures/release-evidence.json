@@ -1,7 +1,7 @@
 {
   "qualification": {
     "mode": "pinned",
-    "reason": "Release 5.0.3 changes only authenticated evidence hydration, cross-platform qualification identity, public presentation, navigation, release tooling, and directly affected documentation; normalized portable skill behavior is unchanged. Unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate these website, qualification-identity, and release-tooling changes.",
+    "reason": "Release 5.0.4 bundles the locked Core matcher for relevance, removes pre-activation dependency execution, bounds repository reads and CLI containment, and replaces compatibility web lookup with installed-adapter evidence. Current fixtures and both harness policies remove compatibility-network exemptions. Pinned website rendering compares authenticated attempts with their original host contracts. Deterministic gate, launcher, real local Eve, harness, pin-authentication and website regression checks cover these corrections. Prior model runs did not evaluate these changes; no new semantic evaluation or adapter qualification was run.",
     "source": {
       "commit": "c3416c52ae69a3f26d2e38c07ba98aa8531e358d",
       "evidence": {
@@ -158,7 +158,7 @@
   "schemaVersion": 2,
   "semantic": {
     "mode": "pinned",
-    "reason": "Release 5.0.3 changes only authenticated evidence hydration, cross-platform qualification identity, public presentation, navigation, release tooling, and directly affected documentation; normalized portable skill behavior is unchanged. Unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate these website, qualification-identity, and release-tooling changes.",
+    "reason": "Release 5.0.4 bundles the locked Core matcher for relevance, removes pre-activation dependency execution, bounds repository reads and CLI containment, and replaces compatibility web lookup with installed-adapter evidence. Current fixtures and both harness policies remove compatibility-network exemptions. Pinned website rendering compares authenticated attempts with their original host contracts. Deterministic gate, launcher, real local Eve, harness, pin-authentication and website regression checks cover these corrections. Prior model runs did not evaluate these changes; no new semantic evaluation or adapter qualification was run.",
     "source": {
       "commit": "926907e26feac6a55929f68ca134aeaf41a6a4b5",
       "evidence": {
@@ -176,8 +176,8 @@
     }
   },
   "target": {
-    "dependencyClosureSha256": "1d1872be76cb0c96b8366798de85de77f5ffdf519e4504a56f0ec1eef400c190",
-    "portableSkillSha256": "d4e6fab900ac00272505ef602f0e88cb0de7ce826906a103f0949ff5091ef0d9",
-    "version": "5.0.3"
+    "dependencyClosureSha256": "2f6bed77bd9900c64bc052bc18dd7b7c3834ee69173c7fcce53801c5445c7a2d",
+    "portableSkillSha256": "fb4d1df806e45ef7d656d9206635b92d9c95f712e16af318db6aaefa2917e171",
+    "version": "5.0.4"
   }
 }

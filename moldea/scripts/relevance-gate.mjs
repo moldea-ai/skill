@@ -1,47 +1,34 @@
 #!/usr/bin/env node
 
-import { lstat, readFile } from 'node:fs/promises';
+import { realpath } from 'node:fs/promises';
 import { isAbsolute, join, resolve } from 'node:path';
 
 import { hasCanonicalManagedReadmeBlock } from './managed-readme.mjs';
-import { loadRepositoryCore } from './repository-package.mjs';
+import { matchManifestScope } from './manifest-scope.cjs';
+import { readRepositoryFile, resolveRepositoryFile } from './repository-files.mjs';
 
 const MAX_MANIFEST_BYTES = 2_097_152;
 const MAX_PATH_INPUT_BYTES = 2_097_152;
 const MAX_README_BYTES = 2_097_152;
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
 
-/** Verifies one bounded regular file without reading its content. */
-const assertBoundedRegularFile = async (filePath, maximumBytes) => {
-  const fileStat = await lstat(filePath);
-
-  if (!fileStat.isFile() || fileStat.size > maximumBytes) {
-    throw new Error('invalid file');
-  }
-};
-
-/** Reads one bounded regular file without following a file-level symbolic link. */
-const readBoundedRegularFile = async (filePath, maximumBytes) => {
-  await assertBoundedRegularFile(filePath, maximumBytes);
-
-  const bytes = await readFile(filePath);
-
-  if (bytes.byteLength > maximumBytes) {
-    throw new Error('invalid file');
-  }
-
-  return bytes;
-};
-
 /** Checks the complete repository-adoption marker contract. */
 const hasInitializedProject = async (repositoryRoot) => {
   await Promise.all([
-    assertBoundedRegularFile(join(repositoryRoot, 'moldea', 'moldea.yaml'), MAX_MANIFEST_BYTES),
-    assertBoundedRegularFile(join(repositoryRoot, 'moldea', 'project.md'), MAX_README_BYTES),
+    resolveRepositoryFile(
+      repositoryRoot,
+      join(repositoryRoot, 'moldea', 'moldea.yaml'),
+      MAX_MANIFEST_BYTES,
+    ),
+    resolveRepositoryFile(
+      repositoryRoot,
+      join(repositoryRoot, 'moldea', 'project.md'),
+      MAX_README_BYTES,
+    ),
   ]);
 
   return hasCanonicalManagedReadmeBlock(
-    await readBoundedRegularFile(join(repositoryRoot, 'README.md'), MAX_README_BYTES),
+    await readRepositoryFile(repositoryRoot, join(repositoryRoot, 'README.md'), MAX_README_BYTES),
   );
 };
 
@@ -103,22 +90,26 @@ const parseArguments = () => {
 
 /** Evaluates adoption and, when requested, manifest relationship relevance. */
 const evaluateGate = async () => {
-  const { isAdoptionOnly, repositoryRoot } = parseArguments();
+  const parsed = parseArguments();
+  const repositoryRoot = await realpath(parsed.repositoryRoot);
 
   if (!(await hasInitializedProject(repositoryRoot))) {
     return false;
   }
 
-  if (isAdoptionOnly) {
+  if (parsed.isAdoptionOnly) {
     return true;
   }
 
-  const [core, manifest, paths] = await Promise.all([
-    loadRepositoryCore(repositoryRoot),
-    readBoundedRegularFile(join(repositoryRoot, 'moldea', 'moldea.yaml'), MAX_MANIFEST_BYTES),
+  const [manifest, paths] = await Promise.all([
+    readRepositoryFile(
+      repositoryRoot,
+      join(repositoryRoot, 'moldea', 'moldea.yaml'),
+      MAX_MANIFEST_BYTES,
+    ),
     readPathInput(),
   ]);
-  const result = await core.matchManifestScope({
+  const result = await matchManifestScope({
     manifest: { content: manifest, path: '/moldea/moldea.yaml' },
     paths,
   });

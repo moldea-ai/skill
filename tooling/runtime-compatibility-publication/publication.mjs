@@ -70,7 +70,7 @@ const hasValidAdapter = (input) => {
 };
 
 /**
- * Validates the technical packages-publication fields consumed by the skill.
+ * Validates technical packages-publication fields for release-candidate tooling.
  * @param input The untrusted parsed publication value.
  * @returns The validated publication value.
  * @throws

@@ -44,12 +44,12 @@ Always state the consumer-purpose classification, including when dynamic wiring 
 
 ## Select the runtime honestly
 
-Every registered agent declares one `runtime.id`. Use `composition --json` when installed adapter inventory matters. Load `runtime-compatibility.md` when published technical-target compatibility matters. Complete this gate before editing runtime state:
+Every registered agent declares one `runtime.id`. Use `composition --json` when installed adapter inventory matters. Load `runtime-compatibility.md` when local adapter eligibility or source-pattern compatibility matters. Complete this gate before editing runtime state:
 
 1. Establish authorized repository scope and state. Inspect identified related repositories as read-only evidence.
 2. Identify the primary model-invocation boundary and applicable instruction loading, capabilities, schemas, routing, and variables.
 3. Inventory external capabilities and classify them as model-visible, integration-only, or qualifying local implementation.
-4. Select the highest-level locally available official adapter with a matching published technical target established for the repository. Use a provider ID only when its SDK is primary, and `custom` only when independent layers govern without an official match. Clarify an unknown runtime.
+4. Select the highest-level locally available official adapter whose local contract and inspected source match the repository. Use a provider ID only when its SDK is primary, and `custom` only when independent layers govern without an official match. Clarify an unknown runtime.
 5. Map model-visible behavior to canonical instructions, project-specific integration behavior to runtime guidance, and only qualifying local implementation to the manifest. Provider hosting or correct runtime identity never replaces model-visible semantics.
 6. Without behavioral evidence, preserve the runtime and map every material unknown invocation, instruction-loading, capability, schema, routing, or variable fact to its smallest reliable resolving artifact, established owner, and required proof. Never invent a path, identity, or owner.
 7. Reconcile runtime identity and semantic surfaces together. Update every affected surface as one coherent change. A `runtime.id`-only edit is incomplete when reliable evidence establishes model-visible or project-specific integration behavior.
@@ -61,7 +61,7 @@ Before a runtime write, retain a checklist of every externally evidenced model-v
 
 If the required adapter is absent from this release, report a tooling prerequisite and stop without selecting another CLI version or replacement runtime. Composition establishes availability, not integration identity, target support, package eligibility, or repository fit.
 
-Create runtime guidance only for material project-specific behavior or limitations. Optional manifest syntax is not a Core error. Do not infer compatibility from package names, composition, or general knowledge, dynamically install adapters, or claim behavioral support without a validated published target and repository evidence. Source-owned target documentation, closed wiring, provider configuration, or integration tests may resolve an evidence gap; evaluation remains incomplete without a resolver.
+Create runtime guidance only for material project-specific behavior or limitations. Optional manifest syntax is not a Core error. Do not infer compatibility from package names, composition, or general knowledge, dynamically install adapters, or claim behavioral support without local adapter and repository evidence. Source-owned target documentation, closed wiring, provider configuration, or integration tests may resolve an evidence gap; evaluation remains incomplete without a resolver.
 
 ## Register real relationships
 

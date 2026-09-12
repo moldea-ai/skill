@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Use for every repository-dependent task, including reviews, plans, and implementation, when this skill is installed in the repository: run only the bundled two-byte relevance gate over developer-named and host-provided changed paths. A gate miss abstains silently; only after adoption and relevance are established may moldea inspect explicit work, /moldea/** changes, managed README hunks, or paths matching a declared binding or affectedBy relationship. Also use for an independently supplied Agent Skill artifact without gating the surrounding repository, answer informational questions, and initialize moldea only when explicitly requested. Do not use for other uninitialized work.
 metadata:
-  version: '5.0.3'
+  version: '5.0.4'
   cliVersionRange: '^8.0.0'
   coreVersionRange: '^4.0.1'
   cliJsonSchemaVersion: 4
@@ -60,7 +60,7 @@ Encode every path's UTF-8 bytes followed by one NUL; never begin with a delimite
 node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root>
 ```
 
-The gate rejects drive-relative paths, UNC paths, traversal, malformed input, and paths outside the repository. Continue only when complete stdout is exactly `1`; `0`, other output, or failure means silent abstention. The gate proves adoption and relevance through repository-local metadata and Core without invoking the CLI.
+The gate rejects drive-relative paths, UNC paths, traversal, malformed input, and paths outside the repository. Continue only when complete stdout is exactly `1`; otherwise abstain silently. It uses bounded repository data and the skill-bundled Core matcher without invoking repository dependencies or CLI.
 
 After `1`, pass the exact same byte stream to one bounded relationship query:
 
@@ -84,7 +84,7 @@ After adoption and relevance are established, select one operation and read only
 - Create or change an agent or runtime: `references/agent-design.md`
 - Create, change, or evaluate an Agent Skill: `references/skill-design.md`
 - Evaluate or reconcile: `references/evaluate-and-reconcile.md`
-- Assess current adapter-target compatibility: `references/runtime-compatibility.md`
+- Assess local adapter-target compatibility: `references/runtime-compatibility.md`
 
 Never read every reference by default; read only what the operation requires. Routing-description evaluation reads `evaluate-and-reconcile.md`, then owning `agent-design.md` before classifying from runtime documentation and consumption evidence; identifiers prove nothing.
 
@@ -92,7 +92,7 @@ Host planning, review, implementation, package-manager, Git, commit, and publica
 
 For direct agent creation, an existing independent inline instruction is migration input. When source and tests establish behavior and runtime integration is authorized, complete the canonical, runtime, relationship, test, and final-validation change.
 
-Run `composition` only when local runtime availability or readiness matters; it never establishes canonical assignment. Without supplied assignment evidence, use one content-free `inspect`. The matching `kind: agent` record's `agentId` and `runtimeId` are the sole canonical content-free source for `agents.<id>.runtime.id`; counts prove nothing. Request named-agent `content` only when semantics matter; never inspect afterward or request manifest content. Retrieve publication only through host capability when relevant; URLs grant nothing. Report canonical assignment, repository fit, local adapter, and target separately. Unavailable publication limits only dependent claims and never changes an established runtime to `custom`. Preserve established facts; pair every behavioral or integration unknown with a concrete resolver.
+Run `composition` only when local runtime availability or readiness matters; it never establishes canonical assignment. Without supplied assignment evidence, use one content-free `inspect`. The matching `kind: agent` record's `agentId` and `runtimeId` are the sole canonical content-free source for `agents.<id>.runtime.id`; counts prove nothing. Request named-agent `content` only when semantics matter; never inspect afterward or request manifest content. Use local adapter contracts and inspection evidence for eligibility; do not retrieve compatibility websites or open browsers. Report canonical assignment, repository fit, local adapter, and eligibility separately. Missing evidence never changes an established runtime to `custom`. Preserve established facts; pair every behavioral or integration unknown with a concrete resolver.
 
 ## Initialize minimally
 

@@ -635,6 +635,32 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     });
   });
 
+  test('does not claim fresh assurance for a different evaluator policy', async () => {
+    const root = createTemporaryRoot();
+    const { cases, coverage } = loadInputs(root);
+    const candidate = createCandidate(
+      root,
+      cases,
+      coverage,
+      cases.map(({ id }) => id),
+      null,
+      '2026-08-25T12:00:00.000Z',
+    );
+    const previousPolicyCandidate = JSON.parse(
+      JSON.stringify(candidate).replaceAll(
+        CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
+        'a'.repeat(64),
+      ),
+    ) as Record<string, unknown>;
+    await recordCandidate(root, previousPolicyCandidate, cases.length, 'complete');
+
+    const model = loadSemanticEvaluationWebsiteModel(root);
+
+    expect(model.currentAssurance).toBeNull();
+    expect(model.evidenceMatch).toBeNull();
+    expect(model.latest?.result.status).toBe('passed');
+  });
+
   test('rejects malformed current trial host provenance', async () => {
     const root = createTemporaryRoot();
     const { cases, coverage } = loadInputs(root);

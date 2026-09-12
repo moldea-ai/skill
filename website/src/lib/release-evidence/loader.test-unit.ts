@@ -127,5 +127,9 @@ describe('loadReleaseEvidenceModel', () => {
     expect(() => loadReleaseEvidenceModel(releaseRoot, '6.0.0')).toThrow(
       'Public release evidence does not match the current skill version.',
     );
+    writeFileSync(join(releaseRoot, 'moldea', 'SKILL.md'), '# drifted test skill\n', 'utf8');
+    expect(() => loadReleaseEvidenceModel(releaseRoot, '5.0.0')).toThrow(
+      'Public release evidence does not match the current portable skill bytes.',
+    );
   });
 });

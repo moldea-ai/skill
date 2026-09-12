@@ -10,7 +10,6 @@ import { test } from 'node:test';
 import { createQualificationAttemptKey } from '../../qualification/src/storage/index.ts';
 import { recordQualificationResult } from '../../qualification/src/result/index.ts';
 import { seedPassingQualificationEvidenceFixture } from '../../qualification/vitest/evidence-fixture.ts';
-import { loadReleaseEvidenceModel } from '../../website/src/lib/release-evidence/index.ts';
 import {
   createPortableSkillDigest,
   createSemanticCaseSuiteDigest,
@@ -330,7 +329,7 @@ test('records deterministic fresh evidence only after its verifier passes', asyn
   }
 });
 
-test('represents commit-pinned semantic evidence beside fresh qualification evidence', async () => {
+test('records commit-pinned semantic evidence beside fresh qualification evidence', async () => {
   const root = await createRepository();
   try {
     const sourceCommit = runGit(root, 'rev-parse', 'HEAD');
@@ -360,40 +359,6 @@ test('represents commit-pinned semantic evidence beside fresh qualification evid
     assert.equal(envelope.semantic.source.commit, sourceCommit);
     assert.equal(envelope.semantic.source.tag, null);
     assert.equal(envelope.qualification.mode, 'fresh');
-    assert.deepEqual(loadReleaseEvidenceModel(root, '6.0.0'), {
-      mode: 'recorded',
-      qualification: {
-        mode: 'fresh',
-        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
-      },
-      semantic: {
-        attempt: {
-          artifactDigest: envelope.semantic.source.portableSkillSha256,
-          attemptId: envelope.semantic.source.evidence.attemptId,
-          createdAt: '2026-09-05T00:00:00.000Z',
-          failedCaseCount: 0,
-          passedCaseCount: 1,
-          pendingCaseCount: 0,
-          recoveredCaseCount: 0,
-          status: 'passed',
-          totalCaseCount: 1,
-          updatedAt: '2026-09-05T00:00:00.000Z',
-        },
-        mode: 'pinned',
-        reason: 'The target changes release tooling without changing evaluated behavior.',
-        sourceAttemptUrl: `https://github.com/moldea-ai/skill/blob/${sourceCommit}/fixtures/semantic-evaluation-results/attempts/${envelope.semantic.source.evidence.attemptId}/attempt.json`,
-        sourceCommit,
-        sourceLabel: sourceCommit.slice(0, 12),
-        sourceUrl: `https://github.com/moldea-ai/skill/tree/${sourceCommit}`,
-      },
-      targetVersion: '6.0.0',
-    });
-    writeText(root, 'moldea/SKILL.md', '# drifted target skill\n');
-    assert.throws(
-      () => loadReleaseEvidenceModel(root, '6.0.0'),
-      /does not match the current portable skill bytes/,
-    );
-    writeText(root, 'moldea/SKILL.md', '# fixture skill 6.0.0\n');
     let currentVerifierCalled = false;
     await assert.rejects(
       recordFreshReleaseEvidence(root, {
@@ -433,17 +398,16 @@ test('flattens tagged pinned sections to their original source', async () => {
     assert.equal(envelope.qualification.source.tag, 'v5.0.0');
     const sourceCommit = runGit(root, 'rev-parse', 'v5.0.0^{commit}');
     assert.equal(envelope.semantic.source.commit, sourceCommit);
-    const model = loadReleaseEvidenceModel(root, '9.0.0');
-    assert.equal(model.mode, 'recorded');
-    assert.deepEqual(model.qualification.targets, [
+    assert.deepEqual(envelope.qualification.source.evidence.targets, [
       {
         adapterId: 'custom',
         attemptId: 'qualification-attempt',
-        completedAt: '2026-08-20T10:01:00.000Z',
-        createdAt: '2026-08-20T10:00:00.000Z',
         implementationId: 'custom',
-        packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
-        sourceAttemptUrl: `https://github.com/moldea-ai/skill/blob/${sourceCommit}/qualification/results/t1/attempts/${createQualificationAttemptKey('qualification-attempt')}/attempt.json`,
+        key: 't1',
+        attemptKey: createQualificationAttemptKey('qualification-attempt'),
+        attemptSha256: envelope.qualification.source.evidence.targets[0].attemptSha256,
+        latestSha256: envelope.qualification.source.evidence.targets[0].latestSha256,
+        storageSha256: envelope.qualification.source.evidence.targets[0].storageSha256,
       },
     ]);
   } finally {

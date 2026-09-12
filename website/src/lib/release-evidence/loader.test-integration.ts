@@ -13,6 +13,26 @@ describe('loadReleaseEvidenceWebsiteState', () => {
     const state = loadReleaseEvidenceWebsiteState(REPOSITORY_ROOT, '5.0.3');
 
     expect(state.releaseEvidence.mode).toBe('recorded');
+    if (state.releaseEvidence.mode !== 'recorded') {
+      throw new Error('The committed release fixture must select recorded evidence.');
+    }
+    expect(state.releaseEvidence.semantic).toMatchObject({
+      mode: 'pinned',
+      sourceCommit: '926907e26feac6a55929f68ca134aeaf41a6a4b5',
+      sourceLabel: '926907e26fea',
+    });
+    expect(state.releaseEvidence.qualification).toMatchObject({
+      mode: 'pinned',
+      sourceCommit: 'c3416c52ae69a3f26d2e38c07ba98aa8531e358d',
+      sourceLabel: 'v5.0.0',
+    });
+    if (state.releaseEvidence.qualification.mode !== 'pinned') {
+      throw new Error('The committed release fixture must select pinned qualification evidence.');
+    }
+    expect(state.releaseEvidence.qualification.targets).toHaveLength(14);
+    expect(state.releaseEvidence.qualification.targets[0]?.sourceAttemptUrl).toContain(
+      '/c3416c52ae69a3f26d2e38c07ba98aa8531e358d/',
+    );
     expect(state.pinnedSemantic?.attempts).toHaveLength(1);
     expect(state.pinnedSemantic?.currentAssurance?.cases).toHaveLength(74);
     expect(

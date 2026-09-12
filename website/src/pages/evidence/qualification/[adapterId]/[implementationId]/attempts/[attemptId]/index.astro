@@ -198,7 +198,7 @@ const evidenceSourceLabel = 'Current evidence';
           Attempt coverage, provenance, and raw artifacts
         </summary>
 
-        <div class="mt-6 grid gap-7 border-t border-border pt-6">
+        <div class="mt-6 grid min-w-0 gap-7 border-t border-border pt-6">
           <section aria-labelledby="attempt-coverage-title">
             <div class="flex flex-wrap items-center gap-3">
               <h2
@@ -241,7 +241,10 @@ const evidenceSourceLabel = 'Current evidence';
             </dl>
           </section>
 
-          <section aria-labelledby="attempt-provenance-title">
+          <section
+            class="min-w-0"
+            aria-labelledby="attempt-provenance-title"
+          >
             <h2
               id="attempt-provenance-title"
               class="text-xl font-semibold"
@@ -283,7 +286,55 @@ const evidenceSourceLabel = 'Current evidence';
                 <dt class="text-muted-foreground">Assurance generation</dt>
                 <dd class="mt-1">Current Sol</dd>
               </div>
+              <div>
+                <dt class="text-muted-foreground">Started</dt>
+                <dd class="mt-1">
+                  <time datetime={result.createdAt}>{result.createdAt}</time>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-muted-foreground">Completed</dt>
+                <dd class="mt-1">
+                  {
+                    result.completedAt === null ? (
+                      'Incomplete'
+                    ) : (
+                      <time datetime={result.completedAt}>{result.completedAt}</time>
+                    )
+                  }
+                </dd>
+              </div>
             </dl>
+            <h3 class="mt-6 font-semibold">Exact executed package closure</h3>
+            <div
+              class="table-scroll mt-3 w-full max-w-full min-w-0 overflow-x-auto rounded-lg border border-border"
+              tabindex="0"
+              role="region"
+              aria-label="Exact executed package closure"
+            >
+              <table class="w-full min-w-[24rem] border-collapse text-left text-sm">
+                <thead class="bg-muted">
+                  <tr>
+                    <th class="px-3 py-2 font-semibold">Package</th>
+                    <th class="px-3 py-2 font-semibold">Version</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                  {
+                    result.provenance.packages.map(({ name, version }) => (
+                      <tr>
+                        <td class="px-3 py-2">
+                          <code class="break-all">{name}</code>
+                        </td>
+                        <td class="px-3 py-2">
+                          <code class="break-all">{version}</code>
+                        </td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section aria-labelledby="attempt-stages-title">

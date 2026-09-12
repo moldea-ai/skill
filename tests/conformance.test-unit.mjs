@@ -579,6 +579,11 @@ describe('portable skill contract', () => {
     assert.match(contextGathering, /one ordinary host command cannot emit more than 65,536/u);
     assert.match(contextGathering, /same standalone launcher operation/u);
     assert.match(contextGathering, /Do not pipeline, wrap, parse, filter, aggregate, or script/u);
+    assert.match(contextGathering, /## Investigation order/u);
+    assert.doesNotMatch(contextGathering, /## Evidence hierarchy/u);
+    assert.match(contextGathering, /controls investigation cost, not claim authority/u);
+    assert.match(contextGathering, /current explicit developer selection/u);
+    assert.match(contextGathering, /Source type, list position, recency/u);
     const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
     assert.match(localTooling, /append `--cursor "<opaque-cursor>"`/u);
     assert.match(localTooling, /never claim completeness before the final raw envelope/u);
@@ -722,6 +727,9 @@ describe('portable skill contract', () => {
       join(SKILL_ROOT, 'references', 'agent-system-planning.md'),
       'utf8',
     );
+    assert.match(agentSystemPlanning, /Repository-dependent moldea planning requires an adopted repository/u);
+    assert.match(agentSystemPlanning, /host may still perform its own generic planning workflow independently/u);
+    assert.doesNotMatch(agentSystemPlanning, /Planning may precede adoption/u);
     assert.match(agentSystemPlanning, /Use only facts stated by the bounded source/u);
     assert.match(agentSystemPlanning, /Keep those dimensions as explicit evidence prerequisites/u);
     const runtime = readFileSync(
@@ -750,8 +758,12 @@ describe('portable skill contract', () => {
     assert.match(runtime, /package range excludes the repository's selected provider version/u);
     assert.match(
       runtime,
-      /matching local adapter, exact published target, and package compatibility separately/u,
+      /matching local adapter, exact published target, and package eligibility separately/u,
     );
+    assert.match(runtime, /best-effort eligibility gate, not a blanket compatibility promise/u);
+    assert.match(runtime, /lower bound records the verified minimum/u);
+    assert.match(runtime, /including later stable releases that were not themselves used in qualification/u);
+    assert.match(runtime, /Qualification proves only the exact package closure and verification date/u);
     assert.doesNotMatch(runtime, /maturity/iu);
     assert.match(runtime, /retain every independently evidenced model-visible capability/u);
     assert.doesNotMatch(runtime, /composition --json --max-output-bytes/u);

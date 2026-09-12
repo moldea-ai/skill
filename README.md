@@ -30,7 +30,7 @@ The skill helps a coding agent:
 - evaluate and reconcile established relationships
 - validate repository structure with the exact local CLI
 
-Ordinary engineering work remains ordinary engineering work. The skill abstains silently when a task does not concern `/moldea/**`, the managed README block, an exact declared binding, an `affectedBy` relationship, or an explicit `moldea` request.
+Ordinary engineering work remains ordinary engineering work. In an adopted repository, the skill abstains silently when a task does not concern `/moldea/**`, the managed README block, an exact declared binding, an `affectedBy` relationship, or an explicit `moldea` request. Before adoption, initialization is the only repository-dependent `moldea` operation; host-owned planning and engineering continue independently.
 
 Initialization uses the bundled deterministic writer to create one canonical managed README block. It tells repository-aware hosts to select the installed skill for its two-byte gate before ordinary repository work. This is a discovery bridge, not broad activation: a gate miss continues the host task without a CLI call, workflow-reference load, progress update, or final-report mention. The writer rejects unsafe README structures and preserves every byte outside the managed region.
 
@@ -64,6 +64,8 @@ Release `5.0.1` supports exactly:
 - CLI JSON schema 4
 
 The CLI must be a repository-root-local development dependency. Its manifest declaration and exact lockfile-selected stable version must satisfy the supported CLI 8 range. Every invocation goes through the installed skill's closed repository-local launcher. The skill never falls back to a global installation, another workspace, a package-manager launcher, or a transient download.
+
+Published runtime-target `versionRange` values are best-effort eligibility gates for deterministic source-pattern inspection, not blanket compatibility guarantees. Their lower bounds record verified minimums. Qualification evidence identifies the exact package closure and verification date that actually ran.
 
 Tooling establishment belongs only to write-capable `moldea` work. Read-only evaluation, validation, planning, and host-owned review workflows do not install dependencies or alter package-manager state.
 
@@ -106,6 +108,7 @@ The numeric profile is source-controlled in `tooling/resource-calibration/profil
 | Outcome          | Example request                                                  |
 | ---------------- | ---------------------------------------------------------------- |
 | Initialize       | `Initialize moldea for this repository.`                         |
+| Plan             | `Use moldea to plan an agent system for this adopted project.`   |
 | Create an agent  | `Create a support agent grounded in the current project policy.` |
 | Maintain context | `Update moldea context for the approved refund policy.`          |
 | Evaluate         | `Evaluate the current moldea project.`                           |

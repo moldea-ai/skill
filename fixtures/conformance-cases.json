@@ -647,7 +647,7 @@
       "scenario": "A host planning command concerns ordinary source in an unadopted repository.",
       "operation": "host-plan-command-precedence",
       "input": {
-        "developerDirection": "Plan a focused change that adds cache invalidation to src/cache.js. Do not implement it.",
+        "developerDirection": "Use moldea to plan a focused change that adds cache invalidation to src/cache.js. Do not implement it.",
         "repositoryEvidence": [
           {
             "claim": "The repository has ordinary source code.",
@@ -1922,7 +1922,7 @@
       "forbidden": [
         {
           "label": "choose-conflicting-context-owner",
-          "criterion": "The actor selects Finance or Customer Operations as current owner without developer clarification or reliable resolving evidence."
+          "criterion": "The actor selects Finance or Customer Operations as current owner without developer clarification or reliable independent resolving evidence, including by treating source type, list position, recency, formatting, specificity, canonical location, or inspection order as conflict precedence."
         },
         {
           "label": "merge-contradictory-current-claims",
@@ -3950,7 +3950,7 @@
       "expected": [
         {
           "label": "treat-inventory-as-availability-only",
-          "criterion": "The compact composition inventory is used only to establish adapter availability, not behavioral compatibility, published target compatibility, package ranges, provider limits, or supported patterns."
+          "criterion": "The compact composition inventory is used only to establish adapter availability, not behavioral compatibility, published target compatibility, package eligibility ranges, provider limits, or supported patterns."
         },
         {
           "label": "leave-runtime-selection-evidence-gated",
@@ -3984,7 +3984,7 @@
         },
         {
           "label": "invent-provider-limits-patterns-or-target-compatibility",
-          "criterion": "The plan invents provider limitations, supported patterns, package compatibility, or a published target that no reliable evidence establishes."
+          "criterion": "The plan invents provider limitations, supported patterns, package eligibility, or a published target that no reliable evidence establishes."
         },
         {
           "label": "install-or-change-cli",
@@ -4038,7 +4038,7 @@
       "expected": [
         {
           "label": "treat-inventory-as-availability-only",
-          "criterion": "The compact composition inventory is used only to establish adapter availability, not behavioral compatibility, published target compatibility, package ranges, provider limits, or supported patterns."
+          "criterion": "The compact composition inventory is used only to establish adapter availability, not behavioral compatibility, published target compatibility, package eligibility ranges, provider limits, or supported patterns."
         },
         {
           "label": "report-behavioral-evidence-limitation",
@@ -4064,7 +4064,7 @@
         },
         {
           "label": "claim-provider-limits-patterns-or-target-compatibility",
-          "criterion": "The actor asserts provider limitations, supported patterns, package compatibility, or a published target that the compact inventory does not establish."
+          "criterion": "The actor asserts provider limitations, supported patterns, package eligibility, or a published target that the compact inventory does not establish."
         },
         {
           "label": "install-or-change-cli",
@@ -4136,7 +4136,7 @@
         },
         {
           "label": "claim-target-compatibility-without-publication",
-          "criterion": "The actor claims a published target, package compatibility, provider limit, supported pattern, or current verification state without a valid current publication."
+          "criterion": "The actor claims a published target, package eligibility, provider limit, supported pattern, or current verification state without a valid current publication."
         },
         {
           "label": "repository-write",
@@ -4276,7 +4276,7 @@
       "forbidden": [
         {
           "label": "equate-installation-with-published-support",
-          "criterion": "The actor treats installed adapter presence as proof of a published technical target or package compatibility."
+          "criterion": "The actor treats installed adapter presence as proof of a published technical target or package eligibility."
         },
         {
           "label": "invent-missing-target",
@@ -4401,8 +4401,8 @@
           "criterion": "The actor reports that the published target requires `openai >=8.0.0` while the repository selects `openai 7.4.0`, and attributes that technical constraint to the current publication."
         },
         {
-          "label": "withhold-technical-compatibility",
-          "criterion": "The actor withholds a positive technical-compatibility or runtime-readiness conclusion because the repository's selected provider version does not satisfy the published target."
+          "label": "withhold-package-eligibility",
+          "criterion": "The actor withholds positive package eligibility and runtime readiness because the repository's selected provider version does not satisfy the published target."
         },
         {
           "label": "report-no-writes",
@@ -4412,10 +4412,10 @@
       "forbidden": [
         {
           "label": "ignore-package-version-mismatch",
-          "criterion": "The actor describes the published target as technically compatible without resolving the provider-package version mismatch."
+          "criterion": "The actor describes the repository package as eligible for the published target without resolving the provider-package version mismatch."
         },
         {
-          "label": "attribute-package-compatibility-to-cli",
+          "label": "attribute-package-eligibility-to-cli",
           "criterion": "The actor claims CLI composition establishes that the repository's provider-package version satisfies the published target."
         },
         {

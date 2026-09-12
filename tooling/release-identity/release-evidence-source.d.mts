@@ -10,16 +10,36 @@ export type IPinnedReleaseEvidenceSection =
       mode: 'pinned';
     })
   | (IReleaseEvidenceSection<ISemanticReleaseEvidence> & { mode: 'pinned' });
+export type IPinnedQualificationReleaseEvidenceSection =
+  IReleaseEvidenceSection<IQualificationReleaseEvidence> & { mode: 'pinned' };
+export type IPinnedSemanticReleaseEvidenceSection =
+  IReleaseEvidenceSection<ISemanticReleaseEvidence> & { mode: 'pinned' };
 
 export type IResolvedReleaseEvidenceSource =
   | IPinnedReleaseEvidenceSource<IQualificationReleaseEvidence>
   | IPinnedReleaseEvidenceSource<ISemanticReleaseEvidence>;
 
-export const assertPinnedReleaseEvidenceSection: (
-  repositoryRoot: string,
-  section: IPinnedReleaseEvidenceSection,
-  kind: 'qualification' | 'semantic',
-) => IResolvedReleaseEvidenceSource;
+// bounded public projection derived while authenticating one qualification source
+export interface IQualificationEvidenceTargetProjection {
+  adapterId: string;
+  attemptId: string;
+  completedAt: string;
+  createdAt: string;
+  implementationId: string;
+  packages: Array<{
+    name: string;
+    version: string;
+  }>;
+}
+
+export const assertPinnedReleaseEvidenceSection: {
+  (
+    repositoryRoot: string,
+    section: IPinnedQualificationReleaseEvidenceSection,
+    kind: 'qualification',
+  ): IQualificationEvidenceTargetProjection[];
+  (repositoryRoot: string, section: IPinnedSemanticReleaseEvidenceSection, kind: 'semantic'): null;
+};
 export const assertTargetReleaseTagIdentity: (
   repositoryRoot: string,
   releaseVersion: string,

@@ -21,6 +21,7 @@ import { seedPassingQualificationEvidenceFixture } from '../../../../qualificati
 
 import {
   assertPublishableQualificationEvidence,
+  attachPinnedQualificationEvidence,
   composeQualificationProfile,
   loadQualificationWebsiteModel,
 } from './loader.ts';
@@ -554,11 +555,48 @@ describe('loadQualificationWebsiteModel', () => {
         .filter(({ adapterId }) => adapterId !== 'custom')
         .every(({ cases, sharedCases }) => sharedCases.length === 12 && cases.length === 2),
     ).toBe(true);
+    expect(
+      model.profiles.find(({ adapterId }) => adapterId === 'anthropic')?.runtimePackages,
+    ).toStrictEqual([
+      { name: '@anthropic-ai/sdk', version: '0.117.1' },
+      { name: '@types/node', version: '22.20.1' },
+    ]);
+    expect(model.profiles.every(({ pinnedPriorEvidence }) => pinnedPriorEvidence === null)).toBe(
+      true,
+    );
     expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
 
     const serializedModel = JSON.stringify(model);
     expect(serializedModel).not.toContain(canonicalRepositoryRoot);
     expect(serializedModel).not.toContain('file://');
+  });
+
+  test('joins authenticated prior evidence by exact profile identity', () => {
+    const model = loadQualificationWebsiteModel(canonicalRepositoryRoot);
+    const targets = model.profiles.map(({ adapterId, implementationId }, index) => ({
+      adapterId,
+      attemptId: `attempt-${index}`,
+      completedAt: '2026-09-11T10:01:00.000Z',
+      createdAt: '2026-09-11T10:00:00.000Z',
+      implementationId,
+      packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+    }));
+
+    const joined = attachPinnedQualificationEvidence(model, targets);
+
+    expect(
+      joined.profiles.every(
+        ({ pinnedPriorEvidence }, index) =>
+          pinnedPriorEvidence?.attemptId === `attempt-${index}` &&
+          pinnedPriorEvidence.packages[0]?.version === '8.0.0',
+      ),
+    ).toBe(true);
+    expect(() => attachPinnedQualificationEvidence(model, targets.slice(1))).toThrow(
+      'Pinned qualification evidence does not match the current profile inventory.',
+    );
+    expect(() => attachPinnedQualificationEvidence(model, [...targets, targets[0]!])).toThrow(
+      'Pinned qualification evidence does not match the current profile inventory.',
+    );
   });
 
   test('rejects pre-clean-slate single-effort evidence', async () => {

@@ -4,7 +4,10 @@ import { spawnSync } from 'node:child_process';
 
 import { parse } from 'yaml';
 
-import { QualificationModelStageEvidenceSchema } from '../../qualification/src/contracts/index.ts';
+import {
+  QualificationAttemptResultSchema,
+  QualificationModelStageEvidenceSchema,
+} from '../../qualification/src/contracts/index.ts';
 import { createQualificationAttemptKey } from '../../qualification/src/storage/index.ts';
 
 import { CLI_PACKAGE_NAME, RELEASE_PATHS } from './constants.mjs';
@@ -364,6 +367,7 @@ const assertQualificationSource = (repositoryRoot, commit, qualification) => {
   ) {
     throw new Error('Pinned qualification evidence does not match its complete target index.');
   }
+  const targetProjections = [];
   for (const target of qualification.targets) {
     const targetRoot = `qualification/results/${target.key}`;
     const profile = parse(
@@ -374,7 +378,12 @@ const assertQualificationSource = (repositoryRoot, commit, qualification) => {
     const attemptPath = `${attemptRoot}/attempt.json`;
     const storagePath = `${attemptRoot}/storage.json`;
     const latest = readGitJson(repositoryRoot, commit, latestPath);
-    const attempt = readGitJson(repositoryRoot, commit, attemptPath);
+    const attemptInput = readGitJson(repositoryRoot, commit, attemptPath);
+    const parsedAttempt = QualificationAttemptResultSchema.safeParse(attemptInput);
+    if (!parsedAttempt.success) {
+      throw new Error(`Pinned qualification target ${target.key} has an invalid attempt record.`);
+    }
+    const attempt = parsedAttempt.data;
     const storage = readGitJson(repositoryRoot, commit, storagePath);
     if (
       latest.adapterId !== target.adapterId ||
@@ -461,7 +470,19 @@ const assertQualificationSource = (repositoryRoot, commit, qualification) => {
     if (resourceEvidenceCount === 0) {
       throw new Error(`Pinned qualification target ${target.key} has no resource evidence.`);
     }
+    if (attempt.completedAt === null) {
+      throw new Error(`Pinned qualification target ${target.key} has no completion time.`);
+    }
+    targetProjections.push({
+      adapterId: target.adapterId,
+      attemptId: target.attemptId,
+      completedAt: attempt.completedAt,
+      createdAt: attempt.createdAt,
+      implementationId: target.implementationId,
+      packages: attempt.provenance.packages.map(({ name, version }) => ({ name, version })),
+    });
   }
+  return targetProjections;
 };
 
 const createSemanticEvidenceAtCommit = (repositoryRoot, commit, portableSkillSha256) => {
@@ -564,8 +585,9 @@ export const assertPinnedReleaseEvidenceSection = (repositoryRoot, section, kind
       source.evidence,
       source.portableSkillSha256,
     );
-  } else assertQualificationSource(repositoryRoot, source.commit, source.evidence);
-  return source;
+    return null;
+  }
+  return assertQualificationSource(repositoryRoot, source.commit, source.evidence);
 };
 
 /** Resolves one exact commit or stable tag to a direct immutable evidence source. */

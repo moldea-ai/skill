@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 import {
   assertPublishableQualificationEvidence,
+  attachPinnedQualificationEvidence,
   loadQualificationWebsiteModel,
   type IQualificationWebsiteModel,
 } from '../qualification/index.ts';
@@ -240,6 +241,18 @@ export const createQualificationSearchRecords = (
             profileCase.purpose,
           ]),
           ...profile.probes.flatMap(({ description, matrixPath }) => [description, matrixPath]),
+          ...profile.runtimePackages.flatMap(({ name, version }) => [name, version]),
+          ...(profile.pinnedPriorEvidence === null
+            ? []
+            : [
+                profile.pinnedPriorEvidence.attemptId,
+                profile.pinnedPriorEvidence.createdAt,
+                profile.pinnedPriorEvidence.completedAt,
+                ...profile.pinnedPriorEvidence.packages.flatMap(({ name, version }) => [
+                  name,
+                  version,
+                ]),
+              ]),
         ].join(' '),
       ),
       title: profile.title,
@@ -455,7 +468,17 @@ export const createWebsiteModel = (
   const documents = discoverDocuments(repositoryRoot);
   const skill = readSkillMetadata(repositoryRoot);
   const releaseEvidence = loadReleaseEvidenceModel(repositoryRoot, skill.version);
-  const qualification = loadQualificationWebsiteModel(qualificationRepositoryRoot);
+  const loadedQualification = loadQualificationWebsiteModel(qualificationRepositoryRoot);
+  const isReleaseQualification = resolve(qualificationRepositoryRoot) === repositoryRoot;
+  const qualification =
+    isReleaseQualification &&
+    releaseEvidence.mode === 'recorded' &&
+    releaseEvidence.qualification.mode === 'pinned'
+      ? attachPinnedQualificationEvidence(
+          loadedQualification,
+          releaseEvidence.qualification.targets,
+        )
+      : loadedQualification;
   if (releaseEvidence.mode === 'not-recorded' || releaseEvidence.qualification.mode === 'fresh') {
     assertPublishableQualificationEvidence(qualification);
   }

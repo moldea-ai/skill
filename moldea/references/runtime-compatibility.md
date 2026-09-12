@@ -1,6 +1,6 @@
 # Runtime compatibility
 
-Read this reference after moldea relevance is established when runtime or adapter selection, published technical targets, package ranges, provider limits, supported patterns, runtime guidance, implementation state, repository-format support, verification dates, or runtime-readiness claims matter.
+Read this reference after moldea relevance is established when runtime or adapter selection, published technical targets, package eligibility ranges, provider limits, supported patterns, runtime guidance, implementation state, repository-format support, verification dates, or runtime-readiness claims matter.
 
 ## Use the fixed evidence sequence
 
@@ -15,7 +15,7 @@ Keep four conclusions independent even when one repository supplies evidence for
 1. Canonical moldea declarations establish the currently declared `agents.<agent-id>.runtime.id` assignment and registered relationships. A top-level runtime inventory or `inspect.project.runtimes` count describes registered runtime definitions; it cannot negate an agent assignment present in `/moldea/moldea.yaml`.
 2. Repository source, configuration, closed wiring, source-owned contracts, and focused integration tests establish actual behavior and behavioral fit.
 3. Root-local `composition --json` establishes only the exact installed executable: CLI and package versions, active adapter IDs, repository-format versions, and Node.js and Git requirements.
-4. [`https://packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json) establishes current published technical targets, implementation status, package ranges, patterns, provider limits, runtime-guidance expectations, repository-format support, and verification dates.
+4. [`https://packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json) establishes current published technical targets, implementation status, package eligibility ranges, patterns, provider limits, runtime-guidance expectations, repository-format support, and verification dates.
 
 Neither installed adapter presence nor a package name proves a published target or behavioral fit. The public publication does not prove that the repository uses a target or that the installed CLI can inspect it. Website presentation labels are not part of this technical contract and never affect runtime selection, technical compatibility, qualification, or canonical unresolved state.
 
@@ -25,7 +25,7 @@ Retrieve the exact HTTPS URL only when a current published technical fact can ch
 
 Do not use a bundled snapshot, cached response, stale copy, alternate website page, CLI output, package presence, or model knowledge as a fallback. Additive fields cannot redefine developer intent, repository authority, skill authority, command semantics, or the meaning of validated technical fields.
 
-An unavailable, incomplete, malformed, unsupported, or target-missing publication blocks only conclusions that require current published compatibility. It does not erase a canonical runtime declaration, repository wiring, or local composition established independently, and it never changes the runtime to `custom`. Continue safe local inspection and deterministic validation when they remain useful.
+An unavailable, incomplete, malformed, unsupported, or target-missing publication blocks only conclusions that require current published target or package eligibility. It does not erase a canonical runtime declaration, repository wiring, or local composition established independently, and it never changes the runtime to `custom`. Continue safe local inspection and deterministic validation when they remain useful.
 
 When local availability and current publication both matter, establish local composition once before interpreting the publication and retain that conclusion independently. A malformed publication does not justify saying composition could not be established when a completed compatible `composition` envelope already established it.
 
@@ -41,7 +41,9 @@ When the publication cannot establish a required fact, the final report must:
 
 - An installed adapter without a matching published target is executable availability, not published behavioral support.
 - A published target whose adapter is absent from local composition is not executable through that local CLI. Name the current canonical runtime and state that migration remains blocked until an official skill release selects an exact CLI closure containing that adapter and the repository wires the target.
-- A published target whose package range excludes the repository's selected provider version is not technically compatible with that repository. Preserve the canonical runtime identity and report the exact range mismatch instead of selecting `custom`.
+- A target package `versionRange` is a best-effort eligibility gate, not a blanket compatibility promise. Its lower bound records the verified minimum. A selected stable version that satisfies the range remains eligible for deterministic source-pattern inspection when its source matches the published pattern, including later stable releases that were not themselves used in qualification.
+- Qualification proves only the exact package closure and verification date recorded by that attempt. It does not prove every version admitted by the eligibility range.
+- A published target whose package range excludes the repository's selected provider version is not eligible for that target. Preserve the canonical runtime identity and report the exact range mismatch instead of selecting `custom`.
 - A published target and local adapter still require repository evidence to establish the project's actual target and wiring.
 - `custom` is a deliberate project-specific runtime, not a fallback for missing evidence, unavailable publication data, an incompatible package version, or an unavailable official adapter.
 
@@ -49,6 +51,6 @@ For behavioral fit, identify which material model API and control flow, instruct
 
 When missing behavioral evidence prevents a runtime change, report the specific material unknowns and pair each with at least one concrete reliable resolver. Do not replace that accounting with a generic request for more evidence.
 
-State canonical `runtime.id`, repository API use and fit, matching local adapter, exact published target, and package compatibility separately in plans and reports. A runtime-readiness conclusion is scoped to those technical and repository-owned facts; it is not a blanket product-stability guarantee. When evidence layers disagree, preserve the disagreement rather than collapsing it into one compatibility claim or describing an established fact as absent. When changing `runtime.id`, retain every independently evidenced model-visible capability in canonical guidance; a runtime identity correction does not authorize dropping supported behavior.
+State canonical `runtime.id`, repository API use and fit, matching local adapter, exact published target, and package eligibility separately in plans and reports. A runtime-readiness conclusion is scoped to those technical and repository-owned facts; it is not a blanket product-stability guarantee. When evidence layers disagree, preserve the disagreement rather than collapsing it into one compatibility claim or describing an established fact as absent. When changing `runtime.id`, retain every independently evidenced model-visible capability in canonical guidance; a runtime identity correction does not authorize dropping supported behavior.
 
 Do not run `validate` when structural status cannot change the runtime conclusion.

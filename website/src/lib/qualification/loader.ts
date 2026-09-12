@@ -45,6 +45,7 @@ import {
   type IQualificationProjectedExecutionEvent,
   type IQualificationProfileCaseModel,
   type IQualificationProfileModel,
+  type IQualificationPriorEvidenceModel,
   type IQualificationWebsiteModel,
 } from './types.ts';
 import { readRecordedQualificationContract } from './contract-reader.ts';
@@ -1017,7 +1018,9 @@ const loadProfile = (
     latest,
     probes: probes.probes,
     probesSourceUrl: createSourceUrl(getRepositoryRelativePath(repositoryRoot, probesPath)),
+    pinnedPriorEvidence: null,
     route: `${QUALIFICATION_ROUTE}${profile.adapterId}/${profile.implementationId}/`,
+    runtimePackages: profile.runtimePackages,
     sourceUrl: createSourceUrl(getRepositoryRelativePath(repositoryRoot, profilePath)),
     title: profile.title,
   };
@@ -1025,6 +1028,36 @@ const loadProfile = (
   return {
     model,
   };
+};
+
+/** Attaches one authenticated prior-release projection to every matching current profile. */
+export const attachPinnedQualificationEvidence = (
+  qualification: IQualificationWebsiteModel,
+  targets: readonly IQualificationPriorEvidenceModel[],
+): IQualificationWebsiteModel => {
+  const keyFor = ({
+    adapterId,
+    implementationId,
+  }: Pick<IQualificationPriorEvidenceModel, 'adapterId' | 'implementationId'>): string =>
+    `${adapterId}\0${implementationId}`;
+  const targetsByIdentity = new Map(targets.map((target) => [keyFor(target), target]));
+  if (
+    targetsByIdentity.size !== targets.length ||
+    targets.length !== qualification.profiles.length
+  ) {
+    throw new Error('Pinned qualification evidence does not match the current profile inventory.');
+  }
+  const profiles = qualification.profiles.map((profile) => {
+    const pinnedPriorEvidence = targetsByIdentity.get(keyFor(profile));
+    if (pinnedPriorEvidence === undefined) {
+      throw new Error(
+        'Pinned qualification evidence does not match the current profile inventory.',
+      );
+    }
+    return { ...profile, pinnedPriorEvidence };
+  });
+
+  return { ...qualification, profiles };
 };
 
 /** Composes current adapter evidence from its direct attempt and exact Custom prerequisite. */

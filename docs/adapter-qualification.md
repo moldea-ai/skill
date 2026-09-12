@@ -81,6 +81,8 @@ Every current target must have a current passing attempt for its exact current i
 
 This is the normal release path. An explicit qualification-scoped release evidence pin may reuse original passing qualification evidence from an immutable release tag or full commit when a maintainer has established that qualification behavior is unchanged. Semantic evidence remains independently fresh or pinned. The qualification pages disclose the source and do not relabel it as current. See [Release evidence](/docs/release-evidence/).
 
+The public target page separates three facts: the current profile's configured runtime-package inputs, the exact package closure and timestamps recorded by a matching current attempt, and the exact package closure and timestamps from pinned prior evidence. Pinned prior evidence remains a passed historical execution and is never relabeled as current-contract assurance.
+
 An adapter attempt requires a passing current Custom baseline. A Custom attempt does not require another baseline.
 
 ## Results and replay

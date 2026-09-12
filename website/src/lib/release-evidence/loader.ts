@@ -4,6 +4,7 @@ import { createDependencyClosureSha256 } from '../../../../tooling/release-ident
 import { createPortableSkillDigest } from '../../../../tooling/semantic-evaluation/index.mjs';
 
 import type {
+  IQualificationReleaseEvidenceSectionModel,
   IReleaseEvidenceModel,
   IReleaseEvidenceSectionModel,
   ISemanticReleaseEvidenceSectionModel,
@@ -12,10 +13,9 @@ import type {
 const SOURCE_REPOSITORY_URL = 'https://github.com/moldea-ai/skill';
 
 const loadSectionModel = (
-  repositoryRoot: string,
   targetVersion: string,
-  kind: 'qualification' | 'semantic',
-  section: NonNullable<ReturnType<typeof readReleaseEvidenceEnvelope>>[typeof kind],
+  section: NonNullable<ReturnType<typeof readReleaseEvidenceEnvelope>>[
+    'qualification' | 'semantic'],
 ): IReleaseEvidenceSectionModel => {
   if (section.mode === 'fresh') {
     return {
@@ -23,7 +23,6 @@ const loadSectionModel = (
       sourceUrl: `${SOURCE_REPOSITORY_URL}/tree/v${targetVersion}`,
     };
   }
-  assertPinnedReleaseEvidenceSection(repositoryRoot, section, kind);
   const sourceLabel = section.source.tag ?? section.source.commit.slice(0, 12);
   return {
     mode: 'pinned',
@@ -34,16 +33,33 @@ const loadSectionModel = (
   };
 };
 
+const loadQualificationSectionModel = (
+  repositoryRoot: string,
+  targetVersion: string,
+  section: NonNullable<ReturnType<typeof readReleaseEvidenceEnvelope>>['qualification'],
+): IQualificationReleaseEvidenceSectionModel => {
+  const model = loadSectionModel(targetVersion, section);
+  if (model.mode === 'fresh') return model;
+  if (section.mode !== 'pinned') {
+    throw new Error('Pinned qualification release evidence has inconsistent provenance.');
+  }
+  return {
+    ...model,
+    targets: assertPinnedReleaseEvidenceSection(repositoryRoot, section, 'qualification'),
+  };
+};
+
 const loadSemanticSectionModel = (
   repositoryRoot: string,
   targetVersion: string,
   section: NonNullable<ReturnType<typeof readReleaseEvidenceEnvelope>>['semantic'],
 ): ISemanticReleaseEvidenceSectionModel => {
-  const model = loadSectionModel(repositoryRoot, targetVersion, 'semantic', section);
+  const model = loadSectionModel(targetVersion, section);
   if (model.mode === 'fresh') return model;
   if (section.mode !== 'pinned') {
     throw new Error('Pinned semantic release evidence has inconsistent provenance.');
   }
+  assertPinnedReleaseEvidenceSection(repositoryRoot, section, 'semantic');
   return {
     ...model,
     sourceAttemptId: section.source.evidence.attemptId,
@@ -68,10 +84,9 @@ export const loadReleaseEvidenceModel = (
   }
   return {
     mode: 'recorded',
-    qualification: loadSectionModel(
+    qualification: loadQualificationSectionModel(
       repositoryRoot,
       targetVersion,
-      'qualification',
       envelope.qualification,
     ),
     semantic: loadSemanticSectionModel(repositoryRoot, targetVersion, envelope.semantic),

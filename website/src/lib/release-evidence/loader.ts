@@ -43,9 +43,29 @@ const loadQualificationSectionModel = (
   if (section.mode !== 'pinned') {
     throw new Error('Pinned qualification release evidence has inconsistent provenance.');
   }
+  const sourceTargetsByIdentity = new Map(
+    section.source.evidence.targets.map((target) => [
+      `${target.adapterId}\0${target.implementationId}`,
+      target,
+    ]),
+  );
+  const targets = assertPinnedReleaseEvidenceSection(repositoryRoot, section, 'qualification').map(
+    (target) => {
+      const sourceTarget = sourceTargetsByIdentity.get(
+        `${target.adapterId}\0${target.implementationId}`,
+      );
+      if (sourceTarget === undefined) {
+        throw new Error('Pinned qualification evidence has inconsistent target provenance.');
+      }
+      return {
+        ...target,
+        sourceAttemptUrl: `${SOURCE_REPOSITORY_URL}/blob/${section.source.commit}/qualification/results/${sourceTarget.key}/attempts/${sourceTarget.attemptKey}/attempt.json`,
+      };
+    },
+  );
   return {
     ...model,
-    targets: assertPinnedReleaseEvidenceSection(repositoryRoot, section, 'qualification'),
+    targets,
   };
 };
 
@@ -59,10 +79,11 @@ const loadSemanticSectionModel = (
   if (section.mode !== 'pinned') {
     throw new Error('Pinned semantic release evidence has inconsistent provenance.');
   }
-  assertPinnedReleaseEvidenceSection(repositoryRoot, section, 'semantic');
+  const attempt = assertPinnedReleaseEvidenceSection(repositoryRoot, section, 'semantic');
   return {
     ...model,
-    sourceAttemptId: section.source.evidence.attemptId,
+    attempt,
+    sourceAttemptUrl: `${SOURCE_REPOSITORY_URL}/blob/${section.source.commit}/fixtures/semantic-evaluation-results/attempts/${attempt.attemptId}/attempt.json`,
   };
 };
 

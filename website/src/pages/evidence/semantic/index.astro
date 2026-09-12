@@ -10,9 +10,17 @@ import ReleaseEvidenceNotice from '../../../components/release-evidence-notice/r
 import SemanticEvaluationCase from '../../../components/semantic-evaluation-case/semantic-evaluation-case.astro';
 import BaseLayout from '../../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
+import { getSemanticReleaseEvidenceSummary } from '../../../lib/release-evidence/index.ts';
 
 const model = loadWebsiteModel();
 const { currentSemanticAssurance, semanticEvaluation } = model;
+const releaseSummary = getSemanticReleaseEvidenceSummary(
+  model.releaseEvidence,
+  currentSemanticAssurance,
+);
+const releaseResult = releaseSummary.result;
+const isPinnedReleaseEvidence = releaseSummary.kind === 'pinned';
+const resultLabel = isPinnedReleaseEvidence ? 'Verified source' : 'Current';
 const basePath = import.meta.env.BASE_URL;
 const breadcrumbs = [
   { href: '/', label: 'Home' },
@@ -21,8 +29,7 @@ const breadcrumbs = [
 ];
 let caseNumber = 0;
 const successfulCaseCount =
-  (currentSemanticAssurance?.result.passedCaseCount ?? 0) +
-  (currentSemanticAssurance?.result.recoveredCaseCount ?? 0);
+  (releaseResult?.passedCaseCount ?? 0) + (releaseResult?.recoveredCaseCount ?? 0);
 const currentGroups =
   currentSemanticAssurance === null
     ? semanticEvaluation.groups
@@ -34,7 +41,7 @@ const currentGroups =
 
 <BaseLayout
   title="Semantic evaluation evidence"
-  description={`Review current semantic assurance, current-contract attempt history, and ${semanticEvaluation.caseCount} behavioral scenarios.`}
+  description={`Review verified semantic release evidence, current-contract attempt history, and ${semanticEvaluation.caseCount} behavioral scenarios.`}
   {breadcrumbs}
 >
   <div class="page-shell pt-7">
@@ -50,22 +57,19 @@ const currentGroups =
 
     <header class="mt-7 border-b border-border pb-10">
       <div class="flex flex-wrap items-center gap-3">
-        <EvidenceStatus
-          status={currentSemanticAssurance?.result.status ?? semanticEvaluation.status}
-        />
+        <EvidenceStatus status={releaseResult?.status ?? semanticEvaluation.status} />
         <span class="font-mono text-sm font-bold">
-          Current suite: {successfulCaseCount}/{semanticEvaluation.caseCount} scenarios
+          {resultLabel}: {successfulCaseCount}/{semanticEvaluation.caseCount} scenarios
         </span>
       </div>
       <p class="eyebrow mt-5">Behavioral release evidence</p>
       <h1 class="section-title mt-3 max-w-5xl font-semibold">Semantic evaluation</h1>
       <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-        The release notice above records whether this version uses fresh evidence or verified prior
-        evidence. The status and scenario details below always describe the current skill behavior,
-        CLI closure, scenario suite, coverage, and Sol protocol. Each completed scenario uses a
-        blind actor and an independent judge. Open a scenario to replay the recorded interaction,
-        safe command results, workspace changes, and verdict before inspecting its evaluation
-        criteria.
+        The release notice above records whether this version uses fresh evidence or a verified
+        source retained by an explicit pin. The summary describes that release evidence. Scenario
+        definitions below describe the current skill contract; when the evidence is pinned, their
+        current-contract state remains separate from the verified source result. Each completed
+        scenario uses a blind actor and an independent judge.
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
@@ -80,15 +84,17 @@ const currentGroups =
           />
         </ActionLink>
         {
-          currentSemanticAssurance !== null && (
+          releaseSummary.sourceUrl !== null && (
             <ActionLink
               class="font-bold"
-              href={currentSemanticAssurance.rawEvidenceUrl}
+              href={releaseSummary.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
               variant="outline"
             >
-              Inspect current raw evidence
+              {isPinnedReleaseEvidence
+                ? 'Inspect verified source attempt'
+                : 'Inspect current raw evidence'}
               <ExternalLink
                 class="size-4"
                 aria-hidden="true"
@@ -117,27 +123,27 @@ const currentGroups =
       aria-label="Semantic evaluation summary"
     >
       <div class="surface-card p-4">
-        <p class="text-sm text-muted-foreground">Current scenarios passed</p>
+        <p class="text-sm text-muted-foreground">{resultLabel} scenarios passed</p>
         <p class="mt-2 font-mono text-2xl font-bold">
-          {currentSemanticAssurance?.result.passedCaseCount ?? 0}
+          {releaseResult?.passedCaseCount ?? 0}
         </p>
       </div>
       <div class="surface-card p-4">
-        <p class="text-sm text-muted-foreground">Current recoveries</p>
+        <p class="text-sm text-muted-foreground">{resultLabel} recoveries</p>
         <p class="mt-2 font-mono text-2xl font-bold">
-          {currentSemanticAssurance?.result.recoveredCaseCount ?? 0}
+          {releaseResult?.recoveredCaseCount ?? 0}
         </p>
       </div>
       <div class="surface-card p-4">
-        <p class="text-sm text-muted-foreground">Current failures</p>
+        <p class="text-sm text-muted-foreground">{resultLabel} failures</p>
         <p class="mt-2 font-mono text-2xl font-bold">
-          {currentSemanticAssurance?.result.failedCaseCount ?? 0}
+          {releaseResult?.failedCaseCount ?? 0}
         </p>
       </div>
       <div class="surface-card p-4">
-        <p class="text-sm text-muted-foreground">Current pending</p>
+        <p class="text-sm text-muted-foreground">{resultLabel} pending</p>
         <p class="mt-2 font-mono text-2xl font-bold">
-          {currentSemanticAssurance?.result.pendingCaseCount ?? semanticEvaluation.caseCount}
+          {releaseResult?.pendingCaseCount ?? semanticEvaluation.caseCount}
         </p>
       </div>
     </section>
@@ -203,7 +209,39 @@ const currentGroups =
         </p>
       </div>
       {
-        semanticEvaluation.attempts.length === 0 ? (
+        semanticEvaluation.attempts.length === 0 && releaseSummary.kind === 'pinned' ? (
+          <a
+            class="surface-card interactive-card mt-7 flex min-w-0 flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+            href={releaseSummary.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="min-w-0">
+              <span class="flex flex-wrap items-center gap-2">
+                <EvidenceStatus status="passed" />
+                <span class="text-xs font-bold text-muted-foreground">Verified source attempt</span>
+              </span>
+              <span class="mt-3 block font-mono text-sm break-all">
+                {releaseSummary.result.attemptId}
+              </span>
+              <span class="mt-2 block text-sm text-muted-foreground">
+                {successfulCaseCount}/{releaseSummary.result.totalCaseCount} scenarios successful,{' '}
+                {releaseSummary.result.failedCaseCount} failed,{' '}
+                {releaseSummary.result.pendingCaseCount} pending · recorded{' '}
+                <time datetime={releaseSummary.result.updatedAt}>
+                  {releaseSummary.result.updatedAt}
+                </time>
+              </span>
+            </span>
+            <span class="inline-flex shrink-0 items-center gap-2 text-link font-semibold">
+              Inspect source attempt
+              <ExternalLink
+                class="size-4"
+                aria-hidden="true"
+              />
+            </span>
+          </a>
+        ) : semanticEvaluation.attempts.length === 0 ? (
           <p class="surface-card mt-7 p-5 text-muted-foreground sm:p-6">
             No semantic attempt has been recorded for this release candidate yet.
           </p>
@@ -273,7 +311,9 @@ const currentGroups =
               {
                 semanticEvaluation.evidenceMatch === 'exact'
                   ? 'Exact current inputs'
-                  : 'No exact current evidence'
+                  : isPinnedReleaseEvidence
+                    ? 'Verified pinned source'
+                    : 'No exact current evidence'
               }
             </dd>
           </div>
@@ -281,14 +321,16 @@ const currentGroups =
             <dt class="text-muted-foreground">Source attempt</dt>
             <dd class="mt-1 font-mono break-all">
               {
-                currentSemanticAssurance === null ? (
+                releaseSummary.kind === 'not-recorded' ? (
                   'Not recorded'
                 ) : (
                   <a
                     class="text-link underline-offset-4 hover:underline"
-                    href={withBase(currentSemanticAssurance.route, basePath)}
+                    href={releaseSummary.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    {currentSemanticAssurance.result.attemptId}
+                    {releaseSummary.result.attemptId}
                   </a>
                 )
               }
@@ -297,7 +339,7 @@ const currentGroups =
           <div>
             <dt class="text-muted-foreground">Evaluated at</dt>
             <dd class="mt-1 font-mono break-all">
-              {currentSemanticAssurance?.result.updatedAt ?? 'Not recorded'}
+              {releaseResult?.updatedAt ?? 'Not recorded'}
             </dd>
           </div>
           <div>
@@ -313,7 +355,7 @@ const currentGroups =
           <div>
             <dt class="text-muted-foreground">Evaluated artifact digest</dt>
             <dd class="mt-1 font-mono text-xs break-all">
-              {currentSemanticAssurance?.result.artifactDigest ?? 'Not recorded'}
+              {releaseResult?.artifactDigest ?? 'Not recorded'}
             </dd>
           </div>
           <div>

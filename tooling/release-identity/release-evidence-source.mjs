@@ -278,6 +278,72 @@ const assertSemanticResourceEvidence = (caseDefinitions, result) => {
   }
 };
 
+const createSemanticSourceProjection = (attempt, caseDefinitions) => {
+  const expectedCaseIdentifiers = new Set(caseDefinitions.map(({ id }) => id));
+  const cases = Array.isArray(attempt.cases) ? attempt.cases : [];
+  const attemptCaseIdentifiers = new Set();
+  let hasInvalidCaseInventory = false;
+  let passedCaseCount = 0;
+  let recoveredCaseCount = 0;
+  let failedCaseCount = 0;
+  for (const caseResult of cases) {
+    if (
+      !isPlainRecord(caseResult) ||
+      typeof caseResult.id !== 'string' ||
+      !expectedCaseIdentifiers.has(caseResult.id) ||
+      attemptCaseIdentifiers.has(caseResult.id)
+    ) {
+      hasInvalidCaseInventory = true;
+      continue;
+    }
+    attemptCaseIdentifiers.add(caseResult.id);
+    if (caseResult.status === 'passed') passedCaseCount += 1;
+    else if (caseResult.status === 'recovered') recoveredCaseCount += 1;
+    else if (caseResult.status === 'failed') failedCaseCount += 1;
+    else hasInvalidCaseInventory = true;
+  }
+  const caseCount = caseDefinitions.length;
+  const pendingCaseCount = caseCount - cases.length;
+  const createdAt = Date.parse(attempt.createdAt);
+  const updatedAt = Date.parse(attempt.updatedAt);
+  if (
+    typeof attempt.createdAt !== 'string' ||
+    typeof attempt.updatedAt !== 'string' ||
+    Number.isNaN(createdAt) ||
+    Number.isNaN(updatedAt) ||
+    updatedAt < createdAt ||
+    hasInvalidCaseInventory ||
+    attemptCaseIdentifiers.size !== caseCount ||
+    attempt.totalCaseCount !== caseCount ||
+    attempt.passedCaseCount !== passedCaseCount ||
+    attempt.recoveredCaseCount !== recoveredCaseCount ||
+    attempt.failedCaseCount !== failedCaseCount ||
+    attempt.pendingCaseCount !== pendingCaseCount ||
+    attempt.status !== 'passed' ||
+    failedCaseCount !== 0 ||
+    pendingCaseCount !== 0 ||
+    cases.some(
+      (caseResult) =>
+        !isPlainRecord(caseResult) ||
+        (caseResult.status !== 'passed' && caseResult.status !== 'recovered'),
+    )
+  ) {
+    throw new Error('Pinned semantic attempt has a contradictory result summary.');
+  }
+  return {
+    artifactDigest: attempt.artifactDigest,
+    attemptId: attempt.attemptId,
+    createdAt: attempt.createdAt,
+    failedCaseCount,
+    passedCaseCount,
+    pendingCaseCount,
+    recoveredCaseCount,
+    status: 'passed',
+    totalCaseCount: caseCount,
+    updatedAt: attempt.updatedAt,
+  };
+};
+
 const assertSemanticSource = (repositoryRoot, commit, semantic, portableSkillSha256) => {
   const result = readGitJson(repositoryRoot, commit, RELEASE_PATHS.semanticResult);
   const caseDefinitions = readGitJson(
@@ -302,6 +368,7 @@ const assertSemanticSource = (repositoryRoot, commit, semantic, portableSkillSha
     JSON.stringify(result.cli) !==
       JSON.stringify(createGitSemanticCliIdentity(repositoryRoot, commit)) ||
     attempt.attemptId !== semantic.attemptId ||
+    attempt.artifactDigest !== portableSkillSha256 ||
     attempt.status !== 'passed' ||
     latest.latestStatus !== 'passed' ||
     latest.latestAttemptId !== semantic.attemptId ||
@@ -321,6 +388,7 @@ const assertSemanticSource = (repositoryRoot, commit, semantic, portableSkillSha
   }
   assertGitFileDigest(repositoryRoot, commit, evidencePath, semantic.evidenceSha256);
   assertSemanticResourceEvidence(caseDefinitions, result);
+  return createSemanticSourceProjection(attempt, caseDefinitions);
 };
 
 const assertQualificationResourceEvidence = (artifact, relativePath) => {
@@ -479,7 +547,10 @@ const assertQualificationSource = (repositoryRoot, commit, qualification) => {
       completedAt: attempt.completedAt,
       createdAt: attempt.createdAt,
       implementationId: target.implementationId,
-      packages: attempt.provenance.packages.map(({ name, version }) => ({ name, version })),
+      packages: attempt.provenance.packages.map(({ name, version }) => ({
+        name,
+        version,
+      })),
     });
   }
   return targetProjections;
@@ -579,13 +650,12 @@ export const assertPinnedReleaseEvidenceSection = (repositoryRoot, section, kind
     throw new Error(`Pinned ${kind} evidence descriptor digest does not match.`);
   }
   if (kind === 'semantic') {
-    assertSemanticSource(
+    return assertSemanticSource(
       repositoryRoot,
       source.commit,
       source.evidence,
       source.portableSkillSha256,
     );
-    return null;
   }
   return assertQualificationSource(repositoryRoot, source.commit, source.evidence);
 };

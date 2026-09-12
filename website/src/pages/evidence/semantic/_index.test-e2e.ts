@@ -7,21 +7,26 @@ import type {
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
+import { getSemanticReleaseEvidenceSummary } from '../../../lib/release-evidence/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
 test('replays current semantic evidence through keyboard-accessible tabs', async ({ page }) => {
-  const { currentSemanticAssurance, semanticEvaluation } = loadWebsiteModel();
+  const { currentSemanticAssurance, releaseEvidence, semanticEvaluation } = loadWebsiteModel();
+  const releaseSummary = getSemanticReleaseEvidenceSummary(
+    releaseEvidence,
+    currentSemanticAssurance,
+  );
   const successfulCaseCount =
-    (currentSemanticAssurance?.result.passedCaseCount ?? 0) +
-    (currentSemanticAssurance?.result.recoveredCaseCount ?? 0);
+    (releaseSummary.result?.passedCaseCount ?? 0) +
+    (releaseSummary.result?.recoveredCaseCount ?? 0);
   await page.goto(toPublicPath('/evidence/semantic/'));
 
   await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
   await expect(
     page.getByText(
-      `Current suite: ${successfulCaseCount}/${semanticEvaluation.caseCount} scenarios`,
+      `${releaseSummary.kind === 'pinned' ? 'Verified source' : 'Current'}: ${successfulCaseCount}/${semanticEvaluation.caseCount} scenarios`,
       {
         exact: true,
       },
@@ -33,7 +38,9 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
     technicalProvenance.getByText(
       semanticEvaluation.evidenceMatch === 'exact'
         ? 'Exact current inputs'
-        : 'No exact current evidence',
+        : releaseSummary.kind === 'pinned'
+          ? 'Verified pinned source'
+          : 'No exact current evidence',
       { exact: true },
     ),
   ).toBeVisible();
@@ -62,7 +69,22 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
     /semantic-evaluation-coverage\.json$/u,
   );
   if (currentSemanticAssurance === null) {
-    if (semanticEvaluation.attempts.length === 0) {
+    if (releaseSummary.kind === 'pinned') {
+      await expect(page.getByText('Verified source attempt', { exact: true })).toBeVisible();
+      await expect(
+        page.getByText(releaseSummary.result.attemptId, { exact: true }).first(),
+      ).toBeVisible();
+      await expect(
+        page.getByText('Verified source scenarios passed', { exact: true }),
+      ).toBeVisible();
+      await expect(page.getByText('Verified source recoveries', { exact: true })).toBeVisible();
+      await expect(
+        page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
+      ).toHaveCount(0);
+      await expect(
+        page.getByRole('link', { name: 'Inspect verified source attempt' }),
+      ).toHaveAttribute('href', releaseSummary.sourceUrl);
+    } else if (semanticEvaluation.attempts.length === 0) {
       await expect(
         page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
       ).toBeVisible();

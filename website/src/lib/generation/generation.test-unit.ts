@@ -163,10 +163,10 @@ vi.mock('../semantic-evaluation/index.ts', () => {
   };
 });
 
-vi.mock('../release-evidence/index.ts', () => ({
+vi.mock('../release-evidence/loader.ts', () => ({
   loadReleaseEvidenceModel: vi.fn(() => ({
     mode: 'not-recorded',
-    targetVersion: '5.0.1',
+    targetVersion: '5.0.2',
   })),
 }));
 
@@ -188,14 +188,14 @@ describe('createWebsiteModel', () => {
     const model = createWebsiteModel();
 
     expect(model.skill.name).toBe('moldea');
-    expect(model.skill.version).toBe('5.0.1');
+    expect(model.skill.version).toBe('5.0.2');
     expect(model.skill.description.length).toBeGreaterThan(0);
     expect(new Set(model.routes).size).toBe(model.routes.length);
     expect(model.documents.length).toBeGreaterThanOrEqual(18);
     expect(model.searchRecords.length).toBeGreaterThan(model.documents.length);
     expect(model.navigation.flatMap(({ documents }) => documents)).toStrictEqual(model.documents);
     expect(model.qualification.route).toBe('/evidence/qualification/');
-    expect(model.releaseEvidence).toStrictEqual({ mode: 'not-recorded', targetVersion: '5.0.1' });
+    expect(model.releaseEvidence).toStrictEqual({ mode: 'not-recorded', targetVersion: '5.0.2' });
     expect(model.currentSemanticAssurance).toBe(model.semanticEvaluation.currentAssurance);
     expect(model.semanticEvaluation.route).toBe('/evidence/semantic/');
     expect(model.qualification.profiles).toHaveLength(1);
@@ -256,6 +256,7 @@ describe('createWebsiteModel', () => {
             createdAt: '2026-08-20T10:00:00.000Z',
             implementationId: 'custom',
             packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+            sourceAttemptUrl: 'https://example.com/qualification-attempt',
           },
         ],
       },
@@ -284,6 +285,9 @@ describe('createWebsiteModel', () => {
       'Qualification release provenance uses verified prior evidence from',
     );
     expect(model.llmsText).toContain(
+      'Qualification release evidence: 1/1 profiles passing, including 1 verified source attempt.',
+    );
+    expect(model.llmsText).toContain(
       'Current qualification contracts: 0/1 profiles have exact current assurance.',
     );
   });
@@ -307,6 +311,7 @@ describe('createWebsiteModel', () => {
             createdAt: '2026-08-20T10:00:00.000Z',
             implementationId: 'custom',
             packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+            sourceAttemptUrl: 'https://example.com/qualification-attempt',
           },
         ],
       },
@@ -345,14 +350,26 @@ describe('createWebsiteModel', () => {
         sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
       },
       semantic: {
+        attempt: {
+          artifactDigest: pinnedAttempt.result.artifactDigest,
+          attemptId: pinnedAttempt.result.attemptId,
+          createdAt: pinnedAttempt.result.createdAt,
+          failedCaseCount: pinnedAttempt.result.failedCaseCount,
+          passedCaseCount: pinnedAttempt.result.passedCaseCount,
+          pendingCaseCount: pinnedAttempt.result.pendingCaseCount,
+          recoveredCaseCount: pinnedAttempt.result.recoveredCaseCount,
+          status: 'passed',
+          totalCaseCount: pinnedAttempt.result.totalCaseCount,
+          updatedAt: pinnedAttempt.result.updatedAt,
+        },
         mode: 'pinned',
         reason: 'The release changes only deterministic tooling.',
-        sourceAttemptId: pinnedAttempt.result.attemptId,
+        sourceAttemptUrl: `https://github.com/moldea-ai/skill/blob/${'a'.repeat(40)}/fixtures/semantic-evaluation-results/attempts/${pinnedAttempt.result.attemptId}/attempt.json`,
         sourceCommit: 'a'.repeat(40),
         sourceLabel: 'aaaaaaaaaaaa',
         sourceUrl: `https://github.com/moldea-ai/skill/tree/${'a'.repeat(40)}`,
       },
-      targetVersion: '5.0.1',
+      targetVersion: '5.0.2',
     });
 
     const model = createWebsiteModel();
@@ -365,7 +382,10 @@ describe('createWebsiteModel', () => {
     expect(model.llmsText).toContain(
       `Current semantic contract: 0/${semanticEvaluation.caseCount} scenarios have exact current assurance.`,
     );
-    expect(model.llmsText).not.toContain(pinnedAttempt.result.attemptId);
+    expect(model.llmsText).toContain(
+      `Semantic release evidence: ${pinnedAttempt.result.passedCaseCount + pinnedAttempt.result.recoveredCaseCount}/${pinnedAttempt.result.totalCaseCount} scenarios successful`,
+    );
+    expect(model.llmsText).toContain(pinnedAttempt.result.attemptId);
   });
 
   test('requires reader-facing product mentions in Markdown to use inline code', () => {

@@ -11,6 +11,7 @@ import ReleaseEvidenceNotice from '../../../../../components/release-evidence-no
 import BaseLayout from '../../../../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../../../../lib/generation/generation.ts';
 import type { IQualificationProfileModel } from '../../../../../lib/qualification/index.ts';
+import { getQualificationReleaseEvidenceSummary } from '../../../../../lib/release-evidence/index.ts';
 
 interface Props {
   profile: IQualificationProfileModel;
@@ -31,6 +32,7 @@ const { releaseEvidence } = loadWebsiteModel();
 const basePath = import.meta.env.BASE_URL;
 const latestAttempt = profile.currentLatest;
 const pinnedPriorEvidence = profile.pinnedPriorEvidence;
+const releaseSummary = getQualificationReleaseEvidenceSummary(profile);
 const isCustomProfile = profile.adapterId === 'custom' && profile.implementationId === 'custom';
 const journeyCount = profile.sharedCases.length + profile.cases.length;
 const latestAttemptLinkLabel =
@@ -90,7 +92,7 @@ const breadcrumbs = [
 
     <header class="mt-7 border-b border-border pb-10">
       <div class="flex flex-wrap items-center gap-3">
-        <EvidenceStatus status={profile.currentStatus} />
+        <EvidenceStatus status={releaseSummary.status} />
         <code class="text-sm text-muted-foreground">
           {profile.adapterId}/{profile.implementationId}
         </code>
@@ -161,7 +163,40 @@ const breadcrumbs = [
         class="surface-card grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
       >
         {
-          latestAttempt === null ? (
+          latestAttempt === null && pinnedPriorEvidence !== null ? (
+            <>
+              <article>
+                <p class="eyebrow">Verified source result</p>
+                <div class="mt-4 flex flex-wrap items-center gap-3">
+                  <EvidenceStatus status="passed" />
+                  <time
+                    class="text-sm text-muted-foreground"
+                    datetime={pinnedPriorEvidence.completedAt}
+                  >
+                    {pinnedPriorEvidence.completedAt}
+                  </time>
+                </div>
+                <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
+                  Source attempt <code class="break-all">{pinnedPriorEvidence.attemptId}</code>{' '}
+                  supplies the passing evidence retained for this release. No fresh protocol 10 Sol
+                  attempt matches the current profile contract, so the source result is not
+                  relabeled as current-contract assurance.
+                </p>
+              </article>
+              <a
+                class="inline-flex items-center gap-2 text-link font-semibold hover:underline lg:justify-self-end"
+                href={pinnedPriorEvidence.sourceAttemptUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Inspect verified source
+                <ExternalLink
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </a>
+            </>
+          ) : latestAttempt === null ? (
             <article>
               <p class="eyebrow">Current effective result</p>
               <div class="mt-4">
@@ -170,7 +205,7 @@ const breadcrumbs = [
               <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
                 No protocol 10 Sol attempt matches this current profile contract. Projects,
                 requirements, and matrix coverage remain inspectable below. Verified prior release
-                evidence, when selected, is identified above.
+                evidence is not available for this profile.
               </p>
             </article>
           ) : (
@@ -638,7 +673,39 @@ const breadcrumbs = [
         Archived attempts link to the exact commit that stores their original artifacts.
       </p>
       {
-        profile.attempts.length === 0 ? (
+        profile.attempts.length === 0 && pinnedPriorEvidence !== null ? (
+          <a
+            class="surface-card interactive-card mt-7 flex min-w-0 flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+            href={pinnedPriorEvidence.sourceAttemptUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="min-w-0">
+              <span class="flex flex-wrap items-center gap-2">
+                <EvidenceStatus status="passed" />
+                <span class="text-xs font-bold text-muted-foreground">Verified source attempt</span>
+              </span>
+              <code class="mt-3 block text-sm break-all">{pinnedPriorEvidence.attemptId}</code>
+              <span class="mt-2 block text-sm text-muted-foreground">
+                Recorded{' '}
+                <time datetime={pinnedPriorEvidence.createdAt}>
+                  {pinnedPriorEvidence.createdAt}
+                </time>{' '}
+                through{' '}
+                <time datetime={pinnedPriorEvidence.completedAt}>
+                  {pinnedPriorEvidence.completedAt}
+                </time>
+              </span>
+            </span>
+            <span class="inline-flex shrink-0 items-center gap-2 text-link font-semibold">
+              Inspect source evidence
+              <ExternalLink
+                class="size-4"
+                aria-hidden="true"
+              />
+            </span>
+          </a>
+        ) : profile.attempts.length === 0 ? (
           <div class="mt-7 rounded-xl border border-dashed border-border bg-muted/30 p-6">
             <p class="font-semibold">No official attempt has been committed.</p>
             <p class="mt-2 max-w-3xl leading-7 text-muted-foreground">

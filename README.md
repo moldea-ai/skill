@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The current release is `5.0.1`. Install the latest version from `main`:
+The current release is `5.0.2`. Install the latest version from `main`:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the release:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.1"
+npx skills add "moldea-ai/skill#v5.0.2"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account.
@@ -54,7 +54,7 @@ npx skills remove moldea
 
 ## Compatibility
 
-Release `5.0.1` supports exactly:
+Release `5.0.2` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -262,7 +262,7 @@ npm run release:evidence:pin -- --scope semantic --from-commit <full-commit> --r
 npm run release:evidence:pin -- --scope qualification --from v5.0.0 --reason "Qualification behavior is unchanged."
 ```
 
-The scope may be `semantic`, `qualification`, or `all`. Every unselected section must have valid fresh current evidence. A pin is an explicit repository-bound maintainer risk decision. Its reason must identify what changed, name the deterministic checks used for the candidate, and avoid claiming that the earlier model run evaluated the new contracts. Public evidence pages distinguish the verified prior source from pending current-contract assurance. The pin validates the immutable source commit, optional source tag, portable skill digest, committed suite and coverage digests, complete passing inventory, referenced artifacts, attempt linkage, and resource limits without reinterpreting the source through the current evaluator vocabulary. It does not bypass release signing or publication credentials. Run the same command with `--clear` to remove an envelope containing a pin.
+The scope may be `semantic`, `qualification`, or `all`. Every unselected section must have valid fresh current evidence. A pin is an explicit repository-bound maintainer risk decision. Its reason must identify what changed, name the deterministic checks used for the candidate, and avoid claiming that the earlier model run evaluated the new contracts. Public evidence pages count an authenticated pinned attempt as verified release evidence, show its immutable source, and keep pending current-contract assurance separate. They do not present that retained result as a fresh run. The pin validates the immutable source commit, optional source tag, portable skill digest, committed suite and coverage digests, complete passing inventory, referenced artifacts, attempt linkage, and resource limits without reinterpreting the source through the current evaluator vocabulary. It does not bypass release signing or publication credentials. Run the same command with `--clear` to remove an envelope containing a pin.
 
 ## Releases
 
@@ -274,7 +274,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-Release `5.0.1` uses tag `v5.0.1`.
+Release `5.0.2` uses tag `v5.0.2`.
 
 See [Release evidence](docs/release-evidence.md) for the exact fresh and pinned workflows. `npm run release:check` is read-only and validates each section through its selected path before running current-only verification for fresh sections.
 

@@ -5,6 +5,7 @@ import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../../tooling/resource-calibration/profiles.mjs';
 
 import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
+import { getQualificationReleaseEvidenceSummary } from '../../../lib/release-evidence/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -23,6 +24,9 @@ const getProfile = (adapterId: string, implementationId: string) => {
 
 test('represents the current qualification evidence state', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/qualification/'));
+  const verifiedSourceAttemptCount = qualificationModel.profiles
+    .map(getQualificationReleaseEvidenceSummary)
+    .filter(({ kind }) => kind === 'pinned').length;
 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Adapter qualification evidence' }),
@@ -30,15 +34,31 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(
     page.getByText(`${qualificationModel.uniqueJourneyCount} unique projects`, { exact: false }),
   ).toBeVisible();
+  if (verifiedSourceAttemptCount > 0) {
+    await expect(
+      page.getByText(`${verifiedSourceAttemptCount} verified source attempts`, { exact: false }),
+    ).toBeVisible();
+  }
   for (const profile of qualificationModel.profiles) {
+    const releaseSummary = getQualificationReleaseEvidenceSummary(profile);
     const profileLink = page.getByRole('link', { name: profile.title });
     await expect(profileLink.locator('[data-evidence-status]')).toHaveAttribute(
       'data-evidence-status',
-      profile.currentStatus,
+      releaseSummary.status,
     );
     await expect(profileLink.getByText('Attempts', { exact: true }).locator('..')).toContainText(
-      String(profile.attempts.length),
+      String(releaseSummary.attemptCount),
     );
+    await expect(
+      profileLink.getByText(
+        releaseSummary.kind === 'pinned'
+          ? 'Verified source attempt'
+          : releaseSummary.kind === 'current'
+            ? 'Current-contract result'
+            : 'No release evidence',
+        { exact: true },
+      ),
+    ).toBeVisible();
     await expect(profileLink.getByText('Journeys', { exact: true }).locator('..')).toContainText(
       String(profile.sharedCases.length + profile.cases.length),
     );
@@ -170,6 +190,7 @@ test('presents profile definitions and the exact current evidence state', async 
     ['vercel-ai-sdk', 'typescript-tool-loop-agent-7'],
   ] as const) {
     const profile = getProfile(adapterId, implementationId);
+    const releaseSummary = getQualificationReleaseEvidenceSummary(profile);
     await page.goto(toPublicPath(profile.route));
     await expect(page.getByRole('heading', { level: 1, name: profile.title })).toBeVisible();
     await expect(
@@ -179,7 +200,7 @@ test('presents profile definitions and the exact current evidence state', async 
     ).toBeVisible();
     await expect(page.locator('[data-evidence-status]').first()).toHaveAttribute(
       'data-evidence-status',
-      profile.currentStatus,
+      releaseSummary.status,
     );
     await expect(
       page.getByRole('heading', { name: 'Package inputs and executed evidence' }),
@@ -200,7 +221,7 @@ test('presents profile definitions and the exact current evidence state', async 
         page.getByRole('heading', { name: 'Pinned prior executed closure' }),
       ).toBeVisible();
       await expect(
-        page.getByText(profile.pinnedPriorEvidence.attemptId, { exact: true }),
+        page.getByText(profile.pinnedPriorEvidence.attemptId, { exact: true }).first(),
       ).toBeVisible();
       await expect(
         page.getByText(/it is not relabeled as current-contract assurance/u),
@@ -219,9 +240,22 @@ test('presents profile definitions and the exact current evidence state', async 
       );
     }
     if (profile.currentLatest === null) {
-      await expect(
-        page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
-      ).toBeVisible();
+      if (profile.pinnedPriorEvidence === null) {
+        await expect(
+          page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
+        ).toBeVisible();
+      } else {
+        await expect(page.getByText('Verified source result', { exact: true })).toBeVisible();
+        await expect(page.getByText('Verified source attempt', { exact: true })).toBeVisible();
+        await expect(
+          page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
+        ).toHaveCount(0);
+        await expect(page.getByText('No official attempt has been committed.')).toHaveCount(0);
+        await expect(page.getByRole('link', { name: 'Inspect verified source' })).toHaveAttribute(
+          'href',
+          profile.pinnedPriorEvidence.sourceAttemptUrl,
+        );
+      }
       await expect(
         page.getByRole('link', {
           name: /Inspect the (?:execution-error|failed|passing) attempt/u,
@@ -243,9 +277,13 @@ test('replays qualification evidence through human-readable and technical views'
   const customProfile = getProfile('custom', 'custom');
   await page.goto(toPublicPath(customProfile.route));
   if (customProfile.currentLatest === null) {
-    await expect(
-      page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
-    ).toBeVisible();
+    if (customProfile.pinnedPriorEvidence === null) {
+      await expect(
+        page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
+      ).toBeVisible();
+    } else {
+      await expect(page.getByText('Verified source result', { exact: true })).toBeVisible();
+    }
     return;
   }
   const groundedAgentCase = customProfile.currentLatest.cases.find(

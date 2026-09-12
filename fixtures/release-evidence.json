@@ -1,7 +1,7 @@
 {
   "qualification": {
     "mode": "pinned",
-    "reason": "Release 5.0.2 changes only authenticated public evidence projection and presentation; normalized portable behavior is unchanged. Maintainer-selected unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate this presentation correction.",
+    "reason": "Release 5.0.3 changes only authenticated evidence hydration, public presentation, navigation, release tooling, and directly affected documentation; normalized portable behavior is unchanged. Unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate these website and release-tooling changes.",
     "source": {
       "commit": "c3416c52ae69a3f26d2e38c07ba98aa8531e358d",
       "evidence": {
@@ -158,7 +158,7 @@
   "schemaVersion": 2,
   "semantic": {
     "mode": "pinned",
-    "reason": "Release 5.0.2 changes only authenticated public evidence projection and presentation; normalized portable behavior is unchanged. Maintainer-selected unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate this presentation correction.",
+    "reason": "Release 5.0.3 changes only authenticated evidence hydration, public presentation, navigation, release tooling, and directly affected documentation; normalized portable behavior is unchanged. Unit, integration, semantic preflight, qualification dry-run, type, lint, formatting, path, website, build, and release checks validate the candidate; prior models did not evaluate these website and release-tooling changes.",
     "source": {
       "commit": "926907e26feac6a55929f68ca134aeaf41a6a4b5",
       "evidence": {
@@ -176,8 +176,8 @@
     }
   },
   "target": {
-    "dependencyClosureSha256": "62e9bf3dfb517c8e0985683d7144d2753773e923bb7eba9c7733347179d59b73",
-    "portableSkillSha256": "9b90f5bd732c2fc8bdf93b426dca75371afc7514f854710be79b3b1636c546cc",
-    "version": "5.0.2"
+    "dependencyClosureSha256": "1d1872be76cb0c96b8366798de85de77f5ffdf519e4504a56f0ec1eef400c190",
+    "portableSkillSha256": "d4e6fab900ac00272505ef602f0e88cb0de7ce826906a103f0949ff5091ef0d9",
+    "version": "5.0.3"
   }
 }

@@ -10,7 +10,7 @@ const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../
 
 describe('loadReleaseEvidenceWebsiteState', () => {
   test('hydrates complete authenticated semantic and qualification models', () => {
-    const state = loadReleaseEvidenceWebsiteState(REPOSITORY_ROOT, '5.0.2');
+    const state = loadReleaseEvidenceWebsiteState(REPOSITORY_ROOT, '5.0.3');
 
     expect(state.releaseEvidence.mode).toBe('recorded');
     expect(state.pinnedSemantic?.attempts).toHaveLength(1);

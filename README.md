@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The current release is `5.0.2`. Install the latest version from `main`:
+The current release is `5.0.3`. Install the latest version from `main`:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the release:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.2"
+npx skills add "moldea-ai/skill#v5.0.3"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account.
@@ -54,7 +54,7 @@ npx skills remove moldea
 
 ## Compatibility
 
-Release `5.0.2` supports exactly:
+Release `5.0.3` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -274,7 +274,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-Release `5.0.2` uses tag `v5.0.2`.
+Release `5.0.3` uses tag `v5.0.3`.
 
 See [Release evidence](docs/release-evidence.md) for the exact fresh and pinned workflows. `npm run release:check` is read-only and validates each section through its selected path before running current-only verification for fresh sections.
 

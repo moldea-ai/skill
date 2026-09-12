@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `5.0.3` supports exactly:
+Release `5.0.4` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -25,7 +25,7 @@ The local-tooling reference governs only establishment and invocation of the `mo
 
 A write-capable `moldea` operation may establish the compatible dependency through the repository's existing package manager with lifecycle scripts disabled. Read-only work reports missing or mismatched tooling and does not alter dependencies, lockfiles, or configuration.
 
-Every CLI operation uses the portable skill's `scripts/moldea-cli.mjs` launcher. The launcher validates the installed package identity, exact stable version, supported declaration, CLI/Core dependency closure, binary declaration, and repository-local containment from inert package metadata. It then invokes Node with an argument array and no shell. The skill's pre-activation script reuses the same resolver, invokes Core without the CLI, and emits only `0` or `1`. Agents do not reproduce package, executable-link, `PATH`, or parent-workspace probes around either script.
+Every CLI operation uses the portable skill's `scripts/moldea-cli.mjs` launcher. The launcher validates the installed package identity, exact stable version, supported declaration, CLI/Core dependency closure, binary declaration, and repository-local containment from inert package metadata. The resolved dependency directory must itself remain inside the repository; npm and pnpm layouts within that boundary are supported. It then invokes Node with an argument array and no shell. The pre-activation gate uses Core's matcher bundled with the installed skill and emits only `0` or `1`, without executing repository dependencies. Agents do not reproduce package, executable-link, `PATH`, or parent-workspace probes around either script. Containment checks do not authenticate code or replace the host's execution controls.
 
 ## Machine output
 

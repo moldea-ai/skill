@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import {
+  constants,
+  cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -15,6 +17,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, test } from 'node:test';
 import { parseDocument } from 'yaml';
+
+import { readRepositoryFile } from '../moldea/scripts/repository-files.mjs';
 
 import {
   createSemanticCaseSuiteDigest,
@@ -116,11 +120,14 @@ const installProjectToolingFixture = (root) => {
       2,
     )}\n`,
   );
-  symlinkSync(
-    join(REPOSITORY_ROOT, 'node_modules'),
-    join(root, 'node_modules'),
-    process.platform === 'win32' ? 'junction' : 'dir',
-  );
+  cpSync(join(REPOSITORY_ROOT, 'node_modules'), join(root, 'node_modules'), {
+    recursive: true,
+    mode: constants.COPYFILE_FICLONE,
+    verbatimSymlinks: true,
+    filter: (path) =>
+      !path.includes(`${join('node_modules', '@esbuild')}`) &&
+      !path.endsWith(`${join('node_modules', 'esbuild')}`),
+  });
 };
 
 const writeCliFixture = (cliRoot) => {
@@ -268,6 +275,7 @@ const createLauncherProject = (cliSource, options = {}) => {
     )}\n`,
   );
   writeFileSync(join(cliRoot, 'dist', 'moldea.js'), cliSource);
+  writeCoreFixture(join(root, 'node_modules', '@moldea.ai', 'core'));
   return root;
 };
 
@@ -283,7 +291,7 @@ describe('portable skill contract', () => {
   test('uses lowercase identity, repository-bound initialization, and a narrow description', () => {
     const frontmatter = parseFrontmatter();
     assert.deepEqual(frontmatter.metadata, {
-      version: '5.0.3',
+      version: '5.0.4',
       cliVersionRange: '^8.0.0',
       coreVersionRange: '^4.0.1',
       cliJsonSchemaVersion: 4,
@@ -1243,13 +1251,13 @@ describe('activation and semantic protection', () => {
       const packageManifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
       packageManifest.devDependencies['@moldea.ai/cli'] = '^6.0.0';
       writeFileSync(join(root, 'package.json'), `${JSON.stringify(packageManifest, null, 2)}\n`);
-      assert.equal(runRelevanceGate(root, [], '/src/nested/module.js\0').stdout, '0\n');
+      assert.equal(runRelevanceGate(root, [], '/src/nested/module.js\0').stdout, '1\n');
     } finally {
       rmSync(root, { force: true, recursive: true });
     }
   });
 
-  test('resolves Core only through repository-local npm and pnpm dependency graphs', () => {
+  test('matches independently of repository dependencies in npm and pnpm layouts', () => {
     const npmRoot = createIsolatedToolingProject('npm');
     const pnpmRoot = createIsolatedToolingProject('pnpm');
 
@@ -1266,7 +1274,7 @@ describe('activation and semantic protection', () => {
     }
   });
 
-  test('fails closed instead of using ambient, escaped, or later Core packages', () => {
+  test('gate ignores unusable Core packages while the launcher rejects them', () => {
     const parentRoot = mkdtempSync(join(tmpdir(), 'moldea-v5-core-boundary-'));
     const missingRoot = join(parentRoot, 'missing');
     const invalidRoot = createIsolatedToolingProject('pnpm');
@@ -1319,7 +1327,8 @@ describe('activation and semantic protection', () => {
         const result = runRelevanceGate(root, [], '/src/project-state.js\0');
         assert.equal(result.status, 0);
         assert.equal(result.stderr, '');
-        assert.equal(result.stdout, '0\n');
+        assert.equal(result.stdout, '1\n');
+        assert.equal(runCli(root, ['composition', '--json']).status, 3);
       }
     } finally {
       rmSync(parentRoot, { force: true, recursive: true });
@@ -1328,16 +1337,116 @@ describe('activation and semantic protection', () => {
       rmSync(unsafeVersionRoot, { force: true, recursive: true });
     }
   });
+
+  test('never executes repository dependency code on a gate hit or miss', () => {
+    const root = createIsolatedToolingProject('npm');
+    const sentinel = join(root, 'executed.txt');
+    try {
+      const trap = `import {writeFileSync} from 'node:fs'; writeFileSync(${JSON.stringify(sentinel)}, 'executed'); throw new Error('dependency executed');`;
+      writeFileSync(join(root, 'node_modules', '@moldea.ai', 'core', 'dist', 'index.js'), trap);
+      writeFileSync(join(root, 'node_modules', '@moldea.ai', 'cli', 'dist', 'moldea.js'), trap);
+      for (const [input, expected] of [
+        ['/src/project-state.js\0', '1\n'],
+        ['/src/other.js\0', '0\n'],
+      ]) {
+        const result = runRelevanceGate(root, [], input);
+        assert.equal(result.stdout, expected);
+        assert.equal(result.stderr, '');
+        assert.equal(existsSync(sentinel), false);
+      }
+      rmSync(join(root, 'node_modules'), { recursive: true });
+      assert.equal(runRelevanceGate(root, [], '/src/project-state.js\0').stdout, '1\n');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test('rejects escaping adoption directories and oversized manifest input', () => {
+    const root = createIsolatedToolingProject('npm');
+    const outside = mkdtempSync(join(tmpdir(), 'moldea-gate-outside-'));
+    try {
+      cpSync(join(root, 'moldea'), join(outside, 'moldea'), { recursive: true });
+      rmSync(join(root, 'moldea'), { recursive: true });
+      symlinkSync(
+        join(outside, 'moldea'),
+        join(root, 'moldea'),
+        process.platform === 'win32' ? 'junction' : 'dir',
+      );
+      assert.equal(runRelevanceGate(root, ['--adoption-only']).stdout, '0\n');
+      assert.equal(runRelevanceGate(root, [], '/src/project-state.js\0').stdout, '0\n');
+      rmSync(join(root, 'moldea'));
+      mkdirSync(join(root, 'moldea'));
+      writeFileSync(join(root, 'moldea', 'project.md'), '# Project\n');
+      writeFileSync(join(root, 'moldea', 'moldea.yaml'), ' '.repeat(2_097_153));
+      assert.equal(runRelevanceGate(root, [], '/src/project-state.js\0').stdout, '0\n');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+      rmSync(outside, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('CLI 8 bounded machine protocol', () => {
+  test('rejects an external node_modules root without executing its CLI', () => {
+    const root = createLauncherProject('throw new Error("must not execute");');
+    const outside = mkdtempSync(join(tmpdir(), 'moldea-launcher-outside-'));
+    try {
+      cpSync(join(root, 'node_modules'), join(outside, 'node_modules'), { recursive: true });
+      rmSync(join(root, 'node_modules'), { recursive: true });
+      symlinkSync(
+        join(outside, 'node_modules'),
+        join(root, 'node_modules'),
+        process.platform === 'win32' ? 'junction' : 'dir',
+      );
+      const result = runCli(root, ['composition', '--json']);
+      assert.equal(result.status, 3);
+      assert.equal(result.stdout, '');
+      assert.match(result.stderr, /dependency directory escaped the repository/u);
+      assert.doesNotMatch(result.stderr, /must not execute/u);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+      rmSync(outside, { recursive: true, force: true });
+    }
+  });
+
+  test('launches contained npm and pnpm CLI entries after inert Core verification', () => {
+    for (const layout of ['npm', 'pnpm']) {
+      const root = createIsolatedToolingProject(layout);
+      try {
+        const result = runCli(root, ['composition', '--json']);
+        assert.equal(result.status, 0);
+        assert.equal(result.stderr, '');
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    }
+  });
+
+  test('bounds regular-file reads and rejects file symlinks', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'moldea-bounded-file-'));
+    const path = join(root, 'file.txt');
+    try {
+      for (const length of [0, 1, 65_536, 65_537]) {
+        const bytes = Buffer.alloc(length, 65);
+        writeFileSync(path, bytes);
+        assert.deepStrictEqual(await readRepositoryFile(root, path, length), bytes);
+        if (length) await assert.rejects(() => readRepositoryFile(root, path, length - 1));
+      }
+      const link = join(root, 'link.txt');
+      symlinkSync(path, link, 'file');
+      await assert.rejects(() => readRepositoryFile(root, link, 65_537));
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   test('keeps release identity exact across the root manifests', () => {
     const packageManifest = JSON.parse(readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf8'));
     const packageLock = JSON.parse(
       readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'),
     );
     const declaredCliVersion = packageManifest.devDependencies['@moldea.ai/cli'];
-    assert.equal(packageManifest.version, '5.0.3');
+    assert.equal(packageManifest.version, '5.0.4');
     assert.match(declaredCliVersion, /^\d+\.\d+\.\d+$/u);
     assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 4);
     assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, declaredCliVersion);

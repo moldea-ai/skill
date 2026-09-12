@@ -1,6 +1,6 @@
 {
   "name": "@moldea.ai/skill-conformance",
-  "version": "5.0.3",
+  "version": "5.0.4",
   "private": true,
   "description": "Development-only conformance checks for the moldea Agent Skill.",
   "type": "module",
@@ -21,6 +21,8 @@
     "eval:semantic:verify": "node --experimental-strip-types tests/semantic-evaluation-runner.mjs --verify-attempts",
     "managed-readme:check": "node tooling/managed-readme/generate-portable.mjs --check",
     "managed-readme:generate": "node tooling/managed-readme/generate-portable.mjs",
+    "matcher:check": "node tooling/relevance-gate/generate-matcher.mjs --check",
+    "matcher:generate": "node tooling/relevance-gate/generate-matcher.mjs",
     "qualification": "npm --prefix qualification run qualification --",
     "qualification:dry-run": "npm --prefix qualification run qualification -- run --adapter custom --implementation custom --dry-run --json",
     "qualification:dry-run:all": "npm run qualification:dry-run && npm --prefix qualification run qualification -- run-batch --all --dry-run --workers 4 --json",
@@ -35,7 +37,7 @@
     "path:check": "node tooling/path-portability/index.mjs",
     "resource:calibrate": "node tooling/resource-calibration/index.mjs --record --samples 3",
     "resource:check": "node tooling/resource-calibration/index.mjs --check",
-    "release:check": "npm run managed-readme:check && npm test && node --experimental-strip-types tooling/release-identity/check-release.mjs",
+    "release:check": "npm run managed-readme:check && npm run matcher:check && npm test && node --experimental-strip-types tooling/release-identity/check-release.mjs",
     "release:evidence:pin": "node --experimental-strip-types tooling/release-identity/pin-evidence.mjs",
     "release:evidence:record": "node --experimental-strip-types tooling/release-identity/record-evidence.mjs",
     "release:identity:check": "node --experimental-strip-types tooling/release-identity/check-release.mjs --identity-only",
@@ -49,6 +51,7 @@
   },
   "devDependencies": {
     "@moldea.ai/cli": "8.0.0",
+    "esbuild": "0.28.2",
     "semver": "7.8.5",
     "yaml": "2.9.0"
   }

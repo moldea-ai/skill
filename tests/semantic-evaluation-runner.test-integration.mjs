@@ -54,8 +54,6 @@ const SEMANTIC_ATTEMPTS_PATH = join(
   'attempts',
 );
 const SEMANTIC_RESULT_PATH = join(process.cwd(), 'fixtures', 'semantic-evaluation-result.json');
-const RUNTIME_COMPATIBILITY_PUBLICATION_URL =
-  'https://packages.moldea.ai/compatibility/runtimes.json';
 const EMPTY_COMMAND_POLICY_EVIDENCE = {
   completedCommandCount: 0,
   credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
@@ -77,108 +75,31 @@ const EMPTY_COMMAND_POLICY_EVIDENCE = {
   },
 };
 
-test('runtime compatibility cases receive one exact fixed local publication probe', async () => {
-  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-runtime-probe-test-'));
-  const sandboxHome = join(evaluationRoot, 'home');
-  const actorToolDirectory = join(evaluationRoot, 'tools');
-  const caseDefinition = SEMANTIC_CASES.find(
-    ({ id }) => id === 'dedicated-repository-runtime-selection',
-  );
-  assert.notEqual(caseDefinition, undefined);
-
+test('runtime scenarios never install a compatibility network probe', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'moldea-runtime-tools-'));
   try {
-    const mounts = await prepareSemanticEvaluationHome(
-      sandboxHome,
-      caseDefinition,
-      actorToolDirectory,
-    );
-    const probePath = join(actorToolDirectory, 'curl');
-    assert.deepEqual(mounts, [{ source: actorToolDirectory, target: '/home/evaluator/bin' }]);
-    assert.equal(existsSync(probePath), true);
-
-    const accepted = spawnSync(
-      process.execPath,
-      [probePath, '-fsSL', RUNTIME_COMPATIBILITY_PUBLICATION_URL],
-      {
-        encoding: 'utf8',
-      },
-    );
-    assert.equal(accepted.status, 0);
-    const currentPublication = JSON.parse(accepted.stdout);
-    assert.equal(currentPublication.matrixVersion, 2);
-    assert.equal('maturity' in currentPublication.adapters.openai.targets[0], false);
-
-    for (const argumentsList of [
-      ['https://example.com'],
-      ['--output', 'publication.json', RUNTIME_COMPATIBILITY_PUBLICATION_URL],
-      ['-H', 'x-test:value', RUNTIME_COMPATIBILITY_PUBLICATION_URL],
+    for (const id of [
+      'eve-later-stable-local-eligibility',
+      'eve-invalid-package-metadata',
+      'eve-source-pattern-unresolved',
+      'runtime-package-version-mismatch',
+      'runtime-adapter-not-installed',
+      'dedicated-repository-runtime-selection',
+      'agent-adoption-inline-runtime-instruction',
     ]) {
-      const rejected = spawnSync(process.execPath, [probePath, ...argumentsList], {
-        encoding: 'utf8',
-      });
-      assert.equal(rejected.status, 2);
-      assert.equal(rejected.stdout, '');
-    }
-
-    const inlineHome = join(evaluationRoot, 'inline-home');
-    const inlineTools = join(evaluationRoot, 'inline-tools');
-    const inlineCase = SEMANTIC_CASES.find(
-      ({ id }) => id === 'agent-adoption-inline-runtime-instruction',
-    );
-    assert.notEqual(inlineCase, undefined);
-    await prepareSemanticEvaluationHome(inlineHome, inlineCase, inlineTools);
-    assert.equal(existsSync(join(inlineTools, 'curl')), true);
-
-    for (const [caseId, expected] of [
-      ['published-target-version-mismatch', 'version-mismatch'],
-      ['installed-adapter-without-published-target', 'missing'],
-      ['published-target-not-installed', 'future'],
-      ['runtime-publication-malformed', 'malformed'],
-      ['runtime-publication-unavailable', 'unavailable'],
-    ]) {
-      const variantHome = join(evaluationRoot, `${expected}-home`);
-      const variantTools = join(evaluationRoot, `${expected}-tools`);
-      const variantCase = SEMANTIC_CASES.find(({ id }) => id === caseId);
-      assert.notEqual(variantCase, undefined);
-      await prepareSemanticEvaluationHome(variantHome, variantCase, variantTools);
-      const variantProbe = spawnSync(
-        process.execPath,
-        [join(variantTools, 'curl'), RUNTIME_COMPATIBILITY_PUBLICATION_URL],
-        { encoding: 'utf8' },
+      const caseDefinition = SEMANTIC_CASES.find((entry) => entry.id === id);
+      assert.ok(caseDefinition);
+      const toolDirectory = join(root, id, 'tools');
+      const mounts = await prepareSemanticEvaluationHome(
+        join(root, id, 'home'),
+        caseDefinition,
+        toolDirectory,
       );
-
-      if (expected === 'unavailable') {
-        assert.equal(variantProbe.status, 22);
-        assert.match(variantProbe.stderr, /publication is unavailable/u);
-      } else if (expected === 'malformed') {
-        assert.equal(variantProbe.status, 0);
-        assert.equal(variantProbe.stdout, '{');
-      } else {
-        assert.equal(variantProbe.status, 0);
-        const publication = JSON.parse(variantProbe.stdout);
-        if (expected === 'version-mismatch') {
-          assert.equal(publication.adapters.openai.targets[0].packages[0].versionRange, '>=8.0.0');
-        } else if (expected === 'missing') {
-          assert.deepEqual(publication.adapters.openai.targets, []);
-        } else {
-          assert.equal(publication.adapters.future.targets[0].id, 'typescript-future-runtime-1');
-        }
-      }
-    }
-
-    for (const [caseId, directoryName] of [
-      ['host-plan-command-precedence', 'unrelated'],
-      ['plan-runtime-inventory-insufficient-evidence', 'ungranted-runtime'],
-    ]) {
-      const ungrantedHome = join(evaluationRoot, `${directoryName}-home`);
-      const ungrantedTools = join(evaluationRoot, `${directoryName}-tools`);
-      const ungrantedCase = SEMANTIC_CASES.find(({ id }) => id === caseId);
-      assert.notEqual(ungrantedCase, undefined);
-      await prepareSemanticEvaluationHome(ungrantedHome, ungrantedCase, ungrantedTools);
-      assert.equal(existsSync(join(ungrantedTools, 'curl')), false);
+      assert.deepEqual(mounts, [{ source: toolDirectory, target: '/home/evaluator/bin' }]);
+      assert.equal(existsSync(join(toolDirectory, 'curl')), false);
     }
   } finally {
-    rmSync(evaluationRoot, { force: true, recursive: true });
+    rmSync(root, { recursive: true, force: true });
   }
 });
 
@@ -579,6 +500,61 @@ const runLauncher = (repositoryPath, arguments_, input) => {
   assert.equal(result.status, 0, result.stderr);
   return result.stdout;
 };
+
+test('local Eve cases exercise real adapter eligibility and source boundaries', async () => {
+  for (const [id, diagnostic, hasDefinition] of [
+    ['eve-later-stable-local-eligibility', null, true],
+    ['runtime-package-version-mismatch', 'EVE_SDK_VERSION_UNSUPPORTED', false],
+    ['eve-invalid-package-metadata', 'EVE_PACKAGE_MANIFEST_INVALID', false],
+    ['eve-source-pattern-unresolved', null, false],
+  ]) {
+    const root = mkdtempSync(join(tmpdir(), 'moldea-eve-local-'));
+    try {
+      const caseDefinition = SEMANTIC_CASES.find((entry) => entry.id === id);
+      assert.ok(caseDefinition);
+      const { repositoryPath } = await createActorRepository(root, caseDefinition);
+      const result = spawnSync(
+        process.execPath,
+        [
+          join(repositoryPath, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+          '--repository',
+          repositoryPath,
+          '--',
+          'inspect',
+          '--json',
+          '--max-output-bytes',
+          '65536',
+        ],
+        { cwd: repositoryPath, encoding: 'utf8' },
+      );
+      assert.equal(result.status, diagnostic === null ? 0 : 1, result.stderr);
+      assert.equal(result.stderr, '');
+      const envelope = JSON.parse(result.stdout);
+      const records = envelope.result.page.records;
+      assert.ok(Buffer.byteLength(result.stdout) <= 65_536);
+      assert.equal(records.find((record) => record.kind === 'agent').runtimeId, 'eve');
+      assert.deepEqual(
+        records.filter((record) => record.kind === 'diagnostic').map((record) => record.code),
+        diagnostic === null ? [] : [diagnostic],
+      );
+      assert.equal(
+        records.some((record) => record.evidenceKind === 'agent-definition'),
+        hasDefinition,
+      );
+      assert.equal(
+        records.some((record) => record.evidenceKind === 'runtime-package'),
+        diagnostic === null,
+      );
+      assert.equal(
+        spawnSync('git', ['status', '--porcelain'], { cwd: repositoryPath, encoding: 'utf8' })
+          .stdout,
+        '',
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
+});
 
 test('all clean-slate semantic cases materialize their declared repository evidence', async () => {
   assert.equal(SEMANTIC_CASES.length, 74);

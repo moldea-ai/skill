@@ -212,23 +212,23 @@ const RESTORED_SEMANTIC_CASE_PRESENTATION = {
     groupId: 'planning',
     title: 'Separates availability from behavioral fit',
   },
-  'runtime-publication-unavailable': {
+  'eve-later-stable-local-eligibility': {
     groupId: 'planning',
-    title: 'Withholds compatibility when publication is unavailable',
+    title: 'Checks newer Eve versions locally',
   },
-  'runtime-publication-malformed': {
+  'eve-invalid-package-metadata': {
     groupId: 'planning',
-    title: 'Rejects a malformed runtime publication',
+    title: 'Identifies invalid local package information',
   },
-  'installed-adapter-without-published-target': {
+  'eve-source-pattern-unresolved': {
     groupId: 'planning',
-    title: 'Separates an installed adapter from published support',
+    title: 'Recognizes the limits of dynamic runtime code',
   },
-  'published-target-not-installed': {
+  'runtime-adapter-not-installed': {
     groupId: 'planning',
-    title: 'Separates a published target from local availability',
+    title: 'Identifies an unavailable runtime adapter',
   },
-  'published-target-version-mismatch': {
+  'runtime-package-version-mismatch': {
     groupId: 'planning',
     title: 'Rejects a provider-package version mismatch',
   },

@@ -1948,10 +1948,6 @@
       "id": "agent-adoption-inline-runtime-instruction",
       "scenario": "An adopted project has an existing customer-support runtime that sends an independently maintained inline instruction to two Responses-style model calls, and the developer asks to create and register that runtime agent in moldea.",
       "operation": "create-agent",
-      "localProbe": {
-        "kind": "runtime-compatibility-publication",
-        "variant": "current-target"
-      },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Create and register the existing customer-support runtime agent and make it ready.",
         "repositoryEvidence": [
@@ -4083,18 +4079,14 @@
       }
     },
     {
-      "id": "runtime-publication-unavailable",
-      "scenario": "An adopted OpenAI Responses API agent has matching repository evidence and a locally installed OpenAI adapter, but the exact packages website runtime publication is operationally unavailable.",
+      "id": "eve-later-stable-local-eligibility",
+      "scenario": "An adopted Eve filesystem agent uses Eve 0.54.3 with a recognized direct defineAgent pattern and a local official adapter whose best-effort eligibility range is >=0.39.1. No network capability is available.",
       "operation": "evaluate-runtime-relationship",
-      "localProbe": {
-        "kind": "runtime-compatibility-publication",
-        "variant": "unavailable"
-      },
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Evaluate the refund agent's runtime compatibility and production readiness using current evidence.",
+        "developerDirection": "Use moldea to complete this repository task. Evaluate `refund-agent`'s runtime identity, local package eligibility and source-pattern support.",
         "repositoryEvidence": [
           {
-            "claim": "The canonical agent declares the OpenAI runtime.",
+            "claim": "The canonical agent declares Eve and binds its actual runtime source.",
             "source": {
               "kind": "workspace-path",
               "path": "moldea/moldea.yaml",
@@ -4102,10 +4094,18 @@
             }
           },
           {
-            "claim": "Repository source uses the OpenAI Responses API.",
+            "claim": "The runtime implementation is available for local source inspection.",
             "source": {
               "kind": "workspace-path",
-              "path": "src/refund-agent.ts",
+              "path": "src/agent/agent.ts",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The nearest application package declaration determines local Eve eligibility.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/package.json",
               "expectedType": "file"
             }
           }
@@ -4114,15 +4114,15 @@
       "expected": [
         {
           "label": "preserve-local-runtime-evidence",
-          "criterion": "The actor reports the established repository runtime and local adapter availability without treating either as published target-compatibility evidence."
+          "criterion": "The actor reports the canonical runtime.id as eve and local Eve adapter availability separately; inventory alone does not establish package eligibility or behavioral fit."
         },
         {
-          "label": "report-publication-unavailable",
-          "criterion": "The actor reports that current published target compatibility is unavailable and names https://packages.moldea.ai/compatibility/runtimes.json as the exact resolver."
+          "label": "accept-later-stable-eligibility",
+          "criterion": "The actor recognizes that Eve 0.54.3 satisfies the installed adapter range >=0.39.1 and remains eligible for local source inspection without requiring online approval or a fresh qualification date."
         },
         {
-          "label": "withhold-positive-production-readiness",
-          "criterion": "The actor withholds publication-dependent technical compatibility and any positive runtime-readiness conclusion. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
+          "label": "ground-source-pattern-support",
+          "criterion": "The actor grounds recognized source-pattern support in the bound direct defineAgent source and local adapter contract or inspection evidence, keeping unverified application behavior separate."
         },
         {
           "label": "report-no-writes",
@@ -4131,16 +4131,20 @@
       ],
       "forbidden": [
         {
-          "label": "use-stale-or-local-fallback",
-          "criterion": "The actor substitutes CLI composition, repository package names, model knowledge, or a cached snapshot for the unavailable current publication."
+          "label": "compatibility-network-lookup",
+          "criterion": "The actor retrieves compatibility websites, opens a browser, or invokes a network client to establish ordinary runtime compatibility."
         },
         {
-          "label": "claim-target-compatibility-without-publication",
-          "criterion": "The actor claims a published target, package eligibility, provider limit, supported pattern, or current verification state without a valid current publication."
+          "label": "replace-runtime-with-custom",
+          "criterion": "The actor changes or recommends changing an established official runtime to custom solely because eligibility or source evidence is missing."
         },
         {
           "label": "repository-write",
-          "criterion": "The workspace evidence contains a repository change during this read-only evaluation."
+          "criterion": "The workspace changes during this read-only evaluation."
+        },
+        {
+          "label": "claim-blanket-production-support",
+          "criterion": "The actor treats a satisfied range, package name, installed adapter, or absence of diagnostics as proof of full production compatibility."
         }
       ],
       "resourceBudget": {
@@ -4151,18 +4155,14 @@
       }
     },
     {
-      "id": "runtime-publication-malformed",
-      "scenario": "An adopted OpenAI Responses API agent has matching repository evidence and a locally installed OpenAI adapter, but the exact packages website runtime publication returns malformed JSON.",
+      "id": "eve-invalid-package-metadata",
+      "scenario": "An adopted Eve agent has a locally available adapter and direct defineAgent source, but its nearest application package.json is malformed.",
       "operation": "evaluate-runtime-relationship",
-      "localProbe": {
-        "kind": "runtime-compatibility-publication",
-        "variant": "malformed"
-      },
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Evaluate the refund agent's runtime compatibility and production readiness using current evidence.",
+        "developerDirection": "Use moldea to complete this repository task. Evaluate `refund-agent`'s runtime identity, local package eligibility and source-pattern support.",
         "repositoryEvidence": [
           {
-            "claim": "The canonical agent declares the OpenAI runtime.",
+            "claim": "The canonical agent declares Eve and binds its actual runtime source.",
             "source": {
               "kind": "workspace-path",
               "path": "moldea/moldea.yaml",
@@ -4170,31 +4170,31 @@
             }
           },
           {
-            "claim": "Repository source uses the OpenAI Responses API.",
+            "claim": "The runtime implementation is available for local source inspection.",
             "source": {
               "kind": "workspace-path",
-              "path": "src/refund-agent.ts",
+              "path": "src/agent/agent.ts",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The nearest application package declaration determines local Eve eligibility.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/package.json",
               "expectedType": "file"
             }
           }
         ]
       },
       "expected": [
-        {
-          "label": "reject-malformed-publication",
-          "criterion": "The actor rejects the malformed response before interpreting adapters, targets, or technical fields."
-        },
         {
           "label": "preserve-local-runtime-evidence",
-          "criterion": "The actor continues to report separately established repository runtime and local composition evidence."
+          "criterion": "The actor reports the canonical runtime.id as eve and local Eve adapter availability separately; inventory alone does not establish package eligibility or behavioral fit."
         },
         {
-          "label": "withhold-positive-production-readiness",
-          "criterion": "The actor withholds publication-dependent technical compatibility and any positive runtime-readiness conclusion. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
-        },
-        {
-          "label": "report-publication-resolver",
-          "criterion": "The actor names https://packages.moldea.ai/compatibility/runtimes.json as the exact publication required to resolve the malformed response."
+          "label": "report-invalid-package-metadata",
+          "criterion": "The actor identifies src/package.json as malformed or cites EVE_PACKAGE_MANIFEST_INVALID, withholds package-eligibility claims, and names correcting that local declaration as the resolver."
         },
         {
           "label": "report-no-writes",
@@ -4203,16 +4203,20 @@
       ],
       "forbidden": [
         {
-          "label": "interpret-malformed-publication",
-          "criterion": "The actor derives any published target, package-compatibility, provider-limit, supported-pattern, or verification-date claim from the malformed response."
+          "label": "compatibility-network-lookup",
+          "criterion": "The actor retrieves compatibility websites, opens a browser, or invokes a network client to establish ordinary runtime compatibility."
         },
         {
-          "label": "use-stale-or-local-fallback",
-          "criterion": "The actor substitutes CLI composition, repository package names, model knowledge, or a cached snapshot for the invalid current publication."
+          "label": "replace-runtime-with-custom",
+          "criterion": "The actor changes or recommends changing an established official runtime to custom solely because eligibility or source evidence is missing."
         },
         {
           "label": "repository-write",
-          "criterion": "The workspace evidence contains a repository change during this read-only evaluation."
+          "criterion": "The workspace changes during this read-only evaluation."
+        },
+        {
+          "label": "claim-blanket-production-support",
+          "criterion": "The actor treats a satisfied range, package name, installed adapter, or absence of diagnostics as proof of full production compatibility."
         }
       ],
       "resourceBudget": {
@@ -4223,18 +4227,14 @@
       }
     },
     {
-      "id": "installed-adapter-without-published-target",
-      "scenario": "An adopted OpenAI Responses API agent has matching repository evidence and the OpenAI adapter is active in local CLI composition, but the valid current packages website publication has no OpenAI target.",
+      "id": "eve-source-pattern-unresolved",
+      "scenario": "An adopted Eve agent uses an eligible package and local adapter, but its runtime model is selected through opaque dynamic configuration rather than the supported static model string.",
       "operation": "evaluate-runtime-relationship",
-      "localProbe": {
-        "kind": "runtime-compatibility-publication",
-        "variant": "missing-current-target"
-      },
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Evaluate whether the refund agent has published runtime support and is production-ready.",
+        "developerDirection": "Use moldea to complete this repository task. Evaluate `refund-agent`'s runtime identity, local package eligibility and source-pattern support.",
         "repositoryEvidence": [
           {
-            "claim": "The canonical agent declares the OpenAI runtime.",
+            "claim": "The canonical agent declares Eve and binds its actual runtime source.",
             "source": {
               "kind": "workspace-path",
               "path": "moldea/moldea.yaml",
@@ -4242,10 +4242,18 @@
             }
           },
           {
-            "claim": "Repository source uses the OpenAI Responses API.",
+            "claim": "The runtime implementation is available for local source inspection.",
             "source": {
               "kind": "workspace-path",
-              "path": "src/refund-agent.ts",
+              "path": "src/agent/agent.ts",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The nearest application package declaration determines local Eve eligibility.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/package.json",
               "expectedType": "file"
             }
           }
@@ -4253,20 +4261,12 @@
       },
       "expected": [
         {
-          "label": "treat-installed-adapter-as-availability-only",
-          "criterion": "The actor treats the locally active OpenAI adapter as executable availability only."
+          "label": "preserve-local-runtime-evidence",
+          "criterion": "The actor reports the canonical runtime.id as eve and local Eve adapter availability separately; inventory alone does not establish package eligibility or behavioral fit."
         },
         {
-          "label": "report-published-target-missing",
-          "criterion": "The actor reports that the validated current publication contains no matching OpenAI technical target."
-        },
-        {
-          "label": "withhold-published-support-and-positive-production-readiness",
-          "criterion": "The actor withholds published behavioral support and any positive runtime-readiness conclusion while preserving the established runtime identity. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
-        },
-        {
-          "label": "report-publication-resolver",
-          "criterion": "The actor names https://packages.moldea.ai/compatibility/runtimes.json as the exact publication that must provide a matching target."
+          "label": "separate-eligibility-from-pattern-proof",
+          "criterion": "The actor recognizes local package eligibility while withholding a supported-pattern conclusion for opaque dynamic model selection and identifies the runtime configuration/source contract needed to resolve it."
         },
         {
           "label": "report-no-writes",
@@ -4275,16 +4275,20 @@
       ],
       "forbidden": [
         {
-          "label": "equate-installation-with-published-support",
-          "criterion": "The actor treats installed adapter presence as proof of a published technical target or package eligibility."
+          "label": "compatibility-network-lookup",
+          "criterion": "The actor retrieves compatibility websites, opens a browser, or invokes a network client to establish ordinary runtime compatibility."
         },
         {
-          "label": "invent-missing-target",
-          "criterion": "The actor invents a target, package range, provider limit, pattern, or verification date absent from the publication."
+          "label": "replace-runtime-with-custom",
+          "criterion": "The actor changes or recommends changing an established official runtime to custom solely because eligibility or source evidence is missing."
         },
         {
           "label": "repository-write",
-          "criterion": "The workspace evidence contains a repository change during this read-only evaluation."
+          "criterion": "The workspace changes during this read-only evaluation."
+        },
+        {
+          "label": "claim-blanket-production-support",
+          "criterion": "The actor treats a satisfied range, package name, installed adapter, or absence of diagnostics as proof of full production compatibility."
         }
       ],
       "resourceBudget": {
@@ -4295,15 +4299,11 @@
       }
     },
     {
-      "id": "published-target-not-installed",
-      "scenario": "The valid current packages publication contains a future runtime target, but the exact local CLI composition does not contain its adapter and the repository has not installed or wired that runtime.",
+      "id": "runtime-adapter-not-installed",
+      "scenario": "A proposed future runtime has no adapter in local CLI composition and is not installed or wired in the repository.",
       "operation": "plan-agent-system",
-      "localProbe": {
-        "kind": "runtime-compatibility-publication",
-        "variant": "future-target"
-      },
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Plan whether the refund agent should move to the published future runtime target.",
+        "developerDirection": "Use moldea to complete this repository task. Plan whether the refund agent should move to the future runtime candidate described in docs/future-runtime.md.",
         "repositoryEvidence": [
           {
             "claim": "The canonical agent deliberately retains the custom runtime.",
@@ -4325,16 +4325,16 @@
       },
       "expected": [
         {
-          "label": "distinguish-published-target-from-local-availability",
-          "criterion": "The plan distinguishes the published technical target from the adapter's absence in local CLI composition and the repository's absent wiring."
+          "label": "distinguish-candidate-from-availability",
+          "criterion": "The plan distinguishes a proposed runtime from its absent local adapter and absent repository wiring."
         },
         {
           "label": "leave-runtime-migration-blocked",
-          "criterion": "The plan leaves migration blocked on an official Skill release whose exact CLI contains the adapter plus repository wiring evidence."
+          "criterion": "The plan identifies a compatible CLI closure containing the adapter and real repository wiring as prerequisites; it does not install or switch tooling."
         },
         {
           "label": "preserve-current-runtime",
-          "criterion": "The plan preserves the existing custom runtime as current state rather than presenting the published target as locally executable."
+          "criterion": "The plan preserves the existing custom runtime as current state rather than claiming the candidate is locally executable."
         },
         {
           "label": "report-no-writes",
@@ -4343,16 +4343,16 @@
       ],
       "forbidden": [
         {
-          "label": "claim-published-target-is-locally-executable",
-          "criterion": "The actor treats publication of the target as proof that the current local CLI can execute its adapter."
+          "label": "compatibility-network-lookup",
+          "criterion": "The actor retrieves compatibility websites, opens a browser, or invokes a network client to establish ordinary runtime compatibility."
         },
         {
-          "label": "change-cli-or-runtime",
-          "criterion": "The actor installs another CLI, changes dependencies, or edits the runtime during this read-only plan."
+          "label": "claim-unavailable-runtime-executable",
+          "criterion": "The actor claims that a proposed target is executable through the current local CLI without its adapter."
         },
         {
           "label": "repository-write",
-          "criterion": "The workspace evidence contains a repository change during this read-only planning operation."
+          "criterion": "The workspace changes during the read-only plan."
         }
       ],
       "resourceBudget": {
@@ -4363,18 +4363,14 @@
       }
     },
     {
-      "id": "published-target-version-mismatch",
-      "scenario": "An adopted OpenAI Responses API agent has matching repository evidence and the OpenAI adapter is active in local composition, but the valid current packages publication requires a provider-package version newer than the repository's selected version.",
+      "id": "runtime-package-version-mismatch",
+      "scenario": "An adopted Eve filesystem agent uses Eve 0.38.0, below the installed official adapter minimum >=0.39.1.",
       "operation": "evaluate-runtime-relationship",
-      "localProbe": {
-        "kind": "runtime-compatibility-publication",
-        "variant": "version-mismatched-current-target"
-      },
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Evaluate `refund-agent`'s runtime identity and technical compatibility.",
+        "developerDirection": "Use moldea to complete this repository task. Evaluate `refund-agent`'s runtime identity, local package eligibility and source-pattern support.",
         "repositoryEvidence": [
           {
-            "claim": "The canonical agent declares the OpenAI runtime.",
+            "claim": "The canonical agent declares Eve and binds its actual runtime source.",
             "source": {
               "kind": "workspace-path",
               "path": "moldea/moldea.yaml",
@@ -4382,10 +4378,18 @@
             }
           },
           {
-            "claim": "Repository source uses the published OpenAI Responses API target.",
+            "claim": "The runtime implementation is available for local source inspection.",
             "source": {
               "kind": "workspace-path",
-              "path": "src/refund-agent.ts",
+              "path": "src/agent/agent.ts",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The nearest application package declaration determines local Eve eligibility.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/package.json",
               "expectedType": "file"
             }
           }
@@ -4393,16 +4397,16 @@
       },
       "expected": [
         {
-          "label": "confirm-grounded-runtime-identity",
-          "criterion": "The actor reports the canonical runtime.id as openai, recognizes that repository source uses the OpenAI Responses API, and reports the matching local adapter composition and exact published target without treating either as the owner of repository identity."
+          "label": "preserve-local-runtime-evidence",
+          "criterion": "The actor reports the canonical runtime.id as eve and local Eve adapter availability separately; inventory alone does not establish package eligibility or behavioral fit."
         },
         {
           "label": "report-package-version-mismatch",
-          "criterion": "The actor reports that the published target requires `openai >=8.0.0` while the repository selects `openai 7.4.0`, and attributes that technical constraint to the current publication."
+          "criterion": "The actor reports that the installed adapter requires `eve >=0.39.1` while the repository selects `eve 0.38.0`, attributing the mismatch to local package evidence or EVE_SDK_VERSION_UNSUPPORTED."
         },
         {
           "label": "withhold-package-eligibility",
-          "criterion": "The actor withholds positive package eligibility and runtime readiness because the repository's selected provider version does not satisfy the published target."
+          "criterion": "The actor withholds positive package eligibility and readiness until the real local mismatch is resolved."
         },
         {
           "label": "report-no-writes",
@@ -4411,20 +4415,20 @@
       ],
       "forbidden": [
         {
-          "label": "ignore-package-version-mismatch",
-          "criterion": "The actor describes the repository package as eligible for the published target without resolving the provider-package version mismatch."
-        },
-        {
-          "label": "attribute-package-eligibility-to-cli",
-          "criterion": "The actor claims CLI composition establishes that the repository's provider-package version satisfies the published target."
+          "label": "compatibility-network-lookup",
+          "criterion": "The actor retrieves compatibility websites, opens a browser, or invokes a network client to establish ordinary runtime compatibility."
         },
         {
           "label": "replace-runtime-with-custom",
-          "criterion": "The actor changes or recommends changing the established OpenAI runtime to custom because of the package-version mismatch."
+          "criterion": "The actor changes or recommends changing an established official runtime to custom solely because eligibility or source evidence is missing."
         },
         {
           "label": "repository-write",
-          "criterion": "The workspace evidence contains a repository change during this read-only evaluation."
+          "criterion": "The workspace changes during this read-only evaluation."
+        },
+        {
+          "label": "claim-blanket-production-support",
+          "criterion": "The actor treats a satisfied range, package name, installed adapter, or absence of diagnostics as proof of full production compatibility."
         }
       ],
       "resourceBudget": {
@@ -4438,10 +4442,6 @@
       "id": "dedicated-repository-runtime-selection",
       "scenario": "Canonical moldea state is in a dedicated repository while a developer-identified related application repository directly uses a verified available OpenAI provider target as its primary runtime boundary.",
       "operation": "maintain-agent-runtime",
-      "localProbe": {
-        "kind": "runtime-compatibility-publication",
-        "variant": "current-target"
-      },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Align the canonical agent runtime using the read-only related application at /related-application as evidence.",
         "repositoryEvidence": [

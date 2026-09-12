@@ -6,7 +6,6 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 
 import {
-  CODEX_EVALUATION_LOCAL_PROBE_KINDS,
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CodexEvaluationHostError,
   runCodexEvaluationOperationalStage,
@@ -952,19 +951,11 @@ test('keeps evaluator criteria out of the actor prompt', () => {
   assert.equal(buildActorPrompt(CASE), 'Review docs/example.md.');
 });
 
-test('exposes a fixed publication probe only to explicitly granted actor tasks', () => {
-  const grantedCase = SEMANTIC_CASES.find(
-    ({ id }) => id === 'agent-adoption-inline-runtime-instruction',
-  );
-  const ungrantedCase = SEMANTIC_CASES.find(
-    ({ id }) => id === 'plan-runtime-inventory-insufficient-evidence',
-  );
-  assert.ok(grantedCase);
-  assert.ok(ungrantedCase);
-
-  assert.match(buildActorPrompt(grantedCase), /explicitly provides a fixed local/u);
-  assert.match(buildActorPrompt(grantedCase), /compatibility\/runtimes\.json/u);
-  assert.equal(buildActorPrompt(ungrantedCase), ungrantedCase.input.developerDirection);
+test('every runtime task preserves its natural prompt without network instructions', () => {
+  for (const caseDefinition of SEMANTIC_CASES) {
+    assert.equal(buildActorPrompt(caseDefinition), caseDefinition.input.developerDirection);
+    assert.equal('localProbe' in caseDefinition, false);
+  }
 });
 
 test('judges insufficient initialization context without duplicate phrase requirements', () => {
@@ -1223,7 +1214,7 @@ test('retains observed command-policy failures without command text', () => {
   assert.doesNotMatch(JSON.stringify(result.commandPolicyEvidence), /curl|example\.com/u);
 });
 
-test('grants the fixed runtime-publication probe only through explicit semantic options', () => {
+test('semantic output records compatibility retrieval as network access', () => {
   const publicationUrl = 'https://packages.moldea.ai/compatibility/runtimes.json';
   const output = [
     {
@@ -1245,15 +1236,9 @@ test('grants the fixed runtime-publication probe only through explicit semantic 
     .join('\n');
   const releaseIdentity = { cliVersion: '7.0.0', jsonSchemaVersion: 4 };
   const defaultResult = parseSemanticEvaluationHostOutput(output, releaseIdentity);
-  const runtimeResult = parseSemanticEvaluationHostOutput(output, {
-    ...releaseIdentity,
-    localProbeKind: CODEX_EVALUATION_LOCAL_PROBE_KINDS.RuntimeCompatibilityPublication,
-  });
-
   assert.equal(defaultResult.commandPolicyEvidence.networkAccess.status, 'observed');
-  assert.equal(runtimeResult.commandPolicyEvidence.networkAccess.status, 'not-observed');
   assert.doesNotMatch(
-    JSON.stringify(runtimeResult.commandPolicyEvidence),
+    JSON.stringify(defaultResult.commandPolicyEvidence),
     /curl|packages\.moldea/u,
   );
 });

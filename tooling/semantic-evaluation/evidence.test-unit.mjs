@@ -57,31 +57,12 @@ describe('semantic evaluation evidence', () => {
     );
   });
 
-  test('binds explicit local-probe behavior into each case definition', () => {
-    const caseDefinition = {
-      ...createCaseDefinition('runtime-case'),
-      localProbe: {
-        kind: 'runtime-compatibility-publication',
-        variant: 'current-target',
-      },
-    };
-
-    assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
-    assert.notEqual(
-      createSemanticCaseDefinitionDigest(caseDefinition),
-      createSemanticCaseDefinitionDigest({
-        ...caseDefinition,
-        localProbe: {
-          ...caseDefinition.localProbe,
-          variant: 'future-target',
-        },
-      }),
-    );
+  test('rejects obsolete per-case network probe permissions', () => {
     assert.throws(
       () =>
         validateSemanticCaseDefinition({
-          ...caseDefinition,
-          localProbe: { ...caseDefinition.localProbe, variant: 'unsupported' },
+          ...createCaseDefinition('runtime-case'),
+          localProbe: { kind: 'runtime-compatibility-publication', variant: 'current-target' },
         }),
       /structured scenario/,
     );

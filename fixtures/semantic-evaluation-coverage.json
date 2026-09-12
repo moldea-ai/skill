@@ -374,12 +374,12 @@
     },
     {
       "id": "runtime-compatibility-and-selection",
-      "description": "Runtime selection separates local availability, repository evidence, published technical targets, package eligibility, and scoped runtime readiness.",
+      "description": "Runtime selection separates local availability, repository evidence, installed adapter package eligibility, recognized source patterns, and scoped readiness.",
       "sourcePaths": [
         "moldea/references/agent-design.md#select-the-runtime-honestly",
         "moldea/references/runtime-compatibility.md"
       ],
-      "rationale": "Unavailable, malformed, version-mismatched, unwired, external, and insufficient-evidence states cannot be promoted to technically compatible runtime claims.",
+      "rationale": "Later eligible Eve versions remain inspectable offline. Malformed local metadata, version mismatches, opaque source, absent adapters, and external evidence retain precise boundaries without remote lookup or custom fallback.",
       "evidence": [
         {
           "kind": "semantic-case",
@@ -387,23 +387,23 @@
         },
         {
           "kind": "semantic-case",
-          "id": "runtime-publication-unavailable"
+          "id": "eve-later-stable-local-eligibility"
         },
         {
           "kind": "semantic-case",
-          "id": "runtime-publication-malformed"
+          "id": "eve-invalid-package-metadata"
         },
         {
           "kind": "semantic-case",
-          "id": "installed-adapter-without-published-target"
+          "id": "eve-source-pattern-unresolved"
         },
         {
           "kind": "semantic-case",
-          "id": "published-target-not-installed"
+          "id": "runtime-adapter-not-installed"
         },
         {
           "kind": "semantic-case",
-          "id": "published-target-version-mismatch"
+          "id": "runtime-package-version-mismatch"
         },
         {
           "kind": "semantic-case",

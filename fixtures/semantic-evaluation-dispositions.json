@@ -254,31 +254,31 @@
     },
     {
       "formerId": "runtime-publication-unavailable",
-      "activeId": "runtime-publication-unavailable",
+      "activeId": "eve-later-stable-local-eligibility",
       "disposition": "restored-explicit",
-      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+      "rationale": "Local eligibility remains usable without online publication, including later stable versions that satisfy the installed adapter range."
     },
     {
       "formerId": "runtime-publication-malformed",
-      "activeId": "runtime-publication-malformed",
+      "activeId": "eve-invalid-package-metadata",
       "disposition": "restored-explicit",
-      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+      "rationale": "Malformed eligibility evidence remains an explicit limitation, now exercised at the authoritative installed-adapter package boundary."
     },
     {
       "formerId": "installed-adapter-without-published-target",
-      "activeId": "installed-adapter-without-published-target",
+      "activeId": "eve-source-pattern-unresolved",
       "disposition": "restored-explicit",
-      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+      "rationale": "Local executable availability cannot prove support for source that the installed adapter does not recognize."
     },
     {
       "formerId": "published-supported-target-not-installed",
-      "activeId": "published-target-not-installed",
+      "activeId": "runtime-adapter-not-installed",
       "disposition": "replaced-technical-boundary",
-      "rationale": "The current case preserves the published-target versus local-availability boundary without depending on website-owned maturity metadata."
+      "rationale": "A requested runtime does not establish local adapter availability, independently of the discovery catalog."
     },
     {
       "formerId": "experimental-target-not-production-ready",
-      "activeId": "published-target-version-mismatch",
+      "activeId": "runtime-package-version-mismatch",
       "disposition": "replaced-technical-boundary",
       "rationale": "The current case replaces website-owned maturity reasoning with a concrete provider-package version mismatch while preserving runtime evidence separation."
     },

@@ -90,17 +90,6 @@ export type ICodexEvaluationExecutionEvidence = {
   } | null;
 };
 
-export const CODEX_EVALUATION_LOCAL_PROBE_KINDS: {
-  readonly RuntimeCompatibilityPublication: 'runtime-compatibility-publication';
-};
-
-export type ICodexEvaluationLocalProbeKind =
-  (typeof CODEX_EVALUATION_LOCAL_PROBE_KINDS)[keyof typeof CODEX_EVALUATION_LOCAL_PROBE_KINDS];
-
-export type ICodexEvaluationExecutionEvidenceOptions = {
-  localProbeKind?: ICodexEvaluationLocalProbeKind;
-};
-
 export type IMoldeaCliOperation = 'composition' | 'content' | 'inspect' | 'scope' | 'validate';
 
 export const identifyMoldeaCliLauncherOperation: (command: string) => IMoldeaCliOperation | null;
@@ -223,7 +212,6 @@ export const calculateCodexEvaluationOperationalRetryDelay: (
 ) => number;
 export const projectCodexEvaluationExecutionEvidence: (
   source: string,
-  options?: ICodexEvaluationExecutionEvidenceOptions,
 ) => ICodexEvaluationExecutionEvidence;
 export const hasPassingCodexEvaluationCommandPolicy: (
   evidence: ICodexEvaluationCommandPolicyEvidence,

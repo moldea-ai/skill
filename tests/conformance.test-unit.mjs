@@ -753,27 +753,20 @@ describe('portable skill contract', () => {
     assert.match(runtime, /Canonical moldea declarations establish/u);
     assert.match(runtime, /Repository source, configuration, closed wiring/u);
     assert.match(runtime, /Root-local `composition/u);
-    assert.match(runtime, /current published technical targets/u);
-    assert.match(runtime, /It does not erase a canonical runtime declaration/u);
-    assert.match(runtime, /establish local composition once before interpreting the publication/u);
-    assert.match(runtime, /inspect\.project\.runtimes.*cannot negate an agent assignment/u);
+    assert.match(runtime, /Installed adapter contracts and deterministic inspection establish/u);
     assert.match(runtime, /matching `kind: agent` record's exact `agentId` and `runtimeId`/u);
     assert.match(runtime, /sole canonical content-free source for that assignment/u);
-    assert.match(runtime, /request `\/moldea\/moldea\.yaml` through `content`/u);
     assert.match(runtime, /ordinary four-command moldea limit/u);
-    assert.match(runtime, /ambient network client does not grant access/u);
-    assert.match(runtime, /published technical field can change the conclusion/u);
     assert.match(runtime, /route-5 fifth-call repair validation/u);
     assert.match(runtime, /invoke `composition` first and retain its conclusion/u);
-    assert.match(runtime, /cannot retroactively replace or erase/u);
-    assert.match(runtime, /official skill release selects an exact CLI closure/u);
-    assert.match(runtime, /state the exact canonical `runtime\.id` when established/u);
-    assert.match(runtime, /and the repository wires the target/u);
-    assert.match(runtime, /package range excludes the repository's selected provider version/u);
     assert.match(
       runtime,
-      /matching local adapter, exact published target, and package eligibility separately/u,
+      /do not retrieve compatibility websites, open browsers, or use network clients/u,
     );
+    assert.match(runtime, /Absence of diagnostics alone does not prove behavioral fit/u);
+    assert.match(runtime, /Eve `0\.54\.3` satisfies `>=0\.39\.1`/u);
+    assert.match(runtime, /report the exact local mismatch and preserve the runtime identity/u);
+    assert.doesNotMatch(runtime, /https:\/\/packages\.moldea\.ai\/compatibility\/runtimes\.json/u);
     assert.match(runtime, /best-effort eligibility gate, not a blanket compatibility promise/u);
     assert.match(runtime, /lower bound records the verified minimum/u);
     assert.match(
@@ -835,7 +828,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /Never invoke CLI, inspect or validate canonical state/u);
     assert.match(skill, /or append moldea status/u);
     assert.match(skill, /owner was reconsidered and remains accurate without an edit/u);
-    assert.match(skill, /Unavailable publication limits only dependent claims/u);
+    assert.match(skill, /Missing evidence never changes an established runtime/u);
     assert.match(skill, /Preserve established facts/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
 
@@ -1077,7 +1070,7 @@ describe('activation and semantic protection', () => {
       ({ id }) => id === 'skill-reconcile-distributed-copy',
     );
     const versionMismatchedTarget = FIXTURE.semanticCases.find(
-      ({ id }) => id === 'published-target-version-mismatch',
+      ({ id }) => id === 'runtime-package-version-mismatch',
     );
     const dynamicRouting = FIXTURE.semanticCases.find(
       ({ id }) => id === 'routing-description-dynamic-wiring',
@@ -1096,7 +1089,7 @@ describe('activation and semantic protection', () => {
       versionMismatchedTarget?.expected.find(
         ({ label }) => label === 'report-package-version-mismatch',
       )?.criterion,
-      /`openai >=8\.0\.0`.*`openai 7\.4\.0`/u,
+      /`eve >=0\.39\.1`.*`eve 0\.38\.0`/u,
     );
     assert.match(
       dynamicRouting?.forbidden.find(({ label }) => label === 'claim-wrong-description-source')

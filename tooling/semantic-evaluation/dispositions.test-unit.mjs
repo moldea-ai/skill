@@ -29,7 +29,7 @@ describe('semantic evaluation dispositions', () => {
         .filter(({ disposition }) => disposition === 'replaced-technical-boundary')
         .map(({ activeId }) => activeId)
         .sort(),
-      ['published-target-not-installed', 'published-target-version-mismatch'],
+      ['runtime-adapter-not-installed', 'runtime-package-version-mismatch'],
     );
   });
 

@@ -27,7 +27,6 @@ import {
   CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
-  CODEX_EVALUATION_LOCAL_PROBE_KINDS,
   CODEX_EVALUATION_MODEL,
   CODEX_EVALUATION_NPM_VERSION,
   CodexEvaluationHostError,
@@ -161,12 +160,6 @@ const PUBLISHED_CLI_ROOT = join(ROOT_NODE_MODULES, '@moldea.ai', 'cli');
 const PUBLISHED_CLI_MANIFEST = JSON.parse(
   readFileSync(join(PUBLISHED_CLI_ROOT, 'package.json'), 'utf8'),
 );
-const VERIFIED_OPENAI_PUBLICATION_TARGET = JSON.parse(
-  readFileSync(
-    join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'runtime-compatibility-publication.json'),
-    'utf8',
-  ),
-).adapters.openai.targets[0];
 const RESOURCE_PROFILE_DIGEST = createHash('sha256')
   .update(readFileSync(RESOURCE_PROFILE_PATH))
   .digest('hex');
@@ -228,91 +221,6 @@ const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
   'initialize-partial-context',
   'initialize-sufficient-context',
 ]);
-const RUNTIME_COMPATIBILITY_PUBLICATION_URL =
-  'https://packages.moldea.ai/compatibility/runtimes.json';
-const RUNTIME_COMPATIBILITY_PUBLICATION_TASK_INSTRUCTION =
-  `The evaluation host explicitly provides a fixed local current-publication probe for exactly ${RUNTIME_COMPATIBILITY_PUBLICATION_URL}. ` +
-  'Use it only when that publication can change the conclusion; no other network access is granted.';
-
-/** Returns whether one case grants the evaluator-owned runtime publication probe. */
-const hasRuntimeCompatibilityPublicationProbe = (caseDefinition) =>
-  caseDefinition.localProbe?.kind === 'runtime-compatibility-publication';
-
-/** Builds the exact local runtime-publication response declared by one semantic case. */
-const createRuntimeCompatibilityPublicationProbe = (variant) => {
-  if (variant === 'unavailable') {
-    return {
-      exitCode: 22,
-      stderr: 'The runtime compatibility publication is unavailable.\n',
-      stdout: '',
-    };
-  }
-  if (variant === 'malformed') return { exitCode: 0, stderr: '', stdout: '{' };
-
-  const isFutureTarget = variant === 'future-target';
-  const publicationTargets =
-    variant === 'missing-current-target'
-      ? []
-      : [
-          isFutureTarget
-            ? {
-                id: 'typescript-future-runtime-1',
-                kind: 'package',
-                language: 'typescript',
-                lastVerifiedAt: '2026-08-26',
-                packages: [
-                  {
-                    ecosystem: 'npm',
-                    name: 'future-runtime',
-                    role: 'primary',
-                    versionRange: '>=1.0.0',
-                  },
-                ],
-              }
-            : variant === 'version-mismatched-current-target'
-              ? {
-                  ...VERIFIED_OPENAI_PUBLICATION_TARGET,
-                  packages: VERIFIED_OPENAI_PUBLICATION_TARGET.packages.map(
-                    (packageRequirement) => ({
-                      ...packageRequirement,
-                      versionRange: '>=8.0.0',
-                    }),
-                  ),
-                }
-              : VERIFIED_OPENAI_PUBLICATION_TARGET,
-        ];
-  const adapterId = isFutureTarget ? 'future' : 'openai';
-  const publication = {
-    adapters: {
-      [adapterId]: {
-        ...(isFutureTarget
-          ? {}
-          : {
-              compatibleCoreRange: '>=3.0.0',
-              lastVerifiedAt: '2026-08-17',
-              runtimeGuidance: {
-                expectation: 'recommended',
-                notes:
-                  'Document project-specific model selection, tool execution, streaming, retry, and error behavior that static inspection cannot establish.',
-              },
-            }),
-        implementation: {
-          distribution: 'public',
-          kind: 'package',
-          package: `@moldea.ai/adapter-${adapterId}`,
-          ...(isFutureTarget ? {} : { versionRange: '>=3.0.0' }),
-        },
-        implementationStatus: 'available',
-        supportedRepositoryFormatVersions: [1],
-        targets: publicationTargets,
-      },
-    },
-    matrixVersion: 2,
-    schemaVersion: 1,
-  };
-
-  return { exitCode: 0, stderr: '', stdout: `${JSON.stringify(publication)}\n` };
-};
 const CUSTOM_SETUP_CASE_IDS = new Set([
   'host-plan-command-precedence',
   'plan-uninitialized-zero-agent',
@@ -2260,12 +2168,10 @@ const readSemanticEvaluationCandidateEvidenceText = async (path = CANDIDATE_RESU
 export const writeSemanticEvaluationCandidate = async (candidate, path = CANDIDATE_RESULT_PATH) =>
   writeJsonAtomically(path, candidate);
 
-/** Returns the natural task and any explicitly granted capability, never evaluation criteria. */
+/** Returns only the natural task, never evaluation criteria or network permissions. */
 export const buildActorPrompt = (caseDefinition) => {
   validateSemanticCaseDefinition(caseDefinition);
-  return hasRuntimeCompatibilityPublicationProbe(caseDefinition)
-    ? `${caseDefinition.input.developerDirection}\n\n${RUNTIME_COMPATIBILITY_PUBLICATION_TASK_INSTRUCTION}`
-    : caseDefinition.input.developerDirection;
+  return caseDefinition.input.developerDirection;
 };
 
 /** Adds Codex JSONL output so execution events remain independently observable. */
@@ -2283,12 +2189,7 @@ export const buildSemanticEvaluationHostCommand = (baseCommand, role) => {
  * @returns The final response, bounded command facts, and command-policy aggregate.
  */
 export const parseSemanticEvaluationHostOutput = (output, options) => {
-  const executionEvidenceOptions =
-    options.localProbeKind === undefined ? {} : { localProbeKind: options.localProbeKind };
-  const { commandPolicy, usage } = projectCodexEvaluationExecutionEvidence(
-    output,
-    executionEvidenceOptions,
-  );
+  const { commandPolicy, usage } = projectCodexEvaluationExecutionEvidence(output);
   const actorExecutionEvidence = [];
   let hasOperationalFailureEvent = false;
   let response = null;
@@ -3190,37 +3091,6 @@ export const prepareSemanticEvaluationHome = async (
   await prepareCodexEvaluationHome(sandboxHome);
   await prepareSemanticActorToolDirectory(sandboxHome, actorToolDirectory);
   const actorToolMounts = [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
-  if (hasRuntimeCompatibilityPublicationProbe(caseDefinition)) {
-    const probe = createRuntimeCompatibilityPublicationProbe(caseDefinition.localProbe.variant);
-
-    const curlProbePath = join(actorToolDirectory, 'curl');
-    await writeFile(
-      curlProbePath,
-      [
-        '#!/opt/node',
-        `const expectedUrl = ${JSON.stringify(RUNTIME_COMPATIBILITY_PUBLICATION_URL)};`,
-        "const safeLongOptions = new Set(['--fail', '--location', '--show-error', '--silent']);",
-        'const argumentsList = process.argv.slice(2);',
-        'const commandOptions = argumentsList.slice(0, -1);',
-        "if (commandOptions.at(-1) === '--') commandOptions.pop();",
-        'const hasValidCommand =',
-        '  argumentsList.at(-1) === expectedUrl &&',
-        '  commandOptions.every((option) => safeLongOptions.has(option) || /^-[fLsS]+$/u.test(option));',
-        'if (!hasValidCommand) {',
-        "  process.stderr.write('The evaluation curl probe supports only the runtime compatibility publication.\\n');",
-        '  process.exitCode = 2;',
-        '} else {',
-        `  process.stdout.write(${JSON.stringify(probe.stdout)});`,
-        `  process.stderr.write(${JSON.stringify(probe.stderr)});`,
-        `  process.exitCode = ${probe.exitCode};`,
-        '}',
-        '',
-      ].join('\n'),
-      'utf8',
-    );
-    await chmod(curlProbePath, 0o755);
-    return actorToolMounts;
-  }
   if (caseDefinition.id === 'pnpm-pnp-local-cli-provider') {
     const pnpmProbePath = join(actorToolDirectory, 'pnpm');
     await writeFile(
@@ -3463,33 +3333,34 @@ const seedRuntimePlanningEvidenceRoute = async (repositoryPath) => {
   );
 };
 
-/** Seeds repository-owned OpenAI Responses API evidence for compatibility scenarios. */
-const seedOpenAiRuntimeEvidence = async (repositoryPath) => {
-  await seedRefundAgent(
-    repositoryPath,
-    'Use the OpenAI Responses API runtime to assess refund requests.',
-    { runtimeId: 'openai', withMirrors: false },
-  );
-  const packageManifestPath = join(repositoryPath, 'package.json');
-  const packageManifest = JSON.parse(await readFile(packageManifestPath, 'utf8'));
-  packageManifest.dependencies = {
-    ...(packageManifest.dependencies ?? {}),
-    openai: '7.4.0',
-  };
+/** Seeds real local Eve package, binding, and source evidence without network access. */
+const seedEveRuntimeEvidence = async (repositoryPath, caseId) => {
+  await seedRefundAgent(repositoryPath, 'Assess refund requests using the declared Eve runtime.', {
+    runtimeId: 'eve',
+    withMirrors: false,
+  });
+  const manifestPath = join(repositoryPath, 'moldea', 'moldea.yaml');
+  const manifest = await readFile(manifestPath, 'utf8');
   await writeScenarioFile(
     repositoryPath,
-    'package.json',
-    `${JSON.stringify(packageManifest, null, 2)}\n`,
+    'moldea/moldea.yaml',
+    manifest +
+      '    bindings:\n      runtimeAgent:\n        path: /src/agent/agent.ts\n        symbol: default\n',
   );
+  const version = caseId === 'runtime-package-version-mismatch' ? '0.38.0' : '0.54.3';
   await writeScenarioFile(
     repositoryPath,
-    'src/refund-agent.ts',
-    [
-      "import OpenAI from 'openai';",
-      'const client = new OpenAI();',
-      'export const runRefundAgent = (input: string) => client.responses.create({ input });',
-      '',
-    ].join('\n'),
+    'src/package.json',
+    caseId === 'eve-invalid-package-metadata'
+      ? '{"dependencies":'
+      : JSON.stringify({ private: true, dependencies: { eve: version } }) + '\n',
+  );
+  const model =
+    caseId === 'eve-source-pattern-unresolved' ? 'process.env.AGENT_MODEL' : "'provider/model'";
+  await writeScenarioFile(
+    repositoryPath,
+    'src/agent/agent.ts',
+    "import { defineAgent } from 'eve';\nexport default defineAgent({ model: " + model + ' });\n',
   );
 };
 
@@ -3983,11 +3854,11 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
       );
       await seedInventoryOnlyRuntimeEvidence(repositoryPath);
       break;
-    case 'published-target-version-mismatch':
-    case 'installed-adapter-without-published-target':
-    case 'runtime-publication-malformed':
-    case 'runtime-publication-unavailable':
-      await seedOpenAiRuntimeEvidence(repositoryPath);
+    case 'runtime-package-version-mismatch':
+    case 'eve-source-pattern-unresolved':
+    case 'eve-invalid-package-metadata':
+    case 'eve-later-stable-local-eligibility':
+      await seedEveRuntimeEvidence(repositoryPath, caseDefinition.id);
       break;
     case 'adopted-relevance-no-change':
       await writeScenarioFile(
@@ -4108,7 +3979,7 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
         '{"providerHostedCapabilities":{"webSearch":true}}\n',
       );
       break;
-    case 'published-target-not-installed':
+    case 'runtime-adapter-not-installed':
       await seedRefundAgent(
         repositoryPath,
         'Use the project-specific runtime until an established official runtime is executable.',
@@ -4877,10 +4748,7 @@ const runSemanticEvaluationPreflight = async (caseDefinitions, coverage = null) 
         throw new Error(`Preflight changed a related repository for ${caseDefinition.id}.`);
       }
       const actorPrompt = buildActorPrompt(caseDefinition);
-      const expectedActorPrompt = hasRuntimeCompatibilityPublicationProbe(caseDefinition)
-        ? `${caseDefinition.input.developerDirection}\n\n${RUNTIME_COMPATIBILITY_PUBLICATION_TASK_INSTRUCTION}`
-        : caseDefinition.input.developerDirection;
-      if (actorPrompt !== expectedActorPrompt) {
+      if (actorPrompt !== caseDefinition.input.developerDirection) {
         throw new Error(`Preflight exposed an invalid actor prompt for ${caseDefinition.id}.`);
       }
       caseContexts.set(caseDefinition.id, {
@@ -5000,11 +4868,6 @@ const evaluateActorStage = async (caseDefinition, actorCommand, cli) => {
     const actorExecutionEvidenceOptions = {
       cliVersion: cli.version,
       jsonSchemaVersion: cli.jsonSchemaVersion,
-      ...(hasRuntimeCompatibilityPublicationProbe(caseDefinition)
-        ? {
-            localProbeKind: CODEX_EVALUATION_LOCAL_PROBE_KINDS.RuntimeCompatibilityPublication,
-          }
-        : {}),
     };
     const {
       actorExecutionEvidence,

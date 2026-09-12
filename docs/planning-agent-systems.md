@@ -16,7 +16,7 @@ Plan an agent system for personalized ecommerce promotions. Decide which respons
 
 Initialize `moldea` in the repository before requesting repository-dependent agent-system planning. The operation is read-only and does not initialize `moldea`, install tooling, create a canonical plan file, or begin implementation. Before adoption, the repository-bound skill abstains while the coding host remains free to perform its own generic planning workflow.
 
-Runtime selection remains optional unless you request it or it materially changes the recommendation. When you explicitly request runtime identity and a safe exact repository-local CLI is already available, the coding agent runs the closed launcher's `composition --json` operation. Its inventory proves only which adapters are installed. Current technical targets and package eligibility ranges come from the validated packages publication, while repository evidence must still establish the actual runtime and behavioral fit. Website presentation labels do not participate in runtime selection.
+Runtime selection remains optional unless you request it or it materially changes the recommendation. When you explicitly request runtime identity and a safe exact repository-local CLI is already available, the coding agent runs the closed launcher's `composition --json` operation. Its inventory proves only which adapters are installed. Local adapter contracts and inspection evidence establish package eligibility and recognized patterns, while repository evidence must still establish the actual runtime and behavioral fit. Compatibility websites and browser access are not prerequisites. Website presentation labels do not participate in runtime selection.
 
 ## Establish the outcome
 

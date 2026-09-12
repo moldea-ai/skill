@@ -84,7 +84,7 @@ After adoption and relevance are established, select one operation and read only
 - Create or change an agent or runtime: `references/agent-design.md`
 - Create, change, or evaluate an Agent Skill: `references/skill-design.md`
 - Evaluate or reconcile: `references/evaluate-and-reconcile.md`
-- Assess current adapter-target compatibility: `references/runtime-compatibility.md`
+- Assess local adapter-target compatibility: `references/runtime-compatibility.md`
 
 Never read every reference by default; read only what the operation requires. Routing-description evaluation reads `evaluate-and-reconcile.md`, then owning `agent-design.md` before classifying from runtime documentation and consumption evidence; identifiers prove nothing.
 
@@ -92,7 +92,7 @@ Host planning, review, implementation, package-manager, Git, commit, and publica
 
 For direct agent creation, an existing independent inline instruction is migration input. When source and tests establish behavior and runtime integration is authorized, complete the canonical, runtime, relationship, test, and final-validation change.
 
-Run `composition` only when local runtime availability or readiness matters; it never establishes canonical assignment. Without supplied assignment evidence, use one content-free `inspect`. The matching `kind: agent` record's `agentId` and `runtimeId` are the sole canonical content-free source for `agents.<id>.runtime.id`; counts prove nothing. Request named-agent `content` only when semantics matter; never inspect afterward or request manifest content. Retrieve publication only through host capability when relevant; URLs grant nothing. Report canonical assignment, repository fit, local adapter, and target separately. Unavailable publication limits only dependent claims and never changes an established runtime to `custom`. Preserve established facts; pair every behavioral or integration unknown with a concrete resolver.
+Run `composition` only when local runtime availability or readiness matters; it never establishes canonical assignment. Without supplied assignment evidence, use one content-free `inspect`. The matching `kind: agent` record's `agentId` and `runtimeId` are the sole canonical content-free source for `agents.<id>.runtime.id`; counts prove nothing. Request named-agent `content` only when semantics matter; never inspect afterward or request manifest content. Use local adapter contracts and inspection evidence for eligibility; do not retrieve compatibility websites or open browsers. Report canonical assignment, repository fit, local adapter, and eligibility separately. Missing evidence never changes an established runtime to `custom`. Preserve established facts; pair every behavioral or integration unknown with a concrete resolver.
 
 ## Initialize minimally
 

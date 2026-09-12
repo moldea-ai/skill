@@ -8,8 +8,10 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   rmSync,
   symlinkSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -1367,7 +1369,7 @@ describe('activation and semantic protection', () => {
       );
       assert.equal(runRelevanceGate(root, ['--adoption-only']).stdout, '0\n');
       assert.equal(runRelevanceGate(root, [], '/src/project-state.js\0').stdout, '0\n');
-      rmSync(join(root, 'moldea'));
+      unlinkSync(join(root, 'moldea'));
       mkdirSync(join(root, 'moldea'));
       writeFileSync(join(root, 'moldea', 'project.md'), '# Project\n');
       writeFileSync(join(root, 'moldea', 'moldea.yaml'), ' '.repeat(2_097_153));
@@ -1416,7 +1418,7 @@ describe('CLI 8 bounded machine protocol', () => {
   });
 
   test('bounds regular-file reads and rejects file symlinks', async () => {
-    const root = mkdtempSync(join(tmpdir(), 'moldea-bounded-file-'));
+    const root = realpathSync(mkdtempSync(join(tmpdir(), 'moldea-bounded-file-')));
     const path = join(root, 'file.txt');
     try {
       for (const length of [0, 1, 65_536, 65_537]) {

@@ -8,12 +8,12 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
-  realpathSync,
   rmSync,
   symlinkSync,
   unlinkSync,
   writeFileSync,
 } from 'node:fs';
+import { realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -1418,7 +1418,7 @@ describe('CLI 8 bounded machine protocol', () => {
   });
 
   test('bounds regular-file reads and rejects file symlinks', async () => {
-    const root = realpathSync(mkdtempSync(join(tmpdir(), 'moldea-bounded-file-')));
+    const root = await realpath(mkdtempSync(join(tmpdir(), 'moldea-bounded-file-')));
     const path = join(root, 'file.txt');
     try {
       for (const length of [0, 1, 65_536, 65_537]) {

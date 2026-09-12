@@ -1,205 +1,205 @@
-# Milestones: Complete `moldea` 5.0.2 with accurate release evidence
+# Milestones: Complete the `moldea` Evidence experience and release 5.0.3
 
-## Milestone 1: Correct the canonical platform specifications (completed)
-
-### Objective
-
-Require initialization before repository-dependent `moldea` planning, separate investigation order from claim-specific evidence authority, and define minimum-only runtime ranges as best-effort eligibility.
-
-### Dependencies
-
-- Preserve the completed skill foundation and isolate concurrent platform work.
-
-### Scope
-
-- The platform `moldea/context/` product, skill, context-gathering, compatibility, and adapter specifications identified in the plan.
-- Hosted-platform implementation, unrelated files, and protected instructions were excluded.
-
-### Implementation work
-
-- Removed pre-adoption exceptions, fixed evidence-authority wording, removed maturity from technical decisions, and corrected adapter range claims.
-
-### Verification
-
-- Platform specification checks, formatting, contradiction searches, and isolated review passed.
-
-### Acceptance criteria
-
-- The platform specifications expose the agreed contracts without unrelated changes.
-
-### Review checkpoint
-
-- Initialization, claim authority, range meaning, maturity separation, and concurrent-work isolation were reviewed.
-
-## Milestone 2: Correct runtime publication and adapter documentation (completed)
+## Milestones 1–5: Release-5 behavioral foundation (completed)
 
 ### Objective
 
-Publish best-effort runtime eligibility and prepare only the adapters whose artifacts changed.
+Establish and publish the clean release-5 skill, packages, specifications, public guidance, evaluation coverage, qualification system, bounded resource behavior, and authenticated evidence reuse that this Evidence release presents.
 
 ### Dependencies
 
-- Milestone 1 supplied the canonical wording.
+- The original release-5 task contract and accepted semantic and qualification evidence.
 
 ### Scope
 
-- Runtime-compatibility generation and website presentation, affected adapter documentation, three adapter manifests, and directly synchronized root documentation.
+- Previously completed platform, packages, knowledge-base, portable skill, evaluation, qualification, documentation, website-foundation, package-publication, and signed-tag work.
 
 ### Implementation work
 
-- Corrected eligibility terminology, preserved Core and implementation compatibility, and published Eve, LangChain, and LangGraph `3.0.1`.
+- Implemented initialization-first selective activation, content-free bounded CLI use, claim-specific authority, minimum-only runtime eligibility, evaluator batching and recovery, shared-plus-adapter qualification, exact package provenance, and repository-bound evidence pins.
+- Published the required platform, packages, knowledge-base, npm, skill, and website changes through signed tag `v5.0.2`.
 
 ### Verification
 
-- Packages tests, generation, documentation, type, lint, format, build, artifact, and release-selection checks passed.
+- Deterministic unit, integration, release, package, semantic-preflight, qualification-dry-run, supported Node, Windows, and website checks passed without reopening paid evidence.
 
 ### Acceptance criteria
 
-- Machine ranges and maturity data stayed unchanged; only three changed adapter artifacts were released.
+- Completed release-5 behavior remains preserved.
+- The missing `v5.0.2` GitHub Release and missing human-readable pinned evidence are explicitly assigned to the remaining milestones rather than concealed.
 
 ### Review checkpoint
 
-- Schema stability, terminology, selected artifacts, and executable-behavior isolation were reviewed.
+- Behavioral scope, package scope, resource protections, evidence identity, and the observed publication and presentation defects were separated.
 
-## Milestone 3: Correct public knowledge-base guidance (completed)
+## Milestone 6: Synchronize the public evidence specification (completed)
 
 ### Objective
 
-Align user guidance with initialization-first behavior, best-effort eligibility, and pinned evidence.
+Clarify that authenticated pinned evidence may be hydrated during static generation without copying attempt payloads into the release envelope or current tree.
 
 ### Dependencies
 
-- Milestones 1 and 2 established the public terminology.
+- The revised plan and an isolated platform branch based on `origin/main`.
 
 ### Scope
 
-- The affected getting-started and validation articles plus deterministic manifest synchronization.
+- Platform `moldea/context/agent-skill.md` only.
 
 ### Implementation work
 
-- Removed the public planning exception and documented eligibility and pinned-evidence meaning.
+- Added the domain-neutral release-evidence reuse contract for semantic and qualification evidence.
+- Preserved compact-envelope, authentication, freshness, build-time-only, no-browser-dependency, and no-compatibility-path requirements.
 
 ### Verification
 
-- Knowledge-base validation, tests, formatting, diff checks, and contradiction review passed.
+- Prettier, `git diff --check`, and bounded `moldea validate` passed with zero diagnostics.
+- The isolated one-file candidate was reviewed with fingerprint `93ed377b26f656d251a34a0dbd63ad6294f660640d58d0e04a666d5df7f23aee`.
 
 ### Acceptance criteria
 
-- Public guidance matches the platform and packages contracts without unrelated content changes.
+- Signed commit `84063f5dd4cc584737902bebb4fad6936d058bd1` was pushed through platform PR 154 and merged into `main` at `61582f6f9428f28df4c2a9840fee3c31a5043bb2`.
+- The temporary feature branch and worktree were removed without touching the shared platform checkout.
 
 ### Review checkpoint
 
-- Non-specialist clarity, contract agreement, and exact path scope were reviewed.
+- Compact-envelope meaning, immutable-source authentication, build-time scope, freshness terminology, and concurrency isolation passed review.
 
-## Milestone 4: Complete the portable skill and initial evidence presentation (completed)
+## Milestone 7: Hydrate and compose selected release evidence
 
 ### Objective
 
-Publish coherent activation, authority, runtime eligibility, and exact qualification provenance in skill `5.0.1` without paid model work.
+Load complete authenticated pinned attempts within explicit resource budgets and expose one canonical fresh-or-pinned website model with combined qualification journeys.
 
 ### Dependencies
 
-- Milestones 1 through 3 supplied stable external contracts and the accepted evidence sources remained immutable.
+- Milestone 6 is merged into platform `main`.
+- The authenticated semantic and qualification source identities remain unchanged.
 
 ### Scope
 
-- Portable `moldea/` files, affected skill documentation and deterministic fixtures, qualification provenance models and pages, release authentication, and the dual-domain evidence envelope.
+- `tooling/release-identity/release-evidence-source.mjs` and declarations plus focused release-identity tests.
+- `website/src/lib/release-evidence/**`, required semantic and qualification loader/transformer integration, generation caching, temporary source utilities, and focused model tests.
+- UI presentation changes are excluded except for compilation adjustments required by the new model.
 
 ### Implementation work
 
-- Implemented initialization-first activation, claim-specific authority, best-effort ranges, bounded pinned qualification provenance, and strengthened deterministic coverage.
+- Enumerate only the exact authenticated source files: semantic package/lock, portable skill, cases, coverage, result, selected latest pointer, and selected attempt; qualification resource calibration, cases, profiles, selected target pointers, and selected attempt directories.
+- Read Git blobs in a bounded batch; enforce safe paths, regular modes, deterministic ordering, no duplicates, at most 8,192 files, at most 16 MiB per file, and at most 64 MiB total source bytes.
+- Materialize the authenticated selection in operating-system temporary roots and guarantee cleanup on success and failure.
+- Reuse the existing semantic and qualification validators and human-readable transformers, caching each source once per website process and rebinding raw/source URLs to the immutable source commit.
+- Select fresh passing current evidence when present and pinned evidence otherwise without merging provenance or histories.
+- Compose non-Custom qualification evidence from its exact 12-journey bound Custom baseline and 2 direct journeys; Custom retains 12 journeys.
 
 ### Verification
 
-- The complete deterministic release boundary, website end-to-end checks, source-tamper checks, and evidence identity checks passed without model-backed execution.
+- Unit-test path, allowlist, mode, ordering, duplicate, count, byte, missing-object, cleanup, immutable-URL, and body-free diagnostic behavior.
+- Integration-test temporary repositories and the real source commits.
+- Require one 74-case semantic model, 14 profiles, correct 12/14 journey composition, current-over-pinned selection, and no transcript bodies in search or `llms.txt`.
+- Run typecheck, lint, formatting, and complete website builds under 512 MiB and 384 MiB old-space ceilings; record peak RSS separately.
 
 ### Acceptance criteria
 
-- Skill `5.0.1` exposed the agreed contracts, retained 74 semantic cases, authenticated pinned evidence, and was published to `development` after review.
+- Pinned evidence produces complete human-readable models through the same validated transformer path as fresh evidence.
+- Hydration occurs once, reads no unselected history, stays within every budget, and leaves no temporary cache.
+- Both heap-ceiling builds pass.
+- No envelope copy, current-tree attempt copy, client-side fetch, schema adapter, or parallel evidence store is introduced.
 
 ### Review checkpoint
 
-- Activation, conflicts, eligibility, bounded provenance, public comprehension, and immutable source identity were reviewed.
+- Inspect trust ownership, Git process count, path containment, resource accounting, cleanup, model amplification, immutable links, provenance separation, composition, and test depth.
 
-## Milestone 5: Publish synchronized contracts and skill 5.0.1 (completed)
+## Milestone 8: Redesign the complete Evidence experience
 
 ### Objective
 
-Merge the reviewed cross-repository candidates, publish the three adapter patches, and release signed skill tag `v5.0.1`.
+Make semantic and qualification proof immediately understandable, visual, concise, and trustworthy for non-technical visitors while preserving technical transparency through progressive disclosure.
 
 ### Dependencies
 
-- Milestones 1 through 4 were reviewed, pushed, and retained their recorded identities.
+- Milestone 7 supplies complete selected evidence models.
+- Existing `@moldea.ai/website-ui` public components remain sufficient.
 
 ### Scope
 
-- Exact reviewed platform, packages, knowledge-base, and skill commits; protected integration; three package releases; and signed tag `v5.0.1`.
+- Evidence landing, semantic index and attempt pages, qualification index and adapter profile pages under `website/src/pages/evidence/**`.
+- Evidence-specific components, replay/project presentation, route/search/sitemap generation, focused website tests, and directly affected skill evidence documentation.
+- Packages website, website-ui source, platform website, app-ui, unrelated skill pages, and paid evidence are excluded.
 
 ### Implementation work
 
-- Merged the reviewed candidates, published the selected packages, merged skill PR 15, and created the signed immutable release tag.
+- Redesign Evidence around the value `moldea` adds to coding-agent work and two realistic visual proof paths.
+- Remove top provenance panels and move source details into attempt history or lower technical disclosures.
+- Shorten semantic and qualification descriptions and explain evaluator concepts in accurate plain language.
+- Generate and link local pinned semantic attempt and replay pages.
+- Make `/evidence/qualification/[adapterId]/[implementationId]/` the canonical effective result with 12 or 14 journeys.
+- Remove the redundant qualification `attempts/[attemptId]` route, separated baseline/direct primary flows, and stale links, route records, breadcrumbs, and tests.
+- Reuse `EvaluationReplay`, `TabbedPanels`, `FilePreview`, `CodeBlock`, `ResultSummary`, `StatusBadge`, `Accordion`, and site-shell primitives.
+- Replace the broken patch surface with a visible `diff` block and explicit no-change result.
+- Keep attempt identities, source, packages, commits, models, retries, digests, reasons, and raw artifacts complete but secondary.
+- Synchronize `README.md`, `docs/release-evidence.md`, `docs/semantic-evaluation.md`, and `docs/adapter-qualification.md`.
 
 ### Verification
 
-- Public branch tips, package registry versions, release evidence, tag conformance, supported Node and Windows lanes, and website publication passed.
+- Test pinned/fresh route parity, 74 semantic scenarios, 12/14 qualification journeys, replay, visible diff, unchanged result, and secondary provenance.
+- Run axe, keyboard, focus, heading, search, sitemap, no-JavaScript, link, unit, integration, artifact, and browser checks.
+- Inspect 320 px, tablet, and desktop layouts in light and dark themes for overflow, density, code readability, touch targets, hierarchy, motion, and reduced motion.
 
 ### Acceptance criteria
 
-- The repositories expose one synchronized contract and only the intended packages and skill tag were published.
+- Visitors can understand both evidence families from visible examples and outcomes without opening methodology or provenance.
+- Pinned and fresh sources expose the same primary navigation and human-readable capabilities.
+- Every adapter card opens one combined effective result, and no redundant attempt page remains.
+- Technical evidence remains complete but secondary.
+- The site is polished, brand-consistent, accessible, responsive, theme-safe, and statically complete.
+- Existing website-ui primitives are sufficient; no package or app-ui release is needed.
 
 ### Review checkpoint
 
-- Public identities and workflows were correct, but live inspection subsequently exposed misleading current-only attempt summaries. That defect is assigned to Milestone 6 rather than reopening completed publication.
+- Inspect visitor comprehension, claim accuracy, realistic visuals, density, route ownership, source parity, diff usability, accessibility, mobile composition, themes, technical transparency, and test adequacy.
 
-## Milestone 6: Present verified pinned attempts and release skill 5.0.2
+## Milestone 9: Publish and verify `moldea` skill 5.0.3
 
 ### Objective
 
-Correct every public release-evidence surface so authenticated pinned evidence is visibly counted and explained, while fresh current-contract attempts remain a separate fact, then publish the exact correction as `v5.0.2` without paid model work.
+Publish the exact reviewed implementation as a complete signed skill release with an actual GitHub Release and deployed verified website, without paid model execution.
 
 ### Dependencies
 
-- Milestones 1 through 5 remain completed and immutable.
-- The accepted semantic source commit, qualification source tag, attempts, digests, and passing inventories must authenticate unchanged.
-- Only the two established portable release-version markers may change; the normalized portable behavior digest must match `v5.0.1`.
+- Milestones 6 through 8 are reviewed and published.
+- Accepted source evidence remains authenticated and normalized portable behavior matches `v5.0.2`.
 
 ### Scope
 
-- `tooling/release-identity/release-evidence-source.mjs`, its declaration, and focused evidence tests.
-- The website release-evidence model, loader, derived-state helper, home and evidence pages, and focused unit/end-to-end tests identified in the plan.
-- `README.md`, directly affected evidence documentation, public installation guidance, planning artifacts, release identity, and `fixtures/release-evidence.json`.
-- Platform, packages, knowledge base, portable skill behavior, current and historical attempt artifacts, qualification profiles, compatibility and maturity data, `skill-mock`, protected instructions, excluded archive/backup content, and unrelated concurrent work are excluded.
+- Skill release identity, two portable version markers, release evidence pin, directly affected generated/version references, planning artifacts, branch integration, signed tag, GitHub Release, conformance, Pages, and live verification.
+- Paid evaluation, non-dry qualification, package releases, behavior changes, and retrospective `v5.0.2` release creation are excluded.
 
 ### Implementation work
 
-- Return one compact semantic source-attempt projection only after full immutable-source authentication.
-- Derive release-facing semantic and qualification status from fresh current evidence when available and otherwise from verified pinned source evidence.
-- Show 74/74 semantic source cases, 70 direct passes, 4 recoveries, and all 14 qualification source attempts with source provenance; remove false empty states without fabricating current assurance.
-- Retain genuine no-evidence states and fail closed on inconsistent source identity, counts, timestamps, or artifacts.
-- Synchronize state-bearing documentation, change release identity to `5.0.2`, update only the two portable version markers, and regenerate the dual-domain pin from `v5.0.1` so the resolver retains the original sources.
+- Update identity to `5.0.3` and pin both evidence domains to the accepted sources with an accurate presentation-only reason.
+- Confirm only normalized release markers change inside the portable artifact.
+- Run the complete deterministic release boundary.
+- Review and correct until ready, push `development`, and merge the reviewed commit into `main` through the authorized workflow.
+- Create and push signed annotated tag `v5.0.3` and create the actual GitHub Release.
+- Wait for conformance and Pages, then verify public release, tagged installation, and live Evidence routes.
 
 ### Verification
 
-- Run focused authentication, selection-helper, model-generation, page, accessibility, responsive, theme, and built-output checks.
-- Run `npm run managed-readme:check`, root unit and integration suites, semantic preflight, qualification dry runs and deterministic suites, path checks, website checks, and `npm run release:check`.
-- Compare the normalized portable behavior digest with `v5.0.1`; inspect the `5.0.2` envelope and require the original accepted source commits, attempts, and passing counts.
-- Do not run a paid semantic command or non-dry adapter qualification.
-- Run read-only review and correct only in-scope findings until ready.
-- Publish the signed candidate to `origin/development`, review it against refreshed `main`, merge the exact candidate through branch protection, create signed immutable tag `v5.0.2`, and verify tag conformance and deployed routes.
+- Run `npm run managed-readme:check`, unit and integration suites, semantic preflight, qualification dry runs and deterministic suites, typecheck, lint, formatting, path, website, and release checks.
+- Compare normalized portable digests for `v5.0.2` and `v5.0.3` and verify the original source identities remain pinned.
+- Verify tag signature and target, GitHub Release API/page, installation, workflow conclusions, live version, replay, journeys, project tabs, diffs, responsive layouts, accessibility, and themes.
 
 ### Acceptance criteria
 
-- Semantic release surfaces show 74/74 verified source cases with 70 direct passes and 4 recovered cases, source identity, time, reason, and immutable link.
-- Qualification surfaces show 14 verified source attempts and no `No recorded attempt` or `No official attempt` for authenticated pinned profiles.
-- Current and pinned meanings remain explicit; no current attempt or pass is fabricated.
-- The envelope remains compact, authentication stays bounded and fail-closed, tampering is rejected, and genuine no-evidence states remain correct.
-- Only the two normalized portable version markers differ from `v5.0.1`; the portable behavior digest matches exactly and no paid model work runs.
-- The exact reviewed candidate is merged and published as signed tag `v5.0.2`; tag conformance passes and live routes show the corrected totals and labels.
+- All deterministic checks pass and no paid actor or judge runs.
+- The reviewed candidate is merged into `main`, signed tag `v5.0.3` identifies it, a public GitHub Release exists, and the tagged installation works.
+- Conformance and Pages pass and the live site exposes the complete Evidence experience.
+- Completion is declared only after every publication barrier is independently verified.
 
 ### Review checkpoint
 
-- Inspect evidence semantics, authenticated ownership, projection bounds, every release headline and empty state, current-versus-pinned wording, test adequacy, portable behavior identity, evidence provenance, exact diff scope, signed publication identity, workflow conclusions, and the deployed pages.
+- Inspect release scope, portable identity, evidence authentication, verification, signatures, GitHub Release existence, deployments, installability, and live experience.
 
 ## Execution scope
 
-Milestones 1 through 5 remain completed. Execute only Milestone 6: make authenticated pinned semantic and qualification attempts visible as verified release evidence across the skill website, keep them distinct from fresh current-contract attempts, update focused tests, documentation, and `5.0.2` release identity, reuse the original immutable evidence without paid model work, then review, merge, tag, and verify the exact deployed correction.
+Milestones 1 through 6 are complete. Execute Milestone 7 to implement bounded authenticated source hydration and one selected evidence model; Milestone 8 to redesign and verify the complete Evidence experience; and Milestone 9 to update identity, preserve accepted evidence, review, merge, tag, create the GitHub Release, deploy, and verify `moldea` skill `5.0.3`. Do not run paid evaluations, modify packages or app-ui, copy historical attempt stores, touch unrelated platform work, or introduce legacy evidence paths.

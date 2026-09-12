@@ -476,7 +476,7 @@ test('rejects self-reference, pre-envelope tags, corrupt artifacts, and over-bud
     [{ hasInvalidSemanticAttemptInventory: true }, /contradictory result summary/],
     [{ hasInvalidSemanticTimestamp: true }, /contradictory result summary/],
     [{ isFailed: true }, /failed or over budget/],
-    [{ isMissing: true }, /exists on disk|does not exist/],
+    [{ isMissing: true }, /did not select|is missing/],
     [{ isOverBudget: true }, /failed or over budget/],
     [{ isProfileMismatch: true }, /not self-consistent and passing/],
     [{ hasInvalidQualificationProvenance: true }, /invalid attempt record/],

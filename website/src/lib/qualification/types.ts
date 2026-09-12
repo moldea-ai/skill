@@ -936,9 +936,8 @@ export interface IQualificationProjectEvidenceModel {
 }
 
 // repository location from which one website attempt was resolved at build time
-export interface IQualificationEvidenceSourceModel {
-  kind: 'current';
-}
+export type IQualificationEvidenceSourceModel =
+  { kind: 'current' } | { commit: string; kind: 'pinned' };
 
 // one transparent case and project selected by a qualification profile
 export interface IQualificationProfileCaseModel {

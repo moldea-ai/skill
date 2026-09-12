@@ -84,8 +84,9 @@ describe('release evidence summaries', () => {
 
   test('prefers a fresh current semantic attempt over pinned evidence', () => {
     const currentAttempt = {
+      evidenceSource: { kind: 'current' },
       rawEvidenceUrl: 'https://example.com/current-attempt',
-      result: { attemptId: 'current-attempt' },
+      result: { attemptId: 'current-attempt', status: 'passed' },
     } as ISemanticAttemptModel;
 
     expect(getSemanticReleaseEvidenceSummary(pinnedSemanticEvidence, currentAttempt)).toStrictEqual(
@@ -95,6 +96,22 @@ describe('release evidence summaries', () => {
         sourceUrl: currentAttempt.rawEvidenceUrl,
       },
     );
+  });
+
+  test('uses pinned semantic evidence when the exact current attempt failed', () => {
+    const failedCurrentAttempt = {
+      evidenceSource: { kind: 'current' },
+      rawEvidenceUrl: 'https://example.com/failed-current-attempt',
+      result: { attemptId: 'failed-current-attempt', status: 'failed' },
+    } as ISemanticAttemptModel;
+
+    expect(
+      getSemanticReleaseEvidenceSummary(pinnedSemanticEvidence, failedCurrentAttempt),
+    ).toStrictEqual({
+      kind: 'pinned',
+      result: pinnedSemanticAttempt,
+      sourceUrl: pinnedSemanticSourceAttemptUrl,
+    });
   });
 
   test('selects current, pinned, and empty qualification states without merging histories', () => {

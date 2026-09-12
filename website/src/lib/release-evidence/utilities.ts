@@ -12,7 +12,11 @@ export const getSemanticReleaseEvidenceSummary = (
   releaseEvidence: IReleaseEvidenceModel,
   currentAssurance: ISemanticAttemptModel | null,
 ): ISemanticReleaseEvidenceSummary => {
-  if (currentAssurance !== null) {
+  if (
+    currentAssurance !== null &&
+    currentAssurance.evidenceSource.kind === 'current' &&
+    currentAssurance.result.status === 'passed'
+  ) {
     return {
       kind: 'current',
       result: currentAssurance.result,
@@ -33,14 +37,14 @@ export const getSemanticReleaseEvidenceSummary = (
 export const getQualificationReleaseEvidenceSummary = (
   profile: IQualificationProfileModel,
 ): IQualificationReleaseEvidenceSummary => {
-  if (profile.currentLatest !== null) {
+  if (profile.currentLatest !== null && profile.currentLatest.evidenceSource?.kind !== 'pinned') {
     return {
       attemptCount: profile.attempts.length,
       kind: 'current',
       status: profile.currentStatus,
     };
   }
-  if (profile.pinnedPriorEvidence !== null) {
+  if (profile.pinnedPriorEvidence !== null || profile.currentLatest !== null) {
     return { attemptCount: 1, kind: 'pinned', status: 'passed' };
   }
   return { attemptCount: 0, kind: 'not-recorded', status: 'not-recorded' };

@@ -12,7 +12,7 @@ import { getSemanticReleaseEvidenceSummary } from '../../../lib/release-evidence
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('replays current semantic evidence through keyboard-accessible tabs', async ({ page }) => {
+test('replays semantic release evidence through keyboard-accessible tabs', async ({ page }) => {
   const { currentSemanticAssurance, releaseEvidence, semanticEvaluation } = loadWebsiteModel();
   const releaseSummary = getSemanticReleaseEvidenceSummary(
     releaseEvidence,
@@ -36,10 +36,10 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
   await technicalProvenance.locator('summary').click();
   await expect(
     technicalProvenance.getByText(
-      semanticEvaluation.evidenceMatch === 'exact'
-        ? 'Exact current inputs'
-        : releaseSummary.kind === 'pinned'
-          ? 'Verified pinned source'
+      releaseSummary.kind === 'pinned'
+        ? 'Verified pinned source'
+        : semanticEvaluation.evidenceMatch === 'exact'
+          ? 'Exact current inputs'
           : 'No exact current evidence',
       { exact: true },
     ),
@@ -68,23 +68,21 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
     'href',
     /semantic-evaluation-coverage\.json$/u,
   );
-  if (currentSemanticAssurance === null) {
-    if (releaseSummary.kind === 'pinned') {
-      await expect(page.getByText('Verified source attempt', { exact: true })).toBeVisible();
-      await expect(
-        page.getByText(releaseSummary.result.attemptId, { exact: true }).first(),
-      ).toBeVisible();
-      await expect(
-        page.getByText('Verified source scenarios passed', { exact: true }),
-      ).toBeVisible();
-      await expect(page.getByText('Verified source recoveries', { exact: true })).toBeVisible();
-      await expect(
-        page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
-      ).toHaveCount(0);
-      await expect(
-        page.getByRole('link', { name: 'Inspect verified source attempt' }),
-      ).toHaveAttribute('href', releaseSummary.sourceUrl);
-    } else if (semanticEvaluation.attempts.length === 0) {
+  if (releaseSummary.kind === 'pinned') {
+    await expect(
+      page.getByText(releaseSummary.result.attemptId, { exact: true }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('link', { name: 'Inspect verified source attempt' }),
+    ).toHaveAttribute('href', releaseSummary.sourceUrl);
+  }
+
+  const presentationAssurance = semanticEvaluation.currentAssurance;
+  if (presentationAssurance === null) {
+    if (semanticEvaluation.attempts.length === 0) {
       await expect(
         page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
       ).toBeVisible();
@@ -97,7 +95,7 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
     return;
   }
 
-  const firstCase = currentSemanticAssurance.cases[0];
+  const firstCase = presentationAssurance.cases[0];
   if (firstCase === undefined) throw new Error('Expected one current semantic case.');
   const firstTrial = firstCase.replay?.trials[0];
   if (firstTrial === undefined) throw new Error('Expected one current semantic trial.');

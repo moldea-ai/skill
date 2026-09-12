@@ -309,10 +309,10 @@ const currentGroups =
             <dt class="text-muted-foreground">Evidence match</dt>
             <dd class="mt-1 font-mono break-all">
               {
-                semanticEvaluation.evidenceMatch === 'exact'
-                  ? 'Exact current inputs'
-                  : isPinnedReleaseEvidence
-                    ? 'Verified pinned source'
+                isPinnedReleaseEvidence
+                  ? 'Verified pinned source'
+                  : semanticEvaluation.evidenceMatch === 'exact'
+                    ? 'Exact current inputs'
                     : 'No exact current evidence'
               }
             </dd>

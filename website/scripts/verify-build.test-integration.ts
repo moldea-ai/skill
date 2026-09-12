@@ -58,7 +58,7 @@ describe('verifyProductionBuild', () => {
     const semanticSearchRecord = searchRecords.find(
       ({ url }) => url === withBase(model.semanticEvaluation.route, basePath),
     );
-    const currentAssurance = model.semanticEvaluation.currentAssurance;
+    const currentAssurance = model.currentSemanticAssurance;
     const hasAttemptHistory = model.semanticEvaluation.attempts.length > 0;
     const releaseSummary = getSemanticReleaseEvidenceSummary(
       model.releaseEvidence,
@@ -71,8 +71,10 @@ describe('verifyProductionBuild', () => {
       (currentAssurance?.result.passedCaseCount ?? 0) +
       (currentAssurance?.result.recoveredCaseCount ?? 0);
 
-    expect(model.semanticEvaluation.status).toBe(currentAssurance?.result.status ?? 'not-recorded');
-    expect(model.semanticEvaluation.evidenceMatch).toBe(currentAssurance === null ? null : 'exact');
+    expect(model.semanticEvaluation.status).toBe(releaseSummary.result?.status ?? 'not-recorded');
+    expect(model.semanticEvaluation.evidenceMatch).toBe(
+      model.semanticEvaluation.currentAssurance === null ? null : 'exact',
+    );
     expect(homeHtml).toContain(`${successfulCaseCount}/${model.semanticEvaluation.caseCount}`);
     expect(evidenceHtml).toContain(
       `${successfulCaseCount} of ${model.semanticEvaluation.caseCount} scenarios have verified release evidence`,

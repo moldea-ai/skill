@@ -233,6 +233,7 @@ export const createSemanticEvaluationReplay = (
   caseDefinition: ISemanticCaseDefinition | null,
   attemptCase: ISemanticAttemptRecord['cases'][number],
   candidate: ISemanticReplayCandidate,
+  options: { authenticatedCaseDefinitionDigest?: string } = {},
 ): ISemanticEvaluationReplayProjection => {
   const sourceTrials = getSourceTrials(candidate, attemptCase.id);
   if (sourceTrials.length !== attemptCase.trials.length) {
@@ -255,7 +256,8 @@ export const createSemanticEvaluationReplay = (
   }
   const hasCurrentCaseDefinition =
     caseDefinition !== null &&
-    createSemanticCaseDefinitionDigest(caseDefinition) === caseDefinitionDigest;
+    (options.authenticatedCaseDefinitionDigest ??
+      createSemanticCaseDefinitionDigest(caseDefinition)) === caseDefinitionDigest;
   const recordedDeveloperDirection = [...recordedDeveloperDirections][0] ?? null;
   if (
     hasCurrentCaseDefinition &&

@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 import {
   assertPublishableQualificationEvidence,
-  attachPinnedQualificationEvidence,
+  composeQualificationProfile,
   loadQualificationWebsiteModel,
   type IQualificationWebsiteModel,
 } from '../qualification/index.ts';
@@ -35,7 +35,7 @@ import type {
 import {
   getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
-  loadReleaseEvidenceModel,
+  loadReleaseEvidenceWebsiteState,
   type ISemanticReleaseEvidenceSummary,
 } from '../release-evidence/index.ts';
 import { DEFAULT_SITE_URL } from '../site/constants.ts';
@@ -43,6 +43,13 @@ import { DEFAULT_SITE_URL } from '../site/constants.ts';
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const GENERATED_NOTICE =
   'Generated from repository-owned documentation, semantic evaluation, qualification evidence, and moldea/SKILL.md metadata. Do not edit generated output.';
+let cachedWebsiteModel: IWebsiteModel | null = null;
+
+interface IGeneratedWebsiteModelEnvelope {
+  formatVersion: 1;
+  model: IWebsiteModel;
+  semanticAssuranceAttemptId: string | null;
+}
 
 const DocumentFrontmatterSchema = z.strictObject({
   description: z.string().min(1),
@@ -366,12 +373,14 @@ export const createLlmsText = (
   documents: IWebsiteDocument[],
   skill: ISkillMetadata,
   qualification: IQualificationWebsiteModel,
+  currentQualification: IQualificationWebsiteModel,
   releaseEvidence: IWebsiteModel['releaseEvidence'],
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
+  currentSemanticAssurance: ISemanticEvaluationWebsiteModel['currentAssurance'],
 ): string => {
   const semanticReleaseSummary = getSemanticReleaseEvidenceSummary(
     releaseEvidence,
-    semanticEvaluation.currentAssurance,
+    currentSemanticAssurance,
   );
   const qualificationReleaseSummaries = qualification.profiles.map(
     getQualificationReleaseEvidenceSummary,
@@ -382,11 +391,11 @@ export const createLlmsText = (
   const verifiedQualificationSourceCount = qualificationReleaseSummaries.filter(
     ({ kind }) => kind === 'pinned',
   ).length;
-  const currentSemanticSuccessfulCaseCount = semanticEvaluation.currentAssurance
-    ? semanticEvaluation.currentAssurance.result.passedCaseCount +
-      semanticEvaluation.currentAssurance.result.recoveredCaseCount
+  const currentSemanticSuccessfulCaseCount = currentSemanticAssurance
+    ? currentSemanticAssurance.result.passedCaseCount +
+      currentSemanticAssurance.result.recoveredCaseCount
     : 0;
-  const currentQualifiedProfileCount = qualification.profiles.filter(
+  const currentQualifiedProfileCount = currentQualification.profiles.filter(
     ({ currentAssurance }) => currentAssurance !== null,
   ).length;
   const releaseEvidenceLines =
@@ -507,6 +516,41 @@ export const createRouteManifest = (
   return [...routes].sort();
 };
 
+/** Selects one complete qualification profile per identity without combining attempt histories. */
+const selectQualificationWebsiteModel = (
+  current: IQualificationWebsiteModel,
+  pinned: IQualificationWebsiteModel | null,
+): IQualificationWebsiteModel => {
+  if (pinned === null) return current;
+  const pinnedProfilesByIdentity = new Map(
+    pinned.profiles.map((profile) => [
+      `${profile.adapterId}\0${profile.implementationId}`,
+      profile,
+    ]),
+  );
+  if (
+    pinnedProfilesByIdentity.size !== pinned.profiles.length ||
+    pinned.profiles.length !== current.profiles.length
+  ) {
+    throw new Error('Current and pinned qualification profile inventories do not match.');
+  }
+  const profiles = current.profiles.map((profile) => {
+    const pinnedProfile = pinnedProfilesByIdentity.get(
+      `${profile.adapterId}\0${profile.implementationId}`,
+    );
+    if (pinnedProfile === undefined) {
+      throw new Error('Current and pinned qualification profile inventories do not match.');
+    }
+    return profile.currentAssurance === null ? pinnedProfile : profile;
+  });
+
+  return {
+    ...current,
+    profiles,
+    uniqueJourneyCount: profiles.reduce((total, profile) => total + profile.cases.length, 0),
+  };
+};
+
 /**
  * Builds the complete deterministic website model without writing generated output.
  * @param qualificationRepositoryRoot Repository root used to load qualification evidence.
@@ -518,22 +562,23 @@ export const createWebsiteModel = (
   const repositoryRoot = getRepositoryRoot();
   const documents = discoverDocuments(repositoryRoot);
   const skill = readSkillMetadata(repositoryRoot);
-  const releaseEvidence = loadReleaseEvidenceModel(repositoryRoot, skill.version);
+  const releaseEvidenceState = loadReleaseEvidenceWebsiteState(repositoryRoot, skill.version);
+  const { releaseEvidence } = releaseEvidenceState;
   const loadedQualification = loadQualificationWebsiteModel(qualificationRepositoryRoot);
   const isReleaseQualification = resolve(qualificationRepositoryRoot) === repositoryRoot;
-  const qualification =
-    isReleaseQualification &&
-    releaseEvidence.mode === 'recorded' &&
-    releaseEvidence.qualification.mode === 'pinned'
-      ? attachPinnedQualificationEvidence(
-          loadedQualification,
-          releaseEvidence.qualification.targets,
-        )
-      : loadedQualification;
+  const qualification = isReleaseQualification
+    ? selectQualificationWebsiteModel(loadedQualification, releaseEvidenceState.pinnedQualification)
+    : loadedQualification;
   if (releaseEvidence.mode === 'not-recorded' || releaseEvidence.qualification.mode === 'fresh') {
     assertPublishableQualificationEvidence(qualification);
   }
-  const semanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
+  const currentSemanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
+  const hasPassingCurrentSemanticAssurance =
+    currentSemanticEvaluation.currentAssurance?.evidenceSource.kind === 'current' &&
+    currentSemanticEvaluation.currentAssurance.result.status === 'passed';
+  const semanticEvaluation = hasPassingCurrentSemanticAssurance
+    ? currentSemanticEvaluation
+    : (releaseEvidenceState.pinnedSemantic ?? currentSemanticEvaluation);
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
   const productionHostname = new URL(DEFAULT_SITE_URL).hostname;
@@ -549,10 +594,18 @@ export const createWebsiteModel = (
   }
 
   return {
-    currentSemanticAssurance: semanticEvaluation.currentAssurance,
+    currentSemanticAssurance: currentSemanticEvaluation.currentAssurance,
     documents,
     generatedNotice: GENERATED_NOTICE,
-    llmsText: createLlmsText(documents, skill, qualification, releaseEvidence, semanticEvaluation),
+    llmsText: createLlmsText(
+      documents,
+      skill,
+      qualification,
+      loadedQualification,
+      releaseEvidence,
+      semanticEvaluation,
+      currentSemanticEvaluation.currentAssurance,
+    ),
     navigation: createNavigation(documents),
     qualification,
     releaseEvidence,
@@ -576,6 +629,102 @@ export const createWebsiteModel = (
   };
 };
 
+/** Removes repeated object references before serializing the static-build cache. */
+const createGeneratedWebsiteModelEnvelope = (
+  model: IWebsiteModel,
+): IGeneratedWebsiteModelEnvelope => {
+  const semanticAssuranceAttemptId =
+    model.semanticEvaluation.currentAssurance?.result.attemptId ?? null;
+  const semanticEvaluation =
+    semanticAssuranceAttemptId === null
+      ? model.semanticEvaluation
+      : {
+          ...model.semanticEvaluation,
+          currentAssurance: null,
+          groups: model.semanticEvaluation.groups.map((group) => ({ ...group, cases: [] })),
+          lastPassing: null,
+          latest: null,
+        };
+  const qualification = {
+    ...model.qualification,
+    profiles: model.qualification.profiles.map((profile) => ({
+      ...profile,
+      boundBaseline: null,
+      currentAssurance: null,
+      currentLastPassing: null,
+      currentLatest: null,
+      sharedCases: [],
+    })),
+  };
+
+  return {
+    formatVersion: 1,
+    model: { ...model, qualification, semanticEvaluation },
+    semanticAssuranceAttemptId,
+  };
+};
+
+/** Restores shared evidence references after reading the compact static-build cache. */
+const restoreGeneratedWebsiteModel = (envelope: IGeneratedWebsiteModelEnvelope): IWebsiteModel => {
+  if (envelope.formatVersion !== 1) {
+    throw new Error('Generated website model has an unsupported format version.');
+  }
+  const directProfiles = envelope.model.qualification.profiles.map((profile) => ({
+    ...profile,
+    currentLastPassing:
+      profile.attempts.filter(({ result }) => result.status === 'passed').at(-1) ?? null,
+    currentLatest: profile.attempts.at(-1) ?? null,
+  }));
+  const customProfile = directProfiles.find(
+    ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
+  );
+  if (customProfile === undefined) {
+    throw new Error('Generated qualification model has no Custom baseline.');
+  }
+  const qualification = {
+    ...envelope.model.qualification,
+    profiles: directProfiles.map((profile) => composeQualificationProfile(profile, customProfile)),
+  };
+
+  const semanticEvaluation = envelope.model.semanticEvaluation;
+  if (envelope.semanticAssuranceAttemptId === null) {
+    return { ...envelope.model, qualification };
+  }
+  const currentAssurance = semanticEvaluation.attempts.find(
+    ({ result }) => result.attemptId === envelope.semanticAssuranceAttemptId,
+  );
+  if (currentAssurance === undefined) {
+    throw new Error('Generated semantic assurance does not resolve to an attempt.');
+  }
+  const groups = semanticEvaluation.groups.map((group) => ({
+    ...group,
+    cases: currentAssurance.cases.filter(({ groupId }) => groupId === group.id),
+  }));
+  if (
+    groups.reduce((total, group) => total + group.cases.length, 0) !== currentAssurance.cases.length
+  ) {
+    throw new Error('Generated semantic groups do not cover the selected assurance.');
+  }
+
+  return {
+    ...envelope.model,
+    qualification,
+    semanticEvaluation: {
+      ...semanticEvaluation,
+      currentAssurance,
+      groups,
+      lastPassing:
+        semanticEvaluation.latestPointer?.lastPassingAttemptId === currentAssurance.result.attemptId
+          ? currentAssurance
+          : null,
+      latest:
+        semanticEvaluation.latestPointer?.latestAttemptId === currentAssurance.result.attemptId
+          ? currentAssurance
+          : null,
+    },
+  };
+};
+
 /**
  * Writes the deterministic model consumed by Astro into the ignored website cache.
  * @param model Fully validated website model.
@@ -585,7 +734,11 @@ export const writeWebsiteModel = async (model: IWebsiteModel): Promise<void> => 
   const outputPath = join(getRepositoryRoot(), 'website/.generated/model.json');
 
   await mkdir(dirname(outputPath), { recursive: true });
-  writeFileSync(outputPath, `${JSON.stringify(model, null, 2)}\n`, 'utf8');
+  writeFileSync(
+    outputPath,
+    `${JSON.stringify(createGeneratedWebsiteModelEnvelope(model), null, 2)}\n`,
+    'utf8',
+  );
 };
 
 /**
@@ -595,9 +748,13 @@ export const writeWebsiteModel = async (model: IWebsiteModel): Promise<void> => 
  * - If the website model has not been generated
  */
 export const loadWebsiteModel = (): IWebsiteModel => {
+  if (cachedWebsiteModel !== null) return cachedWebsiteModel;
   const path = join(getRepositoryRoot(), 'website/.generated/model.json');
 
   if (!existsSync(path)) throw new Error('Website model is missing. Run npm run docs:generate.');
 
-  return JSON.parse(readFileSync(path, 'utf8')) as IWebsiteModel;
+  cachedWebsiteModel = restoreGeneratedWebsiteModel(
+    JSON.parse(readFileSync(path, 'utf8')) as IGeneratedWebsiteModelEnvelope,
+  );
+  return cachedWebsiteModel;
 };

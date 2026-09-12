@@ -78,6 +78,7 @@ vi.mock('../semantic-evaluation/index.ts', () => {
       coverageUrl: 'https://example.com/semantic-coverage.json',
       currentAssurance: {
         cases: [],
+        evidenceSource: { kind: 'current' },
         rawAttemptUrl: 'https://example.com/semantic-attempt.json',
         rawEvidenceUrl: 'https://example.com/semantic-evidence.json',
         result: {
@@ -132,6 +133,8 @@ vi.mock('../semantic-evaluation/index.ts', () => {
       lastPassing: null,
       hasAttempt: true,
       latest: {
+        cases: [],
+        evidenceSource: { kind: 'current' },
         rawAttemptUrl: 'https://example.com/semantic-attempt.json',
         rawEvidenceUrl: 'https://example.com/semantic-evidence.json',
         result: {
@@ -164,18 +167,22 @@ vi.mock('../semantic-evaluation/index.ts', () => {
 });
 
 vi.mock('../release-evidence/loader.ts', () => ({
-  loadReleaseEvidenceModel: vi.fn(() => ({
-    mode: 'not-recorded',
-    targetVersion: '5.0.2',
+  loadReleaseEvidenceWebsiteState: vi.fn(() => ({
+    pinnedQualification: null,
+    pinnedSemantic: null,
+    releaseEvidence: {
+      mode: 'not-recorded',
+      targetVersion: '5.0.2',
+    },
   })),
 }));
 
 import { createWebsiteModel } from './generation.ts';
 import {
   assertPublishableQualificationEvidence,
-  attachPinnedQualificationEvidence,
+  loadQualificationWebsiteModel,
 } from '../qualification/index.ts';
-import { loadReleaseEvidenceModel } from '../release-evidence/index.ts';
+import { loadReleaseEvidenceWebsiteState } from '../release-evidence/index.ts';
 import { loadSemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
 import {
   INSTALL_COMMAND,
@@ -240,31 +247,51 @@ describe('createWebsiteModel', () => {
   test('bypasses current qualification checks only when qualification evidence is pinned', () => {
     const publicationCheck = vi.mocked(assertPublishableQualificationEvidence);
     publicationCheck.mockClear();
-    vi.mocked(loadReleaseEvidenceModel).mockReturnValueOnce({
-      mode: 'recorded',
-      qualification: {
-        mode: 'pinned',
-        reason: 'Release tooling only.',
-        sourceCommit: 'a'.repeat(40),
-        sourceLabel: 'v5.0.0',
-        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
-        targets: [
-          {
-            adapterId: 'custom',
-            attemptId: 'qualification-attempt',
-            completedAt: '2026-08-20T10:01:00.000Z',
-            createdAt: '2026-08-20T10:00:00.000Z',
-            implementationId: 'custom',
-            packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
-            sourceAttemptUrl: 'https://example.com/qualification-attempt',
-          },
-        ],
+    const pinnedPriorEvidence = {
+      adapterId: 'custom',
+      attemptId: 'qualification-attempt',
+      completedAt: '2026-08-20T10:01:00.000Z',
+      createdAt: '2026-08-20T10:00:00.000Z',
+      implementationId: 'custom',
+      packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+      sourceAttemptUrl: 'https://example.com/qualification-attempt',
+    };
+    const qualification = loadQualificationWebsiteModel('unused');
+    vi.mocked(loadReleaseEvidenceWebsiteState).mockReturnValueOnce({
+      pinnedQualification: {
+        ...qualification,
+        profiles: qualification.profiles.map((profile) => ({
+          ...profile,
+          pinnedPriorEvidence,
+        })),
       },
-      semantic: {
-        mode: 'fresh',
-        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
+      pinnedSemantic: null,
+      releaseEvidence: {
+        mode: 'recorded',
+        qualification: {
+          mode: 'pinned',
+          reason: 'Release tooling only.',
+          sourceCommit: 'a'.repeat(40),
+          sourceLabel: 'v5.0.0',
+          sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
+          targets: [
+            {
+              adapterId: 'custom',
+              attemptId: 'qualification-attempt',
+              completedAt: '2026-08-20T10:01:00.000Z',
+              createdAt: '2026-08-20T10:00:00.000Z',
+              implementationId: 'custom',
+              packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+              sourceAttemptUrl: 'https://example.com/qualification-attempt',
+            },
+          ],
+        },
+        semantic: {
+          mode: 'fresh',
+          sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
+        },
+        targetVersion: '6.0.0',
       },
-      targetVersion: '6.0.0',
     });
 
     const model = createWebsiteModel();
@@ -292,39 +319,125 @@ describe('createWebsiteModel', () => {
     );
   });
 
+  test('selects a complete passing current qualification profile over pinned evidence', () => {
+    const qualification = loadQualificationWebsiteModel('unused');
+    const currentAttempt = {
+      cases: [],
+      evidenceSource: { kind: 'current' },
+      result: {
+        attemptId: 'current-qualification-attempt',
+        cases: [],
+        provenance: { packages: [] },
+        status: 'passed',
+        summary: 'Current qualification passed.',
+      },
+      route: '/evidence/qualification/custom/custom/attempts/current-qualification-attempt/',
+    } as unknown as NonNullable<(typeof qualification.profiles)[number]['currentLatest']>;
+    const currentQualification = {
+      ...qualification,
+      profiles: qualification.profiles.map((profile) => ({
+        ...profile,
+        attempts: [currentAttempt],
+        currentAssurance: { baselineAttempt: null, directAttempt: currentAttempt },
+        currentLastPassing: currentAttempt,
+        currentLatest: currentAttempt,
+        currentStatus: 'passed' as const,
+      })),
+    };
+    vi.mocked(loadQualificationWebsiteModel).mockReturnValueOnce(currentQualification);
+    vi.mocked(loadReleaseEvidenceWebsiteState).mockReturnValueOnce({
+      pinnedQualification: {
+        ...qualification,
+        profiles: qualification.profiles.map((profile) => ({
+          ...profile,
+          pinnedPriorEvidence: {
+            adapterId: profile.adapterId,
+            attemptId: 'pinned-qualification-attempt',
+            completedAt: '2026-08-20T10:01:00.000Z',
+            createdAt: '2026-08-20T10:00:00.000Z',
+            implementationId: profile.implementationId,
+            packages: [],
+            sourceAttemptUrl: 'https://example.com/pinned-qualification-attempt',
+          },
+        })),
+      },
+      pinnedSemantic: null,
+      releaseEvidence: {
+        mode: 'recorded',
+        qualification: {
+          mode: 'pinned',
+          reason: 'Release tooling only.',
+          sourceCommit: 'a'.repeat(40),
+          sourceLabel: 'v5.0.0',
+          sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
+          targets: [],
+        },
+        semantic: {
+          mode: 'fresh',
+          sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
+        },
+        targetVersion: '6.0.0',
+      },
+    });
+
+    const model = createWebsiteModel();
+
+    expect(model.qualification.profiles[0]?.currentLatest).toBe(currentAttempt);
+    expect(model.qualification.profiles[0]?.pinnedPriorEvidence).toBeNull();
+    expect(model.llmsText).toContain(
+      'Current qualification contracts: 1/1 profiles have exact current assurance.',
+    );
+  });
+
   test('does not attach release provenance to an alternate qualification evidence root', () => {
-    const attachment = vi.mocked(attachPinnedQualificationEvidence);
-    attachment.mockClear();
-    vi.mocked(loadReleaseEvidenceModel).mockReturnValueOnce({
-      mode: 'recorded',
-      qualification: {
-        mode: 'pinned',
-        reason: 'Release tooling only.',
-        sourceCommit: 'a'.repeat(40),
-        sourceLabel: 'v5.0.0',
-        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
-        targets: [
-          {
+    const qualification = loadQualificationWebsiteModel('unused');
+    vi.mocked(loadReleaseEvidenceWebsiteState).mockReturnValueOnce({
+      pinnedQualification: {
+        ...qualification,
+        profiles: qualification.profiles.map((profile) => ({
+          ...profile,
+          pinnedPriorEvidence: {
             adapterId: 'custom',
             attemptId: 'qualification-attempt',
             completedAt: '2026-08-20T10:01:00.000Z',
             createdAt: '2026-08-20T10:00:00.000Z',
             implementationId: 'custom',
-            packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+            packages: [],
             sourceAttemptUrl: 'https://example.com/qualification-attempt',
           },
-        ],
+        })),
       },
-      semantic: {
-        mode: 'fresh',
-        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
+      pinnedSemantic: null,
+      releaseEvidence: {
+        mode: 'recorded',
+        qualification: {
+          mode: 'pinned',
+          reason: 'Release tooling only.',
+          sourceCommit: 'a'.repeat(40),
+          sourceLabel: 'v5.0.0',
+          sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
+          targets: [
+            {
+              adapterId: 'custom',
+              attemptId: 'qualification-attempt',
+              completedAt: '2026-08-20T10:01:00.000Z',
+              createdAt: '2026-08-20T10:00:00.000Z',
+              implementationId: 'custom',
+              packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+              sourceAttemptUrl: 'https://example.com/qualification-attempt',
+            },
+          ],
+        },
+        semantic: {
+          mode: 'fresh',
+          sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
+        },
+        targetVersion: '6.0.0',
       },
-      targetVersion: '6.0.0',
     });
 
     const model = createWebsiteModel('alternate-qualification-root');
 
-    expect(attachment).not.toHaveBeenCalled();
     expect(model.qualification.profiles[0]?.pinnedPriorEvidence).toBeNull();
   });
 
@@ -343,33 +456,37 @@ describe('createWebsiteModel', () => {
       recoveredCaseCount: 0,
       status: 'not-recorded',
     });
-    vi.mocked(loadReleaseEvidenceModel).mockReturnValueOnce({
-      mode: 'recorded',
-      qualification: {
-        mode: 'fresh',
-        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
-      },
-      semantic: {
-        attempt: {
-          artifactDigest: pinnedAttempt.result.artifactDigest,
-          attemptId: pinnedAttempt.result.attemptId,
-          createdAt: pinnedAttempt.result.createdAt,
-          failedCaseCount: pinnedAttempt.result.failedCaseCount,
-          passedCaseCount: pinnedAttempt.result.passedCaseCount,
-          pendingCaseCount: pinnedAttempt.result.pendingCaseCount,
-          recoveredCaseCount: pinnedAttempt.result.recoveredCaseCount,
-          status: 'passed',
-          totalCaseCount: pinnedAttempt.result.totalCaseCount,
-          updatedAt: pinnedAttempt.result.updatedAt,
+    vi.mocked(loadReleaseEvidenceWebsiteState).mockReturnValueOnce({
+      pinnedQualification: null,
+      pinnedSemantic: null,
+      releaseEvidence: {
+        mode: 'recorded',
+        qualification: {
+          mode: 'fresh',
+          sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
         },
-        mode: 'pinned',
-        reason: 'The release changes only deterministic tooling.',
-        sourceAttemptUrl: `https://github.com/moldea-ai/skill/blob/${'a'.repeat(40)}/fixtures/semantic-evaluation-results/attempts/${pinnedAttempt.result.attemptId}/attempt.json`,
-        sourceCommit: 'a'.repeat(40),
-        sourceLabel: 'aaaaaaaaaaaa',
-        sourceUrl: `https://github.com/moldea-ai/skill/tree/${'a'.repeat(40)}`,
+        semantic: {
+          attempt: {
+            artifactDigest: pinnedAttempt.result.artifactDigest,
+            attemptId: pinnedAttempt.result.attemptId,
+            createdAt: pinnedAttempt.result.createdAt,
+            failedCaseCount: pinnedAttempt.result.failedCaseCount,
+            passedCaseCount: pinnedAttempt.result.passedCaseCount,
+            pendingCaseCount: pinnedAttempt.result.pendingCaseCount,
+            recoveredCaseCount: pinnedAttempt.result.recoveredCaseCount,
+            status: 'passed',
+            totalCaseCount: pinnedAttempt.result.totalCaseCount,
+            updatedAt: pinnedAttempt.result.updatedAt,
+          },
+          mode: 'pinned',
+          reason: 'The release changes only deterministic tooling.',
+          sourceAttemptUrl: `https://github.com/moldea-ai/skill/blob/${'a'.repeat(40)}/fixtures/semantic-evaluation-results/attempts/${pinnedAttempt.result.attemptId}/attempt.json`,
+          sourceCommit: 'a'.repeat(40),
+          sourceLabel: 'aaaaaaaaaaaa',
+          sourceUrl: `https://github.com/moldea-ai/skill/tree/${'a'.repeat(40)}`,
+        },
+        targetVersion: '5.0.2',
       },
-      targetVersion: '5.0.2',
     });
 
     const model = createWebsiteModel();
@@ -386,6 +503,61 @@ describe('createWebsiteModel', () => {
       `Semantic release evidence: ${pinnedAttempt.result.passedCaseCount + pinnedAttempt.result.recoveredCaseCount}/${pinnedAttempt.result.totalCaseCount} scenarios successful`,
     );
     expect(model.llmsText).toContain(pinnedAttempt.result.attemptId);
+  });
+
+  test('selects a passing current semantic attempt over pinned evidence', () => {
+    const currentSemanticEvaluation = loadSemanticEvaluationWebsiteModel('unused');
+    const currentAttempt = currentSemanticEvaluation.currentAssurance;
+    if (currentAttempt === null) throw new Error('Expected a semantic test attempt.');
+    const pinnedAttempt = {
+      ...currentAttempt,
+      evidenceSource: { commit: 'a'.repeat(40), kind: 'pinned' as const },
+    };
+    vi.mocked(loadReleaseEvidenceWebsiteState).mockReturnValueOnce({
+      pinnedQualification: null,
+      pinnedSemantic: {
+        ...currentSemanticEvaluation,
+        attempts: [pinnedAttempt],
+        currentAssurance: pinnedAttempt,
+        lastPassing: pinnedAttempt,
+        latest: pinnedAttempt,
+      },
+      releaseEvidence: {
+        mode: 'recorded',
+        qualification: {
+          mode: 'fresh',
+          sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
+        },
+        semantic: {
+          attempt: {
+            artifactDigest: pinnedAttempt.result.artifactDigest,
+            attemptId: pinnedAttempt.result.attemptId,
+            createdAt: pinnedAttempt.result.createdAt,
+            failedCaseCount: pinnedAttempt.result.failedCaseCount,
+            passedCaseCount: pinnedAttempt.result.passedCaseCount,
+            pendingCaseCount: pinnedAttempt.result.pendingCaseCount,
+            recoveredCaseCount: pinnedAttempt.result.recoveredCaseCount,
+            status: 'passed',
+            totalCaseCount: pinnedAttempt.result.totalCaseCount,
+            updatedAt: pinnedAttempt.result.updatedAt,
+          },
+          mode: 'pinned',
+          reason: 'Release tooling only.',
+          sourceAttemptUrl: 'https://example.com/pinned-semantic-attempt',
+          sourceCommit: 'a'.repeat(40),
+          sourceLabel: 'aaaaaaaaaaaa',
+          sourceUrl: `https://github.com/moldea-ai/skill/tree/${'a'.repeat(40)}`,
+        },
+        targetVersion: '6.0.0',
+      },
+    });
+
+    const model = createWebsiteModel();
+
+    expect(model.semanticEvaluation.currentAssurance?.evidenceSource).toStrictEqual({
+      kind: 'current',
+    });
+    expect(model.currentSemanticAssurance).toBe(model.semanticEvaluation.currentAssurance);
   });
 
   test('requires reader-facing product mentions in Markdown to use inline code', () => {

@@ -1,5 +1,8 @@
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+
+import { toTitleCase } from 'web-utils-kit';
 
 import { readSemanticAttemptIdentity } from '../../../../tooling/evidence-identity/index.mjs';
 import {
@@ -31,8 +34,8 @@ import { createSemanticEvaluationReplay } from './replay-transformers.ts';
 import type {
   ISemanticAttemptModel,
   ISemanticCaseDefinition,
+  ISemanticEvidenceSource,
   ISemanticEvaluationCaseModel,
-  ISemanticEvaluationGroupId,
   ISemanticEvaluationWebsiteModel,
 } from './types.ts';
 import {
@@ -47,6 +50,21 @@ import {
 const CONFORMANCE_CASES_PATH = 'fixtures/conformance-cases.json';
 const SEMANTIC_ATTEMPTS_PATH = 'fixtures/semantic-evaluation-results';
 const SEMANTIC_COVERAGE_PATH = 'fixtures/semantic-evaluation-coverage.json';
+
+const createAuthenticatedJsonDigest = (input: unknown): string =>
+  createHash('sha256').update(JSON.stringify(input)).digest('hex');
+
+const createAuthenticatedSemanticCaseSuiteDigest = (
+  caseDefinitions: ISemanticCaseDefinition[],
+): string =>
+  createAuthenticatedJsonDigest(
+    caseDefinitions
+      .map((caseDefinition) => ({
+        digest: createAuthenticatedJsonDigest(caseDefinition),
+        id: caseDefinition.id,
+      }))
+      .sort(({ id: left }, { id: right }) => left.localeCompare(right, 'en')),
+  );
 
 const isCurrentSemanticHost = (
   host: {
@@ -79,7 +97,22 @@ const readJson = (path: string): unknown => {
   }
 };
 
-const loadCaseDefinitions = (repositoryRoot: string): ISemanticCaseDefinition[] => {
+const validateAuthenticatedSemanticPresentationCase = (
+  caseDefinition: unknown,
+): ISemanticCaseDefinition => {
+  if (caseDefinition === null || typeof caseDefinition !== 'object') {
+    throw new Error('Authenticated semantic presentation requires an object case definition.');
+  }
+  const presentationContract = { ...(caseDefinition as Record<string, unknown>) };
+  delete presentationContract['localProbe'];
+  validateSemanticCaseDefinition(presentationContract as unknown as ISemanticCaseDefinition);
+  return caseDefinition as ISemanticCaseDefinition;
+};
+
+const loadCaseDefinitions = (
+  repositoryRoot: string,
+  isAuthenticatedSource: boolean,
+): ISemanticCaseDefinition[] => {
   const fixture = readJson(join(repositoryRoot, CONFORMANCE_CASES_PATH));
   if (
     fixture === null ||
@@ -92,7 +125,9 @@ const loadCaseDefinitions = (repositoryRoot: string): ISemanticCaseDefinition[] 
   }
 
   return fixture.semanticCases.map((caseDefinition) =>
-    validateSemanticCaseDefinition(caseDefinition as ISemanticCaseDefinition),
+    isAuthenticatedSource
+      ? validateAuthenticatedSemanticPresentationCase(caseDefinition)
+      : validateSemanticCaseDefinition(caseDefinition as ISemanticCaseDefinition),
   );
 };
 
@@ -101,20 +136,30 @@ const hasCurrentAttemptContract = (
   attempt: ISemanticAttemptRecord,
   caseDefinitions: ISemanticCaseDefinition[],
   coverage: unknown,
+  isAuthenticatedSource: boolean,
 ): boolean => {
   const caseIds = caseDefinitions.map(({ id }) => id);
   const presentationIds = Object.keys(SEMANTIC_CASE_PRESENTATION);
+  if (new Set(caseIds).size !== caseIds.length) {
+    throw new Error('Semantic case definitions must have unique identities.');
+  }
   if (
-    new Set(caseIds).size !== caseIds.length ||
+    !isAuthenticatedSource &&
     JSON.stringify([...caseIds].sort()) !== JSON.stringify([...presentationIds].sort())
   ) {
     throw new Error('Semantic case presentation metadata must match the complete current suite.');
   }
 
   const attemptCaseIds = attempt.cases.map(({ id }) => id);
+  const caseSuiteDigest = isAuthenticatedSource
+    ? createAuthenticatedSemanticCaseSuiteDigest(caseDefinitions)
+    : createSemanticCaseSuiteDigest(caseDefinitions);
+  const coverageDigest = isAuthenticatedSource
+    ? createAuthenticatedJsonDigest(coverage)
+    : createSemanticCoverageDigest(coverage, caseDefinitions);
   return (
-    attempt.caseSuiteDigest === createSemanticCaseSuiteDigest(caseDefinitions) &&
-    attempt.coverageDigest === createSemanticCoverageDigest(coverage, caseDefinitions) &&
+    attempt.caseSuiteDigest === caseSuiteDigest &&
+    attempt.coverageDigest === coverageDigest &&
     attempt.evidence.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION &&
     attempt.totalCaseCount === caseDefinitions.length &&
     new Set(attemptCaseIds).size === attemptCaseIds.length &&
@@ -127,9 +172,10 @@ const hasCurrentAttemptIdentity = (
   caseDefinitions: ISemanticCaseDefinition[],
   coverage: unknown,
   repositoryRoot: string,
+  isAuthenticatedSource: boolean,
 ): boolean => {
   const hasInputMismatch =
-    !hasCurrentAttemptContract(attempt, caseDefinitions, coverage) ||
+    !hasCurrentAttemptContract(attempt, caseDefinitions, coverage, isAuthenticatedSource) ||
     attempt.artifactDigest !== createPortableSkillDigest(repositoryRoot) ||
     JSON.stringify(attempt.cli) !== JSON.stringify(createSemanticCliIdentity(repositoryRoot));
   const hasCurrentHosts =
@@ -148,6 +194,7 @@ const createCaseModel = (
   caseDefinition: ISemanticCaseDefinition | null,
   attemptCase: ISemanticAttemptRecord['cases'][number] | null,
   replayCandidate: ISemanticReplayCandidate | null,
+  isAuthenticatedSource: boolean,
 ): ISemanticEvaluationCaseModel => {
   const id = attemptCase?.id ?? caseDefinition?.id;
   if (id === undefined) {
@@ -155,7 +202,7 @@ const createCaseModel = (
   }
   const presentation = SEMANTIC_CASE_PRESENTATION[id as keyof typeof SEMANTIC_CASE_PRESENTATION];
   const latestTrial = attemptCase?.trials.at(-1);
-  if (attemptCase === null && presentation === undefined) {
+  if (attemptCase === null && presentation === undefined && !isAuthenticatedSource) {
     throw new Error(`Semantic case ${id} has no public presentation model.`);
   }
   if ((attemptCase === null) !== (replayCandidate === null)) {
@@ -165,12 +212,20 @@ const createCaseModel = (
   const replayProjection =
     attemptCase === null || replayCandidate === null
       ? null
-      : createSemanticEvaluationReplay(caseDefinition, attemptCase, replayCandidate);
-  const hasCurrentCaseDefinition =
+      : createSemanticEvaluationReplay(caseDefinition, attemptCase, replayCandidate, {
+          ...(isAuthenticatedSource && caseDefinition !== null
+            ? { authenticatedCaseDefinitionDigest: createAuthenticatedJsonDigest(caseDefinition) }
+            : {}),
+        });
+  const hasMatchingCaseDefinition =
     caseDefinition !== null &&
     (replayProjection === null ||
-      replayProjection.caseDefinitionDigest === createSemanticCaseDefinitionDigest(caseDefinition));
-  const activeCaseDefinition = hasCurrentCaseDefinition ? caseDefinition : null;
+      replayProjection.caseDefinitionDigest ===
+        (isAuthenticatedSource
+          ? createAuthenticatedJsonDigest(caseDefinition)
+          : createSemanticCaseDefinitionDigest(caseDefinition)));
+  const hasCurrentCaseDefinition = hasMatchingCaseDefinition && presentation !== undefined;
+  const activeCaseDefinition = hasMatchingCaseDefinition ? caseDefinition : null;
   const operation = activeCaseDefinition?.operation.trim() ?? '';
   const scenario = activeCaseDefinition?.scenario;
   return {
@@ -182,7 +237,9 @@ const createCaseModel = (
     evaluatedAt: latestTrial?.evaluatedAt ?? null,
     expectedCriteria: activeCaseDefinition?.expected ?? [],
     forbiddenCriteria: activeCaseDefinition?.forbidden ?? [],
-    groupId: hasCurrentCaseDefinition ? (presentation?.groupId ?? null) : null,
+    groupId: hasMatchingCaseDefinition
+      ? (presentation?.groupId ?? (isAuthenticatedSource ? 'source-contract' : null))
+      : null,
     hasCurrentCaseDefinition,
     id,
     rationale: latestTrial?.rationale ?? null,
@@ -194,7 +251,9 @@ const createCaseModel = (
           ? `${scenario} Requested operation: ${operation}.`
           : (scenario ?? ''),
     status: attemptCase?.status ?? 'pending',
-    title: hasCurrentCaseDefinition ? (presentation?.title ?? id) : id,
+    title: hasMatchingCaseDefinition
+      ? (presentation?.title ?? toTitleCase(id.replaceAll('-', ' ')))
+      : id,
     trials: attemptCase?.trials.map((trial) => ({ ...trial })) ?? [],
   };
 };
@@ -203,6 +262,9 @@ const createAttemptModel = (
   attempt: ISemanticAttemptRecord,
   caseDefinitions: ISemanticCaseDefinition[],
   repositoryRoot: string,
+  revision: string,
+  isAuthenticatedSource: boolean,
+  evidenceSource: ISemanticEvidenceSource,
 ): ISemanticAttemptModel => {
   const attemptPath = `${SEMANTIC_ATTEMPTS_PATH}/attempts/${attempt.attemptId}`;
   const identity = readSemanticAttemptIdentity(repositoryRoot, attempt.attemptId);
@@ -223,13 +285,14 @@ const createAttemptModel = (
   const replayCandidate = SemanticReplayCandidateSchema.parse(rawReplayCandidate);
   const cases = attempt.cases.map((attemptCase) => {
     const caseDefinition = caseDefinitions.find(({ id }) => id === attemptCase.id) ?? null;
-    return createCaseModel(caseDefinition, attemptCase, replayCandidate);
+    return createCaseModel(caseDefinition, attemptCase, replayCandidate, isAuthenticatedSource);
   });
 
   return {
     cases,
-    rawAttemptUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${attemptPath}/attempt.json`,
-    rawEvidenceUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${attemptPath}/evidence.json`,
+    evidenceSource,
+    rawAttemptUrl: `${RAW_SOURCE_REPOSITORY_URL}/${encodeURIComponent(revision)}/${attemptPath}/attempt.json`,
+    rawEvidenceUrl: `${RAW_SOURCE_REPOSITORY_URL}/${encodeURIComponent(revision)}/${attemptPath}/evidence.json`,
     result: attempt,
     route: `${SEMANTIC_EVALUATION_ROUTE}attempts/${attempt.attemptId}/`,
   };
@@ -244,8 +307,15 @@ const createAttemptModel = (
  */
 export const loadSemanticEvaluationWebsiteModel = (
   repositoryRoot: string,
+  revision = 'main',
+  options: {
+    evidenceSource?: ISemanticEvidenceSource;
+    isAuthenticatedSource?: boolean;
+  } = {},
 ): ISemanticEvaluationWebsiteModel => {
-  const caseDefinitions = loadCaseDefinitions(repositoryRoot);
+  const isAuthenticatedSource = options.isAuthenticatedSource === true;
+  const evidenceSource = options.evidenceSource ?? { kind: 'current' };
+  const caseDefinitions = loadCaseDefinitions(repositoryRoot, isAuthenticatedSource);
   const coverage = readJson(join(repositoryRoot, SEMANTIC_COVERAGE_PATH));
   const loadedHistory = loadVerifiedSemanticEvaluationAttempts(
     join(repositoryRoot, SEMANTIC_ATTEMPTS_PATH),
@@ -265,10 +335,17 @@ export const loadSemanticEvaluationWebsiteModel = (
   }
 
   const currentContractAttempts = attempts.filter((attempt) =>
-    hasCurrentAttemptContract(attempt, caseDefinitions, coverage),
+    hasCurrentAttemptContract(attempt, caseDefinitions, coverage, isAuthenticatedSource),
   );
   const attemptModels = currentContractAttempts.map((attempt) =>
-    createAttemptModel(attempt, caseDefinitions, repositoryRoot),
+    createAttemptModel(
+      attempt,
+      caseDefinitions,
+      repositoryRoot,
+      revision,
+      isAuthenticatedSource,
+      evidenceSource,
+    ),
   );
   const latest =
     recordedLatestPointer === null
@@ -278,7 +355,13 @@ export const loadSemanticEvaluationWebsiteModel = (
         ) ?? null);
   const hasExactCurrentEvaluation =
     latest !== null &&
-    hasCurrentAttemptIdentity(latest.result, caseDefinitions, coverage, repositoryRoot);
+    hasCurrentAttemptIdentity(
+      latest.result,
+      caseDefinitions,
+      coverage,
+      repositoryRoot,
+      isAuthenticatedSource,
+    );
   const currentAssurance = hasExactCurrentEvaluation ? latest : null;
   const evidenceMatch = hasExactCurrentEvaluation ? 'exact' : null;
 
@@ -297,16 +380,21 @@ export const loadSemanticEvaluationWebsiteModel = (
         };
 
   const cases = caseDefinitions.map((caseDefinition) => {
-    if (currentAssurance === null) return createCaseModel(caseDefinition, null, null);
+    if (currentAssurance === null) {
+      return createCaseModel(caseDefinition, null, null, isAuthenticatedSource);
+    }
 
     return (
       currentAssurance.cases.find(({ id }) => id === caseDefinition.id) ??
-      createCaseModel(caseDefinition, null, null)
+      createCaseModel(caseDefinition, null, null, isAuthenticatedSource)
     );
   });
-  const groups = (
+  const groups: ISemanticEvaluationWebsiteModel['groups'] = (
     Object.entries(SEMANTIC_EVALUATION_GROUPS) as Array<
-      [ISemanticEvaluationGroupId, (typeof SEMANTIC_EVALUATION_GROUPS)[ISemanticEvaluationGroupId]]
+      [
+        keyof typeof SEMANTIC_EVALUATION_GROUPS,
+        (typeof SEMANTIC_EVALUATION_GROUPS)[keyof typeof SEMANTIC_EVALUATION_GROUPS],
+      ]
     >
   ).map(([id, group]) => ({
     cases: cases.filter(({ groupId }) => groupId === id),
@@ -317,16 +405,29 @@ export const loadSemanticEvaluationWebsiteModel = (
   if (groups.some(({ cases: groupCases }) => groupCases.length === 0)) {
     throw new Error('Every semantic evidence group must contain at least one current case.');
   }
-  const currentCoverageDigest = createSemanticCoverageDigest(coverage, caseDefinitions);
+  const sourceContractCases = cases.filter(({ groupId }) => groupId === 'source-contract');
+  if (sourceContractCases.length > 0) {
+    groups.push({
+      cases: sourceContractCases,
+      description: 'Scenarios retained exactly as evaluated by the authenticated source release.',
+      id: 'source-contract',
+      title: 'Source release scenarios',
+    });
+  }
+  const currentCoverageDigest = isAuthenticatedSource
+    ? createAuthenticatedJsonDigest(coverage)
+    : createSemanticCoverageDigest(coverage, caseDefinitions);
 
   return {
     artifactDigest: createPortableSkillDigest(repositoryRoot),
     attempts: attemptModels,
     caseCount: caseDefinitions.length,
-    caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
+    caseSuiteDigest: isAuthenticatedSource
+      ? createAuthenticatedSemanticCaseSuiteDigest(caseDefinitions)
+      : createSemanticCaseSuiteDigest(caseDefinitions),
     cli: createSemanticCliIdentity(repositoryRoot),
     coverageDigest: currentCoverageDigest,
-    coverageUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${SEMANTIC_COVERAGE_PATH}`,
+    coverageUrl: `${RAW_SOURCE_REPOSITORY_URL}/${encodeURIComponent(revision)}/${SEMANTIC_COVERAGE_PATH}`,
     currentAssurance,
     evidenceMatch,
     evaluatedAt: currentAssurance?.result.updatedAt ?? null,

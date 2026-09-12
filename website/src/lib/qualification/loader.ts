@@ -134,6 +134,7 @@ interface IQualificationAttemptSource {
   attemptPath: string;
   attemptSource: Buffer;
   evidenceSource: IQualificationEvidenceSourceModel;
+  revision: string;
   result: IQualificationAttemptResult;
 }
 
@@ -288,6 +289,7 @@ const loadProfileCase = (
   profileDirectory: string,
   profileCase: IProfile['cases'][number],
   catalogCase: ICaseCatalogEntry,
+  revision: string,
 ): IQualificationProfileCaseModel => {
   const projectDirectory = resolveContainedPath(profileDirectory, profileCase.projectDirectory);
   const scenarioPath = resolveContainedPath(projectDirectory, profileCase.scenarioFile);
@@ -310,12 +312,21 @@ const loadProfileCase = (
     projectSourceUrl: createSourceUrl(
       getRepositoryRelativePath(repositoryRoot, projectDirectory),
       'tree',
+      revision,
     ),
     purpose: scenario.purpose,
     scenario,
-    scenarioSourceUrl: createSourceUrl(getRepositoryRelativePath(repositoryRoot, scenarioPath)),
+    scenarioSourceUrl: createSourceUrl(
+      getRepositoryRelativePath(repositoryRoot, scenarioPath),
+      'blob',
+      revision,
+    ),
     task: removeLeadingMarkdownTitle(readFileSync(taskPath, 'utf8')),
-    taskSourceUrl: createSourceUrl(getRepositoryRelativePath(repositoryRoot, taskPath)),
+    taskSourceUrl: createSourceUrl(
+      getRepositoryRelativePath(repositoryRoot, taskPath),
+      'blob',
+      revision,
+    ),
     title: catalogCase.title,
   };
 };
@@ -325,6 +336,7 @@ const verifyArtifactDigests = (
   attemptDirectory: string,
   result: IQualificationAttemptResult,
   storage: IQualificationAttemptStorage,
+  revision: string,
 ): {
   artifactModels: IQualificationArtifactModel[];
   artifactSources: ReadonlyMap<string, Buffer>;
@@ -374,7 +386,7 @@ const verifyArtifactDigests = (
     }
 
     artifactSources.set(logicalPath, artifactSource);
-    return createArtifactModel(repositoryRoot, artifactPath, actualDigest, logicalPath);
+    return createArtifactModel(repositoryRoot, artifactPath, actualDigest, logicalPath, revision);
   });
 
   return { artifactModels, artifactSources };
@@ -660,6 +672,8 @@ const createCurrentAttemptSource = (
   attemptDirectory: string,
   result: IQualificationAttemptResult,
   attemptSource: Buffer,
+  evidenceSource: IQualificationEvidenceSourceModel,
+  revision: string,
 ): IQualificationAttemptSource => {
   const attemptPath = join(attemptDirectory, 'attempt.json');
   const storage = readJsonFile(
@@ -671,6 +685,7 @@ const createCurrentAttemptSource = (
     attemptDirectory,
     result,
     storage,
+    revision,
   );
 
   return {
@@ -678,7 +693,8 @@ const createCurrentAttemptSource = (
     artifactSources,
     attemptPath: getRepositoryRelativePath(repositoryRoot, attemptPath),
     attemptSource,
-    evidenceSource: { kind: 'current' },
+    evidenceSource,
+    revision,
     result,
   };
 };
@@ -802,7 +818,7 @@ const loadAttempt = (
     sourceState,
   });
 
-  const revision = 'main';
+  const revision = source.revision;
   const model: IQualificationAttemptModel = {
     artifacts: [
       {
@@ -834,6 +850,8 @@ const loadAttempts = (
   adapterId: string,
   implementationId: string,
   currentProfileDigest: string,
+  evidenceSource: IQualificationEvidenceSourceModel,
+  revision: string,
 ): {
   attempts: ILoadedQualificationAttempt[];
   latest: IQualificationProfileModel['latest'];
@@ -875,7 +893,14 @@ const loadAttempts = (
 
     return loadAttempt(
       qualificationRoot,
-      createCurrentAttemptSource(repositoryRoot, directory, result, attemptSource),
+      createCurrentAttemptSource(
+        repositoryRoot,
+        directory,
+        result,
+        attemptSource,
+        evidenceSource,
+        revision,
+      ),
       targetKey,
       adapterId,
       implementationId,
@@ -924,6 +949,8 @@ const loadProfile = (
   catalog: Map<string, ICaseCatalogEntry>,
   resultsRoot: string,
   target: IQualificationProfileIndexTarget,
+  evidenceSource: IQualificationEvidenceSourceModel,
+  revision: string,
 ): ILoadedQualificationProfile => {
   const profilePath = join(profileDirectory, 'profile.yaml');
   const profile = readYamlFile(profilePath, QualificationProfileSchema);
@@ -990,7 +1017,7 @@ const loadProfile = (
 
     if (!catalogCase) throw new Error(`Qualification profile references an unknown catalog case.`);
 
-    return loadProfileCase(repositoryRoot, profileDirectory, profileCase, catalogCase);
+    return loadProfileCase(repositoryRoot, profileDirectory, profileCase, catalogCase, revision);
   });
   const { attempts, latest } = loadAttempts(
     repositoryRoot,
@@ -1000,6 +1027,8 @@ const loadProfile = (
     profile.adapterId,
     profile.implementationId,
     calculateCurrentProfileDigest(profileDirectory),
+    evidenceSource,
+    revision,
   );
   const currentAttemptModels = attempts.map(({ model }) => model);
   const model: IQualificationProfileModel = {
@@ -1017,11 +1046,19 @@ const loadProfile = (
     sharedCases: [],
     latest,
     probes: probes.probes,
-    probesSourceUrl: createSourceUrl(getRepositoryRelativePath(repositoryRoot, probesPath)),
+    probesSourceUrl: createSourceUrl(
+      getRepositoryRelativePath(repositoryRoot, probesPath),
+      'blob',
+      revision,
+    ),
     pinnedPriorEvidence: null,
     route: `${QUALIFICATION_ROUTE}${profile.adapterId}/${profile.implementationId}/`,
     runtimePackages: profile.runtimePackages,
-    sourceUrl: createSourceUrl(getRepositoryRelativePath(repositoryRoot, profilePath)),
+    sourceUrl: createSourceUrl(
+      getRepositoryRelativePath(repositoryRoot, profilePath),
+      'blob',
+      revision,
+    ),
     title: profile.title,
   };
 
@@ -1121,7 +1158,13 @@ const verifyResultTargetsHaveProfiles = (
 /** Loads every transparent profile and validates its current committed evidence. */
 export const loadQualificationWebsiteModel = (
   repositoryRoot: string,
+  options: {
+    evidenceSource?: IQualificationEvidenceSourceModel;
+    revision?: string;
+  } = {},
 ): IQualificationWebsiteModel => {
+  const evidenceSource = options.evidenceSource ?? { kind: 'current' };
+  const revision = options.revision ?? 'main';
   const qualificationRoot = join(repositoryRoot, 'qualification');
   const profilesRoot = join(qualificationRoot, 'profiles');
   const resultsRoot = join(qualificationRoot, 'results');
@@ -1147,6 +1190,8 @@ export const loadQualificationWebsiteModel = (
         catalog,
         resultsRoot,
         target,
+        evidenceSource,
+        revision,
       ),
     )
     .sort(

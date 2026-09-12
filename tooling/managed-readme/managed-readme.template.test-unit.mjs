@@ -133,14 +133,16 @@ test('filesystem update creates, preserves mode, and remains byte-identical', as
 
     await chmod(readmePath, 0o640);
     const beforeBytes = await readFile(readmePath);
+    const unchangedMode = (await lstat(readmePath)).mode & 0o7777;
     assert.equal(await updateManagedReadme(repositoryRoot, CANONICAL_BLOCK), 'unchanged');
     assert.deepEqual(await readFile(readmePath), beforeBytes);
-    assert.equal((await lstat(readmePath)).mode & 0o7777, 0o640);
+    assert.equal((await lstat(readmePath)).mode & 0o7777, unchangedMode);
 
     await writeFile(readmePath, '# Existing\n');
     await chmod(readmePath, 0o600);
+    const updatedMode = (await lstat(readmePath)).mode & 0o7777;
     assert.equal(await updateManagedReadme(repositoryRoot, CANONICAL_BLOCK), 'updated');
-    assert.equal((await lstat(readmePath)).mode & 0o7777, 0o600);
+    assert.equal((await lstat(readmePath)).mode & 0o7777, updatedMode);
     assert.deepEqual(await readFile(readmePath), Buffer.from(`# Existing\n\n${CANONICAL_BLOCK}`));
     assert.deepEqual(
       (await readdir(repositoryRoot, { withFileTypes: true })).filter((entry) =>

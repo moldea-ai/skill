@@ -1,9 +1,27 @@
 // @vitest-environment node
 import { describe, expect, test, vi } from 'vitest';
 
+import type {
+  IQualificationPriorEvidenceModel,
+  IQualificationWebsiteModel,
+} from '../qualification/index.ts';
+
 vi.mock('../qualification/index.ts', () => {
   return {
     assertPublishableQualificationEvidence: vi.fn(),
+    attachPinnedQualificationEvidence: vi.fn(
+      (qualification: IQualificationWebsiteModel, targets: IQualificationPriorEvidenceModel[]) => ({
+        ...qualification,
+        profiles: qualification.profiles.map((profile) => ({
+          ...profile,
+          pinnedPriorEvidence: targets.find(
+            (target) =>
+              target.adapterId === profile.adapterId &&
+              target.implementationId === profile.implementationId,
+          ),
+        })),
+      }),
+    ),
     loadQualificationWebsiteModel: vi.fn(() => ({
       profiles: [
         {
@@ -29,7 +47,9 @@ vi.mock('../qualification/index.ts', () => {
           },
           probes: [],
           probesSourceUrl: 'https://example.com/probes',
+          pinnedPriorEvidence: null,
           route: '/evidence/qualification/custom/custom/',
+          runtimePackages: [],
           sourceUrl: 'https://example.com/profile',
           title: 'Custom runtime qualification',
         },
@@ -146,12 +166,15 @@ vi.mock('../semantic-evaluation/index.ts', () => {
 vi.mock('../release-evidence/index.ts', () => ({
   loadReleaseEvidenceModel: vi.fn(() => ({
     mode: 'not-recorded',
-    targetVersion: '5.0.0',
+    targetVersion: '5.0.1',
   })),
 }));
 
 import { createWebsiteModel } from './generation.ts';
-import { assertPublishableQualificationEvidence } from '../qualification/index.ts';
+import {
+  assertPublishableQualificationEvidence,
+  attachPinnedQualificationEvidence,
+} from '../qualification/index.ts';
 import { loadReleaseEvidenceModel } from '../release-evidence/index.ts';
 import { loadSemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
 import {
@@ -165,14 +188,15 @@ describe('createWebsiteModel', () => {
     const model = createWebsiteModel();
 
     expect(model.skill.name).toBe('moldea');
-    expect(model.skill.version).toBe('5.0.0');
+    expect(model.skill.version).toBe('5.0.1');
     expect(model.skill.description.length).toBeGreaterThan(0);
     expect(new Set(model.routes).size).toBe(model.routes.length);
     expect(model.documents.length).toBeGreaterThanOrEqual(18);
     expect(model.searchRecords.length).toBeGreaterThan(model.documents.length);
     expect(model.navigation.flatMap(({ documents }) => documents)).toStrictEqual(model.documents);
     expect(model.qualification.route).toBe('/evidence/qualification/');
-    expect(model.releaseEvidence).toStrictEqual({ mode: 'not-recorded', targetVersion: '5.0.0' });
+    expect(model.releaseEvidence).toStrictEqual({ mode: 'not-recorded', targetVersion: '5.0.1' });
+    expect(model.currentSemanticAssurance).toBe(model.semanticEvaluation.currentAssurance);
     expect(model.semanticEvaluation.route).toBe('/evidence/semantic/');
     expect(model.qualification.profiles).toHaveLength(1);
     const qualificationProfile = model.qualification.profiles[0];
@@ -224,6 +248,16 @@ describe('createWebsiteModel', () => {
         sourceCommit: 'a'.repeat(40),
         sourceLabel: 'v5.0.0',
         sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
+        targets: [
+          {
+            adapterId: 'custom',
+            attemptId: 'qualification-attempt',
+            completedAt: '2026-08-20T10:01:00.000Z',
+            createdAt: '2026-08-20T10:00:00.000Z',
+            implementationId: 'custom',
+            packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+          },
+        ],
       },
       semantic: {
         mode: 'fresh',
@@ -236,16 +270,66 @@ describe('createWebsiteModel', () => {
 
     expect(model.releaseEvidence.mode).toBe('recorded');
     expect(publicationCheck).not.toHaveBeenCalled();
-    expect(model.llmsText).toContain('Qualification evidence for release 6.0.0 is pinned');
+    expect(model.qualification.profiles[0]).toMatchObject({
+      attempts: [],
+      currentAssurance: null,
+      currentLatest: null,
+      currentStatus: 'not-recorded',
+      pinnedPriorEvidence: {
+        attemptId: 'qualification-attempt',
+        packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+      },
+    });
+    expect(model.llmsText).toContain(
+      'Qualification release provenance uses verified prior evidence from',
+    );
+    expect(model.llmsText).toContain(
+      'Current qualification contracts: 0/1 profiles have exact current assurance.',
+    );
   });
 
-  test('resolves the exact pinned semantic attempt as release assurance', () => {
+  test('does not attach release provenance to an alternate qualification evidence root', () => {
+    const attachment = vi.mocked(attachPinnedQualificationEvidence);
+    attachment.mockClear();
+    vi.mocked(loadReleaseEvidenceModel).mockReturnValueOnce({
+      mode: 'recorded',
+      qualification: {
+        mode: 'pinned',
+        reason: 'Release tooling only.',
+        sourceCommit: 'a'.repeat(40),
+        sourceLabel: 'v5.0.0',
+        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
+        targets: [
+          {
+            adapterId: 'custom',
+            attemptId: 'qualification-attempt',
+            completedAt: '2026-08-20T10:01:00.000Z',
+            createdAt: '2026-08-20T10:00:00.000Z',
+            implementationId: 'custom',
+            packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+          },
+        ],
+      },
+      semantic: {
+        mode: 'fresh',
+        sourceUrl: 'https://github.com/moldea-ai/skill/tree/v6.0.0',
+      },
+      targetVersion: '6.0.0',
+    });
+
+    const model = createWebsiteModel('alternate-qualification-root');
+
+    expect(attachment).not.toHaveBeenCalled();
+    expect(model.qualification.profiles[0]?.pinnedPriorEvidence).toBeNull();
+  });
+
+  test('keeps pinned semantic provenance separate from unmatched current assurance', () => {
     const semanticEvaluation = loadSemanticEvaluationWebsiteModel('unused');
     const pinnedAttempt = semanticEvaluation.currentAssurance;
     if (pinnedAttempt === null) throw new Error('Expected a semantic test attempt.');
     vi.mocked(loadSemanticEvaluationWebsiteModel).mockReturnValueOnce({
       ...semanticEvaluation,
-      attempts: [pinnedAttempt],
+      attempts: [],
       currentAssurance: null,
       evidenceMatch: null,
       failedCaseCount: 0,
@@ -268,12 +352,20 @@ describe('createWebsiteModel', () => {
         sourceLabel: 'aaaaaaaaaaaa',
         sourceUrl: `https://github.com/moldea-ai/skill/tree/${'a'.repeat(40)}`,
       },
-      targetVersion: '5.0.0',
+      targetVersion: '5.0.1',
     });
 
     const model = createWebsiteModel();
 
-    expect(model.semanticReleaseAssurance).toBe(pinnedAttempt);
+    expect(model.currentSemanticAssurance).toBeNull();
+    expect(model.semanticEvaluation.attempts).toStrictEqual([]);
+    expect(model.llmsText).toContain(
+      'Semantic release provenance uses verified prior evidence from',
+    );
+    expect(model.llmsText).toContain(
+      `Current semantic contract: 0/${semanticEvaluation.caseCount} scenarios have exact current assurance.`,
+    );
+    expect(model.llmsText).not.toContain(pinnedAttempt.result.attemptId);
   });
 
   test('requires reader-facing product mentions in Markdown to use inline code', () => {

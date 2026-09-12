@@ -4,7 +4,7 @@ Read this reference after explicit initialization intent or established post-ado
 
 ## Adoption
 
-Initialization requires explicit developer intent. Establish the repository root, reuse current project evidence, and confirm that adoption is absent or intentionally being replaced before writing. A complete initialized repository has regular root files `/moldea/moldea.yaml` and `/moldea/project.md` plus exactly one ordered full-line marker pair in the root README. Partial artifacts do not authorize automatic repair; preserve them and resolve the conflict only as part of the explicit initialization task.
+Initialization requires explicit developer intent. Establish the repository root, reuse current project evidence, and confirm that adoption is absent or intentionally being replaced before writing. A complete initialized repository has bounded regular root files `/moldea/moldea.yaml` and `/moldea/project.md` plus exactly one canonical managed region in the bounded regular root README. A marker pair with legacy or divergent content is not adoption. Partial artifacts do not authorize automatic repair; preserve them and resolve the conflict only as part of the explicit initialization task.
 
 Do not recommend initialization during unrelated work. Do not treat generic knowledge, ordinary documentation, or a repository name as adoption intent.
 
@@ -34,7 +34,7 @@ version: 1
 
 The file ends with one LF. Do not add a project name, schema field, metadata, empty optional mappings, a `/moldea/project.md` registration, source globs, or any other relationship merely to describe the project or make the manifest look complete.
 
-Do not validate a partial foundation. Write `/moldea/moldea.yaml`, `/moldea/project.md`, and the complete managed README block before the first CLI call. Then use the installed skill's closed launcher for exactly one final `validate`. On success, stop without `inspect` or another moldea command. On structural failure, use only its bounded diagnostics to repair the foundation and run `validate` at most once more. When the launcher succeeds, do not enumerate dependencies, inspect CLI internals, resolve executable links, search global installations, use transient tooling, or probe package-manager configuration. Load `local-tooling.md` only after the launcher reports that repository tooling is unavailable or invalid and the authorized operation can establish it.
+Do not validate a partial foundation. Write `/moldea/moldea.yaml` and `/moldea/project.md`, then invoke only the bundled writer with `node <installed-skill-root>/scripts/managed-readme.mjs --repository <absolute-repository-root>`. It owns the exact managed text, validates the root README, creates or normalizes one safe region atomically, and preserves every byte outside that region. Never reproduce the block manually or use another README-writing path. A malformed, linked, invalid, non-regular, or over-limit README stops initialization without validation. Once the complete three-file foundation exists, use the installed skill's closed launcher for exactly one final `validate`. On success, stop without `inspect` or another moldea command. The writer is a bounded local skill operation, not a moldea CLI call. On structural failure, use only its bounded diagnostics to repair the foundation and run `validate` at most once more. When the launcher succeeds, do not enumerate dependencies, inspect CLI internals, resolve executable links, search global installations, use transient tooling, or probe package-manager configuration. Load `local-tooling.md` only after the launcher reports that repository tooling is unavailable or invalid and the authorized operation can establish it.
 
 ## Maintain owned truth
 
@@ -68,18 +68,8 @@ moldea owns only the content strictly between these exact markers:
 
 The markers themselves establish the boundary. A README edit activates maintenance only when a changed hunk intersects the owned content. Changes elsewhere in README, including nearby design routing or a path-only match, are unrelated and must not load moldea resources or run the CLI.
 
-When initialization is authorized, add this concise managed block. Its first sentence is the repository-owned discovery bridge that makes the cheap gate reliable across compatible hosts without activating further `moldea` work on a miss. Its second sentence routes readers to canonical state.
+When initialization is authorized, invoke the bundled writer for the canonical block. The asset embedded in that writer is the sole managed-text authority. Its first sentence is the repository-owned discovery bridge that makes the cheap gate reliable across compatible hosts without activating further `moldea` work on a miss. Its second sentence routes readers to canonical state. The intentional blank line after the opening marker separates the ownership marker from the Markdown paragraph. Do not add duplicated project context, tool versions, CLI commands, or other workflow rules to the block.
 
-```markdown
-<!-- moldea:start -->
-
-For every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.
-Canonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.
-<!-- moldea:end -->
-```
-
-Do not add duplicated project context, tool versions, CLI commands, or other workflow rules to the block.
-
-Never rewrite README outside the markers as part of moldea maintenance. If the block is malformed, duplicated, or ambiguous, stop before editing it and report the exact structural issue.
+Never rewrite README outside the markers as part of moldea maintenance. The writer rejects malformed, duplicated, or ambiguous marker layouts before writing; report its compact structural error and stop.
 
 After every canonical and mirror write is complete, validate schema-4 metadata as the final moldea command. A validation performed before a later repair does not verify the resulting state and cannot support completion. Inspect only the changed canonical owners, and do not run full-project content inspection.

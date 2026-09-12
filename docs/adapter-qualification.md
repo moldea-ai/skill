@@ -8,7 +8,7 @@ order: 175
 
 # Adapter qualification
 
-Adapter qualification determines whether one exact published adapter implementation is ready for Supported maturity. It tests the current `moldea` skill and current package closure against realistic repositories without invoking a provider API or running an agent.
+Adapter qualification verifies one exact published adapter implementation and its current package closure against realistic repositories without invoking a provider API or running an agent. Website presentation labels are separate from qualification evidence and do not affect the technical result.
 
 ## Evidence ownership
 
@@ -80,6 +80,8 @@ Qualification protocol 10 accepts only evidence matching the current:
 Every current target must have a current passing attempt for its exact current inputs. A current attempt may reuse only complete passed or recovered case groups from a byte-valid committed failed attempt with the same behavior-bearing identity. Direct and reused work remain visibly distinct, and failed, incomplete, diagnostic, uncommitted, chained, mismatched, or tampered evidence is rejected. Current protocol-10 history is revalidated against the contracts at each attempt's recorded source commit.
 
 This is the normal release path. An explicit qualification-scoped release evidence pin may reuse original passing qualification evidence from an immutable release tag or full commit when a maintainer has established that qualification behavior is unchanged. Semantic evidence remains independently fresh or pinned. The qualification pages disclose the source and do not relabel it as current. See [Release evidence](/docs/release-evidence/).
+
+The public target page separates three facts: the current profile's configured runtime-package inputs, the exact package closure and timestamps recorded by a matching current attempt, and the exact package closure and timestamps from pinned prior evidence. Pinned prior evidence remains a passed historical execution and is never relabeled as current-contract assurance.
 
 An adapter attempt requires a passing current Custom baseline. A Custom attempt does not require another baseline.
 

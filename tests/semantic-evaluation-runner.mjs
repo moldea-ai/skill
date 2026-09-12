@@ -102,6 +102,10 @@ export {
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PORTABLE_SKILL_ROOT = join(REPOSITORY_ROOT, 'moldea');
+const MANAGED_README_BLOCK = readFileSync(
+  join(PORTABLE_SKILL_ROOT, 'assets', 'managed-readme-block.md'),
+  'utf8',
+);
 const CASES_PATH = join(REPOSITORY_ROOT, 'fixtures', 'conformance-cases.json');
 const RESULT_PATH = join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-result.json');
 const COVERAGE_PATH = join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-coverage.json');
@@ -245,7 +249,7 @@ const createRuntimeCompatibilityPublicationProbe = (variant) => {
   }
   if (variant === 'malformed') return { exitCode: 0, stderr: '', stdout: '{' };
 
-  const isFutureTarget = variant === 'future-supported-target';
+  const isFutureTarget = variant === 'future-target';
   const publicationTargets =
     variant === 'missing-current-target'
       ? []
@@ -256,7 +260,6 @@ const createRuntimeCompatibilityPublicationProbe = (variant) => {
                 kind: 'package',
                 language: 'typescript',
                 lastVerifiedAt: '2026-08-26',
-                maturity: 'supported',
                 packages: [
                   {
                     ecosystem: 'npm',
@@ -266,10 +269,17 @@ const createRuntimeCompatibilityPublicationProbe = (variant) => {
                   },
                 ],
               }
-            : {
-                ...VERIFIED_OPENAI_PUBLICATION_TARGET,
-                ...(variant === 'experimental-current-target' ? { maturity: 'experimental' } : {}),
-              },
+            : variant === 'version-mismatched-current-target'
+              ? {
+                  ...VERIFIED_OPENAI_PUBLICATION_TARGET,
+                  packages: VERIFIED_OPENAI_PUBLICATION_TARGET.packages.map(
+                    (packageRequirement) => ({
+                      ...packageRequirement,
+                      versionRange: '>=8.0.0',
+                    }),
+                  ),
+                }
+              : VERIFIED_OPENAI_PUBLICATION_TARGET,
         ];
   const adapterId = isFutureTarget ? 'future' : 'openai';
   const publication = {
@@ -3363,7 +3373,7 @@ const seedAdoptedProjectState = async (repositoryPath) => {
   await writeScenarioFile(
     repositoryPath,
     'README.md',
-    '# Evaluation repository\n\nOrdinary repository guidance lives here.\n\n<!-- moldea:start -->\nFor every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.\nCanonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.\n<!-- moldea:end -->\n',
+    `# Evaluation repository\n\nOrdinary repository guidance lives here.\n\n${MANAGED_README_BLOCK}`,
   );
   await writeScenarioFile(
     repositoryPath,
@@ -3446,19 +3456,10 @@ const seedRuntimePlanningEvidenceRoute = async (repositoryPath) => {
   await writeScenarioFile(
     repositoryPath,
     'README.md',
-    [
-      '# Evaluation repository',
-      '',
-      'Ordinary repository guidance lives here.',
-      '',
-      'For runtime planning, inspect [`src/model-runtime.js`](src/model-runtime.js) and [`docs/runtime-candidates.md`](docs/runtime-candidates.md).',
-      '',
-      '<!-- moldea:start -->',
-      'For every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.',
-      'Canonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.',
-      '<!-- moldea:end -->',
-      '',
-    ].join('\n'),
+    '# Evaluation repository\n\n' +
+      'Ordinary repository guidance lives here.\n\n' +
+      'For runtime planning, inspect [`src/model-runtime.js`](src/model-runtime.js) and [`docs/runtime-candidates.md`](docs/runtime-candidates.md).\n\n' +
+      MANAGED_README_BLOCK,
   );
 };
 
@@ -3982,7 +3983,7 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
       );
       await seedInventoryOnlyRuntimeEvidence(repositoryPath);
       break;
-    case 'experimental-target-not-production-ready':
+    case 'published-target-version-mismatch':
     case 'installed-adapter-without-published-target':
     case 'runtime-publication-malformed':
     case 'runtime-publication-unavailable':
@@ -4107,7 +4108,7 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
         '{"providerHostedCapabilities":{"webSearch":true}}\n',
       );
       break;
-    case 'published-supported-target-not-installed':
+    case 'published-target-not-installed':
       await seedRefundAgent(
         repositoryPath,
         'Use the project-specific runtime until an established official runtime is executable.',

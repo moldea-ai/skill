@@ -97,7 +97,10 @@ test('leads with the durable system around coding-agent work', async ({ page }) 
 });
 
 test('presents value and proof before adoption reassurance', async ({ page }) => {
-  const { semanticEvaluation, semanticReleaseAssurance } = loadWebsiteModel();
+  const { currentSemanticAssurance, qualification, semanticEvaluation } = loadWebsiteModel();
+  const qualifiedProfileCount = qualification.profiles.filter(
+    ({ currentAssurance }) => currentAssurance !== null,
+  ).length;
   await page.goto(toPublicPath('/'));
 
   const orderedHeadings = [
@@ -161,9 +164,12 @@ test('presents value and proof before adoption reassurance', async ({ page }) =>
   );
   await expect(
     page.getByText(
-      `${(semanticReleaseAssurance?.result.passedCaseCount ?? 0) + (semanticReleaseAssurance?.result.recoveredCaseCount ?? 0)}/${semanticEvaluation.caseCount}`,
+      `${(currentSemanticAssurance?.result.passedCaseCount ?? 0) + (currentSemanticAssurance?.result.recoveredCaseCount ?? 0)}/${semanticEvaluation.caseCount}`,
       { exact: true },
     ),
+  ).toBeVisible();
+  await expect(
+    page.getByText(`${qualifiedProfileCount}/${qualification.profiles.length}`, { exact: true }),
   ).toBeVisible();
 
   const finalDistributionLink = page

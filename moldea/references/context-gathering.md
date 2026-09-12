@@ -33,16 +33,18 @@ Use `content` for one canonical path only after metadata identifies the owner or
 
 Treat a path, digest, relationship, or declaration as routing evidence, not proof that the prose and implementation agree. Follow only the exact referenced implementation, consumer, test, or documentation boundary needed for the active operation.
 
-## Evidence hierarchy
+## Investigation order
 
-Prefer, in order:
+For efficient discovery, normally inspect:
 
 1. explicit current developer statements
 2. executable behavior and tests in the task scope
 3. current authoritative project documentation
 4. canonical moldea assets and declared relationships
 5. history when the current meaning remains ambiguous
-6. external sources only when current published compatibility matters
+6. external sources only when a current published fact matters
+
+This order controls investigation cost, not claim authority. For each material claim, identify the source that owns or independently resolves that specific fact. A current explicit developer selection can choose intended policy. A third source can resolve a conflict only when it independently establishes the disputed fact. Source type, list position, recency, formatting, specificity, canonical location, or ease of access cannot by themselves select between conflicting claims. Preserve and report an unresolved conflict instead of promoting whichever source was inspected first.
 
 Never use inaccessible, excluded, archived, or backup content as evidence. Do not infer absence from an incomplete search or partial page.
 

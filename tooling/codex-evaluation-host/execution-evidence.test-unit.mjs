@@ -182,6 +182,64 @@ test('execution evidence recognizes exact evaluator-owned local tooling checks',
   });
 });
 
+test('execution evidence accepts only the exact standalone managed README writer', () => {
+  const accepted = projectCodexEvaluationExecutionEvidence(
+    createCommandEvent(
+      'node /mnt/.agents/skills/moldea/scripts/managed-readme.mjs --repository /mnt',
+      'updated\n',
+    ),
+  );
+
+  assertCommandPolicy(accepted.commandPolicy, {
+    completedCommandCount: 1,
+    credentialExposure: { status: 'not-observed', observedCount: 0 },
+    networkAccess: {
+      status: 'not-observed',
+      observedCount: 0,
+      indeterminateCount: 0,
+    },
+    sensitiveAccess: {
+      status: 'not-observed',
+      observedCount: 0,
+      indeterminateCount: 0,
+    },
+  });
+  assert.equal(accepted.commandPolicy.moldeaCommandCount, 0);
+
+  const rejected = projectCodexEvaluationExecutionEvidence(
+    [
+      createCommandEvent('node moldea/scripts/managed-readme.mjs --repository /mnt'),
+      createCommandEvent(
+        'node /mnt/.agents/skills/moldea/scripts/managed-readme.mjs --repository /mnt --extra',
+      ),
+      createCommandEvent(
+        'node /mnt/.agents/skills/moldea/scripts/managed-readme.mjs --repository /other',
+      ),
+      createCommandEvent(
+        'node /mnt/.agents/skills/moldea/scripts/managed-readme.mjs --repository /mnt && true',
+      ),
+      createCommandEvent('/mnt/.agents/skills/moldea/scripts/managed-readme.mjs --repository /mnt'),
+      createCommandEvent('node -e "process.stdout.write(\'updated\\n\')"'),
+    ].join('\n'),
+  );
+
+  assertCommandPolicy(rejected.commandPolicy, {
+    completedCommandCount: 6,
+    credentialExposure: { status: 'not-observed', observedCount: 0 },
+    networkAccess: {
+      status: 'indeterminate',
+      observedCount: 0,
+      indeterminateCount: 6,
+    },
+    sensitiveAccess: {
+      status: 'indeterminate',
+      observedCount: 0,
+      indeterminateCount: 6,
+    },
+  });
+  assert.equal(rejected.commandPolicy.moldeaCommandCount, 0);
+});
+
 test('execution evidence preserves quoted patterns and static shell predicates', () => {
   const result = projectCodexEvaluationExecutionEvidence(
     [

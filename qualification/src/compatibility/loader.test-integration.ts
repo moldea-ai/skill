@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 
-import { DEFAULT_PACKAGES_REPOSITORY } from '../constants/index.ts';
+import { DEFAULT_PACKAGES_REPOSITORY, SKILL_REPOSITORY_ROOT } from '../constants/index.ts';
 import { QualificationCaseScenarioSchema } from '../contracts/index.ts';
 import { inspectQualificationCoverage } from '../coverage/index.ts';
 import { ensureDirectory, readYamlFile } from '../filesystem/index.ts';
@@ -19,6 +19,10 @@ const UNADOPTED_QUALIFICATION_CASE_IDS = new Set([
   'initialize-grounded-project',
   'stop-on-material-ambiguity',
 ]);
+const MANAGED_README_BLOCK = await readFile(
+  path.join(SKILL_REPOSITORY_ROOT, 'moldea', 'assets', 'managed-readme-block.md'),
+  'utf8',
+);
 
 test.each([
   ['custom', 'custom', 12],
@@ -58,11 +62,27 @@ test.each([
         continue;
       }
 
-      expect(readme).toContain('<!-- moldea:start -->');
-      expect(readme).toContain('<!-- moldea:end -->');
+      expect(readme.split('<!-- moldea:start -->')).toHaveLength(2);
+      expect(readme.split('<!-- moldea:end -->')).toHaveLength(2);
+      expect(readme).toContain(MANAGED_README_BLOCK);
     }
   },
 );
+
+test('keeps the initialized Custom expected README on the canonical managed block', async () => {
+  const target = await resolveQualificationTarget({
+    adapterId: 'custom',
+    implementationId: 'custom',
+  });
+  const readme = await readFile(
+    path.join(target.profileDirectory, 'cases', 'c2', 'expected', 'README.md'),
+    'utf8',
+  );
+
+  expect(readme.split('<!-- moldea:start -->')).toHaveLength(2);
+  expect(readme.split('<!-- moldea:end -->')).toHaveLength(2);
+  expect(readme).toContain(MANAGED_README_BLOCK);
+});
 
 test('loads compatibility from an immutable packages commit instead of its worktree', async () => {
   const temporaryPackagesRepository = await mkdtemp(

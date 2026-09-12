@@ -37,6 +37,19 @@ import { createSemanticCliIdentity } from './identity.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(new URL(import.meta.url).pathname), '../..');
 
+const createJsonDigest = (input) =>
+  createHash('sha256').update(JSON.stringify(input)).digest('hex');
+
+const createSourceCaseSuiteDigest = (caseDefinitions) =>
+  createJsonDigest(
+    caseDefinitions
+      .map((caseDefinition) => ({
+        digest: createJsonDigest(caseDefinition),
+        id: caseDefinition.id,
+      }))
+      .sort(({ id: left }, { id: right }) => left.localeCompare(right)),
+  );
+
 const writeText = (root, relativePath, source) => {
   const path = join(root, relativePath);
   mkdirSync(dirname(path), { recursive: true });
@@ -85,11 +98,16 @@ const createPackageIdentity = (root, version, cliVersion = '8.0.0') => {
 const seedFreshEvidence = async (
   root,
   {
+    hasActivationMismatch = false,
     isCorrupt = false,
+    hasDuplicateCaseInventory = false,
+    hasSourceSchemaDrift = false,
     isFailed = false,
     isMissing = false,
     isOverBudget = false,
     isProfileMismatch = false,
+    hasInvalidQualificationProvenance = false,
+    isSemanticDigestMismatch = false,
   } = {},
 ) => {
   createPackageIdentity(root, '5.0.0');
@@ -101,13 +119,24 @@ const seedFreshEvidence = async (
     operations: ['inspect'],
     stdoutByteCount: 1,
   };
-  const semanticCase = JSON.parse(
+  const currentSemanticCase = JSON.parse(
     readFileSync(join(REPOSITORY_ROOT, 'fixtures/conformance-cases.json'), 'utf8'),
   ).semanticCases.find(
     ({ resourceBudget }) =>
       resourceBudget.activation === 'direct' && resourceBudget.minimumMoldeaCommands === 1,
   );
-  const semanticCases = [semanticCase];
+  const semanticCase = hasSourceSchemaDrift
+    ? { ...currentSemanticCase, retiredEvaluatorVocabulary: 'source-protocol-owned' }
+    : currentSemanticCase;
+  const semanticCaseWithBudget = hasActivationMismatch
+    ? {
+        ...semanticCase,
+        resourceBudget: { ...semanticCase.resourceBudget, activation: 'relationship' },
+      }
+    : semanticCase;
+  const semanticCases = hasDuplicateCaseInventory
+    ? [semanticCaseWithBudget, structuredClone(semanticCaseWithBudget)]
+    : [semanticCaseWithBudget];
   const semanticCoverage = {
     claims: [
       {
@@ -142,18 +171,23 @@ const seedFreshEvidence = async (
   writeJson(root, 'fixtures/semantic-evaluation-result.json', {
     artifactDigest: createPortableSkillDigest(root),
     artifactSha256: createPortableSkillDigest(root),
-    caseSuiteDigest: createSemanticCaseSuiteDigest(semanticCases),
+    caseSuiteDigest: isSemanticDigestMismatch
+      ? '0'.repeat(64)
+      : hasSourceSchemaDrift || hasDuplicateCaseInventory
+        ? createSourceCaseSuiteDigest(semanticCases)
+        : createSemanticCaseSuiteDigest(semanticCases),
     cli: createSemanticCliIdentity(root),
-    coverageDigest: createSemanticCoverageDigest(semanticCoverage, semanticCases),
+    coverageDigest:
+      hasSourceSchemaDrift || hasDuplicateCaseInventory
+        ? createJsonDigest(semanticCoverage)
+        : createSemanticCoverageDigest(semanticCoverage, semanticCases),
     evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     semanticAttemptId,
-    cases: [
-      {
-        actorResourceEvidence: resourceEvidence,
-        id: semanticCase.id,
-        passed: !isFailed,
-      },
-    ],
+    cases: semanticCases.map(({ id }) => ({
+      actorResourceEvidence: resourceEvidence,
+      id,
+      passed: !isFailed,
+    })),
   });
 
   const qualificationAttemptId = 'qualification-attempt';
@@ -163,6 +197,17 @@ const seedFreshEvidence = async (
   const result = await seedPassingQualificationEvidenceFixture({
     artifactDirectory,
     attemptId: qualificationAttemptId,
+    packages: [
+      {
+        name: '@moldea.ai/cli',
+        version: '8.0.0',
+        registryIntegrity: 'sha512-cli',
+        registryShasum: '1'.repeat(40),
+        registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-8.0.0.tgz',
+        tarballName: 'cli-8.0.0.tgz',
+        sha256: '2'.repeat(64),
+      },
+    ],
     resultsRoot: join(root, 'qualification', 'results'),
   });
   await recordQualificationResult(
@@ -178,6 +223,12 @@ const seedFreshEvidence = async (
     join(root, 'qualification', 'results'),
   );
   rmSync(artifactDirectory, { force: true, recursive: true });
+  if (hasInvalidQualificationProvenance) {
+    const attemptPath = join(root, qualificationAttemptRoot, 'attempt.json');
+    const attempt = JSON.parse(readFileSync(attemptPath, 'utf8'));
+    attempt.provenance.packages[0].version = '';
+    writeJson(root, `${qualificationAttemptRoot}/attempt.json`, attempt);
+  }
   if (isProfileMismatch) {
     const profilePath = join(root, 'qualification/profiles/t1/profile.yaml');
     writeFileSync(
@@ -352,6 +403,34 @@ test('flattens tagged pinned sections to their original source', async () => {
     assert.equal(envelope.semantic.source.tag, 'v5.0.0');
     assert.equal(envelope.qualification.source.tag, 'v5.0.0');
     assert.equal(envelope.semantic.source.commit, runGit(root, 'rev-parse', 'v5.0.0^{commit}'));
+    const model = loadReleaseEvidenceModel(root, '9.0.0');
+    assert.equal(model.mode, 'recorded');
+    assert.deepEqual(model.qualification.targets, [
+      {
+        adapterId: 'custom',
+        attemptId: 'qualification-attempt',
+        completedAt: '2026-08-20T10:01:00.000Z',
+        createdAt: '2026-08-20T10:00:00.000Z',
+        implementationId: 'custom',
+        packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+      },
+    ]);
+  } finally {
+    rmSync(root, { force: true, recursive: true });
+  }
+});
+
+test('pins immutable semantic evidence after current evaluator vocabulary changes', async () => {
+  const root = await createRepository({ hasSourceSchemaDrift: true });
+  try {
+    prepareTarget(root);
+    const envelope = await pinReleaseEvidence(root, {
+      from: 'v5.0.0',
+      reason: 'The source evaluator vocabulary predates the current schema.',
+      scope: 'all',
+    });
+    assert.equal(envelope.semantic.mode, 'pinned');
+    assert.equal(envelope.semantic.source.tag, 'v5.0.0');
   } finally {
     rmSync(root, { force: true, recursive: true });
   }
@@ -359,11 +438,15 @@ test('flattens tagged pinned sections to their original source', async () => {
 
 test('rejects self-reference, pre-envelope tags, corrupt artifacts, and over-budget evidence', async () => {
   const scenarios = [
+    [{ hasActivationMismatch: true }, /failed or over budget/],
     [{ isCorrupt: true }, /artifact digest does not match/],
+    [{ hasDuplicateCaseInventory: true }, /case IDs must be unique/],
     [{ isFailed: true }, /failed or over budget/],
     [{ isMissing: true }, /exists on disk|does not exist/],
     [{ isOverBudget: true }, /failed or over budget/],
     [{ isProfileMismatch: true }, /not self-consistent and passing/],
+    [{ hasInvalidQualificationProvenance: true }, /invalid attempt record/],
+    [{ isSemanticDigestMismatch: true }, /not one self-consistent passing attempt/],
   ];
   for (const [options, expectedError] of scenarios) {
     const root = await createRepository(options);

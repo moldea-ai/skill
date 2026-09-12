@@ -4,8 +4,6 @@ This project demonstrates supported and runtime-dependent Eve filesystem surface
 
 <!-- moldea:start -->
 
-## `moldea`
-
-This repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.
-
+For every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.
+Canonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.
 <!-- moldea:end -->

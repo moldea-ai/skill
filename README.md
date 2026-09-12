@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The current release is `5.0.0`. Install the latest version from `main`:
+The current release is `5.0.1`. Install the latest version from `main`:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the release:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.0"
+npx skills add "moldea-ai/skill#v5.0.1"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account.
@@ -30,9 +30,9 @@ The skill helps a coding agent:
 - evaluate and reconcile established relationships
 - validate repository structure with the exact local CLI
 
-Ordinary engineering work remains ordinary engineering work. The skill abstains silently when a task does not concern `/moldea/**`, the managed README block, an exact declared binding, an `affectedBy` relationship, or an explicit `moldea` request.
+Ordinary engineering work remains ordinary engineering work. In an adopted repository, the skill abstains silently when a task does not concern `/moldea/**`, the managed README block, an exact declared binding, an `affectedBy` relationship, or an explicit `moldea` request. Before adoption, initialization is the only repository-dependent `moldea` operation; host-owned planning and engineering continue independently.
 
-Initialization writes a concise managed README block that tells repository-aware hosts to select the installed skill for its two-byte gate before ordinary repository work. This is a discovery bridge, not broad activation: a gate miss continues the host task without a CLI call, workflow-reference load, progress update, or final-report mention.
+Initialization uses the bundled deterministic writer to create one canonical managed README block. It tells repository-aware hosts to select the installed skill for its two-byte gate before ordinary repository work. This is a discovery bridge, not broad activation: a gate miss continues the host task without a CLI call, workflow-reference load, progress update, or final-report mention. The writer rejects unsafe README structures and preserves every byte outside the managed region.
 
 ## Installation
 
@@ -54,7 +54,7 @@ npx skills remove moldea
 
 ## Compatibility
 
-Release `5.0.0` supports exactly:
+Release `5.0.1` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -64,6 +64,8 @@ Release `5.0.0` supports exactly:
 - CLI JSON schema 4
 
 The CLI must be a repository-root-local development dependency. Its manifest declaration and exact lockfile-selected stable version must satisfy the supported CLI 8 range. Every invocation goes through the installed skill's closed repository-local launcher. The skill never falls back to a global installation, another workspace, a package-manager launcher, or a transient download.
+
+Published runtime-target `versionRange` values are best-effort eligibility gates for deterministic source-pattern inspection, not blanket compatibility guarantees. Their lower bounds record verified minimums. Qualification evidence identifies the exact package closure and verification date that actually ran.
 
 Tooling establishment belongs only to write-capable `moldea` work. Read-only evaluation, validation, planning, and host-owned review workflows do not install dependencies or alter package-manager state.
 
@@ -106,6 +108,7 @@ The numeric profile is source-controlled in `tooling/resource-calibration/profil
 | Outcome          | Example request                                                  |
 | ---------------- | ---------------------------------------------------------------- |
 | Initialize       | `Initialize moldea for this repository.`                         |
+| Plan             | `Use moldea to plan an agent system for this adopted project.`   |
 | Create an agent  | `Create a support agent grounded in the current project policy.` |
 | Maintain context | `Update moldea context for the approved refund policy.`          |
 | Evaluate         | `Evaluate the current moldea project.`                           |
@@ -114,7 +117,7 @@ The numeric profile is source-controlled in `tooling/resource-calibration/profil
 
 Evaluation is read-only. It may inspect canonical metadata and explicitly required chunks, but it must not change repository files, the Git index, refs, configuration, submodules, or object storage.
 
-Initialization writes the complete manifest, project document, and managed README block before making one final `validate` call. With no evidenced relationships, the manifest is exactly `version: 1` plus its final LF; it contains no invented metadata or empty mappings. A successful validation ends the operation without `inspect`; a structural failure permits one bounded diagnostic-driven repair and one final retry.
+Initialization writes the complete manifest and project document, then runs the bundled `scripts/managed-readme.mjs` writer before making one final `validate` call. The writer creates or normalizes the canonical block atomically and never asks the model to reproduce it. With no evidenced relationships, the manifest is exactly `version: 1` plus its final LF; it contains no invented metadata or empty mappings. A successful validation ends the operation without `inspect`; a structural failure permits one bounded diagnostic-driven repair and one final retry.
 
 ## Portable skill
 
@@ -125,23 +128,26 @@ moldea/
 ├── SKILL.md
 ├── agents/
 │   └── openai.yaml
+├── assets/
+│   └── managed-readme-block.md
 ├── references/
-    ├── agent-design.md
-    ├── agent-system-planning.md
-    ├── context-compression.md
-    ├── context-gathering.md
-    ├── continuous-maintenance.md
-    ├── evaluate-and-reconcile.md
-    ├── local-tooling.md
-    ├── runtime-compatibility.md
+│   ├── agent-design.md
+│   ├── agent-system-planning.md
+│   ├── context-compression.md
+│   ├── context-gathering.md
+│   ├── continuous-maintenance.md
+│   ├── evaluate-and-reconcile.md
+│   ├── local-tooling.md
+│   ├── runtime-compatibility.md
 │   └── skill-design.md
 └── scripts/
+    ├── managed-readme.mjs
     ├── moldea-cli.mjs
     ├── relevance-gate.mjs
     └── repository-package.mjs
 ```
 
-`SKILL.md` owns activation, operation selection, evidence limits, boundaries, and reporting. `scripts/relevance-gate.mjs` performs the bounded pre-activation decision without a CLI invocation or canonical content output. `scripts/moldea-cli.mjs` owns the closed CLI launch boundary, and `scripts/repository-package.mjs` provides the shared package/version/containment checks used by both paths. References are loaded only after relevance is established and only when the selected operation needs them. `agents/openai.yaml` adds optional host metadata without redefining the portable contract.
+`SKILL.md` owns activation, operation selection, evidence limits, boundaries, and reporting. `assets/managed-readme-block.md` owns the canonical managed text, and the generated `scripts/managed-readme.mjs` performs the bounded atomic README update during explicit initialization. `scripts/relevance-gate.mjs` reuses that script's canonical parser for the bounded pre-activation decision without a CLI invocation or canonical content output. `scripts/moldea-cli.mjs` owns the closed CLI launch boundary, and `scripts/repository-package.mjs` provides the shared package/version/containment checks used by both paths. References are loaded only after relevance is established and only when the selected operation needs them. `agents/openai.yaml` adds optional host metadata without redefining the portable contract.
 
 ## Project blueprint
 
@@ -249,14 +255,14 @@ After current semantic and qualification evidence passes, record the compact fre
 npm run release:evidence:record
 ```
 
-When a maintainer has established that a release does not affect one evidence domain, pin only that domain to a verified earlier source. Use an exact release tag or an exact full commit:
+When a maintainer decides that rerunning one evidence domain would not provide enough additional assurance to justify its cost, pin only that domain to a verified earlier source. Use an exact release tag or an exact full commit:
 
 ```bash
 npm run release:evidence:pin -- --scope semantic --from-commit <full-commit> --reason "Release tooling only; portable behavior is unchanged."
 npm run release:evidence:pin -- --scope qualification --from v5.0.0 --reason "Qualification behavior is unchanged."
 ```
 
-The scope may be `semantic`, `qualification`, or `all`. Every unselected section must have valid fresh current evidence. A pin is explicit, repository-bound, reasoned, and visible only on the corresponding public evidence pages. It validates the immutable source commit, optional source tag, portable skill digest, referenced artifacts, passing states, and resource limits. It does not bypass release signing or publication credentials. Run the same command with `--clear` to remove an envelope containing a pin.
+The scope may be `semantic`, `qualification`, or `all`. Every unselected section must have valid fresh current evidence. A pin is an explicit repository-bound maintainer risk decision. Its reason must identify what changed, name the deterministic checks used for the candidate, and avoid claiming that the earlier model run evaluated the new contracts. Public evidence pages distinguish the verified prior source from pending current-contract assurance. The pin validates the immutable source commit, optional source tag, portable skill digest, committed suite and coverage digests, complete passing inventory, referenced artifacts, attempt linkage, and resource limits without reinterpreting the source through the current evaluator vocabulary. It does not bypass release signing or publication credentials. Run the same command with `--clear` to remove an envelope containing a pin.
 
 ## Releases
 
@@ -268,7 +274,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-Release `5.0.0` uses tag `v5.0.0`.
+Release `5.0.1` uses tag `v5.0.1`.
 
 See [Release evidence](docs/release-evidence.md) for the exact fresh and pinned workflows. `npm run release:check` is read-only and validates each section through its selected path before running current-only verification for fresh sections.
 

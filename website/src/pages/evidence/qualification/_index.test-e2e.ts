@@ -181,6 +181,31 @@ test('presents profile definitions and the exact current evidence state', async 
       'data-evidence-status',
       profile.currentStatus,
     );
+    await expect(
+      page.getByRole('heading', { name: 'Package inputs and executed evidence' }),
+    ).toBeVisible();
+    if (profile.runtimePackages.length === 0) {
+      await expect(
+        page.getByText('This universal baseline has no runtime-specific package inputs.'),
+      ).toBeVisible();
+    } else {
+      const inputTable = page.getByRole('region', { name: 'Current profile package inputs' });
+      for (const { name, version } of profile.runtimePackages) {
+        await expect(inputTable).toContainText(name);
+        await expect(inputTable).toContainText(version);
+      }
+    }
+    if (profile.pinnedPriorEvidence !== null) {
+      await expect(
+        page.getByRole('heading', { name: 'Pinned prior executed closure' }),
+      ).toBeVisible();
+      await expect(
+        page.getByText(profile.pinnedPriorEvidence.attemptId, { exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByText(/it is not relabeled as current-contract assurance/u),
+      ).toBeVisible();
+    }
     if (profile.adapterId === 'custom') {
       await expect(page.getByText('Universal Custom baseline', { exact: true })).toHaveCount(
         profile.cases.length,
@@ -194,7 +219,9 @@ test('presents profile definitions and the exact current evidence state', async 
       );
     }
     if (profile.currentLatest === null) {
-      await expect(page.getByText(/No protocol 10 Sol attempt has been committed/u)).toBeVisible();
+      await expect(
+        page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
+      ).toBeVisible();
       await expect(
         page.getByRole('link', {
           name: /Inspect the (?:execution-error|failed|passing) attempt/u,
@@ -216,7 +243,9 @@ test('replays qualification evidence through human-readable and technical views'
   const customProfile = getProfile('custom', 'custom');
   await page.goto(toPublicPath(customProfile.route));
   if (customProfile.currentLatest === null) {
-    await expect(page.getByText(/No protocol 10 Sol attempt has been committed/u)).toBeVisible();
+    await expect(
+      page.getByText(/No protocol 10 Sol attempt matches this current profile contract/u),
+    ).toBeVisible();
     return;
   }
   const groundedAgentCase = customProfile.currentLatest.cases.find(
@@ -482,6 +511,13 @@ test(
       ).toBeVisible();
       await expect(
         page.getByText('Operational retries', { exact: true }).locator('..').getByText('1'),
+      ).toBeVisible();
+      const attemptDetails = page.locator('main details').filter({
+        has: page.getByText('Attempt coverage, provenance, and raw artifacts', { exact: true }),
+      });
+      await attemptDetails.locator(':scope > summary').click();
+      await expect(
+        attemptDetails.getByRole('heading', { name: 'Exact executed package closure' }),
       ).toBeVisible();
 
       const caseEvidence = page

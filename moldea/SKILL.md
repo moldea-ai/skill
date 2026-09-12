@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Use for every repository-dependent task, including reviews, plans, and implementation, when this skill is installed in the repository: run only the bundled two-byte relevance gate over developer-named and host-provided changed paths. A gate miss abstains silently; only after adoption and relevance are established may moldea inspect explicit work, /moldea/** changes, managed README hunks, or paths matching a declared binding or affectedBy relationship. Also use for an independently supplied Agent Skill artifact without gating the surrounding repository, answer informational questions, and initialize moldea only when explicitly requested. Do not use for other uninitialized work.
 metadata:
-  version: '5.0.0'
+  version: '5.0.1'
   cliVersionRange: '^8.0.0'
   coreVersionRange: '^4.0.1'
   cliJsonSchemaVersion: 4
@@ -92,7 +92,7 @@ Host planning, review, implementation, package-manager, Git, commit, and publica
 
 For direct agent creation, an existing independent inline instruction is migration input. When source and tests establish behavior and runtime integration is authorized, complete the canonical, runtime, relationship, test, and final-validation change.
 
-Run `composition` only when local runtime availability or readiness matters; it never establishes canonical assignment. Unless supplied evidence establishes the exact assignment, use one content-free `inspect`: the matching `kind: agent` record's `agentId` and `runtimeId` are the sole canonical content-free source for `agents.<id>.runtime.id`. Top-level runtime counts or guidance cannot establish or negate it. Request named-agent `content` only when semantics matter; never inspect afterward or request manifest content. Retrieve publication through host-granted capability only for requested maturity or a fact that can change the conclusion; URLs grant nothing. Report canonical assignment, repository API, local adapter, and published target separately. Unavailable publication limits only dependent claims. Preserve established facts and pair every behavioral or integration unknown with a concrete resolver; an absent contract qualifies only when proposing it.
+Run `composition` only when local runtime availability or readiness matters; it never establishes canonical assignment. Without supplied assignment evidence, use one content-free `inspect`. The matching `kind: agent` record's `agentId` and `runtimeId` are the sole canonical content-free source for `agents.<id>.runtime.id`; counts prove nothing. Request named-agent `content` only when semantics matter; never inspect afterward or request manifest content. Retrieve publication only through host capability when relevant; URLs grant nothing. Report canonical assignment, repository fit, local adapter, and target separately. Unavailable publication limits only dependent claims and never changes an established runtime to `custom`. Preserve established facts; pair every behavioral or integration unknown with a concrete resolver.
 
 ## Initialize minimally
 
@@ -100,7 +100,13 @@ When the executable-configuration preflight does not stop initialization, load o
 
 Insufficient or materially incomplete evidence stops writes. Preserve files; say the project is not adopted or initialized because its complete contract is absent or evidence cannot support a truthful foundation; identify inspected evidence and the highest-value missing fact; ask one focused question. Do not substitute an indirect status such as paused or incomplete or add generic product-benefit boilerplate. For partial adoption, name the present and missing elements among `/moldea/moldea.yaml`, `/moldea/project.md`, and the owned README awareness block. When no meaningful foundation exists, ask what the project does and who or what it serves. Structural validation proves format, not the truth or sufficiency of the foundation.
 
-When sufficient evidence establishes no relationship, the complete manifest is `version: 1` plus one LF. Write the complete three-file foundation before the first CLI call, then invoke exactly one launcher-backed `validate`. On success, stop without `inspect`; explicitly report adoption, name the project-owned evidence that established the foundation, changed files, validation result, and material diagnostics. Always end a successful initialization response with one short, evidence-supported `Next:` action; do not omit it. With no project-specific gap, tell the developer to continue normal repository work and add durable context only for a new project fact or agent design. Do not steer the developer toward agent creation without a separate goal. On structural failure, repair from bounded diagnostics and run `validate` at most once more.
+When evidence establishes no relationship, write the `version: 1` plus LF manifest and `/moldea/project.md`, then invoke exactly this bundled writer before the first CLI call:
+
+```text
+node <installed-skill-root>/scripts/managed-readme.mjs --repository <absolute-repository-root>
+```
+
+The writer normalizes the block while preserving outside bytes. Failure stops before validation; never reproduce the block elsewhere. After the foundation exists, invoke exactly one launcher-backed `validate`. On success, stop without `inspect`; report adoption, name the project-owned evidence that established the foundation, changed files plus writer, validation, and diagnostic results. It is not a moldea CLI call. Always end a successful initialization response with one short, evidence-supported `Next:` action; do not omit it. With no gap, tell the developer to continue normal repository work. Do not steer the developer toward agent creation without a separate goal. On structural failure, repair from diagnostics and run `validate` at most once more.
 
 When the launcher succeeds, do not inspect dependency trees, CLI package internals, executable links, global installations, transient tools, or package-manager configuration. Load `references/local-tooling.md` only when the launcher reports that repository tooling is unavailable or invalid and the authorized operation can establish it. Before any package-manager invocation, inspect the exact package-manager configuration and apply its pre-execution stop contract.
 

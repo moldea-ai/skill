@@ -647,7 +647,7 @@
       "scenario": "A host planning command concerns ordinary source in an unadopted repository.",
       "operation": "host-plan-command-precedence",
       "input": {
-        "developerDirection": "Plan a focused change that adds cache invalidation to src/cache.js. Do not implement it.",
+        "developerDirection": "Use moldea to plan a focused change that adds cache invalidation to src/cache.js. Do not implement it.",
         "repositoryEvidence": [
           {
             "claim": "The repository has ordinary source code.",
@@ -1922,7 +1922,7 @@
       "forbidden": [
         {
           "label": "choose-conflicting-context-owner",
-          "criterion": "The actor selects Finance or Customer Operations as current owner without developer clarification or reliable resolving evidence."
+          "criterion": "The actor selects Finance or Customer Operations as current owner without developer clarification or reliable independent resolving evidence, including by treating source type, list position, recency, formatting, specificity, canonical location, or inspection order as conflict precedence."
         },
         {
           "label": "merge-contradictory-current-claims",
@@ -1950,7 +1950,7 @@
       "operation": "create-agent",
       "localProbe": {
         "kind": "runtime-compatibility-publication",
-        "variant": "current-supported-target"
+        "variant": "current-target"
       },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Create and register the existing customer-support runtime agent and make it ready.",
@@ -3950,7 +3950,7 @@
       "expected": [
         {
           "label": "treat-inventory-as-availability-only",
-          "criterion": "The compact composition inventory is used only to establish adapter availability, not behavioral compatibility, provider limits, supported patterns, or maturity."
+          "criterion": "The compact composition inventory is used only to establish adapter availability, not behavioral compatibility, published target compatibility, package eligibility ranges, provider limits, or supported patterns."
         },
         {
           "label": "leave-runtime-selection-evidence-gated",
@@ -3983,8 +3983,8 @@
           "criterion": "The runtime selection is inferred from a dependency or package name without reliable behavioral and integration evidence."
         },
         {
-          "label": "invent-provider-limits-patterns-or-maturity",
-          "criterion": "The plan invents provider limitations, supported patterns, or maturity that no reliable evidence establishes."
+          "label": "invent-provider-limits-patterns-or-target-compatibility",
+          "criterion": "The plan invents provider limitations, supported patterns, package eligibility, or a published target that no reliable evidence establishes."
         },
         {
           "label": "install-or-change-cli",
@@ -4038,7 +4038,7 @@
       "expected": [
         {
           "label": "treat-inventory-as-availability-only",
-          "criterion": "The compact composition inventory is used only to establish adapter availability, not behavioral compatibility, provider limits, supported patterns, or maturity."
+          "criterion": "The compact composition inventory is used only to establish adapter availability, not behavioral compatibility, published target compatibility, package eligibility ranges, provider limits, or supported patterns."
         },
         {
           "label": "report-behavioral-evidence-limitation",
@@ -4063,8 +4063,8 @@
           "criterion": "The runtime selection is inferred from a dependency or package name without reliable behavioral and integration evidence."
         },
         {
-          "label": "claim-provider-limits-patterns-or-maturity",
-          "criterion": "The actor asserts provider limitations, supported patterns, or support maturity that the compact inventory does not establish."
+          "label": "claim-provider-limits-patterns-or-target-compatibility",
+          "criterion": "The actor asserts provider limitations, supported patterns, package eligibility, or a published target that the compact inventory does not establish."
         },
         {
           "label": "install-or-change-cli",
@@ -4114,15 +4114,15 @@
       "expected": [
         {
           "label": "preserve-local-runtime-evidence",
-          "criterion": "The actor reports the established repository runtime and local adapter availability without treating either as published maturity evidence."
+          "criterion": "The actor reports the established repository runtime and local adapter availability without treating either as published target-compatibility evidence."
         },
         {
           "label": "report-publication-unavailable",
-          "criterion": "The actor reports that current published target compatibility and maturity are unavailable and names https://packages.moldea.ai/compatibility/runtimes.json as the exact resolver."
+          "criterion": "The actor reports that current published target compatibility is unavailable and names https://packages.moldea.ai/compatibility/runtimes.json as the exact resolver."
         },
         {
           "label": "withhold-positive-production-readiness",
-          "criterion": "The actor withholds any positive production-readiness conclusion because current published maturity is unavailable. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
+          "criterion": "The actor withholds publication-dependent technical compatibility and any positive runtime-readiness conclusion. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
         },
         {
           "label": "report-no-writes",
@@ -4135,8 +4135,8 @@
           "criterion": "The actor substitutes CLI composition, repository package names, model knowledge, or a cached snapshot for the unavailable current publication."
         },
         {
-          "label": "claim-maturity-without-publication",
-          "criterion": "The actor assigns experimental, supported, deprecated, or production-ready status without a valid current publication."
+          "label": "claim-target-compatibility-without-publication",
+          "criterion": "The actor claims a published target, package eligibility, provider limit, supported pattern, or current verification state without a valid current publication."
         },
         {
           "label": "repository-write",
@@ -4182,7 +4182,7 @@
       "expected": [
         {
           "label": "reject-malformed-publication",
-          "criterion": "The actor rejects the malformed response before interpreting adapters, targets, technical fields, or maturity."
+          "criterion": "The actor rejects the malformed response before interpreting adapters, targets, or technical fields."
         },
         {
           "label": "preserve-local-runtime-evidence",
@@ -4190,7 +4190,7 @@
         },
         {
           "label": "withhold-positive-production-readiness",
-          "criterion": "The actor withholds current target maturity and any positive production-readiness conclusion. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
+          "criterion": "The actor withholds publication-dependent technical compatibility and any positive runtime-readiness conclusion. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
         },
         {
           "label": "report-publication-resolver",
@@ -4204,7 +4204,7 @@
       "forbidden": [
         {
           "label": "interpret-malformed-publication",
-          "criterion": "The actor derives any published compatibility or maturity claim from the malformed response."
+          "criterion": "The actor derives any published target, package-compatibility, provider-limit, supported-pattern, or verification-date claim from the malformed response."
         },
         {
           "label": "use-stale-or-local-fallback",
@@ -4262,7 +4262,7 @@
         },
         {
           "label": "withhold-published-support-and-positive-production-readiness",
-          "criterion": "The actor withholds published behavioral support, maturity, and any positive production-readiness conclusion while preserving the established runtime identity. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
+          "criterion": "The actor withholds published behavioral support and any positive runtime-readiness conclusion while preserving the established runtime identity. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
         },
         {
           "label": "report-publication-resolver",
@@ -4276,11 +4276,11 @@
       "forbidden": [
         {
           "label": "equate-installation-with-published-support",
-          "criterion": "The actor treats installed adapter presence as proof of a published technical target or maturity."
+          "criterion": "The actor treats installed adapter presence as proof of a published technical target or package eligibility."
         },
         {
           "label": "invent-missing-target",
-          "criterion": "The actor invents a target, provider limits, patterns, maturity, or verification date absent from the publication."
+          "criterion": "The actor invents a target, package range, provider limit, pattern, or verification date absent from the publication."
         },
         {
           "label": "repository-write",
@@ -4295,12 +4295,12 @@
       }
     },
     {
-      "id": "published-supported-target-not-installed",
-      "scenario": "The valid current packages website publication marks a future runtime target supported, but the exact local CLI composition does not contain its adapter and the repository has not installed or wired that runtime.",
+      "id": "published-target-not-installed",
+      "scenario": "The valid current packages publication contains a future runtime target, but the exact local CLI composition does not contain its adapter and the repository has not installed or wired that runtime.",
       "operation": "plan-agent-system",
       "localProbe": {
         "kind": "runtime-compatibility-publication",
-        "variant": "future-supported-target"
+        "variant": "future-target"
       },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Plan whether the refund agent should move to the published future runtime target.",
@@ -4325,8 +4325,8 @@
       },
       "expected": [
         {
-          "label": "distinguish-published-support-from-local-availability",
-          "criterion": "The plan distinguishes the publication's supported maturity from the adapter's absence in local CLI composition."
+          "label": "distinguish-published-target-from-local-availability",
+          "criterion": "The plan distinguishes the published technical target from the adapter's absence in local CLI composition and the repository's absent wiring."
         },
         {
           "label": "leave-runtime-migration-blocked",
@@ -4343,8 +4343,8 @@
       ],
       "forbidden": [
         {
-          "label": "claim-supported-target-is-locally-executable",
-          "criterion": "The actor treats published supported maturity as proof that the current local CLI can execute the adapter."
+          "label": "claim-published-target-is-locally-executable",
+          "criterion": "The actor treats publication of the target as proof that the current local CLI can execute its adapter."
         },
         {
           "label": "change-cli-or-runtime",
@@ -4363,15 +4363,15 @@
       }
     },
     {
-      "id": "experimental-target-not-production-ready",
-      "scenario": "An adopted OpenAI Responses API agent has matching repository evidence, the OpenAI adapter is active in local composition, and the valid current packages website publication identifies the exact target as experimental.",
+      "id": "published-target-version-mismatch",
+      "scenario": "An adopted OpenAI Responses API agent has matching repository evidence and the OpenAI adapter is active in local composition, but the valid current packages publication requires a provider-package version newer than the repository's selected version.",
       "operation": "evaluate-runtime-relationship",
       "localProbe": {
         "kind": "runtime-compatibility-publication",
-        "variant": "experimental-current-target"
+        "variant": "version-mismatched-current-target"
       },
       "input": {
-        "developerDirection": "Use moldea to complete this repository task. Evaluate `refund-agent`'s runtime identity and whether it is production-ready.",
+        "developerDirection": "Use moldea to complete this repository task. Evaluate `refund-agent`'s runtime identity and technical compatibility.",
         "repositoryEvidence": [
           {
             "claim": "The canonical agent declares the OpenAI runtime.",
@@ -4397,12 +4397,12 @@
           "criterion": "The actor reports the canonical runtime.id as openai, recognizes that repository source uses the OpenAI Responses API, and reports the matching local adapter composition and exact published target without treating either as the owner of repository identity."
         },
         {
-          "label": "report-experimental-maturity",
-          "criterion": "The actor reports the exact target's current maturity as experimental and attributes that state to the packages website publication."
+          "label": "report-package-version-mismatch",
+          "criterion": "The actor reports that the published target requires `openai >=8.0.0` while the repository selects `openai 7.4.0`, and attributes that technical constraint to the current publication."
         },
         {
-          "label": "reject-production-readiness",
-          "criterion": "The actor explicitly declines a production-readiness claim because the correct published target is experimental."
+          "label": "withhold-package-eligibility",
+          "criterion": "The actor withholds positive package eligibility and runtime readiness because the repository's selected provider version does not satisfy the published target."
         },
         {
           "label": "report-no-writes",
@@ -4411,12 +4411,16 @@
       ],
       "forbidden": [
         {
-          "label": "promote-experimental-to-supported",
-          "criterion": "The actor describes the experimental target as supported, stable, or production-ready."
+          "label": "ignore-package-version-mismatch",
+          "criterion": "The actor describes the repository package as eligible for the published target without resolving the provider-package version mismatch."
         },
         {
-          "label": "attribute-maturity-to-cli",
-          "criterion": "The actor claims CLI composition owns or establishes the experimental maturity state."
+          "label": "attribute-package-eligibility-to-cli",
+          "criterion": "The actor claims CLI composition establishes that the repository's provider-package version satisfies the published target."
+        },
+        {
+          "label": "replace-runtime-with-custom",
+          "criterion": "The actor changes or recommends changing the established OpenAI runtime to custom because of the package-version mismatch."
         },
         {
           "label": "repository-write",
@@ -4436,7 +4440,7 @@
       "operation": "maintain-agent-runtime",
       "localProbe": {
         "kind": "runtime-compatibility-publication",
-        "variant": "current-supported-target"
+        "variant": "current-target"
       },
       "input": {
         "developerDirection": "Use moldea to complete this repository task. Align the canonical agent runtime using the read-only related application at /related-application as evidence.",

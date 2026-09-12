@@ -159,12 +159,12 @@ export interface ISemanticRepositoryEvidenceDeclaration {
 export interface ISemanticLocalProbe {
   kind: 'runtime-compatibility-publication';
   variant:
-    | 'current-supported-target'
-    | 'experimental-current-target'
-    | 'future-supported-target'
+    | 'current-target'
+    | 'future-target'
     | 'malformed'
     | 'missing-current-target'
-    | 'unavailable';
+    | 'unavailable'
+    | 'version-mismatched-current-target';
 }
 
 export interface ISemanticCaseDefinition {
@@ -211,6 +211,7 @@ export type ISemanticDispositionValue =
   | 'restored-explicit'
   | 'restored-relationship'
   | 'retained-current'
+  | 'replaced-technical-boundary'
   | 'rewritten-abstention';
 
 export interface ISemanticDispositions {

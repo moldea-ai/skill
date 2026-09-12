@@ -374,12 +374,12 @@
     },
     {
       "id": "runtime-compatibility-and-selection",
-      "description": "Runtime selection separates local availability, repository evidence, published target compatibility, maturity, and production readiness.",
+      "description": "Runtime selection separates local availability, repository evidence, published technical targets, package eligibility, and scoped runtime readiness.",
       "sourcePaths": [
         "moldea/references/agent-design.md#select-the-runtime-honestly",
         "moldea/references/runtime-compatibility.md"
       ],
-      "rationale": "Unavailable, malformed, experimental, unwired, external, and insufficient-evidence states cannot be promoted to supported runtime claims.",
+      "rationale": "Unavailable, malformed, version-mismatched, unwired, external, and insufficient-evidence states cannot be promoted to technically compatible runtime claims.",
       "evidence": [
         {
           "kind": "semantic-case",
@@ -399,11 +399,11 @@
         },
         {
           "kind": "semantic-case",
-          "id": "published-supported-target-not-installed"
+          "id": "published-target-not-installed"
         },
         {
           "kind": "semantic-case",
-          "id": "experimental-target-not-production-ready"
+          "id": "published-target-version-mismatch"
         },
         {
           "kind": "semantic-case",

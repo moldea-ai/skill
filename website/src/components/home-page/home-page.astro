@@ -27,13 +27,12 @@ import { SKILLS_DIRECTORY_URL } from '../../lib/model/constants.ts';
 
 const model = loadWebsiteModel();
 const basePath = import.meta.env.BASE_URL;
-const qualificationProjectCount = model.qualification.profiles.reduce(
-  (total, profile) => total + profile.cases.length,
-  0,
-);
+const qualifiedProfileCount = model.qualification.profiles.filter(
+  ({ currentAssurance }) => currentAssurance !== null,
+).length;
 const successfulSemanticCaseCount =
-  (model.semanticReleaseAssurance?.result.passedCaseCount ?? 0) +
-  (model.semanticReleaseAssurance?.result.recoveredCaseCount ?? 0);
+  (model.currentSemanticAssurance?.result.passedCaseCount ?? 0) +
+  (model.currentSemanticAssurance?.result.recoveredCaseCount ?? 0);
 ---
 
 <BaseLayout
@@ -191,8 +190,9 @@ const successfulSemanticCaseCount =
             Semantic scenarios test whether the skill preserves developer authority, gathers
             relevant evidence, maintains or evaluates the right surfaces, and refuses unsupported
             conclusions. Adapter qualification exercises complete transparent project journeys with
-            deterministic verification. Every release requires verified passing evidence, while
-            failed and incomplete attempts remain available for inspection.
+            deterministic verification. Release provenance and current-contract status are shown
+            separately, while failed and incomplete current-contract attempts remain available for
+            inspection.
           </p>
           <ActionLink
             class="mt-8 font-bold"
@@ -207,7 +207,7 @@ const successfulSemanticCaseCount =
         </div>
         <dl class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
           <div class="rounded-xl border border-border bg-muted/30 p-5">
-            <dt class="text-sm font-semibold">Skill behavior scenarios successful</dt>
+            <dt class="text-sm font-semibold">Current skill scenarios successful</dt>
             <dd class="mt-2 font-mono text-3xl font-bold">
               {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount}
             </dd>
@@ -216,10 +216,12 @@ const successfulSemanticCaseCount =
             </dd>
           </div>
           <div class="rounded-xl border border-border bg-muted/30 p-5">
-            <dt class="text-sm font-semibold">Adapter project journeys qualified</dt>
-            <dd class="mt-2 font-mono text-3xl font-bold">{qualificationProjectCount}</dd>
+            <dt class="text-sm font-semibold">Adapter profiles with current assurance</dt>
+            <dd class="mt-2 font-mono text-3xl font-bold">
+              {qualifiedProfileCount}/{model.qualification.profiles.length}
+            </dd>
             <dd class="mt-2 text-sm leading-6 text-muted-foreground">
-              Transparent fixtures exercised through complete adapter-specific workflows.
+              Exact current profile inputs backed by passing qualification evidence.
             </dd>
           </div>
         </dl>

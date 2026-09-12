@@ -2,7 +2,6 @@ const ADAPTER_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
 const IMPLEMENTATION_STATUSES = new Set(['available', 'deprecated', 'in-development', 'planned']);
 const TARGET_KINDS = new Set(['custom', 'package']);
-const TARGET_MATURITIES = new Set(['experimental', 'supported']);
 
 /** The artifact name shared by candidate construction and verification. */
 export const RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME =
@@ -46,7 +45,6 @@ const hasValidTarget = (input) =>
   isNonEmptyString(input.language) &&
   typeof input.lastVerifiedAt === 'string' &&
   DATE_PATTERN.test(input.lastVerifiedAt) &&
-  TARGET_MATURITIES.has(input.maturity) &&
   (input.packages === undefined ||
     (Array.isArray(input.packages) && input.packages.every(hasValidPackageRequirement)));
 
@@ -72,7 +70,7 @@ const hasValidAdapter = (input) => {
 };
 
 /**
- * Validates the packages website publication fields consumed by skill release 5.
+ * Validates the technical packages-publication fields consumed by the skill.
  * @param input The untrusted parsed publication value.
  * @returns The validated publication value.
  * @throws

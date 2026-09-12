@@ -21,21 +21,32 @@ const FIXTURE_PATH = resolve(
 test('validates the narrow development publication fixture', () => {
   const publication = parseRuntimeCompatibilityPublication(readFileSync(FIXTURE_PATH, 'utf8'));
 
-  assert.equal(publication.adapters.custom.targets[0].maturity, 'supported');
-  assert.equal(publication.adapters.openai.targets[0].maturity, 'supported');
+  assert.equal('maturity' in publication.adapters.custom.targets[0], false);
+  assert.equal('maturity' in publication.adapters.openai.targets[0], false);
   assert.equal(publication.adapters.openai.targets[0].packages[0].versionRange, '>=7.4.0');
 });
 
-test('rejects malformed roots, unsupported target maturity, and duplicate target identities', () => {
+test('ignores additive website metadata while retaining technical validation', () => {
+  const publication = JSON.parse(readFileSync(FIXTURE_PATH, 'utf8'));
+  publication.adapters.openai.targets[0].maturity = 'website-defined';
+  publication.adapters.openai.targets[0].display = { badge: 'preview' };
+
+  assert.equal(validateRuntimeCompatibilityPublication(publication), publication);
+});
+
+test('rejects malformed roots, malformed technical targets, and duplicate identities', () => {
   assert.throws(() => parseRuntimeCompatibilityPublication('{'), /not valid JSON/u);
   assert.throws(
     () => validateRuntimeCompatibilityPublication({ schemaVersion: 2 }),
     /unsupported root contract/u,
   );
 
-  for (const maturity of ['deprecated', 'stable']) {
+  for (const [field, invalidValue] of [
+    ['kind', 'provider'],
+    ['lastVerifiedAt', 'September 1, 2026'],
+  ]) {
     const publication = JSON.parse(readFileSync(FIXTURE_PATH, 'utf8'));
-    publication.adapters.openai.targets[0].maturity = maturity;
+    publication.adapters.openai.targets[0][field] = invalidValue;
     assert.throws(
       () => validateRuntimeCompatibilityPublication(publication),
       /invalid openai adapter/u,

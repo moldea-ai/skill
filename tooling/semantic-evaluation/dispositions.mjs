@@ -5,6 +5,7 @@ const DISPOSITION_VALUES = new Set([
   'restored-explicit',
   'restored-relationship',
   'retained-current',
+  'replaced-technical-boundary',
   'rewritten-abstention',
 ]);
 const STABLE_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
@@ -33,6 +34,7 @@ export const validateSemanticDispositions = (dispositions, activeCaseDefinitions
 
   const activeCaseIds = new Set(activeCaseDefinitions.map(({ id }) => id));
   const formerCaseIds = new Set();
+  const mappedActiveCaseIds = new Set();
   for (const disposition of dispositions.cases) {
     if (
       !isPlainRecord(disposition) ||
@@ -40,7 +42,8 @@ export const validateSemanticDispositions = (dispositions, activeCaseDefinitions
       typeof disposition.formerId !== 'string' ||
       !STABLE_ID_PATTERN.test(disposition.formerId) ||
       formerCaseIds.has(disposition.formerId) ||
-      disposition.activeId !== disposition.formerId ||
+      typeof disposition.activeId !== 'string' ||
+      mappedActiveCaseIds.has(disposition.activeId) ||
       !activeCaseIds.has(disposition.activeId) ||
       !DISPOSITION_VALUES.has(disposition.disposition) ||
       typeof disposition.rationale !== 'string' ||
@@ -50,6 +53,7 @@ export const validateSemanticDispositions = (dispositions, activeCaseDefinitions
       throw new Error('Semantic dispositions contain an invalid or duplicate case mapping.');
     }
     formerCaseIds.add(disposition.formerId);
+    mappedActiveCaseIds.add(disposition.activeId);
   }
 
   return dispositions;

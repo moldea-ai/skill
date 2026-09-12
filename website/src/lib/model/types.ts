@@ -55,7 +55,7 @@ export interface IWebsiteModel {
   releaseEvidence: IReleaseEvidenceModel;
   routes: string[];
   searchRecords: ISearchRecord[];
+  currentSemanticAssurance: ISemanticAttemptModel | null;
   semanticEvaluation: ISemanticEvaluationWebsiteModel;
-  semanticReleaseAssurance: ISemanticAttemptModel | null;
   skill: ISkillMetadata;
 }

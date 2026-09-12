@@ -166,6 +166,11 @@ const SAFE_RELEVANCE_GATE_PATHS = new Set([
   './.agents/skills/moldea/scripts/relevance-gate.mjs',
   '/mnt/.agents/skills/moldea/scripts/relevance-gate.mjs',
 ]);
+const SAFE_MANAGED_README_PATHS = new Set([
+  '.agents/skills/moldea/scripts/managed-readme.mjs',
+  './.agents/skills/moldea/scripts/managed-readme.mjs',
+  '/mnt/.agents/skills/moldea/scripts/managed-readme.mjs',
+]);
 const SAFE_MOLDEA_CLI_LAUNCHER_PATHS = new Set([
   '.agents/skills/moldea/scripts/moldea-cli.mjs',
   './.agents/skills/moldea/scripts/moldea-cli.mjs',
@@ -645,6 +650,14 @@ const isSafeRelevanceGateCommand = (words) =>
   words[3] === '/mnt' &&
   (words.length === 4 || words[4] === '--adoption-only');
 
+/** Checks the exact standalone Node invocation for the bundled README writer. */
+const isSafeManagedReadmeCommand = (words) =>
+  isTrustedLocalExecutable(words[0], 'node') &&
+  words.length === 4 &&
+  SAFE_MANAGED_README_PATHS.has(words[1]) &&
+  words[2] === '--repository' &&
+  words[3] === '/mnt';
+
 /** Parses the strict option surface for one launcher-backed CLI operation. */
 const parseMoldeaCliOperationArguments = (operation, commandArguments) => {
   const flags = new Set();
@@ -861,7 +874,12 @@ const isSafeSedInspectionCommand = (words) => {
 const isTrustedGitExecutable = (word) => ['git', '/home/evaluator/bin/git'].includes(word);
 
 /** Classifies whether one static command can use a network boundary. */
-const classifyNetworkCommand = (words, localProbeKind = null, canUseLocalProbe = false) => {
+const classifyNetworkCommand = (
+  words,
+  localProbeKind = null,
+  canUseLocalProbe = false,
+  canUseLocalSkillOperation = false,
+) => {
   const assignmentPrefixes = [];
   while (/^[A-Za-z_][A-Za-z0-9_]*=.*/u.test(words[0] ?? '')) {
     assignmentPrefixes.push(words.shift());
@@ -893,7 +911,9 @@ const classifyNetworkCommand = (words, localProbeKind = null, canUseLocalProbe =
   if (
     executable === 'node' &&
     assignmentPrefixes.length === 0 &&
-    (isSafeNodeVersionCommand(words) || isSafeMoldeaCliLauncherCommand(words))
+    (isSafeNodeVersionCommand(words) ||
+      isSafeMoldeaCliLauncherCommand(words) ||
+      (canUseLocalSkillOperation && isSafeManagedReadmeCommand(words)))
   )
     return 'not-observed';
   if (executable === 'git') {
@@ -1022,8 +1042,10 @@ const classifyCommand = (command, localProbeKind) => {
   const sensitiveClassification = classifyDecodedSensitiveAccess(commands);
   const canUseLocalProbe =
     commands.length === 1 && commandWithoutSafeRedirections === directCommand;
+  const canUseLocalSkillOperation =
+    commands.length === 1 && commandWithoutSafeRedirections === directCommand;
   const networkClassifications = commands.map((words) =>
-    classifyNetworkCommand([...words], localProbeKind, canUseLocalProbe),
+    classifyNetworkCommand([...words], localProbeKind, canUseLocalProbe, canUseLocalSkillOperation),
   );
   const networkAccess = networkClassifications.includes('observed')
     ? 'observed'

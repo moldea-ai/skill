@@ -214,7 +214,7 @@ const RESTORED_SEMANTIC_CASE_PRESENTATION = {
   },
   'runtime-publication-unavailable': {
     groupId: 'planning',
-    title: 'Withholds maturity when publication is unavailable',
+    title: 'Withholds compatibility when publication is unavailable',
   },
   'runtime-publication-malformed': {
     groupId: 'planning',
@@ -224,13 +224,13 @@ const RESTORED_SEMANTIC_CASE_PRESENTATION = {
     groupId: 'planning',
     title: 'Separates an installed adapter from published support',
   },
-  'published-supported-target-not-installed': {
+  'published-target-not-installed': {
     groupId: 'planning',
-    title: 'Separates published support from local availability',
+    title: 'Separates a published target from local availability',
   },
-  'experimental-target-not-production-ready': {
+  'published-target-version-mismatch': {
     groupId: 'planning',
-    title: 'Keeps experimental targets out of production claims',
+    title: 'Rejects a provider-package version mismatch',
   },
   'dedicated-repository-runtime-selection': {
     groupId: 'planning',

@@ -272,15 +272,15 @@
     },
     {
       "formerId": "published-supported-target-not-installed",
-      "activeId": "published-supported-target-not-installed",
-      "disposition": "restored-explicit",
-      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+      "activeId": "published-target-not-installed",
+      "disposition": "replaced-technical-boundary",
+      "rationale": "The current case preserves the published-target versus local-availability boundary without depending on website-owned maturity metadata."
     },
     {
       "formerId": "experimental-target-not-production-ready",
-      "activeId": "experimental-target-not-production-ready",
-      "disposition": "restored-explicit",
-      "rationale": "The former capability remains valuable and is now invoked explicitly under the clean-slate activation contract."
+      "activeId": "published-target-version-mismatch",
+      "disposition": "replaced-technical-boundary",
+      "rationale": "The current case replaces website-owned maturity reasoning with a concrete provider-package version mismatch while preserving runtime evidence separation."
     },
     {
       "formerId": "dedicated-repository-runtime-selection",

@@ -27,7 +27,12 @@ const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILL_ROOT = join(REPOSITORY_ROOT, 'moldea');
 const SKILL_PATH = join(SKILL_ROOT, 'SKILL.md');
 const CLI_LAUNCHER_PATH = join(SKILL_ROOT, 'scripts', 'moldea-cli.mjs');
+const MANAGED_README_PATH = join(SKILL_ROOT, 'scripts', 'managed-readme.mjs');
 const RELEVANCE_GATE_PATH = join(SKILL_ROOT, 'scripts', 'relevance-gate.mjs');
+const MANAGED_README_BLOCK = readFileSync(
+  join(SKILL_ROOT, 'assets', 'managed-readme-block.md'),
+  'utf8',
+);
 const FIXTURE = JSON.parse(
   readFileSync(join(REPOSITORY_ROOT, 'fixtures', 'conformance-cases.json'), 'utf8'),
 );
@@ -172,10 +177,7 @@ const createIsolatedToolingProject = (layout) => {
       2,
     )}\n`,
   );
-  writeFileSync(
-    join(root, 'README.md'),
-    '# Project\n\n<!-- moldea:start -->\nCanonical moldea project state lives under `/moldea/**`.\n<!-- moldea:end -->\n',
-  );
+  writeFileSync(join(root, 'README.md'), `# Project\n\n${MANAGED_README_BLOCK}`);
   writeFileSync(
     join(root, 'moldea', 'moldea.yaml'),
     'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
@@ -219,10 +221,7 @@ const createProject = () => {
   const root = mkdtempSync(join(tmpdir(), 'moldea-v5-conformance-'));
   mkdirSync(join(root, 'moldea'), { recursive: true });
   mkdirSync(join(root, 'src'), { recursive: true });
-  writeFileSync(
-    join(root, 'README.md'),
-    '# Project\n\n<!-- moldea:start -->\nFor every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.\nCanonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.\n<!-- moldea:end -->\n',
-  );
+  writeFileSync(join(root, 'README.md'), `# Project\n\n${MANAGED_README_BLOCK}`);
   writeFileSync(
     join(root, 'moldea', 'moldea.yaml'),
     'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
@@ -284,7 +283,7 @@ describe('portable skill contract', () => {
   test('uses lowercase identity, repository-bound initialization, and a narrow description', () => {
     const frontmatter = parseFrontmatter();
     assert.deepEqual(frontmatter.metadata, {
-      version: '5.0.0',
+      version: '5.0.1',
       cliVersionRange: '^8.0.0',
       coreVersionRange: '^4.0.1',
       cliJsonSchemaVersion: 4,
@@ -433,7 +432,11 @@ describe('portable skill contract', () => {
       skill,
       /Load `references\/local-tooling\.md` only when the launcher reports that repository tooling is unavailable or invalid/u,
     );
-    assert.match(skill, /Write the complete three-file foundation before the first CLI call/u);
+    assert.match(
+      skill,
+      /write the `version: 1` plus LF manifest and `\/moldea\/project\.md`, then invoke exactly this bundled writer before the first CLI call/u,
+    );
+    assert.match(skill, /scripts\/managed-readme\.mjs --repository/u);
     assert.match(
       skill,
       /foundation-evidence decision before any dependency, canonical-state, or managed README write/u,
@@ -556,12 +559,16 @@ describe('portable skill contract', () => {
     assert.match(maintenance, /The file ends with one LF/u);
     assert.match(maintenance, /Do not add a project name, schema field, metadata/u);
     assert.match(maintenance, /stop without `inspect` or another moldea command/u);
-    assert.match(
+    assert.doesNotMatch(
       maintenance,
       /For every repository task, select the repository-installed `moldea` skill/u,
     );
-    assert.match(maintenance, /If the gate does not match, continue without `moldea`/u);
-    assert.match(maintenance, /start at `\/moldea\/project\.md`/u);
+    assert.match(
+      MANAGED_README_BLOCK,
+      /For every repository task, select the repository-installed `moldea` skill/u,
+    );
+    assert.match(MANAGED_README_BLOCK, /If the gate does not match, continue without `moldea`/u);
+    assert.match(MANAGED_README_BLOCK, /start at `\/moldea\/project\.md`/u);
     const contextGathering = readFileSync(
       join(SKILL_ROOT, 'references', 'context-gathering.md'),
       'utf8',
@@ -572,6 +579,11 @@ describe('portable skill contract', () => {
     assert.match(contextGathering, /one ordinary host command cannot emit more than 65,536/u);
     assert.match(contextGathering, /same standalone launcher operation/u);
     assert.match(contextGathering, /Do not pipeline, wrap, parse, filter, aggregate, or script/u);
+    assert.match(contextGathering, /## Investigation order/u);
+    assert.doesNotMatch(contextGathering, /## Evidence hierarchy/u);
+    assert.match(contextGathering, /controls investigation cost, not claim authority/u);
+    assert.match(contextGathering, /current explicit developer selection/u);
+    assert.match(contextGathering, /Source type, list position, recency/u);
     const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
     assert.match(localTooling, /append `--cursor "<opaque-cursor>"`/u);
     assert.match(localTooling, /never claim completeness before the final raw envelope/u);
@@ -715,6 +727,9 @@ describe('portable skill contract', () => {
       join(SKILL_ROOT, 'references', 'agent-system-planning.md'),
       'utf8',
     );
+    assert.match(agentSystemPlanning, /Repository-dependent moldea planning requires an adopted repository/u);
+    assert.match(agentSystemPlanning, /host may still perform its own generic planning workflow independently/u);
+    assert.doesNotMatch(agentSystemPlanning, /Planning may precede adoption/u);
     assert.match(agentSystemPlanning, /Use only facts stated by the bounded source/u);
     assert.match(agentSystemPlanning, /Keep those dimensions as explicit evidence prerequisites/u);
     const runtime = readFileSync(
@@ -733,21 +748,23 @@ describe('portable skill contract', () => {
     assert.match(runtime, /request `\/moldea\/moldea\.yaml` through `content`/u);
     assert.match(runtime, /ordinary four-command moldea limit/u);
     assert.match(runtime, /ambient network client does not grant access/u);
-    assert.match(
-      runtime,
-      /explicit target-maturity or production-readiness request, retrieve the current publication despite independent blockers/u,
-    );
+    assert.match(runtime, /published technical field can change the conclusion/u);
     assert.match(runtime, /route-5 fifth-call repair validation/u);
     assert.match(runtime, /invoke `composition` first and retain its conclusion/u);
     assert.match(runtime, /cannot retroactively replace or erase/u);
     assert.match(runtime, /official skill release selects an exact CLI closure/u);
     assert.match(runtime, /state the exact canonical `runtime\.id` when established/u);
     assert.match(runtime, /and the repository wires the target/u);
-    assert.match(runtime, /published `experimental` maturity as the reason readiness is withheld/u);
+    assert.match(runtime, /package range excludes the repository's selected provider version/u);
     assert.match(
       runtime,
-      /matching local adapter, exact published target, and maturity separately/u,
+      /matching local adapter, exact published target, and package eligibility separately/u,
     );
+    assert.match(runtime, /best-effort eligibility gate, not a blanket compatibility promise/u);
+    assert.match(runtime, /lower bound records the verified minimum/u);
+    assert.match(runtime, /including later stable releases that were not themselves used in qualification/u);
+    assert.match(runtime, /Qualification proves only the exact package closure and verification date/u);
+    assert.doesNotMatch(runtime, /maturity/iu);
     assert.match(runtime, /retain every independently evidenced model-visible capability/u);
     assert.doesNotMatch(runtime, /composition --json --max-output-bytes/u);
     const skillDesign = readFileSync(join(SKILL_ROOT, 'references', 'skill-design.md'), 'utf8');
@@ -1039,8 +1056,8 @@ describe('activation and semantic protection', () => {
     const distributedCopy = FIXTURE.semanticCases.find(
       ({ id }) => id === 'skill-reconcile-distributed-copy',
     );
-    const experimentalTarget = FIXTURE.semanticCases.find(
-      ({ id }) => id === 'experimental-target-not-production-ready',
+    const versionMismatchedTarget = FIXTURE.semanticCases.find(
+      ({ id }) => id === 'published-target-version-mismatch',
     );
     const dynamicRouting = FIXTURE.semanticCases.find(
       ({ id }) => id === 'routing-description-dynamic-wiring',
@@ -1054,7 +1071,13 @@ describe('activation and semantic protection', () => {
       maximumMoldeaCommands: 0,
       maximumMoldeaOutputBytes: 0,
     });
-    assert.match(experimentalTarget?.input.developerDirection, /`refund-agent`/u);
+    assert.match(versionMismatchedTarget?.input.developerDirection, /`refund-agent`/u);
+    assert.match(
+      versionMismatchedTarget?.expected.find(
+        ({ label }) => label === 'report-package-version-mismatch',
+      )?.criterion,
+      /`openai >=8\.0\.0`.*`openai 7\.4\.0`/u,
+    );
     assert.match(
       dynamicRouting?.forbidden.find(({ label }) => label === 'claim-wrong-description-source')
         ?.criterion,
@@ -1138,6 +1161,41 @@ describe('activation and semantic protection', () => {
         '# Project\n\n<!-- moldea:end -->\n<!-- moldea:start -->\n',
       );
       assert.equal(runRelevanceGate(initialized, ['--adoption-only']).stdout, '0\n');
+
+      const malformedBytes = readFileSync(join(initialized, 'README.md'));
+      const rejectedWrite = spawnSync(
+        process.execPath,
+        [MANAGED_README_PATH, '--repository', initialized],
+        { cwd: initialized, encoding: 'utf8', maxBuffer: 1024 },
+      );
+      assert.equal(rejectedWrite.status, 1);
+      assert.match(rejectedWrite.stderr, /markers are reversed/u);
+      assert.deepEqual(readFileSync(join(initialized, 'README.md')), malformedBytes);
+
+      writeFileSync(
+        join(initialized, 'README.md'),
+        '# Project\n\n<!-- moldea:start -->\nLegacy context.\n<!-- moldea:end -->\n',
+      );
+      assert.equal(runRelevanceGate(initialized, ['--adoption-only']).stdout, '0\n');
+
+      const normalizedWrite = spawnSync(
+        process.execPath,
+        [MANAGED_README_PATH, '--repository', initialized],
+        { cwd: initialized, encoding: 'utf8', maxBuffer: 1024 },
+      );
+      assert.equal(normalizedWrite.status, 0);
+      assert.equal(normalizedWrite.stderr, '');
+      assert.equal(normalizedWrite.stdout, 'updated\n');
+      assert.equal(runRelevanceGate(initialized, ['--adoption-only']).stdout, '1\n');
+
+      const repeatedWrite = spawnSync(
+        process.execPath,
+        [MANAGED_README_PATH, '--repository', initialized],
+        { cwd: initialized, encoding: 'utf8', maxBuffer: 1024 },
+      );
+      assert.equal(repeatedWrite.status, 0);
+      assert.equal(repeatedWrite.stderr, '');
+      assert.equal(repeatedWrite.stdout, 'unchanged\n');
     } finally {
       rmSync(initialized, { force: true, recursive: true });
       rmSync(uninitialized, { force: true, recursive: true });
@@ -1267,7 +1325,7 @@ describe('CLI 8 bounded machine protocol', () => {
       readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'),
     );
     const declaredCliVersion = packageManifest.devDependencies['@moldea.ai/cli'];
-    assert.equal(packageManifest.version, '5.0.0');
+    assert.equal(packageManifest.version, '5.0.1');
     assert.match(declaredCliVersion, /^\d+\.\d+\.\d+$/u);
     assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 4);
     assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, declaredCliVersion);

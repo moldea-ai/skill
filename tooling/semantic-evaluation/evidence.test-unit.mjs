@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, test } from 'node:test';
 
 import {
@@ -59,7 +62,7 @@ describe('semantic evaluation evidence', () => {
       ...createCaseDefinition('runtime-case'),
       localProbe: {
         kind: 'runtime-compatibility-publication',
-        variant: 'current-supported-target',
+        variant: 'current-target',
       },
     };
 
@@ -68,7 +71,10 @@ describe('semantic evaluation evidence', () => {
       createSemanticCaseDefinitionDigest(caseDefinition),
       createSemanticCaseDefinitionDigest({
         ...caseDefinition,
-        localProbe: { ...caseDefinition.localProbe, variant: 'experimental-current-target' },
+        localProbe: {
+          ...caseDefinition.localProbe,
+          variant: 'future-target',
+        },
       }),
     );
     assert.throws(
@@ -213,5 +219,25 @@ describe('semantic evaluation evidence', () => {
 
   test('hashes every distributed skill byte', () => {
     assert.match(createPortableSkillDigest(), /^[a-f0-9]{64}$/);
+  });
+
+  test('rejects test artifacts from the portable skill tree', () => {
+    const repositoryRoot = mkdtempSync(join(tmpdir(), 'moldea-portable-skill-'));
+
+    try {
+      mkdirSync(join(repositoryRoot, 'moldea', 'scripts'), { recursive: true });
+      writeFileSync(join(repositoryRoot, 'moldea', 'SKILL.md'), '# Skill\n');
+      writeFileSync(
+        join(repositoryRoot, 'moldea', 'scripts', 'writer.test-unit.mjs'),
+        'test artifact\n',
+      );
+
+      assert.throws(
+        () => createPortableSkillDigest(repositoryRoot),
+        /Portable skill contains a test artifact/u,
+      );
+    } finally {
+      rmSync(repositoryRoot, { force: true, recursive: true });
+    }
   });
 });

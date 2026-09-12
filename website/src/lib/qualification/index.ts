@@ -22,6 +22,8 @@ export type {
   IQualificationProjectChangeGroup,
   IQualificationProjectEvidenceModel,
   IQualificationProfileModel,
+  IQualificationPackageVersionModel,
+  IQualificationPriorEvidenceModel,
   IQualificationProjectedExecutionEvent,
   IQualificationSourceStateResult,
   IQualificationStatus,
@@ -35,4 +37,8 @@ export type {
 export { createQualificationProjectEvidence } from './project-transformers.ts';
 
 // loader
-export { assertPublishableQualificationEvidence, loadQualificationWebsiteModel } from './loader.ts';
+export {
+  assertPublishableQualificationEvidence,
+  attachPinnedQualificationEvidence,
+  loadQualificationWebsiteModel,
+} from './loader.ts';

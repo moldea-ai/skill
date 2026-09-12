@@ -21,6 +21,7 @@ import { seedPassingQualificationEvidenceFixture } from '../../../../qualificati
 
 import {
   assertPublishableQualificationEvidence,
+  attachPinnedQualificationEvidence,
   composeQualificationProfile,
   loadQualificationWebsiteModel,
 } from './loader.ts';
@@ -520,7 +521,7 @@ afterEach(() => {
 });
 
 describe('loadQualificationWebsiteModel', () => {
-  test('loads current profiles with universal cases owned only by Custom', () => {
+  test('loads changed current profiles as pending with universal cases owned only by Custom', () => {
     const model = loadQualificationWebsiteModel(canonicalRepositoryRoot);
     const customProfile = model.profiles.find(
       ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
@@ -531,18 +532,18 @@ describe('loadQualificationWebsiteModel', () => {
     const universalCaseIds = new Set(
       caseCatalog.cases.filter(({ layer }) => layer === 'universal-baseline').map(({ id }) => id),
     );
-    const completeFailedAttempt = customProfile?.attempts.find(
-      ({ result }) =>
-        result.status === 'failed' &&
-        result.cases.length === universalCaseIds.size &&
-        result.cases.at(-1)?.status !== 'failed',
-    );
-
     expect(model.profiles).toHaveLength(14);
     expect(model.uniqueJourneyCount).toBe(38);
-    expect(completeFailedAttempt?.result.cases.some(({ status }) => status === 'failed')).toBe(
-      true,
-    );
+    expect(
+      model.profiles.every(
+        ({ attempts, currentAssurance, currentLatest, currentStatus, latest }) =>
+          attempts.length === 0 &&
+          currentAssurance === null &&
+          currentLatest === null &&
+          currentStatus === 'not-recorded' &&
+          latest === null,
+      ),
+    ).toBe(true);
     expect(customProfile?.cases.map(({ id }) => id)).toStrictEqual([...universalCaseIds]);
     expect(
       model.profiles
@@ -554,11 +555,48 @@ describe('loadQualificationWebsiteModel', () => {
         .filter(({ adapterId }) => adapterId !== 'custom')
         .every(({ cases, sharedCases }) => sharedCases.length === 12 && cases.length === 2),
     ).toBe(true);
+    expect(
+      model.profiles.find(({ adapterId }) => adapterId === 'anthropic')?.runtimePackages,
+    ).toStrictEqual([
+      { name: '@anthropic-ai/sdk', version: '0.117.1' },
+      { name: '@types/node', version: '22.20.1' },
+    ]);
+    expect(model.profiles.every(({ pinnedPriorEvidence }) => pinnedPriorEvidence === null)).toBe(
+      true,
+    );
     expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
 
     const serializedModel = JSON.stringify(model);
     expect(serializedModel).not.toContain(canonicalRepositoryRoot);
     expect(serializedModel).not.toContain('file://');
+  });
+
+  test('joins authenticated prior evidence by exact profile identity', () => {
+    const model = loadQualificationWebsiteModel(canonicalRepositoryRoot);
+    const targets = model.profiles.map(({ adapterId, implementationId }, index) => ({
+      adapterId,
+      attemptId: `attempt-${index}`,
+      completedAt: '2026-09-11T10:01:00.000Z',
+      createdAt: '2026-09-11T10:00:00.000Z',
+      implementationId,
+      packages: [{ name: '@moldea.ai/cli', version: '8.0.0' }],
+    }));
+
+    const joined = attachPinnedQualificationEvidence(model, targets);
+
+    expect(
+      joined.profiles.every(
+        ({ pinnedPriorEvidence }, index) =>
+          pinnedPriorEvidence?.attemptId === `attempt-${index}` &&
+          pinnedPriorEvidence.packages[0]?.version === '8.0.0',
+      ),
+    ).toBe(true);
+    expect(() => attachPinnedQualificationEvidence(model, targets.slice(1))).toThrow(
+      'Pinned qualification evidence does not match the current profile inventory.',
+    );
+    expect(() => attachPinnedQualificationEvidence(model, [...targets, targets[0]!])).toThrow(
+      'Pinned qualification evidence does not match the current profile inventory.',
+    );
   });
 
   test('rejects pre-clean-slate single-effort evidence', async () => {
@@ -850,12 +888,6 @@ cases:
         ].join('\n'),
       }).trim()}\n`,
     );
-    writeText(
-      root,
-      'qualification/profiles/t1/cases/c1/task.md',
-      '# Current task\n\nThis newer profile text must not replace the recorded attempt task.\n',
-    );
-
     const replay = loadQualificationWebsiteModel(root).profiles[0]?.currentLatest?.cases[0]?.replay;
 
     expect(replay?.trials[0]?.steps[0]).toStrictEqual({
@@ -869,6 +901,36 @@ cases:
       kind: 'message',
       role: 'developer',
       source: 'recorded',
+    });
+  });
+
+  test('excludes obsolete profile attempts without loading current-schema bodies or artifacts', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-obsolete-profile';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    writeText(
+      root,
+      'qualification/profiles/t1/cases/c1/task.md',
+      '# Current task\n\nThis changed task creates a new profile identity.\n',
+    );
+    const attemptPath = join(getAttemptDirectory(root, attemptId), 'attempt.json');
+    const obsoleteAttempt = JSON.parse(readFileSync(attemptPath, 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    delete obsoleteAttempt['cases'];
+    writeFileSync(attemptPath, `${JSON.stringify(obsoleteAttempt, null, 2)}\n`, 'utf8');
+    writeFileSync(getArtifactPath(root, attemptId, 'coverage.json'), '{invalid', 'utf8');
+
+    const profile = loadQualificationWebsiteModel(root).profiles[0];
+
+    expect(profile).toMatchObject({
+      attempts: [],
+      currentAssurance: null,
+      currentLastPassing: null,
+      currentLatest: null,
+      currentStatus: 'not-recorded',
+      latest: null,
     });
   });
 

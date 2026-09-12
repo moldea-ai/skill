@@ -80,6 +80,16 @@ export const QualificationProfileSchema = z.object({
   implementationId: StableIdSchema,
   title: z.string().trim().min(1),
   description: z.string().trim().min(1),
+  runtimePackages: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1),
+        version: z
+          .string()
+          .regex(/^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/u),
+      }),
+    )
+    .default([]),
   probesFile: RelativePathSchema,
   cases: z
     .array(
@@ -1010,9 +1020,27 @@ export interface IQualificationProfileModel {
   latest: IQualificationLatestResult | null;
   probes: z.infer<typeof QualificationProbesSchema>['probes'];
   probesSourceUrl: string;
+  pinnedPriorEvidence: IQualificationPriorEvidenceModel | null;
   route: string;
+  runtimePackages: IQualificationPackageVersionModel[];
   sourceUrl: string;
   title: string;
+}
+
+// package name and exact version shown as configured or executed qualification evidence
+export interface IQualificationPackageVersionModel {
+  name: string;
+  version: string;
+}
+
+// authenticated prior release evidence matched to one current profile identity
+export interface IQualificationPriorEvidenceModel {
+  adapterId: string;
+  attemptId: string;
+  completedAt: string;
+  createdAt: string;
+  implementationId: string;
+  packages: IQualificationPackageVersionModel[];
 }
 
 // deterministic qualification data embedded in the generated static website model

@@ -2,6 +2,7 @@
 export type {
   IReleaseEvidenceModel,
   IReleaseEvidenceSectionModel,
+  IQualificationReleaseEvidenceSectionModel,
   ISemanticReleaseEvidenceSectionModel,
 } from './types.ts';
 

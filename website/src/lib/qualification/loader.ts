@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
-import { basename, join } from 'node:path';
-import type { z } from 'zod';
+import { existsSync, lstatSync, readFileSync, readdirSync, readlinkSync } from 'node:fs';
+import { basename, join, posix } from 'node:path';
+import { z } from 'zod';
 
 import {
   createQualificationArtifactStorageEntries,
@@ -13,6 +13,7 @@ import {
   type IQualificationProfileIndexTarget,
 } from '../../../../qualification/src/storage/index.ts';
 import { buildActorPrompt } from '../../../../qualification/src/prompts/index.ts';
+import { isQualificationTestFilePath } from '../../../../qualification/src/input-identity/index.ts';
 
 import {
   ActorOutputSchema,
@@ -44,6 +45,7 @@ import {
   type IQualificationProjectedExecutionEvent,
   type IQualificationProfileCaseModel,
   type IQualificationProfileModel,
+  type IQualificationPriorEvidenceModel,
   type IQualificationWebsiteModel,
 } from './types.ts';
 import { readRecordedQualificationContract } from './contract-reader.ts';
@@ -67,6 +69,42 @@ import {
 
 const QUALIFICATION_ROUTE = '/evidence/qualification/';
 const QUALIFICATION_ACTOR_TASK_SENTINEL = 'moldea-qualification-recorded-task-boundary';
+const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+const PROFILE_DOCUMENTATION_PATH = 'README.md';
+const QualificationAttemptProfileSummarySchema = z.object({
+  attemptId: QualificationAttemptResultSchema.shape.attemptId,
+  createdAt: QualificationAttemptResultSchema.shape.createdAt,
+  protocolVersion: QualificationAttemptResultSchema.shape.protocolVersion,
+  provenance: z.object({
+    profileDigest: QualificationAttemptResultSchema.shape.provenance.shape.profileDigest,
+  }),
+  status: QualificationAttemptResultSchema.shape.status,
+});
+
+/** Reads one JSON source once so summary and current-contract validation share its bytes. */
+const readQualificationJsonInput = (path: string): { input: unknown; source: Buffer } => {
+  try {
+    const source = readFileSync(path);
+    return { input: JSON.parse(source.toString('utf8')) as unknown, source };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown JSON parsing failure.';
+    throw new Error(`Invalid qualification JSON ${path}: ${message}`, { cause: error });
+  }
+};
+
+/** Applies one qualification schema while preserving the established path-specific error. */
+const parseQualificationJsonInput = <Output>(
+  path: string,
+  input: unknown,
+  schema: z.ZodType<Output>,
+): Output => {
+  try {
+    return schema.parse(input);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown JSON validation failure.';
+    throw new Error(`Invalid qualification JSON ${path}: ${message}`, { cause: error });
+  }
+};
 
 /** Derives the immutable protocol 10 task boundary from the authoritative actor prompt builder. */
 const createQualificationActorPromptBoundary = (): readonly [string, string] => {
@@ -107,6 +145,51 @@ interface ILoadedQualificationAttempt {
 interface ILoadedQualificationProfile {
   model: IQualificationProfileModel;
 }
+
+interface IQualificationProfileFingerprintEntry {
+  path: string;
+  kind: 'file' | 'symlink';
+  mode: number;
+  sha256: string;
+}
+
+/** Calculates the current behavior-bearing profile digest without loading excluded directories. */
+const calculateCurrentProfileDigest = (profileDirectory: string): string => {
+  const entries: IQualificationProfileFingerprintEntry[] = [];
+  const visitDirectory = (directory: string, relativeDirectory: string): void => {
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) =>
+      left.name.localeCompare(right.name, 'en'),
+    )) {
+      const relativePath = posix.join(relativeDirectory, entry.name);
+      const path = join(directory, entry.name);
+
+      if (entry.isDirectory()) {
+        if (!EXCLUDED_DIRECTORY_NAMES.has(entry.name)) visitDirectory(path, relativePath);
+        continue;
+      }
+      if (
+        relativePath === PROFILE_DOCUMENTATION_PATH ||
+        isQualificationTestFilePath(relativePath)
+      ) {
+        continue;
+      }
+      const stats = lstatSync(path);
+      if (!stats.isFile() && !stats.isSymbolicLink()) continue;
+      const content = stats.isSymbolicLink() ? readlinkSync(path) : readFileSync(path);
+      entries.push({
+        path: relativePath,
+        kind: stats.isSymbolicLink() ? 'symlink' : 'file',
+        mode: stats.mode,
+        sha256: createHash('sha256').update(content).digest('hex'),
+      });
+    }
+  };
+
+  visitDirectory(profileDirectory, '');
+  return createHash('sha256')
+    .update(`${JSON.stringify(entries)}\n`)
+    .digest('hex');
+};
 
 const createExpectedCurrentTrialArtifactPaths = (
   caseId: string,
@@ -575,9 +658,10 @@ const readOptionalArtifact = <Output>(
 const createCurrentAttemptSource = (
   repositoryRoot: string,
   attemptDirectory: string,
+  result: IQualificationAttemptResult,
+  attemptSource: Buffer,
 ): IQualificationAttemptSource => {
   const attemptPath = join(attemptDirectory, 'attempt.json');
-  const result = readJsonFile(attemptPath, QualificationAttemptResultSchema);
   const storage = readJsonFile(
     join(attemptDirectory, 'storage.json'),
     QualificationAttemptStorageSchema,
@@ -593,7 +677,7 @@ const createCurrentAttemptSource = (
     artifactModels,
     artifactSources,
     attemptPath: getRepositoryRelativePath(repositoryRoot, attemptPath),
-    attemptSource: readFileSync(attemptPath),
+    attemptSource,
     evidenceSource: { kind: 'current' },
     result,
   };
@@ -749,6 +833,7 @@ const loadAttempts = (
   targetKey: string,
   adapterId: string,
   implementationId: string,
+  currentProfileDigest: string,
 ): {
   attempts: ILoadedQualificationAttempt[];
   latest: IQualificationProfileModel['latest'];
@@ -756,23 +841,48 @@ const loadAttempts = (
   const targetRoot = resolveContainedPath(resultsRoot, targetKey);
   const attemptsRoot = join(targetRoot, 'attempts');
   const latestPath = join(targetRoot, 'latest.json');
-  const attempts = listDirectories(attemptsRoot)
-    .map((entry) =>
-      loadAttempt(
-        qualificationRoot,
-        createCurrentAttemptSource(repositoryRoot, join(attemptsRoot, entry.name)),
-        targetKey,
-        adapterId,
-        implementationId,
-      ),
-    )
+  const attemptRecords = listDirectories(attemptsRoot)
+    .map((entry) => {
+      const directory = join(attemptsRoot, entry.name);
+      const attemptPath = join(directory, 'attempt.json');
+      const { input, source: attemptSource } = readQualificationJsonInput(attemptPath);
+
+      return {
+        attemptSource,
+        directory,
+        input,
+        summary: parseQualificationJsonInput(
+          attemptPath,
+          input,
+          QualificationAttemptProfileSummarySchema,
+        ),
+      };
+    })
     .sort(
       (left, right) =>
-        left.model.result.createdAt.localeCompare(right.model.result.createdAt, 'en') ||
-        left.model.result.attemptId.localeCompare(right.model.result.attemptId, 'en'),
+        left.summary.createdAt.localeCompare(right.summary.createdAt, 'en') ||
+        left.summary.attemptId.localeCompare(right.summary.attemptId, 'en'),
+    );
+  const currentAttemptRecords = attemptRecords.filter(
+    ({ summary }) => summary.provenance.profileDigest === currentProfileDigest,
+  );
+  const attempts = currentAttemptRecords.map(({ attemptSource, directory, input }) => {
+    const result = parseQualificationJsonInput(
+      join(directory, 'attempt.json'),
+      input,
+      QualificationAttemptResultSchema,
     );
 
-  if (attempts.length === 0) {
+    return loadAttempt(
+      qualificationRoot,
+      createCurrentAttemptSource(repositoryRoot, directory, result, attemptSource),
+      targetKey,
+      adapterId,
+      implementationId,
+    );
+  });
+
+  if (attemptRecords.length === 0) {
     if (existsSync(latestPath)) {
       throw new Error(`Qualification latest pointer exists without attempt history.`);
     }
@@ -781,21 +891,28 @@ const loadAttempts = (
   }
 
   requireFile(latestPath);
-  const latest = readJsonFile(latestPath, QualificationLatestResultSchema);
-  const expectedLatest = attempts.at(-1)?.model.result;
-  const expectedPassing = attempts.filter(({ model }) => model.result.status === 'passed').at(-1)
-    ?.model.result;
+  const recordedLatest = readJsonFile(latestPath, QualificationLatestResultSchema);
+  const expectedLatest = attemptRecords.at(-1)?.summary;
+  const expectedPassing = attemptRecords
+    .filter(({ summary }) => summary.status === 'passed')
+    .at(-1)?.summary;
 
   if (
-    latest.adapterId !== adapterId ||
-    latest.implementationId !== implementationId ||
-    latest.protocolVersion !== expectedLatest?.protocolVersion ||
-    latest.latestAttemptId !== expectedLatest?.attemptId ||
-    latest.latestStatus !== expectedLatest.status ||
-    latest.lastPassingAttemptId !== (expectedPassing?.attemptId ?? null)
+    recordedLatest.adapterId !== adapterId ||
+    recordedLatest.implementationId !== implementationId ||
+    recordedLatest.protocolVersion !== expectedLatest?.protocolVersion ||
+    recordedLatest.latestAttemptId !== expectedLatest?.attemptId ||
+    recordedLatest.latestStatus !== expectedLatest.status ||
+    recordedLatest.lastPassingAttemptId !== (expectedPassing?.attemptId ?? null)
   ) {
     throw new Error(`Qualification latest pointer does not match attempt history.`);
   }
+
+  const currentLatest = currentAttemptRecords.at(-1)?.summary;
+  const latest =
+    currentLatest !== undefined && recordedLatest.latestAttemptId === currentLatest.attemptId
+      ? recordedLatest
+      : null;
 
   return { attempts, latest };
 };
@@ -882,6 +999,7 @@ const loadProfile = (
     target.key,
     profile.adapterId,
     profile.implementationId,
+    calculateCurrentProfileDigest(profileDirectory),
   );
   const currentAttemptModels = attempts.map(({ model }) => model);
   const model: IQualificationProfileModel = {
@@ -900,7 +1018,9 @@ const loadProfile = (
     latest,
     probes: probes.probes,
     probesSourceUrl: createSourceUrl(getRepositoryRelativePath(repositoryRoot, probesPath)),
+    pinnedPriorEvidence: null,
     route: `${QUALIFICATION_ROUTE}${profile.adapterId}/${profile.implementationId}/`,
+    runtimePackages: profile.runtimePackages,
     sourceUrl: createSourceUrl(getRepositoryRelativePath(repositoryRoot, profilePath)),
     title: profile.title,
   };
@@ -908,6 +1028,36 @@ const loadProfile = (
   return {
     model,
   };
+};
+
+/** Attaches one authenticated prior-release projection to every matching current profile. */
+export const attachPinnedQualificationEvidence = (
+  qualification: IQualificationWebsiteModel,
+  targets: readonly IQualificationPriorEvidenceModel[],
+): IQualificationWebsiteModel => {
+  const keyFor = ({
+    adapterId,
+    implementationId,
+  }: Pick<IQualificationPriorEvidenceModel, 'adapterId' | 'implementationId'>): string =>
+    `${adapterId}\0${implementationId}`;
+  const targetsByIdentity = new Map(targets.map((target) => [keyFor(target), target]));
+  if (
+    targetsByIdentity.size !== targets.length ||
+    targets.length !== qualification.profiles.length
+  ) {
+    throw new Error('Pinned qualification evidence does not match the current profile inventory.');
+  }
+  const profiles = qualification.profiles.map((profile) => {
+    const pinnedPriorEvidence = targetsByIdentity.get(keyFor(profile));
+    if (pinnedPriorEvidence === undefined) {
+      throw new Error(
+        'Pinned qualification evidence does not match the current profile inventory.',
+      );
+    }
+    return { ...profile, pinnedPriorEvidence };
+  });
+
+  return { ...qualification, profiles };
 };
 
 /** Composes current adapter evidence from its direct attempt and exact Custom prerequisite. */

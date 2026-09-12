@@ -3,12 +3,12 @@
 import { lstat, readFile } from 'node:fs/promises';
 import { isAbsolute, join, resolve } from 'node:path';
 
+import { hasCanonicalManagedReadmeBlock } from './managed-readme.mjs';
 import { loadRepositoryCore } from './repository-package.mjs';
+
 const MAX_MANIFEST_BYTES = 2_097_152;
 const MAX_PATH_INPUT_BYTES = 2_097_152;
 const MAX_README_BYTES = 2_097_152;
-const START_MARKER = '<!-- moldea:start -->';
-const END_MARKER = '<!-- moldea:end -->';
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
 
 /** Verifies one bounded regular file without reading its content. */
@@ -40,14 +40,9 @@ const hasInitializedProject = async (repositoryRoot) => {
     assertBoundedRegularFile(join(repositoryRoot, 'moldea', 'project.md'), MAX_README_BYTES),
   ]);
 
-  const readme = utf8Decoder.decode(
+  return hasCanonicalManagedReadmeBlock(
     await readBoundedRegularFile(join(repositoryRoot, 'README.md'), MAX_README_BYTES),
   );
-  const lines = readme.split(/\r?\n/u);
-  const startLines = lines.flatMap((line, index) => (line === START_MARKER ? [index] : []));
-  const endLines = lines.flatMap((line, index) => (line === END_MARKER ? [index] : []));
-
-  return startLines.length === 1 && endLines.length === 1 && startLines[0] < endLines[0];
 };
 
 /** Reads a bounded NUL-delimited repository-path set from standard input. */

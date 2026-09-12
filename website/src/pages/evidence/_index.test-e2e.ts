@@ -8,11 +8,8 @@ const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
 test('presents both evidence types with their current status', async ({ page }) => {
-  const { qualification, releaseEvidence, semanticEvaluation } = loadWebsiteModel();
-  const semanticReleaseEvidence =
-    releaseEvidence.mode === 'recorded' ? releaseEvidence.semantic : null;
-  const qualificationReleaseEvidence =
-    releaseEvidence.mode === 'recorded' ? releaseEvidence.qualification : null;
+  const { currentSemanticAssurance, qualification, releaseEvidence, semanticEvaluation } =
+    loadWebsiteModel();
   await page.goto(toPublicPath('/evidence/qualification/'));
   const qualificationStatuses = await page
     .getByRole('link', { name: /qualification/iu })
@@ -24,43 +21,55 @@ test('presents both evidence types with their current status', async ({ page }) 
     ? 'errored'
     : qualificationStatuses.includes('failed')
       ? 'failed'
-      : qualificationStatuses.includes('not-recorded')
-        ? 'not-recorded'
-        : 'passed';
-  const qualificationProjectCount = qualification.uniqueJourneyCount;
-  const qualificationClaimCount = qualification.profiles.reduce(
-    (total, profile) => total + profile.probes.length,
-    0,
-  );
+      : qualificationStatuses.includes('incomplete')
+        ? 'incomplete'
+        : qualificationStatuses.includes('not-recorded')
+          ? 'not-recorded'
+          : 'passed';
+  const successfulSemanticCaseCount =
+    (currentSemanticAssurance?.result.passedCaseCount ?? 0) +
+    (currentSemanticAssurance?.result.recoveredCaseCount ?? 0);
+  const qualifiedProfileCount = qualification.profiles.filter(
+    ({ currentAssurance }) => currentAssurance !== null,
+  ).length;
 
   await page.goto(toPublicPath('/evidence/'));
 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Choose the evidence you need.' }),
   ).toBeVisible();
+  if (releaseEvidence.mode === 'recorded') {
+    for (const [kind, section] of [
+      ['Semantic', releaseEvidence.semantic],
+      ['Qualification', releaseEvidence.qualification],
+    ] as const) {
+      if (section.mode === 'pinned') {
+        await expect(
+          page.getByText(
+            new RegExp(
+              `${kind} release ${releaseEvidence.targetVersion} uses verified prior evidence from`,
+              'u',
+            ),
+          ),
+        ).toBeVisible();
+      }
+    }
+  }
   const semanticLink = page.getByRole('link', { name: /Semantic evaluation/ });
   const qualificationLink = page.getByRole('link', { name: /Adapter qualification/ });
   await expect(semanticLink.locator('[data-evidence-status]')).toHaveAttribute(
     'data-evidence-status',
-    semanticReleaseEvidence?.mode === 'pinned'
-      ? 'passed'
-      : semanticEvaluation.currentAssurance === null
-        ? 'not-recorded'
-        : 'passed',
+    semanticEvaluation.status,
   );
   await expect(semanticLink).toContainText(
-    semanticReleaseEvidence?.mode === 'pinned'
-      ? `Evidence pinned from ${semanticReleaseEvidence.sourceLabel}`
-      : `${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful for current assurance`,
+    `${successfulSemanticCaseCount} of ${semanticEvaluation.caseCount} scenarios have current assurance`,
   );
   await expect(qualificationLink.locator('[data-evidence-status]')).toHaveAttribute(
     'data-evidence-status',
-    qualificationReleaseEvidence?.mode === 'pinned' ? 'passed' : qualificationStatus,
+    qualificationStatus,
   );
   await expect(qualificationLink).toContainText(
-    qualificationReleaseEvidence?.mode === 'pinned'
-      ? `Evidence pinned from ${qualificationReleaseEvidence.sourceLabel}`
-      : `${qualificationProjectCount} ${qualificationProjectCount === 1 ? 'project' : 'projects'} covering ${qualificationClaimCount} ${qualificationClaimCount === 1 ? 'claim' : 'claims'}`,
+    `${qualifiedProfileCount} of ${qualification.profiles.length} profiles have current assurance`,
   );
 });
 

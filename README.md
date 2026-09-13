@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The current release is `5.0.7`. Install the latest version from `main`:
+The current release is `5.0.8`. Install the latest version from `main`:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the release:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.7"
+npx skills add "moldea-ai/skill#v5.0.8"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account.
@@ -56,7 +56,7 @@ npx skills remove moldea
 
 ## Compatibility
 
-Release `5.0.7` supports exactly:
+Release `5.0.8` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -86,6 +86,12 @@ The gate accepts the ordinary repository-relative paths produced by Git as well 
 Host commands such as planning, reviewing, committing, and publishing retain ownership of their workflows. Their names alone never activate `moldea`, and the skill's local tooling rules never replace host-owned Git or package-manager procedures.
 
 The README selects the skill entrypoint, whose router chooses adoption-only or relationship gating. Broad ideas such as “potentially durable knowledge,” SDK installation alone, and unrelated mentions of agents do not establish agent-work intent. A changed topic does not inherit an earlier task's relevance or authority.
+
+## Instruction reuse
+
+The skill reuses complete instructions still available in the active context unless they are known to have changed or the host requires a fresh read. A new operation loads its owning reference; compaction reloads only required instructions that were lost. Conversation summaries help route work but cannot replace missing instructions, establish repository facts, or grant authorization. No persistent cache or read-tracking probes are added.
+
+Initialization and runtime compatibility procedures live in their owning references, not duplicated in the entrypoint. Runtime investigation uses current diagnostics first, then the installed adapter README and its relevant linked guide. Implementation source is reserved for a specific material question those sources cannot resolve. The [reference-reading regression checklist](docs/reference-reading.md) distinguishes structural checks from model behavior that still requires observation.
 
 ## Bounded CLI evidence
 
@@ -141,6 +147,7 @@ moldea/
 │   ├── continuous-maintenance.md
 │   ├── evaluate-and-reconcile.md
 │   ├── local-tooling.md
+│   ├── project-repair.md
 │   ├── runtime-compatibility.md
 │   └── skill-design.md
 └── scripts/
@@ -281,7 +288,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-Release `5.0.7` uses tag `v5.0.7`.
+Release `5.0.8` uses tag `v5.0.8`.
 
 See [Release evidence](docs/release-evidence.md) for the exact fresh and pinned workflows. `npm run release:check` is read-only and validates each section through its selected path before running current-only verification for fresh sections.
 

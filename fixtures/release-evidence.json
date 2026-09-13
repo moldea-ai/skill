@@ -1,7 +1,7 @@
 {
   "qualification": {
     "mode": "pinned",
-    "reason": "Initialization now establishes known missing CLI tooling before foundation writes and final validation. Focused deterministic conformance and launcher-boundary checks cover this correction; existing semantic and adapter evidence is reused without claiming a fresh model evaluation.",
+    "reason": "Instruction-only patch: reuse fully available unchanged references subject to host requirements; keep initialization and runtime procedures in their owning guides; prefer installed adapter documentation before implementation exploration. Release verification uses conformance, gate/launcher/README unit and integration tests, release identity and source authentication, plus website checks. No runtime code or dependency closure changed. Prior semantic and qualification sources are retained unchanged; their models did not evaluate these new instructions, and no paid stages were rerun.",
     "source": {
       "commit": "c3416c52ae69a3f26d2e38c07ba98aa8531e358d",
       "evidence": {
@@ -158,7 +158,7 @@
   "schemaVersion": 2,
   "semantic": {
     "mode": "pinned",
-    "reason": "Initialization now establishes known missing CLI tooling before foundation writes and final validation. Focused deterministic conformance and launcher-boundary checks cover this correction; existing semantic and adapter evidence is reused without claiming a fresh model evaluation.",
+    "reason": "Instruction-only patch: reuse fully available unchanged references subject to host requirements; keep initialization and runtime procedures in their owning guides; prefer installed adapter documentation before implementation exploration. Release verification uses conformance, gate/launcher/README unit and integration tests, release identity and source authentication, plus website checks. No runtime code or dependency closure changed. Prior semantic and qualification sources are retained unchanged; their models did not evaluate these new instructions, and no paid stages were rerun.",
     "source": {
       "commit": "926907e26feac6a55929f68ca134aeaf41a6a4b5",
       "evidence": {
@@ -176,8 +176,8 @@
     }
   },
   "target": {
-    "dependencyClosureSha256": "51ef9cb9b53bcecc7890462a3d7393842cf573ce507d181a18e284be2bf03624",
-    "portableSkillSha256": "0fb282129ee1e54b751cb6dbe4b4e85d5dc3201d52f281a7dd0c0a5423c5d6e6",
-    "version": "5.0.7"
+    "dependencyClosureSha256": "84b46c955f128a7e8b0f3e5c22cc9d2adfbd88837761f88fa9a1f73b212d7950",
+    "portableSkillSha256": "fe2be17b05aa694c7c59ea555c6864438bf2e5b548d7b2e3946b99e821c6f39a",
+    "version": "5.0.8"
   }
 }

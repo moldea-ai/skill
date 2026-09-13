@@ -701,7 +701,7 @@ test('formats product mentions in generated search results', async ({ page }) =>
   await expect(page.locator('[data-search-status] code')).toHaveText('moldea');
 });
 
-test('copies exact code across direct loads, client navigation, and evidence surfaces', async ({
+test('copies exact code across direct loads and client navigation while excluding project diffs', async ({
   context,
   page,
 }) => {
@@ -709,15 +709,20 @@ test('copies exact code across direct loads, client navigation, and evidence sur
   await page.goto(toPublicPath('/docs/repository-format/'));
 
   const codeBlock = page.locator('.prose-moldea pre:has(> code)').first();
-  const toolbar = codeBlock.locator('xpath=preceding-sibling::*[1][@data-code-copy-toolbar]');
+  const codeHeader = codeBlock.locator('xpath=preceding-sibling::*[1][@data-code-copy-header]');
+  const toolbar = codeHeader.locator('[data-code-copy-toolbar]');
   const button = toolbar.getByRole('button', { name: 'Copy code', exact: true });
   const source = await codeBlock.locator(':scope > code').textContent();
 
   if (source === null) throw new Error('Code block source text is unavailable.');
 
+  await expect(codeHeader.locator('[data-code-copy-language]')).toHaveText('Plain text');
+  await expect(button).toHaveText('');
+  await expect(button).toHaveAttribute('title', 'Copy code');
   await button.click();
   await expect(button).toBeFocused();
   await expect(toolbar.locator('[data-code-copy-feedback]')).toHaveText('Copied.');
+  await expect(button).toHaveAttribute('data-code-copy-state', 'copied');
   expect(
     normalizeClipboardLineEndings(await page.evaluate(() => navigator.clipboard.readText())),
   ).toBe(normalizeClipboardLineEndings(source));
@@ -751,32 +756,16 @@ test('copies exact code across direct loads, client navigation, and evidence sur
   expect(controlCounts.toolbars).toBe(controlCounts.eligible);
 
   await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
-  expect(
-    await page.locator('[data-project-patch] [data-code-copy-button]').count(),
-  ).toBeGreaterThan(0);
-  expect(
-    await page.locator('details:not([open]) pre[data-code-copy-enhanced="true"]').count(),
-  ).toBeGreaterThan(0);
-});
+  const projectDiffBlocks = page.locator('[data-project-patch] [data-code-block]');
 
-test('keeps illustrative evidence snippets selectable without copy controls', async ({ page }) => {
-  await page.goto(toPublicPath('/evidence/'));
-
-  const optedOutBlocks = page.locator('[data-code-block][data-code-copy="false"]');
-
-  await expect(optedOutBlocks).toHaveCount(2);
-  await expect(optedOutBlocks.locator('[data-code-copy-toolbar]')).toHaveCount(0);
-  await expect(optedOutBlocks.locator('pre[data-code-copy-enhanced="true"]')).toHaveCount(0);
+  expect(await projectDiffBlocks.count()).toBeGreaterThan(0);
   expect(
-    await optedOutBlocks.evaluateAll((blocks) =>
-      blocks.map((block) => block.firstElementChild?.tagName ?? null),
+    await projectDiffBlocks.evaluateAll((blocks) =>
+      blocks.every((block) => block.getAttribute('data-code-copy') === 'false'),
     ),
-  ).toStrictEqual(['PRE', 'PRE']);
-
-  await page.goto(toPublicPath('/docs/repository-format/'));
-  expect(
-    await page.getByRole('button', { name: 'Copy code', exact: true }).count(),
-  ).toBeGreaterThan(0);
+  ).toBe(true);
+  await expect(page.locator('[data-project-patch] [data-code-copy-button]')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(0);
 });
 
 for (const [clipboardMode, expectedFeedback] of [
@@ -800,7 +789,8 @@ for (const [clipboardMode, expectedFeedback] of [
 
     const button = page.getByRole('button', { name: 'Copy code', exact: true }).first();
     const toolbar = button.locator('xpath=ancestor::*[@data-code-copy-toolbar]');
-    const code = toolbar.locator('xpath=following-sibling::pre[1]/code');
+    const header = toolbar.locator('xpath=ancestor::*[@data-code-copy-header]');
+    const code = header.locator('xpath=following-sibling::pre[1]/code');
 
     await button.click();
     await expect(button).toBeFocused();
@@ -842,6 +832,8 @@ test('keeps code-copy controls usable across supported widths, themes, and reduc
       const bounds = await button.boundingBox();
 
       expect(bounds).not.toBeNull();
+      expect(bounds?.width).toBe(24);
+      expect(bounds?.height).toBe(24);
       expect(bounds?.x).toBeGreaterThanOrEqual(0);
       expect((bounds?.x ?? 0) + (bounds?.width ?? width + 1)).toBeLessThanOrEqual(width);
       expect(

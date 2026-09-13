@@ -14,35 +14,56 @@ test('explains both evidence types with release-backed status', async ({ page })
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'The agent writes code. moldea gives the project a memory.',
+      name: 'Follow each result from request to verdict.',
     }),
   ).toBeVisible();
-  await expect(page.getByText('Coding agent alone', { exact: true })).toBeVisible();
-  await expect(page.getByText('Coding agent with moldea', { exact: true })).toBeVisible();
-  await expect(
-    page.getByText('The next session has to infer those relationships again.', { exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByText('The next session starts with the same project-owned context.', {
-      exact: true,
-    }),
-  ).toBeVisible();
-  await expect(page.locator('[data-code-block][data-code-copy="false"]')).toHaveCount(2);
+  const evidenceFlow = page.getByRole('list', {
+    name: 'Evidence included with every result',
+  });
+  await expect(evidenceFlow.getByRole('heading')).toHaveText([
+    'Request',
+    'Agent work',
+    'Project diff',
+    'Verdict',
+  ]);
   const integrationEvidence = page.locator('article').filter({
     has: page.getByRole('heading', {
       name: 'Does it work through your integration?',
     }),
   });
+  const decisionEvidence = page.locator('[data-evidence-path="decision"]');
   const anthropicProfile = loadWebsiteModel().qualification.profiles.find(
     ({ adapterId }) => adapterId === 'anthropic',
   );
   if (anthropicProfile === undefined) throw new Error('Missing Anthropic qualification profile.');
+  await expect(decisionEvidence.getByRole('listitem')).toHaveCount(3);
+  await expect(integrationEvidence.getByRole('listitem')).toHaveCount(3);
   await expect(integrationEvidence.locator('[data-evidence-status]')).toHaveAttribute(
     'data-evidence-status',
     getQualificationReleaseEvidenceSummary(anthropicProfile).status,
   );
+  const qualificationAction = integrationEvidence.locator('[data-evidence-path-action]');
+  await expect(
+    qualificationAction.getByRole('group', { name: 'Integration providers' }),
+  ).toBeVisible();
+  const providerLogos = qualificationAction.getByRole('img', { name: /company logo/ });
+  await expect(providerLogos).toHaveCount(3);
+  await expect(providerLogos.nth(0)).toHaveAttribute('alt', 'OpenAI company logo');
+  await expect(providerLogos.nth(1)).toHaveAttribute('alt', 'Anthropic company logo');
+  await expect(providerLogos.nth(2)).toHaveAttribute('alt', 'Vercel company logo');
+  await expect(qualificationAction.getByLabel('3 more integration providers')).toHaveText('+3');
   await expect(page.getByRole('link', { name: /Open the decision journeys/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /Choose your integration/ })).toBeVisible();
+
+  const [decisionBox, qualificationBox] = await Promise.all([
+    decisionEvidence.boundingBox(),
+    integrationEvidence.boundingBox(),
+  ]);
+  expect(decisionBox).not.toBeNull();
+  expect(qualificationBox).not.toBeNull();
+  expect(
+    Math.abs((decisionBox?.height ?? 0) - (qualificationBox?.height ?? 0)),
+  ).toBeLessThanOrEqual(1);
 });
 
 test('keeps the evidence overview accessible at 320px in both themes', async ({ browser }) => {
@@ -59,6 +80,15 @@ test('keeps the evidence overview accessible at 320px in both themes', async ({ 
       scroll: document.documentElement.scrollWidth,
     }));
     expect(widths.scroll).toBeLessThanOrEqual(widths.client);
+    const [decisionBox, qualificationBox] = await Promise.all([
+      page.locator('[data-evidence-path="decision"]').boundingBox(),
+      page.locator('[data-evidence-path="qualification"]').boundingBox(),
+    ]);
+    expect(decisionBox).not.toBeNull();
+    expect(qualificationBox).not.toBeNull();
+    expect(
+      Math.abs((decisionBox?.height ?? 0) - (qualificationBox?.height ?? 0)),
+    ).toBeLessThanOrEqual(32);
     const accessibilityResults = await new AxeBuilder({ page }).analyze();
     expect(
       accessibilityResults.violations.filter(

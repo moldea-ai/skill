@@ -4,7 +4,7 @@ import { withBase } from '@moldea.ai/website-ui/site';
 
 interface Props {
   adapterId: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
 interface IAdapterCompany {
@@ -102,6 +102,7 @@ if (!isCustomAdapter && company === undefined) {
 <span
   class:list={[
     'inline-flex shrink-0 items-center justify-center border border-border bg-muted',
+    size === 'xs' && 'size-7 rounded-md',
     size === 'sm' && 'size-9 rounded-lg',
     size === 'md' && 'size-11 rounded-lg',
     size === 'lg' && 'size-20 rounded-2xl',
@@ -110,7 +111,7 @@ if (!isCustomAdapter && company === undefined) {
   {
     isCustomAdapter ? (
       <Blocks
-        class:list={[size === 'lg' ? 'size-9' : 'size-5']}
+        class:list={[size === 'lg' ? 'size-9' : size === 'xs' ? 'size-4' : 'size-5']}
         role="img"
         aria-label="Custom adapter icon"
       />
@@ -119,6 +120,7 @@ if (!isCustomAdapter && company === undefined) {
         <img
           class:list={[
             'object-contain',
+            size === 'xs' && 'size-4',
             size === 'sm' && 'size-5',
             size === 'md' && 'size-6',
             size === 'lg' && 'size-10',

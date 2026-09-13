@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The current release is `5.0.6`. Install the latest version from `main`:
+The current release is `5.0.7`. Install the latest version from `main`:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the release:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.6"
+npx skills add "moldea-ai/skill#v5.0.7"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account.
@@ -56,7 +56,7 @@ npx skills remove moldea
 
 ## Compatibility
 
-Release `5.0.6` supports exactly:
+Release `5.0.7` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -120,7 +120,7 @@ The numeric profile is source-controlled in `tooling/resource-calibration/profil
 
 Evaluation is read-only. It may inspect canonical metadata and explicitly required chunks, but it must not change repository files, the Git index, refs, configuration, submodules, or object storage.
 
-Initialization writes the complete manifest and project document, then runs the bundled `scripts/managed-readme.mjs` writer before making one final `validate` call. The writer creates or normalizes the canonical block atomically and never asks the model to reproduce it. With no evidenced relationships, the manifest is exactly `version: 1` plus its final LF; it contains no invented metadata or empty mappings. A successful validation ends the operation without `inspect`; a structural failure permits one bounded diagnostic-driven repair and one final retry.
+After establishing sufficient project context, initialization safely installs a known missing compatible local CLI before canonical or managed README writes. Failed installation stops those writes and validation and reports any package-manager changes. Already-present compatible tooling needs no reinstall or availability probe. Initialization writes the complete manifest and project document, then runs the bundled `scripts/managed-readme.mjs` writer before making one final `validate` call. The writer creates or normalizes the canonical block atomically and never asks the model to reproduce it. With no evidenced relationships, the manifest is exactly `version: 1` plus its final LF; it contains no invented metadata or empty mappings. A successful validation ends the operation without `inspect`; a structural failure permits one bounded diagnostic-driven repair and one final retry.
 
 ## Portable skill
 
@@ -281,7 +281,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-Release `5.0.6` uses tag `v5.0.6`.
+Release `5.0.7` uses tag `v5.0.7`.
 
 See [Release evidence](docs/release-evidence.md) for the exact fresh and pinned workflows. `npm run release:check` is read-only and validates each section through its selected path before running current-only verification for fresh sections.
 

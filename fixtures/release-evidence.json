@@ -1,7 +1,7 @@
 {
   "qualification": {
     "mode": "pinned",
-    "reason": "Release 5.0.6 adds explicit bounded project repair and precise behavioral impact guidance. Existing semantic and adapter evidence is retained by explicit maintainer authorization; deterministic regression checks cover the changed contracts, but the new repair workflow has not received a fresh model evaluation.",
+    "reason": "Initialization now establishes known missing CLI tooling before foundation writes and final validation. Focused deterministic conformance and launcher-boundary checks cover this correction; existing semantic and adapter evidence is reused without claiming a fresh model evaluation.",
     "source": {
       "commit": "c3416c52ae69a3f26d2e38c07ba98aa8531e358d",
       "evidence": {
@@ -158,7 +158,7 @@
   "schemaVersion": 2,
   "semantic": {
     "mode": "pinned",
-    "reason": "Release 5.0.6 adds explicit bounded project repair and precise behavioral impact guidance. Existing semantic and adapter evidence is retained by explicit maintainer authorization; deterministic regression checks cover the changed contracts, but the new repair workflow has not received a fresh model evaluation.",
+    "reason": "Initialization now establishes known missing CLI tooling before foundation writes and final validation. Focused deterministic conformance and launcher-boundary checks cover this correction; existing semantic and adapter evidence is reused without claiming a fresh model evaluation.",
     "source": {
       "commit": "926907e26feac6a55929f68ca134aeaf41a6a4b5",
       "evidence": {
@@ -176,8 +176,8 @@
     }
   },
   "target": {
-    "dependencyClosureSha256": "0b53470830337afb70e8f4bab3847051d62be4664cdf17ea1ad167370a4c129b",
-    "portableSkillSha256": "5902dfc2a52233aeb62411d290d30a6e7c00966aee4adb74f2370335ec012218",
-    "version": "5.0.6"
+    "dependencyClosureSha256": "51ef9cb9b53bcecc7890462a3d7393842cf573ce507d181a18e284be2bf03624",
+    "portableSkillSha256": "0fb282129ee1e54b751cb6dbe4b4e85d5dc3201d52f281a7dd0c0a5423c5d6e6",
+    "version": "5.0.7"
   }
 }

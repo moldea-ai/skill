@@ -107,6 +107,12 @@ agents:
 
 Register repository-root-absolute logical paths and symbols only for material implementation relationships that cannot be derived reliably, including runtime agents, executable schemas, instruction loaders, variable providers, capability implementation or registration, context, decisions, runtime guidance, and broader `affectedBy` paths.
 
+`affectedBy` is a behavioral impact map, not a build dependency graph. Include a path when its changes can materially alter the owner's policy, capabilities, executable contracts, routing, instruction loading, or runtime integration. Prefer exact paths or coherent behavioral subtrees. Exact bindings already establish relevance; do not repeat their paths mechanically unless a broader file-level effect needs coverage.
+
+Package manifests and lockfiles can matter when they select dependencies or runtime settings that materially affect that owner; do not attach them to every agent by default. Compiler configuration and type-only declarations require an evidenced behavioral effect, not compilation participation alone. Scope tests to the behavior they protect rather than automatically declaring every test. These are selection criteria, not filename bans: preserve a justified configuration or shared dependency relationship and inspect its role before narrowing an existing declaration.
+
+When a declared path matches, inspect the actual change before additional canonical reads. Reconsider the owner, but leave it unchanged when the diff does not affect its behavior or contract. Matching identifies potential relevance, not a mandatory edit.
+
 Never create fake paths, symbols, selectors, future files, cross-repository references, or prose substitutes. If a material relationship cannot be expressed under the established format, report the blocker.
 
 Routing and handoffs remain runtime-native in version `1`. Maintain routing implementation, metadata, source and target instructions, target-owned descriptions, runtime guidance, impact relationships, and tests as needed. Reconsider every supported consumer when a canonical description changes, and reconsider canonical descriptions when routing behavior changes. Never invent a manifest `handoffs` graph.

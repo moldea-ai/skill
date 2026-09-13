@@ -1,6 +1,36 @@
 {
   "activationCases": [
     {
+      "id": "repair-healthy-project",
+      "input": { "initialized": true, "projectRepairIntent": true },
+      "expected": "project-repair"
+    },
+    {
+      "id": "repair-damaged-adoption",
+      "input": { "initialized": false, "projectRepairIntent": true, "priorInitialization": true },
+      "expected": "project-repair"
+    },
+    {
+      "id": "repair-unproven-adoption-diagnosis-only",
+      "input": { "initialized": false, "projectRepairIntent": true },
+      "expected": "project-repair"
+    },
+    {
+      "id": "repair-read-only-constraint",
+      "input": {
+        "initialized": true,
+        "projectRepairIntent": true,
+        "readOnly": true,
+        "explicitMoldeaRequest": true
+      },
+      "expected": "direct"
+    },
+    {
+      "id": "damaged-project-read-only-still-abstains",
+      "input": { "initialized": false, "projectRepairIntent": true, "readOnly": true },
+      "expected": "abstain"
+    },
+    {
       "id": "preinit-information",
       "input": {
         "initialized": false,

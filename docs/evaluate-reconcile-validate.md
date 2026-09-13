@@ -6,7 +6,7 @@ section: workflows
 order: 80
 ---
 
-# Three operations, three different promises
+# Check alignment and correct established errors
 
 ## Evaluate
 
@@ -18,7 +18,7 @@ Evaluate the refund agent and do not change repository files.
 
 The coding agent uses deterministic metadata or structural inspection only when it can change the conclusion, verifies every machine envelope it does use, and directly reads only relevant canonical state, Agent Skill sources, host metadata, consumers, implementation, contracts, tests, runtime wiring, adapter evidence, developer intent, and unresolved state. For a direct named reconciliation conflict, it compares supplied or focused implementation evidence with at most one canonical body, then asks one focused authority question before inspection, validation, another canonical read, or any write. Discovery alone does not justify an absence claim or a request to paste an accessible file.
 
-In an adopted repository, `Evaluate the current project.` starts with that repository's project-owned canonical system and follows its material relationships into implementation. The developer does not need to name `moldea` to activate this behavior. A brief project request must not silently become an audit of the installed operating skill. Explicit requests to evaluate a project-owned Agent Skill still assess its complete source, resources, copies, consumers, and runtime registration.
+In an adopted repository, `Evaluate the current moldea project.` explicitly selects the repository's canonical system and its material implementation relationships. Natural agent-review requests also activate without naming `moldea`; a generic project review still needs relevant paths. Neither request silently becomes an audit of the installed operating skill. Explicit requests to evaluate a project-owned Agent Skill assess its sources, resources, consumers, and runtime registration within that scope.
 
 The report concisely identifies its starting scope and any material relationship that expanded it, then separates deterministic diagnostics, confirmed semantic problems, material ambiguities, relevant unresolved requirements, and evidence limitations. A relationship proves scope, not semantic agreement. The coding agent claims alignment only after reliable evidence establishes material behavior, intended meaning, and relevant consumption. It does not need to narrate every file read or repeat literal commands. Each material runtime limitation names the unknown fact, the smallest reliable resolving artifact and established owner, and what the artifact must prove; unknown ownership stays explicit. Reliable resolvers include source-owned target documentation, closed wiring, provider configuration, and integration tests. For routing metadata, an absent optional handoff description with a consumer of the canonical agent description is an aligned fallback. Under dynamic wiring, the report separates consumer purpose, required canonical source, selected source, and resolving evidence. When selection remains unknown, conclusions stay conditional instead of calling a candidate source current, effective, absent, or wrong. The report explicitly states that no repository files changed.
 
@@ -44,10 +44,25 @@ Use validation for deterministic structural evidence:
 
 Validation runs the root-local CLI's structural boundary through the installed skill's closed launcher. A structurally invalid result is a completed diagnostic result, not an operational failure. Validation does not prove that instructions or skills are useful, runtime behavior consumes them, or implementation semantics match them.
 
+## Repair a project
+
+When the existing setup appears wrong, ask:
+
+```text
+Fix moldea.
+```
+
+No special syntax is required. The coding agent checks the project setup, relationships, instructions, mirrors, runtime integration, and unresolved items. It corrects errors whose intended result is established, runs the relevant checks, and leaves healthy state unchanged.
+
+Repair can diagnose a damaged README block or missing foundation file even when ordinary activation cannot proceed. It must establish prior initialization and the correct replacement before restoring anything. It does not silently initialize a new project, guess missing policy, overwrite unrelated work, or upgrade dependencies. If two policies conflict without a reliable resolution, it asks which governs.
+
+The result separates **Checked**, **Fixed**, **Verified**, **Needs input**, and **Not checked**. Large projects are checked progressively with bounded output. If a limit or missing evidence prevents complete coverage, the report names what remains. Structural validity is not proof that every runtime behavior works.
+
 ## Quick comparison
 
-| Need                                            | Operation | Writes | Semantic assessment |
-| ----------------------------------------------- | --------- | ------ | ------------------- |
-| Check repository-format structure               | Validate  | No     | No                  |
-| Investigate structural and behavioral alignment | Evaluate  | No     | Yes                 |
-| Correct established drift                       | Reconcile | Yes    | Yes                 |
+| Need                                            | Operation | Writes | Semantic assessment  |
+| ----------------------------------------------- | --------- | ------ | -------------------- |
+| Check repository-format structure               | Validate  | No     | No                   |
+| Investigate structural and behavioral alignment | Evaluate  | No     | Yes                  |
+| Correct established drift                       | Reconcile | Yes    | Yes                  |
+| Check and repair the existing project setup     | Repair    | Yes    | Within checked scope |

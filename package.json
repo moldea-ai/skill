@@ -1,6 +1,6 @@
 {
   "name": "@moldea.ai/skill-conformance",
-  "version": "5.0.5",
+  "version": "5.0.6",
   "private": true,
   "description": "Development-only conformance checks for the moldea Agent Skill.",
   "type": "module",

@@ -53,6 +53,7 @@ const REFERENCE_NAMES = [
   'continuous-maintenance.md',
   'evaluate-and-reconcile.md',
   'local-tooling.md',
+  'project-repair.md',
   'runtime-compatibility.md',
   'skill-design.md',
 ];
@@ -71,6 +72,7 @@ const parseFrontmatter = () => {
 const resolveActivationCase = (input) => {
   if (input.informationalRequest === true) return 'informational';
   if (input.initializationRequest === true) return 'initialize';
+  if (input.projectRepairIntent === true && input.readOnly !== true) return 'project-repair';
   if (input.initialized !== true) return 'abstain';
   if (input.explicitMoldeaRequest === true) return 'direct';
   if (input.agentWorkIntent === true) return 'direct';
@@ -296,7 +298,7 @@ describe('portable skill contract', () => {
   test('uses lowercase identity, repository-bound initialization, and a narrow description', () => {
     const frontmatter = parseFrontmatter();
     assert.deepEqual(frontmatter.metadata, {
-      version: '5.0.5',
+      version: '5.0.6',
       cliVersionRange: '^8.0.0',
       coreVersionRange: '^4.0.1',
       cliJsonSchemaVersion: 4,
@@ -457,13 +459,7 @@ describe('portable skill contract', () => {
       /foundation-evidence decision before any dependency, canonical-state, or managed README write/u,
     );
     assert.match(skill, /Insufficient or materially incomplete evidence stops writes/u);
-    assert.match(skill, /not adopted or initialized because its complete contract is absent/u);
-    assert.match(skill, /Do not substitute.*or add generic product-benefit boilerplate/u);
-    assert.match(
-      skill,
-      /name the present and missing elements among `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the owned README awareness block/u,
-    );
-    assert.match(skill, /ask what the project does and who or what it serves/u);
+    assert.match(skill, /Apply the reference's insufficient\/partial foundation report/u);
     assert.match(skill, /Structural validation proves format, not the truth or sufficiency/u);
     assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
     assert.match(skill, /run `validate` at most once more/u);
@@ -897,16 +893,46 @@ describe('portable skill contract', () => {
 
 describe('activation and semantic protection', () => {
   test('covers and resolves the complete initialization and relevance state machine', () => {
-    assert.equal(FIXTURE.activationCases.length, 23);
+    assert.equal(FIXTURE.activationCases.length, 28);
     for (const { expected, input } of FIXTURE.activationCases) {
       assert.equal(resolveActivationCase(input), expected);
     }
     const outcomes = FIXTURE.activationCases.map(({ expected }) => expected);
     assert.equal(outcomes.filter((value) => value === 'informational').length, 1);
     assert.equal(outcomes.filter((value) => value === 'initialize').length, 1);
-    assert.equal(outcomes.filter((value) => value === 'direct').length, 7);
+    assert.equal(outcomes.filter((value) => value === 'direct').length, 8);
+    assert.equal(outcomes.filter((value) => value === 'project-repair').length, 3);
     assert.equal(outcomes.filter((value) => value === 'relationship-gate').length, 2);
-    assert.equal(outcomes.filter((value) => value === 'abstain').length, 12);
+    assert.equal(outcomes.filter((value) => value === 'abstain').length, 13);
+  });
+
+  test('keeps project repair explicit, bounded, and separate from initialization', () => {
+    const skill = readSkill();
+    const repair = readFileSync(join(SKILL_ROOT, 'references/project-repair.md'), 'utf8');
+    assert.ok(skill.indexOf('**Explicit project repair:**') < skill.indexOf('1. **Independent'));
+    assert.match(skill, /Read-only requests remain read-only; named reconciliation uses route 5/u);
+    assert.match(repair, /prior initialization and the intended recovery state/u);
+    assert.match(
+      repair,
+      /Never initialize a never-adopted repository without an explicit initialization request/u,
+    );
+    assert.match(repair, /manifest-content prohibition/u);
+    assert.match(repair, /Never replace a damaged manifest with `version: 1`/u);
+    assert.match(repair, /never guess marker boundaries or bypass rejection/u);
+    assert.match(repair, /Do not install, upgrade, pin dependencies/u);
+    assert.match(repair, /unresolved-conflict stop still applies immediately/u);
+    assert.match(repair, /65,536-byte raw pages and a 262,144-byte aggregate/u);
+    assert.match(repair, /Reserve one page for final validation/u);
+    assert.match(repair, /After writes invalidate a snapshot, discard its cursors/u);
+    assert.match(repair, /repeated repair of unchanged healthy state is a no-op/u);
+    for (const label of ['Checked', 'Fixed', 'Verified', 'Needs input', 'Not checked']) {
+      assert.ok(repair.includes(`**${label}**`));
+    }
+    const design = readFileSync(join(SKILL_ROOT, 'references/agent-design.md'), 'utf8');
+    assert.match(design, /behavioral impact map, not a build dependency graph/u);
+    assert.match(design, /selection criteria, not filename bans/u);
+    assert.match(design, /Exact bindings already establish relevance/u);
+    assert.match(skill, /Examine the actual diff before additional canonical reads/u);
   });
 
   test('routes conversational agent work without product-name or phrase triggers', () => {
@@ -1263,7 +1289,7 @@ describe('activation and semantic protection', () => {
 
       writeFileSync(
         join(initialized, 'README.md'),
-        '# Project\n\n<!-- moldea:start -->\nLegacy context.\n<!-- moldea:end -->\n',
+        '# Project\n\n<!-- moldea:start -->\nDamaged context.\n<!-- moldea:end -->\n\nKeep this section.\n',
       );
       assert.equal(runRelevanceGate(initialized, ['--adoption-only']).stdout, '0\n');
 
@@ -1275,6 +1301,10 @@ describe('activation and semantic protection', () => {
       assert.equal(normalizedWrite.status, 0);
       assert.equal(normalizedWrite.stderr, '');
       assert.equal(normalizedWrite.stdout, 'updated\n');
+      assert.equal(
+        readFileSync(join(initialized, 'README.md'), 'utf8'),
+        `# Project\n\n${MANAGED_README_BLOCK}\nKeep this section.\n`,
+      );
       assert.equal(runRelevanceGate(initialized, ['--adoption-only']).stdout, '1\n');
 
       const repeatedWrite = spawnSync(
@@ -1285,9 +1315,58 @@ describe('activation and semantic protection', () => {
       assert.equal(repeatedWrite.status, 0);
       assert.equal(repeatedWrite.stderr, '');
       assert.equal(repeatedWrite.stdout, 'unchanged\n');
+
+      // normalization cannot substitute for a missing foundation or prove valid YAML
+      for (const relativePath of ['moldea/moldea.yaml', 'moldea/project.md']) {
+        const filePath = join(initialized, relativePath);
+        const establishedBytes = readFileSync(filePath);
+        unlinkSync(filePath);
+        const beforeReadme = readFileSync(join(initialized, 'README.md'));
+        assert.equal(runRelevanceGate(initialized, ['--adoption-only']).stdout, '0\n');
+        assert.equal(existsSync(filePath), false);
+        assert.deepEqual(readFileSync(join(initialized, 'README.md')), beforeReadme);
+        writeFileSync(filePath, establishedBytes);
+        assert.equal(runRelevanceGate(initialized, ['--adoption-only']).stdout, '1\n');
+      }
+      writeFileSync(join(initialized, 'moldea', 'moldea.yaml'), 'version: [\n');
+      assert.equal(runRelevanceGate(initialized, ['--adoption-only']).stdout, '1\n');
+      assert.equal(runRelevanceGate(initialized, [], '/src/project-state.js\0').stdout, '0\n');
+      assert.equal(
+        readFileSync(join(initialized, 'moldea', 'moldea.yaml'), 'utf8'),
+        'version: [\n',
+      );
     } finally {
       rmSync(initialized, { force: true, recursive: true });
       rmSync(uninitialized, { force: true, recursive: true });
+    }
+  });
+
+  test('matches only declared behavioral scope without configuration filename bans', () => {
+    const root = createProject();
+    try {
+      const manifestPath = join(root, 'moldea', 'moldea.yaml');
+      const manifest = 'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n';
+      writeFileSync(
+        manifestPath,
+        `${manifest}      - /src/project-state.js\n      - /tests/refund/**\n`,
+      );
+      for (const [path, expected] of [
+        ['/src/project-state.js', '1\n'],
+        ['/tests/refund/policy.test.js', '1\n'],
+        ['/tests/formatting.test.js', '0\n'],
+        ['/package.json', '0\n'],
+        ['/package-lock.json', '0\n'],
+        ['/tsconfig.json', '0\n'],
+        ['/types.d.ts', '0\n'],
+      ]) {
+        assert.equal(runRelevanceGate(root, [], `${path}\0`).stdout, expected, path);
+      }
+      for (const path of ['/package.json', '/package-lock.json', '/tsconfig.json', '/types.d.ts']) {
+        writeFileSync(manifestPath, `${manifest}      - ${path}\n`);
+        assert.equal(runRelevanceGate(root, [], `${path}\0`).stdout, '1\n', path);
+      }
+    } finally {
+      rmSync(root, { force: true, recursive: true });
     }
   });
 
@@ -1515,7 +1594,7 @@ describe('CLI 8 bounded machine protocol', () => {
       readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'),
     );
     const declaredCliVersion = packageManifest.devDependencies['@moldea.ai/cli'];
-    assert.equal(packageManifest.version, '5.0.5');
+    assert.equal(packageManifest.version, '5.0.6');
     assert.match(declaredCliVersion, /^\d+\.\d+\.\d+$/u);
     assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 4);
     assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, declaredCliVersion);

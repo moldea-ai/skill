@@ -25,7 +25,7 @@ Evaluation found no structural diagnostics. It confirmed one semantic problem: t
 ### Under the hood
 
 1. The coding agent selects read-only evaluation.
-2. It verifies and runs root-local `inspect --json` first.
+2. It confirms adoption and requests the named agent's canonical content through the installed skill's bounded launcher. Metadata inspection is added only when necessary.
 3. It follows the registered runtime-agent relationship into every material invocation path.
 4. It compares canonical instructions, runtime construction, tests, and adapter evidence.
 5. It reports the provenance gap separately from deterministic validity and states that no files changed.
@@ -41,7 +41,7 @@ Reconcile that instruction drift.
 **Coding agent**
 
 ```text
-I changed the runtime loader to derive the active instruction from the canonical file, removed the superseded inline source, updated focused tests, reran project verification, and confirmed deterministic inspection is valid.
+I changed the runtime loader to derive the active instruction from the canonical file, removed the superseded inline source, updated focused tests, and ran project verification followed by final structural validation.
 ```
 
 ### Under the hood

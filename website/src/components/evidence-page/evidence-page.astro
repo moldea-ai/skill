@@ -172,6 +172,7 @@ const stages = [
                       label="Saved reference"
                     >
                       <CodeBlock
+                        copyable={false}
                         language="yaml"
                         source={`name: ${anthropicPresentation.toolNameRepair.declaredName}`}
                         variant="plain"
@@ -182,6 +183,7 @@ const stages = [
                       label="Project source"
                     >
                       <CodeBlock
+                        copyable={false}
                         language="typescript"
                         source={`name: '${anthropicPresentation.toolNameRepair.correctedName}'`}
                         variant="plain"

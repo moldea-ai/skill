@@ -20,6 +20,8 @@ Public replay is bounded and privacy-safe. It may contain developer direction, a
 
 Qualification journey pages also present a static Project view from the same validated evidence. It explains the starting fixture, recorded task, verified result, complete starting path tree, exact changed paths, and final-workspace patch in one non-technical sequence. The patch is labeled as a comparison with the fixture baseline because fixture setup can precede the coding agent. Complete project source and raw patch artifacts remain linked for deeper inspection.
 
+The shared layout adds copy controls to useful code blocks after each direct load or client navigation. Illustrative and incomplete excerpts opt out at their owning component, remain selectable, and reserve no toolbar space. Clipboard failures keep the source readable and explain how to copy it manually.
+
 ## Commands
 
 Install dependencies without lifecycle scripts:
@@ -55,4 +57,4 @@ The website is a read-only renderer. It does not execute qualification, invoke m
 
 ## Evidence presentation
 
-The evidence pages use compact, visual decision and adapter journeys. Editorial summaries appear only when fixed reviewed digests match the loaded source and recorded evidence. Qualification describes repository fixtures and file checks; it does not claim to run live providers.
+The evidence pages use compact, visual decision and adapter journeys. Editorial summaries appear only when fixed reviewed digests match the loaded source and recorded evidence. Qualification describes repository fixtures and file checks; it does not claim to run live providers. Reader-facing `moldea` mentions use inline code in application and shared Website UI surfaces.

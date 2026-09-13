@@ -9,6 +9,7 @@ import { SKILLS_DIRECTORY_URL } from '../lib/model/constants.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
+const normalizeClipboardLineEndings = (text: string): string => text.replaceAll('\r\n', '\n');
 const REPRESENTATIVE_PATHS = [
   '/',
   '/docs/',
@@ -673,9 +674,7 @@ test('renders every reader-facing product mention as inline code', async ({ page
         if (
           /\bmoldea\b/iu.test(text) &&
           parent &&
-          !parent.closest(
-            'code, script, style, noscript, [data-brand-plain], [aria-label="On this page"]',
-          )
+          !parent.closest('code, script, style, noscript, [data-brand-plain]')
         ) {
           matches.push(text.trim());
         }
@@ -687,6 +686,187 @@ test('renders every reader-facing product mention as inline code', async ({ page
     });
 
     expect(unstyledMentions, `${path} has unstyled product mentions`).toStrictEqual([]);
+  }
+});
+
+test('formats product mentions in generated search results', async ({ page }) => {
+  await page.goto(toPublicPath('/search/'));
+  const searchInput = page.getByRole('searchbox', { name: 'Search documentation' });
+  await searchInput.fill('moldea');
+  await searchInput.press('Enter');
+
+  const results = page.locator('[data-search-results]');
+  await expect(results.locator('li').first()).toBeVisible();
+  expect(await results.locator('code').count()).toBeGreaterThan(0);
+  await expect(page.locator('[data-search-status] code')).toHaveText('moldea');
+});
+
+test('copies exact code across direct loads, client navigation, and evidence surfaces', async ({
+  context,
+  page,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto(toPublicPath('/docs/repository-format/'));
+
+  const codeBlock = page.locator('.prose-moldea pre:has(> code)').first();
+  const toolbar = codeBlock.locator('xpath=preceding-sibling::*[1][@data-code-copy-toolbar]');
+  const button = toolbar.getByRole('button', { name: 'Copy code', exact: true });
+  const source = await codeBlock.locator(':scope > code').textContent();
+
+  if (source === null) throw new Error('Code block source text is unavailable.');
+
+  await button.click();
+  await expect(button).toBeFocused();
+  await expect(toolbar.locator('[data-code-copy-feedback]')).toHaveText('Copied.');
+  expect(
+    normalizeClipboardLineEndings(await page.evaluate(() => navigator.clipboard.readText())),
+  ).toBe(normalizeClipboardLineEndings(source));
+
+  await page
+    .getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'Capabilities', exact: true })
+    .click();
+  await expect(page).toHaveURL(toPublicPath('/docs/capabilities/'));
+  await page
+    .getByRole('navigation', { name: 'Documentation navigation' })
+    .getByRole('link', { name: 'Repository format', exact: true })
+    .click();
+  await expect(page).toHaveURL(toPublicPath('/docs/repository-format/'));
+
+  const controlCounts = await page.evaluate(() => {
+    const eligibleBlocks = [...document.querySelectorAll('pre')].filter(
+      (pre) =>
+        pre.firstElementChild?.tagName === 'CODE' &&
+        pre.closest('[data-code-copy="false"]') === null,
+    );
+
+    return {
+      eligible: eligibleBlocks.length,
+      enhanced: eligibleBlocks.filter((pre) => pre.dataset['codeCopyEnhanced'] === 'true').length,
+      toolbars: document.querySelectorAll('[data-code-copy-toolbar]').length,
+    };
+  });
+
+  expect(controlCounts.enhanced).toBe(controlCounts.eligible);
+  expect(controlCounts.toolbars).toBe(controlCounts.eligible);
+
+  await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
+  expect(
+    await page.locator('[data-project-patch] [data-code-copy-button]').count(),
+  ).toBeGreaterThan(0);
+  expect(
+    await page.locator('details:not([open]) pre[data-code-copy-enhanced="true"]').count(),
+  ).toBeGreaterThan(0);
+});
+
+test('keeps illustrative evidence snippets selectable without copy controls', async ({ page }) => {
+  await page.goto(toPublicPath('/evidence/'));
+
+  const optedOutBlocks = page.locator('[data-code-block][data-code-copy="false"]');
+
+  await expect(optedOutBlocks).toHaveCount(2);
+  await expect(optedOutBlocks.locator('[data-code-copy-toolbar]')).toHaveCount(0);
+  await expect(optedOutBlocks.locator('pre[data-code-copy-enhanced="true"]')).toHaveCount(0);
+  expect(
+    await optedOutBlocks.evaluateAll((blocks) =>
+      blocks.map((block) => block.firstElementChild?.tagName ?? null),
+    ),
+  ).toStrictEqual(['PRE', 'PRE']);
+
+  await page.goto(toPublicPath('/docs/repository-format/'));
+  expect(
+    await page.getByRole('button', { name: 'Copy code', exact: true }).count(),
+  ).toBeGreaterThan(0);
+});
+
+for (const [clipboardMode, expectedFeedback] of [
+  ['unavailable', 'Copy is unavailable. Select the code, then copy it manually.'],
+  ['denied', 'Copy failed. Select the code, then copy it manually.'],
+] as const) {
+  test(`keeps code selectable when clipboard access is ${clipboardMode}`, async ({ page }) => {
+    await page.addInitScript((mode) => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value:
+          mode === 'denied'
+            ? {
+                writeText: (): Promise<void> =>
+                  Promise.reject(new DOMException('Clipboard access denied.', 'NotAllowedError')),
+              }
+            : undefined,
+      });
+    }, clipboardMode);
+    await page.goto(toPublicPath('/docs/repository-format/'));
+
+    const button = page.getByRole('button', { name: 'Copy code', exact: true }).first();
+    const toolbar = button.locator('xpath=ancestor::*[@data-code-copy-toolbar]');
+    const code = toolbar.locator('xpath=following-sibling::pre[1]/code');
+
+    await button.click();
+    await expect(button).toBeFocused();
+    await expect(toolbar.locator('[data-code-copy-feedback]')).toHaveText(expectedFeedback);
+    await expect(code).toHaveCSS('user-select', 'auto');
+  });
+}
+
+test('keeps code readable without JavaScript and omits inert copy controls', async ({
+  baseURL,
+  browser,
+}) => {
+  if (baseURL === undefined) throw new Error('The Playwright base URL is unavailable.');
+
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+
+  try {
+    await page.goto(new URL(toPublicPath('/docs/repository-format/'), baseURL).href);
+    await expect(page.locator('pre:has(> code)').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(0);
+    await expect(page.locator('[data-code-copy-toolbar]')).toHaveCount(0);
+  } finally {
+    await context.close();
+  }
+});
+
+test('keeps code-copy controls usable across supported widths, themes, and reduced motion', async ({
+  page,
+}) => {
+  for (const width of [320, 375, 768, 1440]) {
+    for (const theme of ['light', 'dark'] as const) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      await page.goto(toPublicPath('/docs/repository-format/'));
+
+      const button = page.getByRole('button', { name: 'Copy code', exact: true }).first();
+      const toolbar = button.locator('xpath=ancestor::*[@data-code-copy-toolbar]');
+      const bounds = await button.boundingBox();
+
+      expect(bounds).not.toBeNull();
+      expect(bounds?.x).toBeGreaterThanOrEqual(0);
+      expect((bounds?.x ?? 0) + (bounds?.width ?? width + 1)).toBeLessThanOrEqual(width);
+      expect(
+        await button.evaluate((element) =>
+          Number.parseFloat(getComputedStyle(element).transitionDuration),
+        ),
+      ).toBeLessThanOrEqual(0.00001);
+      await button.focus();
+      await expect(button).not.toHaveCSS('box-shadow', 'none');
+      expect(
+        await toolbar.evaluate((element) => element.getBoundingClientRect().width),
+      ).toBeLessThanOrEqual(width);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+        width,
+      );
+
+      const accessibility = await new AxeBuilder({ page })
+        .include('[data-code-copy-toolbar]')
+        .analyze();
+      expect(
+        accessibility.violations.filter(
+          ({ impact }) => impact === 'critical' || impact === 'serious',
+        ),
+      ).toStrictEqual([]);
+    }
   }
 });
 

@@ -155,7 +155,7 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
   await expect(attemptScenario.getByText('Judge host', { exact: true })).toBeVisible();
 });
 
-test('keeps semantic decisions open independently', async ({ page }) => {
+test('starts semantic decisions collapsed and keeps them open independently', async ({ page }) => {
   const presentationAttempt = loadWebsiteModel().semanticEvaluation.currentAssurance;
   if (presentationAttempt === null) throw new Error('Expected current semantic assurance.');
 
@@ -179,9 +179,11 @@ test('keeps semantic decisions open independently', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/semantic/'));
   const firstDecision = page.locator(`#semantic-case-${firstCase.id}`);
   const secondDecision = page.locator(`#semantic-case-${secondCase.id}`);
-  if ((await firstDecision.getAttribute('open')) === null) {
-    await firstDecision.locator(':scope > summary').click();
-  }
+  await expect(
+    page.locator('section[aria-labelledby="semantic-scenarios-title"] details[open]'),
+  ).toHaveCount(0);
+
+  await firstDecision.locator(':scope > summary').click();
   await secondDecision.locator(':scope > summary').click();
 
   await expect(firstDecision).toHaveAttribute('open', '');

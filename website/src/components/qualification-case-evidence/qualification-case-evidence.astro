@@ -129,6 +129,10 @@ const resultRationaleHtml = await renderMarkdownFragment(resultRationale, markdo
   title={`${String(number).padStart(2, '0')} · ${profileCase.title}`}
   description={presentation?.summary ?? profileCase.purpose}
 >
+  <EvidenceStatus
+    slot="status"
+    status={result.status}
+  />
   <div class="border-t border-border px-5 py-6 sm:px-6">
     <TabbedPanels
       ariaLabel="Qualification journey views"

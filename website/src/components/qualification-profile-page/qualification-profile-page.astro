@@ -1,11 +1,9 @@
 ---
-import { ArrowDown, ArrowRight, ShieldCheck } from '@lucide/astro';
+import { ArrowRight } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
-import ResultSummary from '@moldea.ai/website-ui/result-summary';
 import { withBase } from '@moldea.ai/website-ui/site';
-import StatusBadge from '@moldea.ai/website-ui/status-badge';
 
 import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
@@ -30,39 +28,10 @@ const releaseSummary = getQualificationReleaseEvidenceSummary(profile);
 const journeyCollection = createQualificationJourneyCollection(profile);
 const effectiveAttempts = journeyCollection.attempts;
 const effectiveJourneys = journeyCollection.journeys;
-const successfulJourneyCount = effectiveJourneys.filter(
-  ({ evidence }) => evidence.result.status === 'passed' || evidence.result.status === 'recovered',
-).length;
-const resultTone =
-  releaseSummary.status === 'passed'
-    ? 'success'
-    : releaseSummary.status === 'failed' || releaseSummary.status === 'errored'
-      ? 'danger'
-      : 'warning';
-const resultTitle =
-  releaseSummary.status === 'passed'
-    ? 'Qualification passed'
-    : releaseSummary.status === 'failed'
-      ? 'Qualification failed'
-      : releaseSummary.status === 'errored'
-        ? 'Evidence unavailable'
-        : releaseSummary.status === 'not-recorded'
-          ? 'No release result'
-          : 'Result incomplete';
-const resultStatusLabel =
-  releaseSummary.status === 'passed'
-    ? 'Verified'
-    : releaseSummary.status === 'failed'
-      ? 'Failed'
-      : releaseSummary.status === 'errored'
-        ? 'Unavailable'
-        : 'Review';
-const resultDescription =
-  releaseSummary.status === 'passed'
-    ? `All ${effectiveJourneys.length} project journeys reached the expected result.`
-    : effectiveJourneys.length === 0
-      ? 'No complete project result is available for this integration.'
-      : `${successfulJourneyCount} of ${effectiveJourneys.length} project journeys reached the expected result.`;
+const firstJourney = effectiveJourneys[0];
+const startRoute = firstJourney
+  ? `#qualification-${firstJourney.profileCase.id}`
+  : '#qualification-journeys';
 const breadcrumbs = [
   { href: '/', label: 'Home' },
   { href: '/evidence/', label: 'Evidence' },
@@ -85,44 +54,44 @@ const breadcrumbs = [
 
   <header class="relative mt-6 overflow-hidden border-y border-border">
     <HeroBackdrop />
-    <div class="page-shell relative py-14 sm:py-18 lg:py-20">
-      <div class="max-w-4xl">
-        <div class="flex flex-wrap items-center gap-3">
-          <EvidenceStatus status={releaseSummary.status} />
-          <span class="text-sm font-semibold text-muted-foreground">
-            {successfulJourneyCount}/{effectiveJourneys.length} journeys verified
-          </span>
-        </div>
-        <p class="eyebrow mt-6 mb-4">Adapter qualification</p>
+    <div class="page-shell relative py-12 sm:py-16 lg:py-20">
+      <div class="max-w-5xl">
         <div class="flex items-center gap-4">
-          <AdapterCompanyLogo adapterId={profile.adapterId} /><h1
-            class="section-title font-semibold"
-          >
-            {profile.title}
-          </h1>
-        </div>
-        <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-          {
-            profile.adapterId === 'custom'
-              ? 'Checks the shared project behavior every integration relies on.'
-              : 'Checks that the saved integration setup stays aligned with the files this project actually uses.'
-          }
-        </p>
-        <p class="mt-3 max-w-3xl leading-7 text-muted-foreground">
-          Open any journey to follow the developer request, coding-agent work, project changes, and
-          independent verdict in one place.
-        </p>
-        <ActionLink
-          class="mt-7 font-bold"
-          href="#qualification-journeys"
-          variant="primary"
-        >
-          Follow the journeys
-          <ArrowDown
-            class="size-4"
-            aria-hidden="true"
+          <AdapterCompanyLogo
+            adapterId={profile.adapterId}
+            size="lg"
           />
-        </ActionLink>
+          <div class="flex flex-wrap items-center gap-3">
+            <p class="eyebrow">Adapter qualification</p>
+            <EvidenceStatus status={releaseSummary.status} />
+          </div>
+        </div>
+        <h1 class="section-title mt-7 max-w-5xl font-semibold">{profile.title}</h1>
+        <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+          Every recorded journey is together on this page. Each one starts with a developer request,
+          shows the coding agent’s work, and ends with project checks plus an independent verdict.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <ActionLink
+            class="font-bold"
+            href={startRoute}
+            size="lg"
+          >
+            Open the first journey
+            <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            />
+          </ActionLink>
+          <ActionLink
+            class="font-bold"
+            href={withBase('/evidence/qualification/', basePath)}
+            size="lg"
+            variant="outline"
+          >
+            Choose another integration
+          </ActionLink>
+        </div>
       </div>
     </div>
   </header>
@@ -130,87 +99,41 @@ const breadcrumbs = [
   <div class="page-shell">
     <section
       id="qualification-journeys"
-      class="scroll-mt-24 py-12"
+      class="scroll-mt-24 py-14 sm:py-18"
       aria-labelledby="qualification-journeys-title"
     >
-      <div class="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(18rem,0.45fr)] lg:items-end">
+      <div class="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(20rem,0.45fr)] lg:items-end">
         <div>
-          <p class="eyebrow mb-3">The proof</p>
+          <p class="eyebrow mb-3">One continuous result</p>
           <h2
             id="qualification-journeys-title"
-            class="text-3xl font-semibold tracking-tight"
+            class="text-3xl font-semibold tracking-tight sm:text-4xl"
           >
-            What happened in every project
+            Browse all {effectiveJourneys.length} journeys.
           </h2>
         </div>
-        <ResultSummary
-          title={resultTitle}
-          description={resultDescription}
-          tone={resultTone}
-        >
-          <ShieldCheck
-            slot="icon"
-            class="size-5"
-            aria-hidden="true"
-          />
-          <StatusBadge
-            slot="status"
-            label={resultStatusLabel}
-            size="sm"
-            tone={resultTone}
-          />
-        </ResultSummary>
+        <p class="leading-7 text-muted-foreground">
+          Open any journey. Replay tells the story first, then Project, Evidence, and Technical let
+          you inspect as much detail as you need. Several journeys can stay open together.
+        </p>
       </div>
 
       {
         effectiveJourneys.length === 0 ? (
-          <div class="mt-8 rounded-xl border border-dashed border-border bg-muted/30 p-6">
-            <p class="font-semibold">No complete journey evidence is available.</p>
-            <p class="mt-2 max-w-3xl leading-7 text-muted-foreground">
-              The profile contract remains inspectable in the technical details below.
-            </p>
-          </div>
+          <p class="surface-card mt-8 p-5 text-muted-foreground sm:p-6">
+            No complete journey evidence is available.
+          </p>
         ) : (
-          <div class="mt-8 grid gap-10">
-            <nav
-              aria-label="Journey chapters"
-              class="flex flex-wrap gap-2"
-            >
-              {journeyCollection.chapters.map((chapter) => (
-                <ActionLink
-                  href={`#${chapter.id}`}
-                  variant="outline"
-                >
-                  {chapter.title}
-                </ActionLink>
-              ))}
-            </nav>
-            {journeyCollection.chapters.map((chapter) => (
-              <section
-                id={chapter.id}
-                class="scroll-mt-24"
-                aria-labelledby={`${chapter.id}-title`}
-              >
-                <h3
-                  id={`${chapter.id}-title`}
-                  class="text-2xl font-semibold tracking-tight"
-                >
-                  {chapter.title}
-                </h3>
-                <p class="mt-2 max-w-3xl leading-7 text-muted-foreground">{chapter.description}</p>
-                <div class="mt-5 grid gap-3">
-                  {chapter.journeys.map(({ evidence, presentation, profileCase }, index) => (
-                    <QualificationCaseEvidence
-                      evidence={evidence}
-                      group={chapter.id}
-                      id={`qualification-${profileCase.id}`}
-                      number={index + 1}
-                      {presentation}
-                      {profileCase}
-                    />
-                  ))}
-                </div>
-              </section>
+          <div class="mt-8 grid gap-3">
+            {effectiveJourneys.map(({ evidence, presentation, profileCase }, index) => (
+              <QualificationCaseEvidence
+                evidence={evidence}
+                group={`qualification-${profileCase.id}`}
+                id={`qualification-${profileCase.id}`}
+                number={index + 1}
+                {presentation}
+                {profileCase}
+              />
             ))}
           </div>
         )

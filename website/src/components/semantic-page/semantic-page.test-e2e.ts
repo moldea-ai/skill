@@ -155,7 +155,44 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
   await expect(attemptScenario.getByText('Judge host', { exact: true })).toBeVisible();
 });
 
+test('keeps semantic decisions open independently', async ({ page }) => {
+  const presentationAttempt = loadWebsiteModel().semanticEvaluation.currentAssurance;
+  if (presentationAttempt === null) throw new Error('Expected current semantic assurance.');
+
+  const groupCases = new Map<string | null, typeof presentationAttempt.cases>();
+  for (const evaluationCase of presentationAttempt.cases) {
+    groupCases.set(evaluationCase.groupId, [
+      ...(groupCases.get(evaluationCase.groupId) ?? []),
+      evaluationCase,
+    ]);
+  }
+  const pairedCases = [...groupCases.values()].find((cases) => cases.length > 1);
+  if (pairedCases === undefined) {
+    throw new Error('Expected two semantic decisions in the same visible group.');
+  }
+  const firstCase = pairedCases[0];
+  const secondCase = pairedCases[1];
+  if (firstCase === undefined || secondCase === undefined) {
+    throw new Error('Expected a complete semantic decision pair.');
+  }
+
+  await page.goto(toPublicPath('/evidence/semantic/'));
+  const firstDecision = page.locator(`#semantic-case-${firstCase.id}`);
+  const secondDecision = page.locator(`#semantic-case-${secondCase.id}`);
+  if ((await firstDecision.getAttribute('open')) === null) {
+    await firstDecision.locator(':scope > summary').click();
+  }
+  await secondDecision.locator(':scope > summary').click();
+
+  await expect(firstDecision).toHaveAttribute('open', '');
+  await expect(secondDecision).toHaveAttribute('open', '');
+  await expect(firstDecision.getByText('Developer', { exact: true }).first()).toBeVisible();
+  await expect(secondDecision.getByText('Developer', { exact: true }).first()).toBeVisible();
+});
+
 test('keeps semantic evidence accessible without JavaScript and at 320px', async ({ browser }) => {
+  test.slow();
+
   for (const colorScheme of ['light', 'dark'] as const) {
     const noJavaScriptContext = await browser.newContext({
       colorScheme,

@@ -10,7 +10,6 @@ import SemanticTrialProvenance from '../semantic-trial-provenance/semantic-trial
 
 interface Props {
   evaluationCase: ISemanticEvaluationCaseModel;
-  group?: string;
   id?: string;
   isOpen?: boolean;
   number: number;
@@ -24,7 +23,6 @@ const TABS = [
 
 const {
   evaluationCase,
-  group = 'semantic-cases',
   id = `semantic-case-${evaluationCase.id}`,
   isOpen = false,
   number,
@@ -57,7 +55,7 @@ const rationaleHtml =
 ---
 
 <Accordion
-  {group}
+  group={id}
   {id}
   {isOpen}
   title={`${String(number).padStart(2, '0')} · ${evaluationCase.title}`}

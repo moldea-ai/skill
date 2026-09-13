@@ -26,10 +26,16 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await page.goto(toPublicPath('/evidence/qualification/'));
 
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Does the connection stay aligned?' }),
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Choose the integration in your project.',
+    }),
   ).toBeVisible();
   await expect(
-    page.getByRole('heading', { level: 2, name: 'Open one result. See every journey.' }),
+    page.getByRole('heading', {
+      level: 2,
+      name: 'Pick one result. Every journey is on the next page.',
+    }),
   ).toBeVisible();
   for (const profile of qualificationModel.profiles) {
     const releaseSummary = getQualificationReleaseEvidenceSummary(profile);
@@ -38,7 +44,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
       'data-evidence-status',
       releaseSummary.status,
     );
-    await expect(profileLink.getByText('Follow the journeys', { exact: true })).toBeVisible();
+    await expect(profileLink.getByText('Open this result', { exact: true })).toBeVisible();
   }
 
   const customProfileLink = page.getByRole('link', { name: /Custom runtime qualification/ });
@@ -170,14 +176,22 @@ test('presents one combined result with technical evidence kept secondary', asyn
     const releaseSummary = getQualificationReleaseEvidenceSummary(profile);
     await page.goto(toPublicPath(profile.route));
     await expect(page.getByRole('heading', { level: 1, name: profile.title })).toBeVisible();
-    await expect(
-      page.getByRole('heading', { level: 2, name: 'What happened in every project' }),
-    ).toBeVisible();
     await expect(page.locator('[data-evidence-status]').first()).toHaveAttribute(
       'data-evidence-status',
       releaseSummary.status,
     );
-    await expect(page.getByRole('navigation', { name: 'Journey chapters' })).toBeVisible();
+    const journeyCount = profile.cases.length + profile.sharedCases.length;
+    const journeySection = page.locator('#qualification-journeys');
+    const journeys = journeySection.locator('details[data-accordion-item]');
+    await expect(
+      journeySection.getByRole('heading', { name: `Browse all ${journeyCount} journeys.` }),
+    ).toBeVisible();
+    await expect(journeys).toHaveCount(journeyCount);
+    await expect(page.locator('#foundation-journeys-chapter')).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Choose another integration' })).toHaveAttribute(
+      'href',
+      toPublicPath('/evidence/qualification/'),
+    );
     await expect(page.getByText('How this result was produced', { exact: true })).toBeVisible();
     const packageSource = page.locator('#qualification-package-source');
     await packageSource.locator(':scope > summary').click();
@@ -194,12 +208,12 @@ test('presents one combined result with technical evidence kept secondary', asyn
         await expect(inputTable).toContainText(version);
       }
     }
-    if (profile.adapterId === 'custom') {
-      await expect(page.getByText('Foundation journeys', { exact: true })).toHaveCount(2);
-      await expect(page.getByText('Adapter journeys', { exact: true })).toHaveCount(0);
-    } else {
-      await expect(page.getByText('Shared foundation', { exact: true })).toHaveCount(2);
-      await expect(page.getByText('Adapter journeys', { exact: true })).toHaveCount(2);
+    await expect(page.getByText('The shared foundation', { exact: true })).toHaveCount(0);
+    if (journeyCount > 1) {
+      await journeys.nth(0).locator(':scope > summary').click();
+      await journeys.nth(1).locator(':scope > summary').click();
+      await expect(journeys.nth(0)).toHaveAttribute('open', '');
+      await expect(journeys.nth(1)).toHaveAttribute('open', '');
     }
     await expect(page.getByRole('link', { name: /Inspect the .* attempt/u })).toHaveCount(0);
     if (releaseSummary.kind === 'pinned') {
@@ -218,6 +232,14 @@ test('presents one combined result with technical evidence kept secondary', asyn
       }
     }
   }
+});
+
+test('reveals a journey addressed by its direct link', async ({ page }) => {
+  await page.goto(
+    `${toPublicPath('/evidence/qualification/custom/custom/')}#qualification-create-grounded-agent`,
+  );
+
+  await expect(page.locator('#qualification-create-grounded-agent')).toHaveAttribute('open', '');
 });
 
 test('replays qualification evidence through human-readable and technical views', async ({
@@ -245,10 +267,12 @@ test('replays qualification evidence through human-readable and technical views'
     initialGroundedAgentTrial.retries.actor.length + initialGroundedAgentTrial.retries.judge.length;
 
   const journey = page
-    .locator('main details')
+    .locator('details[data-accordion-item]')
     .filter({ hasText: 'Create a grounded agent' })
     .first();
-  await journey.locator(':scope > summary').click();
+  if ((await journey.getAttribute('open')) === null) {
+    await journey.locator(':scope > summary').click();
+  }
 
   const replayTab = journey.getByRole('tab', { name: 'Replay' });
   const projectTab = journey.getByRole('tab', { name: 'Project' });
@@ -334,7 +358,7 @@ test('replays qualification evidence through human-readable and technical views'
     throw new Error('The current Custom attempt has no unchanged project journey.');
   }
   const unchangedJourney = page
-    .locator('main details')
+    .locator('details[data-accordion-item]')
     .filter({ hasText: unchangedCase.result.title })
     .first();
   await unchangedJourney.locator(':scope > summary').click();
@@ -359,10 +383,12 @@ test('keeps the qualification project story readable without JavaScript', async 
   const page = await context.newPage();
   await page.goto(toPublicPath(customProfile.route));
   const journey = page
-    .locator('main details')
+    .locator('details[data-accordion-item]')
     .filter({ hasText: groundedAgentCase.result.title })
     .first();
-  await journey.locator(':scope > summary').click();
+  if ((await journey.getAttribute('open')) === null) {
+    await journey.locator(':scope > summary').click();
+  }
 
   await expect(journey.getByRole('heading', { name: 'Starting project' })).toBeVisible();
   await expect(journey.getByRole('heading', { name: 'Agent task' })).toBeVisible();
@@ -473,8 +499,13 @@ test(
         packageDetails.getByRole('heading', { name: 'Exact executed closure' }),
       ).toBeVisible();
 
-      const caseEvidence = page.locator('main details').filter({ hasText: 'Release case' }).first();
-      await caseEvidence.locator(':scope > summary').click();
+      const caseEvidence = page
+        .locator('details[data-accordion-item]')
+        .filter({ hasText: 'Release case' })
+        .first();
+      if ((await caseEvidence.getAttribute('open')) === null) {
+        await caseEvidence.locator(':scope > summary').click();
+      }
       await expect(caseEvidence).toContainText(
         'The initial trial failed, then two fresh confirmation trials independently passed the complete case.',
       );

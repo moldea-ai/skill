@@ -19,6 +19,12 @@ export type ISemanticEvidenceMatch = 'exact';
 // repository location from which one website attempt was resolved at build time
 export type ISemanticEvidenceSource = { kind: 'current' } | { commit: string; kind: 'pinned' };
 
+// reviewed visitor copy that exactly matches the loaded source and recorded case identities
+export interface ISemanticCasePresentationModel {
+  summary: string;
+  title: string;
+}
+
 // exact actor or judge host shown with one trial
 export interface ISemanticEvaluationActorHostModel {
   developerInstructionsSha256: string;
@@ -135,9 +141,11 @@ export interface ISemanticEvaluationCaseModel {
   groupId: ISemanticEvaluationGroupId | null;
   hasCurrentCaseDefinition: boolean;
   id: string;
+  presentation: ISemanticCasePresentationModel | null;
   rationale: string | null;
   replay: IEvaluationReplayModel | null;
   scenario: string;
+  summary: string;
   status: ISemanticEvaluationCaseStatus;
   title: string;
   trials: ISemanticAttemptTrialModel[];

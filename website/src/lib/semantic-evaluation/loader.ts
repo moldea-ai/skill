@@ -234,13 +234,27 @@ const createCaseModel = (
             ? { authenticatedCaseDefinitionDigest: createAuthenticatedJsonDigest(caseDefinition) }
             : {}),
         });
+  const caseDefinitionDigest =
+    caseDefinition === null
+      ? null
+      : isAuthenticatedSource
+        ? createAuthenticatedJsonDigest(caseDefinition)
+        : createSemanticCaseDefinitionDigest(caseDefinition);
   const hasMatchingCaseDefinition =
     caseDefinition !== null &&
+    (replayProjection === null || replayProjection.caseDefinitionDigest === caseDefinitionDigest);
+  const hasCompatiblePresentation =
+    presentation !== undefined &&
+    caseDefinitionDigest === presentation.reviewedCaseDefinitionDigest &&
     (replayProjection === null ||
-      replayProjection.caseDefinitionDigest ===
-        (isAuthenticatedSource
-          ? createAuthenticatedJsonDigest(caseDefinition)
-          : createSemanticCaseDefinitionDigest(caseDefinition)));
+      replayProjection.caseDefinitionDigest === presentation.reviewedCaseDefinitionDigest);
+  const resolvedPresentation = hasCompatiblePresentation
+    ? {
+        summary:
+          'summary' in presentation ? presentation.summary : (caseDefinition?.scenario ?? ''),
+        title: presentation.title,
+      }
+    : null;
   const hasCurrentCaseDefinition = hasMatchingCaseDefinition && presentation !== undefined;
   const activeCaseDefinition = hasMatchingCaseDefinition ? caseDefinition : null;
   const operation = activeCaseDefinition?.operation.trim() ?? '';
@@ -259,6 +273,7 @@ const createCaseModel = (
       : null,
     hasCurrentCaseDefinition,
     id,
+    presentation: resolvedPresentation,
     rationale: latestTrial?.rationale ?? null,
     replay: replayProjection?.replay ?? null,
     scenario:
@@ -268,9 +283,8 @@ const createCaseModel = (
           ? `${scenario} Requested operation: ${operation}.`
           : (scenario ?? ''),
     status: attemptCase?.status ?? 'pending',
-    title: hasMatchingCaseDefinition
-      ? (presentation?.title ?? toTitleCase(id.replaceAll('-', ' ')))
-      : id,
+    summary: resolvedPresentation?.summary ?? activeCaseDefinition?.scenario ?? id,
+    title: resolvedPresentation?.title ?? toTitleCase(id.replaceAll('-', ' ')),
     trials: attemptCase?.trials.map((trial) => ({ ...trial })) ?? [],
   };
 };

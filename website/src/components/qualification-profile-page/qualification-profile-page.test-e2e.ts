@@ -2,10 +2,10 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../../tooling/resource-calibration/profiles.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../tooling/resource-calibration/profiles.mjs';
 
-import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
-import { getQualificationReleaseEvidenceSummary } from '../../../lib/release-evidence/index.ts';
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+import { getQualificationReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -26,11 +26,8 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await page.goto(toPublicPath('/evidence/qualification/'));
 
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Adapter qualification' }),
+    page.getByRole('heading', { level: 1, name: 'Does the connection stay aligned?' }),
   ).toBeVisible();
-  await expect(page.getByText('Unique projects', { exact: true }).locator('..')).toContainText(
-    String(qualificationModel.uniqueJourneyCount),
-  );
   await expect(
     page.getByRole('heading', { level: 2, name: 'Open one result. See every journey.' }),
   ).toBeVisible();
@@ -40,13 +37,6 @@ test('represents the current qualification evidence state', async ({ page }) => 
     await expect(profileLink.locator('[data-evidence-status]')).toHaveAttribute(
       'data-evidence-status',
       releaseSummary.status,
-    );
-    const journeyCount = profile.sharedCases.length + profile.cases.length;
-    await expect(
-      profileLink.getByText('Project journeys', { exact: true }).locator('..'),
-    ).toContainText(String(journeyCount));
-    await expect(profileLink.getByText('Verified', { exact: true }).locator('..')).toContainText(
-      `${releaseSummary.status === 'passed' ? journeyCount : 0}/${journeyCount}`,
     );
     await expect(profileLink.getByText('Follow the journeys', { exact: true })).toBeVisible();
   }
@@ -187,12 +177,7 @@ test('presents one combined result with technical evidence kept secondary', asyn
       'data-evidence-status',
       releaseSummary.status,
     );
-    await expect(page.getByText('Project journeys', { exact: true }).locator('..')).toContainText(
-      String(profile.sharedCases.length + profile.cases.length),
-    );
-    await expect(page.getByText('Verified results', { exact: true }).locator('..')).toContainText(
-      String(profile.sharedCases.length + profile.cases.length),
-    );
+    await expect(page.getByRole('navigation', { name: 'Journey chapters' })).toBeVisible();
     await expect(page.getByText('How this result was produced', { exact: true })).toBeVisible();
     const packageSource = page.locator('#qualification-package-source');
     await packageSource.locator(':scope > summary').click();
@@ -210,16 +195,11 @@ test('presents one combined result with technical evidence kept secondary', asyn
       }
     }
     if (profile.adapterId === 'custom') {
-      await expect(page.getByText('Core behavior', { exact: true })).toHaveCount(
-        profile.cases.length,
-      );
+      await expect(page.getByText('Foundation journeys', { exact: true })).toHaveCount(2);
+      await expect(page.getByText('Adapter journeys', { exact: true })).toHaveCount(0);
     } else {
-      await expect(page.getByText('Shared foundation', { exact: true })).toHaveCount(
-        profile.sharedCases.length,
-      );
-      await expect(page.getByText('Adapter-specific', { exact: true })).toHaveCount(
-        profile.cases.length,
-      );
+      await expect(page.getByText('Shared foundation', { exact: true })).toHaveCount(2);
+      await expect(page.getByText('Adapter journeys', { exact: true })).toHaveCount(2);
     }
     await expect(page.getByRole('link', { name: /Inspect the .* attempt/u })).toHaveCount(0);
     if (releaseSummary.kind === 'pinned') {
@@ -228,6 +208,14 @@ test('presents one combined result with technical evidence kept secondary', asyn
       await expect(
         resultSource.getByRole('heading', { name: 'Verified release source' }),
       ).toBeVisible();
+      const assurance = profile.currentAssurance;
+      if (assurance !== null && assurance.baselineAttempt !== null) {
+        const attemptItems = resultSource.locator('ol > li');
+        await expect(attemptItems.nth(0)).toContainText('Shared foundation attempt');
+        await expect(attemptItems.nth(0)).toContainText(assurance.baselineAttempt.result.attemptId);
+        await expect(attemptItems.nth(1)).toContainText('Adapter-specific result');
+        await expect(attemptItems.nth(1)).toContainText(assurance.directAttempt.result.attemptId);
+      }
     }
   }
 });
@@ -258,7 +246,7 @@ test('replays qualification evidence through human-readable and technical views'
 
   const journey = page
     .locator('main details')
-    .filter({ has: page.getByRole('heading', { level: 3, name: 'Create a grounded agent' }) })
+    .filter({ hasText: 'Create a grounded agent' })
     .first();
   await journey.locator(':scope > summary').click();
 
@@ -291,7 +279,7 @@ test('replays qualification evidence through human-readable and technical views'
   await expect(projectTab).toHaveAttribute('aria-selected', 'true');
   await expect(journey.getByRole('heading', { name: 'Starting project' })).toBeVisible();
   await expect(journey.getByRole('heading', { name: 'Agent task' })).toBeVisible();
-  await expect(journey.getByRole('heading', { name: 'Verified result' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'Recorded result' })).toBeVisible();
   await expect(journey.getByRole('heading', { name: 'Starting files' })).toBeVisible();
   await expect(journey.getByRole('heading', { name: 'What changed' })).toBeVisible();
   await expect(
@@ -347,7 +335,7 @@ test('replays qualification evidence through human-readable and technical views'
   }
   const unchangedJourney = page
     .locator('main details')
-    .filter({ has: page.getByRole('heading', { level: 3, name: unchangedCase.result.title }) })
+    .filter({ hasText: unchangedCase.result.title })
     .first();
   await unchangedJourney.locator(':scope > summary').click();
   await unchangedJourney.getByRole('tab', { name: 'Project' }).click();
@@ -372,13 +360,13 @@ test('keeps the qualification project story readable without JavaScript', async 
   await page.goto(toPublicPath(customProfile.route));
   const journey = page
     .locator('main details')
-    .filter({ has: page.getByRole('heading', { level: 3, name: groundedAgentCase.result.title }) })
+    .filter({ hasText: groundedAgentCase.result.title })
     .first();
   await journey.locator(':scope > summary').click();
 
   await expect(journey.getByRole('heading', { name: 'Starting project' })).toBeVisible();
   await expect(journey.getByRole('heading', { name: 'Agent task' })).toBeVisible();
-  await expect(journey.getByRole('heading', { name: 'Verified result' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'Recorded result' })).toBeVisible();
   await expect(journey.getByRole('link', { name: 'View complete project source' })).toBeVisible();
   await expect(journey.getByRole('link', { name: 'View raw patch' })).toBeVisible();
   const widths = await page.evaluate(() => ({
@@ -479,24 +467,17 @@ test(
       await expect(
         page.getByRole('heading', { level: 1, name: recoveredProfile.title }),
       ).toBeVisible();
-      await expect(
-        page
-          .getByText('Recovered after confirmation', { exact: true })
-          .locator('..')
-          .getByText('1'),
-      ).toBeVisible();
       const packageDetails = page.locator('#qualification-package-source');
       await packageDetails.locator(':scope > summary').click();
       await expect(
         packageDetails.getByRole('heading', { name: 'Exact executed closure' }),
       ).toBeVisible();
 
-      const caseEvidence = page
-        .locator('main details')
-        .filter({ has: page.getByRole('heading', { level: 3, name: 'Release case' }) })
-        .first();
+      const caseEvidence = page.locator('main details').filter({ hasText: 'Release case' }).first();
       await caseEvidence.locator(':scope > summary').click();
-      await expect(caseEvidence).toContainText('Recovered after two fresh passing confirmations.');
+      await expect(caseEvidence).toContainText(
+        'The initial trial failed, then two fresh confirmation trials independently passed the complete case.',
+      );
       await expect(caseEvidence.getByRole('tab', { name: 'Replay' })).toHaveAttribute(
         'aria-selected',
         'true',
@@ -505,7 +486,7 @@ test(
       await expect(caseEvidence.getByText('Coding agent', { exact: true }).first()).toBeVisible();
       await caseEvidence.getByRole('tab', { name: 'Project' }).click();
       await expect(caseEvidence.getByRole('heading', { name: 'Starting project' })).toBeVisible();
-      await expect(caseEvidence.getByRole('heading', { name: 'Verified result' })).toBeVisible();
+      await expect(caseEvidence.getByRole('heading', { name: 'Recorded result' })).toBeVisible();
       await expect(caseEvidence.getByRole('link', { name: 'View raw patch' })).toHaveAttribute(
         'href',
         terminalPatchUrl,

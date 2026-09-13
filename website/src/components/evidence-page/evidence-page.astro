@@ -1,0 +1,223 @@
+---
+import { ArrowRight, GitCompareArrows, Link2, ListChecks, Save } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
+import FilePreview from '@moldea.ai/website-ui/file-preview';
+import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
+import EvidenceOptionCard from '../evidence-option-card/evidence-option-card.astro';
+import BaseLayout from '../../layouts/base-layout.astro';
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+import { resolveQualificationCasePresentation } from '../../lib/qualification/index.ts';
+
+const model = loadWebsiteModel();
+const basePath = import.meta.env.BASE_URL;
+const refundCase = model.semanticEvaluation.currentAssurance?.cases.find(
+  ({ id, presentation }) => id === 'adopted-relevance-changed-behavior' && presentation !== null,
+);
+const anthropicProfile = model.qualification.profiles.find(
+  ({ adapterId }) => adapterId === 'anthropic',
+);
+const anthropicCase = anthropicProfile?.cases.find(
+  ({ id }) => id === 'repair-anthropic-tool-registration',
+);
+const anthropicAttempt =
+  anthropicProfile?.currentAssurance?.directAttempt ?? anthropicProfile?.currentLatest ?? null;
+const anthropicPresentation =
+  anthropicProfile && anthropicCase
+    ? resolveQualificationCasePresentation(
+        anthropicProfile.adapterId,
+        anthropicProfile.implementationId,
+        anthropicCase,
+        null,
+      )
+    : null;
+const anthropicEvidencePresentation =
+  anthropicProfile && anthropicCase && anthropicAttempt
+    ? resolveQualificationCasePresentation(
+        anthropicProfile.adapterId,
+        anthropicProfile.implementationId,
+        anthropicCase,
+        anthropicAttempt.result.provenance.profileDigest,
+      )
+    : null;
+const anthropicStatus =
+  anthropicEvidencePresentation === null ? 'not-recorded' : anthropicAttempt?.result.status;
+const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
+const stages = [
+  { description: 'The refund rule lives in one durable place.', icon: Save, title: 'Saved rules' },
+  {
+    description: 'The rule names the code and guide that must agree.',
+    icon: Link2,
+    title: 'Connected files',
+  },
+  {
+    description: 'The same decision can be checked after every change.',
+    icon: ListChecks,
+    title: 'Checks you can run again',
+  },
+] as const;
+---
+
+<BaseLayout
+  title="Evidence"
+  description="See how moldea keeps project rules connected to code and checks them again."
+  {breadcrumbs}
+>
+  <div class="page-shell pt-7">
+    <Breadcrumbs
+      basePath={basePath}
+      items={breadcrumbs}
+    />
+  </div>
+  <header class="relative mt-6 overflow-hidden border-y border-border">
+    <HeroBackdrop /><div class="page-shell relative py-12 sm:py-16">
+      <p class="eyebrow mb-4">Evidence you can follow</p><h1
+        class="section-title max-w-4xl font-semibold"
+      >
+        Keep the rules connected to the code.
+      </h1><p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
+        Your coding agent writes the change. <code class="inline-code">moldea</code> supplies saved project
+        rules, connections to affected files, and checks you can run again.
+      </p>
+    </div>
+  </header>
+  <div class="page-shell grid gap-6 py-10 lg:grid-cols-2 lg:py-14">
+    <EvidenceOptionCard
+      title="Does the agent make the right call?"
+      description="A realistic decision checks whether the implementation and the project knowledge move together."
+      status={refundCase?.status ?? 'not-recorded'}
+    >
+      <div
+        slot="visual"
+        class="grid gap-4"
+      >
+        <ol class="grid gap-3 sm:grid-cols-3">
+          {
+            stages.map(({ description, icon: Icon, title }) => (
+              <li class="rounded-xl border border-border bg-muted/30 p-4">
+                <>
+                  <Icon
+                    class="size-5"
+                    aria-hidden="true"
+                  />
+                  <p class="mt-3 font-semibold">{title}</p>
+                  <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+                </>
+              </li>
+            ))
+          }
+        </ol><div class="grid gap-2 text-sm sm:grid-cols-2">
+          <FilePreview
+            path="src/refund-policy.js"
+            label="Implementation"
+          /><FilePreview
+            path="docs/refund-agent.md"
+            label="Saved guidance"
+          />
+        </div><p class="text-sm leading-6 text-muted-foreground">
+          <strong class="text-foreground">The agent uses judgment</strong> to make the change. <strong
+            class="text-foreground">The project keeps structure</strong
+          > around what must stay aligned and how to check it.
+        </p>
+      </div>
+      <div
+        slot="actions"
+        class="flex flex-wrap gap-3"
+      >
+        <ActionLink href={withBase(model.semanticEvaluation.route, basePath)}
+          >Explore decision evidence <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          /></ActionLink
+        >{
+          refundCase && (
+            <ActionLink
+              href={withBase(
+                `${model.semanticEvaluation.route}#semantic-case-${refundCase.id}`,
+                basePath,
+              )}
+              variant="outline"
+            >
+              Open the refund example
+            </ActionLink>
+          )
+        }
+      </div>
+    </EvidenceOptionCard>
+    <EvidenceOptionCard
+      title="Does the integration keep references aligned?"
+      description="Adapter qualification checks the project files used to connect an AI service. It uses saved fixtures and file checks, without claiming to run the provider."
+      status={anthropicStatus ?? 'not-recorded'}
+    >
+      <div
+        slot="visual"
+        class="grid gap-4"
+      >
+        <div class="flex items-center gap-3">
+          <AdapterCompanyLogo adapterId="anthropic" /><p class="font-semibold">
+            Anthropic Messages API
+          </p>
+        </div>{
+          anthropicPresentation?.toolNameRepair ? (
+            <>
+              <>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <>
+                    <FilePreview
+                      path={anthropicPresentation.toolNameRepair.manifestPath}
+                      label="Saved reference"
+                    >
+                      <CodeBlock
+                        language="yaml"
+                        source={`name: ${anthropicPresentation.toolNameRepair.declaredName}`}
+                        variant="plain"
+                      />
+                    </FilePreview>
+                    <FilePreview
+                      path={anthropicPresentation.toolNameRepair.sourcePath}
+                      label="Project source"
+                    >
+                      <CodeBlock
+                        language="typescript"
+                        source={`name: '${anthropicPresentation.toolNameRepair.correctedName}'`}
+                        variant="plain"
+                      />
+                    </FilePreview>
+                  </>
+                </div>
+                <p class="flex items-center gap-2 text-sm text-muted-foreground">
+                  <GitCompareArrows
+                    class="size-4 shrink-0"
+                    aria-hidden="true"
+                  />
+                  The check expects the saved reference to match the project source.
+                </p>
+              </>
+            </>
+          ) : (
+            <p class="rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+              Open the adapter record to inspect the current source-owned setup.
+            </p>
+          )
+        }
+      </div>
+      <div slot="actions">
+        <ActionLink href={withBase(anthropicProfile?.route ?? model.qualification.route, basePath)}
+          >Follow the adapter journey <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          /></ActionLink
+        >
+      </div>
+    </EvidenceOptionCard>
+    <p class="max-w-4xl text-base leading-7 text-muted-foreground lg:col-span-2">
+      You can build and maintain these connections and checks yourself. <code class="inline-code"
+        >moldea</code
+      > gives your team a shared system to reuse across changes.
+    </p>
+  </div>
+</BaseLayout>

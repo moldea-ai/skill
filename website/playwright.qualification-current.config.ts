@@ -15,7 +15,7 @@ const outputDirectory = '.qualification-current-dist';
 
 export default defineConfig({
   testDir: './src',
-  testMatch: '**/pages/evidence/qualification/_index.test-e2e.ts',
+  testMatch: '**/components/qualification-profile-page/qualification-profile-page.test-e2e.ts',
   grep: /@qualification-current-fixture/u,
   globalTeardown: './scripts/cleanup-qualification-current-e2e-fixture.ts',
   fullyParallel: false,

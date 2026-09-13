@@ -231,7 +231,7 @@ export const createQualificationSearchRecords = (
     (profile) => getQualificationReleaseEvidenceSummary(profile).kind === 'pinned',
   ).length;
   const landingRecord: ISearchRecord = {
-    description: `Follow realistic coding projects that verify ${qualification.profiles.length} integrations${verifiedSourceAttemptCount === 0 ? '.' : `, including ${verifiedSourceAttemptCount} results backed by authenticated release sources.`}`,
+    description: `See how saved project fixtures check the files used by ${qualification.profiles.length} AI service integrations${verifiedSourceAttemptCount === 0 ? '.' : `, including ${verifiedSourceAttemptCount} results backed by authenticated release sources.`}`,
     route: qualification.route,
     searchText: normalizeSearchText(
       'Adapter qualification support gate methodology profiles projects attempts evidence results',
@@ -303,18 +303,21 @@ export const createSemanticEvaluationSearchRecords = (
       [
         group.title,
         group.description,
-        ...group.cases.flatMap(({ expectedCriteria, forbiddenCriteria, scenario, title }) => [
-          title,
-          scenario,
-          ...expectedCriteria.map(({ criterion }) => criterion),
-          ...forbiddenCriteria.map(({ criterion }) => criterion),
-        ]),
+        ...group.cases.flatMap(
+          ({ expectedCriteria, forbiddenCriteria, scenario, summary, title }) => [
+            title,
+            summary,
+            scenario,
+            ...expectedCriteria.map(({ criterion }) => criterion),
+            ...forbiddenCriteria.map(({ criterion }) => criterion),
+          ],
+        ),
       ].join(' '),
     ),
     title: group.title,
   }));
   const attemptRecords = semanticEvaluation.attempts.map(({ result, route }): ISearchRecord => ({
-    description: `Recorded ${result.status} semantic attempt with ${result.passedCaseCount + result.recoveredCaseCount} of ${result.totalCaseCount} scenarios successful.`,
+    description: `Recorded ${result.status} semantic attempt with ${result.totalCaseCount} decisions and their verdicts.`,
     route,
     searchText: normalizeSearchText(
       [
@@ -578,7 +581,7 @@ export const createWebsiteModel = (
       ...createSearchRecords(documents),
       {
         description:
-          'Choose behavioral semantic evaluation or real-project adapter qualification evidence.',
+          'See how moldea keeps saved project rules connected to code and checks them again.',
         route: EVIDENCE_ROUTE,
         searchText: normalizeSearchText(
           'Evidence testing evaluation semantic behavior qualification adapters projects proof',

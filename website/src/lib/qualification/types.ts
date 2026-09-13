@@ -949,9 +949,21 @@ export interface IQualificationProfileCaseModel {
   purpose: string;
   scenario: z.infer<typeof QualificationScenarioSchema>;
   scenarioSourceUrl: string;
+  sourceProfileDigest: string;
   task: string;
   taskSourceUrl: string;
   title: string;
+}
+
+// reviewed visitor copy that is compatible with one exact profile and case identity
+export interface IQualificationCasePresentationModel {
+  summary: string;
+  toolNameRepair?: {
+    correctedName: string;
+    declaredName: string;
+    manifestPath: string;
+    sourcePath: string;
+  };
 }
 
 // complete evidence for one initial or confirmation trial
@@ -981,6 +993,29 @@ export interface IQualificationAttemptCaseModel {
   replay: IEvaluationReplayModel;
   result: z.infer<typeof QualificationCaseResultSchema>;
   trials: IQualificationAttemptTrialModel[];
+}
+
+// one profile definition paired with its owning immutable attempt evidence
+export interface IQualificationJourneyModel {
+  evidence: IQualificationAttemptCaseModel;
+  origin: 'Adapter-specific' | 'Core behavior' | 'Shared foundation';
+  presentation: IQualificationCasePresentationModel | null;
+  profileCase: IQualificationProfileCaseModel;
+}
+
+// one visitor chapter that preserves source case order within a qualification origin
+export interface IQualificationJourneyChapterModel {
+  description: string;
+  id: 'adapter-journeys' | 'foundation-journeys';
+  journeys: IQualificationJourneyModel[];
+  title: string;
+}
+
+// effective attempts and ordered visitor chapters for one qualification profile
+export interface IQualificationJourneyCollectionModel {
+  attempts: IQualificationAttemptModel[];
+  chapters: IQualificationJourneyChapterModel[];
+  journeys: IQualificationJourneyModel[];
 }
 
 // immutable attempt and the validated artifacts presented by the website

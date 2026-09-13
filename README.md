@@ -164,6 +164,8 @@ moldea/
 
 ## Project blueprint
 
+Evidence presentation copy is bound to reviewed source and recorded-evidence digests, so stale examples fall back to source-owned wording.
+
 - `moldea/` is the complete distributed Agent Skill.
 - `docs/` contains concise public concepts and workflows. It does not document APIs or HTTP endpoints.
 - `tests/` and `fixtures/` contain deterministic conformance and semantic cases.

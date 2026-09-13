@@ -76,9 +76,7 @@ describe('verifyProductionBuild', () => {
       model.semanticEvaluation.currentAssurance === null ? null : 'exact',
     );
     expect(homeHtml).toContain(`${successfulCaseCount}/${model.semanticEvaluation.caseCount}`);
-    expect(evidenceHtml).toContain(
-      `${successfulCaseCount} of ${model.semanticEvaluation.caseCount} decisions verified`,
-    );
+    expect(evidenceHtml).toContain('Keep the rules connected to the code.');
     expect(semanticHtml).toContain(
       `${successfulCaseCount}/${model.semanticEvaluation.caseCount} decisions verified`,
     );

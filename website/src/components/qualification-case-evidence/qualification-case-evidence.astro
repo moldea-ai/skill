@@ -1,10 +1,9 @@
 ---
-import { ChevronDown } from '@lucide/astro';
+import Accordion from '@moldea.ai/website-ui/accordion';
 import EvaluationReplay from '@moldea.ai/website-ui/evaluation-replay';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
 import TabbedPanels from '@moldea.ai/website-ui/tabbed-panels';
-import { prettifyTime } from 'web-utils-kit';
 
 import type {
   IQualificationAttemptCaseModel,
@@ -16,8 +15,12 @@ import QualificationTrialEvidence from '../qualification-trial-evidence/qualific
 
 interface Props {
   evidence: IQualificationAttemptCaseModel;
+  group?: string;
+  id?: string;
+  isOpen?: boolean;
   number: number;
-  origin: string;
+  presentation?:
+    import('../../lib/qualification/index.ts').IQualificationCasePresentationModel | null;
   profileCase: IQualificationProfileCaseModel;
 }
 
@@ -28,7 +31,16 @@ const TABS = [
   { id: 'technical', label: 'Technical', slotName: 'technical' },
 ] as const;
 
-const { evidence, number, origin, profileCase } = Astro.props;
+const {
+  evidence,
+  group = 'qualification-cases',
+  id: suppliedId,
+  isOpen = false,
+  number,
+  presentation = null,
+  profileCase,
+} = Astro.props;
+const id = suppliedId ?? `qualification-${profileCase.id}`;
 const { result, trials } = evidence;
 const terminalTrial = trials.at(-1);
 if (terminalTrial === undefined) {
@@ -110,56 +122,13 @@ const resultRationale = [
 const resultRationaleHtml = await renderMarkdownFragment(resultRationale, markdownOptions);
 ---
 
-<details class="group surface-card min-w-0 overflow-hidden">
-  <summary
-    class="flex cursor-pointer list-none items-start gap-3 p-5 marker:content-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:gap-4 sm:p-6"
-  >
-    <span class="mt-0.5 font-mono text-xs font-bold text-muted-foreground">
-      {String(number).padStart(2, '0')}
-    </span>
-    <span class="min-w-0 flex-1">
-      <span class="flex flex-wrap items-center gap-2">
-        <h3 class="text-lg font-semibold tracking-tight">
-          <InlineBrandText
-            text={result.title}
-            variant="compact"
-          />
-        </h3>
-        <EvidenceStatus status={result.status} />
-        <span
-          class="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground"
-        >
-          {origin}
-        </span>
-      </span>
-      <span class="mt-2 block text-sm leading-6 text-muted-foreground">
-        <InlineBrandText
-          text={profileCase.catalogDescription}
-          variant="compact"
-        />
-      </span>
-      {
-        result.status === 'recovered' && (
-          <span class="mt-2 block text-sm font-medium text-foreground">
-            Recovered after two fresh passing confirmations.
-          </span>
-        )
-      }
-    </span>
-    <span class="flex shrink-0 items-center gap-3">
-      <time
-        class="hidden text-sm text-muted-foreground sm:inline"
-        datetime={`PT${result.durationMs / 1_000}S`}
-      >
-        {prettifyTime(result.durationMs)}
-      </time>
-      <ChevronDown
-        class="mt-1 size-5 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none"
-        aria-hidden="true"
-      />
-    </span>
-  </summary>
-
+<Accordion
+  {group}
+  {id}
+  {isOpen}
+  title={`${String(number).padStart(2, '0')} · ${profileCase.title}`}
+  description={presentation?.summary ?? profileCase.purpose}
+>
   <div class="border-t border-border px-5 py-6 sm:px-6">
     <TabbedPanels
       ariaLabel="Qualification journey views"
@@ -325,4 +294,4 @@ const resultRationaleHtml = await renderMarkdownFragment(resultRationale, markdo
       </div>
     </TabbedPanels>
   </div>
-</details>
+</Accordion>

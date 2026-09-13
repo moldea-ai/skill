@@ -6,8 +6,8 @@ import type {
 } from '@moldea.ai/website-ui/evaluation-replay-model';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
-import { getSemanticReleaseEvidenceSummary } from '../../../lib/release-evidence/index.ts';
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+import { getSemanticReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -23,7 +23,9 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
     (releaseSummary.result?.recoveredCaseCount ?? 0);
   await page.goto(toPublicPath('/evidence/semantic/'));
 
-  await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Does it make the right call?' }),
+  ).toBeVisible();
   await expect(
     page
       .getByText(`${successfulCaseCount}/${semanticEvaluation.caseCount} decisions verified`, {

@@ -52,3 +52,7 @@ From the repository root, the equivalent wrappers are `npm run docs:check`, `npm
 ## Boundaries
 
 The website is a read-only renderer. It does not execute qualification, invoke models, mutate evidence, access provider APIs, or infer missing release state. Release eligibility remains owned by the root release check.
+
+## Evidence presentation
+
+The evidence pages use compact, visual decision and adapter journeys. Editorial summaries appear only when fixed reviewed digests match the loaded source and recorded evidence. Qualification describes repository fixtures and file checks; it does not claim to run live providers.

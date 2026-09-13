@@ -13,6 +13,7 @@ import type {
 } from './types.ts';
 
 const PROFILE_CASE: IQualificationProfileCaseModel = {
+  sourceProfileDigest: 'a'.repeat(64),
   catalogChallenge: 'Do not change files outside the declared workspace.',
   catalogDescription: 'Exercises one complete qualification journey.',
   id: 'release-case',

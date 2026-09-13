@@ -18,6 +18,10 @@ export type {
   IQualificationJudgeSkipped,
   IQualificationOperationalRetry,
   IQualificationProfileCaseModel,
+  IQualificationCasePresentationModel,
+  IQualificationJourneyChapterModel,
+  IQualificationJourneyCollectionModel,
+  IQualificationJourneyModel,
   IQualificationProfileAssuranceModel,
   IQualificationProjectChangeGroup,
   IQualificationProjectEvidenceModel,
@@ -32,6 +36,12 @@ export type {
   IQualificationTextArtifactModel,
   IWorkspaceAssertionResult,
 } from './types.ts';
+
+// visitor presentation
+export {
+  createQualificationJourneyCollection,
+  resolveQualificationCasePresentation,
+} from './presentation.ts';
 
 // project evidence
 export { createQualificationProjectEvidence } from './project-transformers.ts';

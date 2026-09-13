@@ -1,5 +1,6 @@
 // types
 export type {
+  ISemanticCasePresentationModel,
   ISemanticCaseDefinition,
   ISemanticCriterion,
   ISemanticAttemptTrialModel,

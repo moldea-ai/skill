@@ -50,6 +50,14 @@ When the declared runtime is unavailable in the exact installed CLI, evaluation 
 
 In a dedicated repository, the coding agent directly inspects the developer-identified related application, including its instructions, material files, and safe read-only Git state. It does not substitute a local summary. The final report classifies each repository as clean, dirty, unborn, unavailable, or uninspected, then states what canonical inspection cannot observe, what each related path establishes, and what remains unknown.
 
+## Keep impact relationships meaningful
+
+`affectedBy` tells the coding agent which changes may affect an agent's behavior. It is not a list of everything needed to build the project. Prefer the sources that define tools, policy, schemas, routing, instruction loading, and runtime integration, plus focused tests for those behaviors.
+
+Package manifests and lockfiles belong when relevant dependencies materially affect that agent. Compiler configuration and type declarations need a demonstrated behavioral role. Do not add them to every agent by default, or exclude them solely because of their filenames. Exact bindings already establish relevance and do not need mechanical duplication.
+
+A matching path starts a check of the actual change. It does not force an instruction edit when behavior remains the same.
+
 ## Prove instruction provenance
 
 The coding agent traces how canonical `instruction.md` content reaches each runtime invocation or provider-side configuration. Application loading, an adapter, build or provisioning logic, or a declared exact mirror can provide the chain. Durable policy remains canonical regardless of whether a runtime exposes `instructions`, `input`, continuation prompts, messages, or tool payloads. Those fields can retain legitimate user, task, and turn content, but not an independently maintained copy of reusable behavior. Superseded copies are removed when the authorized final design makes them obsolete.

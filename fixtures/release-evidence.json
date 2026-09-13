@@ -1,7 +1,7 @@
 {
   "qualification": {
     "mode": "pinned",
-    "reason": "Release 5.0.5 restores natural-language agent planning, creation and contextual continuation without product-name cues or existing bindings. It strengthens semantic and shared qualification prompts while retaining all scenarios, and preserves the 5.0.4 local-eligibility, bundled-gate and containment corrections. Deterministic activation, empty-project gate, launcher, harness and website regression checks cover the release candidate. Original model runs did not evaluate these changed instructions or prompts; both evidence domains are explicitly reused, with no new paid semantic evaluation or adapter qualification.",
+    "reason": "Release 5.0.6 adds explicit bounded project repair and precise behavioral impact guidance. Existing semantic and adapter evidence is retained by explicit maintainer authorization; deterministic regression checks cover the changed contracts, but the new repair workflow has not received a fresh model evaluation.",
     "source": {
       "commit": "c3416c52ae69a3f26d2e38c07ba98aa8531e358d",
       "evidence": {
@@ -158,7 +158,7 @@
   "schemaVersion": 2,
   "semantic": {
     "mode": "pinned",
-    "reason": "Release 5.0.5 restores natural-language agent planning, creation and contextual continuation without product-name cues or existing bindings. It strengthens semantic and shared qualification prompts while retaining all scenarios, and preserves the 5.0.4 local-eligibility, bundled-gate and containment corrections. Deterministic activation, empty-project gate, launcher, harness and website regression checks cover the release candidate. Original model runs did not evaluate these changed instructions or prompts; both evidence domains are explicitly reused, with no new paid semantic evaluation or adapter qualification.",
+    "reason": "Release 5.0.6 adds explicit bounded project repair and precise behavioral impact guidance. Existing semantic and adapter evidence is retained by explicit maintainer authorization; deterministic regression checks cover the changed contracts, but the new repair workflow has not received a fresh model evaluation.",
     "source": {
       "commit": "926907e26feac6a55929f68ca134aeaf41a6a4b5",
       "evidence": {
@@ -176,8 +176,8 @@
     }
   },
   "target": {
-    "dependencyClosureSha256": "9ca71389bbd740bf47da5bf884881963a3985ca8677f19451563f0c9291859f9",
-    "portableSkillSha256": "51e777e54409c627988627ea7a9cd667a9986a86ced2b4c4f1208f848a91afc2",
-    "version": "5.0.5"
+    "dependencyClosureSha256": "0b53470830337afb70e8f4bab3847051d62be4664cdf17ea1ad167370a4c129b",
+    "portableSkillSha256": "5902dfc2a52233aeb62411d290d30a6e7c00966aee4adb74f2370335ec012218",
+    "version": "5.0.6"
   }
 }

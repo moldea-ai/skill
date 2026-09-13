@@ -298,7 +298,7 @@ describe('portable skill contract', () => {
   test('uses lowercase identity, repository-bound initialization, and a narrow description', () => {
     const frontmatter = parseFrontmatter();
     assert.deepEqual(frontmatter.metadata, {
-      version: '5.0.7',
+      version: '5.0.8',
       cliVersionRange: '^8.0.0',
       coreVersionRange: '^4.0.1',
       cliJsonSchemaVersion: 4,
@@ -436,58 +436,17 @@ describe('portable skill contract', () => {
     assert.match(skill, /before inspecting providers or concluding/u);
     assert.match(skill, /Validate only after writes/u);
     assert.match(skill, /route-5 repair validation or explicit three-record compression/u);
-    assert.match(skill, /use one content-free `inspect`/u);
-    assert.match(skill, /Request named-agent `content` only when semantics matter/u);
-    assert.match(skill, /never inspect afterward or request manifest content/u);
-    assert.match(skill, /pair every behavioral or integration unknown with a concrete resolver/u);
     assert.match(skill, /load only `references\/continuous-maintenance\.md`/u);
-    assert.match(
-      skill,
-      /do not inspect dependency trees, CLI package internals, executable links/u,
-    );
-    assert.match(
-      skill,
-      /known missing CLI selects `references\/local-tooling\.md` before foundation writes/u,
-    );
-    assert.match(
-      skill,
-      /write the `version: 1` plus LF manifest and `\/moldea\/project\.md`, then invoke exactly this bundled writer before the first CLI call/u,
-    );
-    assert.match(skill, /scripts\/managed-readme\.mjs --repository/u);
-    assert.match(
-      skill,
-      /foundation-evidence decision before any dependency, canonical-state, or managed README write/u,
-    );
-    assert.match(skill, /Insufficient or materially incomplete evidence stops writes/u);
-    assert.match(skill, /Apply the reference's insufficient\/partial foundation report/u);
-    assert.match(skill, /Structural validation proves format, not the truth or sufficiency/u);
-    assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
-    assert.match(skill, /run `validate` at most once more/u);
     assert.match(skill, /Before foundation analysis, inspect `package\.json`/u);
     assert.match(skill, /Executable install configuration preempts foundation analysis/u);
     assert.match(skill, /return its complete four-field blocked-install result/u);
     assert.match(skill, /Never substitute a partial summary/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
     assert.match(skill, /before foundation classification, package-manager execution, questions/u);
-    assert.match(skill, /name the project-owned evidence that established the foundation/u);
-    assert.match(skill, /Always end a successful initialization response/u);
-    assert.match(skill, /one short, evidence-supported `Next:` action; do not omit it/u);
-    assert.match(skill, /continue normal repository work/u);
-    assert.match(
-      skill,
-      /Do not steer the developer toward agent creation without a separate goal/u,
-    );
     assert.match(skill, /Read exact task-owned files first/u);
     assert.match(skill, /request named `content` directly/u);
     assert.match(skill, /use at most one canonical `content` call total/u);
     assert.match(skill, /do not read project context or a second canonical body/u);
-    assert.match(
-      skill,
-      /Run `composition` only when local runtime availability or readiness matters/u,
-    );
-    assert.match(skill, /it never establishes canonical assignment/u);
-    assert.match(skill, /matching `kind: agent` record's `agentId` and `runtimeId`/u);
-    assert.match(skill, /sole canonical content-free source/u);
     assert.match(skill, /Every recursive search or listing must exclude VCS internals/u);
     assert.match(skill, /Never dump a complete lockfile, dependency inventory, generated tree/u);
     assert.match(skill, /more than 65,536 model-visible bytes/u);
@@ -516,6 +475,13 @@ describe('portable skill contract', () => {
       join(SKILL_ROOT, 'references', 'continuous-maintenance.md'),
       'utf8',
     );
+    assert.match(maintenance, /load `local-tooling\.md` directly/u);
+    assert.match(maintenance, /before creating canonical files or the managed README block/u);
+    assert.match(maintenance, /scripts\/managed-readme\.mjs --repository/u);
+    assert.match(maintenance, /preserves every byte outside that region/u);
+    assert.match(maintenance, /exactly one final `validate`/u);
+    assert.match(maintenance, /run `validate` at most once more/u);
+    assert.match(maintenance, /do not enumerate dependencies, inspect CLI internals/u);
     assert.match(maintenance, /Do not validate a partial foundation/u);
     assert.match(maintenance, /executable-installation hazard preempts foundation classification/u);
     assert.match(
@@ -764,6 +730,17 @@ describe('portable skill contract', () => {
     assert.match(runtime, /invoke `composition` first and retain its conclusion/u);
     assert.match(
       runtime,
+      /Composition establishes local executable availability, never canonical assignment/u,
+    );
+    assert.match(runtime, /use one content-free `inspect`/u);
+    assert.match(runtime, /at most one named agent body only when its semantics matter/u);
+    assert.match(runtime, /request `\/moldea\/moldea\.yaml` through `content`/u);
+    assert.match(runtime, /add `inspect` after a content attempt/u);
+    assert.match(runtime, /Pair each unknown with a concrete reliable resolver/u);
+    assert.match(runtime, /Preserve the canonical runtime when an evidence gap prevents a change/u);
+    assert.match(runtime, /never a fallback for missing evidence/u);
+    assert.match(
+      runtime,
       /do not retrieve compatibility websites, open browsers, or use network clients/u,
     );
     assert.match(runtime, /Absence of diagnostics alone does not prove behavioral fit/u);
@@ -831,8 +808,6 @@ describe('portable skill contract', () => {
     assert.match(skill, /Never invoke CLI, inspect or validate canonical state/u);
     assert.match(skill, /or append moldea status/u);
     assert.match(skill, /owner was reconsidered and remains accurate without an edit/u);
-    assert.match(skill, /Missing evidence never changes an established runtime/u);
-    assert.match(skill, /Preserve established facts/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
 
     const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
@@ -1513,7 +1488,9 @@ describe('activation and semantic protection', () => {
     const root = createIsolatedToolingProject('npm');
     const outside = mkdtempSync(join(tmpdir(), 'moldea-gate-outside-'));
     try {
-      cpSync(join(root, 'moldea'), join(outside, 'moldea'), { recursive: true });
+      cpSync(join(root, 'moldea'), join(outside, 'moldea'), {
+        recursive: true,
+      });
       rmSync(join(root, 'moldea'), { recursive: true });
       symlinkSync(
         join(outside, 'moldea'),
@@ -1539,7 +1516,9 @@ describe('CLI 8 bounded machine protocol', () => {
     const root = createLauncherProject('throw new Error("must not execute");');
     const outside = mkdtempSync(join(tmpdir(), 'moldea-launcher-outside-'));
     try {
-      cpSync(join(root, 'node_modules'), join(outside, 'node_modules'), { recursive: true });
+      cpSync(join(root, 'node_modules'), join(outside, 'node_modules'), {
+        recursive: true,
+      });
       rmSync(join(root, 'node_modules'), { recursive: true });
       symlinkSync(
         join(outside, 'node_modules'),
@@ -1594,7 +1573,7 @@ describe('CLI 8 bounded machine protocol', () => {
       readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'),
     );
     const declaredCliVersion = packageManifest.devDependencies['@moldea.ai/cli'];
-    assert.equal(packageManifest.version, '5.0.7');
+    assert.equal(packageManifest.version, '5.0.8');
     assert.match(declaredCliVersion, /^\d+\.\d+\.\d+$/u);
     assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 4);
     assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, declaredCliVersion);

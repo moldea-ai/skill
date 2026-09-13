@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `5.0.7` supports exactly:
+Release `5.0.8` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -63,7 +63,9 @@ The host retains higher absolute ceilings of 128 completed commands, 32 `moldea`
 
 ## Runtime compatibility
 
-The installed CLI reports which adapters are available. The coding agent uses local adapter contracts, package declarations, source and inspection evidence to establish eligibility and recognized patterns. It does not fetch compatibility websites or open a browser for ordinary runtime work. The [packages catalog](https://packages.moldea.ai/compatibility/runtimes.json) remains an optional discovery reference.
+The installed CLI reports which adapters are available. The coding agent uses current inspection evidence first. For an unresolved compatibility question, it reads the installed adapter README and only the relevant linked local guide, plus the repository's selected package declaration or lockfile entry when version evidence is needed. Adapter implementation is inspected only for a specific material question those sources cannot resolve. Missing documentation is an evidence gap, not proof of incompatibility. The agent does not fetch compatibility websites or open a browser for ordinary runtime work. The [packages catalog](https://packages.moldea.ai/compatibility/runtimes.json) remains an optional discovery reference.
+
+Complete, unchanged instructions may be reused while they remain available in the active context and the host permits it. Missing instructions after compaction must be read again; summaries are not substitutes. Repository facts and execution controls still require their own current checks. This policy adds no persistent cache or package-discovery probes. See the [reference-reading checks](/docs/reference-reading/) for verification boundaries.
 
 Package ranges provide best-effort eligibility, not a blanket compatibility guarantee. A later stable version that satisfies the installed adapter's range remains eligible for inspection. For example, Eve 0.54.3 satisfies >=0.39.1. Qualification evidence covers the exact versions and source patterns that were tested, not every version admitted by a range.
 

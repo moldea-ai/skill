@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Use for natural-language AI-agent planning, creation, runtime integration, behavior changes, and review, including contextual continuations, after repository initialization. Users need not name moldea or know canonical paths. For every other repository task, use only the bundled two-byte relationship gate over known paths and abstain silently on a miss. Also use for explicit moldea operations, project repair, independent Agent Skill artifacts, and informational questions. Initialize only when explicitly requested; project repair may diagnose damaged adoption but must not initialize; abstain from other uninitialized repository work.
 metadata:
-  version: '5.0.7'
+  version: '5.0.8'
   cliVersionRange: '^8.0.0'
   coreVersionRange: '^4.0.1'
   cliJsonSchemaVersion: 4
@@ -16,6 +16,14 @@ Maintain context without owning work.
 Spell `moldea` lowercase, including sentence starts. Before responding, scan for violations. Preserve casing only in exact identifiers.
 
 Canonical status identifies storage, not conflict precedence. A generic reconcile request authorizes correction but selects no claim. Existing repository content is not a current developer choice, and neither conflicting asset nor its labels, relationships, mirrors, tests, implementation, or recency can resolve itself. Select only from a current developer statement that chooses one claim or a third independent source that explicitly resolves them. Otherwise stop all moldea calls and semantic writes, state both claims, and ask which governs immediately.
+
+## Reuse available instructions
+
+Every instruction to read or load a reference means make its complete instructions available, not repeat a completed read. Reuse instructions still fully available in the active context unless the installed skill or reference is known to have changed, or the host requires a fresh read. Read a newly required reference completely; a summary, filename, or remembered conclusion cannot replace missing instructions.
+
+After compaction, reload only required instructions no longer available. When an operation changes, select its owning reference without reloading unrelated guides. A topic change resets relevance and authorization, not automatically instruction availability. Changed repository evidence requires appropriate current checks, not rereading unchanged instructions. Never reuse authorization, trust, or a stale repository conclusion merely because a guide remains available.
+
+Use the host's existing conversation handoff when needed: retain the active operation, already-known installed skill identity, loaded reference paths, unresolved questions, and next step. It is a routing reminder, not permission or complete instructions. Add no persistent cache, repository status file, or hash, package-discovery, or CLI probe solely to track reads. Host instruction and execution requirements always apply.
 
 ## Establish the entry state first
 
@@ -94,23 +102,7 @@ Host workflows retain ownership. Their names never activate moldea; agent-work i
 
 For agent creation, an existing inline instruction is migration input. When source and tests establish behavior and runtime integration is authorized, complete the canonical, runtime, relationship, test, and final-validation change.
 
-Run `composition` only when local runtime availability or readiness matters; it never establishes canonical assignment. Without supplied assignment evidence, use one content-free `inspect`. The matching `kind: agent` record's `agentId` and `runtimeId` are the sole canonical content-free source for `agents.<id>.runtime.id`; counts prove nothing. Request named-agent `content` only when semantics matter; never inspect afterward or request manifest content. Use local adapter contracts and inspection evidence for eligibility; do not retrieve compatibility websites or open browsers. Report canonical assignment, repository fit, local adapter, and eligibility separately. Missing evidence never changes an established runtime to `custom`. Preserve established facts; pair every behavioral or integration unknown with a concrete resolver.
-
-## Initialize minimally
-
-When the executable-configuration preflight does not stop initialization, load only `references/continuous-maintenance.md` and apply its foundation-evidence decision before any dependency, canonical-state, or managed README write.
-
-Insufficient or materially incomplete evidence stops writes. Apply the reference's insufficient/partial foundation report and focused question; preserve files. Structural validation proves format, not the truth or sufficiency of the foundation.
-
-Sufficient context plus known missing CLI selects `references/local-tooling.md` before foundation writes. Complete safe installation first; failure stops writes and validation and reports package-manager changes. Never launch to confirm absence. Existing tooling needs no reinstall or `composition` probe. Use local-tooling for unexpected launcher failure. After success, do not inspect dependency trees, CLI package internals, executable links, global installations, or package-manager configuration.
-
-When evidence establishes no relationship, write the `version: 1` plus LF manifest and `/moldea/project.md`, then invoke exactly this bundled writer before the first CLI call:
-
-```text
-node <installed-skill-root>/scripts/managed-readme.mjs --repository <absolute-repository-root>
-```
-
-The writer preserves outside bytes. Failure stops before validation; never reproduce the block elsewhere. After the foundation exists, invoke exactly one launcher-backed `validate`. On success, stop without `inspect`; report adoption, name the project-owned evidence that established the foundation, changed files plus writer, validation, and diagnostics. The writer is not a moldea CLI call. Always end a successful initialization response with one short, evidence-supported `Next:` action; do not omit it. With no gap, continue normal repository work. Do not steer the developer toward agent creation without a separate goal. On structural failure, repair from diagnostics and run `validate` at most once more.
+When runtime availability, assignment, eligibility, or behavioral fit needs investigation, apply `references/runtime-compatibility.md`. It owns the local evidence sequence and reporting boundaries; do not begin package exploration before applying it.
 
 ## Use bounded canonical evidence
 

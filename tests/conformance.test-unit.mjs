@@ -298,7 +298,7 @@ describe('portable skill contract', () => {
   test('uses lowercase identity, repository-bound initialization, and a narrow description', () => {
     const frontmatter = parseFrontmatter();
     assert.deepEqual(frontmatter.metadata, {
-      version: '5.0.6',
+      version: '5.0.7',
       cliVersionRange: '^8.0.0',
       coreVersionRange: '^4.0.1',
       cliJsonSchemaVersion: 4,
@@ -447,7 +447,7 @@ describe('portable skill contract', () => {
     );
     assert.match(
       skill,
-      /Load `references\/local-tooling\.md` only when the launcher reports that repository tooling is unavailable or invalid/u,
+      /known missing CLI selects `references\/local-tooling\.md` before foundation writes/u,
     );
     assert.match(
       skill,
@@ -1594,7 +1594,7 @@ describe('CLI 8 bounded machine protocol', () => {
       readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'),
     );
     const declaredCliVersion = packageManifest.devDependencies['@moldea.ai/cli'];
-    assert.equal(packageManifest.version, '5.0.6');
+    assert.equal(packageManifest.version, '5.0.7');
     assert.match(declaredCliVersion, /^\d+\.\d+\.\d+$/u);
     assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 4);
     assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, declaredCliVersion);
@@ -1751,12 +1751,17 @@ describe('CLI 8 bounded machine protocol', () => {
         process.platform === 'win32' ? 'junction' : 'dir',
       );
 
+      const missingPackageBefore = readFileSync(join(missingRoot, 'package.json'));
       for (const root of [missingRoot, malformedRoot, prereleaseRoot, escapedRoot]) {
-        const result = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
-        assert.equal(result.status, 3);
-        assert.equal(result.stdout, '');
-        assert.notEqual(result.stderr, '');
+        for (const command of ['inspect', 'validate']) {
+          const result = runCli(root, [command, '--json', '--max-output-bytes', '65536']);
+          assert.equal(result.status, 3);
+          assert.equal(result.stdout, '');
+          assert.notEqual(result.stderr, '');
+        }
       }
+      assert.deepEqual(readdirSync(missingRoot), ['package.json']);
+      assert.deepEqual(readFileSync(join(missingRoot, 'package.json')), missingPackageBefore);
       assert.match(
         runCli(escapedRoot, ['inspect', '--json', '--max-output-bytes', '65536']).stderr,
         /escaped repository dependencies/u,

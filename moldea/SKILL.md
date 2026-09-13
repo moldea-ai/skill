@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Use for natural-language AI-agent planning, creation, runtime integration, behavior changes, and review, including contextual continuations, after repository initialization. Users need not name moldea or know canonical paths. For every other repository task, use only the bundled two-byte relationship gate over known paths and abstain silently on a miss. Also use for explicit moldea operations, project repair, independent Agent Skill artifacts, and informational questions. Initialize only when explicitly requested; project repair may diagnose damaged adoption but must not initialize; abstain from other uninitialized repository work.
 metadata:
-  version: '5.0.6'
+  version: '5.0.7'
   cliVersionRange: '^8.0.0'
   coreVersionRange: '^4.0.1'
   cliJsonSchemaVersion: 4
@@ -102,6 +102,8 @@ When the executable-configuration preflight does not stop initialization, load o
 
 Insufficient or materially incomplete evidence stops writes. Apply the reference's insufficient/partial foundation report and focused question; preserve files. Structural validation proves format, not the truth or sufficiency of the foundation.
 
+Sufficient context plus known missing CLI selects `references/local-tooling.md` before foundation writes. Complete safe installation first; failure stops writes and validation and reports package-manager changes. Never launch to confirm absence. Existing tooling needs no reinstall or `composition` probe. Use local-tooling for unexpected launcher failure. After success, do not inspect dependency trees, CLI package internals, executable links, global installations, or package-manager configuration.
+
 When evidence establishes no relationship, write the `version: 1` plus LF manifest and `/moldea/project.md`, then invoke exactly this bundled writer before the first CLI call:
 
 ```text
@@ -109,8 +111,6 @@ node <installed-skill-root>/scripts/managed-readme.mjs --repository <absolute-re
 ```
 
 The writer preserves outside bytes. Failure stops before validation; never reproduce the block elsewhere. After the foundation exists, invoke exactly one launcher-backed `validate`. On success, stop without `inspect`; report adoption, name the project-owned evidence that established the foundation, changed files plus writer, validation, and diagnostics. The writer is not a moldea CLI call. Always end a successful initialization response with one short, evidence-supported `Next:` action; do not omit it. With no gap, continue normal repository work. Do not steer the developer toward agent creation without a separate goal. On structural failure, repair from diagnostics and run `validate` at most once more.
-
-When the launcher succeeds, do not inspect dependency trees, CLI package internals, executable links, global installations, transient tools, or package-manager configuration. Load `references/local-tooling.md` only when the launcher reports that repository tooling is unavailable or invalid and the authorized operation can establish it. Before any package-manager invocation, inspect the exact package-manager configuration and apply its pre-execution stop contract.
 
 ## Use bounded canonical evidence
 

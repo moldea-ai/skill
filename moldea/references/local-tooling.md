@@ -2,11 +2,13 @@
 
 Read this reference only after direct relevance or a successful relationship gate when the selected operation needs deterministic CLI evidence. Explicit initialization may read only its executable-configuration stop contract before foundation classification after bounded inert project metadata establishes that the exact local CLI is absent and installation would load that configuration; otherwise read it after `continuous-maintenance.md` selects the required tooling step.
 
+For initialization with sufficient project context and a known missing CLI, this step precedes foundation writes and the first launcher call. Complete installation before proceeding; failure stops initialization before canonical or managed README writes and validation. Do not issue a deliberate failing launcher call to select this reference. An already-present compatible CLI needs no installation or `composition` probe. The direct CLI-availability proof below is a separate requested operation, not an initialization prerequisite.
+
 For a direct request to prove or safely invoke the local CLI, apply this reference before inspecting a declared dependency, package-manager provider, binary link, or other provider evidence and before reaching any conclusion. The required first proof attempt is the closed launcher `composition --json` call below.
 
 ## Supported contract
 
-Skill 5.0.6 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^4.0.1`, stable `@moldea.ai/cli` releases satisfying `^8.0.0`, repository format 1, and CLI JSON schema 4. Never substitute a global, transient, out-of-range, or prerelease CLI.
+Skill 5.0.7 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^4.0.1`, stable `@moldea.ai/cli` releases satisfying `^8.0.0`, repository format 1, and CLI JSON schema 4. Never substitute a global, transient, out-of-range, or prerelease CLI.
 
 Use only `<installed-skill-root>/scripts/moldea-cli.mjs`. The launcher resolves the repository-root-local package and executable, verifies the package name, exact installed stable version, supported repository declaration, declared `moldea` binary, Core dependency range, and resolved-path containment from inert package metadata, then invokes the executable without a shell. Require the exact envelope version to match that installed version. Do not reproduce these probes, inspect links manually, search parent workspaces, inspect unrelated repositories, use package-manager launchers, or search `PATH` for another copy.
 

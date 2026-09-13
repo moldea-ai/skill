@@ -21,7 +21,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.6"
+npx skills add "moldea-ai/skill#v5.0.7"
 ```
 
 Repository installation is required for supported `moldea` use because the team must share the selected skill version with the project. A global installation does not establish repository adoption and is not a supported installation path.
@@ -37,9 +37,9 @@ This request explicitly authorizes adoption. The coding agent handles the initia
 1. Inspect the Git working tree, repository structure, code, configuration, documentation, and other high-information evidence.
 2. Select the `initialize` operation and confirm that the repository and developer authority permit the required writes.
 3. Determine whether the evidence establishes a sufficient project foundation, requires focused clarification, or provides no meaningful project context yet.
-4. Once the foundation is sufficient, establish this skill release's compatible repository-local `@moldea.ai/cli` development dependency through the repository's package manager when needed. A stable installed CLI 8 may provide earlier read-only evidence after its declaration, exact lockfile-selected version, composition, and containment are verified. It never relies on a global CLI fallback.
-5. Once the foundation is sufficient, create the minimum canonical state and run the bundled deterministic writer for the owned README awareness block.
-6. Run deterministic inspection and relevant project-native checks, then map the material sources to the foundation conclusions they established and report files, decisions, verification, and practical next actions.
+4. Once the foundation is sufficient, safely install the compatible repository-local `@moldea.ai/cli` development dependency when it is known to be missing. Complete installation before foundation writes or validation. If installation fails, stop and report any package-manager changes. Already-present compatible tooling needs no reinstall or availability probe; a global CLI is never a fallback.
+5. With sufficient context and required tooling established, create the minimum canonical state and run the bundled deterministic writer for the owned README awareness block.
+6. Run final structural validation, then map the material sources to the foundation conclusions they established and report files, decisions, verification, and practical next actions.
 
 The minimum canonical foundation is:
 
@@ -110,7 +110,7 @@ You do not need to:
 
 The coding agent owns the safe interaction with the skill and repository-local tooling.
 
-During initialization, it writes the two canonical files and invokes the bundled README writer before making one final validation call. The writer is a local skill operation, not a CLI call. With no evidenced relationships, `/moldea/moldea.yaml` contains only `version: 1` and its final LF. A successful validation ends the operation without a follow-up inspection. If bounded structural diagnostics identify a repairable foundation error, the agent may correct it and validate once more.
+After establishing sufficient project context, initialization safely installs a known missing compatible local CLI before canonical or managed README writes. Failed installation stops those writes and validation and reports any package-manager changes. Already-present compatible tooling needs no reinstall or availability probe. During initialization, it writes the two canonical files and invokes the bundled README writer before making one final validation call. The writer is a local skill operation, not a CLI call. With no evidenced relationships, `/moldea/moldea.yaml` contains only `version: 1` and its final LF. A successful validation ends the operation without a follow-up inspection. If bounded structural diagnostics identify a repairable foundation error, the agent may correct it and validate once more.
 
 Ordinary requests that do not pass the relevance gate activate no `moldea` work, whether or not the repository is adopted. Initialization adds a managed README block that tells a supported repository-aware host to select the repository-bound skill for each repository task. The selected entrypoint runs the two-byte gate, but a miss loads no workflow reference, runs no CLI command, and produces no `moldea` report. Initialization remains an explicit operation and never interrupts unrelated work.
 
@@ -125,10 +125,10 @@ npx skills add moldea-ai/skill
 A release-pinned installation never moves to another tag automatically. To update it, choose the desired published release and rerun the installation command with that tag. For example, the current release is:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.6"
+npx skills add "moldea-ai/skill#v5.0.7"
 ```
 
-Replace `v5.0.6` with the desired newer published tag when one becomes available.
+Replace `v5.0.7` with the desired newer published tag when one becomes available.
 
 Updating the skill refreshes its portable instructions and references. It does not initialize a project, change `/moldea/**`, install the `moldea` CLI globally, or alter a repository's canonical project state.
 

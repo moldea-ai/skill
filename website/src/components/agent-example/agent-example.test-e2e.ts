@@ -16,6 +16,11 @@ test('shows the runtime example immediately and makes its connected files keyboa
   await expect(example.getByText('You', { exact: true })).toBeVisible();
   await expect(example.getByText('Example', { exact: true })).toHaveCount(0);
   await expect(example.getByText('Coding agent', { exact: true })).toBeVisible();
+  await expect(
+    example.getByText('I created the support agent and connected everything it needs.', {
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(example.getByText('Coding agent with moldea', { exact: true })).toHaveCount(0);
   await expect(example.locator('[data-agent-response-mark]')).toBeVisible();
   await expect(example.getByText('instructions: loadSupportInstruction()')).toBeVisible();

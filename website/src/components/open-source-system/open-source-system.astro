@@ -1,5 +1,15 @@
 ---
-import { ArrowDown, ArrowRight, Braces, Check, CircleAlert, Equal, Files } from '@lucide/astro';
+import {
+  ArrowDown,
+  ArrowRight,
+  Braces,
+  Check,
+  Equal,
+  ExternalLink,
+  Files,
+  Link2,
+  Unlink,
+} from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
@@ -148,7 +158,10 @@ const basePath = import.meta.env.BASE_URL;
             aria-hidden="true"
           />
         </li>
-        <li class="rounded-xl bg-primary-foreground p-4 text-primary">
+        <li
+          class="light-surface-selection rounded-xl bg-primary-foreground p-4 text-primary"
+          data-deterministic-result
+        >
           <Check
             class="size-5"
             aria-hidden="true"
@@ -167,9 +180,10 @@ const basePath = import.meta.env.BASE_URL;
     <div class="mt-5 grid gap-3 sm:grid-cols-2">
       <article class="min-w-0 rounded-xl border border-border bg-background p-5 shadow-surface">
         <h3 class="flex items-center gap-2 font-semibold">
-          <CircleAlert
+          <Unlink
             class="size-5 shrink-0 text-destructive"
             aria-hidden="true"
+            data-connection-state-icon="disconnected"
           />
           Disconnected
         </h3>
@@ -189,9 +203,10 @@ const basePath = import.meta.env.BASE_URL;
       </article>
       <article class="min-w-0 rounded-xl border border-border bg-background p-5 shadow-surface">
         <h3 class="flex items-center gap-2 font-semibold">
-          <Check
+          <Link2
             class="size-5 shrink-0 text-success"
             aria-hidden="true"
+            data-connection-state-icon="connected"
           />
           Connected
         </h3>
@@ -274,6 +289,11 @@ const basePath = import.meta.env.BASE_URL;
           variant="link"
         >
           Explore adapter packages
+          <ExternalLink
+            class="size-3.5"
+            aria-hidden="true"
+            data-external-link-icon
+          />
         </ActionLink>
       </div>
     </section>

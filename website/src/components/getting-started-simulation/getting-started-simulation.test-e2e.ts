@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
+import { LANDING_EXAMPLE } from '../../lib/landing-example/index.ts';
 import { INSTALL_COMMAND, SKILLS_DIRECTORY_URL } from '../../lib/model/constants.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
@@ -29,25 +30,26 @@ test('shows one install followed by an ordinary coding-agent request', async ({ 
     'href',
     toPublicPath('/docs/getting-started/'),
   );
-  await expect(steps).toHaveCount(2);
+  await expect(steps).toHaveCount(3);
   await expect(
     steps.nth(0).getByText('Install it in this project.', { exact: true }),
   ).toBeVisible();
   await expect(steps.nth(0).locator('[data-install-command] code')).toHaveText(INSTALL_COMMAND);
   await expect(
-    steps.nth(1).getByText('Describe the outcome naturally.', { exact: true }),
+    steps.nth(1).getByText('Initialize the project once.', { exact: true }),
   ).toBeVisible();
+  await expect(steps.nth(1).getByText('Initialize moldea', { exact: true })).toBeVisible();
   await expect(
-    steps.nth(1).getByText('Initialize moldea for this repository.', { exact: true }),
+    steps.nth(2).getByText('Describe the outcome naturally.', { exact: true }),
   ).toBeVisible();
+  await expect(steps.nth(2).getByText(LANDING_EXAMPLE.request, { exact: true })).toBeVisible();
   await expect(
     gettingStarted.getByRole('heading', { level: 3, name: 'Your coding agent handles the rest' }),
   ).toBeVisible();
   await expect(
-    gettingStarted.getByText(
-      'Project context initialized. Keep working with your coding agent as usual.',
-      { exact: true },
-    ),
+    gettingStarted.getByText('Support agent created. Instructions and order lookup connected.', {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(gettingStarted.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(
     1,

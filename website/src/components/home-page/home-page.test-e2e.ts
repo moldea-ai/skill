@@ -74,19 +74,19 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   await page.goto(toPublicPath('/'));
 
   const orderedHeadings = [
-    'Yes. The difference is what the next session inherits.',
-    'One skill for the complete moldea workflow.',
-    'Change one rule. See everything it affects.',
-    'Same project. Same check. Same result.',
-    'Project context lives beside the code.',
-    'See what was tested.',
-    'Use the coding agent you already trust.',
-    'One install. One ordinary request.',
+    { level: 2, name: 'Yes. The difference is what the next session inherits.' },
+    { level: 2, name: 'One skill for the complete moldea workflow.' },
+    { level: 2, name: 'Change one rule. See everything it affects.' },
+    { level: 2, name: 'Same project. Same check. Same result.' },
+    { level: 2, name: 'Project context lives beside the code.' },
+    { level: 2, name: 'See what was tested.' },
+    { level: 2, name: 'One install. One ordinary request.' },
+    { level: 3, name: 'Use the coding agent you already trust.' },
   ] as const;
   const headingTops: number[] = [];
 
-  for (const name of orderedHeadings) {
-    const heading = page.getByRole('heading', { level: 2, name });
+  for (const { level, name } of orderedHeadings) {
+    const heading = page.getByRole('heading', { level, name });
     await expect(heading).toBeVisible();
     headingTops.push(await heading.evaluate((element) => element.getBoundingClientRect().top));
   }
@@ -104,17 +104,15 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     new Set(sectionHeadingTypography.map((typography) => JSON.stringify(typography))).size,
   ).toBe(1);
 
-  const productStoryBackgrounds = await page
-    .locator(
-      '[data-home-hero], [data-why-moldea], [data-capabilities-overview], [data-behavior-alignment], [data-open-source-system], [data-repository-format], [data-home-evidence], [data-coding-agent-compatibility], [data-getting-started]',
-    )
-    .evaluateAll((sections) =>
-      sections.map((section) => getComputedStyle(section).backgroundColor),
-    );
-  expect(productStoryBackgrounds).toHaveLength(9);
-  productStoryBackgrounds.slice(1).forEach((backgroundColor, index) => {
-    expect(backgroundColor).not.toBe(productStoryBackgrounds[index]);
-  });
+  const [heroBackground, evidenceBackground] = await Promise.all([
+    page
+      .locator('[data-home-hero]')
+      .evaluate((section) => getComputedStyle(section).backgroundColor),
+    page
+      .locator('[data-home-evidence]')
+      .evaluate((section) => getComputedStyle(section).backgroundColor),
+  ]);
+  expect(heroBackground).not.toBe(evidenceBackground);
 
   await expect(page.getByRole('link', { name: 'Explore adapter packages' })).toHaveAttribute(
     'href',
@@ -124,18 +122,17 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     name: 'One skill for the complete moldea workflow.',
   });
   await expect(capabilitiesSection.getByRole('listitem')).toHaveCount(6);
-  for (const capability of [
-    'Plan agent systems',
+  const capabilityHeadings = [
     'Establish project truth',
+    'Plan agent systems',
     'Create real agents',
     'Build Agent Skills',
     'Keep behavior current',
     'Evaluate and repair',
-  ]) {
-    await expect(
-      capabilitiesSection.getByRole('heading', { level: 3, name: capability }),
-    ).toBeVisible();
-  }
+  ] as const;
+  await expect(capabilitiesSection.getByRole('heading', { level: 3 })).toHaveText(
+    capabilityHeadings,
+  );
   const evidenceSection = page.getByRole('region', { name: 'See what was tested.' });
   await expect(
     evidenceSection.getByRole('link', { name: 'Inspect the decisions' }),
@@ -167,7 +164,7 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   });
   await expect(
     compatibilitySection.getByRole('heading', {
-      level: 2,
+      level: 3,
       name: 'Use the coding agent you already trust.',
     }),
   ).toBeVisible();
@@ -186,10 +183,19 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   );
 
   const footer = page.locator('footer');
-  await expect(footer.getByRole('link', { name: 'moldea Cloud' })).toHaveAttribute(
+  await expect(footer.getByRole('link', { name: 'Cloud' })).toHaveAttribute(
     'href',
     CLOUD_WEBSITE_URL,
   );
+  await expect(footer.getByRole('link', { name: 'Packages' })).toHaveAttribute(
+    'href',
+    PACKAGES_WEBSITE_URL,
+  );
+  const externalFooterLinks = footer.locator('a[target="_blank"]');
+  await expect(externalFooterLinks).toHaveCount(5);
+  for (let index = 0; index < (await externalFooterLinks.count()); index += 1) {
+    await expect(externalFooterLinks.nth(index).locator('[data-external-link-icon]')).toBeVisible();
+  }
   await expect(footer).toHaveCSS('margin-top', '0px');
 });
 
@@ -256,6 +262,45 @@ test('keeps selection visible on primary surfaces in light and dark themes', asy
     for (const selection of selections) {
       expect(selection.difference, `${colorScheme}: ${selection.label}`).toBeGreaterThan(40);
     }
+
+    const repeatableSelectionContrast = await page
+      .locator('[data-deterministic-result]')
+      .evaluate((surface) => {
+        const text = surface.querySelector('h3');
+        if (text === null) throw new Error('Repeatable evidence heading is missing.');
+        const selectionStyle = getComputedStyle(text, '::selection');
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const painter = canvas.getContext('2d');
+        if (painter === null) throw new Error('Selection color sampling is unavailable.');
+        const sample = (color: string): number[] => {
+          painter.clearRect(0, 0, 1, 1);
+          painter.fillStyle = color;
+          painter.fillRect(0, 0, 1, 1);
+          return [...painter.getImageData(0, 0, 1, 1).data].slice(0, 3);
+        };
+        const luminance = (channels: number[]): number => {
+          const linearChannels = channels.map((channel) => {
+            const normalized = channel / 255;
+            return normalized <= 0.04045
+              ? normalized / 12.92
+              : ((normalized + 0.055) / 1.055) ** 2.4;
+          });
+          return (
+            0.2126 * linearChannels[0]! + 0.7152 * linearChannels[1]! + 0.0722 * linearChannels[2]!
+          );
+        };
+        const backgroundLuminance = luminance(sample(selectionStyle.backgroundColor));
+        const foregroundLuminance = luminance(sample(selectionStyle.color));
+        const lightest = Math.max(backgroundLuminance, foregroundLuminance);
+        const darkest = Math.min(backgroundLuminance, foregroundLuminance);
+        return (lightest + 0.05) / (darkest + 0.05);
+      });
+    expect(
+      repeatableSelectionContrast,
+      `${colorScheme}: repeatable evidence selection`,
+    ).toBeGreaterThan(4.5);
     await context.close();
   }
 });

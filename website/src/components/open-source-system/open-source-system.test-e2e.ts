@@ -35,6 +35,12 @@ test('shows the deterministic flow and the complete supported adapter set', asyn
     deterministicChecks.getByRole('heading', { level: 3, name: 'Connected', exact: true }),
   ).toBeVisible();
   await expect(
+    deterministicChecks.locator('[data-connection-state-icon="disconnected"]'),
+  ).toBeVisible();
+  await expect(
+    deterministicChecks.locator('[data-connection-state-icon="connected"]'),
+  ).toBeVisible();
+  await expect(
     deterministicChecks.getByText("instructions: 'Be helpful.'", { exact: false }),
   ).toBeVisible();
   await expect(
@@ -60,6 +66,7 @@ test('shows the deterministic flow and the complete supported adapter set', asyn
   await expect(packagesLink).toHaveAttribute('href', PACKAGES_WEBSITE_URL);
   await expect(packagesLink).toHaveAttribute('target', '_blank');
   await expect(packagesLink).toHaveAttribute('rel', 'noopener noreferrer');
+  await expect(packagesLink.locator('[data-external-link-icon]')).toBeVisible();
   await expect(
     deterministicChecks.getByRole('link', { name: 'See adapter qualifications' }),
   ).toHaveAttribute('href', toPublicPath('/evidence/qualification/'));

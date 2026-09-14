@@ -36,10 +36,15 @@ test('traces the verified 30-day to 14-day maintenance story', async ({ page }) 
     'within 14 completed days',
   );
   await expect(behaviorAlignment.getByRole('button', { name: /Copy/u })).toHaveCount(0);
+  await expect(behaviorAlignment.getByText('Coding agent', { exact: true })).toBeVisible();
+  await expect(behaviorAlignment.locator('[data-behavior-agent-mark]')).toBeVisible();
+  await expect(behaviorAlignment.locator('[data-behavior-agent-response]')).toContainText(
+    'I updated the refund rule and everything connected to it.',
+  );
 
   const articleHeights = await behaviorAlignment
-    .locator('[data-behavior-alignment-flow] > article')
-    .evaluateAll((articles) => articles.map((article) => article.getBoundingClientRect().height));
+    .locator('[data-behavior-alignment-flow] > section')
+    .evaluateAll((sections) => sections.map((section) => section.getBoundingClientRect().height));
   expect(articleHeights).toHaveLength(2);
   expect(Math.abs((articleHeights[0] ?? 0) - (articleHeights[1] ?? 0))).toBeLessThan(2);
 });
@@ -59,8 +64,8 @@ test('stacks the maintenance flow without overflow at 320px', async ({ page }) =
   expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 
   const articleTops = await flow
-    .locator(':scope > article')
-    .evaluateAll((articles) => articles.map((article) => article.getBoundingClientRect().top));
+    .locator(':scope > section')
+    .evaluateAll((sections) => sections.map((section) => section.getBoundingClientRect().top));
   expect(articleTops).toHaveLength(2);
   expect(articleTops[1]).toBeGreaterThan(articleTops[0] ?? 0);
 });

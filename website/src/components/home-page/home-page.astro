@@ -46,12 +46,11 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
   description="Give coding agents saved project context, visible connections between agent behavior and code, and repeatable software checks."
 >
   <section
-    class="relative overflow-hidden border-b border-border bg-sidebar"
+    class="border-b border-border bg-background"
     data-home-hero
   >
-    <HeroBackdrop />
     <div
-      class="page-shell relative grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-12 lg:py-20"
+      class="page-shell grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-12 lg:py-20"
     >
       <div class="min-w-0">
         <div class="mb-6 flex flex-wrap items-center gap-3">
@@ -74,7 +73,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
         </h1>
         <p class="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
           <InlineBrandText
-            text="moldea gives the coding agent you already use project context that survives each session, plus repeatable checks for the instructions, tools, and code it creates."
+            text="moldea gives your coding agent project context that survives each session, then runs deterministic software checks on what it builds."
           />
         </p>
         <div
@@ -119,149 +118,164 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
   <RepositoryFormat />
 
   <section
-    class="border-b border-border bg-sidebar py-12 sm:py-16"
+    class="relative overflow-hidden border-b border-border bg-sidebar py-12 sm:py-16"
     aria-labelledby="home-evidence-title"
     data-home-evidence
   >
-    <div class="page-shell">
-      <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end">
-        <div>
-          <p class="eyebrow mb-4">Proof before release</p>
-          <h2
-            id="home-evidence-title"
-            class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
-          >
-            See what was tested.
-          </h2>
-        </div>
-        <p class="text-lg leading-8 text-muted-foreground lg:justify-self-end">
-          Open the request, project changes, and verdict behind each recorded result.
-        </p>
-      </header>
-
-      <div class="mt-7 grid sm:gap-3 md:grid-cols-2 md:gap-4">
-        <article
-          class="flex min-w-0 flex-col border-b border-border py-6 sm:rounded-xl sm:border sm:bg-card sm:p-5 sm:shadow-surface"
-          data-home-evidence-card="decision"
+    <HeroBackdrop />
+    <div class="page-shell relative">
+      <div
+        class="dark-surface-selection -mx-4 overflow-hidden bg-primary text-primary-foreground sm:mx-0 sm:rounded-3xl sm:shadow-raised"
+      >
+        <header
+          class="grid gap-5 px-4 py-7 sm:px-8 sm:py-9 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end lg:px-10"
         >
-          <div class="flex items-center gap-3">
-            <span
-              class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted"
+          <div>
+            <p class="eyebrow mb-4 text-current/60">Proof before release</p>
+            <h2
+              id="home-evidence-title"
+              class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
             >
-              <ListChecks
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <p class="eyebrow">Decision evaluation</p>
+              See what was tested.
+            </h2>
           </div>
-          <h3 class="mt-4 text-xl font-semibold tracking-tight sm:mt-5 sm:text-2xl">
-            Did it make the right call?
-          </h3>
           <p
-            class="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7"
+            class="text-base leading-7 text-current/70 sm:text-lg sm:leading-8 lg:justify-self-end"
           >
-            See how it chooses context, changes files, and respects your boundaries.
+            Open the request, project changes, and verdict behind each recorded result.
           </p>
-          <div class="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2 text-sm sm:mt-6">
-            {
-              hasSemanticReleaseEvidence ? (
-                <>
+        </header>
+
+        <div class="grid gap-px bg-primary-foreground/15 md:grid-cols-2">
+          <article
+            class="light-surface-selection flex min-w-0 flex-col bg-primary-foreground p-5 text-primary sm:p-7"
+            data-home-evidence-card="decision"
+          >
+            <div class="flex items-center gap-3">
+              <span
+                class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"
+              >
+                <ListChecks
+                  class="size-5"
+                  aria-hidden="true"
+                />
+              </span>
+              <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
+                Decision evaluation
+              </p>
+            </div>
+            <h3 class="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
+              Did it make the right call?
+            </h3>
+            <p class="mt-3 max-w-xl text-sm leading-6 text-primary/70 sm:text-base sm:leading-7">
+              See how it chooses context, changes files, and respects your boundaries.
+            </p>
+            <div
+              class="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-primary/10 pt-5 sm:mt-7"
+            >
+              {
+                hasSemanticReleaseEvidence ? (
                   <p
-                    class="font-semibold"
+                    class="text-sm font-semibold"
                     data-semantic-release-count
                   >
-                    <span class="font-mono text-lg">
+                    <span class="block font-mono text-2xl tracking-tight">
                       {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount}
-                    </span>{' '}
+                    </span>
                     decisions verified
                   </p>
-                </>
-              ) : (
-                <p
-                  class="text-muted-foreground"
-                  data-semantic-release-count
-                >
-                  No release decision result is recorded yet.
-                </p>
-              )
-            }
-          </div>
-          <ActionLink
-            class="mt-5 self-start font-bold sm:mt-6"
-            href={withBase(model.semanticEvaluation.route, basePath)}
-            variant="link"
-          >
-            Inspect the decisions
-            <ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            />
-          </ActionLink>
-        </article>
+                ) : (
+                  <p
+                    class="max-w-xs text-sm text-primary/65"
+                    data-semantic-release-count
+                  >
+                    No release decision result is recorded yet.
+                  </p>
+                )
+              }
+              <ActionLink
+                class="font-bold"
+                href={withBase(model.semanticEvaluation.route, basePath)}
+              >
+                Inspect the decisions
+                <ArrowRight
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </ActionLink>
+            </div>
+          </article>
 
-        <article
-          class="flex min-w-0 flex-col py-6 sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-5 sm:shadow-surface"
-          data-home-evidence-card="qualification"
-        >
-          <div class="flex items-center gap-3">
-            <span
-              class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted"
+          <article
+            class="light-surface-selection flex min-w-0 flex-col bg-primary-foreground p-5 text-primary sm:p-7"
+            data-home-evidence-card="qualification"
+          >
+            <div class="flex items-center gap-3">
+              <span
+                class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"
+              >
+                <Cable
+                  class="size-5"
+                  aria-hidden="true"
+                />
+              </span>
+              <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
+                Adapter qualification
+              </p>
+            </div>
+            <h3 class="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
+              Does it work with your integration?
+            </h3>
+            <p class="mt-3 max-w-xl text-sm leading-6 text-primary/70 sm:text-base sm:leading-7">
+              Browse the projects built and checked with each supported adapter.
+            </p>
+            <div
+              class="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-primary/10 pt-5 sm:mt-7"
             >
-              <Cable
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <p class="eyebrow">Adapter qualification</p>
-          </div>
-          <h3 class="mt-4 text-xl font-semibold tracking-tight sm:mt-5 sm:text-2xl">
-            Does it work with your integration?
-          </h3>
-          <p
-            class="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7"
-          >
-            Browse the projects built and checked with each supported adapter.
-          </p>
-          <div class="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2 text-sm sm:mt-6">
-            {
-              hasQualificationReleaseEvidence ? (
-                <p
-                  class="font-semibold"
-                  data-qualification-release-count
-                >
-                  <span class="font-mono text-lg">
-                    {qualifiedProfileCount}/{model.qualification.profiles.length}
-                  </span>{' '}
-                  adapter setups qualified
-                </p>
-              ) : (
-                <p
-                  class="text-muted-foreground"
-                  data-qualification-release-count
-                >
-                  No adapter qualification result is recorded yet.
-                </p>
-              )
-            }
-          </div>
-          <ActionLink
-            class="mt-5 self-start font-bold md:mt-auto md:pt-6"
-            href={withBase(model.qualification.route, basePath)}
-            variant="link"
-          >
-            Inspect the adapters
-            <ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            />
-          </ActionLink>
-        </article>
+              {
+                hasQualificationReleaseEvidence ? (
+                  <p
+                    class="text-sm font-semibold"
+                    data-qualification-release-count
+                  >
+                    <span class="block font-mono text-2xl tracking-tight">
+                      {qualifiedProfileCount}/{model.qualification.profiles.length}
+                    </span>
+                    adapter setups qualified
+                  </p>
+                ) : (
+                  <p
+                    class="max-w-xs text-sm text-primary/65"
+                    data-qualification-release-count
+                  >
+                    No adapter qualification result is recorded yet.
+                  </p>
+                )
+              }
+              <ActionLink
+                class="font-bold"
+                href={withBase(model.qualification.route, basePath)}
+              >
+                Inspect the adapters
+                <ArrowRight
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </ActionLink>
+            </div>
+          </article>
+        </div>
       </div>
     </div>
   </section>
 
-  <CodingAgentCompatibility />
-
-  <GettingStartedSimulation />
+  <section
+    class="bg-sidebar py-12 sm:py-16"
+    data-adoption
+  >
+    <div class="page-shell">
+      <GettingStartedSimulation />
+      <CodingAgentCompatibility />
+    </div>
+  </section>
 </BaseLayout>

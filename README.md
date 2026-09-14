@@ -115,7 +115,7 @@ The numeric profile is source-controlled in `tooling/resource-calibration/profil
 
 | Outcome          | Example request                                                  |
 | ---------------- | ---------------------------------------------------------------- |
-| Initialize       | `Initialize moldea for this repository.`                         |
+| Initialize       | `Initialize moldea`                                              |
 | Plan             | `Plan the agents for this project's support-triage workflow.`    |
 | Create an agent  | `Create a support agent grounded in the current project policy.` |
 | Maintain context | `Update moldea context for the approved refund policy.`          |

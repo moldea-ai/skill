@@ -26,6 +26,12 @@ The shared layout adds copy controls to useful code blocks after each direct loa
 
 The landing page contrasts an ordinary coding-agent session with the durable project context, explicit connections, and repeatable checks the skill adds. Its agent, maintenance, deterministic-check, and Repository format visuals render from the same source snapshots in `src/lib/landing-example/fixture.ts`. Integration coverage materializes those snapshots in disposable Git repositories, runs the installed `@moldea.ai/cli`, checks deterministic repeatability and repository immutability, verifies the supported OpenAI instruction-loader and tool-registration evidence, exercises declared scope relationships, and executes the refund-rule boundary test. The hero presents the developer request followed by the coding agent's response, with keyboard-accessible tabs for its runtime call, saved instructions, and manifest. The maintenance example uses the same conversation pattern to connect the request to the application and agent-behavior changes. The displayed examples are illustrative and perform no network or model request. Getting started recommends the exact `Initialize moldea` request once before ordinary work. The landing page also derives its complete supported-adapter count from the validated qualification model rather than maintaining a separate presentation list.
 
+## Visual product pages
+
+`/capabilities/` presents the six product outcomes as visual, source-backed demonstrations. `/how-it-works/` follows one refund-policy change from saved project context through connections, edits, checks, and a later coding-agent session. Both routes reuse the canonical refund projections in `src/lib/landing-example/preview.ts`, publish through search, sitemap, canonical metadata, and `llms.txt`, and direct readers to the technical documentation for details.
+
+The primary header still links Capabilities and How it works to their technical documentation routes until the navigation journey is integrated. Examples retain their current navigation entry.
+
 ## Commands
 
 Install dependencies without lifecycle scripts:

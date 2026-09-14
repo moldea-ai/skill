@@ -1,0 +1,647 @@
+---
+import {
+  ArrowDown,
+  ArrowRight,
+  Bot,
+  Check,
+  FileCheck,
+  FileCode,
+  FileText,
+  GitBranch,
+  Link2,
+  MessageSquareText,
+  Search,
+  ShieldCheck,
+  Unlink,
+  UserRound,
+} from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
+import FilePreview from '@moldea.ai/website-ui/file-preview';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
+import BaseLayout from '../../layouts/base-layout.astro';
+import { LANDING_EXAMPLE, LANDING_EXAMPLE_PREVIEW } from '../../lib/landing-example/index.ts';
+import { PRODUCT_PAGE_METADATA } from '../../lib/model/constants.ts';
+
+const basePath = import.meta.env.BASE_URL;
+const pageMetadata = PRODUCT_PAGE_METADATA.howItWorks;
+const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'How it works' }];
+const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
+const stages = [
+  ['project-context', 'Project context'],
+  ['connections', 'Connections'],
+  ['changes', 'Changes'],
+  ['checks', 'Checks'],
+  ['next-session', 'Next session'],
+] as const;
+---
+
+<BaseLayout
+  title={pageMetadata.title}
+  description={pageMetadata.description}
+  {breadcrumbs}
+>
+  <div class="page-shell pt-4 sm:pt-7">
+    <Breadcrumbs
+      basePath={basePath}
+      items={breadcrumbs}
+    />
+  </div>
+
+  <header class="mt-4 border-b border-border bg-background sm:mt-6 sm:border-y">
+    <div class="page-shell py-10 sm:py-16 lg:py-20">
+      <div
+        class="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center lg:gap-14"
+      >
+        <div>
+          <p class="eyebrow mb-4">How it works</p>
+          <h1 class="section-title font-semibold">One change, followed all the way through.</h1>
+          <p class="mt-5 text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+            <InlineBrandText
+              text="moldea gives the coding agent the project context, connections, and checks needed to change agent behavior safely."
+            />
+          </p>
+          <p class="mt-4 text-sm leading-6 text-muted-foreground">
+            This project already has a support agent. <InlineBrandText text="Initialize moldea" />
+            saves the foundation once. Initialization alone does not create the agent.
+          </p>
+        </div>
+
+        <ol
+          class="grid gap-4"
+          aria-label="Example conversation"
+          data-workflow-conversation
+        >
+          <li class="flex max-w-xl items-start gap-3">
+            <span
+              class="dark-surface-selection inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+            >
+              <UserRound
+                class="size-4"
+                aria-hidden="true"
+              />
+            </span>
+            <div
+              class="rounded-2xl rounded-tl-sm border border-border bg-card px-4 py-3 shadow-surface"
+            >
+              <p class="text-xs font-semibold text-muted-foreground">You</p>
+              <p class="mt-1 text-sm leading-6 font-medium sm:text-base">
+                {LANDING_EXAMPLE.maintenanceRequest}
+              </p>
+            </div>
+          </li>
+          <li class="flex items-start gap-3">
+            <span
+              class="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"
+            >
+              <img
+                src={skillMarkPath}
+                width="207"
+                height="215"
+                alt=""
+                class="h-5 w-auto dark:invert"
+              />
+            </span>
+            <div
+              class="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-border bg-card px-4 py-3 shadow-raised"
+            >
+              <p class="text-xs font-semibold text-muted-foreground">Coding agent</p>
+              <p class="mt-1 text-sm leading-6 font-medium sm:text-base">
+                I updated the refund rule and everything connected to it.
+              </p>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <nav
+        class="mt-8 sm:mt-10"
+        aria-label="Workflow stages"
+      >
+        <ol
+          class="grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-5"
+        >
+          {
+            stages.map(([href, label], index) => (
+              <li>
+                <a
+                  class="flex h-full items-center gap-3 bg-card px-4 py-3.5 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+                  href={`#${href}`}
+                >
+                  <span class="font-mono text-xs text-muted-foreground">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <span>{label}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+    </div>
+  </header>
+
+  <section
+    id="project-context"
+    class="scroll-mt-24 border-b border-border bg-elevated py-12 sm:py-16"
+    aria-labelledby="project-context-title"
+    data-workflow-stage="project-context"
+  >
+    <div
+      class="page-shell grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center lg:gap-14"
+    >
+      <div>
+        <p class="eyebrow mb-3">01 Project context</p>
+        <h2
+          id="project-context-title"
+          class="text-3xl font-semibold tracking-tight sm:text-4xl"
+        >
+          Start with what the project already knows.
+        </h2>
+        <p class="mt-4 text-base leading-7 text-muted-foreground">
+          The coding agent finds the saved refund rule and the responsibility boundary: the
+          application decides eligibility, while the support agent explains it.
+        </p>
+        <div class="mt-5">
+          <ActionLink
+            class="font-bold"
+            href={withBase('/docs/project-state/', basePath)}
+            variant="link"
+            >Project state guide <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            /></ActionLink
+          >
+        </div>
+      </div>
+      <div class="rounded-2xl border border-border bg-card p-4 shadow-raised sm:p-6">
+        <div class="grid gap-3 sm:grid-cols-2">
+          <FilePreview path="moldea/project.md">
+            <div class="p-4">
+              <p class="text-sm leading-6 font-semibold">
+                The application owns refund eligibility.
+              </p>
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                The support agent explains the result.
+              </p>
+            </div>
+          </FilePreview>
+          <FilePreview path="moldea/context/refund-policy.md">
+            <div class="p-4">
+              <p class="text-sm leading-6 font-semibold">Refunds are available for 30 days.</p>
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                The application is authoritative.
+              </p>
+            </div>
+          </FilePreview>
+        </div>
+        <p
+          class="mt-4 flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
+        >
+          <Search
+            class="size-4"
+            aria-hidden="true"
+          />Relevant context found before editing.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section
+    id="connections"
+    class="scroll-mt-24 border-b border-border bg-background py-12 sm:py-16"
+    aria-labelledby="connections-title"
+    data-workflow-stage="connections"
+  >
+    <div class="page-shell">
+      <header class="max-w-3xl">
+        <p class="eyebrow mb-3">02 Connections</p>
+        <h2
+          id="connections-title"
+          class="text-3xl font-semibold tracking-tight sm:text-4xl"
+        >
+          Find everything the rule affects.
+        </h2>
+        <p class="mt-4 text-base leading-7 text-muted-foreground">
+          Declared relationships turn one policy change into a bounded review of application
+          behavior, agent guidance, and checks.
+        </p>
+      </header>
+      <div
+        class="mt-8 overflow-hidden rounded-2xl border border-border bg-card shadow-raised"
+        data-connection-map
+      >
+        <div class="border-b border-border p-5 text-center sm:p-6">
+          <span
+            class="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold"
+            ><FileText
+              class="size-4 text-muted-foreground"
+              aria-hidden="true"
+            />Refund policy</span
+          >
+        </div>
+        <div class="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
+          <div class="bg-card p-5 text-center">
+            <FileCode
+              class="mx-auto size-5 text-muted-foreground"
+              aria-hidden="true"
+            /><p class="mt-3 font-semibold">Application rule</p><code
+              class="mt-1 block text-xs text-muted-foreground">refund-policy.ts</code
+            >
+          </div>
+          <div class="bg-card p-5 text-center">
+            <Bot
+              class="mx-auto size-5 text-muted-foreground"
+              aria-hidden="true"
+            /><p class="mt-3 font-semibold">Agent instruction</p><code
+              class="mt-1 block text-xs text-muted-foreground">instruction.md</code
+            >
+          </div>
+          <div class="bg-card p-5 text-center">
+            <Bot
+              class="mx-auto size-5 text-muted-foreground"
+              aria-hidden="true"
+            /><p class="mt-3 font-semibold">Runtime</p><code
+              class="mt-1 block text-xs text-muted-foreground">gpt-6-astra</code
+            >
+          </div>
+          <div class="bg-card p-5 text-center">
+            <FileCheck
+              class="mx-auto size-5 text-muted-foreground"
+              aria-hidden="true"
+            /><p class="mt-3 font-semibold">Boundary tests</p><code
+              class="mt-1 block text-xs text-muted-foreground">refund-policy.test-unit.ts</code
+            >
+          </div>
+        </div>
+        <p
+          class="flex items-center justify-center gap-2 border-t border-border px-5 py-4 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
+        >
+          <Link2
+            class="size-4"
+            aria-hidden="true"
+          />One saved rule, four explicit connections.
+        </p>
+      </div>
+      <div class="mt-5">
+        <ActionLink
+          class="font-bold"
+          href={withBase('/docs/continuous-maintenance/', basePath)}
+          variant="link"
+          >Continuous maintenance guide <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          /></ActionLink
+        >
+      </div>
+    </div>
+  </section>
+
+  <section
+    id="changes"
+    class="scroll-mt-24 border-b border-border bg-elevated py-12 sm:py-16"
+    aria-labelledby="changes-title"
+    data-workflow-stage="changes"
+  >
+    <div class="page-shell">
+      <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
+        <div>
+          <p class="eyebrow mb-3">03 Changes</p><h2
+            id="changes-title"
+            class="text-3xl font-semibold tracking-tight sm:text-4xl"
+          >
+            Update the rule and its explanation together.
+          </h2>
+        </div>
+        <p class="text-base leading-7 text-muted-foreground">
+          The same source-backed diff used on the landing page shows what changed in code and in the
+          support agent’s guidance.
+        </p>
+      </header>
+      <div
+        class="mt-8 grid gap-4 lg:grid-cols-2"
+        data-change-previews
+      >
+        <FilePreview path={LANDING_EXAMPLE_PREVIEW.policyDiff.path}>
+          <div class="p-4">
+            <CodeBlock
+              ariaLabel={`${LANDING_EXAMPLE_PREVIEW.policyDiff.path} code`}
+              copyable={false}
+              language="diff"
+              source={LANDING_EXAMPLE_PREVIEW.policyDiff.source}
+              variant="plain"
+            />
+          </div>
+        </FilePreview>
+        <FilePreview path={LANDING_EXAMPLE_PREVIEW.instructionDiff.path}>
+          <div class="p-4">
+            <CodeBlock
+              ariaLabel={`${LANDING_EXAMPLE_PREVIEW.instructionDiff.path} code`}
+              copyable={false}
+              language="diff"
+              source={LANDING_EXAMPLE_PREVIEW.instructionDiff.source}
+              variant="plain"
+            />
+          </div>
+        </FilePreview>
+      </div>
+      <div
+        class="mt-4 rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4 dark:border-emerald-400/30 dark:bg-emerald-400/10"
+      >
+        <div
+          class="grid gap-2 text-sm font-semibold text-emerald-800 sm:grid-cols-2 dark:text-emerald-200"
+        >
+          <p class="flex items-center gap-2">
+            <Check
+              class="size-4"
+              aria-hidden="true"
+            /><code>14 days</code> eligible
+          </p>
+          <p class="flex items-center gap-2">
+            <Check
+              class="size-4"
+              aria-hidden="true"
+            /><code>15 days</code> rejected
+          </p>
+        </div>
+      </div>
+      <div class="mt-5">
+        <ActionLink
+          class="font-bold"
+          href={withBase('/examples/maintain-a-refund-policy/', basePath)}
+          variant="link"
+          >See the complete maintenance example <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          /></ActionLink
+        >
+      </div>
+    </div>
+  </section>
+
+  <section
+    id="checks"
+    class="scroll-mt-24 border-b border-border bg-background py-12 sm:py-16"
+    aria-labelledby="checks-title"
+    data-workflow-stage="checks"
+  >
+    <div class="page-shell">
+      <header class="max-w-3xl">
+        <p class="eyebrow mb-3">04 Checks</p>
+        <h2
+          id="checks-title"
+          class="text-3xl font-semibold tracking-tight sm:text-4xl"
+        >
+          Use the right proof for each claim.
+        </h2>
+        <p class="mt-4 text-base leading-7 text-muted-foreground">
+          Software checks structure and declared connections. Project tests verify the rule.
+          Semantic evaluation assesses whether the coding agent used the context correctly.
+        </p>
+      </header>
+      <div
+        class="mt-8 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3"
+        data-check-layers
+      >
+        <article class="bg-card p-5 sm:p-6">
+          <Link2
+            class="size-5 text-muted-foreground"
+            aria-hidden="true"
+          /><p class="eyebrow mt-4">Deterministic</p><h3 class="mt-1 text-lg font-semibold">
+            Connections resolve
+          </h3><p class="mt-2 text-sm leading-6 text-muted-foreground">
+            The same repository state produces the same structural result.
+          </p>
+        </article>
+        <article class="bg-card p-5 sm:p-6">
+          <FileCheck
+            class="size-5 text-muted-foreground"
+            aria-hidden="true"
+          /><p class="eyebrow mt-4">Project verification</p><h3 class="mt-1 text-lg font-semibold">
+            Boundary tests pass
+          </h3><p class="mt-2 text-sm leading-6 text-muted-foreground">
+            The application confirms 14 and 15 days behave differently.
+          </p>
+        </article>
+        <article class="bg-card p-5 sm:p-6">
+          <ShieldCheck
+            class="size-5 text-muted-foreground"
+            aria-hidden="true"
+          /><p class="eyebrow mt-4">Semantic</p><h3 class="mt-1 text-lg font-semibold">
+            The decision is assessed
+          </h3><p class="mt-2 text-sm leading-6 text-muted-foreground">
+            Independent evaluation checks the coding agent’s judgment.
+          </p>
+        </article>
+      </div>
+
+      <aside
+        class="mt-6 rounded-2xl border border-border bg-card p-5 shadow-surface sm:p-6"
+        aria-labelledby="adapter-check-title"
+        data-adapter-check
+      >
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:items-center">
+          <div>
+            <div class="flex items-center gap-3">
+              <AdapterCompanyLogo
+                adapterId="openai"
+                size="sm"
+              /><div>
+                <p class="eyebrow">Adapter qualification</p><h3
+                  id="adapter-check-title"
+                  class="mt-1 text-xl font-semibold"
+                >
+                  Does the connection match the runtime?
+                </h3>
+              </div>
+            </div>
+            <p class="mt-4 text-sm leading-6 text-muted-foreground">
+              A separate qualification journey can verify how a supported integration loads
+              instructions and registers tools. It supplements this project workflow.
+            </p>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
+            <div class="rounded-xl border border-destructive/30 bg-destructive/10 p-4">
+              <p class="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Unlink
+                  class="size-4 text-destructive"
+                  aria-hidden="true"
+                />Disconnected
+              </p><p class="mt-2 text-sm leading-6 text-muted-foreground">
+                Instruction source missing
+              </p>
+            </div>
+            <ArrowRight
+              class="mx-auto hidden size-5 text-muted-foreground sm:block"
+              aria-hidden="true"
+            /><ArrowDown
+              class="mx-auto size-5 text-muted-foreground sm:hidden"
+              aria-hidden="true"
+            />
+            <div
+              class="rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4 dark:border-emerald-400/30 dark:bg-emerald-400/10"
+            >
+              <p
+                class="flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
+              >
+                <Link2
+                  class="size-4"
+                  aria-hidden="true"
+                />Connected
+              </p><p class="mt-2 text-sm leading-6 text-muted-foreground">
+                Declared source resolved
+              </p>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div class="mt-5 flex flex-wrap gap-x-5 gap-y-3">
+        <ActionLink
+          class="font-bold"
+          href={withBase('/docs/evaluate-reconcile-validate/', basePath)}
+          variant="link"
+          >Evaluation guide <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          /></ActionLink
+        ><ActionLink
+          class="font-bold"
+          href={withBase('/evidence/qualification/', basePath)}
+          variant="link"
+          >Adapter qualifications <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          /></ActionLink
+        >
+      </div>
+    </div>
+  </section>
+
+  <section
+    id="next-session"
+    class="scroll-mt-24 border-b border-border bg-elevated py-12 sm:py-16"
+    aria-labelledby="next-session-title"
+    data-workflow-stage="next-session"
+  >
+    <div
+      class="page-shell grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center lg:gap-14"
+    >
+      <div>
+        <p class="eyebrow mb-3">05 Next session</p>
+        <h2
+          id="next-session-title"
+          class="text-3xl font-semibold tracking-tight sm:text-4xl"
+        >
+          The next coding agent inherits the result.
+        </h2>
+        <p class="mt-4 text-base leading-7 text-muted-foreground">
+          The 14-day rule lives in the repository with the files it affects. A later session can
+          find it when relevant. This is saved project context, not automatic model memory.
+        </p>
+        <div class="mt-5">
+          <ActionLink
+            class="font-bold"
+            href={withBase('/docs/how-it-works/', basePath)}
+            variant="link"
+            >Technical workflow <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            /></ActionLink
+          >
+        </div>
+      </div>
+      <div
+        class="rounded-2xl border border-border bg-card p-4 shadow-raised sm:p-6"
+        data-next-session-visual
+      >
+        <div class="flex items-start gap-3">
+          <span
+            class="dark-surface-selection inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+            ><UserRound
+              class="size-4"
+              aria-hidden="true"
+            /></span
+          ><div>
+            <p class="text-xs font-semibold text-muted-foreground">You</p><p
+              class="mt-1 text-sm leading-6 font-semibold"
+            >
+              Can this order still be refunded after 15 days?
+            </p>
+          </div>
+        </div>
+        <div
+          class="my-5 flex items-center gap-3 text-muted-foreground"
+          aria-hidden="true"
+        >
+          <span class="h-px flex-1 bg-border"></span><MessageSquareText class="size-4" /><span
+            class="h-px flex-1 bg-border"></span>
+        </div>
+        <div class="flex items-start gap-3">
+          <span
+            class="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"
+            ><img
+              src={skillMarkPath}
+              width="207"
+              height="215"
+              alt=""
+              class="h-5 w-auto dark:invert"
+            /></span
+          ><div>
+            <p class="text-xs font-semibold text-muted-foreground">Coding agent</p><p
+              class="mt-1 text-sm leading-6 font-semibold"
+            >
+              No. The saved policy sets the refund window at 14 days.
+            </p>
+          </div>
+        </div>
+        <p
+          class="mt-5 flex items-center gap-2 border-t border-border pt-4 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
+        >
+          <GitBranch
+            class="size-4"
+            aria-hidden="true"
+          />Relevant project truth, available in a new session.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section
+    class="bg-background py-10 sm:py-12"
+    aria-labelledby="workflow-next-title"
+  >
+    <div class="page-shell flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p class="eyebrow mb-2">Inspect the proof</p><h2
+          id="workflow-next-title"
+          class="text-2xl font-semibold tracking-tight"
+        >
+          See what was tested.
+        </h2>
+      </div>
+      <div class="flex flex-wrap gap-x-5 gap-y-3">
+        <ActionLink
+          class="font-bold"
+          href={withBase('/evidence/', basePath)}
+          variant="link"
+          >Open evidence <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          /></ActionLink
+        ><ActionLink
+          class="font-bold"
+          href={withBase('/docs/how-it-works/', basePath)}
+          variant="link"
+          >Read the technical workflow <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          /></ActionLink
+        >
+      </div>
+    </div>
+  </section>
+</BaseLayout>

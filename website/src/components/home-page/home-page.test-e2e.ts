@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+import { LANDING_EXAMPLE_PREVIEW } from '../../lib/landing-example/index.ts';
 import {
   CLOUD_WEBSITE_URL,
   PACKAGES_WEBSITE_URL,
@@ -59,6 +60,19 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(
     page.getByRole('heading', { level: 2, name: 'Same project. Same check. Same result.' }),
   ).toBeVisible();
+
+  await expect(page.locator('[data-maintenance-diff="application"]')).toContainText(
+    LANDING_EXAMPLE_PREVIEW.policyDiff.source,
+  );
+  await expect(page.locator('[data-maintenance-diff="tests"]')).toContainText(
+    LANDING_EXAMPLE_PREVIEW.testDiff.source,
+  );
+  await expect(page.locator('[data-maintenance-diff="context"]')).toContainText(
+    LANDING_EXAMPLE_PREVIEW.contextDiff.source,
+  );
+  await expect(page.locator('[data-maintenance-diff="instruction"]')).toContainText(
+    LANDING_EXAMPLE_PREVIEW.instructionDiff.source,
+  );
 });
 
 test('presents the product story before proof and adoption', async ({ page }) => {

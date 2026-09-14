@@ -20,6 +20,7 @@ import {
   DOCUMENT_SECTION_LABELS,
   EVIDENCE_ROUTE,
   INSTALL_COMMAND,
+  PRODUCT_PAGE_METADATA,
   REQUIRED_DOCUMENT_ROUTES,
   SKILLS_DIRECTORY_URL,
   SOURCE_REPOSITORY_URL,
@@ -44,6 +45,10 @@ const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_
 const GENERATED_NOTICE =
   'Generated from repository-owned documentation, semantic evaluation, qualification evidence, and moldea/SKILL.md metadata. Do not edit generated output.';
 let cachedWebsiteModel: IWebsiteModel | null = null;
+
+/** Formats the product name as semantic inline code in generated Markdown prose. */
+const formatProductNameAsMarkdownCode = (value: string): string =>
+  value.replaceAll(/\bmoldea\b/giu, '`moldea`');
 
 interface IGeneratedWebsiteModelEnvelope {
   formatVersion: 1;
@@ -220,6 +225,16 @@ export const createSearchRecords = (documents: IWebsiteDocument[]): ISearchRecor
       [document.title, document.navigationTitle, document.description, document.markdown].join(' '),
     ),
     title: document.title,
+  }));
+};
+
+/** Creates concise search records for the visual product pages. */
+export const createProductPageSearchRecords = (): ISearchRecord[] => {
+  return Object.values(PRODUCT_PAGE_METADATA).map((page) => ({
+    description: page.description,
+    route: page.route,
+    searchText: normalizeSearchText([page.title, page.description, page.searchText].join(' ')),
+    title: page.title,
   }));
 };
 
@@ -402,6 +417,16 @@ export const createLlmsText = (
     '',
   ];
 
+  lines.push(
+    '## Explore',
+    '',
+    ...Object.values(PRODUCT_PAGE_METADATA).map(
+      (page) =>
+        `- [${formatProductNameAsMarkdownCode(page.title)}](${page.route}): ${formatProductNameAsMarkdownCode(page.description)}`,
+    ),
+    '',
+  );
+
   for (const [section, label] of Object.entries(DOCUMENT_SECTION_LABELS)) {
     const sectionDocuments = documents.filter((document) => document.section === section);
 
@@ -465,6 +490,7 @@ export const createRouteManifest = (
     '/search/',
     '/search-index.json',
     EVIDENCE_ROUTE,
+    ...Object.values(PRODUCT_PAGE_METADATA).map(({ route }) => route),
     semanticEvaluation.route,
     ...semanticEvaluation.attempts.map(({ route }) => route),
   ]);
@@ -578,6 +604,7 @@ export const createWebsiteModel = (
     releaseEvidence,
     routes: createRouteManifest(documents, qualification, semanticEvaluation),
     searchRecords: [
+      ...createProductPageSearchRecords(),
       ...createSearchRecords(documents),
       {
         description:

@@ -6,7 +6,7 @@ import { describe, expect, test } from 'vitest';
 import { createCanonicalUrl, DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { getRepositoryRoot, loadWebsiteModel } from '../src/lib/generation/generation.ts';
-import { SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
+import { PRODUCT_PAGE_METADATA, SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
 import {
   getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
@@ -41,6 +41,41 @@ describe('verifyProductionBuild', () => {
     expect(llmsText).toContain('# `moldea` Agent Skill');
     expect(llmsText).toContain(SKILLS_DIRECTORY_URL);
     expect(llmsText).toContain(gettingStartedUrl);
+  });
+
+  test('publishes the visual product pages through every discovery surface', () => {
+    const siteUrl = process.env['SITE_URL'] ?? DEFAULT_SITE_URL;
+    const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
+    const llmsText = readFileSync(getDistPath('llms.txt'), 'utf8');
+    const sitemap = readFileSync(getDistPath('sitemap-0.xml'), 'utf8');
+    const searchRecords = JSON.parse(
+      readFileSync(getDistPath('search-index.json'), 'utf8'),
+    ) as Array<{ description: string; title: string; url: string }>;
+
+    for (const page of Object.values(PRODUCT_PAGE_METADATA)) {
+      const html = readFileSync(getDistPath(page.route.slice(1), 'index.html'), 'utf8');
+      const canonicalUrl = createCanonicalUrl(page.route, siteUrl, basePath);
+
+      expect(getTitle(html)).toBe(`${page.title} · ${SITE_NAME}`);
+      expect(html).toContain(`<meta name="description" content="${page.description}">`);
+      expect(html).toContain(`<link rel="canonical" href="${canonicalUrl}">`);
+      expect(sitemap).toContain(canonicalUrl);
+      expect(searchRecords.find(({ url }) => url === withBase(page.route, basePath))).toMatchObject(
+        {
+          description: page.description,
+          title: page.title,
+          url: withBase(page.route, basePath),
+        },
+      );
+      expect(llmsText).toContain(
+        `- [${page.title.replaceAll(/\bmoldea\b/giu, '`moldea`')}](${canonicalUrl}): ${page.description.replaceAll(/\bmoldea\b/giu, '`moldea`')}`,
+      );
+    }
+
+    const exploreSection = llmsText.split('## Explore\n\n')[1]?.split('\n\n## Start')[0];
+    const exploreCopy = exploreSection?.replaceAll(/\]\([^)]+\)/gu, ']');
+    expect(exploreSection).toContain('`moldea`');
+    expect(exploreCopy?.replaceAll('`moldea`', '')).not.toMatch(/\bmoldea\b/iu);
   });
 
   test('publishes release semantic evidence while preserving current machine status', () => {

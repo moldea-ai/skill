@@ -87,17 +87,33 @@ test('keeps the evidence overview accessible at 320px in both themes', async ({ 
     expect(decisionBox).not.toBeNull();
     expect(qualificationBox).not.toBeNull();
 
+    const decisionAction = page
+      .locator('[data-evidence-path="decision"]')
+      .locator('[data-evidence-path-action]');
     const qualificationAction = page
       .locator('[data-evidence-path="qualification"]')
       .locator('[data-evidence-path-action]');
-    const [actionLayoutBox, actionLinkBox, integrationLogosBox] = await Promise.all([
+    const [
+      decisionActionLayoutBox,
+      decisionActionLinkBox,
+      actionLayoutBox,
+      actionLinkBox,
+      integrationLogosBox,
+    ] = await Promise.all([
+      decisionAction.locator('[data-evidence-decision-actions]').boundingBox(),
+      decisionAction.getByRole('link', { name: 'View decisions' }).boundingBox(),
       qualificationAction.locator('[data-evidence-integration-actions]').boundingBox(),
       qualificationAction.getByRole('link', { name: 'View adapters' }).boundingBox(),
       qualificationAction.getByRole('group', { name: 'Integration providers' }).boundingBox(),
     ]);
+    expect(decisionActionLayoutBox).not.toBeNull();
+    expect(decisionActionLinkBox).not.toBeNull();
     expect(actionLayoutBox).not.toBeNull();
     expect(actionLinkBox).not.toBeNull();
     expect(integrationLogosBox).not.toBeNull();
+    expect(
+      Math.abs((decisionActionLayoutBox?.width ?? 0) - (decisionActionLinkBox?.width ?? 0)),
+    ).toBeLessThan(2);
     expect(Math.abs((actionLayoutBox?.width ?? 0) - (actionLinkBox?.width ?? 0))).toBeLessThan(2);
     expect(integrationLogosBox?.y ?? 0).toBeGreaterThan(
       (actionLinkBox?.y ?? 0) + (actionLinkBox?.height ?? 0),

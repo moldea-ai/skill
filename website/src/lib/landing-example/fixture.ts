@@ -6,8 +6,7 @@ export const LANDING_EXAMPLE = {
   diagnostic: 'OPENAI_INSTRUCTION_LOADER_NOT_WIRED',
   initialRefundWindowDays: 30,
   maintainedRefundWindowDays: 14,
-  maintenanceRequest:
-    "Shorten the application's refund window from 30 days to 14 and update the tests.",
+  maintenanceRequest: "Shorten the application's refund window from 30 days to 14",
   model: 'gpt-6-astra',
   paths: {
     agent: '/src/agent.ts',

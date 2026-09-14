@@ -184,17 +184,22 @@ const qualificationSteps = [
           class="mt-auto px-4 pt-2 pb-5 sm:border-t sm:border-border sm:px-7 sm:py-5"
           data-evidence-path-action
         >
-          <ActionLink
-            class="self-start font-bold"
-            href={withBase(model.semanticEvaluation.route, basePath)}
+          <div
+            class="grid sm:block"
+            data-evidence-decision-actions
           >
-            <span class="sm:hidden">View decisions</span>
-            <span class="hidden sm:inline">Open the decision journeys</span>
-            <ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            />
-          </ActionLink>
+            <ActionLink
+              class="w-full justify-center font-bold sm:w-auto sm:self-start"
+              href={withBase(model.semanticEvaluation.route, basePath)}
+            >
+              <span class="sm:hidden">View decisions</span>
+              <span class="hidden sm:inline">Open the decision journeys</span>
+              <ArrowRight
+                class="size-4"
+                aria-hidden="true"
+              />
+            </ActionLink>
+          </div>
         </div>
       </article>
 

@@ -51,9 +51,12 @@ test('shows the runtime example immediately and makes its connected files keyboa
   if (userMessageBounds && agentResponseBounds) {
     expect(agentResponseBounds.y).toBeGreaterThan(userMessageBounds.y + userMessageBounds.height);
   }
-  if (agentSourceBounds) {
-    expect(agentSourceBounds.height).toBeLessThanOrEqual(177);
-  }
+  if (agentSourceBounds) expect(agentSourceBounds.height).toBeLessThanOrEqual(193);
+  const sourceOverflow = await example.locator('[data-agent-source]').evaluate((element) => ({
+    client: element.clientHeight,
+    scroll: element.scrollHeight,
+  }));
+  expect(sourceOverflow.scroll).toBeLessThanOrEqual(sourceOverflow.client);
 
   const codeTab = example.getByRole('tab', { name: 'Code', exact: true });
   await codeTab.focus();

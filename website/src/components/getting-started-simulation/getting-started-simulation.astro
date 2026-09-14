@@ -1,5 +1,5 @@
 ---
-import { ArrowRight, ExternalLink } from '@lucide/astro';
+import { ArrowRight, Bot, Check, ExternalLink, UserRound } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
 import { withBase } from '@moldea.ai/website-ui/site';
@@ -9,123 +9,193 @@ import { INSTALL_COMMAND, SKILLS_DIRECTORY_URL } from '../../lib/model/constants
 const basePath = import.meta.env.BASE_URL;
 ---
 
-<header class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
-  <div>
-    <p class="eyebrow mb-4">Start in minutes</p>
-    <h2
-      id="getting-started-title"
-      class="section-title max-w-4xl scroll-mt-24 text-3xl font-semibold sm:text-4xl lg:text-5xl"
-    >
-      Install. Initialize. Start building.
-    </h2>
-  </div>
-  <div class="lg:justify-self-end">
-    <p class="text-lg leading-8 text-muted-foreground">
-      Install the skill once, initialize the project, then ask for the agent you need.
-    </p>
-    <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
-      <ActionLink
-        class="font-bold"
-        href={SKILLS_DIRECTORY_URL}
-        size="lg"
-        target="_blank"
-        rel="noopener noreferrer"
-        data-primary-action
-      >
-        Get the skill
-        <ExternalLink
-          class="size-3.5"
-          aria-hidden="true"
-        />
-      </ActionLink>
-      <ActionLink
-        class="font-bold"
-        href={withBase('/docs/getting-started/', basePath)}
-        variant="link"
-      >
-        Read the setup guide
-        <ArrowRight
-          class="size-4"
-          aria-hidden="true"
-        />
-      </ActionLink>
-    </div>
-  </div>
-</header>
-
-<ol
-  class="mt-8 grid gap-7 sm:gap-3 md:grid-cols-3"
-  aria-label="Getting started"
+<section
+  class="border-b border-border bg-sidebar py-12 sm:py-16"
+  aria-labelledby="getting-started-title"
   data-getting-started
 >
-  <li class="min-w-0 sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-6 sm:shadow-surface">
-    <div class="flex items-center gap-3">
-      <span
-        class="dark-surface-selection inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary font-mono text-xs font-bold text-primary-foreground"
-        aria-hidden="true"
-      >
-        01
-      </span>
-      <h3 class="text-xl font-semibold tracking-tight">Install the skill</h3>
-    </div>
-    <p class="mt-3 text-sm leading-6 text-muted-foreground">
-      Add it to the project where your coding agent works.
-    </p>
-    <div
-      class="mt-4 min-w-0"
-      data-install-command
-    >
-      <CodeBlock
-        language="sh"
-        source={INSTALL_COMMAND}
-      />
-    </div>
-  </li>
+  <div class="page-shell">
+    <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
+      <div>
+        <p class="eyebrow mb-4">Start in minutes</p>
+        <h2
+          id="getting-started-title"
+          class="section-title max-w-4xl scroll-mt-24 text-3xl font-semibold sm:text-4xl lg:text-5xl"
+        >
+          One install. One ordinary request.
+        </h2>
+      </div>
+      <div class="lg:justify-self-end">
+        <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+          Add the skill to your project, then ask your coding agent for the outcome you want.
+        </p>
+        <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+          <ActionLink
+            class="font-bold"
+            href={SKILLS_DIRECTORY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-primary-action
+          >
+            Get the skill
+            <ExternalLink
+              class="size-3.5"
+              aria-hidden="true"
+            />
+          </ActionLink>
+          <ActionLink
+            class="font-bold"
+            href={withBase('/docs/getting-started/', basePath)}
+            variant="link"
+          >
+            Read the setup guide
+            <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            />
+          </ActionLink>
+        </div>
+      </div>
+    </header>
 
-  <li class="min-w-0 sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-6 sm:shadow-surface">
-    <div class="flex items-center gap-3">
-      <span
-        class="dark-surface-selection inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary font-mono text-xs font-bold text-primary-foreground"
-        aria-hidden="true"
-      >
-        02
-      </span>
-      <h3 class="text-xl font-semibold tracking-tight">Initialize the project</h3>
-    </div>
-    <div class="mt-4 rounded-xl bg-background p-4 shadow-inset">
-      <p class="eyebrow mb-2">Tell your coding agent</p>
-      <p class="font-mono text-sm leading-6">
-        Initialize <code class="inline-code">moldea</code>
-      </p>
-    </div>
-    <p class="mt-4 text-sm leading-6 text-muted-foreground">
-      Saves the project’s starting context. Agent files are added when you ask for them.
-    </p>
-  </li>
+    <div class="mt-8 overflow-hidden rounded-2xl border border-border bg-card shadow-raised">
+      <div class="grid items-stretch lg:grid-cols-2">
+        <ol
+          class="grid content-start gap-8 p-5 sm:p-8 lg:p-10"
+          aria-label="Getting started"
+        >
+          <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4">
+            <span
+              class="dark-surface-selection inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
+              aria-hidden="true"
+            >
+              01
+            </span>
+            <div class="min-w-0">
+              <p class="eyebrow mb-2">Add the skill</p>
+              <h3 class="text-xl font-semibold tracking-tight">Install it in this project.</h3>
+              <div
+                class="mt-4 min-w-0"
+                data-install-command
+              >
+                <CodeBlock
+                  language="sh"
+                  source={INSTALL_COMMAND}
+                />
+              </div>
+              <p class="mt-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <Check
+                  class="size-4"
+                  aria-hidden="true"
+                />
+                Available to the coding agent
+              </p>
+            </div>
+          </li>
 
-  <li
-    class="min-w-0 sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-6 sm:shadow-surface"
-    data-getting-started-ordinary-work
-  >
-    <div class="flex items-center gap-3">
-      <span
-        class="dark-surface-selection inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary font-mono text-xs font-bold text-primary-foreground"
-        aria-hidden="true"
-      >
-        03
-      </span>
-      <h3 class="text-xl font-semibold tracking-tight">Ask for the outcome</h3>
+          <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4">
+            <span
+              class="dark-surface-selection inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
+              aria-hidden="true"
+            >
+              02
+            </span>
+            <div class="min-w-0">
+              <p class="eyebrow mb-2">Ask your agent</p>
+              <h3 class="text-xl font-semibold tracking-tight">Describe the outcome naturally.</h3>
+              <div
+                class="mt-4 flex items-start gap-3 rounded-xl border border-border bg-background p-4"
+              >
+                <span
+                  class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted"
+                >
+                  <UserRound
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </span>
+                <div class="min-w-0">
+                  <p class="mb-1 text-xs font-semibold text-muted-foreground">You</p>
+                  <code class="font-mono text-sm leading-6 break-words">
+                    Initialize moldea for this repository.
+                  </code>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <div
+          class="dark-surface-selection border-t border-border bg-primary p-5 text-primary-foreground sm:p-8 lg:border-s lg:border-t-0 lg:p-10"
+          data-getting-started-agent-panel
+        >
+          <div class="flex items-center gap-3">
+            <span
+              class="inline-flex size-10 items-center justify-center rounded-xl bg-primary-foreground/10"
+            >
+              <Bot
+                class="size-5"
+                aria-hidden="true"
+              />
+            </span>
+            <div>
+              <p class="text-xs font-semibold tracking-[0.12em] text-current/60 uppercase">
+                Coding agent and skill
+              </p>
+              <h3 class="mt-1 font-semibold">Your coding agent handles the rest</h3>
+            </div>
+          </div>
+
+          <ol class="mt-7 grid gap-5">
+            <li class="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-3">
+              <Check
+                class="mt-0.5 size-5"
+                aria-hidden="true"
+              />
+              <div>
+                <p class="font-semibold">Reads the project</p>
+                <p class="mt-1 text-sm leading-6 text-current/65">
+                  Inspects the code and documentation before writing project context.
+                </p>
+              </div>
+            </li>
+            <li class="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-3">
+              <Check
+                class="mt-0.5 size-5"
+                aria-hidden="true"
+              />
+              <div>
+                <p class="font-semibold">Clarifies what matters</p>
+                <p class="mt-1 text-sm leading-6 text-current/65">
+                  Asks a focused question only when the repository cannot answer it.
+                </p>
+              </div>
+            </li>
+            <li class="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-3">
+              <Check
+                class="mt-0.5 size-5"
+                aria-hidden="true"
+              />
+              <div>
+                <p class="font-semibold">Writes and checks the result</p>
+                <p class="mt-1 text-sm leading-6 text-current/65">
+                  Saves the project files, validates their structure, and reports what changed.
+                </p>
+              </div>
+            </li>
+          </ol>
+
+          <div
+            class="light-surface-selection mt-7 rounded-xl bg-primary-foreground p-4 text-primary"
+            data-getting-started-completion
+          >
+            <p class="text-xs font-semibold tracking-[0.12em] uppercase">Done</p>
+            <p class="mt-1 font-semibold">
+              Project context initialized. Keep working with your coding agent as usual.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
-    <div
-      class="dark-surface-selection mt-4 rounded-xl bg-primary p-4 text-primary-foreground shadow-inset"
-    >
-      <p class="eyebrow mb-2 text-current/65">Tell your coding agent</p>
-      <p class="font-mono text-sm leading-6">
-        Create a support agent grounded in our current refund policy.
-      </p>
-    </div>
-    <p class="mt-4 text-sm leading-6 text-muted-foreground">
-      It can now use the saved project context while building the connected files shown above.
-    </p>
-  </li>
-</ol>
+  </div>
+</section>

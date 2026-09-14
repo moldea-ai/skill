@@ -1,17 +1,28 @@
 import { LANDING_EXAMPLE } from '../../lib/landing-example/index.ts';
 
-// the verified fixture grouped by what initialization creates and later work adds
+const getFileName = (path: string): string => path.split('/').at(-1) ?? path;
+
+// the verified fixture rendered as one real project tree
 export const REPOSITORY_FORMAT_EXAMPLE = {
-  agentFiles: [LANDING_EXAMPLE.paths.agentDescription, LANDING_EXAMPLE.paths.instruction],
-  initializedFiles: [LANDING_EXAMPLE.paths.manifest, LANDING_EXAMPLE.paths.project],
+  agent: {
+    behaviorFiles: [
+      getFileName(LANDING_EXAMPLE.paths.agentDescription),
+      getFileName(LANDING_EXAMPLE.paths.instruction),
+    ],
+    id: 'support',
+  },
+  contextFiles: [getFileName(LANDING_EXAMPLE.paths.policyContext)],
+  foundationFiles: [
+    getFileName(LANDING_EXAMPLE.paths.manifest),
+    getFileName(LANDING_EXAMPLE.paths.project),
+  ],
   projectDirectory: 'my-store/',
   sourceFiles: [
-    LANDING_EXAMPLE.paths.agent,
-    LANDING_EXAMPLE.paths.instructionLoader,
-    LANDING_EXAMPLE.paths.orderLookup,
-    LANDING_EXAMPLE.paths.contracts,
-    LANDING_EXAMPLE.paths.refundPolicy,
-    LANDING_EXAMPLE.paths.refundPolicyTest,
+    getFileName(LANDING_EXAMPLE.paths.agent),
+    getFileName(LANDING_EXAMPLE.paths.instructionLoader),
+    getFileName(LANDING_EXAMPLE.paths.orderLookup),
+    getFileName(LANDING_EXAMPLE.paths.contracts),
+    getFileName(LANDING_EXAMPLE.paths.refundPolicy),
+    getFileName(LANDING_EXAMPLE.paths.refundPolicyTest),
   ],
-  taskContextFiles: [LANDING_EXAMPLE.paths.policyContext],
 } as const;

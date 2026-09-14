@@ -1,28 +1,38 @@
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import { PACKAGES_WEBSITE_URL } from '../../lib/model/constants.ts';
+import { getQualificationReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('explains deterministic checks and the adapter boundary', async ({ page }) => {
+test('shows the deterministic flow and the complete supported adapter set', async ({ page }) => {
+  const model = loadWebsiteModel();
+  const adapterProfiles = model.qualification.profiles.filter(
+    ({ adapterId }) => adapterId !== 'custom',
+  );
+  const adapterCount = new Set(adapterProfiles.map(({ adapterId }) => adapterId)).size;
+  const qualifiedAdapterSetupCount = adapterProfiles
+    .map(getQualificationReleaseEvidenceSummary)
+    .filter(({ status }) => status === 'passed').length;
   await page.goto(toPublicPath('/'));
 
   const deterministicChecks = page.getByRole('region', {
-    name: 'Software checks the connections.',
+    name: 'Same project. Same check. Same result.',
   });
   await expect(deterministicChecks).toBeVisible();
+  for (const heading of ['Repository files', 'Local software', 'Repeatable evidence']) {
+    await expect(
+      deterministicChecks.getByRole('heading', { level: 3, name: heading }),
+    ).toBeVisible();
+  }
   await expect(
-    deterministicChecks.getByText('Same files, tool versions, and settings. Same result.', {
-      exact: false,
-    }),
+    deterministicChecks.getByRole('heading', { level: 3, name: 'Disconnected' }),
   ).toBeVisible();
   await expect(
-    deterministicChecks.getByRole('heading', {
-      level: 3,
-      name: 'Saved, but disconnected',
-    }),
+    deterministicChecks.getByRole('heading', { level: 3, name: 'Connected', exact: true }),
   ).toBeVisible();
   await expect(
     deterministicChecks.getByText("instructions: 'Be helpful.'", { exact: false }),
@@ -30,26 +40,28 @@ test('explains deterministic checks and the adapter boundary', async ({ page }) 
   await expect(
     deterministicChecks.getByText('instructions: loadSupportInstruction()', { exact: false }),
   ).toBeVisible();
-  await expect(
-    deterministicChecks.getByRole('heading', {
-      level: 3,
-      name: 'Connected to the agent',
-    }),
-  ).toBeVisible();
   await expect(deterministicChecks.getByRole('button', { name: /Copy/u })).toHaveCount(0);
 
-  const logos = deterministicChecks.getByRole('list', { name: 'Example supported integrations' });
-  await expect(logos.locator('img')).toHaveCount(3);
-  await expect(logos.locator('img').nth(0)).toHaveAttribute('alt', 'OpenAI company logo');
-  await expect(logos.locator('img').nth(1)).toHaveAttribute('alt', 'Anthropic company logo');
-  await expect(logos.locator('img').nth(2)).toHaveAttribute('alt', 'Vercel company logo');
+  await expect(
+    deterministicChecks.getByText(
+      `${adapterCount} adapters · ${qualifiedAdapterSetupCount} qualified setups`,
+      { exact: true },
+    ),
+  ).toBeVisible();
+  const adapters = deterministicChecks.getByRole('list', { name: 'Supported runtime adapters' });
+  await expect(adapters.getByRole('listitem')).toHaveCount(adapterCount);
+  for (const [index, adapter] of ['OpenAI', 'Anthropic', 'Vercel AI SDK'].entries()) {
+    await expect(adapters.getByRole('listitem').nth(index)).toContainText(adapter);
+  }
 
-  const packagesLink = deterministicChecks.getByRole('link', { name: 'Explore packages' });
+  const packagesLink = deterministicChecks.getByRole('link', {
+    name: 'Explore adapter packages',
+  });
   await expect(packagesLink).toHaveAttribute('href', PACKAGES_WEBSITE_URL);
   await expect(packagesLink).toHaveAttribute('target', '_blank');
   await expect(packagesLink).toHaveAttribute('rel', 'noopener noreferrer');
   await expect(
-    deterministicChecks.getByRole('link', { name: 'See every integration' }),
+    deterministicChecks.getByRole('link', { name: 'See adapter qualifications' }),
   ).toHaveAttribute('href', toPublicPath('/evidence/qualification/'));
 });
 
@@ -68,6 +80,15 @@ test('keeps the deterministic example readable at 320px in both themes', async (
       scroll: element.scrollWidth,
     }));
     expect(widths.scroll).toBeLessThanOrEqual(widths.client);
+
+    const flowItems = deterministicChecks.locator('[data-deterministic-flow] > ol > li');
+    const firstItemBounds = await flowItems.nth(0).boundingBox();
+    const thirdItemBounds = await flowItems.nth(2).boundingBox();
+    expect(firstItemBounds).not.toBeNull();
+    expect(thirdItemBounds).not.toBeNull();
+    if (firstItemBounds && thirdItemBounds) {
+      expect(thirdItemBounds.y).toBeGreaterThanOrEqual(firstItemBounds.y + firstItemBounds.height);
+    }
 
     await context.close();
   }

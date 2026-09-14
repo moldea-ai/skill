@@ -1,24 +1,22 @@
 ---
-import { BookOpen, Link2, SearchCheck } from '@lucide/astro';
+import { ArrowRight, Bot, GitBranch, Link2, RefreshCw, UserRound } from '@lucide/astro';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 
-const benefits = [
+const durableOutcomes = [
   {
-    icon: BookOpen,
-    title: 'Context that carries over',
-    description: 'Saved project rules and decisions give the next session a place to start.',
+    description: 'Reviewed project facts remain available after the conversation ends.',
+    icon: GitBranch,
+    title: 'Project context stays',
   },
   {
+    description: 'Instructions, tools, and code keep their declared relationships.',
     icon: Link2,
-    title: 'Connections you can follow',
-    description:
-      'A change to a rule points your coding agent to the instructions and code that depend on it.',
+    title: 'Connections stay visible',
   },
   {
-    icon: SearchCheck,
-    title: 'Checks you can repeat',
-    description:
-      'Software verifies supported connections, independently of the coding agent’s judgment.',
+    description: 'The same software checks can run again after every relevant change.',
+    icon: RefreshCw,
+    title: 'Checks stay repeatable',
   },
 ] as const;
 ---
@@ -30,38 +28,106 @@ const benefits = [
   data-why-moldea
 >
   <div class="page-shell">
-    <header class="grid gap-5 lg:grid-cols-2 lg:items-end lg:gap-12">
-      <h2
-        id="why-moldea-title"
-        class="section-title text-3xl font-semibold sm:text-4xl lg:text-5xl"
-      >
-        Can't my coding agent already do this?
-      </h2>
-      <p class="text-lg leading-8 text-muted-foreground">
-        It can write the code. Your team still needs a way to preserve the context, track
-        connections, and check them as the project changes.
+    <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
+      <div>
+        <p class="eyebrow mb-4">Can't my coding agent already do this?</p>
+        <h2
+          id="why-moldea-title"
+          class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
+        >
+          Yes. The difference is what the next session inherits.
+        </h2>
+      </div>
+      <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+        A capable coding agent can inspect your repository and build the agent. <InlineBrandText
+          text="moldea turns that work into a system your project keeps."
+        />
       </p>
     </header>
-    <ul
-      class="mt-8 grid gap-7 sm:grid-cols-3 sm:gap-8"
-      aria-label="What moldea adds"
+
+    <div
+      class="mt-8 grid overflow-hidden rounded-2xl border border-border bg-border shadow-raised lg:grid-cols-[minmax(0,0.85fr)_4rem_minmax(0,1.15fr)]"
+      data-why-moldea-comparison
     >
-      {
-        benefits.map(({ icon: Icon, title, description }) => (
-          <li class="min-w-0">
-            <Icon
-              class="mb-3 size-5 text-muted-foreground"
+      <article
+        class="dark-surface-selection flex min-w-0 flex-col bg-primary p-5 text-primary-foreground sm:p-7"
+      >
+        <p class="text-xs font-semibold tracking-[0.12em] text-primary-foreground/60 uppercase">
+          During the coding session
+        </p>
+        <div class="mt-6 flex items-start gap-3">
+          <span
+            class="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/10"
+          >
+            <UserRound
+              class="size-4"
               aria-hidden="true"
             />
-            <h3 class="text-lg font-semibold">{title}</h3>
-            <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
-          </li>
-        ))
-      }
-    </ul>
-    <p class="mt-7 text-sm leading-6 text-muted-foreground">
+          </span>
+          <p class="rounded-xl rounded-tl-sm bg-primary-foreground/10 p-4 text-sm leading-6">
+            Create a support agent from our refund policy and existing order lookup.
+          </p>
+        </div>
+        <div class="mt-4 flex items-start gap-3 sm:ps-8">
+          <span
+            class="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/10"
+          >
+            <Bot
+              class="size-4"
+              aria-hidden="true"
+            />
+          </span>
+          <p
+            class="rounded-xl rounded-tl-sm border border-primary-foreground/15 p-4 text-sm leading-6 text-primary-foreground/75"
+          >
+            The coding agent inspects the repository, creates the files, and explains its work.
+          </p>
+        </div>
+        <p
+          class="mt-7 border-t border-primary-foreground/15 pt-5 text-sm text-primary-foreground/65"
+        >
+          Then the session ends.
+        </p>
+      </article>
+
+      <div
+        class="flex items-center justify-center bg-background py-3 lg:py-0"
+        aria-hidden="true"
+      >
+        <span
+          class="inline-flex size-9 rotate-90 items-center justify-center rounded-full border border-border bg-background shadow-surface lg:rotate-0"
+        >
+          <ArrowRight class="size-4" />
+        </span>
+      </div>
+
+      <ol
+        class="grid gap-px bg-border"
+        aria-label="What the skill adds"
+      >
+        {
+          durableOutcomes.map(({ description, icon: OutcomeIcon, title }, index) => (
+            <li class="grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)_auto] gap-x-4 bg-background p-5 sm:p-6">
+              <span class="row-span-2 inline-flex size-10 items-center justify-center rounded-xl bg-muted">
+                <OutcomeIcon
+                  class="size-5"
+                  aria-hidden="true"
+                />
+              </span>
+              <h3 class="font-semibold">{title}</h3>
+              <span class="font-mono text-xs font-bold text-muted-foreground">0{index + 1}</span>
+              <p class="col-span-2 col-start-2 mt-1 text-sm leading-6 text-muted-foreground">
+                {description}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <p class="mt-6 max-w-4xl text-sm leading-6 text-muted-foreground">
       <InlineBrandText
-        text="You could build and maintain that system yourself. moldea gives your team one to start with."
+        text="Without moldea, your team still has to choose the format, maintain the relationships, build the checks, and teach every coding agent how the system works."
       />
     </p>
   </div>

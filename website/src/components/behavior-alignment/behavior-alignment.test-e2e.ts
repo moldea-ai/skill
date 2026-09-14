@@ -10,7 +10,7 @@ test('traces the verified 30-day to 14-day maintenance story', async ({ page }) 
   await page.goto(toPublicPath('/'));
 
   const behaviorAlignment = page.getByRole('region', {
-    name: 'Change the rule. Find what follows.',
+    name: 'Change one rule. See everything it affects.',
   });
   await expect(behaviorAlignment).toBeVisible();
   await expect(
@@ -25,8 +25,10 @@ test('traces the verified 30-day to 14-day maintenance story', async ({ page }) 
   );
   await expect(behaviorAlignment.getByText('14 days', { exact: true })).toBeVisible();
   await expect(behaviorAlignment.getByText('15 days', { exact: true })).toBeVisible();
-  await expect(behaviorAlignment.getByText('Eligible', { exact: true })).toBeVisible();
-  await expect(behaviorAlignment.getByText('Outside window', { exact: true })).toBeVisible();
+  await expect(behaviorAlignment.getByText('Refund window updated', { exact: true })).toBeVisible();
+  await expect(
+    behaviorAlignment.getByText('Linked guidance updated', { exact: true }),
+  ).toBeVisible();
   await expect(behaviorAlignment.locator('[data-maintenance-diff="context"]')).toContainText(
     'within 14 completed days',
   );
@@ -34,6 +36,12 @@ test('traces the verified 30-day to 14-day maintenance story', async ({ page }) 
     'within 14 completed days',
   );
   await expect(behaviorAlignment.getByRole('button', { name: /Copy/u })).toHaveCount(0);
+
+  const articleHeights = await behaviorAlignment
+    .locator('[data-behavior-alignment-flow] > article')
+    .evaluateAll((articles) => articles.map((article) => article.getBoundingClientRect().height));
+  expect(articleHeights).toHaveLength(2);
+  expect(Math.abs((articleHeights[0] ?? 0) - (articleHeights[1] ?? 0))).toBeLessThan(2);
 });
 
 test('stacks the maintenance flow without overflow at 320px', async ({ page }) => {
@@ -41,7 +49,7 @@ test('stacks the maintenance flow without overflow at 320px', async ({ page }) =
   await page.goto(toPublicPath('/'));
 
   const behaviorAlignment = page.getByRole('region', {
-    name: 'Change the rule. Find what follows.',
+    name: 'Change one rule. See everything it affects.',
   });
   const flow = behaviorAlignment.locator('[data-behavior-alignment-flow]');
   const widths = await flow.evaluate((element) => ({

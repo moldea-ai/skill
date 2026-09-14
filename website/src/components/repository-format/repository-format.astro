@@ -1,211 +1,288 @@
 ---
 import { ArrowRight, FileText, FolderTree, GitBranch, Link2, ShieldCheck } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import { REPOSITORY_FORMAT_EXAMPLE } from './constants.ts';
 
-const basePath = import.meta.env.BASE_URL;
-const removePrefix = (path: string, prefix: string): string => path.slice(prefix.length);
-const benefits = [
+const organizationLayers = [
   {
-    description: 'Project context and agent behavior stay reviewable beside the code.',
+    description: 'Reviewed project facts remain beside the implementation they describe.',
+    detail: 'my-store/moldea/',
     icon: GitBranch,
-    title: 'Owned in Git',
+    label: 'Project context',
+    title: 'One visible home',
   },
   {
-    description: 'See which instructions, tools, and code belong together.',
+    description: 'Each agent owns focused instructions and the context it needs.',
+    detail: 'agents/support/',
+    icon: FileText,
+    label: 'Agent behavior',
+    title: 'Easy to inspect',
+  },
+  {
+    description: 'The manifest records which instructions, tools, and code belong together.',
+    detail: 'moldea.yaml',
     icon: Link2,
-    title: 'Connections are visible',
-  },
-  {
-    description: 'Local checks inspect repository files without routine external transmission.',
-    icon: ShieldCheck,
-    title: 'Private by default',
+    label: 'Connections',
+    title: 'Clear and checkable',
   },
 ] as const;
+const basePath = import.meta.env.BASE_URL;
+const getTreeConnector = (index: number, length: number): string =>
+  index === length - 1 ? '└──' : '├──';
 ---
 
 <section
-  class="border-b border-border bg-sidebar py-12 sm:py-16"
+  class="border-b border-border bg-background py-12 sm:py-16"
   aria-labelledby="repository-format-title"
   data-repository-format
 >
   <div class="page-shell">
-    <header
-      class="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(20rem,0.6fr)] lg:items-end lg:gap-12"
-    >
+    <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
       <div>
         <p class="eyebrow mb-4">Repository format</p>
         <h2
           id="repository-format-title"
           class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
         >
-          Your project. Your files.
+          Project context lives beside the code.
         </h2>
       </div>
       <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-        Begin with <code>moldea/moldea.yaml</code> and <code>moldea/project.md</code>. Add focused
-        context and agent files when real project work needs them.
+        <InlineBrandText
+          text="moldea starts with two files, then adds focused context and agent behavior only when the project needs them."
+        />
       </p>
     </header>
 
-    <div
-      class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(19rem,0.65fr)] lg:items-start"
-    >
+    <div class="mt-8 grid items-stretch gap-4 lg:grid-cols-2">
       <div
-        class="dark-surface-selection min-w-0 overflow-hidden rounded-2xl bg-primary text-primary-foreground shadow-raised"
+        class="dark-surface-selection min-w-0 overflow-hidden rounded-2xl border border-primary bg-primary text-primary-foreground shadow-raised"
         data-repository-format-filesystem
       >
         <div
           class="flex items-center justify-between gap-3 border-b border-current/15 px-4 py-4 sm:px-6"
         >
-          <div class="flex items-center gap-3">
-            <span class="inline-flex size-9 items-center justify-center rounded-lg bg-current/10">
+          <div class="flex min-w-0 items-center gap-3">
+            <span
+              class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-current/10"
+            >
               <FolderTree
                 class="size-4"
                 aria-hidden="true"
               />
             </span>
-            <p class="font-mono text-sm font-bold">{REPOSITORY_FORMAT_EXAMPLE.projectDirectory}</p>
+            <p class="min-w-0 font-mono text-sm font-bold">Project files</p>
           </div>
           <span
             class="rounded-full border border-current/20 px-2.5 py-1 text-xs font-semibold text-current/70"
           >
-            illustrative project
+            in Git
           </span>
         </div>
 
-        <div class="grid gap-7 p-4 sm:grid-cols-2 sm:p-5">
-          <section aria-labelledby="repository-moldea-directory">
-            <div class="flex items-center gap-3">
-              <FileText
-                class="size-4 text-current/60"
-                aria-hidden="true"
-              />
-              <h3
-                id="repository-moldea-directory"
-                class="font-mono text-sm font-bold"
-              >
-                <code>moldea/</code>
-              </h3>
-            </div>
-            <div class="mt-4 border-s border-current/20 ps-4">
-              <p class="text-[0.6875rem] font-bold tracking-wide text-current/50 uppercase">
-                Created at initialization
-              </p>
-              <ul
-                class="mt-2 grid gap-2 font-mono text-xs leading-5"
-                aria-label="Files created at initialization"
-              >
-                {
-                  REPOSITORY_FORMAT_EXAMPLE.initializedFiles.map((path) => (
-                    <li>
-                      <code>{removePrefix(path, '/moldea/')}</code>
-                    </li>
-                  ))
-                }
-              </ul>
+        <div class="p-4 sm:p-6">
+          <ul
+            class="font-mono text-xs sm:text-sm"
+            aria-label="Example project filesystem"
+          >
+            <li>
+              <div class="flex min-w-0 items-center border-b border-current/10 px-2 pb-3 font-bold">
+                <code class="min-w-0 break-all">{REPOSITORY_FORMAT_EXAMPLE.projectDirectory}</code>
+                <span class="ml-auto shrink-0 text-[0.625rem] text-current/60">project root</span>
+              </div>
 
-              <p class="mt-5 text-[0.6875rem] font-bold tracking-wide text-current/50 uppercase">
-                Added for this task
-              </p>
-              <ul
-                class="mt-2 grid gap-2 font-mono text-xs leading-5 text-current/80"
-                aria-label="Agent files added for the task"
-              >
-                {
-                  [
-                    ...REPOSITORY_FORMAT_EXAMPLE.taskContextFiles,
-                    ...REPOSITORY_FORMAT_EXAMPLE.agentFiles,
-                  ].map((path) => (
+              <ul class="mt-2 ml-1 grid gap-1 border-s border-current/20 ps-2 sm:ml-3 sm:ps-3">
+                <li class="min-w-0 px-2 py-2">
+                  <div class="flex min-w-0 items-center gap-2 font-bold">
+                    <span
+                      class="text-current/40"
+                      aria-hidden="true"
+                      >├──</span
+                    >
+                    <code class="min-w-0 break-all">moldea/</code>
+                    <span class="ml-auto shrink-0 text-[0.625rem] text-current/60"
+                      >project context</span
+                    >
+                  </div>
+                  <ul
+                    class="mt-1 ml-1 space-y-1 border-s border-current/15 ps-2 text-current/75 sm:ml-3 sm:ps-3"
+                  >
+                    {
+                      REPOSITORY_FORMAT_EXAMPLE.foundationFiles.map((file) => (
+                        <li class="flex min-w-0 items-center gap-2 px-3 py-1.5">
+                          <span
+                            class="text-current/40"
+                            aria-hidden="true"
+                          >
+                            ├──
+                          </span>
+                          <code class="min-w-0 break-all">{file}</code>
+                        </li>
+                      ))
+                    }
                     <li>
-                      <code class="break-all">{removePrefix(path, '/moldea/')}</code>
+                      <div class="flex min-w-0 items-center gap-2 px-3 py-1.5">
+                        <span
+                          class="text-current/40"
+                          aria-hidden="true"
+                          >├──</span
+                        >
+                        <code class="min-w-0 break-all">context/</code>
+                      </div>
+                      <ul class="ml-3 border-s border-current/15 ps-3">
+                        {
+                          REPOSITORY_FORMAT_EXAMPLE.contextFiles.map((file, index) => (
+                            <li class="flex min-w-0 items-center gap-2 py-1.5">
+                              <span
+                                class="text-current/40"
+                                aria-hidden="true"
+                              >
+                                {getTreeConnector(
+                                  index,
+                                  REPOSITORY_FORMAT_EXAMPLE.contextFiles.length,
+                                )}
+                              </span>
+                              <code class="min-w-0 break-all">{file}</code>
+                            </li>
+                          ))
+                        }
+                      </ul>
                     </li>
-                  ))
-                }
-              </ul>
-            </div>
-          </section>
+                    <li>
+                      <div class="flex min-w-0 items-center gap-2 px-3 py-1.5">
+                        <span
+                          class="text-current/40"
+                          aria-hidden="true"
+                          >└──</span
+                        >
+                        <code class="min-w-0 break-all">agents/</code>
+                      </div>
+                      <ul class="ml-3 border-s border-current/15 ps-3">
+                        <li>
+                          <div class="flex min-w-0 items-center gap-2 py-1.5 font-bold">
+                            <span
+                              class="text-current/40"
+                              aria-hidden="true"
+                              >└──</span
+                            >
+                            <code class="min-w-0 break-all"
+                              >{REPOSITORY_FORMAT_EXAMPLE.agent.id}/</code
+                            >
+                          </div>
+                          <ul class="ml-3 border-s border-current/15 ps-3 text-current/70">
+                            {
+                              REPOSITORY_FORMAT_EXAMPLE.agent.behaviorFiles.map((file, index) => (
+                                <li class="flex min-w-0 items-center gap-2 py-1.5">
+                                  <span
+                                    class="text-current/40"
+                                    aria-hidden="true"
+                                  >
+                                    {getTreeConnector(
+                                      index,
+                                      REPOSITORY_FORMAT_EXAMPLE.agent.behaviorFiles.length,
+                                    )}
+                                  </span>
+                                  <code class="min-w-0 break-all">{file}</code>
+                                </li>
+                              ))
+                            }
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
 
-          <section aria-labelledby="repository-source-directory">
-            <div class="flex items-center gap-3">
-              <FileText
-                class="size-4 text-current/60"
-                aria-hidden="true"
-              />
-              <h3
-                id="repository-source-directory"
-                class="font-mono text-sm font-bold"
-              >
-                src/
-              </h3>
-            </div>
-            <div class="mt-4 border-s border-current/20 ps-4">
-              <p class="text-[0.6875rem] font-bold tracking-wide text-current/50 uppercase">
-                Application and agent code
-              </p>
-              <ul
-                class="mt-2 grid gap-2 font-mono text-xs leading-5 text-current/80"
-                aria-label="Application and agent source files"
-              >
-                {
-                  REPOSITORY_FORMAT_EXAMPLE.sourceFiles.map((path) => (
-                    <li>
-                      <code class="break-all">{removePrefix(path, '/src/')}</code>
-                    </li>
-                  ))
-                }
+                <li class="min-w-0 px-2 py-2">
+                  <div class="flex min-w-0 items-center gap-2 font-bold">
+                    <span
+                      class="text-current/40"
+                      aria-hidden="true"
+                      >└──</span
+                    >
+                    <code class="min-w-0 break-all">src/</code>
+                    <span class="ml-auto shrink-0 text-[0.625rem] text-current/60"
+                      >implementation</span
+                    >
+                  </div>
+                  <ul
+                    class="mt-1 ml-1 space-y-1 border-s border-current/15 ps-2 text-current/75 sm:ml-3 sm:ps-3"
+                  >
+                    {
+                      REPOSITORY_FORMAT_EXAMPLE.sourceFiles.map((file, index) => (
+                        <li class="flex min-w-0 items-center gap-2 px-3 py-1.5">
+                          <span
+                            class="text-current/40"
+                            aria-hidden="true"
+                          >
+                            {getTreeConnector(index, REPOSITORY_FORMAT_EXAMPLE.sourceFiles.length)}
+                          </span>
+                          <code class="min-w-0 break-all">{file}</code>
+                        </li>
+                      ))
+                    }
+                  </ul>
+                </li>
               </ul>
-            </div>
-          </section>
+            </li>
+          </ul>
         </div>
       </div>
 
-      <div
-        class="flex min-w-0 flex-col"
+      <ol
+        class="grid h-full auto-rows-fr gap-3"
+        aria-label="How the repository format helps"
         data-repository-format-benefits
       >
-        <ul class="grid gap-5">
-          {
-            benefits.map(({ description, icon: BenefitIcon, title }) => (
-              <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3">
-                <span class="inline-flex size-10 items-center justify-center rounded-xl border border-border bg-background">
-                  <BenefitIcon
-                    class="size-4"
+        {
+          organizationLayers.map(({ description, detail, icon: LayerIcon, label, title }) => (
+            <li class="flex h-full min-w-0 flex-col border-b border-border py-5 last:border-b-0 sm:rounded-xl sm:border sm:bg-card sm:p-6 sm:shadow-surface">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted">
+                  <LayerIcon
+                    class="size-5"
                     aria-hidden="true"
                   />
                 </span>
-                <div>
-                  <h3 class="font-semibold">{title}</h3>
-                  <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
-                </div>
-              </li>
-            ))
-          }
-        </ul>
+                <p class="eyebrow">{label}</p>
+              </div>
+              <h3 class="mt-4 text-xl font-semibold tracking-tight">{title}</h3>
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+              <code class="mt-auto block pt-4 font-mono text-xs font-semibold text-muted-foreground">
+                {detail}
+              </code>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
 
-        <div class="mt-5 flex flex-wrap gap-x-5 gap-y-3">
-          <ActionLink
-            class="font-bold"
-            href={withBase('/docs/repository-format/', basePath)}
-            variant="link"
-          >
-            Explore the format
-            <ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            />
-          </ActionLink>
-          <ActionLink
-            class="font-bold"
-            href={withBase('/docs/safety-and-privacy/', basePath)}
-            variant="link"
-          >
-            Read the safety model
-          </ActionLink>
-        </div>
-      </div>
+    <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
+      <ActionLink
+        class="font-bold"
+        href={withBase('/docs/repository-format/', basePath)}
+        variant="link"
+      >
+        Explore the format
+        <ArrowRight
+          class="size-4"
+          aria-hidden="true"
+        />
+      </ActionLink>
+      <ActionLink
+        class="font-bold"
+        href={withBase('/docs/safety-and-privacy/', basePath)}
+        variant="link"
+      >
+        <ShieldCheck
+          class="size-4"
+          aria-hidden="true"
+        />
+        Read the safety model
+      </ActionLink>
     </div>
   </div>
 </section>

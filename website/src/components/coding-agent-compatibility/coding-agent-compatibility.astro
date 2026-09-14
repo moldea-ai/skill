@@ -52,76 +52,80 @@ const codingAgents = [
 ] as const;
 ---
 
-<section
-  class="mt-12"
-  aria-labelledby="coding-agent-compatibility-title"
+<div
+  class="border-b border-border bg-background py-12 sm:py-16"
   data-coding-agent-compatibility
 >
-  <div class="rounded-2xl bg-background p-4 shadow-inset sm:p-6 lg:p-8">
-    <header class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_32rem] lg:items-end">
-      <div>
-        <p class="eyebrow mb-3">Works where you work</p>
-        <h3
-          id="coding-agent-compatibility-title"
-          class="text-2xl font-semibold tracking-tight sm:text-3xl"
+  <div class="page-shell">
+    <section aria-labelledby="coding-agent-compatibility-title">
+      <div class="rounded-2xl bg-background p-4 shadow-inset sm:p-6 lg:p-8">
+        <header class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_32rem] lg:items-end">
+          <div>
+            <p class="eyebrow mb-3">Works where you work</p>
+            <h2
+              id="coding-agent-compatibility-title"
+              class="text-2xl font-semibold tracking-tight sm:text-3xl"
+            >
+              Use the coding agent you already trust.
+            </h2>
+          </div>
+          <p class="leading-7 text-muted-foreground lg:justify-self-end">
+            <InlineBrandText
+              text="moldea keeps the same project format across compatible coding agents, so your team can change tools without rebuilding its context."
+            />
+          </p>
+        </header>
+
+        <ul
+          class="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
+          aria-label="Compatible coding agents"
         >
-          Use the coding agent you already trust.
-        </h3>
-      </div>
-      <div class="lg:justify-self-end">
-        <p class="leading-7 text-muted-foreground">
-          <InlineBrandText
-            text="moldea keeps the same project format across compatible coding agents, so your team can change tools without rebuilding its context."
+          {
+            codingAgents.map(({ company, height, logoPath, name, width }) => (
+              <li
+                class="flex min-w-0 items-center gap-2 rounded-xl bg-muted/50 px-2 py-3 min-[24rem]:gap-3 min-[24rem]:px-3"
+                data-coding-agent-card={name}
+              >
+                <div class="flex size-8 shrink-0 items-center justify-center">
+                  <img
+                    class:list={[
+                      'size-8 object-contain',
+                      name !== 'Claude Code' && name !== 'OpenCode' && 'dark:invert',
+                    ]}
+                    src={withBase(logoPath, basePath)}
+                    width={width}
+                    height={height}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    data-coding-agent-mark
+                  />
+                </div>
+                <div class="min-w-0">
+                  <h3 class="text-[0.8125rem] leading-5 font-semibold tracking-tight min-[24rem]:text-sm">
+                    {name}
+                  </h3>
+                  <p class="hidden text-xs leading-5 text-muted-foreground min-[24rem]:block">
+                    {company}
+                  </p>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+
+        <ActionLink
+          class="mt-5 font-bold"
+          href={withBase('/docs/coding-agent-compatibility/', basePath)}
+          variant="link"
+        >
+          Read the compatibility guide
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
           />
-        </p>
+        </ActionLink>
       </div>
-    </header>
-
-    <ul class="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-      {
-        codingAgents.map(({ company, height, logoPath, name, width }) => (
-          <li
-            class="flex min-w-0 items-center gap-2 rounded-xl bg-muted/50 px-2 py-3 min-[24rem]:gap-3 min-[24rem]:px-3"
-            data-coding-agent-card={name}
-          >
-            <div class="flex size-8 shrink-0 items-center justify-center">
-              <img
-                class:list={[
-                  'size-8 object-contain',
-                  name !== 'Claude Code' && name !== 'OpenCode' && 'dark:invert',
-                ]}
-                src={withBase(logoPath, basePath)}
-                width={width}
-                height={height}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                data-coding-agent-mark
-              />
-            </div>
-            <div class="min-w-0">
-              <h4 class="text-[0.8125rem] leading-5 font-semibold tracking-tight min-[24rem]:text-sm">
-                {name}
-              </h4>
-              <p class="hidden text-xs leading-5 text-muted-foreground min-[24rem]:block">
-                {company}
-              </p>
-            </div>
-          </li>
-        ))
-      }
-    </ul>
-
-    <ActionLink
-      class="mt-5 font-bold"
-      href={withBase('/docs/coding-agent-compatibility/', basePath)}
-      variant="link"
-    >
-      Read the compatibility guide
-      <ArrowRight
-        class="size-4"
-        aria-hidden="true"
-      />
-    </ActionLink>
+    </section>
   </div>
-</section>
+</div>

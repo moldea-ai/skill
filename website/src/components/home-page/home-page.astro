@@ -1,5 +1,5 @@
 ---
-import { ArrowRight, Cable, ListChecks } from '@lucide/astro';
+import { ArrowRight, Cable, ListChecks, Sparkles } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
@@ -7,6 +7,7 @@ import { withBase } from '@moldea.ai/website-ui/site';
 
 import AgentExample from '../agent-example/agent-example.astro';
 import BehaviorAlignment from '../behavior-alignment/behavior-alignment.astro';
+import CapabilitiesOverview from '../capabilities-overview/capabilities-overview.astro';
 import CodingAgentCompatibility from '../coding-agent-compatibility/coding-agent-compatibility.astro';
 import GettingStartedSimulation from '../getting-started-simulation/getting-started-simulation.astro';
 import OpenSourceSystem from '../open-source-system/open-source-system.astro';
@@ -53,7 +54,18 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
       class="page-shell relative grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-12 lg:py-20"
     >
       <div class="min-w-0">
-        <p class="eyebrow mb-4">An open-source skill for your coding agent</p>
+        <div class="mb-6 flex flex-wrap items-center gap-3">
+          <span
+            class="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5 text-sm font-semibold shadow-surface backdrop-blur"
+          >
+            <Sparkles
+              class="size-3.5"
+              aria-hidden="true"
+            />
+            Agent Skill · v{model.skill.version}
+          </span>
+          <span class="text-sm text-muted-foreground">Git-native · local-first · open source</span>
+        </div>
         <h1
           class="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl xl:text-6xl"
           data-hero-title
@@ -62,7 +74,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
         </h1>
         <p class="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
           <InlineBrandText
-            text="moldea gives your coding agent saved project knowledge and repeatable checks for the instructions, tools, and code it builds."
+            text="moldea gives the coding agent you already use project context that survives each session, plus repeatable checks for the instructions, tools, and code it creates."
           />
         </p>
         <div
@@ -98,6 +110,8 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
 
   <WhyMoldea />
 
+  <CapabilitiesOverview />
+
   <BehaviorAlignment />
 
   <OpenSourceSystem />
@@ -105,7 +119,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
   <RepositoryFormat />
 
   <section
-    class="border-b border-border bg-background py-12 sm:py-16"
+    class="border-b border-border bg-sidebar py-12 sm:py-16"
     aria-labelledby="home-evidence-title"
     data-home-evidence
   >
@@ -247,14 +261,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
     </div>
   </section>
 
-  <section
-    class="bg-sidebar py-12 sm:py-16"
-    aria-labelledby="getting-started-title"
-    data-adoption
-  >
-    <div class="page-shell">
-      <GettingStartedSimulation />
-      <CodingAgentCompatibility />
-    </div>
-  </section>
+  <CodingAgentCompatibility />
+
+  <GettingStartedSimulation />
 </BaseLayout>

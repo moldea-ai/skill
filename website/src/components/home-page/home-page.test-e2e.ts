@@ -3,7 +3,11 @@ import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
-import { PACKAGES_WEBSITE_URL, SKILLS_DIRECTORY_URL } from '../../lib/model/constants.ts';
+import {
+  CLOUD_WEBSITE_URL,
+  PACKAGES_WEBSITE_URL,
+  SKILLS_DIRECTORY_URL,
+} from '../../lib/model/constants.ts';
 import {
   getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
@@ -31,6 +35,10 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(
     page.getByRole('article', { name: 'Illustrative support agent project' }),
   ).toBeVisible();
+  const model = loadWebsiteModel();
+  await expect(
+    page.getByText(`Agent Skill · v${model.skill.version}`, { exact: true }),
+  ).toBeVisible();
 
   const primaryInstallLink = page
     .locator('[data-home-hero]')
@@ -40,7 +48,7 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await primaryInstallLink.press('Enter');
   await expect(page).toHaveURL(/#getting-started-title$/u);
   await expect(
-    page.getByRole('heading', { level: 2, name: 'Install. Initialize. Start building.' }),
+    page.getByRole('heading', { level: 2, name: 'One install. One ordinary request.' }),
   ).toBeVisible();
 
   const checksLink = page.getByRole('link', { name: 'See what gets checked', exact: true });
@@ -49,7 +57,7 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await checksLink.press('Enter');
   await expect(page).toHaveURL(/#deterministic-checks$/u);
   await expect(
-    page.getByRole('heading', { level: 2, name: 'Software checks the connections.' }),
+    page.getByRole('heading', { level: 2, name: 'Same project. Same check. Same result.' }),
   ).toBeVisible();
 });
 
@@ -66,12 +74,14 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   await page.goto(toPublicPath('/'));
 
   const orderedHeadings = [
-    "Can't my coding agent already do this?",
-    'Change the rule. Find what follows.',
-    'Software checks the connections.',
-    'Your project. Your files.',
+    'Yes. The difference is what the next session inherits.',
+    'One skill for the complete moldea workflow.',
+    'Change one rule. See everything it affects.',
+    'Same project. Same check. Same result.',
+    'Project context lives beside the code.',
     'See what was tested.',
-    'Install. Initialize. Start building.',
+    'Use the coding agent you already trust.',
+    'One install. One ordinary request.',
   ] as const;
   const headingTops: number[] = [];
 
@@ -96,20 +106,36 @@ test('presents the product story before proof and adoption', async ({ page }) =>
 
   const productStoryBackgrounds = await page
     .locator(
-      '[data-home-hero], [data-why-moldea], [data-behavior-alignment], [data-open-source-system], [data-repository-format], [data-home-evidence], [data-adoption]',
+      '[data-home-hero], [data-why-moldea], [data-capabilities-overview], [data-behavior-alignment], [data-open-source-system], [data-repository-format], [data-home-evidence], [data-coding-agent-compatibility], [data-getting-started]',
     )
     .evaluateAll((sections) =>
       sections.map((section) => getComputedStyle(section).backgroundColor),
     );
-  expect(productStoryBackgrounds).toHaveLength(7);
+  expect(productStoryBackgrounds).toHaveLength(9);
   productStoryBackgrounds.slice(1).forEach((backgroundColor, index) => {
     expect(backgroundColor).not.toBe(productStoryBackgrounds[index]);
   });
 
-  await expect(page.getByRole('link', { name: 'Explore packages' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Explore adapter packages' })).toHaveAttribute(
     'href',
     PACKAGES_WEBSITE_URL,
   );
+  const capabilitiesSection = page.getByRole('region', {
+    name: 'One skill for the complete moldea workflow.',
+  });
+  await expect(capabilitiesSection.getByRole('listitem')).toHaveCount(6);
+  for (const capability of [
+    'Plan agent systems',
+    'Establish project truth',
+    'Create real agents',
+    'Build Agent Skills',
+    'Keep behavior current',
+    'Evaluate and repair',
+  ]) {
+    await expect(
+      capabilitiesSection.getByRole('heading', { level: 3, name: capability }),
+    ).toBeVisible();
+  }
   const evidenceSection = page.getByRole('region', { name: 'See what was tested.' });
   await expect(
     evidenceSection.getByRole('link', { name: 'Inspect the decisions' }),
@@ -136,22 +162,35 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   expect(evidenceCardHeights).toHaveLength(2);
   expect(Math.abs((evidenceCardHeights[0] ?? 0) - (evidenceCardHeights[1] ?? 0))).toBeLessThan(2);
 
-  const adoptionSection = page.getByRole('region', {
-    name: 'Install. Initialize. Start building.',
+  const compatibilitySection = page.getByRole('region', {
+    name: 'Use the coding agent you already trust.',
   });
   await expect(
-    adoptionSection.getByRole('heading', {
-      level: 3,
+    compatibilitySection.getByRole('heading', {
+      level: 2,
       name: 'Use the coding agent you already trust.',
     }),
   ).toBeVisible();
-  await expect(adoptionSection.getByRole('link', { name: 'Get the skill' })).toHaveAttribute(
+  const codingAgents = compatibilitySection.getByRole('list', {
+    name: 'Compatible coding agents',
+  });
+  await expect(codingAgents).toBeVisible();
+  await expect(codingAgents.getByRole('listitem')).toHaveCount(6);
+
+  const gettingStartedSection = page.getByRole('region', {
+    name: 'One install. One ordinary request.',
+  });
+  await expect(gettingStartedSection.getByRole('link', { name: 'Get the skill' })).toHaveAttribute(
     'href',
     SKILLS_DIRECTORY_URL,
   );
-  await expect(
-    page.getByRole('heading', { name: 'Give your coding agent a system it can keep using.' }),
-  ).toHaveCount(0);
+
+  const footer = page.locator('footer');
+  await expect(footer.getByRole('link', { name: 'moldea Cloud' })).toHaveAttribute(
+    'href',
+    CLOUD_WEBSITE_URL,
+  );
+  await expect(footer).toHaveCSS('margin-top', '0px');
 });
 
 test('keeps the complete landing page accessible at 320px in both themes', async ({ browser }) => {

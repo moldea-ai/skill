@@ -13,6 +13,8 @@ test('shows the runtime example immediately and makes its connected files keyboa
   await page.goto(toPublicPath('/'));
   const example = page.getByRole('article', { name: 'Illustrative support agent project' });
   await expect(example.getByText(LANDING_EXAMPLE.request, { exact: true })).toBeVisible();
+  await expect(example.getByText('You', { exact: true })).toBeVisible();
+  await expect(example.getByText('Example', { exact: true })).toHaveCount(0);
   await expect(example.getByText('instructions: loadSupportInstruction()')).toBeVisible();
   await expect(example.getByText(`'${LANDING_EXAMPLE.model}'`, { exact: true })).toBeVisible();
   await expect(example.getByText('Instructions and order lookup connected.')).toBeVisible();

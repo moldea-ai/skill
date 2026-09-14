@@ -6,68 +6,52 @@ import { INSTALL_COMMAND, SKILLS_DIRECTORY_URL } from '../../lib/model/constants
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('separates installation, initialization, and ordinary project work', async ({ page }) => {
+test('shows one install followed by an ordinary coding-agent request', async ({ page }) => {
   await page.goto(toPublicPath('/'));
 
-  const adoption = page.getByRole('region', { name: 'Install. Initialize. Start building.' });
-  const journey = adoption.getByRole('list', { name: 'Getting started' });
+  const gettingStarted = page.getByRole('region', {
+    name: 'One install. One ordinary request.',
+  });
+  const journey = gettingStarted.getByRole('list', { name: 'Getting started' });
   const steps = journey.locator(':scope > li');
 
   await expect(
-    adoption.getByRole('heading', { level: 2, name: 'Install. Initialize. Start building.' }),
+    gettingStarted.getByRole('heading', {
+      level: 2,
+      name: 'One install. One ordinary request.',
+    }),
   ).toBeVisible();
-  await expect(
-    adoption.getByText(
-      'Install the skill once, initialize the project, then ask for the agent you need.',
-      { exact: true },
-    ),
-  ).toBeVisible();
-  await expect(adoption.getByRole('link', { name: 'Get the skill' })).toHaveAttribute(
+  await expect(gettingStarted.getByRole('link', { name: 'Get the skill' })).toHaveAttribute(
     'href',
     SKILLS_DIRECTORY_URL,
   );
-  await expect(adoption.getByRole('link', { name: 'Read the setup guide' })).toHaveAttribute(
+  await expect(gettingStarted.getByRole('link', { name: 'Read the setup guide' })).toHaveAttribute(
     'href',
     toPublicPath('/docs/getting-started/'),
   );
-  await expect(steps).toHaveCount(3);
-
-  const installStep = steps.nth(0);
-  const initializationStep = steps.nth(1);
-  const ordinaryWorkStep = steps.nth(2);
-
+  await expect(steps).toHaveCount(2);
   await expect(
-    installStep.getByRole('heading', { level: 3, name: 'Install the skill' }),
+    steps.nth(0).getByText('Install it in this project.', { exact: true }),
   ).toBeVisible();
-  await expect(installStep.locator('[data-install-command] code')).toHaveText(INSTALL_COMMAND);
-
+  await expect(steps.nth(0).locator('[data-install-command] code')).toHaveText(INSTALL_COMMAND);
   await expect(
-    initializationStep.getByRole('heading', { level: 3, name: 'Initialize the project' }),
-  ).toBeVisible();
-  await expect(initializationStep.getByText('Initialize moldea', { exact: true })).toBeVisible();
-  await expect(
-    initializationStep.locator('code.inline-code', { hasText: 'moldea' }).first(),
+    steps.nth(1).getByText('Describe the outcome naturally.', { exact: true }),
   ).toBeVisible();
   await expect(
-    initializationStep.getByText(/Agent files are added when you ask for them/),
+    steps.nth(1).getByText('Initialize moldea for this repository.', { exact: true }),
   ).toBeVisible();
   await expect(
-    initializationStep.getByText('Create a support agent grounded in our current refund policy.'),
-  ).toHaveCount(0);
-
-  await expect(ordinaryWorkStep).toHaveAttribute('data-getting-started-ordinary-work', '');
-  await expect(
-    ordinaryWorkStep.getByRole('heading', { level: 3, name: 'Ask for the outcome' }),
+    gettingStarted.getByRole('heading', { level: 3, name: 'Your coding agent handles the rest' }),
   ).toBeVisible();
   await expect(
-    ordinaryWorkStep.getByText('Create a support agent grounded in our current refund policy.', {
-      exact: true,
-    }),
+    gettingStarted.getByText(
+      'Project context initialized. Keep working with your coding agent as usual.',
+      { exact: true },
+    ),
   ).toBeVisible();
-
-  await expect(adoption.locator('[data-getting-started-copy]')).toHaveCount(0);
-  await expect(adoption.locator('[data-getting-started-copy-status]')).toHaveCount(0);
-  await expect(adoption.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(1);
+  await expect(gettingStarted.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(
+    1,
+  );
 });
 
 test('copies the exact install command through the shared keyboard control', async ({
@@ -88,9 +72,6 @@ test('copies the exact install command through the shared keyboard control', asy
   await expect(button).toHaveAttribute('data-code-copy-state', 'copied');
   await expect(button.locator('[data-code-copy-success-icon]')).toHaveCSS('opacity', '1');
   await expect(button.locator('[data-code-copy-icon]')).toHaveCSS('opacity', '0');
-  const pre = installCommand.locator('pre');
-  await expect(pre).toHaveCSS('padding-inline-start', '16px');
-  await expect(pre).toHaveCSS('padding-inline-end', '16px');
   await expect(feedback).toHaveText('Copied.');
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(INSTALL_COMMAND);
 });
@@ -106,15 +87,17 @@ test('keeps the setup readable without JavaScript and compact at 320px', async (
     const page = await context.newPage();
     await page.goto(toPublicPath('/'));
 
-    const adoption = page.getByRole('region', { name: 'Install. Initialize. Start building.' });
-    const journey = adoption.getByRole('list', { name: 'Getting started' });
-    const widths = await adoption.evaluate((element) => ({
+    const gettingStarted = page.getByRole('region', {
+      name: 'One install. One ordinary request.',
+    });
+    const journey = gettingStarted.getByRole('list', { name: 'Getting started' });
+    const widths = await gettingStarted.evaluate((element) => ({
       client: element.clientWidth,
       scroll: element.scrollWidth,
     }));
 
     await expect(journey.getByText(INSTALL_COMMAND, { exact: true })).toBeVisible();
-    await expect(adoption.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(0);
+    await expect(gettingStarted.getByRole('button', { name: 'Copy code' })).toHaveCount(0);
     expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 
     await context.close();

@@ -7,31 +7,29 @@ import { REPOSITORY_FORMAT_SPECIFICATION_URL } from '../../lib/model/constants.t
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('shows the verified project growing from initialization to agent work', async ({ page }) => {
+test('shows the verified project as one connected filesystem', async ({ page }) => {
   await page.goto(toPublicPath('/'));
 
   const repositoryFormat = page.getByRole('region', {
-    name: 'Your project. Your files.',
+    name: 'Project context lives beside the code.',
   });
   await expect(repositoryFormat).toBeVisible();
   await expect(repositoryFormat.getByText('my-store/', { exact: true })).toBeVisible();
 
-  const initializedFiles = repositoryFormat.getByRole('list', {
-    name: 'Files created at initialization',
-  });
-  await expect(initializedFiles.getByText('moldea.yaml', { exact: true })).toBeVisible();
-  await expect(initializedFiles.getByText('project.md', { exact: true })).toBeVisible();
-
-  const taskFiles = repositoryFormat.getByRole('list', {
-    name: 'Agent files added for the task',
-  });
-  await expect(taskFiles.getByText('context/refund-policy.md', { exact: true })).toBeVisible();
-  await expect(taskFiles.getByText('agents/support/instruction.md', { exact: true })).toBeVisible();
-
-  const sourceFiles = repositoryFormat.getByRole('list', {
-    name: 'Application and agent source files',
+  const filesystem = repositoryFormat.getByRole('list', {
+    name: 'Example project filesystem',
   });
   for (const path of [
+    'moldea/',
+    'moldea.yaml',
+    'project.md',
+    'context/',
+    'refund-policy.md',
+    'agents/',
+    'support/',
+    'description.md',
+    'instruction.md',
+    'src/',
     'agent.ts',
     'instructions.ts',
     'order-lookup.ts',
@@ -39,11 +37,21 @@ test('shows the verified project growing from initialization to agent work', asy
     'refund-policy.ts',
     'refund-policy.test-unit.ts',
   ]) {
-    await expect(sourceFiles.getByText(path, { exact: true })).toBeVisible();
+    await expect(filesystem.getByText(path, { exact: true })).toBeVisible();
   }
 
-  for (const benefit of ['Owned in Git', 'Connections are visible', 'Private by default']) {
+  for (const benefit of ['One visible home', 'Easy to inspect', 'Clear and checkable']) {
     await expect(repositoryFormat.getByRole('heading', { level: 3, name: benefit })).toBeVisible();
+  }
+
+  const [filesystemBounds, benefitsBounds] = await Promise.all([
+    repositoryFormat.locator('[data-repository-format-filesystem]').boundingBox(),
+    repositoryFormat.locator('[data-repository-format-benefits]').boundingBox(),
+  ]);
+  expect(filesystemBounds).not.toBeNull();
+  expect(benefitsBounds).not.toBeNull();
+  if (filesystemBounds && benefitsBounds) {
+    expect(Math.abs(filesystemBounds.height - benefitsBounds.height)).toBeLessThan(2);
   }
 
   await expect(
@@ -71,7 +79,7 @@ test('stacks the filesystem and benefits accessibly at 320px in both themes', as
     await page.goto(toPublicPath('/'));
 
     const repositoryFormat = page.getByRole('region', {
-      name: 'Your project. Your files.',
+      name: 'Project context lives beside the code.',
     });
     const fileSystem = repositoryFormat.locator('[data-repository-format-filesystem]');
     const benefits = repositoryFormat.locator('[data-repository-format-benefits]');

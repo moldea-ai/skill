@@ -1,5 +1,5 @@
 ---
-import { ArrowRight, Check, CircleAlert } from '@lucide/astro';
+import { ArrowDown, ArrowRight, Braces, Check, CircleAlert, Equal, Files } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
@@ -12,9 +12,53 @@ import {
   LANDING_EXAMPLE_DISCONNECTED_FILES,
   LANDING_EXAMPLE_MAINTAINED_FILES,
 } from '../../lib/landing-example/index.ts';
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import { PACKAGES_WEBSITE_URL } from '../../lib/model/constants.ts';
+import { getQualificationReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
 
-const basePath = import.meta.env.BASE_URL;
+const adapterLabels: Record<string, string> = {
+  anthropic: 'Anthropic',
+  'claude-agent-sdk': 'Claude Agent SDK',
+  'cloudflare-agents': 'Cloudflare Agents',
+  eve: 'Eve',
+  'google-genai': 'Google Gen AI',
+  langchain: 'LangChain',
+  langgraph: 'LangGraph',
+  openai: 'OpenAI',
+  'openai-agents-sdk': 'OpenAI Agents SDK',
+  'vercel-ai-sdk': 'Vercel AI SDK',
+};
+const adapterPriority = [
+  'openai',
+  'anthropic',
+  'vercel-ai-sdk',
+  'openai-agents-sdk',
+  'claude-agent-sdk',
+  'google-genai',
+  'cloudflare-agents',
+  'langchain',
+  'langgraph',
+  'eve',
+] as const;
+const model = loadWebsiteModel();
+const runtimeAdapterProfiles = model.qualification.profiles.filter(
+  ({ adapterId }) => adapterId !== 'custom',
+);
+const supportedAdapterIds = [
+  ...new Set(runtimeAdapterProfiles.map(({ adapterId }) => adapterId)),
+].sort(
+  (left, right) =>
+    adapterPriority.indexOf(left as (typeof adapterPriority)[number]) -
+    adapterPriority.indexOf(right as (typeof adapterPriority)[number]),
+);
+for (const adapterId of supportedAdapterIds) {
+  if (adapterLabels[adapterId] === undefined) {
+    throw new Error(`Landing page adapter ${adapterId} has no visitor-facing label.`);
+  }
+}
+const qualifiedAdapterSetupCount = runtimeAdapterProfiles
+  .map(getQualificationReleaseEvidenceSummary)
+  .filter(({ status }) => status === 'passed').length;
 const disconnectedInstruction = getLandingExampleLine(
   LANDING_EXAMPLE_DISCONNECTED_FILES,
   LANDING_EXAMPLE.paths.agent,
@@ -25,41 +69,112 @@ const connectedInstruction = getLandingExampleLine(
   LANDING_EXAMPLE.paths.agent,
   'instructions:',
 );
-const adapterIds = ['openai', 'anthropic', 'vercel-ai-sdk'] as const;
+const basePath = import.meta.env.BASE_URL;
 ---
 
 <section
   id="deterministic-checks"
-  class="scroll-mt-24 border-b border-border bg-background py-12 sm:py-16"
+  class="scroll-mt-24 border-b border-border bg-sidebar py-12 sm:py-16"
   aria-labelledby="open-source-system-title"
   data-open-source-system
 >
   <div class="page-shell">
-    <header class="grid gap-5 lg:grid-cols-2 lg:items-end lg:gap-12">
+    <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
       <div>
         <p class="eyebrow mb-4">Deterministic by design</p>
         <h2
           id="open-source-system-title"
-          class="section-title text-3xl font-semibold sm:text-4xl lg:text-5xl"
+          class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
         >
-          Software checks the connections.
+          Same project. Same check. Same result.
         </h2>
       </div>
-      <p class="text-lg leading-8 text-muted-foreground">
-        Same files, tool versions, and settings. Same result. These checks run locally, without
-        asking a model to judge its own work.
+      <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+        These checks run as software on your repository. They do not ask a model to judge whether
+        its own work looks correct.
       </p>
     </header>
-    <div class="mt-8 grid gap-6 sm:grid-cols-2 sm:gap-4">
-      <article class="min-w-0 sm:rounded-xl sm:border sm:border-border sm:p-5">
-        <h3 class="flex items-center gap-2 text-lg font-semibold">
+
+    <div
+      class="dark-surface-selection mt-8 overflow-hidden rounded-2xl bg-primary text-primary-foreground shadow-raised"
+      data-deterministic-flow
+    >
+      <ol
+        class="grid items-stretch gap-3 p-5 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)] sm:p-7"
+      >
+        <li class="rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 p-4">
+          <Files
+            class="size-5"
+            aria-hidden="true"
+          />
+          <p
+            class="mt-4 text-xs font-semibold tracking-[0.12em] text-primary-foreground/60 uppercase"
+          >
+            Input
+          </p>
+          <h3 class="mt-1 font-semibold">Repository files</h3>
+          <p class="mt-2 text-sm leading-6 text-primary-foreground/65">
+            Code, instructions, and <code>moldea.yaml</code>
+          </p>
+        </li>
+        <li class="flex items-center justify-center">
+          <ArrowDown
+            class="size-5 sm:hidden"
+            aria-hidden="true"
+          />
+          <ArrowRight
+            class="hidden size-5 sm:block"
+            aria-hidden="true"
+          />
+        </li>
+        <li class="rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 p-4">
+          <Braces
+            class="size-5"
+            aria-hidden="true"
+          />
+          <p
+            class="mt-4 text-xs font-semibold tracking-[0.12em] text-primary-foreground/60 uppercase"
+          >
+            Check
+          </p>
+          <h3 class="mt-1 font-semibold">Local software</h3>
+          <p class="mt-2 text-sm leading-6 text-primary-foreground/65">
+            The same rules run without a model call.
+          </p>
+        </li>
+        <li class="flex items-center justify-center">
+          <Equal
+            class="size-5"
+            aria-hidden="true"
+          />
+        </li>
+        <li class="rounded-xl bg-primary-foreground p-4 text-primary">
+          <Check
+            class="size-5"
+            aria-hidden="true"
+          />
+          <p class="mt-4 text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
+            Result
+          </p>
+          <h3 class="mt-1 font-semibold">Repeatable evidence</h3>
+          <p class="mt-2 text-sm leading-6 text-primary/70">
+            The same inputs produce the same answer.
+          </p>
+        </li>
+      </ol>
+    </div>
+
+    <div class="mt-5 grid gap-3 sm:grid-cols-2">
+      <article class="min-w-0 rounded-xl border border-border bg-background p-5 shadow-surface">
+        <h3 class="flex items-center gap-2 font-semibold">
           <CircleAlert
             class="size-5 shrink-0 text-destructive"
             aria-hidden="true"
-          /> Saved, but disconnected
+          />
+          Disconnected
         </h3>
         <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          The instructions exist. The agent uses a different prompt.
+          The instructions exist, but the agent bypasses them.
         </p>
         <div class="mt-4">
           <CodeBlock
@@ -68,19 +183,20 @@ const adapterIds = ['openai', 'anthropic', 'vercel-ai-sdk'] as const;
             source={disconnectedInstruction}
           />
         </div>
-        <p class="mt-3 text-sm font-medium text-destructive">
-          The check catches the missing connection.
+        <p class="mt-3 text-sm font-semibold text-destructive">
+          The check reports the missing link.
         </p>
       </article>
-      <article class="min-w-0 sm:rounded-xl sm:border sm:border-border sm:p-5">
-        <h3 class="flex items-center gap-2 text-lg font-semibold">
+      <article class="min-w-0 rounded-xl border border-border bg-background p-5 shadow-surface">
+        <h3 class="flex items-center gap-2 font-semibold">
           <Check
             class="size-5 shrink-0 text-success"
             aria-hidden="true"
-          /> Connected to the agent
+          />
+          Connected
         </h3>
         <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          The agent’s code loads the saved instructions.
+          The agent loads the saved instructions through the declared path.
         </p>
         <div class="mt-4">
           <CodeBlock
@@ -89,54 +205,77 @@ const adapterIds = ['openai', 'anthropic', 'vercel-ai-sdk'] as const;
             source={connectedInstruction}
           />
         </div>
-        <p class="mt-3 text-sm font-medium">The check confirms the connection.</p>
+        <p class="mt-3 text-sm font-semibold">The check confirms the connection.</p>
       </article>
     </div>
-    <p class="mt-5 text-sm leading-6 text-muted-foreground">
-      A passing check confirms the wiring. Whether the agent behaves correctly still needs review
-      and testing.
-    </p>
-    <div class="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-      <div class="max-w-2xl">
-        <h3 class="text-lg font-semibold">Checks that understand your integration.</h3>
-        <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          <InlineBrandText
-            text="moldea adapters recognize how each supported library connects instructions, tools, and code."
-          />
-        </p>
-        <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2">
-          <ActionLink
-            href={PACKAGES_WEBSITE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="link"
-            >Explore packages</ActionLink
+
+    <section
+      class="mt-8"
+      aria-labelledby="supported-adapters-title"
+    >
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="eyebrow mb-2">Runtime adapters</p>
+          <h3
+            id="supported-adapters-title"
+            class="text-2xl font-semibold tracking-tight"
           >
-          <ActionLink
-            href={withBase('/evidence/qualification/', basePath)}
-            variant="link"
-            >See every integration <ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            /></ActionLink
-          >
+            Checks that understand the libraries you use.
+          </h3>
+          <p class="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+            <InlineBrandText
+              text="moldea adapters recognize supported ways to connect instructions, tools, schemas, and agent code."
+            />
+          </p>
         </div>
+        <p
+          class="rounded-full border border-border bg-background px-3 py-1.5 text-sm font-semibold"
+        >
+          {supportedAdapterIds.length} adapters · {qualifiedAdapterSetupCount} qualified setups
+        </p>
       </div>
+
       <ul
-        class="flex shrink-0 items-center gap-3"
-        aria-label="Example supported integrations"
+        class="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5"
+        aria-label="Supported runtime adapters"
       >
         {
-          adapterIds.map((adapterId) => (
-            <li>
+          supportedAdapterIds.map((adapterId) => (
+            <li class="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-background p-3">
               <AdapterCompanyLogo
                 adapterId={adapterId}
-                size="sm"
+                size="xs"
               />
+              <span class="min-w-0 text-xs leading-5 font-semibold">
+                {adapterLabels[adapterId]}
+              </span>
             </li>
           ))
         }
       </ul>
-    </div>
+
+      <div class="mt-5 flex flex-wrap gap-x-5 gap-y-3">
+        <ActionLink
+          class="font-bold"
+          href={withBase('/evidence/qualification/', basePath)}
+          variant="link"
+        >
+          See adapter qualifications
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+        <ActionLink
+          class="font-bold"
+          href={PACKAGES_WEBSITE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="link"
+        >
+          Explore adapter packages
+        </ActionLink>
+      </div>
+    </section>
   </div>
 </section>

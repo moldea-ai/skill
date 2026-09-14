@@ -468,7 +468,7 @@ export const createLlmsText = (
     '',
     `- [Source repository](${SOURCE_REPOSITORY_URL})`,
     '- [Installation and first use](/docs/getting-started/)',
-    '- [Complete capabilities](/docs/capabilities/)',
+    '- [Capability reference](/docs/capabilities/)',
     '- [Interaction examples](/examples/)',
     '',
   );

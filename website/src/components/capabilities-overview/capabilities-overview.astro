@@ -15,42 +15,42 @@ import { withBase } from '@moldea.ai/website-ui/site';
 const capabilities = [
   {
     description: 'Save the project facts and decisions the next coding session should inherit.',
-    href: '/docs/project-state/',
+    href: '/capabilities/#project-truth',
     icon: GitBranch,
     label: 'Context',
     title: 'Establish project truth',
   },
   {
     description: 'Decide what belongs to software, tools, people, and model reasoning.',
-    href: '/docs/planning-agent-systems/',
+    href: '/capabilities/#plan-agent-systems',
     icon: BrainCircuit,
     label: 'Design',
     title: 'Plan agent systems',
   },
   {
     description: 'Connect instructions, tools, schemas, and code to the agent that uses them.',
-    href: '/docs/designing-agents/',
+    href: '/capabilities/#create-agents',
     icon: Bot,
     label: 'Ground',
     title: 'Create real agents',
   },
   {
     description: 'Package focused instructions, resources, and safe scripts for repeated work.',
-    href: '/docs/designing-skills/',
+    href: '/capabilities/#build-agent-skills',
     icon: Blocks,
     label: 'Reuse',
     title: 'Build Agent Skills',
   },
   {
     description: 'Trace a project change to the behavior and context that may need attention.',
-    href: '/docs/continuous-maintenance/',
+    href: '/capabilities/#keep-behavior-current',
     icon: RefreshCw,
     label: 'Maintain',
     title: 'Keep behavior current',
   },
   {
     description: 'Find broken connections, missing evidence, and behavior that no longer fits.',
-    href: '/docs/evaluate-reconcile-validate/',
+    href: '/capabilities/#evaluate-and-repair',
     icon: SearchCheck,
     label: 'Assure',
     title: 'Evaluate and repair',
@@ -108,7 +108,7 @@ const basePath = import.meta.env.BASE_URL;
 
     <ActionLink
       class="mt-6 font-bold"
-      href={withBase('/docs/capabilities/', basePath)}
+      href={withBase('/capabilities/', basePath)}
       variant="link"
     >
       Explore every capability

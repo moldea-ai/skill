@@ -5,6 +5,7 @@ import { describe, expect, test } from 'vitest';
 
 import { createCanonicalUrl, DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
+import { createDocumentationBreadcrumbs } from '../src/lib/documentation-navigation/index.ts';
 import { getRepositoryRoot, loadWebsiteModel } from '../src/lib/generation/generation.ts';
 import { PRODUCT_PAGE_METADATA, SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
 import {
@@ -24,6 +25,58 @@ const getDistPath = (...pathSegments: string[]): string => {
 };
 
 const getTitle = (html: string): string => /<title>([^<]+)<\/title>/u.exec(html)?.[1] ?? '';
+
+// structured breadcrumb fields emitted by the repository-owned layout
+interface IStructuredBreadcrumbItem {
+  item?: string;
+  name: string;
+  position: number;
+}
+
+/**
+ * Reads breadcrumb items from the built JSON-LD output.
+ * @param html Generated page HTML.
+ * @returns Ordered structured breadcrumb items.
+ */
+const getStructuredBreadcrumbItems = (html: string): IStructuredBreadcrumbItem[] => {
+  const structuredBreadcrumbs = [
+    ...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/gu),
+  ]
+    .map(
+      (match) =>
+        JSON.parse(match[1] ?? '') as {
+          '@type'?: string;
+          itemListElement?: IStructuredBreadcrumbItem[];
+        },
+    )
+    .find((item) => item['@type'] === 'BreadcrumbList');
+
+  if (structuredBreadcrumbs?.itemListElement === undefined) {
+    throw new Error('Structured breadcrumbs are missing from the generated page.');
+  }
+
+  return structuredBreadcrumbs.itemListElement;
+};
+
+/**
+ * Reads the ordered labels from the built visible breadcrumb navigation.
+ * @param html Generated page HTML.
+ * @returns Ordered visible breadcrumb labels.
+ */
+const getVisibleBreadcrumbLabels = (html: string): string[] => {
+  const breadcrumbNavigation = /<nav aria-label="Breadcrumb"[\s\S]*?<\/nav>/u.exec(html)?.[0];
+
+  if (breadcrumbNavigation === undefined) {
+    throw new Error('Visible breadcrumbs are missing from the generated page.');
+  }
+
+  return [...breadcrumbNavigation.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gu)].map((match) =>
+    (match[1] ?? '')
+      .replace(/<svg\b[\s\S]*?<\/svg>/gu, '')
+      .replace(/<[^>]+>/gu, '')
+      .trim(),
+  );
+};
 
 describe('verifyProductionBuild', () => {
   test('accepts the complete generated static artifact', () => {
@@ -76,6 +129,81 @@ describe('verifyProductionBuild', () => {
     const exploreCopy = exploreSection?.replaceAll(/\]\([^)]+\)/gu, ']');
     expect(exploreSection).toContain('`moldea`');
     expect(exploreCopy?.replaceAll('`moldea`', '')).not.toMatch(/\bmoldea\b/iu);
+  });
+
+  test('publishes distinct technical reference identities through discovery surfaces', () => {
+    const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
+    const model = loadWebsiteModel();
+    const llmsText = readFileSync(getDistPath('llms.txt'), 'utf8');
+    const searchRecords = JSON.parse(
+      readFileSync(getDistPath('search-index.json'), 'utf8'),
+    ) as Array<{ title: string; url: string }>;
+
+    for (const reference of [
+      { route: '/docs/capabilities/', title: 'Capability reference' },
+      { route: '/docs/how-it-works/', title: 'Workflow reference' },
+    ] as const) {
+      const document = model.documents.find(({ route }) => route === reference.route);
+      const html = readFileSync(getDistPath(reference.route.slice(1), 'index.html'), 'utf8');
+
+      expect(document).toMatchObject({
+        navigationTitle: reference.title,
+        title: reference.title,
+      });
+      expect(getTitle(html)).toBe(`${reference.title} · ${SITE_NAME}`);
+      expect(
+        searchRecords.find(({ url }) => url === withBase(reference.route, basePath)),
+      ).toMatchObject({
+        description: document?.description,
+        title: reference.title,
+        url: withBase(reference.route, basePath),
+      });
+      expect(llmsText).toContain(`- [${reference.title}](`);
+    }
+
+    expect(llmsText).not.toContain('[Complete capabilities]');
+  });
+
+  test('keeps visible and structured documentation breadcrumbs in one hierarchy', () => {
+    const siteUrl = process.env['SITE_URL'] ?? DEFAULT_SITE_URL;
+    const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
+    const model = loadWebsiteModel();
+
+    for (const route of [
+      '/docs/',
+      '/docs/capabilities/',
+      '/examples/',
+      '/examples/create-a-support-agent/',
+    ]) {
+      const document = model.documents.find((candidate) => candidate.route === route);
+
+      if (document === undefined) throw new Error(`Missing documentation model for ${route}.`);
+
+      const html = readFileSync(getDistPath(route.slice(1), 'index.html'), 'utf8');
+      const expectedBreadcrumbs = createDocumentationBreadcrumbs(document);
+      const expectedLabels = expectedBreadcrumbs.map(({ label }) => label);
+      const structuredItems = getStructuredBreadcrumbItems(html);
+
+      expect(getVisibleBreadcrumbLabels(html)).toStrictEqual(expectedLabels);
+      expect(structuredItems.map(({ name }) => name)).toStrictEqual(expectedLabels);
+      expect(structuredItems.map(({ position }) => position)).toStrictEqual(
+        expectedLabels.map((_, index) => index + 1),
+      );
+
+      for (const breadcrumb of expectedBreadcrumbs) {
+        const href = 'href' in breadcrumb ? breadcrumb.href : undefined;
+
+        if (href === undefined) continue;
+
+        expect(html).toContain(`href="${withBase(href, basePath)}"`);
+        expect(structuredItems).toContainEqual(
+          expect.objectContaining({
+            item: createCanonicalUrl(href, siteUrl, basePath),
+            name: breadcrumb.label,
+          }),
+        );
+      }
+    }
   });
 
   test('publishes release semantic evidence while preserving current machine status', () => {

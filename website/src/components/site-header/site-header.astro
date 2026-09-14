@@ -9,25 +9,16 @@ import { THEME_STORAGE_KEY } from '../../lib/site/constants.ts';
 import Logo from '../logo/logo.astro';
 
 const navigation = [
-  { href: '/docs/capabilities/', label: 'Capabilities' },
-  { href: '/docs/how-it-works/', label: 'How it works' },
-  { href: '/evidence/', label: 'Evidence' },
-  { href: '/examples/', label: 'Examples' },
-  { href: '/docs/', label: 'Docs' },
+  { activeRoutes: ['/capabilities/'], href: '/capabilities/', label: 'Capabilities' },
+  { activeRoutes: ['/how-it-works/'], href: '/how-it-works/', label: 'How it works' },
+  { activeRoutes: ['/evidence/'], href: '/evidence/', label: 'Evidence' },
+  { activeRoutes: ['/docs/', '/examples/'], href: '/docs/', label: 'Docs' },
 ] as const;
 const currentPathname = Astro.url.pathname;
 const basePath = import.meta.env.BASE_URL;
-const activeNavigationRoute = navigation.reduce<string | undefined>(
-  (activeRoute, { href }) =>
-    isPublicRouteActive(currentPathname, href, basePath) &&
-    (activeRoute === undefined || href.length > activeRoute.length)
-      ? href
-      : activeRoute,
-  undefined,
-);
-const navigationItems = navigation.map(({ href, label }) => ({
+const navigationItems = navigation.map(({ activeRoutes, href, label }) => ({
   href: withBase(href, basePath),
-  isActive: href === activeNavigationRoute,
+  isActive: activeRoutes.some((route) => isPublicRouteActive(currentPathname, route, basePath)),
   label,
 }));
 const searchHref = withBase('/search/', basePath);

@@ -155,6 +155,21 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   await expect(capabilitiesSection.getByRole('heading', { level: 3 })).toHaveText(
     capabilityHeadings,
   );
+  const capabilityDestinations = [
+    '/capabilities/#project-truth',
+    '/capabilities/#plan-agent-systems',
+    '/capabilities/#create-agents',
+    '/capabilities/#build-agent-skills',
+    '/capabilities/#keep-behavior-current',
+    '/capabilities/#evaluate-and-repair',
+  ] as const;
+  const capabilityCards = capabilitiesSection.getByRole('listitem').getByRole('link');
+  for (const [index, destination] of capabilityDestinations.entries()) {
+    await expect(capabilityCards.nth(index)).toHaveAttribute('href', toPublicPath(destination));
+  }
+  await expect(
+    capabilitiesSection.getByRole('link', { name: 'Explore every capability' }),
+  ).toHaveAttribute('href', toPublicPath('/capabilities/'));
   const evidenceSection = page.getByRole('region', { name: 'See what was tested.' });
   await expect(
     evidenceSection.getByRole('link', { name: 'Inspect the decisions' }),
@@ -224,6 +239,20 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     'href',
     PACKAGES_WEBSITE_URL,
   );
+  const exploreNavigation = footer.getByRole('navigation', { name: 'Explore' });
+  for (const [name, destination] of [
+    ['Capabilities', '/capabilities/'],
+    ['How it works', '/how-it-works/'],
+    ['Evidence', '/evidence/'],
+    ['Docs', '/docs/'],
+    ['Getting started', '/docs/getting-started/'],
+    ['llms.txt', '/llms.txt'],
+  ] as const) {
+    await expect(exploreNavigation.getByRole('link', { name, exact: true })).toHaveAttribute(
+      'href',
+      toPublicPath(destination),
+    );
+  }
   const externalFooterLinks = footer.locator('a[target="_blank"]');
   await expect(externalFooterLinks).toHaveCount(5);
   for (let index = 0; index < (await externalFooterLinks.count()); index += 1) {

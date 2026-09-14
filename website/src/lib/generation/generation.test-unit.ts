@@ -216,6 +216,14 @@ describe('createWebsiteModel', () => {
     expect(qualificationProfile?.latest?.latestStatus).toBe('passed');
 
     for (const route of REQUIRED_DOCUMENT_ROUTES) expect(model.routes).toContain(route);
+    expect(model.documents.find(({ route }) => route === '/docs/capabilities/')).toMatchObject({
+      navigationTitle: 'Capability reference',
+      title: 'Capability reference',
+    });
+    expect(model.documents.find(({ route }) => route === '/docs/how-it-works/')).toMatchObject({
+      navigationTitle: 'Workflow reference',
+      title: 'Workflow reference',
+    });
     for (const page of Object.values(PRODUCT_PAGE_METADATA)) {
       const searchRecord = model.searchRecords.find(({ route }) => route === page.route);
 
@@ -262,6 +270,9 @@ describe('createWebsiteModel', () => {
     expect(exploreSection).toContain('`moldea`');
     expect(exploreCopy?.replaceAll('`moldea`', '')).not.toMatch(/\bmoldea\b/iu);
     expect(model.llmsText).toContain('## Evidence');
+    expect(model.llmsText).toContain('[Capability reference](/docs/capabilities/)');
+    expect(model.llmsText).toContain('[Workflow reference](/docs/how-it-works/)');
+    expect(model.llmsText).not.toContain('[Complete capabilities]');
   });
 
   test('bypasses current qualification checks only when qualification evidence is pinned', () => {

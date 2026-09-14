@@ -1,12 +1,14 @@
 ---
-title: How it works
-navigationTitle: How it works
-description: Follow the developer-facing experience and the optional evidence, guidance, and deterministic tooling used underneath.
+title: Workflow reference
+navigationTitle: Workflow reference
+description: Technical reference for activation, operation selection, repository evidence, deterministic tooling, and verified changes.
 section: concepts
 order: 30
 ---
 
 # Natural on the surface, rigorous underneath
+
+Start with [How `moldea` works](/how-it-works/) for a visual walkthrough of one connected project change. This reference explains the workflow underneath it.
 
 The normal experience has three steps:
 

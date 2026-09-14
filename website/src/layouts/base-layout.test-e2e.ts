@@ -399,7 +399,7 @@ test('persists an explicit theme and exposes mobile navigation from the keyboard
   await expect(page.getByRole('button', { name: 'Use light theme' }).last()).toBeVisible();
 });
 
-test('uses smooth client navigation while preserving ordinary static routes', async ({ page }) => {
+test('uses smooth client navigation and browser history across product pages', async ({ page }) => {
   await page.goto(toPublicPath('/'));
   await expect(page.locator('meta[name="astro-view-transitions-enabled"]')).toHaveAttribute(
     'content',
@@ -415,14 +415,35 @@ test('uses smooth client navigation while preserving ordinary static routes', as
 
   await page.getByRole('link', { name: 'Capabilities', exact: true }).first().click();
   await expect(
-    page.getByRole('heading', { level: 1, name: 'What the skill can do' }),
+    page.getByRole('heading', { level: 1, name: 'From project knowledge to working agents.' }),
   ).toBeVisible();
-  expect(new URL(page.url()).pathname).toBe(toPublicPath('/docs/capabilities/'));
+  expect(new URL(page.url()).pathname).toBe(toPublicPath('/capabilities/'));
   expect(
     await page.evaluate(
       () => (window as Window & { __skillNavigationMarker?: string }).__skillNavigationMarker,
     ),
   ).toBe(navigationMarker);
+
+  await page
+    .getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'How it works', exact: true })
+    .click();
+  await expect(page).toHaveURL(toPublicPath('/how-it-works/'));
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'One change, followed all the way through.' }),
+  ).toBeVisible();
+
+  await page.goBack();
+  await expect(page).toHaveURL(toPublicPath('/capabilities/'));
+  await expect(
+    page.getByRole('navigation', { name: 'Primary navigation' }).locator('a[aria-current="page"]'),
+  ).toHaveText('Capabilities');
+
+  await page.goForward();
+  await expect(page).toHaveURL(toPublicPath('/how-it-works/'));
+  await expect(
+    page.getByRole('navigation', { name: 'Primary navigation' }).locator('a[aria-current="page"]'),
+  ).toHaveText('How it works');
 });
 
 test('shows accessible progress during delayed client navigation and hides it after success', async ({
@@ -439,7 +460,7 @@ test('shows accessible progress during delayed client navigation and hides it af
 
   await expect(progress).toBeHidden();
   await page.route(
-    `**${toPublicPath('/docs/capabilities/')}`,
+    `**${toPublicPath('/capabilities/')}`,
     async (route) => {
       await delayedRequest.promise;
       await route.continue();
@@ -459,7 +480,7 @@ test('shows accessible progress during delayed client navigation and hides it af
 
   delayedRequest.resolve();
   await navigation;
-  await expect(page).toHaveURL(toPublicPath('/docs/capabilities/'));
+  await expect(page).toHaveURL(toPublicPath('/capabilities/'));
   await expect(progress).toBeHidden();
 });
 
@@ -472,9 +493,15 @@ test('marks the most specific current desktop and mobile navigation destinations
 
     await page.goto(toPublicPath('/'));
     const primaryNavigation = page.getByRole('navigation', { name: 'Primary navigation' });
+    await expect(primaryNavigation.getByRole('link')).toHaveText([
+      'Capabilities',
+      'How it works',
+      'Evidence',
+      'Docs',
+    ]);
     await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveCount(0);
 
-    await page.goto(toPublicPath('/docs/capabilities/'));
+    await page.goto(toPublicPath('/capabilities/'));
     const activeCapabilitiesLink = primaryNavigation.locator('a[aria-current="page"]');
     const inactiveDocsLink = primaryNavigation.getByRole('link', { name: 'Docs', exact: true });
     await expect(activeCapabilitiesLink).toHaveText('Capabilities');
@@ -483,6 +510,12 @@ test('marks the most specific current desktop and mobile navigation destinations
     ).not.toBe(
       await inactiveDocsLink.evaluate((element) => getComputedStyle(element).backgroundColor),
     );
+
+    await page.goto(toPublicPath('/how-it-works/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('How it works');
+
+    await page.goto(toPublicPath('/docs/capabilities/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
 
     await page.goto(toPublicPath('/docs/coding-agent-compatibility/'));
     await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
@@ -496,14 +529,17 @@ test('marks the most specific current desktop and mobile navigation destinations
 
       return marker;
     });
-    await primaryNavigation.getByRole('link', { name: 'Examples', exact: true }).click();
-    await page.waitForURL((url) => url.pathname === toPublicPath('/examples/'));
-    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Examples');
+    await primaryNavigation.getByRole('link', { name: 'Docs', exact: true }).click();
+    await page.waitForURL((url) => url.pathname === toPublicPath('/docs/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
     expect(
       await page.evaluate(
         () => (window as Window & { __moldeaNavigationMarker?: string }).__moldeaNavigationMarker,
       ),
     ).toBe(navigationMarker);
+
+    await page.goto(toPublicPath('/examples/create-a-support-agent/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
 
     await page.goto(toPublicPath('/search/'));
     await expect(page.getByRole('link', { name: 'Search documentation' })).toHaveAttribute(
@@ -518,7 +554,7 @@ test('marks the most specific current desktop and mobile navigation destinations
   const mobileContext = await browser.newContext({ colorScheme: 'dark' });
   const mobilePage = await mobileContext.newPage();
   await mobilePage.setViewportSize({ height: 740, width: 320 });
-  await mobilePage.goto(toPublicPath('/docs/how-it-works/'));
+  await mobilePage.goto(toPublicPath('/how-it-works/'));
   await mobilePage.getByLabel('Open navigation').click();
 
   const mobileNavigation = mobilePage.getByRole('navigation', { name: 'Mobile navigation' });
@@ -657,6 +693,20 @@ test('formats product mentions in generated search results', async ({ page }) =>
   await expect(page.locator('[data-search-status] code')).toHaveText('moldea');
 });
 
+test('distinguishes visual product pages from technical references in search', async ({ page }) => {
+  await page.goto(toPublicPath('/search/'));
+  const searchInput = page.getByRole('searchbox', { name: 'Search documentation' });
+  await searchInput.fill('capabilities');
+  await searchInput.press('Enter');
+
+  const results = page.locator('[data-search-results]');
+  const visualPage = results.locator(`a[href="${toPublicPath('/capabilities/')}"]`);
+  const referencePage = results.locator(`a[href="${toPublicPath('/docs/capabilities/')}"]`);
+
+  await expect(visualPage.getByRole('heading')).toHaveText('Capabilities');
+  await expect(referencePage.getByRole('heading')).toHaveText('Capability reference');
+});
+
 test('copies exact code across direct loads and client navigation while excluding project diffs', async ({
   context,
   page,
@@ -686,9 +736,9 @@ test('copies exact code across direct loads and client navigation while excludin
 
   await page
     .getByRole('navigation', { name: 'Primary navigation' })
-    .getByRole('link', { name: 'Capabilities', exact: true })
+    .getByRole('link', { name: 'Docs', exact: true })
     .click();
-  await expect(page).toHaveURL(toPublicPath('/docs/capabilities/'));
+  await expect(page).toHaveURL(toPublicPath('/docs/'));
   await page
     .getByRole('navigation', { name: 'Documentation navigation' })
     .getByRole('link', { name: 'Repository format', exact: true })

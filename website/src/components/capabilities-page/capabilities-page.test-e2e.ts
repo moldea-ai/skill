@@ -14,6 +14,9 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
   ).toBeVisible();
   await expect(page.locator('[data-capability-section]')).toHaveCount(6);
   await expect(page.locator('#evaluate-and-repair [data-repair-visual]')).toBeVisible();
+  await expect(
+    page.getByRole('navigation', { name: 'Primary navigation' }).locator('a[aria-current="page"]'),
+  ).toHaveText('Capabilities');
 
   for (const heading of [
     'Give every session the same starting point.',
@@ -61,7 +64,10 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
   const accessibilityResults = await new AxeBuilder({ page }).analyze();
   expect(accessibilityResults.violations).toStrictEqual([]);
 
-  await page.locator(`a[href="${withBase('/how-it-works/', basePath)}"]`).click();
+  await page
+    .getByLabel('See these capabilities work')
+    .getByRole('link', { name: 'How it works', exact: true })
+    .click();
   await expect(page).toHaveURL(/\/how-it-works\/$/u);
   await expect(
     page.getByRole('heading', { level: 1, name: 'One change, followed all the way through.' }),

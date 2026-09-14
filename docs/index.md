@@ -10,6 +10,8 @@ order: 0
 
 `moldea` helps a coding agent understand what a project is, design agent-enabled systems carefully, create grounded agents, and keep their declared behavior aligned with the implementation.
 
+Explore [Capabilities](/capabilities/) for the complete visual overview, or follow [How `moldea` works](/how-it-works/) through one connected project change. The documentation below contains the technical details and complete examples.
+
 You do not need to learn another daily workflow. Install the skill, then ask your coding agent for outcomes in ordinary language:
 
 ```text
@@ -31,8 +33,10 @@ The coding agent uses `moldea` when you request it explicitly or when a known ta
 - [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea): the primary distribution page.
 - [Getting started](/docs/getting-started/): install once and make the first natural request.
 - [Coding agent compatibility](/docs/coding-agent-compatibility/): use the same portable skill with Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and other compatible hosts.
-- [What `moldea` can do](/docs/capabilities/): explore the complete capability surface.
-- [How it works](/docs/how-it-works/): see the optional technical layer beneath the coding agent.
+- [Capabilities](/capabilities/): see the six product outcomes through visual project examples.
+- [How `moldea` works](/how-it-works/): follow one change through context, connections, updates, and checks.
+- [Capability reference](/docs/capabilities/): read the exact capability behavior and boundaries.
+- [Workflow reference](/docs/how-it-works/): inspect activation, operation selection, evidence, and local tooling.
 - [Repository format](/docs/repository-format/): see how a two-file foundation grows into focused, explicit project organization.
 - [Continuous maintenance](/docs/continuous-maintenance/): keep affected truth aligned and explicitly compress accumulated context without losing unique meaning.
 - [Evidence](/evidence/): inspect current behavioral semantic evaluation and real-project adapter qualification evidence, including failed attempts.

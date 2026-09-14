@@ -1,12 +1,14 @@
 ---
-title: What the skill can do
-navigationTitle: Capabilities
-description: A complete guide to planning, initialization, agent and skill design, maintenance, evaluation, reconciliation, and validation.
+title: Capability reference
+navigationTitle: Capability reference
+description: Technical reference for planning, initialization, agent and skill design, maintenance, evaluation, reconciliation, and validation.
 section: start
 order: 20
 ---
 
 # What `moldea` can do
+
+Start with the [visual Capabilities page](/capabilities/) to see each outcome through a project example. This reference explains the exact behavior and boundaries.
 
 `moldea` gives a capable coding agent a disciplined way to manage project context and agent behavior. The operations below are outcomes you can request naturally.
 

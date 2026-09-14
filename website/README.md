@@ -30,7 +30,9 @@ The landing page contrasts an ordinary coding-agent session with the durable pro
 
 `/capabilities/` presents the six product outcomes as visual, source-backed demonstrations. `/how-it-works/` follows one refund-policy change from saved project context through connections, edits, checks, and a later coding-agent session. Both routes reuse the canonical refund projections in `src/lib/landing-example/preview.ts`, publish through search, sitemap, canonical metadata, and `llms.txt`, and direct readers to the technical documentation for details.
 
-The primary header still links Capabilities and How it works to their technical documentation routes until the navigation journey is integrated. Examples retain their current navigation entry.
+The primary header links Capabilities, How it works, Evidence, and Docs. Example routes remain part of Docs and retain their existing sidebar group and URLs. Landing capability cards link to the matching sections on `/capabilities/`, while the footer exposes the complete public journey under Explore.
+
+Documentation and example routes share `createDocumentationBreadcrumbs` from `src/lib/documentation-navigation/`. Each route computes the hierarchy once and passes the same logical, unprefixed links to visible and structured breadcrumb renderers. The existing layout and Website UI components apply the deployment base path at their rendering boundaries.
 
 ## Commands
 

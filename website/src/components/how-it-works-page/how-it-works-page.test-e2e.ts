@@ -26,6 +26,9 @@ test('follows one project change through five connected stages', async ({ page }
     page.getByText('I updated the refund rule and everything connected to it.', { exact: true }),
   ).toBeVisible();
   await expect(page.locator('[data-workflow-stage]')).toHaveCount(5);
+  await expect(
+    page.getByRole('navigation', { name: 'Primary navigation' }).locator('a[aria-current="page"]'),
+  ).toHaveText('How it works');
 
   const stageIds = await page
     .locator('[data-workflow-stage]')

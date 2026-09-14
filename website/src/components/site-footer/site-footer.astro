@@ -27,28 +27,33 @@ const basePath = import.meta.env.BASE_URL;
   <nav
     slot="primary-navigation"
     class="grid content-start gap-3 text-sm"
-    aria-label="Documentation"
+    aria-label="Explore"
   >
-    <p class="font-bold">Documentation</p>
+    <p class="font-bold">Explore</p>
     <a
       class="text-muted-foreground hover:text-foreground"
-      href={withBase('/docs/getting-started/', basePath)}
-      >Getting started</a
-    >
-    <a
-      class="text-muted-foreground hover:text-foreground"
-      href={withBase('/docs/capabilities/', basePath)}
+      href={withBase('/capabilities/', basePath)}
       >Capabilities</a
     >
     <a
       class="text-muted-foreground hover:text-foreground"
-      href={withBase('/examples/', basePath)}
-      >Examples</a
+      href={withBase('/how-it-works/', basePath)}
+      >How it works</a
     >
     <a
       class="text-muted-foreground hover:text-foreground"
       href={withBase('/evidence/', basePath)}
       >Evidence</a
+    >
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={withBase('/docs/', basePath)}
+      >Docs</a
+    >
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={withBase('/docs/getting-started/', basePath)}
+      >Getting started</a
     >
     <a
       class="text-muted-foreground hover:text-foreground"

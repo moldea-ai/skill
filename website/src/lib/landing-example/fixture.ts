@@ -8,7 +8,7 @@ export const LANDING_EXAMPLE = {
   maintainedRefundWindowDays: 14,
   maintenanceRequest:
     "Shorten the application's refund window from 30 days to 14 and update the tests.",
-  model: 'gpt-5',
+  model: 'gpt-6-astra',
   paths: {
     agent: '/src/agent.ts',
     agentDescription: '/moldea/agents/support/description.md',

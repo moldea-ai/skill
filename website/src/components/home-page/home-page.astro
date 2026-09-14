@@ -1,11 +1,12 @@
 ---
-import { ArrowRight, Cable, ListChecks, Sparkles } from '@lucide/astro';
+import { ArrowRight, Cable, Check, ListChecks, ShieldCheck, Sparkles } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import AgentExample from '../agent-example/agent-example.astro';
+import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
 import BehaviorAlignment from '../behavior-alignment/behavior-alignment.astro';
 import CapabilitiesOverview from '../capabilities-overview/capabilities-overview.astro';
 import CodingAgentCompatibility from '../coding-agent-compatibility/coding-agent-compatibility.astro';
@@ -36,8 +37,35 @@ const successfulSemanticCaseCount =
   (semanticReleaseSummary.result?.passedCaseCount ?? 0) +
   (semanticReleaseSummary.result?.recoveredCaseCount ?? 0);
 const hasSemanticReleaseEvidence = semanticReleaseSummary.result !== null;
+const hasCompleteSemanticReleaseEvidence =
+  hasSemanticReleaseEvidence && successfulSemanticCaseCount === model.semanticEvaluation.caseCount;
 const hasQualificationReleaseEvidence = qualificationSummaries.some(
   ({ kind }) => kind !== 'not-recorded',
+);
+const hasCompleteQualificationReleaseEvidence =
+  model.qualification.profiles.length > 0 &&
+  qualifiedProfileCount === model.qualification.profiles.length;
+const hasCompleteReleaseEvidence =
+  hasCompleteSemanticReleaseEvidence && hasCompleteQualificationReleaseEvidence;
+const decisionEvidenceGroups = ['Context choices', 'File changes', 'Project boundaries'] as const;
+const qualificationEvidenceGroups = [
+  'Example project builds',
+  'Runtime connections',
+  'Deterministic checks',
+] as const;
+const qualificationAdapterIds = [
+  ...new Set(
+    model.qualification.profiles
+      .map(({ adapterId }) => adapterId)
+      .filter((adapterId) => adapterId !== 'custom'),
+  ),
+];
+const qualificationAdapterPreviewIds = ['openai', 'anthropic', 'vercel-ai-sdk'].filter(
+  (adapterId) => qualificationAdapterIds.includes(adapterId),
+);
+const additionalQualificationAdapterCount = Math.max(
+  0,
+  qualificationAdapterIds.length - qualificationAdapterPreviewIds.length,
 );
 ---
 
@@ -118,7 +146,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
   <RepositoryFormat />
 
   <section
-    class="relative overflow-hidden border-b border-border bg-sidebar py-12 sm:py-16"
+    class="relative overflow-hidden border-b border-border bg-background py-12 sm:py-16"
     aria-labelledby="home-evidence-title"
     data-home-evidence
   >
@@ -139,30 +167,70 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
               See what was tested.
             </h2>
           </div>
-          <p
-            class="text-base leading-7 text-current/70 sm:text-lg sm:leading-8 lg:justify-self-end"
-          >
-            Open the request, project changes, and verdict behind each recorded result.
-          </p>
+          <div class="lg:justify-self-end">
+            <p class="text-base leading-7 text-current/70 sm:text-lg sm:leading-8">
+              Open the request, project changes, and verdict behind each recorded result.
+            </p>
+            {
+              hasCompleteReleaseEvidence ? (
+                <p
+                  class="light-surface-selection mt-4 inline-flex items-center gap-2 rounded-full border border-primary-foreground bg-primary-foreground px-3 py-1.5 text-sm font-semibold text-primary"
+                  data-home-evidence-release-status="verified"
+                >
+                  <ShieldCheck
+                    class="size-4 text-emerald-700 dark:text-emerald-700"
+                    aria-hidden="true"
+                  />
+                  Current release verified
+                </p>
+              ) : (
+                <p
+                  class="mt-4 inline-flex items-center gap-2 rounded-full border border-current/20 bg-current/10 px-3 py-1.5 text-sm font-semibold"
+                  data-home-evidence-release-status="pending"
+                >
+                  Release evidence pending
+                </p>
+              )
+            }
+          </div>
         </header>
 
-        <div class="grid gap-px bg-primary-foreground/15 md:grid-cols-2">
+        <div class="grid gap-3 p-3 pt-0 sm:p-6 sm:pt-0 md:grid-cols-2">
           <article
-            class="light-surface-selection flex min-w-0 flex-col bg-primary-foreground p-5 text-primary sm:p-7"
+            class="light-surface-selection flex min-w-0 flex-col rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7"
             data-home-evidence-card="decision"
           >
-            <div class="flex items-center gap-3">
-              <span
-                class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"
-              >
-                <ListChecks
-                  class="size-5"
-                  aria-hidden="true"
-                />
-              </span>
-              <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
-                Decision evaluation
-              </p>
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span
+                  class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"
+                >
+                  <ListChecks
+                    class="size-5"
+                    aria-hidden="true"
+                  />
+                </span>
+                <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
+                  Decision evaluation
+                </p>
+              </div>
+              {
+                hasCompleteSemanticReleaseEvidence ? (
+                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-700">
+                    <Check
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                    Passed
+                  </span>
+                ) : hasSemanticReleaseEvidence ? (
+                  <span class="text-xs font-semibold text-primary/60">
+                    {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount} passed
+                  </span>
+                ) : (
+                  <span class="text-xs font-semibold text-primary/60">Not recorded</span>
+                )
+              }
             </div>
             <h3 class="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
               Did it make the right call?
@@ -170,29 +238,72 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
             <p class="mt-3 max-w-xl text-sm leading-6 text-primary/70 sm:text-base sm:leading-7">
               See how it chooses context, changes files, and respects your boundaries.
             </p>
-            <div
-              class="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-primary/10 pt-5 sm:mt-7"
-            >
-              {
-                hasSemanticReleaseEvidence ? (
-                  <p
-                    class="text-sm font-semibold"
-                    data-semantic-release-count
+            {
+              hasCompleteSemanticReleaseEvidence ? (
+                <div
+                  class="mt-5 rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4"
+                  data-home-evidence-result="decision"
+                >
+                  <div class="flex items-center justify-between gap-4">
+                    <p
+                      class="text-sm font-semibold"
+                      data-semantic-release-count
+                    >
+                      <span class="block font-mono text-3xl tracking-tight">
+                        {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount}
+                      </span>
+                      decisions verified
+                    </p>
+                    <ShieldCheck
+                      class="size-10 shrink-0 text-emerald-700 dark:text-emerald-700"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <span
+                    class="mt-4 block h-1.5 overflow-hidden rounded-full bg-primary/10"
+                    aria-hidden="true"
                   >
-                    <span class="block font-mono text-2xl tracking-tight">
-                      {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount}
-                    </span>
-                    decisions verified
-                  </p>
-                ) : (
-                  <p
-                    class="max-w-xs text-sm text-primary/65"
-                    data-semantic-release-count
-                  >
-                    No release decision result is recorded yet.
-                  </p>
-                )
-              }
+                    <span class="block h-full w-full rounded-full bg-emerald-600" />
+                  </span>
+                </div>
+              ) : hasSemanticReleaseEvidence ? (
+                <p
+                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  data-semantic-release-count
+                >
+                  {successfulSemanticCaseCount} of {model.semanticEvaluation.caseCount} decisions
+                  passed.
+                </p>
+              ) : (
+                <p
+                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  data-semantic-release-count
+                >
+                  No release decision result is recorded yet.
+                </p>
+              )
+            }
+            {
+              hasCompleteSemanticReleaseEvidence && (
+                <ul
+                  class="mt-4 grid gap-2"
+                  aria-label="Verified decision behavior"
+                >
+                  {decisionEvidenceGroups.map((group) => (
+                    <li class="flex items-center gap-2 text-sm font-semibold">
+                      <span class="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-600/10 text-emerald-700 dark:text-emerald-700">
+                        <Check
+                          class="size-3.5"
+                          aria-hidden="true"
+                        />
+                      </span>
+                      {group}
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
+            <div class="mt-auto border-t border-primary/10 pt-5 sm:mt-6">
               <ActionLink
                 class="font-bold"
                 href={withBase(model.semanticEvaluation.route, basePath)}
@@ -207,21 +318,40 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
           </article>
 
           <article
-            class="light-surface-selection flex min-w-0 flex-col bg-primary-foreground p-5 text-primary sm:p-7"
+            class="light-surface-selection flex min-w-0 flex-col rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7"
             data-home-evidence-card="qualification"
           >
-            <div class="flex items-center gap-3">
-              <span
-                class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"
-              >
-                <Cable
-                  class="size-5"
-                  aria-hidden="true"
-                />
-              </span>
-              <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
-                Adapter qualification
-              </p>
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span
+                  class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"
+                >
+                  <Cable
+                    class="size-5"
+                    aria-hidden="true"
+                  />
+                </span>
+                <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
+                  Adapter qualification
+                </p>
+              </div>
+              {
+                hasCompleteQualificationReleaseEvidence ? (
+                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-700">
+                    <Check
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                    Passed
+                  </span>
+                ) : hasQualificationReleaseEvidence ? (
+                  <span class="text-xs font-semibold text-primary/60">
+                    {qualifiedProfileCount}/{model.qualification.profiles.length} passed
+                  </span>
+                ) : (
+                  <span class="text-xs font-semibold text-primary/60">Not recorded</span>
+                )
+              }
             </div>
             <h3 class="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
               Does it work with your integration?
@@ -229,29 +359,84 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
             <p class="mt-3 max-w-xl text-sm leading-6 text-primary/70 sm:text-base sm:leading-7">
               Browse the projects built and checked with each supported adapter.
             </p>
-            <div
-              class="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-primary/10 pt-5 sm:mt-7"
-            >
-              {
-                hasQualificationReleaseEvidence ? (
-                  <p
-                    class="text-sm font-semibold"
-                    data-qualification-release-count
+            {
+              hasCompleteQualificationReleaseEvidence ? (
+                <div
+                  class="mt-5 rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4"
+                  data-home-evidence-result="qualification"
+                >
+                  <div class="flex flex-wrap items-center justify-between gap-4">
+                    <p
+                      class="text-sm font-semibold"
+                      data-qualification-release-count
+                    >
+                      <span class="block font-mono text-3xl tracking-tight">
+                        {qualifiedProfileCount}/{model.qualification.profiles.length}
+                      </span>
+                      adapter setups qualified
+                    </p>
+                    <div
+                      class="flex items-center gap-1.5"
+                      aria-label={`${qualificationAdapterIds.length} runtime adapters represented`}
+                    >
+                      {qualificationAdapterPreviewIds.map((adapterId) => (
+                        <AdapterCompanyLogo
+                          adapterId={adapterId}
+                          size="xs"
+                        />
+                      ))}
+                      {additionalQualificationAdapterCount > 0 && (
+                        <span class="inline-flex size-7 items-center justify-center rounded-md border border-primary/15 bg-primary/5 text-xs font-bold">
+                          +{additionalQualificationAdapterCount}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span
+                    class="mt-4 block h-1.5 overflow-hidden rounded-full bg-primary/10"
+                    aria-hidden="true"
                   >
-                    <span class="block font-mono text-2xl tracking-tight">
-                      {qualifiedProfileCount}/{model.qualification.profiles.length}
-                    </span>
-                    adapter setups qualified
-                  </p>
-                ) : (
-                  <p
-                    class="max-w-xs text-sm text-primary/65"
-                    data-qualification-release-count
-                  >
-                    No adapter qualification result is recorded yet.
-                  </p>
-                )
-              }
+                    <span class="block h-full w-full rounded-full bg-emerald-600" />
+                  </span>
+                </div>
+              ) : hasQualificationReleaseEvidence ? (
+                <p
+                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  data-qualification-release-count
+                >
+                  {qualifiedProfileCount} of {model.qualification.profiles.length} adapter setups
+                  passed.
+                </p>
+              ) : (
+                <p
+                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  data-qualification-release-count
+                >
+                  No adapter qualification result is recorded yet.
+                </p>
+              )
+            }
+            {
+              hasCompleteQualificationReleaseEvidence && (
+                <ul
+                  class="mt-4 grid gap-2"
+                  aria-label="Verified adapter behavior"
+                >
+                  {qualificationEvidenceGroups.map((group) => (
+                    <li class="flex items-center gap-2 text-sm font-semibold">
+                      <span class="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-600/10 text-emerald-700 dark:text-emerald-700">
+                        <Check
+                          class="size-3.5"
+                          aria-hidden="true"
+                        />
+                      </span>
+                      {group}
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
+            <div class="mt-auto border-t border-primary/10 pt-5 sm:mt-6">
               <ActionLink
                 class="font-bold"
                 href={withBase(model.qualification.route, basePath)}

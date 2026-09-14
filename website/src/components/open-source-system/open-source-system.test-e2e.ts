@@ -40,6 +40,10 @@ test('shows the deterministic flow and the complete supported adapter set', asyn
   await expect(
     deterministicChecks.locator('[data-connection-state-icon="connected"]'),
   ).toBeVisible();
+  await expect(deterministicChecks.locator('[data-connection-path="disconnected"]')).toBeVisible();
+  await expect(deterministicChecks.locator('[data-connection-path="connected"]')).toBeVisible();
+  await expect(deterministicChecks.getByText('Missing link', { exact: true })).toBeVisible();
+  await expect(deterministicChecks.getByText('Verified', { exact: true })).toBeVisible();
   await expect(
     deterministicChecks.getByText("instructions: 'Be helpful.'", { exact: false }),
   ).toBeVisible();

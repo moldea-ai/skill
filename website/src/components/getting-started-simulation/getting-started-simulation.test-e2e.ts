@@ -39,6 +39,7 @@ test('shows one install followed by an ordinary coding-agent request', async ({ 
     steps.nth(1).getByText('Initialize the project once.', { exact: true }),
   ).toBeVisible();
   await expect(steps.nth(1).getByText('Initialize moldea', { exact: true })).toBeVisible();
+  await expect(steps.nth(1).locator('code')).toHaveText('moldea');
   await expect(
     steps.nth(2).getByText('Describe the outcome naturally.', { exact: true }),
   ).toBeVisible();
@@ -46,11 +47,15 @@ test('shows one install followed by an ordinary coding-agent request', async ({ 
   await expect(
     gettingStarted.getByRole('heading', { level: 3, name: 'Your coding agent handles the rest' }),
   ).toBeVisible();
-  await expect(
-    gettingStarted.getByText('Support agent created. Instructions and order lookup connected.', {
-      exact: true,
-    }),
-  ).toBeVisible();
+  await expect(gettingStarted.getByText('Support agent ready.', { exact: true })).toBeVisible();
+  const projectResult = gettingStarted.getByRole('list', {
+    name: 'Created support agent result',
+  });
+  await expect(projectResult.getByRole('listitem')).toHaveText([
+    'Project instructions saved',
+    'Order lookup connected',
+    'Deterministic checks passed',
+  ]);
   await expect(gettingStarted.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(
     1,
   );

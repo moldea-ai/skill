@@ -104,15 +104,17 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     new Set(sectionHeadingTypography.map((typography) => JSON.stringify(typography))).size,
   ).toBe(1);
 
-  const [heroBackground, evidenceBackground] = await Promise.all([
-    page
-      .locator('[data-home-hero]')
-      .evaluate((section) => getComputedStyle(section).backgroundColor),
-    page
-      .locator('[data-home-evidence]')
-      .evaluate((section) => getComputedStyle(section).backgroundColor),
-  ]);
-  expect(heroBackground).not.toBe(evidenceBackground);
+  const productStoryBackgrounds = await page
+    .locator(
+      '[data-home-hero], [data-why-moldea], [data-capabilities-overview], [data-behavior-alignment], [data-open-source-system], [data-repository-format], [data-home-evidence], [data-adoption]',
+    )
+    .evaluateAll((sections) =>
+      sections.map((section) => getComputedStyle(section).backgroundColor),
+    );
+  expect(productStoryBackgrounds).toHaveLength(8);
+  productStoryBackgrounds.slice(1).forEach((backgroundColor, index) => {
+    expect(backgroundColor).not.toBe(productStoryBackgrounds[index]);
+  });
 
   await expect(page.getByRole('link', { name: 'Explore adapter packages' })).toHaveAttribute(
     'href',
@@ -152,6 +154,19 @@ test('presents the product story before proof and adoption', async ({ page }) =>
       exact: true,
     }),
   ).toBeVisible();
+  await expect(
+    evidenceSection.locator('[data-home-evidence-release-status="verified"]'),
+  ).toBeVisible();
+  await expect(evidenceSection.locator('[data-home-evidence-result]')).toHaveCount(2);
+  await expect(
+    evidenceSection.getByRole('list', { name: 'Verified decision behavior' }).getByRole('listitem'),
+  ).toHaveText(['Context choices', 'File changes', 'Project boundaries']);
+  await expect(
+    evidenceSection.getByRole('list', { name: 'Verified adapter behavior' }).getByRole('listitem'),
+  ).toHaveText(['Example project builds', 'Runtime connections', 'Deterministic checks']);
+  await expect(
+    evidenceSection.getByLabel(/runtime adapters represented/u).locator('img'),
+  ).toHaveCount(3);
 
   const evidenceCardHeights = await evidenceSection
     .locator('[data-home-evidence-card]')

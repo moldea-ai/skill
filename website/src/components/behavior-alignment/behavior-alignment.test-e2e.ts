@@ -36,7 +36,9 @@ test('traces the verified 30-day to 14-day maintenance story', async ({ page }) 
     'within 14 completed days',
   );
   await expect(behaviorAlignment.getByRole('button', { name: /Copy/u })).toHaveCount(0);
-  await expect(behaviorAlignment.getByText('Coding agent', { exact: true })).toBeVisible();
+  await expect(
+    behaviorAlignment.getByText('Coding agent with moldea', { exact: true }),
+  ).toBeVisible();
   await expect(behaviorAlignment.locator('[data-behavior-agent-mark]')).toBeVisible();
   await expect(behaviorAlignment.locator('[data-behavior-agent-response]')).toContainText(
     'I updated the refund rule and everything connected to it.',

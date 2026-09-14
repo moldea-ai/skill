@@ -23,7 +23,6 @@ import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
-import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { PRODUCT_PAGE_METADATA } from '../../lib/model/constants.ts';
 import CapabilityConversation from './capability-conversation/capability-conversation.astro';
@@ -470,9 +469,14 @@ const capabilityLinks = [
                     </div>
                   </li>
                   <li class="flex items-center gap-3 py-3">
-                    <AdapterCompanyLogo
-                      adapterId="openai"
-                      size="xs"
+                    <img
+                      src={withBase('/coding-agents/codex.svg', basePath)}
+                      width="300"
+                      height="300"
+                      alt="OpenAI company logo"
+                      class="size-4 shrink-0 object-contain dark:invert"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div class="min-w-0">
                       <p class="text-xs text-muted-foreground">Runtime</p>

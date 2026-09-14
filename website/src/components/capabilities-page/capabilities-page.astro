@@ -7,30 +7,26 @@ import {
   Check,
   CircleCheck,
   FileCheck,
-  FileCode,
   FileText,
   FolderTree,
   GitBranch,
   Link2,
   Search,
   ShieldCheck,
+  ShoppingCart,
   Terminal,
   Unlink,
-  UserRound,
   Wrench,
 } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import CodeBlock from '@moldea.ai/website-ui/code-block';
-import ConnectionLabel from '@moldea.ai/website-ui/connection-label';
-import FilePreview from '@moldea.ai/website-ui/file-preview';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
-import { LANDING_EXAMPLE, LANDING_EXAMPLE_PREVIEW } from '../../lib/landing-example/index.ts';
 import { PRODUCT_PAGE_METADATA } from '../../lib/model/constants.ts';
+import CapabilityConversation from './capability-conversation/capability-conversation.astro';
 
 const basePath = import.meta.env.BASE_URL;
 const pageMetadata = PRODUCT_PAGE_METADATA.capabilities;
@@ -165,66 +161,84 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
         </div>
       </div>
 
-      <div
-        class="overflow-hidden rounded-2xl border border-border bg-card shadow-raised"
-        data-project-truth-visual
-      >
-        <div class="grid gap-px bg-border sm:grid-cols-3">
-          {
-            [
-              ['Platform', 'Owns the application runtime'],
-              ['Product', 'Owns support workflows'],
-              ['Security', 'Approves production access'],
-            ].map(([owner, responsibility]) => (
-              <div class="bg-card p-4 sm:p-5">
-                <p class="text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                  {owner}
-                </p>
-                <p class="mt-2 text-sm leading-6 font-semibold">{responsibility}</p>
+      <div data-project-truth-visual>
+        <CapabilityConversation ariaLabel="Developer and coding agent project context conversation">
+          <p slot="request">
+            Our support team can approve refunds up to <code class="inline-code">$100</code>.
+            Finance approves anything higher.
+          </p>
+          <p slot="response">
+            I saved the rule and its owner, so future sessions start with the same answer.
+          </p>
+
+          <div class="grid gap-3 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <div class="rounded-xl border border-border bg-background p-3 sm:p-4">
+              <div class="flex items-center gap-2 text-sm font-semibold">
+                <FolderTree
+                  class="size-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <code>storefront/</code>
               </div>
-            ))
-          }
-        </div>
-        <div class="grid gap-5 p-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] sm:p-6">
-          <div
-            class="rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4 dark:border-emerald-400/30 dark:bg-emerald-400/10"
-          >
-            <p
-              class="flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
+              <ul
+                class="ms-1 mt-3 border-s border-border ps-3 text-xs sm:ms-2 sm:ps-4 sm:text-sm"
+                aria-label="Saved project files"
+              >
+                <li
+                  class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                >
+                  <code class="font-semibold">moldea/</code>
+                  <ul
+                    class="ms-1 mt-2 grid gap-2 border-s border-border ps-3 text-muted-foreground sm:ms-2 sm:ps-4"
+                  >
+                    <li
+                      class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                    >
+                      <code>moldea.yaml</code>
+                    </li>
+                    <li
+                      class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                    >
+                      <code>project.md</code>
+                    </li>
+                    <li
+                      class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                    >
+                      <code class="text-foreground">context/</code>
+                      <ul class="ms-1 mt-2 border-s border-border ps-3 sm:ms-2 sm:ps-4">
+                        <li
+                          class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                        >
+                          <code>refunds.md</code>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+
+            <div
+              class="rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4 dark:border-emerald-400/30 dark:bg-emerald-400/10"
             >
-              <CircleCheck
-                class="size-4"
-                aria-hidden="true"
-              />
-              Saved for the next session
-            </p>
-            <ul class="mt-3 grid gap-2 text-sm leading-6">
-              <li>Refund eligibility belongs to the application.</li>
-              <li>The support agent explains the rule.</li>
-            </ul>
+              <p
+                class="flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
+              >
+                <CircleCheck
+                  class="size-4 shrink-0"
+                  aria-hidden="true"
+                />
+                Saved as project truth
+              </p>
+              <blockquote class="mt-3 text-sm leading-6 font-semibold">
+                “Support approves refunds up to <code>$100</code>. Finance reviews larger refunds.”
+              </blockquote>
+              <p class="mt-3 text-xs leading-5 text-muted-foreground">
+                Stored beside the code and reviewed through Git.
+              </p>
+            </div>
           </div>
-          <div class="rounded-xl border border-border bg-muted/40 p-4">
-            <p class="text-sm font-semibold">Left in the sprint</p>
-            <p class="mt-2 text-sm leading-6 text-muted-foreground">
-              Today’s handoff time and temporary review notes.
-            </p>
-          </div>
-        </div>
-        <div class="border-t border-border px-4 py-4 sm:px-6">
-          <div class="flex items-center gap-3 text-sm font-semibold">
-            <FolderTree
-              class="size-4 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <code>moldea/</code>
-          </div>
-          <div
-            class="ms-2 mt-3 grid gap-2 border-s border-border ps-5 text-sm text-muted-foreground"
-          >
-            <code>project.md</code>
-            <code>context/team-responsibilities.md</code>
-          </div>
-        </div>
+        </CapabilityConversation>
       </div>
     </div>
   </section>
@@ -251,75 +265,78 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
       </header>
 
       <div
-        class="mt-8 rounded-2xl border border-border bg-card shadow-raised"
+        class="mt-8"
         data-planning-visual
       >
-        <div class="flex items-start gap-3 border-b border-border p-4 sm:p-5">
-          <span
-            class="dark-surface-selection inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
-          >
-            <UserRound
-              class="size-4"
-              aria-hidden="true"
-            />
-          </span>
-          <div class="min-w-0">
-            <p class="text-xs font-semibold text-muted-foreground">You</p>
-            <p class="mt-1 text-sm leading-6 font-medium sm:text-base">
-              Plan personalized promotions without giving the agent control over prices.
-            </p>
+        <CapabilityConversation ariaLabel="Developer and coding agent planning conversation">
+          <p slot="request">
+            Plan personalized promotions without giving the agent control over prices.
+          </p>
+          <p slot="response">
+            I designed one focused agent. Software protects every price, and people approve the
+            campaigns that need judgment.
+          </p>
+
+          <div class="grid gap-3 md:grid-cols-3">
+            <article class="rounded-xl border border-border bg-background p-4 sm:p-5">
+              <div class="flex items-center justify-between gap-3">
+                <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
+                  <Terminal
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="text-xs font-bold text-muted-foreground">01</span>
+              </div>
+              <p class="eyebrow mt-4">Software</p>
+              <h3 class="mt-1 font-semibold">Sets the allowed offer</h3>
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                Checks eligibility, inventory, and the final price.
+              </p>
+            </article>
+            <article class="rounded-xl border border-border bg-background p-4 sm:p-5">
+              <div class="flex items-center justify-between gap-3">
+                <span
+                  class="inline-flex size-9 items-center justify-center rounded-lg bg-secondary"
+                >
+                  <Bot
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="text-xs font-bold text-muted-foreground">02</span>
+              </div>
+              <p class="eyebrow mt-4">Promotion agent</p>
+              <h3 class="mt-1 font-semibold">Writes the message</h3>
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                Turns an approved offer into useful customer copy.
+              </p>
+            </article>
+            <article class="rounded-xl border border-border bg-background p-4 sm:p-5">
+              <div class="flex items-center justify-between gap-3">
+                <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
+                  <ShieldCheck
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="text-xs font-bold text-muted-foreground">03</span>
+              </div>
+              <p class="eyebrow mt-4">Marketing team</p>
+              <h3 class="mt-1 font-semibold">Approves higher-risk sends</h3>
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                Keeps consequential campaigns with accountable people.
+              </p>
+            </article>
           </div>
-        </div>
-        <div class="grid gap-px bg-border md:grid-cols-3">
-          <article class="bg-card p-5 sm:p-6">
-            <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-              <Terminal
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <p class="eyebrow mt-5">Software</p>
-            <h3 class="mt-1 text-lg font-semibold">Protect the fixed rules</h3>
-            <p class="mt-2 text-sm leading-6 text-muted-foreground">
-              Eligibility, discount limits, inventory, and final price stay deterministic.
-            </p>
-          </article>
-          <article class="bg-card p-5 sm:p-6">
-            <span class="inline-flex size-10 items-center justify-center rounded-xl bg-secondary">
-              <img
-                src={skillMarkPath}
-                width="207"
-                height="215"
-                alt=""
-                class="h-5 w-auto dark:invert"
-              />
-            </span>
-            <p class="eyebrow mt-5">One agent</p>
-            <h3 class="mt-1 text-lg font-semibold">Shape the approved offer</h3>
-            <p class="mt-2 text-sm leading-6 text-muted-foreground">
-              Choose wording and channel from the offers the application permits.
-            </p>
-          </article>
-          <article class="bg-card p-5 sm:p-6">
-            <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-              <ShieldCheck
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <p class="eyebrow mt-5">Person</p>
-            <h3 class="mt-1 text-lg font-semibold">Approve high-risk campaigns</h3>
-            <p class="mt-2 text-sm leading-6 text-muted-foreground">
-              Keep the consequential decision with the accountable team.
-            </p>
-          </article>
-        </div>
-        <div
-          class="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-4 text-sm"
-        >
-          <span class="font-semibold">A clear boundary before code changes.</span>
-          <span class="text-muted-foreground">Planning is read-only.</span>
-        </div>
+
+          <div
+            class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/60 px-4 py-3 text-sm"
+          >
+            <span class="font-semibold">One useful agent, with clear limits.</span>
+            <span class="text-muted-foreground">Planning is read-only.</span>
+          </div>
+        </CapabilityConversation>
       </div>
 
       <div class="mt-5 flex flex-wrap gap-x-5 gap-y-3">
@@ -501,73 +518,129 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
       </header>
 
       <div
-        class="mt-8 grid overflow-hidden rounded-2xl border border-border bg-card shadow-raised lg:grid-cols-2"
+        class="mt-8"
         data-skill-visual
       >
-        <div class="border-b border-border p-5 sm:p-7 lg:border-e lg:border-b-0">
-          <div class="flex items-center gap-3">
-            <FolderTree
-              class="size-5 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <code class="font-semibold">release-review/</code>
+        <CapabilityConversation ariaLabel="Developer and coding agent skill creation conversation">
+          <p slot="request">
+            Create a release review skill using our policy and existing verifier.
+          </p>
+          <p slot="response">
+            I created the release review workflow and kept its guidance, check, and report together.
+          </p>
+
+          <div class="grid gap-3 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+            <div class="rounded-xl border border-border bg-background p-3 sm:p-5">
+              <div class="flex items-center gap-2 text-sm font-semibold">
+                <FolderTree
+                  class="size-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <code>release-review/</code>
+              </div>
+              <ul
+                class="ms-1 mt-3 grid gap-2 border-s border-border ps-3 text-xs sm:ms-2 sm:ps-4 sm:text-sm"
+                aria-label="Release review skill files"
+              >
+                <li
+                  class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                >
+                  <code>SKILL.md</code>
+                </li>
+                <li
+                  class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                >
+                  <code class="font-semibold">references/</code>
+                  <ul
+                    class="ms-1 mt-2 border-s border-border ps-3 text-muted-foreground sm:ms-2 sm:ps-4"
+                  >
+                    <li
+                      class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                    >
+                      <code>policy.md</code>
+                    </li>
+                  </ul>
+                </li>
+                <li
+                  class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                >
+                  <code class="font-semibold">scripts/</code>
+                  <ul
+                    class="ms-1 mt-2 border-s border-border ps-3 text-muted-foreground sm:ms-2 sm:ps-4"
+                  >
+                    <li
+                      class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                    >
+                      <code>verify.mjs</code>
+                    </li>
+                  </ul>
+                </li>
+                <li
+                  class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                >
+                  <code class="font-semibold">assets/</code>
+                  <ul
+                    class="ms-1 mt-2 border-s border-border ps-3 text-muted-foreground sm:ms-2 sm:ps-4"
+                  >
+                    <li
+                      class="relative before:absolute before:top-3 before:-left-3 before:w-2 before:border-t before:border-border sm:before:-left-4 sm:before:w-3"
+                    >
+                      <code>report.md</code>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+
+            <div class="rounded-xl border border-border bg-background p-4 sm:p-5">
+              <p class="eyebrow">Release review</p>
+              <ol class="mt-4 grid gap-3">
+                <li class="flex items-center gap-3">
+                  <span
+                    class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted"
+                  >
+                    <FileText
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <span class="min-w-0 text-sm font-semibold">Policy loaded only when needed</span>
+                </li>
+                <li class="flex items-center gap-3">
+                  <span
+                    class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted"
+                  >
+                    <Terminal
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <span class="min-w-0 text-sm font-semibold">Deterministic verifier runs</span>
+                </li>
+                <li class="flex items-center gap-3">
+                  <span
+                    class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted"
+                  >
+                    <FileCheck
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <span class="min-w-0 text-sm font-semibold">Review uses the report template</span>
+                </li>
+              </ol>
+              <p
+                class="mt-4 flex items-center gap-2 rounded-lg bg-emerald-600/10 px-3 py-2.5 text-sm font-semibold text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200"
+              >
+                <Check
+                  class="size-4 shrink-0"
+                  aria-hidden="true"
+                />
+                One reusable workflow, ready for the next release
+              </p>
+            </div>
           </div>
-          <ul class="ms-2 mt-4 grid gap-3 border-s border-border ps-5 text-sm">
-            <li class="flex items-center gap-3">
-              <FileText
-                class="size-4 text-muted-foreground"
-                aria-hidden="true"
-              /><code>SKILL.md</code>
-            </li>
-            <li class="flex items-center gap-3">
-              <FileText
-                class="size-4 text-muted-foreground"
-                aria-hidden="true"
-              /><code>references/release-policy.md</code>
-            </li>
-            <li class="flex items-center gap-3">
-              <Terminal
-                class="size-4 text-muted-foreground"
-                aria-hidden="true"
-              /><code>scripts/verify-release.mjs</code>
-            </li>
-            <li class="flex items-center gap-3">
-              <FileCode
-                class="size-4 text-muted-foreground"
-                aria-hidden="true"
-              /><code>assets/report-template.md</code>
-            </li>
-          </ul>
-        </div>
-        <div class="p-5 sm:p-7">
-          <div class="rounded-xl border border-border bg-background p-4">
-            <p class="text-xs font-semibold text-muted-foreground">Request</p>
-            <p class="mt-1 text-sm leading-6 font-semibold">
-              Review this release before publication.
-            </p>
-          </div>
-          <div
-            class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 py-4 text-center text-xs font-semibold text-muted-foreground"
-          >
-            <span>Guidance loads</span><ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            /><span>Verifier runs</span>
-          </div>
-          <div
-            class="rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4 dark:border-emerald-400/30 dark:bg-emerald-400/10"
-          >
-            <p
-              class="flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
-            >
-              <FileCheck
-                class="size-4"
-                aria-hidden="true"
-              />
-              The skill owns the workflow. Software owns the deterministic check.
-            </p>
-          </div>
-        </div>
+        </CapabilityConversation>
       </div>
 
       <div class="mt-5">
@@ -604,115 +677,91 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
           </h2>
         </div>
         <p class="text-base leading-7 text-muted-foreground">
-          A shorter refund window changes application logic, boundary tests, project context, and
-          the support agent’s explanation together.
+          A product change can affect application logic, tests, project context, and agent guidance.
+          The coding agent follows the declared connections before editing.
         </p>
       </header>
 
       <div
-        class="mt-8 rounded-2xl border border-border bg-card p-4 shadow-raised sm:p-6"
+        class="mt-8"
         data-maintenance-visual
       >
-        <div class="grid items-center gap-4 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-          <div class="min-w-0">
-            <p class="mb-3 text-sm font-semibold">Application behavior</p>
-            <div class="grid gap-3">
-              <FilePreview path={LANDING_EXAMPLE_PREVIEW.policyDiff.path}>
-                <div class="p-4">
-                  <CodeBlock
-                    ariaLabel={`${LANDING_EXAMPLE_PREVIEW.policyDiff.path} code`}
-                    copyable={false}
-                    language="diff"
-                    source={LANDING_EXAMPLE_PREVIEW.policyDiff.source}
-                    variant="plain"
-                  />
-                </div>
-              </FilePreview>
-              <FilePreview path={LANDING_EXAMPLE_PREVIEW.testDiff.path}>
-                <div class="p-4">
-                  <CodeBlock
-                    ariaLabel={`${LANDING_EXAMPLE_PREVIEW.testDiff.path} code`}
-                    copyable={false}
-                    language="diff"
-                    source={LANDING_EXAMPLE_PREVIEW.testDiff.source}
-                    variant="plain"
-                  />
-                </div>
-              </FilePreview>
-            </div>
-          </div>
-          <div class="flex justify-center">
-            <ConnectionLabel
-              ><Link2
-                slot="icon"
-                class="size-4"
-              />Declared relationship</ConnectionLabel
-            >
-          </div>
-          <div class="min-w-0">
-            <p class="mb-3 text-sm font-semibold">Agent behavior</p>
-            <div class="grid gap-3">
-              <FilePreview path={LANDING_EXAMPLE_PREVIEW.contextDiff.path}>
-                <div class="p-4">
-                  <CodeBlock
-                    ariaLabel={`${LANDING_EXAMPLE_PREVIEW.contextDiff.path} code`}
-                    copyable={false}
-                    language="diff"
-                    source={LANDING_EXAMPLE_PREVIEW.contextDiff.source}
-                    variant="plain"
-                  />
-                </div>
-              </FilePreview>
-              <FilePreview path={LANDING_EXAMPLE_PREVIEW.instructionDiff.path}>
-                <div class="p-4">
-                  <CodeBlock
-                    ariaLabel={`${LANDING_EXAMPLE_PREVIEW.instructionDiff.path} code`}
-                    copyable={false}
-                    language="diff"
-                    source={LANDING_EXAMPLE_PREVIEW.instructionDiff.source}
-                    variant="plain"
-                  />
-                </div>
-              </FilePreview>
-            </div>
-          </div>
-        </div>
-        <p class="mt-5 flex flex-wrap items-center gap-2 text-sm font-semibold">
-          <Check
-            class="size-4 text-emerald-700 dark:text-emerald-300"
-            aria-hidden="true"
-          />
-          <code>{LANDING_EXAMPLE.maintainedRefundWindowDays} days</code> eligible,
-          <code>{LANDING_EXAMPLE.maintainedRefundWindowDays + 1} days</code> outside the window
-        </p>
-      </div>
-
-      <div
-        class="mt-4 grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center"
-        data-consolidation-visual
-      >
-        <div>
-          <p class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Before</p>
-          <p class="mt-1 text-sm font-semibold">The same responsibility appears in two files.</p>
-        </div>
-        <ArrowRight
-          class="mx-auto hidden size-5 text-muted-foreground sm:block"
-          aria-hidden="true"
-        />
-        <ArrowDown
-          class="mx-auto size-5 text-muted-foreground sm:hidden"
-          aria-hidden="true"
-        />
-        <div>
-          <p class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">After</p>
-          <p class="mt-1 text-sm font-semibold">
-            One authoritative owner, with every unique fact preserved.
+        <CapabilityConversation ariaLabel="Developer and coding agent maintenance conversation">
+          <p slot="request">
+            Offer free delivery on orders of <code class="inline-code">$50</code> or more, and update
+            our shopping assistant.
           </p>
-        </div>
-        <p class="text-sm leading-6 text-muted-foreground sm:col-span-3">
-          Consolidation can leave application and agent files unchanged. When project truth remains
-          accurate, the correct result can also be no <code>moldea</code> edit.
-        </p>
+          <p slot="response">
+            I updated the delivery rule and every application and agent surface connected to it.
+          </p>
+
+          <div class="relative">
+            <div
+              class="absolute top-1/2 right-8 left-8 hidden h-px bg-border lg:block"
+              aria-hidden="true"
+            >
+            </div>
+            <div class="relative grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <article class="rounded-xl border border-border bg-background p-4">
+                <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
+                  <ShoppingCart
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </span>
+                <p class="eyebrow mt-4">Checkout</p>
+                <h3 class="mt-1 text-sm font-semibold">
+                  Free delivery appears at <code>$50</code>
+                </h3>
+              </article>
+              <article class="rounded-xl border border-border bg-background p-4">
+                <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
+                  <FileCheck
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </span>
+                <p class="eyebrow mt-4">Boundary tests</p>
+                <h3 class="mt-1 text-sm font-semibold">
+                  <code>$49.99</code> is paid. <code>$50</code> is free.
+                </h3>
+              </article>
+              <article class="rounded-xl border border-border bg-background p-4">
+                <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
+                  <FileText
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </span>
+                <p class="eyebrow mt-4">Project context</p>
+                <h3 class="mt-1 text-sm font-semibold">
+                  <code>delivery-policy.md</code> is current
+                </h3>
+              </article>
+              <article class="rounded-xl border border-border bg-background p-4">
+                <span
+                  class="inline-flex size-9 items-center justify-center rounded-lg bg-secondary"
+                >
+                  <Bot
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </span>
+                <p class="eyebrow mt-4">Shopping assistant</p>
+                <h3 class="mt-1 text-sm font-semibold">Explains the same threshold</h3>
+              </article>
+            </div>
+          </div>
+          <p
+            class="mt-3 flex items-center gap-2 rounded-xl bg-emerald-600/10 px-4 py-3 text-sm font-semibold text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200"
+          >
+            <Check
+              class="size-4 shrink-0"
+              aria-hidden="true"
+            />
+            Application behavior, project truth, and agent guidance agree.
+          </p>
+        </CapabilityConversation>
       </div>
 
       <div class="mt-5 flex flex-wrap gap-x-5 gap-y-3">
@@ -732,7 +781,7 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
           href={withBase('/examples/maintain-a-refund-policy/', basePath)}
           variant="link"
         >
-          Refund example
+          Detailed maintenance example
           <ArrowRight
             class="size-4"
             aria-hidden="true"
@@ -820,81 +869,63 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
       </div>
 
       <div
-        class="mt-6 grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center"
+        class="mt-6"
         data-repair-visual
       >
-        <div class="rounded-2xl border border-border bg-card p-5 sm:p-6">
-          <div class="flex items-start gap-3">
-            <span
-              class="dark-surface-selection inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
-            >
-              <UserRound
-                class="size-4"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <p class="text-xs font-semibold text-muted-foreground">You</p>
-              <p class="mt-1 font-semibold">Fix <InlineBrandText text="moldea" />.</p>
-            </div>
-          </div>
-          <div class="mt-5 flex items-start gap-3 border-t border-border pt-5">
-            <span
-              class="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"
-            >
-              <img
-                src={skillMarkPath}
-                width="207"
-                height="215"
-                alt=""
-                class="h-5 w-auto dark:invert"
-              />
-            </span>
-            <div>
-              <p class="text-xs font-semibold text-muted-foreground">Coding agent</p>
-              <p class="mt-1 text-sm leading-6 font-semibold">
-                I restored the broken connection and validated the project.
-              </p>
-            </div>
-          </div>
-        </div>
+        <CapabilityConversation ariaLabel="Developer and coding agent repair conversation">
+          <p slot="request">Fix <InlineBrandText text="moldea" />.</p>
+          <p slot="response">
+            I found the broken instruction link, repaired it, and ran the deterministic check again.
+          </p>
 
-        <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
-          <div class="rounded-xl border border-destructive/30 bg-destructive/10 p-4">
-            <p class="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <Unlink
-                class="size-4 text-destructive"
-                aria-hidden="true"
-              />Broken
-            </p>
-            <p class="mt-2 text-sm leading-6 text-muted-foreground">
-              The support agent no longer loads its instructions.
-            </p>
-          </div>
-          <ArrowRight
-            class="mx-auto hidden size-5 text-muted-foreground sm:block"
-            aria-hidden="true"
-          />
-          <ArrowDown
-            class="mx-auto size-5 text-muted-foreground sm:hidden"
-            aria-hidden="true"
-          />
-          <div
-            class="rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4 dark:border-emerald-400/30 dark:bg-emerald-400/10"
-          >
-            <p
-              class="flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
+          <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
+            <div class="rounded-xl border border-destructive/30 bg-destructive/10 p-4">
+              <p class="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Unlink
+                  class="size-4 text-destructive"
+                  aria-hidden="true"
+                />Broken link
+              </p>
+              <div class="mt-3 rounded-lg border border-destructive/20 bg-background/70 p-3">
+                <code class="block text-xs break-all">moldea/agents/support/instructions.md</code>
+                <p class="mt-2 text-xs text-muted-foreground">File not found</p>
+              </div>
+            </div>
+            <ArrowRight
+              class="mx-auto hidden size-5 text-muted-foreground sm:block"
+              aria-hidden="true"
+            />
+            <ArrowDown
+              class="mx-auto size-5 text-muted-foreground sm:hidden"
+              aria-hidden="true"
+            />
+            <div
+              class="rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4 dark:border-emerald-400/30 dark:bg-emerald-400/10"
             >
-              <Link2
-                class="size-4"
-                aria-hidden="true"
-              />Restored
-            </p>
-            <p class="mt-2 text-sm leading-6 text-muted-foreground">
-              The declared path resolves and the check passes.
-            </p>
+              <p
+                class="flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
+              >
+                <Link2
+                  class="size-4"
+                  aria-hidden="true"
+                />Connection restored
+              </p>
+              <div
+                class="mt-3 rounded-lg border border-emerald-600/20 bg-background/70 p-3 dark:border-emerald-400/20"
+              >
+                <code class="block text-xs break-all">moldea/agents/support/instruction.md</code>
+                <p
+                  class="mt-2 flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-emerald-200"
+                >
+                  <Check
+                    class="size-3.5 shrink-0"
+                    aria-hidden="true"
+                  />Deterministic validation passed
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
+        </CapabilityConversation>
       </div>
       <p class="mt-5 max-w-4xl text-sm leading-6 text-muted-foreground">
         Repair requires a previously initialized project and existing evidence. It does not silently
@@ -940,12 +971,12 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
   </section>
 
   <section
-    class="bg-elevated py-10 sm:py-12"
+    class="dark-surface-selection bg-primary py-10 text-primary-foreground sm:py-12"
     aria-labelledby="capabilities-next-title"
   >
     <div class="page-shell flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p class="eyebrow mb-2">Continue</p>
+        <p class="eyebrow mb-2 text-primary-foreground/60">Continue</p>
         <h2
           id="capabilities-next-title"
           class="text-2xl font-semibold tracking-tight"
@@ -957,21 +988,22 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
         <ActionLink
           class="font-bold"
           href={withBase('/how-it-works/', basePath)}
-          variant="link"
+          variant="secondary"
           >How it works <ArrowRight
             class="size-4"
             aria-hidden="true"
           /></ActionLink
         >
-        <ActionLink
-          class="font-bold"
+        <a
+          class="inline-flex min-h-10 items-center gap-2 px-1 text-sm font-bold text-primary-foreground link-feedback focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-foreground"
           href={withBase('/docs/', basePath)}
-          variant="link"
-          >Open the docs <ArrowRight
+        >
+          Open the docs
+          <ArrowRight
             class="size-4"
             aria-hidden="true"
-          /></ActionLink
-        >
+          />
+        </a>
       </div>
     </div>
   </section>

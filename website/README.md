@@ -28,7 +28,7 @@ The landing page contrasts an ordinary coding-agent session with the durable pro
 
 ## Visual product pages
 
-`/capabilities/` presents the six product outcomes as visual, source-backed demonstrations. `/how-it-works/` follows one refund-policy change from saved project context through connections, edits, checks, and a later coding-agent session. Both routes reuse the canonical refund projections in `src/lib/landing-example/preview.ts`, publish through search, sitemap, canonical metadata, and `llms.txt`, and direct readers to the technical documentation for details.
+`/capabilities/` presents the six product outcomes through visual examples, including developer and coding-agent conversations grounded in the documented workflows. `/how-it-works/` follows one refund-policy change from saved project context through connections, edits, checks, and a later coding-agent session. The How it works route reuses the canonical refund projections in `src/lib/landing-example/preview.ts`. Both routes publish through search, sitemap, canonical metadata, and `llms.txt`, and direct readers to the technical documentation for details.
 
 The primary header links Capabilities, How it works, Evidence, and Docs. Example routes remain part of Docs and retain their existing sidebar group and URLs. Landing capability cards link to the matching sections on `/capabilities/`, while the footer exposes the complete public journey under Explore.
 

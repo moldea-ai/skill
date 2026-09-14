@@ -13,6 +13,7 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
     page.getByRole('heading', { level: 1, name: 'From project knowledge to working agents.' }),
   ).toBeVisible();
   await expect(page.locator('[data-capability-section]')).toHaveCount(6);
+  await expect(page.locator('[data-capability-conversation]')).toHaveCount(5);
   await expect(page.locator('#evaluate-and-repair [data-repair-visual]')).toBeVisible();
   await expect(
     page.getByRole('navigation', { name: 'Primary navigation' }).locator('a[aria-current="page"]'),
@@ -33,6 +34,11 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
   await expect(page.locator('[data-maintenance-visual] [data-code-copy-button]')).toHaveCount(0);
   await expect(page.getByText('Fix moldea.', { exact: true }).locator('code')).toHaveText('moldea');
   await expect(page.getByText('Planning is read-only.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Saved project files' })).toContainText('refunds.md');
+  await expect(page.getByRole('list', { name: 'Release review skill files' })).toContainText(
+    'verify.mjs',
+  );
+  await expect(page.getByText('$49.99 is paid. $50 is free.', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'See the planning example' })).toHaveAttribute(
     'href',
     withBase('/examples/plan-an-agent-system/', basePath),

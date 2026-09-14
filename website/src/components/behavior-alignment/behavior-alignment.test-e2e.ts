@@ -44,6 +44,20 @@ test('traces the verified 30-day to 14-day maintenance story', async ({ page }) 
     'I updated the refund rule and everything connected to it.',
   );
 
+  const conversation = behaviorAlignment.getByRole('list', {
+    name: 'Developer and coding agent maintenance conversation',
+  });
+  await expect(conversation.locator(':scope > li')).toHaveCount(2);
+  const [userMessageBounds, agentResponseBounds] = await Promise.all([
+    behaviorAlignment.locator('[data-behavior-user-message]').boundingBox(),
+    behaviorAlignment.locator('[data-behavior-agent-response]').boundingBox(),
+  ]);
+  expect(userMessageBounds).not.toBeNull();
+  expect(agentResponseBounds).not.toBeNull();
+  if (userMessageBounds && agentResponseBounds) {
+    expect(agentResponseBounds.y).toBeGreaterThan(userMessageBounds.y + userMessageBounds.height);
+  }
+
   const articleHeights = await behaviorAlignment
     .locator('[data-behavior-alignment-flow] > section')
     .evaluateAll((sections) => sections.map((section) => section.getBoundingClientRect().height));

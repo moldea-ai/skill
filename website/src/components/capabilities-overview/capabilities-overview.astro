@@ -86,7 +86,7 @@ const basePath = import.meta.env.BASE_URL;
         capabilities.map(({ description, href, icon: CapabilityIcon, label, title }) => (
           <li class="border-b border-border last:border-b-0 sm:border-b-0">
             <a
-              class="interactive-card group flex h-full min-w-0 flex-col py-5 sm:rounded-xl sm:border sm:border-border sm:bg-sidebar sm:p-5 sm:shadow-surface"
+              class="interactive-card group flex h-full min-w-0 flex-col py-5 sm:rounded-xl sm:border sm:border-border sm:p-5"
               href={withBase(href, basePath)}
             >
               <div class="flex items-start justify-between gap-4">

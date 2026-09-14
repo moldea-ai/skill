@@ -23,14 +23,30 @@ test('shows the runtime example immediately and makes its connected files keyboa
   await expect(example.locator('details')).toHaveCount(0);
   await expect(example.getByRole('button', { name: /Copy/u })).toHaveCount(0);
 
-  const [exampleBounds, userMessageBounds] = await Promise.all([
-    example.boundingBox(),
-    example.locator('[data-user-message]').boundingBox(),
-  ]);
+  const conversation = example.getByRole('list', {
+    name: 'Developer and coding agent conversation',
+  });
+  await expect(conversation.locator(':scope > li')).toHaveCount(2);
+
+  const [exampleBounds, userMessageBounds, agentResponseBounds, agentSourceBounds] =
+    await Promise.all([
+      example.boundingBox(),
+      example.locator('[data-user-message]').boundingBox(),
+      example.locator('[data-agent-response]').boundingBox(),
+      example.locator('[data-agent-source]').boundingBox(),
+    ]);
   expect(exampleBounds).not.toBeNull();
   expect(userMessageBounds).not.toBeNull();
+  expect(agentResponseBounds).not.toBeNull();
+  expect(agentSourceBounds).not.toBeNull();
   if (exampleBounds && userMessageBounds) {
     expect(userMessageBounds.x).toBeLessThan(exampleBounds.x + exampleBounds.width / 2);
+  }
+  if (userMessageBounds && agentResponseBounds) {
+    expect(agentResponseBounds.y).toBeGreaterThan(userMessageBounds.y + userMessageBounds.height);
+  }
+  if (agentSourceBounds) {
+    expect(agentSourceBounds.height).toBeLessThanOrEqual(177);
   }
 
   const codeTab = example.getByRole('tab', { name: 'Code', exact: true });

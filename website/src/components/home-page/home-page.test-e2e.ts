@@ -116,6 +116,12 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     expect(backgroundColor).not.toBe(productStoryBackgrounds[index]);
   });
 
+  const capabilityCardBackgrounds = await page
+    .locator('[data-capabilities-overview] li > a')
+    .evaluateAll((links) => links.map((link) => getComputedStyle(link).backgroundColor));
+  expect(capabilityCardBackgrounds).toHaveLength(6);
+  expect(new Set(capabilityCardBackgrounds)).toStrictEqual(new Set(['rgba(0, 0, 0, 0)']));
+
   await expect(page.getByRole('link', { name: 'Explore adapter packages' })).toHaveAttribute(
     'href',
     PACKAGES_WEBSITE_URL,

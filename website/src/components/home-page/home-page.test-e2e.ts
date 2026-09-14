@@ -21,7 +21,7 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'Build your agent. Keep its pieces connected.',
+      name: 'Build agents that fit your project.',
     }),
   ).toBeVisible();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
@@ -67,9 +67,9 @@ test('presents the product story before proof and adoption', async ({ page }) =>
 
   const orderedHeadings = [
     "Can't my coding agent already do this?",
-    'One change can affect more than one file.',
+    'Change the rule. Find what follows.',
     'Software checks the connections.',
-    'Start with two files. Add structure only when it earns a home.',
+    'Your project. Your files.',
     'See what was tested.',
     'Install. Initialize. Start building.',
   ] as const;
@@ -121,12 +121,6 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   await expect(
     evidenceSection.getByText(
       `${(semanticReleaseSummary.result?.passedCaseCount ?? 0) + (semanticReleaseSummary.result?.recoveredCaseCount ?? 0)}/${semanticEvaluation.caseCount}`,
-      { exact: true },
-    ),
-  ).toBeVisible();
-  await expect(
-    evidenceSection.getByText(
-      `${semanticReleaseSummary.result?.passedCaseCount ?? 0} passed directly, ${semanticReleaseSummary.result?.recoveredCaseCount ?? 0} confirmed on retry`,
       { exact: true },
     ),
   ).toBeVisible();
@@ -184,6 +178,45 @@ test('keeps the complete landing page accessible at 320px in both themes', async
       `The landing page has material accessibility violations in ${colorScheme} mode`,
     ).toStrictEqual([]);
 
+    await context.close();
+  }
+});
+
+test('keeps selection visible on primary surfaces in light and dark themes', async ({
+  browser,
+}) => {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    const context = await browser.newContext({ colorScheme });
+    const page = await context.newPage();
+    await page.goto(toPublicPath('/'));
+    const selections = await page.locator('main .bg-primary').evaluateAll((surfaces) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      const painter = canvas.getContext('2d');
+      if (painter === null) throw new Error('Selection color sampling is unavailable.');
+      return surfaces.map((surface) => {
+        const background = getComputedStyle(surface).backgroundColor;
+        const text = surface.querySelector('p, code') ?? surface;
+        painter.clearRect(0, 0, 1, 1);
+        painter.fillStyle = background;
+        painter.fillRect(0, 0, 1, 1);
+        const before = [...painter.getImageData(0, 0, 1, 1).data].slice(0, 3);
+        painter.fillStyle = getComputedStyle(text, '::selection').backgroundColor;
+        painter.fillRect(0, 0, 1, 1);
+        const selected = [...painter.getImageData(0, 0, 1, 1).data].slice(0, 3);
+        return {
+          label: text.textContent?.trim(),
+          difference: Math.max(
+            ...selected.map((channel, index) => Math.abs(channel - before[index]!)),
+          ),
+        };
+      });
+    });
+    expect(selections.length).toBeGreaterThan(0);
+    for (const selection of selections) {
+      expect(selection.difference, `${colorScheme}: ${selection.label}`).toBeGreaterThan(40);
+    }
     await context.close();
   }
 });

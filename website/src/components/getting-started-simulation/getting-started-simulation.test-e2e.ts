@@ -48,7 +48,9 @@ test('separates installation, initialization, and ordinary project work', async 
   await expect(
     initializationStep.locator('code.inline-code', { hasText: 'moldea' }).first(),
   ).toBeVisible();
-  await expect(initializationStep.getByText(/It does not create the support agent/)).toBeVisible();
+  await expect(
+    initializationStep.getByText(/Agent files are added when you ask for them/),
+  ).toBeVisible();
   await expect(
     initializationStep.getByText('Create a support agent grounded in our current refund policy.'),
   ).toHaveCount(0);
@@ -84,6 +86,11 @@ test('copies the exact install command through the shared keyboard control', asy
 
   await expect(button).toBeFocused();
   await expect(button).toHaveAttribute('data-code-copy-state', 'copied');
+  await expect(button.locator('[data-code-copy-success-icon]')).toHaveCSS('opacity', '1');
+  await expect(button.locator('[data-code-copy-icon]')).toHaveCSS('opacity', '0');
+  const pre = installCommand.locator('pre');
+  await expect(pre).toHaveCSS('padding-inline-start', '16px');
+  await expect(pre).toHaveCSS('padding-inline-end', '16px');
   await expect(feedback).toHaveText('Copied.');
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(INSTALL_COMMAND);
 });

@@ -11,7 +11,7 @@ test('shows the verified project growing from initialization to agent work', asy
   await page.goto(toPublicPath('/'));
 
   const repositoryFormat = page.getByRole('region', {
-    name: 'Start with two files. Add structure only when it earns a home.',
+    name: 'Your project. Your files.',
   });
   await expect(repositoryFormat).toBeVisible();
   await expect(repositoryFormat.getByText('my-store/', { exact: true })).toBeVisible();
@@ -71,7 +71,7 @@ test('stacks the filesystem and benefits accessibly at 320px in both themes', as
     await page.goto(toPublicPath('/'));
 
     const repositoryFormat = page.getByRole('region', {
-      name: 'Start with two files. Add structure only when it earns a home.',
+      name: 'Your project. Your files.',
     });
     const fileSystem = repositoryFormat.locator('[data-repository-format-filesystem]');
     const benefits = repositoryFormat.locator('[data-repository-format-benefits]');

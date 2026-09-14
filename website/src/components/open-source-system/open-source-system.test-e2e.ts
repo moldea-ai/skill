@@ -1,7 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { LANDING_EXAMPLE } from '../../lib/landing-example/index.ts';
 import { PACKAGES_WEBSITE_URL } from '../../lib/model/constants.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
@@ -14,16 +13,17 @@ test('explains deterministic checks and the adapter boundary', async ({ page }) 
     name: 'Software checks the connections.',
   });
   await expect(deterministicChecks).toBeVisible();
-  for (const fact of ['Same files', 'Same tool versions', 'Same settings', 'Same result']) {
-    await expect(deterministicChecks.getByText(fact, { exact: true })).toBeVisible();
-  }
+  await expect(
+    deterministicChecks.getByText('Same files, tool versions, and settings. Same result.', {
+      exact: false,
+    }),
+  ).toBeVisible();
   await expect(
     deterministicChecks.getByRole('heading', {
       level: 3,
-      name: "The instructions exist. The agent's code does not use them.",
+      name: 'Saved, but disconnected',
     }),
   ).toBeVisible();
-  await expect(deterministicChecks.getByText(LANDING_EXAMPLE.diagnostic)).toBeVisible();
   await expect(
     deterministicChecks.getByText("instructions: 'Be helpful.'", { exact: false }),
   ).toBeVisible();
@@ -33,7 +33,7 @@ test('explains deterministic checks and the adapter boundary', async ({ page }) 
   await expect(
     deterministicChecks.getByRole('heading', {
       level: 3,
-      name: 'The agent code uses the saved instructions.',
+      name: 'Connected to the agent',
     }),
   ).toBeVisible();
   await expect(deterministicChecks.getByRole('button', { name: /Copy/u })).toHaveCount(0);
@@ -51,14 +51,6 @@ test('explains deterministic checks and the adapter boundary', async ({ page }) 
   await expect(
     deterministicChecks.getByRole('link', { name: 'See every integration' }),
   ).toHaveAttribute('href', toPublicPath('/evidence/qualification/'));
-  await expect(
-    deterministicChecks.getByRole('link', { name: 'Inspect a recorded repair' }),
-  ).toHaveAttribute(
-    'href',
-    toPublicPath(
-      '/evidence/qualification/openai/typescript-responses-api-7/#qualification-repair-openai-tool-registration',
-    ),
-  );
 });
 
 test('keeps the deterministic example readable at 320px in both themes', async ({ browser }) => {

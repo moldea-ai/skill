@@ -34,8 +34,6 @@ const semanticReleaseSummary = getSemanticReleaseEvidenceSummary(
 const successfulSemanticCaseCount =
   (semanticReleaseSummary.result?.passedCaseCount ?? 0) +
   (semanticReleaseSummary.result?.recoveredCaseCount ?? 0);
-const directlyPassedSemanticCaseCount = semanticReleaseSummary.result?.passedCaseCount ?? 0;
-const recoveredSemanticCaseCount = semanticReleaseSummary.result?.recoveredCaseCount ?? 0;
 const hasSemanticReleaseEvidence = semanticReleaseSummary.result !== null;
 const hasQualificationReleaseEvidence = qualificationSummaries.some(
   ({ kind }) => kind !== 'not-recorded',
@@ -51,24 +49,24 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
     data-home-hero
   >
     <HeroBackdrop />
-    <div class="page-shell relative py-12 sm:py-16 lg:py-20">
-      <div class="mx-auto max-w-5xl text-center">
-        <p class="eyebrow mb-4">Open source Agent Skill, version {model.skill.version}</p>
+    <div
+      class="page-shell relative grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-12 lg:py-20"
+    >
+      <div class="min-w-0">
+        <p class="eyebrow mb-4">An open-source skill for your coding agent</p>
         <h1
-          class="section-title font-semibold"
+          class="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl xl:text-6xl"
           data-hero-title
         >
-          Build your agent. Keep its pieces connected.
+          Build agents that fit your project.
         </h1>
-        <p
-          class="mx-auto mt-6 max-w-3xl text-lg leading-8 text-muted-foreground sm:text-xl sm:leading-9"
-        >
+        <p class="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
           <InlineBrandText
-            text="moldea gives your coding agent saved project context and software checks for the connections between instructions, tools, and code."
+            text="moldea gives your coding agent saved project knowledge and repeatable checks for the instructions, tools, and code it builds."
           />
         </p>
         <div
-          class="mt-8 flex flex-col items-stretch justify-center gap-3 min-[24rem]:flex-row min-[24rem]:items-center"
+          class="mt-7 flex flex-wrap gap-3"
           data-hero-actions
         >
           <ActionLink
@@ -94,9 +92,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
         </div>
       </div>
 
-      <div class="mt-10 sm:mt-12">
-        <AgentExample />
-      </div>
+      <AgentExample />
     </div>
   </section>
 
@@ -109,7 +105,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
   <RepositoryFormat />
 
   <section
-    class="border-b border-border bg-background py-12 sm:py-section-gap"
+    class="border-b border-border bg-background py-12 sm:py-16"
     aria-labelledby="home-evidence-title"
     data-home-evidence
   >
@@ -119,7 +115,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
           <p class="eyebrow mb-4">Proof before release</p>
           <h2
             id="home-evidence-title"
-            class="section-title max-w-4xl font-semibold"
+            class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
           >
             See what was tested.
           </h2>
@@ -131,7 +127,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
 
       <div class="mt-7 grid sm:gap-3 md:grid-cols-2 md:gap-4">
         <article
-          class="flex min-w-0 flex-col border-b border-border py-6 sm:rounded-xl sm:border sm:bg-card sm:p-7 sm:shadow-surface"
+          class="flex min-w-0 flex-col border-b border-border py-6 sm:rounded-xl sm:border sm:bg-card sm:p-5 sm:shadow-surface"
           data-home-evidence-card="decision"
         >
           <div class="flex items-center gap-3">
@@ -151,8 +147,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
           <p
             class="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7"
           >
-            Inspect whether the skill found the right context, changed the right files, and
-            respected the developer's boundaries.
+            See how it chooses context, changes files, and respects your boundaries.
           </p>
           <div class="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2 text-sm sm:mt-6">
             {
@@ -166,13 +161,6 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
                       {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount}
                     </span>{' '}
                     decisions verified
-                  </p>
-                  <p
-                    class="text-muted-foreground"
-                    data-semantic-release-outcomes
-                  >
-                    {directlyPassedSemanticCaseCount} passed directly, {recoveredSemanticCaseCount}{' '}
-                    confirmed on retry
                   </p>
                 </>
               ) : (
@@ -199,7 +187,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
         </article>
 
         <article
-          class="flex min-w-0 flex-col py-6 sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-7 sm:shadow-surface"
+          class="flex min-w-0 flex-col py-6 sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-5 sm:shadow-surface"
           data-home-evidence-card="qualification"
         >
           <div class="flex items-center gap-3">
@@ -219,7 +207,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
           <p
             class="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7"
           >
-            Inspect the real project changes and source checks for every supported adapter setup.
+            Browse the projects built and checked with each supported adapter.
           </p>
           <div class="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2 text-sm sm:mt-6">
             {
@@ -260,7 +248,7 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
   </section>
 
   <section
-    class="bg-sidebar py-section-gap"
+    class="bg-sidebar py-12 sm:py-16"
     aria-labelledby="getting-started-title"
     data-adoption
   >

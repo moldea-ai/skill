@@ -1,6 +1,7 @@
 ---
-import { ArrowRight, Check, CircleAlert, Equal, Link2 } from '@lucide/astro';
+import { ArrowRight, Check, CircleAlert } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
@@ -24,206 +25,118 @@ const connectedInstruction = getLandingExampleLine(
   LANDING_EXAMPLE.paths.agent,
   'instructions:',
 );
-/** Splits one fixture property line so its value can wrap cleanly on narrow screens. */
-const getInstructionParts = (line: string): { name: string; value: string } => {
-  const match = line.match(/^([^:]+): (.+)$/u);
-  if (match?.[1] === undefined || match[2] === undefined) {
-    throw new Error(`Landing example instruction line is invalid: ${line}`);
-  }
-
-  return { name: match[1], value: match[2] };
-};
-const disconnectedInstructionParts = getInstructionParts(disconnectedInstruction);
-const connectedInstructionParts = getInstructionParts(connectedInstruction);
 const adapterIds = ['openai', 'anthropic', 'vercel-ai-sdk'] as const;
-const deterministicInputs = ['Same files', 'Same tool versions', 'Same settings'] as const;
 ---
 
 <section
   id="deterministic-checks"
-  class="scroll-mt-24 border-b border-border bg-background py-section-gap"
+  class="scroll-mt-24 border-b border-border bg-background py-12 sm:py-16"
   aria-labelledby="open-source-system-title"
   data-open-source-system
 >
   <div class="page-shell">
-    <header
-      class="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(20rem,0.6fr)] lg:items-end lg:gap-12"
-    >
+    <header class="grid gap-5 lg:grid-cols-2 lg:items-end lg:gap-12">
       <div>
         <p class="eyebrow mb-4">Deterministic by design</p>
         <h2
           id="open-source-system-title"
-          class="section-title max-w-4xl font-semibold"
+          class="section-title text-3xl font-semibold sm:text-4xl lg:text-5xl"
         >
           Software checks the connections.
         </h2>
       </div>
-      <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-        The checks do not ask a model to judge its own work. Give them the same files, tool
-        versions, and settings, and they return the same result.
+      <p class="text-lg leading-8 text-muted-foreground">
+        Same files, tool versions, and settings. Same result. These checks run locally, without
+        asking a model to judge its own work.
       </p>
     </header>
-
-    <div class="mt-8 grid gap-3 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto] sm:items-center">
-      {
-        deterministicInputs.map((label) => (
-          <div class="flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-4 py-3">
-            <Check
-              class="size-4 shrink-0 text-success"
-              aria-hidden="true"
-            />
-            <p class="text-sm font-semibold">{label}</p>
-          </div>
-        ))
-      }
-      <div
-        class="flex items-center justify-center gap-2 px-3 py-1 text-sm font-bold sm:flex-col sm:py-0"
-      >
-        <Equal
-          class="size-4"
-          aria-hidden="true"
-        />
-        <span class="whitespace-nowrap">Same result</span>
-      </div>
-    </div>
-
-    <div class="mt-5 grid gap-4 lg:grid-cols-2">
-      <article
-        class="min-w-0 border-y border-destructive/40 bg-destructive/5 py-5 sm:rounded-2xl sm:border sm:p-6"
-      >
-        <div class="flex items-start gap-3">
-          <span
-            class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-destructive/40 bg-destructive/10 text-destructive"
-          >
-            <CircleAlert
-              class="size-4"
-              aria-hidden="true"
-            />
-          </span>
-          <div>
-            <p class="eyebrow">Disconnected</p>
-            <h3 class="mt-1 text-lg font-semibold">
-              The instructions exist. The agent's code does not use them.
-            </h3>
-          </div>
-        </div>
-        <div class="mt-5 rounded-xl border border-border bg-code p-4">
-          <code class="font-mono text-xs leading-6 text-code-foreground">
-            {disconnectedInstructionParts.name}: <span class="block sm:inline"
-              >{disconnectedInstructionParts.value}</span
-            >
-          </code>
-        </div>
-        <div class="mt-4">
-          <p class="text-xs font-bold tracking-wide text-muted-foreground uppercase">
-            What the check reports
-          </p>
-          <code class="mt-2 block font-mono text-xs font-semibold break-all text-foreground">
-            {LANDING_EXAMPLE.diagnostic}
-          </code>
-        </div>
-      </article>
-
-      <article
-        class="min-w-0 border-y border-success/40 bg-success/5 py-5 sm:rounded-2xl sm:border sm:p-6"
-      >
-        <div class="flex items-start gap-3">
-          <span
-            class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-success/40 bg-success/10 text-success"
-          >
-            <Link2
-              class="size-4"
-              aria-hidden="true"
-            />
-          </span>
-          <div>
-            <p class="eyebrow text-success">Connected</p>
-            <h3 class="mt-1 text-lg font-semibold">The agent code uses the saved instructions.</h3>
-          </div>
-        </div>
-        <div class="mt-5 rounded-xl border border-border bg-code p-4">
-          <code class="font-mono text-xs leading-6 text-code-foreground">
-            {connectedInstructionParts.name}: <span class="block sm:inline"
-              >{connectedInstructionParts.value}</span
-            >
-          </code>
-        </div>
-        <div class="mt-4 flex items-start gap-3 text-sm leading-6">
-          <Check
-            class="mt-1 size-4 shrink-0 text-success"
+    <div class="mt-8 grid gap-6 sm:grid-cols-2 sm:gap-4">
+      <article class="min-w-0 sm:rounded-xl sm:border sm:border-border sm:p-5">
+        <h3 class="flex items-center gap-2 text-lg font-semibold">
+          <CircleAlert
+            class="size-5 shrink-0 text-destructive"
             aria-hidden="true"
+          /> Saved, but disconnected
+        </h3>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          The instructions exist. The agent uses a different prompt.
+        </p>
+        <div class="mt-4">
+          <CodeBlock
+            copyable={false}
+            language="typescript"
+            source={disconnectedInstruction}
           />
-          <p>Saved instructions and order lookup connected.</p>
         </div>
+        <p class="mt-3 text-sm font-medium text-destructive">
+          The check catches the missing connection.
+        </p>
+      </article>
+      <article class="min-w-0 sm:rounded-xl sm:border sm:border-border sm:p-5">
+        <h3 class="flex items-center gap-2 text-lg font-semibold">
+          <Check
+            class="size-5 shrink-0 text-success"
+            aria-hidden="true"
+          /> Connected to the agent
+        </h3>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          The agent’s code loads the saved instructions.
+        </p>
+        <div class="mt-4">
+          <CodeBlock
+            copyable={false}
+            language="typescript"
+            source={connectedInstruction}
+          />
+        </div>
+        <p class="mt-3 text-sm font-medium">The check confirms the connection.</p>
       </article>
     </div>
-
-    <div
-      class="mt-8 grid gap-6 border-t border-border pt-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"
-    >
-      <div class="max-w-3xl">
-        <p class="eyebrow mb-3">Adapters understand each integration</p>
-        <h3 class="text-2xl font-semibold tracking-tight">The same check fits the code you use.</h3>
-        <p class="mt-3 leading-7 text-muted-foreground">
+    <p class="mt-5 text-sm leading-6 text-muted-foreground">
+      A passing check confirms the wiring. Whether the agent behaves correctly still needs review
+      and testing.
+    </p>
+    <div class="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div class="max-w-2xl">
+        <h3 class="text-lg font-semibold">Checks that understand your integration.</h3>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
           <InlineBrandText
-            text="moldea adapters recognize how supported libraries connect instructions, tools, expected inputs, and agent code. The local checks verify those relationships without sending your repository to a model."
+            text="moldea adapters recognize how each supported library connects instructions, tools, and code."
           />
         </p>
-        <p class="mt-3 text-sm leading-6 text-muted-foreground">
-          The checks prove supported connections. Your coding agent still decides whether the
-          behavior is right for the project.
-        </p>
-      </div>
-
-      <div>
-        <ul
-          class="flex items-center gap-3"
-          aria-label="Example supported integrations"
-        >
-          {
-            adapterIds.map((adapterId) => (
-              <li>
-                <AdapterCompanyLogo
-                  adapterId={adapterId}
-                  size="sm"
-                />
-              </li>
-            ))
-          }
-        </ul>
-        <div class="mt-5 flex flex-wrap gap-x-5 gap-y-3 lg:justify-end">
+        <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2">
           <ActionLink
-            class="font-bold"
             href={PACKAGES_WEBSITE_URL}
             target="_blank"
             rel="noopener noreferrer"
             variant="link"
+            >Explore packages</ActionLink
           >
-            Explore packages
-          </ActionLink>
           <ActionLink
-            class="font-bold"
             href={withBase('/evidence/qualification/', basePath)}
             variant="link"
-          >
-            See every integration
-            <ArrowRight
+            >See every integration <ArrowRight
               class="size-4"
               aria-hidden="true"
-            />
-          </ActionLink>
-          <ActionLink
-            class="font-bold"
-            href={withBase(
-              '/evidence/qualification/openai/typescript-responses-api-7/#qualification-repair-openai-tool-registration',
-              basePath,
-            )}
-            variant="link"
+            /></ActionLink
           >
-            Inspect a recorded repair
-          </ActionLink>
         </div>
       </div>
+      <ul
+        class="flex shrink-0 items-center gap-3"
+        aria-label="Example supported integrations"
+      >
+        {
+          adapterIds.map((adapterId) => (
+            <li>
+              <AdapterCompanyLogo
+                adapterId={adapterId}
+                size="sm"
+              />
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </div>
 </section>

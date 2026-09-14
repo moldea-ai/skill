@@ -1,5 +1,5 @@
 ---
-import { Check, FileCode, FileText, GitCompareArrows, Link2 } from '@lucide/astro';
+import { FileCode, FileText, Link2 } from '@lucide/astro';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 
@@ -61,7 +61,7 @@ const maintainedInstructionLine = getLandingExampleLine(
 
 <section
   id="behavior-alignment"
-  class="scroll-mt-24 border-b border-border bg-sidebar py-section-gap"
+  class="scroll-mt-24 border-b border-border bg-sidebar py-12 sm:py-16"
   aria-labelledby="behavior-alignment-title"
   data-behavior-alignment
 >
@@ -73,19 +73,21 @@ const maintainedInstructionLine = getLandingExampleLine(
         <p class="eyebrow mb-4">When the project changes</p>
         <h2
           id="behavior-alignment-title"
-          class="section-title max-w-4xl font-semibold"
+          class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
         >
-          One change can affect more than one file.
+          Change the rule. Find what follows.
         </h2>
       </div>
       <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
         <InlineBrandText
-          text="moldea gives the coding agent a map of related behavior. It still decides what must change and what remains correct."
+          text="moldea shows your coding agent which instructions depend on the rule, so it can review them together."
         />
       </p>
     </header>
 
-    <div class="mt-8 rounded-xl bg-primary p-5 text-primary-foreground sm:p-6">
+    <div
+      class="dark-surface-selection mt-7 rounded-xl bg-primary p-4 text-primary-foreground sm:p-5"
+    >
       <p class="text-xs font-bold tracking-wide text-current/60 uppercase">Your next request</p>
       <p class="mt-2 max-w-4xl text-lg leading-7 font-semibold">
         {LANDING_EXAMPLE.maintenanceRequest}
@@ -93,11 +95,11 @@ const maintainedInstructionLine = getLandingExampleLine(
     </div>
 
     <div
-      class="mt-5 grid items-stretch gap-3 lg:grid-cols-[minmax(0,1fr)_9rem_minmax(0,1fr)] lg:items-center"
+      class="mt-5 grid items-stretch gap-3 lg:grid-cols-[minmax(0,1fr)_4rem_minmax(0,1fr)] lg:items-center"
       data-behavior-alignment-flow
     >
       <article
-        class="min-w-0 border-y border-border bg-background py-5 sm:rounded-2xl sm:border sm:p-6 sm:shadow-surface"
+        class="min-w-0 border-y border-border bg-background py-5 sm:rounded-xl sm:border sm:p-5"
       >
         <div class="flex items-center gap-3 px-1 sm:px-0">
           <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
@@ -108,7 +110,7 @@ const maintainedInstructionLine = getLandingExampleLine(
           </span>
           <div>
             <p class="eyebrow">Application rule</p>
-            <h3 class="mt-1 font-semibold">The boundary moves to 14 days.</h3>
+            <h3 class="mt-1 font-semibold">Refund eligibility</h3>
           </div>
         </div>
         <div
@@ -122,9 +124,9 @@ const maintainedInstructionLine = getLandingExampleLine(
             variant="plain"
           />
         </div>
-        <div class="mt-4 rounded-xl border border-border bg-muted/30 p-4">
+        <div class="mt-4">
           <p class="text-xs font-bold tracking-wide text-muted-foreground uppercase">
-            Boundary test
+            Tests updated
           </p>
           <dl class="mt-3 grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-sm">
             {
@@ -134,7 +136,7 @@ const maintainedInstructionLine = getLandingExampleLine(
                     <code>{days} days</code>
                   </dt>
                   <dd class:list={['font-mono font-bold', result === 'true' && 'text-success']}>
-                    {result}
+                    {result === 'true' ? 'Eligible' : 'Outside window'}
                   </dd>
                 </>
               ))
@@ -155,12 +157,12 @@ const maintainedInstructionLine = getLandingExampleLine(
               aria-hidden="true"
             />
           </span>
-          <span>Saved<br class="hidden lg:block" /> connection</span>
+          <span>Connected</span>
         </div>
       </div>
 
       <article
-        class="min-w-0 border-y border-border bg-background py-5 sm:rounded-2xl sm:border sm:p-6 sm:shadow-surface"
+        class="min-w-0 border-y border-border bg-background py-5 sm:rounded-xl sm:border sm:p-5"
       >
         <div class="flex items-center gap-3 px-1 sm:px-0">
           <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
@@ -171,9 +173,7 @@ const maintainedInstructionLine = getLandingExampleLine(
           </span>
           <div>
             <p class="eyebrow">Related agent behavior</p>
-            <h3 class="mt-1 font-semibold">
-              <InlineBrandText text="moldea finds the policy and instructions." />
-            </h3>
+            <h3 class="mt-1 font-semibold">Policy and instructions</h3>
           </div>
         </div>
         <div
@@ -206,26 +206,7 @@ const maintainedInstructionLine = getLandingExampleLine(
             </span>
           </code>
         </div>
-        <div class="mt-4 flex gap-3 text-sm leading-6 text-muted-foreground">
-          <Check
-            class="mt-1 size-4 shrink-0 text-success"
-            aria-hidden="true"
-          />
-          <p>
-            Reviewed and unchanged: <code>src/instructions.ts</code>, <code
-              >src/order-lookup.ts</code
-            >, and <code>src/contracts.ts</code>.
-          </p>
-        </div>
       </article>
-    </div>
-
-    <div class="mt-5 flex items-center gap-3 text-sm text-muted-foreground">
-      <GitCompareArrows
-        class="size-4 shrink-0"
-        aria-hidden="true"
-      />
-      <p>The saved connection widens the review. It does not force unrelated edits.</p>
     </div>
   </div>
 </section>

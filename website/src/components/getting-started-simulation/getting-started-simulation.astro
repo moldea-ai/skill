@@ -14,7 +14,7 @@ const basePath = import.meta.env.BASE_URL;
     <p class="eyebrow mb-4">Start in minutes</p>
     <h2
       id="getting-started-title"
-      class="section-title max-w-4xl scroll-mt-24 font-semibold"
+      class="section-title max-w-4xl scroll-mt-24 text-3xl font-semibold sm:text-4xl lg:text-5xl"
     >
       Install. Initialize. Start building.
     </h2>
@@ -72,13 +72,12 @@ const basePath = import.meta.env.BASE_URL;
       Add it to the project where your coding agent works.
     </p>
     <div
-      class="mt-4 min-w-0 overflow-hidden rounded-xl border border-border bg-code shadow-inset"
+      class="mt-4 min-w-0"
       data-install-command
     >
       <CodeBlock
         language="sh"
         source={INSTALL_COMMAND}
-        variant="plain"
       />
     </div>
   </li>
@@ -100,9 +99,7 @@ const basePath = import.meta.env.BASE_URL;
       </p>
     </div>
     <p class="mt-4 text-sm leading-6 text-muted-foreground">
-      This creates <code class="inline-code">moldea.md</code> and <code class="inline-code"
-        >moldea.yaml</code
-      >. It does not create the support agent.
+      Saves the project’s starting context. Agent files are added when you ask for them.
     </p>
   </li>
 
@@ -119,7 +116,9 @@ const basePath = import.meta.env.BASE_URL;
       </span>
       <h3 class="text-xl font-semibold tracking-tight">Ask for the outcome</h3>
     </div>
-    <div class="mt-4 rounded-xl bg-primary p-4 text-primary-foreground shadow-inset">
+    <div
+      class="dark-surface-selection mt-4 rounded-xl bg-primary p-4 text-primary-foreground shadow-inset"
+    >
       <p class="eyebrow mb-2 text-current/65">Tell your coding agent</p>
       <p class="font-mono text-sm leading-6">
         Create a support agent grounded in our current refund policy.

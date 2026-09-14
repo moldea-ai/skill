@@ -24,7 +24,7 @@ The shared layout adds copy controls to useful code blocks after each direct loa
 
 ## Landing example
 
-The landing-page agent, maintenance, deterministic-check, and Repository format stories render from the same source snapshots in `src/lib/landing-example/fixture.ts`. Integration coverage materializes those snapshots in disposable Git repositories, runs the installed `@moldea.ai/cli`, checks deterministic repeatability and repository immutability, verifies the supported OpenAI instruction-loader and tool-registration evidence, exercises declared scope relationships, and executes the refund-rule boundary test. The displayed example is illustrative and performs no network or model request.
+The landing-page agent, maintenance, deterministic-check, and Repository format stories render from the same source snapshots in `src/lib/landing-example/fixture.ts`. Integration coverage materializes those snapshots in disposable Git repositories, runs the installed `@moldea.ai/cli`, checks deterministic repeatability and repository immutability, verifies the supported OpenAI instruction-loader and tool-registration evidence, exercises declared scope relationships, and executes the refund-rule boundary test. The hero shows the runtime call immediately, with keyboard-accessible tabs for its saved instructions and manifest. The displayed example is illustrative and performs no network or model request.
 
 ## Commands
 

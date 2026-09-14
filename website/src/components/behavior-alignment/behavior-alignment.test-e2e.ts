@@ -10,7 +10,7 @@ test('traces the verified 30-day to 14-day maintenance story', async ({ page }) 
   await page.goto(toPublicPath('/'));
 
   const behaviorAlignment = page.getByRole('region', {
-    name: 'One change can affect more than one file.',
+    name: 'Change the rule. Find what follows.',
   });
   await expect(behaviorAlignment).toBeVisible();
   await expect(
@@ -25,17 +25,14 @@ test('traces the verified 30-day to 14-day maintenance story', async ({ page }) 
   );
   await expect(behaviorAlignment.getByText('14 days', { exact: true })).toBeVisible();
   await expect(behaviorAlignment.getByText('15 days', { exact: true })).toBeVisible();
-  await expect(behaviorAlignment.getByText('true', { exact: true })).toBeVisible();
-  await expect(behaviorAlignment.getByText('false', { exact: true })).toBeVisible();
+  await expect(behaviorAlignment.getByText('Eligible', { exact: true })).toBeVisible();
+  await expect(behaviorAlignment.getByText('Outside window', { exact: true })).toBeVisible();
   await expect(behaviorAlignment.locator('[data-maintenance-diff="context"]')).toContainText(
     'within 14 completed days',
   );
   await expect(behaviorAlignment.locator('[data-maintenance-diff="instruction"]')).toContainText(
     'within 14 completed days',
   );
-  await expect(behaviorAlignment.getByText('src/instructions.ts', { exact: true })).toBeVisible();
-  await expect(behaviorAlignment.getByText('src/order-lookup.ts', { exact: true })).toBeVisible();
-  await expect(behaviorAlignment.getByText('src/contracts.ts', { exact: true })).toBeVisible();
   await expect(behaviorAlignment.getByRole('button', { name: /Copy/u })).toHaveCount(0);
 });
 
@@ -44,7 +41,7 @@ test('stacks the maintenance flow without overflow at 320px', async ({ page }) =
   await page.goto(toPublicPath('/'));
 
   const behaviorAlignment = page.getByRole('region', {
-    name: 'One change can affect more than one file.',
+    name: 'Change the rule. Find what follows.',
   });
   const flow = behaviorAlignment.locator('[data-behavior-alignment-flow]');
   const widths = await flow.evaluate((element) => ({

@@ -85,9 +85,6 @@ describe('verifyProductionBuild', () => {
       model.semanticEvaluation.currentAssurance === null ? null : 'exact',
     );
     expect(homeHtml).toContain(`${successfulCaseCount}/${model.semanticEvaluation.caseCount}`);
-    expect(homeHtml).toContain(
-      `${releaseSummary.result?.passedCaseCount ?? 0} passed directly, ${releaseSummary.result?.recoveredCaseCount ?? 0} confirmed on retry`,
-    );
     expect(homeHtml).toContain(`${qualifiedProfileCount}/${model.qualification.profiles.length}`);
     expect(homeHtml).toContain(`href="${withBase(model.semanticEvaluation.route, basePath)}"`);
     expect(homeHtml).toContain(`href="${withBase(model.qualification.route, basePath)}"`);

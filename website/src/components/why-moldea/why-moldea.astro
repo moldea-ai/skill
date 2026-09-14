@@ -1,135 +1,68 @@
 ---
-import { ArrowRight, Bot, GitBranch, Link2, SearchCheck } from '@lucide/astro';
-import ActionLink from '@moldea.ai/website-ui/action-link';
+import { BookOpen, Link2, SearchCheck } from '@lucide/astro';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
-import { withBase } from '@moldea.ai/website-ui/site';
 
-import { EVIDENCE_ROUTE } from '../../lib/model/constants.ts';
-
-const basePath = import.meta.env.BASE_URL;
-const comparisonRows = [
+const benefits = [
   {
-    agent: 'Inspects the repository again when a new session begins.',
-    icon: GitBranch,
-    moldea: 'Reads saved project context that the team reviews in Git.',
-    title: 'Context',
+    icon: BookOpen,
+    title: 'Context that carries over',
+    description: 'Saved project rules and decisions give the next session a place to start.',
   },
   {
-    agent: 'Follows connections it can infer from the current request and code.',
     icon: Link2,
-    moldea: 'Reads declared links between instructions, tools, and code.',
-    title: 'Connections',
+    title: 'Connections you can follow',
+    description:
+      'A change to a rule points your coding agent to the instructions and code that depend on it.',
   },
   {
-    agent: 'Explains why its implementation looks correct.',
     icon: SearchCheck,
-    moldea: 'Runs repeatable software checks for supported relationships.',
-    title: 'Checks',
+    title: 'Checks you can repeat',
+    description:
+      'Software verifies supported connections, independently of the coding agent’s judgment.',
   },
 ] as const;
 ---
 
 <section
   id="why-moldea"
-  class="scroll-mt-24 border-b border-border bg-background py-section-gap"
+  class="scroll-mt-24 border-b border-border bg-background py-12 sm:py-16"
   aria-labelledby="why-moldea-title"
   data-why-moldea
 >
   <div class="page-shell">
-    <header
-      class="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(20rem,0.6fr)] lg:items-end lg:gap-12"
-    >
-      <div class="max-w-4xl">
-        <p class="eyebrow mb-4">The question every visitor asks</p>
-        <h2
-          id="why-moldea-title"
-          class="section-title font-semibold"
-        >
-          Can't my coding agent already do this?
-        </h2>
-      </div>
-      <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-        Yes. A capable coding agent can inspect your repository, save notes, and write checks. The
-        difference is whether every session invents that system again.
+    <header class="grid gap-5 lg:grid-cols-2 lg:items-end lg:gap-12">
+      <h2
+        id="why-moldea-title"
+        class="section-title text-3xl font-semibold sm:text-4xl lg:text-5xl"
+      >
+        Can't my coding agent already do this?
+      </h2>
+      <p class="text-lg leading-8 text-muted-foreground">
+        It can write the code. Your team still needs a way to preserve the context, track
+        connections, and check them as the project changes.
       </p>
     </header>
-
-    <div
-      class="mt-8 overflow-hidden border-y border-border sm:rounded-2xl sm:border sm:shadow-raised"
+    <ul
+      class="mt-8 grid gap-7 sm:grid-cols-3 sm:gap-8"
+      aria-label="What moldea adds"
     >
-      <div class="grid bg-muted/30 md:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1fr)]">
-        <div class="hidden items-center border-e border-border p-5 md:flex">
-          <p class="text-xs font-bold tracking-wide text-muted-foreground uppercase">
-            What carries over
-          </p>
-        </div>
-        <div class="border-b border-border p-5 sm:p-6 md:border-e md:border-b-0">
-          <div class="flex items-center gap-3">
-            <span
-              class="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-background"
-            >
-              <Bot
-                class="size-4"
-                aria-hidden="true"
-              />
-            </span>
-            <h3 class="font-semibold">With a coding agent alone</h3>
-          </div>
-        </div>
-        <div class="p-5 sm:p-6">
-          <div class="flex items-center gap-3">
-            <span
-              class="dark-surface-selection inline-flex size-9 items-center justify-center rounded-lg bg-primary font-mono text-sm font-bold text-primary-foreground"
-            >
-              M
-            </span>
-            <h3 class="font-semibold">
-              With <InlineBrandText text="moldea" />
-            </h3>
-          </div>
-        </div>
-      </div>
-
-      <ol data-why-moldea-comparison>
-        {
-          comparisonRows.map(({ agent, icon: RowIcon, moldea, title }) => (
-            <li class="grid border-t border-border md:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1fr)]">
-              <div class="flex items-center gap-3 bg-muted/30 px-4 py-3 md:border-e md:px-5 md:py-5">
-                <RowIcon
-                  class="size-4 shrink-0 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <p class="text-xs font-bold tracking-wide uppercase">{title}</p>
-              </div>
-              <p class="px-4 py-4 text-sm leading-6 text-muted-foreground md:border-e md:px-6 md:py-5">
-                {agent}
-              </p>
-              <p class="border-t border-border px-4 py-4 text-sm leading-6 font-medium md:border-t-0 md:px-6 md:py-5">
-                {moldea}
-              </p>
-            </li>
-          ))
-        }
-      </ol>
-    </div>
-
-    <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <p class="max-w-3xl text-sm leading-6 text-muted-foreground">
-        <InlineBrandText
-          text="Without moldea, teams eventually have to choose a format, maintain the relationships, build the checks, and teach every coding agent how to use them."
-        />
-      </p>
-      <ActionLink
-        class="shrink-0 font-bold"
-        href={withBase(EVIDENCE_ROUTE, basePath)}
-        variant="link"
-      >
-        See the evidence
-        <ArrowRight
-          class="size-4"
-          aria-hidden="true"
-        />
-      </ActionLink>
-    </div>
+      {
+        benefits.map(({ icon: Icon, title, description }) => (
+          <li class="min-w-0">
+            <Icon
+              class="mb-3 size-5 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <h3 class="text-lg font-semibold">{title}</h3>
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="mt-7 text-sm leading-6 text-muted-foreground">
+      <InlineBrandText
+        text="You could build and maintain that system yourself. moldea gives your team one to start with."
+      />
+    </p>
   </div>
 </section>

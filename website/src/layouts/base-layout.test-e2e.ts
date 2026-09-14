@@ -679,6 +679,7 @@ test('copies exact code across direct loads and client navigation while excludin
   await expect(button).toBeFocused();
   await expect(toolbar.locator('[data-code-copy-feedback]')).toHaveText('Copied.');
   await expect(button).toHaveAttribute('data-code-copy-state', 'copied');
+  await expect(button.locator('[data-code-copy-success-icon]')).toHaveCSS('opacity', '1');
   expect(
     normalizeClipboardLineEndings(await page.evaluate(() => navigator.clipboard.readText())),
   ).toBe(normalizeClipboardLineEndings(source));

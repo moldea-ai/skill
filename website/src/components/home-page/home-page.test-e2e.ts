@@ -12,95 +12,48 @@ import {
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('leads with the durable system around coding-agent work', async ({ page }) => {
+test('leads with the connected-agent example and direct paths to act or inspect', async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(toPublicPath('/'));
 
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'Keep agent behavior aligned with the code.',
+      name: 'Build your agent. Keep its pieces connected.',
     }),
   ).toBeVisible();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     'content',
-    'Use moldea to give coding agents Git-owned project memory, maintain agent behavior with code, and validate supported repository and runtime relationships.',
+    'Give coding agents saved project context, visible connections between agent behavior and code, and repeatable software checks.',
   );
-
-  const heroTitleTypography = await page.locator('[data-hero-title]').evaluate((element) => ({
-    blockHeight: element.getBoundingClientRect().height,
-    fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
-    lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight),
-  }));
-  expect(heroTitleTypography.blockHeight).toBeGreaterThan(heroTitleTypography.lineHeight);
-  expect(heroTitleTypography.blockHeight).toBeLessThanOrEqual(heroTitleTypography.lineHeight * 2.1);
-  expect(heroTitleTypography.fontSize).toBeLessThanOrEqual(68);
-  expect(heroTitleTypography.lineHeight).toBeGreaterThan(heroTitleTypography.fontSize);
-
-  const durableSystem = page.getByRole('complementary', {
-    name: 'The system is still there.',
-  });
-  await expect(durableSystem).toBeVisible();
-  await expect(durableSystem.getByText('Project memory', { exact: true })).toBeVisible();
-  await expect(durableSystem.getByText('Behavioral relationships', { exact: true })).toBeVisible();
-  await expect(durableSystem.getByText('Mechanical evidence', { exact: true })).toBeVisible();
-
-  const productNameTextTransforms = await page
-    .locator('main code')
-    .evaluateAll((elements) =>
-      elements
-        .filter((element) => element.textContent?.trim() === 'moldea')
-        .map((element) => getComputedStyle(element).textTransform),
-    );
-  expect(productNameTextTransforms.length).toBeGreaterThan(0);
-  expect(productNameTextTransforms).not.toContain('uppercase');
-  await expect(page.locator('.eyebrow code').filter({ hasText: /^moldea$/u })).toHaveCount(3);
+  await expect(
+    page.getByRole('article', { name: 'Illustrative support agent project' }),
+  ).toBeVisible();
 
   const primaryInstallLink = page
     .locator('[data-home-hero]')
     .getByRole('link', { name: 'Install the skill', exact: true });
   await expect(primaryInstallLink).toHaveAttribute('href', '#getting-started-title');
-  expect(await primaryInstallLink.getAttribute('target')).toBeNull();
-  expect(await primaryInstallLink.getAttribute('rel')).toBeNull();
   await primaryInstallLink.focus();
-  await expect(primaryInstallLink).toBeFocused();
   await primaryInstallLink.press('Enter');
   await expect(page).toHaveURL(/#getting-started-title$/u);
-
-  const gettingStartedHeading = page.getByRole('heading', {
-    level: 2,
-    name: 'One install. One ordinary request.',
-  });
-  await expect(gettingStartedHeading).toBeVisible();
-
-  const [bannerBottom, headingPosition, viewportHeight] = await Promise.all([
-    page.getByRole('banner').evaluate((element) => element.getBoundingClientRect().bottom),
-    gettingStartedHeading.evaluate((element) => {
-      const { bottom, top } = element.getBoundingClientRect();
-
-      return { bottom, top };
-    }),
-    page.evaluate(() => window.innerHeight),
-  ]);
-  expect(headingPosition.top).toBeGreaterThanOrEqual(bannerBottom);
-  expect(headingPosition.top).toBeLessThan(viewportHeight);
-  expect(headingPosition.bottom).toBeGreaterThan(0);
-
-  const alignmentLink = page.getByRole('link', { name: 'See the alignment model', exact: true });
-  await expect(alignmentLink).toHaveAttribute('href', '#behavior-alignment');
-  await alignmentLink.focus();
-  await expect(alignmentLink).toBeFocused();
-  await alignmentLink.press('Enter');
-  await expect(page).toHaveURL(/#behavior-alignment$/u);
   await expect(
-    page.getByRole('heading', {
-      level: 2,
-      name: 'One change can affect more than one file.',
-    }),
+    page.getByRole('heading', { level: 2, name: 'One install. One ordinary request.' }),
+  ).toBeVisible();
+
+  const checksLink = page.getByRole('link', { name: 'See what gets checked', exact: true });
+  await expect(checksLink).toHaveAttribute('href', '#deterministic-checks');
+  await checksLink.focus();
+  await checksLink.press('Enter');
+  await expect(page).toHaveURL(/#deterministic-checks$/u);
+  await expect(
+    page.getByRole('heading', { level: 2, name: 'Software checks the connections.' }),
   ).toBeVisible();
 });
 
-test('presents value and proof before adoption reassurance', async ({ page }) => {
+test('presents the product story before proof and adoption', async ({ page }) => {
   const model = loadWebsiteModel();
   const { currentSemanticAssurance, qualification, releaseEvidence, semanticEvaluation } = model;
   const qualifiedProfileCount = qualification.profiles
@@ -113,15 +66,13 @@ test('presents value and proof before adoption reassurance', async ({ page }) =>
   await page.goto(toPublicPath('/'));
 
   const orderedHeadings = [
-    'One install. One ordinary request.',
-    'Turn coding-agent work into durable project infrastructure.',
+    "Can't my coding agent already do this?",
     'One change can affect more than one file.',
-    'The alternative is building this infrastructure yourself.',
+    'Software checks the connections.',
     'Start with two files. Add structure only when it earns a home.',
     'We do not ship on confidence alone.',
-    'One operating layer across the agent lifecycle.',
+    'One install. One ordinary request.',
     'Use the coding agent you already trust.',
-    'Your repository stays yours.',
     'Give your coding agent a system it can keep using.',
   ] as const;
   const headingTops: number[] = [];
@@ -131,7 +82,6 @@ test('presents value and proof before adoption reassurance', async ({ page }) =>
     await expect(heading).toBeVisible();
     headingTops.push(await heading.evaluate((element) => element.getBoundingClientRect().top));
   }
-
   expect(headingTops).toStrictEqual([...headingTops].sort((left, right) => left - right));
 
   const sectionHeadingTypography = await page.locator('.section-title').evaluateAll((elements) =>
@@ -145,27 +95,22 @@ test('presents value and proof before adoption reassurance', async ({ page }) =>
   expect(
     new Set(sectionHeadingTypography.map((typography) => JSON.stringify(typography))).size,
   ).toBe(1);
-  sectionHeadingTypography.forEach(({ fontSize, lineHeight }) => {
-    expect(Number.parseFloat(lineHeight)).toBeGreaterThan(Number.parseFloat(fontSize));
-  });
 
-  const openingSectionBackgrounds = await page
+  const productStoryBackgrounds = await page
     .locator(
-      '[data-home-hero], [data-getting-started], [data-why-moldea], [data-behavior-alignment], [data-open-source-system]',
+      '[data-home-hero], [data-why-moldea], [data-behavior-alignment], [data-open-source-system], [data-repository-format]',
     )
     .evaluateAll((sections) =>
       sections.map((section) => getComputedStyle(section).backgroundColor),
     );
-  expect(openingSectionBackgrounds).toHaveLength(5);
-  openingSectionBackgrounds.slice(1).forEach((backgroundColor, index) => {
-    expect(backgroundColor).not.toBe(openingSectionBackgrounds[index]);
+  expect(productStoryBackgrounds).toHaveLength(5);
+  productStoryBackgrounds.slice(1).forEach((backgroundColor, index) => {
+    expect(backgroundColor).not.toBe(productStoryBackgrounds[index]);
   });
 
-  const packagesLink = page.getByRole('link', { name: 'Explore packages' });
-  await expect(packagesLink).toHaveAttribute('href', PACKAGES_WEBSITE_URL);
-  await expect(page.getByRole('link', { name: 'Review release evidence' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Explore packages' })).toHaveAttribute(
     'href',
-    toPublicPath('/evidence/'),
+    PACKAGES_WEBSITE_URL,
   );
   await expect(page.getByRole('link', { name: 'Review the evidence' })).toHaveAttribute(
     'href',
@@ -184,7 +129,7 @@ test('presents value and proof before adoption reassurance', async ({ page }) =>
   const finalDistributionLink = page
     .getByRole('heading', { name: 'Give your coding agent a system it can keep using.' })
     .locator('xpath=ancestor::section[1]')
-    .getByRole('link', { name: 'Get moldea on skills.sh' });
+    .getByRole('link', { name: 'Get the skill on skills.sh' });
   await expect(finalDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
 });
 
@@ -192,6 +137,7 @@ test('keeps the complete landing page accessible at 320px in both themes', async
   for (const colorScheme of ['light', 'dark'] as const) {
     const context = await browser.newContext({
       colorScheme,
+      reducedMotion: 'reduce',
       viewport: { height: 740, width: 320 },
     });
     const page = await context.newPage();

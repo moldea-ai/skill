@@ -1,21 +1,12 @@
 ---
-import {
-  ArrowRight,
-  Blocks,
-  BrainCircuit,
-  GitBranch,
-  RefreshCw,
-  SearchCheck,
-  ShieldCheck,
-  Sparkles,
-  Workflow,
-} from '@lucide/astro';
+import { ArrowRight, GitBranch } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
+import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
+import AgentExample from '../agent-example/agent-example.astro';
 import BehaviorAlignment from '../behavior-alignment/behavior-alignment.astro';
-import CapabilityCard from '../capability-card/capability-card.astro';
 import CodingAgentCompatibility from '../coding-agent-compatibility/coding-agent-compatibility.astro';
 import GettingStartedSimulation from '../getting-started-simulation/getting-started-simulation.astro';
 import OpenSourceSystem from '../open-source-system/open-source-system.astro';
@@ -48,47 +39,31 @@ const successfulSemanticCaseCount =
 
 <BaseLayout
   title="moldea Agent Skill"
-  description="Use moldea to give coding agents Git-owned project memory, maintain agent behavior with code, and validate supported repository and runtime relationships."
+  description="Give coding agents saved project context, visible connections between agent behavior and code, and repeatable software checks."
 >
   <section
-    class="relative overflow-hidden border-b border-border bg-background"
+    class="relative overflow-hidden border-b border-border bg-sidebar"
     data-home-hero
   >
-    <div
-      class="pointer-events-none absolute inset-0 [background-image:radial-gradient(circle_at_70%_18%,color-mix(in_oklch,var(--accent)_60%,transparent),transparent_30%),linear-gradient(to_right,color-mix(in_oklch,var(--border)_35%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklch,var(--border)_35%,transparent)_1px,transparent_1px)] [mask-image:linear-gradient(to_bottom,black,transparent_92%)] [background-size:auto,3rem_3rem,3rem_3rem] opacity-60"
-      aria-hidden="true"
-    >
-    </div>
-    <div
-      class="page-shell relative grid gap-10 py-14 sm:py-18 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,0.78fr)] lg:items-center lg:py-20"
-    >
-      <div>
-        <div class="mb-7 flex flex-wrap items-center gap-3">
-          <span
-            class="inline-flex items-center gap-2 rounded-full border bg-background/80 px-3 py-1.5 text-sm font-semibold shadow-surface backdrop-blur"
-          >
-            <Sparkles
-              class="size-3.5"
-              aria-hidden="true"
-            />
-            Agent Skill · v{model.skill.version}
-          </span>
-          <span class="text-sm text-muted-foreground">Git-native · local-first · open source</span>
-        </div>
-        <p class="eyebrow mb-4">Open-source Agent Skill and tooling</p>
+    <HeroBackdrop />
+    <div class="page-shell relative py-12 sm:py-16 lg:py-20">
+      <div class="mx-auto max-w-5xl text-center">
+        <p class="eyebrow mb-4">Open source Agent Skill, version {model.skill.version}</p>
         <h1
-          class="section-title max-w-4xl font-semibold"
+          class="section-title font-semibold"
           data-hero-title
         >
-          Keep agent behavior aligned with the code.
+          Build your agent. Keep its pieces connected.
         </h1>
-        <p class="mt-7 max-w-3xl text-lg leading-8 text-muted-foreground sm:text-xl sm:leading-9">
+        <p
+          class="mx-auto mt-6 max-w-3xl text-lg leading-8 text-muted-foreground sm:text-xl sm:leading-9"
+        >
           <InlineBrandText
-            text="moldea gives coding agents Git-owned project memory, explicit relationships between behavior and implementation, and deterministic validation. You keep using the coding agent you trust. The project keeps a system it can verify."
+            text="moldea gives your coding agent saved project context and software checks for the connections between instructions, tools, and code."
           />
         </p>
         <div
-          class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3"
+          class="mt-8 flex flex-col items-stretch justify-center gap-3 min-[24rem]:flex-row min-[24rem]:items-center"
           data-hero-actions
         >
           <ActionLink
@@ -105,81 +80,20 @@ const successfulSemanticCaseCount =
           </ActionLink>
           <ActionLink
             class="font-bold"
-            href="#behavior-alignment"
+            href="#deterministic-checks"
             size="lg"
-            variant="link"
+            variant="outline"
           >
-            See the alignment model
-            <ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            />
+            See what gets checked
           </ActionLink>
         </div>
       </div>
 
-      <aside
-        class="surface-card overflow-hidden"
-        aria-labelledby="durable-system-title"
-      >
-        <header class="border-b border-border bg-muted/40 p-6">
-          <p class="eyebrow mb-3">After the coding session ends</p>
-          <h2
-            id="durable-system-title"
-            class="text-2xl font-semibold tracking-tight"
-          >
-            The system is still there.
-          </h2>
-        </header>
-        <ul class="grid divide-y divide-border px-6">
-          <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 py-5">
-            <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-              <GitBranch
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <h3 class="font-semibold">Project memory</h3>
-              <p class="mt-1 text-sm leading-6 text-muted-foreground">
-                Git-owned context, decisions, and current project truth.
-              </p>
-            </div>
-          </li>
-          <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 py-5">
-            <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-              <Workflow
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <h3 class="font-semibold">Behavioral relationships</h3>
-              <p class="mt-1 text-sm leading-6 text-muted-foreground">
-                Instructions, tools, schemas, runtimes, and implementation paths.
-              </p>
-            </div>
-          </li>
-          <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 py-5">
-            <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-              <SearchCheck
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <h3 class="font-semibold">Mechanical evidence</h3>
-              <p class="mt-1 text-sm leading-6 text-muted-foreground">
-                Repeatable CLI and adapter checks for supported relationships.
-              </p>
-            </div>
-          </li>
-        </ul>
-      </aside>
+      <div class="mt-10 sm:mt-12">
+        <AgentExample />
+      </div>
     </div>
   </section>
-
-  <GettingStartedSimulation />
 
   <WhyMoldea />
 
@@ -200,10 +114,9 @@ const successfulSemanticCaseCount =
           <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
             Semantic scenarios test whether the skill preserves developer authority, gathers
             relevant evidence, maintains or evaluates the right surfaces, and refuses unsupported
-            conclusions. Adapter qualification exercises complete transparent project journeys with
-            deterministic verification. Release evidence identifies whether its result is fresh for
-            the current contract or retained from a verified source, while failed and incomplete
-            current-contract attempts remain available for inspection.
+            conclusions. Adapter qualification exercises complete project journeys with
+            deterministic verification. Failed and incomplete attempts remain available for
+            inspection.
           </p>
           <ActionLink
             class="mt-8 font-bold"
@@ -240,133 +153,9 @@ const successfulSemanticCaseCount =
     </div>
   </section>
 
-  <section class="border-y border-border bg-sidebar py-section-gap">
-    <div class="page-shell">
-      <div class="mb-12 max-w-4xl">
-        <p class="eyebrow mb-4">
-          What <span class="normal-case"><InlineBrandText text="moldea" /></span> helps your coding agent
-          do
-        </p>
-        <h2 class="section-title font-semibold">One operating layer across the agent lifecycle.</h2>
-        <p class="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-          Plan where model reasoning belongs, establish the project foundation, create grounded
-          behavior, and keep the resulting system coherent as implementation evolves.
-        </p>
-      </div>
-      <div
-        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        data-capability-grid
-      >
-        <CapabilityCard
-          label="Design"
-          title="Plan the system"
-          description="Separate deterministic rules, tools, human control, and only the model-reasoning boundaries that earn an agent."
-          href="/docs/planning-agent-systems/"
-          icon={BrainCircuit}
-        />
-        <CapabilityCard
-          label="Context"
-          title="Initialize project context"
-          description="Create the smallest Git-owned foundation, adding focused context, decisions, and runtime guidance only when repository evidence justifies them."
-          href="/docs/project-state/"
-          icon={GitBranch}
-        />
-        <CapabilityCard
-          label="Ground"
-          title="Create real agents"
-          description="Align instructions, descriptions, schemas, capabilities, variables, runtime wiring, and actual repository evidence."
-          href="/docs/designing-agents/"
-          icon={Workflow}
-        />
-        <CapabilityCard
-          label="Reuse"
-          title="Design Agent Skills"
-          description="Define precise activation, progressive disclosure, focused resources, safe scripts, and synchronized copies."
-          href="/docs/designing-skills/"
-          icon={Blocks}
-        />
-        <CapabilityCard
-          label="Maintain"
-          title="Keep truth current"
-          description="Reconsider durable knowledge and affected behavior as the project evolves without creating documentation churn."
-          href="/docs/continuous-maintenance/"
-          icon={RefreshCw}
-        />
-        <CapabilityCard
-          label="Assure"
-          title="Evaluate and reconcile"
-          description="Distinguish deterministic diagnostics, semantic drift, ambiguity, unresolved state, and evidence limitations."
-          href="/docs/evaluate-reconcile-validate/"
-          icon={SearchCheck}
-        />
-      </div>
-      <ActionLink
-        class="mt-8 font-bold"
-        href={withBase('/docs/capabilities/', basePath)}
-        variant="link"
-      >
-        Explore every capability
-        <ArrowRight
-          class="size-4"
-          aria-hidden="true"
-        />
-      </ActionLink>
-    </div>
-  </section>
+  <GettingStartedSimulation />
 
   <CodingAgentCompatibility />
-
-  <section class="border-b border-border bg-sidebar py-section-gap">
-    <div class="page-shell">
-      <div class="surface-card grid overflow-hidden lg:grid-cols-2">
-        <div class="p-7 sm:p-10 lg:p-14">
-          <ShieldCheck
-            class="mb-8 size-9"
-            aria-hidden="true"
-          />
-          <p class="eyebrow mb-4">Local-first by default</p>
-          <h2 class="text-4xl font-semibold tracking-tight sm:text-5xl">
-            Your repository stays yours.
-          </h2>
-          <p class="mt-6 text-lg leading-8 text-muted-foreground">
-            Canonical state lives under <code
-              class="rounded bg-code px-1.5 py-1 font-mono text-sm text-code-foreground"
-              >/moldea/**</code
-            >. The skill does not depend on hidden memory or routine external transmission of your
-            repository.
-          </p>
-          <ActionLink
-            class="mt-8 font-bold"
-            href={withBase('/docs/safety-and-privacy/', basePath)}
-            variant="link"
-          >
-            Read the safety model
-            <ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            />
-          </ActionLink>
-        </div>
-        <div
-          class="grid content-center gap-3 border-t border-border bg-sidebar p-7 sm:p-10 lg:border-s lg:border-t-0 lg:p-14"
-        >
-          {
-            [
-              ['Git-owned', 'Context and behavior are reviewable repository state.'],
-              ['Scope-aware', 'The operation and developer authority constrain every write.'],
-              ['Evidence-grounded', 'Repository text cannot redefine developer intent.'],
-              ['Deterministic where it matters', 'The local CLI owns mechanical repository truth.'],
-            ].map(([title, description]) => (
-              <div class="rounded-xl border bg-background p-4">
-                <p class="font-semibold">{title}</p>
-                <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
-              </div>
-            ))
-          }
-        </div>
-      </div>
-    </div>
-  </section>
 
   <section class="page-shell pb-section-gap">
     <div class="grid gap-8 border-t border-border pt-12 lg:grid-cols-[1fr_auto] lg:items-center">
@@ -380,7 +169,7 @@ const successfulSemanticCaseCount =
         </h2>
         <p class="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
           <InlineBrandText
-            text="Install moldea, open your project, and ask your coding agent for the outcome you want."
+            text="Install moldea, initialize the project once, then ask your coding agent for the outcome you want."
           />
         </p>
       </div>
@@ -390,10 +179,9 @@ const successfulSemanticCaseCount =
         size="lg"
         target="_blank"
         rel="noopener noreferrer"
-        data-brand-plain
         data-primary-action
       >
-        Get moldea on skills.sh
+        Get the skill on skills.sh
         <ArrowRight
           class="size-4"
           aria-hidden="true"

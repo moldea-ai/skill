@@ -114,56 +114,12 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
   await page.reload();
   await page.getByLabel('Open navigation').click();
 
-  const mobileDistributionLink = page.getByRole('link', {
+  const mobileDistributionLink = page.getByLabel('Mobile navigation').getByRole('link', {
     name: 'Get the skill on skills.sh',
     exact: true,
   });
   await expect(mobileDistributionLink).toBeVisible();
   await expect(mobileDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
-});
-
-test('presents project and Agent Skill design as first-class landing capabilities', async ({
-  page,
-}) => {
-  await page.goto(toPublicPath('/'));
-
-  await expect(
-    page.getByRole('heading', {
-      level: 2,
-      name: 'One operating layer across the agent lifecycle.',
-    }),
-  ).toBeVisible();
-
-  const capabilityCardBounds = await page
-    .locator('[data-capability-grid] > a')
-    .evaluateAll((cards) =>
-      cards.map((card) => {
-        const bounds = card.getBoundingClientRect();
-
-        return { top: Math.round(bounds.top), width: Math.round(bounds.width) };
-      }),
-    );
-  expect(capabilityCardBounds).toHaveLength(6);
-  expect(new Set(capabilityCardBounds.slice(0, 3).map(({ top }) => top)).size).toBe(1);
-  expect(new Set(capabilityCardBounds.slice(3).map(({ top }) => top)).size).toBe(1);
-  expect(capabilityCardBounds[3]?.top).toBeGreaterThan(capabilityCardBounds[0]?.top ?? 0);
-  expect(Math.min(...capabilityCardBounds.map(({ width }) => width))).toBeGreaterThan(300);
-
-  const capabilityGrid = page.locator('[data-capability-grid]');
-  const projectContextLink = capabilityGrid.getByRole('link', {
-    name: /Initialize project context/,
-  });
-  await expect(projectContextLink).toBeVisible();
-  await expect(projectContextLink).toHaveAttribute('href', toPublicPath('/docs/project-state/'));
-
-  const skillDesignLink = capabilityGrid.getByRole('link', { name: /Design Agent Skills/ });
-  await expect(skillDesignLink).toBeVisible();
-  await expect(skillDesignLink).toHaveAttribute('href', toPublicPath('/docs/designing-skills/'));
-
-  await skillDesignLink.click();
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Design reusable Agent Skills' }),
-  ).toBeVisible();
 });
 
 test('shows compatible coding agents with source-owned marks and a complete docs path', async ({
@@ -905,7 +861,7 @@ test('honors the reduced-motion media preference', async ({ browser }) => {
     true,
   );
   const transitionDuration = await page
-    .locator('.interactive-card')
+    .locator('[data-hero-actions] a')
     .first()
     .evaluate((element) => Number.parseFloat(getComputedStyle(element).transitionDuration));
   expect(transitionDuration).toBeLessThanOrEqual(0.01);

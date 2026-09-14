@@ -22,6 +22,10 @@ Qualification journey pages also present a static Project view from the same val
 
 The shared layout adds copy controls to useful code blocks after each direct load or client navigation. Illustrative and incomplete excerpts opt out at their owning component, remain selectable, and reserve no toolbar space. Clipboard failures keep the source readable and explain how to copy it manually.
 
+## Landing example
+
+The landing-page agent, maintenance, deterministic-check, and Repository format stories render from the same source snapshots in `src/lib/landing-example/fixture.ts`. Integration coverage materializes those snapshots in disposable Git repositories, runs the installed `@moldea.ai/cli`, checks deterministic repeatability and repository immutability, verifies the supported OpenAI instruction-loader and tool-registration evidence, exercises declared scope relationships, and executes the refund-rule boundary test. The displayed example is illustrative and performs no network or model request.
+
 ## Commands
 
 Install dependencies without lifecycle scripts:

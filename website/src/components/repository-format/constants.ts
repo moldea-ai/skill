@@ -1,12 +1,17 @@
-// realistic root-level repository example rendered by the filesystem
+import { LANDING_EXAMPLE } from '../../lib/landing-example/index.ts';
+
+// the verified fixture grouped by what initialization creates and later work adds
 export const REPOSITORY_FORMAT_EXAMPLE = {
-  agents: [
-    {
-      behaviorFiles: ['description.md', 'instruction.md'],
-      id: 'support-agent',
-      implementationFiles: ['support-agent.ts', 'support-tools.ts'],
-    },
+  agentFiles: [LANDING_EXAMPLE.paths.agentDescription, LANDING_EXAMPLE.paths.instruction],
+  initializedFiles: [LANDING_EXAMPLE.paths.manifest, LANDING_EXAMPLE.paths.project],
+  projectDirectory: 'my-store/',
+  sourceFiles: [
+    LANDING_EXAMPLE.paths.agent,
+    LANDING_EXAMPLE.paths.instructionLoader,
+    LANDING_EXAMPLE.paths.orderLookup,
+    LANDING_EXAMPLE.paths.contracts,
+    LANDING_EXAMPLE.paths.refundPolicy,
+    LANDING_EXAMPLE.paths.refundPolicyTest,
   ],
-  contextFiles: ['support-policy.md', 'customer-data.md'],
-  projectDirectory: 'my-platform/',
+  taskContextFiles: [LANDING_EXAMPLE.paths.policyContext],
 } as const;

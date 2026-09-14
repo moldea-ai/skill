@@ -26,7 +26,7 @@ test('shows the recommended initialization journey and ordinary project work', a
   ).toBeVisible();
   await expect(
     page.getByText(
-      'Add the skill to your project and establish durable, Git-owned context. Initialization is the recommended starting point, and you can still begin with the outcome you want.',
+      'Install the skill in your project, initialize it once, then describe the outcome you want in an ordinary request.',
       { exact: true },
     ),
   ).toBeVisible();

@@ -11,7 +11,6 @@ import {
 } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
@@ -89,9 +88,8 @@ const qualificationSteps = [
     />
   </div>
 
-  <header class="relative mt-4 overflow-hidden border-b border-border sm:mt-6 sm:border-y">
-    <HeroBackdrop />
-    <div class="page-shell relative py-9 sm:py-16 lg:py-20">
+  <header class="mt-4 border-b border-border bg-background sm:mt-6 sm:border-y">
+    <div class="page-shell py-9 sm:py-16 lg:py-20">
       <div class="max-w-4xl">
         <p class="eyebrow mb-3 sm:mb-4">Evidence you can inspect</p>
         <h1 class="section-title font-semibold">Follow each result from request to verdict.</h1>

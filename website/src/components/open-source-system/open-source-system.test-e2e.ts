@@ -29,6 +29,9 @@ test('shows the deterministic flow and the complete supported adapter set', asyn
     ).toBeVisible();
   }
   await expect(
+    deterministicChecks.locator('code.inline-code').filter({ hasText: /^moldea\.yaml$/u }),
+  ).toBeVisible();
+  await expect(
     deterministicChecks.getByRole('heading', { level: 3, name: 'Disconnected' }),
   ).toBeVisible();
   await expect(

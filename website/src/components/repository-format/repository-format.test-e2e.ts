@@ -43,6 +43,9 @@ test('shows the verified project as one connected filesystem', async ({ page }) 
   for (const benefit of ['One visible home', 'Easy to inspect', 'Clear and checkable']) {
     await expect(repositoryFormat.getByRole('heading', { level: 3, name: benefit })).toBeVisible();
   }
+  await expect(
+    repositoryFormat.locator('[data-repository-format-benefits] code.inline-code'),
+  ).toHaveText(['my-store/moldea/', 'agents/support/', 'moldea.yaml']);
 
   const [filesystemBounds, benefitsBounds] = await Promise.all([
     repositoryFormat.locator('[data-repository-format-filesystem]').boundingBox(),

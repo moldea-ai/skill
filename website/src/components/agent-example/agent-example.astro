@@ -102,49 +102,54 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
           >
             I created the <code class="inline-code">support</code> agent and connected everything it needs.
           </p>
-          <TabbedPanels
-            ariaLabel="Illustrative project files"
-            id="landing-agent-files"
-            items={SOURCE_TABS}
+          <div
+            class="[&_[data-tabbed-panel]]:pt-2 [&_[data-tabbed-panels-root]]:gap-0"
+            data-agent-files
           >
-            <div slot="agent-code">
-              <FilePreview path="src/agent.ts">
-                <div
-                  class="h-48 overflow-auto p-4"
-                  data-agent-source
-                >
-                  <CodeBlock
-                    copyable={false}
-                    language="typescript"
-                    source={agentFunction}
-                    variant="plain"
+            <TabbedPanels
+              ariaLabel="Illustrative project files"
+              id="landing-agent-files"
+              items={SOURCE_TABS}
+            >
+              <div slot="agent-code">
+                <FilePreview path="src/agent.ts">
+                  <div
+                    class="h-48 overflow-auto p-4"
+                    data-agent-source
+                  >
+                    <CodeBlock
+                      copyable={false}
+                      language="typescript"
+                      source={agentFunction}
+                      variant="plain"
+                    />
+                  </div>
+                </FilePreview>
+              </div>
+              <div slot="instructions">
+                <FilePreview path="moldea/agents/support/instruction.md">
+                  <div
+                    class="prose-moldea h-48 overflow-auto p-4 text-sm leading-6 [&_p]:my-0 [&_p+p]:mt-3"
+                    aria-label="Support agent instructions"
+                    tabindex="0"
+                    set:html={instructionHtml}
                   />
-                </div>
-              </FilePreview>
-            </div>
-            <div slot="instructions">
-              <FilePreview path="moldea/agents/support/instruction.md">
-                <div
-                  class="prose-moldea h-48 overflow-auto p-4 text-sm leading-6 [&_p]:my-0 [&_p+p]:mt-3"
-                  aria-label="Support agent instructions"
-                  tabindex="0"
-                  set:html={instructionHtml}
-                />
-              </FilePreview>
-            </div>
-            <div slot="connections">
-              <FilePreview path="moldea/moldea.yaml">
-                <div class="h-48 overflow-auto p-4">
-                  <CodeBlock
-                    copyable={false}
-                    language="yaml"
-                    source={manifestSource}
-                    variant="plain"
-                  />
-                </div>
-              </FilePreview>
-            </div>
-          </TabbedPanels>
+                </FilePreview>
+              </div>
+              <div slot="connections">
+                <FilePreview path="moldea/moldea.yaml">
+                  <div class="h-48 overflow-auto p-4">
+                    <CodeBlock
+                      copyable={false}
+                      language="yaml"
+                      source={manifestSource}
+                      variant="plain"
+                    />
+                  </div>
+                </FilePreview>
+              </div>
+            </TabbedPanels>
+          </div>
         </div>
       </div>
     </li>

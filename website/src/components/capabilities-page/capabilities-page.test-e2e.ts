@@ -13,7 +13,7 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
     page.getByRole('heading', { level: 1, name: 'From project knowledge to working agents.' }),
   ).toBeVisible();
   await expect(page.locator('[data-capability-section]')).toHaveCount(6);
-  await expect(page.locator('[data-capability-conversation]')).toHaveCount(5);
+  await expect(page.locator('[data-capability-conversation]')).toHaveCount(6);
   await expect(page.locator('#evaluate-and-repair [data-repair-visual]')).toBeVisible();
   await expect(
     page.getByRole('navigation', { name: 'Primary navigation' }).locator('a[aria-current="page"]'),
@@ -31,6 +31,9 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
   }
 
   await expect(page.getByRole('img', { name: 'OpenAI company logo' })).toBeVisible();
+  await expect(
+    page.getByText('Every connection resolves. Approval remains deterministic.', { exact: true }),
+  ).toBeVisible();
   await expect(page.locator('[data-maintenance-visual] [data-code-copy-button]')).toHaveCount(0);
   await expect(page.getByText('Fix moldea.', { exact: true }).locator('code')).toHaveText('moldea');
   await expect(page.getByText('Planning is read-only.', { exact: true })).toBeVisible();

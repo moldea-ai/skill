@@ -39,7 +39,6 @@ const capabilityLinks = [
   { href: '#keep-behavior-current', icon: GitBranch, label: 'Keep behavior current' },
   { href: '#evaluate-and-repair', icon: ShieldCheck, label: 'Evaluate and repair' },
 ] as const;
-const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
 ---
 
 <BaseLayout
@@ -424,74 +423,110 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
         </div>
       </div>
 
-      <div
-        class="rounded-2xl border border-border bg-card p-4 shadow-raised sm:p-6"
-        data-agent-system-visual
-      >
-        <div
-          class="mx-auto max-w-md rounded-2xl border border-border bg-background p-5 text-center"
-        >
-          <span
-            class="mx-auto inline-flex size-11 items-center justify-center rounded-xl bg-secondary"
-          >
-            <img
-              src={skillMarkPath}
-              width="207"
-              height="215"
-              alt=""
-              class="h-6 w-auto dark:invert"
-            />
-          </span>
-          <p class="eyebrow mt-4">Support agent</p>
-          <h3 class="mt-1 text-xl font-semibold">Answers refund questions</h3>
-        </div>
-        <div
-          class="flex justify-center py-3 text-muted-foreground"
-          aria-hidden="true"
-        >
-          <ArrowDown class="size-5" />
-        </div>
-        <div class="grid gap-3 sm:grid-cols-3">
-          <div class="rounded-xl border border-border bg-background p-4">
-            <FileText
-              class="size-5 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <p class="mt-3 text-sm font-semibold">Instructions</p>
-            <code class="mt-1 block text-xs break-all text-muted-foreground">instruction.md</code>
-          </div>
-          <div class="rounded-xl border border-border bg-background p-4">
-            <Search
-              class="size-5 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <p class="mt-3 text-sm font-semibold">Order lookup</p>
-            <code class="mt-1 block text-xs break-all text-muted-foreground">lookup-order</code>
-          </div>
-          <div class="rounded-xl border border-border bg-background p-4">
-            <div class="flex items-center justify-between gap-3">
-              <Bot
-                class="size-5 text-muted-foreground"
-                aria-hidden="true"
-              />
-              <AdapterCompanyLogo
-                adapterId="openai"
-                size="xs"
-              />
+      <div data-agent-system-visual>
+        <CapabilityConversation ariaLabel="Developer and coding agent creation conversation">
+          <p slot="request">
+            Create an <code class="inline-code">order-support</code> agent that can look up orders and
+            explain our refund policy, but cannot approve refunds.
+          </p>
+          <p slot="response">
+            I created <code class="inline-code">order-support</code>. It can retrieve order details
+            and explain the policy. Refund approval stays in your application.
+          </p>
+
+          <div class="border-y border-border">
+            <div class="grid md:grid-cols-2 md:divide-x md:divide-border">
+              <div class="py-4 md:pe-5">
+                <h3 class="flex items-center gap-2 text-sm font-semibold">
+                  <span
+                    class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary"
+                  >
+                    <Bot
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  Agent connections
+                </h3>
+                <ul class="mt-3 divide-y divide-border">
+                  <li class="flex items-center gap-3 py-3">
+                    <FileText
+                      class="size-4 shrink-0 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                    <div class="min-w-0">
+                      <p class="text-xs text-muted-foreground">Instructions</p>
+                      <code class="text-sm font-semibold">refund-policy.md</code>
+                    </div>
+                  </li>
+                  <li class="flex items-center gap-3 py-3">
+                    <Search
+                      class="size-4 shrink-0 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                    <div class="min-w-0">
+                      <p class="text-xs text-muted-foreground">Order lookup</p>
+                      <code class="text-sm font-semibold">lookup-order</code>
+                    </div>
+                  </li>
+                  <li class="flex items-center gap-3 py-3">
+                    <AdapterCompanyLogo
+                      adapterId="openai"
+                      size="xs"
+                    />
+                    <div class="min-w-0">
+                      <p class="text-xs text-muted-foreground">Runtime</p>
+                      <code class="text-sm font-semibold">gpt-6-astra</code>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="border-t border-border py-4 md:border-t-0 md:ps-5">
+                <h3 class="flex items-center gap-2 text-sm font-semibold">
+                  <span
+                    class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted"
+                  >
+                    <ShieldCheck
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  Kept in the application
+                </h3>
+                <ul class="mt-3 divide-y divide-border">
+                  <li class="py-3">
+                    <p class="text-sm font-semibold">Eligibility check</p>
+                    <p class="mt-1 text-xs leading-5 text-muted-foreground">
+                      Decides whether the order qualifies.
+                    </p>
+                  </li>
+                  <li class="py-3">
+                    <p class="text-sm font-semibold">Refund approval</p>
+                    <p class="mt-1 text-xs leading-5 text-muted-foreground">
+                      Keeps the final decision outside the agent.
+                    </p>
+                  </li>
+                  <li class="py-3">
+                    <p class="text-sm font-semibold">Refund action</p>
+                    <p class="mt-1 text-xs leading-5 text-muted-foreground">
+                      Issues money only after approval.
+                    </p>
+                  </li>
+                </ul>
+              </div>
             </div>
-            <p class="mt-3 text-sm font-semibold">Runtime</p>
-            <code class="mt-1 block text-xs break-all text-muted-foreground">gpt-6-astra</code>
           </div>
-        </div>
-        <p
-          class="mt-4 flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
-        >
-          <Link2
-            class="size-4"
-            aria-hidden="true"
-          />
-          Every declared capability resolves to project evidence.
-        </p>
+          <p
+            class="mt-3 flex items-center gap-2 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
+          >
+            <Check
+              class="size-4 shrink-0"
+              aria-hidden="true"
+            />
+            Every connection resolves. Approval remains deterministic.
+          </p>
+        </CapabilityConversation>
       </div>
     </div>
   </section>

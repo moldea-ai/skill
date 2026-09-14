@@ -592,7 +592,9 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
               </ul>
             </div>
 
-            <div class="rounded-xl border border-border bg-background p-4 sm:p-5">
+            <div
+              class="rounded-xl border border-border bg-background p-4 sm:p-5 lg:flex lg:flex-col"
+            >
               <p class="eyebrow">Release review</p>
               <ol class="mt-4 grid gap-3">
                 <li class="flex items-center gap-3">
@@ -629,15 +631,17 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
                   <span class="min-w-0 text-sm font-semibold">Review uses the report template</span>
                 </li>
               </ol>
-              <p
-                class="mt-4 flex items-center gap-2 rounded-lg bg-emerald-600/10 px-3 py-2.5 text-sm font-semibold text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200"
-              >
-                <Check
-                  class="size-4 shrink-0"
-                  aria-hidden="true"
-                />
-                One reusable workflow, ready for the next release
-              </p>
+              <div class="mt-4 lg:mt-auto lg:pt-4">
+                <p
+                  class="flex items-center gap-2 rounded-lg bg-emerald-600/10 px-3 py-2.5 text-sm font-semibold text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200"
+                >
+                  <Check
+                    class="size-4 shrink-0"
+                    aria-hidden="true"
+                  />
+                  One reusable workflow, ready for the next release
+                </p>
+              </div>
             </div>
           </div>
         </CapabilityConversation>

@@ -21,6 +21,7 @@ test('follows one project change through five connected stages', async ({ page }
   await expect(
     page.getByRole('heading', { level: 1, name: 'One change, followed all the way through.' }),
   ).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0);
   await expect(page.getByText(LANDING_EXAMPLE.maintenanceRequest, { exact: true })).toBeVisible();
   await expect(
     page.getByText('I updated the refund rule and everything connected to it.', { exact: true }),

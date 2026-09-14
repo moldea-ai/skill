@@ -19,7 +19,6 @@ import {
   Wrench,
 } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
-import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
@@ -29,7 +28,6 @@ import CapabilityConversation from './capability-conversation/capability-convers
 
 const basePath = import.meta.env.BASE_URL;
 const pageMetadata = PRODUCT_PAGE_METADATA.capabilities;
-const breadcrumbs = [{ href: '/', label: 'Home' }, { label: pageMetadata.title }];
 const capabilityLinks = [
   { href: '#project-truth', icon: FolderTree, label: 'Establish project truth' },
   { href: '#plan-agent-systems', icon: BrainCircuit, label: 'Plan agent systems' },
@@ -43,16 +41,8 @@ const capabilityLinks = [
 <BaseLayout
   title={pageMetadata.title}
   description={pageMetadata.description}
-  {breadcrumbs}
 >
-  <div class="page-shell pt-4 sm:pt-7">
-    <Breadcrumbs
-      basePath={basePath}
-      items={breadcrumbs}
-    />
-  </div>
-
-  <header class="mt-4 border-b border-border bg-background sm:mt-6 sm:border-y">
+  <header class="border-b border-border bg-background sm:border-y">
     <div class="page-shell py-10 sm:py-16 lg:py-20">
       <div class="max-w-4xl">
         <p class="eyebrow mb-4">Capabilities</p>

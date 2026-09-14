@@ -12,6 +12,7 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
   await expect(
     page.getByRole('heading', { level: 1, name: 'From project knowledge to working agents.' }),
   ).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0);
   await expect(page.locator('[data-capability-section]')).toHaveCount(6);
   await expect(page.locator('[data-capability-conversation]')).toHaveCount(6);
   await expect(page.locator('#evaluate-and-repair [data-repair-visual]')).toBeVisible();

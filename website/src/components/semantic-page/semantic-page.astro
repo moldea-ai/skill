@@ -2,7 +2,6 @@
 import { ArrowRight, BookOpen, ExternalLink } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
@@ -70,9 +69,8 @@ const semanticReleaseSection =
     />
   </div>
 
-  <header class="relative mt-6 overflow-hidden border-y border-border">
-    <HeroBackdrop />
-    <div class="page-shell relative py-14 sm:py-18 lg:py-20">
+  <header class="mt-6 border-y border-border">
+    <div class="page-shell py-14 sm:py-18 lg:py-20">
       <div class="max-w-4xl">
         <div class="flex flex-wrap items-center gap-3">
           <EvidenceStatus status={releaseResult?.status ?? semanticEvaluation.status} />

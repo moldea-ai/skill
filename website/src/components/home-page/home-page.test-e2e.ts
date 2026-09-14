@@ -160,9 +160,7 @@ test('presents the product story before proof and adoption', async ({ page }) =>
       exact: true,
     }),
   ).toBeVisible();
-  await expect(
-    evidenceSection.locator('[data-home-evidence-release-status="verified"]'),
-  ).toBeVisible();
+  await expect(evidenceSection.locator('[data-home-evidence-release-status]')).toHaveCount(0);
   await expect(evidenceSection.locator('[data-home-evidence-result]')).toHaveCount(2);
   await expect(
     evidenceSection.getByRole('list', { name: 'Verified decision behavior' }).getByRole('listitem'),

@@ -39,7 +39,12 @@ test('shows one install followed by an ordinary coding-agent request', async ({ 
     steps.nth(1).getByText('Initialize the project once.', { exact: true }),
   ).toBeVisible();
   await expect(steps.nth(1).getByText('Initialize moldea', { exact: true })).toBeVisible();
-  await expect(steps.nth(1).locator('code')).toHaveText('moldea');
+  const inlineProductName = steps.nth(1).locator('code');
+  await expect(inlineProductName).toHaveText('moldea');
+  const inlineCodeBackground = await inlineProductName.evaluate(
+    (element) => getComputedStyle(element).backgroundColor,
+  );
+  expect(inlineCodeBackground).not.toBe('rgba(0, 0, 0, 0)');
   await expect(
     steps.nth(2).getByText('Describe the outcome naturally.', { exact: true }),
   ).toBeVisible();

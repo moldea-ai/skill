@@ -45,8 +45,6 @@ const hasQualificationReleaseEvidence = qualificationSummaries.some(
 const hasCompleteQualificationReleaseEvidence =
   model.qualification.profiles.length > 0 &&
   qualifiedProfileCount === model.qualification.profiles.length;
-const hasCompleteReleaseEvidence =
-  hasCompleteSemanticReleaseEvidence && hasCompleteQualificationReleaseEvidence;
 const decisionEvidenceGroups = ['Context choices', 'File changes', 'Project boundaries'] as const;
 const qualificationEvidenceGroups = [
   'Example project builds',
@@ -167,32 +165,11 @@ const additionalQualificationAdapterCount = Math.max(
               See what was tested.
             </h2>
           </div>
-          <div class="lg:justify-self-end">
-            <p class="text-base leading-7 text-current/70 sm:text-lg sm:leading-8">
-              Open the request, project changes, and verdict behind each recorded result.
-            </p>
-            {
-              hasCompleteReleaseEvidence ? (
-                <p
-                  class="light-surface-selection mt-4 inline-flex items-center gap-2 rounded-full border border-primary-foreground bg-primary-foreground px-3 py-1.5 text-sm font-semibold text-primary"
-                  data-home-evidence-release-status="verified"
-                >
-                  <ShieldCheck
-                    class="size-4 text-emerald-700 dark:text-emerald-700"
-                    aria-hidden="true"
-                  />
-                  Current release verified
-                </p>
-              ) : (
-                <p
-                  class="mt-4 inline-flex items-center gap-2 rounded-full border border-current/20 bg-current/10 px-3 py-1.5 text-sm font-semibold"
-                  data-home-evidence-release-status="pending"
-                >
-                  Release evidence pending
-                </p>
-              )
-            }
-          </div>
+          <p
+            class="text-base leading-7 text-current/70 sm:text-lg sm:leading-8 lg:justify-self-end"
+          >
+            Open the request, project changes, and verdict behind each recorded result.
+          </p>
         </header>
 
         <div class="grid gap-3 p-3 pt-0 sm:p-6 sm:pt-0 md:grid-cols-2">

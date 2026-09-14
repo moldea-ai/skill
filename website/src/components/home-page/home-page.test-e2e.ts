@@ -40,7 +40,7 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await primaryInstallLink.press('Enter');
   await expect(page).toHaveURL(/#getting-started-title$/u);
   await expect(
-    page.getByRole('heading', { level: 2, name: 'One install. One ordinary request.' }),
+    page.getByRole('heading', { level: 2, name: 'Install. Initialize. Start building.' }),
   ).toBeVisible();
 
   const checksLink = page.getByRole('link', { name: 'See what gets checked', exact: true });
@@ -70,10 +70,8 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     'One change can affect more than one file.',
     'Software checks the connections.',
     'Start with two files. Add structure only when it earns a home.',
-    'We do not ship on confidence alone.',
-    'One install. One ordinary request.',
-    'Use the coding agent you already trust.',
-    'Give your coding agent a system it can keep using.',
+    'See what was tested.',
+    'Install. Initialize. Start building.',
   ] as const;
   const headingTops: number[] = [];
 
@@ -98,12 +96,12 @@ test('presents the product story before proof and adoption', async ({ page }) =>
 
   const productStoryBackgrounds = await page
     .locator(
-      '[data-home-hero], [data-why-moldea], [data-behavior-alignment], [data-open-source-system], [data-repository-format]',
+      '[data-home-hero], [data-why-moldea], [data-behavior-alignment], [data-open-source-system], [data-repository-format], [data-home-evidence], [data-adoption]',
     )
     .evaluateAll((sections) =>
       sections.map((section) => getComputedStyle(section).backgroundColor),
     );
-  expect(productStoryBackgrounds).toHaveLength(5);
+  expect(productStoryBackgrounds).toHaveLength(7);
   productStoryBackgrounds.slice(1).forEach((backgroundColor, index) => {
     expect(backgroundColor).not.toBe(productStoryBackgrounds[index]);
   });
@@ -112,25 +110,54 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     'href',
     PACKAGES_WEBSITE_URL,
   );
-  await expect(page.getByRole('link', { name: 'Review the evidence' })).toHaveAttribute(
+  const evidenceSection = page.getByRole('region', { name: 'See what was tested.' });
+  await expect(
+    evidenceSection.getByRole('link', { name: 'Inspect the decisions' }),
+  ).toHaveAttribute('href', toPublicPath(semanticEvaluation.route));
+  await expect(evidenceSection.getByRole('link', { name: 'Inspect the adapters' })).toHaveAttribute(
     'href',
-    toPublicPath('/evidence/'),
+    toPublicPath(qualification.route),
   );
   await expect(
-    page.getByText(
+    evidenceSection.getByText(
       `${(semanticReleaseSummary.result?.passedCaseCount ?? 0) + (semanticReleaseSummary.result?.recoveredCaseCount ?? 0)}/${semanticEvaluation.caseCount}`,
       { exact: true },
     ),
   ).toBeVisible();
   await expect(
-    page.getByText(`${qualifiedProfileCount}/${qualification.profiles.length}`, { exact: true }),
+    evidenceSection.getByText(
+      `${semanticReleaseSummary.result?.passedCaseCount ?? 0} passed directly, ${semanticReleaseSummary.result?.recoveredCaseCount ?? 0} confirmed on retry`,
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    evidenceSection.getByText(`${qualifiedProfileCount}/${qualification.profiles.length}`, {
+      exact: true,
+    }),
   ).toBeVisible();
 
-  const finalDistributionLink = page
-    .getByRole('heading', { name: 'Give your coding agent a system it can keep using.' })
-    .locator('xpath=ancestor::section[1]')
-    .getByRole('link', { name: 'Get the skill on skills.sh' });
-  await expect(finalDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
+  const evidenceCardHeights = await evidenceSection
+    .locator('[data-home-evidence-card]')
+    .evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().height));
+  expect(evidenceCardHeights).toHaveLength(2);
+  expect(Math.abs((evidenceCardHeights[0] ?? 0) - (evidenceCardHeights[1] ?? 0))).toBeLessThan(2);
+
+  const adoptionSection = page.getByRole('region', {
+    name: 'Install. Initialize. Start building.',
+  });
+  await expect(
+    adoptionSection.getByRole('heading', {
+      level: 3,
+      name: 'Use the coding agent you already trust.',
+    }),
+  ).toBeVisible();
+  await expect(adoptionSection.getByRole('link', { name: 'Get the skill' })).toHaveAttribute(
+    'href',
+    SKILLS_DIRECTORY_URL,
+  );
+  await expect(
+    page.getByRole('heading', { name: 'Give your coding agent a system it can keep using.' }),
+  ).toHaveCount(0);
 });
 
 test('keeps the complete landing page accessible at 320px in both themes', async ({ browser }) => {

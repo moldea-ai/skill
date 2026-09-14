@@ -1,5 +1,5 @@
 ---
-import { ArrowRight, GitBranch } from '@lucide/astro';
+import { ArrowRight, Cable, ListChecks } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
@@ -14,7 +14,6 @@ import RepositoryFormat from '../repository-format/repository-format.astro';
 import WhyMoldea from '../why-moldea/why-moldea.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
-import { SKILLS_DIRECTORY_URL } from '../../lib/model/constants.ts';
 import {
   getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
@@ -35,6 +34,12 @@ const semanticReleaseSummary = getSemanticReleaseEvidenceSummary(
 const successfulSemanticCaseCount =
   (semanticReleaseSummary.result?.passedCaseCount ?? 0) +
   (semanticReleaseSummary.result?.recoveredCaseCount ?? 0);
+const directlyPassedSemanticCaseCount = semanticReleaseSummary.result?.passedCaseCount ?? 0;
+const recoveredSemanticCaseCount = semanticReleaseSummary.result?.recoveredCaseCount ?? 0;
+const hasSemanticReleaseEvidence = semanticReleaseSummary.result !== null;
+const hasQualificationReleaseEvidence = qualificationSummaries.some(
+  ({ kind }) => kind !== 'not-recorded',
+);
 ---
 
 <BaseLayout
@@ -103,90 +108,165 @@ const successfulSemanticCaseCount =
 
   <RepositoryFormat />
 
-  <section class="page-shell py-section-gap">
-    <div class="surface-card overflow-hidden">
-      <div
-        class="grid gap-8 p-6 sm:p-9 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] lg:items-center lg:p-12"
-      >
+  <section
+    class="border-b border-border bg-background py-12 sm:py-section-gap"
+    aria-labelledby="home-evidence-title"
+    data-home-evidence
+  >
+    <div class="page-shell">
+      <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end">
         <div>
-          <p class="eyebrow mb-4">Release evidence</p>
-          <h2 class="section-title max-w-4xl font-semibold">We do not ship on confidence alone.</h2>
-          <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-            Semantic scenarios test whether the skill preserves developer authority, gathers
-            relevant evidence, maintains or evaluates the right surfaces, and refuses unsupported
-            conclusions. Adapter qualification exercises complete project journeys with
-            deterministic verification. Failed and incomplete attempts remain available for
-            inspection.
-          </p>
-          <ActionLink
-            class="mt-8 font-bold"
-            href={withBase('/evidence/', basePath)}
+          <p class="eyebrow mb-4">Proof before release</p>
+          <h2
+            id="home-evidence-title"
+            class="section-title max-w-4xl font-semibold"
           >
-            Review the evidence
+            See what was tested.
+          </h2>
+        </div>
+        <p class="text-lg leading-8 text-muted-foreground lg:justify-self-end">
+          Open the request, project changes, and verdict behind each recorded result.
+        </p>
+      </header>
+
+      <div class="mt-7 grid sm:gap-3 md:grid-cols-2 md:gap-4">
+        <article
+          class="flex min-w-0 flex-col border-b border-border py-6 sm:rounded-xl sm:border sm:bg-card sm:p-7 sm:shadow-surface"
+          data-home-evidence-card="decision"
+        >
+          <div class="flex items-center gap-3">
+            <span
+              class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted"
+            >
+              <ListChecks
+                class="size-5"
+                aria-hidden="true"
+              />
+            </span>
+            <p class="eyebrow">Decision evaluation</p>
+          </div>
+          <h3 class="mt-4 text-xl font-semibold tracking-tight sm:mt-5 sm:text-2xl">
+            Did it make the right call?
+          </h3>
+          <p
+            class="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7"
+          >
+            Inspect whether the skill found the right context, changed the right files, and
+            respected the developer's boundaries.
+          </p>
+          <div class="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2 text-sm sm:mt-6">
+            {
+              hasSemanticReleaseEvidence ? (
+                <>
+                  <p
+                    class="font-semibold"
+                    data-semantic-release-count
+                  >
+                    <span class="font-mono text-lg">
+                      {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount}
+                    </span>{' '}
+                    decisions verified
+                  </p>
+                  <p
+                    class="text-muted-foreground"
+                    data-semantic-release-outcomes
+                  >
+                    {directlyPassedSemanticCaseCount} passed directly, {recoveredSemanticCaseCount}{' '}
+                    confirmed on retry
+                  </p>
+                </>
+              ) : (
+                <p
+                  class="text-muted-foreground"
+                  data-semantic-release-count
+                >
+                  No release decision result is recorded yet.
+                </p>
+              )
+            }
+          </div>
+          <ActionLink
+            class="mt-5 self-start font-bold sm:mt-6"
+            href={withBase(model.semanticEvaluation.route, basePath)}
+            variant="link"
+          >
+            Inspect the decisions
             <ArrowRight
               class="size-4"
               aria-hidden="true"
             />
           </ActionLink>
-        </div>
-        <dl class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-          <div class="rounded-xl border border-border bg-muted/30 p-5">
-            <dt class="text-sm font-semibold">Skill scenarios with verified release evidence</dt>
-            <dd class="mt-2 font-mono text-3xl font-bold">
-              {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount}
-            </dd>
-            <dd class="mt-2 text-sm leading-6 text-muted-foreground">
-              Authority, evidence, maintenance, evaluation, and safe refusal boundaries.
-            </dd>
+        </article>
+
+        <article
+          class="flex min-w-0 flex-col py-6 sm:rounded-xl sm:border sm:border-border sm:bg-card sm:p-7 sm:shadow-surface"
+          data-home-evidence-card="qualification"
+        >
+          <div class="flex items-center gap-3">
+            <span
+              class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted"
+            >
+              <Cable
+                class="size-5"
+                aria-hidden="true"
+              />
+            </span>
+            <p class="eyebrow">Adapter qualification</p>
           </div>
-          <div class="rounded-xl border border-border bg-muted/30 p-5">
-            <dt class="text-sm font-semibold">Adapter profiles with passing release evidence</dt>
-            <dd class="mt-2 font-mono text-3xl font-bold">
-              {qualifiedProfileCount}/{model.qualification.profiles.length}
-            </dd>
-            <dd class="mt-2 text-sm leading-6 text-muted-foreground">
-              Exact project profiles backed by fresh or explicitly retained qualification evidence.
-            </dd>
+          <h3 class="mt-4 text-xl font-semibold tracking-tight sm:mt-5 sm:text-2xl">
+            Does it work with your integration?
+          </h3>
+          <p
+            class="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7"
+          >
+            Inspect the real project changes and source checks for every supported adapter setup.
+          </p>
+          <div class="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-2 text-sm sm:mt-6">
+            {
+              hasQualificationReleaseEvidence ? (
+                <p
+                  class="font-semibold"
+                  data-qualification-release-count
+                >
+                  <span class="font-mono text-lg">
+                    {qualifiedProfileCount}/{model.qualification.profiles.length}
+                  </span>{' '}
+                  adapter setups qualified
+                </p>
+              ) : (
+                <p
+                  class="text-muted-foreground"
+                  data-qualification-release-count
+                >
+                  No adapter qualification result is recorded yet.
+                </p>
+              )
+            }
           </div>
-        </dl>
+          <ActionLink
+            class="mt-5 self-start font-bold md:mt-auto md:pt-6"
+            href={withBase(model.qualification.route, basePath)}
+            variant="link"
+          >
+            Inspect the adapters
+            <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            />
+          </ActionLink>
+        </article>
       </div>
     </div>
   </section>
 
-  <GettingStartedSimulation />
-
-  <CodingAgentCompatibility />
-
-  <section class="page-shell pb-section-gap">
-    <div class="grid gap-8 border-t border-border pt-12 lg:grid-cols-[1fr_auto] lg:items-center">
-      <div>
-        <GitBranch
-          class="mb-5 size-7"
-          aria-hidden="true"
-        />
-        <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">
-          Give your coding agent a system it can keep using.
-        </h2>
-        <p class="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
-          <InlineBrandText
-            text="Install moldea, initialize the project once, then ask your coding agent for the outcome you want."
-          />
-        </p>
-      </div>
-      <ActionLink
-        class="font-bold"
-        href={SKILLS_DIRECTORY_URL}
-        size="lg"
-        target="_blank"
-        rel="noopener noreferrer"
-        data-primary-action
-      >
-        Get the skill on skills.sh
-        <ArrowRight
-          class="size-4"
-          aria-hidden="true"
-        />
-      </ActionLink>
+  <section
+    class="bg-sidebar py-section-gap"
+    aria-labelledby="getting-started-title"
+    data-adoption
+  >
+    <div class="page-shell">
+      <GettingStartedSimulation />
+      <CodingAgentCompatibility />
     </div>
   </section>
 </BaseLayout>

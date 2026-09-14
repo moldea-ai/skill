@@ -7,7 +7,10 @@ import { createCanonicalUrl, DEFAULT_BASE_PATH, withBase } from '@moldea.ai/webs
 
 import { getRepositoryRoot, loadWebsiteModel } from '../src/lib/generation/generation.ts';
 import { SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
-import { getSemanticReleaseEvidenceSummary } from '../src/lib/release-evidence/index.ts';
+import {
+  getQualificationReleaseEvidenceSummary,
+  getSemanticReleaseEvidenceSummary,
+} from '../src/lib/release-evidence/index.ts';
 import {
   DEFAULT_SITE_URL,
   SITE_ALTERNATE_NAMES,
@@ -58,6 +61,12 @@ describe('verifyProductionBuild', () => {
     const semanticSearchRecord = searchRecords.find(
       ({ url }) => url === withBase(model.semanticEvaluation.route, basePath),
     );
+    const qualificationSummaries = model.qualification.profiles.map(
+      getQualificationReleaseEvidenceSummary,
+    );
+    const qualifiedProfileCount = qualificationSummaries.filter(
+      ({ status }) => status === 'passed',
+    ).length;
     const currentAssurance = model.currentSemanticAssurance;
     const hasAttemptHistory = model.semanticEvaluation.attempts.length > 0;
     const releaseSummary = getSemanticReleaseEvidenceSummary(
@@ -76,6 +85,12 @@ describe('verifyProductionBuild', () => {
       model.semanticEvaluation.currentAssurance === null ? null : 'exact',
     );
     expect(homeHtml).toContain(`${successfulCaseCount}/${model.semanticEvaluation.caseCount}`);
+    expect(homeHtml).toContain(
+      `${releaseSummary.result?.passedCaseCount ?? 0} passed directly, ${releaseSummary.result?.recoveredCaseCount ?? 0} confirmed on retry`,
+    );
+    expect(homeHtml).toContain(`${qualifiedProfileCount}/${model.qualification.profiles.length}`);
+    expect(homeHtml).toContain(`href="${withBase(model.semanticEvaluation.route, basePath)}"`);
+    expect(homeHtml).toContain(`href="${withBase(model.qualification.route, basePath)}"`);
     expect(evidenceHtml).toContain('Follow each result from request to verdict.');
     expect(semanticHtml).toContain(
       `${successfulCaseCount}/${model.semanticEvaluation.caseCount} decisions verified`,

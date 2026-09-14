@@ -171,7 +171,7 @@ test('shows compatible coding agents with source-owned marks and a complete docs
         width: bounds.width,
       };
     });
-    expect(renderedMark).toStrictEqual({ height: 40, objectFit: 'contain', width: 40 });
+    expect(renderedMark).toStrictEqual({ height: 32, objectFit: 'contain', width: 32 });
   }
 
   const compatibilityGuideLink = compatibilitySection.getByRole('link', {
@@ -229,7 +229,7 @@ test('uses the shared primary action interaction states across public surfaces',
   browser,
 }) => {
   const routesWithExpectedActionCounts = [
-    ['/', 6],
+    ['/', 4],
     ['/404.html', 3],
     ['/search/', 3],
     ['/docs/getting-started/', 3],
@@ -711,6 +711,19 @@ test('copies exact code across direct loads and client navigation while excludin
   expect(controlCounts.enhanced).toBe(controlCounts.eligible);
   expect(controlCounts.toolbars).toBe(controlCounts.eligible);
 
+  await page.getByRole('banner').getByRole('link', { name: 'moldea skill home' }).click();
+  await expect(page).toHaveURL(toPublicPath('/'));
+
+  const installCommand = page.locator('[data-getting-started] [data-install-command]');
+  const installCode = installCommand.locator('pre > code');
+  const installButton = installCommand.getByRole('button', { name: 'Copy code', exact: true });
+  await expect(installButton).toHaveCount(1);
+  await installButton.click();
+  await expect(installCommand.locator('[data-code-copy-feedback]')).toHaveText('Copied.');
+  expect(
+    normalizeClipboardLineEndings(await page.evaluate(() => navigator.clipboard.readText())),
+  ).toBe(normalizeClipboardLineEndings((await installCode.textContent()) ?? ''));
+
   await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
   const projectDiffBlocks = page.locator('[data-project-patch] [data-code-block]');
 
@@ -741,9 +754,10 @@ for (const [clipboardMode, expectedFeedback] of [
             : undefined,
       });
     }, clipboardMode);
-    await page.goto(toPublicPath('/docs/repository-format/'));
+    await page.goto(toPublicPath('/'));
 
-    const button = page.getByRole('button', { name: 'Copy code', exact: true }).first();
+    const installCommand = page.locator('[data-getting-started] [data-install-command]');
+    const button = installCommand.getByRole('button', { name: 'Copy code', exact: true });
     const toolbar = button.locator('xpath=ancestor::*[@data-code-copy-toolbar]');
     const header = toolbar.locator('xpath=ancestor::*[@data-code-copy-header]');
     const code = header.locator('xpath=following-sibling::pre[1]/code');
@@ -765,6 +779,13 @@ test('keeps code readable without JavaScript and omits inert copy controls', asy
   const page = await context.newPage();
 
   try {
+    await page.goto(new URL(toPublicPath('/'), baseURL).href);
+    const installCommand = page.locator('[data-getting-started] [data-install-command]');
+    await expect(installCommand.locator('pre:has(> code)')).toBeVisible();
+    await expect(
+      installCommand.getByRole('button', { name: 'Copy code', exact: true }),
+    ).toHaveCount(0);
+
     await page.goto(new URL(toPublicPath('/docs/repository-format/'), baseURL).href);
     await expect(page.locator('pre:has(> code)').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(0);
@@ -781,9 +802,10 @@ test('keeps code-copy controls usable across supported widths, themes, and reduc
     for (const theme of ['light', 'dark'] as const) {
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
-      await page.goto(toPublicPath('/docs/repository-format/'));
+      await page.goto(toPublicPath('/'));
 
-      const button = page.getByRole('button', { name: 'Copy code', exact: true }).first();
+      const installCommand = page.locator('[data-getting-started] [data-install-command]');
+      const button = installCommand.getByRole('button', { name: 'Copy code', exact: true });
       const toolbar = button.locator('xpath=ancestor::*[@data-code-copy-toolbar]');
       const bounds = await button.boundingBox();
 
@@ -824,10 +846,10 @@ test('copies the install command and searches the generated local index', async 
 }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto(toPublicPath('/'));
-  await page.getByRole('button', { name: 'Copy install command' }).click();
-  await expect(page.locator('[data-getting-started-copy-status]')).toHaveText(
-    'Install command copied to the clipboard.',
-  );
+  const installCommand = page.locator('[data-getting-started] [data-install-command]');
+  const copyButton = installCommand.getByRole('button', { name: 'Copy code', exact: true });
+  await copyButton.click();
+  await expect(installCommand.locator('[data-code-copy-feedback]')).toHaveText('Copied.');
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
     'npx skills add moldea-ai/skill',
   );

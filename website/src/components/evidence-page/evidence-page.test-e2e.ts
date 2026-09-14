@@ -86,9 +86,26 @@ test('keeps the evidence overview accessible at 320px in both themes', async ({ 
     ]);
     expect(decisionBox).not.toBeNull();
     expect(qualificationBox).not.toBeNull();
-    expect(
-      Math.abs((decisionBox?.height ?? 0) - (qualificationBox?.height ?? 0)),
-    ).toBeLessThanOrEqual(32);
+
+    const qualificationAction = page
+      .locator('[data-evidence-path="qualification"]')
+      .locator('[data-evidence-path-action]');
+    const [actionLayoutBox, actionLinkBox, integrationLogosBox] = await Promise.all([
+      qualificationAction.locator('[data-evidence-integration-actions]').boundingBox(),
+      qualificationAction.getByRole('link', { name: 'View adapters' }).boundingBox(),
+      qualificationAction.getByRole('group', { name: 'Integration providers' }).boundingBox(),
+    ]);
+    expect(actionLayoutBox).not.toBeNull();
+    expect(actionLinkBox).not.toBeNull();
+    expect(integrationLogosBox).not.toBeNull();
+    expect(Math.abs((actionLayoutBox?.width ?? 0) - (actionLinkBox?.width ?? 0))).toBeLessThan(2);
+    expect(integrationLogosBox?.y ?? 0).toBeGreaterThan(
+      (actionLinkBox?.y ?? 0) + (actionLinkBox?.height ?? 0),
+    );
+    await expect(
+      qualificationAction.getByRole('group', { name: 'Integration providers' }).getByRole('img'),
+    ).toHaveCount(6);
+    await expect(qualificationAction.getByLabel('3 more integration providers')).toBeHidden();
     const accessibilityResults = await new AxeBuilder({ page }).analyze();
     expect(
       accessibilityResults.violations.filter(

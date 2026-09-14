@@ -80,6 +80,18 @@ test('stacks the maintenance flow without overflow at 320px', async ({ page }) =
   }));
   expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 
+  const boundaryResult = behaviorAlignment.locator('[data-behavior-boundary-result]');
+  const [boundaryWidths, boundaryBox] = await Promise.all([
+    boundaryResult.evaluate((element) => ({
+      client: element.clientWidth,
+      scroll: element.scrollWidth,
+    })),
+    boundaryResult.boundingBox(),
+  ]);
+  expect(boundaryWidths.scroll).toBeLessThanOrEqual(boundaryWidths.client);
+  expect(boundaryBox).not.toBeNull();
+  expect(boundaryBox?.height ?? 0).toBeGreaterThan(24);
+
   const articleTops = await flow
     .locator(':scope > section')
     .evaluateAll((sections) => sections.map((section) => section.getBoundingClientRect().top));

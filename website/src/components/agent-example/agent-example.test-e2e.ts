@@ -13,6 +13,7 @@ test('shows the runtime example immediately and makes its connected files keyboa
   await page.goto(toPublicPath('/'));
   const example = page.getByRole('article', { name: 'Illustrative support agent project' });
   await expect(example.getByText(LANDING_EXAMPLE.request, { exact: true })).toBeVisible();
+  await expect(example.locator('[data-user-request] code')).toHaveText('support');
   await expect(example.getByText('You', { exact: true })).toBeVisible();
   await expect(example.getByText('Example', { exact: true })).toHaveCount(0);
   await expect(example.getByText('Coding agent', { exact: true })).toBeVisible();
@@ -21,6 +22,7 @@ test('shows the runtime example immediately and makes its connected files keyboa
       exact: true,
     }),
   ).toBeVisible();
+  await expect(example.locator('[data-agent-message] code')).toHaveText('support');
   await expect(example.getByText('Coding agent with moldea', { exact: true })).toHaveCount(0);
   await expect(example.locator('[data-agent-response-mark]')).toBeVisible();
   await expect(example.getByText('instructions: loadSupportInstruction()')).toBeVisible();
@@ -51,6 +53,9 @@ test('shows the runtime example immediately and makes its connected files keyboa
   if (userMessageBounds && agentResponseBounds) {
     expect(agentResponseBounds.y).toBeGreaterThan(userMessageBounds.y + userMessageBounds.height);
   }
+  const userRequestBounds = await example.locator('[data-user-request]').boundingBox();
+  expect(userRequestBounds).not.toBeNull();
+  expect(userRequestBounds?.height ?? 0).toBeLessThanOrEqual(25);
   if (agentSourceBounds) expect(agentSourceBounds.height).toBeLessThanOrEqual(193);
   const sourceOverflow = await example.locator('[data-agent-source]').evaluate((element) => ({
     client: element.clientHeight,
@@ -101,4 +106,20 @@ test('keeps every example tab readable at 320px in both themes', async ({ browse
     }
     await context.close();
   }
+});
+
+test('keeps the request inside the two-column layout at the laptop breakpoint', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ viewport: { height: 800, width: 1024 } });
+  const page = await context.newPage();
+  await page.goto(toPublicPath('/'));
+
+  const widths = await page.evaluate(() => ({
+    client: document.documentElement.clientWidth,
+    scroll: document.documentElement.scrollWidth,
+  }));
+  expect(widths.scroll).toBeLessThanOrEqual(widths.client);
+
+  await context.close();
 });

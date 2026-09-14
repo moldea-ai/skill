@@ -46,7 +46,7 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
     data-agent-conversation
   >
     <li
-      class="relative flex max-w-[92%] items-start gap-3 sm:max-w-[82%]"
+      class="relative flex max-w-[92%] items-start gap-3 sm:max-w-none"
       data-user-message
     >
       <span
@@ -66,7 +66,13 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
         class="rounded-2xl rounded-tl-sm border border-border bg-background px-4 py-3 shadow-surface"
       >
         <p class="mb-1 text-xs font-semibold text-muted-foreground">You</p>
-        <p class="text-sm leading-6 font-medium">{LANDING_EXAMPLE.request}</p>
+        <p
+          class="text-sm leading-6 font-medium sm:whitespace-nowrap lg:whitespace-normal xl:whitespace-nowrap"
+          data-user-request
+        >
+          Create a <code class="inline-code">support</code> agent using our refund policy and existing
+          order lookup.
+        </p>
       </div>
     </li>
     <li
@@ -90,8 +96,11 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
           class="overflow-hidden rounded-2xl rounded-tl-sm border border-border bg-card p-3 shadow-raised sm:p-5"
         >
           <p class="mb-1 text-xs font-semibold text-muted-foreground">Coding agent</p>
-          <p class="mb-3 text-sm leading-6 font-medium">
-            I created the support agent and connected everything it needs.
+          <p
+            class="mb-3 text-sm leading-6 font-medium"
+            data-agent-message
+          >
+            I created the <code class="inline-code">support</code> agent and connected everything it needs.
           </p>
           <TabbedPanels
             ariaLabel="Illustrative project files"

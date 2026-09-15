@@ -10,7 +10,7 @@ Do not recommend initialization during unrelated work. Do not treat generic know
 
 Create the smallest foundation that accurately represents established current truth. Zero agents, relationships, runtimes, and requirements are valid. Never create placeholder agents or speculative bindings to make a project appear complete.
 
-An executable-installation hazard preempts foundation classification. Before reading project-purpose sources, use bounded inert package metadata to establish whether the exact compatible local CLI is present. When it is absent, inspect the exact `.pnpmfile.cjs` hook or `.yarnrc.yml` plugin declaration that installation would load, then read only the local-tooling stop contract. Stop before invoking the package manager, asking for project purpose, or writing any adoption artifact; report the unavailable exact local CLI, executable mechanism, and removal-or-disable prerequisite. This preflight does not depend on the developer naming the hazard.
+For initialization, reuse the entrypoint's `tooling-installation.md` preflight. An executable-installation hazard preempts foundation classification: follow that reference's complete blocked-install result and stop before invoking the package manager, asking for project purpose, or writing adoption artifacts. Preserve repository controls. Do not repeat completed metadata checks. This preflight does not apply to ordinary canonical maintenance when no tooling installation is required.
 
 ## Decide whether foundation evidence is sufficient
 
@@ -28,7 +28,7 @@ After a sufficient foundation validates, report the project as adopted and map t
 
 ## Establish required tooling before foundation writes
 
-After the foundation is sufficient, reuse the early bounded package-metadata finding. If it establishes a missing compatible local CLI, load `local-tooling.md` directly and complete its authorized safe installation before creating canonical files or the managed README block. Never invoke `validate` or `composition` merely to rediscover known absence. Keep the executable-configuration stop contract and disabled lifecycle scripts; do not bypass installation controls.
+After the foundation is sufficient, reuse the early bounded package-metadata finding. If it establishes a missing compatible local CLI, apply `tooling-installation.md` and complete its authorized safe installation before creating canonical files or the managed README block. Never invoke `validate` or `composition` merely to rediscover known absence. Keep the executable-configuration stop contract and disabled lifecycle scripts; do not bypass installation controls.
 
 An installation failure stops before foundation writes and validation. Preserve existing project files, report any package-manager changes and the exact blocker, and do not claim adoption or automatically roll back dependency changes. A reported installation success does not authorize ignoring known missing or incompatible package metadata. If compatible tooling was already present, do not reinstall it or add an availability probe. The final launcher call still owns executable-provenance verification.
 
@@ -56,6 +56,8 @@ For an authorized relevant change:
 6. After every canonical and mirror write is complete, run the narrowest structural validation as the final moldea command, then run any required project-native checks.
 
 Before the first write, retain one complete change set containing the authorized implementation paths, every matched canonical owner, every declared mirror, and each affected requirement criterion. Never edit implementation before this set is bound. An implementation-only edit is incomplete when the established owner or mirror expresses the changed behavior. Apply the coherent set before validation, then compare the final state with it before claiming completion.
+
+Enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path. Before completion, compare the final state and diff with that list, record each remaining material unresolved fact under its exact canonical owner with resolution criteria and related paths, and confirm every changed path is authorized. Continue correcting instead of claiming completion while an item is missing.
 
 ## Requirements and removal
 

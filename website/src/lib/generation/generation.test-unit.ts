@@ -196,7 +196,7 @@ describe('createWebsiteModel', () => {
     const model = createWebsiteModel();
 
     expect(model.skill.name).toBe('moldea');
-    expect(model.skill.version).toBe('5.0.8');
+    expect(model.skill.version).toBe('5.0.9');
     expect(model.skill.description.length).toBeGreaterThan(0);
     expect(new Set(model.routes).size).toBe(model.routes.length);
     expect(model.documents.length).toBeGreaterThanOrEqual(18);

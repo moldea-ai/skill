@@ -2,6 +2,8 @@
 
 Read this reference only after moldea relevance is established for a requested moldea evaluation or authorized reconciliation.
 
+A host review, fix, or publication request does not establish that relevance, including when the repository or product is named moldea. Ordinary payment, UI, documentation, or test-harness work must pass the full relationship gate before this reference is loaded. Reuse the completed entrypoint result; never replace a failed relationship gate with adoption-only proof.
+
 ## Select one operation
 
 Select exactly one operation before gathering evidence:
@@ -29,7 +31,7 @@ For a relationship-triggered operation, use the one completed `scope` result as 
 
 A current-change review or evaluation must retain every staged, unstaged, untracked, renamed-source, renamed-destination, and deleted path. Normalize the complete set, then partition direct canonical paths or known managed hunks from ordinary paths. Clear agent-work intent uses the entrypoint's adoption-only route even without bindings; assess the intended agent boundary without requiring an ordinary-path match. With any direct item, run the adoption-only gate once, assess each canonical owner or managed hunk directly, and run one `scope` only over remaining ordinary paths for additional owners; an irrelevant ordinary subset adds no owner and cannot cancel direct relevance. Only without direct intent or items, run the full relationship gate and one `scope` over the ordinary set. Reuse the entrypoint's completed gate rather than running it again. Report the complete path scope, canonical assessment, and explicitly that the operation is read-only and changed no files. A path inventory alone is not a moldea evaluation. This is host work followed by bounded moldea work, not moldea-only Git discovery, and it cannot reactivate moldea after an implicit unrelated-task gate miss. Never run Git to expand the completed scope.
 
-If already supplied repository evidence identifies an executable Git filter, text conversion, external diff, fsmonitor, or other repository-controlled helper, stop before worktree-aware Git can execute it. The response must say explicitly that evaluation stopped before worktree-aware Git because the named mechanism could execute, state which Git evidence remains unavailable, and give the smallest safe prerequisite, such as removing or disabling that mechanism or supplying independently collected inert evidence. For an attribute filter, name the supplied `.gitattributes` declaration and its filter or text-conversion mechanism exactly instead of generalizing it to a Git hook. Do not execute, rewrite, or disable repository configuration during evaluation.
+If already supplied repository evidence identifies an executable Git filter, text conversion, external diff, fsmonitor, or other repository-controlled helper, stop before worktree-aware Git can execute it. The response must say explicitly that evaluation stopped before worktree-aware Git because the named mechanism could execute, state which Git evidence remains unavailable, and request independently collected inert evidence through the host's approved workflow. Do not prescribe removing or disabling repository controls. For an attribute filter, name the supplied `.gitattributes` declaration and its filter or text-conversion mechanism exactly instead of generalizing it to a Git hook. Do not execute, rewrite, or disable repository configuration during evaluation.
 
 ## Evaluate progressively
 

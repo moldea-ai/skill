@@ -4,7 +4,7 @@
     {
       "id": "pre-adoption-boundary",
       "description": "Before initialization, moldea answers only concise informational questions or explicit initialization and otherwise abstains with zero moldea commands.",
-      "sourcePaths": ["moldea/SKILL.md#establish-the-entry-state-first"],
+      "sourcePaths": ["moldea/SKILL.md#route-before-loading-references"],
       "evidence": [
         {
           "kind": "semantic-case",
@@ -28,7 +28,7 @@
     {
       "id": "activation-abstention",
       "description": "moldea abstains silently from unrelated documentation, source, README, planning, review, and generic knowledge tasks.",
-      "sourcePaths": ["moldea/SKILL.md#choose-one-repository-gate"],
+      "sourcePaths": ["moldea/SKILL.md#run-the-appropriate-gate-once"],
       "evidence": [
         {
           "kind": "semantic-case",
@@ -61,8 +61,8 @@
       "id": "bounded-relevance",
       "description": "Direct and relationship-based activation use the smallest deterministic boundary and preserve host workflow ownership.",
       "sourcePaths": [
-        "moldea/SKILL.md#choose-one-repository-gate",
-        "moldea/SKILL.md#use-bounded-canonical-evidence"
+        "moldea/SKILL.md#run-the-appropriate-gate-once",
+        "moldea/references/context-gathering.md#select-metadata-before-content"
       ],
       "evidence": [
         {
@@ -92,9 +92,8 @@
       "id": "large-context-safety",
       "description": "Large canonical inventories remain content-free by default, paginated, byte-bounded, and compatible with zero-agent projects.",
       "sourcePaths": [
-        "moldea/SKILL.md#use-bounded-canonical-evidence",
-        "moldea/references/local-tooling.md#resource-limits",
-        "moldea/references/context-gathering.md#select-metadata-before-content"
+        "moldea/references/context-gathering.md#select-metadata-before-content",
+        "moldea/references/local-tooling.md#resource-limits"
       ],
       "evidence": [
         {
@@ -115,7 +114,7 @@
     {
       "id": "read-only-integrity",
       "description": "Validation and evaluation preserve repository files and Git control state.",
-      "sourcePaths": ["moldea/SKILL.md#preserve-boundaries"],
+      "sourcePaths": ["moldea/SKILL.md#preserve-authority-and-complete-the-relevant-work"],
       "evidence": [
         {
           "kind": "semantic-case",
@@ -151,8 +150,8 @@
       "id": "restored-activation-regressions",
       "description": "Former implicit activation paths now prove silent abstention unless the current repository-bound gate has explicit or path-based authority.",
       "sourcePaths": [
-        "moldea/SKILL.md#establish-the-entry-state-first",
-        "moldea/SKILL.md#choose-one-repository-gate"
+        "moldea/SKILL.md#route-before-loading-references",
+        "moldea/SKILL.md#run-the-appropriate-gate-once"
       ],
       "rationale": "These cases preserve the behavioral failures that caused the redesign without restoring automatic durable-knowledge, project-evaluation, or planning activation.",
       "evidence": [
@@ -191,7 +190,8 @@
       "description": "Explicit initialization and local CLI establishment handle sparse evidence, partial adoption, safe package-manager boundaries, and nonstandard local layouts.",
       "sourcePaths": [
         "moldea/references/continuous-maintenance.md#adoption",
-        "moldea/references/local-tooling.md#supported-contract"
+        "moldea/references/local-tooling.md#supported-contract",
+        "moldea/references/tooling-installation.md"
       ],
       "rationale": "The cases distinguish valid initialization, evidence blockers, exact local tooling, conflicting providers, and executable package-manager configuration.",
       "evidence": [

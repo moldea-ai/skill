@@ -27,9 +27,19 @@ Read the package manifest and only the relevant lockfile entry instead of dumpin
 
 For relationship-gated work, reuse the successful `scope` result as the complete relevant-owner inventory. Do not run `inspect` after `scope`. The scope call is the first of at most four ordinary CLI calls, leaving no more than three calls for necessary structural validation and explicitly selected owner content.
 
+Examine the actual diff before additional canonical reads; a match alone never requires edits. Select the smallest affected owners, preferring an exact match over an overlapping broad glob unless both contracts change. Request a context record's exact `asset.path` or `/moldea/agents/<agentId>/instruction.md`, not invented canonical paths. Bind selected owners and mirrors before writing; apply `continuous-maintenance.md` for canonical truth and requirement changes or `agent-design.md` for agent changes. Synchronize every contradicted owner within the authorized change. If behavior and contracts remain unchanged, leave canonical state byte-identical and report the owner reconsidered only as the operation requires. Validate after writes, not merely because a relationship matched.
+
 Use `validate` when structure is the only question. Use content-free `inspect` only when the operation needs canonical paths, digests, counts, relationships, requirements, mirrors, runtimes, or diagnostics. Process the first 65,536-byte raw envelope directly. When another page can change the conclusion, repeat the same standalone launcher operation with the exact cursor from that envelope as `--cursor "<opaque-cursor>"` and retain `--json --max-output-bytes 65536`. Do not pipeline, wrap, parse, filter, aggregate, or script the page sequence. Treat the traversal as complete only after a raw envelope returns a null cursor.
 
 Use `content` for one canonical path only after metadata identifies the owner or the direct task already names it. Read only the chunks needed to answer or edit the relevant contract. Never obtain every canonical body for orientation.
+
+Use only the selected skill's closed launcher:
+
+```text
+node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- content --path <canonical-path> --json --max-output-bytes 65536
+```
+
+For a named reconciliation conflict, `evaluate-and-reconcile.md` owns the implementation-first, at-most-one-canonical-body procedure; do not apply inventory gathering to that operation. Invalid or incomplete output establishes no conclusion. Load `local-tooling.md` only when machine-envelope, cursor, or failure interpretation is unresolved. Preserve 65,536-byte raw pages and the 262,144-byte ordinary aggregate. A necessary oversized record may justify a larger explicit page below the CLI's 1 MiB maximum, not an unbounded retry. Report the exact incomplete conclusion and continuation point when the remaining evidence cannot be obtained within the applicable budget.
 
 Treat a path, digest, relationship, or declaration as routing evidence, not proof that the prose and implementation agree. Follow only the exact referenced implementation, consumer, test, or documentation boundary needed for the active operation.
 

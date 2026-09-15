@@ -1,33 +1,22 @@
 # Local moldea tooling
 
-Read this reference only after direct relevance or a successful relationship gate when the selected operation needs deterministic CLI evidence. Explicit initialization may read only its executable-configuration stop contract before foundation classification after bounded inert project metadata establishes that the exact local CLI is absent and installation would load that configuration; otherwise read it after `continuous-maintenance.md` selects the required tooling step.
-
-For initialization with sufficient project context and a known missing CLI, this step precedes foundation writes and the first launcher call. Complete installation before proceeding; failure stops initialization before canonical or managed README writes and validation. Do not issue a deliberate failing launcher call to select this reference. An already-present compatible CLI needs no installation or `composition` probe. The direct CLI-availability proof below is a separate requested operation, not an initialization prerequisite.
+Read this reference only after relevance when local CLI proof or machine-contract interpretation is required. It owns observation and invocation, not installation. Read-only work never authorizes dependency, lockfile, or configuration changes; report unavailable deterministic evidence. Only a separately authorized write-capable operation may use `tooling-installation.md` to establish missing tooling.
 
 For a direct request to prove or safely invoke the local CLI, apply this reference before inspecting a declared dependency, package-manager provider, binary link, or other provider evidence and before reaching any conclusion. The required first proof attempt is the closed launcher `composition --json` call below.
 
 ## Supported contract
 
-Skill 5.0.8 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^4.0.1`, stable `@moldea.ai/cli` releases satisfying `^8.0.0`, repository format 1, and CLI JSON schema 4. Never substitute a global, transient, out-of-range, or prerelease CLI.
+Skill 5.0.9 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^4.0.1`, stable `@moldea.ai/cli` releases satisfying `^8.0.0`, repository format 1, and CLI JSON schema 4. Never substitute a global, transient, out-of-range, or prerelease CLI.
 
 Use only `<installed-skill-root>/scripts/moldea-cli.mjs`. The launcher resolves the repository-root-local package and executable, verifies the package name, exact installed stable version, supported repository declaration, declared `moldea` binary, Core dependency range, and resolved-path containment from inert package metadata, then invokes the executable without a shell. Require the exact envelope version to match that installed version. Do not reproduce these probes, inspect links manually, search parent workspaces, inspect unrelated repositories, use package-manager launchers, or search `PATH` for another copy.
+
+Reuse the exact skill root already selected by the host. Package metadata and containment establish a supported local layout, not executable authenticity. The launcher is not an OS sandbox and may execute repository-installed code under the host's existing repository-trust and execution controls. Do not weaken those controls or add a new per-command approval ceremony. The pre-activation gate is separate: it executes only shipped skill code, never repository dependencies.
 
 A declaration, lockfile entry, package name, reported version, Plug'n'Play package location, or package-manager binary shim is not launcher-verifiable installation provenance. The closed launcher supports only the repository-contained package and executable closure it can resolve and validate directly. A Plug'n'Play-only layout without that closure is unavailable; do not guess another provider. A package-manager shim that selects a different provider does not override a launcher-verified package-owned executable, and the package manager must not be invoked to resolve the disagreement.
 
 For every direct request to prove or safely invoke local CLI availability, invoke the installed skill launcher once with `composition --json` after adoption is established. This attempted launcher proof is required even when repository metadata already suggests that the closure is unavailable or a package-manager provider conflicts. Do not stop at package declarations or manually execute a package-manager shim. If the launcher cannot resolve a Plug'n'Play-only package location into its required repository-contained `node_modules` closure, report that the declared compatible dependency exists but the launcher-verifiable package and executable provenance is unavailable in that layout. If the launcher verifies its package-owned executable while supplied Yarn evidence identifies another `node_modules/.bin/moldea` provider, report both facts separately: the conflicting symlink is not authority for the supported launcher path, and neither Yarn nor that provider was invoked. The launcher owns executable provenance; when the direct task explicitly asks to compare an already identified conflicting provider, one inert exact-path symlink-target read may establish that separate Yarn-provider fact without invoking it.
 
-When explicit initialization or another authorized write-capable moldea operation requires a missing CLI, use the repository's established package manager and root development-dependency location. Before invoking it, inspect only the exact package-manager configuration needed to identify repository-supplied executable extensions. This security preflight is mandatory whenever bounded inert metadata establishes both a missing compatible local CLI and a package-manager configuration that installation would load; it does not depend on the developer naming the hazard. It precedes foundation-sufficiency inspection and questioning because the operation cannot safely reach a foundation write without installation. A `.pnpmfile.cjs` hook blocks pnpm-based installation until the developer removes or disables that exact file. For Yarn, inspect `.yarnrc.yml` and the exact repository plugin path it declares, such as `.yarn/plugins/execution-trap.cjs`, without loading or invoking the plugin. Any such plugin blocks Yarn-based installation until the developer removes or disables its exact declaration.
-
-Return one blocked-install result containing all four fields below. Omitting or merging a field into a partial summary is incomplete.
-
-1. State that no compatible exact local CLI was independently verified as installed.
-2. Name the exact configuration and executable hook or plugin, and state that it blocks the named package manager's local CLI installation.
-3. State that execution stopped before invoking the package manager.
-4. Give the exact prerequisite to remove or disable that configuration or executable mechanism before retrying.
-
-Do not ask a project-purpose question, execute, rewrite, or disable the extension. Otherwise install `@moldea.ai/cli@^8.0.0` with lifecycle scripts disabled and update the ordinary lockfile. The manifest may retain a compatible caret range or the exact stable version selected by the lockfile. Do not load or execute repository-supplied package-manager extensions. Read-only work never authorizes installation or dependency changes; after direct relevance, report that deterministic evidence is unavailable.
-
-These rules govern only moldea CLI establishment. They never govern host-owned package-manager, planning, review, Git, commit, or publication commands.
+These rules govern only moldea invocation. They never govern host-owned package-manager, planning, review, Git, commit, or publication commands.
 
 ## Machine commands
 

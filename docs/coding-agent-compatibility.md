@@ -38,6 +38,8 @@ Every compatible host consumes the same portable semantic core:
 - `SKILL.md` defines activation, authority, compatibility, operation selection, and reporting. The managed README block tells repository-aware hosts to select its entrypoint for every repository task so the deterministic gate can test host-known paths. Both gate modes return only `0` or `1`. Adoption uses bounded repository files; relationship matching uses Core bundled with the installed skill. Neither mode executes repository dependencies. Explicit operations, canonical path changes, and managed README hunks use adoption-only proof before bounded direct work; standalone ordinary-path work must match a declared binding or `affectedBy` relationship before the CLI runs. Direct canonical agent or runtime work retains task-named ordinary implementation evidence without changing that gate choice. Canonical and managed paths never enter `scope`, while an ordinary path enters it only when another owner must be resolved. Before acting on an ordinary developer-named path, the host forms and retains one leading-slash repository-logical set from every exact developer-named path, including unchanged paths, and every changed path already supplied by the host. An exact gate match sends that same set to one `scope`; the host loads every matched owner and binds the coherent change before writing. A gate miss returns immediately to unrelated host work without loading workflow references or mentioning `moldea`.
 - The gate accepts Git-style repository-relative paths and leading-slash repository-logical paths, normalizes them to the repository-logical form, and rejects drive-relative paths, UNC paths, traversal, invalid logical paths, and malformed input. Each stdin record starts with one path's UTF-8 bytes and ends with one NUL; the stream never starts with a delimiter. This keeps host path spelling from changing relevance while preserving the strict canonical path contract.
 - Focused references are loaded only for the workflows that require them.
+- The small entrypoint reuses complete instructions when the host permits. Scripts and references resolve from the exact repository installation already selected by the host. Host-required rereads remain possible; operation details are not loaded on a gate miss.
+- A product name or host review, fix, or publication command is not AI-agent intent. Ordinary work on the `moldea` product requires the same relationship gate as any other repository.
 - Repository-local `@moldea.ai/cli` tooling owns deterministic inspection and validation.
 - Canonical project and agent state remains under `/moldea/**`.
 - Local work remains filesystem-first and does not require a `moldea` Cloud account.
@@ -60,7 +62,7 @@ After installation, use the host normally:
 Initialize moldea
 ```
 
-Or ask directly for an outcome:
+After initialization, ask naturally for an outcome:
 
 ```text
 Create a support agent grounded in this application.

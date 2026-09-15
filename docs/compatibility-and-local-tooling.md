@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `5.0.8` supports exactly:
+Release `5.0.9` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -21,9 +21,11 @@ The CLI is a repository-root-local development dependency. Its declaration and e
 
 ## Tooling ownership
 
-The local-tooling reference governs only establishment and invocation of the `moldea` CLI. It does not replace Git commands, package-manager commands, planning, review, commit, or publication procedures owned by the host workflow.
+The local-tooling reference owns CLI invocation and machine evidence. A separate tooling-installation reference owns authorized setup. Neither replaces Git, package management, planning, review, commit, or publication procedures owned by the host workflow.
 
 A write-capable `moldea` operation may establish the compatible dependency through the repository's existing package manager with lifecycle scripts disabled. Read-only work reports missing or mismatched tooling and does not alter dependencies, lockfiles, or configuration.
+
+Executable package-manager extensions stop automatic setup. The skill reports the exact obstacle and defers CLI establishment to the repository's approved trusted workflow. It does not prescribe removing or disabling hooks, switching package managers, or weakening host controls to proceed.
 
 During initialization, sufficient project context comes before dependency changes. A known missing CLI is installed before canonical or managed README writes and the first validation, without a deliberate failing probe. Failed installation stops those writes and validation; any package-manager changes are reported and preserved. An already-present compatible CLI needs no reinstall or extra availability check.
 
@@ -66,6 +68,8 @@ The host retains higher absolute ceilings of 128 completed commands, 32 `moldea`
 The installed CLI reports which adapters are available. The coding agent uses current inspection evidence first. For an unresolved compatibility question, it reads the installed adapter README and only the relevant linked local guide, plus the repository's selected package declaration or lockfile entry when version evidence is needed. Adapter implementation is inspected only for a specific material question those sources cannot resolve. Missing documentation is an evidence gap, not proof of incompatibility. The agent does not fetch compatibility websites or open a browser for ordinary runtime work. The [packages catalog](https://packages.moldea.ai/compatibility/runtimes.json) remains an optional discovery reference.
 
 Complete, unchanged instructions may be reused while they remain available in the active context and the host permits it. Missing instructions after compaction must be read again; summaries are not substitutes. Repository facts and execution controls still require their own current checks. This policy adds no persistent cache or package-discovery probes. See the [reference-reading checks](/docs/reference-reading/) for verification boundaries.
+
+The entrypoint stays small so required rereads do not reload operation-specific procedures. Scripts and references use the exact repository installation already selected by the host, never an invented global path.
 
 Package ranges provide best-effort eligibility, not a blanket compatibility guarantee. A later stable version that satisfies the installed adapter's range remains eligible for inspection. For example, Eve 0.54.3 satisfies >=0.39.1. Qualification evidence covers the exact versions and source patterns that were tested, not every version admitted by a range.
 

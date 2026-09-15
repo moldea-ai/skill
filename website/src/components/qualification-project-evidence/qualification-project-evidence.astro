@@ -112,7 +112,7 @@ const changePresentation = {
         id={`${evidence.result.caseId}-project-result`}
         class="mt-2 text-lg font-semibold"
       >
-        Verified result
+        Recorded result
       </h4>
       <div
         class="prose-moldea prose-moldea-wrap-code replay-markdown mt-3 min-w-0 text-sm text-muted-foreground"
@@ -124,6 +124,64 @@ const changePresentation = {
       </p>
     </section>
   </div>
+
+  <section
+    class="min-w-0"
+    aria-labelledby={`${evidence.result.caseId}-project-patch`}
+  >
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h4
+          id={`${evidence.result.caseId}-project-patch`}
+          class="font-semibold"
+        >
+          Final workspace compared with fixture baseline
+        </h4>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          Green lines were added and red lines were removed. This patch describes the final verified
+          workspace, including any fixture setup that preceded the coding agent.
+        </p>
+      </div>
+      <a
+        class="inline-flex items-center gap-1.5 text-link text-sm font-semibold hover:underline"
+        href={terminalTrial.workspacePatch.rawUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View raw patch
+        <ExternalLink
+          class="size-3.5"
+          aria-hidden="true"
+        />
+      </a>
+    </div>
+    {
+      terminalTrial.workspacePatch.content.length === 0 ? (
+        <p class="mt-4 rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+          The final workspace has no textual diff from the fixture baseline.
+        </p>
+      ) : (
+        <div
+          class="mt-4"
+          data-project-patch
+        >
+          <FilePreview
+            path={terminalTrial.workspacePatch.path}
+            label="Verified workspace diff"
+          >
+            <div class="p-4 sm:p-5">
+              <CodeBlock
+                copyable={false}
+                language="diff"
+                source={terminalTrial.workspacePatch.content}
+                variant="plain"
+              />
+            </div>
+          </FilePreview>
+        </div>
+      )
+    }
+  </section>
 
   <div class="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
     <section
@@ -208,59 +266,4 @@ const changePresentation = {
       }
     </section>
   </div>
-
-  <section
-    class="min-w-0"
-    aria-labelledby={`${evidence.result.caseId}-project-patch`}
-  >
-    <div class="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h4
-          id={`${evidence.result.caseId}-project-patch`}
-          class="font-semibold"
-        >
-          Final workspace compared with fixture baseline
-        </h4>
-        <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          Green lines were added and red lines were removed. This patch describes the final verified
-          workspace, including any fixture setup that preceded the coding agent.
-        </p>
-      </div>
-      <a
-        class="inline-flex items-center gap-1.5 text-link text-sm font-semibold hover:underline"
-        href={terminalTrial.workspacePatch.rawUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        View raw patch
-        <ExternalLink
-          class="size-3.5"
-          aria-hidden="true"
-        />
-      </a>
-    </div>
-    {
-      terminalTrial.workspacePatch.content.length === 0 ? (
-        <p class="mt-4 rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
-          The final workspace has no textual diff from the fixture baseline.
-        </p>
-      ) : (
-        <div
-          class="mt-4"
-          data-project-patch
-        >
-          <FilePreview
-            path={terminalTrial.workspacePatch.path}
-            label="Verified workspace diff"
-          >
-            <CodeBlock
-              language="diff"
-              source={terminalTrial.workspacePatch.content}
-              variant="plain"
-            />
-          </FilePreview>
-        </div>
-      )
-    }
-  </section>
 </div>

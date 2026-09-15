@@ -1,156 +1,238 @@
 ---
-import { Braces, FileCode, FileText, Link2, type Icon } from '@lucide/astro';
+import { Check, FileCode, FileText, Link2, UserRound } from '@lucide/astro';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
+import ConnectionLabel from '@moldea.ai/website-ui/connection-label';
+import FilePreview from '@moldea.ai/website-ui/file-preview';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
 
-import Conversation from '../conversation/conversation.astro';
-import type { IConversationTurn } from '../conversation/types.ts';
+import { LANDING_EXAMPLE, LANDING_EXAMPLE_PREVIEW } from '../../lib/landing-example/index.ts';
 
-const alignmentConversation = [
-  {
-    role: 'developer',
-    message: 'Add manager approval to refunds over $500.',
-  },
-  {
-    role: 'skill',
-    message:
-      'Trace the affected project context and agent relationships. Reconsider every relevant surface, update only established changes, then run deterministic validation.',
-  },
-  {
-    role: 'agent',
-    message:
-      'I found the refund policy, implementation, support-agent behavior, approval tool, schemas, runtime binding, tests, and documentation. I’ll use current evidence to decide what changes and report what remains correct.',
-  },
-] satisfies IConversationTurn[];
-const affectedSurfaceGroups = [
-  {
-    description: 'The refund policy establishes when approval is required.',
-    icon: FileText,
-    label: 'Project truth',
-    surfaces: ['Refund policy'],
-  },
-  {
-    description: 'The support agent must understand the new authority boundary.',
-    icon: FileText,
-    label: 'Agent behavior',
-    surfaces: ['Support-agent instruction'],
-  },
-  {
-    description: 'Tool schemas and runtime wiring must still represent the declared capability.',
-    icon: Link2,
-    label: 'Runtime contracts',
-    surfaces: ['Approval tool contract', 'Schemas', 'Runtime binding'],
-  },
-  {
-    description: 'Code, tests, and current documentation must agree with the resulting behavior.',
-    icon: FileCode,
-    label: 'Implementation evidence',
-    surfaces: ['Implementation', 'Tests', 'Directly affected documentation'],
-  },
-] satisfies Array<{
-  description: string;
-  icon: typeof Icon;
-  label: string;
-  surfaces: string[];
-}>;
+const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_URL);
 ---
 
 <section
   id="behavior-alignment"
-  class="scroll-mt-24 border-b border-border bg-sidebar py-section-gap"
+  class="scroll-mt-24 border-b border-border bg-elevated py-12 sm:py-16"
   aria-labelledby="behavior-alignment-title"
   data-behavior-alignment
 >
   <div class="page-shell">
-    <header class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end">
+    <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
       <div>
-        <p class="eyebrow mb-4">Behavior alignment in practice</p>
+        <p class="eyebrow mb-4">When the project changes</p>
         <h2
           id="behavior-alignment-title"
-          class="section-title max-w-4xl font-semibold"
+          class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
         >
-          One change can affect more than one file.
+          Change one rule. See everything it affects.
         </h2>
       </div>
-      <p class="text-lg leading-8 text-muted-foreground lg:justify-self-end">
+      <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
         <InlineBrandText
-          text="moldea gives the coding agent a disciplined way to trace the complete behavioral surface without turning every relevant relationship into an automatic edit."
+          text="moldea records which project files and agent behavior belong together, so the coding agent can review the complete change."
         />
       </p>
     </header>
 
-    <div class="grid gap-5 lg:grid-cols-[minmax(20rem,0.85fr)_minmax(0,1.15fr)] lg:items-stretch">
-      <div
-        class="lg:h-full lg:[&>section]:h-full"
-        data-behavior-alignment-column
+    <ol
+      class="relative mt-8 grid gap-4"
+      aria-label="Developer and coding agent maintenance conversation"
+      data-behavior-conversation
+    >
+      <li
+        class="relative flex max-w-3xl items-start gap-3"
+        data-behavior-user-message
       >
-        <Conversation
-          eyebrow="A normal request"
-          title="Developer, skill, and coding agent"
-          description="The coding agent still makes the semantic decisions. The skill supplies the operating discipline."
-          turns={alignmentConversation}
-        />
-      </div>
-
-      <div
-        class="grid h-full gap-4"
-        data-behavior-alignment-column
-        data-behavior-alignment-flow
-      >
-        <ol class="grid gap-3 sm:grid-cols-2">
-          {
-            affectedSurfaceGroups.map(
-              ({ description, icon: SurfaceIcon, label, surfaces }, index) => (
-                <li class="surface-card min-w-0 p-5">
-                  <div class="flex items-center gap-3">
-                    <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <SurfaceIcon
-                        class="size-4"
-                        aria-hidden="true"
-                      />
-                    </span>
-                    <p class="eyebrow min-w-0">{label}</p>
-                    <span class="ml-auto font-mono text-xs font-bold text-muted-foreground">
-                      0{index + 1}
-                    </span>
-                  </div>
-                  <ul class="mt-5 flex flex-wrap gap-2">
-                    {surfaces.map((surface) => (
-                      <li class="rounded-full border bg-background px-3 py-1.5 text-xs font-semibold">
-                        {surface}
-                      </li>
-                    ))}
-                  </ul>
-                  <p class="mt-4 text-sm leading-6 text-muted-foreground">{description}</p>
-                </li>
-              ),
-            )
-          }
-        </ol>
-
-        <div
-          class="dark-surface-selection rounded-2xl bg-primary p-5 text-primary-foreground sm:p-6"
+        <span
+          class="absolute top-9 -bottom-4 left-[1.125rem] w-px bg-border"
+          aria-hidden="true"
+        ></span>
+        <span
+          class="dark-surface-selection relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+          aria-hidden="true"
+          data-behavior-user-mark
         >
-          <div class="flex items-center gap-3">
-            <span
-              class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-current/10"
-            >
-              <Braces
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <p class="eyebrow text-current/60">Deterministic boundary</p>
-              <h3 class="mt-1 text-xl font-semibold tracking-tight">Verify, then report.</h3>
-            </div>
-          </div>
-          <p class="mt-5 leading-7 text-current/70">
-            The local CLI validates structure and supported adapters inspect declared runtime
-            relationships. The final report separates changed surfaces from those reconsidered and
-            intentionally left unchanged.
+          <UserRound
+            class="size-4"
+            aria-hidden="true"
+          />
+        </span>
+        <div
+          class="rounded-2xl rounded-tl-sm border border-border bg-background px-4 py-3 shadow-surface"
+        >
+          <p class="mb-1 text-xs font-semibold text-muted-foreground">Developer</p>
+          <p class="text-sm leading-6 font-medium sm:text-base">
+            {LANDING_EXAMPLE.maintenanceRequest}
           </p>
         </div>
-      </div>
-    </div>
+      </li>
+
+      <li
+        class="flex min-w-0 items-start gap-3"
+        data-behavior-agent-response
+      >
+        <span
+          class="relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"
+        >
+          <img
+            src={skillMarkPath}
+            width="207"
+            height="215"
+            alt=""
+            class="h-5 w-auto dark:invert"
+            data-behavior-agent-mark
+          />
+        </span>
+        <article class="min-w-0 flex-1">
+          <div
+            class="overflow-hidden rounded-2xl rounded-tl-sm border border-border bg-card shadow-raised"
+          >
+            <div class="px-4 pt-4 sm:px-5 sm:pt-5">
+              <p class="mb-1 text-xs font-semibold text-muted-foreground">Coding agent</p>
+              <p class="text-sm font-semibold sm:text-base">
+                I updated the refund rule and everything connected to it.
+              </p>
+            </div>
+
+            <div
+              class="grid items-stretch gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)]"
+              data-behavior-alignment-flow
+            >
+              <section
+                class="flex min-w-0 flex-col rounded-xl border border-border bg-background p-4 sm:p-5"
+                aria-labelledby="application-behavior-title"
+              >
+                <div class="mb-5 flex items-center gap-3">
+                  <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
+                    <FileCode
+                      class="size-5"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <div>
+                    <p class="eyebrow">Application behavior</p>
+                    <h3
+                      id="application-behavior-title"
+                      class="mt-1 text-xl font-semibold"
+                    >
+                      Refund window updated
+                    </h3>
+                  </div>
+                </div>
+                <div class="grid flex-1 content-start gap-3">
+                  <FilePreview path={LANDING_EXAMPLE_PREVIEW.policyDiff.path}>
+                    <div
+                      class="p-4"
+                      data-maintenance-diff="application"
+                    >
+                      <CodeBlock
+                        copyable={false}
+                        language="diff"
+                        source={LANDING_EXAMPLE_PREVIEW.policyDiff.source}
+                        variant="plain"
+                      />
+                    </div>
+                  </FilePreview>
+                  <FilePreview path={LANDING_EXAMPLE_PREVIEW.testDiff.path}>
+                    <div
+                      class="p-4"
+                      data-maintenance-diff="tests"
+                    >
+                      <CodeBlock
+                        copyable={false}
+                        language="diff"
+                        source={LANDING_EXAMPLE_PREVIEW.testDiff.source}
+                        variant="plain"
+                      />
+                    </div>
+                  </FilePreview>
+                </div>
+                <p
+                  class="mt-4 flex items-start gap-2 text-sm leading-6 font-semibold"
+                  data-behavior-boundary-result
+                >
+                  <Check
+                    class="mt-1 size-4 shrink-0 text-emerald-700 dark:text-emerald-300"
+                    aria-hidden="true"
+                  />
+                  <span class="min-w-0">
+                    <code>14 days</code> eligible, <code>15 days</code> outside the window
+                  </span>
+                </p>
+              </section>
+
+              <div class="flex items-center justify-center">
+                <ConnectionLabel>
+                  <Link2
+                    slot="icon"
+                    class="size-4"
+                  />
+                  Declared relationship
+                </ConnectionLabel>
+              </div>
+
+              <section
+                class="flex min-w-0 flex-col rounded-xl border border-border bg-background p-4 sm:p-5"
+                aria-labelledby="agent-behavior-title"
+              >
+                <div class="mb-5 flex items-center gap-3">
+                  <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
+                    <FileText
+                      class="size-5"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <div>
+                    <p class="eyebrow">Agent behavior</p>
+                    <h3
+                      id="agent-behavior-title"
+                      class="mt-1 text-xl font-semibold"
+                    >
+                      Linked guidance updated
+                    </h3>
+                  </div>
+                </div>
+                <div class="grid flex-1 content-start gap-3">
+                  <FilePreview path={LANDING_EXAMPLE_PREVIEW.contextDiff.path}>
+                    <div
+                      class="p-4"
+                      data-maintenance-diff="context"
+                    >
+                      <CodeBlock
+                        copyable={false}
+                        language="diff"
+                        source={LANDING_EXAMPLE_PREVIEW.contextDiff.source}
+                        variant="plain"
+                      />
+                    </div>
+                  </FilePreview>
+                  <FilePreview path={LANDING_EXAMPLE_PREVIEW.instructionDiff.path}>
+                    <div
+                      class="p-4"
+                      data-maintenance-diff="instruction"
+                    >
+                      <CodeBlock
+                        copyable={false}
+                        language="diff"
+                        source={LANDING_EXAMPLE_PREVIEW.instructionDiff.source}
+                        variant="plain"
+                      />
+                    </div>
+                  </FilePreview>
+                </div>
+                <p class="mt-4 flex items-center gap-2 text-sm font-semibold">
+                  <Check
+                    class="size-4 text-emerald-700 dark:text-emerald-300"
+                    aria-hidden="true"
+                  />
+                  Both linked files reviewed with the application change
+                </p>
+              </section>
+            </div>
+          </div>
+        </article>
+      </li>
+    </ol>
   </div>
 </section>

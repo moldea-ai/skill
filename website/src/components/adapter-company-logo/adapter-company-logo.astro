@@ -4,6 +4,7 @@ import { withBase } from '@moldea.ai/website-ui/site';
 
 interface Props {
   adapterId: string;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
 interface IAdapterCompany {
@@ -88,7 +89,7 @@ const adapterCompanies: Record<string, IAdapterCompany> = {
   },
 };
 
-const { adapterId } = Astro.props;
+const { adapterId, size = 'md' } = Astro.props;
 const basePath = import.meta.env.BASE_URL;
 const isCustomAdapter = adapterId === 'custom';
 const company = adapterCompanies[adapterId];
@@ -99,19 +100,32 @@ if (!isCustomAdapter && company === undefined) {
 ---
 
 <span
-  class="inline-flex size-11 items-center justify-center rounded-lg border border-border bg-muted"
+  class:list={[
+    'inline-flex shrink-0 items-center justify-center border border-border bg-muted',
+    size === 'xs' && 'size-7 rounded-md',
+    size === 'sm' && 'size-9 rounded-lg',
+    size === 'md' && 'size-11 rounded-lg',
+    size === 'lg' && 'size-20 rounded-2xl',
+  ]}
 >
   {
     isCustomAdapter ? (
       <Blocks
-        class="size-5"
+        class:list={[size === 'lg' ? 'size-9' : size === 'xs' ? 'size-4' : 'size-5']}
         role="img"
         aria-label="Custom adapter icon"
       />
     ) : (
       company && (
         <img
-          class:list={['size-6 object-contain', company.isInvertedInDark && 'dark:invert']}
+          class:list={[
+            'object-contain',
+            size === 'xs' && 'size-4',
+            size === 'sm' && 'size-5',
+            size === 'md' && 'size-6',
+            size === 'lg' && 'size-10',
+            company.isInvertedInDark && 'dark:invert',
+          ]}
           src={withBase(company.logoPath, basePath)}
           width={company.width}
           height={company.height}

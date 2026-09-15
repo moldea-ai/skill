@@ -9,6 +9,7 @@ import { SKILLS_DIRECTORY_URL } from '../lib/model/constants.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
+const normalizeClipboardLineEndings = (text: string): string => text.replaceAll('\r\n', '\n');
 const REPRESENTATIVE_PATHS = [
   '/',
   '/docs/',
@@ -113,56 +114,12 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
   await page.reload();
   await page.getByLabel('Open navigation').click();
 
-  const mobileDistributionLink = page.getByRole('link', {
+  const mobileDistributionLink = page.getByLabel('Mobile navigation').getByRole('link', {
     name: 'Get the skill on skills.sh',
     exact: true,
   });
   await expect(mobileDistributionLink).toBeVisible();
   await expect(mobileDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
-});
-
-test('presents project and Agent Skill design as first-class landing capabilities', async ({
-  page,
-}) => {
-  await page.goto(toPublicPath('/'));
-
-  await expect(
-    page.getByRole('heading', {
-      level: 2,
-      name: 'One operating layer across the agent lifecycle.',
-    }),
-  ).toBeVisible();
-
-  const capabilityCardBounds = await page
-    .locator('[data-capability-grid] > a')
-    .evaluateAll((cards) =>
-      cards.map((card) => {
-        const bounds = card.getBoundingClientRect();
-
-        return { top: Math.round(bounds.top), width: Math.round(bounds.width) };
-      }),
-    );
-  expect(capabilityCardBounds).toHaveLength(6);
-  expect(new Set(capabilityCardBounds.slice(0, 3).map(({ top }) => top)).size).toBe(1);
-  expect(new Set(capabilityCardBounds.slice(3).map(({ top }) => top)).size).toBe(1);
-  expect(capabilityCardBounds[3]?.top).toBeGreaterThan(capabilityCardBounds[0]?.top ?? 0);
-  expect(Math.min(...capabilityCardBounds.map(({ width }) => width))).toBeGreaterThan(300);
-
-  const capabilityGrid = page.locator('[data-capability-grid]');
-  const projectContextLink = capabilityGrid.getByRole('link', {
-    name: /Initialize project context/,
-  });
-  await expect(projectContextLink).toBeVisible();
-  await expect(projectContextLink).toHaveAttribute('href', toPublicPath('/docs/project-state/'));
-
-  const skillDesignLink = capabilityGrid.getByRole('link', { name: /Design Agent Skills/ });
-  await expect(skillDesignLink).toBeVisible();
-  await expect(skillDesignLink).toHaveAttribute('href', toPublicPath('/docs/designing-skills/'));
-
-  await skillDesignLink.click();
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Design reusable Agent Skills' }),
-  ).toBeVisible();
 });
 
 test('shows compatible coding agents with source-owned marks and a complete docs path', async ({
@@ -214,7 +171,7 @@ test('shows compatible coding agents with source-owned marks and a complete docs
         width: bounds.width,
       };
     });
-    expect(renderedMark).toStrictEqual({ height: 40, objectFit: 'contain', width: 40 });
+    expect(renderedMark).toStrictEqual({ height: 32, objectFit: 'contain', width: 32 });
   }
 
   const compatibilityGuideLink = compatibilitySection.getByRole('link', {
@@ -442,7 +399,7 @@ test('persists an explicit theme and exposes mobile navigation from the keyboard
   await expect(page.getByRole('button', { name: 'Use light theme' }).last()).toBeVisible();
 });
 
-test('uses smooth client navigation while preserving ordinary static routes', async ({ page }) => {
+test('uses smooth client navigation and browser history across product pages', async ({ page }) => {
   await page.goto(toPublicPath('/'));
   await expect(page.locator('meta[name="astro-view-transitions-enabled"]')).toHaveAttribute(
     'content',
@@ -458,14 +415,38 @@ test('uses smooth client navigation while preserving ordinary static routes', as
 
   await page.getByRole('link', { name: 'Capabilities', exact: true }).first().click();
   await expect(
-    page.getByRole('heading', { level: 1, name: 'What the skill can do' }),
+    page.getByRole('heading', { level: 1, name: 'From project knowledge to working agents.' }),
   ).toBeVisible();
-  expect(new URL(page.url()).pathname).toBe(toPublicPath('/docs/capabilities/'));
+  expect(new URL(page.url()).pathname).toBe(toPublicPath('/capabilities/'));
   expect(
     await page.evaluate(
       () => (window as Window & { __skillNavigationMarker?: string }).__skillNavigationMarker,
     ),
   ).toBe(navigationMarker);
+
+  await page
+    .getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'How it works', exact: true })
+    .click();
+  await expect(page).toHaveURL(toPublicPath('/how-it-works/'));
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Your request is one sentence. The work stays connected.',
+    }),
+  ).toBeVisible();
+
+  await page.goBack();
+  await expect(page).toHaveURL(toPublicPath('/capabilities/'));
+  await expect(
+    page.getByRole('navigation', { name: 'Primary navigation' }).locator('a[aria-current="page"]'),
+  ).toHaveText('Capabilities');
+
+  await page.goForward();
+  await expect(page).toHaveURL(toPublicPath('/how-it-works/'));
+  await expect(
+    page.getByRole('navigation', { name: 'Primary navigation' }).locator('a[aria-current="page"]'),
+  ).toHaveText('How it works');
 });
 
 test('shows accessible progress during delayed client navigation and hides it after success', async ({
@@ -482,7 +463,7 @@ test('shows accessible progress during delayed client navigation and hides it af
 
   await expect(progress).toBeHidden();
   await page.route(
-    `**${toPublicPath('/docs/capabilities/')}`,
+    `**${toPublicPath('/capabilities/')}`,
     async (route) => {
       await delayedRequest.promise;
       await route.continue();
@@ -502,7 +483,7 @@ test('shows accessible progress during delayed client navigation and hides it af
 
   delayedRequest.resolve();
   await navigation;
-  await expect(page).toHaveURL(toPublicPath('/docs/capabilities/'));
+  await expect(page).toHaveURL(toPublicPath('/capabilities/'));
   await expect(progress).toBeHidden();
 });
 
@@ -515,9 +496,15 @@ test('marks the most specific current desktop and mobile navigation destinations
 
     await page.goto(toPublicPath('/'));
     const primaryNavigation = page.getByRole('navigation', { name: 'Primary navigation' });
+    await expect(primaryNavigation.getByRole('link')).toHaveText([
+      'Capabilities',
+      'How it works',
+      'Evidence',
+      'Docs',
+    ]);
     await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveCount(0);
 
-    await page.goto(toPublicPath('/docs/capabilities/'));
+    await page.goto(toPublicPath('/capabilities/'));
     const activeCapabilitiesLink = primaryNavigation.locator('a[aria-current="page"]');
     const inactiveDocsLink = primaryNavigation.getByRole('link', { name: 'Docs', exact: true });
     await expect(activeCapabilitiesLink).toHaveText('Capabilities');
@@ -526,6 +513,12 @@ test('marks the most specific current desktop and mobile navigation destinations
     ).not.toBe(
       await inactiveDocsLink.evaluate((element) => getComputedStyle(element).backgroundColor),
     );
+
+    await page.goto(toPublicPath('/how-it-works/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('How it works');
+
+    await page.goto(toPublicPath('/docs/capabilities/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
 
     await page.goto(toPublicPath('/docs/coding-agent-compatibility/'));
     await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
@@ -539,14 +532,17 @@ test('marks the most specific current desktop and mobile navigation destinations
 
       return marker;
     });
-    await primaryNavigation.getByRole('link', { name: 'Examples', exact: true }).click();
-    await page.waitForURL((url) => url.pathname === toPublicPath('/examples/'));
-    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Examples');
+    await primaryNavigation.getByRole('link', { name: 'Docs', exact: true }).click();
+    await page.waitForURL((url) => url.pathname === toPublicPath('/docs/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
     expect(
       await page.evaluate(
         () => (window as Window & { __moldeaNavigationMarker?: string }).__moldeaNavigationMarker,
       ),
     ).toBe(navigationMarker);
+
+    await page.goto(toPublicPath('/examples/create-a-support-agent/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
 
     await page.goto(toPublicPath('/search/'));
     await expect(page.getByRole('link', { name: 'Search documentation' })).toHaveAttribute(
@@ -561,7 +557,7 @@ test('marks the most specific current desktop and mobile navigation destinations
   const mobileContext = await browser.newContext({ colorScheme: 'dark' });
   const mobilePage = await mobileContext.newPage();
   await mobilePage.setViewportSize({ height: 740, width: 320 });
-  await mobilePage.goto(toPublicPath('/docs/how-it-works/'));
+  await mobilePage.goto(toPublicPath('/how-it-works/'));
   await mobilePage.getByLabel('Open navigation').click();
 
   const mobileNavigation = mobilePage.getByRole('navigation', { name: 'Mobile navigation' });
@@ -673,9 +669,7 @@ test('renders every reader-facing product mention as inline code', async ({ page
         if (
           /\bmoldea\b/iu.test(text) &&
           parent &&
-          !parent.closest(
-            'code, script, style, noscript, [data-brand-plain], [aria-label="On this page"]',
-          )
+          !parent.closest('code, script, style, noscript, [data-brand-plain]')
         ) {
           matches.push(text.trim());
         }
@@ -690,16 +684,226 @@ test('renders every reader-facing product mention as inline code', async ({ page
   }
 });
 
+test('formats product mentions in generated search results', async ({ page }) => {
+  await page.goto(toPublicPath('/search/'));
+  const searchInput = page.getByRole('searchbox', { name: 'Search documentation' });
+  await searchInput.fill('moldea');
+  await searchInput.press('Enter');
+
+  const results = page.locator('[data-search-results]');
+  await expect(results.locator('li').first()).toBeVisible();
+  expect(await results.locator('code').count()).toBeGreaterThan(0);
+  await expect(page.locator('[data-search-status] code')).toHaveText('moldea');
+});
+
+test('distinguishes visual product pages from technical references in search', async ({ page }) => {
+  await page.goto(toPublicPath('/search/'));
+  const searchInput = page.getByRole('searchbox', { name: 'Search documentation' });
+  await searchInput.fill('capabilities');
+  await searchInput.press('Enter');
+
+  const results = page.locator('[data-search-results]');
+  const visualPage = results.locator(`a[href="${toPublicPath('/capabilities/')}"]`);
+  const referencePage = results.locator(`a[href="${toPublicPath('/docs/capabilities/')}"]`);
+
+  await expect(visualPage.getByRole('heading')).toHaveText('Capabilities');
+  await expect(referencePage.getByRole('heading')).toHaveText('Capability reference');
+});
+
+test('copies exact code across direct loads and client navigation while excluding project diffs', async ({
+  context,
+  page,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto(toPublicPath('/docs/repository-format/'));
+
+  const codeBlock = page.locator('.prose-moldea pre:has(> code)').first();
+  const codeHeader = codeBlock.locator('xpath=preceding-sibling::*[1][@data-code-copy-header]');
+  const toolbar = codeHeader.locator('[data-code-copy-toolbar]');
+  const button = toolbar.getByRole('button', { name: 'Copy code', exact: true });
+  const source = await codeBlock.locator(':scope > code').textContent();
+
+  if (source === null) throw new Error('Code block source text is unavailable.');
+
+  await expect(codeHeader.locator('[data-code-copy-language]')).toHaveText('Plain text');
+  await expect(button).toHaveText('');
+  await expect(button).toHaveAttribute('title', 'Copy code');
+  await button.click();
+  await expect(button).toBeFocused();
+  await expect(toolbar.locator('[data-code-copy-feedback]')).toHaveText('Copied.');
+  await expect(button).toHaveAttribute('data-code-copy-state', 'copied');
+  await expect(button.locator('[data-code-copy-success-icon]')).toHaveCSS('opacity', '1');
+  expect(
+    normalizeClipboardLineEndings(await page.evaluate(() => navigator.clipboard.readText())),
+  ).toBe(normalizeClipboardLineEndings(source));
+
+  await page
+    .getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'Docs', exact: true })
+    .click();
+  await expect(page).toHaveURL(toPublicPath('/docs/'));
+  await page
+    .getByRole('navigation', { name: 'Documentation navigation' })
+    .getByRole('link', { name: 'Repository format', exact: true })
+    .click();
+  await expect(page).toHaveURL(toPublicPath('/docs/repository-format/'));
+
+  const controlCounts = await page.evaluate(() => {
+    const eligibleBlocks = [...document.querySelectorAll('pre')].filter(
+      (pre) =>
+        pre.firstElementChild?.tagName === 'CODE' &&
+        pre.closest('[data-code-copy="false"]') === null,
+    );
+
+    return {
+      eligible: eligibleBlocks.length,
+      enhanced: eligibleBlocks.filter((pre) => pre.dataset['codeCopyEnhanced'] === 'true').length,
+      toolbars: document.querySelectorAll('[data-code-copy-toolbar]').length,
+    };
+  });
+
+  expect(controlCounts.enhanced).toBe(controlCounts.eligible);
+  expect(controlCounts.toolbars).toBe(controlCounts.eligible);
+
+  await page.getByRole('banner').getByRole('link', { name: 'moldea skill home' }).click();
+  await expect(page).toHaveURL(toPublicPath('/'));
+
+  const installCommand = page.locator('[data-getting-started] [data-install-command]');
+  const installCode = installCommand.locator('pre > code');
+  const installButton = installCommand.getByRole('button', { name: 'Copy code', exact: true });
+  await expect(installButton).toHaveCount(1);
+  await installButton.click();
+  await expect(installCommand.locator('[data-code-copy-feedback]')).toHaveText('Copied.');
+  expect(
+    normalizeClipboardLineEndings(await page.evaluate(() => navigator.clipboard.readText())),
+  ).toBe(normalizeClipboardLineEndings((await installCode.textContent()) ?? ''));
+
+  await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
+  const projectDiffBlocks = page.locator('[data-project-patch] [data-code-block]');
+
+  expect(await projectDiffBlocks.count()).toBeGreaterThan(0);
+  expect(
+    await projectDiffBlocks.evaluateAll((blocks) =>
+      blocks.every((block) => block.getAttribute('data-code-copy') === 'false'),
+    ),
+  ).toBe(true);
+  await expect(page.locator('[data-project-patch] [data-code-copy-button]')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(0);
+});
+
+for (const [clipboardMode, expectedFeedback] of [
+  ['unavailable', 'Copy is unavailable. Select the code, then copy it manually.'],
+  ['denied', 'Copy failed. Select the code, then copy it manually.'],
+] as const) {
+  test(`keeps code selectable when clipboard access is ${clipboardMode}`, async ({ page }) => {
+    await page.addInitScript((mode) => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value:
+          mode === 'denied'
+            ? {
+                writeText: (): Promise<void> =>
+                  Promise.reject(new DOMException('Clipboard access denied.', 'NotAllowedError')),
+              }
+            : undefined,
+      });
+    }, clipboardMode);
+    await page.goto(toPublicPath('/'));
+
+    const installCommand = page.locator('[data-getting-started] [data-install-command]');
+    const button = installCommand.getByRole('button', { name: 'Copy code', exact: true });
+    const toolbar = button.locator('xpath=ancestor::*[@data-code-copy-toolbar]');
+    const header = toolbar.locator('xpath=ancestor::*[@data-code-copy-header]');
+    const code = header.locator('xpath=following-sibling::pre[1]/code');
+
+    await button.click();
+    await expect(button).toBeFocused();
+    await expect(toolbar.locator('[data-code-copy-feedback]')).toHaveText(expectedFeedback);
+    await expect(code).toHaveCSS('user-select', 'auto');
+  });
+}
+
+test('keeps code readable without JavaScript and omits inert copy controls', async ({
+  baseURL,
+  browser,
+}) => {
+  if (baseURL === undefined) throw new Error('The Playwright base URL is unavailable.');
+
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+
+  try {
+    await page.goto(new URL(toPublicPath('/'), baseURL).href);
+    const installCommand = page.locator('[data-getting-started] [data-install-command]');
+    await expect(installCommand.locator('pre:has(> code)')).toBeVisible();
+    await expect(
+      installCommand.getByRole('button', { name: 'Copy code', exact: true }),
+    ).toHaveCount(0);
+
+    await page.goto(new URL(toPublicPath('/docs/repository-format/'), baseURL).href);
+    await expect(page.locator('pre:has(> code)').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(0);
+    await expect(page.locator('[data-code-copy-toolbar]')).toHaveCount(0);
+  } finally {
+    await context.close();
+  }
+});
+
+test('keeps code-copy controls usable across supported widths, themes, and reduced motion', async ({
+  page,
+}) => {
+  for (const width of [320, 375, 768, 1440]) {
+    for (const theme of ['light', 'dark'] as const) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      await page.goto(toPublicPath('/'));
+
+      const installCommand = page.locator('[data-getting-started] [data-install-command]');
+      const button = installCommand.getByRole('button', { name: 'Copy code', exact: true });
+      const toolbar = button.locator('xpath=ancestor::*[@data-code-copy-toolbar]');
+      const bounds = await button.boundingBox();
+
+      expect(bounds).not.toBeNull();
+      expect(bounds?.width).toBe(24);
+      expect(bounds?.height).toBe(24);
+      expect(bounds?.x).toBeGreaterThanOrEqual(0);
+      expect((bounds?.x ?? 0) + (bounds?.width ?? width + 1)).toBeLessThanOrEqual(width);
+      expect(
+        await button.evaluate((element) =>
+          Number.parseFloat(getComputedStyle(element).transitionDuration),
+        ),
+      ).toBeLessThanOrEqual(0.00001);
+      await button.focus();
+      await expect(button).not.toHaveCSS('box-shadow', 'none');
+      expect(
+        await toolbar.evaluate((element) => element.getBoundingClientRect().width),
+      ).toBeLessThanOrEqual(width);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+        width,
+      );
+
+      const accessibility = await new AxeBuilder({ page })
+        .include('[data-code-copy-toolbar]')
+        .analyze();
+      expect(
+        accessibility.violations.filter(
+          ({ impact }) => impact === 'critical' || impact === 'serious',
+        ),
+      ).toStrictEqual([]);
+    }
+  }
+});
+
 test('copies the install command and searches the generated local index', async ({
   context,
   page,
 }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto(toPublicPath('/'));
-  await page.getByRole('button', { name: 'Copy install command' }).click();
-  await expect(page.locator('[data-getting-started-copy-status]')).toHaveText(
-    'Install command copied to the clipboard.',
-  );
+  const installCommand = page.locator('[data-getting-started] [data-install-command]');
+  const copyButton = installCommand.getByRole('button', { name: 'Copy code', exact: true });
+  await copyButton.click();
+  await expect(installCommand.locator('[data-code-copy-feedback]')).toHaveText('Copied.');
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
     'npx skills add moldea-ai/skill',
   );
@@ -733,7 +937,7 @@ test('honors the reduced-motion media preference', async ({ browser }) => {
     true,
   );
   const transitionDuration = await page
-    .locator('.interactive-card')
+    .locator('[data-hero-actions] a')
     .first()
     .evaluate((element) => Number.parseFloat(getComputedStyle(element).transitionDuration));
   expect(transitionDuration).toBeLessThanOrEqual(0.01);

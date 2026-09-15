@@ -1,109 +1,116 @@
-import { expect, test, type Locator } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
+
+import { LANDING_EXAMPLE } from '../../lib/landing-example/index.ts';
+import { INSTALL_COMMAND, SKILLS_DIRECTORY_URL } from '../../lib/model/constants.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
-const getSurfaceSelectionColors = (surface: Locator) => {
-  return surface.evaluate((element) => {
-    const surfaceStyle = getComputedStyle(element);
-    const selectionStyle = getComputedStyle(element, '::selection');
 
-    return {
-      background: surfaceStyle.backgroundColor,
-      color: surfaceStyle.color,
-      selectionBackground: selectionStyle.backgroundColor,
-      selectionColor: selectionStyle.color,
-    };
-  });
-};
-
-test('shows the recommended initialization journey and ordinary project work', async ({ page }) => {
+test('shows one install followed by an ordinary coding-agent request', async ({ page }) => {
   await page.goto(toPublicPath('/'));
 
-  const simulation = page.getByLabel('Getting started simulation');
+  const gettingStarted = page.getByRole('region', {
+    name: 'One install. One ordinary request.',
+  });
+  const journey = gettingStarted.getByRole('list', { name: 'Getting started' });
+  const steps = journey.locator(':scope > li');
+
   await expect(
-    page.getByRole('heading', { level: 2, name: 'One install. One ordinary request.' }),
-  ).toBeVisible();
-  await expect(
-    page.getByText(
-      'Add the skill to your project and establish durable, Git-owned context. Initialization is the recommended starting point, and you can still begin with the outcome you want.',
-      { exact: true },
-    ),
-  ).toBeVisible();
-  await expect(simulation.getByText('npx skills add moldea-ai/skill')).toBeVisible();
-  await expect(
-    simulation.getByRole('heading', { level: 3, name: 'Install the skill.' }),
-  ).toBeVisible();
-  await expect(
-    simulation.getByRole('heading', {
-      level: 3,
-      name: 'Establish the durable project foundation.',
+    gettingStarted.getByRole('heading', {
+      level: 2,
+      name: 'One install. One ordinary request.',
     }),
   ).toBeVisible();
-  const numberedSteps = simulation.locator(':scope > div > ol');
-  const steps = numberedSteps.locator(':scope > li');
+  await expect(gettingStarted.getByRole('link', { name: 'Get the skill' })).toHaveAttribute(
+    'href',
+    SKILLS_DIRECTORY_URL,
+  );
+  await expect(gettingStarted.getByRole('link', { name: 'Read the setup guide' })).toHaveAttribute(
+    'href',
+    toPublicPath('/docs/getting-started/'),
+  );
   await expect(steps).toHaveCount(3);
-
-  const initializationStep = steps.nth(1);
-  const initializationRequest = initializationStep.getByText('Initialize moldea', { exact: true });
-  await expect(initializationRequest).toBeVisible();
-  await expect(initializationRequest.locator('code')).toHaveText('moldea');
-  await expect(simulation.getByText('Reads your project')).toBeVisible();
-  await expect(simulation.getByText('Clarifies only when needed')).toBeVisible();
   await expect(
-    simulation.getByText(
-      'If a material gap remains, it asks one focused question. Reply naturally, and it continues.',
-    ),
+    steps.nth(0).getByText('Install it in this project.', { exact: true }),
   ).toBeVisible();
-  await expect(simulation.getByText('Builds and checks grounded context')).toBeVisible();
-  await expect(simulation.getByText(/Keep working with your coding agent as usual/)).toBeVisible();
-
-  const agentPanel = simulation.locator('[data-getting-started-agent-panel]');
-  const ordinaryWork = steps.nth(2);
-  await expect(ordinaryWork).toHaveAttribute('data-getting-started-ordinary-work', '');
-  await expect(ordinaryWork.getByText('03', { exact: true })).toBeVisible();
+  await expect(steps.nth(0).locator('[data-install-command] code')).toHaveText(INSTALL_COMMAND);
   await expect(
-    ordinaryWork.getByRole('heading', { level: 3, name: 'Describe the outcome naturally.' }),
+    steps.nth(1).getByText('Initialize the project once.', { exact: true }),
   ).toBeVisible();
+  await expect(steps.nth(1).getByText('Initialize moldea', { exact: true })).toBeVisible();
+  const inlineProductName = steps.nth(1).locator('code');
+  await expect(inlineProductName).toHaveText('moldea');
+  const inlineCodeBackground = await inlineProductName.evaluate(
+    (element) => getComputedStyle(element).backgroundColor,
+  );
+  expect(inlineCodeBackground).not.toBe('rgba(0, 0, 0, 0)');
   await expect(
-    ordinaryWork.getByText('Create a support agent grounded in our current refund policy.', {
-      exact: true,
-    }),
+    steps.nth(2).getByText('Describe the outcome naturally.', { exact: true }),
   ).toBeVisible();
+  await expect(steps.nth(2).getByText(LANDING_EXAMPLE.request, { exact: true })).toBeVisible();
   await expect(
-    initializationStep.getByText('Create a support agent grounded in our current refund policy.'),
-  ).toHaveCount(0);
-  await expect(agentPanel.locator('[data-getting-started-ordinary-work]')).toHaveCount(0);
-  await expect(agentPanel.locator('[data-getting-started-completion]')).toHaveCount(1);
+    gettingStarted.getByRole('heading', { level: 3, name: 'Your coding agent handles the rest' }),
+  ).toBeVisible();
+  await expect(gettingStarted.getByText('Support agent ready.', { exact: true })).toBeVisible();
+  const projectResult = gettingStarted.getByRole('list', {
+    name: 'Created support agent result',
+  });
+  await expect(projectResult.getByRole('listitem')).toHaveText([
+    'Project instructions saved',
+    'Order lookup connected',
+    'Deterministic checks passed',
+  ]);
+  await expect(gettingStarted.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(
+    1,
+  );
 });
 
-test('keeps text selection visible across its dark and light surfaces', async ({ browser }) => {
+test('copies the exact install command through the shared keyboard control', async ({
+  context,
+  page,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto(toPublicPath('/'));
+
+  const installCommand = page.locator('[data-getting-started] [data-install-command]');
+  const button = installCommand.getByRole('button', { name: 'Copy code', exact: true });
+  const feedback = installCommand.locator('[data-code-copy-feedback]');
+
+  await button.focus();
+  await button.press('Enter');
+
+  await expect(button).toBeFocused();
+  await expect(button).toHaveAttribute('data-code-copy-state', 'copied');
+  await expect(button.locator('[data-code-copy-success-icon]')).toHaveCSS('opacity', '1');
+  await expect(button.locator('[data-code-copy-icon]')).toHaveCSS('opacity', '0');
+  await expect(feedback).toHaveText('Copied.');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(INSTALL_COMMAND);
+});
+
+test('keeps the setup readable without JavaScript and compact at 320px', async ({ browser }) => {
   for (const colorScheme of ['light', 'dark'] as const) {
     const context = await browser.newContext({
       colorScheme,
+      javaScriptEnabled: false,
+      reducedMotion: 'reduce',
       viewport: { height: 740, width: 320 },
     });
     const page = await context.newPage();
     await page.goto(toPublicPath('/'));
 
-    const simulation = page.getByLabel('Getting started simulation');
-    const agentPanel = page.locator('[data-getting-started-agent-panel]');
-    const completion = page.locator('[data-getting-started-completion]');
-    const [agentPanelColors, completionColors] = await Promise.all([
-      getSurfaceSelectionColors(agentPanel),
-      getSurfaceSelectionColors(completion),
-    ]);
-
-    expect(agentPanelColors.selectionBackground).not.toBe(agentPanelColors.background);
-    expect(agentPanelColors.selectionColor).toBe(agentPanelColors.color);
-    expect(completionColors.selectionBackground).toBe(completionColors.color);
-    expect(completionColors.selectionColor).toBe(completionColors.background);
-
-    const simulationWidths = await simulation.evaluate((element) => ({
+    const gettingStarted = page.getByRole('region', {
+      name: 'One install. One ordinary request.',
+    });
+    const journey = gettingStarted.getByRole('list', { name: 'Getting started' });
+    const widths = await gettingStarted.evaluate((element) => ({
       client: element.clientWidth,
       scroll: element.scrollWidth,
     }));
-    expect(simulationWidths.scroll).toBeLessThanOrEqual(simulationWidths.client);
+
+    await expect(journey.getByText(INSTALL_COMMAND, { exact: true })).toBeVisible();
+    await expect(gettingStarted.getByRole('button', { name: 'Copy code' })).toHaveCount(0);
+    expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 
     await context.close();
   }

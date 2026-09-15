@@ -1,21 +1,22 @@
 ---
 import {
+  ArrowDown,
   ArrowRight,
-  Blocks,
-  BrainCircuit,
-  GitBranch,
-  RefreshCw,
-  SearchCheck,
+  Cable,
+  Check,
+  ListChecks,
   ShieldCheck,
   Sparkles,
-  Workflow,
 } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
+import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
+import AgentExample from '../agent-example/agent-example.astro';
+import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
 import BehaviorAlignment from '../behavior-alignment/behavior-alignment.astro';
-import CapabilityCard from '../capability-card/capability-card.astro';
+import CapabilitiesOverview from '../capabilities-overview/capabilities-overview.astro';
 import CodingAgentCompatibility from '../coding-agent-compatibility/coding-agent-compatibility.astro';
 import GettingStartedSimulation from '../getting-started-simulation/getting-started-simulation.astro';
 import OpenSourceSystem from '../open-source-system/open-source-system.astro';
@@ -23,7 +24,6 @@ import RepositoryFormat from '../repository-format/repository-format.astro';
 import WhyMoldea from '../why-moldea/why-moldea.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
-import { SKILLS_DIRECTORY_URL } from '../../lib/model/constants.ts';
 import {
   getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
@@ -44,28 +44,53 @@ const semanticReleaseSummary = getSemanticReleaseEvidenceSummary(
 const successfulSemanticCaseCount =
   (semanticReleaseSummary.result?.passedCaseCount ?? 0) +
   (semanticReleaseSummary.result?.recoveredCaseCount ?? 0);
+const hasSemanticReleaseEvidence = semanticReleaseSummary.result !== null;
+const hasCompleteSemanticReleaseEvidence =
+  hasSemanticReleaseEvidence && successfulSemanticCaseCount === model.semanticEvaluation.caseCount;
+const hasQualificationReleaseEvidence = qualificationSummaries.some(
+  ({ kind }) => kind !== 'not-recorded',
+);
+const hasCompleteQualificationReleaseEvidence =
+  model.qualification.profiles.length > 0 &&
+  qualifiedProfileCount === model.qualification.profiles.length;
+const decisionEvidenceGroups = ['Context choices', 'File changes', 'Project boundaries'] as const;
+const qualificationEvidenceGroups = [
+  'Example project builds',
+  'Runtime connections',
+  'Deterministic checks',
+] as const;
+const qualificationAdapterIds = [
+  ...new Set(
+    model.qualification.profiles
+      .map(({ adapterId }) => adapterId)
+      .filter((adapterId) => adapterId !== 'custom'),
+  ),
+];
+const qualificationAdapterPreviewIds = ['openai', 'anthropic', 'vercel-ai-sdk'].filter(
+  (adapterId) => qualificationAdapterIds.includes(adapterId),
+);
+const additionalQualificationAdapterCount = Math.max(
+  0,
+  qualificationAdapterIds.length - qualificationAdapterPreviewIds.length,
+);
 ---
 
 <BaseLayout
   title="moldea Agent Skill"
-  description="Use moldea to give coding agents Git-owned project memory, maintain agent behavior with code, and validate supported repository and runtime relationships."
+  description="Give coding agents saved project context, visible connections between agent behavior and code, and repeatable software checks."
 >
   <section
     class="relative overflow-hidden border-b border-border bg-background"
     data-home-hero
   >
+    <HeroBackdrop />
     <div
-      class="pointer-events-none absolute inset-0 [background-image:radial-gradient(circle_at_70%_18%,color-mix(in_oklch,var(--accent)_60%,transparent),transparent_30%),linear-gradient(to_right,color-mix(in_oklch,var(--border)_35%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklch,var(--border)_35%,transparent)_1px,transparent_1px)] [mask-image:linear-gradient(to_bottom,black,transparent_92%)] [background-size:auto,3rem_3rem,3rem_3rem] opacity-60"
-      aria-hidden="true"
+      class="page-shell relative grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-12 lg:py-20"
     >
-    </div>
-    <div
-      class="page-shell relative grid gap-10 py-14 sm:py-18 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,0.78fr)] lg:items-center lg:py-20"
-    >
-      <div>
-        <div class="mb-7 flex flex-wrap items-center gap-3">
+      <div class="min-w-0">
+        <div class="mb-6 flex flex-wrap items-center gap-3">
           <span
-            class="inline-flex items-center gap-2 rounded-full border bg-background/80 px-3 py-1.5 text-sm font-semibold shadow-surface backdrop-blur"
+            class="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5 text-sm font-semibold shadow-surface backdrop-blur"
           >
             <Sparkles
               class="size-3.5"
@@ -75,20 +100,19 @@ const successfulSemanticCaseCount =
           </span>
           <span class="text-sm text-muted-foreground">Git-native · local-first · open source</span>
         </div>
-        <p class="eyebrow mb-4">Open-source Agent Skill and tooling</p>
         <h1
-          class="section-title max-w-4xl font-semibold"
+          class="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl xl:text-6xl"
           data-hero-title
         >
-          Keep agent behavior aligned with the code.
+          Give your coding agent what the request leaves out.
         </h1>
-        <p class="mt-7 max-w-3xl text-lg leading-8 text-muted-foreground sm:text-xl sm:leading-9">
+        <p class="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
           <InlineBrandText
-            text="moldea gives coding agents Git-owned project memory, explicit relationships between behavior and implementation, and deterministic validation. You keep using the coding agent you trust. The project keeps a system it can verify."
+            text="moldea finds the project rules behind the task, follows every affected connection, and runs deterministic checks before the agent says it is done."
           />
         </p>
         <div
-          class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3"
+          class="mt-7 flex flex-wrap gap-3"
           data-hero-actions
         >
           <ActionLink
@@ -98,90 +122,29 @@ const successfulSemanticCaseCount =
             data-primary-action
           >
             Install the skill
-            <ArrowRight
+            <ArrowDown
               class="size-4"
               aria-hidden="true"
             />
           </ActionLink>
           <ActionLink
             class="font-bold"
-            href="#behavior-alignment"
+            href="#deterministic-checks"
             size="lg"
-            variant="link"
+            variant="outline"
           >
-            See the alignment model
-            <ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            />
+            See what gets checked
           </ActionLink>
         </div>
       </div>
 
-      <aside
-        class="surface-card overflow-hidden"
-        aria-labelledby="durable-system-title"
-      >
-        <header class="border-b border-border bg-muted/40 p-6">
-          <p class="eyebrow mb-3">After the coding session ends</p>
-          <h2
-            id="durable-system-title"
-            class="text-2xl font-semibold tracking-tight"
-          >
-            The system is still there.
-          </h2>
-        </header>
-        <ul class="grid divide-y divide-border px-6">
-          <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 py-5">
-            <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-              <GitBranch
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <h3 class="font-semibold">Project memory</h3>
-              <p class="mt-1 text-sm leading-6 text-muted-foreground">
-                Git-owned context, decisions, and current project truth.
-              </p>
-            </div>
-          </li>
-          <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 py-5">
-            <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-              <Workflow
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <h3 class="font-semibold">Behavioral relationships</h3>
-              <p class="mt-1 text-sm leading-6 text-muted-foreground">
-                Instructions, tools, schemas, runtimes, and implementation paths.
-              </p>
-            </div>
-          </li>
-          <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 py-5">
-            <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-              <SearchCheck
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <h3 class="font-semibold">Mechanical evidence</h3>
-              <p class="mt-1 text-sm leading-6 text-muted-foreground">
-                Repeatable CLI and adapter checks for supported relationships.
-              </p>
-            </div>
-          </li>
-        </ul>
-      </aside>
+      <AgentExample />
     </div>
   </section>
 
-  <GettingStartedSimulation />
-
   <WhyMoldea />
+
+  <CapabilitiesOverview />
 
   <BehaviorAlignment />
 
@@ -189,216 +152,301 @@ const successfulSemanticCaseCount =
 
   <RepositoryFormat />
 
-  <section class="page-shell py-section-gap">
-    <div class="surface-card overflow-hidden">
+  <section
+    class="relative overflow-hidden border-b border-border bg-background py-12 sm:py-16"
+    aria-labelledby="home-evidence-title"
+    data-home-evidence
+  >
+    <HeroBackdrop />
+    <div class="page-shell relative">
       <div
-        class="grid gap-8 p-6 sm:p-9 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] lg:items-center lg:p-12"
+        class="dark-surface-selection -mx-4 overflow-hidden bg-primary text-primary-foreground sm:mx-0 sm:rounded-3xl sm:shadow-raised"
       >
-        <div>
-          <p class="eyebrow mb-4">Release evidence</p>
-          <h2 class="section-title max-w-4xl font-semibold">We do not ship on confidence alone.</h2>
-          <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-            Semantic scenarios test whether the skill preserves developer authority, gathers
-            relevant evidence, maintains or evaluates the right surfaces, and refuses unsupported
-            conclusions. Adapter qualification exercises complete transparent project journeys with
-            deterministic verification. Release evidence identifies whether its result is fresh for
-            the current contract or retained from a verified source, while failed and incomplete
-            current-contract attempts remain available for inspection.
-          </p>
-          <ActionLink
-            class="mt-8 font-bold"
-            href={withBase('/evidence/', basePath)}
-          >
-            Review the evidence
-            <ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            />
-          </ActionLink>
-        </div>
-        <dl class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-          <div class="rounded-xl border border-border bg-muted/30 p-5">
-            <dt class="text-sm font-semibold">Skill scenarios with verified release evidence</dt>
-            <dd class="mt-2 font-mono text-3xl font-bold">
-              {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount}
-            </dd>
-            <dd class="mt-2 text-sm leading-6 text-muted-foreground">
-              Authority, evidence, maintenance, evaluation, and safe refusal boundaries.
-            </dd>
-          </div>
-          <div class="rounded-xl border border-border bg-muted/30 p-5">
-            <dt class="text-sm font-semibold">Adapter profiles with passing release evidence</dt>
-            <dd class="mt-2 font-mono text-3xl font-bold">
-              {qualifiedProfileCount}/{model.qualification.profiles.length}
-            </dd>
-            <dd class="mt-2 text-sm leading-6 text-muted-foreground">
-              Exact project profiles backed by fresh or explicitly retained qualification evidence.
-            </dd>
-          </div>
-        </dl>
-      </div>
-    </div>
-  </section>
-
-  <section class="border-y border-border bg-sidebar py-section-gap">
-    <div class="page-shell">
-      <div class="mb-12 max-w-4xl">
-        <p class="eyebrow mb-4">
-          What <span class="normal-case"><InlineBrandText text="moldea" /></span> helps your coding agent
-          do
-        </p>
-        <h2 class="section-title font-semibold">One operating layer across the agent lifecycle.</h2>
-        <p class="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-          Plan where model reasoning belongs, establish the project foundation, create grounded
-          behavior, and keep the resulting system coherent as implementation evolves.
-        </p>
-      </div>
-      <div
-        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        data-capability-grid
-      >
-        <CapabilityCard
-          label="Design"
-          title="Plan the system"
-          description="Separate deterministic rules, tools, human control, and only the model-reasoning boundaries that earn an agent."
-          href="/docs/planning-agent-systems/"
-          icon={BrainCircuit}
-        />
-        <CapabilityCard
-          label="Context"
-          title="Initialize project context"
-          description="Create the smallest Git-owned foundation, adding focused context, decisions, and runtime guidance only when repository evidence justifies them."
-          href="/docs/project-state/"
-          icon={GitBranch}
-        />
-        <CapabilityCard
-          label="Ground"
-          title="Create real agents"
-          description="Align instructions, descriptions, schemas, capabilities, variables, runtime wiring, and actual repository evidence."
-          href="/docs/designing-agents/"
-          icon={Workflow}
-        />
-        <CapabilityCard
-          label="Reuse"
-          title="Design Agent Skills"
-          description="Define precise activation, progressive disclosure, focused resources, safe scripts, and synchronized copies."
-          href="/docs/designing-skills/"
-          icon={Blocks}
-        />
-        <CapabilityCard
-          label="Maintain"
-          title="Keep truth current"
-          description="Reconsider durable knowledge and affected behavior as the project evolves without creating documentation churn."
-          href="/docs/continuous-maintenance/"
-          icon={RefreshCw}
-        />
-        <CapabilityCard
-          label="Assure"
-          title="Evaluate and reconcile"
-          description="Distinguish deterministic diagnostics, semantic drift, ambiguity, unresolved state, and evidence limitations."
-          href="/docs/evaluate-reconcile-validate/"
-          icon={SearchCheck}
-        />
-      </div>
-      <ActionLink
-        class="mt-8 font-bold"
-        href={withBase('/docs/capabilities/', basePath)}
-        variant="link"
-      >
-        Explore every capability
-        <ArrowRight
-          class="size-4"
-          aria-hidden="true"
-        />
-      </ActionLink>
-    </div>
-  </section>
-
-  <CodingAgentCompatibility />
-
-  <section class="border-b border-border bg-sidebar py-section-gap">
-    <div class="page-shell">
-      <div class="surface-card grid overflow-hidden lg:grid-cols-2">
-        <div class="p-7 sm:p-10 lg:p-14">
-          <ShieldCheck
-            class="mb-8 size-9"
-            aria-hidden="true"
-          />
-          <p class="eyebrow mb-4">Local-first by default</p>
-          <h2 class="text-4xl font-semibold tracking-tight sm:text-5xl">
-            Your repository stays yours.
-          </h2>
-          <p class="mt-6 text-lg leading-8 text-muted-foreground">
-            Canonical state lives under <code
-              class="rounded bg-code px-1.5 py-1 font-mono text-sm text-code-foreground"
-              >/moldea/**</code
-            >. The skill does not depend on hidden memory or routine external transmission of your
-            repository.
-          </p>
-          <ActionLink
-            class="mt-8 font-bold"
-            href={withBase('/docs/safety-and-privacy/', basePath)}
-            variant="link"
-          >
-            Read the safety model
-            <ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            />
-          </ActionLink>
-        </div>
-        <div
-          class="grid content-center gap-3 border-t border-border bg-sidebar p-7 sm:p-10 lg:border-s lg:border-t-0 lg:p-14"
+        <header
+          class="grid gap-5 px-4 py-7 sm:px-8 sm:py-9 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end lg:px-10"
         >
-          {
-            [
-              ['Git-owned', 'Context and behavior are reviewable repository state.'],
-              ['Scope-aware', 'The operation and developer authority constrain every write.'],
-              ['Evidence-grounded', 'Repository text cannot redefine developer intent.'],
-              ['Deterministic where it matters', 'The local CLI owns mechanical repository truth.'],
-            ].map(([title, description]) => (
-              <div class="rounded-xl border bg-background p-4">
-                <p class="font-semibold">{title}</p>
-                <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+          <div>
+            <p class="eyebrow mb-4 text-current/60">Proof before release</p>
+            <h2
+              id="home-evidence-title"
+              class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
+            >
+              See what was tested.
+            </h2>
+          </div>
+          <p
+            class="text-base leading-7 text-current/70 sm:text-lg sm:leading-8 lg:justify-self-end"
+          >
+            Open the request, project changes, and verdict behind each recorded result.
+          </p>
+        </header>
+
+        <div class="grid gap-3 p-3 pt-0 sm:p-6 sm:pt-0 md:grid-cols-2">
+          <article
+            class="light-surface-selection flex min-w-0 flex-col rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7"
+            data-home-evidence-card="decision"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span
+                  class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"
+                >
+                  <ListChecks
+                    class="size-5"
+                    aria-hidden="true"
+                  />
+                </span>
+                <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
+                  Decision evaluation
+                </p>
               </div>
-            ))
-          }
+              {
+                hasCompleteSemanticReleaseEvidence ? (
+                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-700">
+                    <Check
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                    Passed
+                  </span>
+                ) : hasSemanticReleaseEvidence ? (
+                  <span class="text-xs font-semibold text-primary/60">
+                    {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount} passed
+                  </span>
+                ) : (
+                  <span class="text-xs font-semibold text-primary/60">Not recorded</span>
+                )
+              }
+            </div>
+            <h3 class="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
+              Did it make the right call?
+            </h3>
+            <p class="mt-3 max-w-xl text-sm leading-6 text-primary/70 sm:text-base sm:leading-7">
+              See how it chooses context, changes files, and respects your boundaries.
+            </p>
+            {
+              hasCompleteSemanticReleaseEvidence ? (
+                <div
+                  class="mt-5 rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4"
+                  data-home-evidence-result="decision"
+                >
+                  <div class="flex items-center justify-between gap-4">
+                    <p
+                      class="text-sm font-semibold"
+                      data-semantic-release-count
+                    >
+                      <span class="block font-mono text-3xl tracking-tight">
+                        {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount}
+                      </span>
+                      decisions verified
+                    </p>
+                    <ShieldCheck
+                      class="size-10 shrink-0 text-emerald-700 dark:text-emerald-700"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <span
+                    class="mt-4 block h-1.5 overflow-hidden rounded-full bg-primary/10"
+                    aria-hidden="true"
+                  >
+                    <span class="block h-full w-full rounded-full bg-emerald-600" />
+                  </span>
+                </div>
+              ) : hasSemanticReleaseEvidence ? (
+                <p
+                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  data-semantic-release-count
+                >
+                  {successfulSemanticCaseCount} of {model.semanticEvaluation.caseCount} decisions
+                  passed.
+                </p>
+              ) : (
+                <p
+                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  data-semantic-release-count
+                >
+                  No release decision result is recorded yet.
+                </p>
+              )
+            }
+            {
+              hasCompleteSemanticReleaseEvidence && (
+                <ul
+                  class="mt-4 grid gap-2"
+                  aria-label="Verified decision behavior"
+                >
+                  {decisionEvidenceGroups.map((group) => (
+                    <li class="flex items-center gap-2 text-sm font-semibold">
+                      <span class="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-600/10 text-emerald-700 dark:text-emerald-700">
+                        <Check
+                          class="size-3.5"
+                          aria-hidden="true"
+                        />
+                      </span>
+                      {group}
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
+            <div class="mt-auto border-t border-primary/10 pt-5 sm:mt-6">
+              <ActionLink
+                class="font-bold"
+                href={withBase(model.semanticEvaluation.route, basePath)}
+              >
+                Inspect the decisions
+                <ArrowRight
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </ActionLink>
+            </div>
+          </article>
+
+          <article
+            class="light-surface-selection flex min-w-0 flex-col rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7"
+            data-home-evidence-card="qualification"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span
+                  class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"
+                >
+                  <Cable
+                    class="size-5"
+                    aria-hidden="true"
+                  />
+                </span>
+                <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
+                  Adapter qualification
+                </p>
+              </div>
+              {
+                hasCompleteQualificationReleaseEvidence ? (
+                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-700">
+                    <Check
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                    Passed
+                  </span>
+                ) : hasQualificationReleaseEvidence ? (
+                  <span class="text-xs font-semibold text-primary/60">
+                    {qualifiedProfileCount}/{model.qualification.profiles.length} passed
+                  </span>
+                ) : (
+                  <span class="text-xs font-semibold text-primary/60">Not recorded</span>
+                )
+              }
+            </div>
+            <h3 class="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
+              Does it work with your integration?
+            </h3>
+            <p class="mt-3 max-w-xl text-sm leading-6 text-primary/70 sm:text-base sm:leading-7">
+              Browse the projects built and checked with each supported adapter.
+            </p>
+            {
+              hasCompleteQualificationReleaseEvidence ? (
+                <div
+                  class="mt-5 rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4"
+                  data-home-evidence-result="qualification"
+                >
+                  <div class="flex flex-wrap items-center justify-between gap-4">
+                    <p
+                      class="text-sm font-semibold"
+                      data-qualification-release-count
+                    >
+                      <span class="block font-mono text-3xl tracking-tight">
+                        {qualifiedProfileCount}/{model.qualification.profiles.length}
+                      </span>
+                      adapter setups qualified
+                    </p>
+                    <div
+                      class="flex items-center gap-1.5"
+                      aria-label={`${qualificationAdapterIds.length} runtime adapters represented`}
+                    >
+                      {qualificationAdapterPreviewIds.map((adapterId) => (
+                        <AdapterCompanyLogo
+                          adapterId={adapterId}
+                          size="xs"
+                        />
+                      ))}
+                      {additionalQualificationAdapterCount > 0 && (
+                        <span class="inline-flex size-7 items-center justify-center rounded-md border border-primary/15 bg-primary/5 text-xs font-bold">
+                          +{additionalQualificationAdapterCount}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span
+                    class="mt-4 block h-1.5 overflow-hidden rounded-full bg-primary/10"
+                    aria-hidden="true"
+                  >
+                    <span class="block h-full w-full rounded-full bg-emerald-600" />
+                  </span>
+                </div>
+              ) : hasQualificationReleaseEvidence ? (
+                <p
+                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  data-qualification-release-count
+                >
+                  {qualifiedProfileCount} of {model.qualification.profiles.length} adapter setups
+                  passed.
+                </p>
+              ) : (
+                <p
+                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  data-qualification-release-count
+                >
+                  No adapter qualification result is recorded yet.
+                </p>
+              )
+            }
+            {
+              hasCompleteQualificationReleaseEvidence && (
+                <ul
+                  class="mt-4 grid gap-2"
+                  aria-label="Verified adapter behavior"
+                >
+                  {qualificationEvidenceGroups.map((group) => (
+                    <li class="flex items-center gap-2 text-sm font-semibold">
+                      <span class="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-600/10 text-emerald-700 dark:text-emerald-700">
+                        <Check
+                          class="size-3.5"
+                          aria-hidden="true"
+                        />
+                      </span>
+                      {group}
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
+            <div class="mt-auto border-t border-primary/10 pt-5 sm:mt-6">
+              <ActionLink
+                class="font-bold"
+                href={withBase(model.qualification.route, basePath)}
+              >
+                Inspect the adapters
+                <ArrowRight
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </ActionLink>
+            </div>
+          </article>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="page-shell pb-section-gap">
-    <div class="grid gap-8 border-t border-border pt-12 lg:grid-cols-[1fr_auto] lg:items-center">
-      <div>
-        <GitBranch
-          class="mb-5 size-7"
-          aria-hidden="true"
-        />
-        <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">
-          Give your coding agent a system it can keep using.
-        </h2>
-        <p class="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
-          <InlineBrandText
-            text="Install moldea, open your project, and ask your coding agent for the outcome you want."
-          />
-        </p>
-      </div>
-      <ActionLink
-        class="font-bold"
-        href={SKILLS_DIRECTORY_URL}
-        size="lg"
-        target="_blank"
-        rel="noopener noreferrer"
-        data-brand-plain
-        data-primary-action
-      >
-        Get moldea on skills.sh
-        <ArrowRight
-          class="size-4"
-          aria-hidden="true"
-        />
-      </ActionLink>
+  <section
+    class="bg-sidebar py-12 sm:py-16"
+    data-adoption
+  >
+    <div class="page-shell">
+      <GettingStartedSimulation />
+      <CodingAgentCompatibility />
     </div>
   </section>
 </BaseLayout>

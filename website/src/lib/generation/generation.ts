@@ -20,6 +20,7 @@ import {
   DOCUMENT_SECTION_LABELS,
   EVIDENCE_ROUTE,
   INSTALL_COMMAND,
+  PRODUCT_PAGE_METADATA,
   REQUIRED_DOCUMENT_ROUTES,
   SKILLS_DIRECTORY_URL,
   SOURCE_REPOSITORY_URL,
@@ -44,6 +45,10 @@ const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_
 const GENERATED_NOTICE =
   'Generated from repository-owned documentation, semantic evaluation, qualification evidence, and moldea/SKILL.md metadata. Do not edit generated output.';
 let cachedWebsiteModel: IWebsiteModel | null = null;
+
+/** Formats the product name as semantic inline code in generated Markdown prose. */
+const formatProductNameAsMarkdownCode = (value: string): string =>
+  value.replaceAll(/\bmoldea\b/giu, '`moldea`');
 
 interface IGeneratedWebsiteModelEnvelope {
   formatVersion: 1;
@@ -223,6 +228,16 @@ export const createSearchRecords = (documents: IWebsiteDocument[]): ISearchRecor
   }));
 };
 
+/** Creates concise search records for the visual product pages. */
+export const createProductPageSearchRecords = (): ISearchRecord[] => {
+  return Object.values(PRODUCT_PAGE_METADATA).map((page) => ({
+    description: page.description,
+    route: page.route,
+    searchText: normalizeSearchText([page.title, page.description, page.searchText].join(' ')),
+    title: page.title,
+  }));
+};
+
 /** Creates bounded search records for qualification profiles without indexing transcripts. */
 export const createQualificationSearchRecords = (
   qualification: IQualificationWebsiteModel,
@@ -231,7 +246,7 @@ export const createQualificationSearchRecords = (
     (profile) => getQualificationReleaseEvidenceSummary(profile).kind === 'pinned',
   ).length;
   const landingRecord: ISearchRecord = {
-    description: `Follow realistic coding projects that verify ${qualification.profiles.length} integrations${verifiedSourceAttemptCount === 0 ? '.' : `, including ${verifiedSourceAttemptCount} results backed by authenticated release sources.`}`,
+    description: `See how saved project fixtures check the files used by ${qualification.profiles.length} AI service integrations${verifiedSourceAttemptCount === 0 ? '.' : `, including ${verifiedSourceAttemptCount} results backed by authenticated release sources.`}`,
     route: qualification.route,
     searchText: normalizeSearchText(
       'Adapter qualification support gate methodology profiles projects attempts evidence results',
@@ -303,18 +318,21 @@ export const createSemanticEvaluationSearchRecords = (
       [
         group.title,
         group.description,
-        ...group.cases.flatMap(({ expectedCriteria, forbiddenCriteria, scenario, title }) => [
-          title,
-          scenario,
-          ...expectedCriteria.map(({ criterion }) => criterion),
-          ...forbiddenCriteria.map(({ criterion }) => criterion),
-        ]),
+        ...group.cases.flatMap(
+          ({ expectedCriteria, forbiddenCriteria, scenario, summary, title }) => [
+            title,
+            summary,
+            scenario,
+            ...expectedCriteria.map(({ criterion }) => criterion),
+            ...forbiddenCriteria.map(({ criterion }) => criterion),
+          ],
+        ),
       ].join(' '),
     ),
     title: group.title,
   }));
   const attemptRecords = semanticEvaluation.attempts.map(({ result, route }): ISearchRecord => ({
-    description: `Recorded ${result.status} semantic attempt with ${result.passedCaseCount + result.recoveredCaseCount} of ${result.totalCaseCount} scenarios successful.`,
+    description: `Recorded ${result.status} semantic attempt with ${result.totalCaseCount} decisions and their verdicts.`,
     route,
     searchText: normalizeSearchText(
       [
@@ -399,6 +417,16 @@ export const createLlmsText = (
     '',
   ];
 
+  lines.push(
+    '## Explore',
+    '',
+    ...Object.values(PRODUCT_PAGE_METADATA).map(
+      (page) =>
+        `- [${formatProductNameAsMarkdownCode(page.title)}](${page.route}): ${formatProductNameAsMarkdownCode(page.description)}`,
+    ),
+    '',
+  );
+
   for (const [section, label] of Object.entries(DOCUMENT_SECTION_LABELS)) {
     const sectionDocuments = documents.filter((document) => document.section === section);
 
@@ -440,7 +468,7 @@ export const createLlmsText = (
     '',
     `- [Source repository](${SOURCE_REPOSITORY_URL})`,
     '- [Installation and first use](/docs/getting-started/)',
-    '- [Complete capabilities](/docs/capabilities/)',
+    '- [Capability reference](/docs/capabilities/)',
     '- [Interaction examples](/examples/)',
     '',
   );
@@ -462,6 +490,7 @@ export const createRouteManifest = (
     '/search/',
     '/search-index.json',
     EVIDENCE_ROUTE,
+    ...Object.values(PRODUCT_PAGE_METADATA).map(({ route }) => route),
     semanticEvaluation.route,
     ...semanticEvaluation.attempts.map(({ route }) => route),
   ]);
@@ -575,10 +604,11 @@ export const createWebsiteModel = (
     releaseEvidence,
     routes: createRouteManifest(documents, qualification, semanticEvaluation),
     searchRecords: [
+      ...createProductPageSearchRecords(),
       ...createSearchRecords(documents),
       {
         description:
-          'Choose behavioral semantic evaluation or real-project adapter qualification evidence.',
+          'See how moldea keeps saved project rules connected to code and checks them again.',
         route: EVIDENCE_ROUTE,
         searchText: normalizeSearchText(
           'Evidence testing evaluation semantic behavior qualification adapters projects proof',

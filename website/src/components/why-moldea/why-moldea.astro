@@ -1,116 +1,159 @@
 ---
-import { ArrowRight, GitBranch, RefreshCw, SearchCheck, type Icon } from '@lucide/astro';
-import ActionLink from '@moldea.ai/website-ui/action-link';
+import {
+  ArrowRight,
+  Bot,
+  BrainCircuit,
+  Braces,
+  GitBranch,
+  Link2,
+  RefreshCw,
+  Search,
+} from '@lucide/astro';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
-import { withBase } from '@moldea.ai/website-ui/site';
 
-import { EVIDENCE_ROUTE } from '../../lib/model/constants.ts';
+const agentStrengths = [
+  { icon: Search, title: 'Reads the repository' },
+  { icon: BrainCircuit, title: 'Remembers useful context' },
+  { icon: Braces, title: 'Builds the requested change' },
+] as const;
 
-const outcomes = [
+const durableOutcomes = [
   {
     description:
-      'Canonical project truth stays in Git, where it can survive a session ending, a teammate leaving, or the team changing compatible coding-agent hosts.',
+      'Reviewed context stays with the project and can guide every supported coding agent.',
     icon: GitBranch,
-    title: 'Memory that outlives the session',
+    label: 'Project truth',
+    title: 'The project owns the truth',
   },
   {
-    description:
-      'Relevant changes trigger evidence-based reconsideration of context, instructions, contracts, and implementation without rewriting surfaces that remain correct.',
+    description: 'Rules point to the instructions, tools, code, and tests that may need attention.',
+    icon: Link2,
+    label: 'Explicit connections',
+    title: 'Every connection is explicit',
+  },
+  {
+    description: 'The same files produce the same result, with evidence the team can inspect.',
     icon: RefreshCw,
-    title: 'Behavior that evolves with the code',
+    label: 'Deterministic checks',
+    title: 'Validation does not depend on memory',
   },
-  {
-    description:
-      'Structure and supported runtime relationships receive deterministic evidence, while semantic conclusions remain explicit coding-agent assessments.',
-    icon: SearchCheck,
-    title: 'Verification beyond model confidence',
-  },
-] satisfies Array<{
-  description: string;
-  icon: typeof Icon;
-  title: string;
-}>;
-const basePath = import.meta.env.BASE_URL;
+] as const;
 ---
 
 <section
   id="why-moldea"
-  class="scroll-mt-24 border-b border-border bg-background py-section-gap"
+  class="scroll-mt-24 border-b border-border bg-sidebar py-12 sm:py-16"
   aria-labelledby="why-moldea-title"
   data-why-moldea
 >
   <div class="page-shell">
-    <header class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-      <div class="max-w-5xl">
-        <p class="eyebrow mb-4">
-          Why <span class="normal-case"><InlineBrandText text="moldea" /></span> exists
-        </p>
+    <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
+      <div>
+        <p class="eyebrow mb-4">Can't my coding agent already do this?</p>
         <h2
           id="why-moldea-title"
-          class="section-title font-semibold"
+          class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
         >
-          Turn coding-agent work into durable <span class="md:whitespace-nowrap"
-            >project infrastructure.</span
-          >
+          Your coding agent can remember. Your project still needs a system.
         </h2>
       </div>
-      <ActionLink
-        class="font-bold shadow-surface"
-        href={withBase(EVIDENCE_ROUTE, basePath)}
-        size="lg"
-        variant="outline"
-      >
-        See evidence
-        <ArrowRight
-          class="size-4"
-          aria-hidden="true"
+      <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+        Memory can recall useful context. <InlineBrandText
+          text="moldea makes the source of truth, relationships, deterministic validation, and evidence part of the repository."
         />
-      </ActionLink>
+      </p>
     </header>
 
-    <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(20rem,0.85fr)_minmax(0,1.15fr)]">
-      <div
-        class="surface-card flex flex-col p-6 sm:p-7 lg:h-full"
-        data-why-moldea-narrative
+    <div
+      class="-mx-4 mt-8 grid overflow-hidden border-y border-border bg-border sm:mx-0 sm:rounded-2xl sm:border sm:shadow-raised lg:grid-cols-[minmax(0,0.86fr)_4rem_minmax(0,1.14fr)]"
+      data-why-moldea-comparison
+    >
+      <article
+        class="dark-surface-selection flex min-w-0 flex-col bg-primary p-5 text-primary-foreground sm:p-7"
       >
-        <p class="leading-7">
-          Your coding agent can inspect a repository, write instructions, and add checks.
-          <InlineBrandText
-            text="moldea turns those results into a shared system: Git-owned project memory, explicit relationships between behavior and implementation, and deterministic validation the next session can use."
-          />
-        </p>
-        <p
-          class="mt-4 border-t border-border pt-4 text-sm leading-6 text-muted-foreground lg:mt-auto"
+        <div class="flex items-center gap-3">
+          <span
+            class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/10"
+          >
+            <Bot
+              class="size-5"
+              aria-hidden="true"
+            />
+          </span>
+          <div>
+            <p class="text-xs font-semibold tracking-[0.12em] text-primary-foreground/60 uppercase">
+              What coding agents already do
+            </p>
+            <h3 class="mt-1 text-lg font-semibold">Capable work inside the session</h3>
+          </div>
+        </div>
+
+        <ul
+          class="mt-6 grid border-y border-primary-foreground/15"
+          aria-label="What coding agents already do"
         >
-          Without a common format and operating method, every team has to define and maintain its
-          own conventions, validators, runtime analyzers, and handoff process. <InlineBrandText
-            text="moldea provides those foundations as an open system."
-          />
+          {
+            agentStrengths.map(({ icon: StrengthIcon, title }) => (
+              <li class="flex items-center gap-3 border-b border-primary-foreground/15 py-4 last:border-b-0">
+                <span class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10">
+                  <StrengthIcon
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="text-sm font-semibold">{title}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="mt-auto pt-6 text-sm leading-6 text-primary-foreground/65">
+          Memory makes this work faster and better informed.
         </p>
+      </article>
+
+      <div
+        class="flex items-center justify-center bg-background py-3 lg:py-0"
+        aria-hidden="true"
+      >
+        <span
+          class="inline-flex size-9 rotate-90 items-center justify-center rounded-full border border-border bg-background shadow-surface lg:rotate-0"
+        >
+          <ArrowRight class="size-4" />
+        </span>
       </div>
 
-      <ol
-        class="grid gap-3 lg:h-full lg:grid-rows-3"
-        data-why-moldea-outcomes
-      >
-        {
-          outcomes.map(({ description, icon: OutcomeIcon, title }, index) => (
-            <li class="surface-card grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)_auto] items-start gap-x-4 p-4">
-              <span class="row-span-2 inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-                <OutcomeIcon
-                  class="size-5"
-                  aria-hidden="true"
-                />
-              </span>
-              <h3 class="min-w-0 text-lg leading-6 font-semibold tracking-tight">{title}</h3>
-              <span class="font-mono text-xs font-bold text-muted-foreground">0{index + 1}</span>
-              <p class="col-span-2 col-start-2 mt-2 text-sm leading-5 text-muted-foreground">
-                {description}
-              </p>
-            </li>
-          ))
-        }
-      </ol>
+      <div class="min-w-0 bg-background">
+        <div class="border-b border-border p-5 sm:px-6 sm:py-5">
+          <p class="eyebrow">What the project still needs</p>
+          <p class="mt-1 text-lg font-semibold">Rules and proof the team can inspect</p>
+        </div>
+        <ol
+          class="divide-y divide-border"
+          aria-label="What the skill adds"
+        >
+          {
+            durableOutcomes.map(({ description, icon: OutcomeIcon, label, title }) => (
+              <li class="grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 p-5 sm:p-6">
+                <span class="row-span-3 inline-flex size-10 items-center justify-center rounded-xl bg-muted">
+                  <OutcomeIcon
+                    class="size-5"
+                    aria-hidden="true"
+                  />
+                </span>
+                <p class="eyebrow">{label}</p>
+                <h3 class="mt-1 font-semibold">{title}</h3>
+                <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
     </div>
+
+    <p class="mt-6 max-w-4xl text-sm leading-6 text-muted-foreground">
+      <InlineBrandText
+        text="moldea makes these safeguards part of the project. Without it, your team still has to choose how context is saved, map every connection, write the checks, and keep the evidence current."
+      />
+    </p>
   </div>
 </section>

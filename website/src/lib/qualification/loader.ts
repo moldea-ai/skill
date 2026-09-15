@@ -294,6 +294,7 @@ const loadProfileCase = (
   profileCase: IProfile['cases'][number],
   catalogCase: ICaseCatalogEntry,
   revision: string,
+  sourceProfileDigest: string,
 ): IQualificationProfileCaseModel => {
   const projectDirectory = resolveContainedPath(profileDirectory, profileCase.projectDirectory);
   const scenarioPath = resolveContainedPath(projectDirectory, profileCase.scenarioFile);
@@ -325,6 +326,7 @@ const loadProfileCase = (
       'blob',
       revision,
     ),
+    sourceProfileDigest,
     task: removeLeadingMarkdownTitle(readFileSync(taskPath, 'utf8')),
     taskSourceUrl: createSourceUrl(
       getRepositoryRelativePath(repositoryRoot, taskPath),
@@ -1022,12 +1024,20 @@ const loadProfile = (
     }
   }
 
+  const sourceProfileDigest = calculateCurrentProfileDigest(profileDirectory);
   const cases = profile.cases.map((profileCase) => {
     const catalogCase = catalog.get(profileCase.id);
 
     if (!catalogCase) throw new Error(`Qualification profile references an unknown catalog case.`);
 
-    return loadProfileCase(repositoryRoot, profileDirectory, profileCase, catalogCase, revision);
+    return loadProfileCase(
+      repositoryRoot,
+      profileDirectory,
+      profileCase,
+      catalogCase,
+      revision,
+      sourceProfileDigest,
+    );
   });
   const { attempts, latest } = loadAttempts(
     repositoryRoot,
@@ -1036,7 +1046,7 @@ const loadProfile = (
     target.key,
     profile.adapterId,
     profile.implementationId,
-    calculateCurrentProfileDigest(profileDirectory),
+    sourceProfileDigest,
     evidenceSource,
     isAuthenticatedSource,
     revision,

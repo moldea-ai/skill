@@ -1,0 +1,214 @@
+---
+import { ArrowRight, Bot, ExternalLink, FileCheck, Search, ShieldCheck } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import BaseLayout from '../../layouts/base-layout.astro';
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+import { SOURCE_REPOSITORY_URL } from '../../lib/model/constants.ts';
+import { getQualificationReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
+
+const model = loadWebsiteModel();
+const { qualification } = model;
+const basePath = import.meta.env.BASE_URL;
+const profilesWithSummary = qualification.profiles.map((profile) => ({
+  profile,
+  summary: getQualificationReleaseEvidenceSummary(profile),
+}));
+const breadcrumbs = [
+  { href: '/', label: 'Home' },
+  { href: '/evidence/', label: 'Evidence' },
+  { label: 'Qualification' },
+];
+const proofSteps = [
+  {
+    description: 'Find the provider or coding-agent library used by your project.',
+    icon: Search,
+    title: 'Choose your integration',
+  },
+  {
+    description: 'Open any recorded task and see what the coding agent did.',
+    icon: Bot,
+    title: 'Follow a journey',
+  },
+  {
+    description: 'Inspect the project changes, checks, and independent verdict.',
+    icon: ShieldCheck,
+    title: 'Inspect the result',
+  },
+] as const;
+---
+
+<BaseLayout
+  title="Adapter qualification evidence"
+  description="Explore realistic project journeys that prove moldea works with each supported coding-agent integration."
+  {breadcrumbs}
+>
+  <div class="page-shell pt-7">
+    <Breadcrumbs
+      basePath={basePath}
+      items={breadcrumbs}
+    />
+  </div>
+
+  <header class="mt-6 border-y border-border">
+    <div
+      class="page-shell grid gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,0.85fr)_minmax(30rem,1.15fr)] lg:items-center lg:py-20"
+    >
+      <div>
+        <p class="eyebrow mb-4">Adapter qualification</p>
+        <h1 class="section-title font-semibold">Choose the integration in your project.</h1>
+        <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+          Each result keeps every recorded journey together, from the developer request to the
+          checked project changes. Qualification does not call the provider API or run the project’s
+          own AI agent.
+        </p>
+        <ActionLink
+          class="mt-8 font-bold"
+          href="#qualification-profiles"
+          size="lg"
+        >
+          Browse the results
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+      </div>
+
+      <ol class="surface-card overflow-hidden shadow-raised sm:grid sm:grid-cols-3">
+        {
+          proofSteps.map(({ description, icon: StepIcon, title }, index) => (
+            <li class="relative border-b border-border p-5 last:border-b-0 sm:border-r sm:border-b-0 sm:p-6 sm:last:border-r-0">
+              <div class="flex items-center justify-between gap-3">
+                <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
+                  <StepIcon
+                    class="size-5"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="font-mono text-xs font-bold text-muted-foreground">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+              </div>
+              <h2 class="mt-5 text-lg font-semibold">{title}</h2>
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <section
+      id="qualification-profiles"
+      class="scroll-mt-24 py-14 sm:py-18"
+      aria-labelledby="qualification-profiles-title"
+    >
+      <div class="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(20rem,0.45fr)] lg:items-end">
+        <div>
+          <p class="eyebrow mb-3">Choose your integration</p>
+          <h2
+            id="qualification-profiles-title"
+            class="text-3xl font-semibold tracking-tight sm:text-4xl"
+          >
+            Pick one result. Every journey is on the next page.
+          </h2>
+        </div>
+        <p class="leading-7 text-muted-foreground lg:justify-self-end">
+          Select the provider or library you use. You can return here at any time to switch.
+        </p>
+      </div>
+
+      <div
+        class="mt-8 divide-y divide-border border-y border-border sm:grid sm:grid-cols-2 sm:gap-3 sm:divide-y-0 sm:border-y-0 xl:grid-cols-3"
+      >
+        {
+          profilesWithSummary.map(({ profile, summary }) => {
+            const shortTitle = profile.title.replace(/ qualification$/u, '');
+            const journeyLabel = `${profile.cases.length + profile.sharedCases.length} project journeys`;
+            return (
+              <a
+                class="group sm:interactive-card grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-4 sm:flex sm:flex-col sm:items-stretch sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-5 sm:shadow-surface"
+                href={withBase(profile.route, basePath)}
+                aria-label={profile.title}
+              >
+                <AdapterCompanyLogo adapterId={profile.adapterId} />
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="text-base leading-6 font-semibold">{shortTitle}</h3>
+                    <span class="hidden sm:inline-flex">
+                      <EvidenceStatus status={summary.status} />
+                    </span>
+                  </div>
+                  <p class="mt-1 text-xs leading-5 text-muted-foreground sm:mt-2">{journeyLabel}</p>
+                </div>
+                <ArrowRight
+                  class="size-4 text-link transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none sm:hidden"
+                  aria-hidden="true"
+                />
+                <span class="mt-4 hidden items-center gap-2 text-link border-t border-border pt-3 text-sm font-semibold sm:inline-flex">
+                  Open this result
+                  <ArrowRight
+                    class="size-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none"
+                    aria-hidden="true"
+                  />
+                </span>
+              </a>
+            );
+          })
+        }
+      </div>
+      <p class="mt-5 text-xs leading-5 text-muted-foreground">
+        Company names and marks belong to their respective owners. Compatibility does not imply
+        endorsement.
+      </p>
+    </section>
+
+    <section class="border-t border-border py-12">
+      <details class="rounded-2xl border border-border bg-card p-5 sm:p-6">
+        <summary
+          class="cursor-pointer font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        >
+          How qualification works and where the evidence comes from
+        </summary>
+        <div class="mt-5 border-t border-border pt-5">
+          <p class="max-w-3xl leading-7 text-muted-foreground">
+            The technical record includes transparent fixture projects, deterministic checks, exact
+            package versions, model configuration, immutable artifacts, and release provenance.
+          </p>
+          <div class="mt-5 flex flex-wrap gap-3">
+            <ActionLink
+              class="font-bold"
+              href={withBase('/docs/adapter-qualification/', basePath)}
+              variant="outline"
+            >
+              Read the methodology
+              <FileCheck
+                class="size-4"
+                aria-hidden="true"
+              />
+            </ActionLink>
+            <ActionLink
+              class="font-bold"
+              href={`${SOURCE_REPOSITORY_URL}/tree/main/qualification`}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outline"
+            >
+              Inspect qualification source
+              <ExternalLink
+                class="size-4"
+                aria-hidden="true"
+              />
+            </ActionLink>
+          </div>
+        </div>
+      </details>
+    </section>
+  </div>
+</BaseLayout>

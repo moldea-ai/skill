@@ -1,0 +1,190 @@
+---
+import { UserRound } from '@lucide/astro';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
+import Dialog from '@moldea.ai/website-ui/dialog';
+import FilePreview from '@moldea.ai/website-ui/file-preview';
+import TabbedPanels from '@moldea.ai/website-ui/tabbed-panels';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import {
+  getLandingExampleFile,
+  LANDING_EXAMPLE,
+  LANDING_EXAMPLE_INITIAL_FILES,
+} from '../../lib/landing-example/index.ts';
+
+const SOURCE_TABS = [
+  { id: 'agent-code', label: 'Code', slotName: 'agent-code' },
+  { id: 'instructions', label: 'Instructions', slotName: 'instructions' },
+  { id: 'connections', label: 'Links', slotName: 'connections' },
+] as const;
+const agentSource = getLandingExampleFile(
+  LANDING_EXAMPLE_INITIAL_FILES,
+  LANDING_EXAMPLE.paths.agent,
+);
+const instructionHtml = await renderMarkdownFragment(
+  getLandingExampleFile(LANDING_EXAMPLE_INITIAL_FILES, LANDING_EXAMPLE.paths.instruction),
+);
+const manifestSource = getLandingExampleFile(
+  LANDING_EXAMPLE_INITIAL_FILES,
+  LANDING_EXAMPLE.paths.manifest,
+);
+// show the runtime call without its surrounding imports and function declaration
+const agentFunction = agentSource
+  .slice(agentSource.indexOf('  client.responses.create'))
+  .replace(/^ {2}/gmu, '');
+const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_URL);
+---
+
+<article
+  class="min-w-0"
+  aria-label="Illustrative support agent project"
+  data-agent-example
+>
+  <ol
+    class="relative grid gap-4"
+    aria-label="Developer and coding agent conversation"
+    data-agent-conversation
+  >
+    <li
+      class="relative flex max-w-[92%] items-start gap-3 sm:max-w-none"
+      data-user-message
+    >
+      <span
+        class="absolute top-9 -bottom-4 left-[1.125rem] w-px bg-border"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="dark-surface-selection relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+        aria-hidden="true"
+      >
+        <UserRound
+          class="size-4"
+          aria-hidden="true"
+        />
+      </span>
+      <div
+        class="rounded-2xl rounded-tl-sm border border-border bg-background px-4 py-3 shadow-surface"
+      >
+        <p class="mb-1 text-xs font-semibold text-muted-foreground">You</p>
+        <p
+          class="text-sm leading-6 font-medium sm:whitespace-nowrap lg:whitespace-normal xl:whitespace-nowrap"
+          data-user-request
+        >
+          Create a <code class="inline-code">support</code> agent using our refund policy and existing
+          order lookup.
+        </p>
+      </div>
+    </li>
+    <li
+      class="flex min-w-0 items-start gap-3"
+      data-agent-response
+    >
+      <span
+        class="relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"
+      >
+        <img
+          src={skillMarkPath}
+          width="207"
+          height="215"
+          alt=""
+          class="h-5 w-auto dark:invert"
+          data-agent-response-mark
+        />
+      </span>
+      <div class="min-w-0 flex-1">
+        <div
+          class="overflow-hidden rounded-2xl rounded-tl-sm border border-border bg-card p-3 shadow-raised sm:p-5"
+        >
+          <p class="mb-1 text-xs font-semibold text-muted-foreground">Coding agent</p>
+          <p
+            class="mb-3 text-sm leading-6 font-medium"
+            data-agent-message
+          >
+            I created the <code class="inline-code">support</code> agent and connected everything it needs.
+          </p>
+          <div
+            class="[&_[data-tabbed-panel]]:pt-3 [&_[data-tabbed-panels-root]]:gap-0"
+            data-agent-files
+          >
+            <TabbedPanels
+              ariaLabel="Illustrative project files"
+              id="landing-agent-files"
+              items={SOURCE_TABS}
+            >
+              <div slot="agent-code">
+                <FilePreview path="src/agent.ts">
+                  <div
+                    class="h-48 overflow-auto p-4"
+                    data-agent-source
+                  >
+                    <CodeBlock
+                      ariaLabel="Support agent source"
+                      copyable={false}
+                      language="typescript"
+                      source={agentFunction}
+                      variant="plain"
+                    />
+                  </div>
+                </FilePreview>
+              </div>
+              <div slot="instructions">
+                <FilePreview path="moldea/agents/support/instruction.md">
+                  <div
+                    class="prose-moldea h-48 overflow-auto p-4 text-sm leading-6 [&_p]:my-0 [&_p+p]:mt-3"
+                    aria-label="Support agent instructions"
+                    tabindex="0"
+                    set:html={instructionHtml}
+                  />
+                </FilePreview>
+              </div>
+              <div slot="connections">
+                <FilePreview path="moldea/moldea.yaml">
+                  <span
+                    slot="status"
+                    class="inline-flex [&_[data-dialog-trigger]]:size-5 [&_[data-dialog-trigger]_svg]:size-3.5"
+                  >
+                    <Dialog
+                      id="landing-connections-source"
+                      title="Links"
+                      triggerLabel="Open connections file"
+                      triggerAriaLabel="Open the complete connections file in a larger view"
+                      triggerVariant="ghost"
+                      triggerSize="icon-xs"
+                      size="medium"
+                      closeLabel="Close connections file"
+                      isOverlayCloseEnabled
+                    >
+                      <FilePreview path="moldea/moldea.yaml">
+                        <div
+                          class="h-[calc(100dvh-9rem)] overflow-auto p-4 sm:h-auto sm:max-h-[26rem]"
+                        >
+                          <CodeBlock
+                            ariaLabel="Complete connections file"
+                            copyable={false}
+                            language="yaml"
+                            source={manifestSource}
+                            variant="plain"
+                          />
+                        </div>
+                      </FilePreview>
+                    </Dialog>
+                  </span>
+                  <div class="h-48 overflow-auto p-4">
+                    <CodeBlock
+                      ariaLabel="Support agent connections"
+                      copyable={false}
+                      language="yaml"
+                      source={manifestSource}
+                      variant="plain"
+                    />
+                  </div>
+                </FilePreview>
+              </div>
+            </TabbedPanels>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ol>
+</article>

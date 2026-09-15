@@ -1,12 +1,14 @@
 ---
-title: What the skill can do
-navigationTitle: Capabilities
-description: A complete guide to planning, initialization, agent and skill design, maintenance, evaluation, reconciliation, and validation.
+title: Capability reference
+navigationTitle: Capability reference
+description: Technical reference for planning, initialization, agent and skill design, maintenance, evaluation, reconciliation, and validation.
 section: start
 order: 20
 ---
 
 # What `moldea` can do
+
+Start with the [visual Capabilities page](/capabilities/) to see each outcome through a project example. This reference explains the exact behavior and boundaries.
 
 `moldea` gives a capable coding agent a disciplined way to manage project context and agent behavior. The operations below are outcomes you can request naturally.
 
@@ -89,6 +91,12 @@ Reconciliation starts from the same evidence model as evaluation, establishes in
 ## Validate structure
 
 Validation runs the deterministic repository-local structural boundary. It proves format and registered relationship validity, but it does not claim semantic alignment or production readiness.
+
+## Repair a project
+
+When an initialized project has broken, missing, stale, or incomplete `moldea` state, ask the coding agent to `Fix moldea`. The coding agent establishes the current failure from project evidence, repairs the smallest coherent surface, and verifies the result before reporting completion.
+
+Repair does not silently initialize an unadopted project, invent policy, upgrade dependencies, or hide unresolved ambiguity. See [the evaluation and repair workflow](/docs/evaluate-reconcile-validate/#repair-a-project) for the complete contract.
 
 ## Work across dedicated repositories
 

@@ -1,0 +1,885 @@
+---
+import {
+  ArrowDown,
+  ArrowRight,
+  Bot,
+  Check,
+  FileCheck,
+  FileCode,
+  FileText,
+  GitBranch,
+  Link2,
+  Search,
+  ShieldCheck,
+  Terminal,
+  UserRound,
+} from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import BaseLayout from '../../layouts/base-layout.astro';
+import { PRODUCT_PAGE_METADATA } from '../../lib/model/constants.ts';
+
+const basePath = import.meta.env.BASE_URL;
+const pageMetadata = PRODUCT_PAGE_METADATA.howItWorks;
+const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
+const connectionItems = [
+  {
+    icon: FileText,
+    label: 'Agent guidance',
+    path: 'instruction.md',
+    title: 'Offer only returned time slots',
+  },
+  {
+    icon: Terminal,
+    label: 'Availability tool',
+    path: 'get-availability',
+    title: 'Read open times from the service',
+  },
+  {
+    icon: ShieldCheck,
+    label: 'Software guardrail',
+    path: 'booking-service.ts',
+    title: 'Hold same-day requests for staff',
+  },
+  {
+    icon: FileCheck,
+    label: 'Project checks',
+    path: 'booking.test-unit.ts',
+    title: 'Protect availability and approval',
+  },
+] as const;
+---
+
+<BaseLayout
+  title={pageMetadata.title}
+  description={pageMetadata.description}
+>
+  <header class="border-b border-border bg-background sm:border-y">
+    <div
+      class="page-shell grid items-center gap-10 py-10 sm:py-16 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:gap-12 lg:py-20"
+    >
+      <div
+        class="min-w-0"
+        data-workflow-hero-copy
+      >
+        <p class="eyebrow mb-4">How it works</p>
+        <h1 class="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
+          Your request is one sentence. The work stays connected.
+        </h1>
+        <p class="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+          <InlineBrandText
+            text="moldea helps your coding agent find the project rules behind a task, follow every affected connection, and prove the result before it says it is done."
+          />
+        </p>
+        <div class="mt-7 flex flex-wrap gap-3">
+          <ActionLink
+            class="font-bold shadow-raised"
+            href="#project-context"
+            size="lg"
+          >
+            Follow the workflow
+            <ArrowDown
+              class="size-4"
+              aria-hidden="true"
+            />
+          </ActionLink>
+          <ActionLink
+            class="font-bold"
+            href={withBase('/docs/how-it-works/', basePath)}
+            size="lg"
+            variant="outline"
+          >
+            Read the technical guide
+          </ActionLink>
+        </div>
+      </div>
+
+      <ol
+        class="relative grid gap-4"
+        aria-label="Developer and coding agent booking conversation"
+        data-workflow-conversation
+      >
+        <li class="relative flex max-w-2xl items-start gap-3">
+          <span
+            class="absolute top-9 -bottom-4 left-[1.125rem] w-px bg-border"
+            aria-hidden="true"
+          ></span>
+          <span
+            class="dark-surface-selection relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+            aria-hidden="true"
+          >
+            <UserRound
+              class="size-4"
+              aria-hidden="true"
+            />
+          </span>
+          <div
+            class="rounded-2xl rounded-tl-sm border border-border bg-card px-4 py-3 shadow-surface"
+          >
+            <p class="text-xs font-semibold text-muted-foreground">You</p>
+            <p class="mt-1 text-sm leading-6 font-medium sm:text-base">
+              Make our booking assistant offer only available times and send same-day requests to
+              staff.
+            </p>
+          </div>
+        </li>
+        <li class="flex min-w-0 items-start gap-3">
+          <span
+            class="relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"
+            aria-hidden="true"
+          >
+            <img
+              src={skillMarkPath}
+              width="207"
+              height="215"
+              alt=""
+              class="h-5 w-auto dark:invert"
+            />
+          </span>
+          <article
+            class="min-w-0 flex-1 overflow-hidden rounded-2xl rounded-tl-sm border border-border bg-card shadow-raised"
+          >
+            <div class="px-4 pt-3 pb-4 sm:px-5 sm:pt-4">
+              <p class="text-xs font-semibold text-muted-foreground">Coding agent</p>
+              <p class="mt-1 text-sm leading-6 font-medium sm:text-base">
+                I connected live availability, kept same-day approval in the scheduling service, and
+                checked the complete flow.
+              </p>
+            </div>
+            <dl class="grid border-t border-border sm:grid-cols-3 sm:divide-x sm:divide-border">
+              <div class="px-4 py-3 sm:px-4">
+                <dt class="text-xs text-muted-foreground">Context</dt>
+                <dd class="mt-1 text-sm font-semibold">The right rules found</dd>
+              </div>
+              <div class="border-t border-border px-4 py-3 sm:border-t-0 sm:px-4">
+                <dt class="text-xs text-muted-foreground">Connections</dt>
+                <dd class="mt-1 text-sm font-semibold">Four parts followed</dd>
+              </div>
+              <div class="border-t border-border px-4 py-3 sm:border-t-0 sm:px-4">
+                <dt class="text-xs text-muted-foreground">Proof</dt>
+                <dd
+                  class="mt-1 flex items-center gap-1.5 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
+                >
+                  <Check
+                    class="size-4 shrink-0"
+                    aria-hidden="true"
+                  />Checks passed
+                </dd>
+              </div>
+            </dl>
+          </article>
+        </li>
+      </ol>
+    </div>
+  </header>
+
+  <section
+    id="project-context"
+    class="scroll-mt-24 border-b border-border bg-elevated py-12 sm:py-16"
+    aria-labelledby="project-context-title"
+    data-workflow-stage="project-context"
+  >
+    <div
+      class="page-shell grid gap-8 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:items-center lg:gap-14"
+    >
+      <div>
+        <p class="eyebrow mb-3">01 Understand</p>
+        <h2
+          id="project-context-title"
+          class="text-3xl font-semibold tracking-tight sm:text-4xl"
+        >
+          Find the rules behind the request.
+        </h2>
+        <p class="mt-4 text-base leading-7 text-muted-foreground">
+          The coding agent starts with the project facts that matter for this task. It learns who
+          owns each decision before it changes a prompt or a line of code.
+        </p>
+        <div class="mt-5">
+          <ActionLink
+            class="font-bold"
+            href={withBase('/docs/project-state/', basePath)}
+            variant="link"
+          >
+            Project state guide
+            <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            />
+          </ActionLink>
+        </div>
+      </div>
+
+      <div
+        class="-mx-4 border-y border-border bg-background sm:mx-0 sm:overflow-hidden sm:rounded-2xl sm:border sm:shadow-raised"
+        data-context-selection
+      >
+        <div class="grid md:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]">
+          <div
+            class="flex items-center gap-3 bg-muted/40 px-4 py-4 md:flex-col md:items-start md:border-e md:border-border md:px-6 md:py-6"
+          >
+            <span
+              class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-background shadow-surface"
+            >
+              <Search
+                class="size-5"
+                aria-hidden="true"
+              />
+            </span>
+            <div class="min-w-0 md:mt-4">
+              <p class="text-xs text-muted-foreground">Selected for this request</p>
+              <h3 class="mt-0.5 text-base font-semibold">Two project rules</h3>
+              <p class="mt-3 hidden text-xs leading-5 text-muted-foreground md:block">
+                Unrelated project notes stay out of the task.
+              </p>
+            </div>
+            <span
+              class="ms-auto inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-emerald-800 md:ms-0 md:mt-auto md:pt-6 dark:text-emerald-200"
+            >
+              <Check
+                class="size-3.5"
+                aria-hidden="true"
+              />Relevant
+            </span>
+          </div>
+          <ol
+            class="divide-y divide-border border-t border-border md:border-t-0"
+            aria-label="Project rules selected for the request"
+          >
+            <li class="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-3 px-4 py-4 sm:px-6 sm:py-5">
+              <Check
+                class="mt-0.5 size-4 text-emerald-700 dark:text-emerald-300"
+                aria-hidden="true"
+              />
+              <div class="min-w-0">
+                <code class="text-xs text-muted-foreground">moldea/context/booking-policy.md</code>
+                <p class="mt-2 text-sm font-semibold">Same-day requests need staff approval.</p>
+                <p class="mt-1.5 text-xs leading-5 text-muted-foreground">
+                  The assistant can explain the status. It cannot approve the booking.
+                </p>
+              </div>
+            </li>
+            <li class="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-3 px-4 py-4 sm:px-6 sm:py-5">
+              <Check
+                class="mt-0.5 size-4 text-emerald-700 dark:text-emerald-300"
+                aria-hidden="true"
+              />
+              <div class="min-w-0">
+                <code class="text-xs text-muted-foreground">moldea/project.md</code>
+                <p class="mt-2 text-sm font-semibold">
+                  The scheduling service enforces availability and approval state.
+                </p>
+                <p class="mt-1.5 text-xs leading-5 text-muted-foreground">
+                  Staff makes the approval decision. Software keeps the boundary.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section
+    id="connections"
+    class="scroll-mt-24 border-b border-border bg-background py-12 sm:py-16"
+    aria-labelledby="connections-title"
+    data-workflow-stage="connections"
+  >
+    <div class="page-shell">
+      <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
+        <div>
+          <p class="eyebrow mb-3">02 Connect</p>
+          <h2
+            id="connections-title"
+            class="text-3xl font-semibold tracking-tight sm:text-4xl"
+          >
+            See the complete change before editing.
+          </h2>
+        </div>
+        <p class="text-base leading-7 text-muted-foreground">
+          The relationships in <code class="inline-code">moldea.yaml</code> show which parts of the project
+          may be affected. Each connection is a reason to inspect, not an instruction to rewrite.
+        </p>
+      </header>
+
+      <div
+        class="-mx-4 mt-8 overflow-hidden border-y border-border bg-card sm:mx-0 sm:rounded-2xl sm:border sm:shadow-raised"
+        data-connection-map
+      >
+        <div
+          class="flex items-center justify-between gap-4 border-b border-border px-4 py-3 sm:px-6"
+        >
+          <div class="flex min-w-0 items-center gap-2.5">
+            <Link2
+              class="size-4 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <code class="truncate text-xs font-semibold sm:text-sm">moldea/moldea.yaml</code>
+          </div>
+          <span class="shrink-0 text-xs font-semibold text-emerald-800 dark:text-emerald-200"
+            >4 links found</span
+          >
+        </div>
+        <div
+          class="relative grid lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-stretch"
+        >
+          <article class="bg-elevated p-5 sm:p-6 lg:border-e lg:border-border">
+            <span
+              class="dark-surface-selection inline-flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-surface"
+            >
+              <Bot
+                class="size-5"
+                aria-hidden="true"
+              />
+            </span>
+            <p class="eyebrow mt-5">Requested outcome</p>
+            <h3 class="mt-2 text-lg leading-7 font-semibold">
+              A booking assistant with safe boundaries
+            </h3>
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">
+              Offer real availability. Keep same-day approval with staff.
+            </p>
+          </article>
+
+          <div
+            class="flex items-center justify-center border-y border-border bg-background py-2.5 text-muted-foreground lg:hidden"
+            aria-hidden="true"
+          >
+            <ArrowDown class="size-4" />
+          </div>
+
+          <span
+            class="absolute top-1/2 left-[36%] z-10 hidden size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-surface lg:inline-flex"
+            aria-hidden="true"
+          >
+            <ArrowRight class="size-4" />
+          </span>
+
+          <ol
+            class="divide-y divide-border bg-background"
+            aria-label="Parts connected to the booking assistant"
+          >
+            {
+              connectionItems.map(({ icon: ConnectionIcon, label, path, title }) => (
+                <li
+                  class="grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-3.5 sm:px-5"
+                  data-connection-item
+                >
+                  <span class="row-span-2 inline-flex size-9 items-center justify-center rounded-lg bg-muted">
+                    <ConnectionIcon
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <p class="text-xs font-semibold text-muted-foreground">{label}</p>
+                  <Check
+                    class="row-span-2 size-4 text-emerald-700 dark:text-emerald-300"
+                    aria-hidden="true"
+                  />
+                  <div class="mt-0.5 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <h3 class="text-sm font-semibold">{title}</h3>
+                    <code class="text-xs text-muted-foreground">{path}</code>
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+        <p
+          class="flex items-center justify-center gap-2 border-t border-border bg-emerald-600/10 px-4 py-3 text-center text-sm font-semibold text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200"
+        >
+          <Check
+            class="size-4 shrink-0"
+            aria-hidden="true"
+          />Four affected parts found before the first edit.
+        </p>
+      </div>
+      <div class="mt-5">
+        <ActionLink
+          class="font-bold"
+          href={withBase('/docs/continuous-maintenance/', basePath)}
+          variant="link"
+        >
+          Continuous maintenance guide
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+      </div>
+    </div>
+  </section>
+
+  <section
+    id="connected-change"
+    class="dark-surface-selection scroll-mt-24 border-b border-border bg-primary py-12 text-primary-foreground sm:py-16"
+    aria-labelledby="connected-change-title"
+    data-workflow-stage="connected-change"
+  >
+    <div class="page-shell">
+      <header class="max-w-3xl">
+        <p class="eyebrow mb-3 text-primary-foreground/60">03 Change</p>
+        <h2
+          id="connected-change-title"
+          class="text-3xl font-semibold tracking-tight sm:text-4xl"
+        >
+          Update each owner once.
+        </h2>
+        <p class="mt-4 text-base leading-7 text-primary-foreground/70">
+          Software keeps the hard rule. Agent guidance explains it. Project context records the
+          responsibility so another session does not have to rediscover it.
+        </p>
+      </header>
+
+      <div
+        class="light-surface-selection -mx-4 mt-8 bg-primary-foreground text-primary sm:mx-0 sm:overflow-hidden sm:rounded-3xl sm:shadow-raised"
+        data-connected-change
+      >
+        <div class="flex items-start gap-3 px-4 py-5 sm:px-7 sm:py-6">
+          <span
+            class="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"
+            aria-hidden="true"
+          >
+            <img
+              src={skillMarkPath}
+              width="207"
+              height="215"
+              alt=""
+              class="h-5 w-auto"
+            />
+          </span>
+          <div class="min-w-0">
+            <p class="text-xs font-semibold text-primary/60">Coding agent</p>
+            <p class="mt-1 text-sm leading-6 font-medium sm:text-base">
+              I connected live availability, kept same-day requests pending for staff approval, and
+              updated the booking assistant to explain the result.
+            </p>
+          </div>
+        </div>
+        <div
+          class="grid border-t border-primary/10 md:grid-cols-3 md:divide-x md:divide-primary/10"
+        >
+          <article class="px-4 py-5 sm:px-7">
+            <div class="flex items-center gap-3">
+              <span
+                class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10"
+              >
+                <FileCode
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </span>
+              <div>
+                <p class="text-xs text-primary/60">Software</p>
+                <h3 class="mt-0.5 text-sm font-semibold">Enforces the approval path</h3>
+              </div>
+            </div>
+            <p class="mt-3 text-sm leading-6 text-primary/70">
+              Same-day requests remain pending until a staff member approves them.
+            </p>
+          </article>
+          <article class="border-t border-primary/10 px-4 py-5 sm:px-7 md:border-t-0">
+            <div class="flex items-center gap-3">
+              <span
+                class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10"
+              >
+                <Bot
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </span>
+              <div>
+                <p class="text-xs text-primary/60">Agent</p>
+                <h3 class="mt-0.5 text-sm font-semibold">Explains only verified options</h3>
+              </div>
+            </div>
+            <p class="mt-3 text-sm leading-6 text-primary/70">
+              The assistant offers times returned by the tool and explains pending approval.
+            </p>
+          </article>
+          <article class="border-t border-primary/10 px-4 py-5 sm:px-7 md:border-t-0">
+            <div class="flex items-center gap-3">
+              <span
+                class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10"
+              >
+                <FileText
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </span>
+              <div>
+                <p class="text-xs text-primary/60">Project truth</p>
+                <h3 class="mt-0.5 text-sm font-semibold">Records the ownership boundary</h3>
+              </div>
+            </div>
+            <p class="mt-3 text-sm leading-6 text-primary/70">
+              The scheduling service enforces the rule. Staff owns the approval decision.
+            </p>
+          </article>
+        </div>
+        <p
+          class="flex items-center gap-2 border-t border-primary/10 px-4 py-4 text-sm font-semibold text-emerald-700 sm:px-7"
+        >
+          <Check
+            class="size-4 shrink-0"
+            aria-hidden="true"
+          />Each rule keeps one owner. No duplicate prompt policy.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section
+    id="verification"
+    class="scroll-mt-24 border-b border-border bg-background py-12 sm:py-16"
+    aria-labelledby="verification-title"
+    data-workflow-stage="verification"
+  >
+    <div
+      class="page-shell grid gap-8 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:items-center lg:gap-14"
+    >
+      <div>
+        <p class="eyebrow mb-3">04 Prove</p>
+        <h2
+          id="verification-title"
+          class="text-3xl font-semibold tracking-tight sm:text-4xl"
+        >
+          Ask the right check for each claim.
+        </h2>
+        <p class="mt-4 text-base leading-7 text-muted-foreground">
+          One green result cannot prove every part of an agent system. Deterministic checks, project
+          tests, semantic evaluation, and adapter qualification each answer a different question.
+        </p>
+        <div class="mt-5 flex flex-wrap gap-x-5 gap-y-3">
+          <ActionLink
+            class="font-bold"
+            href={withBase('/docs/evaluate-reconcile-validate/', basePath)}
+            variant="link"
+          >
+            Evaluation guide
+            <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            />
+          </ActionLink>
+          <ActionLink
+            class="font-bold"
+            href={withBase('/evidence/', basePath)}
+            variant="link"
+          >
+            Inspect recorded evidence
+            <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            />
+          </ActionLink>
+        </div>
+      </div>
+
+      <div
+        class="-mx-4 border-y border-border bg-card sm:mx-0 sm:overflow-hidden sm:rounded-2xl sm:border sm:shadow-raised"
+        data-verification-board
+      >
+        <div
+          class="flex items-center justify-between gap-4 border-b border-border px-4 py-4 sm:px-6"
+        >
+          <div>
+            <p class="text-xs text-muted-foreground">Booking change</p>
+            <p class="mt-0.5 text-sm font-semibold">Four questions, four kinds of proof</p>
+          </div>
+          <span
+            class="inline-flex items-center gap-1.5 rounded-full bg-emerald-600/10 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200"
+          >
+            <Check
+              class="size-3.5"
+              aria-hidden="true"
+            />Complete
+          </span>
+        </div>
+        <div class="divide-y divide-border">
+          <article
+            class="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 px-4 py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)] sm:items-center sm:px-6"
+            data-verification-row="deterministic"
+          >
+            <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
+              <Link2
+                class="size-4"
+                aria-hidden="true"
+              />
+            </span>
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <p class="text-sm font-semibold">Do all declared connections resolve?</p>
+                <span class="shrink-0 text-xs font-semibold text-emerald-800 dark:text-emerald-200"
+                  >Passed</span
+                >
+              </div>
+              <p class="mt-1 text-xs leading-5 text-muted-foreground">
+                Deterministic validation returns the same answer for the same project state.
+              </p>
+            </div>
+          </article>
+          <article
+            class="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 px-4 py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)] sm:items-center sm:px-6"
+            data-verification-row="project"
+          >
+            <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
+              <FileCheck
+                class="size-4"
+                aria-hidden="true"
+              />
+            </span>
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <p class="text-sm font-semibold">Does the application enforce the rule?</p>
+                <span class="shrink-0 text-xs font-semibold text-emerald-800 dark:text-emerald-200"
+                  >Passed</span
+                >
+              </div>
+              <p class="mt-1 text-xs leading-5 text-muted-foreground">
+                Project tests block unavailable times and hold same-day requests.
+              </p>
+            </div>
+          </article>
+          <article
+            class="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 px-4 py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)] sm:items-center sm:px-6"
+            data-verification-row="semantic"
+          >
+            <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
+              <ShieldCheck
+                class="size-4"
+                aria-hidden="true"
+              />
+            </span>
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <p class="text-sm font-semibold">Did the coding agent respect the boundary?</p>
+                <span class="shrink-0 text-xs font-semibold text-emerald-800 dark:text-emerald-200"
+                  >Assessed</span
+                >
+              </div>
+              <p class="mt-1 text-xs leading-5 text-muted-foreground">
+                Semantic evaluation assesses the decision and the final report.
+              </p>
+            </div>
+          </article>
+          <article
+            class="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 px-4 py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)] sm:items-center sm:px-6"
+            data-verification-row="adapter"
+          >
+            <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
+              <Terminal
+                class="size-4"
+                aria-hidden="true"
+              />
+            </span>
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <p class="text-sm font-semibold">Does the runtime load the connection?</p>
+                <span class="shrink-0 text-xs font-semibold text-emerald-800 dark:text-emerald-200"
+                  >Qualified</span
+                >
+              </div>
+              <p class="mt-1 text-xs leading-5 text-muted-foreground">
+                Adapter qualification checks instruction loading and tool registration.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section
+    id="next-session"
+    class="scroll-mt-24 border-b border-border bg-elevated py-12 sm:py-16"
+    aria-labelledby="next-session-title"
+    data-workflow-stage="next-session"
+  >
+    <div class="page-shell">
+      <header class="max-w-3xl">
+        <p class="eyebrow mb-3">05 Carry forward</p>
+        <h2
+          id="next-session-title"
+          class="text-3xl font-semibold tracking-tight sm:text-4xl"
+        >
+          The next session starts with the result.
+        </h2>
+        <p class="mt-4 text-base leading-7 text-muted-foreground">
+          The rule, its owner, and its connections stay in the repository. A later coding agent can
+          use them without relying on hidden model memory or a perfect handoff.
+        </p>
+      </header>
+
+      <div
+        class="mt-8 grid gap-4 lg:grid-cols-[minmax(0,0.86fr)_auto_minmax(0,1.14fr)] lg:items-stretch"
+        data-next-session-visual
+      >
+        <article class="rounded-2xl border border-border bg-card p-5 shadow-surface sm:p-6">
+          <div class="flex items-center justify-between gap-4">
+            <p class="eyebrow">First session</p>
+            <span class="inline-flex size-9 items-center justify-center rounded-xl bg-muted">
+              <FileText
+                class="size-4"
+                aria-hidden="true"
+              />
+            </span>
+          </div>
+          <p class="mt-5 text-lg leading-7 font-semibold">
+            “Same-day bookings require staff approval.”
+          </p>
+          <dl class="mt-5 grid gap-3 border-t border-border pt-4 text-sm">
+            <div class="flex items-center justify-between gap-4">
+              <dt class="text-muted-foreground">Owner</dt>
+              <dd class="font-semibold">Scheduling service</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4">
+              <dt class="text-muted-foreground">Saved in</dt>
+              <dd><code class="font-semibold">booking-policy.md</code></dd>
+            </div>
+          </dl>
+        </article>
+
+        <div
+          class="flex items-center justify-center text-muted-foreground"
+          aria-hidden="true"
+        >
+          <ArrowRight class="hidden size-5 lg:block" />
+          <ArrowDown class="size-5 lg:hidden" />
+        </div>
+
+        <article
+          class="overflow-hidden rounded-2xl border border-border bg-card shadow-raised"
+          data-later-session-chat
+        >
+          <div
+            class="flex items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-6"
+          >
+            <p class="eyebrow">Later session</p>
+            <span class="inline-flex size-9 items-center justify-center rounded-xl bg-muted">
+              <GitBranch
+                class="size-4"
+                aria-hidden="true"
+              />
+            </span>
+          </div>
+          <ol
+            class="grid gap-4 px-4 py-5 sm:px-6 sm:py-6"
+            aria-label="Later booking conversation"
+          >
+            <li class="relative flex max-w-lg items-start gap-3">
+              <span
+                class="absolute top-9 -bottom-4 left-[1.125rem] w-px bg-border"
+                aria-hidden="true"
+              ></span>
+              <span
+                class="dark-surface-selection relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+                aria-hidden="true"
+              >
+                <UserRound
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </span>
+              <div
+                class="rounded-2xl rounded-tl-sm border border-border bg-background px-4 py-3 shadow-surface"
+                data-chat-message="request"
+              >
+                <p class="text-xs font-semibold text-muted-foreground">You</p>
+                <p class="mt-1 text-sm leading-6 font-medium">
+                  Add rescheduling to the booking assistant.
+                </p>
+              </div>
+            </li>
+            <li class="flex items-start gap-3">
+              <span
+                class="relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"
+                aria-hidden="true"
+              >
+                <img
+                  src={skillMarkPath}
+                  width="207"
+                  height="215"
+                  alt=""
+                  class="h-5 w-auto dark:invert"
+                />
+              </span>
+              <div
+                class="rounded-2xl rounded-tl-sm border border-border bg-background px-4 py-3 shadow-surface"
+                data-chat-message="response"
+              >
+                <p class="text-xs font-semibold text-muted-foreground">Coding agent</p>
+                <p class="mt-1 text-sm leading-6 font-medium">
+                  I’ll reuse live availability and preserve staff approval for same-day changes.
+                </p>
+              </div>
+            </li>
+          </ol>
+          <p
+            class="flex items-center gap-2 border-t border-border bg-emerald-600/10 px-5 py-4 text-sm font-semibold text-emerald-800 sm:px-6 dark:bg-emerald-400/10 dark:text-emerald-200"
+          >
+            <Check
+              class="size-4 shrink-0"
+              aria-hidden="true"
+            />Project memory, available when the next task needs it.
+          </p>
+        </article>
+      </div>
+      <div class="mt-5">
+        <ActionLink
+          class="font-bold"
+          href={withBase('/docs/how-it-works/', basePath)}
+          variant="link"
+        >
+          Read the technical workflow
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+      </div>
+    </div>
+  </section>
+
+  <section
+    class="dark-surface-selection bg-primary py-10 text-primary-foreground sm:py-12"
+    aria-labelledby="workflow-next-title"
+  >
+    <div class="page-shell flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p class="eyebrow mb-2 text-primary-foreground/60">See the result</p>
+        <h2
+          id="workflow-next-title"
+          class="text-2xl font-semibold tracking-tight"
+        >
+          Open the proof behind the workflow.
+        </h2>
+      </div>
+      <div class="flex flex-wrap gap-x-5 gap-y-3">
+        <ActionLink
+          class="font-bold"
+          href={withBase('/evidence/', basePath)}
+          variant="secondary"
+        >
+          Inspect the evidence
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+        <a
+          class="inline-flex min-h-10 items-center gap-2 px-1 text-sm font-bold text-primary-foreground link-feedback focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-foreground"
+          href={withBase('/capabilities/', basePath)}
+        >
+          Explore every capability
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          />
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -115,7 +115,7 @@ The numeric profile is source-controlled in `tooling/resource-calibration/profil
 
 | Outcome          | Example request                                                  |
 | ---------------- | ---------------------------------------------------------------- |
-| Initialize       | `Initialize moldea for this repository.`                         |
+| Initialize       | `Initialize moldea`                                              |
 | Plan             | `Plan the agents for this project's support-triage workflow.`    |
 | Create an agent  | `Create a support agent grounded in the current project policy.` |
 | Maintain context | `Update moldea context for the approved refund policy.`          |
@@ -164,6 +164,8 @@ moldea/
 
 ## Project blueprint
 
+Evidence presentation copy is bound to reviewed source and recorded-evidence digests, so stale examples fall back to source-owned wording.
+
 - `moldea/` is the complete distributed Agent Skill.
 - `docs/` contains concise public concepts and workflows. It does not document APIs or HTTP endpoints.
 - `tests/` and `fixtures/` contain deterministic conformance and semantic cases.
@@ -172,7 +174,7 @@ moldea/
 - `tooling/release-identity/` owns exact release identity plus the fresh or explicitly pinned evidence selection.
 - `tooling/relevance-gate/` generates the portable matcher from the locked Core API and dependencies, with license notices and only Node built-in runtime imports. Run `npm run matcher:generate` after changing its locked inputs and `npm run matcher:check` to verify committed output. The artifact has a 1 MiB build limit; it is executed rather than loaded into model context. Each gate reads one bounded manifest and needs no persistent cache.
 - `qualification/` owns adapter-specific qualification. Universal skill behavior runs once in the Custom profile; published adapters retain only adapter-specific probes and cases.
-- `website/` validates documentation and authenticated fresh or pinned evidence, then presents semantic decisions and combined adapter journeys with technical provenance behind progressive disclosure.
+- `website/` validates documentation and authenticated fresh or pinned evidence, then presents semantic decisions and combined adapter journeys with technical provenance behind progressive disclosure. Its shared layout formats reader-facing `moldea` mentions and adds copy controls to useful code blocks while allowing illustrative excerpts to opt out.
 - `.github/workflows/conformance.yml` runs portable correctness checks.
 - `.github/workflows/release-candidate.yml` validates exact package candidates without publishing them.
 

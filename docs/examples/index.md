@@ -10,6 +10,8 @@ order: 90
 
 Every example starts with what the developer says to the coding agent. That is the normal interface.
 
+Use [Capabilities](/capabilities/) for the broad visual overview or [How `moldea` works](/how-it-works/) for one connected journey. Return here when you want the complete interaction for a specific task.
+
 The “under the hood” section then shows how the coding agent uses `moldea` guidance, repository evidence, and deterministic local tooling. It is explanatory, not a second workflow you must learn.
 
 ## Examples

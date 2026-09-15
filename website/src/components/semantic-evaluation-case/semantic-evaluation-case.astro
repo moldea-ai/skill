@@ -1,16 +1,17 @@
 ---
-import { ChevronDown } from '@lucide/astro';
+import Accordion from '@moldea.ai/website-ui/accordion';
 import EvaluationReplay from '@moldea.ai/website-ui/evaluation-replay';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
 import TabbedPanels from '@moldea.ai/website-ui/tabbed-panels';
 
 import type { ISemanticEvaluationCaseModel } from '../../lib/semantic-evaluation/index.ts';
-import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import SemanticTrialProvenance from '../semantic-trial-provenance/semantic-trial-provenance.astro';
 
 interface Props {
   evaluationCase: ISemanticEvaluationCaseModel;
+  id?: string;
+  isOpen?: boolean;
   number: number;
   showTrialProvenance?: boolean;
 }
@@ -20,7 +21,13 @@ const TABS = [
   { id: 'evidence', label: 'Evidence', slotName: 'evidence' },
 ] as const;
 
-const { evaluationCase, number, showTrialProvenance = false } = Astro.props;
+const {
+  evaluationCase,
+  id = `semantic-case-${evaluationCase.id}`,
+  isOpen = false,
+  number,
+  showTrialProvenance = false,
+} = Astro.props;
 const hasRecordedCriteria =
   evaluationCase.expectedCriteria.length > 0 || evaluationCase.forbiddenCriteria.length > 0;
 const resultHeading =
@@ -47,36 +54,13 @@ const rationaleHtml =
       });
 ---
 
-<details class="group surface-card min-w-0 overflow-hidden">
-  <summary
-    class="flex cursor-pointer list-none items-start gap-3 p-5 marker:content-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:gap-4 sm:p-6"
-  >
-    <span class="mt-0.5 font-mono text-xs font-bold text-muted-foreground">
-      {String(number).padStart(2, '0')}
-    </span>
-    <span class="min-w-0 flex-1">
-      <span class="flex flex-wrap items-center gap-2">
-        <span class="text-lg font-semibold tracking-tight">
-          <InlineBrandText
-            text={evaluationCase.title}
-            variant="compact"
-          />
-        </span>
-        <EvidenceStatus status={evaluationCase.status} />
-      </span>
-      <span class="mt-2 block text-sm leading-6 text-muted-foreground">
-        <InlineBrandText
-          text={evaluationCase.scenario}
-          variant="compact"
-        />
-      </span>
-    </span>
-    <ChevronDown
-      class="mt-1 size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none"
-      aria-hidden="true"
-    />
-  </summary>
-
+<Accordion
+  group={id}
+  {id}
+  {isOpen}
+  title={`${String(number).padStart(2, '0')} · ${evaluationCase.title}`}
+  description={evaluationCase.summary}
+>
   <div class="border-t border-border px-5 py-6 sm:px-6">
     <TabbedPanels
       ariaLabel="Scenario views"
@@ -202,4 +186,4 @@ const rationaleHtml =
       </div>
     </TabbedPanels>
   </div>
-</details>
+</Accordion>

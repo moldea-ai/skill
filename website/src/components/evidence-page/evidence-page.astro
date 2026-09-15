@@ -1,0 +1,289 @@
+---
+import {
+  ArrowRight,
+  Bot,
+  GitCompareArrows,
+  Link2,
+  ListChecks,
+  MessageSquareText,
+  Search,
+  ShieldCheck,
+} from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import BaseLayout from '../../layouts/base-layout.astro';
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+import {
+  getQualificationReleaseEvidenceSummary,
+  getSemanticReleaseEvidenceSummary,
+} from '../../lib/release-evidence/index.ts';
+
+const model = loadWebsiteModel();
+const basePath = import.meta.env.BASE_URL;
+const semanticSummary = getSemanticReleaseEvidenceSummary(
+  model.releaseEvidence,
+  model.currentSemanticAssurance,
+);
+const decisionStatus = semanticSummary.result?.status ?? model.semanticEvaluation.status;
+const anthropicProfile = model.qualification.profiles.find(
+  ({ adapterId }) => adapterId === 'anthropic',
+);
+const qualificationStatus = anthropicProfile
+  ? getQualificationReleaseEvidenceSummary(anthropicProfile).status
+  : 'not-recorded';
+const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
+const integrationLogos = [
+  'openai',
+  'anthropic',
+  'vercel-ai-sdk',
+  'cloudflare-agents',
+  'google-genai',
+  'langchain',
+] as const;
+const visibleIntegrationLogos = integrationLogos.slice(0, 3);
+const additionalIntegrationCount = integrationLogos.length - visibleIntegrationLogos.length;
+const evidenceSteps = [
+  {
+    description: 'The exact task given to the coding agent.',
+    icon: MessageSquareText,
+    title: 'Request',
+  },
+  { description: 'The actions taken inside the project.', icon: Bot, title: 'Agent work' },
+  {
+    description: 'The verified files and lines that changed.',
+    icon: GitCompareArrows,
+    title: 'Project diff',
+  },
+  {
+    description: 'Repeatable checks and independent reasoning.',
+    icon: ListChecks,
+    title: 'Verdict',
+  },
+] as const;
+const decisionSteps = [
+  { icon: Search, label: 'Find the relevant project rule' },
+  { icon: Link2, label: 'Follow it to the code it governs' },
+  { icon: ShieldCheck, label: 'Respect the boundary and explain the result' },
+] as const;
+const qualificationSteps = [
+  { icon: MessageSquareText, label: 'Give the integration a realistic task' },
+  { icon: GitCompareArrows, label: 'Inspect the exact project changes' },
+  { icon: ShieldCheck, label: 'Check the result independently' },
+] as const;
+---
+
+<BaseLayout
+  title="Evidence"
+  description="Follow each moldea evaluation from the developer request through the verified project changes and final verdict."
+  {breadcrumbs}
+>
+  <div class="page-shell pt-4 sm:pt-7">
+    <Breadcrumbs
+      basePath={basePath}
+      items={breadcrumbs}
+    />
+  </div>
+
+  <header class="mt-4 border-b border-border bg-background sm:mt-6 sm:border-y">
+    <div class="page-shell py-9 sm:py-16 lg:py-20">
+      <div class="max-w-4xl">
+        <p class="eyebrow mb-3 sm:mb-4">Evidence you can inspect</p>
+        <h1 class="section-title font-semibold">Follow each result from request to verdict.</h1>
+        <p
+          class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-8"
+        >
+          Every evaluation records the developer request, the coding agent’s work, verified project
+          changes, and the final verdict. Open any result to inspect the complete journey.
+        </p>
+      </div>
+
+      <ol
+        class="mt-7 grid gap-2 bg-background/70 sm:mt-10 md:grid-cols-4 md:gap-0 md:divide-x md:divide-border md:overflow-hidden md:rounded-2xl md:border md:border-border md:shadow-raised"
+        aria-label="Evidence included with every result"
+      >
+        {
+          evidenceSteps.map(({ description, icon: StepIcon, title }, index) => (
+            <li class="flex items-start gap-3 rounded-xl bg-muted/40 px-3 py-3 sm:gap-4 md:block md:rounded-none md:bg-transparent md:p-6">
+              <div class="flex shrink-0 items-center gap-3 md:justify-between">
+                <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted sm:size-10 sm:rounded-xl">
+                  <StepIcon
+                    class="size-4 sm:size-5"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="hidden font-mono text-xs font-bold text-muted-foreground md:inline">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+              </div>
+              <div class="min-w-0 md:mt-5">
+                <h2 class="font-semibold">{title}</h2>
+                <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </header>
+
+  <section
+    class="page-shell py-10 sm:py-18"
+    aria-labelledby="evidence-paths-title"
+  >
+    <div class="max-w-3xl">
+      <p class="eyebrow mb-3">Inspect the proof</p>
+      <h2
+        id="evidence-paths-title"
+        class="text-2xl font-semibold tracking-tight sm:text-4xl"
+      >
+        Choose what you want to verify.
+      </h2>
+    </div>
+
+    <div class="mt-6 grid gap-4 sm:mt-8 lg:grid-cols-2">
+      <article
+        class="surface-card -mx-4 flex min-w-0 flex-col overflow-hidden rounded-none border-0 shadow-none sm:mx-0 sm:rounded-2xl sm:border sm:shadow-raised"
+        data-evidence-path="decision"
+      >
+        <div class="flex flex-1 flex-col px-4 pt-5 pb-2 sm:p-7">
+          <div class="flex flex-wrap items-center gap-3">
+            <p class="eyebrow">Decision evaluation</p>
+            <EvidenceStatus status={decisionStatus} />
+          </div>
+          <h3 class="mt-3 text-xl font-semibold sm:mt-4 sm:text-2xl">
+            Did the agent use the context correctly?
+          </h3>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
+            A difficult request tests whether the agent finds the right rule, changes the right
+            files, preserves developer authority, and avoids invented project facts.
+          </p>
+          <ol class="mt-5 grid gap-2 sm:mt-6 sm:gap-3">
+            {
+              decisionSteps.map(({ icon: StepIcon, label }, index) => (
+                <li class="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-3 sm:px-4">
+                  <StepIcon
+                    class="size-4 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span class="text-sm font-semibold">{label}</span>
+                  <span class="ms-auto font-mono text-xs text-muted-foreground">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+        <div
+          class="mt-auto px-4 pt-2 pb-5 sm:border-t sm:border-border sm:px-7 sm:py-5"
+          data-evidence-path-action
+        >
+          <div
+            class="grid sm:block"
+            data-evidence-decision-actions
+          >
+            <ActionLink
+              class="w-full justify-center font-bold sm:w-auto sm:self-start"
+              href={withBase(model.semanticEvaluation.route, basePath)}
+            >
+              <span class="sm:hidden">View decisions</span>
+              <span class="hidden sm:inline">Open the decision journeys</span>
+              <ArrowRight
+                class="size-4"
+                aria-hidden="true"
+              />
+            </ActionLink>
+          </div>
+        </div>
+      </article>
+
+      <article
+        class="surface-card -mx-4 flex min-w-0 flex-col overflow-hidden rounded-none border-0 shadow-none sm:mx-0 sm:rounded-2xl sm:border sm:shadow-raised"
+        data-evidence-path="qualification"
+      >
+        <div class="flex flex-1 flex-col px-4 pt-5 pb-2 sm:p-7">
+          <div class="flex flex-wrap items-center gap-3">
+            <p class="eyebrow">Adapter qualification</p>
+            <EvidenceStatus status={qualificationStatus} />
+          </div>
+          <h3 class="mt-3 text-xl font-semibold sm:mt-4 sm:text-2xl">
+            Does it work through your integration?
+          </h3>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
+            A coding agent completes realistic tasks through the published skill and exact adapter
+            package. Project checks and an independent judge verify the result.
+          </p>
+          <ol class="mt-5 grid gap-2 sm:mt-6 sm:gap-3">
+            {
+              qualificationSteps.map(({ icon: StepIcon, label }, index) => (
+                <li class="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-3 sm:px-4">
+                  <StepIcon
+                    class="size-4 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span class="text-sm font-semibold">{label}</span>
+                  <span class="ms-auto font-mono text-xs text-muted-foreground">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+        <div
+          class="mt-auto px-4 pt-2 pb-5 sm:border-t sm:border-border sm:px-7 sm:py-5"
+          data-evidence-path-action
+        >
+          <div
+            class="grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-2"
+            data-evidence-integration-actions
+          >
+            <ActionLink
+              class="w-full justify-center font-bold sm:w-auto sm:self-start"
+              href={withBase(model.qualification.route, basePath)}
+            >
+              <span class="sm:hidden">View adapters</span>
+              <span class="hidden sm:inline">Choose your integration</span>
+              <ArrowRight
+                class="size-4"
+                aria-hidden="true"
+              />
+            </ActionLink>
+            <div
+              class="flex w-full items-center justify-center gap-1 sm:ms-auto sm:w-fit"
+              role="group"
+              aria-label="Integration providers"
+              data-integration-logos
+            >
+              {
+                integrationLogos.map((adapterId, index) => (
+                  <span
+                    class:list={[
+                      'inline-flex',
+                      index >= visibleIntegrationLogos.length && 'sm:hidden',
+                    ]}
+                  >
+                    <AdapterCompanyLogo
+                      adapterId={adapterId}
+                      size="xs"
+                    />
+                  </span>
+                ))
+              }
+              <span
+                class="hidden size-7 items-center justify-center rounded-md border border-border bg-muted font-mono text-[0.6875rem] font-bold text-muted-foreground sm:inline-flex"
+                aria-label={`${additionalIntegrationCount} more integration providers`}
+              >
+                +{additionalIntegrationCount}
+              </span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+</BaseLayout>

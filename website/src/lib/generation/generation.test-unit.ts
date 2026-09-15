@@ -186,6 +186,7 @@ import { loadReleaseEvidenceWebsiteState } from '../release-evidence/index.ts';
 import { loadSemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
 import {
   INSTALL_COMMAND,
+  PRODUCT_PAGE_METADATA,
   REQUIRED_DOCUMENT_ROUTES,
   SKILLS_DIRECTORY_URL,
 } from '../model/constants.ts';
@@ -215,6 +216,28 @@ describe('createWebsiteModel', () => {
     expect(qualificationProfile?.latest?.latestStatus).toBe('passed');
 
     for (const route of REQUIRED_DOCUMENT_ROUTES) expect(model.routes).toContain(route);
+    expect(model.documents.find(({ route }) => route === '/docs/capabilities/')).toMatchObject({
+      navigationTitle: 'Capability reference',
+      title: 'Capability reference',
+    });
+    expect(model.documents.find(({ route }) => route === '/docs/how-it-works/')).toMatchObject({
+      navigationTitle: 'Workflow reference',
+      title: 'Workflow reference',
+    });
+    for (const page of Object.values(PRODUCT_PAGE_METADATA)) {
+      const searchRecord = model.searchRecords.find(({ route }) => route === page.route);
+
+      expect(model.routes).toContain(page.route);
+      expect(searchRecord).toMatchObject({
+        description: page.description,
+        route: page.route,
+        title: page.title,
+      });
+      expect(searchRecord?.searchText).toContain(page.searchText.split(' ')[0]!);
+      expect(model.llmsText).toContain(
+        `- [${page.title.replaceAll(/\bmoldea\b/giu, '`moldea`')}](${page.route}): ${page.description.replaceAll(/\bmoldea\b/giu, '`moldea`')}`,
+      );
+    }
     for (const document of model.documents) {
       expect(model.routes).toContain(document.route);
       expect(model.searchRecords.some(({ route }) => route === document.route)).toBe(true);
@@ -241,7 +264,15 @@ describe('createWebsiteModel', () => {
     expect(model.llmsText).toContain('reusable Agent Skills');
     expect(model.llmsText).toContain(SKILLS_DIRECTORY_URL);
     expect(model.llmsText).toContain(INSTALL_COMMAND);
+    expect(model.llmsText).toContain('## Explore');
+    const exploreSection = model.llmsText.split('## Explore\n\n')[1]?.split('\n\n## Start')[0];
+    const exploreCopy = exploreSection?.replaceAll(/\]\([^)]+\)/gu, ']');
+    expect(exploreSection).toContain('`moldea`');
+    expect(exploreCopy?.replaceAll('`moldea`', '')).not.toMatch(/\bmoldea\b/iu);
     expect(model.llmsText).toContain('## Evidence');
+    expect(model.llmsText).toContain('[Capability reference](/docs/capabilities/)');
+    expect(model.llmsText).toContain('[Workflow reference](/docs/how-it-works/)');
+    expect(model.llmsText).not.toContain('[Complete capabilities]');
   });
 
   test('bypasses current qualification checks only when qualification evidence is pinned', () => {

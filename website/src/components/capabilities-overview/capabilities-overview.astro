@@ -1,0 +1,121 @@
+---
+import {
+  ArrowRight,
+  Blocks,
+  Bot,
+  BrainCircuit,
+  GitBranch,
+  RefreshCw,
+  SearchCheck,
+} from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+const capabilities = [
+  {
+    description: 'Save the project facts and decisions the next coding session should inherit.',
+    href: '/capabilities/#project-truth',
+    icon: GitBranch,
+    label: 'Context',
+    title: 'Establish project truth',
+  },
+  {
+    description: 'Decide what belongs to software, tools, people, and model reasoning.',
+    href: '/capabilities/#plan-agent-systems',
+    icon: BrainCircuit,
+    label: 'Design',
+    title: 'Plan agent systems',
+  },
+  {
+    description: 'Connect instructions, tools, schemas, and code to the agent that uses them.',
+    href: '/capabilities/#create-agents',
+    icon: Bot,
+    label: 'Ground',
+    title: 'Create real agents',
+  },
+  {
+    description: 'Package focused instructions, resources, and safe scripts for repeated work.',
+    href: '/capabilities/#build-agent-skills',
+    icon: Blocks,
+    label: 'Reuse',
+    title: 'Build Agent Skills',
+  },
+  {
+    description: 'Trace a project change to the behavior and context that may need attention.',
+    href: '/capabilities/#keep-behavior-current',
+    icon: RefreshCw,
+    label: 'Maintain',
+    title: 'Keep behavior current',
+  },
+  {
+    description: 'Find broken connections, missing evidence, and behavior that no longer fits.',
+    href: '/capabilities/#evaluate-and-repair',
+    icon: SearchCheck,
+    label: 'Assure',
+    title: 'Evaluate and repair',
+  },
+] as const;
+const basePath = import.meta.env.BASE_URL;
+---
+
+<section
+  class="border-b border-border bg-background py-12 sm:py-16"
+  aria-labelledby="capabilities-overview-title"
+  data-capabilities-overview
+>
+  <div class="page-shell">
+    <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
+      <div>
+        <p class="eyebrow mb-4">Complete capability surface</p>
+        <h2
+          id="capabilities-overview-title"
+          class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
+        >
+          <InlineBrandText text="One skill for the complete moldea workflow." />
+        </h2>
+      </div>
+      <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+        Ask for the outcome in plain language. The skill guides the coding agent through the right
+        work and checks.
+      </p>
+    </header>
+
+    <ul class="mt-7 grid gap-0 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
+      {
+        capabilities.map(({ description, href, icon: CapabilityIcon, label, title }) => (
+          <li class="border-b border-border last:border-b-0 sm:border-b-0">
+            <a
+              class="interactive-card group flex h-full min-w-0 flex-col py-5 sm:rounded-xl sm:border sm:border-border sm:p-5"
+              href={withBase(href, basePath)}
+            >
+              <div class="flex items-start justify-between gap-4">
+                <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
+                  <CapabilityIcon
+                    class="size-5"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="eyebrow">{label}</span>
+              </div>
+              <h3 class="mt-3 text-xl font-semibold tracking-tight sm:mt-5">{title}</h3>
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <ActionLink
+      class="mt-6 font-bold"
+      href={withBase('/capabilities/', basePath)}
+      variant="link"
+    >
+      Explore every capability
+      <ArrowRight
+        class="size-4"
+        aria-hidden="true"
+      />
+    </ActionLink>
+  </div>
+</section>

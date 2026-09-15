@@ -5,6 +5,7 @@ import SiteFooterShell from '@moldea.ai/website-ui/site-footer';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import {
+  CLOUD_WEBSITE_URL,
   PACKAGES_WEBSITE_URL,
   RELEASES_URL,
   SKILLS_DIRECTORY_URL,
@@ -15,7 +16,7 @@ import Logo from '../logo/logo.astro';
 const basePath = import.meta.env.BASE_URL;
 ---
 
-<SiteFooterShell>
+<SiteFooterShell hasTopSpacing={false}>
   <div slot="brand">
     <Logo />
     <p class="mt-4 text-sm leading-6 text-muted-foreground">
@@ -26,28 +27,33 @@ const basePath = import.meta.env.BASE_URL;
   <nav
     slot="primary-navigation"
     class="grid content-start gap-3 text-sm"
-    aria-label="Documentation"
+    aria-label="Explore"
   >
-    <p class="font-bold">Documentation</p>
+    <p class="font-bold">Explore</p>
     <a
       class="text-muted-foreground hover:text-foreground"
-      href={withBase('/docs/getting-started/', basePath)}
-      >Getting started</a
-    >
-    <a
-      class="text-muted-foreground hover:text-foreground"
-      href={withBase('/docs/capabilities/', basePath)}
+      href={withBase('/capabilities/', basePath)}
       >Capabilities</a
     >
     <a
       class="text-muted-foreground hover:text-foreground"
-      href={withBase('/examples/', basePath)}
-      >Examples</a
+      href={withBase('/how-it-works/', basePath)}
+      >How it works</a
     >
     <a
       class="text-muted-foreground hover:text-foreground"
       href={withBase('/evidence/', basePath)}
       >Evidence</a
+    >
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={withBase('/docs/', basePath)}
+      >Docs</a
+    >
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={withBase('/docs/getting-started/', basePath)}
+      >Getting started</a
     >
     <a
       class="text-muted-foreground hover:text-foreground"
@@ -62,28 +68,56 @@ const basePath = import.meta.env.BASE_URL;
   >
     <p class="font-bold"><InlineBrandText text="Get moldea" /></p>
     <a
-      class="text-muted-foreground hover:text-foreground"
+      class="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
       href={SKILLS_DIRECTORY_URL}
       target="_blank"
       rel="noopener noreferrer"
     >
       skills.sh
+      <ExternalLink
+        class="size-3.5"
+        aria-hidden="true"
+        data-external-link-icon
+      />
     </a>
     <a
-      class="text-muted-foreground hover:text-foreground"
+      class="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
       href={SOURCE_REPOSITORY_URL}
       target="_blank"
       rel="noopener noreferrer"
     >
       GitHub
+      <ExternalLink
+        class="size-3.5"
+        aria-hidden="true"
+        data-external-link-icon
+      />
     </a>
     <a
-      class="text-muted-foreground hover:text-foreground"
+      class="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
       href={RELEASES_URL}
       target="_blank"
       rel="noopener noreferrer"
     >
       Releases
+      <ExternalLink
+        class="size-3.5"
+        aria-hidden="true"
+        data-external-link-icon
+      />
+    </a>
+    <a
+      class="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+      href={CLOUD_WEBSITE_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Cloud
+      <ExternalLink
+        class="size-3.5"
+        aria-hidden="true"
+        data-external-link-icon
+      />
     </a>
     <a
       class="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
@@ -91,10 +125,11 @@ const basePath = import.meta.env.BASE_URL;
       target="_blank"
       rel="noopener noreferrer"
     >
-      Built on <InlineBrandText text="moldea" /> packages
+      Packages
       <ExternalLink
         class="size-3.5"
         aria-hidden="true"
+        data-external-link-icon
       />
     </a>
     <span class="text-muted-foreground">MIT licensed</span>

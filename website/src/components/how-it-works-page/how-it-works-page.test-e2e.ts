@@ -1,30 +1,33 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
-
-import { LANDING_EXAMPLE, LANDING_EXAMPLE_PREVIEW } from '../../lib/landing-example/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const route = withBase('/how-it-works/', basePath);
 const toPublicPath = (publicRoute: string): string => withBase(publicRoute, basePath);
 
-/** Returns the server-rendered accessible names for keyboard-scrollable code regions. */
-const getCodeRegionLabels = (page: Page): Promise<string[]> =>
-  page
-    .locator('pre[role="region"]')
-    .evaluateAll((regions) => regions.map((region) => region.getAttribute('aria-label') ?? ''));
-
-test('follows one project change through five connected stages', async ({ page }) => {
+test('follows one booking request through five connected stages', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(route);
 
   await expect(
-    page.getByRole('heading', { level: 1, name: 'One change, followed all the way through.' }),
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Your request is one sentence. The work stays connected.',
+    }),
   ).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0);
-  await expect(page.getByText(LANDING_EXAMPLE.maintenanceRequest, { exact: true })).toBeVisible();
   await expect(
-    page.getByText('I updated the refund rule and everything connected to it.', { exact: true }),
+    page.getByText(
+      'Make our booking assistant offer only available times and send same-day requests to staff.',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      'I connected live availability, kept same-day approval in the scheduling service, and checked the complete flow.',
+      { exact: true },
+    ),
   ).toBeVisible();
   await expect(page.locator('[data-workflow-stage]')).toHaveCount(5);
   await expect(
@@ -37,30 +40,28 @@ test('follows one project change through five connected stages', async ({ page }
   expect(stageIds).toStrictEqual([
     'project-context',
     'connections',
-    'changes',
-    'checks',
+    'connected-change',
+    'verification',
     'next-session',
   ]);
-  await expect(page.locator('[data-change-previews]')).toContainText(
-    LANDING_EXAMPLE_PREVIEW.policyDiff.source,
+  await expect(page.locator('[data-context-selection]')).toContainText(
+    'Same-day requests need staff approval.',
   );
-  await expect(page.locator('[data-change-previews]')).toContainText(
-    LANDING_EXAMPLE_PREVIEW.instructionDiff.source,
-  );
-  await expect(page.locator('[data-check-layers] > article')).toHaveCount(3);
+  await expect(page.locator('[data-connection-map] > div:last-of-type > article')).toHaveCount(4);
   await expect(page.locator('[data-connection-map]')).toContainText(
-    'One saved rule, four explicit connections.',
+    'Four affected parts found before the first edit.',
   );
-  await expect(page.locator('[data-connection-map]')).toContainText('gpt-6-astra');
-  await expect(page.locator('#changes').getByText('14 days', { exact: true })).toBeVisible();
-  await expect(page.locator('#changes').getByText('15 days', { exact: true })).toBeVisible();
-  await expect(page.locator('[data-adapter-check]')).toContainText(
-    'It supplements this project workflow.',
+  await expect(page.locator('[data-connected-change]')).toContainText(
+    'Each rule keeps one owner. No duplicate prompt policy.',
+  );
+  await expect(page.locator('[data-verification-row]')).toHaveCount(4);
+  await expect(page.locator('[data-verification-row="deterministic"]')).toContainText(
+    'Deterministic validation returns the same answer for the same project state.',
   );
   await expect(
-    page.getByText('This is saved project context, not automatic model memory.'),
+    page.getByText('Project memory, available when the next task needs it.'),
   ).toBeVisible();
-  await expect(page.locator('[data-change-previews] [data-code-copy-button]')).toHaveCount(0);
+  await expect(page.locator('[data-code-copy-button]')).toHaveCount(0);
 
   const plainBrandMentions = await page.locator('body').evaluate((body) => {
     const iterator = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
@@ -100,21 +101,15 @@ test('keeps both visual narratives and their technical links available without J
     'href',
     toPublicPath('/docs/project-state/'),
   );
-  const capabilityCodeLabels = await getCodeRegionLabels(page);
-  expect(capabilityCodeLabels).toHaveLength(4);
-  expect(new Set(capabilityCodeLabels).size).toBe(capabilityCodeLabels.length);
-  expect(capabilityCodeLabels.every((label) => label.length > 0)).toBe(true);
 
   await page.goto(route);
   await expect(page.locator('[data-workflow-stage]')).toHaveCount(5);
-  await expect(page.getByRole('link', { name: 'Open evidence' })).toHaveAttribute(
-    'href',
-    toPublicPath('/evidence/'),
-  );
-  const workflowCodeLabels = await getCodeRegionLabels(page);
-  expect(workflowCodeLabels).toHaveLength(2);
-  expect(new Set(workflowCodeLabels).size).toBe(workflowCodeLabels.length);
-  expect(workflowCodeLabels.every((label) => label.length > 0)).toBe(true);
+  await expect(
+    page.getByRole('link', { name: 'Inspect the evidence', exact: true }),
+  ).toHaveAttribute('href', toPublicPath('/evidence/'));
+  await expect(
+    page.getByRole('link', { name: 'Read the technical workflow', exact: true }),
+  ).toHaveAttribute('href', toPublicPath('/docs/how-it-works/'));
 
   await context.close();
 });
@@ -136,11 +131,12 @@ test('keeps the complete workflow readable at 320px in both themes', async ({ br
     expect(dimensions.documentWidth, colorScheme).toBeLessThanOrEqual(dimensions.viewportWidth);
     await expect(page.locator('[data-workflow-conversation]')).toBeVisible();
     await expect(page.locator('[data-connection-map]')).toBeVisible();
+    await expect(page.locator('[data-verification-board]')).toBeVisible();
     await expect(page.locator('[data-next-session-visual]')).toBeVisible();
 
-    const stagesLink = page.locator('a[href="#project-context"]');
-    await stagesLink.focus();
-    await expect(stagesLink).toBeFocused();
+    const workflowLink = page.getByRole('link', { name: 'Follow the workflow' });
+    await workflowLink.focus();
+    await expect(workflowLink).toBeFocused();
 
     await context.close();
   }

@@ -88,7 +88,10 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   await page.goto(toPublicPath('/'));
 
   const orderedHeadings = [
-    { level: 2, name: 'Yes. The difference is what the next session inherits.' },
+    {
+      level: 2,
+      name: 'Your coding agent can remember. Your project still needs a system.',
+    },
     { level: 2, name: 'One skill for the complete moldea workflow.' },
     { level: 2, name: 'Change one rule. See everything it affects.' },
     { level: 2, name: 'Same project. Same check. Same result.' },

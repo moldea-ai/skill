@@ -11,16 +11,38 @@ test('stacks the three benefits without a cramped comparison table at 320px', as
   await expect(
     comparison.getByRole('heading', {
       level: 2,
-      name: 'Yes. The difference is what the next session inherits.',
+      name: 'Your coding agent can remember. Your project still needs a system.',
     }),
   ).toBeVisible();
   await expect(
     comparison.getByText("Can't my coding agent already do this?", { exact: true }),
   ).toBeVisible();
+  await expect(
+    comparison.getByText(
+      'Memory can recall useful context. moldea makes the source of truth, relationships, deterministic validation, and evidence part of the repository.',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    comparison.getByRole('list', { name: 'What coding agents already do' }).getByRole('listitem'),
+  ).toHaveText(['Reads the repository', 'Remembers useful context', 'Builds the requested change']);
   const benefits = comparison
     .getByRole('list', { name: 'What the skill adds' })
     .getByRole('listitem');
   await expect(benefits).toHaveCount(3);
+  for (const copy of [
+    'Project truth',
+    'The project owns the truth',
+    'Reviewed context stays with the project and can guide every supported coding agent.',
+    'Explicit connections',
+    'Every connection is explicit',
+    'Rules point to the instructions, tools, code, and tests that may need attention.',
+    'Deterministic checks',
+    'Validation does not depend on memory',
+    'The same files produce the same result, with evidence the team can inspect.',
+  ]) {
+    await expect(comparison.getByText(copy, { exact: true })).toBeVisible();
+  }
   const tops = await benefits.evaluateAll((elements) =>
     elements.map((element) => element.getBoundingClientRect().top),
   );

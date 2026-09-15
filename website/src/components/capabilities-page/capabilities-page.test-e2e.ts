@@ -80,7 +80,10 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
     .click();
   await expect(page).toHaveURL(/\/how-it-works\/$/u);
   await expect(
-    page.getByRole('heading', { level: 1, name: 'One change, followed all the way through.' }),
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Your request is one sentence. The work stays connected.',
+    }),
   ).toBeVisible();
 });
 

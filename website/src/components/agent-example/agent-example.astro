@@ -1,6 +1,7 @@
 ---
 import { UserRound } from '@lucide/astro';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
+import Dialog from '@moldea.ai/website-ui/dialog';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
 import TabbedPanels from '@moldea.ai/website-ui/tabbed-panels';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
@@ -118,6 +119,7 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
                     data-agent-source
                   >
                     <CodeBlock
+                      ariaLabel="Support agent source"
                       copyable={false}
                       language="typescript"
                       source={agentFunction}
@@ -138,8 +140,39 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
               </div>
               <div slot="connections">
                 <FilePreview path="moldea/moldea.yaml">
+                  <span
+                    slot="status"
+                    class="inline-flex [&_[data-dialog-trigger]]:size-5 [&_[data-dialog-trigger]_svg]:size-3.5"
+                  >
+                    <Dialog
+                      id="landing-connections-source"
+                      title="Connections file"
+                      triggerLabel="Open connections file"
+                      triggerAriaLabel="Open the complete connections file in a larger view"
+                      triggerVariant="ghost"
+                      triggerSize="icon-xs"
+                      size="medium"
+                      closeLabel="Close connections file"
+                      isOverlayCloseEnabled
+                    >
+                      <FilePreview path="moldea/moldea.yaml">
+                        <div
+                          class="h-[calc(100dvh-9rem)] overflow-auto p-4 sm:h-auto sm:max-h-[26rem]"
+                        >
+                          <CodeBlock
+                            ariaLabel="Complete connections file"
+                            copyable={false}
+                            language="yaml"
+                            source={manifestSource}
+                            variant="plain"
+                          />
+                        </div>
+                      </FilePreview>
+                    </Dialog>
+                  </span>
                   <div class="h-48 overflow-auto p-4">
                     <CodeBlock
+                      ariaLabel="Support agent connections"
                       copyable={false}
                       language="yaml"
                       source={manifestSource}

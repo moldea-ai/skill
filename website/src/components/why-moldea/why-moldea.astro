@@ -1,22 +1,41 @@
 ---
-import { ArrowRight, Bot, GitBranch, Link2, RefreshCw, UserRound } from '@lucide/astro';
+import {
+  ArrowRight,
+  Bot,
+  BrainCircuit,
+  Braces,
+  GitBranch,
+  Link2,
+  RefreshCw,
+  Search,
+} from '@lucide/astro';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+
+const agentStrengths = [
+  { icon: Search, title: 'Reads the repository' },
+  { icon: BrainCircuit, title: 'Remembers useful context' },
+  { icon: Braces, title: 'Builds the requested change' },
+] as const;
 
 const durableOutcomes = [
   {
-    description: 'Reviewed project facts remain available after the conversation ends.',
+    description:
+      'Reviewed context stays with the project and can guide every supported coding agent.',
     icon: GitBranch,
-    title: 'Project context stays',
+    label: 'Project truth',
+    title: 'The project owns the truth',
   },
   {
-    description: 'Instructions, tools, and code keep their declared relationships.',
+    description: 'Rules point to the instructions, tools, code, and tests that may need attention.',
     icon: Link2,
-    title: 'Connections stay visible',
+    label: 'Explicit connections',
+    title: 'Every connection is explicit',
   },
   {
-    description: 'Deterministic software checks rerun after every relevant change.',
+    description: 'The same files produce the same result, with evidence the team can inspect.',
     icon: RefreshCw,
-    title: 'Checks stay repeatable',
+    label: 'Deterministic checks',
+    title: 'Validation does not depend on memory',
   },
 ] as const;
 ---
@@ -35,58 +54,60 @@ const durableOutcomes = [
           id="why-moldea-title"
           class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
         >
-          Yes. The difference is what the next session inherits.
+          Your coding agent can remember. Your project still needs a system.
         </h2>
       </div>
       <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-        A capable coding agent can inspect your repository and build the agent. <InlineBrandText
-          text="moldea turns that work into a system your project keeps."
+        Memory can recall useful context. <InlineBrandText
+          text="moldea makes the source of truth, relationships, deterministic validation, and evidence part of the repository."
         />
       </p>
     </header>
 
     <div
-      class="mt-8 grid overflow-hidden rounded-2xl border border-border bg-border shadow-raised lg:grid-cols-[minmax(0,0.85fr)_4rem_minmax(0,1.15fr)]"
+      class="-mx-4 mt-8 grid overflow-hidden border-y border-border bg-border sm:mx-0 sm:rounded-2xl sm:border sm:shadow-raised lg:grid-cols-[minmax(0,0.86fr)_4rem_minmax(0,1.14fr)]"
       data-why-moldea-comparison
     >
       <article
         class="dark-surface-selection flex min-w-0 flex-col bg-primary p-5 text-primary-foreground sm:p-7"
       >
-        <p class="text-xs font-semibold tracking-[0.12em] text-primary-foreground/60 uppercase">
-          During the coding session
-        </p>
-        <div class="mt-6 flex items-start gap-3">
+        <div class="flex items-center gap-3">
           <span
-            class="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/10"
-          >
-            <UserRound
-              class="size-4"
-              aria-hidden="true"
-            />
-          </span>
-          <p class="rounded-xl rounded-tl-sm bg-primary-foreground/10 p-4 text-sm leading-6">
-            Create a support agent from our refund policy and existing order lookup.
-          </p>
-        </div>
-        <div class="mt-4 flex items-start gap-3 sm:ps-8">
-          <span
-            class="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/10"
+            class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/10"
           >
             <Bot
-              class="size-4"
+              class="size-5"
               aria-hidden="true"
             />
           </span>
-          <p
-            class="rounded-xl rounded-tl-sm border border-primary-foreground/15 p-4 text-sm leading-6 text-primary-foreground/75"
-          >
-            The coding agent inspects the repository, creates the files, and explains its work.
-          </p>
+          <div>
+            <p class="text-xs font-semibold tracking-[0.12em] text-primary-foreground/60 uppercase">
+              What coding agents already do
+            </p>
+            <h3 class="mt-1 text-lg font-semibold">Capable work inside the session</h3>
+          </div>
         </div>
-        <p
-          class="mt-7 border-t border-primary-foreground/15 pt-5 text-sm text-primary-foreground/65"
+
+        <ul
+          class="mt-6 grid border-y border-primary-foreground/15"
+          aria-label="What coding agents already do"
         >
-          Then the session ends.
+          {
+            agentStrengths.map(({ icon: StrengthIcon, title }) => (
+              <li class="flex items-center gap-3 border-b border-primary-foreground/15 py-4 last:border-b-0">
+                <span class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10">
+                  <StrengthIcon
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="text-sm font-semibold">{title}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="mt-auto pt-6 text-sm leading-6 text-primary-foreground/65">
+          Memory makes this work faster and better informed.
         </p>
       </article>
 
@@ -101,33 +122,37 @@ const durableOutcomes = [
         </span>
       </div>
 
-      <ol
-        class="grid gap-px bg-border"
-        aria-label="What the skill adds"
-      >
-        {
-          durableOutcomes.map(({ description, icon: OutcomeIcon, title }, index) => (
-            <li class="grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)_auto] gap-x-4 bg-background p-5 sm:p-6">
-              <span class="row-span-2 inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-                <OutcomeIcon
-                  class="size-5"
-                  aria-hidden="true"
-                />
-              </span>
-              <h3 class="font-semibold">{title}</h3>
-              <span class="font-mono text-xs font-bold text-muted-foreground">0{index + 1}</span>
-              <p class="col-span-2 col-start-2 mt-1 text-sm leading-6 text-muted-foreground">
-                {description}
-              </p>
-            </li>
-          ))
-        }
-      </ol>
+      <div class="min-w-0 bg-background">
+        <div class="border-b border-border p-5 sm:px-6 sm:py-5">
+          <p class="eyebrow">What the project still needs</p>
+          <p class="mt-1 text-lg font-semibold">Rules and proof the team can inspect</p>
+        </div>
+        <ol
+          class="divide-y divide-border"
+          aria-label="What the skill adds"
+        >
+          {
+            durableOutcomes.map(({ description, icon: OutcomeIcon, label, title }) => (
+              <li class="grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 p-5 sm:p-6">
+                <span class="row-span-3 inline-flex size-10 items-center justify-center rounded-xl bg-muted">
+                  <OutcomeIcon
+                    class="size-5"
+                    aria-hidden="true"
+                  />
+                </span>
+                <p class="eyebrow">{label}</p>
+                <h3 class="mt-1 font-semibold">{title}</h3>
+                <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
     </div>
 
     <p class="mt-6 max-w-4xl text-sm leading-6 text-muted-foreground">
       <InlineBrandText
-        text="Without moldea, your team still has to choose the format, maintain the relationships, build the checks, and teach every coding agent how the system works."
+        text="moldea makes these safeguards part of the project. Without it, your team still has to choose how context is saved, map every connection, write the checks, and keep the evidence current."
       />
     </p>
   </div>

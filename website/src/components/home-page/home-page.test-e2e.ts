@@ -26,7 +26,7 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'Build agents that fit your project.',
+      name: 'Give your coding agent what the request leaves out.',
     }),
   ).toBeVisible();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
@@ -45,6 +45,7 @@ test('leads with the connected-agent example and direct paths to act or inspect'
     .locator('[data-home-hero]')
     .getByRole('link', { name: 'Install the skill', exact: true });
   await expect(primaryInstallLink).toHaveAttribute('href', '#getting-started-title');
+  await expect(primaryInstallLink.locator('svg.lucide-arrow-down')).toHaveCount(1);
   await primaryInstallLink.focus();
   await primaryInstallLink.press('Enter');
   await expect(page).toHaveURL(/#getting-started-title$/u);

@@ -34,6 +34,16 @@ test('follows one booking request through five connected stages', async ({ page 
     page.getByRole('navigation', { name: 'Primary navigation' }).locator('a[aria-current="page"]'),
   ).toHaveText('How it works');
 
+  const [heroCopyBounds, heroConversationBounds] = await Promise.all([
+    page.locator('[data-workflow-hero-copy]').boundingBox(),
+    page.locator('[data-workflow-conversation]').boundingBox(),
+  ]);
+  expect(heroCopyBounds).not.toBeNull();
+  expect(heroConversationBounds).not.toBeNull();
+  if (heroCopyBounds && heroConversationBounds) {
+    expect(heroConversationBounds.width).toBeGreaterThan(heroCopyBounds.width);
+  }
+
   const stageIds = await page
     .locator('[data-workflow-stage]')
     .evaluateAll((stages) => stages.map((stage) => stage.id));
@@ -47,12 +57,16 @@ test('follows one booking request through five connected stages', async ({ page 
   await expect(page.locator('[data-context-selection]')).toContainText(
     'Same-day requests need staff approval.',
   );
-  await expect(page.locator('[data-connection-map] > div:last-of-type > article')).toHaveCount(4);
+  await expect(page.locator('[data-context-selection] [data-file-preview]')).toHaveCount(0);
+  await expect(page.locator('[data-connection-item]')).toHaveCount(4);
   await expect(page.locator('[data-connection-map]')).toContainText(
     'Four affected parts found before the first edit.',
   );
   await expect(page.locator('[data-connected-change]')).toContainText(
     'Each rule keeps one owner. No duplicate prompt policy.',
+  );
+  await expect(page.locator('[data-connected-change]')).toContainText(
+    'The scheduling service enforces the rule. Staff owns the approval decision.',
   );
   await expect(page.locator('[data-verification-row]')).toHaveCount(4);
   await expect(page.locator('[data-verification-row="deterministic"]')).toContainText(
@@ -61,6 +75,12 @@ test('follows one booking request through five connected stages', async ({ page 
   await expect(
     page.getByText('Project memory, available when the next task needs it.'),
   ).toBeVisible();
+  await expect(page.locator('[data-later-session-chat] [data-chat-message]')).toHaveCount(2);
+  await expect(
+    page.locator('[data-later-session-chat]').getByRole('list', {
+      name: 'Later booking conversation',
+    }),
+  ).toContainText('Coding agent');
   await expect(page.locator('[data-code-copy-button]')).toHaveCount(0);
 
   const plainBrandMentions = await page.locator('body').evaluate((body) => {

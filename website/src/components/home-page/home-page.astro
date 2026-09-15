@@ -1,5 +1,13 @@
 ---
-import { ArrowRight, Cable, Check, ListChecks, ShieldCheck, Sparkles } from '@lucide/astro';
+import {
+  ArrowDown,
+  ArrowRight,
+  Cable,
+  Check,
+  ListChecks,
+  ShieldCheck,
+  Sparkles,
+} from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
@@ -96,11 +104,11 @@ const additionalQualificationAdapterCount = Math.max(
           class="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl xl:text-6xl"
           data-hero-title
         >
-          Build agents that fit your project.
+          Give your coding agent what the request leaves out.
         </h1>
         <p class="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
           <InlineBrandText
-            text="moldea gives your coding agent project context that survives each session, then runs deterministic software checks on what it builds."
+            text="moldea finds the project rules behind the task, follows every affected connection, and runs deterministic checks before the agent says it is done."
           />
         </p>
         <div
@@ -114,7 +122,7 @@ const additionalQualificationAdapterCount = Math.max(
             data-primary-action
           >
             Install the skill
-            <ArrowRight
+            <ArrowDown
               class="size-4"
               aria-hidden="true"
             />

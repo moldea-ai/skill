@@ -66,6 +66,19 @@ test('shows the runtime example immediately and makes its connected files keyboa
     .getByRole('tabpanel', { name: 'Code' })
     .locator('[data-file-preview-header]')
     .evaluate((element) => element.getBoundingClientRect().height);
+  const [agentMessageBounds, tabListBounds, filePreviewBounds] = await Promise.all([
+    example.locator('[data-agent-message]').boundingBox(),
+    example.getByRole('tablist').boundingBox(),
+    example.getByRole('tabpanel', { name: 'Code' }).locator('[data-file-preview]').boundingBox(),
+  ]);
+  expect(agentMessageBounds).not.toBeNull();
+  expect(tabListBounds).not.toBeNull();
+  expect(filePreviewBounds).not.toBeNull();
+  if (agentMessageBounds && tabListBounds && filePreviewBounds) {
+    const messageToTabsGap = tabListBounds.y - (agentMessageBounds.y + agentMessageBounds.height);
+    const tabsToPreviewGap = filePreviewBounds.y - (tabListBounds.y + tabListBounds.height);
+    expect(Math.abs(messageToTabsGap - tabsToPreviewGap)).toBeLessThanOrEqual(1);
+  }
 
   const codeTab = example.getByRole('tab', { name: 'Code', exact: true });
   await codeTab.focus();
@@ -96,7 +109,7 @@ test('shows the runtime example immediately and makes its connected files keyboa
   expect(triggerBounds?.height).toBe(20);
   await expect(dialogTrigger).toHaveAttribute('title', 'Open connections file');
   await dialogTrigger.click();
-  const dialog = example.getByRole('dialog', { name: 'Connections file' });
+  const dialog = example.getByRole('dialog', { name: 'Links' });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('[data-file-preview]')).toHaveCount(1);
   await expect(dialog.locator('[data-file-preview-header] code')).toHaveText('moldea/moldea.yaml');
@@ -148,7 +161,7 @@ test('keeps every example tab readable at 320px in both themes', async ({ browse
           name: 'Open the complete connections file in a larger view',
         });
         await dialogTrigger.click();
-        const dialog = example.getByRole('dialog', { name: 'Connections file' });
+        const dialog = example.getByRole('dialog', { name: 'Links' });
         await expect(dialog).toBeVisible();
         const dialogBounds = await dialog.boundingBox();
         expect(dialogBounds).not.toBeNull();

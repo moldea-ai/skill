@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
-import { loadWebsiteModel } from '../generation/generation.ts';
+import { createWebsiteModel } from '../generation/generation.ts';
 
 import {
   createQualificationJourneyCollection,
@@ -9,7 +9,7 @@ import {
 } from './presentation.ts';
 
 describe('qualification presentation', () => {
-  const anthropicProfile = loadWebsiteModel().qualification.profiles.find(
+  const anthropicProfile = createWebsiteModel().qualification.profiles.find(
     ({ adapterId }) => adapterId === 'anthropic',
   );
   if (anthropicProfile === undefined) throw new Error('Anthropic profile is required.');

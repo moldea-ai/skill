@@ -8,9 +8,7 @@ order: 10
 
 # Install once, then speak naturally
 
-The primary distribution page is [`moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea). It provides the current public listing and installation path.
-
-The portable skill works with [compatible coding agents](/docs/coding-agent-compatibility/), including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, and Cline.
+The primary distribution page is [`moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea). The portable skill works with [compatible coding agents](/docs/coding-agent-compatibility/), including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, and Cline.
 
 Install the latest version from the repository's `main` branch in your current project:
 
@@ -24,22 +22,22 @@ For a reproducible installation, pin an immutable release tag:
 npx skills add "moldea-ai/skill#v5.0.9"
 ```
 
-Repository installation is required for supported `moldea` use because the team must share the selected skill version with the project. A global installation does not establish repository adoption and is not a supported installation path.
+Repository installation is required because the selected skill version must travel with the project. A global installation does not establish adoption and is not a supported path.
 
 ## Initialize project context
 
-Open the repository in a compatible coding agent and ask naturally:
+Open the repository in a compatible coding agent and ask:
 
 > `Initialize moldea`
 
-This request explicitly authorizes adoption. The coding agent handles the initialization workflow:
+This request explicitly authorizes adoption. The coding agent:
 
-1. Inspect the Git working tree, repository structure, code, configuration, documentation, and other high-information evidence.
-2. Select the `initialize` operation and confirm that the repository and developer authority permit the required writes.
-3. Determine whether the evidence establishes a sufficient project foundation, requires focused clarification, or provides no meaningful project context yet.
-4. Once the foundation is sufficient, safely install the compatible repository-local `@moldea.ai/cli` development dependency when it is known to be missing. Complete installation before foundation writes or validation. If installation fails, stop and report any package-manager changes. Already-present compatible tooling needs no reinstall or availability probe; a global CLI is never a fallback.
-5. With sufficient context and required tooling established, create the minimum canonical state and run the bundled deterministic writer for the owned README awareness block.
-6. Run final structural validation, then map the material sources to the foundation conclusions they established and report files, decisions, verification, and practical next actions.
+1. Inspects the Git worktree, repository structure, code, configuration, documentation, and other high-information evidence.
+2. Selects the `initialize` operation and confirms that repository and developer authority permit its writes.
+3. Determines whether the evidence establishes a sufficient project foundation or requires one focused clarification.
+4. After the foundation is sufficient, installs a known missing compatible repository-local `@moldea.ai/cli` development dependency with lifecycle scripts disabled. A failed installation stops canonical and README writes and reports any package-manager changes. An existing compatible CLI needs no reinstall or failing availability probe; a global CLI is never a fallback.
+5. Creates the minimum canonical state and runs the bundled deterministic writer for the owned README awareness block.
+6. Runs final structural validation, maps the material sources to the conclusions they established, and reports the files, decisions, verification, and practical next actions.
 
 The minimum canonical foundation is:
 
@@ -48,7 +46,7 @@ The minimum canonical foundation is:
 /moldea/project.md
 ```
 
-`moldea.yaml` starts with schema version `1` and omits empty optional mappings. `project.md` records only durable project identity, purpose, users, goals, values, boundaries, and universally important facts supported by repository evidence.
+`moldea.yaml` starts with schema version `1` and omits empty optional mappings. `project.md` contains only durable identity, purpose, users, goals, values, boundaries, and universally important facts supported by repository evidence.
 
 The root README receives this exact logical block:
 
@@ -60,35 +58,29 @@ Canonical moldea project state lives under `/moldea/**`; start at `/moldea/proje
 <!-- moldea:end -->
 ```
 
-The blank line after the opening marker separates the ownership marker from the Markdown paragraph. The writer preserves existing README bytes outside the managed region, follows the file's consistent CRLF style when applicable, and otherwise writes LF. It rejects duplicate, unpaired, reversed, linked, invalid, or oversized README input instead of guessing.
+The blank line after the opening marker separates ownership metadata from the Markdown paragraph. The writer preserves all README bytes outside the managed region, follows a consistent existing CRLF style when applicable, and otherwise writes LF. It rejects duplicate, unpaired, reversed, linked, invalid, or oversized README input instead of guessing.
 
-Initialization does not create an agent automatically. It also does not create ceremonial empty directories, speculative context, or a parallel source of truth. An adopted project turns the same request into focused foundation maintenance. Partial or inconsistent artifacts leave the project unadopted: the coding agent identifies the exact existing artifacts and missing contract elements, preserves valid content, and does not initialize or repair over them until the request authorizes that work and any consequential ambiguity is resolved.
+Initialization does not create an agent, ceremonial empty directories, speculative context, or a parallel source of truth. With no evidenced relationships, `moldea.yaml` contains only `version: 1` and its final LF. A successful validation ends the operation without a follow-up inspection. Bounded structural diagnostics permit one repair and final validation retry.
 
-Once initialized, ask naturally to plan, build, review, or maintain AI agents. You do not need to mention `moldea` again or set up bindings first. The README selects the skill; its router checks adoption for agent work and relationships for other tasks. A follow-up continues the active task within its authorization, while unrelated work remains unaffected.
+An adopted project turns the same request into focused foundation maintenance. Partial or inconsistent artifacts leave it unadopted: the coding agent identifies the existing artifacts and missing contract elements, preserves valid content, and does not initialize or repair over them without the required authority and decisions.
 
 ## When the repository does not explain itself
 
-Initialization is conversational when the evidence is not yet sufficient:
+Initialization is conversational when evidence is incomplete:
 
-- When no meaningful project context can be established, the coding agent explains the benefit before asking one focused question: “`moldea` keeps durable project context in the repository so coding agents can understand the project consistently over time. The README and source do not establish what this project is for, so I haven’t initialized it yet. What does the project do, and who or what does it serve?” It adapts the inspected sources when needed, but it does not bundle purpose, users, goals, and boundaries into a questionnaire. Brief or generic package metadata can inform that question, but it cannot finalize the foundation by itself. Neither can a repository name, generic label, placeholder file, or empty export.
-- When part of the project is clear but a material purpose, user, goal, authority, or boundary remains uncertain, it summarizes the supported conclusions and asks one question about that consequential boundary before finalizing affected claims. A broad phrase such as “handles payments” does not establish authorization, value movement, destructive effects, lifecycle changes, or external actions when the implementation proves only narrower processing.
-- When the foundation is sufficiently clear, it completes initialization without asking a question merely for ceremony.
+- If no meaningful project context can be established, the coding agent explains that `moldea` keeps durable repository context and asks one focused question about what the project does and whom or what it serves. A name, generic label, placeholder file, empty export, or brief package metadata cannot establish the foundation alone.
+- If part of the project is clear but a material purpose, user, goal, authority, or boundary remains uncertain, the coding agent summarizes supported conclusions and asks one question about that boundary. Broad language such as “handles payments” does not establish value movement, authorization, destructive effects, lifecycle changes, or external actions that the evidence does not support.
+- If the foundation is sufficient, initialization completes without a ceremonial question.
 
-You can also supply context before the coding agent asks. Include it directly in the request or point to an accessible file where you already maintain the relevant users, goals, boundaries, or other project knowledge. The coding agent evaluates that input alongside repository evidence and carries only durable, relevant truth into the project foundation.
-
-Insufficient and partial foundations pause initialization with no dependency, canonical-state, or owned README writes. Missing or unverified tooling does not erase available project evidence. The coding agent asks instead of storing developer-answerable foundational ambiguity as an unresolved requirement.
-
-The amount of documentation is not the deciding factor. A concise authoritative README may be sufficient, while extensive contradictory or stale documentation may require clarification. After any required answers, the coding agent resumes initialization and provides a completed handoff with optional next actions.
+You may supply context directly or point to an accessible source. The coding agent evaluates it with repository evidence and carries only durable, relevant truth into the foundation. Insufficient or partial foundations pause with no dependency, canonical-state, or managed README writes. Missing tooling does not erase available project evidence, and developer-answerable ambiguity is not stored as an unresolved requirement.
 
 ## Make your first request
 
-Open the project in a compatible coding agent and describe the outcome:
+After initialization, describe the outcome naturally:
 
 ```text
 Create a support agent for this application.
 ```
-
-The coding agent should understand the repository before inventing behavior. If the project has not adopted `moldea`, initialize it explicitly first. Other repository-dependent requests abstain until the manifest, project document, and managed README block establish adoption.
 
 To design the system before implementation, ask:
 
@@ -96,45 +88,15 @@ To design the system before implementation, ask:
 Use moldea to plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software and what genuinely needs model reasoning.
 ```
 
-Planning is read-only and may recommend no agents at all.
+Planning is read-only and may recommend no agents. You do not need to mention `moldea` again or create bindings first. The managed README selects the entrypoint; clear agent work checks adoption, other known paths check declared relationships, and a follow-up continues only the active task and its authorization. Unrelated work remains unaffected. See the [workflow reference](/docs/how-it-works/) for the complete activation contract.
 
-## What you do not need to do
+You do not need to create `/moldea` directories by hand, invoke the local CLI directly, translate requests into special commands, maintain duplicate instructions, or create a `moldea` Cloud account. The coding agent owns safe interaction with the repository-local skill and tooling.
 
-You do not need to:
+## Update or remove the skill
 
-- create `/moldea` directories by hand
-- invoke the local `moldea` CLI directly
-- translate your request into skill-specific commands
-- maintain duplicate agent instructions
-- create a `moldea` Cloud account for local work
+An unpinned installation follows `main`; rerun the first installation command to refresh it. A pinned installation never moves automatically; rerun the pinned form with the desired immutable release tag. Updating refreshes portable instructions and references. It does not initialize a project, modify `/moldea/**`, install the CLI globally, or alter canonical state.
 
-The coding agent owns the safe interaction with the skill and repository-local tooling.
-
-After establishing sufficient project context, initialization safely installs a known missing compatible local CLI before canonical or managed README writes. Failed installation stops those writes and validation and reports any package-manager changes. Already-present compatible tooling needs no reinstall or availability probe. During initialization, it writes the two canonical files and invokes the bundled README writer before making one final validation call. The writer is a local skill operation, not a CLI call. With no evidenced relationships, `/moldea/moldea.yaml` contains only `version: 1` and its final LF. A successful validation ends the operation without a follow-up inspection. If bounded structural diagnostics identify a repairable foundation error, the agent may correct it and validate once more.
-
-Ordinary requests that do not pass the relevance gate activate no `moldea` work, whether or not the repository is adopted. Initialization adds a managed README block that tells a supported repository-aware host to select the repository-bound skill for each repository task. The selected entrypoint runs the two-byte gate, but a miss loads no workflow reference, runs no CLI command, and produces no `moldea` report. Initialization remains an explicit operation and never interrupts unrelated work.
-
-## Update the skill
-
-An unpinned installation follows the repository's current `main` branch. Rerun the same command to refresh the project installation:
-
-```bash
-npx skills add moldea-ai/skill
-```
-
-A release-pinned installation never moves to another tag automatically. To update it, choose the desired published release and rerun the installation command with that tag. For example, the current release is:
-
-```bash
-npx skills add "moldea-ai/skill#v5.0.9"
-```
-
-Replace `v5.0.9` with the desired newer published tag when one becomes available.
-
-Updating the skill refreshes its portable instructions and references. It does not initialize a project, change `/moldea/**`, install the `moldea` CLI globally, or alter a repository's canonical project state.
-
-## Remove the skill
-
-Remove a project installation with:
+Remove the project installation with:
 
 ```bash
 npx skills remove moldea

@@ -8,99 +8,70 @@ order: 172
 
 # Semantic evaluation
 
-Deterministic tests can prove schemas, files, commands, and byte limits. Semantic evaluation tests whether a coding agent applies those contracts correctly inside realistic repository tasks.
+Deterministic tests prove schemas, files, commands, and byte limits. Semantic evaluation tests whether a coding agent applies those contracts correctly in realistic repository tasks.
 
-The active suite contains 74 cases. It restores all 57 scenarios from the former suite, retains 17 scenarios added by the resource-bounded redesign, and counts the one shared scenario only once. `fixtures/semantic-evaluation-dispositions.json` records the clean-slate disposition of every former identifier so a reduced suite cannot silently replace established coverage again.
+The active suite contains 74 cases: all 57 former scenarios, 17 resource-bounded additions, and one shared scenario counted once. `fixtures/semantic-evaluation-dispositions.json` records every former identifier so a smaller suite cannot silently replace established coverage. Current assurance uses semantic protocol 25 and schema-9 evidence.
 
-## What the suite proves
+## Coverage and verdicts
 
-The cases cover:
+The suite covers:
 
-- `moldea`-only silent abstention while unrelated documentation and source reviews continue normally
-- `moldea`-only silent abstention while README changes outside the managed block continue normally
-- host planning and review command precedence
-- no activation from generic durable-knowledge language
-- direct activation for canonical files and the managed README block
-- bounded relationship activation for exact bindings and `affectedBy` paths
-- explicit `moldea` validation
-- valid zero-agent projects
-- large canonical inventories without full-content inspection
-- read-only evaluation across repository and Git control state
+- silent abstention during unrelated source, documentation, and unmanaged README work
+- host planning and review command precedence, with no activation from generic durable-knowledge language
+- direct activation for canonical files, the managed README block, and explicit validation
+- bounded `scope` activation for exact bindings and `affectedBy` paths
+- valid zero-agent projects and large inventories without full-content inspection
+- read-only repository and Git controls
 - initialization from insufficient, partial, and sufficient evidence
-- canonical maintenance, reconciliation, compression, and exact relationship behavior
+- canonical maintenance, reconciliation, compression, and relationship behavior
 - Agent Skill creation, maintenance, distribution, and script-authority boundaries
-- grounded agent-system planning and runtime selection
-- provider capability and routing-description ownership
+- grounded agent-system planning, runtime selection, provider capability, and routing ownership
 - package-manager, Git-helper, host-command, and related-repository safety
 
-Each case defines a natural developer request, sourced repository facts, expected behavior, prohibited behavior, and a resource budget. The actor receives the request and the portable skill. It does not receive the answer criteria.
+Each case declares a natural request, sourced repository facts, expected and prohibited behavior, and a resource budget. The actor receives the request and portable skill, never the grading criteria. An independent judge receives the criteria and runner-owned evidence; actor prose cannot manufacture command evidence, repository state, or byte counts.
 
-A separate judge receives the declared criteria plus runner-owned evidence. No actor response can manufacture command evidence, repository state, or byte counts.
+The runner records semantic, resource, command-policy, repository-control, read-only-mount, and operational dimensions separately. Overall pass is their strict conjunction. Only a semantic failure with every other dimension passing may receive confirmation trials. Deterministic, resource, policy, repository, mount, and operational failures are terminal and spend no confirmations. The judge evaluates behavioral clauses and projected command-result facts, not unrelated host-command counts or output.
 
-## Resource evidence
+When pre-adoption abstention consumes the request, the actor reports only a neutral repository outcome such as `No files were changed.` It does not mention `moldea` or recommend initialization. If an independent host review remains, the actor completes and reports that review normally.
 
-For every completed actor and judge command, the runner observes the command and output in memory, projects only safe facts, and discards raw command text and output bodies.
+Initialization writes the complete foundation before its first CLI call, using exactly `version: 1` when no relationship is evidenced. It then runs one final `validate` and stops on success. Only one diagnostic-driven correction and validation retry is allowed; successful validation is not followed by `inspect`.
 
-The committed result records:
+## Bounded proof
 
-- number and order of recognized `moldea` operations
-- emitted `moldea` bytes
-- maximum bytes emitted by one recognized invocation
-- total model-visible tool-output bytes
-- actor and judge command-policy status with bounded reason codes and counts
-- completed host-command count and total input-plus-output model tokens
-- whether a non-content command attempted to return canonical content
+For every completed actor and judge command, the runner observes command and output in memory, projects only safe facts, and discards raw command text and output bodies. Results retain operation order, `moldea` bytes and per-invocation peak, total model-visible tool output, bounded policy reasons and counts, completed host-command count, input-plus-output tokens, and any attempt by a non-content command to return canonical content.
 
-Abstention cases require zero recognized `moldea` commands and zero `moldea` bytes. Each semantic case owns its exact activation and `moldea` budget. The activation label records how the case became eligible; it does not require a CLI call when independent artifact evidence owns the operation. Direct Agent Skill artifact cases therefore use exact zero-call budgets when repository validation would add no relevant fact. A direct case may begin with `scope` when explicit `moldea` intent targets ordinary repository paths, while a relationship case always begins with `scope` and never uses `inspect`. Ordinary direct, relationship, and discovery-dependent blocked cases permit at most four `moldea` calls and 262,144 `moldea`-output bytes, while simpler blocked cases retain smaller case-specific limits. An entrypoint route-5 direct mutation that needs owner discovery or composition may permit one fifth call for validation after a real repair. The explicit three-record compression case also permits five calls: one inventory inspection, three selected content reads, and final validation. The dedicated large-context case permits at most 16 calls and 1,048,576 output bytes while still requiring paginated, purpose-bounded traversal. The evaluation host separately enforces its absolute command, output, and token containment ceilings. Each actor and judge stage has a finite fifteen-minute timeout, and both roles use `xhigh` reasoning. Both roles receive the evaluator-owned closed-host developer instruction before the natural task, and host skill discovery is disabled so external skill state cannot affect the fixture. Caller overrides are rejected, and the exact instruction digest is part of each role's reusable stage identity. Runtime compatibility cases use real installed-adapter evidence and local package and source fixtures. No compatibility-publication probe or per-case network exemption is installed. A publication URL or evidence need does not grant network access. Semantic actors, judges, and qualification stages share this no-network policy.
+Abstention requires zero recognized `moldea` commands and bytes. Direct Agent Skill artifact cases also use zero-call budgets when repository validation adds no relevant fact. A direct case may start with `scope` when explicit intent targets ordinary paths. A relationship case always starts with `scope`, never `inspect`.
 
-When pre-adoption abstention consumes the complete request, the actor reports only a neutral repository outcome such as `No files were changed.` It does not name `moldea`, describe an unavailable operation or result, or recommend initialization. When an independent host review remains, the actor completes that review and reports its normal actionable findings without mentioning `moldea`.
+Semantic call limits are:
 
-Initialization writes its complete foundation before the first CLI call, using the exact minimal `version: 1` manifest when no relationship is evidenced, then uses one final `validate`. It stops on success; one diagnostic-driven correction and validation retry is the only structural retry. It does not follow successful validation with `inspect`.
+- at most 4 `moldea` calls and 262,144 output bytes for ordinary direct, relationship, and discovery-dependent blocked cases
+- at most 5 calls for a route-5 direct mutation needing owner discovery or composition before final validation
+- exactly the capacity for 1 inventory inspection, 3 selected content reads, and final validation in the three-record compression case
+- at most 16 calls and 1,048,576 output bytes for the paginated, purpose-bounded large-context case
 
-Case budgets are declared in `fixtures/conformance-cases.json`; their maximum values and the evaluation host's absolute containment ceilings are owned by `tooling/resource-calibration/profiles.mjs`. `fixtures/resource-calibration.json` records deterministic CLI and repository-operation measurements for ordinary, 1,024-path, large-Unicode, diagnostic-heavy, and adversarial inputs, with at least 25 percent cumulative headroom for non-attack cases. It does not stand in for complete model-stage calibration. `fixtures/model-stage-resource-calibration.json` separately preserves a self-contained privacy-safe record of aggregate observations from judged qualification and proves at least 25 percent cumulative operating headroom without retaining commands, output bodies, or an active qualification-result dependency.
+Simpler blocked cases keep smaller case-specific limits. The evaluation host also enforces the shared operating profiles and absolute containment ceilings documented in [Compatibility and local tooling](/docs/compatibility-and-local-tooling/). Actor and judge stages use `xhigh` reasoning with a fifteen-minute timeout.
 
-Recognized machine commands must use the installed skill's `scripts/moldea-cli.mjs` launcher with an absolute repository root, `--json`, and the required output boundary. Bare, package-manager, unbounded, escaped, or output-filtered forms do not count as valid proof.
+Both roles receive the evaluator-owned closed-host instruction before the task. Skill discovery and caller overrides are disabled. Runtime cases use local installed-adapter, package, and source fixtures. Semantic, qualification, and judge stages have no network exception for compatibility publications or other evidence.
 
-Paged proof keeps every page independently attributable. The actor repeats the same standalone launcher operation with the exact cursor from the immediately preceding raw envelope, keeps the 65,536-byte boundary, and may report complete traversal only after the final raw envelope returns a null cursor. Pipelines, command substitutions, scripted loops, parsers, filters, and aggregate wrappers do not establish page-level proof.
+Recognized machine commands must use the installed skill's `scripts/moldea-cli.mjs` launcher with an absolute repository root, `--json`, and the required output boundary. Bare, package-manager, unbounded, escaped, filtered, piped, substituted, looped, parsed, or aggregated forms do not establish proof. Each page repeats the same standalone operation with the immediately preceding raw cursor and the 65,536-byte boundary; traversal is complete only when the final raw envelope returns a null cursor.
 
-Relationship cases begin from structurally valid adopted repositories. Their first CLI operation is one bounded `scope` call, which serves as complete candidate-owner inventory instead of being followed by `inspect`. Overlapping matches do not require every owner or asset to be read. The coding agent selects the smallest task-affected owner set, preferring an exact relationship over a broad glob unless evidence shows both contracts change. The scope call is included in the four-command ordinary budget; remaining calls are limited to final validation and the implicated content of selected owners.
+Relationship cases start from valid adopted repositories. The first bounded `scope` call is the candidate-owner inventory. The actor selects the smallest affected owner set, preferring exact relationships over broad globs unless both contracts change. It does not follow `scope` with `inspect`; remaining calls read only implicated content and validate when needed. Ordinary Git-style task paths are normalized before matching, then sent to the CLI as leading-slash repository-logical paths.
 
-Direct context compression uses at most one content-free `inspect` followed by one `content` call per distinct in-scope context record. It never repeats a path or requests manifest content, and it stops as soon as retrieved evidence establishes a consequential conflict. The three-record fixture therefore allows five bounded calls when final validation follows a completed repair.
+Direct compression uses at most one content-free `inspect` and one `content` call per distinct in-scope record. It never repeats a path, requests manifest content, or keeps reading after evidence establishes a consequential conflict. Every adopted fixture includes the current managed README bridge so relationship-only relevance remains discoverable while unrelated cases still stop before any CLI or workflow-reference read.
 
-Every adopted semantic repository contains the current managed README discovery bridge. This proves that repository-aware hosts can select the cheap gate even when a relationship is visible only inside the manifest, while unrelated cases must still stop before any CLI call or workflow-reference load.
+When correctness-test evidence is required, only one static repository-root `node --test` invocation over explicit portable colocated paths is recognized. Success contributes one `node-test-summary` fact and requires exit code 0, a complete native summary, at least one test, every discovered test passing, and no failures, cancellations, skips, or todos. Raw commands, names, assertions, paths, durations, and output are discarded. Package-manager commands cannot supply this evidence. Unrecognized, incomplete, contradictory, failed, or oversized output supplies no result fact.
 
-Relationship cases begin from ordinary Git-style task paths. They cover both a host-provided changed path and an unchanged path explicitly named by the developer. The gate normalizes those repository-relative spellings before Core matching, and the actor must use the corresponding leading-slash repository-logical paths for the CLI query. This prevents false abstention without weakening canonical manifest path validation or adding `moldea`-owned Git discovery.
+## Repository and evidence identity
 
-The runner records semantic, resource, command-policy, repository-control, read-only-mount, and operational results as separate dimensions. The semantic dimension combines the independent judge verdict with required activation mode, minimum call count, and operation order. The resource dimension covers only upper command and output containment. Overall pass is their strict conjunction. Only a semantic failure with every other dimension passing is eligible for confirmation; deterministic, resource, policy, repository, mount, and operational failures are terminal and do not spend confirmation calls. The judge evaluates only the behavioral clauses and projected command-result facts. It must not reinterpret the total host command count or output from non-`moldea` commands as `moldea` resource consumption.
+Actors work in isolated writable repositories. The installed skill, evaluator boundaries, and Git control state are read-only. Pre- and post-execution evidence covers ordinary files, Git index and refs, repository and Git configuration, submodule control state, the portable skill, and declared related-repository mounts. Any protected or ordinary repository mutation fails a read-only case regardless of the final response.
 
-When a criterion requires a repository correctness test, the runner recognizes only one static repository-root `node --test` invocation over explicit portable colocated test paths. A successful command contributes one `node-test-summary` fact containing the recognized test level and native aggregate counts. Projection requires a zero exit code, a complete native summary, at least one test, every discovered test passing, and zero failures, cancellations, skips, or todo results. Raw command text, test names, assertions, paths, durations, and output bodies are discarded. Package-manager commands remain prohibited network-capable observations and cannot produce correctness evidence. Unrecognized, incomplete, contradictory, failed, or oversized output supplies no result fact.
+Protocol 25 accepts current assurance only when the schema-9 evidence matches the current suite, portable bytes, CLI closure, runner, coverage map, resource profiles, and role-specific host contract. Actor identity also binds the case, prompt, fixtures, scenario evidence, related mount state, protocol, and exact host. Judge identity additionally binds its prompt and complete projected actor evidence. Reuse requires every behavior-bearing input to match byte-for-byte; otherwise it is a cache miss.
 
-## Repository controls
+A reused stage retains its original time, source attempt and commit, evidence and stage digests, trial identity, and `reused` origin. The current runner rematerializes fixtures, reruns repository and mount controls, and verifies the committed artifact. Independently passing or recovered groups from a valid committed failed attempt may be reused. Failed, incomplete, tampered, or uncommitted groups may not. Reuse is never labeled as a new model call.
 
-The actor works in an isolated writable repository. The installed skill, Git control state, and evaluator-owned boundaries are read-only. The runner captures pre- and post-execution evidence for:
+Public replay pages support structurally valid protocol-25 attempts matching the 74-case contract, including authenticated pins. Current assurance still requires the latest attempt to match every active identity. Attempt storage is append-only within a release cycle. Failed initial semantic trials remain visible and recover only after two passing confirmations; operational retries do not count as semantic trials.
 
-- ordinary repository files
-- the Git index and refs
-- repository and Git configuration
-- submodule control state
-- the installed portable skill
-- any declared related repository mount
-
-The read-only case fails if evaluation changes any protected or ordinary repository state, even when the actor's final message claims otherwise.
-
-## Fresh evidence by default
-
-Semantic protocol 25 accepts current assurance only from schema-9 evidence produced by the current suite, current portable bytes, current CLI closure, current runner, current coverage map, current resource profiles, and current role-specific host contract. Immutable attempts from an earlier host identity remain verifiable audit history, but they cannot become current assurance or reusable model evidence after an identity change.
-
-Evidence applies only to exact behavior-bearing actor and judge stage identities. Actor identity binds the portable skill bytes, case definition, natural prompt, deterministic fixture, scenario evidence, complete related-repository mount state, resource-profile file, CLI closure, protocol, and exact host. The source resource profile is read from the immutable commit that contains the reused evidence rather than inferred from the current checkout. Judge identity additionally binds its exact prompt and the complete projected actor evidence it assessed. A verified immutable stage may be reused only when all of those inputs match byte-for-byte. Every mismatch is a cache miss.
-
-Reused stages retain their original evaluation time and carry the source attempt, source commit, evidence digest, trial identity, stage identity, and explicit `reused` origin. The current runner rematerializes deterministic fixtures, reruns repository and read-only-mount controls, and verifies the committed source artifact before accepting reuse. An independently passing or recovered case group may come from a valid committed failed attempt; failed, incomplete, tampered, or uncommitted case groups remain ineligible. The runner never labels reuse as a new model invocation.
-
-The public evidence site generates local replay pages for structurally valid protocol-25 attempts that match the 74-case evidence contract, including authenticated pinned sources. Visitors first see each difficult decision from request to verdict; trial provenance, raw artifacts, source identity, and current-contract distinctions remain available deeper in the same evidence path. Current assurance still requires the latest attempt to match the exact active portable, CLI, evaluator, developer-instruction, actor, and judge identity.
-
-This is the normal release path. A maintainer may explicitly pin semantic evidence to valid passing evidence from an immutable release tag or full commit, accepting that the earlier run did not evaluate changed behavior. The reason identifies the changes, deterministic checks, and remaining testing limitations. Qualification evidence remains independently fresh or pinned. A semantic pin is presented with its source attempt, passing totals, timestamps, and immutable link. It is never labeled as a fresh current-contract run and must pass the source integrity and resource checks described in [Release evidence](/docs/release-evidence/).
-
-Attempt storage remains append-only during one current release cycle. Failed initial trials remain visible, and a failed case can recover only after two passing confirmations. Operational host retries do not consume semantic trials.
+Fresh evidence is the default. A maintainer may instead pin a passing immutable release tag or full commit while acknowledging that the older run did not test changed behavior. Semantic and qualification evidence are selected independently. See [Release evidence](/docs/release-evidence/) for pinning and integrity requirements.
 
 ## Run the free preflight
 
@@ -108,23 +79,21 @@ Attempt storage remains append-only during one current release cycle. Failed ini
 npm run eval:semantic:preflight
 ```
 
-Preflight validates all case definitions, source evidence, portable skill structure, CLI identity, resource budgets, and repository setup without making a model call.
+Preflight validates case definitions, source evidence, portable structure, CLI identity, resource budgets, and repository setup without a model call. It reports ordered paid case IDs; total, reusable, and remaining stage counts; confirmation and retry limits; candidate token maximum; next-stage reservation; and absolute containment.
 
-It also prints the ordered paid case IDs, total initial stage count, exact reusable case and stage counts, remaining paid initial stage count, confirmation-inclusive paid stage limit, retry-inclusive invocation limit, candidate paid-token maximum, next-stage reservation, and absolute token containment limit. These are deliberately named limits, not forecasts. The paid IDs make source invalidation reviewable before model execution instead of requiring private instrumentation. The confirmation limit assumes that every newly evaluated case needs two confirmation trials after its initial trial, while the invocation limit additionally assumes that every paid actor and judge stage consumes its one bounded operational retry. Each completed tool-using Codex invocation may report at most 2,097,152 cumulative input-plus-output tokens. Before every paid stage, the runner reserves that complete per-invocation maximum and launches only when recorded direct consumption plus the reservation is at or below the 32,000,000-token candidate ceiling. Equality is accepted; one token beyond it stops before launch and preserves the resumable candidate. Reused stages do not count as new work. The larger aggregate containment limit describes the theoretical protocol envelope if every permitted invocation reached its individual ceiling, so it must not be presented as expected consumption or spend. The per-invocation ceiling was selected above an observed 1,264,666-token qualification stage so normal tool-using work retains more than 25 percent headroom. Cached input is reported separately without being added to input a second time.
+Each tool-using invocation is capped at 2,097,152 input-plus-output tokens. Before a paid stage, the runner reserves that complete amount and launches only when recorded direct consumption plus the reservation is at or below the 32,000,000-token candidate ceiling. Equality passes; one token beyond stops before launch and preserves resumable state. Reused stages add no new consumption. Cached input is reported separately. The larger theoretical protocol envelope is containment, not a forecast or spending estimate.
 
-## Record and verify
+## Diagnose, record, and verify
 
-Use one explicit case for a non-recording diagnostic:
+Run one non-recording case diagnostic with:
 
 ```bash
 npm run eval:semantic -- --case <case-id>
 ```
 
-The diagnostic emits one content-free JSON result with the verdict, complete observed and forbidden criterion identifiers, a UTF-8-safe rationale excerpt with explicit truncation state, and separate actor and judge command-policy aggregates plus resource and token evidence. Policy aggregates contain only statuses, bounded reason codes, and counts. Output cannot exceed 65,536 UTF-8 bytes. Running `npm run eval:semantic` without `--case` or `--record` fails before host discovery and makes no model call.
+Its content-free JSON includes the verdict; observed and forbidden criterion IDs; a UTF-8-safe rationale excerpt with truncation state; separate actor and judge policy aggregates; and resource and token evidence. Output is capped at 65,536 UTF-8 bytes. Running `npm run eval:semantic` without `--case` or `--record` fails before host discovery and makes no model call.
 
-## Correct failures efficiently
-
-Do not restart the complete paid suite after each correction. Run one bounded diagnostic batch and collect every failure before editing so one correction can address shared causes:
+For shared failures, collect a complete bounded diagnostic batch before editing:
 
 ```bash
 npm run eval:semantic:diagnose -- --all
@@ -133,27 +102,19 @@ npm run eval:semantic:diagnose -- --claims <comma-separated-claim-ids>
 npm run eval:semantic:diagnose -- --unresolved-from <attempt-id>
 ```
 
-Exactly one selector is required. The batch performs one initial actor and judge trial per selected case, without confirmations, evidence reuse, or official evidence writes. It accepts `--workers 1`, `--workers 2`, or `--workers 4` and defaults to four isolated workers. Worker count is operational rather than evidence-bearing, so a stopped batch may resume at another accepted count without repeating completed stages. Aggregate writes remain serialized in fixture order.
+Exactly one selector is required. Diagnostics run one initial actor and judge trial per case without confirmations, reuse, or official evidence writes. They accept `--workers 1`, `--workers 2`, or `--workers 4` and default to four isolated workers. Worker count is operational, so resume may use two and then one worker without repeating completed stages. `--resume-stopped-stage` authorizes one additional attempt for the terminal stopped stage; `--restart` discards only the matching diagnostic state.
 
-Each worker checkpoints after actor and judge boundaries. The coordinator continues across semantic failures, stops new dispatch when an operational or capacity failure becomes known, and drains active siblings to safe checkpoints. Concurrent token admission reserves every possible next stage, so this stop can precede actual candidate exhaustion. Resume the exact checkpoint with two workers, then one if needed, before considering stop-loss recalibration; completed stages are reused rather than repeated. The terminal failed invocation is persisted before exit, and an ordinary rerun refuses to repeat it. Add `--resume-stopped-stage` to the same exact command to authorize one additional attempt; if that attempt fails, the checkpoint stops again. Use `--restart` only to discard the current diagnostic batch intentionally.
+Each worker has a 2 GiB temporary-storage ceiling. Four may reserve at most 8 GiB while preserving a 2 GiB free-space floor. The coordinator stops new dispatch on operational or capacity failure, drains active siblings, and preserves checkpoints. Each coordinator, content-free ledger, and private worker checkpoint is capped at 1 MiB, producing a 6 MiB maximum for four-worker diagnostic metadata. Explanations are capped at 4,096 UTF-8 bytes and final output at 16,384 bytes. The ledger contains IDs, verdicts, criteria, deterministic explanations, aggregate resources, and operational counts, never prompts, rationale, commands, output bodies, repository content, or workspace paths.
 
-Each worker receives a 2,147,483,648-byte temporary-storage ceiling. Four workers may reserve at most 8,589,934,592 bytes while preserving at least 2,147,483,648 free bytes before dispatch. The runner checks worker-owned storage before, during, and after every model boundary and aborts the boundary on overage. These limits bound disposable evaluation storage; they do not change CLI pagination or content-page limits.
-
-The ignored diagnostic state contains a coordinator, a content-free ledger, and up to four private worker checkpoints. Each file is limited to 1,048,576 bytes, so the complete four-worker diagnostic metadata is limited to 6,291,456 bytes. The ledger retains only case IDs, verdicts, criteria identifiers, deterministic content-free explanations, aggregate resource counts, and operational-failure counts. The model-authored rationale is never copied into it. Each content-free explanation is limited to 4,096 UTF-8 bytes. Successful completion deletes private checkpoints and prints at most 16,384 UTF-8 bytes.
-
-After the batch correction passes deterministic checks and is published, rerun only the residual failed case IDs. If another residual remains, collect the complete residual set before the next edit. Start one official recording only after the targeted gate is green. Diagnostic passes are never promoted or reused as evidence. Official recording may reuse independently passing or recovered groups from committed attempts only when every behavior-bearing stage identity still matches the final inputs; otherwise it executes them again.
-
-The complete paid suite requires explicit recording:
+After corrections and deterministic checks pass, rerun only residual cases. Diagnostic passes are never promoted. Record official evidence only after the targeted gate is green:
 
 ```bash
 npm run eval:semantic -- --record --workers 4
 npm run eval:semantic:verify
 ```
 
-Recording uses the same accepted worker counts and defaults to four. It completes every missing initial case before running confirmations, merges results in fixture order, and records one immutable complete attempt whether it passes or fails. It continues across semantic failures; exhausted operational retries and pre-launch resource stops preserve exact resumable state instead of inventing results. After a stage exhausts its one automatic retry, the same command refuses to launch it again. Add `--resume-stopped-stage` for one explicit additional attempt. Each terminal failure is recorded and conservatively charged as a complete 2,097,152-token invocation, so repeated explicit resumes cannot bypass the candidate ceiling. Only a complete passing candidate is promoted as current release evidence. Verification recalculates every digest and rejects missing, stale, incomplete, over-budget, or mutated evidence.
+Recording accepts the same worker counts, defaults to four, completes missing initial cases before confirmations, and writes one immutable complete attempt whether it passes or fails. Semantic failures do not stop the suite. Operational exhaustion and pre-launch resource stops preserve resumable state. After the automatic retry is exhausted, the same command refuses to rerun the stage unless `--resume-stopped-stage` explicitly grants one more attempt. Every terminal failure is charged as a complete 2,097,152-token invocation. Only a complete passing candidate becomes current release evidence; verification recalculates every digest and rejects missing, stale, incomplete, over-budget, or mutated evidence.
 
 ## Relationship to adapter qualification
 
-Semantic evaluation owns universal skill behavior and runs once. Adapter qualification owns current adapter-specific compatibility and repair behavior.
-
-The Custom qualification profile contains the universal qualification journeys. Every published adapter profile contains only its adapter-specific cases. This separation prevents the same universal work from being multiplied across all adapter targets.
+Semantic evaluation owns universal skill behavior and runs once. [Adapter qualification](/docs/adapter-qualification/) owns current adapter compatibility and repair behavior. Its Custom profile contains 12 universal qualification journeys, while each published adapter owns only its 2 direct cases.

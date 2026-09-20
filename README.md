@@ -122,12 +122,12 @@ The distributed artifact is exactly `moldea/`; development-only tooling is not i
 
 ## Development
 
-Install dependencies without lifecycle scripts:
+Repository development requires Node.js `^24.15.0` and npm `>=10.9.0`. The distributed `moldea/` artifact keeps its documented Node.js `>=22.11.0` runtime contract.
+
+Install every workspace dependency from the repository root without lifecycle scripts:
 
 ```bash
 npm ci --ignore-scripts
-npm --prefix qualification ci --ignore-scripts
-npm --prefix website ci --ignore-scripts
 ```
 
 Run the deterministic boundaries:

@@ -3,6 +3,7 @@ import { describe, expect, test } from 'vitest';
 
 import {
   isQualificationBehaviorBearingSourcePath,
+  normalizeQualificationRuntimePackageLock,
   normalizeQualificationToolingPackageLock,
   normalizeQualificationToolingPackageManifest,
 } from './utilities.ts';
@@ -62,6 +63,59 @@ describe('qualification input identity', () => {
           version: '1.0.0',
         },
       },
+    });
+  });
+
+  test('isolates qualification runtime packages from sibling workspaces', () => {
+    expect(
+      normalizeQualificationRuntimePackageLock({
+        name: 'repository',
+        version: '1.0.0',
+        lockfileVersion: 3,
+        requires: true,
+        packages: {
+          '': {
+            name: 'repository',
+            version: '1.0.0',
+            workspaces: ['qualification', 'website'],
+          },
+          qualification: {
+            name: 'qualification',
+            version: '2.0.0',
+            dependencies: { runtime: '3.0.0' },
+            devDependencies: { 'qualification-dev': '4.0.0' },
+          },
+          website: {
+            name: 'website',
+            version: '5.0.0',
+            dependencies: { 'website-runtime': '6.0.0' },
+          },
+          'node_modules/runtime': {
+            version: '3.0.0',
+            dependencies: { transitive: '7.0.0' },
+          },
+          'node_modules/transitive': { version: '7.0.0' },
+          'node_modules/qualification-dev': { version: '4.0.0', dev: true },
+          'node_modules/website-runtime': { version: '6.0.0' },
+        },
+      }),
+    ).toStrictEqual({
+      lockfileVersion: 3,
+      name: 'qualification',
+      packages: {
+        '': {
+          dependencies: { runtime: '3.0.0' },
+          name: 'qualification',
+          version: '2.0.0',
+        },
+        'node_modules/runtime': {
+          dependencies: { transitive: '7.0.0' },
+          version: '3.0.0',
+        },
+        'node_modules/transitive': { version: '7.0.0' },
+      },
+      requires: true,
+      version: '2.0.0',
     });
   });
 

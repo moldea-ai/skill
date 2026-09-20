@@ -34,7 +34,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `node scripts/generate-qualification-current-e2e-fixture.ts && ./node_modules/.bin/astro build --outDir ${outputDirectory} && ./node_modules/.bin/vite preview --base ${basePath} --host 127.0.0.1 --port ${previewPort} --strictPort --outDir ${outputDirectory}`,
+    command: `node scripts/generate-qualification-current-e2e-fixture.ts && npm exec -- astro build --outDir ${outputDirectory} && npm exec -- vite preview --base ${basePath} --host 127.0.0.1 --port ${previewPort} --strictPort --outDir ${outputDirectory}`,
     reuseExistingServer: false,
     timeout: 120_000,
     url: new URL(basePath, previewOrigin).href,

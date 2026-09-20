@@ -22,7 +22,6 @@ import {
 
 const QUALIFICATION_CASE_CATALOG_PATH = 'cases/cases.yaml';
 const QUALIFICATION_PACKAGE_MANIFEST_PATH = 'package.json';
-const QUALIFICATION_PACKAGE_LOCK_PATH = 'package-lock.json';
 const TOOLING_PACKAGE_MANIFEST_PATH = 'package.json';
 const TOOLING_PACKAGE_LOCK_PATH = 'package-lock.json';
 const PROFILE_DOCUMENTATION_PATH = 'README.md';
@@ -249,10 +248,9 @@ export const calculateQualificationExecutionDigest = async (
     roots.qualificationRoot,
     QUALIFICATION_PACKAGE_MANIFEST_PATH,
   );
-  const packageLockPath = path.join(roots.qualificationRoot, QUALIFICATION_PACKAGE_LOCK_PATH);
+  const packageLockPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_LOCK_PATH);
   const caseCatalogPath = path.join(roots.qualificationRoot, QUALIFICATION_CASE_CATALOG_PATH);
   const toolingPackageManifestPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_MANIFEST_PATH);
-  const toolingPackageLockPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_LOCK_PATH);
   const [
     qualificationSourceEntries,
     evaluationHostEntries,
@@ -262,7 +260,6 @@ export const calculateQualificationExecutionDigest = async (
     packageLockSource,
     caseCatalogSource,
     toolingPackageManifestSource,
-    toolingPackageLockSource,
   ] = await Promise.all([
     collectPrefixedSourceEntries(qualificationSourceRoot, 'qualification/src'),
     collectPrefixedSourceEntries(roots.evaluationHostRoot, 'tooling/codex-evaluation-host'),
@@ -272,7 +269,6 @@ export const calculateQualificationExecutionDigest = async (
     readFile(packageLockPath, 'utf8'),
     readFile(caseCatalogPath, 'utf8'),
     readFile(toolingPackageManifestPath, 'utf8'),
-    readFile(toolingPackageLockPath, 'utf8'),
   ]);
   const normalizedEntries = await Promise.all([
     createNormalizedFileEntry(
@@ -299,10 +295,10 @@ export const calculateQualificationExecutionDigest = async (
       ),
     ),
     createNormalizedFileEntry(
-      toolingPackageLockPath,
+      packageLockPath,
       'package-lock.json',
       normalizeQualificationToolingPackageLock(
-        JSON.parse(toolingPackageLockSource) as unknown,
+        JSON.parse(packageLockSource) as unknown,
         QUALIFICATION_SHARED_TOOLING_PACKAGE_NAMES,
       ),
     ),

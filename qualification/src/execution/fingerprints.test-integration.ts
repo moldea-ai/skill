@@ -24,14 +24,25 @@ const createPackageManifest = (adapterVersion: string, runtimeVersion: string): 
     devDependencies: { 'adapter-sdk': adapterVersion },
   })}\n`;
 
-const createPackageLock = (adapterVersion: string, runtimeVersion: string): string =>
+const createWorkspacePackageLock = (
+  adapterVersion: string,
+  runtimeVersion: string,
+  cliVersion: string,
+  semverVersion: string,
+): string =>
   `${JSON.stringify({
-    name: '@moldea.ai/adapter-qualification',
-    version: '0.0.0',
+    name: '@moldea.ai/skill-conformance',
+    version: '1.0.0',
     lockfileVersion: 3,
     requires: true,
     packages: {
       '': {
+        name: '@moldea.ai/skill-conformance',
+        version: '1.0.0',
+        workspaces: ['qualification'],
+        devDependencies: { '@moldea.ai/cli': cliVersion, semver: semverVersion },
+      },
+      qualification: {
         name: '@moldea.ai/adapter-qualification',
         version: '0.0.0',
         dependencies: { yaml: runtimeVersion },
@@ -47,22 +58,6 @@ const createPackageLock = (adapterVersion: string, runtimeVersion: string): stri
         version: runtimeVersion,
         integrity: `sha512-yaml-${runtimeVersion}`,
       },
-    },
-  })}\n`;
-
-const createToolingPackageManifest = (cliVersion: string, semverVersion: string): string =>
-  `${JSON.stringify({
-    type: 'module',
-    devDependencies: { '@moldea.ai/cli': cliVersion, semver: semverVersion },
-  })}\n`;
-
-const createToolingPackageLock = (cliVersion: string, semverVersion: string): string =>
-  `${JSON.stringify({
-    lockfileVersion: 3,
-    packages: {
-      '': {
-        devDependencies: { '@moldea.ai/cli': cliVersion, semver: semverVersion },
-      },
       'node_modules/@moldea.ai/cli': {
         version: cliVersion,
         dev: true,
@@ -74,6 +69,12 @@ const createToolingPackageLock = (cliVersion: string, semverVersion: string): st
         integrity: `sha512-semver-${semverVersion}`,
       },
     },
+  })}\n`;
+
+const createToolingPackageManifest = (cliVersion: string, semverVersion: string): string =>
+  `${JSON.stringify({
+    type: 'module',
+    devDependencies: { '@moldea.ai/cli': cliVersion, semver: semverVersion },
   })}\n`;
 
 const createCaseCatalog = (selectedDescription: string, otherDescription: string): string =>
@@ -129,7 +130,7 @@ describe('qualification input fingerprint', () => {
       writeFile(paths.modelHost, 'export const modelHostVersion = 1;\n'),
       writeFile(paths.orchestration, 'export const orchestrationVersion = 1;\n'),
       writeFile(paths.packageCandidate, 'export const packageCandidateVersion = 1;\n'),
-      writeFile(paths.packageLock, createToolingPackageLock('5.0.0', '7.8.5')),
+      writeFile(paths.packageLock, createWorkspacePackageLock('1.0.0', '2.9.0', '5.0.0', '7.8.5')),
       writeFile(paths.packageManifest, createToolingPackageManifest('5.0.0', '7.8.5')),
       writeFile(paths.resourceProfile, 'export const resourceProfileVersion = 1;\n'),
     ]);
@@ -175,7 +176,6 @@ describe('qualification input fingerprint', () => {
       hostTest: path.join(roots.evaluationHostRoot, 'host.test-unit.mjs'),
       packageCandidate: path.join(roots.packageCandidateRoot, 'index.mjs'),
       packageCandidateDeclaration: path.join(roots.packageCandidateRoot, 'index.d.mts'),
-      packageLock: path.join(roots.qualificationRoot, 'package-lock.json'),
       packageManifest: path.join(roots.qualificationRoot, 'package.json'),
       profileDocumentation: path.join(selectedProfileDirectory, 'README.md'),
       profileManifest: path.join(selectedProfileDirectory, 'profile.yaml'),
@@ -183,7 +183,7 @@ describe('qualification input fingerprint', () => {
       resourceProfile: path.join(temporaryRoot, 'tooling/resource-calibration/profiles.mjs'),
       scenario: path.join(selectedProfileDirectory, 'projects/selected-case/scenario.yaml'),
       task: path.join(selectedProfileDirectory, 'projects/selected-case/task.md'),
-      toolingPackageLock: path.join(roots.repositoryRoot, 'package-lock.json'),
+      packageLock: path.join(roots.repositoryRoot, 'package-lock.json'),
       toolingPackageManifest: path.join(roots.repositoryRoot, 'package.json'),
       unrelatedProfile: path.join(
         roots.qualificationRoot,
@@ -206,7 +206,7 @@ describe('qualification input fingerprint', () => {
         paths.packageCandidateDeclaration,
         'export declare const candidateVersion: number;\n',
       ),
-      writeFile(paths.packageLock, createPackageLock('1.0.0', '2.9.0')),
+      writeFile(paths.packageLock, createWorkspacePackageLock('1.0.0', '2.9.0', '5.0.0', '7.8.5')),
       writeFile(paths.packageManifest, createPackageManifest('1.0.0', '2.9.0')),
       writeFile(paths.profileDocumentation, '# Selected profile documentation\n'),
       writeFile(paths.profileManifest, 'version: 2\nadapterId: selected\n'),
@@ -214,7 +214,6 @@ describe('qualification input fingerprint', () => {
       writeFile(paths.resourceProfile, 'export const resourceProfileVersion = 1;\n'),
       writeFile(paths.scenario, 'version: 2\nid: selected-case\n'),
       writeFile(paths.task, '# Repair the selected adapter\n'),
-      writeFile(paths.toolingPackageLock, createToolingPackageLock('5.0.0', '7.8.5')),
       writeFile(paths.toolingPackageManifest, createToolingPackageManifest('5.0.0', '7.8.5')),
       writeFile(paths.unrelatedProfile, 'version: 2\nadapterId: other\n'),
     ]);
@@ -237,15 +236,14 @@ describe('qualification input fingerprint', () => {
       ),
       writeFile(paths.unrelatedProfile, 'version: 2\nadapterId: other\ntitle: Added profile\n'),
       writeFile(paths.caseCatalog, createCaseCatalog('Selected behavior.', 'Revised other case.')),
-      writeFile(paths.packageLock, createPackageLock('2.0.0', '2.9.0')),
+      writeFile(paths.packageLock, createWorkspacePackageLock('2.0.0', '2.9.0', '6.0.0', '7.8.5')),
       writeFile(paths.packageManifest, createPackageManifest('2.0.0', '2.9.0')),
-      writeFile(paths.toolingPackageLock, createToolingPackageLock('6.0.0', '7.8.5')),
       writeFile(paths.toolingPackageManifest, createToolingPackageManifest('6.0.0', '7.8.5')),
     ]);
     expect(await calculateQualificationExecutionDigest(options)).toBe(initialDigest);
 
     await Promise.all([
-      writeFile(paths.toolingPackageLock, createToolingPackageLock('6.0.0', '7.9.0')),
+      writeFile(paths.packageLock, createWorkspacePackageLock('2.0.0', '2.9.0', '6.0.0', '7.9.0')),
       writeFile(paths.toolingPackageManifest, createToolingPackageManifest('6.0.0', '7.9.0')),
     ]);
     const changedToolingDependencyDigest = await calculateQualificationExecutionDigest(options);
@@ -271,7 +269,7 @@ describe('qualification input fingerprint', () => {
     expect(changedCaseDigest).not.toBe(changedResourceProfileDigest);
 
     await Promise.all([
-      writeFile(paths.packageLock, createPackageLock('2.0.0', '2.10.0')),
+      writeFile(paths.packageLock, createWorkspacePackageLock('2.0.0', '2.10.0', '6.0.0', '7.9.0')),
       writeFile(paths.packageManifest, createPackageManifest('2.0.0', '2.10.0')),
     ]);
     expect(await calculateQualificationExecutionDigest(options)).not.toBe(changedCaseDigest);

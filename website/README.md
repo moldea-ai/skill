@@ -36,7 +36,7 @@ Documentation and example routes share `createDocumentationBreadcrumbs` from `sr
 
 ## Commands
 
-Install dependencies without lifecycle scripts:
+From the repository root, install every workspace dependency without lifecycle scripts:
 
 ```bash
 npm ci --ignore-scripts

@@ -96,11 +96,10 @@ Scenario paths use repository-relative portable names. Test files remain colocat
 
 ## Local setup
 
-Keep the `skill` and `packages` repositories adjacent. Install dependencies without lifecycle scripts:
+Keep the `skill` and `packages` repositories adjacent. From the `skill` repository root, install every workspace dependency without lifecycle scripts:
 
 ```bash
 npm ci --ignore-scripts
-npm --prefix qualification ci --ignore-scripts
 ```
 
 The default skill candidate is `moldea/`.

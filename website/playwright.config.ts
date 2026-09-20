@@ -32,7 +32,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run build && ./node_modules/.bin/vite preview --base ${basePath} --host 127.0.0.1 --port ${previewPort} --strictPort`,
+    command: `npm run build && npm exec -- vite preview --base ${basePath} --host 127.0.0.1 --port ${previewPort} --strictPort`,
     reuseExistingServer: false,
     timeout: 120_000,
     url: new URL(basePath, previewOrigin).href,

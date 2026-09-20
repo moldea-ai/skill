@@ -22,7 +22,57 @@ cases:
     challenge: Repair the adapter fixture.
 `;
 
-const createPackageLock = (adapterVersion: string): string =>
+const createWorkspacePackageLock = (
+  adapterVersion: string,
+  cliVersion: string,
+  semverVersion: string,
+): string =>
+  `${JSON.stringify(
+    {
+      name: '@moldea.ai/skill-conformance',
+      version: '1.0.0',
+      lockfileVersion: 3,
+      requires: true,
+      packages: {
+        '': {
+          name: '@moldea.ai/skill-conformance',
+          version: '1.0.0',
+          workspaces: ['qualification'],
+          devDependencies: { '@moldea.ai/cli': cliVersion, semver: semverVersion },
+        },
+        qualification: {
+          name: '@moldea.ai/adapter-qualification',
+          version: '0.0.0',
+          dependencies: { yaml: '2.9.0' },
+          devDependencies: { 'adapter-sdk': adapterVersion },
+          engines: { node: '^24.15.0' },
+        },
+        'node_modules/adapter-sdk': {
+          version: adapterVersion,
+          dev: true,
+          integrity: `sha512-adapter-${adapterVersion}`,
+        },
+        'node_modules/yaml': {
+          version: '2.9.0',
+          integrity: 'sha512-yaml-runtime',
+        },
+        'node_modules/@moldea.ai/cli': {
+          version: cliVersion,
+          dev: true,
+          integrity: `sha512-cli-${cliVersion}`,
+        },
+        'node_modules/semver': {
+          version: semverVersion,
+          dev: true,
+          integrity: `sha512-semver-${semverVersion}`,
+        },
+      },
+    },
+    null,
+    2,
+  )}\n`;
+
+const createLegacyQualificationPackageLock = (adapterVersion: string): string =>
   `${JSON.stringify(
     {
       name: '@moldea.ai/adapter-qualification',
@@ -56,26 +106,6 @@ const createToolingPackageManifest = (cliVersion: string, semverVersion: string)
   `${JSON.stringify({
     type: 'module',
     devDependencies: { '@moldea.ai/cli': cliVersion, semver: semverVersion },
-  })}\n`;
-
-const createToolingPackageLock = (cliVersion: string, semverVersion: string): string =>
-  `${JSON.stringify({
-    lockfileVersion: 3,
-    packages: {
-      '': {
-        devDependencies: { '@moldea.ai/cli': cliVersion, semver: semverVersion },
-      },
-      'node_modules/@moldea.ai/cli': {
-        version: cliVersion,
-        dev: true,
-        integrity: `sha512-cli-${cliVersion}`,
-      },
-      'node_modules/semver': {
-        version: semverVersion,
-        dev: true,
-        integrity: `sha512-semver-${semverVersion}`,
-      },
-    },
   })}\n`;
 
 /** Commits the complete fixture state and returns its immutable source identity. */
@@ -139,10 +169,10 @@ describe('qualification baseline fingerprint', () => {
         temporaryRoot,
         'tooling/package-candidate/index.d.mts',
       ),
+      legacyPackageLock: path.join(temporaryRoot, 'qualification/package-lock.json'),
       packageManifest: path.join(temporaryRoot, 'qualification/package.json'),
-      packageLock: path.join(temporaryRoot, 'qualification/package-lock.json'),
       toolingPackageManifest: path.join(temporaryRoot, 'package.json'),
-      toolingPackageLock: path.join(temporaryRoot, 'package-lock.json'),
+      packageLock: path.join(temporaryRoot, 'package-lock.json'),
     };
     await Promise.all(
       Object.values(files).map((filePath) => ensureDirectory(path.dirname(filePath))),
@@ -219,9 +249,9 @@ describe('qualification baseline fingerprint', () => {
         })}\n`,
         'utf8',
       ),
-      writeFile(files.packageLock, createPackageLock('1.0.0'), 'utf8'),
+      writeFile(files.legacyPackageLock, createLegacyQualificationPackageLock('1.0.0'), 'utf8'),
+      writeFile(files.packageLock, createWorkspacePackageLock('1.0.0', '5.0.0', '7.8.5'), 'utf8'),
       writeFile(files.toolingPackageManifest, createToolingPackageManifest('5.0.0', '7.8.5')),
-      writeFile(files.toolingPackageLock, createToolingPackageLock('5.0.0', '7.8.5')),
     ]);
     await executeProcess({
       command: 'git',
@@ -266,9 +296,9 @@ describe('qualification baseline fingerprint', () => {
         })}\n`,
         'utf8',
       ),
-      writeFile(files.packageLock, createPackageLock('2.0.0'), 'utf8'),
+      rm(files.legacyPackageLock),
+      writeFile(files.packageLock, createWorkspacePackageLock('2.0.0', '6.0.0', '7.8.5'), 'utf8'),
       writeFile(files.toolingPackageManifest, createToolingPackageManifest('6.0.0', '7.8.5')),
-      writeFile(files.toolingPackageLock, createToolingPackageLock('6.0.0', '7.8.5')),
     ]);
     const adapterGrowthCommit = await commitFixture(temporaryRoot, 'test: add adapter-only inputs');
     expect(
@@ -277,7 +307,7 @@ describe('qualification baseline fingerprint', () => {
 
     await Promise.all([
       writeFile(files.toolingPackageManifest, createToolingPackageManifest('6.0.0', '7.9.0')),
-      writeFile(files.toolingPackageLock, createToolingPackageLock('6.0.0', '7.9.0')),
+      writeFile(files.packageLock, createWorkspacePackageLock('2.0.0', '6.0.0', '7.9.0')),
     ]);
     const toolingDependencyCommit = await commitFixture(
       temporaryRoot,

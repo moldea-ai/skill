@@ -317,16 +317,13 @@ const createCurrentEvaluatorEntries = async (
     roots.repositoryRoot,
     QUALIFICATION_PACKAGE_MANIFEST_PATH,
   );
-  const qualificationLockPath = path.join(roots.repositoryRoot, QUALIFICATION_PACKAGE_LOCK_PATH);
   const toolingManifestPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_MANIFEST_PATH);
   const toolingLockPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_LOCK_PATH);
-  const [qualificationManifest, qualificationLock, toolingManifest, toolingLock] =
-    await Promise.all([
-      readFile(qualificationManifestPath, 'utf8'),
-      readFile(qualificationLockPath, 'utf8'),
-      readFile(toolingManifestPath, 'utf8'),
-      readFile(toolingLockPath, 'utf8'),
-    ]);
+  const [qualificationManifest, toolingManifest, toolingLock] = await Promise.all([
+    readFile(qualificationManifestPath, 'utf8'),
+    readFile(toolingManifestPath, 'utf8'),
+    readFile(toolingLockPath, 'utf8'),
+  ]);
   const normalizedEntries = await Promise.all([
     lstat(qualificationManifestPath).then((stats) =>
       createNormalizedEntry(
@@ -335,11 +332,11 @@ const createCurrentEvaluatorEntries = async (
         normalizeQualificationRuntimePackageManifest(JSON.parse(qualificationManifest) as unknown),
       ),
     ),
-    lstat(qualificationLockPath).then((stats) =>
+    lstat(toolingLockPath).then((stats) =>
       createNormalizedEntry(
         QUALIFICATION_PACKAGE_LOCK_PATH,
         normalizeFilesystemMode('file', stats.mode),
-        normalizeQualificationRuntimePackageLock(JSON.parse(qualificationLock) as unknown),
+        normalizeQualificationRuntimePackageLock(JSON.parse(toolingLock) as unknown),
       ),
     ),
     lstat(toolingManifestPath).then((stats) =>
@@ -430,7 +427,6 @@ const createGitEvaluatorEntries = async (
 
   for (const requiredPath of [
     QUALIFICATION_PACKAGE_MANIFEST_PATH,
-    QUALIFICATION_PACKAGE_LOCK_PATH,
     TOOLING_PACKAGE_MANIFEST_PATH,
     TOOLING_PACKAGE_LOCK_PATH,
   ]) {
@@ -444,8 +440,11 @@ const createGitEvaluatorEntries = async (
       'utf8',
     ),
   ) as unknown;
+  const qualificationLockSourcePath = requiredInputs.has(QUALIFICATION_PACKAGE_LOCK_PATH)
+    ? QUALIFICATION_PACKAGE_LOCK_PATH
+    : TOOLING_PACKAGE_LOCK_PATH;
   const qualificationLock = JSON.parse(
-    (await readGitBlob(repositoryRoot, commit, QUALIFICATION_PACKAGE_LOCK_PATH)).toString('utf8'),
+    (await readGitBlob(repositoryRoot, commit, qualificationLockSourcePath)).toString('utf8'),
   ) as unknown;
   const toolingManifest = JSON.parse(
     (await readGitBlob(repositoryRoot, commit, TOOLING_PACKAGE_MANIFEST_PATH)).toString('utf8'),
@@ -461,7 +460,7 @@ const createGitEvaluatorEntries = async (
     ),
     createNormalizedEntry(
       QUALIFICATION_PACKAGE_LOCK_PATH,
-      requiredInputs.get(QUALIFICATION_PACKAGE_LOCK_PATH)!.mode,
+      requiredInputs.get(qualificationLockSourcePath)!.mode,
       normalizeQualificationRuntimePackageLock(qualificationLock),
     ),
     createNormalizedEntry(

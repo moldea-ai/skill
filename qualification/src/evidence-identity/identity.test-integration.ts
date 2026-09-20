@@ -164,10 +164,6 @@ describe('qualification compatibility identity', () => {
         path.join(temporaryRoot, 'qualification', 'package.json'),
         await readFile(path.join(QUALIFICATION_ROOT, 'package.json')),
       ),
-      writeFile(
-        path.join(temporaryRoot, 'qualification', 'package-lock.json'),
-        await readFile(path.join(QUALIFICATION_ROOT, 'package-lock.json')),
-      ),
     ]);
     const before = await calculateQualificationModelStageEvaluatorDigest(temporaryRoot);
     const executorPath = path.join(

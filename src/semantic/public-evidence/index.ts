@@ -17,8 +17,8 @@ export type {
   ISemanticEvaluationWebsiteModel,
 } from './types.ts';
 
-// bundle projection
-export { createSemanticEvidenceBundle } from './projection.ts';
+// website and bundle projection
+export { createSemanticCatalogWebsiteModel, createSemanticEvidenceBundle } from './projection.ts';
 
 // boundary validation
 export { parseSemanticWebsiteModel } from './validation.ts';

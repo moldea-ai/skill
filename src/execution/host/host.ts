@@ -99,6 +99,7 @@ const BubblewrapStatusSchema = z.looseObject({
 const loadGitCommandPolicyBoundary = async (): Promise<IGitCommandPolicyBoundaryModule> => {
   try {
     return (await import(
+      /* @vite-ignore */
       pathToFileURL(GIT_COMMAND_POLICY_BOUNDARY_PATH).href
     )) as IGitCommandPolicyBoundaryModule;
   } catch (error) {

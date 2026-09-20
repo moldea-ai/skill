@@ -76,6 +76,7 @@ export type {
   ISemanticEvaluationWebsiteModel,
 } from './public-evidence/index.ts';
 export {
+  createSemanticCatalogWebsiteModel,
   createSemanticEvidenceBundle,
   parseSemanticWebsiteModel,
 } from './public-evidence/index.ts';

@@ -18,6 +18,7 @@ interface Props {
 
 const { attempts, profile, releaseEvidence } = Astro.props;
 const isCustomProfile = profile.adapterId === 'custom' && profile.implementationId === 'custom';
+const hasAttempts = attempts.length > 0;
 const qualificationReleaseEvidence =
   releaseEvidence.mode === 'recorded' ? releaseEvidence.qualification : null;
 const executedPackages = [
@@ -41,8 +42,10 @@ const getAttemptRole = (index: number): string =>
   <Accordion
     id="qualification-result-source"
     group="qualification-technical-details"
-    title="How this result was produced"
-    description="Attempt identity, release source, model configuration, and immutable artifacts."
+    title={hasAttempts ? 'How this result was produced' : 'Evidence status'}
+    description={hasAttempts
+      ? 'Attempt identity, release source, model configuration, and immutable artifacts.'
+      : 'Current profile source and the evidence that has not been recorded yet.'}
   >
     <div class="grid gap-6 border-t border-border pt-5">
       {
@@ -79,7 +82,7 @@ const getAttemptRole = (index: number): string =>
           id="qualification-effective-attempts-title"
           class="text-lg font-semibold"
         >
-          Evidence used by this result
+          {hasAttempts ? 'Evidence used by this result' : 'Recorded evidence'}
         </h3>
         {
           attempts.length === 0 ? (

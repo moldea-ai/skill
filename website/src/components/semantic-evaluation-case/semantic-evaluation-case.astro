@@ -10,6 +10,7 @@ import SemanticTrialProvenance from '../semantic-trial-provenance/semantic-trial
 
 interface Props {
   evaluationCase: ISemanticEvaluationCaseModel;
+  hasRecordedAttempt: boolean;
   id?: string;
   isOpen?: boolean;
   number: number;
@@ -23,6 +24,7 @@ const TABS = [
 
 const {
   evaluationCase,
+  hasRecordedAttempt,
   id = `semantic-case-${evaluationCase.id}`,
   isOpen = false,
   number,
@@ -34,7 +36,9 @@ const resultHeading =
   evaluationCase.status === 'failed'
     ? 'Why it failed'
     : evaluationCase.status === 'pending'
-      ? 'Not evaluated in this attempt'
+      ? hasRecordedAttempt
+        ? 'Not evaluated in this attempt'
+        : 'Not evaluated yet'
       : evaluationCase.status === 'recovered'
         ? 'Why it recovered'
         : 'Why it passed';
@@ -148,8 +152,9 @@ const rationaleHtml =
           {
             rationaleHtml === null ? (
               <p class="mt-2 text-sm leading-6 text-muted-foreground">
-                This scenario remains pending because the recorded run stopped at an earlier
-                failure.
+                {hasRecordedAttempt
+                  ? 'This scenario remains pending because the recorded run stopped at an earlier failure.'
+                  : 'This scenario has not been evaluated yet.'}
               </p>
             ) : (
               <>

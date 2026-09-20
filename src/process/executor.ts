@@ -1,6 +1,10 @@
 import { spawn } from 'node:child_process';
 
-import { MAX_PROCESS_OUTPUT_BYTES, PROCESS_TERMINATION_GRACE_PERIOD_MS } from './constants.ts';
+import {
+  MAX_PROCESS_OUTPUT_BYTES,
+  PROCESS_TERMINATION_GRACE_PERIOD_MS,
+  PROCESS_TERMINATION_POLL_INTERVAL_MS,
+} from './constants.ts';
 import type { IProcessExecutionOptions, IProcessExecutionResult } from './types.ts';
 
 /** Creates the diagnostic error for one completed command with an unexpected exit. */
@@ -48,8 +52,9 @@ export const executeProcess = async (
     let outputBytes = 0;
     let hasSettled = false;
     let hasClosed = false;
-    let hasForcedTermination = false;
+    let forcedTerminationDeadline: number | null = null;
     let pendingError: Error | null = null;
+    let terminationPollTimeout: NodeJS.Timeout | undefined;
     let terminationTimeout: NodeJS.Timeout | undefined;
 
     /** Rejects once and releases process lifecycle resources. */
@@ -59,6 +64,7 @@ export const executeProcess = async (
       }
 
       hasSettled = true;
+      clearTimeout(terminationPollTimeout);
       clearTimeout(terminationTimeout);
       options.signal?.removeEventListener('abort', abortProcess);
       reject(
@@ -100,13 +106,28 @@ export const executeProcess = async (
 
     /** Rejects a terminated execution only after its owned processes are no longer active. */
     const settleTerminatedProcess = (): void => {
-      if (
-        pendingError !== null &&
-        hasClosed &&
-        (hasForcedTermination || !isProcessGroupRunning())
-      ) {
+      if (pendingError === null) return;
+
+      if (hasClosed && !isProcessGroupRunning()) {
         settleWithError(pendingError);
+        return;
       }
+
+      if (forcedTerminationDeadline === null) return;
+      if (Date.now() >= forcedTerminationDeadline) {
+        settleWithError(
+          new Error(`${pendingError.message} Process termination could not be confirmed.`, {
+            cause: pendingError,
+          }),
+        );
+        return;
+      }
+
+      if (terminationPollTimeout !== undefined) return;
+      terminationPollTimeout = setTimeout(() => {
+        terminationPollTimeout = undefined;
+        settleTerminatedProcess();
+      }, PROCESS_TERMINATION_POLL_INTERVAL_MS);
     };
 
     /** Starts graceful process-group termination with forced escalation. */
@@ -116,11 +137,9 @@ export const executeProcess = async (
       pendingError = error;
       signalProcess('SIGTERM');
       terminationTimeout = setTimeout(() => {
-        hasForcedTermination = signalProcess('SIGKILL');
-
-        if (hasClosed && (hasForcedTermination || !isProcessGroupRunning())) {
-          settleWithError(pendingError);
-        }
+        signalProcess('SIGKILL');
+        forcedTerminationDeadline = Date.now() + PROCESS_TERMINATION_GRACE_PERIOD_MS;
+        settleTerminatedProcess();
       }, PROCESS_TERMINATION_GRACE_PERIOD_MS);
     };
 
@@ -164,6 +183,7 @@ export const executeProcess = async (
       }
 
       hasSettled = true;
+      clearTimeout(terminationPollTimeout);
       clearTimeout(terminationTimeout);
       options.signal?.removeEventListener('abort', abortProcess);
       const stdout = Buffer.concat(stdoutChunks).toString('utf8');

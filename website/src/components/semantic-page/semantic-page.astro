@@ -116,8 +116,11 @@ const semanticReleaseSection =
           </h2>
         </div>
         <p class="leading-7 text-muted-foreground">
-          Each replay shows the developer request, coding-agent response, workspace changes, and
-          independent reasoning behind the result.
+          {
+            semanticEvaluation.hasAttempt
+              ? 'Each replay shows the developer request, coding-agent response, workspace changes, and independent reasoning behind the result.'
+              : 'Open a decision to review its current scenario, developer direction, and evaluation criteria. Replays will appear after an evaluation has been recorded.'
+          }
         </p>
       </div>
 
@@ -168,6 +171,7 @@ const semanticReleaseSection =
                   return (
                     <SemanticEvaluationCase
                       evaluationCase={evaluationCase}
+                      hasRecordedAttempt={semanticEvaluation.hasAttempt}
                       id={`semantic-case-${evaluationCase.id}`}
                       number={caseNumber}
                     />
@@ -185,16 +189,25 @@ const semanticReleaseSection =
       aria-labelledby="semantic-attempts-title"
     >
       <div class="max-w-3xl">
-        <p class="eyebrow mb-3">The recorded evaluation</p>
+        <p class="eyebrow mb-3">
+          {semanticEvaluation.hasAttempt ? 'The recorded evaluation' : 'Evaluation status'}
+        </p>
         <h2
           id="semantic-attempts-title"
           class="text-3xl font-semibold tracking-tight"
         >
-          Every trial remains available.
+          {
+            semanticEvaluation.hasAttempt
+              ? 'Every trial remains available.'
+              : 'No recorded trials yet.'
+          }
         </h2>
         <p class="mt-4 leading-7 text-muted-foreground">
-          Open an attempt to inspect trial confirmations and the complete result behind these
-          decision replays.
+          {
+            semanticEvaluation.hasAttempt
+              ? 'Open an attempt to inspect trial confirmations and the complete result behind these decision replays.'
+              : 'The current decision catalog remains available while recorded evaluation results are pending.'
+          }
         </p>
       </div>
       {
@@ -301,12 +314,18 @@ const semanticReleaseSection =
             <div>
               <dt class="text-muted-foreground">Model configuration</dt>
               <dd class="mt-1 font-mono break-all">
-                {semanticEvaluation.evaluationModel}, actor xhigh, judge xhigh
+                {
+                  semanticEvaluation.evaluationModel === null
+                    ? 'Not recorded'
+                    : `${semanticEvaluation.evaluationModel}, actor xhigh, judge xhigh`
+                }
               </dd>
             </div>
             <div>
               <dt class="text-muted-foreground">CLI</dt>
-              <dd class="mt-1 font-mono break-all">{semanticEvaluation.cli.version}</dd>
+              <dd class="mt-1 font-mono break-all">
+                {semanticEvaluation.cli?.version ?? 'Not recorded'}
+              </dd>
             </div>
             <div>
               <dt class="text-muted-foreground">Evaluated artifact digest</dt>
@@ -321,18 +340,22 @@ const semanticReleaseSection =
               </dd>
             </div>
           </dl>
-          <a
-            class="mt-5 inline-flex items-center gap-2 text-link font-semibold"
-            href={semanticEvaluation.coverageUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Inspect the coverage map
-            <ExternalLink
-              class="size-4"
-              aria-hidden="true"
-            />
-          </a>
+          {
+            semanticEvaluation.coverageUrl !== null && (
+              <a
+                class="mt-5 inline-flex items-center gap-2 text-link font-semibold"
+                href={semanticEvaluation.coverageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Inspect the coverage map
+                <ExternalLink
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </a>
+            )
+          }
         </div>
       </details>
     </section>

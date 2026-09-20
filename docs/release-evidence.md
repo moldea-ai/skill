@@ -65,7 +65,7 @@ Preparation rejects an unselected domain, a digest mismatch, a wrong bundle kind
 
 Preparation downloads public release assets over bounded HTTPS and does not require GitHub CLI authentication. GitHub credentials remain limited to explicit publication.
 
-Development website checks use isolated synthetic evidence. Production `website:build`, Pages deployment, and complete release assurance require prepared official selections.
+Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence. Production `website:build`, Pages deployment, and complete release assurance require prepared official selections.
 
 ## Check a release
 

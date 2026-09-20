@@ -37,6 +37,7 @@ export const loadSemanticCases = async (casesRoot: string): Promise<ISemanticCas
       throw new Error(`Semantic case ${directory.name} has no case module.`);
     }
     const caseModule = (await import(
+      /* @vite-ignore */
       pathToFileURL(path.join(directoryPath, caseFileName)).href
     )) as ISemanticCaseModule;
     if (caseModule.semanticCase === undefined) {

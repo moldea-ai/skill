@@ -49,11 +49,17 @@ npm run test
 npm run build:fixture
 ```
 
-These development checks generate isolated synthetic evidence. After both official selections are populated, production generation runs from the repository root with `npm run evidence:prepare` followed by `npm run website:build`.
+Start the local development server from the repository root:
+
+```bash
+npm run website:dev
+```
+
+The development server loads the current semantic cases and qualification profiles without recorded results, so a clean checkout shows the available coverage without invented evidence. Browser checks exercise both this clean state and isolated synthetic results, keeping the empty and complete evidence presentations testable. After both official selections are populated, production generation runs from the repository root with `npm run evidence:prepare` followed by `npm run website:build`.
 
 ## Deployment
 
-`.github/workflows/pages.yml` runs browser checks against synthetic evidence, prepares both selected official bundles, rebuilds the production artifact, validates it, and then deploys GitHub Pages. The `CNAME` file owns the custom domain.
+`.github/workflows/pages.yml` runs browser checks against both clean current catalogs and synthetic evidence, prepares both selected official bundles, rebuilds the production artifact, validates it, and then deploys GitHub Pages. The `CNAME` file owns the custom domain.
 
 ## Boundaries
 

@@ -84,6 +84,7 @@ const breadcrumbs = [
           attempt.cases.map((evaluationCase, index) => (
             <SemanticEvaluationCase
               evaluationCase={evaluationCase}
+              hasRecordedAttempt
               id={`semantic-case-${evaluationCase.id}`}
               number={index + 1}
               showTrialProvenance

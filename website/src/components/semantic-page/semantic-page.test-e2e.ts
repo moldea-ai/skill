@@ -52,10 +52,12 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
     'href',
     toPublicPath('/docs/semantic-evaluation/'),
   );
-  await expect(page.getByRole('link', { name: 'Inspect the coverage map' })).toHaveAttribute(
-    'href',
-    toPublicPath(semanticEvaluation.coverageUrl),
-  );
+  if (semanticEvaluation.coverageUrl !== null) {
+    await expect(page.getByRole('link', { name: 'Inspect the coverage map' })).toHaveAttribute(
+      'href',
+      toPublicPath(semanticEvaluation.coverageUrl),
+    );
+  }
   if (releaseSummary.kind === 'recorded') {
     await expect(
       page.getByText(releaseSummary.result.attemptId, { exact: true }).first(),

@@ -8,7 +8,8 @@ import {
   type IEvidenceBundle,
   type IEvidenceClassification,
 } from '../../evidence/index.ts';
-import type { ISemanticCase } from '../cases/index.ts';
+import { createSemanticCaseSuiteDigest, type ISemanticCase } from '../cases/index.ts';
+import { createSemanticCoverage, createSemanticCoverageDigest } from '../coverage/index.ts';
 import type {
   ISemanticAttemptModel,
   ISemanticEvaluationCaseModel,
@@ -18,6 +19,11 @@ import type {
 const SEMANTIC_ROUTE = '/evidence/semantic/';
 
 const createCaseTitle = (caseId: string): string => toTitleCase(caseId.replaceAll('-', ' '));
+
+const createCaseScenario = (definition: ISemanticCase): string =>
+  definition.operation.trim() === ''
+    ? definition.scenario
+    : `${definition.scenario} Requested operation: ${definition.operation}.`;
 
 /** Creates one immutable website case from its recorded result and definition. */
 const createCaseModel = (
@@ -40,10 +46,7 @@ const createCaseModel = (
     presentation: { summary: definition.scenario, title },
     rationale: latestTrial?.rationale ?? null,
     replay,
-    scenario:
-      definition.operation.trim() === ''
-        ? definition.scenario
-        : `${definition.scenario} Requested operation: ${definition.operation}.`,
+    scenario: createCaseScenario(definition),
     status: resultCase.status,
     summary: definition.scenario,
     title,
@@ -51,8 +54,33 @@ const createCaseModel = (
   };
 };
 
+/** Creates one current semantic case without implying that it has been evaluated. */
+const createPendingCaseModel = (definition: ISemanticCase): ISemanticEvaluationCaseModel => {
+  const title = createCaseTitle(definition.id);
+
+  return {
+    confirmationStatus: null,
+    developerDirection: definition.input.developerDirection,
+    evaluatedAt: null,
+    expectedCriteria: definition.expected,
+    forbiddenCriteria: definition.forbidden,
+    groupId: definition.coverageClaimIds[0] ?? 'semantic-behavior',
+    hasCurrentCaseDefinition: true,
+    id: definition.id,
+    presentation: { summary: definition.scenario, title },
+    rationale: null,
+    replay: null,
+    scenario: createCaseScenario(definition),
+    status: 'pending',
+    summary: definition.scenario,
+    title,
+    trials: [],
+  };
+};
+
 const createGroups = (
   cases: readonly ISemanticEvaluationCaseModel[],
+  descriptionPrefix: 'Current' | 'Recorded',
 ): ISemanticEvaluationWebsiteModel['groups'] => {
   const casesByGroup = new Map<string, ISemanticEvaluationCaseModel[]>();
   for (const semanticCase of cases) {
@@ -66,10 +94,46 @@ const createGroups = (
     .sort(([left], [right]) => left.localeCompare(right, 'en'))
     .map(([id, groupedCases]) => ({
       cases: groupedCases,
-      description: `Recorded scenarios for the ${id.replaceAll('-', ' ')} coverage claim.`,
+      description: `${descriptionPrefix} scenarios for the ${id.replaceAll('-', ' ')} coverage claim.`,
       id,
       title: createCaseTitle(id),
     }));
+};
+
+/** Projects the current semantic case catalog without creating evaluation results. */
+export const createSemanticCatalogWebsiteModel = (
+  definitions: readonly ISemanticCase[],
+): ISemanticEvaluationWebsiteModel => {
+  const cases = [...definitions]
+    .sort(({ id: left }, { id: right }) => left.localeCompare(right, 'en'))
+    .map(createPendingCaseModel);
+  const coverage = createSemanticCoverage(definitions);
+
+  return {
+    artifactDigest: null,
+    attempts: [],
+    caseCount: cases.length,
+    caseSuiteDigest: createSemanticCaseSuiteDigest(definitions),
+    cli: null,
+    coverageDigest: createSemanticCoverageDigest(coverage),
+    coverageUrl: null,
+    currentAssurance: null,
+    evidenceMatch: null,
+    evaluatedAt: null,
+    evaluationModel: null,
+    failedCaseCount: 0,
+    groups: createGroups(cases, 'Current'),
+    hasAttempt: false,
+    lastPassing: null,
+    latest: null,
+    latestPointer: null,
+    methodologyUrl: '/docs/semantic-evaluation/',
+    passedCaseCount: 0,
+    pendingCaseCount: cases.length,
+    recoveredCaseCount: 0,
+    route: SEMANTIC_ROUTE,
+    status: 'not-recorded',
+  };
 };
 
 /**
@@ -127,7 +191,7 @@ export const createSemanticEvidenceBundle = (options: {
     evaluatedAt: options.result.updatedAt,
     evaluationModel: options.result.hostContract.actor.model,
     failedCaseCount: options.result.failedCaseCount,
-    groups: createGroups(cases),
+    groups: createGroups(cases, 'Recorded'),
     hasAttempt: true,
     lastPassing: isPassing ? attempt : null,
     latest: attempt,

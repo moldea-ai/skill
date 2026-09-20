@@ -150,7 +150,7 @@ npm run docs:check
 npm run website:check
 ```
 
-`npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require both evidence selections to be populated and prepared. Development website checks generate isolated synthetic evidence instead.
+`npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require both evidence selections to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
 
 Specialized workflows have focused operator references:
 

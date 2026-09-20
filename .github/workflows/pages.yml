@@ -80,7 +80,7 @@ jobs:
       - name: Check website formatting
         run: npm --workspace website run format:check
 
-      - name: Test browser behavior with synthetic evidence
+      - name: Test browser behavior with clean and synthetic evidence
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
           SITE_URL: https://${{ steps.pages.outputs.host }}

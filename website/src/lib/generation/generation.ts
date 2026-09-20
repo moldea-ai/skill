@@ -29,6 +29,7 @@ import {
   getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
   loadReleaseEvidenceWebsiteState,
+  type IReleaseEvidenceWebsiteState,
   type ISemanticReleaseEvidenceSummary,
 } from '../release-evidence/index.ts';
 import { DEFAULT_SITE_URL } from '../site/constants.ts';
@@ -479,7 +480,7 @@ export const createRouteManifest = (
 
 /**
  * Builds the complete deterministic website model without writing generated output.
- * @param qualificationRepositoryRoot Repository root used to load qualification evidence.
+ * @param options Evidence source used to build the website model.
  * @returns The validated documentation, navigation, search, route, and LLM model.
  */
 export const createWebsiteModel = (
@@ -487,16 +488,24 @@ export const createWebsiteModel = (
     allowFixtureEvidence?: boolean | undefined;
     preparedEvidenceDirectory?: string | undefined;
     selectionPath?: string | undefined;
+    unrecordedEvidence?:
+      Pick<IReleaseEvidenceWebsiteState, 'qualification' | 'semantic'> | undefined;
   } = {},
 ): IWebsiteModel => {
   const repositoryRoot = getRepositoryRoot();
   const documents = discoverDocuments(repositoryRoot);
   const skill = readSkillMetadata(repositoryRoot);
-  const releaseEvidenceState = loadReleaseEvidenceWebsiteState(repositoryRoot, skill.version, {
-    allowFixture: options.allowFixtureEvidence,
-    preparedDirectory: options.preparedEvidenceDirectory,
-    selectionPath: options.selectionPath,
-  });
+  const releaseEvidenceState: IReleaseEvidenceWebsiteState =
+    options.unrecordedEvidence === undefined
+      ? loadReleaseEvidenceWebsiteState(repositoryRoot, skill.version, {
+          allowFixture: options.allowFixtureEvidence,
+          preparedDirectory: options.preparedEvidenceDirectory,
+          selectionPath: options.selectionPath,
+        })
+      : {
+          ...options.unrecordedEvidence,
+          releaseEvidence: { mode: 'not-recorded', targetVersion: skill.version },
+        };
   const { releaseEvidence } = releaseEvidenceState;
   const qualification = releaseEvidenceState.qualification;
   const semanticEvaluation = releaseEvidenceState.semantic;

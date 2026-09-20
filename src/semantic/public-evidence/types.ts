@@ -218,17 +218,17 @@ export interface ISemanticAttemptModel {
 
 // verified current semantic attempts embedded in the static website model
 export interface ISemanticEvaluationWebsiteModel {
-  artifactDigest: string;
+  artifactDigest: string | null;
   attempts: ISemanticAttemptModel[];
   caseCount: number;
   caseSuiteDigest: string;
-  cli: ISemanticCliIdentity;
+  cli: ISemanticCliIdentity | null;
   coverageDigest: string;
-  coverageUrl: string;
+  coverageUrl: string | null;
   currentAssurance: ISemanticAttemptModel | null;
   evidenceMatch: ISemanticEvidenceMatch | null;
   evaluatedAt: string | null;
-  evaluationModel: ISemanticEvaluationActorHostModel['model'];
+  evaluationModel: ISemanticEvaluationActorHostModel['model'] | null;
   failedCaseCount: number;
   groups: ISemanticEvaluationGroupModel[];
   hasAttempt: boolean;

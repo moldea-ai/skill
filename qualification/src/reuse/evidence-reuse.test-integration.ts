@@ -207,9 +207,14 @@ describe('qualification case evidence reuse', () => {
       copyDirectory(
         path.resolve('../src/execution/host'),
         path.join(repositoryRoot, 'src/execution/host'),
+        { overwrite: true },
       ),
-      copyDirectory(path.resolve('../src/packages'), path.join(repositoryRoot, 'src/packages')),
-      copyDirectory(path.resolve('../src/resources'), path.join(repositoryRoot, 'src/resources')),
+      copyDirectory(path.resolve('../src/packages'), path.join(repositoryRoot, 'src/packages'), {
+        overwrite: true,
+      }),
+      copyDirectory(path.resolve('../src/resources'), path.join(repositoryRoot, 'src/resources'), {
+        overwrite: true,
+      }),
     ]);
     const resultsRoot = path.join(repositoryRoot, 'qualification', 'results');
     await Promise.all([

@@ -12,12 +12,9 @@ import {
   EVALUATION_BATCH_DEFAULT_WORKER_COUNT,
   createEvaluationBatchDiskReservation,
   runWithEvaluationTemporaryStorageGuard,
-  runOrderedEvaluationBatch,
+  type IEvaluationBatchWorkerCount,
 } from '../../execution/batch/index.ts';
-import {
-  EVALUATION_CONFIRMATION_POLICY,
-  getEvaluationConfirmationResolution,
-} from '../../execution/confirmation/index.ts';
+import { EVALUATION_CONFIRMATION_POLICY } from '../../execution/confirmation/index.ts';
 import {
   buildCodexEvaluationHostCommand,
   identifyCodexEvaluationHost,
@@ -94,6 +91,10 @@ import {
   snapshotSemanticWorkspace,
   type ISemanticWorkspaceSnapshot,
 } from '../workspace/index.ts';
+import {
+  runSemanticCaseExecution,
+  type ISemanticCaseTrialExecutionOptions,
+} from './case-execution.ts';
 import { parseSemanticEvaluationArguments } from './parser.ts';
 import type { ISemanticDiagnosticSelector } from './types.ts';
 
@@ -130,6 +131,23 @@ const PreparedWebsitePayloadSchema = z.object({
 type ISemanticTrialExecution = {
   publicTrial: ISemanticAttemptTrialModel;
   recordedTrial: ISemanticRecordedTrial;
+};
+
+// semantic trial boundary with candidate-wide paid-token admission
+export type ISemanticRunnerTrialExecutionOptions = ISemanticCaseTrialExecutionOptions & {
+  tokenController: ISemanticTokenAdmissionController;
+};
+
+type ISemanticRunnerTrialExecutor = (
+  options: ISemanticRunnerTrialExecutionOptions,
+) => Promise<ISemanticRecordedTrial>;
+
+type ISemanticCaseRunnerOptions = {
+  cases: ISemanticCase[];
+  checkpoint: ISemanticCandidateCheckpoint | null;
+  executeTrial: ISemanticRunnerTrialExecutor;
+  repositoryRoot: string;
+  workerCount: IEvaluationBatchWorkerCount;
 };
 
 const createAttemptId = (): string =>
@@ -577,108 +595,85 @@ const runSemanticTrial = async (options: {
   }
 };
 
-const runSemanticCase = async (options: {
-  actorCommand: readonly string[];
-  actorHost: ICodexEvaluationHostIdentity;
-  caseDefinition: ISemanticCase;
-  cli: ISemanticCliIdentity;
-  artifactDigest: string;
-  initialCheckpoint: ISemanticCaseCheckpoint | null;
-  isOperationalResumeRequested: boolean;
-  judgeCommand: readonly string[];
-  judgeHost: ICodexEvaluationHostIdentity;
-  persistCaseCheckpoint: (checkpoint: ISemanticCaseCheckpoint) => Promise<void>;
-  reusableTrials: readonly ISemanticReusableTrial[];
-  tokenController: ISemanticTokenAdmissionController;
-}): Promise<ISemanticRecordedCase> => {
-  const caseDefinitionDigest = createSemanticCaseDefinitionDigest(options.caseDefinition);
-  let checkpoint =
-    options.initialCheckpoint ??
-    ({
-      activeTrial: null,
-      caseDefinitionDigest,
-      caseId: options.caseDefinition.id,
-      completedCase: null,
-      trials: [],
-    } satisfies ISemanticCaseCheckpoint);
-  if (
-    checkpoint.caseId !== options.caseDefinition.id ||
-    checkpoint.caseDefinitionDigest !== caseDefinitionDigest
-  ) {
-    throw new Error('Semantic private case checkpoint does not match its case definition.');
-  }
-  if (checkpoint.completedCase !== null) return checkpoint.completedCase;
-  if (options.initialCheckpoint === null) await options.persistCaseCheckpoint(checkpoint);
-
-  const finishCase = async (completedCase: ISemanticRecordedCase) => {
-    checkpoint = { ...checkpoint, activeTrial: null, completedCase };
-    await options.persistCaseCheckpoint(checkpoint);
-    return completedCase;
+/**
+ * Runs semantic cases through the production live-state and checkpoint persistence boundary.
+ * @param options Selected cases, candidate state, trial executor, and worker configuration.
+ * @returns A promise resolving to all recorded cases in selected-case order.
+ * @throws
+ * - Semantic committed case does not match its private checkpoint.
+ * - Semantic private case checkpoint does not match its case definition.
+ * - Semantic case resolution requires an initial trial checkpoint.
+ * - Semantic confirmation policy did not resolve the selected case.
+ * - Evaluation worker count must be 1, 2, or 4.
+ */
+export const executeSemanticCases = async (
+  options: ISemanticCaseRunnerOptions,
+): Promise<ISemanticRecordedCase[]> => {
+  let checkpointMutationQueue = Promise.resolve();
+  const mutateCheckpoint = async (
+    operation: (currentCheckpoint: ISemanticCandidateCheckpoint) => void,
+  ): Promise<void> => {
+    if (options.checkpoint === null) return;
+    const queuedMutation = checkpointMutationQueue.then(async () => {
+      if (options.checkpoint === null) return;
+      operation(options.checkpoint);
+      options.checkpoint.updatedAt = new Date().toISOString();
+      await writeSemanticCheckpoint(options.repositoryRoot, options.checkpoint);
+    });
+    checkpointMutationQueue = queuedMutation.catch(() => {});
+    await queuedMutation;
   };
 
-  while (true) {
-    const initialTrial = checkpoint.trials[0]?.trial;
-    if (initialTrial?.passed === true) {
-      return finishCase({
-        confirmationStatus: 'not-required',
-        id: options.caseDefinition.id,
-        status: 'passed',
-        trials: checkpoint.trials,
-      });
-    }
-    if (initialTrial !== undefined && !initialTrial.confirmationEligible) {
-      return finishCase({
-        confirmationStatus: 'not-applicable',
-        id: options.caseDefinition.id,
-        status: 'failed',
-        trials: checkpoint.trials,
-      });
-    }
-    if (initialTrial !== undefined) {
-      const resolution = getEvaluationConfirmationResolution(
-        checkpoint.trials.slice(1).map(({ trial }) => trial.passed),
-      );
-      if (resolution === 'recovered') {
-        return finishCase({
-          confirmationStatus: 'passed',
-          id: options.caseDefinition.id,
-          status: 'recovered',
-          trials: checkpoint.trials,
-        });
-      }
-      if (resolution === 'confirmed-failure') {
-        return finishCase({
-          confirmationStatus: 'rejected',
-          id: options.caseDefinition.id,
-          status: 'failed',
-          trials: checkpoint.trials,
-        });
-      }
-      if (checkpoint.trials.length >= 4) {
-        throw new Error(
-          `Semantic confirmation policy did not resolve ${options.caseDefinition.id}.`,
-        );
-      }
-    }
+  const caseCheckpointStates = new Map<string, ISemanticCaseCheckpoint>(
+    Object.entries(options.checkpoint?.caseCheckpoints ?? {}),
+  );
+  const tokenController = createSemanticTokenAdmissionController({
+    getConsumedTokenCount: () =>
+      getSemanticCandidatePaidTokenCount(
+        options.checkpoint?.cases ?? [],
+        Object.fromEntries(caseCheckpointStates),
+      ),
+  });
 
-    const confirmationIndex =
-      checkpoint.trials.length === 0 ? null : (checkpoint.trials.length as 1 | 2 | 3);
-    const trialExecution = await runSemanticTrial({
-      ...options,
-      activeTrial: checkpoint.activeTrial,
-      confirmationIndex,
-      persistActiveTrial: async (activeTrial) => {
-        checkpoint = { ...checkpoint, activeTrial };
-        await options.persistCaseCheckpoint(checkpoint);
-      },
-    });
-    checkpoint = {
-      ...checkpoint,
-      activeTrial: null,
-      trials: [...checkpoint.trials, trialExecution.recordedTrial],
-    };
-    await options.persistCaseCheckpoint(checkpoint);
-  }
+  const executedCases = await runSemanticCaseExecution({
+    cases: options.cases,
+    commitCase: async (recordedCase) => {
+      if (options.checkpoint === null) {
+        const privateCheckpoint = caseCheckpointStates.get(recordedCase.id);
+        if (
+          privateCheckpoint === undefined ||
+          JSON.stringify(privateCheckpoint.completedCase) !== JSON.stringify(recordedCase)
+        ) {
+          throw new Error('Semantic committed case does not match its private checkpoint.');
+        }
+        caseCheckpointStates.delete(recordedCase.id);
+        return;
+      }
+      await mutateCheckpoint((currentCheckpoint) => {
+        const privateCheckpoint = currentCheckpoint.caseCheckpoints[recordedCase.id];
+        if (
+          privateCheckpoint === undefined ||
+          JSON.stringify(privateCheckpoint.completedCase) !== JSON.stringify(recordedCase)
+        ) {
+          throw new Error('Semantic committed case does not match its private checkpoint.');
+        }
+        currentCheckpoint.cases.push(recordedCase);
+        delete currentCheckpoint.caseCheckpoints[recordedCase.id];
+        caseCheckpointStates.delete(recordedCase.id);
+      });
+    },
+    executeTrial: (trialOptions) => options.executeTrial({ ...trialOptions, tokenController }),
+    getCaseCheckpoint: (caseId) => caseCheckpointStates.get(caseId) ?? null,
+    persistCaseCheckpoint: async (caseCheckpoint) => {
+      caseCheckpointStates.set(caseCheckpoint.caseId, caseCheckpoint);
+      await mutateCheckpoint((currentCheckpoint) => {
+        currentCheckpoint.caseCheckpoints[caseCheckpoint.caseId] = caseCheckpoint;
+      });
+    },
+    workerCount: options.workerCount,
+  });
+
+  return options.checkpoint === null ? executedCases : options.checkpoint.cases;
 };
 
 const resolveDiagnosticCases = async (
@@ -996,76 +991,42 @@ const run = async (): Promise<void> => {
     await writeSemanticCheckpoint(REPOSITORY_ROOT, checkpoint);
   }
 
-  let checkpointMutationQueue = Promise.resolve();
-  const mutateCheckpoint = async (
-    operation: (currentCheckpoint: ISemanticCandidateCheckpoint) => void,
-  ): Promise<void> => {
-    if (checkpoint === null) return;
-    const queuedMutation = checkpointMutationQueue.then(async () => {
-      if (checkpoint === null) return;
-      operation(checkpoint);
-      checkpoint.updatedAt = new Date().toISOString();
-      await writeSemanticCheckpoint(REPOSITORY_ROOT, checkpoint);
-    });
-    checkpointMutationQueue = queuedMutation.catch(() => {});
-    await queuedMutation;
-  };
-
-  const caseCheckpointStates = new Map<string, ISemanticCaseCheckpoint>(
-    Object.entries(checkpoint?.caseCheckpoints ?? {}),
-  );
-  const tokenController = createSemanticTokenAdmissionController({
-    getConsumedTokenCount: () =>
-      getSemanticCandidatePaidTokenCount(
-        checkpoint?.cases ?? [],
-        Object.fromEntries(caseCheckpointStates),
-      ),
-  });
-
   const workerCount = arguments_.workerCount ?? EVALUATION_BATCH_DEFAULT_WORKER_COUNT;
   const temporaryFilesystem = await statfs(tmpdir(), { bigint: true });
   createEvaluationBatchDiskReservation(
     workerCount,
     temporaryFilesystem.bavail * temporaryFilesystem.bsize,
   );
-  const executedCases = await runOrderedEvaluationBatch<ISemanticCase, ISemanticRecordedCase>({
-    commitItem: async ({ value }) =>
-      mutateCheckpoint((currentCheckpoint) => {
-        const privateCheckpoint = currentCheckpoint.caseCheckpoints[value.id];
-        if (
-          privateCheckpoint !== undefined &&
-          JSON.stringify(privateCheckpoint.completedCase) !== JSON.stringify(value)
-        ) {
-          throw new Error('Semantic committed case does not match its private checkpoint.');
-        }
-        currentCheckpoint.cases.push(value);
-        delete currentCheckpoint.caseCheckpoints[value.id];
-        caseCheckpointStates.delete(value.id);
-      }),
-    executeItem: async ({ item }) =>
-      runSemanticCase({
+  const recordedCases = await executeSemanticCases({
+    cases: casesToExecute,
+    checkpoint,
+    executeTrial: async ({
+      activeTrial,
+      caseDefinition,
+      confirmationIndex,
+      persistActiveTrial,
+      tokenController,
+    }) => {
+      const trialExecution = await runSemanticTrial({
+        activeTrial,
         actorCommand,
         actorHost,
         artifactDigest,
-        caseDefinition: item,
+        caseDefinition,
         cli,
-        initialCheckpoint: checkpoint?.caseCheckpoints[item.id] ?? null,
+        confirmationIndex,
         isOperationalResumeRequested: arguments_.isResumeStoppedStageRequested,
         judgeCommand,
         judgeHost,
-        persistCaseCheckpoint: async (caseCheckpoint) => {
-          caseCheckpointStates.set(item.id, caseCheckpoint);
-          await mutateCheckpoint((currentCheckpoint) => {
-            currentCheckpoint.caseCheckpoints[item.id] = caseCheckpoint;
-          });
-        },
+        persistActiveTrial,
         reusableTrials,
         tokenController,
-      }),
-    items: casesToExecute,
+      });
+      return trialExecution.recordedTrial;
+    },
+    repositoryRoot: REPOSITORY_ROOT,
     workerCount,
   });
-  const recordedCases = checkpoint === null ? executedCases : checkpoint.cases;
 
   if (!arguments_.isRecordRequested) {
     if (checkpointMode === 'diagnostic') {

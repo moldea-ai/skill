@@ -24,7 +24,9 @@ Actor and judge stages run in isolated homes. Related repositories and evaluator
 
 Raw command text and output are not recorded. The host projects bounded command-policy counts, recognized `moldea` operations, aggregate output sizes, and reported token usage. Shared resource profiles enforce per-stage output, command, token, temporary-storage, and free-space limits. Operational failures receive one bounded retry. Only a semantic-only failure is eligible for confirmation trials.
 
-Private checkpoints live at `.evidence/semantic/checkpoint.json`. Matching recording and diagnostic-batch commands retain their attempt identity, ordered completed-case prefix, out-of-order worker results, and current actor or judge boundary. Interrupted work resumes without repeating a completed model stage. A model stage receives one automatic retry; after that retry is exhausted, `--resume-stopped-stage` authorizes exactly one additional call. Use `--restart` to discard the checkpoint instead. An identity mismatch is rejected. Completed local bundles live below `.evidence/runs/semantic/`. The runner considers at most the newest 64 local bundles for reuse and reuses only a passing actor-and-judge pair whose host commands, prompts, fixtures, case definition, portable artifact, CLI identity, protocol, resource profiles, and projected actor evidence match exactly. Public bundles are not backups for this private resume and reuse state.
+Recording and diagnostic batches complete every selected initial trial before starting case resolution. Cases run concurrently within both phases. During resolution, each eligible case runs its confirmations sequentially until it reaches the shared quorum; cases do not wait for a global confirmation round before continuing.
+
+Private checkpoints live at `.evidence/semantic/checkpoint.json`. Matching recording and diagnostic-batch commands retain their attempt identity, ordered completed-case prefix, out-of-order worker results, completed trials, and current actor or judge boundary. An interruption during the initial phase starts no confirmations. An interruption during resolution preserves the complete initial set and every durably recorded confirmation, although concurrently resolving cases may have reached different confirmation indices. Resume skips durable work; only a model operation that had not reached its checkpoint boundary may need to run again. A model stage receives one automatic retry; after that retry is exhausted, `--resume-stopped-stage` authorizes exactly one additional call. Use `--restart` to discard the checkpoint instead. An identity mismatch is rejected. Completed local bundles live below `.evidence/runs/semantic/`. The runner considers at most the newest 64 local bundles for reuse and reuses only a passing actor-and-judge pair whose host commands, prompts, fixtures, case definition, portable artifact, CLI identity, protocol, resource profiles, and projected actor evidence match exactly. Public bundles are not backups for this private resume and reuse state.
 
 ## Deterministic inspection
 
@@ -49,6 +51,8 @@ One case can be run without recording:
 ```bash
 npm run eval:semantic -- --case <case-id>
 ```
+
+This targeted command does not create a candidate checkpoint. If it is interrupted, rerun the case from the beginning.
 
 Bounded diagnostic batches accept exactly one selector:
 

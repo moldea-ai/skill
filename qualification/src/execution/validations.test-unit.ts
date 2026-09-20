@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../src/resources/index.ts';
 
 import type {
   IActorOutput,
@@ -36,6 +36,9 @@ const scenario = {
   version: 2,
   id: 'test-case',
   title: 'Test case',
+  layer: 'adapter-specific',
+  description: 'Exercises qualification validation in a controlled fixture.',
+  challenge: 'Requires exact validation decisions.',
   purpose: 'Exercise exact judge requirements.',
   resourceProfile: 'ordinary',
   taskFile: 'task.md',

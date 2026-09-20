@@ -102,21 +102,19 @@ Tooling establishment occurs only during authorized write-capable work and only 
 
 ## Project blueprint
 
-`moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, adapter qualification, evidence publication, and documentation tooling. Evidence presentation copy is bound to reviewed source and recorded-evidence digests so stale examples fall back to source-owned wording.
+`moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, adapter qualification, evidence publication, and documentation tooling. The website renders selected evidence snapshots and has no evaluator responsibility.
 
-| Area                                      | Responsibility                                                                                                                                                   |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `moldea/`                                 | Complete distributed Agent Skill: entrypoint, focused references, host metadata, managed README asset, and bounded scripts.                                      |
-| `docs/`                                   | Concise public concepts and workflows. API and HTTP endpoint documentation does not belong here.                                                                 |
-| `tests/` and `fixtures/`                  | Deterministic conformance, semantic cases, calibration records, and committed evidence.                                                                          |
-| `qualification/`                          | Adapter-specific qualification. Universal behavior runs once in the Custom profile; published adapters retain only adapter-specific probes and cases.            |
-| `tooling/codex-evaluation-host/`          | Isolated model execution and privacy-safe resource accounting.                                                                                                   |
-| `tooling/semantic-evaluation/`            | Current semantic evidence contract.                                                                                                                              |
-| `tooling/release-identity/`               | Exact release identity and fresh or explicitly pinned evidence selection.                                                                                        |
-| `tooling/relevance-gate/`                 | Generates the portable matcher from the locked Core API and dependencies. The generated artifact has a 1 MiB build limit and only Node built-in runtime imports. |
-| `website/`                                | Validates and publishes documentation plus authenticated semantic and qualification evidence with progressive technical disclosure.                              |
-| `.github/workflows/conformance.yml`       | Portable correctness checks.                                                                                                                                     |
-| `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                          |
+| Area                                      | Responsibility                                                                                                                                         |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `moldea/`                                 | Complete distributed Agent Skill: entrypoint, focused references, host metadata, managed README asset, and bounded generated scripts.                  |
+| `src/`                                    | Maintained TypeScript for portable generation, isolated execution, semantic evaluation, evidence assets, release checks, and shared developer tooling. |
+| `qualification/`                          | Adapter qualification definitions and TypeScript execution. Profiles discover their owned cases and record private local state below `.evidence/`.     |
+| `evidence/selection.json`                 | Independent maintainer selections for the semantic and qualification bundles shown on the website.                                                     |
+| `website/`                                | Static presentation of prepared selected evidence. It preserves the public sections and detailed replay, project, evidence, and technical views.       |
+| `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation and qualification attempts are not committed.                               |
+| `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                               |
+| `.github/workflows/conformance.yml`       | Portable generation, runtime, path, release, and installation checks.                                                                                  |
+| `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                |
 
 The distributed artifact is exactly `moldea/`; development-only tooling is not installed with the skill. Run `npm run matcher:generate` after changing the relevance gate's locked inputs and `npm run matcher:check` to verify the committed artifact.
 
@@ -133,16 +131,24 @@ npm ci --ignore-scripts
 Run the deterministic boundaries:
 
 ```bash
+npm run runtime:build
+npm run portable:check
+npm run test:unit
+npm run test:integration
 npm test
 npm run qualification:test
+npm run typecheck
+npm run lint
+npm run format:check
 npm run qualification:typecheck
 npm run qualification:lint
 npm run qualification:format:check
 npm run path:check
 npm run docs:check
 npm run website:check
-npm run website:build
 ```
+
+`npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require both evidence selections to be populated and prepared. Development website checks generate isolated synthetic evidence instead.
 
 Specialized workflows have focused operator references:
 

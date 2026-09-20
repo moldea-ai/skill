@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: initialize-grounded-project
 title: Initialize a grounded project
+layer: universal-baseline
+description: 'Establish the minimum valid moldea foundation from concrete repository evidence.'
+challenge: 'Requires useful project truth and README awareness without inventing agents, decisions, or runtime behavior.'
 purpose: Verify minimal evidence-backed adoption without speculative agent state.
 taskFile: task.md
 seedDirectory: seed

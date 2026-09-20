@@ -62,7 +62,6 @@ const { scenarioId, trials } = Astro.props;
                 <dt class="text-muted-foreground">Reuse source</dt>
                 <dd class="mt-1 grid gap-1 font-mono text-xs break-all">
                   <span>Attempt: {trial.stageReuse.actor.source.attemptId}</span>
-                  <span>Commit: {trial.stageReuse.actor.source.commit}</span>
                   <span>Evidence: {trial.stageReuse.actor.source.evidenceSha256}</span>
                   <span>Actor identity: {trial.stageReuse.actor.identitySha256}</span>
                   <span>Judge identity: {trial.stageReuse.judge.identitySha256}</span>
@@ -79,6 +78,22 @@ const { scenarioId, trials } = Astro.props;
               <dt class="text-muted-foreground">Judge commands</dt>
               <dd class="mt-1 font-mono text-xs break-all">
                 {trial.judgeCommandPolicyEvidence.completedCommandCount}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-muted-foreground">Actor tokens</dt>
+              <dd class="mt-1 font-mono text-xs break-all">
+                {trial.actorUsage === null
+                  ? 'Not reported'
+                  : `${trial.actorUsage.inputTokens} input, ${trial.actorUsage.cachedInputTokens} cached input, ${trial.actorUsage.outputTokens} output`}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-muted-foreground">Judge tokens</dt>
+              <dd class="mt-1 font-mono text-xs break-all">
+                {trial.judgeUsage === null
+                  ? 'Not reported'
+                  : `${trial.judgeUsage.inputTokens} input, ${trial.judgeUsage.cachedInputTokens} cached input, ${trial.judgeUsage.outputTokens} output`}
               </dd>
             </div>
             <div>

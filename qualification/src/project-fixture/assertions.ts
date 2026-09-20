@@ -11,7 +11,7 @@ import {
   calculateDirectoryFingerprint,
   collectDirectoryFingerprintEntries,
   resolveContainedPath,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   MOUNTED_SKILL_RELATIVE_PATH,
   QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,

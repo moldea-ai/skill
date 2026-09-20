@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: create-grounded-agent
 title: Create a grounded agent
+layer: universal-baseline
+description: 'Register one new agent whose instruction and runtime binding derive from an existing implementation contract.'
+challenge: 'Exercises agent identity, canonical assets, custom runtime guidance, bindings, affected paths, and final validation together.'
 purpose: Verify evidence-backed agent creation across canonical and executable boundaries.
 taskFile: task.md
 seedDirectory: seed

@@ -9,11 +9,11 @@ import {
   projectCodexEvaluationExecutionEvidence,
   runCodexEvaluationHost,
   type ICodexEvaluationWorkspaceAccess,
-} from '../../../tooling/codex-evaluation-host/index.mjs';
+} from '../../../src/execution/host/index.ts';
 
 import { QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS } from '../constants/index.ts';
 import { type IActorOutput, type IJudgeOutput } from '../contracts/index.ts';
-import { writeJsonFileAtomically } from '../filesystem/index.ts';
+import { writeJsonFileAtomically } from '../../../src/filesystem/index.ts';
 import type {
   IActorExecutionInput,
   ICodexHost,

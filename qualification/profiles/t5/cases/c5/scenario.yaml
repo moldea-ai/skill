@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: reconcile-drift-and-boundaries
 title: Reconcile drift and boundaries
+layer: universal-baseline
+description: 'Repair a stale runtime binding while recording a dynamic relationship that static evidence cannot prove.'
+challenge: 'Requires a valid final repository without inventing evidence for an ambiguous integration.'
 purpose: Verify stale-reference repair and conservative unresolved reporting for dynamic code.
 taskFile: task.md
 seedDirectory: seed

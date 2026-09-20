@@ -1,6 +1,6 @@
 import { rm } from 'node:fs/promises';
 
-import { resolveContainedPath } from '../filesystem/index.ts';
+import { resolveContainedPath } from '../../../src/filesystem/index.ts';
 import { createQualificationPnpmInstallation } from '../pnpm-installation/index.ts';
 
 /** Removes attempt-owned runtime trees while retaining only state required for explicit resume. */

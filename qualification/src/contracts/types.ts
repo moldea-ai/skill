@@ -2,8 +2,8 @@ import path from 'node:path';
 import semver from 'semver';
 import { z } from 'zod';
 
-import { calculateCodexEvaluationOperationalRetryDelay } from '../../../tooling/codex-evaluation-host/index.mjs';
-import { getEvaluationConfirmationResolution } from '../../../tooling/evaluation-confirmation-policy/index.mjs';
+import { calculateCodexEvaluationOperationalRetryDelay } from '../../../src/execution/host/index.ts';
+import { getEvaluationConfirmationResolution } from '../../../src/execution/confirmation/index.ts';
 import {
   DEFAULT_PACKAGES_REPOSITORY,
   QUALIFICATION_ALLOWED_EGRESS_HOSTS,
@@ -92,7 +92,7 @@ export const QualificationProfileCaseSchema = z.strictObject({
   scenarioFile: RelativePathSchema,
 });
 
-export const QualificationProfileSchema = z.strictObject({
+export const QualificationProfileSourceSchema = z.strictObject({
   version: z.literal(QUALIFICATION_PROTOCOL_VERSION),
   adapterId: StableIdSchema,
   implementationId: StableIdSchema,
@@ -107,9 +107,13 @@ export const QualificationProfileSchema = z.strictObject({
     )
     .optional(),
   probesFile: RelativePathSchema,
+});
+
+export const QualificationProfileSchema = QualificationProfileSourceSchema.extend({
   cases: z.array(QualificationProfileCaseSchema).min(1),
 });
 
+export type IQualificationProfileSource = z.infer<typeof QualificationProfileSourceSchema>;
 export type IQualificationProfile = z.infer<typeof QualificationProfileSchema>;
 export type IQualificationProfileCase = z.infer<typeof QualificationProfileCaseSchema>;
 
@@ -166,6 +170,9 @@ export const QualificationCaseScenarioSchema = z
     version: z.literal(QUALIFICATION_PROTOCOL_VERSION),
     id: StableIdSchema,
     title: z.string().trim().min(1),
+    layer: z.enum(['adapter-specific', 'universal-baseline']),
+    description: z.string().trim().min(1),
+    challenge: z.string().trim().min(1),
     purpose: z.string().trim().min(1),
     resourceProfile: z.enum(['largeTraversal', 'ordinary']),
     taskFile: RelativePathSchema,

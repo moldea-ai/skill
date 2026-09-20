@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: preserve-google-genai-static-boundary
 title: Preserve the Google Gen AI static boundary
+layer: adapter-specific
+description: 'Represent indirect generate-content requests and provider-hosted tools as unresolved instead of claiming evidence that the adapter cannot prove.'
+challenge: 'Tests conservative handling of request and configuration indirection plus unsupported tool, schema, interaction, and routing relationships.'
 purpose: Verify conservative treatment of Google-hosted tools and indirect generate-content request construction.
 taskFile: task.md
 seedDirectory: seed

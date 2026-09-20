@@ -5,8 +5,8 @@ import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
 import { QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES } from '../constants/index.ts';
-import { ensureDirectory } from '../filesystem/index.ts';
-import { executeProcess } from '../process/index.ts';
+import { ensureDirectory } from '../../../src/filesystem/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 import { inspectGitRepositoryState } from './inspector.ts';
 
 describe('Git repository state inspection', () => {

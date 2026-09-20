@@ -5,7 +5,11 @@ import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
 import { QUALIFICATION_ROOT } from '../constants/index.ts';
-import { copyDirectory, ensureDirectory, writeTextFileAtomically } from '../filesystem/index.ts';
+import {
+  copyDirectory,
+  ensureDirectory,
+  writeTextFileAtomically,
+} from '../../../src/filesystem/index.ts';
 import { loadQualificationProfileIndex } from '../storage/index.ts';
 import {
   calculateQualificationCaseModelInputDigests,
@@ -50,7 +54,6 @@ describe('qualification compatibility identity', () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-logical-input-'));
     const qualificationRoot = path.join(temporaryRoot, 'qualification');
     const profilesRoot = path.join(qualificationRoot, 'profiles');
-    await ensureDirectory(path.join(qualificationRoot, 'cases'));
     await copyDirectory(
       path.join(QUALIFICATION_ROOT, 'profiles', 't5'),
       path.join(profilesRoot, 't1'),
@@ -65,10 +68,6 @@ describe('qualification compatibility identity', () => {
         '    implementationId: custom',
         '',
       ].join('\n'),
-    );
-    await writeFile(
-      path.join(qualificationRoot, 'cases', 'cases.yaml'),
-      await readFile(path.join(QUALIFICATION_ROOT, 'cases', 'cases.yaml')),
     );
     const selection = { adapterId: 'custom', implementationId: 'custom' } as const;
     const initialDigest = await calculateQualificationLogicalInputDigest({
@@ -86,23 +85,14 @@ describe('qualification compatibility identity', () => {
   test('isolates case input changes to their exact owning case', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-case-input-'));
     const qualificationRoot = path.join(temporaryRoot, 'qualification');
-    await Promise.all([
-      copyDirectory(
-        path.join(QUALIFICATION_ROOT, 'profiles', 't5'),
-        path.join(qualificationRoot, 'profiles', 't5'),
-      ),
-      ensureDirectory(path.join(qualificationRoot, 'cases')),
-    ]);
-    await Promise.all([
-      writeFile(
-        path.join(qualificationRoot, 'profiles', 'index.yaml'),
-        await readFile(path.join(QUALIFICATION_ROOT, 'profiles', 'index.yaml')),
-      ),
-      writeFile(
-        path.join(qualificationRoot, 'cases', 'cases.yaml'),
-        await readFile(path.join(QUALIFICATION_ROOT, 'cases', 'cases.yaml')),
-      ),
-    ]);
+    await copyDirectory(
+      path.join(QUALIFICATION_ROOT, 'profiles', 't5'),
+      path.join(qualificationRoot, 'profiles', 't5'),
+    );
+    await writeFile(
+      path.join(qualificationRoot, 'profiles', 'index.yaml'),
+      await readFile(path.join(QUALIFICATION_ROOT, 'profiles', 'index.yaml')),
+    );
     const selection = { adapterId: 'custom', implementationId: 'custom' } as const;
     const caseIds = ['evaluate-aligned-project', 'create-grounded-agent'];
     const before = await calculateQualificationCaseModelInputDigests({
@@ -141,16 +131,16 @@ describe('qualification compatibility identity', () => {
         path.join(temporaryRoot, 'qualification', 'src'),
       ),
       copyDirectory(
-        path.join(QUALIFICATION_ROOT, '..', 'tooling', 'codex-evaluation-host'),
-        path.join(temporaryRoot, 'tooling', 'codex-evaluation-host'),
+        path.join(QUALIFICATION_ROOT, '..', 'src', 'execution', 'host'),
+        path.join(temporaryRoot, 'src', 'execution', 'host'),
       ),
       copyDirectory(
-        path.join(QUALIFICATION_ROOT, '..', 'tooling', 'package-candidate'),
-        path.join(temporaryRoot, 'tooling', 'package-candidate'),
+        path.join(QUALIFICATION_ROOT, '..', 'src', 'packages'),
+        path.join(temporaryRoot, 'src', 'packages'),
       ),
       copyDirectory(
-        path.join(QUALIFICATION_ROOT, '..', 'tooling', 'resource-calibration'),
-        path.join(temporaryRoot, 'tooling', 'resource-calibration'),
+        path.join(QUALIFICATION_ROOT, '..', 'src', 'resources'),
+        path.join(temporaryRoot, 'src', 'resources'),
       ),
       writeFile(
         path.join(temporaryRoot, 'package.json'),

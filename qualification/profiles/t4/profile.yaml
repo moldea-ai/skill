@@ -17,10 +17,3 @@ runtimePackages:
   - name: zod
     version: 4.3.6
 probesFile: probes/claims.yaml
-cases:
-  - id: repair-cloudflare-think-tool-registration
-    projectDirectory: cases/c9
-    scenarioFile: scenario.yaml
-  - id: preserve-cloudflare-think-static-boundary
-    projectDirectory: cases/c10
-    scenarioFile: scenario.yaml

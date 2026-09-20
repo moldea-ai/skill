@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: preserve-langgraph-functional-api-static-boundary
 title: Preserve the LangGraph Functional API static boundary
+layer: adapter-specific
+description: 'Represent dynamic task selection, nested calls, TypeScript-only contracts, and runtime semantics without claiming evidence that the adapter cannot prove.'
+challenge: 'Tests conservative handling of lexical-call boundaries plus task non-capabilities, schema and routing non-inference, persistence, replay, interrupt, and approval semantics.'
 purpose: Verify conservative handling of lexical task limits, ordinary control flow, TypeScript-only schemas, and runtime-owned semantics.
 taskFile: task.md
 seedDirectory: seed

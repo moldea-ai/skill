@@ -12,19 +12,14 @@ on:
       - 'assets/**'
       - 'CNAME'
       - 'docs/**'
+      - 'evidence/**'
       - 'fixtures/conformance-cases.json'
-      - 'fixtures/release-evidence.json'
-      - 'fixtures/semantic-evaluation-result.json'
       - 'moldea/**'
       - 'package-lock.json'
       - 'package.json'
       - 'qualification/**'
       - 'README.md'
-      - 'tooling/codex-evaluation-host/**'
-      - 'tooling/evidence-identity/**'
-      - 'tooling/package-candidate/**'
-      - 'tooling/release-identity/**'
-      - 'tooling/semantic-evaluation/**'
+      - 'src/**'
       - 'website/**'
 
 permissions:
@@ -80,8 +75,8 @@ jobs:
       - name: Check website formatting
         run: npm --workspace website run format:check
 
-      - name: Build and validate static website
-        run: npm run website:build
+      - name: Build and validate static website with synthetic evidence
+        run: npm --workspace website run build:fixture
 
       - name: Test static artifact integration
         run: npm --workspace website run test:integration:artifact

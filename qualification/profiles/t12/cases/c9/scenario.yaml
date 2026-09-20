@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: repair-openai-agents-sdk-tool-registration
 title: Repair OpenAI Agents SDK tool registration
+layer: adapter-specific
+description: 'Reconcile a declared tool name with a closed Agent function-tool array using exact adapter diagnostics and source evidence.'
+challenge: 'Requires correcting canonical identity without changing valid Agent, implementation, or schema wiring.'
 purpose: Verify precise diagnostic-driven repair of closed function-tool identity.
 taskFile: task.md
 seedDirectory: seed

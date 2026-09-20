@@ -1,7 +1,7 @@
 import {
   EVALUATION_BATCH_WORKER_COUNTS,
   type IEvaluationBatchWorkerCount,
-} from '../../../tooling/evaluation-batch/index.mjs';
+} from '../../../src/execution/batch/index.ts';
 
 import type { IModelUsage } from '../contracts/index.ts';
 import {

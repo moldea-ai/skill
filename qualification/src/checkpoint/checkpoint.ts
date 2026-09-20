@@ -14,7 +14,7 @@ import {
   type IQualificationSelection,
   type IQualificationStageCheckpoint,
 } from '../contracts/index.ts';
-import { readJsonFile, writeJsonFileAtomically } from '../filesystem/index.ts';
+import { readJsonFile, writeJsonFileAtomically } from '../../../src/filesystem/index.ts';
 import { writeQualificationStatusAttempt } from '../status/attempt-summary.ts';
 
 /** Returns the canonical local checkpoint path for one attempt directory. */

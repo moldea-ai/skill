@@ -7,8 +7,8 @@ import { describe, expect, test } from 'vitest';
 import { DEFAULT_PACKAGES_REPOSITORY, SKILL_REPOSITORY_ROOT } from '../constants/index.ts';
 import { QualificationCaseScenarioSchema } from '../contracts/index.ts';
 import { inspectQualificationCoverage } from '../coverage/index.ts';
-import { ensureDirectory, readYamlFile } from '../filesystem/index.ts';
-import { executeProcess } from '../process/index.ts';
+import { ensureDirectory, readYamlFile } from '../../../src/filesystem/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 import { loadQualificationProfileIndex } from '../storage/index.ts';
 import { loadRuntimeCompatibilitySnapshot, resolveQualificationTarget } from './loader.ts';
 

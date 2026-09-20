@@ -15,7 +15,7 @@ import {
   QUALIFICATION_CONFIRMATION_POLICY,
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
 } from '../constants/index.ts';
-import { ensureDirectory, writeJsonFileAtomically } from '../filesystem/index.ts';
+import { ensureDirectory, writeJsonFileAtomically } from '../../../src/filesystem/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
 import {
   getLocalAttemptDirectory,

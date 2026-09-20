@@ -6,7 +6,7 @@ import {
   calculateDirectoryFingerprint,
   copyDirectory,
   ensureDirectory,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 
 /** Creates an exact independent workspace snapshot for one read-only judge process. */
 export const prepareJudgeWorkspace = async (

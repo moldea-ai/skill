@@ -1,7 +1,7 @@
 import {
   CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
   CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
-} from '../../../tooling/codex-evaluation-host/index.mjs';
+} from '../../../src/execution/host/index.ts';
 
 import type {
   IActorOutput,

@@ -46,16 +46,16 @@ const getAttemptRole = (index: number): string =>
   >
     <div class="grid gap-6 border-t border-border pt-5">
       {
-        qualificationReleaseEvidence?.mode === 'pinned' ? (
+        qualificationReleaseEvidence !== null ? (
           <section aria-labelledby="qualification-release-source-title">
             <h3
               id="qualification-release-source-title"
               class="text-lg font-semibold"
             >
-              Verified release source
+              Selected evidence source
             </h3>
             <p class="mt-2 max-w-4xl text-sm leading-6 text-muted-foreground">
-              This release reuses authenticated passing evidence from{' '}
+              This page displays the selected evidence recorded for{' '}
               <a
                 class="text-link font-semibold"
                 href={qualificationReleaseEvidence.sourceUrl}
@@ -64,17 +64,9 @@ const getAttemptRole = (index: number): string =>
               >
                 {qualificationReleaseEvidence.sourceLabel}
               </a>
-              .{' '}
-              <InlineBrandText
-                text={qualificationReleaseEvidence.reason}
-                variant="compact"
-              />
+              .
             </p>
           </section>
-        ) : qualificationReleaseEvidence?.mode === 'fresh' ? (
-          <p class="text-sm leading-6 text-muted-foreground">
-            This result was recorded for the current release.
-          </p>
         ) : (
           <p class="text-sm leading-6 text-muted-foreground">
             No release evidence source has been recorded.

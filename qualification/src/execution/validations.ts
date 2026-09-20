@@ -1,5 +1,5 @@
-import { hasPassingCodexEvaluationCommandPolicy } from '../../../tooling/codex-evaluation-host/index.mjs';
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
+import { hasPassingCodexEvaluationCommandPolicy } from '../../../src/execution/host/index.ts';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../src/resources/index.ts';
 
 import type {
   IActorOutput,

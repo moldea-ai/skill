@@ -6,4 +6,4 @@ export { QualificationBaselineCheckSchema } from './types.ts';
 export { inspectQualificationBaseline } from './baseline.ts';
 
 // baseline identity
-export { calculateQualificationBaselineDigestAtCommit } from './fingerprints.ts';
+export { calculateQualificationBaselineDigest } from './fingerprints.ts';

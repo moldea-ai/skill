@@ -1,7 +1,4 @@
 import path from 'node:path';
-import { parse as parseYaml } from 'yaml';
-
-import { QualificationCaseCatalogSchema } from '../contracts/index.ts';
 
 const TEST_FILE_PATTERN = /\.test-(?:bench|e2e|integration|unit)\.[^/]+$/u;
 const TYPE_DECLARATION_FILE_PATTERN = /\.d\.[^/]+$/u;
@@ -49,23 +46,6 @@ export const normalizeQualificationRuntimePackageManifest = (input: unknown): un
     engines: input['engines'],
     scripts: isPlainRecord(scripts) ? { qualification: scripts['qualification'] } : undefined,
     type: input['type'],
-  });
-};
-
-/**
- * Keeps only the cases owned by one qualification profile.
- * @throws If the case catalog does not satisfy the qualification contract.
- */
-export const normalizeQualificationCaseCatalog = (
-  source: string,
-  selectedCaseIds: readonly string[],
-): unknown => {
-  const catalog = QualificationCaseCatalogSchema.parse(parseYaml(source) as unknown);
-  const selectedCaseIdSet = new Set(selectedCaseIds);
-
-  return normalizeRecord({
-    version: catalog.version,
-    cases: catalog.cases.filter(({ id }) => selectedCaseIdSet.has(id)),
   });
 };
 

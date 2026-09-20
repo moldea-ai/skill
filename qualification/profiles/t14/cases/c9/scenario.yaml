@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: repair-vercel-tool-registration
 title: Repair Vercel tool registration
+layer: adapter-specific
+description: 'Reconcile a declared tool name with a closed Vercel AI SDK tools map using exact adapter diagnostics and source evidence.'
+challenge: 'Requires correcting canonical identity without changing valid runtime code or weakening schema and implementation bindings.'
 purpose: Verify precise diagnostic-driven repair of closed tools-map identity.
 taskFile: task.md
 seedDirectory: seed

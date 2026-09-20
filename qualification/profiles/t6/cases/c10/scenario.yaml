@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: preserve-eve-static-boundary
 title: Preserve the Eve static boundary
+layer: adapter-specific
+description: 'Represent dynamic capabilities and unsupported filesystem sources without claiming evidence that the adapter cannot prove.'
+challenge: 'Tests conservative handling of dynamic tools, Markdown skills, single-file subagents, remote agents, extensions, and instruction composition.'
 purpose: Verify conservative handling of dynamic capabilities and unsupported Eve filesystem surfaces.
 taskFile: task.md
 seedDirectory: seed

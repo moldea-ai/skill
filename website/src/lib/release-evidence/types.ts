@@ -1,57 +1,52 @@
-import type {
-  IQualificationEvidenceTargetProjection,
-  ISemanticEvidenceAttemptProjection,
-} from '../../../../tooling/release-identity/release-evidence-source.mjs';
-
-import type {
-  IQualificationProfileModel,
-  IQualificationWebsiteModel,
-} from '../qualification/index.ts';
+import type { IQualificationWebsiteModel } from '../qualification/index.ts';
 import type {
   ISemanticAttemptModel,
   ISemanticEvaluationWebsiteModel,
 } from '../semantic-evaluation/index.ts';
 
-// authenticated qualification source attempt with its immutable public location
-export interface IQualificationReleaseEvidenceTargetModel extends IQualificationEvidenceTargetProjection {
+// selected qualification evidence source shown in technical disclosures
+export interface IQualificationReleaseEvidenceTargetModel {
+  adapterId: string;
+  attemptId: string;
+  completedAt?: string;
+  createdAt?: string;
+  implementationId: string;
+  packages?: Array<{ name: string; version: string }>;
   sourceAttemptUrl: string;
 }
 
 // public provenance for one independently selected evidence section
-export type IReleaseEvidenceSectionModel =
-  | {
-      mode: 'fresh';
-      sourceUrl: string;
-    }
-  | {
-      mode: 'pinned';
-      reason: string;
-      sourceCommit: string;
-      sourceLabel: string;
-      sourceUrl: string;
-    };
+export interface IReleaseEvidenceSectionModel {
+  mode: 'selected';
+  recordedAt: string;
+  sourceLabel: string;
+  sourceUrl: string;
+}
 
-// semantic provenance also identifies its independently verified source attempt
-export type ISemanticReleaseEvidenceSectionModel =
-  | Extract<IReleaseEvidenceSectionModel, { mode: 'fresh' }>
-  | (Extract<IReleaseEvidenceSectionModel, { mode: 'pinned' }> & {
-      attempt: ISemanticEvidenceAttemptProjection;
-      sourceAttemptUrl: string;
-    });
+export type ISemanticReleaseEvidenceSectionModel = IReleaseEvidenceSectionModel & {
+  attempt: Pick<
+    ISemanticAttemptModel['result'],
+    | 'artifactDigest'
+    | 'attemptId'
+    | 'createdAt'
+    | 'failedCaseCount'
+    | 'passedCaseCount'
+    | 'pendingCaseCount'
+    | 'recoveredCaseCount'
+    | 'status'
+    | 'totalCaseCount'
+    | 'updatedAt'
+  >;
+  sourceAttemptUrl: string;
+};
 
-// qualification provenance includes one authenticated compact projection per source target
-export type IQualificationReleaseEvidenceSectionModel =
-  | Extract<IReleaseEvidenceSectionModel, { mode: 'fresh' }>
-  | (Extract<IReleaseEvidenceSectionModel, { mode: 'pinned' }> & {
-      targets: IQualificationReleaseEvidenceTargetModel[];
-    });
+export type IQualificationReleaseEvidenceSectionModel = IReleaseEvidenceSectionModel & {
+  targets: IQualificationReleaseEvidenceTargetModel[];
+};
 
-// public release-evidence provenance shown across evidence pages
+// selected public evidence provenance shown across evidence pages
 export type IReleaseEvidenceModel =
-  | {
-      mode: 'not-recorded';
-      targetVersion: string;
-    }
+  | { mode: 'not-recorded'; targetVersion: string }
   | {
       mode: 'recorded';
       qualification: IQualificationReleaseEvidenceSectionModel;
@@ -59,45 +54,23 @@ export type IReleaseEvidenceModel =
       targetVersion: string;
     };
 
-// complete build-time state with hydrated pinned models kept outside the public provenance model
+// complete selected models loaded from prepared evidence bundles
 export interface IReleaseEvidenceWebsiteState {
-  pinnedQualification: IQualificationWebsiteModel | null;
-  pinnedSemantic: ISemanticEvaluationWebsiteModel | null;
+  qualification: IQualificationWebsiteModel;
   releaseEvidence: IReleaseEvidenceModel;
+  semantic: ISemanticEvaluationWebsiteModel;
 }
 
-// release-facing semantic result selected without changing current-contract state
 export type ISemanticReleaseEvidenceSummary =
   | {
-      kind: 'current';
-      result: ISemanticAttemptModel['result'];
+      kind: 'recorded';
+      result: ISemanticReleaseEvidenceSectionModel['attempt'];
       sourceUrl: string;
     }
-  | {
-      kind: 'pinned';
-      result: ISemanticEvidenceAttemptProjection;
-      sourceUrl: string;
-    }
-  | {
-      kind: 'not-recorded';
-      result: null;
-      sourceUrl: null;
-    };
+  | { kind: 'not-recorded'; result: null; sourceUrl: null };
 
-// release-facing qualification result selected without changing current-contract state
-export type IQualificationReleaseEvidenceSummary =
-  | {
-      attemptCount: number;
-      kind: 'current';
-      status: IQualificationProfileModel['currentStatus'];
-    }
-  | {
-      attemptCount: 1;
-      kind: 'pinned';
-      status: 'passed';
-    }
-  | {
-      attemptCount: 0;
-      kind: 'not-recorded';
-      status: 'not-recorded';
-    };
+export type IQualificationReleaseEvidenceSummary = {
+  attemptCount: number;
+  kind: 'recorded' | 'not-recorded';
+  status: IQualificationWebsiteModel['profiles'][number]['currentStatus'];
+};

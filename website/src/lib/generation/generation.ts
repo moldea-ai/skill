@@ -6,16 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
-import {
-  assertPublishableQualificationEvidence,
-  composeQualificationProfile,
-  loadQualificationWebsiteModel,
-  type IQualificationWebsiteModel,
-} from '../qualification/index.ts';
-import {
-  loadSemanticEvaluationWebsiteModel,
-  type ISemanticEvaluationWebsiteModel,
-} from '../semantic-evaluation/index.ts';
+import type { IQualificationWebsiteModel } from '../qualification/index.ts';
+import type { ISemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
 import {
   DOCUMENT_SECTION_LABELS,
   EVIDENCE_ROUTE,
@@ -243,7 +235,7 @@ export const createQualificationSearchRecords = (
   qualification: IQualificationWebsiteModel,
 ): ISearchRecord[] => {
   const verifiedSourceAttemptCount = qualification.profiles.filter(
-    (profile) => getQualificationReleaseEvidenceSummary(profile).kind === 'pinned',
+    (profile) => getQualificationReleaseEvidenceSummary(profile).kind === 'recorded',
   ).length;
   const landingRecord: ISearchRecord = {
     description: `See how saved project fixtures check the files used by ${qualification.profiles.length} AI service integrations${verifiedSourceAttemptCount === 0 ? '.' : `, including ${verifiedSourceAttemptCount} results backed by authenticated release sources.`}`,
@@ -271,17 +263,11 @@ export const createQualificationSearchRecords = (
           ]),
           ...profile.probes.flatMap(({ description, matrixPath }) => [description, matrixPath]),
           ...profile.runtimePackages.flatMap(({ name, version }) => [name, version]),
-          ...(profile.pinnedPriorEvidence === null
-            ? []
-            : [
-                profile.pinnedPriorEvidence.attemptId,
-                profile.pinnedPriorEvidence.createdAt,
-                profile.pinnedPriorEvidence.completedAt,
-                ...profile.pinnedPriorEvidence.packages.flatMap(({ name, version }) => [
-                  name,
-                  version,
-                ]),
-              ]),
+          ...profile.attempts.flatMap(({ result }) => [
+            result.attemptId,
+            result.createdAt,
+            ...result.provenance.packages.flatMap(({ name, version }) => [name, version]),
+          ]),
         ].join(' '),
       ),
       title: profile.title,
@@ -348,16 +334,12 @@ export const createSemanticEvaluationSearchRecords = (
   return [landingRecord, ...groupRecords, ...attemptRecords];
 };
 
-/** Describes the release-effective semantic result without relabeling pinned evidence as current. */
+/** Describes the selected recorded semantic result. */
 const createSemanticReleaseEvidenceLine = (summary: ISemanticReleaseEvidenceSummary): string => {
   if (summary.kind === 'not-recorded') return 'Semantic release evidence: not recorded.';
 
   const successfulCaseCount = summary.result.passedCaseCount + summary.result.recoveredCaseCount;
-  if (summary.kind === 'pinned') {
-    return `Semantic release evidence: ${successfulCaseCount}/${summary.result.totalCaseCount} scenarios successful (${summary.result.passedCaseCount} direct passes, ${summary.result.recoveredCaseCount} recoveries, ${summary.result.failedCaseCount} failed, ${summary.result.pendingCaseCount} pending) from verified source attempt [${summary.result.attemptId}](${summary.sourceUrl}).`;
-  }
-
-  return `Semantic release evidence: ${successfulCaseCount}/${summary.result.totalCaseCount} scenarios have exact current assurance.`;
+  return `Semantic release evidence: ${successfulCaseCount}/${summary.result.totalCaseCount} scenarios successful (${summary.result.passedCaseCount} direct passes, ${summary.result.recoveredCaseCount} recoveries, ${summary.result.failedCaseCount} failed, ${summary.result.pendingCaseCount} pending) from selected recorded attempt [${summary.result.attemptId}](${summary.sourceUrl}).`;
 };
 
 /** Creates the concise machine-oriented skill map from canonical public sources. */
@@ -365,14 +347,12 @@ export const createLlmsText = (
   documents: IWebsiteDocument[],
   skill: ISkillMetadata,
   qualification: IQualificationWebsiteModel,
-  currentQualification: IQualificationWebsiteModel,
   releaseEvidence: IWebsiteModel['releaseEvidence'],
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
-  currentSemanticAssurance: ISemanticEvaluationWebsiteModel['currentAssurance'],
 ): string => {
   const semanticReleaseSummary = getSemanticReleaseEvidenceSummary(
     releaseEvidence,
-    currentSemanticAssurance,
+    semanticEvaluation.currentAssurance,
   );
   const qualificationReleaseSummaries = qualification.profiles.map(
     getQualificationReleaseEvidenceSummary,
@@ -381,14 +361,7 @@ export const createLlmsText = (
     ({ status }) => status === 'passed',
   ).length;
   const verifiedQualificationSourceCount = qualificationReleaseSummaries.filter(
-    ({ kind }) => kind === 'pinned',
-  ).length;
-  const currentSemanticSuccessfulCaseCount = currentSemanticAssurance
-    ? currentSemanticAssurance.result.passedCaseCount +
-      currentSemanticAssurance.result.recoveredCaseCount
-    : 0;
-  const currentQualifiedProfileCount = currentQualification.profiles.filter(
-    ({ currentAssurance }) => currentAssurance !== null,
+    ({ kind }) => kind === 'recorded',
   ).length;
   const releaseEvidenceLines =
     releaseEvidence.mode === 'not-recorded'
@@ -396,9 +369,7 @@ export const createLlmsText = (
       : (['semantic', 'qualification'] as const).map((kind) => {
           const section = releaseEvidence[kind];
           const label = kind === 'semantic' ? 'Semantic' : 'Qualification';
-          return section.mode === 'pinned'
-            ? `${label} release provenance uses verified prior evidence from [${section.sourceLabel}](${section.sourceUrl}). Reason: ${section.reason}`
-            : `${label} evidence for release ${releaseEvidence.targetVersion} is fresh.`;
+          return `${label} evidence uses the selected recorded bundle from [${section.sourceLabel}](${section.sourceUrl}).`;
         });
   const lines = [
     '# `moldea` Agent Skill',
@@ -447,10 +418,7 @@ export const createLlmsText = (
     ...releaseEvidenceLines,
     '',
     createSemanticReleaseEvidenceLine(semanticReleaseSummary),
-    `Qualification release evidence: ${releaseQualifiedProfileCount}/${qualification.profiles.length} profiles passing${verifiedQualificationSourceCount === 0 ? '.' : `, including ${verifiedQualificationSourceCount} verified source ${verifiedQualificationSourceCount === 1 ? 'attempt' : 'attempts'}.`}`,
-    '',
-    `Current semantic contract: ${currentSemanticSuccessfulCaseCount}/${semanticEvaluation.caseCount} scenarios have exact current assurance.`,
-    `Current qualification contracts: ${currentQualifiedProfileCount}/${qualification.profiles.length} profiles have exact current assurance.`,
+    `Qualification release evidence: ${releaseQualifiedProfileCount}/${qualification.profiles.length} profiles passing${verifiedQualificationSourceCount === 0 ? '.' : ` across ${verifiedQualificationSourceCount} selected recorded ${verifiedQualificationSourceCount === 1 ? 'profile' : 'profiles'}.`}`,
     '',
     `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
     `- [Semantic evaluation](${semanticEvaluation.route}): Follow ${semanticEvaluation.caseCount} difficult coding-agent decisions from request to independent verdict.`,
@@ -509,69 +477,29 @@ export const createRouteManifest = (
   return [...routes].sort();
 };
 
-/** Selects one complete qualification profile per identity without combining attempt histories. */
-const selectQualificationWebsiteModel = (
-  current: IQualificationWebsiteModel,
-  pinned: IQualificationWebsiteModel | null,
-): IQualificationWebsiteModel => {
-  if (pinned === null) return current;
-  const pinnedProfilesByIdentity = new Map(
-    pinned.profiles.map((profile) => [
-      `${profile.adapterId}\0${profile.implementationId}`,
-      profile,
-    ]),
-  );
-  if (
-    pinnedProfilesByIdentity.size !== pinned.profiles.length ||
-    pinned.profiles.length !== current.profiles.length
-  ) {
-    throw new Error('Current and pinned qualification profile inventories do not match.');
-  }
-  const profiles = current.profiles.map((profile) => {
-    const pinnedProfile = pinnedProfilesByIdentity.get(
-      `${profile.adapterId}\0${profile.implementationId}`,
-    );
-    if (pinnedProfile === undefined) {
-      throw new Error('Current and pinned qualification profile inventories do not match.');
-    }
-    return profile.currentAssurance === null ? pinnedProfile : profile;
-  });
-
-  return {
-    ...current,
-    profiles,
-    uniqueJourneyCount: profiles.reduce((total, profile) => total + profile.cases.length, 0),
-  };
-};
-
 /**
  * Builds the complete deterministic website model without writing generated output.
  * @param qualificationRepositoryRoot Repository root used to load qualification evidence.
  * @returns The validated documentation, navigation, search, route, and LLM model.
  */
 export const createWebsiteModel = (
-  qualificationRepositoryRoot: string = getRepositoryRoot(),
+  options: {
+    allowFixtureEvidence?: boolean | undefined;
+    preparedEvidenceDirectory?: string | undefined;
+    selectionPath?: string | undefined;
+  } = {},
 ): IWebsiteModel => {
   const repositoryRoot = getRepositoryRoot();
   const documents = discoverDocuments(repositoryRoot);
   const skill = readSkillMetadata(repositoryRoot);
-  const releaseEvidenceState = loadReleaseEvidenceWebsiteState(repositoryRoot, skill.version);
+  const releaseEvidenceState = loadReleaseEvidenceWebsiteState(repositoryRoot, skill.version, {
+    allowFixture: options.allowFixtureEvidence,
+    preparedDirectory: options.preparedEvidenceDirectory,
+    selectionPath: options.selectionPath,
+  });
   const { releaseEvidence } = releaseEvidenceState;
-  const loadedQualification = loadQualificationWebsiteModel(qualificationRepositoryRoot);
-  const isReleaseQualification = resolve(qualificationRepositoryRoot) === repositoryRoot;
-  const qualification = isReleaseQualification
-    ? selectQualificationWebsiteModel(loadedQualification, releaseEvidenceState.pinnedQualification)
-    : loadedQualification;
-  if (releaseEvidence.mode === 'not-recorded' || releaseEvidence.qualification.mode === 'fresh') {
-    assertPublishableQualificationEvidence(qualification);
-  }
-  const currentSemanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
-  const hasPassingCurrentSemanticAssurance =
-    currentSemanticEvaluation.currentAssurance?.evidenceSource.kind === 'current' &&
-    currentSemanticEvaluation.currentAssurance.result.status === 'passed';
-  const semanticEvaluation = hasPassingCurrentSemanticAssurance
-    ? currentSemanticEvaluation
-    : (releaseEvidenceState.pinnedSemantic ?? currentSemanticEvaluation);
+  const qualification = releaseEvidenceState.qualification;
+  const semanticEvaluation = releaseEvidenceState.semantic;
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
   const productionHostname = new URL(DEFAULT_SITE_URL).hostname;
@@ -587,18 +515,10 @@ export const createWebsiteModel = (
   }
 
   return {
-    currentSemanticAssurance: currentSemanticEvaluation.currentAssurance,
+    currentSemanticAssurance: semanticEvaluation.currentAssurance,
     documents,
     generatedNotice: GENERATED_NOTICE,
-    llmsText: createLlmsText(
-      documents,
-      skill,
-      qualification,
-      loadedQualification,
-      releaseEvidence,
-      semanticEvaluation,
-      currentSemanticEvaluation.currentAssurance,
-    ),
+    llmsText: createLlmsText(documents, skill, qualification, releaseEvidence, semanticEvaluation),
     navigation: createNavigation(documents),
     qualification,
     releaseEvidence,
@@ -623,100 +543,21 @@ export const createWebsiteModel = (
   };
 };
 
-/** Removes repeated object references before serializing the static-build cache. */
+/** Wraps the selected static website model for generated-cache versioning. */
 const createGeneratedWebsiteModelEnvelope = (
   model: IWebsiteModel,
-): IGeneratedWebsiteModelEnvelope => {
-  const semanticAssuranceAttemptId =
-    model.semanticEvaluation.currentAssurance?.result.attemptId ?? null;
-  const semanticEvaluation =
-    semanticAssuranceAttemptId === null
-      ? model.semanticEvaluation
-      : {
-          ...model.semanticEvaluation,
-          currentAssurance: null,
-          groups: model.semanticEvaluation.groups.map((group) => ({ ...group, cases: [] })),
-          lastPassing: null,
-          latest: null,
-        };
-  const qualification = {
-    ...model.qualification,
-    profiles: model.qualification.profiles.map((profile) => ({
-      ...profile,
-      boundBaseline: null,
-      currentAssurance: null,
-      currentLastPassing: null,
-      currentLatest: null,
-      sharedCases: [],
-    })),
-  };
+): IGeneratedWebsiteModelEnvelope => ({
+  formatVersion: 1,
+  model,
+  semanticAssuranceAttemptId: model.semanticEvaluation.currentAssurance?.result.attemptId ?? null,
+});
 
-  return {
-    formatVersion: 1,
-    model: { ...model, qualification, semanticEvaluation },
-    semanticAssuranceAttemptId,
-  };
-};
-
-/** Restores shared evidence references after reading the compact static-build cache. */
+/** Reads the selected static website model from its versioned generated cache. */
 const restoreGeneratedWebsiteModel = (envelope: IGeneratedWebsiteModelEnvelope): IWebsiteModel => {
   if (envelope.formatVersion !== 1) {
     throw new Error('Generated website model has an unsupported format version.');
   }
-  const directProfiles = envelope.model.qualification.profiles.map((profile) => ({
-    ...profile,
-    currentLastPassing:
-      profile.attempts.filter(({ result }) => result.status === 'passed').at(-1) ?? null,
-    currentLatest: profile.attempts.at(-1) ?? null,
-  }));
-  const customProfile = directProfiles.find(
-    ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
-  );
-  if (customProfile === undefined) {
-    throw new Error('Generated qualification model has no Custom baseline.');
-  }
-  const qualification = {
-    ...envelope.model.qualification,
-    profiles: directProfiles.map((profile) => composeQualificationProfile(profile, customProfile)),
-  };
-
-  const semanticEvaluation = envelope.model.semanticEvaluation;
-  if (envelope.semanticAssuranceAttemptId === null) {
-    return { ...envelope.model, qualification };
-  }
-  const currentAssurance = semanticEvaluation.attempts.find(
-    ({ result }) => result.attemptId === envelope.semanticAssuranceAttemptId,
-  );
-  if (currentAssurance === undefined) {
-    throw new Error('Generated semantic assurance does not resolve to an attempt.');
-  }
-  const groups = semanticEvaluation.groups.map((group) => ({
-    ...group,
-    cases: currentAssurance.cases.filter(({ groupId }) => groupId === group.id),
-  }));
-  if (
-    groups.reduce((total, group) => total + group.cases.length, 0) !== currentAssurance.cases.length
-  ) {
-    throw new Error('Generated semantic groups do not cover the selected assurance.');
-  }
-
-  return {
-    ...envelope.model,
-    qualification,
-    semanticEvaluation: {
-      ...semanticEvaluation,
-      currentAssurance,
-      groups,
-      lastPassing:
-        semanticEvaluation.latestPointer?.lastPassingAttemptId === currentAssurance.result.attemptId
-          ? currentAssurance
-          : null,
-      latest:
-        semanticEvaluation.latestPointer?.latestAttemptId === currentAssurance.result.attemptId
-          ? currentAssurance
-          : null,
-    },
-  };
+  return envelope.model;
 };
 
 /**

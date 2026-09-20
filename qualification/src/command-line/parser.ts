@@ -2,7 +2,7 @@ import {
   EVALUATION_BATCH_DEFAULT_WORKER_COUNT,
   EVALUATION_BATCH_WORKER_COUNTS,
   type IEvaluationBatchWorkerCount,
-} from '../../../tooling/evaluation-batch/index.mjs';
+} from '../../../src/execution/batch/index.ts';
 
 import type { IQualificationCommand } from './types.ts';
 

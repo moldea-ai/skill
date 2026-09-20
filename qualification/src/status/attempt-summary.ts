@@ -3,7 +3,7 @@ import { lstat, open, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { IQualificationAttemptCheckpoint } from '../contracts/index.ts';
-import { writeTextFileAtomically } from '../filesystem/index.ts';
+import { writeTextFileAtomically } from '../../../src/filesystem/index.ts';
 import {
   QualificationStatusAttemptFileSchema,
   QualificationStatusAttemptSchema,

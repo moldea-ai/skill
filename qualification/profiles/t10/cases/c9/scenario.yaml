@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: repair-langgraph-state-schema
 title: Repair LangGraph StateGraph schema binding
+layer: adapter-specific
+description: 'Reconcile a declared agent input schema with the direct schema wired by a closed StateGraph initializer using exact adapter diagnostics and source evidence.'
+challenge: 'Requires correcting canonical schema identity without changing the valid compiled graph, graph operations, or schema declarations.'
 purpose: Verify precise diagnostic-driven repair of a closed graph input-schema relationship.
 taskFile: task.md
 seedDirectory: seed

@@ -2,10 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { access, lstat, readFile, readdir, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 
-import {
-  createCliClosureDigest,
-  createPortableSkillBehaviorDigest,
-} from '../../../tooling/evidence-identity/index.mjs';
+import { createCliClosureDigest } from '../../../src/packages/index.ts';
+import { createPortableSkillBehaviorDigest } from '../../../src/portable/index.ts';
 
 import {
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
@@ -28,7 +26,7 @@ import {
   resolveContainedPath,
   writeJsonFileAtomically,
   writeTextFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   createQualificationAttemptKey,
   createQualificationAttemptStorage,
@@ -42,6 +40,7 @@ import {
   type IQualificationProfileIndexTarget,
 } from '../storage/index.ts';
 import { validateQualificationAttemptEvidence } from './evidence.ts';
+import { createRecordedQualificationContract } from './recorded-contract.ts';
 import { sanitizeEvidenceText, sanitizeEvidenceValue } from './sanitizer.ts';
 import type {
   IQualificationResultVerification,
@@ -254,6 +253,19 @@ export const recordQualificationResult = async (
     options.artifactDirectory,
     options.sanitizationContext,
   );
+  const recordedContractSource = `${JSON.stringify(
+    await createRecordedQualificationContract({
+      resultsRoot,
+      selection: sanitizedDraft.selection,
+    }),
+    null,
+    2,
+  )}\n`;
+  artifacts.push({
+    content: recordedContractSource,
+    logicalPath: 'recorded-contract.json',
+    sha256: calculateSha256(recordedContractSource),
+  });
   const artifactDigests = Object.fromEntries(
     artifacts.map(({ logicalPath, sha256 }) => [logicalPath, sha256]),
   );
@@ -453,7 +465,9 @@ const verifyQualificationTarget = async (options: {
 /** Verifies every current short attempt, artifact digest, manifest, and latest pointer. */
 export const verifyQualificationResults = async (
   resultsRoot: string = QUALIFICATION_RESULTS_ROOT,
-  repositoryRoot: string = path.resolve(resultsRoot, '..', '..'),
+  repositoryRoot: string = path.resolve(resultsRoot) === path.resolve(QUALIFICATION_RESULTS_ROOT)
+    ? SKILL_REPOSITORY_ROOT
+    : path.resolve(resultsRoot, '..', '..'),
 ): Promise<IQualificationResultVerification> => {
   const issues: IQualificationResultVerificationIssue[] = [];
   let attempts = 0;

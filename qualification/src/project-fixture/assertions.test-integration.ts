@@ -8,7 +8,7 @@ import {
   calculateDirectoryFingerprint,
   collectDirectoryFingerprintEntries,
   ensureDirectory,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import { MOUNTED_SKILL_RELATIVE_PATH } from './constants.ts';
 import {
   assertQualificationProjectInputIntegrity,
@@ -53,6 +53,9 @@ describe('qualification project input integrity', () => {
         version: 2,
         id: 'input-integrity',
         title: 'Input integrity',
+        layer: 'adapter-specific',
+        description: 'Exercises runner-owned input integrity.',
+        challenge: 'Requires detecting mutations to protected project inputs.',
         purpose: 'Verify runner-owned project inputs.',
         resourceProfile: 'ordinary',
         taskFile: 'task.md',
@@ -149,6 +152,9 @@ describe('qualification project input integrity', () => {
         version: 2,
         id: 'runtime-path',
         title: 'Runtime path',
+        layer: 'adapter-specific',
+        description: 'Exercises qualification runtime path handling.',
+        challenge: 'Requires preserving allowed runtime path behavior.',
         purpose: 'Verify descriptive runtime paths.',
         resourceProfile: 'ordinary',
         taskFile: 'task.md',

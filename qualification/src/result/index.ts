@@ -13,4 +13,11 @@ export {
   recordQualificationResult,
   verifyQualificationResults,
 } from './recorder.ts';
+
+// recorded contracts
+export {
+  createRecordedQualificationContract,
+  RecordedQualificationContractSchema,
+  type IRecordedQualificationContract,
+} from './recorded-contract.ts';
 export { validateQualificationAttemptEvidence } from './evidence.ts';

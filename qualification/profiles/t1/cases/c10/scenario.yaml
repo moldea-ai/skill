@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: preserve-anthropic-static-boundary
 title: Preserve the Anthropic static boundary
+layer: adapter-specific
+description: 'Represent dynamic Messages requests and provider tools as unresolved instead of claiming evidence that the adapter cannot prove.'
+challenge: 'Tests conservative handling of target-specific static-analysis boundaries plus provider, model, routing, handoff, subagent, and output-schema non-inference.'
 purpose: Verify conservative treatment of provider tools and indirect Messages API request construction.
 taskFile: task.md
 seedDirectory: seed

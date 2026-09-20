@@ -204,7 +204,7 @@ const semanticReleaseSection =
           </p>
         ) : (
           <ol class="mt-7 grid gap-3">
-            {[...semanticEvaluation.attempts].reverse().map(({ evidenceSource, result, route }) => (
+            {[...semanticEvaluation.attempts].reverse().map(({ result, route }) => (
               <li>
                 <a
                   class="surface-card interactive-card group flex min-w-0 flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
@@ -214,9 +214,7 @@ const semanticReleaseSection =
                     <span class="flex flex-wrap items-center gap-2">
                       <EvidenceStatus status={result.status} />
                       <span class="text-xs font-bold text-muted-foreground">
-                        {evidenceSource.kind === 'pinned'
-                          ? 'Verified release source'
-                          : 'Current release attempt'}
+                        Selected recorded attempt
                       </span>
                     </span>
                     <span class="mt-3 block text-lg font-semibold">
@@ -251,9 +249,9 @@ const semanticReleaseSection =
         </summary>
         <div class="mt-5 border-t border-border pt-5">
           {
-            semanticReleaseSection?.mode === 'pinned' && (
+            semanticReleaseSection !== null && (
               <p class="mb-5 max-w-4xl text-sm leading-6 text-muted-foreground">
-                This release uses authenticated passing evidence from{' '}
+                This page displays the selected evidence recorded for{' '}
                 <a
                   class="text-link font-semibold"
                   href={semanticReleaseSection.sourceUrl}
@@ -262,11 +260,7 @@ const semanticReleaseSection =
                 >
                   {semanticReleaseSection.sourceLabel}
                 </a>
-                .{' '}
-                <InlineBrandText
-                  text={semanticReleaseSection.reason}
-                  variant="compact"
-                />
+                .
               </p>
             )
           }
@@ -275,11 +269,9 @@ const semanticReleaseSection =
               <dt class="text-muted-foreground">Evidence source</dt>
               <dd class="mt-1 font-mono break-all">
                 {
-                  releaseSummary.kind === 'pinned'
-                    ? 'Verified release source'
-                    : releaseSummary.kind === 'not-recorded'
-                      ? 'Not recorded'
-                      : 'Current release'
+                  releaseSummary.kind === 'not-recorded'
+                    ? 'Not recorded'
+                    : 'Selected recorded evidence'
                 }
               </dd>
             </div>

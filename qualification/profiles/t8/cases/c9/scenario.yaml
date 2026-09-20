@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: repair-langchain-tool-registration
 title: Repair LangChain tool registration
+layer: adapter-specific
+description: 'Reconcile a declared tool name with a closed LangChain tool array using exact adapter diagnostics and source evidence.'
+challenge: 'Requires correcting canonical identity without changing valid createAgent, implementation, or input-schema wiring.'
 purpose: Verify precise diagnostic-driven repair of closed tool-array identity.
 taskFile: task.md
 seedDirectory: seed

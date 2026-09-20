@@ -38,10 +38,7 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
     .filter({ hasText: 'Technical provenance and raw sources' });
   await technicalProvenance.locator('summary').click();
   await expect(
-    technicalProvenance.getByText(
-      releaseSummary.kind === 'pinned' ? 'Verified release source' : 'Current release',
-      { exact: true },
-    ),
+    technicalProvenance.getByText('Selected recorded evidence', { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole('heading', {
@@ -57,16 +54,14 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
   );
   await expect(page.getByRole('link', { name: 'Inspect the coverage map' })).toHaveAttribute(
     'href',
-    /semantic-evaluation-coverage\.json$/u,
+    toPublicPath(semanticEvaluation.coverageUrl),
   );
-  if (releaseSummary.kind === 'pinned') {
+  if (releaseSummary.kind === 'recorded') {
     await expect(
       page.getByText(releaseSummary.result.attemptId, { exact: true }).first(),
     ).toBeVisible();
     await expect(page.getByText('No semantic evaluation has been recorded yet.')).toHaveCount(0);
-    await expect(
-      technicalProvenance.getByText('Verified release source', { exact: true }),
-    ).toBeVisible();
+    await expect(technicalProvenance.getByText('Selected recorded evidence')).toBeVisible();
   }
 
   const presentationAssurance = semanticEvaluation.currentAssurance;
@@ -92,7 +87,7 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
     (step): step is IEvaluationReplayWorkspaceStep => step.kind === 'workspace',
   );
   if (workspaceStep === undefined) throw new Error('Expected recorded workspace evidence.');
-  const replayScenario = page.locator('main details').filter({ hasText: firstCase.title });
+  const replayScenario = page.locator(`#semantic-case-${firstCase.id}`);
   const summary = replayScenario.locator(':scope > summary');
   await summary.focus();
   await summary.press('Enter');
@@ -143,7 +138,7 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
   await expect(replayTab).toHaveAttribute('aria-selected', 'true');
 
   await attemptLinks.first().click();
-  const attemptScenario = page.locator('main details').filter({ hasText: firstCase.title });
+  const attemptScenario = page.locator(`#semantic-case-${firstCase.id}`);
   await attemptScenario.locator(':scope > summary').click();
   await expect(attemptScenario.getByRole('tab', { name: 'Replay' })).toHaveAttribute(
     'aria-selected',

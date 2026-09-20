@@ -12,7 +12,7 @@ import {
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
 import { readAttemptCheckpoint, writeAttemptCheckpoint } from '../checkpoint/index.ts';
-import { readJsonFile } from '../filesystem/index.ts';
+import { readJsonFile } from '../../../src/filesystem/index.ts';
 import { recordQualificationResult } from '../result/index.ts';
 import { cleanupQualificationAttemptRuntime } from './attempt-runtime.ts';
 import type { ILocalAttemptCheckpointInspection, IUnavailableLocalAttempt } from './types.ts';

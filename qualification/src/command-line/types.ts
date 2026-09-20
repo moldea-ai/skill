@@ -1,4 +1,4 @@
-import type { IEvaluationBatchWorkerCount } from '../../../tooling/evaluation-batch/index.mjs';
+import type { IEvaluationBatchWorkerCount } from '../../../src/execution/batch/index.ts';
 
 import type { IQualificationSelection } from '../contracts/index.ts';
 import type { IQualificationDiagnosticSelectorInput } from '../diagnostic-batch/index.ts';

@@ -7,9 +7,8 @@ import {
   CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
   CODEX_EVALUATION_JUDGE_REASONING_EFFORT,
   CODEX_EVALUATION_MODEL,
-} from '../../../tooling/codex-evaluation-host/index.mjs';
-import { EVALUATION_CONFIRMATION_POLICY } from '../../../tooling/evaluation-confirmation-policy/index.mjs';
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
+} from '../../../src/execution/host/index.ts';
+import { EVALUATION_CONFIRMATION_POLICY } from '../../../src/execution/confirmation/index.ts';
 
 // immutable protocol and evaluator identity for committed qualification evidence
 export const QUALIFICATION_PROTOCOL_VERSION = 2 as const;
@@ -43,22 +42,24 @@ export const QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES = [
   'package.json',
   'package-lock.json',
   'qualification',
-  'tooling/codex-evaluation-host',
-  'tooling/package-candidate',
-  'tooling/resource-calibration',
+  'src/execution/host',
+  'src/packages',
+  'src/resources',
 ] as const;
-export const QUALIFICATION_CASES_PATH = path.join(QUALIFICATION_ROOT, 'cases', 'cases.yaml');
 export const QUALIFICATION_PROFILES_ROOT = path.join(QUALIFICATION_ROOT, 'profiles');
-export const QUALIFICATION_RESULTS_ROOT = path.join(QUALIFICATION_ROOT, 'results');
-export const LOCAL_QUALIFICATION_ROOT = path.join(SKILL_REPOSITORY_ROOT, '.runtime-qualification');
+export const QUALIFICATION_RESULTS_ROOT = path.join(
+  SKILL_REPOSITORY_ROOT,
+  '.evidence',
+  'qualification',
+  'results',
+);
+export const LOCAL_QUALIFICATION_ROOT = path.join(
+  SKILL_REPOSITORY_ROOT,
+  '.evidence',
+  'qualification',
+  'runtime',
+);
 export const DEFAULT_SKILL_REPOSITORY = path.join(SKILL_REPOSITORY_ROOT, 'moldea');
 
 // directories that are never consumed by qualification discovery or fingerprinting
 export const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
-
-// bounded process output protects local runs from unbounded child-process memory use
-export const MAX_PROCESS_OUTPUT_BYTES =
-  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxProcessOutputBytes;
-
-// local processes receive the same graceful-shutdown period as the evaluation relay
-export const PROCESS_TERMINATION_GRACE_PERIOD_MS = 5_000;

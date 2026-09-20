@@ -8,11 +8,10 @@ import {
   calculateSha256,
   normalizePortableFilesystemMode,
   type IDirectoryFingerprintEntry,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   isQualificationBehaviorBearingSourcePath,
   isQualificationTestFilePath,
-  normalizeQualificationCaseCatalog,
   normalizeQualificationRuntimePackageLock,
   normalizeQualificationRuntimePackageManifest,
   normalizeQualificationToolingPackageLock,
@@ -20,7 +19,6 @@ import {
   QUALIFICATION_SHARED_TOOLING_PACKAGE_NAMES,
 } from '../input-identity/index.ts';
 
-const QUALIFICATION_CASE_CATALOG_PATH = 'cases/cases.yaml';
 const QUALIFICATION_PACKAGE_MANIFEST_PATH = 'package.json';
 const TOOLING_PACKAGE_MANIFEST_PATH = 'package.json';
 const TOOLING_PACKAGE_LOCK_PATH = 'package-lock.json';
@@ -43,14 +41,13 @@ export type IQualificationModelHostDigestRoots = Pick<
 
 // selected execution inputs whose behavior must remain current for adapter evidence
 export type IQualificationExecutionDigestOptions = {
-  caseIds: readonly string[];
   profileDirectory: string;
   roots?: IQualificationExecutionDigestRoots;
 };
 
 const DEFAULT_QUALIFICATION_EXECUTION_DIGEST_ROOTS: IQualificationExecutionDigestRoots = {
-  evaluationHostRoot: path.join(SKILL_REPOSITORY_ROOT, 'tooling/codex-evaluation-host'),
-  packageCandidateRoot: path.join(SKILL_REPOSITORY_ROOT, 'tooling/package-candidate'),
+  evaluationHostRoot: path.join(SKILL_REPOSITORY_ROOT, 'src/execution/host'),
+  packageCandidateRoot: path.join(SKILL_REPOSITORY_ROOT, 'src/packages'),
   qualificationRoot: QUALIFICATION_ROOT,
   repositoryRoot: SKILL_REPOSITORY_ROOT,
 };
@@ -109,17 +106,15 @@ const collectResourceProfileEntries = async (
   repositoryRoot: string,
 ): Promise<IDirectoryFingerprintEntry[]> => {
   const entries = (
-    await collectDirectoryFingerprintEntries(
-      path.join(repositoryRoot, 'tooling/resource-calibration'),
-    )
+    await collectDirectoryFingerprintEntries(path.join(repositoryRoot, 'src/resources'))
   )
-    .filter(({ path: relativePath }) => relativePath === 'profiles.mjs')
+    .filter(({ path: relativePath }) => relativePath === 'profiles.ts')
     .map((entry) => ({
       ...entry,
-      path: path.posix.join('tooling/resource-calibration', entry.path),
+      path: path.posix.join('src/resources', entry.path),
     }));
   if (entries.length !== 1) {
-    throw new Error('Qualification resource profile identity requires profiles.mjs.');
+    throw new Error('Qualification resource profile identity requires profiles.ts.');
   }
   return entries;
 };
@@ -199,7 +194,7 @@ export const calculateQualificationModelHostDigest = async (
     packageLock,
   ] = await Promise.all([
     collectPrefixedSourceEntries(qualificationModelHostRoot, 'qualification/src/codex-host'),
-    collectPrefixedSourceEntries(roots.evaluationHostRoot, 'tooling/codex-evaluation-host'),
+    collectPrefixedSourceEntries(roots.evaluationHostRoot, 'src/execution/host'),
     collectResourceProfileEntries(roots.repositoryRoot),
     readFile(toolingPackageManifestPath, 'utf8'),
     readFile(toolingPackageLockPath, 'utf8'),
@@ -249,7 +244,6 @@ export const calculateQualificationExecutionDigest = async (
     QUALIFICATION_PACKAGE_MANIFEST_PATH,
   );
   const packageLockPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_LOCK_PATH);
-  const caseCatalogPath = path.join(roots.qualificationRoot, QUALIFICATION_CASE_CATALOG_PATH);
   const toolingPackageManifestPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_MANIFEST_PATH);
   const [
     qualificationSourceEntries,
@@ -258,16 +252,14 @@ export const calculateQualificationExecutionDigest = async (
     resourceProfileEntries,
     packageManifestSource,
     packageLockSource,
-    caseCatalogSource,
     toolingPackageManifestSource,
   ] = await Promise.all([
     collectPrefixedSourceEntries(qualificationSourceRoot, 'qualification/src'),
-    collectPrefixedSourceEntries(roots.evaluationHostRoot, 'tooling/codex-evaluation-host'),
-    collectPrefixedSourceEntries(roots.packageCandidateRoot, 'tooling/package-candidate'),
+    collectPrefixedSourceEntries(roots.evaluationHostRoot, 'src/execution/host'),
+    collectPrefixedSourceEntries(roots.packageCandidateRoot, 'src/packages'),
     collectResourceProfileEntries(roots.repositoryRoot),
     readFile(packageManifestPath, 'utf8'),
     readFile(packageLockPath, 'utf8'),
-    readFile(caseCatalogPath, 'utf8'),
     readFile(toolingPackageManifestPath, 'utf8'),
   ]);
   const normalizedEntries = await Promise.all([
@@ -280,11 +272,6 @@ export const calculateQualificationExecutionDigest = async (
       packageLockPath,
       'qualification/package-lock.json',
       normalizeQualificationRuntimePackageLock(JSON.parse(packageLockSource) as unknown),
-    ),
-    createNormalizedFileEntry(
-      caseCatalogPath,
-      'qualification/cases/cases.yaml',
-      normalizeQualificationCaseCatalog(caseCatalogSource, options.caseIds),
     ),
     createNormalizedFileEntry(
       toolingPackageManifestPath,

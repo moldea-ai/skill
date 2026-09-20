@@ -10,42 +10,28 @@ import type {
 /** Selects the release-facing semantic result without changing current-contract evidence. */
 export const getSemanticReleaseEvidenceSummary = (
   releaseEvidence: IReleaseEvidenceModel,
-  currentAssurance: ISemanticAttemptModel | null,
+  _currentAssurance: ISemanticAttemptModel | null,
 ): ISemanticReleaseEvidenceSummary => {
-  if (
-    currentAssurance !== null &&
-    currentAssurance.evidenceSource.kind === 'current' &&
-    currentAssurance.result.status === 'passed'
-  ) {
-    return {
-      kind: 'current',
-      result: currentAssurance.result,
-      sourceUrl: currentAssurance.rawEvidenceUrl,
-    };
+  if (releaseEvidence.mode !== 'recorded') {
+    return { kind: 'not-recorded', result: null, sourceUrl: null };
   }
-  if (releaseEvidence.mode === 'recorded' && releaseEvidence.semantic.mode === 'pinned') {
-    return {
-      kind: 'pinned',
-      result: releaseEvidence.semantic.attempt,
-      sourceUrl: releaseEvidence.semantic.sourceAttemptUrl,
-    };
-  }
-  return { kind: 'not-recorded', result: null, sourceUrl: null };
+  return {
+    kind: 'recorded',
+    result: releaseEvidence.semantic.attempt,
+    sourceUrl: releaseEvidence.semantic.sourceAttemptUrl,
+  };
 };
 
 /** Selects one profile's release-facing qualification result without changing current state. */
 export const getQualificationReleaseEvidenceSummary = (
   profile: IQualificationProfileModel,
 ): IQualificationReleaseEvidenceSummary => {
-  if (profile.currentLatest !== null && profile.currentLatest.evidenceSource?.kind !== 'pinned') {
+  if (profile.currentLatest !== null) {
     return {
       attemptCount: profile.attempts.length,
-      kind: 'current',
+      kind: 'recorded',
       status: profile.currentStatus,
     };
-  }
-  if (profile.pinnedPriorEvidence !== null || profile.currentLatest !== null) {
-    return { attemptCount: 1, kind: 'pinned', status: 'passed' };
   }
   return { attemptCount: 0, kind: 'not-recorded', status: 'not-recorded' };
 };

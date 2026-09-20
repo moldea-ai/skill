@@ -20,7 +20,7 @@ import {
   ensureDirectory,
   readJsonFile,
   writeJsonFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   createQualificationAttemptKey,
   readQualificationAttemptStorage,
@@ -175,7 +175,8 @@ describe('qualification result recording', () => {
       QualificationLatestResultSchema,
     );
 
-    expect(Object.keys(passing.artifactDigests)).toHaveLength(19);
+    expect(Object.keys(passing.artifactDigests)).toHaveLength(20);
+    expect(Object.keys(passing.artifactDigests)).toContain('recorded-contract.json');
     expect(Object.keys(passing.artifactDigests)).toContain(
       'cases/release-case/trials/initial/judge-output.json',
     );

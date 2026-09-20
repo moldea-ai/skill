@@ -4,7 +4,7 @@ import type {
 } from '../contracts/index.ts';
 import type { IQualificationAttemptStorage } from '../storage/index.ts';
 
-// one direct passing or recovered case from exact committed current evidence
+// one direct passing or recovered case from exact local evidence
 export type IReusableQualificationCase = {
   caseResult: IQualificationCaseResult;
   readArtifact: (logicalPath: string) => Promise<Buffer>;

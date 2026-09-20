@@ -5,7 +5,7 @@ import {
   createEvaluationBatchDiskReservation,
   runWithEvaluationTemporaryStorageGuard,
   type IEvaluationBatchWorkerCount,
-} from '../../../tooling/evaluation-batch/index.mjs';
+} from '../../../src/execution/batch/index.ts';
 import { createQualificationPnpmInstallation } from '../pnpm-installation/index.ts';
 
 type IQualificationTemporaryStoragePathsOptions = {

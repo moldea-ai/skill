@@ -10,7 +10,7 @@ import {
   resolvePublishedPackageClosure,
   resolvePublishedPackageManifest,
   type IPublishedPackageManifest,
-} from '../../../tooling/package-candidate/index.mjs';
+} from '../../../src/packages/index.ts';
 
 import {
   LOCAL_QUALIFICATION_ROOT,
@@ -28,7 +28,7 @@ import {
   readJsonFile,
   writeJsonFileAtomically,
   writeTextFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   createQualificationPnpmInstallation,
   createQualificationPnpmOptions,
@@ -36,7 +36,7 @@ import {
   initializeQualificationPnpmInstallation,
   type IQualificationPnpmInstallation,
 } from '../pnpm-installation/index.ts';
-import { executeProcess } from '../process/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 import { loadVerifiedCachedPackage } from './cache.ts';
 import { createPublicCandidatePackage } from './transformers.ts';
 import type { ICandidatePreparationOptions } from './types.ts';

@@ -1,4 +1,4 @@
-import { identifyCodexEvaluationHostConfiguration } from '../../../tooling/codex-evaluation-host/index.mjs';
+import { identifyCodexEvaluationHostConfiguration } from '../../../src/execution/host/index.ts';
 
 import {
   QUALIFICATION_ACTOR_REASONING_EFFORT,
@@ -8,7 +8,7 @@ import {
 } from '../constants/index.ts';
 import type { ICodexHost } from '../codex-host/index.ts';
 import type { IQualificationExecutionEnvironment } from '../contracts/index.ts';
-import { executeProcess } from '../process/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import type { IQualificationExecutionProvenance } from './types.ts';
 

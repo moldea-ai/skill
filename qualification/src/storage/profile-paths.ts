@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { QUALIFICATION_PROFILES_ROOT } from '../constants/index.ts';
 import type { IQualificationSelection } from '../contracts/index.ts';
-import { readYamlFile, resolveContainedPath } from '../filesystem/index.ts';
+import { readYamlFile, resolveContainedPath } from '../../../src/filesystem/index.ts';
 import {
   QualificationProfileIndexSchema,
   type IQualificationProfileIndex,

@@ -17,7 +17,7 @@ import {
   ensureDirectory,
   writeJsonFileAtomically,
   writeTextFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   createQualificationAttemptKey,
   createQualificationAttemptStorage,

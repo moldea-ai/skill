@@ -6,7 +6,7 @@ import {
   EVALUATION_BATCH_DEFAULT_WORKER_COUNT,
   runOrderedEvaluationBatch,
   type IEvaluationBatchWorkerCount,
-} from '../../../tooling/evaluation-batch/index.mjs';
+} from '../../../src/execution/batch/index.ts';
 
 import {
   loadRuntimeCompatibilitySnapshot,
@@ -20,6 +20,7 @@ import {
   QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
   QUALIFICATION_PROFILES_ROOT,
   QUALIFICATION_RESULTS_ROOT,
+  SKILL_REPOSITORY_ROOT,
 } from '../constants/index.ts';
 import {
   QualificationAttemptResultDraftSchema,
@@ -53,7 +54,9 @@ import {
   resolveContainedPath,
   writeTextFileAtomically,
   type IBoundarySchema,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
+import { storeCompletedEvidenceRun } from '../../../src/evidence/index.ts';
+import { createQualificationEvidenceBundle } from '../public-evidence/index.ts';
 import { loadQualificationProfileIndex } from '../storage/index.ts';
 import {
   QUALIFICATION_PROFILE_BATCH_CHECKPOINT_PATH,
@@ -905,6 +908,25 @@ export const runQualificationProfileBatch = async (options: {
   );
   await Promise.all([rm(checkpointPath, { force: true }), rm(ledgerPath, { force: true })]);
   const outcome = await createOutcome({ checkpoint: null, ledger: activeLedger });
+  if (!isDryRun && selector.kind === 'all') {
+    const packageManifest = JSON.parse(
+      await readFile(path.join(SKILL_REPOSITORY_ROOT, 'package.json'), 'utf8'),
+    ) as { version?: unknown };
+    if (typeof packageManifest.version !== 'string') {
+      throw new Error('Repository package manifest has no release version.');
+    }
+    const bundle = await createQualificationEvidenceBundle({
+      attemptId: activeLedger.batchId,
+      evaluatedAt: activeLedger.updatedAt,
+      targets: activeLedger.records.map(({ adapterId, attemptId, implementationId }) => ({
+        adapterId,
+        attemptId,
+        implementationId,
+      })),
+      version: packageManifest.version,
+    });
+    await storeCompletedEvidenceRun(SKILL_REPOSITORY_ROOT, bundle);
+  }
   assertQualificationProfileBatchOutputSize(outcome);
   return outcome;
 };

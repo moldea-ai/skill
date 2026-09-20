@@ -1,4 +1,4 @@
-import { calculateSha256 } from '../filesystem/index.ts';
+import { calculateSha256 } from '../../../src/filesystem/index.ts';
 
 type ICanonicalJson =
   null | boolean | number | string | ICanonicalJson[] | { [key: string]: ICanonicalJson };

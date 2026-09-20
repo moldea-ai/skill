@@ -7,7 +7,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CodexEvaluationHostError,
-} from '../../../tooling/codex-evaluation-host/index.mjs';
+} from '../../../src/execution/host/index.ts';
 
 import { FakeCodexHost } from '../codex-host/index.ts';
 import type {
@@ -24,7 +24,7 @@ import {
   collectDirectoryFingerprintEntries,
   ensureDirectory,
   writeJsonFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   captureQualificationProjectSnapshot,
   captureQualificationWorkspaceSnapshot,
@@ -44,6 +44,9 @@ const scenario = {
   version: 2,
   id: 'test-case',
   title: 'Test case',
+  layer: 'adapter-specific',
+  description: 'Exercises model-stage execution in a controlled fixture.',
+  challenge: 'Requires exact stage result handling.',
   purpose: 'Exercise model-stage judge validation.',
   resourceProfile: 'ordinary',
   taskFile: 'task.md',

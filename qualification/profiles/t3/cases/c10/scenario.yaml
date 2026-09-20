@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: preserve-cloudflare-ai-chat-static-boundary
 title: Preserve the Cloudflare AIChatAgent static boundary
+layer: adapter-specific
+description: 'Represent dynamic AIChatAgent request relationships without claiming evidence that the adapter cannot prove.'
+challenge: 'Tests conservative handling of runtime-selected tools, prepareStep instructions, indirect generation, unsupported output variants, and Cloudflare deployment behavior.'
 purpose: Verify conservative handling of dynamic requests, unsupported output, indirect generation, and initialization-sensitive classes.
 taskFile: task.md
 seedDirectory: seed

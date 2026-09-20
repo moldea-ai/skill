@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: abstain-uninitialized-repository-work
 title: Abstain from uninitialized repository work
+layer: universal-baseline
+description: 'Review ordinary source in an uninitialized repository without involving moldea.'
+challenge: 'Detects false activation from repository work, canonical-looking terminology, or the installed skill alone.'
 purpose: Verify that ordinary host-owned review remains unrelated before repository adoption.
 taskFile: task.md
 seedDirectory: seed

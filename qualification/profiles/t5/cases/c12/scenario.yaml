@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: activate-declared-relationship
 title: Activate a declared relationship
+layer: universal-baseline
+description: 'Review source matched by an affectedBy declaration and validate only the owning canonical context.'
+challenge: 'Confirms that the cheap gate preserves relevant behavior while bounding reference and CLI use.'
 purpose: Verify bounded owner validation when a reviewed source path matches affectedBy.
 taskFile: task.md
 seedDirectory: seed

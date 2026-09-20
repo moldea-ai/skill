@@ -1,0 +1,166 @@
+// @vitest-environment node
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { test } from 'vitest';
+
+import {
+  createCandidatePackageMetadata,
+  registerCandidateArtifact,
+  validateCandidateArtifacts,
+} from './artifacts.ts';
+import type { IPackageCandidateArtifact, IPackageCandidateManifest } from './types.ts';
+
+/** Builds one dynamic synthetic candidate closure with independent package versions. */
+const createArtifacts = (): Map<string, IPackageCandidateArtifact> => {
+  const manifests: IPackageCandidateManifest[] = [
+    {
+      dependencies: {
+        '@moldea.ai/adapter-anthropic': '^2.0.0',
+        '@moldea.ai/adapter-next': '^1.0.0',
+        '@moldea.ai/core': '^2.0.0',
+        '@moldea.ai/repository': '^1.0.0',
+      },
+      name: '@moldea.ai/cli',
+      preferUnplugged: true,
+      version: '3.1.5',
+    },
+    {
+      dependencies: { '@moldea.ai/core': '^2.0.0' },
+      name: '@moldea.ai/adapter-anthropic',
+      version: '2.0.4',
+    },
+    {
+      dependencies: { '@moldea.ai/core': '^2.0.0' },
+      name: '@moldea.ai/adapter-next',
+      version: '1.0.0',
+    },
+    {
+      dependencies: { '@moldea.ai/repository': '^1.0.0' },
+      name: '@moldea.ai/core',
+      version: '2.0.3',
+    },
+    { name: '@moldea.ai/repository', version: '1.0.4' },
+  ];
+
+  return new Map(
+    manifests.map((manifest) => {
+      const archive = Buffer.from(manifest.name);
+      return [
+        manifest.name,
+        {
+          archive,
+          archiveName: `${manifest.name.split('/').at(-1)}-${manifest.version}.tgz`,
+          manifest,
+        },
+      ];
+    }),
+  );
+};
+
+test('validates independently versioned packages and newly added CLI adapters', () => {
+  const artifacts = createArtifacts();
+
+  assert.deepEqual(validateCandidateArtifacts(artifacts), {
+    artifacts,
+    cliVersion: '3.1.5',
+  });
+});
+
+test('accepts an additional reachable selected package root', () => {
+  const artifacts = createArtifacts();
+  const rootArtifact = {
+    archive: Buffer.from('@moldea.ai/adapter-selected'),
+    archiveName: 'adapter-selected-1.0.0.tgz',
+    manifest: {
+      dependencies: { '@moldea.ai/core': '^2.0.0' },
+      name: '@moldea.ai/adapter-selected',
+      version: '1.0.0',
+    },
+  };
+  artifacts.set(rootArtifact.manifest.name, rootArtifact);
+
+  assert.equal(
+    validateCandidateArtifacts(artifacts, ['@moldea.ai/adapter-selected']).cliVersion,
+    '3.1.5',
+  );
+});
+
+test('rejects missing dependencies and incompatible internal ranges', () => {
+  const incompleteArtifacts = createArtifacts();
+  incompleteArtifacts.delete('@moldea.ai/repository');
+  assert.throws(
+    () => validateCandidateArtifacts(incompleteArtifacts),
+    /missing package @moldea\.ai\/repository/,
+  );
+
+  const exactArtifacts = createArtifacts();
+  const exactCliArtifact = exactArtifacts.get('@moldea.ai/cli');
+  assert.ok(exactCliArtifact?.manifest.dependencies !== undefined);
+  exactCliArtifact.manifest.dependencies['@moldea.ai/core'] = '2.0.3';
+  assert.throws(
+    () => validateCandidateArtifacts(exactArtifacts),
+    /must declare @moldea\.ai\/core with a compatible-major range/,
+  );
+
+  const mismatchedArtifacts = createArtifacts();
+  const mismatchedCliArtifact = mismatchedArtifacts.get('@moldea.ai/cli');
+  assert.ok(mismatchedCliArtifact?.manifest.dependencies !== undefined);
+  mismatchedCliArtifact.manifest.dependencies['@moldea.ai/core'] = '^3.0.0';
+  assert.throws(
+    () => validateCandidateArtifacts(mismatchedArtifacts),
+    /@moldea\.ai\/core@2\.0\.3 does not satisfy \^3\.0\.0/,
+  );
+});
+
+test('rejects duplicate, unexpected, and unreachable candidate identities', () => {
+  const artifacts = createArtifacts();
+  const duplicateArtifact = artifacts.get('@moldea.ai/cli');
+  assert.ok(duplicateArtifact !== undefined);
+
+  assert.throws(
+    () => registerCandidateArtifact(artifacts, duplicateArtifact),
+    /Duplicate @moldea\.ai\/cli tarball/,
+  );
+  assert.throws(
+    () =>
+      registerCandidateArtifact(new Map(), {
+        ...duplicateArtifact,
+        manifest: { ...duplicateArtifact.manifest, name: 'unexpected' },
+      }),
+    /Unexpected unexpected tarball/,
+  );
+
+  const unreachableArtifacts = createArtifacts();
+  unreachableArtifacts.set('@moldea.ai/orphan', {
+    archive: Buffer.from('orphan'),
+    archiveName: 'orphan-1.0.0.tgz',
+    manifest: { name: '@moldea.ai/orphan', version: '1.0.0' },
+  });
+  assert.throws(
+    () => validateCandidateArtifacts(unreachableArtifacts),
+    /Unreachable candidate artifacts: @moldea\.ai\/orphan/,
+  );
+});
+
+test('derives registry metadata from each artifact manifest', () => {
+  const artifact = createArtifacts().get('@moldea.ai/cli');
+  assert.ok(artifact !== undefined);
+  const { archivePath, metadata } = createCandidatePackageMetadata(
+    artifact,
+    'http://127.0.0.1:4321',
+  );
+
+  assert.equal(archivePath, '/@moldea.ai/cli/-/cli-3.1.5.tgz');
+  assert.deepEqual(metadata['dist-tags'], { latest: '3.1.5' });
+  assert.deepEqual(Object.keys(metadata.versions), ['3.1.5']);
+  const versionMetadata = metadata.versions['3.1.5'];
+  assert.ok(versionMetadata !== undefined);
+  assert.equal(
+    versionMetadata.dist.integrity,
+    `sha512-${createHash('sha512').update(artifact.archive).digest('base64')}`,
+  );
+  assert.equal(
+    versionMetadata.dist.tarball,
+    'http://127.0.0.1:4321/@moldea.ai/cli/-/cli-3.1.5.tgz',
+  );
+});

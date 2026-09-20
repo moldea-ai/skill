@@ -6,7 +6,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 
 import { createAttemptCheckpoint, writeAttemptCheckpoint } from '../checkpoint/index.ts';
 import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
-import { ensureDirectory } from '../filesystem/index.ts';
+import { ensureDirectory } from '../../../src/filesystem/index.ts';
 import { loadQualificationStatusPage } from './status.ts';
 
 /** Creates one local checkpoint with the requested terminal or resumable status. */

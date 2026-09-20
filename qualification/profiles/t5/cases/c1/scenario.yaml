@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: evaluate-aligned-project
 title: Evaluate an aligned project
+layer: universal-baseline
+description: 'Inspect a valid project and explain its existing repository relationships without changing it.'
+challenge: 'Confirms that the skill can recognize a correct project and avoid unnecessary edits.'
 purpose: Verify that the skill can inspect a correct Custom project and leave it untouched.
 taskFile: task.md
 seedDirectory: seed

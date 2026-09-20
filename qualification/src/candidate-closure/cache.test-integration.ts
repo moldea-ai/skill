@@ -6,7 +6,7 @@ import path from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 
-import type { IPublishedPackageManifest } from '../../../tooling/package-candidate/index.mjs';
+import type { IPublishedPackageManifest } from '../../../src/packages/index.ts';
 
 import { loadVerifiedCachedPackage } from './cache.ts';
 import type { ICachedCandidatePackage } from './types.ts';

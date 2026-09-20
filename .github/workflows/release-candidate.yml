@@ -61,7 +61,7 @@ jobs:
           candidate_directory="${{ runner.temp }}/cli-candidate-packages"
           mkdir -p "$candidate_directory"
           git -C packages rev-parse HEAD > "$candidate_directory/packages-commit.txt"
-          node tooling/package-candidate/pack.mjs \
+          node src/packages/pack.ts \
             --workspace packages \
             --output "$candidate_directory" \
             --runtime-compatibility-publication packages/apps/website/dist/compatibility/runtimes.json
@@ -156,4 +156,4 @@ jobs:
           MOLDEA_TEST_MANAGER: ${{ matrix.manager }}
           MOLDEA_TEST_MANAGER_VERSION: ${{ matrix.version }}
           MOLDEA_TEST_EXISTING_VITEST_VERSION: ${{ matrix.existing_vitest_version || '' }}
-        run: node --test tests/package-manager.test-integration.mjs
+        run: node src/packages/package-manager-conformance.ts

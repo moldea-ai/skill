@@ -1,9 +1,9 @@
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../src/resources/index.ts';
 import { LOCAL_QUALIFICATION_ROOT } from '../constants/index.ts';
-import { calculateSha256 } from '../filesystem/index.ts';
+import { calculateSha256 } from '../../../src/filesystem/index.ts';
 import { listLatestQualificationResults } from '../result/index.ts';
 import { readQualificationStatusAttempt } from './attempt-summary.ts';
 import {

@@ -12,9 +12,9 @@ Adapter qualification tests one exact published adapter implementation and packa
 
 ## Evidence ownership
 
-The Custom profile owns 12 universal journeys covering evaluation, initialization, creation, maintenance, reconciliation, retirement, ambiguity, untrusted repository instructions, informational pre-adoption use, abstention before and after adoption, and relationship activation. Each adapter profile owns only 2 adapter-specific probe and repair journeys.
+The Custom profile owns universal qualification journeys. Adapter profiles own only their adapter-specific probe and repair journeys. `qualification/profiles/index.yaml` identifies supported targets, while each profile discovers its `cases/*/scenario.yaml` files. Adding a case does not require a central case list or website catalog change.
 
-The index contains 14 targets: Custom plus 13 adapter implementations. The suite executes 38 unique projects, with 12 Custom projects and 2 for each adapter. A public adapter result combines its exact bound passing Custom attempt with its 2 direct projects, yielding 14 effective journeys split into 12 shared and 2 direct. Custom presents its 12 directly. A missing, stale, failed, or mismatched baseline leaves the effective result incomplete or failed.
+Discovered Custom scenarios are the shared-case authority. A public adapter result combines its exact bound passing Custom baseline with that adapter's direct projects. A missing, stale, failed, or mismatched baseline leaves the effective result incomplete or failed. The selected public evidence bundle records the exact inventory that was actually run, so later profile changes do not alter an older website snapshot.
 
 Each case includes a transparent seed repository and natural task, the registry-verified CLI and adapter closure, deterministic pre- and post-actor validation, an isolated actor, workspace assertions, an independent semantic judge, and resource, privacy, repository-control, and package-provenance evidence. The actor never receives grading criteria; the judge cannot replace deterministic evidence with prose.
 
@@ -42,11 +42,11 @@ Protocol 10 classifies operations, not vocabulary. Repository searches containin
 
 Current protocol-10 evidence must match portable bytes, CLI and package closure, runner and host, profile, probes and cases, target identity, execution environment, Custom baseline relationship, resource profile, and privacy-safe policy counts. Filesystem identity preserves contents, paths, symlinks, and executability while ignoring host-only permission differences.
 
-Reuse is limited to complete passed or recovered groups from a byte-valid committed failed attempt with the same behavior-bearing identity. Direct and reused work remain distinct. Failed, incomplete, diagnostic, uncommitted, chained, mismatched, or tampered evidence is rejected. Historical protocol-10 evidence is checked against the contracts at its recorded source commit.
+Reuse is limited to complete passed or recovered groups from validated local attempts with the same behavior-bearing identity. Direct and reused work remain distinct. Failed, incomplete, diagnostic, chained, mismatched, or tampered evidence is rejected. Public release assets are not used as private resume or reuse storage.
 
-Fresh evidence is normal. A qualification-scoped release pin may select original passing evidence from an immutable release tag or full commit when a maintainer establishes that qualification behavior is unchanged. Semantic evidence remains independently fresh or pinned. Both forms use the same project-journey presentation, with source identity, reason, executed closure, and current-contract distinction in technical details. See [Release evidence](/docs/release-evidence/).
+Fresh evidence is normal. A maintainer may publish and select an older official qualification bundle when that is the evidence the website should show. Semantic evidence is selected independently. The selected bundle retains its recorded projects, replays, closure, version, date, and technical provenance without requiring today's evaluator or profile inventory. See [Release evidence](/docs/release-evidence/).
 
-Current target keys come from `qualification/profiles/index.yaml`. Each target has an append-only attempt directory and `latest.json`; manifests bind files by SHA-256. The website validates current or authenticated pinned artifacts before rendering bounded replay from projected facts. Replays are not terminal transcripts, and technical attempt identities do not become separate public routes.
+Current target keys come from `qualification/profiles/index.yaml`. Private target attempts and `latest.json` pointers live below `.evidence/qualification/results/`; manifests bind files by SHA-256. After a completed official batch, the producer stores a self-contained local public bundle below `.evidence/runs/qualification/`. The website reads only a prepared selected bundle. Replays are not terminal transcripts, and technical attempt identities do not become separate public routes.
 
 An adapter requires a current passing Custom baseline. Custom requires no baseline.
 
@@ -79,7 +79,7 @@ The two universal abstention cases assess activation, resources, reference leaka
 
 ## Diagnose and record efficiently
 
-Establish Custom once, then run the 13 adapters. Batch execution continues across semantic failures while safe, keeps isolated attempt and result roots, and commits its compact ledger in profile order. Failed official attempts remain immutable. Collect the complete target and case ledger before editing shared behavior.
+Establish Custom once, then run the required adapter targets. Batch execution continues across semantic failures while safe, keeps isolated attempt and result roots, and commits its compact ledger in profile order. Failed official attempts remain immutable. Collect the complete target and case ledger before editing shared behavior.
 
 For non-recording investigation, use `diagnose --case` for one case or `diagnose-batch --adapter <adapter> --implementation <implementation>` with exactly one of `--all`, `--cases <comma-separated-case-ids>`, `--claims <comma-separated-claim-ids>`, or `--unresolved-from <attempt-id>`. A diagnostic batch runs up to four isolated initial trials without confirmations, reuse, or official evidence changes. After one consolidated correction, rerun only unresolved cases, then create one official attempt.
 

@@ -13,10 +13,3 @@ runtimePackages:
   - name: zod
     version: 4.3.6
 probesFile: probes/claims.yaml
-cases:
-  - id: repair-eve-tool-registration
-    projectDirectory: cases/c9
-    scenarioFile: scenario.yaml
-  - id: preserve-eve-static-boundary
-    projectDirectory: cases/c10
-    scenarioFile: scenario.yaml

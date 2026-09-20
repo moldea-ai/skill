@@ -1,7 +1,6 @@
 ---
 import { ExternalLink } from '@lucide/astro';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import SemanticEvaluationCase from '../semantic-evaluation-case/semantic-evaluation-case.astro';
@@ -103,25 +102,20 @@ const breadcrumbs = [
         </summary>
         <div class="mt-5 border-t border-border pt-5">
           {
-            attempt.evidenceSource.kind === 'pinned' &&
-              semanticReleaseSection?.mode === 'pinned' && (
-                <p class="mb-5 max-w-4xl text-sm leading-6 text-muted-foreground">
-                  This release uses authenticated passing evidence from{' '}
-                  <a
-                    class="text-link font-semibold"
-                    href={semanticReleaseSection.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {semanticReleaseSection.sourceLabel}
-                  </a>
-                  .{' '}
-                  <InlineBrandText
-                    text={semanticReleaseSection.reason}
-                    variant="compact"
-                  />
-                </p>
-              )
+            semanticReleaseSection !== null && (
+              <p class="mb-5 max-w-4xl text-sm leading-6 text-muted-foreground">
+                This page displays the selected evidence recorded for{' '}
+                <a
+                  class="text-link font-semibold"
+                  href={semanticReleaseSection.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {semanticReleaseSection.sourceLabel}
+                </a>
+                .
+              </p>
+            )
           }
           <dl class="grid min-w-0 gap-4 text-sm sm:grid-cols-2">
             <div>
@@ -134,13 +128,7 @@ const breadcrumbs = [
             </div>
             <div>
               <dt class="text-muted-foreground">Evidence source</dt>
-              <dd class="mt-1 font-mono text-xs break-all">
-                {
-                  attempt.evidenceSource.kind === 'pinned'
-                    ? `Verified commit ${attempt.evidenceSource.commit}`
-                    : 'Current release'
-                }
-              </dd>
+              <dd class="mt-1 font-mono text-xs break-all">Selected recorded evidence</dd>
             </div>
             <div>
               <dt class="text-muted-foreground">Model configuration</dt>

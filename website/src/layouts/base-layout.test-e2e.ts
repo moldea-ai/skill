@@ -5,7 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { parseSearchDocuments } from '@moldea.ai/website-ui/search';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { SKILLS_DIRECTORY_URL } from '../lib/model/constants.ts';
+import { SKILLS_DIRECTORY_URL, SOURCE_REPOSITORY_URL } from '../lib/model/constants.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -104,6 +104,15 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
   await expect(desktopDistributionLink).toBeVisible();
   await expect(desktopDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
   await expect(desktopDistributionLink.locator('code')).toHaveCount(0);
+
+  const sourceRepositoryLink = page
+    .getByRole('banner')
+    .getByRole('link', { name: 'moldea skill on GitHub', exact: true });
+  await expect(sourceRepositoryLink).toHaveAttribute('href', SOURCE_REPOSITORY_URL);
+  await expect(sourceRepositoryLink).toHaveAttribute('target', '_blank');
+  await expect(
+    sourceRepositoryLink.locator('svg.lucide-git-branch[data-external-link-icon]'),
+  ).toBeVisible();
 
   const heroActionTopOffsets = await page
     .locator('[data-hero-actions] > a')

@@ -492,7 +492,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
             ? 'Qualification recovered.'
             : 'Qualification passed.',
     provenance: {
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       actorReasoningEffort: 'xhigh',
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',

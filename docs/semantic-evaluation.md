@@ -18,6 +18,8 @@ To add a case, add its directory and `case.ts`, plus any fixture files used only
 
 The actor receives the natural request and portable skill, but never the grading criteria. The independent judge receives the criteria and runner-owned projected evidence. Semantic, resource, command-policy, repository-control, mount-integrity, and operational results remain separate dimensions, and overall pass is their conjunction.
 
+Official actors and judges use `gpt-6-sol` with `xhigh` reasoning effort through the shared isolated host.
+
 ## Isolation and bounded evidence
 
 Actor and judge stages run in isolated homes. Related repositories and evaluator-owned controls are mounted read-only. The runner snapshots the working repository and Git control state before and after actor execution, checks related mounts for changes, and removes its temporary workspace after the trial.

@@ -28,7 +28,7 @@ The CLI, runtime packages, auxiliary types, and TypeScript compiler are download
 
 ## Model boundary
 
-Official actors and independent judges use `gpt-5.6-sol` with `xhigh` reasoning effort. Both roles run in separate disposable homes and separate workspaces through the shared isolated host.
+Official actors and independent judges use `gpt-6-sol` with `xhigh` reasoning effort. Both roles run in separate disposable homes and separate workspaces through the shared isolated host.
 
 The actor receives a natural task and the portable skill. The judge receives declared semantic requirements, deterministic results, workspace assertions, projected execution facts, and the actor response. Neither role receives hidden credentials or unrelated host state.
 
@@ -177,6 +177,8 @@ Every stage writes an atomic checkpoint. Resume continues the exact compatible s
 Every checkpoint write also replaces an 8,192-byte-bounded local status sidecar. Status and the guided resume menu read only these sidecars plus checkpoint file metadata, never checkpoint bodies. A missing, stale, malformed, unreadable, or oversized sidecar is reported as unavailable metadata and is not interpreted through a legacy checkpoint reader.
 
 The runner has no free-floating model-output cache. Model stages execute directly unless the official runner materializes a complete eligible case group from validated local result storage. Every source case is reused only when its evaluator-stage and case-input digests still match current source. The packages repository may advance only when the exact compatibility fingerprint and candidate package closure remain unchanged; its commit remains audit provenance rather than model-stage identity. The reused case retains its source attempt digest, stage identities, trial results, and artifacts. Independent result verification reloads that direct local source and rejects identity drift, chained reuse, missing files, or changed bytes.
+
+Recorded `gpt-5.6-sol` attempts remain verifiable as history. They cannot serve as a current `gpt-6-sol` baseline or reuse source.
 
 `diagnose-batch` gives each selected case one private attempt and runs up to four initials concurrently without confirmations or evidence reuse. The coordinator alone replaces its content-free checkpoint and completed ledger under `.runtime-qualification/diagnostic-batch/`. Each aggregate file and each private attempt checkpoint is limited to 1 MiB, with a 6 MiB four-worker metadata ceiling. The ledger retains only case status, requirement IDs, deterministic explanation, duration, model and token totals, operational-failure count, and attempt identity. It never retains prompts, model rationale, commands, output bodies, repository content, or workspace paths. Final JSON output is limited to 16 KiB. Successful completion deletes the aggregate checkpoint and terminal diagnostic attempts after projection; official results and pointers are never changed.
 

@@ -43,7 +43,7 @@ describe('qualification checkpoints', () => {
       packagesDigest: 'c'.repeat(64),
       targetDigest: 'f'.repeat(64),
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
@@ -83,7 +83,7 @@ describe('qualification checkpoints', () => {
       targetDigest: 'f'.repeat(64),
       recordedAt: null,
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
@@ -124,7 +124,7 @@ describe('qualification checkpoints', () => {
       packagesDigest: 'e'.repeat(64),
       targetDigest: 'f'.repeat(64),
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',

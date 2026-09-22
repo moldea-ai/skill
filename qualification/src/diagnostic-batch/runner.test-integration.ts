@@ -130,7 +130,7 @@ describe('qualification diagnostic batch execution', () => {
       maximumCallCount: 8,
       maximumTokenCount: 32_000_000,
       maximumTokensPerCall: 2_097_152,
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       plannedCallCount: 4,
       reusedCaseCount: 0,
     });

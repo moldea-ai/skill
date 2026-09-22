@@ -10,6 +10,7 @@ import type {
   IQualificationCaseScenario,
   IQualificationCommandPolicyEvidence,
   IQualificationExecutionEnvironment,
+  IQualificationProvenance,
   IQualificationModelStageEvidence,
   IQualificationRequirementAssessment,
   IQualificationResourceProfile,
@@ -122,7 +123,7 @@ export const haveQualificationInputsChanged = (
 
 /** Returns whether a resumed attempt would use a different local execution host identity. */
 export const haveQualificationExecutionInputsChanged = (
-  expected: IQualificationExecutionEnvironment,
+  expected: Pick<IQualificationProvenance, keyof IQualificationExecutionEnvironment>,
   current: IQualificationExecutionEnvironment,
 ): boolean =>
   expected.model !== current.model ||

@@ -1206,6 +1206,8 @@ export type IQualificationCaseResult = z.infer<typeof QualificationCaseResultSch
 // public provenance is content-addressed and intentionally contains no host-absolute paths
 export const QualificationProvenanceSchema = z.strictObject({
   ...QualificationExecutionEnvironmentSchema.shape,
+  // recorded attempts retain their original model; new execution stays fixed above
+  model: z.enum(['gpt-5.6-sol', QUALIFICATION_MODEL]),
   candidateFingerprint: z
     .string()
     .regex(/^[a-f0-9]{64}$/u)

@@ -102,7 +102,7 @@ const createPassingOutput = (): IJudgeOutput => ({
 });
 
 const executionEnvironment: IQualificationExecutionEnvironment = {
-  model: 'gpt-5.6-sol',
+  model: 'gpt-6-sol',
   actorReasoningEffort: 'xhigh',
   judgeReasoningEffort: 'xhigh',
   codexVersion: 'codex-cli 1',
@@ -731,6 +731,12 @@ describe('qualification resume identity validation', () => {
         sslCertificateFileSha256: executionEnvironment.sslCertificateFileSha256,
       }),
     ).toBe(false);
+    expect(
+      haveQualificationExecutionInputsChanged(
+        { ...executionEnvironment, model: 'gpt-5.6-sol' },
+        executionEnvironment,
+      ),
+    ).toBe(true);
     for (const environmentChange of [
       { codexVersion: 'codex-cli 2' },
       { hostTimeoutMs: 240_000 },

@@ -66,7 +66,7 @@ const semanticTrial: ISemanticAttemptTrialModel = {
   actorCommandPolicyEvidence: EMPTY_COMMAND_POLICY,
   actorHost: {
     developerInstructionsSha256: SHA256,
-    model: 'gpt-5.6-sol',
+    model: 'gpt-6-sol',
     name: 'synthetic-actor',
     reasoningEffort: 'xhigh',
     role: 'actor',
@@ -97,7 +97,7 @@ const semanticTrial: ISemanticAttemptTrialModel = {
   judgeCommandPolicyEvidence: EMPTY_COMMAND_POLICY,
   judgeHost: {
     developerInstructionsSha256: SHA256,
-    model: 'gpt-5.6-sol',
+    model: 'gpt-6-sol',
     name: 'synthetic-judge',
     reasoningEffort: 'xhigh',
     role: 'judge',
@@ -251,14 +251,14 @@ const semanticResult: ISemanticAttemptModel['result'] = {
   hostContract: {
     actor: {
       developerInstructionsSha256: SHA256,
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       name: 'synthetic-actor',
       reasoningEffort: 'xhigh',
       role: 'actor',
     },
     judge: {
       developerInstructionsSha256: SHA256,
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       name: 'synthetic-judge',
       reasoningEffort: 'xhigh',
       role: 'judge',
@@ -297,7 +297,7 @@ const semanticWebsiteModel: ISemanticEvaluationWebsiteModel = {
   currentAssurance: semanticAttempt,
   evidenceMatch: 'exact',
   evaluatedAt: EVALUATED_AT,
-  evaluationModel: 'gpt-5.6-sol',
+  evaluationModel: 'gpt-6-sol',
   failedCaseCount: 0,
   groups: [
     {

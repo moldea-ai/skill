@@ -10,6 +10,7 @@ import { createAttemptCheckpoint } from '../checkpoint/index.ts';
 import {
   QualificationAttemptResultSchema,
   QualificationCaseResultSchema,
+  QualificationExecutionEnvironmentSchema,
   QualificationModelStageEvidenceSchema,
   type ICandidateClosure,
 } from '../contracts/index.ts';
@@ -118,7 +119,7 @@ describe('qualification case evidence reuse', () => {
       packagesDigest: 'e'.repeat(64),
       targetDigest: sourceResult.provenance.targetDigest,
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
@@ -288,7 +289,7 @@ describe('qualification case evidence reuse', () => {
       ],
       cwd: repositoryRoot,
     });
-    const executionEnvironment = {
+    const executionEnvironment = QualificationExecutionEnvironmentSchema.parse({
       model: sourceResult.provenance.model,
       actorReasoningEffort: sourceResult.provenance.actorReasoningEffort,
       judgeReasoningEffort: sourceResult.provenance.judgeReasoningEffort,
@@ -300,7 +301,7 @@ describe('qualification case evidence reuse', () => {
       hostTimeoutMs: sourceResult.provenance.hostTimeoutMs,
       modelEndpoint: sourceResult.provenance.modelEndpoint,
       sslCertificateFileSha256: sourceResult.provenance.sslCertificateFileSha256,
-    };
+    });
     const checkpoint = await createAttemptCheckpoint({
       attemptDirectory: path.join(temporaryRoot, 'destination-attempt'),
       attemptId: 'destination-attempt',

@@ -247,7 +247,7 @@ describe('qualification model stages', () => {
       caseDigest: '3'.repeat(64),
       caseArtifactDirectory,
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli fake',
@@ -363,7 +363,7 @@ describe('qualification model stages', () => {
         caseDigest: '3'.repeat(64),
         caseArtifactDirectory,
         executionEnvironment: {
-          model: 'gpt-5.6-sol',
+          model: 'gpt-6-sol',
           actorReasoningEffort: 'xhigh',
           judgeReasoningEffort: 'xhigh',
           codexVersion: 'codex-cli test',
@@ -505,7 +505,7 @@ describe('qualification model stages', () => {
         caseDigest: '3'.repeat(64),
         caseArtifactDirectory,
         executionEnvironment: {
-          model: 'gpt-5.6-sol',
+          model: 'gpt-6-sol',
           actorReasoningEffort: 'xhigh',
           judgeReasoningEffort: 'xhigh',
           codexVersion: 'codex-cli test',
@@ -643,7 +643,7 @@ describe('qualification model stages', () => {
       caseDigest: '3'.repeat(64),
       caseArtifactDirectory,
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
@@ -841,7 +841,7 @@ describe('qualification model stages', () => {
       caseArtifactDirectory,
       deterministicAfter,
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
@@ -955,7 +955,7 @@ describe('qualification model stages', () => {
       runtimeDirectory,
     };
     const executionEnvironment: IQualificationExecutionEnvironment = {
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       actorReasoningEffort: 'xhigh',
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',

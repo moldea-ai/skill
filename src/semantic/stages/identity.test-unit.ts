@@ -13,7 +13,7 @@ import type { ISemanticModelHostIdentity } from './types.ts';
 const digest = 'a'.repeat(64);
 const actorHost = {
   developerInstructionsSha256: CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,
-  model: 'gpt-5.6-sol',
+  model: 'gpt-6-sol',
   name: 'codex',
   reasoningEffort: 'xhigh',
   role: 'actor',
@@ -63,6 +63,7 @@ describe('semantic stage identity', () => {
       { cli: { integrity: 'sha512-other', version: '7.0.1' } },
       { confirmationIndex: 1 as const },
       { actorHost: { ...actorHost, version: 'codex-cli 0.154.0' } },
+      { actorHost: { ...actorHost, model: 'gpt-5.6-sol' } },
       { actorHost: { ...actorHost, reasoningEffort: 'high' } },
       { evaluationProtocolVersion: 26 },
       {

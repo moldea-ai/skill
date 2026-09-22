@@ -75,7 +75,7 @@ describe('qualification result transformation', () => {
       workspaceDirectories: {},
     });
     const provenance: IQualificationExecutionProvenance = {
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       actorReasoningEffort: 'xhigh',
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',

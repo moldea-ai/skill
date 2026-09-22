@@ -14,6 +14,7 @@ import {
   QualificationLatestResultSchema,
   type ICandidateClosure,
   type IQualificationExecutionEnvironment,
+  type IQualificationProvenance,
   type IQualificationSelection,
 } from '../contracts/index.ts';
 import { readJsonFile } from '../../../src/filesystem/index.ts';
@@ -62,8 +63,8 @@ const getPublicPackageIdentity = (
     .sort(({ name: left }, { name: right }) => left.localeCompare(right, 'en'));
 
 const selectExecutionEnvironment = (
-  environment: IQualificationExecutionEnvironment,
-): IQualificationExecutionEnvironment => ({
+  environment: IQualificationProvenance,
+): Pick<IQualificationProvenance, keyof IQualificationExecutionEnvironment> => ({
   actorReasoningEffort: environment.actorReasoningEffort,
   judgeReasoningEffort: environment.judgeReasoningEffort,
   model: environment.model,

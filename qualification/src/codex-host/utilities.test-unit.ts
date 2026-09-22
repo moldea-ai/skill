@@ -26,7 +26,7 @@ describe('createCodexExecCommand', () => {
     });
 
     expect(command.slice(0, 2)).toStrictEqual(['codex', 'exec']);
-    expect(command).toContain('gpt-5.6-sol');
+    expect(command).toContain('gpt-6-sol');
     expect(command).toContain('model_reasoning_effort=xhigh');
     expect(createHash('sha256').update(getDeveloperInstructions(command)).digest('hex')).toBe(
       CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,

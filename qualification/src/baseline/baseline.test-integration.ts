@@ -9,7 +9,7 @@ import type { IGitRepositoryState } from '../repository-state/index.ts';
 import { inspectQualificationBaseline } from './baseline.ts';
 
 const executionEnvironment: IQualificationExecutionEnvironment = {
-  model: 'gpt-5.6-sol',
+  model: 'gpt-6-sol',
   actorReasoningEffort: 'xhigh',
   judgeReasoningEffort: 'xhigh',
   codexVersion: 'codex-cli test',

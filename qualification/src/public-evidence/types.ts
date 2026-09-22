@@ -298,8 +298,8 @@ const QualificationProvenanceShape = {
   baselineAttemptId: z.string().trim().min(1).nullable(),
   packages: z.array(CandidatePackageSchema).min(1),
 };
-const QualificationCurrentProvenanceSchema = z.strictObject({
-  model: z.literal('gpt-5.6-sol'),
+const QualificationRecordedProvenanceSchema = z.strictObject({
+  model: z.enum(['gpt-5.6-sol', 'gpt-6-sol']),
   ...QualificationProvenanceShape,
 });
 const QualificationTrialDimensionsSchema = z.strictObject({
@@ -609,7 +609,7 @@ export const QualificationAttemptResultSchema = z.strictObject({
   mode: z.literal('official'),
   stages: z.array(QualificationCurrentStageSchema),
   cases: z.array(QualificationCurrentCaseResultSchema),
-  provenance: QualificationCurrentProvenanceSchema,
+  provenance: QualificationRecordedProvenanceSchema,
 });
 
 // additive public artifacts shown on immutable attempt pages

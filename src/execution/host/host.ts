@@ -33,7 +33,7 @@ type IGitCommandPolicyBoundaryModule = {
 };
 
 // fixed model contract shared by local evaluation workflows
-export const CODEX_EVALUATION_MODEL = 'gpt-5.6-sol';
+export const CODEX_EVALUATION_MODEL = 'gpt-6-sol';
 export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
 export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT = 'xhigh';
 export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT = 'xhigh';

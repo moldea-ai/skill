@@ -64,7 +64,14 @@ describe('qualification public evidence selection', () => {
         resultsRoot,
       });
       await recordQualificationResult(
-        { artifactDirectory, result, sanitizationContext },
+        {
+          artifactDirectory,
+          result:
+            attemptId === 'attempt-old'
+              ? { ...result, provenance: { ...result.provenance, model: 'gpt-5.6-sol' } }
+              : result,
+          sanitizationContext,
+        },
         resultsRoot,
       );
     }
@@ -78,6 +85,7 @@ describe('qualification public evidence selection', () => {
     const profile = websiteModel.profiles[0];
 
     expect(profile?.attempts.map(({ result }) => result.attemptId)).toStrictEqual(['attempt-old']);
+    expect(profile?.attempts[0]?.result.provenance.model).toBe('gpt-5.6-sol');
     expect(profile?.currentLatest?.result.attemptId).toBe('attempt-old');
     expect(profile?.latest).toMatchObject({
       lastPassingAttemptId: 'attempt-old',

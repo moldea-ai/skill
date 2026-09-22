@@ -124,7 +124,7 @@ for (const width of HEADING_ROLE_WIDTHS) {
 
       const displayTitle = page.getByRole('heading', {
         level: 1,
-        name: 'Give your coding agent what the request leaves out.',
+        name: 'Your project changes. Your agents should keep up.',
       });
       const sectionTitle = page.getByRole('heading', {
         level: 2,
@@ -158,7 +158,7 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'Give your coding agent what the request leaves out.',
+      name: 'Your project changes. Your agents should keep up.',
     }),
   ).toBeVisible();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(

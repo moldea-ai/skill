@@ -128,7 +128,7 @@ Install every workspace dependency from the repository root without lifecycle sc
 npm ci --ignore-scripts
 ```
 
-The root manifest temporarily overrides Astro to `7.2.8` because Website UI `1.8.0` declares the vulnerable `7.2.2` release as an exact peer. Remove the override after Website UI publishes compatible peer metadata; the clean install and website checks verify the patched combination in the meantime.
+The root manifest temporarily overrides Astro to `7.2.8` because Website UI `1.9.0` declares the vulnerable `7.2.2` release as an exact peer. Remove the override after Website UI publishes compatible peer metadata; the clean install and website checks verify the patched combination in the meantime.
 
 Run the deterministic boundaries:
 

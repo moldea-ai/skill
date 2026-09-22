@@ -1,10 +1,114 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const route = withBase('/how-it-works/', basePath);
 const toPublicPath = (publicRoute: string): string => withBase(publicRoute, basePath);
+
+const PAGE_TITLE_WIDTHS = [320, 639, 640, 1023, 1024, 1279, 1280, 1440] as const;
+
+/** Returns the exact responsive font size owned by Website UI's page-title role. */
+const getPageTitleFontSize = (width: number): number => {
+  if (width >= 1024) return 60;
+  if (width >= 640) return 48;
+  return 36;
+};
+
+/** Verifies the representative page title after the real bold Ubuntu Sans face has loaded. */
+const expectPageTitle = async (
+  page: Page,
+  heading: Locator,
+  nextContent: Locator,
+  width: number,
+): Promise<void> => {
+  await expect(heading).toBeVisible();
+
+  const fontAvailability = await heading.evaluate(async (element) => {
+    const text = (element.textContent ?? '').replaceAll(/\s+/gu, ' ').trim();
+    const fontSize = getComputedStyle(element).fontSize;
+    const fontSpecification = `700 ${fontSize} "Ubuntu Sans Variable"`;
+    const loadedFontFaces = await document.fonts.load(fontSpecification, text);
+
+    await document.fonts.ready;
+
+    return {
+      isAvailable: document.fonts.check(fontSpecification, text),
+      loadedFaceCount: loadedFontFaces.length,
+    };
+  });
+
+  expect(fontAvailability.loadedFaceCount).toBeGreaterThan(0);
+  expect(fontAvailability.isAvailable).toBe(true);
+
+  const typography = await heading.evaluate((element) => {
+    const computedStyle = getComputedStyle(element);
+    const bounds = element.getBoundingClientRect();
+
+    return {
+      blockHeight: bounds.height,
+      bottom: bounds.bottom,
+      clientWidth: element.clientWidth,
+      fontFamily: computedStyle.fontFamily,
+      fontSize: Number.parseFloat(computedStyle.fontSize),
+      fontWeight: computedStyle.fontWeight,
+      left: bounds.left,
+      letterSpacing: Number.parseFloat(computedStyle.letterSpacing),
+      lineHeight: Number.parseFloat(computedStyle.lineHeight),
+      overflowX: computedStyle.overflowX,
+      overflowY: computedStyle.overflowY,
+      overflowWrap: computedStyle.overflowWrap,
+      right: bounds.right,
+      scrollWidth: element.scrollWidth,
+      textWrap: computedStyle.textWrap,
+    };
+  });
+  const expectedFontSize = getPageTitleFontSize(width);
+
+  expect(typography.fontFamily).toContain('Ubuntu Sans Variable');
+  expect(typography.fontSize).toBeCloseTo(expectedFontSize, 2);
+  expect(typography.fontWeight).toBe('700');
+  expect(typography.lineHeight).toBeCloseTo(expectedFontSize * 1.15, 2);
+  expect(typography.letterSpacing).toBeCloseTo(expectedFontSize * -0.04, 2);
+  expect(typography.textWrap).toBe('balance');
+  expect(typography.overflowWrap).toBe('break-word');
+  expect(typography.blockHeight).toBeGreaterThan(typography.lineHeight * 1.5);
+  expect(['clip', 'hidden']).not.toContain(typography.overflowX);
+  expect(['clip', 'hidden']).not.toContain(typography.overflowY);
+  expect(typography.scrollWidth).toBeLessThanOrEqual(typography.clientWidth + 1);
+  expect(typography.left).toBeGreaterThanOrEqual(-1);
+  expect(typography.right).toBeLessThanOrEqual(width + 1);
+
+  const nextContentTop = await nextContent.evaluate(
+    (element) => element.getBoundingClientRect().top,
+  );
+  expect(nextContentTop).toBeGreaterThanOrEqual(typography.bottom - 1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+    width,
+  );
+};
+
+for (const width of PAGE_TITLE_WIDTHS) {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`keeps the page title legible at ${width}px in ${theme}`, async ({ page }) => {
+      await page.setViewportSize({ height: 900, width });
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      await page.goto(route);
+
+      const pageTitle = page.getByRole('heading', {
+        level: 1,
+        name: 'Your request is one sentence. The work stays connected.',
+      });
+
+      await expectPageTitle(
+        page,
+        pageTitle,
+        pageTitle.locator('xpath=following-sibling::*[1]'),
+        width,
+      );
+    });
+  }
+}
 
 test('follows one booking request through five connected stages', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });

@@ -157,3 +157,4 @@ vite.config.ts.timestamp-*
 /website/test-results/
 
 AGENTS.md
+.evidence/

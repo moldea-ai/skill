@@ -104,14 +104,15 @@ const additionalQualificationAdapterCount = Math.max(
           class="display-title"
           data-hero-title
         >
-          <span class="block">Your project changes.</span>
-          <span class="block">Your agents should keep up.</span>
+          <span class="block">Build agents</span>
+          <span class="block">that know your project.</span>
         </h1>
         <p class="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
           <InlineBrandText
-            text="moldea builds and maintains your project’s source of truth, keeping context, agent instructions, and code connected. You own that knowledge in your repository and carry it with you when you switch coding agents."
+            text="Turn your project’s rules, decisions, and context into a source of truth for the agents you build. moldea keeps that knowledge connected to instructions and code as your project evolves."
           />
         </p>
+        <p class="mt-4 text-sm font-semibold text-foreground">Versioned in Git. Owned by you.</p>
         <div
           class="mt-7 flex flex-wrap gap-3"
           data-hero-actions
@@ -130,11 +131,11 @@ const additionalQualificationAdapterCount = Math.max(
           </ActionLink>
           <ActionLink
             class="font-bold"
-            href="#deterministic-checks"
+            href={withBase('/how-it-works/', basePath)}
             size="lg"
             variant="outline"
           >
-            See what gets checked
+            See how it works
           </ActionLink>
         </div>
       </div>

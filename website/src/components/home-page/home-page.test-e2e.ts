@@ -124,7 +124,7 @@ for (const width of HEADING_ROLE_WIDTHS) {
 
       const displayTitle = page.getByRole('heading', {
         level: 1,
-        name: 'Your project changes. Your agents should keep up.',
+        name: 'Build agents that know your project.',
       });
       const sectionTitle = page.getByRole('heading', {
         level: 2,
@@ -158,7 +158,7 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'Your project changes. Your agents should keep up.',
+      name: 'Build agents that know your project.',
     }),
   ).toBeVisible();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
@@ -185,14 +185,10 @@ test('leads with the connected-agent example and direct paths to act or inspect'
     page.getByRole('heading', { level: 2, name: 'One install. One ordinary request.' }),
   ).toBeVisible();
 
-  const checksLink = page.getByRole('link', { name: 'See what gets checked', exact: true });
-  await expect(checksLink).toHaveAttribute('href', '#deterministic-checks');
-  await checksLink.focus();
-  await checksLink.press('Enter');
-  await expect(page).toHaveURL(/#deterministic-checks$/u);
-  await expect(
-    page.getByRole('heading', { level: 2, name: 'Same project. Same check. Same result.' }),
-  ).toBeVisible();
+  const workflowLink = page
+    .locator('[data-home-hero]')
+    .getByRole('link', { name: 'See how it works', exact: true });
+  await expect(workflowLink).toHaveAttribute('href', toPublicPath('/how-it-works/'));
 
   await expect(page.locator('[data-maintenance-diff="application"]')).toContainText(
     LANDING_EXAMPLE_PREVIEW.policyDiff.source,
@@ -206,6 +202,16 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(page.locator('[data-maintenance-diff="instruction"]')).toContainText(
     LANDING_EXAMPLE_PREVIEW.instructionDiff.source,
   );
+
+  await workflowLink.focus();
+  await workflowLink.press('Enter');
+  await expect(page).toHaveURL(toPublicPath('/how-it-works/'));
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Your request is one sentence. The work stays connected.',
+    }),
+  ).toBeVisible();
 });
 
 test('presents the product story before proof and adoption', async ({ page }) => {

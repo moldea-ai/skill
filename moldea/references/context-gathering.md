@@ -25,7 +25,7 @@ Read the package manifest and only the relevant lockfile entry instead of dumpin
 
 ## Select metadata before content
 
-For relationship-gated work, reuse the successful `scope` result as the complete relevant-owner inventory. Do not run `inspect` after `scope`. The scope call is the first of at most four ordinary CLI calls, leaving no more than three calls for necessary structural validation and explicitly selected owner content.
+For relationship-gated work, reuse the successful `scope` result as the complete relevant-owner inventory. Do not run `inspect` after `scope`. Count scope toward the entrypoint's four-call efficiency target and shared output budget; select only necessary owner content and reserve capacity for final validation and supported recovery.
 
 Examine the actual diff before additional canonical reads; a match alone never requires edits. Select the smallest affected owners, preferring an exact match over an overlapping broad glob unless both contracts change. Request a context record's exact `asset.path` or `/moldea/agents/<agentId>/instruction.md`, not invented canonical paths. Bind selected owners and mirrors before writing; apply `continuous-maintenance.md` for canonical truth and requirement changes or `agent-design.md` for agent changes. Synchronize every contradicted owner within the authorized change. If behavior and contracts remain unchanged, leave canonical state byte-identical and report the owner reconsidered only as the operation requires. Validate after writes, not merely because a relationship matched.
 

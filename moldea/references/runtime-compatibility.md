@@ -8,7 +8,7 @@ For a direct evaluation of one named agent and target, invoke `composition` firs
 
 Reuse current local inspection diagnostics and evidence for the selected adapter and bound source. When a material compatibility fact remains unresolved, read the installed adapter's README, then only its specifically relevant linked local guide. Reuse those instructions under the entrypoint's reference-read policy. Do not read every guide or discover the package again when its installed location is already established.
 
-Inspect the relevant repository package declaration or lockfile entry for version evidence. Read adapter implementation only when diagnostics and its documentation cannot resolve a specific material question; name that question and inspect the smallest owning source. Missing documentation is an evidence gap, not proof of incompatibility or permission to choose `custom`. Do not enumerate dependencies or dump package trees. Direct relevant work remains inside the ordinary four-command moldea limit, except for diagnostic-driven agent repair validation as defined by the entrypoint.
+Inspect the relevant repository package declaration or lockfile entry for version evidence. Read adapter implementation only when diagnostics and its documentation cannot resolve a specific material question; name that question and inspect the smallest owning source. Missing documentation is an evidence gap, not proof of incompatibility or permission to choose `custom`. Do not enumerate dependencies or dump package trees. Follow the entrypoint's call-efficiency target, shared output budget, and supported recovery rule.
 
 ## Keep the evidence boundaries separate
 

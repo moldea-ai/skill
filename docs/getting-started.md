@@ -19,7 +19,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.9"
+npx skills add "moldea-ai/skill#v5.0.10"
 ```
 
 Repository installation is required because the selected skill version must travel with the project. A global installation does not establish adoption and is not a supported path.
@@ -60,7 +60,7 @@ Canonical moldea project state lives under `/moldea/**`; start at `/moldea/proje
 
 The blank line after the opening marker separates ownership metadata from the Markdown paragraph. The writer preserves all README bytes outside the managed region, follows a consistent existing CRLF style when applicable, and otherwise writes LF. It rejects duplicate, unpaired, reversed, linked, invalid, or oversized README input instead of guessing.
 
-Initialization does not create an agent, ceremonial empty directories, speculative context, or a parallel source of truth. With no evidenced relationships, `moldea.yaml` contains only `version: 1` and its final LF. A successful validation ends the operation without a follow-up inspection. Bounded structural diagnostics permit one repair and final validation retry.
+Initialization does not create an agent, ceremonial empty directories, speculative context, or a parallel source of truth. With no evidenced relationships, `moldea.yaml` contains only `version: 1` and its final LF. A successful validation ends the operation without a follow-up inspection. Bounded structural diagnostics permit supported repairs while each correction makes progress within the authorized scope and resource limits. Every repair requires validation of the resulting state; unresolved failures are reported without claiming completion.
 
 An adopted project turns the same request into focused foundation maintenance. Partial or inconsistent artifacts leave it unadopted: the coding agent identifies the existing artifacts and missing contract elements, preserves valid content, and does not initialize or repair over them without the required authority and decisions.
 

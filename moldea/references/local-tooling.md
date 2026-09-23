@@ -1,12 +1,12 @@
 # Local moldea tooling
 
-Read this reference only after relevance when local CLI proof or machine-contract interpretation is required. It owns observation and invocation, not installation. Read-only work never authorizes dependency, lockfile, or configuration changes; report unavailable deterministic evidence. Only a separately authorized write-capable operation may use `tooling-installation.md` to establish missing tooling.
+Read this reference only after relevance when local CLI proof, machine-contract interpretation, or validation recovery is required. It owns observation, invocation, and diagnostic recovery, not installation. Read-only work never authorizes dependency, lockfile, or configuration changes; report unavailable deterministic evidence. Only a separately authorized write-capable operation may use `tooling-installation.md` to establish missing tooling.
 
 For a direct request to prove or safely invoke the local CLI, apply this reference before inspecting a declared dependency, package-manager provider, binary link, or other provider evidence and before reaching any conclusion. The required first proof attempt is the closed launcher `composition --json` call below.
 
 ## Supported contract
 
-Skill 5.0.9 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^4.0.1`, stable `@moldea.ai/cli` releases satisfying `^8.0.0`, repository format 1, and CLI JSON schema 4. Never substitute a global, transient, out-of-range, or prerelease CLI.
+Skill 5.0.10 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^4.0.1`, stable `@moldea.ai/cli` releases satisfying `^8.0.0`, repository format 1, and CLI JSON schema 4. Never substitute a global, transient, out-of-range, or prerelease CLI.
 
 Use only `<installed-skill-root>/scripts/moldea-cli.mjs`. The launcher resolves the repository-root-local package and executable, verifies the package name, exact installed stable version, supported repository declaration, declared `moldea` binary, Core dependency range, and resolved-path containment from inert package metadata, then invokes the executable without a shell. Require the exact envelope version to match that installed version. Do not reproduce these probes, inspect links manually, search parent workspaces, inspect unrelated repositories, use package-manager launchers, or search `PATH` for another copy.
 
@@ -49,6 +49,16 @@ Interpret JSON only after the child process completes. Require:
 Signals, launcher failures, output-boundary termination, malformed output, contradictory status, version mismatch, unsupported schema, and incomplete output establish no conclusion. The launcher sends the requested termination signal first and force-terminates a child that remains active after five seconds. An `invalid` result is diagnostic evidence, not validity.
 
 Every paged result carries a snapshot identity. Continue only with the opaque cursor returned by the preceding page. Repeat the same standalone launcher operation, append `--cursor "<opaque-cursor>"`, and retain `--json --max-output-bytes 65536`. Keep every page as one raw launcher envelope instead of using a pipeline, command substitution, scripted loop, parser, output filter, or aggregate wrapper. Never restart and merge pages from different snapshots, and never claim completeness before the final raw envelope returns a null cursor.
+
+## Validation recovery
+
+For authorized canonical writes requiring validation, complete the writes and applicable project-native checks before final launcher-backed validation. Success ends verification without unnecessary inspection. Structural validity does not prove semantic alignment or runtime readiness. Read-only and independent Agent Skill operations retain their own verification boundaries.
+
+On failure, establish the complete affected contract from diagnostics and the smallest relevant evidence before editing. Inspect equivalent occurrences in the authorized change set, apply the supported complete correction, rerun native checks affected by it, and validate the resulting state. Continue while changed state and new evidence support progress; a newly exposed diagnostic can represent progress even when the diagnostic count is unchanged.
+
+Never retry unchanged input without new resolving evidence. Stop when no supported correction remains, failures repeat without progress, corrections oscillate, authority is unresolved, tooling is unavailable, the next change exceeds scope, or a real resource limit prevents completion. Reserve output capacity for final validation. After writes invalidate a snapshot, discard its cursors and obtain only necessary fresh evidence within the same budget.
+
+Report the actual changes, final status, material diagnostics, completed checks, and remaining work. Every repair requires validation after its writes; earlier validation cannot support completion. Preserve unverified changes when recovery cannot finish and identify them as unverified.
 
 ## Resource limits
 

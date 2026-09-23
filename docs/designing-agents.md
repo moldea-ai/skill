@@ -56,6 +56,8 @@ In a dedicated repository, the coding agent directly inspects the developer-iden
 
 Package manifests and lockfiles belong when relevant dependencies materially affect that agent. Compiler configuration and type declarations need a demonstrated behavioral role. Do not add them to every agent by default, or exclude them solely because of their filenames. Exact bindings already establish relevance and do not need mechanical duplication.
 
+An exact `affectedBy` path must name a regular file, such as `/src/support-agent.js`. Use a supported glob such as `/src/support-policy/**` for a coherent behavioral subtree. Neither `/src/support-policy` nor `/src/support-policy/` expresses subtree impact; removing the trailing slash alone does not fix a directory reference. Choose the narrowest relationship supported by the implementation. Binding and mirror paths retain their own exact-path contracts.
+
 A matching path starts a check of the actual change. It does not force an instruction edit when behavior remains the same.
 
 ## Prove instruction provenance

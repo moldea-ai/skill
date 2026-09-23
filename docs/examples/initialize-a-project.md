@@ -76,7 +76,7 @@ Next actions:
 4. It asks a focused question when missing context or a material gap prevents a useful and truthful foundation.
 5. Once the foundation is sufficient, it safely installs a known missing CLI before foundation writes or validation. Failed installation stops initialization and reports any package-manager changes. Already-present compatible tooling needs no reinstall or availability probe.
 6. It writes the complete three-file foundation. With no evidenced relationship, `/moldea/moldea.yaml` is exactly `version: 1` plus its final LF; `/moldea/project.md` contains concise grounded context; and README receives exactly one managed awareness block.
-7. It runs one repository-local `validate`. Success ends initialization without `inspect`; a structural failure permits one diagnostic-driven repair and one validation retry.
+7. It runs repository-local `validate`. Success ends initialization without `inspect`; a structural failure starts supported recovery within the foundation scope and resource limits. Each repair follows diagnosis of the complete affected contract and is validated afterward. Recovery stops when it cannot make supported progress.
 8. It reports the established understanding, files, evidence, limitations, and practical next actions.
 
 ## Result

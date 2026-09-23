@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents naturally after explicit moldea initialization, including contextual continuations. Handle moldea operations, repair, independent Agent Skills, and questions. For other repository work, use only the bundled relationship gate on known paths; abstain silently on a miss. Product and host command names do not establish relevance.
 metadata:
-  version: '5.0.9'
+  version: '5.0.10'
   cliVersionRange: '^8.0.0'
   coreVersionRange: '^4.0.1'
   cliJsonSchemaVersion: 4
@@ -73,7 +73,9 @@ After relevance, read only what the operation requires. Never read every referen
 - Adapter eligibility or fit: `references/runtime-compatibility.md`, before package exploration.
 - CLI proof or machine-contract questions: `references/local-tooling.md`. Direct proof starts with the closed launcher's `composition --json`, not provider discovery. Only authorized installation uses `references/tooling-installation.md`.
 
-Use at most four ordinary CLI calls, including scope and final validation. Only diagnostic-driven agent repair validation or explicit three-record compression permits a fifth; project repair owns its separate policy. Use 65,536-byte raw pages and 262,144-byte ordinary aggregate output. `context-gathering.md` owns content selection and continuation. Never reconstruct a project dump or retry unboundedly; report incomplete evidence. These are output limits, not repository-size limits.
+Aim for four ordinary CLI calls, including scope and final validation; this is an efficiency target, not a completion cutoff. Keep 65,536-byte raw pages and 262,144-byte ordinary aggregate output within host limits. Discovery and recovery share one budget; never reset it or reconstruct a project dump. `context-gathering.md` owns content selection and continuation.
+
+After authorized canonical writes and applicable native checks, run final launcher-backed validation. On failure, load `references/local-tooling.md`'s validation recovery procedure: diagnose the complete contract, repair within scope while evidence supports progress, and validate after the last write. Stop on unresolved authority, unavailable tooling, no progress, or real resource limits; report unverified work accurately.
 
 ## Preserve authority and complete the relevant work
 

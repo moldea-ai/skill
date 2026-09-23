@@ -101,16 +101,18 @@ const additionalQualificationAdapterCount = Math.max(
           <span class="text-sm text-muted-foreground">Git-native · local-first · open source</span>
         </div>
         <h1
-          class="text-4xl leading-tight font-semibold tracking-tight sm:text-5xl xl:text-6xl"
+          class="display-title"
           data-hero-title
         >
-          Give your coding agent what the request leaves out.
+          <span class="block">Build agents</span>
+          <span class="block">that know your project.</span>
         </h1>
         <p class="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
           <InlineBrandText
-            text="moldea finds the project rules behind the task, follows every affected connection, and runs deterministic checks before the agent says it is done."
+            text="Turn your project’s rules, decisions, and context into a source of truth for the agents you build. moldea keeps that knowledge connected to instructions and code as your project evolves."
           />
         </p>
+        <p class="mt-4 text-sm font-semibold text-foreground">Versioned in Git. Owned by you.</p>
         <div
           class="mt-7 flex flex-wrap gap-3"
           data-hero-actions
@@ -129,11 +131,11 @@ const additionalQualificationAdapterCount = Math.max(
           </ActionLink>
           <ActionLink
             class="font-bold"
-            href="#deterministic-checks"
+            href={withBase('/how-it-works/', basePath)}
             size="lg"
             variant="outline"
           >
-            See what gets checked
+            See how it works
           </ActionLink>
         </div>
       </div>
@@ -169,7 +171,7 @@ const additionalQualificationAdapterCount = Math.max(
             <p class="eyebrow mb-4 text-current/60">Proof before release</p>
             <h2
               id="home-evidence-title"
-              class="section-title max-w-4xl text-3xl font-semibold sm:text-4xl lg:text-5xl"
+              class="section-title max-w-4xl"
             >
               See what was tested.
             </h2>
@@ -363,6 +365,7 @@ const additionalQualificationAdapterCount = Math.max(
                     </p>
                     <div
                       class="flex items-center gap-1.5"
+                      role="group"
                       aria-label={`${qualificationAdapterIds.length} runtime adapters represented`}
                     >
                       {qualificationAdapterPreviewIds.map((adapterId) => (

@@ -10,7 +10,7 @@ describe('qualification evaluator source classifier', () => {
     ['qualification/src/baseline/baseline.ts', false],
     ['qualification/src/compatibility/loader.ts', false],
     ['qualification/src/cli/runner.ts', false],
-    ['qualification/src/result/contract-reader.ts', false],
+    ['qualification/src/result/recorded-contract.ts', false],
     ['qualification/src/result/evidence.ts', false],
     ['qualification/src/result/recorder.ts', false],
     ['qualification/src/result/index.ts', false],
@@ -20,7 +20,7 @@ describe('qualification evaluator source classifier', () => {
     ['qualification/src/new-production-module.ts', true],
     ['qualification/src/execution/executor.test-unit.ts', false],
     ['qualification/src/contracts/generated.d.ts', false],
-    ['tooling/package-candidate/index.mjs', false],
+    ['src/packages/index.mjs', false],
   ] as const)('isQualificationEvaluatorSourcePath(%s) -> %s', (relativePath, expected) => {
     expect(isQualificationEvaluatorSourcePath(relativePath)).toBe(expected);
   });

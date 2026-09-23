@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: abstain-initialized-unrelated-work
 title: Abstain from initialized unrelated work
+layer: universal-baseline
+description: 'Review unrelated documentation in an initialized repository without loading moldea references or invoking its CLI.'
+challenge: 'Reproduces the excessive review behavior that motivated the repository-bound relevance gate.'
 purpose: Verify silent abstention for unrelated documentation in a valid initialized repository.
 taskFile: task.md
 seedDirectory: seed

@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: preserve-openai-static-boundary
 title: Preserve the OpenAI static boundary
+layer: adapter-specific
+description: 'Represent indirect Responses requests and provider-hosted configuration as unresolved instead of claiming evidence that the adapter cannot prove.'
+challenge: 'Tests conservative handling of request indirection plus unsupported schema, execution, routing, and API-family relationships.'
 purpose: Verify conservative treatment of provider tools and indirect Responses API request construction.
 taskFile: task.md
 seedDirectory: seed

@@ -5,7 +5,7 @@ import type { IQualificationExecutionEnvironment } from '../contracts/index.ts';
 import { haveSameQualificationExecutionEnvironment } from './utilities.ts';
 
 const createExecutionEnvironment = (): IQualificationExecutionEnvironment => ({
-  model: 'gpt-5.6-sol',
+  model: 'gpt-6-sol',
   actorReasoningEffort: 'xhigh',
   judgeReasoningEffort: 'xhigh',
   codexVersion: 'codex-cli 0.154.0',
@@ -41,6 +41,9 @@ describe('haveSameQualificationExecutionEnvironment', () => {
   test('rejects a changed execution environment', () => {
     const recorded = createExecutionEnvironment();
 
+    expect(
+      haveSameQualificationExecutionEnvironment({ ...recorded, model: 'gpt-5.6-sol' }, recorded),
+    ).toBe(false);
     expect(
       haveSameQualificationExecutionEnvironment(recorded, {
         ...recorded,

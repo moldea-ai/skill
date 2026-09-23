@@ -77,6 +77,8 @@ context:
       - /src/support/**
 ```
 
+In `affectedBy`, an exact path names a regular file and a glob such as `/src/support/**` expresses subtree impact. A bare directory path, with or without a trailing slash, is not a substitute for that glob. Use exact files or coherent subtrees based on behavioral ownership.
+
 These relationships make future maintenance focused. They identify where relevant evidence may live without claiming that every matching code change must rewrite the context.
 
 ## Example: grow into a grounded agent

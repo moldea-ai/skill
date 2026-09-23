@@ -7,7 +7,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CodexEvaluationHostError,
-} from '../../../tooling/codex-evaluation-host/index.mjs';
+} from '../../../src/execution/host/index.ts';
 
 import { FakeCodexHost } from '../codex-host/index.ts';
 import type {
@@ -24,7 +24,7 @@ import {
   collectDirectoryFingerprintEntries,
   ensureDirectory,
   writeJsonFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   captureQualificationProjectSnapshot,
   captureQualificationWorkspaceSnapshot,
@@ -44,6 +44,9 @@ const scenario = {
   version: 2,
   id: 'test-case',
   title: 'Test case',
+  layer: 'adapter-specific',
+  description: 'Exercises model-stage execution in a controlled fixture.',
+  challenge: 'Requires exact stage result handling.',
   purpose: 'Exercise model-stage judge validation.',
   resourceProfile: 'ordinary',
   taskFile: 'task.md',
@@ -244,7 +247,7 @@ describe('qualification model stages', () => {
       caseDigest: '3'.repeat(64),
       caseArtifactDirectory,
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli fake',
@@ -360,7 +363,7 @@ describe('qualification model stages', () => {
         caseDigest: '3'.repeat(64),
         caseArtifactDirectory,
         executionEnvironment: {
-          model: 'gpt-5.6-sol',
+          model: 'gpt-6-sol',
           actorReasoningEffort: 'xhigh',
           judgeReasoningEffort: 'xhigh',
           codexVersion: 'codex-cli test',
@@ -502,7 +505,7 @@ describe('qualification model stages', () => {
         caseDigest: '3'.repeat(64),
         caseArtifactDirectory,
         executionEnvironment: {
-          model: 'gpt-5.6-sol',
+          model: 'gpt-6-sol',
           actorReasoningEffort: 'xhigh',
           judgeReasoningEffort: 'xhigh',
           codexVersion: 'codex-cli test',
@@ -640,7 +643,7 @@ describe('qualification model stages', () => {
       caseDigest: '3'.repeat(64),
       caseArtifactDirectory,
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
@@ -838,7 +841,7 @@ describe('qualification model stages', () => {
       caseArtifactDirectory,
       deterministicAfter,
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
@@ -952,7 +955,7 @@ describe('qualification model stages', () => {
       runtimeDirectory,
     };
     const executionEnvironment: IQualificationExecutionEnvironment = {
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       actorReasoningEffort: 'xhigh',
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',

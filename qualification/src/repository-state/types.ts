@@ -1,4 +1,4 @@
-import type { IDirectoryFingerprintEntry } from '../filesystem/index.ts';
+import type { IDirectoryFingerprintEntry } from '../../../src/filesystem/index.ts';
 
 // exact Git commit and worktree fingerprint used in attempt provenance
 export type IGitRepositoryState = {

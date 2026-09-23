@@ -6,7 +6,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 import { stringify as stringifyYaml } from 'yaml';
 
-import { createCandidateRegistry } from '../../../tooling/package-candidate/index.mjs';
+import { createCandidateRegistry } from '../../../src/packages/index.ts';
 
 import { createOrderTriageAgent } from '../../profiles/t5/cases/c3/seed/src/order-triage-agent.ts';
 
@@ -19,8 +19,8 @@ import {
   copyDirectory,
   ensureDirectory,
   readYamlFile,
-} from '../filesystem/index.ts';
-import { executeProcess } from '../process/index.ts';
+} from '../../../src/filesystem/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 import {
   createQualificationPnpmInstallation,
   createQualificationPnpmOptions,

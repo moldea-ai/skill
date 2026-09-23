@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: repair-google-genai-tool-registration
 title: Repair Google Gen AI tool registration
+layer: adapter-specific
+description: 'Reconcile a declared tool name with a closed Google Gen AI function-declaration collection using exact adapter diagnostics and source evidence.'
+challenge: 'Requires correcting canonical identity without changing valid SDK code or weakening the direct JSON-schema binding.'
 purpose: Verify precise diagnostic-driven repair of closed function-declaration identity.
 taskFile: task.md
 seedDirectory: seed

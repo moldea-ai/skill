@@ -1,7 +1,6 @@
 ---
 import { ExternalLink } from '@lucide/astro';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import SemanticEvaluationCase from '../semantic-evaluation-case/semantic-evaluation-case.astro';
@@ -51,7 +50,7 @@ const breadcrumbs = [
           </span>
         </div>
         <p class="eyebrow mt-6 mb-4">Recorded evaluation</p>
-        <h1 class="section-title font-semibold">Follow the recorded decisions.</h1>
+        <h1 class="page-title">Follow the recorded decisions.</h1>
         <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
           Open a decision to replay the developer request, the coding agent's response, project
           changes, and the independent verdict. Trial confirmations and technical evidence remain
@@ -71,7 +70,7 @@ const breadcrumbs = [
         <p class="eyebrow mb-3">Decision replays</p>
         <h2
           id="semantic-attempt-cases-title"
-          class="text-3xl font-semibold tracking-tight"
+          class="section-title"
         >
           Follow every trial in this evaluation.
         </h2>
@@ -85,6 +84,7 @@ const breadcrumbs = [
           attempt.cases.map((evaluationCase, index) => (
             <SemanticEvaluationCase
               evaluationCase={evaluationCase}
+              hasRecordedAttempt
               id={`semantic-case-${evaluationCase.id}`}
               number={index + 1}
               showTrialProvenance
@@ -101,27 +101,22 @@ const breadcrumbs = [
         >
           Attempt identity, provenance, and raw artifacts
         </summary>
-        <div class="mt-5 border-t border-border pt-5">
+        <div class="mt-5">
           {
-            attempt.evidenceSource.kind === 'pinned' &&
-              semanticReleaseSection?.mode === 'pinned' && (
-                <p class="mb-5 max-w-4xl text-sm leading-6 text-muted-foreground">
-                  This release uses authenticated passing evidence from{' '}
-                  <a
-                    class="text-link font-semibold"
-                    href={semanticReleaseSection.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {semanticReleaseSection.sourceLabel}
-                  </a>
-                  .{' '}
-                  <InlineBrandText
-                    text={semanticReleaseSection.reason}
-                    variant="compact"
-                  />
-                </p>
-              )
+            semanticReleaseSection !== null && (
+              <p class="mb-5 max-w-4xl text-sm leading-6 text-muted-foreground">
+                This page displays the selected evidence recorded for{' '}
+                <a
+                  class="text-link font-semibold"
+                  href={semanticReleaseSection.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {semanticReleaseSection.sourceLabel}
+                </a>
+                .
+              </p>
+            )
           }
           <dl class="grid min-w-0 gap-4 text-sm sm:grid-cols-2">
             <div>
@@ -134,13 +129,7 @@ const breadcrumbs = [
             </div>
             <div>
               <dt class="text-muted-foreground">Evidence source</dt>
-              <dd class="mt-1 font-mono text-xs break-all">
-                {
-                  attempt.evidenceSource.kind === 'pinned'
-                    ? `Verified commit ${attempt.evidenceSource.commit}`
-                    : 'Current release'
-                }
-              </dd>
+              <dd class="mt-1 font-mono text-xs break-all">Selected recorded evidence</dd>
             </div>
             <div>
               <dt class="text-muted-foreground">Model configuration</dt>

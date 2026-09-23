@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: repair-cloudflare-think-tool-registration
 title: Repair Cloudflare Think tool registration
+layer: adapter-specific
+description: 'Reconcile a declared tool name with a closed Think getTools map using exact adapter diagnostics and source evidence.'
+challenge: 'Requires correcting canonical identity without changing valid Think, implementation, or schema wiring.'
 purpose: Verify precise diagnostic-driven repair of closed getTools map identity.
 taskFile: task.md
 seedDirectory: seed

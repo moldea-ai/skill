@@ -1,60 +1,91 @@
 ---
 title: Release evidence
 navigationTitle: Release evidence
-description: How maintainers select fresh or pinned semantic and qualification evidence for a release.
+description: How maintainers publish and independently select semantic and qualification evidence bundles.
 section: reference
 order: 178
 ---
 
 # Release evidence
 
-Every completed `moldea` Agent Skill release carries one compact `fixtures/release-evidence.json` envelope. Semantic evaluation and adapter qualification are independent sections. Each section selects either fresh current evidence or one explicit immutable source. The envelope contains compact descriptors, digests, and provenance, not model transcripts or source documents.
+Semantic evaluation and adapter qualification produce independent format-version 1 gzip JSON bundles. Completed runs remain local below `.evidence/` until a maintainer explicitly packs and publishes them as GitHub Release assets. Git stores only `evidence/selection.json`, which identifies the exact semantic and qualification assets shown on the website.
 
-## Record fresh evidence
+The website has no evidence selector and does not compare a selected snapshot with today's cases. Each selected bundle supplies its own definitions, counts, results, replays, projects, downloads, technical details, version, date, and provenance.
 
-Fresh evidence is the normal path. Run semantic evaluation, Custom qualification, and each adapter qualification against the exact candidate. After both current-only verifiers pass, record an all-fresh envelope:
+## Pack a completed run
 
-```bash
-npm run release:evidence:record
-```
-
-Recording fails when current evidence is missing, stale, incomplete, failed, over budget, or inconsistent with the current portable skill, suite, CLI closure, evaluator, or qualification targets. It does not select evidence from a prior run automatically.
-
-## Pin earlier passing evidence
-
-When a maintainer decides that rerunning one evidence domain would not provide enough additional assurance to justify its cost, select that domain and one exact source:
+Semantic packing requires an explicit local run ID:
 
 ```bash
-npm run release:evidence:pin -- --scope semantic --from-commit <full-commit> --reason "Release tooling only; portable behavior is unchanged."
-npm run release:evidence:pin -- --scope qualification --from v5.0.0 --reason "Qualification behavior is unchanged."
+npm run evidence:pack -- --scope semantic --run <attempt-id>
 ```
 
-`--scope` accepts `semantic`, `qualification`, or `all`. `--from` resolves an exact stable release tag. `--from-commit` accepts an exact full commit, including a committed prerelease evidence state that does not yet have a tag. The command validates only the selected source section and requires every unselected section to have valid fresh current evidence. A tagged section that already points to an earlier source is flattened to that original source so reference chains do not accumulate.
-
-Pinning is an explicit repository-bound maintainer risk decision. The reason must identify what changed, name the deterministic candidate checks used instead of a fresh paid run, and avoid claiming that the source models evaluated the new contracts. Public evidence presents an authenticated pinned result through the same replay and project-journey interface as fresh evidence. Source identity, the pin reason, and the separate current-contract state remain available in technical disclosures rather than interrupting the primary evidence story.
-
-For semantic pins, the source authenticator validates the complete passing case inventory, resource evidence, attempt linkage, and immutable artifact digests. Website generation then reads the bounded authenticated source snapshot and renders local attempt and replay pages from those validated artifacts. The release envelope itself remains a compact projection containing only attempt identity, timestamps, status, artifact digest, and result counts.
-
-For qualification pins, the bounded authenticated source traversal derives a content-free projection for every target and hydrates the validated project evidence needed at build time. Each adapter profile becomes the canonical combined result: 12 shared Custom journeys plus 2 adapter-specific journeys, or the 12 Custom journeys for the Custom profile. There is no separate public qualification-attempt route. Attempt identity, exact package closure, and immutable source links remain in the profile's technical details. No copied evidence ledger, transcript, source document, or parallel provenance store is added to the release envelope.
-
-The reason accepts up to 1,024 UTF-8 bytes. The complete envelope accepts up to 65,536 bytes. These limits bound one small release manifest and do not limit repository size, evaluation history, or the number of source files a coding agent can inspect on demand. Limit failures report the observed value and applicable limit.
-
-A pin bypasses current freshness and identity checks only for its selected section. It does not bypass source existence, optional tag identity, portable skill identity, descriptor integrity, artifact digests, passing resource state, the signed target release, or publication credentials. There is no administrator account, approval service, same-major restriction, hidden carry-forward mode, or local evidence registry. The selection is committed with the repository.
-
-Immutable semantic sources are authenticated from their committed suite and coverage digests, complete unique result inventory, resource limits, attempt linkage, and raw evidence hashes. They are not revalidated through the current evaluator vocabulary, so removing or renaming a current scenario field cannot retroactively invalidate a passing published source. Current evidence creation still uses the complete current schema.
-
-Clear a prepared pin with:
+Qualification packing uses the latest completed local qualification bundle:
 
 ```bash
-npm run release:evidence:pin -- --clear
+npm run evidence:pack -- --scope qualification
 ```
 
-The command removes only an envelope containing at least one pinned section. It does not delete semantic or qualification attempt evidence.
+Bundles are written below `.evidence/bundles/`. Packing validates the public contract, artifact references, digests, portable paths, decoded byte limits, and executable-content restrictions. Exact artifact bytes are stored once even when several paths reference them.
 
-## Check the release
+## Publish a GitHub Release asset
+
+Publish one packed bundle to a dedicated evidence prerelease tag:
+
+```bash
+npm run evidence:publish -- --bundle .evidence/bundles/<bundle>.json.gz --tag evidence-<name>
+```
+
+Publication requires an official bundle and GitHub CLI credentials. It creates or reuses the draft release, rejects conflicting assets, uploads without clobbering, and publishes the evidence release only after the asset is present. A retry may reuse an identical existing asset.
+
+Publishing evidence does not select it and does not deploy the website.
+
+## Select what the website shows
+
+Select each domain independently by exact release tag and asset name:
+
+```bash
+npm run release:evidence:pin -- --scope semantic --release evidence-<name> --asset <semantic-asset>.json.gz
+npm run release:evidence:pin -- --scope qualification --release evidence-<name> --asset <qualification-asset>.json.gz
+```
+
+The command resolves the immutable asset, validates its bundle kind and official classification, records its SHA-256 digest, and atomically updates only the requested section of `evidence/selection.json`. Selecting an older bundle is supported. It does not require historical evaluator code, current fixtures, a compatibility explanation, or matching current case inventory.
+
+An official failed bundle may be selected so the website accurately presents the recorded failure. It remains ineligible for passing release assurance.
+
+## Prepare the static website input
+
+Download and prepare both exact selections with:
+
+```bash
+npm run evidence:prepare
+```
+
+Preparation rejects an unselected domain, a digest mismatch, a wrong bundle kind, fixture evidence, malformed metadata, unsafe paths, oversized content, and incomplete artifact references. It writes both sections into a new snapshot before atomically exposing the manifest. The replaceable cache retains only the two selected compressed bundles.
+
+Preparation downloads public release assets over bounded HTTPS and does not require GitHub CLI authentication. GitHub credentials remain limited to explicit publication.
+
+Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence. Production `website:build`, Pages deployment, and complete release assurance require prepared official selections.
+
+## Check a release
 
 ```bash
 npm run release:check
 ```
 
-The check is read-only. It validates the release identity and dependency closure, then validates each evidence section independently. A fresh section runs its current-only verifier and requires an exact descriptor match. A pinned section validates its immutable source without invoking a model or the current-only verifier for that domain. Public semantic and qualification pages disclose only the provenance relevant to their own evidence.
+The check is read-only with respect to evidence. It validates release identity and requires both prepared selections to match `evidence/selection.json`. Each selected bundle must be official and passing. The check does not rerun an evaluator, reinterpret old results with current tests, fetch a latest asset, or silently replace a selection.
+
+After fresh semantic evaluation and qualification records exist, the operator handoff is:
+
+```bash
+npm run evidence:pack -- --scope semantic --run <attempt-id>
+npm run evidence:pack -- --scope qualification
+npm run evidence:publish -- --bundle .evidence/bundles/<semantic-bundle>.json.gz --tag evidence-<semantic-name>
+npm run evidence:publish -- --bundle .evidence/bundles/<qualification-bundle>.json.gz --tag evidence-<qualification-name>
+npm run release:evidence:pin -- --scope semantic --release evidence-<semantic-name> --asset <semantic-asset>.json.gz
+npm run release:evidence:pin -- --scope qualification --release evidence-<qualification-name> --asset <qualification-asset>.json.gz
+npm run evidence:prepare
+npm run website:check
+npm run website:build
+npm run release:check
+```

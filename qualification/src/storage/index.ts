@@ -19,9 +19,6 @@ export {
   resolveQualificationTargetKey,
 } from './profile-paths.ts';
 
-// committed evidence
-export { isQualificationAttemptCommitted } from './committed-attempt.ts';
-
 // result artifacts
 export {
   createQualificationArtifactStorageEntries,

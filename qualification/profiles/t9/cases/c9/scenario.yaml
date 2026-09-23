@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: repair-langgraph-functional-runtime-binding
 title: Repair LangGraph Functional API runtime binding
+layer: adapter-specific
+description: 'Reconcile a declared runtime-agent symbol with a directly exported Functional API entrypoint using exact adapter diagnostics and source evidence.'
+challenge: 'Requires correcting canonical identity without changing the valid entrypoint, direct task pattern, or TypeScript runtime contracts.'
 purpose: Verify precise diagnostic-driven repair of a direct entrypoint symbol relationship.
 taskFile: task.md
 seedDirectory: seed

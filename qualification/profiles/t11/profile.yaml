@@ -9,10 +9,3 @@ runtimePackages:
   - name: '@types/node'
     version: 22.20.1
 probesFile: probes/claims.yaml
-cases:
-  - id: repair-openai-tool-registration
-    projectDirectory: cases/c9
-    scenarioFile: scenario.yaml
-  - id: preserve-openai-static-boundary
-    projectDirectory: cases/c10
-    scenarioFile: scenario.yaml

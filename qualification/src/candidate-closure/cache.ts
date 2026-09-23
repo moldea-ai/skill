@@ -3,10 +3,10 @@ import { readFile } from 'node:fs/promises';
 import {
   verifyPublishedPackageArchive,
   type IPublishedPackageManifest,
-} from '../../../tooling/package-candidate/index.mjs';
+} from '../../../src/packages/index.ts';
 
 import type { ICandidatePackage } from '../contracts/index.ts';
-import { resolveContainedPath } from '../filesystem/index.ts';
+import { resolveContainedPath } from '../../../src/filesystem/index.ts';
 import type { ICachedCandidatePackage } from './types.ts';
 
 const hasExpectedPackageIdentity = (

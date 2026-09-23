@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: repair-openai-tool-registration
 title: Repair OpenAI tool registration
+layer: adapter-specific
+description: 'Reconcile a declared tool name with a closed OpenAI Responses function-tool array using exact adapter diagnostics and source evidence.'
+challenge: 'Requires correcting canonical identity without changing valid SDK code or weakening the input-schema binding.'
 purpose: Verify precise diagnostic-driven repair of closed function-tool identity.
 taskFile: task.md
 seedDirectory: seed

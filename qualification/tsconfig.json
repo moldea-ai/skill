@@ -1,33 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
-    "allowSyntheticDefaultImports": true,
-    "erasableSyntaxOnly": true,
-    "exactOptionalPropertyTypes": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "lib": ["ES2023"],
-    "module": "NodeNext",
-    "moduleDetection": "force",
-    "moduleResolution": "NodeNext",
-    "noEmit": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitOverride": true,
-    "noImplicitReturns": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noUncheckedIndexedAccess": true,
-    "noUncheckedSideEffectImports": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "target": "ES2023",
-    "types": ["node"],
-    "useDefineForClassFields": true,
-    "verbatimModuleSyntax": true
+    "noEmit": true
   },
-  "include": ["profiles/**/*.ts", "src/**/*.ts", "vitest/**/*.ts"],
+  "include": ["eslint.config.ts", "profiles/**/*.ts", "src/**/*.ts", "vitest/**/*.ts"],
   "exclude": ["node_modules"]
 }

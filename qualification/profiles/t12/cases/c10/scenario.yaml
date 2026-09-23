@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: preserve-openai-agents-sdk-static-boundary
 title: Preserve the OpenAI Agents SDK static boundary
+layer: adapter-specific
+description: 'Represent indirect Agent configuration and unsupported SDK surfaces without claiming evidence that the adapter cannot prove.'
+challenge: 'Tests conservative handling of dynamic routing text, agents as tools, hosted tools, RealtimeAgent, and runtime-only behavior.'
 purpose: Verify conservative treatment of indirect Agent configuration and unsupported SDK routing, tool, and Realtime surfaces.
 taskFile: task.md
 seedDirectory: seed

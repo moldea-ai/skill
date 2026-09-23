@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: preserve-langchain-static-boundary
 title: Preserve the LangChain static boundary
+layer: adapter-specific
+description: 'Represent middleware and unsupported LangChain relationship shapes without claiming evidence that the adapter cannot prove.'
+challenge: 'Tests conservative handling of non-empty middleware, multiple response formats, state and context schemas, headless tools, LangGraph, and routing non-inference.'
 purpose: Verify conservative handling of middleware and unsupported LangChain relationship shapes.
 taskFile: task.md
 seedDirectory: seed

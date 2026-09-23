@@ -15,10 +15,3 @@ runtimePackages:
   - name: zod
     version: 4.3.6
 probesFile: probes/claims.yaml
-cases:
-  - id: repair-langchain-tool-registration
-    projectDirectory: cases/c9
-    scenarioFile: scenario.yaml
-  - id: preserve-langchain-static-boundary
-    projectDirectory: cases/c10
-    scenarioFile: scenario.yaml

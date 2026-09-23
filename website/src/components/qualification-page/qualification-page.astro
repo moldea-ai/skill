@@ -18,6 +18,7 @@ const profilesWithSummary = qualification.profiles.map((profile) => ({
   profile,
   summary: getQualificationReleaseEvidenceSummary(profile),
 }));
+const hasRecordedEvidence = profilesWithSummary.some(({ summary }) => summary.kind === 'recorded');
 const breadcrumbs = [
   { href: '/', label: 'Home' },
   { href: '/evidence/', label: 'Evidence' },
@@ -30,21 +31,27 @@ const proofSteps = [
     title: 'Choose your integration',
   },
   {
-    description: 'Open any recorded task and see what the coding agent did.',
+    description: hasRecordedEvidence
+      ? 'Open any recorded task and see what the coding agent did.'
+      : 'Review the qualification cases currently defined for the integration.',
     icon: Bot,
-    title: 'Follow a journey',
+    title: hasRecordedEvidence ? 'Follow a journey' : 'Review the cases',
   },
   {
-    description: 'Inspect the project changes, checks, and independent verdict.',
+    description: hasRecordedEvidence
+      ? 'Inspect the project changes, checks, and independent verdict.'
+      : 'Recorded project changes, checks, and verdicts will appear here later.',
     icon: ShieldCheck,
-    title: 'Inspect the result',
+    title: hasRecordedEvidence ? 'Inspect the result' : 'Await the evidence',
   },
 ] as const;
 ---
 
 <BaseLayout
   title="Adapter qualification evidence"
-  description="Explore realistic project journeys that prove moldea works with each supported coding-agent integration."
+  description={hasRecordedEvidence
+    ? 'Explore realistic project journeys that prove moldea works with each supported coding-agent integration.'
+    : 'Review the qualification cases currently available for each supported coding-agent integration.'}
   {breadcrumbs}
 >
   <div class="page-shell pt-7">
@@ -60,18 +67,20 @@ const proofSteps = [
     >
       <div>
         <p class="eyebrow mb-4">Adapter qualification</p>
-        <h1 class="section-title font-semibold">Choose the integration in your project.</h1>
+        <h1 class="page-title">Choose the integration in your project.</h1>
         <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-          Each result keeps every recorded journey together, from the developer request to the
-          checked project changes. Qualification does not call the provider API or run the project’s
-          own AI agent.
+          {
+            hasRecordedEvidence
+              ? 'Each result keeps every recorded journey together, from the developer request to the checked project changes. Qualification does not call the provider API or run the project’s own AI agent.'
+              : 'These profiles show every integration and qualification case currently available. Recorded project journeys will appear after qualification evidence is selected.'
+          }
         </p>
         <ActionLink
           class="mt-8 font-bold"
           href="#qualification-profiles"
           size="lg"
         >
-          Browse the results
+          {hasRecordedEvidence ? 'Browse the results' : 'Browse the integrations'}
           <ArrowRight
             class="size-4"
             aria-hidden="true"
@@ -114,9 +123,13 @@ const proofSteps = [
           <p class="eyebrow mb-3">Choose your integration</p>
           <h2
             id="qualification-profiles-title"
-            class="text-3xl font-semibold tracking-tight sm:text-4xl"
+            class="section-title"
           >
-            Pick one result. Every journey is on the next page.
+            {
+              hasRecordedEvidence
+                ? 'Pick one result. Every journey is on the next page.'
+                : 'Choose an integration to review its current coverage.'
+            }
           </h2>
         </div>
         <p class="leading-7 text-muted-foreground lg:justify-self-end">
@@ -130,7 +143,11 @@ const proofSteps = [
         {
           profilesWithSummary.map(({ profile, summary }) => {
             const shortTitle = profile.title.replace(/ qualification$/u, '');
-            const journeyLabel = `${profile.cases.length + profile.sharedCases.length} project journeys`;
+            const caseCount = profile.cases.length + profile.sharedCases.length;
+            const journeyLabel =
+              summary.kind === 'recorded'
+                ? `${caseCount} project journeys`
+                : `${caseCount} qualification cases`;
             return (
               <a
                 class="group sm:interactive-card grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-4 sm:flex sm:flex-col sm:items-stretch sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-5 sm:shadow-surface"
@@ -152,7 +169,7 @@ const proofSteps = [
                   aria-hidden="true"
                 />
                 <span class="mt-4 hidden items-center gap-2 text-link border-t border-border pt-3 text-sm font-semibold sm:inline-flex">
-                  Open this result
+                  {summary.kind === 'recorded' ? 'Open this result' : 'Review this profile'}
                   <ArrowRight
                     class="size-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none"
                     aria-hidden="true"
@@ -176,7 +193,7 @@ const proofSteps = [
         >
           How qualification works and where the evidence comes from
         </summary>
-        <div class="mt-5 border-t border-border pt-5">
+        <div class="mt-5">
           <p class="max-w-3xl leading-7 text-muted-foreground">
             The technical record includes transparent fixture projects, deterministic checks, exact
             package versions, model configuration, immutable artifacts, and release provenance.

@@ -1,5 +1,5 @@
-import { hasPassingCodexEvaluationCommandPolicy } from '../../../tooling/codex-evaluation-host/index.mjs';
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
+import { hasPassingCodexEvaluationCommandPolicy } from '../../../src/execution/host/index.ts';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../src/resources/index.ts';
 
 import type {
   IActorOutput,
@@ -10,6 +10,7 @@ import type {
   IQualificationCaseScenario,
   IQualificationCommandPolicyEvidence,
   IQualificationExecutionEnvironment,
+  IQualificationProvenance,
   IQualificationModelStageEvidence,
   IQualificationRequirementAssessment,
   IQualificationResourceProfile,
@@ -122,7 +123,7 @@ export const haveQualificationInputsChanged = (
 
 /** Returns whether a resumed attempt would use a different local execution host identity. */
 export const haveQualificationExecutionInputsChanged = (
-  expected: IQualificationExecutionEnvironment,
+  expected: Pick<IQualificationProvenance, keyof IQualificationExecutionEnvironment>,
   current: IQualificationExecutionEnvironment,
 ): boolean =>
   expected.model !== current.model ||

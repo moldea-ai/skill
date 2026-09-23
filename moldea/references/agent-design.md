@@ -44,7 +44,7 @@ Always state the consumer-purpose classification, including when dynamic wiring 
 
 ## Select the runtime honestly
 
-Every registered agent declares one `runtime.id`. Use `composition --json` when installed adapter inventory matters. Load `runtime-compatibility.md` when local adapter eligibility or source-pattern compatibility matters. Complete this gate before editing runtime state:
+Every registered agent declares one `runtime.id`. Use `composition --json` when installed adapter inventory matters; this command does not accept `--max-output-bytes`. Load `runtime-compatibility.md` when local adapter eligibility or source-pattern compatibility matters. Complete this gate before editing runtime state:
 
 1. Establish authorized repository scope and state. Inspect identified related repositories as read-only evidence.
 2. Identify the primary model-invocation boundary and applicable instruction loading, capabilities, schemas, routing, and variables.
@@ -82,6 +82,7 @@ agents:
         symbol: createOrderTriageAgent
     affectedBy:
       - /src/order-triage-agent.ts
+      - /src/order-triage-policy/**
 ```
 
 Register shared context by its complete `/moldea/context/*.md` logical path and let agents select that same path. Record an agent-owned unresolved requirement under the agent, with traceability expressed as `related` path records:
@@ -108,6 +109,10 @@ agents:
 Register repository-root-absolute logical paths and symbols only for material implementation relationships that cannot be derived reliably, including runtime agents, executable schemas, instruction loaders, variable providers, capability implementation or registration, context, decisions, runtime guidance, and broader `affectedBy` paths.
 
 `affectedBy` is a behavioral impact map, not a build dependency graph. Include a path when its changes can materially alter the owner's policy, capabilities, executable contracts, routing, instruction loading, or runtime integration. Prefer exact paths or coherent behavioral subtrees. Exact bindings already establish relevance; do not repeat their paths mechanically unless a broader file-level effect needs coverage.
+
+An exact `affectedBy` path must resolve to a regular file, such as `/src/order-triage-agent.ts`. Express a coherent subtree with a supported glob, such as `/src/order-triage-policy/**`. Neither `/src/order-triage-policy` nor `/src/order-triage-policy/` expresses subtree impact: removing a trailing slash does not turn a directory into a file. Choose exact files or a subtree from the inspected behavioral ownership; do not broaden everything to `/src/**`. Binding paths, mirrors, and `related` path records keep their exact-path contracts.
+
+When a relationship diagnostic appears, establish the field's full syntax and target-type requirements before repairing all equivalent defects in the affected change set. Preserve material relationships and unrelated declarations; never fabricate files or remove relationships merely to pass validation. Follow the entrypoint's supported recovery rule when validation reveals another defect.
 
 Package manifests and lockfiles can matter when they select dependencies or runtime settings that materially affect that owner; do not attach them to every agent by default. Compiler configuration and type-only declarations require an evidenced behavioral effect, not compilation participation alone. Scope tests to the behavior they protect rather than automatically declaring every test. These are selection criteria, not filename bans: preserve a justified configuration or shared dependency relationship and inspect its role before narrowing an existing declaration.
 
@@ -167,6 +172,6 @@ Requirements are not a roadmap. Do not create one to avoid an answerable questio
 
 ## Verify agent readiness
 
-After all canonical, runtime, test, and relationship file writes, run the focused project-native tests that exercise every changed material invocation and canonical-loading path, correct any implementation or test defect, and only then run launcher-backed `validate` as the final moldea command. If validation reports a repairable structural defect, apply the complete repair and run one final validation afterward; this retry may be the fifth and final moldea call only when owner discovery or composition consumed the ordinary four-call budget. Never write after the last allowed validation, retry without a repair, or claim readiness for an unvalidated repair. Report the final status and material diagnostics, including their absence. A passing generic check or actor report is not a substitute for runner-owned focused test evidence. Review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state without loading unrelated canonical bodies.
+After all canonical, runtime, test, and relationship file writes, run the focused project-native tests that exercise every changed material invocation and canonical-loading path, correct any implementation or test defect, and only then run launcher-backed `validate` as the final moldea command. For repairable structural defects, follow the entrypoint's supported recovery rule: correct the complete affected contract, rerun native checks affected by the repair, and validate after the last write. Report the final status and material diagnostics, including their absence. A passing generic check or actor report is not a substitute for runner-owned focused test evidence. Review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state without loading unrelated canonical bodies.
 
 Do not claim production readiness when behavior lacks support, a material contract is hidden or contradictory, affected validation fails, or a blocking requirement remains.

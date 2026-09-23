@@ -1,4 +1,4 @@
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../src/resources/index.ts';
 
 import {
   QUALIFICATION_CANDIDATE_TOKEN_LIMIT,

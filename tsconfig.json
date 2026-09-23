@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
+  "include": ["eslint.config.ts", "src/**/*.ts", "vitest/**/*.ts"],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "src/**/*.test-bench.ts",
+    "src/**/*.test-e2e.ts",
+    "src/**/*.test-integration.ts",
+    "src/**/*.test-unit.ts"
+  ]
+}

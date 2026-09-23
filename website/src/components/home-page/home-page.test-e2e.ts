@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
@@ -17,6 +17,138 @@ import {
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
+const HEADING_ROLE_WIDTHS = [320, 639, 640, 1023, 1024, 1279, 1280, 1440] as const;
+const HOME_HEADING_ROLE_VALUES = {
+  display: { letterSpacing: -0.045, lineHeight: 1.1 },
+  section: { letterSpacing: -0.025, lineHeight: 1.2 },
+} as const;
+
+type IHomeHeadingRole = keyof typeof HOME_HEADING_ROLE_VALUES;
+
+/** Returns the exact responsive font size owned by a shared Website UI heading role. */
+const getHeadingRoleFontSize = (role: IHomeHeadingRole, width: number): number => {
+  if (role === 'display') {
+    if (width >= 1280) return 72;
+    if (width >= 640) return 60;
+    return 48;
+  }
+
+  if (width >= 1024) return 48;
+  if (width >= 640) return 36;
+  return 30;
+};
+
+/** Verifies a home-page heading role after the real bold Ubuntu Sans face has loaded. */
+const expectHeadingRole = async (
+  page: Page,
+  heading: Locator,
+  nextContent: Locator,
+  role: IHomeHeadingRole,
+  width: number,
+): Promise<void> => {
+  await expect(heading).toBeVisible();
+
+  const fontAvailability = await heading.evaluate(async (element) => {
+    const text = (element.textContent ?? '').replaceAll(/\s+/gu, ' ').trim();
+    const fontSize = getComputedStyle(element).fontSize;
+    const fontSpecification = `700 ${fontSize} "Ubuntu Sans Variable"`;
+    const loadedFontFaces = await document.fonts.load(fontSpecification, text);
+
+    await document.fonts.ready;
+
+    return {
+      isAvailable: document.fonts.check(fontSpecification, text),
+      loadedFaceCount: loadedFontFaces.length,
+    };
+  });
+
+  expect(fontAvailability.loadedFaceCount).toBeGreaterThan(0);
+  expect(fontAvailability.isAvailable).toBe(true);
+
+  const typography = await heading.evaluate((element) => {
+    const computedStyle = getComputedStyle(element);
+    const bounds = element.getBoundingClientRect();
+
+    return {
+      blockHeight: bounds.height,
+      bottom: bounds.bottom,
+      clientWidth: element.clientWidth,
+      fontFamily: computedStyle.fontFamily,
+      fontSize: Number.parseFloat(computedStyle.fontSize),
+      fontWeight: computedStyle.fontWeight,
+      left: bounds.left,
+      letterSpacing: Number.parseFloat(computedStyle.letterSpacing),
+      lineHeight: Number.parseFloat(computedStyle.lineHeight),
+      overflowX: computedStyle.overflowX,
+      overflowY: computedStyle.overflowY,
+      overflowWrap: computedStyle.overflowWrap,
+      right: bounds.right,
+      scrollWidth: element.scrollWidth,
+      textWrap: computedStyle.textWrap,
+    };
+  });
+  const expectedFontSize = getHeadingRoleFontSize(role, width);
+  const expectedValues = HOME_HEADING_ROLE_VALUES[role];
+
+  expect(typography.fontFamily).toContain('Ubuntu Sans Variable');
+  expect(typography.fontSize).toBeCloseTo(expectedFontSize, 2);
+  expect(typography.fontWeight).toBe('700');
+  expect(typography.lineHeight).toBeCloseTo(expectedFontSize * expectedValues.lineHeight, 2);
+  expect(typography.letterSpacing).toBeCloseTo(expectedFontSize * expectedValues.letterSpacing, 2);
+  expect(typography.textWrap).toBe('balance');
+  expect(typography.overflowWrap).toBe('break-word');
+  expect(typography.blockHeight).toBeGreaterThan(typography.lineHeight * 1.5);
+  expect(['clip', 'hidden']).not.toContain(typography.overflowX);
+  expect(['clip', 'hidden']).not.toContain(typography.overflowY);
+  expect(typography.scrollWidth).toBeLessThanOrEqual(typography.clientWidth + 1);
+  expect(typography.left).toBeGreaterThanOrEqual(-1);
+  expect(typography.right).toBeLessThanOrEqual(width + 1);
+
+  const nextContentTop = await nextContent.evaluate(
+    (element) => element.getBoundingClientRect().top,
+  );
+  expect(nextContentTop).toBeGreaterThanOrEqual(typography.bottom - 1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+    width,
+  );
+};
+
+for (const width of HEADING_ROLE_WIDTHS) {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`keeps display and section headings legible at ${width}px in ${theme}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ height: 900, width });
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      await page.goto(toPublicPath('/'));
+
+      const displayTitle = page.getByRole('heading', {
+        level: 1,
+        name: 'Build agents that know your project.',
+      });
+      const sectionTitle = page.getByRole('heading', {
+        level: 2,
+        name: 'Your coding agent can remember. Your project still needs a system.',
+      });
+
+      await expectHeadingRole(
+        page,
+        displayTitle,
+        displayTitle.locator('xpath=following-sibling::*[1]'),
+        'display',
+        width,
+      );
+      await expectHeadingRole(
+        page,
+        sectionTitle,
+        page.locator('[data-why-moldea-comparison]'),
+        'section',
+        width,
+      );
+    });
+  }
+}
+
 test('leads with the connected-agent example and direct paths to act or inspect', async ({
   page,
 }) => {
@@ -26,7 +158,7 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'Give your coding agent what the request leaves out.',
+      name: 'Build agents that know your project.',
     }),
   ).toBeVisible();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
@@ -53,14 +185,10 @@ test('leads with the connected-agent example and direct paths to act or inspect'
     page.getByRole('heading', { level: 2, name: 'One install. One ordinary request.' }),
   ).toBeVisible();
 
-  const checksLink = page.getByRole('link', { name: 'See what gets checked', exact: true });
-  await expect(checksLink).toHaveAttribute('href', '#deterministic-checks');
-  await checksLink.focus();
-  await checksLink.press('Enter');
-  await expect(page).toHaveURL(/#deterministic-checks$/u);
-  await expect(
-    page.getByRole('heading', { level: 2, name: 'Same project. Same check. Same result.' }),
-  ).toBeVisible();
+  const workflowLink = page
+    .locator('[data-home-hero]')
+    .getByRole('link', { name: 'See how it works', exact: true });
+  await expect(workflowLink).toHaveAttribute('href', toPublicPath('/how-it-works/'));
 
   await expect(page.locator('[data-maintenance-diff="application"]')).toContainText(
     LANDING_EXAMPLE_PREVIEW.policyDiff.source,
@@ -74,6 +202,16 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(page.locator('[data-maintenance-diff="instruction"]')).toContainText(
     LANDING_EXAMPLE_PREVIEW.instructionDiff.source,
   );
+
+  await workflowLink.focus();
+  await workflowLink.press('Enter');
+  await expect(page).toHaveURL(toPublicPath('/how-it-works/'));
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Your request is one sentence. The work stays connected.',
+    }),
+  ).toBeVisible();
 });
 
 test('presents the product story before proof and adoption', async ({ page }) => {

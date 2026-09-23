@@ -20,7 +20,7 @@ import {
   ensureDirectory,
   readJsonFile,
   writeJsonFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   createQualificationAttemptKey,
   readQualificationAttemptStorage,
@@ -103,7 +103,7 @@ const createResult = (
     evidenceGeneratedAt: createdAt,
     summary: `Fixture ${status} result.`,
     provenance: {
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       actorReasoningEffort: 'xhigh',
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
@@ -175,7 +175,8 @@ describe('qualification result recording', () => {
       QualificationLatestResultSchema,
     );
 
-    expect(Object.keys(passing.artifactDigests)).toHaveLength(19);
+    expect(Object.keys(passing.artifactDigests)).toHaveLength(20);
+    expect(Object.keys(passing.artifactDigests)).toContain('recorded-contract.json');
     expect(Object.keys(passing.artifactDigests)).toContain(
       'cases/release-case/trials/initial/judge-output.json',
     );
@@ -213,6 +214,68 @@ describe('qualification result recording', () => {
         },
       ],
     });
+  });
+
+  test('records a new-model attempt beside verifiable old-model history', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    const legacyArtifactDirectory = path.join(temporaryRoot, 'legacy-artifacts');
+    const legacyDraft = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory: legacyArtifactDirectory,
+      attemptId: 'attempt-legacy-model',
+      resultsRoot,
+    });
+    const legacyResult = QualificationAttemptResultSchema.parse({
+      ...legacyDraft,
+      provenance: { ...legacyDraft.provenance, model: 'gpt-5.6-sol' },
+    });
+    await recordQualificationResult(
+      { artifactDirectory: legacyArtifactDirectory, result: legacyResult, sanitizationContext },
+      resultsRoot,
+    );
+
+    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
+      passed: true,
+      attempts: 1,
+      issues: [],
+    });
+
+    const currentArtifactDirectory = path.join(temporaryRoot, 'current-artifacts');
+    const currentResult = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory: currentArtifactDirectory,
+      attemptId: 'attempt-new-model',
+      resultsRoot,
+    });
+    await recordQualificationResult(
+      { artifactDirectory: currentArtifactDirectory, result: currentResult, sanitizationContext },
+      resultsRoot,
+    );
+
+    expect(
+      await readJsonFile(
+        path.join(resultsRoot, TARGET_KEY, 'latest.json'),
+        QualificationLatestResultSchema,
+      ),
+    ).toMatchObject({
+      latestAttemptId: 'attempt-new-model',
+      lastPassingAttemptId: 'attempt-new-model',
+    });
+    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
+      passed: true,
+      attempts: 2,
+      issues: [],
+    });
+    expect(
+      (
+        await readJsonFile(
+          path.join(
+            getRecordedAttemptDirectory(resultsRoot, legacyResult.attemptId),
+            'attempt.json',
+          ),
+          QualificationAttemptResultSchema,
+        )
+      ).provenance.model,
+    ).toBe('gpt-5.6-sol');
   });
 
   test('verifies self-contained recorded evidence without reading Git objects', async () => {

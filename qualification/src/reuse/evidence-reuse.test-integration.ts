@@ -10,16 +10,13 @@ import { createAttemptCheckpoint } from '../checkpoint/index.ts';
 import {
   QualificationAttemptResultSchema,
   QualificationCaseResultSchema,
+  QualificationExecutionEnvironmentSchema,
   QualificationModelStageEvidenceSchema,
   type ICandidateClosure,
 } from '../contracts/index.ts';
 import { createQualificationStageIds } from '../execution/index.ts';
-import {
-  calculateQualificationCaseModelInputDigestsAtCommit,
-  calculateQualificationModelStageEvaluatorDigestAtCommit,
-} from '../evidence-identity/index.ts';
-import { ensureDirectory, readJsonFile } from '../filesystem/index.ts';
-import { executeProcess } from '../process/index.ts';
+import { copyDirectory, ensureDirectory, readJsonFile } from '../../../src/filesystem/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 import { recordQualificationResult } from '../result/index.ts';
 import {
   createQualificationAttemptKey,
@@ -122,7 +119,7 @@ describe('qualification case evidence reuse', () => {
       packagesDigest: 'e'.repeat(64),
       targetDigest: sourceResult.provenance.targetDigest,
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
@@ -207,12 +204,24 @@ describe('qualification case evidence reuse', () => {
       args: ['clone', '--shared', path.resolve('..'), repositoryRoot],
       cwd: temporaryRoot,
     });
+    await Promise.all([
+      copyDirectory(
+        path.resolve('../src/execution/host'),
+        path.join(repositoryRoot, 'src/execution/host'),
+        { overwrite: true },
+      ),
+      copyDirectory(path.resolve('../src/packages'), path.join(repositoryRoot, 'src/packages'), {
+        overwrite: true,
+      }),
+      copyDirectory(path.resolve('../src/resources'), path.join(repositoryRoot, 'src/resources'), {
+        overwrite: true,
+      }),
+    ]);
     const resultsRoot = path.join(repositoryRoot, 'qualification', 'results');
     await Promise.all([
       rm(path.join(repositoryRoot, 'qualification', 'cases'), { force: true, recursive: true }),
       rm(path.join(repositoryRoot, 'qualification', 'profiles'), { force: true, recursive: true }),
       rm(resultsRoot, { force: true, recursive: true }),
-      rm(path.join(repositoryRoot, 'qualification', 'reuse-sources.json'), { force: true }),
     ]);
     const sourceArtifactDirectory = path.join(temporaryRoot, 'source-artifacts');
     const sourceDraft = await seedPassingQualificationEvidenceFixture({
@@ -280,14 +289,7 @@ describe('qualification case evidence reuse', () => {
       ],
       cwd: repositoryRoot,
     });
-    const evidenceCommit = (
-      await executeProcess({
-        command: 'git',
-        args: ['rev-parse', 'HEAD'],
-        cwd: repositoryRoot,
-      })
-    ).stdout.trim();
-    const executionEnvironment = {
+    const executionEnvironment = QualificationExecutionEnvironmentSchema.parse({
       model: sourceResult.provenance.model,
       actorReasoningEffort: sourceResult.provenance.actorReasoningEffort,
       judgeReasoningEffort: sourceResult.provenance.judgeReasoningEffort,
@@ -299,7 +301,7 @@ describe('qualification case evidence reuse', () => {
       hostTimeoutMs: sourceResult.provenance.hostTimeoutMs,
       modelEndpoint: sourceResult.provenance.modelEndpoint,
       sslCertificateFileSha256: sourceResult.provenance.sslCertificateFileSha256,
-    };
+    });
     const checkpoint = await createAttemptCheckpoint({
       attemptDirectory: path.join(temporaryRoot, 'destination-attempt'),
       attemptId: 'destination-attempt',
@@ -320,37 +322,15 @@ describe('qualification case evidence reuse', () => {
       executionEnvironment,
       stageIds: createQualificationStageIds(sourceResult.cases.map(({ caseId }) => caseId)),
     });
-    const loadCases = async (
-      identityOverrides: { caseDigest?: string; evaluatorStageDigest?: string } = {},
-    ) => {
-      const [caseDigests, evaluatorStageDigest] = await Promise.all([
-        calculateQualificationCaseModelInputDigestsAtCommit({
-          caseIds: [CASE_ID],
-          commit: contractCommit,
-          repositoryRoot,
-          selection: sourceResult.selection,
-        }),
-        calculateQualificationModelStageEvaluatorDigestAtCommit(contractCommit, repositoryRoot),
-      ]);
-
-      return loadReusableQualificationCases({
+    const loadCases = async (qualificationDigest = checkpoint.qualificationDigest) =>
+      loadReusableQualificationCases({
         baselineAttemptId: null,
         candidate,
-        caseDigests: {
-          ...caseDigests,
-          ...(identityOverrides.caseDigest === undefined
-            ? {}
-            : { [CASE_ID]: identityOverrides.caseDigest }),
-        },
         caseIds: [CASE_ID],
-        checkpoint,
-        evaluatorStageDigest: identityOverrides.evaluatorStageDigest ?? evaluatorStageDigest,
+        checkpoint: { ...checkpoint, qualificationDigest },
         executionEnvironment,
-        qualificationRepositoryCommit: evidenceCommit,
-        repositoryRoot,
         resultsRoot,
       });
-    };
     const reusableCases = await loadCases();
 
     expect(reusableCases.get(CASE_ID)?.caseResult.status).toBe('passed');
@@ -432,10 +412,7 @@ describe('qualification case evidence reuse', () => {
       'advanced-packages-commit',
     );
     expect(recordedDestination.cases[0]?.reuse?.sourceAttemptId).toBe(sourceResult.attemptId);
-    await expect(loadCases({ caseDigest: '0'.repeat(64) })).resolves.toStrictEqual(new Map());
-    await expect(loadCases({ evaluatorStageDigest: '0'.repeat(64) })).resolves.toStrictEqual(
-      new Map(),
-    );
+    await expect(loadCases('0'.repeat(64))).resolves.toStrictEqual(new Map());
 
     const sourceAttemptDirectory = path.join(
       resultsRoot,

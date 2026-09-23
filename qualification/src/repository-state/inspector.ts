@@ -4,8 +4,8 @@ import {
   calculateSha256,
   type IDirectoryFingerprintEntry,
   resolveContainedPath,
-} from '../filesystem/index.ts';
-import { executeProcess } from '../process/index.ts';
+} from '../../../src/filesystem/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 import type { IGitRepositoryState, IGitRepositoryStateOptions } from './types.ts';
 
 const isMissingPathError = (error: unknown): boolean =>

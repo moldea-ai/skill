@@ -11,8 +11,8 @@ import type {
 import type {
   ICodexEvaluationOperationalExhaustion,
   ICodexEvaluationOperationalRetry,
-} from '../../../tooling/codex-evaluation-host/index.mjs';
-import type { IEvaluationBatchWorkerCount } from '../../../tooling/evaluation-batch/index.mjs';
+} from '../../../src/execution/host/index.ts';
+import type { IEvaluationBatchWorkerCount } from '../../../src/execution/batch/index.ts';
 import type { ICodexHost } from '../codex-host/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 

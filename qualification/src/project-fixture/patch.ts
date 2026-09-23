@@ -1,5 +1,5 @@
 import { EXCLUDED_DIRECTORY_NAMES } from '../constants/index.ts';
-import { executeProcess } from '../process/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 
 const isExcludedPath = (relativePath: string): boolean =>
   relativePath.split('/').some((pathSegment) => EXCLUDED_DIRECTORY_NAMES.has(pathSegment));

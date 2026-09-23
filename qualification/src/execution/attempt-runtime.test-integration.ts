@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { ensureDirectory } from '../filesystem/index.ts';
+import { ensureDirectory } from '../../../src/filesystem/index.ts';
 import { cleanupQualificationAttemptRuntime } from './attempt-runtime.ts';
 
 const hasPath = async (candidatePath: string): Promise<boolean> => {

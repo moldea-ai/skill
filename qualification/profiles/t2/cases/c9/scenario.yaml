@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: repair-claude-agent-sdk-tool-registration
 title: Repair Claude Agent SDK tool registration
+layer: adapter-specific
+description: 'Reconcile a declared tool name with a closed query-mounted SDK MCP tool using exact adapter diagnostics and source evidence.'
+challenge: 'Requires correcting the canonical fully qualified name without changing valid tool, server, implementation, or schema wiring.'
 purpose: Verify precise diagnostic-driven repair of a query-mounted SDK MCP tool identity.
 taskFile: task.md
 seedDirectory: seed

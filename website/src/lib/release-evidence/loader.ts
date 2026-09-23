@@ -1,194 +1,213 @@
-import { readReleaseEvidenceEnvelope } from '../../../../tooling/release-identity/release-evidence-envelope.mjs';
-import { loadPinnedReleaseEvidenceSection } from '../../../../tooling/release-identity/release-evidence-source.mjs';
-import { createDependencyClosureSha256 } from '../../../../tooling/release-identity/release-evidence-current.mjs';
-import { createPortableSkillDigest } from '../../../../tooling/semantic-evaluation/index.mjs';
+import { createHash } from 'node:crypto';
+import { cpSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import path from 'node:path';
 
-import {
-  assertPublishableQualificationEvidence,
-  attachPinnedQualificationEvidence,
-  loadQualificationWebsiteModel,
-} from '../qualification/index.ts';
-import { loadSemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
+import { z } from 'zod';
 
-import { withMaterializedEvidenceSource } from './source-materializer.ts';
+import { parseQualificationWebsiteModel } from '../../../../qualification/src/public-evidence/index.ts';
+import { parseSemanticWebsiteModel } from '../../../../src/semantic/public-evidence/index.ts';
+
 import type {
   IQualificationReleaseEvidenceSectionModel,
-  IReleaseEvidenceModel,
   IReleaseEvidenceSectionModel,
   IReleaseEvidenceWebsiteState,
-  ISemanticReleaseEvidenceSectionModel,
 } from './types.ts';
 
 const SOURCE_REPOSITORY_URL = 'https://github.com/moldea-ai/skill';
 
-const loadSectionModel = (
-  targetVersion: string,
-  section: NonNullable<ReturnType<typeof readReleaseEvidenceEnvelope>>[
-    'qualification' | 'semantic'],
-): IReleaseEvidenceSectionModel => {
-  if (section.mode === 'fresh') {
-    return {
-      mode: 'fresh',
-      sourceUrl: `${SOURCE_REPOSITORY_URL}/tree/v${targetVersion}`,
-    };
-  }
-  const sourceLabel = section.source.tag ?? section.source.commit.slice(0, 12);
-  return {
-    mode: 'pinned',
-    reason: section.reason,
-    sourceCommit: section.source.commit,
-    sourceLabel,
-    sourceUrl: `${SOURCE_REPOSITORY_URL}/tree/${section.source.tag ?? section.source.commit}`,
-  };
-};
+const PreparedEvidenceBundleSchema = z.object({
+  formatVersion: z.literal(1),
+  kind: z.enum(['qualification', 'semantic']),
+  classification: z.enum(['fixture', 'official']),
+  run: z.object({
+    attemptId: z.string().min(1),
+    evaluatedAt: z.iso.datetime(),
+    status: z.enum(['errored', 'failed', 'incomplete', 'passed']),
+    version: z.string().min(1),
+    provenance: z.record(z.string(), z.string()),
+  }),
+  payload: z.object({ websiteModel: z.unknown() }),
+});
 
-const loadQualificationSectionModel = (
-  repositoryRoot: string,
-  targetVersion: string,
-  section: NonNullable<ReturnType<typeof readReleaseEvidenceEnvelope>>['qualification'],
-  shouldHydrate: boolean,
-): {
-  model: IQualificationReleaseEvidenceSectionModel;
-  websiteModel: ReturnType<typeof loadQualificationWebsiteModel> | null;
-} => {
-  const model = loadSectionModel(targetVersion, section);
-  if (model.mode === 'fresh') return { model, websiteModel: null };
-  if (section.mode !== 'pinned') {
-    throw new Error('Pinned qualification release evidence has inconsistent provenance.');
-  }
-  const sourceTargetsByIdentity = new Map(
-    section.source.evidence.targets.map((target) => [
-      `${target.adapterId}\0${target.implementationId}`,
-      target,
-    ]),
-  );
-  const source = loadPinnedReleaseEvidenceSection(repositoryRoot, section, 'qualification');
-  const targets = source.projection.map((target) => {
-    const sourceTarget = sourceTargetsByIdentity.get(
-      `${target.adapterId}\0${target.implementationId}`,
-    );
-    if (sourceTarget === undefined) {
-      throw new Error('Pinned qualification evidence has inconsistent target provenance.');
-    }
-    return {
-      ...target,
-      sourceAttemptUrl: `${SOURCE_REPOSITORY_URL}/blob/${section.source.commit}/qualification/results/${sourceTarget.key}/attempts/${sourceTarget.attemptKey}/attempt.json`,
-    };
-  });
-  const sectionModel: IQualificationReleaseEvidenceSectionModel = {
-    ...model,
-    targets,
-  };
-  if (!shouldHydrate) return { model: sectionModel, websiteModel: null };
-  const websiteModel = withMaterializedEvidenceSource(source.files, (sourceRoot) =>
-    loadQualificationWebsiteModel(sourceRoot, {
-      evidenceSource: { commit: section.source.commit, kind: 'pinned' },
-      isAuthenticatedSource: true,
-      revision: section.source.commit,
-    }),
-  );
-  assertPublishableQualificationEvidence(websiteModel);
-  return {
-    model: sectionModel,
-    websiteModel: attachPinnedQualificationEvidence(websiteModel, targets),
-  };
-};
+const PreparedEvidenceSectionSchema = z.strictObject({
+  assetsPath: z.string().min(1),
+  bundleSha256: z.string().regex(/^[a-f0-9]{64}$/u),
+  path: z.string().min(1),
+  preparedSha256: z.string().regex(/^[a-f0-9]{64}$/u),
+});
 
-const loadSemanticSectionModel = (
-  repositoryRoot: string,
-  targetVersion: string,
-  section: NonNullable<ReturnType<typeof readReleaseEvidenceEnvelope>>['semantic'],
-  shouldHydrate: boolean,
-): {
-  model: ISemanticReleaseEvidenceSectionModel;
-  websiteModel: ReturnType<typeof loadSemanticEvaluationWebsiteModel> | null;
-} => {
-  const model = loadSectionModel(targetVersion, section);
-  if (model.mode === 'fresh') return { model, websiteModel: null };
-  if (section.mode !== 'pinned') {
-    throw new Error('Pinned semantic release evidence has inconsistent provenance.');
+const PreparedEvidenceManifestSchema = z.strictObject({
+  formatVersion: z.literal(1),
+  qualification: PreparedEvidenceSectionSchema,
+  selectionSha256: z.string().regex(/^[a-f0-9]{64}$/u),
+  semantic: PreparedEvidenceSectionSchema,
+});
+
+const EvidenceSelectionReferenceSchema = z.strictObject({
+  assetName: z.string().min(1),
+  classification: z.literal('official'),
+  repository: z.string().min(1),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/u),
+  tag: z.string().min(1),
+});
+
+const EvidenceSelectionSchema = z.strictObject({
+  formatVersion: z.literal(1),
+  qualification: EvidenceSelectionReferenceSchema.nullable(),
+  semantic: EvidenceSelectionReferenceSchema.nullable(),
+});
+
+type IPreparedEvidenceBundle = z.infer<typeof PreparedEvidenceBundleSchema>;
+
+const readPreparedBundle = (
+  preparedDirectory: string,
+  kind: 'qualification' | 'semantic',
+  section: z.infer<typeof PreparedEvidenceSectionSchema>,
+  allowFixture: boolean,
+): IPreparedEvidenceBundle => {
+  const bundlePath = path.resolve(preparedDirectory, section.path);
+  const relativeBundlePath = path.relative(preparedDirectory, bundlePath);
+  if (relativeBundlePath.startsWith('..') || path.isAbsolute(relativeBundlePath)) {
+    throw new Error(`Prepared ${kind} evidence path escapes its owned directory.`);
   }
-  const source = loadPinnedReleaseEvidenceSection(repositoryRoot, section, 'semantic');
-  const attempt = source.projection;
-  const sectionModel: ISemanticReleaseEvidenceSectionModel = {
-    ...model,
-    attempt,
-    sourceAttemptUrl: `${SOURCE_REPOSITORY_URL}/blob/${section.source.commit}/fixtures/semantic-evaluation-results/attempts/${attempt.attemptId}/attempt.json`,
-  };
-  if (!shouldHydrate) return { model: sectionModel, websiteModel: null };
-  const websiteModel = withMaterializedEvidenceSource(source.files, (sourceRoot) =>
-    loadSemanticEvaluationWebsiteModel(sourceRoot, section.source.commit, {
-      evidenceSource: { commit: section.source.commit, kind: 'pinned' },
-      isAuthenticatedSource: true,
-    }),
-  );
+  const source = readFileSync(bundlePath, 'utf8');
+  const preparedSha256 = createHash('sha256').update(source).digest('hex');
+  if (preparedSha256 !== section.preparedSha256) {
+    throw new Error(`Prepared ${kind} evidence digest does not match its manifest.`);
+  }
+  const bundle = PreparedEvidenceBundleSchema.parse(JSON.parse(source) as unknown);
+
   if (
-    websiteModel.currentAssurance?.result.attemptId !== attempt.attemptId ||
-    websiteModel.currentAssurance.result.status !== 'passed'
+    bundle.kind !== kind ||
+    (bundle.classification !== 'official' && !(allowFixture && bundle.classification === 'fixture'))
   ) {
-    throw new Error('Pinned semantic website model does not match its authenticated attempt.');
+    throw new Error(`Prepared ${kind} evidence has an unsupported classification or kind.`);
   }
+
+  return bundle;
+};
+
+const copyPreparedAssets = (
+  repositoryRoot: string,
+  preparedDirectory: string,
+  manifest: z.infer<typeof PreparedEvidenceManifestSchema>,
+): void => {
+  const publicAssetsDirectory = path.join(repositoryRoot, 'website', 'public', 'evidence-assets');
+  rmSync(publicAssetsDirectory, { force: true, recursive: true });
+  mkdirSync(publicAssetsDirectory, { recursive: true });
+
+  for (const kind of ['semantic', 'qualification'] as const) {
+    const sourceDirectory = path.resolve(preparedDirectory, manifest[kind].assetsPath);
+    const relativeSourcePath = path.relative(preparedDirectory, sourceDirectory);
+    if (relativeSourcePath.startsWith('..') || path.isAbsolute(relativeSourcePath)) {
+      throw new Error(`Prepared ${kind} asset path escapes its owned directory.`);
+    }
+    cpSync(sourceDirectory, path.join(publicAssetsDirectory, kind), {
+      errorOnExist: true,
+      force: false,
+      recursive: true,
+    });
+  }
+};
+
+const createSectionModel = (bundle: IPreparedEvidenceBundle): IReleaseEvidenceSectionModel => {
+  const sourceUrl = bundle.run.provenance['sourceUrl'] ?? SOURCE_REPOSITORY_URL;
+  const evaluatedDate = bundle.run.evaluatedAt.slice(0, 10);
+
   return {
-    model: sectionModel,
-    websiteModel,
+    mode: 'selected',
+    recordedAt: bundle.run.evaluatedAt,
+    sourceLabel: `${bundle.run.version}, ${evaluatedDate}`,
+    sourceUrl,
   };
 };
 
-const loadReleaseEvidenceState = (
+/** Loads the two exact evidence bundles prepared from the maintainer selection. */
+export const loadReleaseEvidenceWebsiteState = (
   repositoryRoot: string,
-  targetVersion: string,
-  shouldHydrate: boolean,
+  _targetVersion: string,
+  options: {
+    allowFixture?: boolean | undefined;
+    preparedDirectory?: string | undefined;
+    selectionPath?: string | undefined;
+  } = {},
 ): IReleaseEvidenceWebsiteState => {
-  const envelope = readReleaseEvidenceEnvelope(repositoryRoot);
-  if (envelope === null) {
-    return {
-      pinnedQualification: null,
-      pinnedSemantic: null,
-      releaseEvidence: { mode: 'not-recorded', targetVersion },
-    };
-  }
-  if (envelope.target.version !== targetVersion) {
-    throw new Error('Public release evidence does not match the current skill version.');
-  }
-  if (envelope.target.portableSkillSha256 !== createPortableSkillDigest(repositoryRoot)) {
-    throw new Error('Public release evidence does not match the current portable skill bytes.');
-  }
-  if (envelope.target.dependencyClosureSha256 !== createDependencyClosureSha256(repositoryRoot)) {
-    throw new Error('Public release evidence does not match the current dependency closure.');
-  }
-  const qualification = loadQualificationSectionModel(
-    repositoryRoot,
-    targetVersion,
-    envelope.qualification,
-    shouldHydrate,
+  const preparedDirectory =
+    options.preparedDirectory ?? path.join(repositoryRoot, '.evidence', 'prepared');
+  const manifest = PreparedEvidenceManifestSchema.parse(
+    JSON.parse(readFileSync(path.join(preparedDirectory, 'manifest.json'), 'utf8')) as unknown,
   );
-  const semantic = loadSemanticSectionModel(
-    repositoryRoot,
-    targetVersion,
-    envelope.semantic,
-    shouldHydrate,
+  const selection = EvidenceSelectionSchema.parse(
+    JSON.parse(
+      readFileSync(
+        options.selectionPath ?? path.join(repositoryRoot, 'evidence', 'selection.json'),
+        'utf8',
+      ),
+    ) as unknown,
   );
+  const selectionSha256 = createHash('sha256')
+    .update(`${JSON.stringify(selection)}\n`)
+    .digest('hex');
+  if (manifest.selectionSha256 !== selectionSha256) {
+    throw new Error('Prepared evidence does not match the current maintainer selection.');
+  }
+  const semanticBundle = readPreparedBundle(
+    preparedDirectory,
+    'semantic',
+    manifest.semantic,
+    options.allowFixture === true,
+  );
+  const qualificationBundle = readPreparedBundle(
+    preparedDirectory,
+    'qualification',
+    manifest.qualification,
+    options.allowFixture === true,
+  );
+  copyPreparedAssets(repositoryRoot, preparedDirectory, manifest);
+  const semantic = parseSemanticWebsiteModel(semanticBundle.payload.websiteModel);
+  const qualification = parseQualificationWebsiteModel(qualificationBundle.payload.websiteModel);
+  const semanticAttempt = semantic.latest ?? semantic.currentAssurance;
+
+  if (semanticAttempt === null) {
+    throw new Error('Selected semantic evidence has no displayable recorded attempt.');
+  }
+
+  const qualificationSection: IQualificationReleaseEvidenceSectionModel = {
+    ...createSectionModel(qualificationBundle),
+    targets: qualification.profiles.flatMap((profile) => {
+      const attempt = profile.currentLatest ?? profile.currentLastPassing;
+      return attempt === null
+        ? []
+        : [
+            {
+              adapterId: profile.adapterId,
+              attemptId: attempt.result.attemptId,
+              implementationId: profile.implementationId,
+              sourceAttemptUrl: attempt.rawAttemptUrl,
+            },
+          ];
+    }),
+  };
+
   return {
-    pinnedQualification: qualification.websiteModel,
-    pinnedSemantic: semantic.websiteModel,
+    qualification,
+    semantic,
     releaseEvidence: {
       mode: 'recorded',
-      qualification: qualification.model,
-      semantic: semantic.model,
-      targetVersion,
+      qualification: qualificationSection,
+      semantic: {
+        ...createSectionModel(semanticBundle),
+        attempt: semanticAttempt.result,
+        sourceAttemptUrl: semanticAttempt.rawAttemptUrl,
+      },
+      targetVersion: semanticBundle.run.version,
     },
   };
 };
 
-/** Loads compact provenance and complete authenticated models for static website generation. */
-export const loadReleaseEvidenceWebsiteState = (
-  repositoryRoot: string,
-  targetVersion: string,
-): IReleaseEvidenceWebsiteState => loadReleaseEvidenceState(repositoryRoot, targetVersion, true);
-
-/** Loads and validates the compact release-evidence provenance used by public pages. */
+/** Loads the compact selected-run provenance used by public pages. */
 export const loadReleaseEvidenceModel = (
   repositoryRoot: string,
   targetVersion: string,
-): IReleaseEvidenceModel =>
-  loadReleaseEvidenceState(repositoryRoot, targetVersion, false).releaseEvidence;
+): IReleaseEvidenceWebsiteState['releaseEvidence'] =>
+  loadReleaseEvidenceWebsiteState(repositoryRoot, targetVersion).releaseEvidence;

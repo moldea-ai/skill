@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: repair-eve-tool-registration
 title: Repair Eve tool registration
+layer: adapter-specific
+description: "Reconcile a declared tool name with Eve's recursive filesystem-derived runtime name using exact adapter diagnostics and source evidence."
+challenge: 'Requires correcting canonical identity without changing the valid filesystem tool, implementation, or schema bindings.'
 purpose: Verify precise diagnostic-driven repair of recursive filesystem tool identity.
 taskFile: task.md
 seedDirectory: seed

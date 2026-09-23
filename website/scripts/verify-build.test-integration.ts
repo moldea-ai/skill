@@ -239,10 +239,6 @@ describe('verifyProductionBuild', () => {
     const successfulCaseCount =
       (releaseSummary.result?.passedCaseCount ?? 0) +
       (releaseSummary.result?.recoveredCaseCount ?? 0);
-    const currentSuccessfulCaseCount =
-      (currentAssurance?.result.passedCaseCount ?? 0) +
-      (currentAssurance?.result.recoveredCaseCount ?? 0);
-
     expect(model.semanticEvaluation.status).toBe(releaseSummary.result?.status ?? 'not-recorded');
     expect(model.semanticEvaluation.evidenceMatch).toBe(
       model.semanticEvaluation.currentAssurance === null ? null : 'exact',
@@ -256,31 +252,24 @@ describe('verifyProductionBuild', () => {
       `${successfulCaseCount}/${model.semanticEvaluation.caseCount} decisions verified`,
     );
     expect(semanticHtml).toContain(
-      releaseSummary.kind === 'pinned'
-        ? 'Verified release source'
-        : releaseSummary.kind === 'not-recorded'
-          ? 'Not recorded'
-          : 'Current release',
+      releaseSummary.kind === 'not-recorded' ? 'Not recorded' : 'Selected recorded evidence',
     );
     expect(semanticHtml).toContain(
       hasAttemptHistory
         ? model.semanticEvaluation.latest?.result.attemptId
-        : releaseSummary.kind === 'pinned'
+        : releaseSummary.kind === 'recorded'
           ? releaseSummary.result.attemptId
           : 'No semantic attempt has been recorded for this release candidate yet.',
     );
     expect(llmsText).toContain(
-      releaseSummary.kind === 'pinned'
-        ? `from verified source attempt [${releaseSummary.result.attemptId}]`
+      releaseSummary.kind === 'recorded'
+        ? `from selected recorded attempt [${releaseSummary.result.attemptId}]`
         : releaseSummary.kind === 'not-recorded'
           ? 'Semantic release evidence: not recorded.'
-          : 'scenarios have exact current assurance.',
+          : '',
     );
     expect(llmsText).toContain(
       `Semantic release evidence: ${successfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios successful`,
-    );
-    expect(llmsText).toContain(
-      `Current semantic contract: ${currentSuccessfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios have exact current assurance.`,
     );
     expect(semanticSearchRecord?.description).toBe(
       `Follow ${model.semanticEvaluation.caseCount} difficult coding-agent decisions from developer request to independent verdict.`,

@@ -7,8 +7,8 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CodexEvaluationHostError,
-} from '../../../tooling/codex-evaluation-host/index.mjs';
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
+} from '../../../src/execution/host/index.ts';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../src/resources/index.ts';
 
 import { FakeCodexHost } from '../codex-host/index.ts';
 import { DEFAULT_SKILL_REPOSITORY, QUALIFICATION_ROOT } from '../constants/index.ts';
@@ -18,9 +18,9 @@ import {
   QualificationSourceStateResultSchema,
 } from '../contracts/index.ts';
 import type { IQualificationCommandPolicyEvidence } from '../contracts/index.ts';
-import { copyDirectory, ensureDirectory, readJsonFile } from '../filesystem/index.ts';
+import { copyDirectory, ensureDirectory, readJsonFile } from '../../../src/filesystem/index.ts';
 import { readAttemptCheckpoint } from '../checkpoint/index.ts';
-import { executeProcess } from '../process/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 import * as repositoryState from '../repository-state/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
 import { createQualificationAttemptKey } from '../storage/index.ts';

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../src/resources/index.ts';
 
 import type {
   IActorOutput,
@@ -36,6 +36,9 @@ const scenario = {
   version: 2,
   id: 'test-case',
   title: 'Test case',
+  layer: 'adapter-specific',
+  description: 'Exercises qualification validation in a controlled fixture.',
+  challenge: 'Requires exact validation decisions.',
   purpose: 'Exercise exact judge requirements.',
   resourceProfile: 'ordinary',
   taskFile: 'task.md',
@@ -99,7 +102,7 @@ const createPassingOutput = (): IJudgeOutput => ({
 });
 
 const executionEnvironment: IQualificationExecutionEnvironment = {
-  model: 'gpt-5.6-sol',
+  model: 'gpt-6-sol',
   actorReasoningEffort: 'xhigh',
   judgeReasoningEffort: 'xhigh',
   codexVersion: 'codex-cli 1',
@@ -728,6 +731,12 @@ describe('qualification resume identity validation', () => {
         sslCertificateFileSha256: executionEnvironment.sslCertificateFileSha256,
       }),
     ).toBe(false);
+    expect(
+      haveQualificationExecutionInputsChanged(
+        { ...executionEnvironment, model: 'gpt-5.6-sol' },
+        executionEnvironment,
+      ),
+    ).toBe(true);
     for (const environmentChange of [
       { codexVersion: 'codex-cli 2' },
       { hostTimeoutMs: 240_000 },

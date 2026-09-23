@@ -15,7 +15,7 @@ import {
   QUALIFICATION_CONFIRMATION_POLICY,
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
 } from '../constants/index.ts';
-import { ensureDirectory, writeJsonFileAtomically } from '../filesystem/index.ts';
+import { ensureDirectory, writeJsonFileAtomically } from '../../../src/filesystem/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
 import {
   getLocalAttemptDirectory,
@@ -50,7 +50,7 @@ const createIncompleteAttemptFixture = async (options: {
     packagesDigest: 'e'.repeat(64),
     targetDigest: 'f'.repeat(64),
     executionEnvironment: {
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       actorReasoningEffort: 'xhigh',
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
@@ -217,7 +217,7 @@ describe('qualification attempt discovery', () => {
       packagesDigest: 'e'.repeat(64),
       targetDigest: 'f'.repeat(64),
       executionEnvironment: {
-        model: 'gpt-5.6-sol',
+        model: 'gpt-6-sol',
         actorReasoningEffort: 'xhigh',
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',

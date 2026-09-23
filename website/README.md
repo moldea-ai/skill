@@ -1,20 +1,12 @@
 # Skill website
 
-This Astro application renders the public documentation and current release evidence for [skill.moldea.ai](https://skill.moldea.ai).
+This Astro application renders the public documentation and selected release evidence for [skill.moldea.ai](https://skill.moldea.ai).
 
 ## Source model
 
-The site consumes:
+The site consumes Markdown under `../docs/`, the portable skill under `../moldea/`, and the two prepared public bundles selected by `../evidence/selection.json`. The producer-owned bundles already contain the semantic and qualification definitions, presentation metadata, replays, projects, artifacts, version, date, and technical provenance required by the existing pages.
 
-- Markdown pages under `../docs/`
-- the portable skill under `../moldea/`
-- the current semantic result and current semantic attempt
-- the current qualification profile index and current result storage
-- package and compatibility metadata from repository-owned fixtures
-
-Generation is fail-closed. Every semantic and qualification artifact must match the current protocol, current source identity, and recorded SHA-256 digests before it can be rendered.
-
-The website reads only exact current evidence. Missing, stale, malformed, or over-budget evidence fails generation.
+Generation is fail-closed. Missing selections, malformed bundles, wrong digests, unsafe artifacts, or a prepared manifest that does not match the selection fail the production build. The website does not import evaluator modules, inspect Git history, calculate compatibility, or compare selected evidence with current cases.
 
 Public replay is bounded and privacy-safe. It may contain developer direction, actor response, deterministic facts, the maximum output byte count from one completed command, aggregate byte counts, token usage, durations, judge rationale, and verdicts. It never includes raw command text, raw command output, hidden reasoning, credentials, or arbitrary workspace contents.
 
@@ -36,7 +28,7 @@ Documentation and example routes share `createDocumentationBreadcrumbs` from `sr
 
 ## Commands
 
-Install dependencies without lifecycle scripts:
+From the repository root, install every workspace dependency without lifecycle scripts:
 
 ```bash
 npm ci --ignore-scripts
@@ -54,18 +46,26 @@ Run application checks:
 ```bash
 npm run check
 npm run test
-npm run build
+npm run build:fixture
 ```
 
-From the repository root, the equivalent wrappers are `npm run docs:check`, `npm run website:check`, and `npm run website:build`.
+`npm run test:unit` prepares the existing synthetic website model before running the unit suite, so it also works on a clean checkout without selected release evidence.
+
+Start the local development server from the repository root:
+
+```bash
+npm run website:dev
+```
+
+The development server loads the current semantic cases and qualification profiles without recorded results, so a clean checkout shows the available coverage without invented evidence. Browser checks exercise both this clean state and isolated synthetic results, keeping the empty and complete evidence presentations testable. After both official selections are populated, production generation runs from the repository root with `npm run evidence:prepare` followed by `npm run website:build`.
 
 ## Deployment
 
-`.github/workflows/pages.yml` validates and builds the site before deploying GitHub Pages. The `CNAME` file owns the custom domain.
+`.github/workflows/pages.yml` runs browser checks against both clean current catalogs and synthetic evidence, prepares both selected official bundles, rebuilds the production artifact, validates it, and then deploys GitHub Pages. The `CNAME` file owns the custom domain.
 
 ## Boundaries
 
-The website is a read-only renderer. It does not execute qualification, invoke models, mutate evidence, access provider APIs, or infer missing release state. Release eligibility remains owned by the root release check.
+The website is a read-only renderer. It does not execute semantic evaluation or qualification, invoke models, mutate selections, publish evidence, access provider APIs, or infer missing release state. Release eligibility remains owned by the root release check.
 
 ## Evidence presentation
 

@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { z } from 'zod';
 
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../tooling/resource-calibration/profiles.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../src/resources/index.ts';
 
 import {
   QUALIFICATION_CONFIRMATION_POLICY,
@@ -24,7 +24,7 @@ import {
   ensureDirectory,
   writeJsonFileAtomically,
   writeTextFileAtomically,
-} from '../src/filesystem/index.ts';
+} from '../../src/filesystem/index.ts';
 import { buildActorPrompt } from '../src/prompts/index.ts';
 
 const CASE_ID = 'release-case';
@@ -142,6 +142,9 @@ const createScenarioSource = (caseId: string, title: string): string =>
     'version: 2',
     `id: ${caseId}`,
     `title: ${title}`,
+    'layer: universal-baseline',
+    'description: Verify failed companion evidence.',
+    'challenge: Preserve one confirmed failure beside a passing case.',
     'purpose: Verify complete passing evidence.',
     'resourceProfile: ordinary',
     'taskFile: task.md',
@@ -204,7 +207,6 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
   targetDigest?: string;
 }): Promise<IQualificationAttemptResult> => {
   const profilesRoot = path.join(options.resultsRoot, '..', 'profiles');
-  const casesRoot = path.join(options.resultsRoot, '..', 'cases');
   const fixturesRoot = path.join(options.resultsRoot, '..', '..', 'fixtures');
   const profileDirectory = path.join(profilesRoot, 't1');
   const projectDirectory = path.join(profileDirectory, 'cases', 'c1');
@@ -219,28 +221,6 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
       schemaVersion: 1,
       profiles: MOLDEA_SKILL_RESOURCE_PROFILES,
     }),
-    writeTextFileAtomically(
-      path.join(casesRoot, 'cases.yaml'),
-      [
-        'version: 2',
-        'cases:',
-        `  - id: ${CASE_ID}`,
-        `    title: ${CASE_TITLE}`,
-        '    layer: universal-baseline',
-        '    description: Verify complete passing evidence.',
-        '    challenge: Exercise the reusable Custom baseline.',
-        ...(options.hasFailedCompanionCase === true
-          ? [
-              `  - id: ${FAILED_CASE_ID}`,
-              `    title: ${FAILED_CASE_TITLE}`,
-              '    layer: universal-baseline',
-              '    description: Verify failed companion evidence.',
-              '    challenge: Preserve one confirmed failure beside a passing case.',
-            ]
-          : []),
-        '',
-      ].join('\n'),
-    ),
     writeTextFileAtomically(
       path.join(profilesRoot, 'index.yaml'),
       [
@@ -261,17 +241,6 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
         'title: Custom qualification fixture',
         'description: Complete passing evidence fixture.',
         'probesFile: probes/claims.yaml',
-        'cases:',
-        `  - id: ${CASE_ID}`,
-        '    projectDirectory: cases/c1',
-        '    scenarioFile: scenario.yaml',
-        ...(options.hasFailedCompanionCase === true
-          ? [
-              `  - id: ${FAILED_CASE_ID}`,
-              '    projectDirectory: cases/c2',
-              '    scenarioFile: scenario.yaml',
-            ]
-          : []),
         '',
       ].join('\n'),
     ),
@@ -298,6 +267,9 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
         'version: 2',
         `id: ${CASE_ID}`,
         `title: ${CASE_TITLE}`,
+        'layer: universal-baseline',
+        'description: Verify complete passing evidence.',
+        'challenge: Exercise the reusable Custom baseline.',
         'purpose: Verify complete passing evidence.',
         'resourceProfile: ordinary',
         'taskFile: task.md',
@@ -520,7 +492,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
             ? 'Qualification recovered.'
             : 'Qualification passed.',
     provenance: {
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       actorReasoningEffort: 'xhigh',
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',

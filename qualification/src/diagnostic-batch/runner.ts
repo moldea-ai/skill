@@ -6,9 +6,9 @@ import {
   EVALUATION_BATCH_DEFAULT_WORKER_COUNT,
   runOrderedEvaluationBatch,
   type IEvaluationBatchWorkerCount,
-} from '../../../tooling/evaluation-batch/index.mjs';
+} from '../../../src/execution/batch/index.ts';
 
-import type { IBoundarySchema } from '../filesystem/index.ts';
+import type { IBoundarySchema } from '../../../src/filesystem/index.ts';
 import {
   DEFAULT_PACKAGES_REPOSITORY,
   DEFAULT_SKILL_REPOSITORY,
@@ -45,7 +45,7 @@ import {
   readYamlFile,
   resolveContainedPath,
   writeTextFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   loadRuntimeCompatibilitySnapshot,
   resolveQualificationTarget,

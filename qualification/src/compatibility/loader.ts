@@ -2,24 +2,15 @@ import path from 'node:path';
 import semver from 'semver';
 import { parse as parseYaml } from 'yaml';
 
-import {
-  DEFAULT_PACKAGES_REPOSITORY,
-  QUALIFICATION_CASES_PATH,
-  QUALIFICATION_PROFILES_ROOT,
-} from '../constants/index.ts';
-import {
-  QualificationCaseCatalogSchema,
-  QualificationCaseScenarioSchema,
-  QualificationProfileSchema,
-  QualificationSelectionSchema,
-  type IQualificationSelection,
-} from '../contracts/index.ts';
-import { calculateSha256, readYamlFile, resolveContainedPath } from '../filesystem/index.ts';
-import { executeProcess } from '../process/index.ts';
+import { DEFAULT_PACKAGES_REPOSITORY, QUALIFICATION_PROFILES_ROOT } from '../constants/index.ts';
+import { QualificationSelectionSchema, type IQualificationSelection } from '../contracts/index.ts';
+import { calculateSha256, readYamlFile } from '../../../src/filesystem/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 import {
   calculateQualificationProfileDigest,
   calculateQualificationTargetDigest,
 } from '../execution/fingerprints.ts';
+import { loadQualificationCaseCatalog, loadQualificationProfile } from '../profiles/index.ts';
 import {
   findQualificationProfileTarget,
   loadQualificationProfileIndex,
@@ -179,10 +170,7 @@ export const resolveQualificationTarget = async (
     selection,
     QUALIFICATION_PROFILES_ROOT,
   );
-  const profile = await readYamlFile(
-    path.join(profileDirectory, 'profile.yaml'),
-    QualificationProfileSchema,
-  );
+  const profile = await loadQualificationProfile(profileDirectory);
 
   if (
     profile.adapterId !== selection.adapterId ||
@@ -238,7 +226,7 @@ export const resolveQualificationTarget = async (
     );
   }
 
-  const caseCatalog = await readYamlFile(QUALIFICATION_CASES_PATH, QualificationCaseCatalogSchema);
+  const caseCatalog = await loadQualificationCaseCatalog(QUALIFICATION_PROFILES_ROOT);
   const catalogCasesById = new Map(
     caseCatalog.cases.map((catalogCase) => [catalogCase.id, catalogCase]),
   );
@@ -258,29 +246,9 @@ export const resolveQualificationTarget = async (
 
   for (const caseId of caseIds) {
     if (!catalogCasesById.has(caseId)) {
-      throw new Error(`Qualification profile references uncataloged case ${caseId}.`);
+      throw new Error(`Qualification profile references undiscovered case ${caseId}.`);
     }
   }
-
-  await Promise.all(
-    profile.cases.map(async (profileCase) => {
-      const projectDirectory = resolveContainedPath(profileDirectory, profileCase.projectDirectory);
-      const scenario = await readYamlFile(
-        resolveContainedPath(projectDirectory, profileCase.scenarioFile),
-        QualificationCaseScenarioSchema,
-      );
-
-      if (scenario.id !== profileCase.id) {
-        throw new Error(`Scenario identity does not match profile case ${profileCase.id}.`);
-      }
-
-      const catalogCase = catalogCasesById.get(profileCase.id);
-
-      if (catalogCase === undefined || scenario.title !== catalogCase.title) {
-        throw new Error(`Scenario title does not match catalog case ${profileCase.id}.`);
-      }
-    }),
-  );
 
   return {
     selection,

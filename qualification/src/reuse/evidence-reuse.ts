@@ -15,31 +15,21 @@ import {
   type IQualificationExecutionEnvironment,
   type IQualificationStageCheckpoint,
 } from '../contracts/index.ts';
-import {
-  calculateQualificationCaseModelInputDigestsAtCommit,
-  calculateQualificationModelStageEvaluatorDigestAtCommit,
-} from '../evidence-identity/index.ts';
 import { haveQualificationExecutionInputsChanged } from '../execution/validations.ts';
 import {
   ensureDirectory,
   readJsonFile,
   writeJsonFileAtomically,
   writeTextFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import { validateQualificationAttemptEvidence } from '../result/index.ts';
 import {
   createQualificationAttemptKey,
-  isQualificationAttemptCommitted,
   resolveQualificationArtifactPath,
   resolveQualificationResultTargetDirectory,
   verifyQualificationAttemptStorage,
 } from '../storage/index.ts';
 import type { IReusableQualificationCase } from './types.ts';
-import {
-  loadQualificationReuseSourceManifest,
-  readCommittedQualificationSource,
-  type IQualificationCommittedSource,
-} from './source-evidence.ts';
 
 const pathExists = async (candidatePath: string): Promise<boolean> => {
   try {
@@ -54,22 +44,6 @@ const createPublicPackages = (candidate: ICandidateClosure) =>
   [...candidate.packages, ...(candidate.runtimePackages ?? []), candidate.typeScriptPackage].map(
     createPublicCandidatePackage,
   );
-
-const selectExecutionEnvironment = (
-  provenance: IQualificationCommittedSource['provenance'],
-): IQualificationExecutionEnvironment => ({
-  actorReasoningEffort: provenance.actorReasoningEffort,
-  judgeReasoningEffort: provenance.judgeReasoningEffort,
-  model: provenance.model,
-  codexVersion: provenance.codexVersion,
-  nodeVersion: provenance.nodeVersion,
-  pnpmVersion: provenance.pnpmVersion,
-  gitVersion: provenance.gitVersion,
-  allowedEgressHosts: provenance.allowedEgressHosts,
-  hostTimeoutMs: provenance.hostTimeoutMs,
-  modelEndpoint: provenance.modelEndpoint,
-  sslCertificateFileSha256: provenance.sslCertificateFileSha256,
-});
 
 const hasExactCurrentSourceIdentity = (options: {
   baselineAttemptId: string | null;
@@ -88,6 +62,7 @@ const hasExactCurrentSourceIdentity = (options: {
     result.provenance.packagesRepositoryFingerprint === checkpoint.packagesRepositoryFingerprint &&
     result.provenance.skillRepositoryFingerprint === checkpoint.skillDigest &&
     result.provenance.targetDigest === checkpoint.targetDigest &&
+    result.provenance.qualificationDigest === checkpoint.qualificationDigest &&
     result.provenance.baselineAttemptId === options.baselineAttemptId &&
     result.cases.every(
       (caseResult) =>
@@ -103,47 +78,13 @@ const hasExactCurrentSourceIdentity = (options: {
   );
 };
 
-const hasExactCommittedSourceIdentity = (options: {
-  baselineAttemptId: string | null;
-  candidate: ICandidateClosure;
-  checkpoint: IQualificationAttemptCheckpoint;
-  executionEnvironment: IQualificationExecutionEnvironment;
-  source: IQualificationCommittedSource;
-}): boolean => {
-  const source = options.source;
-  const { provenance } = source;
-
-  return (
-    source.mode === 'official' &&
-    source.status === 'failed' &&
-    source.selection.adapterId === options.checkpoint.selection.adapterId &&
-    source.selection.implementationId === options.checkpoint.selection.implementationId &&
-    provenance.candidateFingerprint === options.candidate.fingerprint &&
-    provenance.packagesRepositoryFingerprint === options.checkpoint.packagesRepositoryFingerprint &&
-    provenance.skillRepositoryFingerprint === options.checkpoint.skillDigest &&
-    provenance.targetDigest === options.checkpoint.targetDigest &&
-    provenance.baselineAttemptId === options.baselineAttemptId &&
-    source.stages.every(({ reuseSourceAttemptId }) => reuseSourceAttemptId === null) &&
-    JSON.stringify(provenance.packages) ===
-      JSON.stringify(createPublicPackages(options.candidate)) &&
-    !haveQualificationExecutionInputsChanged(
-      selectExecutionEnvironment(provenance),
-      options.executionEnvironment,
-    )
-  );
-};
-
-/** Finds exact committed passing groups without admitting failed or partial case history. */
+/** Finds exact local passing groups without admitting failed or partial case history. */
 export const loadReusableQualificationCases = async (options: {
   baselineAttemptId: string | null;
   candidate: ICandidateClosure;
-  caseDigests: Readonly<Record<string, string>>;
   caseIds: readonly string[];
   checkpoint: IQualificationAttemptCheckpoint;
-  evaluatorStageDigest: string;
   executionEnvironment: IQualificationExecutionEnvironment;
-  qualificationRepositoryCommit: string;
-  repositoryRoot: string;
   resultsRoot: string;
 }): Promise<Map<string, IReusableQualificationCase>> => {
   const targetRoot = await resolveQualificationResultTargetDirectory(
@@ -174,32 +115,10 @@ export const loadReusableQualificationCases = async (options: {
             checkpoint: options.checkpoint,
             executionEnvironment: options.executionEnvironment,
             result,
-          }) ||
-          !(await isQualificationAttemptCommitted({
-            attemptDirectory,
-            commit: options.qualificationRepositoryCommit,
-            repositoryRoot: options.repositoryRoot,
-          }))
+          })
         ) {
           continue;
         }
-        const selectedCaseIds = new Set(options.caseIds);
-        const sharedCaseIds = result.cases
-          .map(({ caseId }) => caseId)
-          .filter((caseId) => selectedCaseIds.has(caseId));
-        const [sourceEvaluatorStageDigest, sourceCaseDigests] = await Promise.all([
-          calculateQualificationModelStageEvaluatorDigestAtCommit(
-            result.provenance.qualificationRepositoryCommit,
-            options.repositoryRoot,
-          ),
-          calculateQualificationCaseModelInputDigestsAtCommit({
-            caseIds: sharedCaseIds,
-            commit: result.provenance.qualificationRepositoryCommit,
-            repositoryRoot: options.repositoryRoot,
-            selection: result.selection,
-          }),
-        ]);
-        if (sourceEvaluatorStageDigest !== options.evaluatorStageDigest) continue;
         const storage = await verifyQualificationAttemptStorage({ attemptDirectory, result });
         await validateQualificationAttemptEvidence({
           attemptDirectory,
@@ -210,7 +129,6 @@ export const loadReusableQualificationCases = async (options: {
         for (const caseResult of result.cases) {
           if (
             options.caseIds.includes(caseResult.caseId) &&
-            sourceCaseDigests[caseResult.caseId] === options.caseDigests[caseResult.caseId] &&
             (caseResult.status === 'passed' || caseResult.status === 'recovered') &&
             caseResult.trials.every(
               (trial) =>
@@ -223,7 +141,7 @@ export const loadReusableQualificationCases = async (options: {
               readArtifact: (logicalPath) =>
                 readFile(resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath)),
               sourceAttemptId: result.attemptId,
-              sourceCommit: options.qualificationRepositoryCommit,
+              sourceCommit: result.provenance.qualificationRepositoryCommit,
               sourceCreatedAt: result.createdAt,
               sourceStages: result.stages,
               storage,
@@ -232,87 +150,6 @@ export const loadReusableQualificationCases = async (options: {
         }
       } catch {
         continue;
-      }
-    }
-  }
-
-  if (
-    path.resolve(options.resultsRoot) === path.join(options.repositoryRoot, 'qualification/results')
-  ) {
-    const manifest = await loadQualificationReuseSourceManifest(options.repositoryRoot);
-
-    for (const reference of manifest.sources) {
-      if (
-        reference.selection.adapterId !== options.checkpoint.selection.adapterId ||
-        reference.selection.implementationId !== options.checkpoint.selection.implementationId
-      ) {
-        continue;
-      }
-      const targetRelativePath = path
-        .relative(options.repositoryRoot, targetRoot)
-        .split(path.sep)
-        .join(path.posix.sep);
-      const source = await readCommittedQualificationSource({
-        attemptRelativeDirectory: path.posix.join(
-          targetRelativePath,
-          'attempts',
-          createQualificationAttemptKey(reference.attemptId),
-        ),
-        attemptSha256: reference.attemptSha256,
-        evidenceCommit: reference.evidenceCommit,
-        repositoryRoot: options.repositoryRoot,
-        storageSha256: reference.storageSha256,
-      });
-      const selectedCaseIds = new Set(options.caseIds);
-      const sharedCaseIds = source.cases
-        .map(({ caseId }) => caseId)
-        .filter((caseId) => selectedCaseIds.has(caseId));
-      const [sourceEvaluatorStageDigest, sourceCaseDigests] = await Promise.all([
-        calculateQualificationModelStageEvaluatorDigestAtCommit(
-          source.provenance.qualificationRepositoryCommit,
-          options.repositoryRoot,
-        ),
-        calculateQualificationCaseModelInputDigestsAtCommit({
-          caseIds: sharedCaseIds,
-          commit: source.provenance.qualificationRepositoryCommit,
-          repositoryRoot: options.repositoryRoot,
-          selection: source.selection,
-        }),
-      ]);
-      if (
-        source.attemptId !== reference.attemptId ||
-        sourceEvaluatorStageDigest !== options.evaluatorStageDigest ||
-        !hasExactCommittedSourceIdentity({
-          baselineAttemptId: options.baselineAttemptId,
-          candidate: options.candidate,
-          checkpoint: options.checkpoint,
-          executionEnvironment: options.executionEnvironment,
-          source,
-        })
-      ) {
-        continue;
-      }
-
-      for (const caseResult of source.cases) {
-        if (
-          options.caseIds.includes(caseResult.caseId) &&
-          sourceCaseDigests[caseResult.caseId] === options.caseDigests[caseResult.caseId] &&
-          (caseResult.status === 'passed' || caseResult.status === 'recovered') &&
-          caseResult.trials.every(
-            (trial) =>
-              trial.actorReuseSourceAttemptId === null && trial.judgeReuseSourceAttemptId === null,
-          )
-        ) {
-          candidates.push({
-            caseResult,
-            readArtifact: source.readArtifact,
-            sourceAttemptId: source.attemptId,
-            sourceCommit: source.evidenceCommit,
-            sourceCreatedAt: source.createdAt,
-            sourceStages: source.stages,
-            storage: source.storage,
-          });
-        }
       }
     }
   }

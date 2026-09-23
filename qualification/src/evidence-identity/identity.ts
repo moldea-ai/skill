@@ -1,13 +1,12 @@
-import { execFile } from 'node:child_process';
 import { lstat, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { promisify } from 'node:util';
 import { parse as parseYaml } from 'yaml';
 
 import { QUALIFICATION_ROOT, SKILL_REPOSITORY_ROOT } from '../constants/index.ts';
 import {
-  QualificationCaseCatalogSchema,
+  QualificationCaseScenarioSchema,
   QualificationProfileSchema,
+  QualificationProfileSourceSchema,
   type IQualificationProfile,
   type IQualificationSelection,
 } from '../contracts/index.ts';
@@ -16,7 +15,7 @@ import {
   collectDirectoryFingerprintEntries,
   normalizePortableFilesystemMode,
   resolveContainedPath,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   isQualificationBehaviorBearingSourcePath,
   isQualificationTestFilePath,
@@ -30,7 +29,6 @@ import {
   findQualificationProfileTarget,
   loadQualificationProfileIndex,
 } from '../storage/profile-paths.ts';
-import { QualificationProfileIndexSchema } from '../storage/types.ts';
 import {
   QualificationCompatibilityIdentitySchema,
   QualificationLogicalInputBundleSchema,
@@ -39,13 +37,9 @@ import {
   type IQualificationLogicalSourceEntry,
 } from './types.ts';
 
-const executeFile = promisify(execFile);
 const MAXIMUM_IDENTITY_ENTRY_COUNT = 4096;
-const MAXIMUM_IDENTITY_FILE_BYTES = 16 * 1024 * 1024;
-const GIT_COMMIT_PATTERN = /^[a-f0-9]{40}$/u;
 const TYPE_DECLARATION_FILE_PATTERN = /\.d\.[^/]+$/u;
 const PROFILE_DOCUMENTATION_PATH = 'README.md';
-const QUALIFICATION_CASE_CATALOG_PATH = 'qualification/cases/cases.yaml';
 const QUALIFICATION_PACKAGE_MANIFEST_PATH = 'qualification/package.json';
 const QUALIFICATION_PACKAGE_LOCK_PATH = 'qualification/package-lock.json';
 const TOOLING_PACKAGE_MANIFEST_PATH = 'package.json';
@@ -58,14 +52,14 @@ const CONTROL_PLANE_DIRECTORY_PREFIXES = [
 const CONTROL_PLANE_FILE_PATHS = new Set([
   'qualification/src/compatibility/loader.ts',
   'qualification/src/cli/runner.ts',
-  'qualification/src/result/contract-reader.ts',
+  'qualification/src/result/recorded-contract.ts',
   'qualification/src/result/evidence.ts',
   'qualification/src/result/recorder.ts',
   'qualification/src/result/index.ts',
 ]);
 const MODEL_STAGE_SOURCE_FILE_PATHS = new Set([
   'qualification/src/execution/workspaces.ts',
-  'tooling/resource-calibration/profiles.mjs',
+  'src/resources/profiles.ts',
   QUALIFICATION_PACKAGE_MANIFEST_PATH,
   QUALIFICATION_PACKAGE_LOCK_PATH,
   TOOLING_PACKAGE_MANIFEST_PATH,
@@ -73,14 +67,8 @@ const MODEL_STAGE_SOURCE_FILE_PATHS = new Set([
 ]);
 const MODEL_STAGE_SOURCE_DIRECTORY_PREFIXES = [
   'qualification/src/codex-host/',
-  'tooling/codex-evaluation-host/',
+  'src/execution/host/',
 ] as const;
-
-type IGitTreeEntry = {
-  mode: '100644' | '100755' | '120000';
-  objectId: string;
-  path: string;
-};
 
 type IIdentityRoots = {
   qualificationRoot: string;
@@ -128,95 +116,6 @@ const assertBoundedEntries = (entries: readonly unknown[], label: string): void 
   if (entries.length > MAXIMUM_IDENTITY_ENTRY_COUNT) {
     throw new Error(`${label} exceeds the supported identity entry count.`);
   }
-};
-
-const runGit = async (repositoryRoot: string, arguments_: readonly string[]): Promise<Buffer> => {
-  const { stdout } = await executeFile('git', [...arguments_], {
-    cwd: repositoryRoot,
-    encoding: 'buffer',
-    maxBuffer: MAXIMUM_IDENTITY_FILE_BYTES,
-  });
-
-  return Buffer.isBuffer(stdout) ? stdout : Buffer.from(stdout);
-};
-
-const parseGitTreeEntries = (source: Buffer): IGitTreeEntry[] => {
-  const entries = source
-    .toString('utf8')
-    .split('\0')
-    .filter((record) => record !== '')
-    .map<IGitTreeEntry>((record) => {
-      const separatorIndex = record.indexOf('\t');
-      const [candidateMode, objectType, objectId] = record.slice(0, separatorIndex).split(' ');
-      const relativePath = record.slice(separatorIndex + 1);
-
-      if (
-        separatorIndex === -1 ||
-        (candidateMode !== '100644' && candidateMode !== '100755' && candidateMode !== '120000') ||
-        objectType !== 'blob' ||
-        objectId === undefined ||
-        relativePath === ''
-      ) {
-        throw new Error('Qualification identity Git tree contains an unsupported entry.');
-      }
-
-      return {
-        mode: candidateMode,
-        objectId,
-        path: relativePath,
-      };
-    });
-
-  assertBoundedEntries(entries, 'Qualification identity Git tree');
-  return entries;
-};
-
-const listGitTreeEntries = async (
-  repositoryRoot: string,
-  commit: string,
-  pathPrefixes: readonly string[],
-): Promise<IGitTreeEntry[]> => {
-  if (!GIT_COMMIT_PATTERN.test(commit)) {
-    throw new Error('Qualification compatibility identity requires an exact Git commit.');
-  }
-
-  return parseGitTreeEntries(
-    await runGit(repositoryRoot, ['ls-tree', '-r', '-z', commit, '--', ...pathPrefixes]),
-  );
-};
-
-const readGitBlob = async (
-  repositoryRoot: string,
-  commit: string,
-  relativePath: string,
-): Promise<Buffer> => {
-  const content = await runGit(repositoryRoot, ['cat-file', 'blob', `${commit}:${relativePath}`]);
-
-  if (content.byteLength > MAXIMUM_IDENTITY_FILE_BYTES) {
-    throw new Error(`Qualification identity file is too large: ${relativePath}`);
-  }
-
-  return content;
-};
-
-const readOptionalGitBlob = async (
-  repositoryRoot: string,
-  commit: string,
-  relativePath: string,
-): Promise<Buffer | null> => {
-  const matchingEntries = (await listGitTreeEntries(repositoryRoot, commit, [relativePath])).filter(
-    ({ path: candidatePath }) => candidatePath === relativePath,
-  );
-
-  if (matchingEntries.length === 0) {
-    return null;
-  }
-
-  if (matchingEntries.length !== 1) {
-    throw new Error(`Qualification identity has an ambiguous Git path: ${relativePath}`);
-  }
-
-  return readGitBlob(repositoryRoot, commit, relativePath);
 };
 
 const createLogicalEntry = (
@@ -289,25 +188,23 @@ const createCurrentEvaluatorEntries = async (
         isQualificationEvaluatorSourcePath,
       ),
       collectSourceEntries(
-        path.join(roots.repositoryRoot, 'tooling/codex-evaluation-host'),
-        'tooling/codex-evaluation-host',
+        path.join(roots.repositoryRoot, 'src/execution/host'),
+        'src/execution/host',
         (relativePath) =>
           isQualificationBehaviorBearingSourcePath(
-            relativePath.slice('tooling/codex-evaluation-host/'.length),
+            relativePath.slice('src/execution/host/'.length),
           ),
       ),
       collectSourceEntries(
-        path.join(roots.repositoryRoot, 'tooling/package-candidate'),
-        'tooling/package-candidate',
+        path.join(roots.repositoryRoot, 'src/packages'),
+        'src/packages',
         (relativePath) =>
-          isQualificationBehaviorBearingSourcePath(
-            relativePath.slice('tooling/package-candidate/'.length),
-          ),
+          isQualificationBehaviorBearingSourcePath(relativePath.slice('src/packages/'.length)),
       ),
       collectSourceEntries(
-        path.join(roots.repositoryRoot, 'tooling/resource-calibration'),
-        'tooling/resource-calibration',
-        (relativePath) => relativePath === 'tooling/resource-calibration/profiles.mjs',
+        path.join(roots.repositoryRoot, 'src/resources'),
+        'src/resources',
+        (relativePath) => relativePath === 'src/resources/profiles.ts',
       ),
     ]);
   if (resourceProfileEntries.length !== 1) {
@@ -317,16 +214,13 @@ const createCurrentEvaluatorEntries = async (
     roots.repositoryRoot,
     QUALIFICATION_PACKAGE_MANIFEST_PATH,
   );
-  const qualificationLockPath = path.join(roots.repositoryRoot, QUALIFICATION_PACKAGE_LOCK_PATH);
   const toolingManifestPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_MANIFEST_PATH);
   const toolingLockPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_LOCK_PATH);
-  const [qualificationManifest, qualificationLock, toolingManifest, toolingLock] =
-    await Promise.all([
-      readFile(qualificationManifestPath, 'utf8'),
-      readFile(qualificationLockPath, 'utf8'),
-      readFile(toolingManifestPath, 'utf8'),
-      readFile(toolingLockPath, 'utf8'),
-    ]);
+  const [qualificationManifest, toolingManifest, toolingLock] = await Promise.all([
+    readFile(qualificationManifestPath, 'utf8'),
+    readFile(toolingManifestPath, 'utf8'),
+    readFile(toolingLockPath, 'utf8'),
+  ]);
   const normalizedEntries = await Promise.all([
     lstat(qualificationManifestPath).then((stats) =>
       createNormalizedEntry(
@@ -335,11 +229,11 @@ const createCurrentEvaluatorEntries = async (
         normalizeQualificationRuntimePackageManifest(JSON.parse(qualificationManifest) as unknown),
       ),
     ),
-    lstat(qualificationLockPath).then((stats) =>
+    lstat(toolingLockPath).then((stats) =>
       createNormalizedEntry(
         QUALIFICATION_PACKAGE_LOCK_PATH,
         normalizeFilesystemMode('file', stats.mode),
-        normalizeQualificationRuntimePackageLock(JSON.parse(qualificationLock) as unknown),
+        normalizeQualificationRuntimePackageLock(JSON.parse(toolingLock) as unknown),
       ),
     ),
     lstat(toolingManifestPath).then((stats) =>
@@ -373,118 +267,6 @@ const createCurrentEvaluatorEntries = async (
   ].sort((left, right) => left.path.localeCompare(right.path, 'en'));
 };
 
-const createGitEvaluatorEntries = async (
-  repositoryRoot: string,
-  commit: string,
-): Promise<IQualificationLogicalSourceEntry[]> => {
-  const treeEntries = await listGitTreeEntries(repositoryRoot, commit, [
-    'qualification/src',
-    'tooling/codex-evaluation-host',
-    'tooling/package-candidate',
-    'tooling/resource-calibration/profiles.mjs',
-    QUALIFICATION_PACKAGE_MANIFEST_PATH,
-    QUALIFICATION_PACKAGE_LOCK_PATH,
-    TOOLING_PACKAGE_MANIFEST_PATH,
-    TOOLING_PACKAGE_LOCK_PATH,
-  ]);
-  const sourceEntries = treeEntries.filter(({ path: relativePath }) => {
-    if (relativePath.startsWith('qualification/src/')) {
-      return isQualificationEvaluatorSourcePath(relativePath);
-    }
-    if (relativePath.startsWith('tooling/codex-evaluation-host/')) {
-      return isQualificationBehaviorBearingSourcePath(
-        relativePath.slice('tooling/codex-evaluation-host/'.length),
-      );
-    }
-    if (relativePath.startsWith('tooling/package-candidate/')) {
-      return isQualificationBehaviorBearingSourcePath(
-        relativePath.slice('tooling/package-candidate/'.length),
-      );
-    }
-    if (relativePath === 'tooling/resource-calibration/profiles.mjs') {
-      return true;
-    }
-    return false;
-  });
-  const entries = await Promise.all(
-    sourceEntries.map(async ({ mode, path: relativePath }) =>
-      createLogicalEntry(
-        relativePath,
-        mode,
-        await readGitBlob(repositoryRoot, commit, relativePath),
-      ),
-    ),
-  );
-  const requiredInputs = new Map(
-    treeEntries
-      .filter(({ path: relativePath }) =>
-        [
-          QUALIFICATION_PACKAGE_MANIFEST_PATH,
-          QUALIFICATION_PACKAGE_LOCK_PATH,
-          TOOLING_PACKAGE_MANIFEST_PATH,
-          TOOLING_PACKAGE_LOCK_PATH,
-        ].includes(relativePath),
-      )
-      .map((entry) => [entry.path, entry]),
-  );
-
-  for (const requiredPath of [
-    QUALIFICATION_PACKAGE_MANIFEST_PATH,
-    QUALIFICATION_PACKAGE_LOCK_PATH,
-    TOOLING_PACKAGE_MANIFEST_PATH,
-    TOOLING_PACKAGE_LOCK_PATH,
-  ]) {
-    if (!requiredInputs.has(requiredPath)) {
-      throw new Error(`Qualification evaluator identity is missing ${requiredPath}.`);
-    }
-  }
-
-  const qualificationManifest = JSON.parse(
-    (await readGitBlob(repositoryRoot, commit, QUALIFICATION_PACKAGE_MANIFEST_PATH)).toString(
-      'utf8',
-    ),
-  ) as unknown;
-  const qualificationLock = JSON.parse(
-    (await readGitBlob(repositoryRoot, commit, QUALIFICATION_PACKAGE_LOCK_PATH)).toString('utf8'),
-  ) as unknown;
-  const toolingManifest = JSON.parse(
-    (await readGitBlob(repositoryRoot, commit, TOOLING_PACKAGE_MANIFEST_PATH)).toString('utf8'),
-  ) as unknown;
-  const toolingLock = JSON.parse(
-    (await readGitBlob(repositoryRoot, commit, TOOLING_PACKAGE_LOCK_PATH)).toString('utf8'),
-  ) as unknown;
-  entries.push(
-    createNormalizedEntry(
-      QUALIFICATION_PACKAGE_MANIFEST_PATH,
-      requiredInputs.get(QUALIFICATION_PACKAGE_MANIFEST_PATH)!.mode,
-      normalizeQualificationRuntimePackageManifest(qualificationManifest),
-    ),
-    createNormalizedEntry(
-      QUALIFICATION_PACKAGE_LOCK_PATH,
-      requiredInputs.get(QUALIFICATION_PACKAGE_LOCK_PATH)!.mode,
-      normalizeQualificationRuntimePackageLock(qualificationLock),
-    ),
-    createNormalizedEntry(
-      TOOLING_PACKAGE_MANIFEST_PATH,
-      requiredInputs.get(TOOLING_PACKAGE_MANIFEST_PATH)!.mode,
-      normalizeQualificationToolingPackageManifest(
-        toolingManifest,
-        QUALIFICATION_SHARED_TOOLING_PACKAGE_NAMES,
-      ),
-    ),
-    createNormalizedEntry(
-      TOOLING_PACKAGE_LOCK_PATH,
-      requiredInputs.get(TOOLING_PACKAGE_LOCK_PATH)!.mode,
-      normalizeQualificationToolingPackageLock(
-        toolingLock,
-        QUALIFICATION_SHARED_TOOLING_PACKAGE_NAMES,
-      ),
-    ),
-  );
-
-  return entries.sort((left, right) => left.path.localeCompare(right.path, 'en'));
-};
-
 /** Calculates the version-1 evaluator digest from the current filesystem. */
 export const calculateQualificationEvaluatorDigest = async (
   repositoryRoot: string = SKILL_REPOSITORY_ROOT,
@@ -493,30 +275,11 @@ export const calculateQualificationEvaluatorDigest = async (
     `${JSON.stringify(await createCurrentEvaluatorEntries(getDefaultRoots(repositoryRoot)))}\n`,
   );
 
-/** Calculates the version-1 evaluator digest from one immutable Git tree. */
-export const calculateQualificationEvaluatorDigestAtCommit = async (
-  commit: string,
-  repositoryRoot: string = SKILL_REPOSITORY_ROOT,
-): Promise<string> =>
-  calculateSha256(`${JSON.stringify(await createGitEvaluatorEntries(repositoryRoot, commit))}\n`);
-
 /** Calculates the model-stage evaluator digest without scheduling or result aggregation. */
 export const calculateQualificationModelStageEvaluatorDigest = async (
   repositoryRoot: string = SKILL_REPOSITORY_ROOT,
 ): Promise<string> => {
   const entries = (await createCurrentEvaluatorEntries(getDefaultRoots(repositoryRoot))).filter(
-    ({ path: relativePath }) => isQualificationModelStageSourcePath(relativePath),
-  );
-
-  return calculateSha256(`${JSON.stringify(entries)}\n`);
-};
-
-/** Calculates the model-stage evaluator digest from one immutable Git tree. */
-export const calculateQualificationModelStageEvaluatorDigestAtCommit = async (
-  commit: string,
-  repositoryRoot: string = SKILL_REPOSITORY_ROOT,
-): Promise<string> => {
-  const entries = (await createGitEvaluatorEntries(repositoryRoot, commit)).filter(
     ({ path: relativePath }) => isQualificationModelStageSourcePath(relativePath),
   );
 
@@ -536,16 +299,45 @@ const createCanonicalProfile = (profile: IQualificationProfile): unknown =>
   });
 
 const createLogicalInputBundle = async (options: {
-  caseCatalogSource: string;
   profileRelativeDirectory: string;
   profileSource: IProfileSource;
   selection: IQualificationSelection;
 }): Promise<IQualificationLogicalInputBundle> => {
-  const profile = QualificationProfileSchema.parse(
+  const profileSource = QualificationProfileSourceSchema.parse(
     parseYaml(
       await options.profileSource.readProfileFile(options.profileRelativeDirectory, 'profile.yaml'),
     ) as unknown,
   );
+  const physicalEntries = await options.profileSource.listEntries(options.profileRelativeDirectory);
+  const scenarioPaths = physicalEntries
+    .map(({ path: relativePath }) => relativePath)
+    .filter((relativePath) => /^cases\/c[1-9][0-9]*\/scenario\.yaml$/u.test(relativePath))
+    .sort((left, right) => left.localeCompare(right, 'en'));
+
+  if (scenarioPaths.length === 0) {
+    throw new Error('Qualification logical profile has no discovered cases.');
+  }
+
+  const scenarios = await Promise.all(
+    scenarioPaths.map(async (scenarioPath) =>
+      QualificationCaseScenarioSchema.parse(
+        parseYaml(
+          await options.profileSource.readProfileFile(
+            options.profileRelativeDirectory,
+            scenarioPath,
+          ),
+        ) as unknown,
+      ),
+    ),
+  );
+  const profile = QualificationProfileSchema.parse({
+    ...profileSource,
+    cases: scenarios.map((scenario, index) => ({
+      id: scenario.id,
+      projectDirectory: path.posix.dirname(scenarioPaths[index]!),
+      scenarioFile: 'scenario.yaml',
+    })),
+  });
 
   if (
     profile.adapterId !== options.selection.adapterId ||
@@ -558,17 +350,6 @@ const createLogicalInputBundle = async (options: {
   if (new Set(caseIds).size !== caseIds.length) {
     throw new Error('Qualification logical profile case ids must be unique.');
   }
-  const caseCatalog = QualificationCaseCatalogSchema.parse(
-    parseYaml(options.caseCatalogSource) as unknown,
-  );
-  const catalogIds = new Set(caseCatalog.cases.map(({ id }) => id));
-  const unknownCaseIds = caseIds.filter((caseId) => !catalogIds.has(caseId));
-
-  if (unknownCaseIds.length > 0) {
-    throw new Error('Qualification logical profile does not match the canonical case catalog.');
-  }
-
-  const physicalEntries = await options.profileSource.listEntries(options.profileRelativeDirectory);
   const logicalEntries = physicalEntries
     .filter(
       ({ path: relativePath }) =>
@@ -610,8 +391,14 @@ const createLogicalInputBundle = async (options: {
     selection: options.selection,
     profile: createCanonicalProfile(profile),
     caseCatalog: normalizeRecord({
-      version: caseCatalog.version,
-      cases: caseCatalog.cases.filter(({ id }) => caseIds.includes(id)),
+      version: profile.version,
+      cases: scenarios.map(({ challenge, description, id, layer, title }) => ({
+        id,
+        title,
+        layer,
+        description,
+        challenge,
+      })),
     }),
     files: logicalEntries,
   });
@@ -635,7 +422,6 @@ export const createQualificationLogicalInputBundle = async (options: {
 
   const profileDirectory = resolveContainedPath(profilesRoot, indexedTarget.key);
   return createLogicalInputBundle({
-    caseCatalogSource: await readFile(path.join(qualificationRoot, 'cases', 'cases.yaml'), 'utf8'),
     profileRelativeDirectory: indexedTarget.key,
     profileSource: {
       listEntries: async () => {
@@ -655,88 +441,12 @@ export const createQualificationLogicalInputBundle = async (options: {
   });
 };
 
-/** Creates one canonical logical target bundle from an expanded or short immutable Git tree. */
-export const createQualificationLogicalInputBundleAtCommit = async (options: {
-  commit: string;
-  repositoryRoot?: string;
-  selection: IQualificationSelection;
-}): Promise<IQualificationLogicalInputBundle> => {
-  const repositoryRoot = options.repositoryRoot ?? SKILL_REPOSITORY_ROOT;
-  const indexSource = await readOptionalGitBlob(
-    repositoryRoot,
-    options.commit,
-    'qualification/profiles/index.yaml',
-  );
-  let profileRelativeDirectory: string;
-
-  if (indexSource === null) {
-    profileRelativeDirectory = path.posix.join(
-      options.selection.adapterId,
-      options.selection.implementationId,
-    );
-  } else {
-    const parsedIndex = QualificationProfileIndexSchema.parse(
-      parseYaml(indexSource.toString('utf8')) as unknown,
-    );
-    const target = findQualificationProfileTarget(parsedIndex, options.selection);
-    if (target === null) {
-      throw new Error('Immutable qualification profile index does not contain the selection.');
-    }
-    profileRelativeDirectory = target.key;
-  }
-
-  const repositoryProfileDirectory = path.posix.join(
-    'qualification/profiles',
-    profileRelativeDirectory,
-  );
-  const profileEntries = await listGitTreeEntries(repositoryRoot, options.commit, [
-    repositoryProfileDirectory,
-  ]);
-
-  return createLogicalInputBundle({
-    caseCatalogSource: (
-      await readGitBlob(repositoryRoot, options.commit, QUALIFICATION_CASE_CATALOG_PATH)
-    ).toString('utf8'),
-    profileRelativeDirectory,
-    profileSource: {
-      listEntries: async () =>
-        Promise.all(
-          profileEntries.map(async (entry) => ({
-            path: entry.path.slice(repositoryProfileDirectory.length + 1),
-            kind: entry.mode === '120000' ? ('symlink' as const) : ('file' as const),
-            mode: entry.mode,
-            sha256: calculateSha256(await readGitBlob(repositoryRoot, options.commit, entry.path)),
-          })),
-        ),
-      readProfileFile: async (_profileRelativeDirectory, relativePath) =>
-        (
-          await readGitBlob(
-            repositoryRoot,
-            options.commit,
-            path.posix.join(repositoryProfileDirectory, relativePath),
-          )
-        ).toString('utf8'),
-    },
-    selection: options.selection,
-  });
-};
-
 /** Calculates one target's canonical logical-input digest from current short storage. */
 export const calculateQualificationLogicalInputDigest = async (options: {
   selection: IQualificationSelection;
   qualificationRoot?: string;
 }): Promise<string> =>
   calculateSha256(`${JSON.stringify(await createQualificationLogicalInputBundle(options))}\n`);
-
-/** Calculates one target's canonical logical-input digest from an immutable Git tree. */
-export const calculateQualificationLogicalInputDigestAtCommit = async (options: {
-  commit: string;
-  repositoryRoot?: string;
-  selection: IQualificationSelection;
-}): Promise<string> =>
-  calculateSha256(
-    `${JSON.stringify(await createQualificationLogicalInputBundleAtCommit(options))}\n`,
-  );
 
 /** Projects the exact shared and case-owned inputs visible to one qualification case. */
 const createQualificationCaseModelInput = (
@@ -793,18 +503,6 @@ export const calculateQualificationCaseModelInputDigests = async (options: {
     options.caseIds,
   );
 
-/** Calculates exact model-input digests for selected cases from one immutable Git tree. */
-export const calculateQualificationCaseModelInputDigestsAtCommit = async (options: {
-  caseIds: readonly string[];
-  commit: string;
-  repositoryRoot?: string;
-  selection: IQualificationSelection;
-}): Promise<Record<string, string>> =>
-  calculateCaseModelInputDigests(
-    await createQualificationLogicalInputBundleAtCommit(options),
-    options.caseIds,
-  );
-
 const calculateBaselineEvaluatorDigest = (
   qualificationEvaluatorDigest: string,
   customLogicalInputDigest: string,
@@ -834,35 +532,6 @@ export const createQualificationCompatibilityIdentity = async (options: {
       }),
       calculateQualificationLogicalInputDigest({
         qualificationRoot,
-        selection: { adapterId: 'custom', implementationId: 'custom' },
-      }),
-    ]);
-
-  return QualificationCompatibilityIdentitySchema.parse({
-    version: 1,
-    qualificationEvaluatorDigest,
-    qualificationLogicalInputDigest,
-    qualificationBaselineEvaluatorDigest: calculateBaselineEvaluatorDigest(
-      qualificationEvaluatorDigest,
-      customLogicalInputDigest,
-    ),
-  });
-};
-
-/** Creates all qualification compatibility identities from one immutable Git tree. */
-export const createQualificationCompatibilityIdentityAtCommit = async (options: {
-  commit: string;
-  repositoryRoot?: string;
-  selection: IQualificationSelection;
-}): Promise<IQualificationCompatibilityIdentity> => {
-  const repositoryRoot = options.repositoryRoot ?? SKILL_REPOSITORY_ROOT;
-  const [qualificationEvaluatorDigest, qualificationLogicalInputDigest, customLogicalInputDigest] =
-    await Promise.all([
-      calculateQualificationEvaluatorDigestAtCommit(options.commit, repositoryRoot),
-      calculateQualificationLogicalInputDigestAtCommit({ ...options, repositoryRoot }),
-      calculateQualificationLogicalInputDigestAtCommit({
-        commit: options.commit,
-        repositoryRoot,
         selection: { adapterId: 'custom', implementationId: 'custom' },
       }),
     ]);

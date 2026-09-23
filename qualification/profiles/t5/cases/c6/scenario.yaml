@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: retire-agent-coherently
 title: Retire an agent coherently
+layer: universal-baseline
+description: 'Remove obsolete canonical agent state after its runtime implementation has been removed.'
+challenge: 'Detects stale assets, bindings, runtime guidance, and manifest declarations that additive-only workflows leave behind.'
 purpose: Verify that removing an implementation also removes its complete obsolete canonical surface.
 taskFile: task.md
 seedDirectory: seed

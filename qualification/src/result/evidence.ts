@@ -2,7 +2,7 @@ import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 
-import { hasPassingCodexEvaluationCommandPolicy } from '../../../tooling/codex-evaluation-host/index.mjs';
+import { hasPassingCodexEvaluationCommandPolicy } from '../../../src/execution/host/index.ts';
 
 import { QualificationBaselineCheckSchema } from '../baseline/types.ts';
 import { QUALIFICATION_TRIAL_IDS } from '../constants/index.ts';
@@ -10,16 +10,13 @@ import {
   ActorOutputSchema,
   DeterministicVerificationArtifactSchema,
   JudgeOutputSchema,
+  QualificationAttemptResultSchema,
   QualificationCaseResultSchema,
-  QualificationCaseScenarioSchema,
   QualificationExecutionErrorSchema,
   QualificationJudgeSkippedSchema,
   QualificationModelStageEvidenceSchema,
   QualificationProjectedExecutionEventSchema,
   QualificationRequirementAssessmentSchema,
-  QualificationProbesSchema,
-  QualificationProfileSchema,
-  QualificationResourceCalibrationSchema,
   QualificationSourceStateResultSchema,
   QualificationTrialResultSchema,
   WorkspaceAssertionResultSchema,
@@ -37,11 +34,7 @@ import {
   type IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
 import { QualificationCoverageResultSchema } from '../coverage/index.ts';
-import {
-  calculateQualificationCaseModelInputDigestsAtCommit,
-  calculateQualificationModelStageEvaluatorDigestAtCommit,
-} from '../evidence-identity/index.ts';
-import { readJsonFile, type IBoundarySchema } from '../filesystem/index.ts';
+import { readJsonFile, type IBoundarySchema } from '../../../src/filesystem/index.ts';
 import { matchesWorkspacePathContract } from '../project-fixture/index.ts';
 import {
   createQualificationStageIds,
@@ -53,16 +46,10 @@ import {
   createQualificationAttemptKey,
   readQualificationAttemptStorage,
   resolveQualificationArtifactPath,
-  resolveQualificationProfilesRootForResults,
   resolveQualificationResultTargetDirectory,
-  resolveQualificationTargetKey,
   verifyQualificationAttemptStorage,
 } from '../storage/index.ts';
-import {
-  type IQualificationCommittedSource,
-  readCommittedQualificationSource,
-} from '../reuse/index.ts';
-import { readQualificationContractJson, readQualificationContractYaml } from './contract-reader.ts';
+import { RecordedQualificationContractSchema } from './recorded-contract.ts';
 
 const JsonObjectSchema = z.record(z.string(), z.unknown());
 
@@ -123,9 +110,8 @@ const readOptionalArtifact = async <TResult>(
 };
 
 type IValidatedQualificationReuseSource = {
-  currentCaseDigests: Record<string, string>;
-  source: IQualificationCommittedSource;
-  sourceCaseDigests: Record<string, string>;
+  source: IQualificationAttemptResult;
+  sourceStorageAttemptDigest: string;
 };
 
 const selectQualificationReuseIdentity = (input: {
@@ -174,60 +160,30 @@ const loadQualificationReuseSource = async (options: {
     options.resultsRoot,
     options.currentResult.selection,
   );
-  const qualificationRoot = path.resolve(options.resultsRoot, '..');
-  const repositoryRoot = path.resolve(qualificationRoot, '..');
-  const attemptRelativeDirectory = path
-    .relative(
-      repositoryRoot,
-      path.join(targetRoot, 'attempts', createQualificationAttemptKey(options.sourceAttemptId)),
-    )
-    .split(path.sep)
-    .join(path.posix.sep);
-  const source = await readCommittedQualificationSource({
-    attemptRelativeDirectory,
-    attemptSha256: options.sourceAttemptDigest,
-    evidenceCommit: options.sourceCommit,
-    repositoryRoot,
+  const sourceAttemptDirectory = path.join(
+    targetRoot,
+    'attempts',
+    createQualificationAttemptKey(options.sourceAttemptId),
+  );
+  const source = await readJsonFile(
+    path.join(sourceAttemptDirectory, 'attempt.json'),
+    QualificationAttemptResultSchema,
+  );
+  const sourceStorage = await verifyQualificationAttemptStorage({
+    attemptDirectory: sourceAttemptDirectory,
+    result: source,
   });
-  const currentCaseIds = new Set(options.currentResult.cases.map(({ caseId }) => caseId));
-  const sharedCaseIds = source.cases
-    .map(({ caseId }) => caseId)
-    .filter((caseId) => currentCaseIds.has(caseId));
-  const [
-    currentEvaluatorStageDigest,
-    sourceEvaluatorStageDigest,
-    currentCaseDigests,
-    sourceCaseDigests,
-  ] = await Promise.all([
-    calculateQualificationModelStageEvaluatorDigestAtCommit(
-      options.currentResult.provenance.qualificationRepositoryCommit,
-      repositoryRoot,
-    ),
-    calculateQualificationModelStageEvaluatorDigestAtCommit(
-      source.provenance.qualificationRepositoryCommit,
-      repositoryRoot,
-    ),
-    calculateQualificationCaseModelInputDigestsAtCommit({
-      caseIds: sharedCaseIds,
-      commit: options.currentResult.provenance.qualificationRepositoryCommit,
-      repositoryRoot,
-      selection: options.currentResult.selection,
-    }),
-    calculateQualificationCaseModelInputDigestsAtCommit({
-      caseIds: sharedCaseIds,
-      commit: source.provenance.qualificationRepositoryCommit,
-      repositoryRoot,
-      selection: source.selection,
-    }),
-  ]);
 
   if (
     source.attemptId !== options.sourceAttemptId ||
+    sourceStorage.attemptDigest !== options.sourceAttemptDigest ||
+    source.provenance.qualificationRepositoryCommit !== options.sourceCommit ||
     source.mode !== 'official' ||
     source.status !== 'failed' ||
     JSON.stringify(selectQualificationReuseIdentity(source)) !==
       JSON.stringify(selectQualificationReuseIdentity(options.currentResult)) ||
-    currentEvaluatorStageDigest !== sourceEvaluatorStageDigest ||
+    source.provenance.qualificationDigest !==
+      options.currentResult.provenance.qualificationDigest ||
     source.cases.some(
       (caseResult) =>
         caseResult.reuse !== null ||
@@ -241,7 +197,7 @@ const loadQualificationReuseSource = async (options: {
     throw new Error(`Qualification reuse source ${options.sourceAttemptId} is not exact.`);
   }
 
-  const validated = { currentCaseDigests, source, sourceCaseDigests };
+  const validated = { source, sourceStorageAttemptDigest: sourceStorage.attemptDigest };
   options.validatedSources.set(sourceKey, validated);
   return validated;
 };
@@ -277,9 +233,7 @@ const validateQualificationCaseReuse = async (options: {
   };
 
   if (
-    source.currentCaseDigests[options.caseResult.caseId] !==
-      source.sourceCaseDigests[options.caseResult.caseId] ||
-    source.source.storage.attemptDigest !== options.caseResult.reuse.sourceAttemptDigest ||
+    source.sourceStorageAttemptDigest !== options.caseResult.reuse.sourceAttemptDigest ||
     sourceCase === undefined ||
     (sourceCase.status !== 'passed' && sourceCase.status !== 'recovered') ||
     JSON.stringify(normalizedCurrentCase) !== JSON.stringify(sourceCase)
@@ -323,6 +277,8 @@ const validateArtifactSchemas = async (
       await readJsonFile(artifactPath, QualificationBaselineCheckSchema);
     } else if (relativePath === 'coverage.json') {
       await readJsonFile(artifactPath, QualificationCoverageResultSchema);
+    } else if (relativePath === 'recorded-contract.json') {
+      await readJsonFile(artifactPath, RecordedQualificationContractSchema);
     } else if (relativePath === 'source-state.json') {
       await readJsonFile(artifactPath, QualificationSourceStateResultSchema);
     } else if (relativePath === 'error.json' || relativePath === 'interruption.json') {
@@ -588,6 +544,7 @@ const createExpectedCurrentArtifactPaths = (
   [
     'baseline.json',
     'coverage.json',
+    'recorded-contract.json',
     'source-state.json',
     ...caseResults.flatMap((caseResult) => [
       `cases/${caseResult.caseId}/case-result.json`,
@@ -1261,24 +1218,22 @@ const validateCurrentTerminalAttempt = async (
   result: IQualificationAttemptResult,
   resultsRoot: string,
 ): Promise<void> => {
-  const profilesRoot = await resolveQualificationProfilesRootForResults(resultsRoot);
-  const currentTargetKey = await resolveQualificationTargetKey(result.selection, profilesRoot);
-  const profileRelativeDirectory = path.join('profiles', currentTargetKey);
-  const [profile, resourceCalibration] = await Promise.all([
-    readQualificationContractYaml({
-      qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
-      relativePath: path.join(profileRelativeDirectory, 'profile.yaml'),
-      resultsRoot,
-      schema: QualificationProfileSchema,
-    }),
-    readQualificationContractJson({
-      contractRoot: 'repository',
-      qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
-      relativePath: path.join('fixtures', 'resource-calibration.json'),
-      resultsRoot,
-      schema: QualificationResourceCalibrationSchema,
-    }),
-  ]);
+  const recordedContract = await requireArtifact(
+    attemptDirectory,
+    result,
+    'recorded-contract.json',
+    RecordedQualificationContractSchema,
+  );
+  const recordedProfile = recordedContract.profiles.find(
+    ({ profile: candidateProfile }) =>
+      candidateProfile.adapterId === result.selection.adapterId &&
+      candidateProfile.implementationId === result.selection.implementationId,
+  );
+  if (recordedProfile === undefined) {
+    throw new Error('Qualification evidence is missing its recorded profile contract.');
+  }
+  const profile = recordedProfile.profile;
+  const resourceCalibration = recordedContract.resourceCalibration;
   const resourceProfiles: IQualificationResourceProfiles = resourceCalibration.profiles;
   const validatedReuseSources = new Map<string, IValidatedQualificationReuseSource>();
 
@@ -1319,12 +1274,7 @@ const validateCurrentTerminalAttempt = async (
   const [baseline, coverage, probes, sourceState] = await Promise.all([
     requireArtifact(attemptDirectory, result, 'baseline.json', QualificationBaselineCheckSchema),
     requireArtifact(attemptDirectory, result, 'coverage.json', QualificationCoverageResultSchema),
-    readQualificationContractYaml({
-      qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
-      relativePath: path.join(profileRelativeDirectory, profile.probesFile),
-      resultsRoot,
-      schema: QualificationProbesSchema,
-    }),
+    Promise.resolve(recordedProfile.probes),
     requireArtifact(
       attemptDirectory,
       result,
@@ -1403,16 +1353,13 @@ const validateCurrentTerminalAttempt = async (
       throw new Error(`Qualification evidence is missing case ${profileCase.id}.`);
     }
 
-    const scenario = await readQualificationContractYaml({
-      qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
-      relativePath: path.join(
-        profileRelativeDirectory,
-        profileCase.projectDirectory,
-        profileCase.scenarioFile,
-      ),
-      resultsRoot,
-      schema: QualificationCaseScenarioSchema,
-    });
+    const scenario = recordedProfile.scenarios.find(
+      ({ id: scenarioId }) => scenarioId === profileCase.id,
+    );
+
+    if (scenario === undefined) {
+      throw new Error(`Qualification evidence is missing scenario ${profileCase.id}.`);
+    }
 
     if (scenario.id !== profileCase.id || caseResult.caseId !== profileCase.id) {
       throw new Error(`Qualification case ${profileCase.id} contradicts its profile identity.`);

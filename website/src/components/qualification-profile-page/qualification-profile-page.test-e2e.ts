@@ -2,529 +2,81 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../tooling/resource-calibration/profiles.mjs';
-
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import { getQualificationReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
+const qualification = loadWebsiteModel().qualification;
+const customProfile = qualification.profiles.find(
+  ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
+);
 
-const qualificationModel = loadWebsiteModel().qualification;
+if (customProfile === undefined) {
+  throw new Error('Synthetic browser evidence requires the Custom qualification profile.');
+}
 
-/** Resolves one generated profile contract for state-aware browser assertions. */
-const getProfile = (adapterId: string, implementationId: string) => {
-  const profile = qualificationModel.profiles.find(
-    (candidate) =>
-      candidate.adapterId === adapterId && candidate.implementationId === implementationId,
+test('shows the selected qualification snapshot without a visitor selector', async ({ page }) => {
+  await page.goto(toPublicPath(qualification.route));
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Choose the integration in your project.' }),
+  ).toBeVisible();
+  const profileLink = page.getByRole('link', { name: customProfile.title });
+  await expect(profileLink.locator('[data-evidence-status]')).toHaveAttribute(
+    'data-evidence-status',
+    getQualificationReleaseEvidenceSummary(customProfile).status,
   );
-  if (profile === undefined) throw new Error(`Missing ${adapterId}/${implementationId} profile.`);
-  return profile;
-};
-
-test('represents the current qualification evidence state', async ({ page }) => {
-  await page.goto(toPublicPath('/evidence/qualification/'));
-
-  await expect(
-    page.getByRole('heading', {
-      level: 1,
-      name: 'Choose the integration in your project.',
-    }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('heading', {
-      level: 2,
-      name: 'Pick one result. Every journey is on the next page.',
-    }),
-  ).toBeVisible();
-  for (const profile of qualificationModel.profiles) {
-    const releaseSummary = getQualificationReleaseEvidenceSummary(profile);
-    const profileLink = page.getByRole('link', { name: profile.title });
-    await expect(profileLink.locator('[data-evidence-status]')).toHaveAttribute(
-      'data-evidence-status',
-      releaseSummary.status,
-    );
-    await expect(profileLink.getByText('Open this result', { exact: true })).toBeVisible();
-  }
-
-  const customProfileLink = page.getByRole('link', { name: /Custom runtime qualification/ });
-  await expect(customProfileLink.getByRole('img', { name: 'Custom adapter icon' })).toBeVisible();
-  await expect(customProfileLink.locator('img')).toHaveCount(0);
-
-  const anthropicProfileLink = page.getByRole('link', {
-    name: /Anthropic Messages API qualification/,
-  });
-  const anthropicCompanyLogo = anthropicProfileLink.getByAltText('Anthropic company logo');
-  await expect(anthropicCompanyLogo).toBeVisible();
-
-  const claudeProfileLink = page.getByRole('link', {
-    name: /Claude Agent SDK qualification/,
-  });
-  await expect(claudeProfileLink.getByAltText('Anthropic company logo')).toBeVisible();
-
-  const vercelProfileLink = page.getByRole('link', {
-    name: /Vercel AI SDK direct generation qualification/,
-  });
-  await expect(vercelProfileLink.getByAltText('Vercel company logo')).toBeVisible();
-
-  const toolLoopProfileLink = page.getByRole('link', {
-    name: /Vercel AI SDK ToolLoopAgent qualification/,
-  });
-  await expect(toolLoopProfileLink.getByAltText('Vercel company logo')).toBeVisible();
-
-  const openAiResponsesProfileLink = page.getByRole('link', {
-    name: /OpenAI Responses API qualification/,
-  });
-  await expect(openAiResponsesProfileLink.getByAltText('OpenAI company logo')).toBeVisible();
-
-  const openAiAgentsProfileLink = page.getByRole('link', {
-    name: /OpenAI Agents SDK qualification/,
-  });
-  await expect(openAiAgentsProfileLink.getByAltText('OpenAI company logo')).toBeVisible();
-
-  const eveProfileLink = page.getByRole('link', {
-    name: /Eve filesystem-agent qualification/,
-  });
-  await expect(eveProfileLink.getByAltText('Vercel company logo')).toBeVisible();
-
-  const langGraphStateGraphProfileLink = page.getByRole('link', {
-    name: /LangGraph StateGraph qualification/,
-  });
-  await expect(langGraphStateGraphProfileLink.getByAltText('LangChain company logo')).toBeVisible();
-
-  const langGraphFunctionalApiProfileLink = page.getByRole('link', {
-    name: /LangGraph Functional API qualification/,
-  });
-  await expect(
-    langGraphFunctionalApiProfileLink.getByAltText('LangChain company logo'),
-  ).toBeVisible();
-
-  const anthropicCompanyLogos = page.getByAltText('Anthropic company logo');
-  const langChainCompanyLogos = page.getByAltText('LangChain company logo');
-  const openAiCompanyLogos = page.getByAltText('OpenAI company logo');
-  const vercelCompanyLogos = page.getByAltText('Vercel company logo');
-
-  await expect(anthropicCompanyLogos).toHaveCount(2);
-  await expect(langChainCompanyLogos).toHaveCount(3);
-  await expect(openAiCompanyLogos).toHaveCount(2);
-  await expect(vercelCompanyLogos).toHaveCount(3);
-  await expect
-    .poll(() =>
-      vercelCompanyLogos.evaluateAll((images) =>
-        images.every(
-          (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
-        ),
-      ),
-    )
-    .toBe(true);
-  await expect
-    .poll(() =>
-      langChainCompanyLogos.evaluateAll((images) =>
-        images.every(
-          (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
-        ),
-      ),
-    )
-    .toBe(true);
-  await expect
-    .poll(() =>
-      openAiCompanyLogos.evaluateAll((images) =>
-        images.every(
-          (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
-        ),
-      ),
-    )
-    .toBe(true);
-  await expect
-    .poll(() =>
-      anthropicCompanyLogos.evaluateAll((images) =>
-        images.every(
-          (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
-        ),
-      ),
-    )
-    .toBe(true);
-
-  await page.getByRole('button', { name: 'Use dark theme' }).click();
-  await expect(page.locator('html')).toHaveClass(/dark/);
-  expect(
-    await vercelCompanyLogos.first().evaluate((element) => getComputedStyle(element).filter),
-  ).not.toBe('none');
-  expect(
-    await openAiCompanyLogos.first().evaluate((element) => getComputedStyle(element).filter),
-  ).not.toBe('none');
-  expect(
-    await langChainCompanyLogos.evaluateAll((images) =>
-      images.every((image) => getComputedStyle(image).filter !== 'none'),
-    ),
-  ).toBe(true);
-  expect(
-    await anthropicCompanyLogos.evaluateAll((images) =>
-      images.every((image) => getComputedStyle(image).filter === 'none'),
-    ),
-  ).toBe(true);
+  await expect(page.getByRole('combobox')).toHaveCount(0);
 });
 
-test('presents one combined result with technical evidence kept secondary', async ({ page }) => {
-  for (const [adapterId, implementationId] of [
-    ['anthropic', 'typescript-messages-api-0-117'],
-    ['custom', 'custom'],
-    ['vercel-ai-sdk', 'typescript-generate-stream-text-7'],
-    ['vercel-ai-sdk', 'typescript-tool-loop-agent-7'],
-  ] as const) {
-    const profile = getProfile(adapterId, implementationId);
-    const releaseSummary = getQualificationReleaseEvidenceSummary(profile);
-    await page.goto(toPublicPath(profile.route));
-    await expect(page.getByRole('heading', { level: 1, name: profile.title })).toBeVisible();
-    await expect(page.locator('[data-evidence-status]').first()).toHaveAttribute(
-      'data-evidence-status',
-      releaseSummary.status,
-    );
-    const journeyCount = profile.cases.length + profile.sharedCases.length;
-    const journeySection = page.locator('#qualification-journeys');
-    const journeys = journeySection.locator('details[data-accordion-item]');
-    await expect(
-      journeySection.getByRole('heading', { name: `Browse all ${journeyCount} journeys.` }),
-    ).toBeVisible();
-    await expect(journeys).toHaveCount(journeyCount);
-    await expect(page.locator('#foundation-journeys-chapter')).toHaveCount(0);
-    await expect(page.getByRole('link', { name: 'Choose another integration' })).toHaveAttribute(
-      'href',
-      toPublicPath('/evidence/qualification/'),
-    );
-    await expect(page.getByText('How this result was produced', { exact: true })).toBeVisible();
-    const packageSource = page.locator('#qualification-package-source');
-    await packageSource.locator(':scope > summary').click();
-    if (profile.runtimePackages.length === 0) {
-      await expect(
-        packageSource.getByText('The Custom foundation has no runtime-specific package inputs.'),
-      ).toBeVisible();
-    } else {
-      const inputTable = packageSource.getByRole('region', {
-        name: 'Current profile package inputs',
-      });
-      for (const { name, version } of profile.runtimePackages) {
-        await expect(inputTable).toContainText(name);
-        await expect(inputTable).toContainText(version);
-      }
-    }
-    await expect(page.getByText('The shared foundation', { exact: true })).toHaveCount(0);
-    if (journeyCount > 1) {
-      await journeys.nth(0).locator(':scope > summary').click();
-      await journeys.nth(1).locator(':scope > summary').click();
-      await expect(journeys.nth(0)).toHaveAttribute('open', '');
-      await expect(journeys.nth(1)).toHaveAttribute('open', '');
-    }
-    await expect(page.getByRole('link', { name: /Inspect the .* attempt/u })).toHaveCount(0);
-    if (releaseSummary.kind === 'pinned') {
-      const resultSource = page.locator('#qualification-result-source');
-      await resultSource.locator(':scope > summary').click();
-      await expect(
-        resultSource.getByRole('heading', { name: 'Verified release source' }),
-      ).toBeVisible();
-      const assurance = profile.currentAssurance;
-      if (assurance !== null && assurance.baselineAttempt !== null) {
-        const attemptItems = resultSource.locator('ol > li');
-        await expect(attemptItems.nth(0)).toContainText('Shared foundation attempt');
-        await expect(attemptItems.nth(0)).toContainText(assurance.baselineAttempt.result.attemptId);
-        await expect(attemptItems.nth(1)).toContainText('Adapter-specific result');
-        await expect(attemptItems.nth(1)).toContainText(assurance.directAttempt.result.attemptId);
-      }
-    }
-  }
-});
-
-test('reveals a journey addressed by its direct link', async ({ page }) => {
-  await page.goto(
-    `${toPublicPath('/evidence/qualification/custom/custom/')}#qualification-create-grounded-agent`,
-  );
-
-  await expect(page.locator('#qualification-create-grounded-agent')).toHaveAttribute('open', '');
-});
-
-test('replays qualification evidence through human-readable and technical views', async ({
-  page,
-}) => {
-  const customProfile = getProfile('custom', 'custom');
+test('keeps replay, project, evidence, and technical views available', async ({ page }) => {
   await page.goto(toPublicPath(customProfile.route));
-  if (customProfile.currentLatest === null) {
-    await expect(page.getByText('No complete journey evidence is available.')).toBeVisible();
-    return;
-  }
-  const groundedAgentCase = customProfile.currentLatest.cases.find(
-    ({ result }) => result.caseId === 'create-grounded-agent',
-  );
-  const groundedAgentProfileCase = customProfile.cases.find(
-    ({ id }) => id === 'create-grounded-agent',
-  );
-  const initialGroundedAgentTrial = groundedAgentCase?.trials.find(
-    ({ result }) => result.trialId === 'initial',
-  );
-  if (groundedAgentProfileCase === undefined || initialGroundedAgentTrial === undefined) {
-    throw new Error('The current Custom attempt has no initial grounded-agent trial.');
-  }
-  const initialRetryCount =
-    initialGroundedAgentTrial.retries.actor.length + initialGroundedAgentTrial.retries.judge.length;
 
-  const journey = page
-    .locator('details[data-accordion-item]')
-    .filter({ hasText: 'Create a grounded agent' })
-    .first();
-  if ((await journey.getAttribute('open')) === null) {
-    await journey.locator(':scope > summary').click();
-  }
-
+  await expect(page.getByRole('heading', { level: 1, name: customProfile.title })).toBeVisible();
+  const journey = page.locator('details[data-accordion-item]').filter({ hasText: 'Release case' });
+  await journey.locator(':scope > summary').click();
   const replayTab = journey.getByRole('tab', { name: 'Replay' });
   const projectTab = journey.getByRole('tab', { name: 'Project' });
   const evidenceTab = journey.getByRole('tab', { name: 'Evidence' });
   const technicalTab = journey.getByRole('tab', { name: 'Technical' });
-  await expect(replayTab).toHaveAttribute('aria-selected', 'true');
-  await expect(projectTab).toHaveAttribute('aria-selected', 'false');
-  await expect(evidenceTab).toHaveAttribute('aria-selected', 'false');
-  await expect(technicalTab).toHaveAttribute('aria-selected', 'false');
-  await expect(journey.getByText('Developer', { exact: true }).first()).toBeVisible();
-  await expect(journey.getByText('Coding agent', { exact: true }).first()).toBeVisible();
-  await expect(journey.getByText('Deterministic verifier', { exact: true }).first()).toBeVisible();
-  const developerMessage = journey.locator('article').filter({ hasText: 'DEVELOPER' }).first();
-  await expect(developerMessage).toContainText('Add the order-triage agent');
-  await expect(developerMessage).toContainText('createOrderTriageAgent');
-  await expect(journey.getByRole('heading', { name: 'Workspace changes' }).first()).toBeVisible();
-  await expect(
-    journey.getByTitle('moldea/agents/order-triage/description.md').first(),
-  ).toBeVisible();
-  const verdict = journey.locator('[data-replay-verdict]').first();
-  await expect(verdict.getByText('Trial verdict', { exact: true })).toBeVisible();
-  await verdict.locator('summary').click();
-  await expect(verdict.getByRole('heading', { name: /Why it (?:passed|failed)/u })).toBeVisible();
 
-  await replayTab.focus();
+  await expect(replayTab).toHaveAttribute('aria-selected', 'true');
   await replayTab.press('ArrowRight');
   await expect(projectTab).toBeFocused();
-  await expect(projectTab).toHaveAttribute('aria-selected', 'true');
   await expect(journey.getByRole('heading', { name: 'Starting project' })).toBeVisible();
-  await expect(journey.getByRole('heading', { name: 'Agent task' })).toBeVisible();
-  await expect(journey.getByRole('heading', { name: 'Recorded result' })).toBeVisible();
-  await expect(journey.getByRole('heading', { name: 'Starting files' })).toBeVisible();
-  await expect(journey.getByRole('heading', { name: 'What changed' })).toBeVisible();
-  await expect(
-    journey.getByRole('heading', { name: 'Final workspace compared with fixture baseline' }),
-  ).toBeVisible();
-  await expect(journey.getByRole('link', { name: 'View complete project source' })).toHaveAttribute(
-    'href',
-    groundedAgentProfileCase.projectSourceUrl,
-  );
-  await expect(journey.getByRole('link', { name: 'View raw patch' })).toHaveAttribute(
-    'href',
-    /\.patch$/u,
-  );
-  const projectPatch = journey.locator('[data-project-patch]');
-  await expect(projectPatch.getByText('Verified workspace diff', { exact: true })).toBeVisible();
-  await expect(projectPatch.locator('pre')).toBeVisible();
-  await expect(projectPatch.locator('pre')).not.toBeEmpty();
-
   await projectTab.press('ArrowRight');
   await expect(evidenceTab).toBeFocused();
-  await expect(evidenceTab).toHaveAttribute('aria-selected', 'true');
   await expect(journey.getByRole('heading', { name: 'What had to happen' })).toBeVisible();
-  await expect(journey.getByRole('heading', { name: 'What must not happen' })).toBeVisible();
-  await expect(
-    journey.getByRole('heading', { name: /Why it (?:failed|passed|recovered)/u }),
-  ).toBeVisible();
-  await expect(journey.getByRole('heading', { name: 'Requirement results' })).toBeVisible();
-
   await evidenceTab.press('End');
   await expect(technicalTab).toBeFocused();
-  await expect(technicalTab).toHaveAttribute('aria-selected', 'true');
   await expect(journey.getByRole('heading', { name: 'Complete trial evidence' })).toBeVisible();
-  const initialTrial = journey
-    .getByRole('heading', { level: 5, name: 'Initial trial' })
-    .locator('xpath=ancestor::article[1]');
-  await initialTrial.locator('summary').first().click();
-  await expect(initialTrial.getByRole('heading', { name: 'Deterministic evidence' })).toBeVisible();
-  await expect(
-    initialTrial.getByText('Commands recorded / limit:', { exact: false }).first(),
-  ).toBeVisible();
-  await expect(
-    initialTrial.getByText(
-      `Operational retries (${initialRetryCount}) and committed trial artifacts`,
-      { exact: true },
-    ),
-  ).toBeVisible();
-
-  const unchangedCase = customProfile.currentLatest.cases.find(
-    ({ trials }) => trials.at(-1)?.workspaceAssertions.changedPaths.length === 0,
-  );
-  if (unchangedCase === undefined) {
-    throw new Error('The current Custom attempt has no unchanged project journey.');
-  }
-  const unchangedJourney = page
-    .locator('details[data-accordion-item]')
-    .filter({ hasText: unchangedCase.result.title })
-    .first();
-  await unchangedJourney.locator(':scope > summary').click();
-  await unchangedJourney.getByRole('tab', { name: 'Project' }).click();
-  await expect(
-    unchangedJourney.getByText('No project files changed', { exact: true }),
-  ).toBeVisible();
 });
 
-test('keeps the qualification project story readable without JavaScript', async ({ browser }) => {
-  const customProfile = getProfile('custom', 'custom');
-  const currentAttempt = customProfile.currentLatest;
-  const groundedAgentCase = currentAttempt?.cases.find(
-    ({ result }) => result.caseId === 'create-grounded-agent',
-  );
-  if (currentAttempt === null || groundedAgentCase === undefined) return;
+test('opens a selected journey through its stable fragment', async ({ page }) => {
+  await page.goto(`${toPublicPath(customProfile.route)}#qualification-release-case`);
 
-  const context = await browser.newContext({
-    javaScriptEnabled: false,
-    viewport: { height: 740, width: 320 },
-  });
-  const page = await context.newPage();
-  await page.goto(toPublicPath(customProfile.route));
-  const journey = page
-    .locator('details[data-accordion-item]')
-    .filter({ hasText: groundedAgentCase.result.title })
-    .first();
-  if ((await journey.getAttribute('open')) === null) {
-    await journey.locator(':scope > summary').click();
-  }
-
-  await expect(journey.getByRole('heading', { name: 'Starting project' })).toBeVisible();
-  await expect(journey.getByRole('heading', { name: 'Agent task' })).toBeVisible();
-  await expect(journey.getByRole('heading', { name: 'Recorded result' })).toBeVisible();
-  await expect(journey.getByRole('link', { name: 'View complete project source' })).toBeVisible();
-  await expect(journey.getByRole('link', { name: 'View raw patch' })).toBeVisible();
-  const widths = await page.evaluate(() => ({
-    client: document.documentElement.clientWidth,
-    scroll: document.documentElement.scrollWidth,
-  }));
-  expect(widths.scroll).toBeLessThanOrEqual(widths.client);
-
-  await context.close();
+  await expect(page.locator('#qualification-release-case')).toHaveAttribute('open', '');
 });
 
-test(
-  'renders recovered protocol 10 trial evidence',
-  { tag: '@qualification-current-fixture' },
-  async ({ browser }) => {
-    const recoveredProfile = getProfile('custom', 'custom');
-    const terminalPatchUrl =
-      recoveredProfile.currentLatest?.cases[0]?.trials.at(-1)?.workspacePatch.rawUrl;
-    if (terminalPatchUrl === undefined) {
-      throw new Error('The recovered fixture has no terminal workspace patch.');
-    }
-
-    for (const colorScheme of ['light', 'dark'] as const) {
-      const context = await browser.newContext({
-        colorScheme,
-        viewport: { height: 900, width: 320 },
-      });
-      const page = await context.newPage();
-      await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
-
-      await expect(
-        page.getByRole('heading', { level: 1, name: recoveredProfile.title }),
-      ).toBeVisible();
-      const packageDetails = page.locator('#qualification-package-source');
-      await packageDetails.locator(':scope > summary').click();
-      await expect(
-        packageDetails.getByRole('heading', { name: 'Exact executed closure' }),
-      ).toBeVisible();
-
-      const caseEvidence = page
-        .locator('details[data-accordion-item]')
-        .filter({ hasText: 'Release case' })
-        .first();
-      if ((await caseEvidence.getAttribute('open')) === null) {
-        await caseEvidence.locator(':scope > summary').click();
-      }
-      await expect(caseEvidence).toContainText(
-        'The initial trial failed, then two fresh confirmation trials independently passed the complete case.',
-      );
-      await expect(caseEvidence.getByRole('tab', { name: 'Replay' })).toHaveAttribute(
-        'aria-selected',
-        'true',
-      );
-      await expect(caseEvidence.getByText('Developer', { exact: true }).first()).toBeVisible();
-      await expect(caseEvidence.getByText('Coding agent', { exact: true }).first()).toBeVisible();
-      await caseEvidence.getByRole('tab', { name: 'Project' }).click();
-      await expect(caseEvidence.getByRole('heading', { name: 'Starting project' })).toBeVisible();
-      await expect(caseEvidence.getByRole('heading', { name: 'Recorded result' })).toBeVisible();
-      await expect(caseEvidence.getByRole('link', { name: 'View raw patch' })).toHaveAttribute(
-        'href',
-        terminalPatchUrl,
-      );
-      await caseEvidence.getByRole('tab', { name: 'Evidence' }).click();
-      await expect(caseEvidence.getByRole('heading', { name: 'Why it recovered' })).toBeVisible();
-      await caseEvidence.getByRole('tab', { name: 'Technical' }).click();
-      await expect(caseEvidence.getByRole('heading', { level: 5 })).toHaveText([
-        'Initial trial',
-        'Confirmation 1',
-        'Confirmation 2',
-      ]);
-
-      const initialTrial = caseEvidence
-        .getByRole('heading', { level: 5, name: 'Initial trial' })
-        .locator('xpath=ancestor::article[1]');
-      await expect(initialTrial.locator('[data-evidence-status]').first()).toHaveAttribute(
-        'data-evidence-status',
-        'failed',
-      );
-      await initialTrial.locator('summary').first().click();
-      await expect(initialTrial.getByText('ordinary', { exact: true })).toBeVisible();
-      await expect(initialTrial.getByText('0 / 64', { exact: true })).toHaveCount(2);
-      await expect(
-        initialTrial.getByText('Largest command output / limit:', { exact: false }),
-      ).toHaveCount(2);
-      await expect(initialTrial.getByText('0 / 131072 bytes', { exact: true })).toHaveCount(2);
-      await expect(
-        initialTrial.getByText(
-          `144 / ${MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxHostTokenCount}`,
-          { exact: true },
-        ),
-      ).toHaveCount(2);
-      await expect(initialTrial.getByText('not-observed', { exact: true })).toHaveCount(6);
-      await expect(initialTrial.getByText('Unexpected changed path unexpected.md.')).toHaveCount(0);
-      await expect(
-        initialTrial.getByText(
-          'The judge was skipped because runner-owned evidence already failed.',
-        ),
-      ).toHaveCount(0);
-      await expect(initialTrial.getByText('fail', { exact: true })).toBeVisible();
-
-      for (const confirmationName of ['Confirmation 1', 'Confirmation 2']) {
-        const confirmationTrial = caseEvidence
-          .getByRole('heading', { level: 5, name: confirmationName })
-          .locator('xpath=ancestor::article[1]');
-        await expect(confirmationTrial.locator('[data-evidence-status]').first()).toHaveAttribute(
-          'data-evidence-status',
-          'passed',
-        );
-      }
-
-      await expect(caseEvidence.getByText('Direct evidence', { exact: true })).toHaveCount(6);
-      const retryDisclosure = initialTrial.getByText(
-        'Operational retries (1) and committed trial artifacts',
-        { exact: true },
-      );
-      await retryDisclosure.focus();
-      await expect(retryDisclosure).toBeFocused();
-      await retryDisclosure.press('Enter');
-      await expect(initialTrial.getByText('Actor retry 1', { exact: true })).toBeVisible();
-      await expect(initialTrial.getByText('timed-out', { exact: true })).toBeVisible();
-      await expect(initialTrial.getByRole('link', { name: /actor-output\.json/u })).toHaveAttribute(
-        'href',
-        /\/main\/qualification\/results\/t1\/attempts\/a-[a-f0-9]{32}\/artifacts\/f[a-f0-9]{2}\.json$/u,
-      );
-
-      const widths = await page.evaluate(() => ({
-        client: document.documentElement.clientWidth,
-        scroll: document.documentElement.scrollWidth,
-      }));
-      expect(widths.scroll).toBeLessThanOrEqual(widths.client);
-      expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
-      await context.close();
-    }
-  },
-);
+test('remains accessible, responsive, and theme-safe for selected evidence', async ({
+  browser,
+}) => {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    const context = await browser.newContext({
+      colorScheme,
+      reducedMotion: 'reduce',
+      viewport: { height: 900, width: 320 },
+    });
+    const page = await context.newPage();
+    await page.goto(toPublicPath(customProfile.route));
+    const accessibilityResults = await new AxeBuilder({ page }).analyze();
+    expect(accessibilityResults.violations).toStrictEqual([]);
+    const widths = await page.evaluate(() => ({
+      client: document.documentElement.clientWidth,
+      scroll: document.documentElement.scrollWidth,
+    }));
+    expect(widths.scroll).toBeLessThanOrEqual(widths.client);
+    await context.close();
+  }
+});

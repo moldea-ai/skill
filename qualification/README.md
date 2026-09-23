@@ -4,26 +4,11 @@ Adapter qualification is a local, manually operated release gate for one exact a
 
 ## Evidence ownership
 
-The Custom profile owns all 12 universal qualification journeys:
+The Custom profile owns universal qualification journeys. Every non-Custom profile owns only adapter-specific probes and cases. The index at `profiles/index.yaml` maps logical targets to short physical profile directories.
 
-- evaluate an aligned project
-- initialize a grounded project
-- create a grounded agent
-- maintain a dirty project
-- reconcile drift and boundaries
-- retire an agent coherently
-- stop on material ambiguity
-- resist untrusted repository instructions
-- answer an informational question before adoption
-- abstain from unrelated repository work before adoption
-- abstain from unrelated repository work after adoption
-- activate for a declared relationship
+Each profile discovers its `cases/*/scenario.yaml` files. Discovered Custom scenarios are the shared-case authority, so adding a case requires only the owning case directory and any real probe relationship. There is no duplicated case catalog or handwritten case list in `profile.yaml`.
 
-Every non-Custom profile owns only adapter-specific probes and cases. The profile loader rejects universal case ownership outside Custom and rejects a Custom profile that omits a universal case.
-
-The index at `profiles/index.yaml` declares 14 current targets: Custom and 13 published adapter implementations.
-
-This produces 38 unique executions: 12 universal Custom projects and 26 direct adapter projects. Public evidence for an adapter composes its exact bound Custom attempt with its 2 direct projects, showing 12 shared plus 2 direct journeys without claiming that the universal projects ran again. The effective adapter status passes only when the direct attempt and its bound Custom attempt are both current and passing.
+Public evidence for an adapter composes its exact bound passing Custom attempt with the adapter's direct projects without claiming that shared projects ran again. The effective adapter status passes only when the direct attempt and its bound Custom attempt are both compatible and passing. The public bundle records the exact inventory that ran, so later profile changes do not rewrite an older selected website snapshot.
 
 ## Deterministic boundary
 
@@ -43,7 +28,7 @@ The CLI, runtime packages, auxiliary types, and TypeScript compiler are download
 
 ## Model boundary
 
-Official actors and independent judges use `gpt-5.6-sol` with `xhigh` reasoning effort. Both roles run in separate disposable homes and separate workspaces through the shared isolated host.
+Official actors and independent judges use `gpt-6-sol` with `xhigh` reasoning effort. Both roles run in separate disposable homes and separate workspaces through the shared isolated host.
 
 The actor receives a natural task and the portable skill. The judge receives declared semantic requirements, deterministic results, workspace assertions, projected execution facts, and the actor response. Neither role receives hidden credentials or unrelated host state.
 
@@ -80,27 +65,25 @@ Qualification protocol 10 is the sole accepted contract. A passing attempt must 
 
 Behavior-bearing filesystem identity preserves file contents, paths, symlinks, and executability while ignoring host-only read and write permission differences.
 
-An official run may reuse a passed or recovered case group from a committed failed attempt only while every behavior-bearing identity, source commit, artifact digest, Custom baseline, and package closure remains exact. Failed and incomplete case groups, diagnostic attempts, uncommitted evidence, chained reuse, and tampered artifacts are never eligible.
+An official run may reuse a passed or recovered case group from validated local evidence only while every behavior-bearing identity, artifact digest, Custom baseline, and package closure remains exact. Failed and incomplete case groups, diagnostic attempts, chained reuse, and tampered artifacts are never eligible.
 
 Adapter qualification requires a current passing Custom baseline. Custom itself requires no baseline. Every target must produce one current passing attempt for this release. That attempt identifies direct and exactly reused case groups separately instead of claiming that reused model work ran again.
 
 ## Input layout
 
-- `cases/cases.yaml` catalogs the 12 universal case identities.
 - `profiles/index.yaml` maps logical targets to short `t<number>` directories.
-- `profiles/t<number>/profile.yaml` selects only the cases owned by that target.
-- `profiles/t<number>/probes/*.yaml` maps compatibility claims to the shared Custom cases and the target's adapter-specific cases.
+- `profiles/t<number>/profile.yaml` declares target identity and profile metadata.
+- `profiles/t<number>/probes/*.yaml` maps compatibility claims to discovered shared Custom cases and the target's adapter-specific cases.
 - `profiles/t<number>/cases/c<number>/` contains a transparent task, scenario, seed project, and expected state when applicable.
 
 Scenario paths use repository-relative portable names. Test files remain colocated with the implementation they exercise.
 
 ## Local setup
 
-Keep the `skill` and `packages` repositories adjacent. Install dependencies without lifecycle scripts:
+Keep the `skill` and `packages` repositories adjacent. From the `skill` repository root, install every workspace dependency without lifecycle scripts:
 
 ```bash
 npm ci --ignore-scripts
-npm --prefix qualification ci --ignore-scripts
 ```
 
 The default skill candidate is `moldea/`.
@@ -164,7 +147,7 @@ npm run qualification -- retry --attempt <attempt-id>
 npm run qualification -- record --attempt <attempt-id>
 ```
 
-Verify committed evidence:
+Verify local recorded evidence:
 
 ```bash
 npm run qualification -- verify
@@ -193,7 +176,9 @@ Every stage writes an atomic checkpoint. Resume continues the exact compatible s
 
 Every checkpoint write also replaces an 8,192-byte-bounded local status sidecar. Status and the guided resume menu read only these sidecars plus checkpoint file metadata, never checkpoint bodies. A missing, stale, malformed, unreadable, or oversized sidecar is reported as unavailable metadata and is not interpreted through a legacy checkpoint reader.
 
-The runner has no free-floating model-output cache. Model stages always execute directly unless the official runner materializes a complete eligible case group from verified current committed evidence or from one source declared in `reuse-sources.json`. Manifest sources are read from their exact committed Git objects and must match their recorded attempt and storage digests. Every source case is reused only when its evaluator-stage and case-input digests still match current source. The packages repository may advance only when the exact compatibility fingerprint and candidate package closure remain unchanged; its commit is audit provenance rather than model-stage identity. The reused case retains its source attempt, source commit, source attempt digest, stage identities, trial results, and artifacts. Independent result verification reloads that direct source and rejects identity drift, chained reuse, missing files, changed bytes, or unconfigured manifest sources.
+The runner has no free-floating model-output cache. Model stages execute directly unless the official runner materializes a complete eligible case group from validated local result storage. Every source case is reused only when its evaluator-stage and case-input digests still match current source. The packages repository may advance only when the exact compatibility fingerprint and candidate package closure remain unchanged; its commit remains audit provenance rather than model-stage identity. The reused case retains its source attempt digest, stage identities, trial results, and artifacts. Independent result verification reloads that direct local source and rejects identity drift, chained reuse, missing files, or changed bytes.
+
+Recorded `gpt-5.6-sol` attempts remain verifiable as history. They cannot serve as a current `gpt-6-sol` baseline or reuse source.
 
 `diagnose-batch` gives each selected case one private attempt and runs up to four initials concurrently without confirmations or evidence reuse. The coordinator alone replaces its content-free checkpoint and completed ledger under `.runtime-qualification/diagnostic-batch/`. Each aggregate file and each private attempt checkpoint is limited to 1 MiB, with a 6 MiB four-worker metadata ceiling. The ledger retains only case status, requirement IDs, deterministic explanation, duration, model and token totals, operational-failure count, and attempt identity. It never retains prompts, model rationale, commands, output bodies, repository content, or workspace paths. Final JSON output is limited to 16 KiB. Successful completion deletes the aggregate checkpoint and terminal diagnostic attempts after projection; official results and pointers are never changed.
 
@@ -205,13 +190,13 @@ Each model stage has a finite fifteen-minute timeout so role-specific reasoning 
 
 The packages repository contributes only the immutable `HEAD:compatibility/runtimes.yaml` artifact. Qualification records its commit and content fingerprint, so live worktree changes cannot alter or interrupt an active run. Qualification-engine source and the portable skill remain independently fingerprinted and must be clean before publication.
 
-## Current result storage
+## Local result and public bundle storage
 
-`results/<target-key>/attempts/a-<digest>/` contains the current attempt and numbered artifacts. `storage.json` binds logical artifact paths to physical files and verifies every SHA-256 digest. `latest.json` points to the latest attempt and current passing attempt when one exists.
+`.evidence/qualification/results/<target-key>/attempts/a-<digest>/` contains private local attempts and numbered artifacts. `storage.json` binds logical artifact paths to physical files and verifies every SHA-256 digest. `latest.json` points to the latest attempt and latest passing attempt when one exists.
 
-Current protocol-10 attempts are revalidated against the profile, probes, scenarios, and resource calibration stored at their recorded qualification source commit. Earlier attempts remain available only through Git history; active source and local runtime storage contain no compatibility corpus or reader.
+After an official batch completes, qualification projects the complete recorded snapshot into a self-contained local public bundle below `.evidence/runs/qualification/`. The public bundle contains the definitions, projects, replay, artifacts, version, date, and provenance required by the website, but it is not a backup for private checkpoints or reuse state.
 
-Fresh qualification release verification reads only this current storage. Every indexed target must have one compatible passing attempt. An explicit qualification-scoped release evidence pin instead validates an immutable source tag or full commit and its compact artifact manifests without copying source attempts into the new release or changing the semantic evidence selection.
+Use the root evidence commands to pack, publish, and independently select the qualification bundle. The website consumes only the prepared selection and never reads the current profile tree or private result storage. See [release evidence](../docs/release-evidence.md).
 
 ## Verification
 
@@ -225,4 +210,4 @@ npm run qualification:format:check
 npm run qualification:verify
 ```
 
-The generic test script runs both unit and integration categories. Qualification results become fresh release evidence only after every current identity, resource budget, artifact digest, and target requirement passes. Pinned qualification evidence remains visibly attributed to the original passing source and does not claim a new qualification run.
+The generic test script runs both unit and integration categories. Qualification results become fresh release evidence only after every recorded identity, resource budget, artifact digest, and target requirement passes. Selecting an older published bundle leaves its original version, date, and provenance visible and does not claim a new qualification run.

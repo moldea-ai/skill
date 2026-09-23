@@ -2,16 +2,16 @@ import { randomUUID } from 'node:crypto';
 import { access, rm } from 'node:fs/promises';
 import path from 'node:path';
 
-import { CodexEvaluationOperationalRetryExhaustedError } from '../../../tooling/codex-evaluation-host/index.mjs';
+import { CodexEvaluationOperationalRetryExhaustedError } from '../../../src/execution/host/index.ts';
 import {
   EVALUATION_BATCH_DEFAULT_WORKER_COUNT,
   runOrderedEvaluationBatch,
-} from '../../../tooling/evaluation-batch/index.mjs';
-import { getEvaluationConfirmationResolution } from '../../../tooling/evaluation-confirmation-policy/index.mjs';
+} from '../../../src/execution/batch/index.ts';
+import { getEvaluationConfirmationResolution } from '../../../src/execution/confirmation/index.ts';
 
 import { prepareCandidateClosure } from '../candidate-closure/index.ts';
 import {
-  calculateQualificationBaselineDigestAtCommit,
+  calculateQualificationBaselineDigest,
   inspectQualificationBaseline,
   QualificationBaselineCheckSchema,
 } from '../baseline/index.ts';
@@ -68,7 +68,7 @@ import {
   readJsonFile,
   writeJsonFileAtomically,
   writeTextFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   captureQualificationProjectSnapshot,
   captureWorkspacePatch,
@@ -168,12 +168,11 @@ export const inspectQualificationInputState = async (
       calculateQualificationCaseModelInputDigests({ caseIds, selection: target.selection }),
       calculateQualificationModelStageEvaluatorDigest(),
       calculateQualificationExecutionDigest({
-        caseIds,
         profileDirectory: target.profileDirectory,
       }),
       inspectGitRepositoryState(SKILL_REPOSITORY_ROOT, {
         includedRelativePathPrefixes: QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
-        excludedRelativePathPrefixes: ['qualification/results'],
+        excludedRelativePathPrefixes: ['.evidence/qualification/results'],
       }),
       inspectGitRepositoryState(skillRepository),
     ]);
@@ -182,9 +181,7 @@ export const inspectQualificationInputState = async (
     matrixVersion: target.matrix.version,
     target: target.target,
   });
-  const qualificationBaselineDigest = await calculateQualificationBaselineDigestAtCommit(
-    qualificationState.commit,
-  );
+  const qualificationBaselineDigest = await calculateQualificationBaselineDigest();
 
   return {
     caseDigests,
@@ -875,13 +872,9 @@ export const runQualification = async (
         ? await loadReusableQualificationCases({
             baselineAttemptId,
             candidate,
-            caseDigests: inputState.caseDigests,
             caseIds: selectedProfileCases.map(({ id }) => id),
             checkpoint,
-            evaluatorStageDigest: inputState.evaluatorStageDigest,
             executionEnvironment,
-            qualificationRepositoryCommit: qualificationState.commit,
-            repositoryRoot: SKILL_REPOSITORY_ROOT,
             resultsRoot,
           })
         : new Map<string, IReusableQualificationCase>();

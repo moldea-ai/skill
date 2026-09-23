@@ -1,19 +1,23 @@
 import path from 'node:path';
 
-import {
-  createCliClosureDigest,
-  createPortableSkillBehaviorDigest,
-} from '../../../tooling/evidence-identity/index.mjs';
+import { createCliClosureDigest } from '../../../src/packages/index.ts';
+import { createPortableSkillBehaviorDigest } from '../../../src/portable/index.ts';
 import { createPublicCandidatePackage } from '../candidate-closure/index.ts';
-import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
+import {
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+  QUALIFICATION_RESULTS_ROOT,
+  QUALIFICATION_ROOT,
+  SKILL_REPOSITORY_ROOT,
+} from '../constants/index.ts';
 import {
   QualificationAttemptResultSchema,
   QualificationLatestResultSchema,
   type ICandidateClosure,
   type IQualificationExecutionEnvironment,
+  type IQualificationProvenance,
   type IQualificationSelection,
 } from '../contracts/index.ts';
-import { readJsonFile } from '../filesystem/index.ts';
+import { readJsonFile } from '../../../src/filesystem/index.ts';
 import { createQualificationCompatibilityIdentity } from '../evidence-identity/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
@@ -59,8 +63,8 @@ const getPublicPackageIdentity = (
     .sort(({ name: left }, { name: right }) => left.localeCompare(right, 'en'));
 
 const selectExecutionEnvironment = (
-  environment: IQualificationExecutionEnvironment,
-): IQualificationExecutionEnvironment => ({
+  environment: IQualificationProvenance,
+): Pick<IQualificationProvenance, keyof IQualificationExecutionEnvironment> => ({
   actorReasoningEffort: environment.actorReasoningEffort,
   judgeReasoningEffort: environment.judgeReasoningEffort,
   model: environment.model,
@@ -169,9 +173,16 @@ export const inspectQualificationBaseline = async (options: {
   let currentPortableSkillBehaviorDigest;
 
   try {
-    const repositoryRoot = path.resolve(options.resultsRoot, '..', '..');
+    const isRepositoryEvidenceRoot =
+      path.resolve(options.resultsRoot) === path.resolve(QUALIFICATION_RESULTS_ROOT);
+    const repositoryRoot = isRepositoryEvidenceRoot
+      ? SKILL_REPOSITORY_ROOT
+      : path.resolve(options.resultsRoot, '..', '..');
+    const qualificationRoot = isRepositoryEvidenceRoot
+      ? QUALIFICATION_ROOT
+      : path.resolve(options.resultsRoot, '..');
     currentCompatibility = await createQualificationCompatibilityIdentity({
-      qualificationRoot: path.resolve(options.resultsRoot, '..'),
+      qualificationRoot,
       repositoryRoot,
       selection: baseline.selection,
     });

@@ -11,10 +11,3 @@ runtimePackages:
   - name: '@types/node'
     version: 22.20.1
 probesFile: probes/claims.yaml
-cases:
-  - id: repair-langgraph-functional-runtime-binding
-    projectDirectory: cases/c9
-    scenarioFile: scenario.yaml
-  - id: preserve-langgraph-functional-api-static-boundary
-    projectDirectory: cases/c10
-    scenarioFile: scenario.yaml

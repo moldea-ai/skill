@@ -1,7 +1,4 @@
 import path from 'node:path';
-import { parse as parseYaml } from 'yaml';
-
-import { QualificationCaseCatalogSchema } from '../contracts/index.ts';
 
 const TEST_FILE_PATTERN = /\.test-(?:bench|e2e|integration|unit)\.[^/]+$/u;
 const TYPE_DECLARATION_FILE_PATTERN = /\.d\.[^/]+$/u;
@@ -35,47 +32,6 @@ export const isQualificationBehaviorBearingSourcePath = (relativePath: string): 
   !isQualificationTestFilePath(relativePath) && !TYPE_DECLARATION_FILE_PATTERN.test(relativePath);
 
 /**
- * Keeps only production-resolved packages from the qualification npm lockfile.
- * @throws If the lockfile package inventory is malformed.
- */
-export const normalizeQualificationRuntimePackageLock = (input: unknown): unknown => {
-  if (!isPlainRecord(input) || !isPlainRecord(input['packages'])) {
-    throw new Error('Qualification package lock does not contain a packages object.');
-  }
-
-  const runtimePackages = Object.fromEntries(
-    Object.entries(input['packages'])
-      .filter(([packagePath, packageRecord]) => {
-        if (packagePath === '') return true;
-        if (!isPlainRecord(packageRecord)) {
-          throw new Error(`Qualification package lock entry ${packagePath} is invalid.`);
-        }
-        return packageRecord['dev'] !== true;
-      })
-      .map(([packagePath, packageRecord]) => {
-        if (packagePath !== '' || !isPlainRecord(packageRecord)) {
-          return [packagePath, packageRecord];
-        }
-
-        return [
-          packagePath,
-          Object.fromEntries(
-            Object.entries(packageRecord).filter(([fieldName]) => fieldName !== 'devDependencies'),
-          ),
-        ];
-      }),
-  );
-
-  return normalizeRecord({
-    lockfileVersion: input['lockfileVersion'],
-    name: input['name'],
-    packages: runtimePackages,
-    requires: input['requires'],
-    version: input['version'],
-  });
-};
-
-/**
  * Keeps manifest fields that can change how the qualification runtime resolves or starts code.
  * @throws If the package manifest is malformed.
  */
@@ -90,23 +46,6 @@ export const normalizeQualificationRuntimePackageManifest = (input: unknown): un
     engines: input['engines'],
     scripts: isPlainRecord(scripts) ? { qualification: scripts['qualification'] } : undefined,
     type: input['type'],
-  });
-};
-
-/**
- * Keeps only the cases owned by one qualification profile.
- * @throws If the case catalog does not satisfy the qualification contract.
- */
-export const normalizeQualificationCaseCatalog = (
-  source: string,
-  selectedCaseIds: readonly string[],
-): unknown => {
-  const catalog = QualificationCaseCatalogSchema.parse(parseYaml(source) as unknown);
-  const selectedCaseIdSet = new Set(selectedCaseIds);
-
-  return normalizeRecord({
-    version: catalog.version,
-    cases: catalog.cases.filter(({ id }) => selectedCaseIdSet.has(id)),
   });
 };
 
@@ -141,6 +80,68 @@ const listLockedPackageDependencyNames = (packageRecord: Record<string, unknown>
   }
 
   return [...dependencyNames].sort((left, right) => left.localeCompare(right, 'en'));
+};
+
+/**
+ * Keeps only the qualification workspace's production dependency closure from the root lockfile.
+ * Legacy qualification-only lockfiles remain supported for historical Git identities.
+ * @throws If the lockfile package inventory or runtime package entry is malformed.
+ */
+export const normalizeQualificationRuntimePackageLock = (input: unknown): unknown => {
+  if (!isPlainRecord(input) || !isPlainRecord(input['packages'])) {
+    throw new Error('Qualification package lock does not contain a packages object.');
+  }
+  const packages = input['packages'];
+  const runtimePackagePath = packages['qualification'] === undefined ? '' : 'qualification';
+  const runtimePackage = packages[runtimePackagePath];
+  if (!isPlainRecord(runtimePackage)) {
+    throw new Error('Qualification package lock does not contain its runtime package.');
+  }
+
+  const selectedPackagePaths = new Set<string>();
+  const pendingPackagePaths = listLockedPackageDependencyNames(runtimePackage).map(
+    (packageName) => {
+      const packagePath = resolveLockedPackagePath(packages, runtimePackagePath, packageName);
+      if (packagePath === null) {
+        throw new Error(`Qualification package lock is missing ${packageName}.`);
+      }
+      return packagePath;
+    },
+  );
+
+  while (pendingPackagePaths.length > 0) {
+    const packagePath = pendingPackagePaths.shift();
+    if (packagePath === undefined || selectedPackagePaths.has(packagePath)) continue;
+    const packageRecord = packages[packagePath];
+    if (!isPlainRecord(packageRecord)) {
+      throw new Error(`Qualification package lock entry ${packagePath} is invalid.`);
+    }
+    selectedPackagePaths.add(packagePath);
+
+    for (const packageName of listLockedPackageDependencyNames(packageRecord)) {
+      const dependencyPath = resolveLockedPackagePath(packages, packagePath, packageName);
+      if (dependencyPath !== null && !selectedPackagePaths.has(dependencyPath)) {
+        pendingPackagePaths.push(dependencyPath);
+      }
+    }
+  }
+
+  const normalizedRuntimePackage = Object.fromEntries(
+    Object.entries(runtimePackage).filter(([fieldName]) => fieldName !== 'devDependencies'),
+  );
+  const runtimePackages = Object.fromEntries(
+    [...selectedPackagePaths]
+      .sort((left, right) => left.localeCompare(right, 'en'))
+      .map((packagePath) => [packagePath, packages[packagePath]]),
+  );
+
+  return normalizeRecord({
+    lockfileVersion: input['lockfileVersion'],
+    name: runtimePackage['name'],
+    packages: { '': normalizedRuntimePackage, ...runtimePackages },
+    requires: input['requires'],
+    version: runtimePackage['version'],
+  });
 };
 
 /**

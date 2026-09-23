@@ -8,7 +8,7 @@ import {
   calculateSha256,
   readJsonFile,
   resolveContainedPath,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   QualificationAttemptStorageSchema,
   type IQualificationArtifactStorageEntry,

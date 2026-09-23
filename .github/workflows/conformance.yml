@@ -17,6 +17,9 @@ concurrency:
   group: conformance-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  DEVELOPMENT_NODE_VERSION: 24.15.0
+
 jobs:
   portable:
     name: Portable contract / Node.js ${{ matrix.node }}
@@ -33,9 +36,24 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - name: Setup development Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.DEVELOPMENT_NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install workspace dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Setup compatibility-test Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      - name: Capture compatibility-test Node.js
+        run: echo "MOLDEA_TEST_NODE=$(command -v node)" >> "$GITHUB_ENV"
+      - name: Restore development Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.DEVELOPMENT_NODE_VERSION }}
       - name: Install semantic sandbox dependencies
         run: |
           sudo apt-get update
@@ -44,19 +62,24 @@ jobs:
             /usr/share/apparmor/extra-profiles/bwrap-userns-restrict \
             /etc/apparmor.d/bwrap-userns-restrict
           sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
-      - name: Install development dependencies without lifecycle scripts
-        run: npm ci --ignore-scripts
       - name: Check repository path portability
         run: npm run path:check
-      - name: Run all correctness tests
+      - name: Build isolated runtime helpers
+        run: npm run runtime:build
+      - name: Check portable generated artifacts
+        run: npm run portable:check
+      - name: Run maintained root correctness tests
         env:
           MOLDEA_RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
-        run: npm test
+        run: npm run test:unit && npm run test:integration
+      - name: Prepare selected release evidence
+        if: github.ref_type == 'tag'
+        run: npm run evidence:prepare
       - name: Check tagged release identity and selected evidence
         if: github.ref_type == 'tag'
         env:
           MOLDEA_RELEASE_TAG: ${{ github.ref_name }}
-        run: node --experimental-strip-types tooling/release-identity/check-release.mjs
+        run: node src/release/check.ts
       - name: Install and compare the portable artifact
         env:
           SKILLS_TEST_HOME: ${{ runner.temp }}/skills-home
@@ -75,6 +98,33 @@ jobs:
           test -d "$SKILLS_TEST_HOME/.agents/skills/moldea"
           diff --recursive --brief moldea "$SKILLS_TEST_HOME/.agents/skills/moldea"
 
+  quality:
+    name: Repository quality and qualification tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup development Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.DEVELOPMENT_NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install workspace dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Build isolated runtime helpers
+        run: npm run runtime:build
+      - name: Typecheck maintained code
+        run: npm run typecheck
+      - name: Lint root and qualification code
+        run: npm run lint && npm run qualification:lint
+      - name: Check root and qualification formatting
+        run: npm run format:check && npm run qualification:format:check
+      - name: Run synthetic qualification correctness tests
+        run: npm run qualification:test
+
   windows-portability:
     name: Windows 2025 deep-path clone and install
     runs-on: windows-2025
@@ -85,7 +135,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: '24.11.0'
+          node-version: ${{ env.DEVELOPMENT_NODE_VERSION }}
       - name: Clone under a realistic deep temporary path
         shell: pwsh
         env:
@@ -116,9 +166,25 @@ jobs:
               throw 'Repository path portability failed in the deep clone.'
             }
 
-            node --experimental-strip-types --test --test-skip-pattern='^(?:sandbox |proxy shutdown )' tooling/*/*.test-unit.mjs tests/*.test-unit.mjs
+            npm run runtime:build
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Isolated runtime helpers could not be built in the deep clone.'
+            }
+
+            npm run portable:check
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Portable generated artifacts are stale in the deep clone.'
+            }
+
+            npm exec -- vitest run --config vitest/test-unit.config.ts --testNamePattern='^(?!sandbox |proxy shutdown )'
             if ($LASTEXITCODE -ne 0) {
               throw 'Supported Windows unit tests failed in the deep clone.'
+            }
+
+            $env:MOLDEA_TEST_NODE = (Get-Command node).Source
+            npm exec -- vitest run --config vitest/test-integration.config.ts src/portable/runtime-generation.test-integration.ts
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Generated runtime helpers failed on Windows.'
             }
 
             $skillsHome = Join-Path $deepRoot 'developer-home'

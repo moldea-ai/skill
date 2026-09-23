@@ -6,7 +6,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 
 import { createAttemptCheckpoint, writeAttemptCheckpoint } from '../checkpoint/index.ts';
 import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
-import { ensureDirectory } from '../filesystem/index.ts';
+import { ensureDirectory } from '../../../src/filesystem/index.ts';
 import { loadQualificationStatusPage } from './status.ts';
 
 /** Creates one local checkpoint with the requested terminal or resumable status. */
@@ -34,7 +34,7 @@ const createCheckpoint = async (options: {
     packagesDigest: 'e'.repeat(64),
     targetDigest: 'f'.repeat(64),
     executionEnvironment: {
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       actorReasoningEffort: 'xhigh',
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',

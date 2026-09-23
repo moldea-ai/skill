@@ -17,7 +17,7 @@ import {
   ensureDirectory,
   writeJsonFileAtomically,
   writeTextFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   createQualificationAttemptKey,
   createQualificationAttemptStorage,
@@ -39,7 +39,7 @@ const createResult = (attemptId: string, artifactDigest: string): IQualification
     evidenceGeneratedAt: null,
     summary: 'Fixture error.',
     provenance: {
-      model: 'gpt-5.6-sol',
+      model: 'gpt-6-sol',
       actorReasoningEffort: 'xhigh',
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',

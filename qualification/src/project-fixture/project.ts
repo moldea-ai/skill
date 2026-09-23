@@ -14,14 +14,14 @@ import {
   listDirectoryFiles,
   readYamlFile,
   resolveContainedPath,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   createQualificationPnpmInstallation,
   createQualificationPnpmOptions,
   createQualificationPnpmPackageVersions,
   initializeQualificationPnpmInstallation,
 } from '../pnpm-installation/index.ts';
-import { executeProcess } from '../process/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import {
   MOUNTED_SKILL_RELATIVE_PATH,

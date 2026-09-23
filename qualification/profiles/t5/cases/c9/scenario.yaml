@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: answer-information-before-adoption
 title: Answer information before adoption
+layer: universal-baseline
+description: 'Answer a concise conceptual moldea question without inspecting or changing an uninitialized repository.'
+challenge: 'Detects unnecessary repository reads, CLI calls, reference loading, and initialization pressure for informational use.'
 purpose: Verify a concise informational answer without repository inspection, moldea tooling, or workspace changes.
 taskFile: task.md
 seedDirectory: seed

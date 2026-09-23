@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: preserve-claude-agent-sdk-static-boundary
 title: Preserve the Claude Agent SDK static boundary
+layer: adapter-specific
+description: 'Represent unsupported query, subagent, and MCP relationships as unresolved instead of claiming evidence that the adapter cannot prove.'
+challenge: 'Tests conservative handling of dynamic options, availability rules, routing descriptions, SDK-only fields, and external configuration.'
 purpose: Verify conservative treatment of dynamic query options, subagent availability, SDK-only fields, external MCP configuration, and filesystem features.
 taskFile: task.md
 seedDirectory: seed

@@ -3,8 +3,11 @@ import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
 import { DeterministicVerificationSchema, type ICandidateClosure } from '../contracts/index.ts';
-import { collectDirectoryFingerprintEntries, copyFileWithParents } from '../filesystem/index.ts';
-import { executeProcess } from '../process/index.ts';
+import {
+  collectDirectoryFingerprintEntries,
+  copyFileWithParents,
+} from '../../../src/filesystem/index.ts';
+import { executeProcess } from '../../../src/process/index.ts';
 import { inspectProjectTypeScriptInstallation } from '../project-fixture/index.ts';
 import type { IDeterministicVerificationArtifact } from './types.ts';
 
@@ -108,7 +111,7 @@ export const verifyDeterministicProject = async (options: {
   });
   const directVerifierSourcePath = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
-    'direct-verifier.mjs',
+    '../../../dist/runtime/qualification-direct-verifier.mjs',
   );
   const directVerifierPath = path.join(
     options.candidate.runtimeDirectory,

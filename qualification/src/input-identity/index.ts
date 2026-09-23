@@ -5,7 +5,6 @@ export { QUALIFICATION_SHARED_TOOLING_PACKAGE_NAMES } from './constants.ts';
 export {
   isQualificationBehaviorBearingSourcePath,
   isQualificationTestFilePath,
-  normalizeQualificationCaseCatalog,
   normalizeQualificationRuntimePackageLock,
   normalizeQualificationRuntimePackageManifest,
   normalizeQualificationToolingPackageLock,

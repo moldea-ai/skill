@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: repair-cloudflare-ai-chat-output-schema
 title: Repair Cloudflare AIChatAgent output schema
+layer: adapter-specific
+description: 'Reconcile a declared agent output schema with a direct AIChatAgent Output.object request using exact adapter diagnostics and source evidence.'
+challenge: 'Requires correcting canonical schema identity without changing valid generation, instruction, or function-tool wiring.'
 purpose: Verify precise diagnostic-driven repair of direct Output.object schema identity.
 taskFile: task.md
 seedDirectory: seed

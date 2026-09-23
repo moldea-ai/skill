@@ -1,4 +1,4 @@
-import { buildCodexEvaluationHostCommand } from '../../../tooling/codex-evaluation-host/index.mjs';
+import { buildCodexEvaluationHostCommand } from '../../../src/execution/host/index.ts';
 
 /** Builds the externally sandboxed, fixed-model command for one qualification role. */
 export const createCodexExecCommand = (options: {

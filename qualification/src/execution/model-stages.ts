@@ -6,7 +6,7 @@ import {
   runCodexEvaluationOperationalStage,
   type ICodexEvaluationOperationalExhaustion,
   type ICodexEvaluationOperationalRetry,
-} from '../../../tooling/codex-evaluation-host/index.mjs';
+} from '../../../src/execution/host/index.ts';
 
 import type { ICodexHost } from '../codex-host/index.ts';
 import {
@@ -30,7 +30,7 @@ import {
   readJsonFile,
   writeJsonFileAtomically,
   writeTextFileAtomically,
-} from '../filesystem/index.ts';
+} from '../../../src/filesystem/index.ts';
 import {
   applyExpectedDryRunState,
   assertQualificationProjectInputIntegrity,

@@ -14,6 +14,3 @@ export type {
   ISemanticEvaluationWebsiteModel,
   ISemanticAttemptModel,
 } from './types.ts';
-
-// loader
-export { loadSemanticEvaluationWebsiteModel } from './loader.ts';

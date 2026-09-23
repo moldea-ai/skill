@@ -2,6 +2,9 @@ version: 2
 resourceProfile: ordinary
 id: stop-on-material-ambiguity
 title: Stop on material ambiguity
+layer: universal-baseline
+description: 'Decline initialization when repository evidence supports two materially different project purposes.'
+challenge: 'Requires a blocked outcome with no canonical or README writes instead of plausible-sounding invented truth.'
 purpose: Verify that material uncertainty produces a focused blocked outcome without speculative writes.
 taskFile: task.md
 seedDirectory: seed

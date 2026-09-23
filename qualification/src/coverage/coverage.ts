@@ -1,12 +1,15 @@
 import type { IRuntimeAdapterEntry, IRuntimeTarget } from '../compatibility/index.ts';
-import { QUALIFICATION_CASES_PATH } from '../constants/index.ts';
 import {
-  QualificationCaseCatalogSchema,
   QualificationProbesSchema,
   type IQualificationCaseCatalog,
   type IQualificationProfile,
 } from '../contracts/index.ts';
-import { calculateSha256, readYamlFile, resolveContainedPath } from '../filesystem/index.ts';
+import { loadQualificationCaseCatalog } from '../profiles/index.ts';
+import {
+  calculateSha256,
+  readYamlFile,
+  resolveContainedPath,
+} from '../../../src/filesystem/index.ts';
 import type { IQualificationCoverageResult } from './types.ts';
 
 const deriveKnownLimitationId = (knownLimitation: string): string =>
@@ -78,8 +81,7 @@ export const inspectQualificationCoverage = async (
     throw new Error('Qualification probe identity does not match its owning profile.');
   }
 
-  const resolvedCaseCatalog =
-    caseCatalog ?? (await readYamlFile(QUALIFICATION_CASES_PATH, QualificationCaseCatalogSchema));
+  const resolvedCaseCatalog = caseCatalog ?? (await loadQualificationCaseCatalog());
   const profileCaseIds = new Set(profile.cases.map(({ id }) => id));
   const sharedCaseIds = resolvedCaseCatalog.cases
     .filter(({ layer }) => layer === 'universal-baseline')

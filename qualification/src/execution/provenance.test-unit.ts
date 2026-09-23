@@ -1,5 +1,7 @@
 // @vitest-environment node
-import { describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+
+import { executeProcess } from '../../../src/process/index.ts';
 
 import type { IQualificationExecutionEnvironment } from '../contracts/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
@@ -8,8 +10,10 @@ import {
   inspectQualificationExecutionEnvironment,
 } from './provenance.ts';
 
+vi.mock('../../../src/process/index.ts', () => ({ executeProcess: vi.fn() }));
+
 const executionEnvironment: IQualificationExecutionEnvironment = {
-  model: 'gpt-5.6-sol',
+  model: 'gpt-6-sol',
   actorReasoningEffort: 'xhigh',
   judgeReasoningEffort: 'xhigh',
   codexVersion: 'codex-cli test',
@@ -30,6 +34,23 @@ const createRepositoryState = (commit: string, fingerprint: string): IGitReposit
 });
 
 describe('qualification execution provenance', () => {
+  beforeEach(() => {
+    vi.mocked(executeProcess).mockReset();
+    vi.mocked(executeProcess).mockImplementation(({ command, args }) => {
+      expect(args).toStrictEqual(['--version']);
+      if (command !== 'pnpm' && command !== 'git') {
+        throw new Error(`Unexpected version command: ${command}`);
+      }
+      return Promise.resolve({
+        durationMs: 0,
+        exitCode: 0,
+        stderr: '',
+        stdout:
+          command === 'pnpm' ? executionEnvironment.pnpmVersion : executionEnvironment.gitVersion,
+      });
+    });
+  });
+
   test('uses the qualification-owned fifteen-minute host timeout by default', async () => {
     const originalTimeout = process.env['MOLDEA_EVAL_HOST_TIMEOUT_MS'];
 
@@ -42,6 +63,8 @@ describe('qualification execution provenance', () => {
       });
 
       expect(inspectedEnvironment.hostTimeoutMs).toBe(900_000);
+      expect(inspectedEnvironment.pnpmVersion).toBe(executionEnvironment.pnpmVersion);
+      expect(inspectedEnvironment.gitVersion).toBe(executionEnvironment.gitVersion);
     } finally {
       if (originalTimeout === undefined) {
         delete process.env['MOLDEA_EVAL_HOST_TIMEOUT_MS'];

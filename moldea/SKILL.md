@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents and durable project context after explicit moldea initialization. Handle moldea operations, repair, independent Agent Skills, and questions. For other repository work, use only the bundled relationship gate on known paths; abstain silently on a miss. Product and host command names do not establish relevance.
 metadata:
-  version: '5.0.10'
+  version: '5.0.11'
   cliVersionRange: '^8.0.0'
   coreVersionRange: '^4.0.1'
   cliJsonSchemaVersion: '4'

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { executeProcess } from '../../../src/process/index.ts';
 
 import type { IQualificationExecutionEnvironment } from '../contracts/index.ts';
+import { getQualificationPnpmVersion } from '../pnpm-installation/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import {
   createQualificationExecutionProvenance,
@@ -11,6 +12,7 @@ import {
 } from './provenance.ts';
 
 vi.mock('../../../src/process/index.ts', () => ({ executeProcess: vi.fn() }));
+vi.mock('../pnpm-installation/index.ts', () => ({ getQualificationPnpmVersion: vi.fn() }));
 
 const executionEnvironment: IQualificationExecutionEnvironment = {
   model: 'gpt-6-sol',
@@ -36,17 +38,18 @@ const createRepositoryState = (commit: string, fingerprint: string): IGitReposit
 describe('qualification execution provenance', () => {
   beforeEach(() => {
     vi.mocked(executeProcess).mockReset();
+    vi.mocked(getQualificationPnpmVersion).mockReset();
+    vi.mocked(getQualificationPnpmVersion).mockResolvedValue(executionEnvironment.pnpmVersion);
     vi.mocked(executeProcess).mockImplementation(({ command, args }) => {
       expect(args).toStrictEqual(['--version']);
-      if (command !== 'pnpm' && command !== 'git') {
+      if (command !== 'git') {
         throw new Error(`Unexpected version command: ${command}`);
       }
       return Promise.resolve({
         durationMs: 0,
         exitCode: 0,
         stderr: '',
-        stdout:
-          command === 'pnpm' ? executionEnvironment.pnpmVersion : executionEnvironment.gitVersion,
+        stdout: executionEnvironment.gitVersion,
       });
     });
   });

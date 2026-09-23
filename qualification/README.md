@@ -86,6 +86,8 @@ Keep the `skill` and `packages` repositories adjacent. From the `skill` reposito
 npm ci --ignore-scripts
 ```
 
+The qualification workspace pins pnpm 11.27.1 in the npm lockfile and invokes its installed copy. A global pnpm installation is not needed.
+
 The default skill candidate is `moldea/`.
 
 ## Commands

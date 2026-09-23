@@ -187,6 +187,11 @@ jobs:
               throw 'Generated runtime helpers failed on Windows.'
             }
 
+            npm --workspace qualification run test:integration -- src/pnpm-installation
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Pinned qualification pnpm failed on Windows.'
+            }
+
             $skillsHome = Join-Path $deepRoot 'developer-home'
             $sourceSkill = Join-Path $clonePath 'moldea'
             New-Item -ItemType Directory -Force -Path $skillsHome | Out-Null

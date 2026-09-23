@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest';
 import {
   isQualificationBehaviorBearingSourcePath,
   normalizeQualificationRuntimePackageLock,
+  normalizeQualificationRuntimePackageManifest,
   normalizeQualificationToolingPackageLock,
   normalizeQualificationToolingPackageManifest,
 } from './utilities.ts';
@@ -117,6 +118,34 @@ describe('qualification input identity', () => {
       requires: true,
       version: '2.0.0',
     });
+  });
+
+  test('includes the pnpm pin and installed integrity in qualification runtime identity', () => {
+    const manifest = { dependencies: { pnpm: '11.27.1' }, type: 'module' };
+    const lock = {
+      lockfileVersion: 3,
+      packages: {
+        '': { workspaces: ['qualification'] },
+        qualification: { dependencies: { pnpm: '11.27.1' } },
+        'node_modules/pnpm': { version: '11.27.1', integrity: 'sha512-current' },
+      },
+    };
+
+    expect(normalizeQualificationRuntimePackageManifest(manifest)).not.toStrictEqual(
+      normalizeQualificationRuntimePackageManifest({
+        ...manifest,
+        dependencies: { pnpm: '11.8.0' },
+      }),
+    );
+    expect(normalizeQualificationRuntimePackageLock(lock)).not.toStrictEqual(
+      normalizeQualificationRuntimePackageLock({
+        ...lock,
+        packages: {
+          ...lock.packages,
+          'node_modules/pnpm': { version: '11.27.1', integrity: 'sha512-changed' },
+        },
+      }),
+    );
   });
 
   test('isolates shared tooling declarations from unrelated root packages', () => {

@@ -8,3 +8,6 @@ export {
   createQualificationPnpmPackageVersions,
   initializeQualificationPnpmInstallation,
 } from './pnpm-installation.ts';
+
+// executable
+export { executeQualificationPnpm, getQualificationPnpmVersion } from './tool.ts';

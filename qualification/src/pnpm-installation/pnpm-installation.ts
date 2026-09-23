@@ -4,6 +4,17 @@ import path from 'node:path';
 import type { IQualificationPnpmInstallation, IQualificationPnpmPackage } from './types.ts';
 
 const NPM_PUBLIC_REGISTRY_URL = 'https://registry.npmjs.org/';
+const PACKAGE_MANAGER_CONFIG_ENV_PATTERN = /^(?:npm|pnpm)_config_/iu;
+const REGISTRY_TOKEN_ENV_PATTERN = /^(?:node_auth_token|npm_token|pnpm_token)$/iu;
+
+const createPnpmEnvironment = (): NodeJS.ProcessEnv => ({
+  ...Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([name]) =>
+        !PACKAGE_MANAGER_CONFIG_ENV_PATTERN.test(name) && !REGISTRY_TOKEN_ENV_PATTERN.test(name),
+    ),
+  ),
+});
 
 /**
  * Creates the isolated pnpm paths and environment for one qualification attempt.
@@ -21,9 +32,11 @@ export const createQualificationPnpmInstallation = (
     cacheDirectory,
     configPath: path.join(cacheDirectory, 'pnpm-userconfig'),
     environment: {
-      ...process.env,
+      ...createPnpmEnvironment(),
       CI: 'true',
+      PNPM_CONFIG_NPMRC_AUTH_FILE: path.join(cacheDirectory, 'pnpm-userconfig'),
       XDG_CACHE_HOME: cacheDirectory,
+      XDG_CONFIG_HOME: cacheDirectory,
     },
     registryUrl,
     storeDirectory: path.join(attemptDirectory, 'pnpm-store'),
@@ -57,11 +70,4 @@ export const initializeQualificationPnpmInstallation = async (
 /** Returns the common explicit pnpm options that isolate one qualification attempt. */
 export const createQualificationPnpmOptions = (
   installation: IQualificationPnpmInstallation,
-): string[] => [
-  '--userconfig',
-  installation.configPath,
-  '--registry',
-  installation.registryUrl,
-  '--store-dir',
-  installation.storeDirectory,
-];
+): string[] => ['--registry', installation.registryUrl, '--store-dir', installation.storeDirectory];

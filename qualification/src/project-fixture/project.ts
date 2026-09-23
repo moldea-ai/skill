@@ -19,6 +19,7 @@ import {
   createQualificationPnpmInstallation,
   createQualificationPnpmOptions,
   createQualificationPnpmPackageVersions,
+  executeQualificationPnpm,
   initializeQualificationPnpmInstallation,
 } from '../pnpm-installation/index.ts';
 import { executeProcess } from '../../../src/process/index.ts';
@@ -133,8 +134,7 @@ const installCandidateProjectRuntime = async (
   await writeFile(pnpmWorkspacePath, stringifyYaml(installationPnpmWorkspace), 'utf8');
 
   try {
-    await executeProcess({
-      command: 'pnpm',
+    await executeQualificationPnpm({
       args: [
         'install',
         '--offline',

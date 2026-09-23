@@ -8,6 +8,7 @@ import {
 } from '../constants/index.ts';
 import type { ICodexHost } from '../codex-host/index.ts';
 import type { IQualificationExecutionEnvironment } from '../contracts/index.ts';
+import { getQualificationPnpmVersion } from '../pnpm-installation/index.ts';
 import { executeProcess } from '../../../src/process/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import type { IQualificationExecutionProvenance } from './types.ts';
@@ -33,11 +34,7 @@ export const inspectQualificationExecutionEnvironment = async (
   });
   const [codexVersion, pnpmVersion, gitVersion] = await Promise.all([
     readVersion('Codex', () => host.getVersion()),
-    readVersion('pnpm', () =>
-      executeProcess({ command: 'pnpm', args: ['--version'], cwd: process.cwd() }).then(
-        ({ stdout }) => stdout,
-      ),
-    ),
+    readVersion('pnpm', getQualificationPnpmVersion),
     readVersion('Git', () =>
       executeProcess({ command: 'git', args: ['--version'], cwd: process.cwd() }).then(
         ({ stdout }) => stdout,

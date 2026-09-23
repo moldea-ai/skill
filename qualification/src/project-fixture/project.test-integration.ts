@@ -25,6 +25,7 @@ import {
   createQualificationPnpmInstallation,
   createQualificationPnpmOptions,
   createQualificationPnpmPackageVersions,
+  executeQualificationPnpm,
   initializeQualificationPnpmInstallation,
 } from '../pnpm-installation/index.ts';
 import { inspectGitRepositoryState, type IGitRepositoryState } from '../repository-state/index.ts';
@@ -227,8 +228,7 @@ const prepareQualificationProject = async (
     stringifyYaml({ overrides: packageVersions }),
     'utf8',
   );
-  await executeProcess({
-    command: 'pnpm',
+  await executeQualificationPnpm({
     args: [
       'install',
       '--prefer-offline',

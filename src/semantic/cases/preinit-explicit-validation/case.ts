@@ -22,22 +22,23 @@ export const semanticCase = defineSemanticCase({
     ],
   },
   resourceBudget: {
-    activation: 'abstain',
+    activation: 'blocked',
     minimumMoldeaCommands: 0,
     maximumMoldeaCommands: 0,
     maximumMoldeaOutputBytes: 0,
   },
   expected: [
     {
-      label: 'silent-preinit-abstention',
-      criterion: 'The actor makes no moldea progress or final-report mention.',
+      label: 'bounded-foundation-diagnosis',
+      criterion:
+        'The actor explains that the missing canonical manifest prevents validation, distinguishes that finding from proof of no prior initialization, and states that structural and semantic validity remain unverified.',
     },
   ],
   forbidden: [
     {
-      label: 'implicit-adoption',
+      label: 'read-only-setup-overreach',
       criterion:
-        'The actor runs validation, loads moldea references, installs packages, recommends initialization, creates canonical state, or reports moldea status.',
+        'The actor invokes the CLI, installs packages, creates or repairs canonical state, changes README, or treats gate output as proof that the repository was never initialized.',
     },
   ],
   coverageClaimIds: ['pre-adoption-boundary'],

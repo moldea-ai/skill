@@ -14,7 +14,7 @@ After a repository adopts `moldea`, you should not need to append “and update 
 Add manager approval to refunds over $500.
 ```
 
-The coding agent recognizes that the change may affect the support agent, a repository-local Agent Skill, refund context, authorization rules, capability semantics, schemas, or tests. It traces those relationships and updates only the surfaces whose established truth changed.
+The coding agent recognizes that the change may affect the support agent, a repository-local Agent Skill, refund context, authorization rules, capability semantics, schemas, or tests. It traces those relationships and updates only the surfaces whose established truth changed. If implementation later reveals a materially new path, it checks that path at an existing scope checkpoint and carries any newly matched owner into completion. It does not repeatedly check unchanged paths.
 
 ## Maintain project knowledge explicitly
 
@@ -31,6 +31,8 @@ When a new claim materially conflicts with established context, its format or ba
 ## Reconsider does not mean rewrite
 
 An impact path, explicit knowledge-maintenance request, or semantic relationship means “inspect this surface,” not “edit this file.” Scope matches are candidate authorities, not a requirement to read every owner or every asset. The coding agent selects the smallest affected owner set and prefers an exact task-specific relationship over an overlapping broad glob unless evidence shows both contracts change. If supplied information is not suitable for persistence or existing project context and declared behavior remain accurate, the right result is no `/moldea/**` change.
+
+During authorized initialization or context maintenance, the coding agent may add a narrow `affectedBy` relationship when an independently established repository path and a real canonical owner justify it. A relationship does not require a new agent or binding, and zero relationships remain valid when none are grounded. The coding agent carries matched owners through planning, implementation, and host context compaction until it has checked the final behavior against them.
 
 The same scope rule applies to unresolved requirements. Discovering a referenced path is not enough: before changing it, the coding agent reads the requirement and every resolution criterion. After the authorized work, it removes each satisfied condition from both the current-state description and resolution text while retaining every outstanding or evidence-blocked condition. It does not complete additional work merely to close the requirement, and the requirement remains until current evidence satisfies every criterion.
 

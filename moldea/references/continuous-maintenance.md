@@ -42,6 +42,8 @@ version: 1
 
 The file ends with one LF. Do not add a project name, schema field, metadata, empty optional mappings, a `/moldea/project.md` registration, source globs, or any other relationship merely to describe the project or make the manifest look complete.
 
+When inspected implementation evidence establishes that a specific path materially governs a canonical foundation fact, record a narrow `affectedBy` relationship during this already-authorized initialization. Prefer exact paths or established subsystem boundaries. Do not infer a binding from a README link, project name, or nearby source, add a catch-all glob, or backfill unrelated context. Zero relationships and agents remain valid.
+
 Do not validate a partial foundation. Write `/moldea/moldea.yaml` and `/moldea/project.md`, then invoke only the bundled writer with `node <installed-skill-root>/scripts/managed-readme.mjs --repository <absolute-repository-root>`. It owns the exact managed text, validates the root README, creates or normalizes one safe region atomically, and preserves every byte outside that region. Never reproduce the block manually or use another README-writing path. A malformed, linked, invalid, non-regular, or over-limit README stops initialization without validation. Once the complete three-file foundation exists, use the installed skill's closed launcher for final `validate`. On success, stop without `inspect` or another moldea command. The writer is a bounded local skill operation, not a moldea CLI call. On structural failure, follow the entrypoint's supported recovery rule within the foundation scope: establish the complete correction from bounded diagnostics and necessary contract evidence, repair, and validate the resulting state. When the launcher succeeds, do not enumerate dependencies, inspect CLI internals, resolve executable links, search global installations, use transient tooling, or probe package-manager configuration. An unexpected unavailable or invalid tooling result selects `local-tooling.md` only when the authorized operation can establish it. Report the incomplete state if recovery cannot finish; never discard existing foundation files to hide a failed operation.
 
 ## Maintain owned truth
@@ -49,13 +51,15 @@ Do not validate a partial foundation. Write `/moldea/moldea.yaml` and `/moldea/p
 For an authorized relevant change:
 
 1. Reuse the host task's exact paths and hunks.
-2. Identify the canonical owner from direct paths or the single `scope` result.
+2. Identify canonical owners from direct paths and valid `scope` results for the task's covered path batches.
 3. Read only the owner and the relevant implementation or consumer.
 4. Update the smallest coherent set of canonical declarations, mirrors, requirements, and documentation.
 5. Preserve unrelated canonical content and developer work.
 6. After every canonical and mirror write is complete, run any required project-native checks, then the narrowest structural validation as the final moldea command. Follow the entrypoint's supported recovery rule for structural defects.
 
-Before the first write, retain one complete change set containing the authorized implementation paths, every matched canonical owner, every declared mirror, and each affected requirement criterion. Never edit implementation before this set is bound. An implementation-only edit is incomplete when the established owner or mirror expresses the changed behavior. Apply the coherent set before validation, then compare the final state with it before claiming completion.
+Before each authorized write scope, retain one coherent change set containing its implementation paths, selected canonical owners, declared mirrors, and affected requirement criteria. A read-only host plan identifies likely context obligations without writing them. During implementation, carry those obligations forward; newly relevant path batches can add owners but an unrelated batch cannot cancel them. An implementation-only edit is incomplete when an established owner or mirror expresses the changed behavior. Compare final behavior with every still-valid selected owner, update contradictions, run relevant native checks, and validate after the last canonical write before claiming completion.
+
+During already-authorized context creation or relevant maintenance, add or correct a narrow `affectedBy` relationship only when inspected implementation evidence materially governs the canonical fact. Prefer exact paths or established subsystem boundaries. Do not invent relationships to make implicit activation universal, broaden a glob merely to catch future work, or scan unselected owners for missing bindings. Zero relationships remain valid. Keep the selected installation, operation, owners, and unresolved obligations in the host's existing handoff when useful; a compaction summary is not complete instructions, fresh evidence, or write authority.
 
 Enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path. Before completion, compare the final state and diff with that list, record each remaining material unresolved fact under its exact canonical owner with resolution criteria and related paths, and confirm every changed path is authorized. Continue correcting instead of claiming completion while an item is missing.
 

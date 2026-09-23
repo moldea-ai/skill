@@ -1,14 +1,20 @@
 # Repair a moldea project
 
-Use only for an explicit request to check and correct this repository's moldea setup, such as `Fix moldea`. Equivalent natural-language intent works; this is not a CLI command. An informational question or read-only check grants no writes. A named agent reconciliation keeps its narrower `evaluate-and-reconcile.md` procedure.
+Use for an explicit request to validate, evaluate, inspect, or repair this repository's moldea setup. An informational question or read-only check grants no writes. A named agent reconciliation keeps its narrower `evaluate-and-reconcile.md` procedure. Ordinary implicit work never enters this reference after a gate miss.
+
+## Diagnose blocked adoption without writes
+
+Reuse current adoption evidence or run the bundled adoption-only gate once. A `1` establishes the marker contract, not valid YAML or correct behavior. On `0`, failure, or unavailable gate, an explicit setup request may inspect only root README, `/moldea/moldea.yaml`, and `/moldea/project.md` in the target repository with inert host file tools. To establish managed README drift, compare its bounded region with `<installed-skill-root>/assets/managed-readme-block.md` from the selected installation; no other copy is authoritative. Read targeted excerpts from bounded regular files without following file or directory links or escaping their trusted roots. Count the asset with the foundation excerpts under one 65,536-byte model-visible limit. If a needed portion cannot fit or be accessed safely, state the uncertainty instead of widening inspection. Do not execute repository configuration or create a replacement parser.
+
+Explain established missing files, damaged or divergent managed README content, malformed foundation evidence, inaccessible paths, or unavailable gate behavior separately. A `0` alone does not prove that the project was never initialized. Reliable developer statements or same-repository evidence may establish prior initialization even when current adoption fails; partial artifacts alone do not. Report what prevented validation and what remains unverified. Under read-only authority, do not invoke the CLI, install dependencies, normalize README, change canonical files, or suggest that a structural diagnosis proves semantic correctness.
 
 ## Establish recovery authority
 
-Reuse current adoption evidence or run the bundled adoption-only gate once. A `1` establishes the adoption marker contract, not valid YAML or correct behavior. On `0`, this explicit route may diagnose the exact foundation paths without silently abstaining. It does not relax ordinary gates.
+Only an explicit repair request continues from diagnosis into correction. It does not relax ordinary gates.
 
 Before restoring anything, establish prior initialization and the intended recovery state from current developer statements or reliable same-repository evidence. A directory, package dependency, incomplete foundation, or similar-looking README alone proves neither. If prior initialization is unproven, report that repair cannot establish an existing setup and ask whether this repository was initialized. Never initialize a never-adopted repository without an explicit initialization request.
 
-Inspect only bounded regular `/moldea/moldea.yaml`, `/moldea/project.md`, and root README files needed to explain the failed gate. Use host inert file tools with repository containment and bounded reads; do not follow file links, escaping directory links, or enumerate unrelated trees. This is a repair-only exception to canonical content routing and the manifest-content prohibition, not permission to dump a large manifest. Read relevant ranges or bounded excerpts. Never execute repository configuration to parse it or create a replacement YAML parser.
+The diagnosis above is the narrow exception to canonical content routing and the manifest-content prohibition, not permission to dump a large manifest or enumerate unrelated trees.
 
 Recover missing or malformed foundation content only when the exact correction is established. Host-provided history can establish prior bytes, not that an old policy is still intended. Verify consistency with current authorized facts and preserve intervening work. Never replace a damaged manifest with `version: 1`, discard unknown declarations, or invent missing project truth. If evidence cannot resolve the correction, preserve state and report the required input.
 

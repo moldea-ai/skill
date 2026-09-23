@@ -30,7 +30,7 @@ The skill helps a coding agent:
 - keep affected canonical knowledge aligned with implementation work
 - evaluate, reconcile, repair, and structurally validate established state
 
-After initialization, ask naturally to plan, build, review, or maintain AI agents. You do not need to name `moldea`, know its paths, or create bindings first. Ordinary engineering continues normally unless it concerns canonical state, the managed README block, a declared relationship, or an explicit `moldea` operation. Only explicit initialization creates a new setup.
+After initialization, ask naturally to plan, build, review, or maintain AI agents. You do not need to name `moldea`, know its paths, or create bindings first. Ordinary engineering continues normally unless it concerns canonical state, the managed README block, a declared relationship, or an explicit `moldea` operation. When ordinary work expands to newly discovered paths, the coding agent checks those paths once at an existing scope checkpoint and preserves earlier matched owners. Only explicit initialization creates a new setup.
 
 ### Common requests
 
@@ -92,9 +92,9 @@ Semantic execution may project one fixed repository-root direct Node correctness
 
 ### Safety and authority boundaries
 
-Before adoption, a non-repository informational question is answered without repository inspection. Only explicit initialization creates canonical project state. An explicit repair request may diagnose and recover an established but damaged setup, but it cannot silently turn an unrelated repository into a new `moldea` project. If no independent host task remains after abstention, the coding agent reports only a neutral repository outcome. A changed topic resets relevance and authorization instead of inheriting them from earlier agent work.
+Before adoption, a non-repository informational question is answered without repository inspection. Only explicit initialization creates canonical project state. An explicit setup validation, evaluation, or inspection request can diagnose a failed adoption check with bounded read-only foundation inspection. Repair may recover an established but damaged setup with the required authority; neither route silently initializes an unrelated repository. If no independent host task remains after abstention, the coding agent reports only a neutral repository outcome. A changed topic resets relevance and authorization instead of inheriting them from earlier agent work.
 
-For ordinary repository paths, the relevance gate accepts the relative spellings produced by Git, normalizes them to repository-logical paths, and emits only `0` or `1` without executing repository dependencies. A hit permits one bounded relationship query; it does not authorize loading every canonical record. The coding agent selects the smallest affected owner set, reads only the content needed for the task, stops when the evidence is sufficient, and validates material canonical writes. A miss returns control to the host workflow without additional `moldea` activity.
+For ordinary repository paths, the relevance gate accepts the relative spellings produced by Git, normalizes them to repository-logical paths, and emits only `0` or `1` without executing repository dependencies. The first check covers all host-known paths. A later check covers only materially new paths independently discovered during the host task; unchanged paths reuse their decision. A hit permits one bounded relationship query for its batch; it does not authorize loading every canonical record. The coding agent selects the smallest affected owner set, reads only the content needed for the task, and validates material canonical writes. An unrelated batch miss adds no `moldea` activity and does not erase an earlier matched owner.
 
 Evaluation is read-only across ordinary repository files, Git state, configuration, submodules, the installed portable skill, and declared related repositories. Structural validation proves repository shape, not behavioral completeness. Claims still require repository evidence, and unresolved developer decisions remain explicit instead of being converted into invented policy.
 

@@ -22,3 +22,7 @@ test('distributed skill metadata uses string values', () => {
     assert.equal(typeof metadataValue, 'string');
   }
 });
+
+test('distributed skill entrypoint stays within the reference-reading ceiling', () => {
+  assert.ok(Buffer.byteLength(readFileSync(SKILL_PATH), 'utf8') <= 8_192);
+});

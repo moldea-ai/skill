@@ -44,6 +44,8 @@ Use validation for deterministic structural evidence:
 
 Validation runs the root-local CLI's structural boundary through the installed skill's closed launcher. A structurally invalid result is a completed diagnostic result, not an operational failure. Validation does not prove that instructions or skills are useful, runtime behavior consumes them, or implementation semantics match them.
 
+If the adoption gate misses, fails, or is unavailable on an explicit setup validation, evaluation, or inspection request, the coding agent first inspects only the README awareness block and canonical foundation files in the target repository. When needed to establish block drift, it compares the README region with the selected skill installation's managed-block asset. All excerpts share a 65,536-byte model-visible limit. It reports the observed setup defect or unavailable evidence without invoking the CLI or writing files. Ordinary unrelated work still abstains silently.
+
 ## Repair a project
 
 When the existing setup appears wrong, ask:

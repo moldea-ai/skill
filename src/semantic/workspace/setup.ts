@@ -27,7 +27,7 @@ import {
   type ISemanticCase,
   type ISemanticCaseSetup,
   type ISemanticCaseSetupResult,
-  validateSemanticCaseDefinition,
+  defineSemanticCase,
 } from '../cases/index.ts';
 
 const REPOSITORY_ROOT = path.resolve(import.meta.dirname, '../../..');
@@ -53,6 +53,7 @@ const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
 const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const MAX_WORKSPACE_EVIDENCE_FILE_BYTES = 32_768;
 const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
+  'initialize-grounded-relationships',
   'initialize-insufficient-context',
   'initialize-partial-context',
   'initialize-sufficient-context',
@@ -1009,6 +1010,25 @@ const seedInitializationContext = async (
     return;
   }
 
+  if (caseDefinition.id === 'initialize-grounded-relationships') {
+    await writeScenarioFile(
+      repositoryPath,
+      'README.md',
+      '# Invoice intake\n\nThis service extracts and validates invoices for accounting systems. It does not initiate payments. The invoice behavior is implemented in `src/invoice.js`.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'src/invoice.js',
+      [
+        'export const extractInvoice = ({ number, total }) => ({ number, total });',
+        'export const isInvoiceValid = ({ number, total }) =>',
+        "  typeof number === 'string' && typeof total === 'number';",
+        '',
+      ].join('\n'),
+    );
+    return;
+  }
+
   throw new Error(`Unsupported initialization-context case ${caseDefinition.id}.`);
 };
 
@@ -1080,6 +1100,87 @@ const seedContextMaintenanceScenario = async (
   }
 
   throw new Error(`Unsupported context-maintenance case ${caseId}.`);
+};
+
+/** Seeds task-scope changes whose canonical relationships differ by scenario. */
+const seedActivationMaintenanceScenario = async (
+  repositoryPath: string,
+  caseId: string,
+): Promise<void> => {
+  if (caseId === 'bound-context-maintenance') {
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/moldea.yaml',
+      'version: 1\ncontext:\n  /moldea/context/architecture.md:\n    affectedBy:\n      - /src/cleanup-scheduler.js\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/context/architecture.md',
+      '# Cleanup scheduling\n\nDocument cleanup runs on a fixed 60-minute interval.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'src/cleanup-scheduler.js',
+      'export const cleanupIntervalMinutes = () => 60;\n',
+    );
+    return;
+  }
+
+  if (caseId === 'expanding-task-relevance' || caseId === 'unrelated-task-expansion') {
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/moldea.yaml',
+      'version: 1\ncontext:\n  /moldea/context/refunds.md:\n    affectedBy:\n      - /src/refund-policy.js\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/context/refunds.md',
+      '# Refund policy\n\nRefunds above 1000 units require approval.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'src/refund-policy.js',
+      caseId === 'unrelated-task-expansion'
+        ? "import { formatRefundLabel } from './refund-label.js';\nexport const requiresApproval = (amount) => amount > 1000;\nexport const describeRefund = (amount) => formatRefundLabel(amount);\n"
+        : 'export const requiresApproval = (amount) => amount > 1000;\n',
+    );
+    if (caseId === 'unrelated-task-expansion') {
+      await writeScenarioFile(
+        repositoryPath,
+        'src/refund-label.js',
+        'export const formatRefundLabel = (amount) => `Refund: ${amount}`;\n',
+      );
+    } else {
+      await writeScenarioFile(
+        repositoryPath,
+        'src/checkout.js',
+        "import { requiresApproval } from './refund-policy.js';\nexport const cancelOrder = (amount) => ({ approvalRequired: requiresApproval(amount) });\n",
+      );
+    }
+    return;
+  }
+
+  if (caseId === 'unbound-context-discovery') {
+    await writeScenarioFile(
+      repositoryPath,
+      'README.md',
+      `# Evaluation repository\n\n[Project context](moldea/project.md) describes cleanup scheduling.\n\n${MANAGED_README_BLOCK}`,
+    );
+    await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', 'version: 1\n');
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/project.md',
+      '# Evaluation project\n\nCleanup currently runs every 60 minutes.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'src/cleanup-scheduler.js',
+      'export const cleanupIntervalMinutes = () => 60;\n',
+    );
+    return;
+  }
+
+  throw new Error(`Unsupported activation-maintenance case ${caseId}.`);
 };
 
 /** Materializes scenario claims as repository evidence before the baseline commit. */
@@ -1212,6 +1313,12 @@ const seedScenarioRepository = async (
         'src/refund-policy.js',
         'export const requiresApproval = () => false;\n',
       );
+      break;
+    case 'bound-context-maintenance':
+    case 'expanding-task-relevance':
+    case 'unrelated-task-expansion':
+    case 'unbound-context-discovery':
+      await seedActivationMaintenanceScenario(repositoryPath, caseDefinition.id);
       break;
     case 'compress-conflicting-project-context':
     case 'compress-project-context':
@@ -1631,6 +1738,16 @@ const applyScenarioWorkingTree = async (
   }
 
   switch (caseDefinition.id) {
+    case 'damaged-setup-validation': {
+      const readmePath = join(repositoryPath, 'README.md');
+      const readme = await readFile(readmePath, 'utf8');
+      await writeScenarioFile(
+        repositoryPath,
+        'README.md',
+        readme.replace('<!-- moldea:start -->\n\n', '<!-- moldea:start -->\n'),
+      );
+      return;
+    }
     case 'preinit-canonical-looking-review':
       await writeScenarioFile(
         repositoryPath,
@@ -1846,7 +1963,7 @@ export const createActorRepository = async (
   readOnlyMounts: Array<{ source: string; target: string }>;
   repositoryPath: string;
 }> => {
-  validateSemanticCaseDefinition(caseDefinition);
+  defineSemanticCase(caseDefinition);
   const repositoryPath = join(root, 'actor');
   await mkdir(join(repositoryPath, '.agents', 'skills'), { recursive: true });
   await cp(PORTABLE_SKILL_ROOT, join(repositoryPath, '.agents', 'skills', 'moldea'), {

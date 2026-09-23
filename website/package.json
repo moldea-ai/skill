@@ -25,7 +25,7 @@
     "test:e2e:recorded": "playwright test",
     "test:integration": "npm run build:fixture && npm run test:integration:artifact",
     "test:integration:artifact": "vitest run --config vitest/test-integration.config.ts",
-    "test:unit": "vitest run --config vitest/test-unit.config.ts",
+    "test:unit": "node scripts/generate-synthetic.ts && vitest run --config vitest/test-unit.config.ts",
     "typecheck": "node scripts/generate-synthetic.ts && astro check"
   },
   "devDependencies": {

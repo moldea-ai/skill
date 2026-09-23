@@ -49,6 +49,8 @@ npm run test
 npm run build:fixture
 ```
 
+`npm run test:unit` prepares the existing synthetic website model before running the unit suite, so it also works on a clean checkout without selected release evidence.
+
 Start the local development server from the repository root:
 
 ```bash

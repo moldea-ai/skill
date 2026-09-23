@@ -28,11 +28,14 @@ test('runtime generation emits standalone helpers for isolated execution', async
 
   const result = await generateRuntimeArtifacts({ outputDirectory });
 
-  assert.deepEqual(result.artifacts, [
-    path.relative(process.cwd(), path.join(outputDirectory, 'git-command-policy-boundary.mjs')),
-    path.relative(process.cwd(), path.join(outputDirectory, 'codex-evaluation-proxy.mjs')),
-    path.relative(process.cwd(), path.join(outputDirectory, 'qualification-direct-verifier.mjs')),
-  ]);
+  assert.deepEqual(
+    result.artifacts,
+    [
+      path.relative(process.cwd(), path.join(outputDirectory, 'git-command-policy-boundary.mjs')),
+      path.relative(process.cwd(), path.join(outputDirectory, 'codex-evaluation-proxy.mjs')),
+      path.relative(process.cwd(), path.join(outputDirectory, 'qualification-direct-verifier.mjs')),
+    ].map((artifactPath) => artifactPath.split(path.sep).join('/')),
+  );
 
   const gitBoundaryPath = path.join(outputDirectory, 'git-command-policy-boundary.mjs');
   const gitBoundaryModule = (await import(pathToFileURL(gitBoundaryPath).href)) as {

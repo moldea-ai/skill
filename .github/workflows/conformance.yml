@@ -102,29 +102,16 @@ jobs:
     name: Repository quality and qualification tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: skill
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          path: skill
-      - name: Checkout packages compatibility input
-        uses: actions/checkout@v4
-        with:
-          repository: moldea-ai/packages
-          ref: 8459cfec1d9766023d5db00b6b890d60000a3924
-          path: packages
-          sparse-checkout: compatibility
       - name: Setup development Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.DEVELOPMENT_NODE_VERSION }}
           cache: npm
-          cache-dependency-path: skill/package-lock.json
-      - name: Install pnpm for qualification integration tests
-        run: npm install --global --ignore-scripts --no-audit --no-fund pnpm@11.9.0
+          cache-dependency-path: package-lock.json
       - name: Install workspace dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Build isolated runtime helpers

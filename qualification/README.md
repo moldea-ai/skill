@@ -86,8 +86,6 @@ Keep the `skill` and `packages` repositories adjacent. From the `skill` reposito
 npm ci --ignore-scripts
 ```
 
-Qualification integration tests also require pnpm 11.9.0 on `PATH`. CI uses the packages compatibility matrix from commit `8459cfec1d9766023d5db00b6b890d60000a3924`.
-
 The default skill candidate is `moldea/`.
 
 ## Commands

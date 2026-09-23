@@ -206,7 +206,7 @@ describe('qualification execution', () => {
     temporaryAttemptDirectory = pausedOutcome.attemptDirectory;
     const actorStageId = 'case:answer-information-before-adoption:trial:initial:actor';
 
-    expect(pausedOutcome.result.status, pausedOutcome.result.summary).toBe('incomplete');
+    expect(pausedOutcome.result.status).toBe('incomplete');
     expect(pausedOutcome.wasRecorded).toBe(false);
     expect(pausedActorCalls).toBe(0);
     expect(pausedOutcome.result.stages.find(({ id }) => id === actorStageId)?.status).toBe(

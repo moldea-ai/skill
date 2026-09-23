@@ -1,4 +1,4 @@
-import { defineConfig, type ViteUserConfig } from 'vitest/config';
+import { configDefaults, defineConfig, type ViteUserConfig } from 'vitest/config';
 
 // cross-platform allowance for filesystem and process integration work
 const INTEGRATION_TEST_TIMEOUT_MS = 20_000;
@@ -16,6 +16,13 @@ export const createTestConfig = (suite: ITestSuiteKind): ViteUserConfig =>
     test: {
       clearMocks: true,
       environment: 'node',
+      exclude: [
+        ...configDefaults.exclude,
+        '**/_archive/**',
+        '**/_archives/**',
+        '**/_backup/**',
+        '**/_backups/**',
+      ],
       globals: false,
       include: [`src/**/*.test-${suite}.ts`],
       passWithNoTests: false,

@@ -12,16 +12,19 @@ import {
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
 import { readAttemptCheckpoint, writeAttemptCheckpoint } from '../checkpoint/index.ts';
+import { readAttemptCompatibilitySnapshot } from '../compatibility/index.ts';
 import { readJsonFile } from '../../../src/filesystem/index.ts';
 import { recordQualificationResult } from '../result/index.ts';
 import { cleanupQualificationAttemptRuntime } from './attempt-runtime.ts';
 import type { ILocalAttemptCheckpointInspection, IUnavailableLocalAttempt } from './types.ts';
 
 const ATTEMPT_ID_PATTERN = /^[A-Za-z0-9._-]+$/u;
+const isValidAttemptId = (attemptId: string): boolean =>
+  ATTEMPT_ID_PATTERN.test(attemptId) && attemptId !== '.' && attemptId !== '..';
 
 /** Resolves one local attempt directory without permitting path traversal. */
 export const getLocalAttemptDirectory = (attemptId: string): string => {
-  if (!ATTEMPT_ID_PATTERN.test(attemptId)) {
+  if (!isValidAttemptId(attemptId)) {
     throw new Error(`Invalid qualification attempt id: ${attemptId}`);
   }
 
@@ -146,7 +149,7 @@ export const inspectLocalAttemptCheckpoints = async (
 
   const inspectedAttempts = await Promise.all(
     entries
-      .filter((entry) => entry.isDirectory() && ATTEMPT_ID_PATTERN.test(entry.name))
+      .filter((entry) => entry.isDirectory() && isValidAttemptId(entry.name))
       .map((entry) => inspectLocalAttemptCheckpoint(attemptsRoot, entry.name)),
   );
   const attempts = inspectedAttempts.flatMap(({ checkpoint }) =>
@@ -194,26 +197,24 @@ export const recordIncompleteAttempt = async (
     path.join(attemptDirectory, 'result-draft.json'),
     QualificationAttemptResultDraftSchema,
   );
+  await readAttemptCompatibilitySnapshot(attemptDirectory, checkpoint.compatibilitySnapshot);
   const recordedAt = new Date().toISOString();
 
-  await writeAttemptCheckpoint(attemptDirectory, {
-    ...checkpoint,
-    recordedAt,
-  });
-
   try {
-    return await recordQualificationResult(
+    const recorded = await recordQualificationResult(
       {
         artifactDirectory: path.join(attemptDirectory, 'public'),
+        attemptDirectory,
         result,
         sanitizationContext: {
           attemptDirectory,
-          packagesRepository: checkpoint.packagesRepository,
           skillRepository: checkpoint.skillRepository,
         },
       },
       resultsRoot,
     );
+    await writeAttemptCheckpoint(attemptDirectory, { ...checkpoint, recordedAt });
+    return recorded;
   } finally {
     await cleanupQualificationAttemptRuntime(attemptDirectory, false);
   }

@@ -46,7 +46,7 @@ export const inspectQualificationSourceState = (
   options: {
     executionEnvironment: IQualificationExecutionEnvironment;
     isDryRun: boolean;
-  } & Pick<IQualificationInputState, 'packagesState' | 'qualificationState' | 'skillState'>,
+  } & Pick<IQualificationInputState, 'qualificationState' | 'skillState'>,
 ): IQualificationSourceStateResult => {
   const failures: string[] = [];
   const isModelEndpointTrusted =
@@ -77,12 +77,6 @@ export const inspectQualificationSourceState = (
     failures.push('Official qualification cannot use a custom TLS certificate file.');
   }
 
-  if (!options.isDryRun && options.packagesState.isDirty) {
-    failures.push(
-      'The packages repository has uncommitted changes. Commit the tested package source before an official qualification run.',
-    );
-  }
-
   if (!options.isDryRun && options.qualificationState.isDirty) {
     failures.push(
       'The qualification suite has uncommitted changes. Commit the tested qualification source before an official qualification run.',
@@ -99,7 +93,6 @@ export const inspectQualificationSourceState = (
     passed: failures.length === 0,
     requiresCleanInputs: !options.isDryRun,
     isExecutionHostTrusted,
-    packagesRepositoryDirty: options.packagesState.isDirty,
     qualificationRepositoryDirty: options.qualificationState.isDirty,
     skillRepositoryDirty: options.skillState.isDirty,
     failures,
@@ -113,13 +106,15 @@ export const inspectQualificationSourceState = (
 export const haveQualificationInputsChanged = (
   checkpoint: Pick<
     IQualificationAttemptCheckpoint,
-    'packagesDigest' | 'qualificationDigest' | 'skillDigest'
+    'compatibilityDigest' | 'compatibilitySnapshot' | 'qualificationDigest' | 'skillDigest'
   >,
   inputState: IQualificationInputState,
 ): boolean =>
   checkpoint.qualificationDigest !== inputState.qualificationDigest ||
   checkpoint.skillDigest !== inputState.skillState.fingerprint ||
-  checkpoint.packagesDigest !== inputState.packagesDigest;
+  checkpoint.compatibilityDigest !== inputState.compatibilityDigest ||
+  checkpoint.compatibilitySnapshot.sha256 !== inputState.compatibilitySnapshot.sha256 ||
+  checkpoint.compatibilitySnapshot.sourceUrl !== inputState.compatibilitySnapshot.sourceUrl;
 
 /** Returns whether a resumed attempt would use a different local execution host identity. */
 export const haveQualificationExecutionInputsChanged = (

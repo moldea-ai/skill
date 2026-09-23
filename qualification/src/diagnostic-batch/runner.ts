@@ -10,7 +10,6 @@ import {
 
 import type { IBoundarySchema } from '../../../src/filesystem/index.ts';
 import {
-  DEFAULT_PACKAGES_REPOSITORY,
   DEFAULT_SKILL_REPOSITORY,
   QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
   QUALIFICATION_RESULTS_ROOT,
@@ -47,6 +46,7 @@ import {
   writeTextFileAtomically,
 } from '../../../src/filesystem/index.ts';
 import {
+  getRuntimeCompatibilityMatrix,
   loadRuntimeCompatibilitySnapshot,
   resolveQualificationTarget,
   type IResolvedQualificationTarget,
@@ -333,13 +333,11 @@ const validateBatchState = (options: {
     checkpoint: {
       selection: checkpoint.selection,
       selector: checkpoint.selector,
-      packagesRepository: checkpoint.packagesRepository,
+      compatibilitySnapshot: checkpoint.compatibilitySnapshot,
       skillRepository: checkpoint.skillRepository,
       profileDigest: checkpoint.profileDigest,
       qualificationDigest: checkpoint.qualificationDigest,
       skillDigest: checkpoint.skillDigest,
-      packagesRepositoryCommit: checkpoint.packagesRepositoryCommit,
-      packagesRepositoryFingerprint: checkpoint.packagesRepositoryFingerprint,
       targetDigest: checkpoint.targetDigest,
       executionEnvironment: checkpoint.executionEnvironment,
     },
@@ -545,7 +543,6 @@ export const runQualificationDiagnosticBatch = async (options: {
   host: ICodexHost;
   selection: IQualificationSelection;
   selector: IQualificationDiagnosticSelectorInput;
-  packagesRepository?: string;
   skillRepository?: string;
   resultsRoot?: string;
   checkpointPath?: string;
@@ -558,9 +555,6 @@ export const runQualificationDiagnosticBatch = async (options: {
   signal?: AbortSignal;
   workerCount?: IEvaluationBatchWorkerCount;
 }): Promise<IQualificationDiagnosticBatchOutcome> => {
-  const packagesRepository = path.resolve(
-    options.packagesRepository ?? DEFAULT_PACKAGES_REPOSITORY,
-  );
   const skillRepository = path.resolve(options.skillRepository ?? DEFAULT_SKILL_REPOSITORY);
   const resultsRoot = options.resultsRoot ?? QUALIFICATION_RESULTS_ROOT;
   const checkpointPath = options.checkpointPath ?? QUALIFICATION_DIAGNOSTIC_CHECKPOINT_PATH;
@@ -572,19 +566,16 @@ export const runQualificationDiagnosticBatch = async (options: {
   ) {
     throw new Error('Qualification diagnostic aggregate state boundary is too small.');
   }
-  const compatibilitySnapshot = await loadRuntimeCompatibilitySnapshot(packagesRepository);
-  const target = await resolveQualificationTarget(
-    options.selection,
-    packagesRepository,
-    compatibilitySnapshot.matrix,
-  );
+  const compatibilitySnapshot = await loadRuntimeCompatibilitySnapshot();
+  const matrix = getRuntimeCompatibilityMatrix(compatibilitySnapshot);
+  const target = await resolveQualificationTarget(options.selection, matrix);
   const selector = await resolveDiagnosticSelector({
     input: options.selector,
     resultsRoot,
     target,
   });
   const inputState = await inspectQualificationInputState(
-    compatibilitySnapshot.repositoryState,
+    compatibilitySnapshot,
     skillRepository,
     target,
   );
@@ -592,13 +583,14 @@ export const runQualificationDiagnosticBatch = async (options: {
   const identityState = {
     selection: target.selection,
     selector,
-    packagesRepository,
+    compatibilitySnapshot: {
+      sourceUrl: compatibilitySnapshot.sourceUrl,
+      sha256: compatibilitySnapshot.sha256,
+    },
     skillRepository,
     profileDigest: target.profileDigest,
     qualificationDigest: inputState.qualificationDigest,
     skillDigest: inputState.skillState.fingerprint,
-    packagesRepositoryCommit: inputState.packagesState.commit,
-    packagesRepositoryFingerprint: inputState.packagesState.fingerprint,
     targetDigest: target.targetDigest,
     executionEnvironment,
   };
@@ -784,6 +776,7 @@ export const runQualificationDiagnosticBatch = async (options: {
 
     const sharedOptions = {
       host: options.host,
+      compatibilitySnapshot,
       tokenController,
       workerCount: 1 as const,
       ...(requestPaidExecutionApproval === undefined ? {} : { requestPaidExecutionApproval }),
@@ -801,7 +794,6 @@ export const runQualificationDiagnosticBatch = async (options: {
             caseId,
             mode: 'diagnostic',
             newAttemptId: attemptId,
-            packagesRepository,
             skillRepository,
             reuseEvidence: false,
           }

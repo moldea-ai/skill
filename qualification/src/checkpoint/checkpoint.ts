@@ -180,13 +180,12 @@ export const createAttemptCheckpoint = async (options: {
   mode: 'diagnostic' | 'dry-run' | 'official';
   selectedCaseId: string | null;
   reuseEvidence: boolean;
-  packagesRepository: string;
+  compatibilitySnapshot: IQualificationAttemptCheckpoint['compatibilitySnapshot'];
   skillRepository: string;
   profileDigest: string;
   qualificationDigest: string;
   skillDigest: string;
-  packagesRepositoryFingerprint: string;
-  packagesDigest: string;
+  compatibilityDigest: string;
   targetDigest: string;
   executionEnvironment: IQualificationExecutionEnvironment;
   initialCandidateTokensConsumed?: number;
@@ -210,13 +209,12 @@ export const createAttemptCheckpoint = async (options: {
     updatedAt: timestamp,
     completedAt: null,
     recordedAt: null,
-    packagesRepository: options.packagesRepository,
+    compatibilitySnapshot: options.compatibilitySnapshot,
     skillRepository: options.skillRepository,
     profileDigest: options.profileDigest,
     qualificationDigest: options.qualificationDigest,
     skillDigest: options.skillDigest,
-    packagesRepositoryFingerprint: options.packagesRepositoryFingerprint,
-    packagesDigest: options.packagesDigest,
+    compatibilityDigest: options.compatibilityDigest,
     targetDigest: options.targetDigest,
     executionEnvironment: options.executionEnvironment,
     candidate: null,

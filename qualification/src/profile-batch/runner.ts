@@ -9,13 +9,13 @@ import {
 } from '../../../src/execution/batch/index.ts';
 
 import {
+  getRuntimeCompatibilityMatrix,
   loadRuntimeCompatibilitySnapshot,
   resolveQualificationTarget,
 } from '../compatibility/index.ts';
 import { inspectQualificationBaseline } from '../baseline/index.ts';
 import { prepareCandidateClosure } from '../candidate-closure/index.ts';
 import {
-  DEFAULT_PACKAGES_REPOSITORY,
   DEFAULT_SKILL_REPOSITORY,
   QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
   QUALIFICATION_PROFILES_ROOT,
@@ -275,9 +275,7 @@ const resolveProfileSelector = async (options: {
 const createBatchIdentity = (options: {
   executionEnvironment: IQualificationProfileBatchCheckpoint['executionEnvironment'];
   isDryRun: boolean;
-  packagesRepository: string;
-  packagesRepositoryCommit: string;
-  packagesRepositoryFingerprint: string;
+  compatibilitySnapshot: IQualificationProfileBatchCheckpoint['compatibilitySnapshot'];
   profileIndexDigest: string;
   qualificationDigest: string;
   reuseEvidence: boolean;
@@ -288,15 +286,13 @@ const createBatchIdentity = (options: {
   calculateSha256(
     `${JSON.stringify({
       selector: options.selector,
-      packagesRepository: options.packagesRepository,
+      compatibilitySnapshot: options.compatibilitySnapshot,
       skillRepository: options.skillRepository,
       isDryRun: options.isDryRun,
       reuseEvidence: options.reuseEvidence,
       profileIndexDigest: options.profileIndexDigest,
       qualificationDigest: options.qualificationDigest,
       skillDigest: options.skillDigest,
-      packagesRepositoryCommit: options.packagesRepositoryCommit,
-      packagesRepositoryFingerprint: options.packagesRepositoryFingerprint,
       executionEnvironment: QualificationExecutionEnvironmentSchema.parse(
         options.executionEnvironment,
       ),
@@ -336,9 +332,7 @@ const validateBatchState = (options: {
   const expectedIdentitySha256 = createBatchIdentity({
     executionEnvironment: checkpoint.executionEnvironment,
     isDryRun: checkpoint.isDryRun,
-    packagesRepository: checkpoint.packagesRepository,
-    packagesRepositoryCommit: checkpoint.packagesRepositoryCommit,
-    packagesRepositoryFingerprint: checkpoint.packagesRepositoryFingerprint,
+    compatibilitySnapshot: checkpoint.compatibilitySnapshot,
     profileIndexDigest: checkpoint.profileIndexDigest,
     qualificationDigest: checkpoint.qualificationDigest,
     reuseEvidence: checkpoint.reuseEvidence,
@@ -523,17 +517,12 @@ const assertExactCustomBaseline = async (options: {
   executionEnvironment: IQualificationProfileBatchCheckpoint['executionEnvironment'];
   firstSelection: IQualificationSelection;
   isDryRun: boolean;
-  matrix: Awaited<ReturnType<typeof loadRuntimeCompatibilitySnapshot>>['matrix'];
-  packagesRepository: string;
+  matrix: ReturnType<typeof getRuntimeCompatibilityMatrix>;
   resultsRoot: string;
   stateDirectory: string;
 }): Promise<void> => {
   if (options.isDryRun) return;
-  const target = await resolveQualificationTarget(
-    options.firstSelection,
-    options.packagesRepository,
-    options.matrix,
-  );
+  const target = await resolveQualificationTarget(options.firstSelection, options.matrix);
   const attemptDirectory = path.join(
     options.stateDirectory,
     `preflight-${randomUUID().replaceAll('-', '')}`,
@@ -571,7 +560,6 @@ const assertExactCustomBaseline = async (options: {
 export const runQualificationProfileBatch = async (options: {
   host: ICodexHost;
   selector: IQualificationProfileBatchSelectorInput;
-  packagesRepository?: string;
   skillRepository?: string;
   resultsRoot?: string;
   checkpointPath?: string;
@@ -587,9 +575,6 @@ export const runQualificationProfileBatch = async (options: {
   operationalRetry?: IQualificationOperationalRetryOptions;
   signal?: AbortSignal;
 }): Promise<IQualificationProfileBatchOutcome> => {
-  const packagesRepository = path.resolve(
-    options.packagesRepository ?? DEFAULT_PACKAGES_REPOSITORY,
-  );
   const skillRepository = path.resolve(options.skillRepository ?? DEFAULT_SKILL_REPOSITORY);
   const resultsRoot = options.resultsRoot ?? QUALIFICATION_RESULTS_ROOT;
   const checkpointPath = options.checkpointPath ?? QUALIFICATION_PROFILE_BATCH_CHECKPOINT_PATH;
@@ -599,27 +584,24 @@ export const runQualificationProfileBatch = async (options: {
   const reuseEvidence = options.reuseEvidence ?? true;
   const workerCount = options.workerCount ?? EVALUATION_BATCH_DEFAULT_WORKER_COUNT;
   const selector = await resolveProfileSelector({ historyRoot, input: options.selector });
-  const compatibilitySnapshot = await loadRuntimeCompatibilitySnapshot(packagesRepository);
+  const compatibilitySnapshot = await loadRuntimeCompatibilitySnapshot();
+  const matrix = getRuntimeCompatibilityMatrix(compatibilitySnapshot);
   const customTarget = await resolveQualificationTarget(
     { adapterId: 'custom', implementationId: 'custom' },
-    packagesRepository,
-    compatibilitySnapshot.matrix,
+    matrix,
   );
   const [customInputState, executionEnvironment, profileIndexDigest] = await Promise.all([
-    inspectQualificationInputState(
-      compatibilitySnapshot.repositoryState,
-      skillRepository,
-      customTarget,
-    ),
+    inspectQualificationInputState(compatibilitySnapshot, skillRepository, customTarget),
     inspectQualificationExecutionEnvironment(options.host),
     calculateDirectoryFingerprint(QUALIFICATION_PROFILES_ROOT),
   ]);
   const identityState = {
     executionEnvironment,
     isDryRun,
-    packagesRepository,
-    packagesRepositoryCommit: customInputState.packagesState.commit,
-    packagesRepositoryFingerprint: customInputState.packagesState.fingerprint,
+    compatibilitySnapshot: {
+      sourceUrl: compatibilitySnapshot.sourceUrl,
+      sha256: compatibilitySnapshot.sha256,
+    },
     profileIndexDigest,
     qualificationDigest: customInputState.qualificationDigest,
     reuseEvidence,
@@ -637,8 +619,7 @@ export const runQualificationProfileBatch = async (options: {
     executionEnvironment,
     firstSelection: parseTargetId(firstTargetId),
     isDryRun,
-    matrix: compatibilitySnapshot.matrix,
-    packagesRepository,
+    matrix,
     resultsRoot,
     stateDirectory: path.dirname(checkpointPath),
   });
@@ -752,11 +733,7 @@ export const runQualificationProfileBatch = async (options: {
   });
   const remainingTargets = await Promise.all(
     remainingTargetIds.map((targetId) =>
-      resolveQualificationTarget(
-        parseTargetId(targetId),
-        packagesRepository,
-        compatibilitySnapshot.matrix,
-      ),
+      resolveQualificationTarget(parseTargetId(targetId), matrix),
     ),
   );
   const directCaseCount = remainingTargets.reduce(
@@ -804,6 +781,7 @@ export const runQualificationProfileBatch = async (options: {
     }
     const sharedOptions = {
       host: options.host,
+      compatibilitySnapshot,
       tokenController,
       workerCount: 1 as const,
       ...(requestPaidExecutionApproval === undefined ? {} : { requestPaidExecutionApproval }),
@@ -819,7 +797,6 @@ export const runQualificationProfileBatch = async (options: {
             ...sharedOptions,
             selection,
             newAttemptId: attemptId,
-            packagesRepository,
             skillRepository,
             resultsRoot,
             isDryRun,

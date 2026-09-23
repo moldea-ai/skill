@@ -15,16 +15,17 @@ import type {
 import type { IEvaluationBatchWorkerCount } from '../../../src/execution/batch/index.ts';
 import type { ICodexHost } from '../codex-host/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
+import type { IRuntimeCompatibilitySnapshot } from '../compatibility/index.ts';
 
 // options accepted by a new or resumed local qualification execution
 export type IRunQualificationOptions = {
   host: ICodexHost;
+  compatibilitySnapshot?: IRuntimeCompatibilitySnapshot;
   selection?: IQualificationSelection;
   caseId?: string;
   initialCandidateTokensConsumed?: number;
   mode?: 'diagnostic' | 'dry-run' | 'official';
   newAttemptId?: string;
-  packagesRepository?: string;
   skillRepository?: string;
   isDryRun?: boolean;
   reuseEvidence?: boolean;
@@ -129,8 +130,8 @@ export type IQualificationExecutionProvenance = Omit<IQualificationProvenance, '
 export type IQualificationInputState = {
   caseDigests: Record<string, string>;
   evaluatorStageDigest: string;
-  packagesDigest: string;
-  packagesState: IGitRepositoryState;
+  compatibilityDigest: string;
+  compatibilitySnapshot: Pick<IRuntimeCompatibilitySnapshot, 'sourceUrl' | 'sha256'>;
   qualificationBaselineDigest: string;
   qualificationDigest: string;
   qualificationState: IGitRepositoryState;

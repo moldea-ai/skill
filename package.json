@@ -36,6 +36,8 @@
     "matcher:generate": "npm run portable:generate",
     "qualification": "npm --workspace qualification run qualification --",
     "qualification:dry-run": "npm --workspace qualification run qualification -- run --adapter custom --implementation custom --dry-run --json",
+    "qualification:compatibility:check": "npm --workspace qualification run qualification -- compatibility-check",
+    "qualification:compatibility:update": "npm --workspace qualification run qualification -- compatibility-update",
     "qualification:dry-run:all": "npm run qualification:dry-run && npm --workspace qualification run qualification -- run-batch --all --dry-run --workers 4 --json",
     "qualification:format:check": "npm --workspace qualification run format:check",
     "qualification:lint": "npm --workspace qualification run lint",

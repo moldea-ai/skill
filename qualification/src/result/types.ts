@@ -15,6 +15,7 @@ export type IQualificationResultVerification = {
 
 export type IRecordQualificationResultOptions = {
   artifactDirectory: string;
+  attemptDirectory: string;
   result: IQualificationAttemptResult;
   sanitizationContext: ISanitizationContext;
 };

@@ -154,8 +154,8 @@ export const calculateQualificationTargetDigest = (
     target,
   });
 
-/** Calculates the selected package-source identity without unrelated adapters or targets. */
-export const calculatePackagesQualificationDigest = (options: {
+/** Calculates the selected compatibility behavior without unrelated adapters or targets. */
+export const calculateQualificationCompatibilityDigest = (options: {
   adapter: IRuntimeAdapterEntry;
   matrixVersion: number;
   target: IRuntimeTarget;

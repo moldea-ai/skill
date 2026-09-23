@@ -23,7 +23,10 @@ import {
   rewriteQualificationSourceUrls,
 } from '../../../qualification/src/public-evidence/index.ts';
 import { recordQualificationResult } from '../../../qualification/src/result/index.ts';
-import { seedPassingQualificationEvidenceFixture } from '../../../qualification/vitest/evidence-fixture.ts';
+import {
+  getFixtureAttemptDirectory,
+  seedPassingQualificationEvidenceFixture,
+} from '../../../qualification/vitest/evidence-fixture.ts';
 import type { IQualificationWebsiteModel } from '../../src/lib/qualification/index.ts';
 import type {
   ISemanticAttemptModel,
@@ -505,10 +508,10 @@ export const prepareSyntheticWebsiteEvidence = async (
   await recordQualificationResult(
     {
       artifactDirectory,
+      attemptDirectory: getFixtureAttemptDirectory(resultsRoot, attemptId),
       result: qualificationResult,
       sanitizationContext: {
-        attemptDirectory: '/attempt',
-        packagesRepository: '/packages',
+        attemptDirectory: getFixtureAttemptDirectory(resultsRoot, attemptId),
         skillRepository: '/repositories/skill',
       },
     },

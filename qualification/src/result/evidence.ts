@@ -49,7 +49,10 @@ import {
   resolveQualificationResultTargetDirectory,
   verifyQualificationAttemptStorage,
 } from '../storage/index.ts';
-import { RecordedQualificationContractSchema } from './recorded-contract.ts';
+import {
+  assertRecordedQualificationCompatibility,
+  RecordedQualificationContractSchema,
+} from './recorded-contract.ts';
 
 const JsonObjectSchema = z.record(z.string(), z.unknown());
 
@@ -130,7 +133,7 @@ const selectQualificationReuseIdentity = (input: {
     modelEndpoint: input.provenance.modelEndpoint,
     nodeVersion: input.provenance.nodeVersion,
     packages: input.provenance.packages,
-    packagesRepositoryFingerprint: input.provenance.packagesRepositoryFingerprint,
+    compatibilitySnapshot: input.provenance.compatibilitySnapshot,
     pnpmVersion: input.provenance.pnpmVersion,
     actorReasoningEffort: input.provenance.actorReasoningEffort,
     judgeReasoningEffort: input.provenance.judgeReasoningEffort,
@@ -1224,6 +1227,11 @@ const validateCurrentTerminalAttempt = async (
     'recorded-contract.json',
     RecordedQualificationContractSchema,
   );
+  assertRecordedQualificationCompatibility({
+    contract: recordedContract,
+    provenance: result.provenance,
+    selection: result.selection,
+  });
   const recordedProfile = recordedContract.profiles.find(
     ({ profile: candidateProfile }) =>
       candidateProfile.adapterId === result.selection.adapterId &&
@@ -1268,7 +1276,7 @@ const validateCurrentTerminalAttempt = async (
   );
 
   if (JSON.stringify(actualArtifactPaths) !== JSON.stringify(expectedArtifactPaths)) {
-    throw new Error('Qualification evidence has an incomplete protocol 10 artifact inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 11 artifact inventory.');
   }
 
   const [baseline, coverage, probes, sourceState] = await Promise.all([
@@ -1296,11 +1304,9 @@ const validateCurrentTerminalAttempt = async (
     sourceState.passed &&
     sourceState.requiresCleanInputs &&
     sourceState.isExecutionHostTrusted &&
-    !sourceState.packagesRepositoryDirty &&
     !sourceState.qualificationRepositoryDirty &&
     !sourceState.skillRepositoryDirty &&
     sourceState.failures.length === 0 &&
-    !result.provenance.packagesRepositoryDirty &&
     !result.provenance.qualificationRepositoryDirty &&
     !result.provenance.skillRepositoryDirty;
   const hasPassingBaseline =
@@ -1325,7 +1331,7 @@ const validateCurrentTerminalAttempt = async (
   const actualStageIds = result.stages.map(({ id }) => id);
 
   if (JSON.stringify(actualStageIds) !== JSON.stringify(expectedStageIds)) {
-    throw new Error('Qualification evidence has an incomplete protocol 10 stage inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 11 stage inventory.');
   }
 
   const stages = new Map(result.stages.map((stage) => [stage.id, stage]));

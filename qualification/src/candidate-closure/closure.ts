@@ -33,10 +33,10 @@ import {
   createQualificationPnpmInstallation,
   createQualificationPnpmOptions,
   createQualificationPnpmPackageVersions,
+  executeQualificationPnpm,
   initializeQualificationPnpmInstallation,
   type IQualificationPnpmInstallation,
 } from '../pnpm-installation/index.ts';
-import { executeProcess } from '../../../src/process/index.ts';
 import { loadVerifiedCachedPackage } from './cache.ts';
 import { createPublicCandidatePackage } from './transformers.ts';
 import type { ICandidatePreparationOptions } from './types.ts';
@@ -246,8 +246,7 @@ const installCandidateRuntime = async (
     path.join(runtimeDirectory, 'pnpm-workspace.yaml'),
     stringifyYaml({ overrides: packageVersions }),
   );
-  await executeProcess({
-    command: 'pnpm',
+  await executeQualificationPnpm({
     args: [
       'install',
       '--prefer-offline',

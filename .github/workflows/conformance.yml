@@ -118,6 +118,8 @@ jobs:
         run: npm run runtime:build
       - name: Typecheck maintained code
         run: npm run typecheck
+      - name: Check reviewed compatibility snapshot
+        run: npm run qualification:compatibility:check
       - name: Lint root and qualification code
         run: npm run lint && npm run qualification:lint
       - name: Check root and qualification formatting
@@ -171,6 +173,11 @@ jobs:
               throw 'Isolated runtime helpers could not be built in the deep clone.'
             }
 
+            npm run qualification:compatibility:check
+            if ($LASTEXITCODE -ne 0) {
+              throw 'The reviewed compatibility snapshot failed in the deep clone.'
+            }
+
             npm run portable:check
             if ($LASTEXITCODE -ne 0) {
               throw 'Portable generated artifacts are stale in the deep clone.'
@@ -185,6 +192,11 @@ jobs:
             npm exec -- vitest run --config vitest/test-integration.config.ts src/portable/runtime-generation.test-integration.ts
             if ($LASTEXITCODE -ne 0) {
               throw 'Generated runtime helpers failed on Windows.'
+            }
+
+            npm --workspace qualification run test:integration -- src/pnpm-installation
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Pinned qualification pnpm failed on Windows.'
             }
 
             $skillsHome = Join-Path $deepRoot 'developer-home'

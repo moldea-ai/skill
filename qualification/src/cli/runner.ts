@@ -1,6 +1,10 @@
 import { CodexCliHost, FakeCodexHost, type ICodexHost } from '../codex-host/index.ts';
 import type { IQualificationCommand } from '../command-line/index.ts';
-import { listQualificationImplementations } from '../compatibility/index.ts';
+import {
+  checkRuntimeCompatibilitySnapshot,
+  listQualificationImplementations,
+  updateRuntimeCompatibilitySnapshot,
+} from '../compatibility/index.ts';
 import {
   getLocalAttemptDirectory,
   type IQualificationPaidExecutionRequest,
@@ -195,15 +199,30 @@ export const executeQualificationCommand = async (
   signal?: AbortSignal,
 ): Promise<number> => {
   switch (command.kind) {
+    case 'compatibility-check': {
+      const result = await checkRuntimeCompatibilitySnapshot();
+      presentQualificationOutput(
+        result,
+        command.isJson,
+        `Compatibility snapshot ${result.sha256} validates ${result.profileCount} profiles.`,
+      );
+      return 0;
+    }
+    case 'compatibility-update': {
+      const result = await updateRuntimeCompatibilitySnapshot();
+      presentQualificationOutput(
+        result,
+        command.isJson,
+        `Compatibility snapshot ${result.sha256} ${result.changed ? 'updated' : 'unchanged'}; ${result.profileCount} profiles validated.`,
+      );
+      return 0;
+    }
     case 'diagnose': {
       const outcome = await runQualification({
         host: createHost(false),
         selection: command.selection,
         caseId: command.caseId,
         mode: 'diagnostic',
-        ...(command.packagesRepository === undefined
-          ? {}
-          : { packagesRepository: command.packagesRepository }),
         ...(command.skillRepository === undefined
           ? {}
           : { skillRepository: command.skillRepository }),
@@ -219,9 +238,6 @@ export const executeQualificationCommand = async (
         host: createHost(false),
         selection: command.selection,
         selector: command.selector,
-        ...(command.packagesRepository === undefined
-          ? {}
-          : { packagesRepository: command.packagesRepository }),
         ...(command.skillRepository === undefined
           ? {}
           : { skillRepository: command.skillRepository }),
@@ -278,9 +294,6 @@ export const executeQualificationCommand = async (
       const outcome = await runQualification({
         host: createHost(command.isDryRun),
         selection: command.selection,
-        ...(command.packagesRepository === undefined
-          ? {}
-          : { packagesRepository: command.packagesRepository }),
         ...(command.skillRepository === undefined
           ? {}
           : { skillRepository: command.skillRepository }),
@@ -323,7 +336,6 @@ export const executeQualificationCommand = async (
         selection: checkpoint.selection,
         ...(checkpoint.selectedCaseId === null ? {} : { caseId: checkpoint.selectedCaseId }),
         mode: checkpoint.mode,
-        packagesRepository: checkpoint.packagesRepository,
         skillRepository: checkpoint.skillRepository,
         isDryRun: checkpoint.isDryRun,
         reuseEvidence: checkpoint.reuseEvidence,
@@ -339,9 +351,6 @@ export const executeQualificationCommand = async (
       const outcome = await runQualificationProfileBatch({
         host: createHost(command.isDryRun),
         selector: command.selector,
-        ...(command.packagesRepository === undefined
-          ? {}
-          : { packagesRepository: command.packagesRepository }),
         ...(command.skillRepository === undefined
           ? {}
           : { skillRepository: command.skillRepository }),

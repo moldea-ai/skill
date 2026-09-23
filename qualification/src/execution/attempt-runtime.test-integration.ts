@@ -27,6 +27,7 @@ describe('cleanupQualificationAttemptRuntime', () => {
 
   test('retains public and resume-only internal state for an interrupted attempt', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-runtime-'));
+    await writeFile(path.join(temporaryRoot, 'compatibility-snapshot.json'), '{}', 'utf8');
     for (const relativeDirectory of [
       'internal',
       'pnpm-cache',
@@ -44,6 +45,7 @@ describe('cleanupQualificationAttemptRuntime', () => {
 
     expect(await hasPath(path.join(temporaryRoot, 'internal', 'artifact'))).toBe(true);
     expect(await hasPath(path.join(temporaryRoot, 'public', 'artifact'))).toBe(true);
+    expect(await hasPath(path.join(temporaryRoot, 'compatibility-snapshot.json'))).toBe(true);
     for (const relativeDirectory of ['pnpm-cache', 'pnpm-store', 'runtime', 'workspaces']) {
       expect(await hasPath(path.join(temporaryRoot, relativeDirectory))).toBe(false);
     }
@@ -51,6 +53,7 @@ describe('cleanupQualificationAttemptRuntime', () => {
 
   test('removes every disposable tree after resume is no longer allowed', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-runtime-'));
+    await writeFile(path.join(temporaryRoot, 'compatibility-snapshot.json'), '{}', 'utf8');
     for (const relativeDirectory of [
       'internal',
       'pnpm-cache',
@@ -68,6 +71,7 @@ describe('cleanupQualificationAttemptRuntime', () => {
     await cleanupQualificationAttemptRuntime(temporaryRoot, false);
 
     expect(await hasPath(path.join(temporaryRoot, 'public', 'artifact'))).toBe(true);
+    expect(await hasPath(path.join(temporaryRoot, 'compatibility-snapshot.json'))).toBe(true);
     for (const relativeDirectory of [
       'internal',
       'pnpm-cache',

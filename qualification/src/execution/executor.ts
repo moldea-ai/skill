@@ -26,12 +26,15 @@ import {
   writeAttemptCheckpoint,
 } from '../checkpoint/index.ts';
 import {
+  captureAttemptCompatibilitySnapshot,
+  getRuntimeCompatibilityMatrix,
   loadRuntimeCompatibilitySnapshot,
+  readAttemptCompatibilitySnapshot,
   resolveQualificationTarget,
+  type IRuntimeCompatibilitySnapshot,
   type IResolvedQualificationTarget,
 } from '../compatibility/index.ts';
 import {
-  DEFAULT_PACKAGES_REPOSITORY,
   DEFAULT_SKILL_REPOSITORY,
   QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
   QUALIFICATION_CONFIRMATION_POLICY,
@@ -91,7 +94,7 @@ import {
 import { getLocalAttemptDirectory } from './attempts.ts';
 import { cleanupQualificationAttemptRuntime } from './attempt-runtime.ts';
 import {
-  calculatePackagesQualificationDigest,
+  calculateQualificationCompatibilityDigest,
   calculateQualificationExecutionDigest,
 } from './fingerprints.ts';
 import {
@@ -154,11 +157,11 @@ const pathExists = async (candidatePath: string): Promise<boolean> => {
 };
 
 /**
- * Captures the immutable behavior-bearing repositories for one qualification target.
- * @returns The package, qualification-suite, and portable-skill repository states.
+ * Captures the immutable behavior-bearing inputs for one qualification target.
+ * @returns The compatibility, qualification-suite, and portable-skill input states.
  */
 export const inspectQualificationInputState = async (
-  packagesState: IQualificationInputState['packagesState'],
+  compatibilitySnapshot: IRuntimeCompatibilitySnapshot,
   skillRepository: string,
   target: IResolvedQualificationTarget,
 ): Promise<IQualificationInputState> => {
@@ -176,7 +179,7 @@ export const inspectQualificationInputState = async (
       }),
       inspectGitRepositoryState(skillRepository),
     ]);
-  const packagesDigest = calculatePackagesQualificationDigest({
+  const compatibilityDigest = calculateQualificationCompatibilityDigest({
     adapter: target.adapter,
     matrixVersion: target.matrix.version,
     target: target.target,
@@ -186,8 +189,8 @@ export const inspectQualificationInputState = async (
   return {
     caseDigests,
     evaluatorStageDigest,
-    packagesDigest,
-    packagesState,
+    compatibilityDigest,
+    compatibilitySnapshot,
     qualificationBaselineDigest,
     qualificationDigest,
     qualificationState,
@@ -274,6 +277,15 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
       );
     }
 
+    const capturedSnapshot = await readAttemptCompatibilitySnapshot(
+      attemptDirectory,
+      rawCheckpoint.compatibilitySnapshot,
+    );
+    const currentSnapshot = await loadRuntimeCompatibilitySnapshot();
+    if (capturedSnapshot.sha256 !== currentSnapshot.sha256) {
+      throw new Error('Attempt compatibility input changed. Start a retry with a new identity.');
+    }
+
     const checkpoint = hasStoppedStage
       ? resumeQualificationOperationalStop(rawCheckpoint)
       : normalizeInterruptedCheckpoint(rawCheckpoint);
@@ -287,15 +299,13 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
     );
   }
 
-  const packagesRepository = path.resolve(
-    options.packagesRepository ?? DEFAULT_PACKAGES_REPOSITORY,
-  );
-  const compatibilitySnapshot = await loadRuntimeCompatibilitySnapshot(packagesRepository);
-  const target = await resolveQualificationTarget(
-    options.selection,
-    packagesRepository,
-    compatibilitySnapshot.matrix,
-  );
+  const currentCompatibilitySnapshot = await loadRuntimeCompatibilitySnapshot();
+  const compatibilitySnapshot = options.compatibilitySnapshot ?? currentCompatibilitySnapshot;
+  if (compatibilitySnapshot.sha256 !== currentCompatibilitySnapshot.sha256) {
+    throw new Error('Batch compatibility input changed before the child attempt started.');
+  }
+  const matrix = getRuntimeCompatibilityMatrix(compatibilitySnapshot);
+  const target = await resolveQualificationTarget(options.selection, matrix);
   const mode = options.mode ?? (options.isDryRun === true ? 'dry-run' : 'official');
   const selectedCaseId = mode === 'diagnostic' ? options.caseId : undefined;
 
@@ -333,7 +343,7 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
   }
 
   const inputState = await inspectQualificationInputState(
-    compatibilitySnapshot.repositoryState,
+    compatibilitySnapshot,
     skillRepository,
     target,
   );
@@ -346,6 +356,7 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
   if (await pathExists(path.join(attemptDirectory, 'checkpoint.json'))) {
     throw new Error(`Qualification attempt ${attemptId} already exists.`);
   }
+  await captureAttemptCompatibilitySnapshot(attemptDirectory, compatibilitySnapshot);
   const checkpoint = await createAttemptCheckpoint({
     attemptDirectory,
     attemptId,
@@ -355,13 +366,15 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
     mode,
     selectedCaseId: selectedCaseId ?? null,
     reuseEvidence: options.reuseEvidence ?? true,
-    packagesRepository,
+    compatibilitySnapshot: {
+      sourceUrl: compatibilitySnapshot.sourceUrl,
+      sha256: compatibilitySnapshot.sha256,
+    },
     skillRepository,
     profileDigest: target.profileDigest,
     qualificationDigest: inputState.qualificationDigest,
     skillDigest: inputState.skillState.fingerprint,
-    packagesRepositoryFingerprint: inputState.packagesState.fingerprint,
-    packagesDigest: inputState.packagesDigest,
+    compatibilityDigest: inputState.compatibilityDigest,
     targetDigest: target.targetDigest,
     executionEnvironment,
     initialCandidateTokensConsumed,
@@ -381,22 +394,23 @@ export const runQualification = async (
   const preparedAttempt = await prepareAttempt(options);
   const { attemptDirectory } = preparedAttempt;
   let checkpoint = preparedAttempt.checkpoint;
-  const compatibilitySnapshot = await loadRuntimeCompatibilitySnapshot(
-    checkpoint.packagesRepository,
+  const compatibilitySnapshot = await readAttemptCompatibilitySnapshot(
+    attemptDirectory,
+    checkpoint.compatibilitySnapshot,
   );
-  const target = await resolveQualificationTarget(
-    checkpoint.selection,
-    checkpoint.packagesRepository,
-    compatibilitySnapshot.matrix,
-  );
+  const currentCompatibilitySnapshot = await loadRuntimeCompatibilitySnapshot();
+  if (compatibilitySnapshot.sha256 !== currentCompatibilitySnapshot.sha256) {
+    throw new Error('Attempt compatibility input changed. Start a retry with a new identity.');
+  }
+  const matrix = getRuntimeCompatibilityMatrix(compatibilitySnapshot);
+  const target = await resolveQualificationTarget(checkpoint.selection, matrix);
   const customTarget =
     checkpoint.selection.adapterId === 'custom' &&
     checkpoint.selection.implementationId === 'custom'
       ? target
       : await resolveQualificationTarget(
           { adapterId: 'custom', implementationId: 'custom' },
-          checkpoint.packagesRepository,
-          compatibilitySnapshot.matrix,
+          matrix,
         );
   const selectedProfileCases =
     checkpoint.selectedCaseId === null
@@ -414,7 +428,6 @@ export const runQualification = async (
   const resultsRoot = options.resultsRoot ?? QUALIFICATION_RESULTS_ROOT;
   const resultSanitizationContext = {
     attemptDirectory,
-    packagesRepository: checkpoint.packagesRepository,
     skillRepository: checkpoint.skillRepository,
   };
   await Promise.all([ensureDirectory(publicDirectory), ensureDirectory(internalDirectory)]);
@@ -426,11 +439,11 @@ export const runQualification = async (
   }
 
   const inputState = await inspectQualificationInputState(
-    compatibilitySnapshot.repositoryState,
+    compatibilitySnapshot,
     checkpoint.skillRepository,
     target,
   );
-  const { packagesState, qualificationState, skillState } = inputState;
+  const { qualificationState, skillState } = inputState;
   const { qualificationDigest } = inputState;
 
   if (
@@ -466,7 +479,7 @@ export const runQualification = async (
 
   let provenance = createQualificationExecutionProvenance({
     executionEnvironment,
-    packagesState,
+    compatibilitySnapshot,
     profileDigest: target.profileDigest,
     qualificationDigest,
     qualificationState,
@@ -504,26 +517,19 @@ export const runQualification = async (
       return;
     }
 
-    const currentCompatibilitySnapshot = await loadRuntimeCompatibilitySnapshot(
-      checkpoint.packagesRepository,
-    );
-    const currentTarget = await resolveQualificationTarget(
-      checkpoint.selection,
-      checkpoint.packagesRepository,
-      currentCompatibilitySnapshot.matrix,
-    );
+    const currentCompatibilitySnapshot = await loadRuntimeCompatibilitySnapshot();
+    const currentMatrix = getRuntimeCompatibilityMatrix(currentCompatibilitySnapshot);
+    const currentTarget = await resolveQualificationTarget(checkpoint.selection, currentMatrix);
     const [currentInputState, currentExecutionEnvironment] = await Promise.all([
       inspectQualificationInputState(
-        currentCompatibilitySnapshot.repositoryState,
+        currentCompatibilitySnapshot,
         checkpoint.skillRepository,
         currentTarget,
       ),
       inspectQualificationExecutionEnvironment(options.host),
     ]);
     const hasDirtyInput =
-      currentInputState.packagesState.isDirty ||
-      currentInputState.qualificationState.isDirty ||
-      currentInputState.skillState.isDirty;
+      currentInputState.qualificationState.isDirty || currentInputState.skillState.isDirty;
 
     if (
       checkpoint.profileDigest !== currentTarget.profileDigest ||
@@ -662,7 +668,6 @@ export const runQualification = async (
           const sourceStateResult = inspectQualificationSourceState({
             executionEnvironment,
             isDryRun: checkpoint.isDryRun,
-            packagesState,
             qualificationState,
             skillState,
           });
@@ -695,6 +700,7 @@ export const runQualification = async (
         ? await recordQualificationResult(
             {
               artifactDirectory: publicDirectory,
+              attemptDirectory,
               result: finalState.result,
               sanitizationContext: resultSanitizationContext,
             },
@@ -749,6 +755,7 @@ export const runQualification = async (
         result = await recordQualificationResult(
           {
             artifactDirectory: publicDirectory,
+            attemptDirectory,
             result: finalState.result,
             sanitizationContext: resultSanitizationContext,
           },
@@ -857,6 +864,7 @@ export const runQualification = async (
         result = await recordQualificationResult(
           {
             artifactDirectory: publicDirectory,
+            attemptDirectory,
             result: finalState.result,
             sanitizationContext: resultSanitizationContext,
           },
@@ -998,7 +1006,6 @@ export const runQualification = async (
             await writeJsonFileAtomically(
               deterministicBeforePath,
               sanitizeEvidenceValue(result, {
-                packagesRepository: checkpoint.packagesRepository,
                 skillRepository: checkpoint.skillRepository,
                 workspaceDirectory: project.workspaceDirectory,
               }),
@@ -1093,7 +1100,6 @@ export const runQualification = async (
               ...(options.operationalRetry === undefined
                 ? {}
                 : { operationalRetry: options.operationalRetry }),
-              packagesRepository: checkpoint.packagesRepository,
               evaluatorStageDigest: inputState.evaluatorStageDigest,
               baselineAttemptId,
               project,
@@ -1144,7 +1150,6 @@ export const runQualification = async (
             await writeJsonFileAtomically(
               deterministicAfterPath,
               sanitizeEvidenceValue(result, {
-                packagesRepository: checkpoint.packagesRepository,
                 skillRepository: checkpoint.skillRepository,
                 workspaceDirectory: project.workspaceDirectory,
               }),
@@ -1171,7 +1176,6 @@ export const runQualification = async (
       const patchContent = sanitizeEvidenceText(
         await captureWorkspacePatch(project.workspaceDirectory),
         {
-          packagesRepository: checkpoint.packagesRepository,
           skillRepository: checkpoint.skillRepository,
           workspaceDirectory: project.workspaceDirectory,
         },
@@ -1316,7 +1320,6 @@ export const runQualification = async (
                 ...(options.operationalRetry === undefined
                   ? {}
                   : { operationalRetry: options.operationalRetry }),
-                packagesRepository: checkpoint.packagesRepository,
                 evaluatorStageDigest: inputState.evaluatorStageDigest,
                 baselineAttemptId,
                 project,
@@ -1442,7 +1445,6 @@ export const runQualification = async (
           },
           {
             attemptDirectory,
-            packagesRepository: checkpoint.packagesRepository,
             skillRepository: checkpoint.skillRepository,
             workspaceDirectory: project.workspaceDirectory,
           },
@@ -1515,7 +1517,6 @@ export const runQualification = async (
         error instanceof Error ? error.message : 'Unknown qualification case-worker failure.',
         {
           attemptDirectory,
-          packagesRepository: checkpoint.packagesRepository,
           skillRepository: checkpoint.skillRepository,
         },
       );
@@ -1713,6 +1714,7 @@ export const runQualification = async (
       result = await recordQualificationResult(
         {
           artifactDirectory: publicDirectory,
+          attemptDirectory,
           result: finalState.result,
           sanitizationContext: resultSanitizationContext,
         },
@@ -1736,7 +1738,6 @@ export const runQualification = async (
       error instanceof Error ? error.message : 'Unknown qualification execution failure.',
       {
         attemptDirectory,
-        packagesRepository: checkpoint.packagesRepository,
         skillRepository: checkpoint.skillRepository,
       },
     );
@@ -1761,7 +1762,6 @@ export const runQualification = async (
         },
         {
           attemptDirectory,
-          packagesRepository: checkpoint.packagesRepository,
           skillRepository: checkpoint.skillRepository,
         },
       ),
@@ -1794,6 +1794,7 @@ export const runQualification = async (
       result = await recordQualificationResult(
         {
           artifactDirectory: publicDirectory,
+          attemptDirectory,
           result: finalState.result,
           sanitizationContext: resultSanitizationContext,
         },

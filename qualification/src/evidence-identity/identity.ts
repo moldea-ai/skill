@@ -51,6 +51,8 @@ const CONTROL_PLANE_DIRECTORY_PREFIXES = [
 ] as const;
 const CONTROL_PLANE_FILE_PATHS = new Set([
   'qualification/src/compatibility/loader.ts',
+  'qualification/src/compatibility/snapshot.ts',
+  'qualification/src/compatibility/update.ts',
   'qualification/src/cli/runner.ts',
   'qualification/src/result/recorded-contract.ts',
   'qualification/src/result/evidence.ts',

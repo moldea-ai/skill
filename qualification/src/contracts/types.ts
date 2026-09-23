@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { calculateCodexEvaluationOperationalRetryDelay } from '../../../src/execution/host/index.ts';
 import { getEvaluationConfirmationResolution } from '../../../src/execution/confirmation/index.ts';
 import {
-  DEFAULT_PACKAGES_REPOSITORY,
   QUALIFICATION_ALLOWED_EGRESS_HOSTS,
   QUALIFICATION_ACTOR_REASONING_EFFORT,
   QUALIFICATION_CANDIDATE_TOKEN_LIMIT,
@@ -749,7 +748,6 @@ export const QualificationSourceStateResultSchema = z.strictObject({
   passed: z.boolean(),
   requiresCleanInputs: z.boolean(),
   isExecutionHostTrusted: z.boolean(),
-  packagesRepositoryDirty: z.boolean(),
   qualificationRepositoryDirty: z.boolean(),
   skillRepositoryDirty: z.boolean(),
   failures: z.array(z.string()),
@@ -924,7 +922,10 @@ export const QualificationAttemptCheckpointSchema = z
     updatedAt: z.string().datetime(),
     completedAt: z.string().datetime().nullable(),
     recordedAt: z.string().datetime().nullable().default(null),
-    packagesRepository: z.string().min(1).default(DEFAULT_PACKAGES_REPOSITORY),
+    compatibilitySnapshot: z.strictObject({
+      sourceUrl: z.literal('https://packages.moldea.ai/compatibility/runtimes.json'),
+      sha256: z.string().regex(/^[a-f0-9]{64}$/u),
+    }),
     skillRepository: z.string().min(1),
     profileDigest: z.string().regex(/^[a-f0-9]{64}$/u),
     qualificationDigest: z
@@ -933,12 +934,7 @@ export const QualificationAttemptCheckpointSchema = z
       .nullable()
       .default(null),
     skillDigest: z.string().regex(/^[a-f0-9]{64}$/u),
-    packagesRepositoryFingerprint: z
-      .string()
-      .regex(/^[a-f0-9]{64}$/u)
-      .nullable()
-      .default(null),
-    packagesDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+    compatibilityDigest: z.string().regex(/^[a-f0-9]{64}$/u),
     targetDigest: z.string().regex(/^[a-f0-9]{64}$/u),
     executionEnvironment: QualificationExecutionEnvironmentSchema.nullable().default(null),
     candidate: CandidateClosureSchema.nullable(),
@@ -997,7 +993,7 @@ const QualificationFailureClassificationSchema = z.enum([
   'operational',
 ]);
 
-// one protocol 10 initial or confirmation trial and its complete artifact references
+// one protocol 11 initial or confirmation trial and its complete artifact references
 export const QualificationTrialResultSchema = z
   .strictObject({
     trialId: z.enum(QUALIFICATION_TRIAL_IDS),
@@ -1097,7 +1093,7 @@ export const QualificationCaseReuseSchema = z.strictObject({
 
 export type IQualificationCaseReuse = z.infer<typeof QualificationCaseReuseSchema>;
 
-// terminal protocol 10 case history preserving the original trial and every confirmation
+// terminal protocol 11 case history preserving the original trial and every confirmation
 export const QualificationCaseResultSchema = z
   .strictObject({
     caseId: StableIdSchema,
@@ -1212,9 +1208,10 @@ export const QualificationProvenanceSchema = z.strictObject({
     .string()
     .regex(/^[a-f0-9]{64}$/u)
     .nullable(),
-  packagesRepositoryCommit: z.string().trim().min(1),
-  packagesRepositoryFingerprint: z.string().regex(/^[a-f0-9]{64}$/u),
-  packagesRepositoryDirty: z.boolean(),
+  compatibilitySnapshot: z.strictObject({
+    sourceUrl: z.literal('https://packages.moldea.ai/compatibility/runtimes.json'),
+    sha256: z.string().regex(/^[a-f0-9]{64}$/u),
+  }),
   qualificationRepositoryCommit: z.string().trim().min(1),
   qualificationRepositoryDirty: z.boolean(),
   skillRepositoryCommit: z.string().trim().min(1),
@@ -1245,7 +1242,7 @@ const QualificationAttemptResultSharedShape = {
   artifactDigests: z.record(RelativePathSchema, z.string().regex(/^[a-f0-9]{64}$/u)),
 };
 
-// fixed protocol 10 confirmation policy committed with every current attempt
+// fixed confirmation policy committed with every current attempt
 export const QualificationConfirmationPolicySchema = z.strictObject({
   version: z.literal(QUALIFICATION_CONFIRMATION_POLICY.version),
   requiredPassingConfirmations: z.literal(
@@ -1257,7 +1254,7 @@ export const QualificationConfirmationPolicySchema = z.strictObject({
   maximumConfirmations: z.literal(QUALIFICATION_CONFIRMATION_POLICY.maximumConfirmations),
 });
 
-// local protocol 10 result draft shared by dry runs and official result publication
+// local result draft shared by dry runs and official result publication
 export const QualificationAttemptResultDraftSchema = z.strictObject({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationAttemptResultSharedShape,
@@ -1284,9 +1281,7 @@ const validateQualificationAttemptResult = (
 
   if (
     result.status === 'passed' &&
-    (result.provenance.packagesRepositoryDirty ||
-      result.provenance.qualificationRepositoryDirty ||
-      result.provenance.skillRepositoryDirty)
+    (result.provenance.qualificationRepositoryDirty || result.provenance.skillRepositoryDirty)
   ) {
     context.addIssue({
       code: 'custom',

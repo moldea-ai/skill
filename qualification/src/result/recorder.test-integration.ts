@@ -21,13 +21,23 @@ import {
   readJsonFile,
   writeJsonFileAtomically,
 } from '../../../src/filesystem/index.ts';
+import { createRuntimeCompatibilitySnapshot } from '../compatibility/index.ts';
 import {
   createQualificationAttemptKey,
   readQualificationAttemptStorage,
   resolveQualificationArtifactPath,
 } from '../storage/index.ts';
-import { seedPassingQualificationEvidenceFixture } from '../../vitest/evidence-fixture.ts';
-import { recordQualificationResult, verifyQualificationResults } from './recorder.ts';
+import {
+  FIXTURE_COMPATIBILITY_SNAPSHOT,
+  getFixtureAttemptDirectory,
+  seedPassingQualificationEvidenceFixture,
+} from '../../vitest/evidence-fixture.ts';
+import type { IRecordQualificationResultOptions } from './types.ts';
+import { RecordedQualificationContractSchema } from './recorded-contract.ts';
+import {
+  recordQualificationResult as recordQualificationResultDirect,
+  verifyQualificationResults,
+} from './recorder.ts';
 
 const TARGET_KEY = 't1';
 const REPOSITORY_CUSTOM_TARGET_KEY = 't5';
@@ -81,8 +91,20 @@ const synchronizeRecordedArtifactDigests = async (
 
 const sanitizationContext = {
   attemptDirectory: '/attempt',
-  packagesRepository: '/packages',
   skillRepository: '/skill',
+};
+
+const recordQualificationResult = async (
+  options: Omit<IRecordQualificationResultOptions, 'attemptDirectory'>,
+  resultsRoot: string,
+): ReturnType<typeof recordQualificationResultDirect> => {
+  const attemptDirectory = getFixtureAttemptDirectory(resultsRoot, options.result.attemptId);
+  await ensureDirectory(attemptDirectory);
+  await writeJsonFileAtomically(
+    path.join(attemptDirectory, 'compatibility-snapshot.json'),
+    FIXTURE_COMPATIBILITY_SNAPSHOT,
+  );
+  return recordQualificationResultDirect({ ...options, attemptDirectory }, resultsRoot);
 };
 
 const createResult = (
@@ -108,16 +130,17 @@ const createResult = (
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
-      pnpmVersion: '11.9.0',
+      pnpmVersion: '11.27.1',
       gitVersion: 'git version test',
       allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
       hostTimeoutMs: 120_000,
       modelEndpoint: null,
       sslCertificateFileSha256: null,
       candidateFingerprint: null,
-      packagesRepositoryCommit: 'packages-commit',
-      packagesRepositoryFingerprint: 'a'.repeat(64),
-      packagesRepositoryDirty: false,
+      compatibilitySnapshot: {
+        sourceUrl: FIXTURE_COMPATIBILITY_SNAPSHOT.sourceUrl,
+        sha256: FIXTURE_COMPATIBILITY_SNAPSHOT.sha256,
+      },
       qualificationRepositoryCommit: 'd'.repeat(40),
       qualificationRepositoryDirty: false,
       skillRepositoryCommit: 'skill-commit',
@@ -496,6 +519,79 @@ describe('qualification result recording', () => {
     },
   );
 
+  test('rejects a valid embedded catalog that contradicts attempt provenance', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    const draft = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'attempt-catalog-mismatch',
+      resultsRoot,
+    });
+    const recorded = await recordQualificationResult(
+      { artifactDirectory, result: draft, sanitizationContext },
+      resultsRoot,
+    );
+    const contractPath = await getRecordedArtifactPath(
+      resultsRoot,
+      recorded.attemptId,
+      'recorded-contract.json',
+    );
+    const contract = await readJsonFile(contractPath, RecordedQualificationContractSchema);
+    const changedSnapshot = createRuntimeCompatibilitySnapshot({
+      ...contract.compatibilitySnapshot.publication,
+      reviewedForTest: true,
+    });
+    await writeJsonFileAtomically(contractPath, {
+      ...contract,
+      compatibilitySnapshot: changedSnapshot,
+    });
+    await synchronizeRecordedArtifactDigests(resultsRoot, recorded.attemptId, [
+      'recorded-contract.json',
+    ]);
+
+    const verification = await verifyQualificationResults(resultsRoot);
+    expect(verification.passed).toBe(false);
+    expect(verification.issues[0]?.message).toContain(
+      'Recorded compatibility snapshot contradicts attempt provenance.',
+    );
+  });
+
+  test('rejects recording when the captured catalog differs from draft provenance', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    const draft = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'attempt-capture-mismatch',
+      resultsRoot,
+    });
+    await expect(
+      recordQualificationResult(
+        {
+          artifactDirectory,
+          result: {
+            ...draft,
+            provenance: {
+              ...draft.provenance,
+              compatibilitySnapshot: {
+                ...draft.provenance.compatibilitySnapshot,
+                sha256: '0'.repeat(64),
+              },
+            },
+          },
+          sanitizationContext,
+        },
+        resultsRoot,
+      ),
+    ).rejects.toThrow('Captured compatibility snapshot does not match the attempt identity.');
+    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
+      passed: true,
+      attempts: 0,
+      issues: [],
+    });
+  });
+
   test('rejects passing evidence whose observed changes escape a path-pattern allowlist', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
@@ -829,7 +925,7 @@ describe('qualification result recording', () => {
       ...cleanPassingResult,
       provenance: {
         ...cleanPassingResult.provenance,
-        packagesRepositoryDirty: true,
+        qualificationRepositoryDirty: true,
       },
     };
 
@@ -847,7 +943,7 @@ describe('qualification result recording', () => {
       ...createResult('dirty-failed-attempt', '2026-08-20T11:00:00.000Z', 'failed'),
       provenance: {
         ...createResult('dirty-failed-attempt', '2026-08-20T11:00:00.000Z', 'failed').provenance,
-        packagesRepositoryDirty: true,
+        qualificationRepositoryDirty: true,
       },
     });
     const recordedResult = await recordQualificationResult(
@@ -856,7 +952,7 @@ describe('qualification result recording', () => {
     );
 
     expect(recordedResult.status).toBe('failed');
-    expect(recordedResult.provenance.packagesRepositoryDirty).toBe(true);
+    expect(recordedResult.provenance.qualificationRepositoryDirty).toBe(true);
     expect(await verifyQualificationResults(resultsRoot)).toMatchObject({
       passed: true,
       attempts: 1,

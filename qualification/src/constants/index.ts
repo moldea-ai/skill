@@ -12,7 +12,7 @@ import { EVALUATION_CONFIRMATION_POLICY } from '../../../src/execution/confirmat
 
 // immutable protocol and evaluator identity for committed qualification evidence
 export const QUALIFICATION_PROTOCOL_VERSION = 2 as const;
-export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 10 as const;
+export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 11 as const;
 export const QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1 as const;
 // finite candidate-wide stop-loss; calibrated initials fit with confirmation headroom
 export const QUALIFICATION_CANDIDATE_TOKEN_LIMIT = 32_000_000 as const;
@@ -36,7 +36,6 @@ export const QUALIFICATION_MODEL_ENDPOINT_ORIGINS = ['https://api.openai.com'] a
 export const SKILL_REPOSITORY_ROOT = path.resolve(
   fileURLToPath(new URL('../../../', import.meta.url)),
 );
-export const DEFAULT_PACKAGES_REPOSITORY = path.resolve(SKILL_REPOSITORY_ROOT, '../packages');
 export const QUALIFICATION_ROOT = path.join(SKILL_REPOSITORY_ROOT, 'qualification');
 export const QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES = [
   'package.json',
@@ -44,6 +43,7 @@ export const QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES = [
   'qualification',
   'src/execution/host',
   'src/packages',
+  'src/compatibility',
   'src/resources',
 ] as const;
 export const QUALIFICATION_PROFILES_ROOT = path.join(QUALIFICATION_ROOT, 'profiles');

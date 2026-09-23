@@ -8,8 +8,10 @@ import {
 } from '../constants/index.ts';
 import type { ICodexHost } from '../codex-host/index.ts';
 import type { IQualificationExecutionEnvironment } from '../contracts/index.ts';
+import { getQualificationPnpmVersion } from '../pnpm-installation/index.ts';
 import { executeProcess } from '../../../src/process/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
+import type { IRuntimeCompatibilitySnapshot } from '../compatibility/index.ts';
 import type { IQualificationExecutionProvenance } from './types.ts';
 
 const readVersion = async (toolName: string, read: () => Promise<string>): Promise<string> => {
@@ -33,11 +35,7 @@ export const inspectQualificationExecutionEnvironment = async (
   });
   const [codexVersion, pnpmVersion, gitVersion] = await Promise.all([
     readVersion('Codex', () => host.getVersion()),
-    readVersion('pnpm', () =>
-      executeProcess({ command: 'pnpm', args: ['--version'], cwd: process.cwd() }).then(
-        ({ stdout }) => stdout,
-      ),
-    ),
+    readVersion('pnpm', getQualificationPnpmVersion),
     readVersion('Git', () =>
       executeProcess({ command: 'git', args: ['--version'], cwd: process.cwd() }).then(
         ({ stdout }) => stdout,
@@ -60,7 +58,7 @@ export const inspectQualificationExecutionEnvironment = async (
 /** Combines exact execution and repository identities for public provenance. */
 export const createQualificationExecutionProvenance = (options: {
   executionEnvironment: IQualificationExecutionEnvironment;
-  packagesState: IGitRepositoryState;
+  compatibilitySnapshot: Pick<IRuntimeCompatibilitySnapshot, 'sourceUrl' | 'sha256'>;
   profileDigest: string;
   qualificationDigest: string;
   targetDigest: string;
@@ -70,9 +68,10 @@ export const createQualificationExecutionProvenance = (options: {
   return {
     ...options.executionEnvironment,
     candidateFingerprint: null,
-    packagesRepositoryCommit: options.packagesState.commit,
-    packagesRepositoryFingerprint: options.packagesState.fingerprint,
-    packagesRepositoryDirty: options.packagesState.isDirty,
+    compatibilitySnapshot: {
+      sourceUrl: options.compatibilitySnapshot.sourceUrl,
+      sha256: options.compatibilitySnapshot.sha256,
+    },
     qualificationRepositoryCommit: options.qualificationState.commit,
     qualificationRepositoryDirty: options.qualificationState.isDirty,
     skillRepositoryCommit: options.skillState.commit,

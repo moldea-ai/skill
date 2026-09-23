@@ -1,16 +1,15 @@
 // @vitest-environment node
-import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
-import os from 'node:os';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 
-import { DEFAULT_PACKAGES_REPOSITORY, SKILL_REPOSITORY_ROOT } from '../constants/index.ts';
+import { SKILL_REPOSITORY_ROOT } from '../constants/index.ts';
 import { QualificationCaseScenarioSchema } from '../contracts/index.ts';
 import { inspectQualificationCoverage } from '../coverage/index.ts';
-import { ensureDirectory, readYamlFile } from '../../../src/filesystem/index.ts';
-import { executeProcess } from '../../../src/process/index.ts';
+import { readYamlFile } from '../../../src/filesystem/index.ts';
 import { loadQualificationProfileIndex } from '../storage/index.ts';
 import { loadRuntimeCompatibilitySnapshot, resolveQualificationTarget } from './loader.ts';
+import { getRuntimeCompatibilityMatrix } from './snapshot.ts';
 
 // cases that intentionally begin without the complete moldea adoption contract
 const UNADOPTED_QUALIFICATION_CASE_IDS = new Set([
@@ -84,61 +83,14 @@ test('keeps the initialized Custom expected README on the canonical managed bloc
   expect(readme).toContain(MANAGED_README_BLOCK);
 });
 
-test('loads compatibility from an immutable packages commit instead of its worktree', async () => {
-  const temporaryPackagesRepository = await mkdtemp(
-    path.join(os.tmpdir(), 'moldea-qualification-packages-snapshot-'),
+test('loads compatibility from a validated local snapshot', async () => {
+  const snapshot = await loadRuntimeCompatibilitySnapshot();
+  const target = await resolveQualificationTarget(
+    { adapterId: 'custom', implementationId: 'custom' },
+    getRuntimeCompatibilityMatrix(snapshot),
   );
-  const compatibilityDirectory = path.join(temporaryPackagesRepository, 'compatibility');
-  const compatibilityPath = path.join(compatibilityDirectory, 'runtimes.yaml');
-  await ensureDirectory(compatibilityDirectory);
-  const matrixSource = await readFile(
-    path.join(DEFAULT_PACKAGES_REPOSITORY, 'compatibility', 'runtimes.yaml'),
-    'utf8',
-  );
-  await writeFile(compatibilityPath, matrixSource, 'utf8');
-  await executeProcess({
-    command: 'git',
-    args: ['init', '--initial-branch=main'],
-    cwd: temporaryPackagesRepository,
-  });
-  await executeProcess({
-    command: 'git',
-    args: ['add', '-A'],
-    cwd: temporaryPackagesRepository,
-  });
-  await executeProcess({
-    command: 'git',
-    args: [
-      '-c',
-      'user.name=moldea qualification',
-      '-c',
-      'user.email=qualification@moldea.local',
-      'commit',
-      '-m',
-      'test: establish compatibility snapshot',
-    ],
-    cwd: temporaryPackagesRepository,
-  });
-
-  try {
-    const initialSnapshot = await loadRuntimeCompatibilitySnapshot(temporaryPackagesRepository);
-    await writeFile(compatibilityPath, 'version: 99\n', 'utf8');
-    await writeFile(path.join(temporaryPackagesRepository, 'unrelated.md'), '# Work\n', 'utf8');
-    const unchangedSnapshot = await loadRuntimeCompatibilitySnapshot(temporaryPackagesRepository);
-    const target = await resolveQualificationTarget(
-      { adapterId: 'custom', implementationId: 'custom' },
-      temporaryPackagesRepository,
-      unchangedSnapshot.matrix,
-    );
-
-    expect(unchangedSnapshot).toStrictEqual(initialSnapshot);
-    expect(target.selection).toStrictEqual({
-      adapterId: 'custom',
-      implementationId: 'custom',
-    });
-  } finally {
-    await rm(temporaryPackagesRepository, { force: true, recursive: true });
-  }
+  expect(snapshot.sha256).toMatch(/^[a-f0-9]{64}$/u);
+  expect(target.selection).toStrictEqual({ adapterId: 'custom', implementationId: 'custom' });
 });
 
 describe('Custom qualification profile', () => {
@@ -384,30 +336,12 @@ describe('Custom qualification profile', () => {
     expect(changedPublicationCoverage).toStrictEqual(currentCoverage);
   });
 
-  test('resolves the selected target from an explicit packages checkout', async () => {
-    const temporaryPackagesRepository = await mkdtemp(
-      path.join(os.tmpdir(), 'moldea-qualification-packages-'),
-    );
-    const compatibilityDirectory = path.join(temporaryPackagesRepository, 'compatibility');
-    await ensureDirectory(compatibilityDirectory);
-    await copyFile(
-      path.join(DEFAULT_PACKAGES_REPOSITORY, 'compatibility', 'runtimes.yaml'),
-      path.join(compatibilityDirectory, 'runtimes.yaml'),
-    );
-
-    try {
-      const target = await resolveQualificationTarget(
-        { adapterId: 'custom', implementationId: 'custom' },
-        temporaryPackagesRepository,
-      );
-
-      expect(target.selection).toStrictEqual({
-        adapterId: 'custom',
-        implementationId: 'custom',
-      });
-    } finally {
-      await rm(temporaryPackagesRepository, { force: true, recursive: true });
-    }
+  test('resolves the selected target from the reviewed publication', async () => {
+    const target = await resolveQualificationTarget({
+      adapterId: 'custom',
+      implementationId: 'custom',
+    });
+    expect(target.selection).toStrictEqual({ adapterId: 'custom', implementationId: 'custom' });
   });
 });
 
@@ -512,40 +446,20 @@ describe('Vercel AI SDK direct-generation qualification profile', () => {
   });
 
   test('rejects an exact runtime pin outside the selected target range', async () => {
-    const temporaryPackagesRepository = await mkdtemp(
-      path.join(os.tmpdir(), 'moldea-qualification-packages-'),
+    const matrix = getRuntimeCompatibilityMatrix(await loadRuntimeCompatibilitySnapshot());
+    const adapter = matrix.adapters['vercel-ai-sdk'];
+    const target = adapter?.targets?.find(({ id }) => id === 'typescript-generate-stream-text-7');
+    const packageRequirement = target?.packages?.find(({ name }) => name === 'ai');
+    if (packageRequirement === undefined) throw new Error('Vercel target must require ai.');
+    packageRequirement.versionRange = '>=8.0.0';
+    await expect(
+      resolveQualificationTarget(
+        { adapterId: 'vercel-ai-sdk', implementationId: 'typescript-generate-stream-text-7' },
+        matrix,
+      ),
+    ).rejects.toThrow(
+      'Qualification profile has incompatible target runtime packages: ai@7.0.77 does not satisfy >=8.0.0.',
     );
-    const compatibilityDirectory = path.join(temporaryPackagesRepository, 'compatibility');
-    const sourceMatrixPath = path.join(
-      DEFAULT_PACKAGES_REPOSITORY,
-      'compatibility',
-      'runtimes.yaml',
-    );
-    const temporaryMatrixPath = path.join(compatibilityDirectory, 'runtimes.yaml');
-    await ensureDirectory(compatibilityDirectory);
-    const matrixSource = await readFile(sourceMatrixPath, 'utf8');
-    const incompatibleMatrixSource = matrixSource.replace(
-      /(id: typescript-generate-stream-text-7[\s\S]*?name: ai[\s\S]*?versionRange:) '>=7\.0\.66'/u,
-      "$1 '>=8.0.0'",
-    );
-    await writeFile(temporaryMatrixPath, incompatibleMatrixSource, 'utf8');
-
-    try {
-      expect(incompatibleMatrixSource).not.toBe(matrixSource);
-      await expect(
-        resolveQualificationTarget(
-          {
-            adapterId: 'vercel-ai-sdk',
-            implementationId: 'typescript-generate-stream-text-7',
-          },
-          temporaryPackagesRepository,
-        ),
-      ).rejects.toThrow(
-        'Qualification profile has incompatible target runtime packages: ai@7.0.77 does not satisfy >=8.0.0.',
-      );
-    } finally {
-      await rm(temporaryPackagesRepository, { force: true, recursive: true });
-    }
   });
 });
 

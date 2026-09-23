@@ -42,8 +42,11 @@ describe('qualification result transformation', () => {
       profileDigest: 'a'.repeat(64),
       qualificationDigest: 'b'.repeat(64),
       skillDigest: 'c'.repeat(64),
-      packagesRepositoryFingerprint: 'e'.repeat(64),
-      packagesDigest: 'd'.repeat(64),
+      compatibilitySnapshot: {
+        sourceUrl: 'https://packages.moldea.ai/compatibility/runtimes.json',
+        sha256: 'e'.repeat(64),
+      },
+      compatibilityDigest: 'd'.repeat(64),
       targetDigest: 'f'.repeat(64),
       candidate: {
         fingerprint: '0'.repeat(64),
@@ -80,16 +83,17 @@ describe('qualification result transformation', () => {
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
-      pnpmVersion: '11.9.0',
+      pnpmVersion: '11.27.1',
       gitVersion: 'git version test',
       allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
       hostTimeoutMs: 120_000,
       modelEndpoint: null,
       sslCertificateFileSha256: null,
       candidateFingerprint: null,
-      packagesRepositoryCommit: 'packages-commit',
-      packagesRepositoryFingerprint: 'd'.repeat(64),
-      packagesRepositoryDirty: true,
+      compatibilitySnapshot: {
+        sourceUrl: 'https://packages.moldea.ai/compatibility/runtimes.json',
+        sha256: 'd'.repeat(64),
+      },
       qualificationRepositoryCommit: 'qualification-commit',
       qualificationRepositoryDirty: true,
       skillRepositoryCommit: 'skill-commit',
@@ -113,7 +117,6 @@ describe('qualification result transformation', () => {
     expect(result).toMatchObject({
       status: 'passed',
       provenance: {
-        packagesRepositoryDirty: true,
         qualificationRepositoryDirty: true,
         skillRepositoryDirty: true,
       },

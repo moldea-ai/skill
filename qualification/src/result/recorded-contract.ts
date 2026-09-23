@@ -10,6 +10,15 @@ import {
   QualificationResourceCalibrationSchema,
   type IQualificationSelection,
 } from '../contracts/index.ts';
+import {
+  getRuntimeCompatibilityMatrix,
+  readAttemptCompatibilitySnapshot,
+  RuntimeCompatibilitySnapshotSchema,
+  validateRuntimeCompatibilitySnapshot,
+  type IRuntimeCompatibilitySnapshot,
+} from '../compatibility/index.ts';
+import { deriveRequiredQualificationClaims } from '../coverage/index.ts';
+import { calculateQualificationTargetDigest } from '../execution/fingerprints.ts';
 import { loadQualificationProfile } from '../profiles/index.ts';
 import {
   findQualificationProfileTarget,
@@ -40,12 +49,61 @@ const RecordedProfileSchema = z.strictObject({
 
 /** Self-contained qualification inputs captured with one completed local run. */
 export const RecordedQualificationContractSchema = z.strictObject({
-  version: z.literal(1),
+  version: z.literal(2),
+  compatibilitySnapshot: RuntimeCompatibilitySnapshotSchema,
   profiles: z.array(RecordedProfileSchema).min(1).max(2),
   resourceCalibration: QualificationResourceCalibrationSchema,
 });
 
 export type IRecordedQualificationContract = z.infer<typeof RecordedQualificationContractSchema>;
+
+/**
+ * Checks an embedded publication against the attempt's selected target and probe contract.
+ * @throws
+ * - Recorded compatibility snapshot contradicts attempt provenance.
+ * - Recorded compatibility snapshot lacks the selected target.
+ * - Recorded compatibility target contradicts attempt provenance.
+ * - Recorded compatibility target has no selected profile.
+ * - Recorded compatibility claims contradict the selected profile probes.
+ */
+export const assertRecordedQualificationCompatibility = (options: {
+  contract: IRecordedQualificationContract;
+  provenance: {
+    compatibilitySnapshot: Pick<IRuntimeCompatibilitySnapshot, 'sourceUrl' | 'sha256'>;
+    targetDigest: string;
+  };
+  selection: IQualificationSelection;
+}): void => {
+  const snapshot = validateRuntimeCompatibilitySnapshot(options.contract.compatibilitySnapshot);
+  if (
+    snapshot.sourceUrl !== options.provenance.compatibilitySnapshot.sourceUrl ||
+    snapshot.sha256 !== options.provenance.compatibilitySnapshot.sha256
+  ) {
+    throw new Error('Recorded compatibility snapshot contradicts attempt provenance.');
+  }
+  const matrix = getRuntimeCompatibilityMatrix(snapshot);
+  const adapter = matrix.adapters[options.selection.adapterId];
+  const target = adapter?.targets?.find(({ id }) => id === options.selection.implementationId);
+  if (adapter?.implementationStatus !== 'available' || target === undefined) {
+    throw new Error('Recorded compatibility snapshot lacks the selected target.');
+  }
+  if (calculateQualificationTargetDigest(adapter, target) !== options.provenance.targetDigest) {
+    throw new Error('Recorded compatibility target contradicts attempt provenance.');
+  }
+  const profile = options.contract.profiles.find(
+    ({ profile: candidate }) =>
+      candidate.adapterId === options.selection.adapterId &&
+      candidate.implementationId === options.selection.implementationId,
+  );
+  if (profile === undefined) {
+    throw new Error('Recorded compatibility target has no selected profile.');
+  }
+  const expectedClaims = deriveRequiredQualificationClaims(adapter, target);
+  const recordedClaims = profile.probes.probes.map(({ matrixPath }) => matrixPath).sort();
+  if (JSON.stringify(expectedClaims) !== JSON.stringify(recordedClaims)) {
+    throw new Error('Recorded compatibility claims contradict the selected profile probes.');
+  }
+};
 
 const captureProfile = async (
   profilesRoot: string,
@@ -78,8 +136,13 @@ const captureProfile = async (
 /**
  * Captures the selected profile, Custom baseline profile, and resource limits for one run.
  * @returns The validated self-contained contract stored beside the completed evidence.
+ * @throws
+ * - Qualification recording requires selected and Custom profile definitions.
+ * - Captured compatibility snapshot does not match the attempt identity.
  */
 export const createRecordedQualificationContract = async (options: {
+  attemptDirectory: string;
+  compatibilitySnapshot: Pick<IRuntimeCompatibilitySnapshot, 'sourceUrl' | 'sha256'>;
   resultsRoot: string;
   selection: IQualificationSelection;
 }): Promise<IRecordedQualificationContract> => {
@@ -103,9 +166,14 @@ export const createRecordedQualificationContract = async (options: {
       QualificationResourceCalibrationSchema,
     ),
   ]);
+  const compatibilitySnapshot = await readAttemptCompatibilitySnapshot(
+    options.attemptDirectory,
+    options.compatibilitySnapshot,
+  );
 
   return RecordedQualificationContractSchema.parse({
-    version: 1,
+    version: 2,
+    compatibilitySnapshot,
     profiles,
     resourceCalibration,
   });

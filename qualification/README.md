@@ -24,7 +24,7 @@ Deterministic verification runs before and after the actor. It verifies:
 - dependency and repository immutability
 - resource accounting
 
-The CLI, runtime packages, auxiliary types, and TypeScript compiler are downloaded at exact versions, checked against registry SHA-512 and SHA-1 metadata, and recorded with downloaded SHA-256 digests. Candidate preparation installs those exact registry versions with lifecycle scripts disabled, strict peer validation, an attempt-local metadata cache and content store, an empty attempt-owned user config, and the explicit public npm registry. Case workspaces reuse the exact closure offline. No package is borrowed from the adjacent packages checkout or installed through a local-tarball override.
+The CLI, runtime packages, auxiliary types, and TypeScript compiler are downloaded at exact versions, checked against registry SHA-512 and SHA-1 metadata, and recorded with downloaded SHA-256 digests. Candidate preparation installs those exact registry versions with lifecycle scripts disabled, strict peer validation, an attempt-local metadata cache and content store, an empty attempt-owned user config, and the explicit public npm registry. Case workspaces reuse the exact closure offline. No package is borrowed from a sibling checkout or installed through a local-tarball override.
 
 ## Model boundary
 
@@ -53,7 +53,7 @@ Semantic and qualification stages receive the same evaluator-owned closed-host d
 
 Qualification mounts `.git`, `.agents/skills/moldea`, and `node_modules` read-only for both roles. The Git command boundary skips those exact immutable subtrees while scanning and budgeting every writable path, including siblings beneath `.agents`. Large evaluator-owned dependency trees therefore cannot cause false failures, repeated disk traversal, or a hiding place for actor-authored repository content.
 
-Protocol 10 classifies actual operations instead of matching security vocabulary in repository searches. Evidence retains only bounded sorted reason codes and counts for network, sensitive, credential, or indeterminate operations. It never retains raw commands, paths, patterns, outputs, or credentials. Indeterminate evidence is not a safety attestation; official runs accept it only alongside independently established read-only filesystem and restricted-egress sandbox boundaries.
+Protocol 11 classifies actual operations instead of matching security vocabulary in repository searches. Evidence retains only bounded sorted reason codes and counts for network, sensitive, credential, or indeterminate operations. It never retains raw commands, paths, patterns, outputs, or credentials. Indeterminate evidence is not a safety attestation; official runs accept it only alongside independently established read-only filesystem and restricted-egress sandbox boundaries.
 
 The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,144 bytes of aggregate `moldea` output. It also requires exact or bounded host discovery that excludes dependency, VCS, generated, cache, and package-store trees. Large repositories remain supported through paginated metadata and explicit content chunks. A budget failure states which observed value exceeded which limit; it never silently truncates evidence into an apparently valid result.
 
@@ -61,7 +61,7 @@ The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,
 
 ## Current-only evidence
 
-Qualification protocol 10 is the sole accepted contract. A passing attempt must match the current skill bytes, CLI closure, evaluator, role-specific actor and judge hosts, resource profile, probes, cases, target, execution environment, and package closure.
+Qualification protocol 11 is the sole accepted contract. A passing attempt must match the current skill bytes, CLI closure, evaluator, role-specific actor and judge hosts, resource profile, probes, cases, target, execution environment, reviewed compatibility snapshot, and package closure. Earlier attempts are outside the current resume, reuse, recording, and selection contracts.
 
 Behavior-bearing filesystem identity preserves file contents, paths, symlinks, and executability while ignoring host-only read and write permission differences.
 
@@ -80,11 +80,22 @@ Scenario paths use repository-relative portable names. Test files remain colocat
 
 ## Local setup
 
-Keep the `skill` and `packages` repositories adjacent. From the `skill` repository root, install every workspace dependency without lifecycle scripts:
+From the `skill` repository root, install every workspace dependency without lifecycle scripts:
 
 ```bash
 npm ci --ignore-scripts
 ```
+
+The qualification workspace pins pnpm 11.27.1 in the npm lockfile and invokes its installed copy. A global pnpm installation is not needed.
+
+After publishing packages, explicitly refresh the reviewed catalog from `https://packages.moldea.ai/compatibility/runtimes.json` and inspect the diff before paid qualification. Ordinary commands use the committed local snapshot and require no sibling checkout or catalog network access:
+
+```bash
+npm run qualification:compatibility:update
+npm run qualification:compatibility:check
+```
+
+The update validates the publication, every indexed profile, and claim coverage before replacing `qualification/compatibility/snapshot.json` atomically. A failed or identical update leaves the file unchanged. The check validates the local file only.
 
 The default skill candidate is `moldea/`.
 
@@ -155,7 +166,7 @@ npm run qualification -- verify
 
 Use `--json` for machine-readable output. `status` returns only content-free attempt and latest-result metadata. Its default scope contains unrecorded incomplete attempts, unavailable checkpoint summaries, and committed latest pointers; `--all` selects complete local history. Each page contains at most 64 records and 65,536 UTF-8 bytes. Continue with the returned opaque cursor and the same scope options. A cursor is bound to the exact summary snapshot and is rejected after the selected status state changes. Complete checkpoints, candidates, package manifests, stages, prompts, workspace paths, commands, model output, and repository content are never included.
 
-Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in bounded attempt storage for explicit inspection. Every pnpm install uses an attempt-local content store, metadata cache, and empty user config plus the explicit public npm registry. Candidate preparation may populate the package state with bounded `--prefer-offline` exact-version resolution, while case workspaces reuse it with strict `--offline` resolution. Pnpm never consults the user's global cache or home configuration and never inherits its registry credentials. Terminal attempts remove disposable workspaces, installed runtime trees, snapshots, package stores, and metadata caches. Interrupted attempts preserve internal snapshots only while they remain eligible for explicit resume. Paid `run`, `run-batch`, `diagnose`, `diagnose-batch`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first direct model call. One concurrent batch presents one aggregate approval boundary rather than one prompt per worker. Exact evidence reuse and model-free dry runs require no paid confirmation.
+Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in bounded attempt storage for explicit inspection. Every pnpm install uses an attempt-local content store, metadata cache, and empty user config plus the explicit public npm registry. Candidate preparation may populate the package state with bounded `--prefer-offline` exact-version resolution, while case workspaces reuse it with strict `--offline` resolution. Pnpm never consults the user's global cache or home configuration and never inherits its registry credentials. Terminal attempts remove disposable workspaces, installed runtime trees, temporary project snapshots, package stores, and metadata caches. The captured compatibility input stays beside the checkpoint. Interrupted attempts preserve internal project snapshots only while they remain eligible for explicit resume. Paid `run`, `run-batch`, `diagnose`, `diagnose-batch`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first direct model call. One concurrent batch presents one aggregate approval boundary rather than one prompt per worker. Exact evidence reuse and model-free dry runs require no paid confirmation.
 
 Actor and judge prompts provide the exact bounded Git status and path-scoped diff forms accepted by the isolated host. Evaluation agents must use those forms instead of probing evaluator-owned wrappers or home paths.
 
@@ -176,9 +187,9 @@ Every stage writes an atomic checkpoint. Resume continues the exact compatible s
 
 Every checkpoint write also replaces an 8,192-byte-bounded local status sidecar. Status and the guided resume menu read only these sidecars plus checkpoint file metadata, never checkpoint bodies. A missing, stale, malformed, unreadable, or oversized sidecar is reported as unavailable metadata and is not interpreted through a legacy checkpoint reader.
 
-The runner has no free-floating model-output cache. Model stages execute directly unless the official runner materializes a complete eligible case group from validated local result storage. Every source case is reused only when its evaluator-stage and case-input digests still match current source. The packages repository may advance only when the exact compatibility fingerprint and candidate package closure remain unchanged; its commit remains audit provenance rather than model-stage identity. The reused case retains its source attempt digest, stage identities, trial results, and artifacts. Independent result verification reloads that direct local source and rejects identity drift, chained reuse, missing files, or changed bytes.
+The runner has no free-floating model-output cache. Model stages execute directly unless the official runner materializes a complete eligible case group from validated local result storage. Every source case is reused only when its evaluator-stage and case-input digests still match current source. The exact reviewed compatibility snapshot and candidate package closure must match. Publication-only catalog metadata remains outside the target behavior digest. The reused case retains its source attempt digest, stage identities, trial results, and artifacts. Independent result verification reloads that direct local source and rejects identity drift, chained reuse, missing files, or changed bytes.
 
-Recorded `gpt-5.6-sol` attempts remain verifiable as history. They cannot serve as a current `gpt-6-sol` baseline or reuse source.
+Protocol-11 attempts use the current `gpt-6-sol` model contract. Older protocol attempts are unsupported for current resume, reuse, recording, and selection.
 
 `diagnose-batch` gives each selected case one private attempt and runs up to four initials concurrently without confirmations or evidence reuse. The coordinator alone replaces its content-free checkpoint and completed ledger under `.runtime-qualification/diagnostic-batch/`. Each aggregate file and each private attempt checkpoint is limited to 1 MiB, with a 6 MiB four-worker metadata ceiling. The ledger retains only case status, requirement IDs, deterministic explanation, duration, model and token totals, operational-failure count, and attempt identity. It never retains prompts, model rationale, commands, output bodies, repository content, or workspace paths. Final JSON output is limited to 16 KiB. Successful completion deletes the aggregate checkpoint and terminal diagnostic attempts after projection; official results and pointers are never changed.
 
@@ -188,7 +199,7 @@ Before dispatch, both batch coordinators reserve 2 GiB of temporary storage per 
 
 Each model stage has a finite fifteen-minute timeout so role-specific reasoning can complete without treating an ordinary long response as an operational failure. Operational provider, proxy, and timeout failures may retry within the configured retry policy. Deterministic failures, changed identities, cancellation, and exhausted retries stop the attempt clearly.
 
-The packages repository contributes only the immutable `HEAD:compatibility/runtimes.yaml` artifact. Qualification records its commit and content fingerprint, so live worktree changes cannot alter or interrupt an active run. Qualification-engine source and the portable skill remain independently fingerprinted and must be clean before publication.
+The committed `qualification/compatibility/snapshot.json` contains the complete published compatibility input, its source URL, and a canonical-content SHA-256 digest. Each new attempt captures that exact input beside its checkpoint before execution. Resume requires the retained capture and current input to match the checkpoint. Later incomplete recording reads the retained capture even if the repository snapshot changes or disappears; public verification reads the embedded recorded contract without the attempt directory or catalog. Qualification-engine source and the portable skill remain independently fingerprinted and must be clean before publication.
 
 ## Local result and public bundle storage
 
@@ -203,6 +214,7 @@ Use the root evidence commands to pack, publish, and independently select the qu
 Run:
 
 ```bash
+npm run qualification:compatibility:check
 npm run qualification:test
 npm run qualification:typecheck
 npm run qualification:lint
@@ -210,4 +222,4 @@ npm run qualification:format:check
 npm run qualification:verify
 ```
 
-The generic test script runs both unit and integration categories. Qualification results become fresh release evidence only after every recorded identity, resource budget, artifact digest, and target requirement passes. Selecting an older published bundle leaves its original version, date, and provenance visible and does not claim a new qualification run.
+The generic test script runs both unit and integration categories. Qualification results become fresh release evidence only after every recorded identity, resource budget, artifact digest, and target requirement passes. Selecting an older supported protocol-11 bundle leaves its original version, date, and provenance visible and does not claim a new qualification run.

@@ -389,7 +389,7 @@ const createTerminalNonSemanticTrial = (): IQualificationTrialResult => {
   });
 };
 
-describe('protocol 10 qualification contracts', () => {
+describe('protocol 11 qualification contracts', () => {
   test.each([
     ['passed', 'not-required', [createTrial('initial', true)], []],
     [

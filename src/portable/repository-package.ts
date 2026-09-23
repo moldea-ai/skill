@@ -1,6 +1,7 @@
 import { lstat, realpath } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { isAbsolute, join, relative, sep } from 'node:path';
+import semver from 'semver';
 import { z } from 'zod';
 
 import { isPathWithin, readRepositoryFile } from './repository-files.ts';
@@ -15,7 +16,6 @@ export interface IResolvedRepositoryCli {
 
 // package identities accepted by this portable skill release
 export const EXPECTED_CLI_RANGE = '^8.0.0';
-export const EXPECTED_CLI_CORE_RANGE = '^4.0.0';
 export const SUPPORTED_CORE_RANGE = '^4.0.1';
 
 const MAXIMUM_PACKAGE_MANIFEST_BYTES = 65_536;
@@ -143,7 +143,6 @@ export const resolveRepositoryCli = async (
   if (
     cliManifest.name !== '@moldea.ai/cli' ||
     !isSupportedCliDeclaration(declaredCliRange, cliManifest.version) ||
-    cliManifest.dependencies?.['@moldea.ai/core'] !== EXPECTED_CLI_CORE_RANGE ||
     cliBinaryDeclaration !== './dist/moldea.js'
   ) {
     throw new Error('The repository declares an unsupported CLI package closure.');
@@ -166,7 +165,7 @@ export const resolveRepositoryCli = async (
     nodeModulesRoot,
     repositoryRoot: resolvedRepositoryRoot,
   };
-  await validateRepositoryCore(resolvedCli);
+  await validateRepositoryCore(resolvedCli, cliManifest.dependencies['@moldea.ai/core']);
   return resolvedCli;
 };
 
@@ -211,7 +210,18 @@ const resolveRepositoryCoreRoot = async (resolvedCli: IResolvedRepositoryCli): P
 };
 
 /** Validates the CLI's Core dependency from inert metadata without executing it. */
-const validateRepositoryCore = async (resolvedCli: IResolvedRepositoryCli): Promise<void> => {
+const validateRepositoryCore = async (
+  resolvedCli: IResolvedRepositoryCli,
+  declaredCoreRange: string | undefined,
+): Promise<void> => {
+  if (
+    declaredCoreRange === undefined ||
+    declaredCoreRange.trim() === '' ||
+    semver.validRange(declaredCoreRange) === null
+  ) {
+    throw new Error('The repository declares an unsupported CLI package closure.');
+  }
+
   const coreRoot = await resolveRepositoryCoreRoot(resolvedCli);
   const coreEntry = await realpath(join(coreRoot, 'dist', 'index.js'));
 
@@ -229,7 +239,8 @@ const validateRepositoryCore = async (resolvedCli: IResolvedRepositoryCli): Prom
 
   if (
     coreManifest.name !== '@moldea.ai/core' ||
-    !isCompatibleStableVersion(coreManifest.version, SUPPORTED_CORE_RANGE)
+    !isCompatibleStableVersion(coreManifest.version, SUPPORTED_CORE_RANGE) ||
+    !semver.satisfies(coreManifest.version, declaredCoreRange)
   ) {
     throw new Error('The repository has an unsupported Core package.');
   }

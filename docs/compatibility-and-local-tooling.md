@@ -17,7 +17,7 @@ Release `5.0.10` supports exactly:
 - repository format version 1
 - CLI JSON schema 4
 
-The CLI is a repository-root-local development dependency. Its declaration and exact lockfile-selected stable version must satisfy `^8.0.0`; compatible CLI 8 patches and minors do not require a skill release. Other CLI majors, prereleases, malformed ranges, incompatible installed versions, and Core versions below 4.0.1 fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
+The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^8.0.0`; compatible CLI 8 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and moldea's supported `^4.0.1` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and Core versions below 4.0.1 fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
 ## Tooling ownership
 
@@ -27,7 +27,7 @@ A write-capable `moldea` operation may establish the compatible dependency throu
 
 During initialization, sufficient project context comes before dependency changes. A known missing CLI is installed before canonical or managed README writes and before validation, without a deliberate failing probe. Installation failure stops those writes and validation while preserving and reporting any package-manager changes. An existing compatible CLI needs no reinstall or extra availability check.
 
-Every CLI operation uses the installed portable skill's `scripts/moldea-cli.mjs` launcher. From inert package metadata, the launcher validates package identity, exact stable version, the supported declaration, CLI/Core closure, binary declaration, and repository-local containment. The resolved dependency must remain inside the repository; npm and pnpm layouts within that boundary are supported. It invokes Node with an argument array and no shell. Agents do not reproduce package, executable-link, `PATH`, or parent-workspace probes around the launcher. Containment does not authenticate code or replace host execution controls.
+Every CLI operation uses the installed portable skill's `scripts/moldea-cli.mjs` launcher. From inert package metadata, the launcher validates package identity, exact installed stable version, the supported root declaration, the CLI's Core dependency range against installed Core, the binary declaration, and repository-local containment. The resolved dependency must remain inside the repository; npm and pnpm layouts within that boundary are supported. It invokes Node with an argument array and no shell. Package management and repository setup or CI own lockfile consistency; the launcher does not read target-project lockfiles. Agents do not reproduce package, executable-link, `PATH`, or parent-workspace probes around the launcher. Metadata and containment do not authenticate executable contents or replace host execution controls.
 
 The pre-activation gate instead uses the Core matcher bundled with the installed skill. It emits only `0` or `1` and does not execute repository dependencies.
 

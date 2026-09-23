@@ -37,7 +37,6 @@ export { isPathWithin, readRepositoryFile, resolveRepositoryFile } from './repos
 // repository package
 export type { IResolvedRepositoryCli } from './repository-package.ts';
 export {
-  EXPECTED_CLI_CORE_RANGE,
   EXPECTED_CLI_RANGE,
   isCompatibleStableVersion,
   isSupportedCliDeclaration,

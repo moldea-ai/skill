@@ -16,7 +16,6 @@ import { assertReleaseIdentity } from './identity.ts';
 import type { IReleaseIdentity, IReleasePackageManifest } from './types.ts';
 import {
   createCompatibleMajorRange,
-  parseCompatibleMajorRange,
   parseCompatibleStableRange,
   parseStableVersion,
 } from './versions.ts';
@@ -147,7 +146,7 @@ const replaceCompatibleRangeReferences = ({
           .replaceAll(previousCliRange, nextCliRange)
           .replaceAll(`CLI ${previousCliMajor}`, `CLI ${nextCliMajor}`);
       }
-      if (line.includes('@moldea.ai/core') || line.includes('EXPECTED_CLI_CORE_RANGE')) {
+      if (line.includes('@moldea.ai/core')) {
         updatedLine = updatedLine.replaceAll(previousCoreRange, nextCoreRange);
       }
       return updatedLine;
@@ -419,10 +418,10 @@ export const createCliReleaseUpdate = ({
   );
   const previousCliRange = createCompatibleMajorRange(previousCliVersion);
   const nextCliRange = createCompatibleMajorRange(version);
-  const previousCoreRange = parseCompatibleMajorRange(
+  const previousCoreRange = parseCompatibleStableRange(
     semanticCliManifest.dependencies?.['@moldea.ai/core'],
   );
-  const nextCoreRange = parseCompatibleMajorRange(
+  const nextCoreRange = parseCompatibleStableRange(
     publishedManifest.dependencies?.['@moldea.ai/core'],
   );
   const previousSupportedCoreRange = parseCompatibleStableRange(
@@ -456,9 +455,20 @@ export const createCliReleaseUpdate = ({
   }
   const previousCliJsonSchemaVersion = currentPackageManifest.moldeaRelease?.cliJsonSchemaVersion;
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
+    let currentContent = requireFile(updatedFiles, relativePath);
+    if (relativePath === RELEASE_PATHS.skill) {
+      const previousMetadata = `cliJsonSchemaVersion: '${previousCliJsonSchemaVersion}'`;
+      if (currentContent.split(previousMetadata).length !== 2) {
+        throw new Error('The skill JSON schema metadata must be one quoted string value.');
+      }
+      currentContent = currentContent.replace(
+        previousMetadata,
+        `cliJsonSchemaVersion: '${publishedManifest.jsonSchemaVersion}'`,
+      );
+    }
     updatedFiles.set(
       relativePath,
-      requireFile(updatedFiles, relativePath)
+      currentContent
         .replaceAll(
           `cliJsonSchemaVersion: ${previousCliJsonSchemaVersion}`,
           `cliJsonSchemaVersion: ${publishedManifest.jsonSchemaVersion}`,
@@ -583,10 +593,10 @@ export const updateCliRelease = ({
       RELEASE_PATHS.semanticCliManifest,
     ),
   );
-  const previousCliCoreRange = parseCompatibleMajorRange(
+  const previousCliCoreRange = parseCompatibleStableRange(
     semanticCliManifest.dependencies?.['@moldea.ai/core'],
   );
-  const nextCliCoreRange = parseCompatibleMajorRange(
+  const nextCliCoreRange = parseCompatibleStableRange(
     publishedManifest.dependencies?.['@moldea.ai/core'],
   );
   const nextCoreVersionRange = resolveNextCoreVersionRange({

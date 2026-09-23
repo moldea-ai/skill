@@ -40,15 +40,58 @@ describe('semantic token admission', () => {
   test('counts durable actor work retained at a judge boundary', () => {
     const checkpoint = {
       activeTrial: {
-        actorEvidence: { usage: { cachedInputTokens: 20, inputTokens: 100, outputTokens: 25 } },
+        actorEvidence: {
+          actorExecutionEvidence: [],
+          actorResourceEvidence: {
+            commandCount: 0,
+            maximumInvocationByteCount: 0,
+            modelVisibleToolOutputByteCount: 0,
+            operations: [],
+            stdoutByteCount: 0,
+          },
+          actorStageIdentitySha256: 'a'.repeat(64),
+          commandPolicyEvidence: {
+            completedCommandCount: 0,
+            credentialExposure: { observedCount: 0, reasons: [], status: 'not-observed' },
+            maximumCommandOutputByteCount: 0,
+            modelVisibleToolOutputByteCount: 0,
+            moldeaCommandCount: 0,
+            moldeaOutputByteCount: 0,
+            networkAccess: {
+              indeterminateCount: 0,
+              observedCount: 0,
+              reasons: [],
+              status: 'not-observed',
+            },
+            sensitiveAccess: {
+              indeterminateCount: 0,
+              observedCount: 0,
+              reasons: [],
+              status: 'not-observed',
+            },
+          },
+          isMountIntegrityPassing: true,
+          isRepositoryControlPassing: true,
+          response: 'synthetic actor response',
+          usage: { cachedInputTokens: 20, inputTokens: 100, outputTokens: 25 },
+          workspaceChanges: { created: [], deleted: [], modified: [] },
+        },
+        confirmationIndex: null,
         operationalRetries: {
           actorFailureCount: 1,
           judgeFailureCount: 0,
+          lastFailure: null,
         },
         phase: 'judge-pending',
+        recordedTrial: null,
+        startedAt: '2026-09-20T12:00:00.000Z',
+        updatedAt: '2026-09-20T12:00:01.000Z',
       },
+      caseDefinitionDigest: 'b'.repeat(64),
+      caseId: 'case',
+      completedCase: null,
       trials: [],
-    } as ISemanticCaseCheckpoint;
+    } satisfies ISemanticCaseCheckpoint;
 
     expect(getSemanticCandidatePaidTokenCount([], { case: checkpoint })).toBe(
       MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount + 125,

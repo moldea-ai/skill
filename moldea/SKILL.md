@@ -6,7 +6,7 @@ metadata:
   version: '5.0.10'
   cliVersionRange: '^8.0.0'
   coreVersionRange: '^4.0.1'
-  cliJsonSchemaVersion: 4
+  cliJsonSchemaVersion: '4'
 ---
 
 # moldea

@@ -134,6 +134,10 @@ test('updateCliRelease synchronizes a complete copied release tree', () => {
     assert.equal(identity.cliVersion, nextVersion);
     assert.equal(identity.cliJsonSchemaVersion, nextCliJsonSchemaVersion);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
+    assert.match(
+      readFileSync(join(temporaryRoot, RELEASE_PATHS.skill), 'utf8'),
+      new RegExp(`cliJsonSchemaVersion: '${nextCliJsonSchemaVersion}'`, 'u'),
+    );
     for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {
       assert.match(readFileSync(join(temporaryRoot, relativePath), 'utf8'), /\^9\.0\.0/u);
     }
@@ -151,6 +155,38 @@ test('updateCliRelease synchronizes a complete copied release tree', () => {
     assert.ok(
       compositionEnvelope.result.adapters.some(({ id }) => id === 'future'),
       'The synthetic CLI must derive newly published adapters from its dependency inventory.',
+    );
+  } finally {
+    rmSync(temporaryRoot, { force: true, recursive: true });
+  }
+});
+
+test('updateCliRelease accepts a higher same-major Core declaration minimum', () => {
+  const temporaryRoot = createTemporaryReleaseRoot();
+  const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
+  const cliDependencies = {
+    ...currentIdentity.cliDependencies,
+    '@moldea.ai/core': '^4.0.1',
+  };
+
+  try {
+    const identity = updateCliRelease({
+      repositoryRoot: temporaryRoot,
+      version: '8.0.1',
+      resolveManifest: () => ({
+        dependencies: cliDependencies,
+        jsonSchemaVersion: currentIdentity.cliJsonSchemaVersion,
+        version: '8.0.1',
+      }),
+      updateRootManifests: createRootManifestUpdater(cliDependencies),
+    });
+
+    assert.equal(identity.cliCoreVersionRange, '^4.0.1');
+    assert.equal(identity.coreVersionRange, '^4.0.1');
+    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
+    assert.match(
+      readFileSync(join(temporaryRoot, RELEASE_PATHS.skill), 'utf8'),
+      /cliJsonSchemaVersion: '4'/u,
     );
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });

@@ -45,7 +45,10 @@ const PackageLockSchema = z.object({
 });
 const SkillMetadataSchema = z.object({
   metadata: z.object({
-    cliJsonSchemaVersion: z.number().int().positive(),
+    cliJsonSchemaVersion: z
+      .string()
+      .regex(/^[1-9]\d*$/u)
+      .refine((version) => Number.isSafeInteger(Number(version))),
     cliVersionRange: z.string(),
     coreVersionRange: z.string(),
     version: z.string(),
@@ -102,7 +105,7 @@ export const readReleaseIdentity = (repositoryRoot: string): IReleaseIdentity =>
   if (lockedCli?.version !== cliVersion || typeof lockedCli.integrity !== 'string') {
     throw new Error(`package-lock.json does not bind ${CLI_PACKAGE_NAME}@${cliVersion}.`);
   }
-  const cliCoreVersionRange = parseCompatibleMajorRange(
+  const cliCoreVersionRange = parseCompatibleStableRange(
     lockedCli.dependencies?.['@moldea.ai/core'],
   );
   const lockedCore = packageLock.packages['node_modules/@moldea.ai/core'];
@@ -187,7 +190,7 @@ export const inspectReleaseIdentity = (repositoryRoot: string): string[] => {
       identity.cliVersionRange ||
     parseCompatibleStableRange(skillMetadata.metadata.coreVersionRange) !==
       identity.coreVersionRange ||
-    skillMetadata.metadata.cliJsonSchemaVersion !== identity.cliJsonSchemaVersion
+    Number(skillMetadata.metadata.cliJsonSchemaVersion) !== identity.cliJsonSchemaVersion
   ) {
     issues.push('Portable skill metadata does not match the exact current release identity.');
   }
@@ -212,11 +215,6 @@ export const inspectReleaseIdentity = (repositoryRoot: string): string[] => {
   }
   if (
     !includesStringConstant(repositoryPackage, 'EXPECTED_CLI_RANGE', identity.cliVersionRange) ||
-    !includesStringConstant(
-      repositoryPackage,
-      'EXPECTED_CLI_CORE_RANGE',
-      identity.cliCoreVersionRange,
-    ) ||
     !includesStringConstant(repositoryPackage, 'SUPPORTED_CORE_RANGE', identity.coreVersionRange)
   ) {
     issues.push('The repository package resolver does not match the compatible CLI/Core closure.');

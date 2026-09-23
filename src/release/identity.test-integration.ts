@@ -28,6 +28,24 @@ test('release identity inspection detects a stale maintained copy', () => {
       cpSync(sourcePath, destinationPath);
     }
 
+    const skillPath = join(temporaryRoot, RELEASE_PATHS.skill);
+    const skillSource = readFileSync(skillPath, 'utf8');
+    writeFileSync(
+      skillPath,
+      skillSource.replace("cliJsonSchemaVersion: '4'", 'cliJsonSchemaVersion: 4'),
+      'utf8',
+    );
+    assert.throws(() => inspectReleaseIdentity(temporaryRoot), /invalid_type/u);
+    writeFileSync(
+      skillPath,
+      skillSource.replace("cliJsonSchemaVersion: '4'", "cliJsonSchemaVersion: '0'"),
+      'utf8',
+    );
+    assert.throws(() => inspectReleaseIdentity(temporaryRoot), /invalid_format/u);
+    writeFileSync(skillPath, skillSource, 'utf8');
+
+    const lockPath = join(temporaryRoot, RELEASE_PATHS.packageLock);
+    const lockSource = readFileSync(lockPath, 'utf8');
     const semanticCliManifestPath = join(
       temporaryRoot,
       'fixtures',
@@ -35,6 +53,30 @@ test('release identity inspection detects a stale maintained copy', () => {
       'semantic-cli',
       'package.json',
     );
+    const semanticCliManifestSource = readFileSync(semanticCliManifestPath, 'utf8');
+    const matchingSemanticCliManifest = SemanticCliManifestSchema.parse(
+      JSON.parse(semanticCliManifestSource) as unknown,
+    );
+    matchingSemanticCliManifest.dependencies['@moldea.ai/core'] = '^4.0.1';
+    writeFileSync(
+      semanticCliManifestPath,
+      `${JSON.stringify(matchingSemanticCliManifest, null, 2)}\n`,
+      'utf8',
+    );
+    const packageLock = JSON.parse(lockSource) as {
+      packages: Record<string, { dependencies?: Record<string, string> }>;
+    };
+    const lockedCli = packageLock.packages['node_modules/@moldea.ai/cli'];
+    assert.ok(lockedCli?.dependencies !== undefined);
+    lockedCli.dependencies['@moldea.ai/core'] = '^4.0.1';
+    writeFileSync(lockPath, `${JSON.stringify(packageLock, null, 2)}\n`, 'utf8');
+    assert.equal(readReleaseIdentity(temporaryRoot).cliCoreVersionRange, '^4.0.1');
+    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
+    lockedCli.dependencies['@moldea.ai/core'] = '^4.1.0';
+    writeFileSync(lockPath, `${JSON.stringify(packageLock, null, 2)}\n`, 'utf8');
+    assert.throws(() => readReleaseIdentity(temporaryRoot), /does not bind a Core release/u);
+    writeFileSync(lockPath, lockSource, 'utf8');
+    writeFileSync(semanticCliManifestPath, semanticCliManifestSource, 'utf8');
     const semanticCliManifest = SemanticCliManifestSchema.parse(
       JSON.parse(readFileSync(semanticCliManifestPath, 'utf8')) as unknown,
     );

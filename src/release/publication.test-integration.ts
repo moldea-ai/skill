@@ -7,6 +7,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 import { writeBufferFileAtomically, writeJsonFileAtomically } from '../filesystem/index.ts';
 import {
   createEvidenceBundle,
+  EVIDENCE_RELEASE_REPOSITORY,
   type IEvidenceSelection,
   type IEvidenceSelectionReference,
 } from '../evidence/index.ts';
@@ -213,7 +214,7 @@ describe('GitHub evidence release assets', () => {
     const semanticReference: IEvidenceSelectionReference = {
       assetName: published.assetName,
       classification: 'official',
-      repository: published.repository,
+      repository: EVIDENCE_RELEASE_REPOSITORY,
       sha256: published.sha256,
       tag: published.tag,
     };
@@ -228,6 +229,7 @@ describe('GitHub evidence release assets', () => {
 
     expect(selection.qualification).toStrictEqual(qualificationReference);
     expect(selection.semantic).toStrictEqual(semanticReference);
+    expect(published.repository).toBe(EVIDENCE_RELEASE_REPOSITORY);
   });
 
   test('rejects an asset while its evidence release is still a draft', async () => {

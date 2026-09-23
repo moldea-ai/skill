@@ -1356,6 +1356,8 @@ const seedScenarioRepository = async (
       );
       break;
     case 'reconcile-material-ambiguity':
+    case 'reconcile-identified-authority':
+    case 'reconcile-inconclusive-authority':
       await seedRefundAgent(repositoryPath, 'Only an administrator may approve a refund.', {
         affectedBy: ['/src/refund-policy.js'],
       });
@@ -1364,6 +1366,15 @@ const seedScenarioRepository = async (
         'src/refund-policy.js',
         'export const requiredApproverRole = "manager";\n',
       );
+      if (caseDefinition.id !== 'reconcile-material-ambiguity') {
+        await writeScenarioFile(
+          repositoryPath,
+          'docs/decisions/refund-approval.md',
+          caseDefinition.id === 'reconcile-identified-authority'
+            ? '# Refund approval decision\n\nStatus: accepted. This decision governs the approver role for refund requests. A manager may approve a refund; administrator-only approval is not required.\n'
+            : '# Refund approval decision\n\nStatus: accepted. Refund approvals must be auditable. This decision does not select whether a manager or an administrator must approve a refund.\n',
+        );
+      }
       break;
     case 'dedicated-repository-single-side-change':
       await writeScenarioFile(

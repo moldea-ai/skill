@@ -18,6 +18,8 @@ To add a case, add its directory and `case.ts`, plus any fixture files used only
 
 Current case definitions include bound-context maintenance, task expansion into a bound path, unrelated task expansion, discovery of an unbound context path, explicit validation of a damaged setup, and initialization with grounded relationships. The explicit pre-initialization validation case also expects a bounded setup diagnosis. Deterministic fixture and gate tests cover their repository setup; defining these cases and passing preflight do not establish model behavior. No semantic actor or judge result is implied until those cases are run.
 
+Reconciliation cases separately cover a task-identified accepted decision that resolves a code/instruction conflict, a task-identified source that does not settle it, and a conflict with no identified resolver. The source fixtures and criteria establish the intended distinction; they do not demonstrate that an actor follows the bounded read or authority stop until evaluated.
+
 The actor receives the natural request and portable skill, but never the grading criteria. The independent judge receives the criteria and runner-owned projected evidence. Semantic, resource, command-policy, repository-control, mount-integrity, and operational results remain separate dimensions, and overall pass is their conjunction.
 
 Official actors and judges use `gpt-6-sol` with `xhigh` reasoning effort through the shared isolated host.

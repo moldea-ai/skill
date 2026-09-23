@@ -147,6 +147,58 @@ test('grounded initialization starts without canonical state but has exact imple
   assert.equal(gateResult(repositoryPath, [], true), '0\n');
 });
 
+test('an identified governing decision resolves the refund-role fixture', async () => {
+  const { caseDefinition, repositoryPath } = await materializeCase(
+    'reconcile-identified-authority',
+  );
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
+  assert.match(caseDefinition.input.developerDirection, /docs\/decisions\/refund-approval\.md/u);
+  assert.match(
+    readFileSync(join(repositoryPath, 'src', 'refund-policy.js'), 'utf8'),
+    /requiredApproverRole = "manager"/u,
+  );
+  for (const relativePath of [
+    'moldea/agents/refund-agent/instruction.md',
+    'docs/refund-agent.md',
+    'runtime/refund-agent.md',
+  ]) {
+    assert.match(readFileSync(join(repositoryPath, relativePath), 'utf8'), /administrator/u);
+  }
+  assert.match(
+    readFileSync(join(repositoryPath, 'docs', 'decisions', 'refund-approval.md'), 'utf8'),
+    /Status: accepted[\s\S]*A manager may approve a refund/u,
+  );
+});
+
+test('an inconclusive decision and an unidentified conflict have distinct stopping evidence', async () => {
+  const inconclusive = await materializeCase('reconcile-inconclusive-authority');
+  const unidentified = await materializeCase('reconcile-material-ambiguity');
+  assert.equal(gateResult(inconclusive.repositoryPath, [], true), '1\n');
+  assert.match(
+    readFileSync(
+      join(inconclusive.repositoryPath, 'docs', 'decisions', 'refund-approval.md'),
+      'utf8',
+    ),
+    /does not select whether a manager or an administrator/u,
+  );
+  assert.equal(
+    existsSync(join(unidentified.repositoryPath, 'docs', 'decisions', 'refund-approval.md')),
+    false,
+  );
+  assert.equal(
+    inconclusive.caseDefinition.input.developerDirection.includes(
+      'docs/decisions/refund-approval.md',
+    ),
+    true,
+  );
+  assert.equal(
+    unidentified.caseDefinition.input.developerDirection.includes(
+      'docs/decisions/refund-approval.md',
+    ),
+    false,
+  );
+});
+
 test('explicit pre-initialization validation has no foundation to validate', async () => {
   const { caseDefinition, repositoryPath } = await materializeCase('preinit-explicit-validation');
   assert.equal(existsSync(join(repositoryPath, 'moldea')), false);

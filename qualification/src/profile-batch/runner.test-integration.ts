@@ -6,6 +6,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 
 import { FakeCodexHost } from '../codex-host/index.ts';
 import { getLocalAttemptDirectory } from '../execution/index.ts';
+import { QUALIFICATION_PROFILE_BATCH_SCHEMA_VERSION } from './constants.ts';
 import {
   readQualificationProfileBatchState,
   runQualificationProfileBatch,
@@ -96,14 +97,14 @@ describe('qualification profile-batch execution', () => {
       'openai/typescript-responses-api-7',
     ];
     await writeQualificationProfileBatchState(path.join(historyRoot, `${sourceBatchId}.json`), {
-      schemaVersion: 1,
+      schemaVersion: QUALIFICATION_PROFILE_BATCH_SCHEMA_VERSION,
       batchId: sourceBatchId,
       identitySha256: 'b'.repeat(64),
       selector: { kind: 'targets', value: targetIds.join(','), targetIds },
       isDryRun: true,
       records: [
         {
-          schemaVersion: 1,
+          schemaVersion: QUALIFICATION_PROFILE_BATCH_SCHEMA_VERSION,
           attemptId: 'passing-source-attempt',
           adapterId: 'anthropic',
           implementationId: 'typescript-messages-api-0-117',

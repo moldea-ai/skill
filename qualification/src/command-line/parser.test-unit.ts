@@ -12,21 +12,31 @@ describe('parseQualificationCommand', () => {
         'custom',
         '--implementation',
         'custom',
-        '--packages-repository',
-        '/work/packages',
         '--dry-run',
         '--json',
       ]),
     ).toStrictEqual({
       kind: 'run',
       selection: { adapterId: 'custom', implementationId: 'custom' },
-      packagesRepository: '/work/packages',
       isDryRun: true,
       reuseEvidence: true,
       workerCount: 4,
       hasConfirmedPaidExecution: false,
       isJson: true,
     });
+  });
+
+  test.each(['compatibility-check', 'compatibility-update'] as const)(
+    'parses the explicit %s command without implicit network options',
+    (kind) => {
+      expect(parseQualificationCommand([kind, '--json'])).toStrictEqual({ kind, isJson: true });
+    },
+  );
+
+  test('rejects the removed packages checkout option', () => {
+    expect(() =>
+      parseQualificationCommand(['list', '--packages-repository', '/work/packages']),
+    ).toThrow('--packages-repository was removed');
   });
 
   test('parses one explicit paid diagnostic case', () => {

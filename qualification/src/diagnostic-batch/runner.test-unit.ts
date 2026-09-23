@@ -29,7 +29,7 @@ const createOutcome = (explanation: string): IQualificationDiagnosticBatchOutcom
   activeAttemptIds: [],
   records: [
     {
-      schemaVersion: 2,
+      schemaVersion: 3,
       attemptId: 'attempt-one',
       caseId: 'case-one',
       verdict: 'passed',
@@ -100,7 +100,7 @@ describe('qualification diagnostic batch boundaries', () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-diagnostic-ledger-'));
     const ledgerPath = path.join(temporaryRoot, 'ledger.json');
     await writeQualificationDiagnosticState(ledgerPath, {
-      schemaVersion: 2,
+      schemaVersion: 3,
       identitySha256: 'a'.repeat(64),
       selection: { adapterId: 'custom', implementationId: 'custom' },
       selector: { kind: 'all', value: null, caseIds: ['case-one'] },

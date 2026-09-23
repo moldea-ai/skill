@@ -3,7 +3,7 @@ import path from 'node:path';
 import { LOCAL_QUALIFICATION_ROOT } from '../constants/index.ts';
 
 // bounded ignored state for one concurrent diagnostic batch
-export const QUALIFICATION_DIAGNOSTIC_SCHEMA_VERSION = 2 as const;
+export const QUALIFICATION_DIAGNOSTIC_SCHEMA_VERSION = 3 as const;
 export const QUALIFICATION_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT = 1_048_576 as const;
 export const QUALIFICATION_DIAGNOSTIC_EXPLANATION_MAXIMUM_BYTE_COUNT = 4_096 as const;
 export const QUALIFICATION_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT = 16_384 as const;

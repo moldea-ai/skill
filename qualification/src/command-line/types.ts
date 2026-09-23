@@ -5,11 +5,12 @@ import type { IQualificationDiagnosticSelectorInput } from '../diagnostic-batch/
 import type { IQualificationProfileBatchSelectorInput } from '../profile-batch/index.ts';
 
 export type IQualificationCommand =
+  | { kind: 'compatibility-check'; isJson: boolean }
+  | { kind: 'compatibility-update'; isJson: boolean }
   | {
       kind: 'diagnose';
       selection: IQualificationSelection;
       caseId: string;
-      packagesRepository?: string;
       skillRepository?: string;
       hasConfirmedPaidExecution: boolean;
       isJson: boolean;
@@ -18,7 +19,6 @@ export type IQualificationCommand =
       kind: 'diagnose-batch';
       selection: IQualificationSelection;
       selector: IQualificationDiagnosticSelectorInput;
-      packagesRepository?: string;
       skillRepository?: string;
       restart: boolean;
       resumeStoppedStage: boolean;
@@ -50,7 +50,6 @@ export type IQualificationCommand =
   | {
       kind: 'run';
       selection: IQualificationSelection;
-      packagesRepository?: string;
       skillRepository?: string;
       isDryRun: boolean;
       reuseEvidence: boolean;
@@ -61,7 +60,6 @@ export type IQualificationCommand =
   | {
       kind: 'run-batch';
       selector: IQualificationProfileBatchSelectorInput;
-      packagesRepository?: string;
       skillRepository?: string;
       isDryRun: boolean;
       reuseEvidence: boolean;

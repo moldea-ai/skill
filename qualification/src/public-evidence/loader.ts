@@ -107,7 +107,7 @@ const parseQualificationJsonInput = <Output>(
   }
 };
 
-/** Derives the immutable protocol 10 task boundary from the authoritative actor prompt builder. */
+/** Derives the immutable protocol 11 task boundary from the authoritative actor prompt builder. */
 const createQualificationActorPromptBoundary = (): readonly [string, string] => {
   const prompt = `${buildActorPrompt({ task: QUALIFICATION_ACTOR_TASK_SENTINEL }).trim()}\n`;
   const taskStartIndex = prompt.indexOf(QUALIFICATION_ACTOR_TASK_SENTINEL);
@@ -244,7 +244,7 @@ const createExpectedCurrentArtifactPaths = (
   ].sort((left, right) => left.localeCompare(right, 'en'));
 
 const assertCurrentArtifactInventory = (
-  result: Extract<IQualificationAttemptResult, { protocolVersion: 10 }>,
+  result: Extract<IQualificationAttemptResult, { protocolVersion: 11 }>,
 ): void => {
   const expectedPaths = createExpectedCurrentArtifactPaths(result.cases);
   const actualPaths = Object.keys(result.artifactDigests).sort((left, right) =>
@@ -252,7 +252,7 @@ const assertCurrentArtifactInventory = (
   );
 
   if (JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)) {
-    throw new Error('Qualification evidence has an incomplete protocol 10 artifact inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 11 artifact inventory.');
   }
 };
 
@@ -534,7 +534,7 @@ const readRecordedDeveloperTask = (
 
 const loadCurrentAttemptCase = (
   readArtifact: IReadAttemptArtifact,
-  attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 10 }>,
+  attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 11 }>,
   result: IQualificationCurrentCaseResult,
   artifacts: IQualificationArtifactModel[],
   profileCase: Pick<IQualificationProfileCaseModel, 'id' | 'scenario'>,
@@ -790,6 +790,7 @@ const loadAttempt = (
   const recordedContract = readRecordedQualificationContract({
     adapterId,
     implementationId,
+    provenance: result.provenance,
     readArtifact,
   });
 

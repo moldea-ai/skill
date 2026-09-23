@@ -59,7 +59,9 @@ const hasExactCurrentSourceIdentity = (options: {
     result.selection.adapterId === checkpoint.selection.adapterId &&
     result.selection.implementationId === checkpoint.selection.implementationId &&
     result.provenance.candidateFingerprint === options.candidate.fingerprint &&
-    result.provenance.packagesRepositoryFingerprint === checkpoint.packagesRepositoryFingerprint &&
+    result.provenance.compatibilitySnapshot.sha256 === checkpoint.compatibilitySnapshot.sha256 &&
+    result.provenance.compatibilitySnapshot.sourceUrl ===
+      checkpoint.compatibilitySnapshot.sourceUrl &&
     result.provenance.skillRepositoryFingerprint === checkpoint.skillDigest &&
     result.provenance.targetDigest === checkpoint.targetDigest &&
     result.provenance.qualificationDigest === checkpoint.qualificationDigest &&

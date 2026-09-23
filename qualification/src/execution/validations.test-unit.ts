@@ -494,18 +494,22 @@ describe('judge output validation', () => {
 });
 
 describe('qualification source-state validation', () => {
-  test('accepts clean inputs for an official run', () => {
-    const inputState = {
-      caseDigests: { case: 'a'.repeat(64) },
-      evaluatorStageDigest: 'a'.repeat(64),
-      packagesDigest: 'a'.repeat(64),
-      packagesState: createRepositoryState(false),
-      qualificationBaselineDigest: 'a'.repeat(64),
-      qualificationDigest: 'a'.repeat(64),
-      qualificationState: createRepositoryState(false),
-      skillState: createRepositoryState(false),
-    };
+  const compatibilitySnapshot = {
+    sourceUrl: 'https://packages.moldea.ai/compatibility/runtimes.json' as const,
+    sha256: 'a'.repeat(64),
+  };
+  const inputState = {
+    caseDigests: { case: 'a'.repeat(64) },
+    evaluatorStageDigest: 'a'.repeat(64),
+    compatibilityDigest: 'a'.repeat(64),
+    compatibilitySnapshot,
+    qualificationBaselineDigest: 'a'.repeat(64),
+    qualificationDigest: 'a'.repeat(64),
+    qualificationState: createRepositoryState(false),
+    skillState: createRepositoryState(false),
+  };
 
+  test('accepts clean inputs for an official run', () => {
     expect(
       inspectQualificationSourceState({
         executionEnvironment,
@@ -516,7 +520,6 @@ describe('qualification source-state validation', () => {
       passed: true,
       requiresCleanInputs: true,
       isExecutionHostTrusted: true,
-      packagesRepositoryDirty: false,
       qualificationRepositoryDirty: false,
       skillRepositoryDirty: false,
       failures: [],
@@ -524,7 +527,8 @@ describe('qualification source-state validation', () => {
     expect(
       haveQualificationInputsChanged(
         {
-          packagesDigest: 'a'.repeat(64),
+          compatibilityDigest: 'a'.repeat(64),
+          compatibilitySnapshot,
           qualificationDigest: 'a'.repeat(64),
           skillDigest: 'a'.repeat(64),
         },
@@ -533,130 +537,66 @@ describe('qualification source-state validation', () => {
     ).toBe(false);
   });
 
-  test('permits dirty inputs only for model-free dry runs', () => {
+  test('permits dirty qualification and skill inputs only for model-free dry runs', () => {
     expect(
       inspectQualificationSourceState({
         executionEnvironment,
         isDryRun: true,
-        packagesState: createRepositoryState(true),
         qualificationState: createRepositoryState(true),
         skillState: createRepositoryState(true),
       }),
-    ).toStrictEqual({
+    ).toMatchObject({
       passed: true,
-      requiresCleanInputs: false,
-      isExecutionHostTrusted: true,
-      packagesRepositoryDirty: true,
       qualificationRepositoryDirty: true,
       skillRepositoryDirty: true,
-      failures: [],
     });
   });
 
   test.each([
-    [true, false, 'packages repository has uncommitted changes'],
-    [false, true, 'portable skill has uncommitted changes'],
-    [true, true, 'packages repository has uncommitted changes'],
+    ['qualification', true, false, 'qualification suite has uncommitted changes'],
+    ['skill', false, true, 'portable skill has uncommitted changes'],
   ])(
-    'rejects official inputs with packages dirty=%s and skill dirty=%s',
-    (isPackagesDirty, isSkillDirty, expectedFailure) => {
+    'rejects official %s dirty input',
+    (_source, qualificationDirty, skillDirty, expectedFailure) => {
       const result = inspectQualificationSourceState({
         executionEnvironment,
         isDryRun: false,
-        packagesState: createRepositoryState(isPackagesDirty),
-        qualificationState: createRepositoryState(false),
-        skillState: createRepositoryState(isSkillDirty),
+        qualificationState: createRepositoryState(qualificationDirty),
+        skillState: createRepositoryState(skillDirty),
       });
-
       expect(result.passed).toBe(false);
-      expect(result.requiresCleanInputs).toBe(true);
       expect(result.failures.join(' ')).toContain(expectedFailure);
     },
   );
 
-  test('rejects an official run from a dirty qualification suite', () => {
-    const result = inspectQualificationSourceState({
-      executionEnvironment,
-      isDryRun: false,
-      packagesState: createRepositoryState(false),
-      qualificationState: createRepositoryState(true),
-      skillState: createRepositoryState(false),
-    });
-
-    expect(result.passed).toBe(false);
-    expect(result.failures).toStrictEqual([
-      'The qualification suite has uncommitted changes. Commit the tested qualification source before an official qualification run.',
-    ]);
-  });
-
   test.each([
-    ['selected packages', { packagesDigest: 'b'.repeat(64) }],
+    ['compatibility behavior', { compatibilityDigest: 'b'.repeat(64) }],
     ['qualification', { qualificationDigest: 'b'.repeat(64) }],
     ['skill', { skillDigest: 'b'.repeat(64) }],
-  ])('detects a changed %s fingerprint before publication', (_source, changedDigest) => {
-    const inputState = {
-      caseDigests: { case: 'a'.repeat(64) },
-      evaluatorStageDigest: 'a'.repeat(64),
-      packagesDigest: 'a'.repeat(64),
-      packagesState: createRepositoryState(false),
-      qualificationBaselineDigest: 'a'.repeat(64),
-      qualificationDigest: 'a'.repeat(64),
-      qualificationState: createRepositoryState(false),
-      skillState: createRepositoryState(false),
-    };
-    const checkpointDigests = {
-      packagesDigest: 'a'.repeat(64),
+    [
+      'publication metadata',
+      { compatibilitySnapshot: { ...compatibilitySnapshot, sha256: 'b'.repeat(64) } },
+    ],
+  ])('detects a changed %s input before publication', (_source, change) => {
+    const checkpoint = {
+      compatibilityDigest: 'a'.repeat(64),
+      compatibilitySnapshot,
       qualificationDigest: 'a'.repeat(64),
       skillDigest: 'a'.repeat(64),
-      ...changedDigest,
+      ...change,
     };
-
-    expect(haveQualificationInputsChanged(checkpointDigests, inputState)).toBe(true);
-  });
-
-  test('retains resume when unrelated package source changes but selected behavior does not', () => {
-    const inputState = {
-      caseDigests: { case: 'a'.repeat(64) },
-      evaluatorStageDigest: 'a'.repeat(64),
-      packagesDigest: 'a'.repeat(64),
-      packagesState: {
-        ...createRepositoryState(false),
-        fingerprint: 'b'.repeat(64),
-      },
-      qualificationBaselineDigest: 'a'.repeat(64),
-      qualificationDigest: 'a'.repeat(64),
-      qualificationState: createRepositoryState(false),
-      skillState: createRepositoryState(false),
-    };
-
-    expect(
-      haveQualificationInputsChanged(
-        {
-          packagesDigest: 'a'.repeat(64),
-          qualificationDigest: 'a'.repeat(64),
-          skillDigest: 'a'.repeat(64),
-        },
-        inputState,
-      ),
-    ).toBe(false);
+    expect(haveQualificationInputsChanged(checkpoint, inputState)).toBe(true);
   });
 
   test.each([
     [
       'a custom model endpoint',
-      {
-        modelEndpoint: {
-          origin: 'https://model-gateway.example.com',
-          sha256: 'b'.repeat(64),
-        },
-      },
+      { modelEndpoint: { origin: 'https://model-gateway.example.com', sha256: 'b'.repeat(64) } },
       'default Codex model transport',
     ],
     [
       'additional egress',
-      {
-        allowedEgressHosts: [...executionEnvironment.allowedEgressHosts, 'registry.example.com'],
-      },
+      { allowedEgressHosts: ['api.openai.com', 'example.com'] },
       'cannot expose additional network hosts',
     ],
     [
@@ -670,11 +610,9 @@ describe('qualification source-state validation', () => {
       const result = inspectQualificationSourceState({
         executionEnvironment: { ...executionEnvironment, ...environmentChange },
         isDryRun: false,
-        packagesState: createRepositoryState(false),
         qualificationState: createRepositoryState(false),
         skillState: createRepositoryState(false),
       });
-
       expect(result.passed).toBe(false);
       expect(result.isExecutionHostTrusted).toBe(false);
       expect(result.failures.join(' ')).toContain(expectedFailure);

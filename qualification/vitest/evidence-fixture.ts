@@ -18,7 +18,11 @@ import {
   type IQualificationProvenance,
   type IQualificationTrialResult,
 } from '../src/contracts/index.ts';
-import { calculateQualificationProfileDigest } from '../src/execution/fingerprints.ts';
+import { createRuntimeCompatibilitySnapshot } from '../src/compatibility/index.ts';
+import {
+  calculateQualificationProfileDigest,
+  calculateQualificationTargetDigest,
+} from '../src/execution/fingerprints.ts';
 import { createQualificationStageIds } from '../src/execution/stages.ts';
 import {
   ensureDirectory,
@@ -36,6 +40,27 @@ const COMPLETED_AT = '2026-08-20T10:01:00.000Z';
 const JUDGE_CREATED_AT = '2026-08-20T10:00:20.000Z';
 const ACTOR_CREATED_AT = '2026-08-20T10:00:10.000Z';
 const CLAIM_ID = 'qualification.support-gate';
+const CLAIM_IDS = [CLAIM_ID, 'target.kind', 'target.language'];
+const FIXTURE_COMPATIBILITY_TARGET = {
+  id: 'custom',
+  kind: 'custom',
+  language: 'typescript',
+  lastVerifiedAt: '2026-08-20',
+};
+const FIXTURE_COMPATIBILITY_ADAPTER = {
+  implementationStatus: 'available',
+  implementation: { distribution: 'public', kind: 'package', package: '@moldea.ai/cli' },
+  targets: [FIXTURE_COMPATIBILITY_TARGET],
+};
+export const FIXTURE_COMPATIBILITY_SNAPSHOT = createRuntimeCompatibilitySnapshot({
+  schemaVersion: 1,
+  matrixVersion: 2,
+  adapters: { custom: FIXTURE_COMPATIBILITY_ADAPTER },
+});
+
+/** Locates the captured input owned by a synthetic attempt. */
+export const getFixtureAttemptDirectory = (resultsRoot: string, attemptId: string): string =>
+  path.join(resultsRoot, '..', 'attempt-inputs', attemptId);
 const WORKSPACE_FAILURE = 'Unexpected changed path unexpected.md.';
 const MODEL_USAGE = { cachedInputTokens: 0, inputTokens: 128, outputTokens: 16 } as const;
 const EMPTY_COMMAND_POLICY: IQualificationCommandPolicyEvidence = {
@@ -187,7 +212,7 @@ const createScenarioSource = (caseId: string, title: string): string =>
     '',
   ].join('\n');
 
-/** Seeds one complete protocol 10 Custom profile and its engine-verifiable public evidence. */
+/** Seeds one complete protocol 11 Custom profile and its engine-verifiable public evidence. */
 export const seedPassingQualificationEvidenceFixture = async (options: {
   artifactDirectory: string;
   attemptId: string;
@@ -197,8 +222,6 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
   hasSkippedInitialJudge?: boolean;
   isRecovered?: boolean;
   packages?: IQualificationProvenance['packages'];
-  packagesRepositoryCommit?: string;
-  packagesRepositoryFingerprint?: string;
   qualificationDigest?: string;
   qualificationRepositoryCommit?: string;
   resultsRoot: string;
@@ -209,14 +232,20 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
   const profilesRoot = path.join(options.resultsRoot, '..', 'profiles');
   const fixturesRoot = path.join(options.resultsRoot, '..', '..', 'fixtures');
   const profileDirectory = path.join(profilesRoot, 't1');
+  const attemptDirectory = getFixtureAttemptDirectory(options.resultsRoot, options.attemptId);
   const projectDirectory = path.join(profileDirectory, 'cases', 'c1');
   const failedProjectDirectory = path.join(profileDirectory, 'cases', 'c2');
   await Promise.all([
     ensureDirectory(projectDirectory),
     ...(options.hasFailedCompanionCase === true ? [ensureDirectory(failedProjectDirectory)] : []),
     ensureDirectory(fixturesRoot),
+    ensureDirectory(attemptDirectory),
   ]);
   await Promise.all([
+    writeJsonFileAtomically(
+      path.join(attemptDirectory, 'compatibility-snapshot.json'),
+      FIXTURE_COMPATIBILITY_SNAPSHOT,
+    ),
     writeJsonFileAtomically(path.join(fixturesRoot, 'resource-calibration.json'), {
       schemaVersion: 1,
       profiles: MOLDEA_SKILL_RESOURCE_PROFILES,
@@ -258,6 +287,18 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
         '    coveredBy:',
         `      - ${CASE_ID}`,
         ...(options.hasFailedCompanionCase === true ? [`      - ${FAILED_CASE_ID}`] : []),
+        '  - id: target-kind',
+        '    kind: compatibility',
+        '    matrixPath: target.kind',
+        '    description: The target kind is covered.',
+        '    coveredBy:',
+        `      - ${CASE_ID}`,
+        '  - id: target-language',
+        '    kind: compatibility',
+        '    matrixPath: target.language',
+        '    description: The target language is covered.',
+        '    coveredBy:',
+        `      - ${CASE_ID}`,
         '',
       ].join('\n'),
     ),
@@ -497,16 +538,17 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
       judgeReasoningEffort: 'xhigh',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
-      pnpmVersion: '11.9.0',
+      pnpmVersion: '11.27.1',
       gitVersion: 'git version test',
       allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
       hostTimeoutMs: 900_000,
       modelEndpoint: null,
       sslCertificateFileSha256: null,
       candidateFingerprint: options.candidateFingerprint ?? 'f'.repeat(64),
-      packagesRepositoryCommit: options.packagesRepositoryCommit ?? 'packages-commit',
-      packagesRepositoryFingerprint: options.packagesRepositoryFingerprint ?? 'a'.repeat(64),
-      packagesRepositoryDirty: false,
+      compatibilitySnapshot: {
+        sourceUrl: FIXTURE_COMPATIBILITY_SNAPSHOT.sourceUrl,
+        sha256: FIXTURE_COMPATIBILITY_SNAPSHOT.sha256,
+      },
       qualificationRepositoryCommit: options.qualificationRepositoryCommit ?? 'd'.repeat(40),
       qualificationRepositoryDirty: false,
       skillRepositoryCommit: options.skillRepositoryCommit ?? 'skill-commit',
@@ -514,7 +556,12 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
       skillRepositoryDirty: false,
       profileDigest,
       qualificationDigest: options.qualificationDigest ?? 'd'.repeat(64),
-      targetDigest: options.targetDigest ?? 'e'.repeat(64),
+      targetDigest:
+        options.targetDigest ??
+        calculateQualificationTargetDigest(
+          FIXTURE_COMPATIBILITY_ADAPTER,
+          FIXTURE_COMPATIBILITY_TARGET,
+        ),
       baselineAttemptId: null,
       packages: options.packages ?? [],
     },
@@ -659,8 +706,8 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     }),
     writeJsonFileAtomically(path.join(options.artifactDirectory, 'coverage.json'), {
       passed: true,
-      requiredClaims: [CLAIM_ID],
-      declaredClaims: [CLAIM_ID],
+      requiredClaims: CLAIM_IDS,
+      declaredClaims: CLAIM_IDS,
       missingClaims: [],
       unknownClaims: [],
       uncoveredCaseIds: [],
@@ -669,7 +716,6 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
       passed: true,
       requiresCleanInputs: true,
       isExecutionHostTrusted: true,
-      packagesRepositoryDirty: false,
       qualificationRepositoryDirty: false,
       skillRepositoryDirty: false,
       failures: [],

@@ -2,7 +2,6 @@ import path from 'node:path';
 
 export type ISanitizationContext = {
   attemptDirectory?: string;
-  packagesRepository: string;
   skillRepository: string;
   workspaceDirectory?: string;
 };
@@ -17,7 +16,6 @@ export const sanitizeEvidenceText = (source: string, context: ISanitizationConte
     [context.workspaceDirectory, '<workspace>'],
     [context.attemptDirectory, '<attempt>'],
     [context.skillRepository, '<skill-repository>'],
-    [context.packagesRepository, '<packages-repository>'],
     [process.env['HOME'], '<home>'],
     ['/home/evaluator', '<sandbox-home>'],
     ['/mnt', '<workspace>'],

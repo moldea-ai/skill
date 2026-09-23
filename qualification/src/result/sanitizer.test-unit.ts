@@ -7,7 +7,6 @@ describe('qualification evidence sanitization', () => {
   test('replaces host paths and recognizable credentials without changing JSON shape', () => {
     const context = {
       attemptDirectory: '/work/attempt',
-      packagesRepository: '/work/packages',
       skillRepository: '/work/skill',
       workspaceDirectory: '/work/attempt/workspace',
     };
@@ -16,7 +15,7 @@ describe('qualification evidence sanitization', () => {
     expect(
       sanitizeEvidenceValue(
         {
-          command: '/work/packages/node_modules/.bin/moldea',
+          command: '/work/skill/SKILL.md',
           authorization: `Bearer ${'b'.repeat(24)}`,
           nested: ['/work/attempt/workspace/moldea/moldea.yaml', token],
           provider: { apiKey: 'provider-value-that-is-not-prefix-recognizable' },
@@ -24,7 +23,7 @@ describe('qualification evidence sanitization', () => {
         context,
       ),
     ).toStrictEqual({
-      command: '<packages-repository>/node_modules/.bin/moldea',
+      command: '<skill-repository>/SKILL.md',
       authorization: '<redacted-credential>',
       nested: ['<workspace>/moldea/moldea.yaml', '<redacted-token>'],
       provider: { apiKey: '<redacted-credential>' },

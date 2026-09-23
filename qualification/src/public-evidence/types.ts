@@ -14,7 +14,7 @@ import {
 } from '../../../src/execution/confirmation/index.ts';
 
 const QUALIFICATION_PROTOCOL_VERSION = 2;
-const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 10;
+const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 11;
 const INITIAL_OPERATIONAL_RETRY_DELAY_MS = 5_000;
 const MAXIMUM_OPERATIONAL_RETRY_DELAY_MS = 60_000;
 const StableIdSchema = z
@@ -284,9 +284,10 @@ const QualificationProvenanceShape = {
     .nullable(),
   sslCertificateFileSha256: Sha256Schema.nullable(),
   candidateFingerprint: Sha256Schema.nullable(),
-  packagesRepositoryCommit: z.string().trim().min(1),
-  packagesRepositoryFingerprint: Sha256Schema,
-  packagesRepositoryDirty: z.boolean(),
+  compatibilitySnapshot: z.strictObject({
+    sourceUrl: z.literal('https://packages.moldea.ai/compatibility/runtimes.json'),
+    sha256: Sha256Schema,
+  }),
   qualificationRepositoryCommit: z.string().trim().min(1),
   qualificationRepositoryDirty: z.boolean(),
   skillRepositoryCommit: z.string().trim().min(1),
@@ -625,7 +626,6 @@ export const QualificationSourceStateResultSchema = z.object({
   passed: z.boolean(),
   requiresCleanInputs: z.boolean(),
   isExecutionHostTrusted: z.boolean(),
-  packagesRepositoryDirty: z.boolean(),
   qualificationRepositoryDirty: z.boolean(),
   skillRepositoryDirty: z.boolean(),
   failures: z.array(z.string()),

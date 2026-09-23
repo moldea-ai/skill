@@ -6,7 +6,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 
 import { ensureDirectory } from '../../../src/filesystem/index.ts';
 import {
-  calculatePackagesQualificationDigest,
+  calculateQualificationCompatibilityDigest,
   calculateQualificationExecutionDigest,
   calculateQualificationModelHostDigest,
   calculateQualificationProfileDigest,
@@ -29,6 +29,7 @@ const createWorkspacePackageLock = (
   runtimeVersion: string,
   cliVersion: string,
   semverVersion: string,
+  webUtilsVersion = '1.0.0',
 ): string =>
   `${JSON.stringify({
     name: '@moldea.ai/skill-conformance',
@@ -40,7 +41,11 @@ const createWorkspacePackageLock = (
         name: '@moldea.ai/skill-conformance',
         version: '1.0.0',
         workspaces: ['qualification'],
-        devDependencies: { '@moldea.ai/cli': cliVersion, semver: semverVersion },
+        devDependencies: {
+          '@moldea.ai/cli': cliVersion,
+          semver: semverVersion,
+          'web-utils-kit': webUtilsVersion,
+        },
       },
       qualification: {
         name: '@moldea.ai/adapter-qualification',
@@ -68,13 +73,26 @@ const createWorkspacePackageLock = (
         dev: true,
         integrity: `sha512-semver-${semverVersion}`,
       },
+      'node_modules/web-utils-kit': {
+        version: webUtilsVersion,
+        dev: true,
+        integrity: `sha512-web-utils-${webUtilsVersion}`,
+      },
     },
   })}\n`;
 
-const createToolingPackageManifest = (cliVersion: string, semverVersion: string): string =>
+const createToolingPackageManifest = (
+  cliVersion: string,
+  semverVersion: string,
+  webUtilsVersion = '1.0.0',
+): string =>
   `${JSON.stringify({
     type: 'module',
-    devDependencies: { '@moldea.ai/cli': cliVersion, semver: semverVersion },
+    devDependencies: {
+      '@moldea.ai/cli': cliVersion,
+      semver: semverVersion,
+      'web-utils-kit': webUtilsVersion,
+    },
   })}\n`;
 
 describe('qualification input fingerprint', () => {
@@ -225,9 +243,22 @@ describe('qualification input fingerprint', () => {
     const changedToolingDependencyDigest = await calculateQualificationExecutionDigest(options);
     expect(changedToolingDependencyDigest).not.toBe(initialDigest);
 
+    await Promise.all([
+      writeFile(
+        paths.packageLock,
+        createWorkspacePackageLock('2.0.0', '2.9.0', '6.0.0', '7.9.0', '2.0.0'),
+      ),
+      writeFile(
+        paths.toolingPackageManifest,
+        createToolingPackageManifest('6.0.0', '7.9.0', '2.0.0'),
+      ),
+    ]);
+    const changedWebUtilsDigest = await calculateQualificationExecutionDigest(options);
+    expect(changedWebUtilsDigest).not.toBe(changedToolingDependencyDigest);
+
     await writeFile(paths.projectReadme, '# Changed selected fixture\n');
     const changedProfileDigest = await calculateQualificationExecutionDigest(options);
-    expect(changedProfileDigest).not.toBe(changedToolingDependencyDigest);
+    expect(changedProfileDigest).not.toBe(changedWebUtilsDigest);
 
     await writeFile(paths.evaluator, 'export const evaluatorVersion = 2;\n');
     const changedEvaluatorDigest = await calculateQualificationExecutionDigest(options);
@@ -312,7 +343,7 @@ describe('qualification input fingerprint', () => {
       ],
     };
     const initialTargetDigest = calculateQualificationTargetDigest(adapter, selectedTarget);
-    const initialPackagesDigest = calculatePackagesQualificationDigest({
+    const initialPackagesDigest = calculateQualificationCompatibilityDigest({
       adapter,
       matrixVersion: 2,
       target: selectedTarget,
@@ -332,7 +363,7 @@ describe('qualification input fingerprint', () => {
       initialTargetDigest,
     );
     expect(
-      calculatePackagesQualificationDigest({
+      calculateQualificationCompatibilityDigest({
         adapter: adapterWithChangedSibling,
         matrixVersion: 2,
         target: selectedTarget,
@@ -351,7 +382,7 @@ describe('qualification input fingerprint', () => {
       }),
     ).not.toBe(initialTargetDigest);
     expect(
-      calculatePackagesQualificationDigest({
+      calculateQualificationCompatibilityDigest({
         adapter,
         matrixVersion: 3,
         target: selectedTarget,

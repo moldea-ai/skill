@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
+import { RuntimeCompatibilityPublicationSchema } from '../../../src/compatibility/index.ts';
+
 import type {
   IQualificationCaseCatalog,
   IQualificationProfile,
   IQualificationSelection,
 } from '../contracts/index.ts';
-import type { IGitRepositoryState } from '../repository-state/index.ts';
 
 const RuntimePackageRequirementSchema = z.object({
   ecosystem: z.string().min(1),
@@ -68,7 +69,7 @@ const RuntimeAdapterEntrySchema = z.object({
   targets: z.array(RuntimeTargetSchema).optional(),
 });
 
-// additive read model for the packages repository's canonical compatibility matrix
+// additive read model for the published compatibility matrix
 export const RuntimeCompatibilityMatrixSchema = z.object({
   adapters: z.record(z.string(), RuntimeAdapterEntrySchema),
   version: z.literal(2),
@@ -78,11 +79,19 @@ export type IRuntimeAdapterEntry = z.infer<typeof RuntimeAdapterEntrySchema>;
 export type IRuntimeCompatibilityMatrix = z.infer<typeof RuntimeCompatibilityMatrixSchema>;
 export type IRuntimeTarget = z.infer<typeof RuntimeTargetSchema>;
 
-// immutable compatibility source consumed by one qualification execution
-export type IRuntimeCompatibilitySnapshot = {
-  matrix: IRuntimeCompatibilityMatrix;
-  repositoryState: IGitRepositoryState;
-};
+// fixed published catalog consumed only by explicit refresh
+export const RUNTIME_COMPATIBILITY_SOURCE_URL =
+  'https://packages.moldea.ai/compatibility/runtimes.json' as const;
+
+// complete published input retained across attempt recovery and public verification
+export const RuntimeCompatibilitySnapshotSchema = z.strictObject({
+  formatVersion: z.literal(1),
+  sourceUrl: z.literal(RUNTIME_COMPATIBILITY_SOURCE_URL),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/u),
+  publication: RuntimeCompatibilityPublicationSchema,
+});
+
+export type IRuntimeCompatibilitySnapshot = z.infer<typeof RuntimeCompatibilitySnapshotSchema>;
 
 // one matrix target enriched with local profile availability for CLI presentation
 export type IQualificationImplementation = {

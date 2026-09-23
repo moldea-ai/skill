@@ -220,7 +220,7 @@ const updateLatestResult = async (
  * Records pass, failure, error, or explicitly requested incomplete evidence without overwriting history.
  * @returns The immutable recorded result.
  * @throws
- * - If passing evidence was produced from dirty package, qualification-suite, or portable-skill source
+ * - Passing qualification evidence requires clean repository inputs.
  * - If the attempt identity already contains different evidence
  */
 export const recordQualificationResult = async (
@@ -229,8 +229,7 @@ export const recordQualificationResult = async (
 ): Promise<IQualificationAttemptResult> => {
   if (
     options.result.status === 'passed' &&
-    (options.result.provenance.packagesRepositoryDirty ||
-      options.result.provenance.qualificationRepositoryDirty ||
+    (options.result.provenance.qualificationRepositoryDirty ||
       options.result.provenance.skillRepositoryDirty)
   ) {
     throw new Error('Passing qualification evidence requires clean repository inputs.');
@@ -255,6 +254,8 @@ export const recordQualificationResult = async (
   );
   const recordedContractSource = `${JSON.stringify(
     await createRecordedQualificationContract({
+      attemptDirectory: options.attemptDirectory,
+      compatibilitySnapshot: sanitizedDraft.provenance.compatibilitySnapshot,
       resultsRoot,
       selection: sanitizedDraft.selection,
     }),

@@ -1,6 +1,13 @@
-import { RecordedQualificationContractSchema } from '../result/index.ts';
+import {
+  assertRecordedQualificationCompatibility,
+  RecordedQualificationContractSchema,
+} from '../result/index.ts';
 
-import { QualificationResourceCalibrationSchema, QualificationScenarioSchema } from './types.ts';
+import {
+  QualificationResourceCalibrationSchema,
+  QualificationScenarioSchema,
+  type IQualificationAttemptResult,
+} from './types.ts';
 
 // exact recorded contracts used to validate one immutable attempt
 export interface IRecordedQualificationContract {
@@ -27,6 +34,10 @@ const assertUnique = (identities: string[], label: string): void => {
 export const readRecordedQualificationContract = (options: {
   adapterId: string;
   implementationId: string;
+  provenance: Pick<
+    IQualificationAttemptResult['provenance'],
+    'compatibilitySnapshot' | 'targetDigest'
+  >;
   readArtifact: IReadAttemptArtifact;
 }): IRecordedQualificationContract => {
   const source = options.readArtifact('recorded-contract.json');
@@ -42,6 +53,11 @@ export const readRecordedQualificationContract = (options: {
   }
 
   const contract = RecordedQualificationContractSchema.parse(input);
+  assertRecordedQualificationCompatibility({
+    contract,
+    provenance: options.provenance,
+    selection: { adapterId: options.adapterId, implementationId: options.implementationId },
+  });
   const selectedProfile = contract.profiles.find(
     ({ profile }) =>
       profile.adapterId === options.adapterId &&

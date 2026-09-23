@@ -4,7 +4,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { seedPassingQualificationEvidenceFixture } from '../../vitest/evidence-fixture.ts';
+import {
+  getFixtureAttemptDirectory,
+  seedPassingQualificationEvidenceFixture,
+} from '../../vitest/evidence-fixture.ts';
 
 import { createAttemptCheckpoint } from '../checkpoint/index.ts';
 import {
@@ -82,10 +85,10 @@ describe('qualification case evidence reuse', () => {
     const sourceResult = await recordQualificationResult(
       {
         artifactDirectory: sourceArtifactDirectory,
+        attemptDirectory: getFixtureAttemptDirectory(resultsRoot, sourceDraft.attemptId),
         result: sourceDraft,
         sanitizationContext: {
           attemptDirectory: '/source-attempt',
-          packagesRepository: '/packages',
           skillRepository: '/skill',
         },
       },
@@ -110,13 +113,12 @@ describe('qualification case evidence reuse', () => {
       mode: 'official',
       selectedCaseId: null,
       reuseEvidence: true,
-      packagesRepository: '/packages',
       skillRepository: '/skill',
       profileDigest: sourceResult.provenance.profileDigest,
       qualificationDigest: sourceResult.provenance.qualificationDigest,
       skillDigest: sourceResult.provenance.skillRepositoryFingerprint,
-      packagesRepositoryFingerprint: sourceResult.provenance.packagesRepositoryFingerprint,
-      packagesDigest: 'e'.repeat(64),
+      compatibilitySnapshot: sourceResult.provenance.compatibilitySnapshot,
+      compatibilityDigest: 'e'.repeat(64),
       targetDigest: sourceResult.provenance.targetDigest,
       executionEnvironment: {
         model: 'gpt-6-sol',
@@ -124,7 +126,7 @@ describe('qualification case evidence reuse', () => {
         judgeReasoningEffort: 'xhigh',
         codexVersion: 'codex-cli test',
         nodeVersion: process.version,
-        pnpmVersion: '11.9.0',
+        pnpmVersion: '11.27.1',
         gitVersion: 'git version test',
         allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
         hostTimeoutMs: 120_000,
@@ -258,6 +260,7 @@ describe('qualification case evidence reuse', () => {
     const sourceResult = await recordQualificationResult(
       {
         artifactDirectory: sourceArtifactDirectory,
+        attemptDirectory: getFixtureAttemptDirectory(resultsRoot, sourceDraft.attemptId),
         result: QualificationAttemptResultSchema.parse({
           ...sourceDraft,
           provenance: {
@@ -267,7 +270,6 @@ describe('qualification case evidence reuse', () => {
         }),
         sanitizationContext: {
           attemptDirectory: '/source-attempt',
-          packagesRepository: '/packages',
           skillRepository: '/skill',
         },
       },
@@ -311,13 +313,12 @@ describe('qualification case evidence reuse', () => {
       mode: 'official',
       selectedCaseId: null,
       reuseEvidence: true,
-      packagesRepository: '/packages',
       skillRepository: '/skill',
       profileDigest: sourceResult.provenance.profileDigest,
       qualificationDigest: sourceResult.provenance.qualificationDigest,
       skillDigest: sourceResult.provenance.skillRepositoryFingerprint,
-      packagesRepositoryFingerprint: sourceResult.provenance.packagesRepositoryFingerprint,
-      packagesDigest: 'e'.repeat(64),
+      compatibilitySnapshot: sourceResult.provenance.compatibilitySnapshot,
+      compatibilityDigest: 'e'.repeat(64),
       targetDigest: sourceResult.provenance.targetDigest,
       executionEnvironment,
       stageIds: createQualificationStageIds(sourceResult.cases.map(({ caseId }) => caseId)),
@@ -347,8 +348,6 @@ describe('qualification case evidence reuse', () => {
       candidateFingerprint: candidate.fingerprint,
       hasFailedCompanionCase: true,
       packages: [publicCandidatePackage],
-      packagesRepositoryCommit: 'advanced-packages-commit',
-      packagesRepositoryFingerprint: sourceResult.provenance.packagesRepositoryFingerprint,
       qualificationRepositoryCommit: contractCommit,
       resultsRoot,
       skillRepositoryCommit: sourceResult.provenance.skillRepositoryCommit,
@@ -364,13 +363,12 @@ describe('qualification case evidence reuse', () => {
       mode: 'official',
       selectedCaseId: null,
       reuseEvidence: true,
-      packagesRepository: '/packages',
       skillRepository: '/skill',
       profileDigest: destinationDraft.provenance.profileDigest,
       qualificationDigest: destinationDraft.provenance.qualificationDigest,
       skillDigest: destinationDraft.provenance.skillRepositoryFingerprint,
-      packagesRepositoryFingerprint: destinationDraft.provenance.packagesRepositoryFingerprint,
-      packagesDigest: 'e'.repeat(64),
+      compatibilitySnapshot: destinationDraft.provenance.compatibilitySnapshot,
+      compatibilityDigest: 'e'.repeat(64),
       targetDigest: destinationDraft.provenance.targetDigest,
       executionEnvironment,
       stageIds: createQualificationStageIds(destinationDraft.cases.map(({ caseId }) => caseId)),
@@ -386,7 +384,6 @@ describe('qualification case evidence reuse', () => {
       parentAttemptId: sourceResult.attemptId,
       provenance: {
         ...sourceResult.provenance,
-        packagesRepositoryCommit: destinationDraft.provenance.packagesRepositoryCommit,
         profileDigest: destinationDraft.provenance.profileDigest,
       },
       stages: destinationDraft.stages.map((stage) =>
@@ -398,18 +395,18 @@ describe('qualification case evidence reuse', () => {
     const recordedDestination = await recordQualificationResult(
       {
         artifactDirectory: destinationArtifactDirectory,
+        attemptDirectory: getFixtureAttemptDirectory(resultsRoot, destinationDraft.attemptId),
         result: destinationResult,
         sanitizationContext: {
           attemptDirectory: destinationAttemptDirectory,
-          packagesRepository: '/packages',
           skillRepository: '/skill',
         },
       },
       resultsRoot,
     );
 
-    expect(recordedDestination.provenance.packagesRepositoryCommit).toBe(
-      'advanced-packages-commit',
+    expect(recordedDestination.provenance.compatibilitySnapshot).toStrictEqual(
+      sourceResult.provenance.compatibilitySnapshot,
     );
     expect(recordedDestination.cases[0]?.reuse?.sourceAttemptId).toBe(sourceResult.attemptId);
     await expect(loadCases('0'.repeat(64))).resolves.toStrictEqual(new Map());

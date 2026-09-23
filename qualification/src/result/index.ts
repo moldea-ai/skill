@@ -16,6 +16,7 @@ export {
 
 // recorded contracts
 export {
+  assertRecordedQualificationCompatibility,
   createRecordedQualificationContract,
   RecordedQualificationContractSchema,
   type IRecordedQualificationContract,

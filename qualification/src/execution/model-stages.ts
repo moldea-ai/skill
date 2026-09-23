@@ -75,7 +75,6 @@ type ISharedModelStageOptions = {
   implementationId: string;
   isDryRun: boolean;
   evaluatorStageDigest: string;
-  packagesRepository: string;
   baselineAttemptId: string | null;
   project: IPreparedQualificationProject;
   signal?: AbortSignal | undefined;
@@ -121,7 +120,6 @@ const writeModelArtifacts = async <TOutput>(options: {
 }): Promise<void> => {
   const sanitizationContext = {
     attemptDirectory: options.context.attemptDirectory,
-    packagesRepository: options.context.packagesRepository,
     skillRepository: options.context.skillRepository,
     workspaceDirectory: options.context.project.workspaceDirectory,
   };
@@ -246,7 +244,6 @@ export const executeActorModelStage = async (
   const output = ActorOutputSchema.parse(
     sanitizeEvidenceValue(execution.output, {
       attemptDirectory: options.attemptDirectory,
-      packagesRepository: options.packagesRepository,
       skillRepository: options.skillRepository,
       workspaceDirectory: options.project.workspaceDirectory,
     }),
@@ -408,7 +405,6 @@ export const executeJudgeModelStage = async (
     JudgeOutputSchema.parse(
       sanitizeEvidenceValue(execution.output, {
         attemptDirectory: options.attemptDirectory,
-        packagesRepository: options.packagesRepository,
         skillRepository: options.skillRepository,
         workspaceDirectory: options.project.workspaceDirectory,
       }),

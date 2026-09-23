@@ -14,7 +14,6 @@ const VALUE_OPTIONS = new Set([
   '--claims',
   '--cursor',
   '--implementation',
-  '--packages-repository',
   '--skill-repository',
   '--targets',
   '--unresolved-from',
@@ -71,6 +70,11 @@ const parseOptions = (args: readonly string[]): IParsedOptions => {
       continue;
     }
 
+    if (argument === '--packages-repository') {
+      throw new Error(
+        '--packages-repository was removed; qualification uses the reviewed local compatibility snapshot.',
+      );
+    }
     throw new Error(`Unknown qualification option: ${argument}`);
   }
 
@@ -125,6 +129,12 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
   const isJson = options.booleans.has('--json');
 
   switch (commandName) {
+    case 'compatibility-check':
+      rejectOptions(options, new Set(['--json']));
+      return { kind: 'compatibility-check', isJson };
+    case 'compatibility-update':
+      rejectOptions(options, new Set(['--json']));
+      return { kind: 'compatibility-update', isJson };
     case 'list':
       rejectOptions(options, new Set(['--json']));
       return { kind: 'list', isJson };
@@ -183,7 +193,6 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           '--implementation',
           '--json',
           '--no-reuse',
-          '--packages-repository',
           '--skill-repository',
           '--workers',
         ]),
@@ -194,9 +203,6 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           adapterId: requireValue(options, '--adapter'),
           implementationId: requireValue(options, '--implementation'),
         },
-        ...(options.values.has('--packages-repository')
-          ? { packagesRepository: requireValue(options, '--packages-repository') }
-          : {}),
         ...(options.values.has('--skill-repository')
           ? { skillRepository: requireValue(options, '--skill-repository') }
           : {}),
@@ -215,7 +221,6 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           '--dry-run',
           '--json',
           '--no-reuse',
-          '--packages-repository',
           '--restart',
           '--resume-stopped-stage',
           '--skill-repository',
@@ -251,9 +256,6 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
       return {
         kind: 'run-batch',
         selector,
-        ...(options.values.has('--packages-repository')
-          ? { packagesRepository: requireValue(options, '--packages-repository') }
-          : {}),
         ...(options.values.has('--skill-repository')
           ? { skillRepository: requireValue(options, '--skill-repository') }
           : {}),
@@ -275,7 +277,6 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           '--confirm-paid-execution',
           '--implementation',
           '--json',
-          '--packages-repository',
           '--skill-repository',
         ]),
       );
@@ -286,9 +287,6 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           implementationId: requireValue(options, '--implementation'),
         },
         caseId: requireValue(options, '--case'),
-        ...(options.values.has('--packages-repository')
-          ? { packagesRepository: requireValue(options, '--packages-repository') }
-          : {}),
         ...(options.values.has('--skill-repository')
           ? { skillRepository: requireValue(options, '--skill-repository') }
           : {}),
@@ -306,7 +304,6 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           '--confirm-paid-execution',
           '--implementation',
           '--json',
-          '--packages-repository',
           '--restart',
           '--resume-stopped-stage',
           '--skill-repository',
@@ -348,9 +345,6 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           implementationId: requireValue(options, '--implementation'),
         },
         selector,
-        ...(options.values.has('--packages-repository')
-          ? { packagesRepository: requireValue(options, '--packages-repository') }
-          : {}),
         ...(options.values.has('--skill-repository')
           ? { skillRepository: requireValue(options, '--skill-repository') }
           : {}),

@@ -4,7 +4,10 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { seedPassingQualificationEvidenceFixture } from '../../vitest/evidence-fixture.ts';
+import {
+  getFixtureAttemptDirectory,
+  seedPassingQualificationEvidenceFixture,
+} from '../../vitest/evidence-fixture.ts';
 import { writeTextFileAtomically } from '../../../src/filesystem/index.ts';
 import { recordQualificationResult } from '../result/index.ts';
 import { loadQualificationWebsiteModel } from './loader.ts';
@@ -33,7 +36,6 @@ describe('qualification public evidence selection', () => {
     const resultsRoot = path.join(repositoryRoot, 'qualification', 'results');
     const sanitizationContext = {
       attemptDirectory: repositoryRoot,
-      packagesRepository: path.join(repositoryRoot, 'packages'),
       skillRepository: path.join(repositoryRoot, 'skill'),
     };
     await seedPassingQualificationEvidenceFixture({
@@ -66,6 +68,7 @@ describe('qualification public evidence selection', () => {
       await recordQualificationResult(
         {
           artifactDirectory,
+          attemptDirectory: getFixtureAttemptDirectory(resultsRoot, attemptId),
           result:
             attemptId === 'attempt-old'
               ? { ...result, provenance: { ...result.provenance, model: 'gpt-5.6-sol' } }

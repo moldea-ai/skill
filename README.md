@@ -108,7 +108,7 @@ Tooling establishment occurs only during authorized write-capable work and only 
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `moldea/`                                 | Complete distributed Agent Skill: entrypoint, focused references, host metadata, managed README asset, and bounded generated scripts.                  |
 | `src/`                                    | Maintained TypeScript for portable generation, isolated execution, semantic evaluation, evidence assets, release checks, and shared developer tooling. |
-| `qualification/`                          | Adapter qualification definitions and TypeScript execution. Profiles discover their owned cases and record private local state below `.evidence/`.     |
+| `qualification/`                          | Reviewed published compatibility snapshot, adapter profiles, and TypeScript execution. Attempts retain private local state below `.evidence/`.         |
 | `evidence/selection.json`                 | Independent maintainer selections for the semantic and qualification bundles shown on the website.                                                     |
 | `website/`                                | Static presentation of prepared selected evidence. It preserves the public sections and detailed replay, project, evidence, and technical views.       |
 | `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation and qualification attempts are not committed.                               |
@@ -130,6 +130,8 @@ npm ci --ignore-scripts
 
 The private qualification workspace installs its exact pnpm 11.27.1 dependency through this command. Qualification invokes that copy directly; a globally installed pnpm is not required.
 
+After packages are published, refresh the reviewed qualification catalog with `npm run qualification:compatibility:update`, inspect and commit `qualification/compatibility/snapshot.json`, then run `npm run qualification:compatibility:check` before paid qualification. Ordinary qualification commands use the committed local snapshot and do not need an adjacent packages checkout.
+
 The root manifest temporarily overrides Astro to `7.2.8` because Website UI `1.9.1` declares the vulnerable `7.2.2` release as an exact peer. Remove the override after Website UI publishes compatible peer metadata; the clean install and website checks verify the patched combination in the meantime.
 
 Run the deterministic boundaries:
@@ -141,6 +143,7 @@ npm run test:unit
 npm run test:integration
 npm test
 npm run qualification:test
+npm run qualification:compatibility:check
 npm run typecheck
 npm run lint
 npm run format:check

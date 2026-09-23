@@ -81,7 +81,10 @@ describe('qualification execution provenance', () => {
     expect(
       createQualificationExecutionProvenance({
         executionEnvironment,
-        packagesState: createRepositoryState('packages-commit', 'a'.repeat(64)),
+        compatibilitySnapshot: {
+          sourceUrl: 'https://packages.moldea.ai/compatibility/runtimes.json',
+          sha256: 'a'.repeat(64),
+        },
         profileDigest: 'b'.repeat(64),
         qualificationDigest: 'c'.repeat(64),
         targetDigest: 'f'.repeat(64),
@@ -91,9 +94,10 @@ describe('qualification execution provenance', () => {
     ).toStrictEqual({
       ...executionEnvironment,
       candidateFingerprint: null,
-      packagesRepositoryCommit: 'packages-commit',
-      packagesRepositoryFingerprint: 'a'.repeat(64),
-      packagesRepositoryDirty: false,
+      compatibilitySnapshot: {
+        sourceUrl: 'https://packages.moldea.ai/compatibility/runtimes.json',
+        sha256: 'a'.repeat(64),
+      },
       qualificationRepositoryCommit: 'qualification-commit',
       qualificationRepositoryDirty: false,
       skillRepositoryCommit: 'skill-commit',

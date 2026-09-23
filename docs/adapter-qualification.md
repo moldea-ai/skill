@@ -8,7 +8,7 @@ order: 175
 
 # Adapter qualification
 
-Adapter qualification tests one exact published adapter implementation and package closure in realistic repositories without calling a provider API or running an agent. Website labels are presentation only and do not affect the technical result. Current evidence uses qualification protocol 10.
+Adapter qualification tests one exact published adapter implementation and package closure in realistic repositories without calling a provider API or running an agent. Website labels are presentation only and do not affect the technical result. Current evidence uses qualification protocol 11.
 
 ## Evidence ownership
 
@@ -20,7 +20,7 @@ Each case includes a transparent seed repository and natural task, the registry-
 
 Semantic, resource, command-policy, repository-control, mount-integrity, and operational dimensions are recorded separately. Overall pass is their strict conjunction. Only a semantic failure with every other dimension passing may receive confirmations.
 
-Workspaces contain their complete installed dependencies before the actor starts. Actors cannot invoke package managers, transient executables, or installers and must use the closed repository-local launcher. Qualification uses its npm-installed pnpm 11.27.1, independent of a global pnpm installation. Candidate preparation obtains independently registry-verified artifacts through an attempt-local pnpm metadata cache and content store, an empty attempt-owned user configuration, and the explicit public npm registry. Case workspaces reuse the closure offline. Pnpm does not consult global user caches or configuration, inherit registry credentials, or install local-tarball overrides. Terminal runs remove disposable workspaces, runtime trees, snapshots, stores, and metadata caches; interrupted runs retain only resumable state.
+Workspaces contain their complete installed dependencies before the actor starts. Actors cannot invoke package managers, transient executables, or installers and must use the closed repository-local launcher. Qualification uses its npm-installed pnpm 11.27.1, independent of a global pnpm installation. Candidate preparation obtains independently registry-verified artifacts through an attempt-local pnpm metadata cache and content store, an empty attempt-owned user configuration, and the explicit public npm registry. Case workspaces reuse the closure offline. Pnpm does not consult global user caches or configuration, inherit registry credentials, or install local-tarball overrides. Terminal runs remove disposable workspaces, runtime trees, temporary project snapshots, stores, and metadata caches. The captured compatibility input remains with each retained attempt.
 
 ## Resource, host, and privacy controls
 
@@ -36,21 +36,23 @@ The shared source-controlled resource profile governs semantic evaluation, quali
 
 Qualification actors and judges use `gpt-6-sol` at `xhigh` reasoning with a fifteen-minute stage timeout. They receive the same closed-host instruction used by semantic evaluation. Skill discovery and caller overrides are disabled. Network clients, package-manager and provider calls, model and subagent use, environment and authentication access, evaluator-home access, and outside-workspace access are prohibited. There is no compatibility-publication exception.
 
-Protocol 10 classifies operations, not vocabulary. Repository searches containing words such as `secret`, `authorization`, or `.codex` are inert, and text following `Basic` is not a credential unless it canonically decodes as UTF-8 user-and-password material. Actual credential, environment, network, dynamic-execution, evaluator-home, authentication-file, package-manager-network, or broad-filesystem operations receive stable reason codes and counts. Public evidence exposes none of the command, path, search pattern, output, or secret. `indeterminate` remains visible uncertainty and is acceptable only because official runs independently enforce read-only filesystem and restricted-egress sandboxes.
+Protocol 11 classifies operations, not vocabulary. Repository searches containing words such as `secret`, `authorization`, or `.codex` are inert, and text following `Basic` is not a credential unless it canonically decodes as UTF-8 user-and-password material. Actual credential, environment, network, dynamic-execution, evaluator-home, authentication-file, package-manager-network, or broad-filesystem operations receive stable reason codes and counts. Public evidence exposes none of the command, path, search pattern, output, or secret. `indeterminate` remains visible uncertainty and is acceptable only because official runs independently enforce read-only filesystem and restricted-egress sandboxes.
 
 ## Fresh evidence and replay
 
-Current protocol-10 evidence must match portable bytes, CLI and package closure, runner and host, profile, probes and cases, target identity, execution environment, Custom baseline relationship, resource profile, and privacy-safe policy counts. Filesystem identity preserves contents, paths, symlinks, and executability while ignoring host-only permission differences.
+Current protocol-11 evidence must match portable bytes, CLI and package closure, runner and host, profile, probes and cases, target identity, reviewed compatibility snapshot, execution environment, Custom baseline relationship, resource profile, and privacy-safe policy counts. Filesystem identity preserves contents, paths, symlinks, and executability while ignoring host-only permission differences.
 
 Reuse is limited to complete passed or recovered groups from validated local attempts with the same behavior-bearing identity. Direct and reused work remain distinct. Failed, incomplete, diagnostic, chained, mismatched, or tampered evidence is rejected. Public release assets are not used as private resume or reuse storage.
 
-Recorded `gpt-5.6-sol` attempts remain verifiable as history, but current `gpt-6-sol` baselines and reuse require fresh matching evidence.
+Earlier protocol attempts are unsupported for current resume, reuse, recording, and selection. Current `gpt-6-sol` baselines and reuse require fresh matching evidence.
 
-Fresh evidence is normal. A maintainer may publish and select an older official qualification bundle when that is the evidence the website should show. Semantic evidence is selected independently. The selected bundle retains its recorded projects, replays, closure, version, date, and technical provenance without requiring today's evaluator or profile inventory. See [Release evidence](/docs/release-evidence/).
+Fresh evidence is normal. A maintainer may publish and select an older supported protocol-11 qualification bundle when that is the evidence the website should show. Semantic evidence is selected independently. The selected bundle retains its recorded projects, replays, closure, version, date, and technical provenance without requiring today's evaluator or profile inventory. See [Release evidence](/docs/release-evidence/).
 
 Current target keys come from `qualification/profiles/index.yaml`. Private target attempts and `latest.json` pointers live below `.evidence/qualification/results/`; manifests bind files by SHA-256. After a completed official batch, the producer stores a self-contained local public bundle below `.evidence/runs/qualification/`. The website reads only a prepared selected bundle. Replays are not terminal transcripts, and technical attempt identities do not become separate public routes.
 
 An adapter requires a current passing Custom baseline. Custom requires no baseline.
+
+Publish packages first, then explicitly run `npm run qualification:compatibility:update` in the skill checkout. Review and commit `qualification/compatibility/snapshot.json` before paid qualification. `npm run qualification:compatibility:check` validates the local publication against every indexed profile and claim without network access. Ordinary qualification and evidence verification use local or embedded inputs and do not read an adjacent packages checkout.
 
 | Changed input                                                      | Required fresh evidence                          |
 | ------------------------------------------------------------------ | ------------------------------------------------ |
@@ -65,6 +67,7 @@ An adapter requires a current passing Custom baseline. Custom requires no baseli
 Run deterministic checks before paid work:
 
 ```bash
+npm run qualification:compatibility:check
 npm run qualification:dry-run
 npm run qualification:dry-run:all
 npm run qualification:test

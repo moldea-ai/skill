@@ -1156,7 +1156,7 @@ describe('qualification execution', () => {
     temporaryAttemptDirectory = outcome.attemptDirectory;
     const failedCase = outcome.result.cases[0];
 
-    expect(outcome.result.status).toBe('failed');
+    expect(outcome.result.status, outcome.result.summary).toBe('failed');
     expect(outcome.wasRecorded).toBe(false);
     expect(actorCalls).toBe(12);
     expect(judgeCalls).toBe(0);

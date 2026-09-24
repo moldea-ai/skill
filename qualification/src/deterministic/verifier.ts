@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
@@ -5,7 +6,7 @@ import { z } from 'zod';
 import { DeterministicVerificationSchema, type ICandidateClosure } from '../contracts/index.ts';
 import {
   collectDirectoryFingerprintEntries,
-  copyFileWithParents,
+  writeBufferFileAtomically,
 } from '../../../src/filesystem/index.ts';
 import { executeProcess } from '../../../src/process/index.ts';
 import { inspectProjectTypeScriptInstallation } from '../project-fixture/index.ts';
@@ -117,7 +118,8 @@ export const verifyDeterministicProject = async (options: {
     options.candidate.runtimeDirectory,
     'qualification-direct-verifier.mjs',
   );
-  await copyFileWithParents(directVerifierSourcePath, directVerifierPath);
+  // parallel cases execute this shared path, so replacement must not expose a partial script
+  await writeBufferFileAtomically(directVerifierPath, await readFile(directVerifierSourcePath));
   const directResult = await executeProcess({
     command: process.execPath,
     args: [

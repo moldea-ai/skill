@@ -171,12 +171,12 @@ Specialized workflows have focused operator references:
 The skill uses independent semantic versioning. Every release must:
 
 - record its exact version in `moldea/SKILL.md`
-- declare the compatible CLI major and bind the exact evaluated CLI closure plus CLI JSON schema in release evidence
-- pass current conformance and select verified fresh or explicitly pinned evidence independently for semantic evaluation and qualification
+- declare the compatible CLI major; evidence-backed production releases also bind the exact evaluated CLI closure plus CLI JSON schema in release evidence
+- pass current conformance; evidence-backed production releases also select verified fresh or explicitly pinned semantic and qualification evidence independently
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-Release `5.0.11` uses tag `v5.0.11`. See [Release evidence](docs/release-evidence.md) for the exact workflows. `npm run release:check` is read-only and validates each selected evidence path.
+Release `5.0.11` uses tag `v5.0.11` as a prelaunch skill release without selected semantic or qualification evidence. Its tagged conformance checks release identity and portable behavior. It does not qualify the production website or satisfy `npm run release:check`, which remains the evidence-backed release check. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
 ## License
 

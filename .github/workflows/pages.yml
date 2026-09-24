@@ -38,8 +38,30 @@ env:
   NODE_VERSION: 24.15.0
 
 jobs:
+  evidence-selection:
+    name: Check production evidence selection
+    runs-on: ubuntu-latest
+    outputs:
+      selected: ${{ steps.selection.outputs.selected }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check selection
+        id: selection
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync, readFileSync } from 'node:fs';
+
+          const { semantic, qualification } = JSON.parse(readFileSync('evidence/selection.json', 'utf8'));
+          if ((semantic === null) !== (qualification === null)) {
+            throw new Error('Production evidence selection must be complete or empty.');
+          }
+          appendFileSync(process.env.GITHUB_OUTPUT, `selected=${semantic !== null}\n`);
+          NODE
+
   build:
     name: Build Pages Artifact
+    needs: evidence-selection
+    if: needs.evidence-selection.outputs.selected == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

@@ -15,7 +15,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
     id: 'activation-abstention',
     description:
       'moldea abstains silently from unrelated documentation, source, README, planning, review, and generic knowledge tasks.',
-    sourcePaths: ['moldea/SKILL.md#run-the-appropriate-gate-once'],
+    sourcePaths: ['moldea/SKILL.md#gate-the-known-task-scope'],
     rationale:
       'These cases directly reproduce the over-activation patterns that previously consumed time and model context.',
     fixedEvidence: [],
@@ -25,7 +25,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
     description:
       'Direct and relationship-based activation use the smallest deterministic boundary and preserve host workflow ownership.',
     sourcePaths: [
-      'moldea/SKILL.md#run-the-appropriate-gate-once',
+      'moldea/SKILL.md#gate-the-known-task-scope',
       'moldea/references/context-gathering.md#select-metadata-before-content',
     ],
     rationale:
@@ -89,7 +89,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'Former over-activation paths retain silent abstention without established direct relevance or a declared relationship.',
     sourcePaths: [
       'moldea/SKILL.md#route-before-loading-references',
-      'moldea/SKILL.md#run-the-appropriate-gate-once',
+      'moldea/SKILL.md#gate-the-known-task-scope',
     ],
     rationale:
       'These cases retain negative controls for ambiguous handoffs and unrelated host work; concrete conversational context is assessed separately under bounded relevance.',

@@ -167,6 +167,7 @@ const runCli = async (): Promise<void> => {
   let stdoutByteCount = 0;
   let stderrByteCount = 0;
   let outputLimitExceeded = false;
+  let cancellationSignal: NodeJS.Signals | undefined;
   let hasChildClosed = false;
   let forcedTerminationTimer: NodeJS.Timeout | undefined;
 
@@ -196,8 +197,12 @@ const runCli = async (): Promise<void> => {
     else stderrChunks.push(chunk);
   });
 
-  const relayInterrupt = (): void => requestTermination('SIGINT');
-  const relayTermination = (): void => requestTermination('SIGTERM');
+  const cancelInvocation = (signal: NodeJS.Signals): void => {
+    cancellationSignal ??= signal;
+    requestTermination(signal);
+  };
+  const relayInterrupt = (): void => cancelInvocation('SIGINT');
+  const relayTermination = (): void => cancelInvocation('SIGTERM');
   process.once('SIGINT', relayInterrupt);
   process.once('SIGTERM', relayTermination);
 
@@ -222,15 +227,16 @@ const runCli = async (): Promise<void> => {
     return;
   }
 
-  process.stdout.write(Buffer.concat(stdoutChunks, stdoutByteCount));
-  process.stderr.write(Buffer.concat(stderrChunks, stderrByteCount));
-
-  if (completion.signal !== null) {
-    process.stderr.write(`moldea CLI terminated by ${completion.signal}.\n`);
+  const terminationSignal = cancellationSignal ?? completion.signal;
+  if (terminationSignal !== null) {
+    process.stderr.write(Buffer.concat(stderrChunks, stderrByteCount));
+    process.stderr.write(`moldea CLI terminated by ${terminationSignal}.\n`);
     process.exitCode = 3;
     return;
   }
 
+  process.stdout.write(Buffer.concat(stdoutChunks, stdoutByteCount));
+  process.stderr.write(Buffer.concat(stderrChunks, stderrByteCount));
   process.exitCode = completion.exitCode ?? 3;
 };
 

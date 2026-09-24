@@ -20,16 +20,23 @@ const hasInitializedProject = async (repositoryRoot: string): Promise<boolean> =
       repositoryRoot,
       join(repositoryRoot, 'moldea', 'moldea.yaml'),
       MAX_MANIFEST_BYTES,
+      'reject',
     ),
     resolveRepositoryFile(
       repositoryRoot,
       join(repositoryRoot, 'moldea', 'project.md'),
       MAX_README_BYTES,
+      'reject',
     ),
   ]);
 
   return hasCanonicalManagedReadmeBlock(
-    await readRepositoryFile(repositoryRoot, join(repositoryRoot, 'README.md'), MAX_README_BYTES),
+    await readRepositoryFile(
+      repositoryRoot,
+      join(repositoryRoot, 'README.md'),
+      MAX_README_BYTES,
+      'reject',
+    ),
   );
 };
 
@@ -110,6 +117,7 @@ const evaluateGate = async (): Promise<boolean> => {
       repositoryRoot,
       join(repositoryRoot, 'moldea', 'moldea.yaml'),
       MAX_MANIFEST_BYTES,
+      'reject',
     ),
     readPathInput(),
   ]);

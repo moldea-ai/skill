@@ -78,18 +78,24 @@ test('bound maintenance has an exact relationship and stale architecture context
   );
 });
 
-test('initially unrelated checkout reveals a newly bound refund path through its import', async () => {
-  const { caseDefinition, repositoryPath } = await materializeCase('expanding-task-relevance');
-  assert.equal(gateResult(repositoryPath, ['/src/checkout.js']), '0\n');
-  assert.match(readFileSync(join(repositoryPath, 'src', 'checkout.js'), 'utf8'), /refund-policy/u);
-  assert.equal(gateResult(repositoryPath, ['/src/refund-policy.js']), '1\n');
-  assert.equal(
-    caseDefinition.input.repositoryEvidence.some(
-      ({ source }) => source.kind === 'workspace-path' && source.path === 'src/refund-policy.js',
-    ),
-    false,
-  );
-});
+test.each(['expanding-task-relevance', 'expanding-review-relevance'])(
+  '%s reveals a newly bound refund path through the checkout import',
+  async (caseId) => {
+    const { caseDefinition, repositoryPath } = await materializeCase(caseId);
+    assert.equal(gateResult(repositoryPath, ['/src/checkout.js']), '0\n');
+    assert.match(
+      readFileSync(join(repositoryPath, 'src', 'checkout.js'), 'utf8'),
+      /refund-policy/u,
+    );
+    assert.equal(gateResult(repositoryPath, ['/src/refund-policy.js']), '1\n');
+    assert.equal(
+      caseDefinition.input.repositoryEvidence.some(
+        ({ source }) => source.kind === 'workspace-path' && source.path === 'src/refund-policy.js',
+      ),
+      false,
+    );
+  },
+);
 
 test('an unrelated discovered formatter does not repeat or cancel earlier relevance', async () => {
   const { repositoryPath } = await materializeCase('unrelated-task-expansion');

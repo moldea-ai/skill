@@ -1,7 +1,15 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, test } from 'vitest';
@@ -88,6 +96,50 @@ test('a damaged README or manifest fails closed without a diagnostic leak', () =
   writeFileSync(readmePath, originalReadme);
   writeFileSync(join(root, 'moldea', 'moldea.yaml'), 'version: [\n');
   assertGateResult(root, ['/src/refund.js'], '0\n');
+});
+
+test.each(['internal', 'outside'])(
+  'rejects a %s canonical directory link in both modes',
+  (location) => {
+    const root = createAdoptedRepository();
+    const outsideRoot = mkdtempSync(join(tmpdir(), 'moldea-gate-outside-'));
+    temporaryRoots.push(outsideRoot);
+    const targetPath = join(location === 'internal' ? root : outsideRoot, 'canonical');
+    renameSync(join(root, 'moldea'), targetPath);
+    symlinkSync(
+      targetPath,
+      join(root, 'moldea'),
+      process.platform === 'win32' ? 'junction' : 'dir',
+    );
+
+    assertGateResult(root, [], '0\n', true);
+    assertGateResult(root, ['/src/refund.js'], '0\n');
+  },
+);
+
+test.each(['moldea.yaml', 'project.md'])(
+  'rejects a linked canonical file %s in both modes',
+  (fileName) => {
+    const root = createAdoptedRepository();
+    const filePath = join(root, 'moldea', fileName);
+    const targetPath = join(root, fileName);
+    renameSync(filePath, targetPath);
+    symlinkSync(targetPath, filePath);
+
+    assertGateResult(root, [], '0\n', true);
+    assertGateResult(root, ['/src/refund.js'], '0\n');
+  },
+);
+
+test('accepts a repository root reached through a directory link', () => {
+  const root = createAdoptedRepository();
+  const parent = mkdtempSync(join(tmpdir(), 'moldea-gate-root-'));
+  temporaryRoots.push(parent);
+  const linkedRoot = join(parent, 'repository');
+  symlinkSync(root, linkedRoot, process.platform === 'win32' ? 'junction' : 'dir');
+
+  assertGateResult(linkedRoot, [], '1\n', true);
+  assertGateResult(linkedRoot, ['/src/refund.js'], '1\n');
 });
 
 test('malformed, unsafe, and oversized inputs fail closed', () => {

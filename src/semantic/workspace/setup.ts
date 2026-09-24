@@ -1126,7 +1126,11 @@ const seedActivationMaintenanceScenario = async (
     return;
   }
 
-  if (caseId === 'expanding-task-relevance' || caseId === 'unrelated-task-expansion') {
+  if (
+    caseId === 'expanding-task-relevance' ||
+    caseId === 'expanding-review-relevance' ||
+    caseId === 'unrelated-task-expansion'
+  ) {
     await writeScenarioFile(
       repositoryPath,
       'moldea/moldea.yaml',
@@ -1316,6 +1320,7 @@ const seedScenarioRepository = async (
       break;
     case 'bound-context-maintenance':
     case 'expanding-task-relevance':
+    case 'expanding-review-relevance':
     case 'unrelated-task-expansion':
     case 'unbound-context-discovery':
       await seedActivationMaintenanceScenario(repositoryPath, caseDefinition.id);

@@ -6,6 +6,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  renameSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -121,6 +122,30 @@ test('accepts a compatible CLI minor and its nearest nested Core package', async
   });
 
   assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '8.1.0');
+});
+
+test('preserves repository-contained CLI and nested Core directory links', async () => {
+  const fixture = createPackageFixture();
+  const storeRoot = join(fixture.repositoryRoot, 'node_modules', '.store');
+  mkdirSync(storeRoot);
+  const storedCliRoot = join(storeRoot, 'cli');
+  const storedCoreRoot = join(storeRoot, 'core');
+  renameSync(fixture.cliRoot, storedCliRoot);
+  renameSync(fixture.coreRoot, storedCoreRoot);
+  const linkType = process.platform === 'win32' ? 'junction' : 'dir';
+  symlinkSync(storedCliRoot, fixture.cliRoot, linkType);
+  const nestedPackages = join(storedCliRoot, 'node_modules', '@moldea.ai');
+  mkdirSync(nestedPackages, { recursive: true });
+  symlinkSync(storedCoreRoot, join(nestedPackages, 'core'), linkType);
+
+  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliRoot, storedCliRoot);
+  const invocation = spawnSync(
+    process.execPath,
+    [LAUNCHER_PATH, '--repository', fixture.repositoryRoot, '--', 'composition', '--json'],
+    { cwd: fixture.repositoryRoot, encoding: 'utf8' },
+  );
+  assert.equal(invocation.status, 0, invocation.stderr);
+  assert.equal(invocation.stdout, 'fixture-cli-invoked\n');
 });
 
 test('accepts a compatible installed CLI when the target lock selects an older patch', async () => {

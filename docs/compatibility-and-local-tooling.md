@@ -29,7 +29,7 @@ During initialization, sufficient project context comes before dependency change
 
 Every CLI operation uses the installed portable skill's `scripts/moldea-cli.mjs` launcher. From inert package metadata, the launcher validates package identity, exact installed stable version, the supported root declaration, the CLI's Core dependency range against installed Core, the binary declaration, and repository-local containment. The resolved dependency must remain inside the repository; npm and pnpm layouts within that boundary are supported. It invokes Node with an argument array and no shell. Package management and repository setup or CI own lockfile consistency; the launcher does not read target-project lockfiles. Agents do not reproduce package, executable-link, `PATH`, or parent-workspace probes around the launcher. Metadata and containment do not authenticate executable contents or replace host execution controls.
 
-The pre-activation gate instead uses the Core matcher bundled with the installed skill. It emits only `0` or `1` and does not execute repository dependencies.
+The pre-activation gate instead uses the Core matcher bundled with the installed skill. It emits only `0` or `1` and does not execute repository dependencies. Foundation reads reject file links and directory symlinks or junctions below the resolved repository root. Repository-contained dependency links remain supported by the launcher.
 
 ## Machine output
 
@@ -41,7 +41,7 @@ Exit codes are:
 - `1`: `invalid`
 - `2` or `3`: `error`
 
-The launcher preserves a completed child's status and uses 3 for its own validation, containment, signal, or output-boundary failures. It sends the requested termination signal first and force-terminates a child still active after five seconds. A launcher failure, signal, malformed envelope, version mismatch, unsupported schema, stale cursor, or contradictory status provides no deterministic conclusion.
+The launcher preserves a completed child's status and uses 3 for its own validation, containment, signal, or output-boundary failures. Receiving `SIGINT` or `SIGTERM` makes the invocation unsuccessful even if the child handles the signal and exits with 0; cancelled or signal-terminated invocations forward no stdout. It sends the requested termination signal first and force-terminates a child still active after five seconds. A launcher failure, signal, malformed envelope, version mismatch, unsupported schema, stale cursor, or contradictory status provides no deterministic conclusion.
 
 Command boundaries stay explicit:
 

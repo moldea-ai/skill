@@ -1,12 +1,24 @@
 // src/portable/repository-files.ts
 import { constants } from "node:fs";
 import { lstat, open, realpath } from "node:fs/promises";
-import { isAbsolute, relative, sep } from "node:path";
+import { isAbsolute, join, relative, sep } from "node:path";
 var isPathWithin = (trustedRoot, candidatePath) => {
   const path = relative(trustedRoot, candidatePath);
   return path === "" || !path.startsWith(`..${sep}`) && path !== ".." && !isAbsolute(path);
 };
-var resolveRepositoryFile = async (repositoryRoot, filePath, maximumBytes) => {
+var resolveRepositoryFile = async (repositoryRoot, filePath, maximumBytes, directoryLinks = "allow") => {
+  if (directoryLinks === "reject") {
+    if (!isPathWithin(repositoryRoot, filePath)) {
+      throw new Error("Expected a bounded regular file inside the repository.");
+    }
+    let directoryPath = repositoryRoot;
+    for (const component of relative(repositoryRoot, filePath).split(sep).slice(0, -1)) {
+      directoryPath = join(directoryPath, component);
+      if (!(await lstat(directoryPath)).isDirectory()) {
+        throw new Error("Expected a bounded regular file inside the repository.");
+      }
+    }
+  }
   const fileStat = await lstat(filePath);
   const resolvedPath = await realpath(filePath);
   if (!fileStat.isFile() || fileStat.size > maximumBytes || !isPathWithin(repositoryRoot, resolvedPath)) {
@@ -14,8 +26,13 @@ var resolveRepositoryFile = async (repositoryRoot, filePath, maximumBytes) => {
   }
   return resolvedPath;
 };
-var readRepositoryFile = async (repositoryRoot, filePath, maximumBytes) => {
-  const resolvedPath = await resolveRepositoryFile(repositoryRoot, filePath, maximumBytes);
+var readRepositoryFile = async (repositoryRoot, filePath, maximumBytes, directoryLinks = "allow") => {
+  const resolvedPath = await resolveRepositoryFile(
+    repositoryRoot,
+    filePath,
+    maximumBytes,
+    directoryLinks
+  );
   const file = await open(resolvedPath, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
   try {
     const stat = await file.stat();

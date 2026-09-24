@@ -86,13 +86,13 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'restored-activation-regressions',
     description:
-      'Former implicit activation paths now prove silent abstention unless the current repository-bound gate has explicit or path-based authority.',
+      'Former over-activation paths retain silent abstention without established direct relevance or a declared relationship.',
     sourcePaths: [
       'moldea/SKILL.md#route-before-loading-references',
       'moldea/SKILL.md#run-the-appropriate-gate-once',
     ],
     rationale:
-      'These cases preserve the behavioral failures that caused the redesign without restoring automatic durable-knowledge, project-evaluation, or planning activation.',
+      'These cases retain negative controls for ambiguous handoffs and unrelated host work; concrete conversational context is assessed separately under bounded relevance.',
     fixedEvidence: [],
   },
   {

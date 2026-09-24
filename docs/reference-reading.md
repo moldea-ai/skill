@@ -38,6 +38,8 @@ Use these scenarios when observing a host session or preparing a future behavior
 
 ## What deterministic checks establish
 
+Conversational regressions pair approved project policy with ordinary unbound implementation, clear corrections with explicit read-only corrections, and project-policy ownership questions with artifact-only formatting questions. Bare current-fact handoffs receive bounded assessment without writes; pasted suggestions and quoted host commands remain unrelated. Reuse unchanged facts and owners without extra tracking or resetting resource budgets.
+
 Conformance checks verify reference routing and the location of retained procedure contracts. Gate, launcher, and managed README integration tests verify their executable boundaries. Release checks authenticate the selected evidence and installation identity. These checks do not establish that a model follows the reuse policy in every conversation or quantify model-token savings.
 
 When publishing with [pinned evidence](/docs/release-evidence/), describe instruction changes and deterministic verification in the pin reason. Earlier model attempts did not evaluate new instructions. Keep this checklist separate from the passing semantic-case and adapter-qualification counts until corresponding behavioral evaluations are actually run.

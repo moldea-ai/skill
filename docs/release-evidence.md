@@ -65,7 +65,9 @@ Preparation rejects an unselected domain, a digest mismatch, a wrong bundle kind
 
 Preparation downloads public release assets over bounded HTTPS and does not require GitHub CLI authentication. GitHub credentials remain limited to explicit publication.
 
-Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence. Production `website:build`, Pages deployment, and complete evidence-backed release assurance require prepared official selections. The Pages workflow skips deployment when both selections are null and rejects a partial selection. The prelaunch skill tag `v5.0.11` has no selected evidence: tagged CI checks its release identity and conformance but skips evidence preparation and evidence-backed assurance. This exception does not apply to later tags.
+Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence. Production `website:build`, Pages deployment, and complete evidence-backed release assurance require prepared official selections. The Pages workflow skips deployment when both selections are null and rejects a partial selection.
+
+During continued prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Tagged CI does not prepare selected evidence or run evidence-backed assurance, and there are no version-specific exceptions. A passing tag does not establish semantic evaluation or adapter qualification. Release `5.0.12` leaves both selections empty; no new model-backed results are claimed. Evidence-backed assurance remains a separate explicit operation below, and production website requirements are unchanged.
 
 ## Check a release
 

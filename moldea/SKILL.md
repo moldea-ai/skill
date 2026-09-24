@@ -1,9 +1,9 @@
 ---
 name: moldea
 description: >-
-  Plan, create, review, and maintain AI agents and durable project context after explicit moldea initialization. Handle moldea operations, repair, independent Agent Skills, and questions. For other repository work, use only the bundled relationship gate on known paths; abstain silently on a miss. Product and host command names do not establish relevance.
+  Plan, create, review, and maintain AI agents, skills, and project context. After adoption, assess established project facts, approved policies, clear corrections, and context-ownership questions without requiring moldea wording. Handle explicit moldea operations. Ordinary code requirements need a declared relationship; abstain silently on a miss. Initialize only when asked.
 metadata:
-  version: '5.0.11'
+  version: '5.0.12'
   cliVersionRange: '^8.0.0'
   coreVersionRange: '^4.0.1'
   cliJsonSchemaVersion: '4'
@@ -26,11 +26,11 @@ Retain the skill path and active operation in the host handoff, not as authority
 README selection is not activation. Normalize host paths to leading-slash repository-logical form. First matching route wins:
 
 1. **Repository-independent information:** Answer without repository inspection or moldea commands.
-2. **Independent Agent Skill artifact:** Without canonical or relationship work, load only `references/skill-design.md`; no moldea gate, CLI, or canonical status, regardless of location or `Use moldea` wording.
+2. **Independent Agent Skill artifact:** For established artifact-only work, load only `references/skill-design.md`; no gate, CLI, or canonical status. Project-context questions use route 5.
 3. **Explicit initialization:** Read `references/tooling-installation.md` for inert preflight, then `references/continuous-maintenance.md`. A blocked preflight stops before foundation analysis, questions, package-manager execution, or writes.
 4. **Explicit setup check or repair:** Validation, evaluation, or inspection of this repository's moldea setup, or authorized repair, uses adoption-only. Load `references/project-repair.md` for repair or bounded diagnosis after a miss, failure, or unavailable gate. Read-only checks never repair; repair never initializes or guesses policy. Named reconciliation stays narrower.
-5. **Direct or canonical work:** Use adoption-only for genuine AI-agent planning, creation, runtime integration, maintenance, review, or reconciliation; explicit setup operations; `/moldea/**` paths; or managed README hunks. Infer intent from the outcome, not keywords or existing bindings. Continue only the active task and authorization.
-6. **Other repository work:** Use the relationship gate on known paths. Product or host command names, test-agent terms, generic runtime or SDK work, and “use moldea” during an ordinary host task do not request a setup audit. README hunks outside markers are not direct relevance.
+5. **Direct or canonical work:** Use adoption-only for genuine AI-agent work; established project facts, approved policies, clear corrections, or project-context questions; explicit setup operations; `/moldea/**` paths; or managed README hunks. Identify the concrete project-level meaning from the conversation, independently of any code edit. Generic information, proposals, and temporary status alone do not qualify.
+6. **Other repository work:** Relationship-gate known paths. Lasting code requirements, product/host command names, test-agent terms, generic SDK work, “use moldea,” and README hunks outside markers are not direct relevance. Never bypass a miss for unknown context.
 
 Before initialization, other repository-dependent work abstains silently. Adoption alone never makes ordinary work relevant.
 
@@ -42,7 +42,7 @@ For direct work, reuse current adoption evidence or run:
 node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root> --adoption-only
 ```
 
-For other work, never use adoption-only. Deduplicate host-known task paths: explicitly targeted changed or unchanged paths and host-established staged, unstaged, untracked, renamed (both endpoints), or deleted paths. Gate the full initial set. Never run Git or discover paths solely for moldea. Without paths, abstain; generic facts or alleged context drift do not authorize discovery.
+For other work, never use adoption-only. Deduplicate host-known paths: targeted changed or unchanged paths and host-established staged, unstaged, untracked, renamed (both endpoints), or deleted paths. Gate the full initial set. Never run Git or discover paths solely for moldea. Without paths, abstain.
 
 Encode each ordinary path's UTF-8 bytes followed by one NUL, never a leading delimiter, and pass the evaluated batch:
 

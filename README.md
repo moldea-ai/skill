@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The current release is `5.0.11`. Install the latest version from `main` inside each repository that will use it:
+The current release is `5.0.12`. Install the latest version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.11"
+npx skills add "moldea-ai/skill#v5.0.12"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -30,7 +30,7 @@ The skill helps a coding agent:
 - keep affected canonical knowledge aligned with implementation work
 - evaluate, reconcile, repair, and structurally validate established state
 
-After initialization, ask naturally to plan, build, review, or maintain AI agents. You do not need to name `moldea`, know its paths, or create bindings first. Ordinary engineering continues normally unless it concerns canonical state, the managed README block, a declared relationship, or an explicit `moldea` operation. When ordinary work expands to newly discovered paths, the coding agent checks those paths once at an existing scope checkpoint and preserves earlier matched owners. Only explicit initialization creates a new setup.
+After initialization, ask naturally to plan, build, review, or maintain AI agents. Established project facts, approved policies, clear corrections, and project-context questions also receive bounded assessment without naming `moldea` or a file. Ordinary implementation requirements still use declared relationships, even when their effects will persist. When ordinary work expands to newly discovered paths, the coding agent checks those paths once at an existing scope checkpoint and preserves earlier matched owners. Only explicit initialization creates a new setup.
 
 ### Common requests
 
@@ -67,7 +67,7 @@ Evaluation is read-only. Repair corrects established errors without inventing po
 
 ## Compatibility
 
-Release `5.0.11` supports exactly:
+Release `5.0.12` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -82,7 +82,9 @@ The CLI must be a repository-root-local development dependency whose manifest de
 
 Initialization creates the minimum canonical foundation and uses the bundled deterministic writer to manage one README awareness block. That block tells repository-aware hosts to select the installed skill so its two-byte relevance gate can check known task paths. Selection is only a discovery bridge: a gate miss continues the host task without a CLI call, workflow-reference load, progress update, or final-report mention.
 
-After adoption, clear AI-agent planning, creation, runtime integration, behavior maintenance, or review uses the adoption-only route. Explicit `moldea` operations, canonical paths, and changes inside the managed README block also activate directly. Other known task paths use declared relationship matching. Host planning, review, commit, and publication workflows keep control of their own procedures. Generic documentation, context, SDK, product-name, or agent terminology does not activate the skill by itself.
+After adoption, clear AI-agent work and concrete project-level context use the adoption-only route. Explicit `moldea` operations, canonical paths, and changes inside the managed README block also activate directly. Other known task paths use declared relationship matching. Host planning, review, commit, and publication workflows keep control of their own procedures. Generic terminology, pasted proposals, temporary status, and lasting code changes alone do not establish direct relevance. Irrelevant work receives no moldea announcement or status.
+
+Informational handoffs and read-only questions permit assessment, not automatic writes. A clear correction to established project truth authorizes its minimal canonical update after adoption and ownership checks, unless the request is read-only. Authorized updates preserve unrelated state and end with validation; they do not authorize implementation changes or broad context discovery.
 
 The entrypoint keeps routing and essential boundaries compact. It loads only the operation-specific references needed for the selected work. Complete unchanged instructions may be reused while available; missing instructions after compaction must be read again, and summaries never replace instructions, repository evidence, or authorization. See the [workflow reference](docs/how-it-works.md) and [reference-reading checks](docs/reference-reading.md).
 
@@ -176,7 +178,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-Release `5.0.11` uses tag `v5.0.11` as a prelaunch skill release without selected semantic or qualification evidence. Its tagged conformance checks release identity and portable behavior. It does not qualify the production website or satisfy `npm run release:check`, which remains the evidence-backed release check. See [Release evidence](docs/release-evidence.md) for the exact workflows.
+During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluations and adapter qualifications are separate evidence-backed assurance; a passing tag does not establish them. Release `5.0.12` has no selected evidence and does not qualify the production website or satisfy `npm run release:check`. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
 ## License
 

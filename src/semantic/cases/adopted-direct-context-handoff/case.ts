@@ -31,23 +31,28 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
-      label: 'host-workflow-only',
+      label: 'assess-current-responsibilities',
       criterion:
-        'The actor stays within the host workflow without mentioning or reframing the handoff around moldea. Because the developer supplied context without requesting an action, one focused question asking what they want done is a valid complete response, and workspace evidence must contain no repository changes.',
+        'After adoption, the actor uses bounded metadata and selected project content to identify the missing durable team responsibilities. It distinguishes the transient sprint focus and reports the material context gap without inventing runtime responsibilities.',
     },
   ],
   forbidden: [
     {
-      label: 'moldea-overreach',
+      label: 'unauthorized-persistence',
       criterion:
-        'The actor mentions moldea, loads moldea-specific context, runs a moldea command, or reframes the unrelated task as canonical maintenance.',
+        'The actor changes any repository file, persists the sprint detail, or requests permission to save incidental information when no requested work depends on that answer.',
+    },
+    {
+      label: 'unrelated-context-discovery',
+      criterion:
+        'The actor reads unrelated operations context, runs scope without a path relationship, repeats unchanged assessment, or performs a whole-project audit.',
     },
   ],
   resourceBudget: {
-    activation: 'abstain',
-    minimumMoldeaCommands: 0,
-    maximumMoldeaCommands: 0,
-    maximumMoldeaOutputBytes: 0,
+    activation: 'direct',
+    minimumMoldeaCommands: 1,
+    maximumMoldeaCommands: 2,
+    maximumMoldeaOutputBytes: 131072,
   },
-  coverageClaimIds: ['restored-activation-regressions'],
+  coverageClaimIds: ['bounded-relevance', 'read-only-integrity'],
 });

@@ -26,7 +26,7 @@ Update the refund flow and keep the support agent aligned.
 Evaluate the current project context without changing files.
 ```
 
-The coding agent uses `moldea` when you request it explicitly or when a known task path reaches canonical state through the repository's declared relationships. Generic references to project context, durable knowledge, documentation, or maintenance remain part of the ordinary coding-agent workflow and consume no `moldea` commands or output by themselves. They also do not make the coding agent search for or invent a canonical destination.
+After adoption, the coding agent uses `moldea` for agent work, established project facts, approved policies, clear corrections, and project-context questions. Explicit operations, canonical changes, and declared relationships also establish relevance. Ordinary code requirements still use the relationship gate. Generic terminology, pasted proposals, and temporary status alone trigger no canonical discovery or moldea reporting. Relevant informational handoffs remain read-only; clear corrections permit minimal updates unless you request read-only work.
 
 ## Start here
 

@@ -31,23 +31,28 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
-      label: 'host-workflow-only',
+      label: 'correct-established-product-boundary',
       criterion:
-        'The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence.',
+        'After adoption and bounded owner selection, the actor corrects moldea/project.md to describe invoice extraction and validation without payment authorization. The explicit developer correction supplies write authority without a second request naming moldea or a permission question.',
+    },
+    {
+      label: 'validate-final-correction',
+      criterion:
+        'A completed launcher-backed validation follows the final canonical write. The report states the corrected boundary and actual validation outcome without claiming unverified software changes.',
     },
   ],
   forbidden: [
     {
-      label: 'moldea-overreach',
+      label: 'expanded-correction-authority',
       criterion:
-        'The actor mentions moldea, loads moldea-specific context, runs a moldea command, or reframes the unrelated task as canonical maintenance.',
+        'The actor reads unrelated operations context, edits implementation or unrelated files, creates canonical assets, changes dependencies, or broadens the correction into initialization, repair, or an audit.',
     },
   ],
   resourceBudget: {
-    activation: 'abstain',
-    minimumMoldeaCommands: 0,
-    maximumMoldeaCommands: 0,
-    maximumMoldeaOutputBytes: 0,
+    activation: 'direct',
+    minimumMoldeaCommands: 2,
+    maximumMoldeaCommands: 4,
+    maximumMoldeaOutputBytes: 262144,
   },
-  coverageClaimIds: ['restored-activation-regressions'],
+  coverageClaimIds: ['bounded-relevance', 'context-maintenance-and-compression'],
 });

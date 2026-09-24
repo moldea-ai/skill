@@ -1,6 +1,6 @@
 # Agent Skill design
 
-Read this reference after selecting independent Agent Skill artifact work or establishing moldea relevance for a registered relationship.
+Read this reference after selecting independent Agent Skill artifact work or establishing direct or relationship-based moldea relevance.
 
 For an independent artifact, stop before repository gating. Explicit moldea wording is already consumed by this route: never invoke the relevance gate or any moldea CLI operation, and never inspect the surrounding moldea repository for additional authority.
 
@@ -12,9 +12,9 @@ Keep skill-owned activation and workflow in the skill. Keep repository policy, p
 
 Resolve every linked resource from the skill root. Use the correct relative path from `SKILL.md` to each repository-owned file, then verify that the normalized target exists and remains inside the repository.
 
-Independent Agent Skill work is artifact-owned before repository gating. When supplied artifact or host evidence establishes the skill boundary and the operation does not separately change `/moldea/**` or a declared relationship, do not run a moldea gate or CLI command. Use only the independent validator and focused behavioral evidence, including after edits; a surrounding repository manifest adds no relevant fact and does not justify an appended moldea validation result.
+Independent Agent Skill work is artifact-owned before repository gating. When supplied evidence establishes an artifact-only boundary, do not run a moldea gate or CLI command. Use only the independent validator and focused behavioral evidence, including after edits; a surrounding repository manifest adds no relevant fact. When the conversation independently establishes project truth or asks about project-context ownership, follow the entrypoint's shared direct route and `context-gathering.md`; do not assume artifact-only scope or copy project policy into the skill.
 
-For a read-only Agent Skill evaluation, this reference owns the operation. Do not run any moldea CLI operation or inspect or validate the surrounding moldea repository. Report structural validity only from the evaluated artifact and its linked resources.
+For a read-only independent Agent Skill evaluation, this reference owns the operation. Do not run any moldea CLI operation or inspect or validate the surrounding moldea repository. Report structural validity only from the evaluated artifact and its linked resources.
 
 ## Design the entrypoint
 

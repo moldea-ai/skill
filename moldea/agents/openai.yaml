@@ -1,6 +1,6 @@
 interface:
   display_name: 'moldea'
-  short_description: 'Maintain grounded AI agents and project context'
-  default_prompt: 'Use $moldea to help with the agent or project-context task we are discussing, within its authorized scope.'
+  short_description: 'Maintain grounded agents, skills, and project context'
+  default_prompt: 'Use $moldea to assess the agent, skill, or project-context change we are discussing and complete only authorized updates.'
 policy:
   allow_implicit_invocation: true

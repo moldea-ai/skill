@@ -13,7 +13,7 @@ Start with [How `moldea` works](/how-it-works/) for a visual walkthrough of one 
 The normal experience has three steps:
 
 1. You describe the outcome to your coding agent.
-2. The managed README block points your coding agent to the installed skill. The skill recognizes agent-work intent from your conversation and checks initialization. Other tasks use a small local relationship check.
+2. The managed README block points your coding agent to the installed skill. Agent work and concrete project-level context use an adoption check. Ordinary implementation tasks use a small local relationship check.
 3. The coding agent returns the implementation, analysis, or plan with an evidence-based report.
 
 There is no separate `moldea` chat surface to operate.
@@ -22,14 +22,16 @@ There is no separate `moldea` chat surface to operate.
 
 The coding agent can activate the skill in four ways:
 
-- **Direct activation:** after initialization, you ask to plan, build, review, or maintain AI agents, or request a specific `moldea` operation. Normal conversation is enough, even before the first agent or binding exists. Initialization itself requires an explicit request.
+- **Direct activation:** after initialization, you ask to plan, build, review, or maintain AI agents, establish a project fact or policy, supply a clear correction, ask about project-context ownership, or request a specific `moldea` operation. The project-level meaning must be evident from the conversation independently of any code edit. Initialization itself requires an explicit request.
 - **Canonical activation:** the task changes a path under `/moldea/**`.
 - **Managed README activation:** a changed README hunk intersects the content between the full-line `moldea` markers.
 - **Declared-relationship activation:** in an adopted repository, a known task path exactly matches a binding or `affectedBy` declaration. The initial check combines exact repository paths explicitly named or targeted by the developer, whether changed or unchanged, with changed paths already established by the host. At an existing scope checkpoint, a materially new path independently discovered during the task gets one new-batch check; unchanged paths reuse the earlier decision. A new-batch miss leaves earlier matched owners in place.
 
 You do not need special commands or `moldea` terminology. A follow-up continues the active task within its existing authorization; it does not activate from a particular phrase. Changing the subject resets that relevance. Unclear intent does not grant permission to write.
 
-Generic context, documentation, architecture, SDK installation alone, and incidental mentions of agents do not activate agent work. Host command names alone do not activate it either. The README selects the entrypoint, not the workflow: direct agent work uses the adoption-only check; other known paths use relationship matching. A non-match continues the host task silently, without workflow references, CLI calls, or `moldea` reporting. Explicit initialization creates the foundation. An explicit setup validation, evaluation, or inspection request can diagnose a failed adoption check with bounded read-only foundation inspection. An explicit [project-repair request](/docs/evaluate-reconcile-validate/#repair-a-project) may restore established prior state, but cannot silently initialize. Other repository-dependent operations require the complete foundation and owned README block. Selection alone grants no write permission.
+Generic terminology, SDK installation, incidental agent or host command names, pasted proposals, and temporary status do not establish direct relevance. A lasting code requirement such as changing a scheduler interval still uses relationship matching. A miss cannot be bypassed because unknown context might be affected. The README selects the entrypoint, not the workflow: direct work checks adoption; other known paths check relationships. A non-match continues silently, without workflow references, CLI calls, or `moldea` reporting. Explicit initialization creates the foundation. An explicit setup check can diagnose a failed adoption gate with bounded read-only foundation inspection. An explicit [project-repair request](/docs/evaluate-reconcile-validate/#repair-a-project) may restore established prior state but cannot silently initialize. Other repository-dependent operations require the complete foundation and owned README block.
+
+Relevant informational handoffs, feedback reviews, and read-only planning remain read-only. An unambiguous correction to established project truth authorizes its minimal canonical update after adoption and ownership checks, without another request naming moldea. Explicit read-only constraints still apply. Proposals and intended policies are not represented as already implemented behavior.
 
 ## Operation selection
 
@@ -55,6 +57,8 @@ The coding agent begins with high-information repository evidence and follows ma
 Code proves current behavior and instructions declare model-facing behavior, but neither selects intended policy. Tests, schemas, context, decisions, runtime guidance, and developer direction answer other questions. Reconciliation, validation, and mirror synchronization cannot choose truth merely by making surfaces match.
 
 Before a semantic write, the coding agent directly establishes adoption, inspects high-information evidence, classifies the relevant claims, and confirms authority for the exact change. Insufficient foundations and unexplained conflicts stop before dependencies or canonical state change.
+
+Conversational assessment reuses known owners or bounded content-free inventory, then reads only selected content. New facts do not reset the shared command and output budgets. Already assessed unchanged facts are reused; there is no background scan or separate classification call.
 
 ## Deterministic local tooling
 

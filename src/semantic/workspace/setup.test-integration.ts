@@ -20,6 +20,7 @@ const GATE_PATH = resolve(
   'scripts',
   'relevance-gate.mjs',
 );
+const LAUNCHER_PATH = resolve(import.meta.dirname, '../../../moldea/scripts/moldea-cli.mjs');
 const MANAGED_BLOCK_PATH = resolve(
   import.meta.dirname,
   '..',
@@ -40,11 +41,20 @@ afterEach(() => {
   for (const root of temporaryRoots.splice(0)) rmSync(root, { force: true, recursive: true });
 });
 
-const materializeCase = async (caseId: string) => {
+const materializeCase = async (caseId: string, withGitBaseline = false) => {
   const caseDefinition = cases.find(({ id }) => id === caseId);
   assert.ok(caseDefinition, `Missing semantic case ${caseId}.`);
   const root = mkdtempSync(join(tmpdir(), 'moldea-setup-'));
   temporaryRoots.push(root);
+  if (withGitBaseline) {
+    const { repositoryPath } = await createActorRepository(
+      root,
+      caseDefinition,
+      join(root, 'sandbox-home'),
+      join(root, 'actor-tools'),
+    );
+    return { caseDefinition, repositoryPath };
+  }
   const repositoryPath = join(root, 'actor');
   mkdirSync(repositoryPath);
   const setupResult = await caseDefinition.setup?.({
@@ -68,6 +78,82 @@ const gateResult = (repositoryPath: string, paths: string[], isAdoptionOnly = fa
   assert.equal(result.stderr, '');
   return result.stdout;
 };
+
+const launcherOutput = (repositoryPath: string, operation: string[]): string => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      LAUNCHER_PATH,
+      '--repository',
+      repositoryPath,
+      '--',
+      ...operation,
+      '--json',
+      '--max-output-bytes',
+      '65536',
+    ],
+    { encoding: 'utf8', maxBuffer: 65536 },
+  );
+  if (result.error) throw result.error;
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.equal(result.stderr, '');
+  assert.ok(Buffer.byteLength(result.stdout, 'utf8') <= 65536);
+  return result.stdout;
+};
+
+test.each([
+  'adopted-direct-context-handoff',
+  'adopted-explicit-context-correction',
+  'readonly-context-correction',
+  'approved-context-change',
+  'skill-ownership-followup',
+  'skill-independent-followup',
+  'editorial-feedback-information',
+])('%s has bounded discoverable context without path-based activation', async (caseId) => {
+  const { repositoryPath } = await materializeCase(caseId, true);
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
+  assert.equal(
+    gateResult(repositoryPath, [
+      '/src/project-state.js',
+      '/src/cleanup-scheduler.js',
+      '/skills/reddit-review/SKILL.md',
+    ]),
+    '0\n',
+  );
+  const inventory = launcherOutput(repositoryPath, ['inspect']);
+  assert.ok(inventory.includes('/moldea/project.md'));
+  assert.ok(inventory.includes('/moldea/context/operations.md'));
+  assert.equal(inventory.includes('The operations team owns'), false);
+  const selectedPath =
+    caseId.startsWith('skill-') || caseId === 'editorial-feedback-information'
+      ? '/moldea/context/editorial-policy.md'
+      : '/moldea/project.md';
+  const selectedContent = launcherOutput(repositoryPath, ['content', '--path', selectedPath]);
+  assert.ok(selectedContent.includes(selectedPath));
+  assert.equal(selectedContent.includes('The operations team owns'), false);
+  if (selectedPath.endsWith('editorial-policy.md')) {
+    assert.ok(selectedContent.includes('disclose commercial relationships'));
+    assert.equal(gateResult(repositoryPath, ['/skills/reddit-review/SKILL.md']), '0\n');
+  } else if (caseId.includes('correction')) {
+    assert.ok(selectedContent.includes('authorizes payment decisions'));
+  } else if (caseId === 'approved-context-change') {
+    assert.ok(selectedContent.includes('60-minute interval'));
+    assert.match(
+      readFileSync(join(repositoryPath, 'src', 'cleanup-scheduler.js'), 'utf8'),
+      /=> 60/u,
+    );
+  } else {
+    assert.ok(selectedContent.includes('extracts and validates invoice data'));
+    assert.equal(selectedContent.includes('production access'), false);
+    assert.equal(selectedContent.includes('dashboard filters'), false);
+  }
+});
+
+test('an unadopted conversational handoff has no canonical foundation', async () => {
+  const { repositoryPath } = await materializeCase('unadopted-direct-context-handoff');
+  assert.equal(gateResult(repositoryPath, [], true), '0\n');
+  assert.equal(existsSync(join(repositoryPath, 'moldea')), false);
+});
 
 test('bound maintenance has an exact relationship and stale architecture context', async () => {
   const { repositoryPath } = await materializeCase('bound-context-maintenance');

@@ -1,6 +1,6 @@
 # Initialization and maintenance
 
-Read this reference after explicit initialization intent or established post-adoption relevance for authorized canonical synchronization.
+Read this reference after explicit initialization intent or established post-adoption relevance for context assessment or authorized canonical synchronization.
 
 ## Adoption
 
@@ -48,10 +48,14 @@ Do not validate a partial foundation. Write `/moldea/moldea.yaml` and `/moldea/p
 
 ## Maintain owned truth
 
+Relevance permits bounded assessment, not automatic persistence. Informational handoffs, feedback reviews, and read-only planning remain read-only; retain necessary maintenance obligations in the host's existing plan or handoff. An unambiguous developer correction to established project truth authorizes the minimal update to its existing canonical owner after adoption and ownership are established. No second request naming moldea or ceremonial confirmation is needed. An explicit read-only constraint still forbids writes. Correction authority does not extend to implementation changes, initialization, repair, new canonical assets, or a broader audit.
+
+A developer can select intended policy without proving that software already implements it. Preserve that distinction, proposals, and unresolved factual conflicts. Apply the existing authority rules instead of guessing. Do not ask whether incidental information should be saved unless the answer is necessary for the requested work.
+
 For an authorized relevant change:
 
-1. Reuse the host task's exact paths and hunks.
-2. Identify canonical owners from direct paths and valid `scope` results for the task's covered path batches.
+1. Reuse the host task's established facts, decisions, exact paths, and hunks.
+2. Identify canonical owners from direct paths, bounded conversational assessment, or valid `scope` results for the task's covered path batches.
 3. Read only the owner and the relevant implementation or consumer.
 4. Update the smallest coherent set of canonical declarations, mirrors, requirements, and documentation.
 5. Preserve unrelated canonical content and developer work.

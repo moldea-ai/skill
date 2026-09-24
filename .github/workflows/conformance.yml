@@ -77,14 +77,6 @@ jobs:
         env:
           MOLDEA_RELEASE_TAG: ${{ github.ref_name }}
         run: npm run release:identity:check
-      - name: Prepare selected release evidence
-        if: github.ref_type == 'tag' && github.ref_name != 'v5.0.11'
-        run: npm run evidence:prepare
-      - name: Check tagged release identity and selected evidence
-        if: github.ref_type == 'tag' && github.ref_name != 'v5.0.11'
-        env:
-          MOLDEA_RELEASE_TAG: ${{ github.ref_name }}
-        run: node src/release/check.ts
       - name: Install and compare the portable artifact
         env:
           SKILLS_TEST_HOME: ${{ runner.temp }}/skills-home

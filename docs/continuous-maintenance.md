@@ -14,17 +14,19 @@ After a repository adopts `moldea`, you should not need to append “and update 
 Add manager approval to refunds over $500.
 ```
 
-The coding agent recognizes that the change may affect the support agent, a repository-local Agent Skill, refund context, authorization rules, capability semantics, schemas, or tests. It traces those relationships and updates only the surfaces whose established truth changed. If implementation later reveals a materially new path, it checks that path at an existing scope checkpoint and carries any newly matched owner into completion. It does not repeatedly check unchanged paths.
+The coding agent checks known implementation paths against declared relationships and updates selected owners whose established truth changed. A lasting code change alone does not justify searching unknown context. If implementation later reveals a materially new path, it checks that path at an existing scope checkpoint and carries any newly matched owner into completion. It does not repeatedly check unchanged paths or announce moldea on a miss.
 
-## Maintain project knowledge explicitly
+## Maintain project knowledge from conversation
 
-You can provide current project knowledge as part of an explicit `moldea` maintenance request:
+Concrete project facts, approved policies, clear corrections, and project-context questions can establish relevance without special wording:
 
 ```text
-Update moldea with this current ownership boundary: Platform owns the application runtime and delivery pipeline. Security approves production access.
+The current ownership boundary is outdated: Platform owns the application runtime and delivery pipeline. Security approves production access.
 ```
 
-The same explicitly requested handoff can arrive as YAML or JSON, an answer to a focused `moldea` question, a terse ownership or approval table, or an accessible project file. Format does not determine whether a claim becomes canonical and generic knowledge alone does not activate the skill. The coding agent checks `/moldea/moldea.yaml`, `/moldea/project.md`, and the README marker directly before classifying adoption. A project is adopted only when the complete canonical foundation and owned README awareness block are directly established. Partial or inconsistent artifacts remain unadopted: the coding agent names the exact existing artifacts and missing contract elements, preserves existing content, and does not initialize or repair over them without explicit authority and resolved semantics. Once adoption is established, it selects the smallest canonical surface and evaluates the handoff claim by claim, separating durable current truth and explicit corrections from proposals, transient details, speculation, secrets, and unnecessary personal information. If a direct agent or runtime maintenance request does not name the canonical owner, one content-free inspection may resolve that owner and its declared mirrors before the coding agent reads and updates the selected canonical content.
+The same information can arrive as YAML or JSON, a focused answer, or an accessible project source. Format alone does not establish relevance or write authority. The project-level meaning must already be clear from the conversation; a task-local code requirement, uncertain table, or pasted suggestion is insufficient. The coding agent reuses current adoption evidence or runs the bundled adoption-only gate. A miss does not authorize discovery, initialization, or repair. Explicit setup checks retain their bounded diagnostic route.
+
+After adoption, the coding agent reuses known owners or bounded content-free inventory and reads only the smallest relevant content. Informational handoffs, feedback reviews, and read-only planning remain read-only. An unambiguous correction to established project truth authorizes the minimal update to its existing canonical owner without another permission request. That authority does not include software changes, new canonical assets, or a wider audit. A selected policy is not proof of implemented behavior. Unchanged facts and owners are reused, and new information does not reset the shared resource limits.
 
 When a new claim materially conflicts with established context, its format or bare assertion does not authorize replacement. The coding agent proceeds only when you clearly identify a correction or reliable evidence resolves the conflict; otherwise it asks one focused question that distinguishes whether the claim replaces current state or describes a proposed or future state. It writes nothing before the answer. After an explicit correction, the completion report states the corrected boundary and resulting current truth without unnecessarily repeating obsolete wording. An explicitly read-only request remains read-only, and incidental knowledge never initializes an unrelated repository.
 
@@ -70,7 +72,7 @@ Compression is limited to repository-owned context. It does not manage host cont
 
 ## Adoption remains explicit
 
-The skill loads only after an explicit, canonical, managed-README, or declared-relationship activation path is established. Loading does not adopt `moldea` or authorize persistence. Adoption intent is established by explicit developer direction or current authorized work introducing canonical state. Adoption itself is derived only after the complete canonical contract exists.
+The README may select the entrypoint before relevance is known. Further moldea work requires direct project or agent relevance, an explicit operation, canonical or managed-README work, or a declared relationship. Selection does not adopt `moldea` or authorize persistence. Initialization requires explicit developer intent, and adoption is established only by the complete canonical contract.
 
 If the developer prohibits corresponding `moldea` changes, the coding agent respects that scope, completes the authorized implementation, reports likely drift, and does not claim alignment. If an explicit `moldea` request targets an unadopted repository without authorizing initialization, the coding agent does not persist the knowledge and explains that initialization remains a separate explicit operation. Unrelated work receives no adoption recommendation or `moldea` report.
 

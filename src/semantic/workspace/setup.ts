@@ -1187,6 +1187,38 @@ const seedActivationMaintenanceScenario = async (
   throw new Error(`Unsupported activation-maintenance case ${caseId}.`);
 };
 
+/** Seeds selected and unrelated context without relationships that could explain activation. */
+const seedConversationalContext = async (
+  repositoryPath: string,
+  projectContent: string,
+): Promise<void> => {
+  await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', 'version: 1\n');
+  await writeScenarioFile(repositoryPath, 'moldea/project.md', projectContent);
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/context/operations.md',
+    '# Operations\n\nThe operations team owns the service availability reports.\n',
+  );
+};
+
+/** Seeds the same editorial project for policy and artifact-only conversation controls. */
+const seedEditorialContext = async (repositoryPath: string): Promise<void> => {
+  await seedConversationalContext(
+    repositoryPath,
+    '# Editorial project\n\nThis project produces commercial editorial content. Editorial policy lives in /moldea/context/editorial-policy.md.\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/context/editorial-policy.md',
+    '# Editorial policy\n\nPublished content must make supported claims and disclose commercial relationships.\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'skills/reddit-review/SKILL.md',
+    '---\nname: reddit-review\ndescription: Review Reddit drafts for factual support, disclosure, and useful feedback.\n---\n\n# Reddit review\n\nCheck the draft against the supplied brief. Report concrete issues in priority order with the relevant quotation.\n',
+  );
+};
+
 /** Materializes scenario claims as repository evidence before the baseline commit. */
 const seedScenarioRepository = async (
   repositoryPath: string,
@@ -1299,12 +1331,34 @@ const seedScenarioRepository = async (
         '# Evaluation project\n\nThis synthetic project exercises local `moldea` maintenance behavior. Finance currently owns refund approval.\n',
       );
       break;
-    case 'adopted-explicit-context-correction':
-      await writeScenarioFile(
+    case 'adopted-direct-context-handoff':
+      await seedConversationalContext(
         repositoryPath,
-        'moldea/project.md',
+        '# Invoice service\n\nThis service extracts and validates invoice data for accounting systems.\n',
+      );
+      break;
+    case 'adopted-explicit-context-correction':
+    case 'readonly-context-correction':
+      await seedConversationalContext(
+        repositoryPath,
         '# Evaluation project\n\nThis invoice-processing service extracts invoice data for accounting systems and authorizes payment decisions.\n',
       );
+      break;
+    case 'approved-context-change':
+      await seedConversationalContext(
+        repositoryPath,
+        '# Document service\n\nThis project stores customer documents. Project cleanup policy allows a fixed 60-minute interval in every service.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/cleanup-scheduler.js',
+        'export const cleanupIntervalMinutes = () => 60;\n',
+      );
+      break;
+    case 'skill-ownership-followup':
+    case 'skill-independent-followup':
+    case 'editorial-feedback-information':
+      await seedEditorialContext(repositoryPath);
       break;
     case 'adopted-relevance-changed-behavior':
       await seedRefundAgent(

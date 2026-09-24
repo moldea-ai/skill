@@ -82,6 +82,20 @@ type IPublishedCliManifest = z.infer<typeof PublishedCliManifestSchema>;
 type IUpdatedRootManifests = { packageLock: string; packageManifest: string };
 type IReleaseFiles = ReadonlyMap<string, string>;
 
+// range anchors in release-managed text
+const CLI_RANGE_MARKERS = [
+  '@moldea.ai/cli',
+  'cliVersionRange',
+  'EXPECTED_CLI_RANGE',
+  'CLI ',
+] as const;
+const CORE_RANGE_MARKERS = [
+  '@moldea.ai/core',
+  'coreVersionRange',
+  'SUPPORTED_CORE_RANGE',
+  'Core ',
+] as const;
+
 const parseJson = (source: string, label: string): unknown => {
   try {
     return JSON.parse(source) as unknown;
@@ -115,43 +129,48 @@ const resolveNextCoreVersionRange = ({
     ? parseCompatibleStableRange(previousRange)
     : nextCliCoreRange;
 
-/** Replaces only portable CLI/Core major-range references. */
-const replaceCompatibleRangeReferences = ({
+/** Replaces the first range belonging to a named contract on each line. */
+const replaceRangeReferences = ({
   content,
-  nextCliRange,
-  nextCoreRange,
-  previousCliRange,
-  previousCoreRange,
+  markers,
+  nextRange,
+  previousRange,
 }: {
   content: string;
-  nextCliRange: string;
-  nextCoreRange: string;
-  previousCliRange: string;
-  previousCoreRange: string;
+  markers: readonly string[];
+  nextRange: string;
+  previousRange: string;
 }): string => {
-  const previousCliMajor = previousCliRange.slice(1).split('.')[0];
-  const nextCliMajor = nextCliRange.slice(1).split('.')[0];
-
   return content
     .split('\n')
     .map((line) => {
-      let updatedLine = line;
-      if (
-        line.includes('@moldea.ai/cli') ||
-        line.includes('cliVersionRange') ||
-        line.includes('EXPECTED_CLI_RANGE') ||
-        line.includes('CLI ')
-      ) {
-        updatedLine = updatedLine
-          .replaceAll(previousCliRange, nextCliRange)
-          .replaceAll(`CLI ${previousCliMajor}`, `CLI ${nextCliMajor}`);
-      }
-      if (line.includes('@moldea.ai/core')) {
-        updatedLine = updatedLine.replaceAll(previousCoreRange, nextCoreRange);
-      }
-      return updatedLine;
+      const marker = markers.find((candidate) => line.includes(candidate));
+      if (marker === undefined) return line;
+      const rangeIndex = line.indexOf('^', line.indexOf(marker) + marker.length);
+      if (rangeIndex < 0 || !line.startsWith(previousRange, rangeIndex)) return line;
+      return `${line.slice(0, rangeIndex)}${nextRange}${line.slice(rangeIndex + previousRange.length)}`;
     })
     .join('\n');
+};
+
+/** Replaces portable CLI range and major references without touching Core ranges. */
+const replaceCliRangeReferences = ({
+  content,
+  nextCliRange,
+  previousCliRange,
+}: {
+  content: string;
+  nextCliRange: string;
+  previousCliRange: string;
+}): string => {
+  const previousCliMajor = previousCliRange.slice(1).split('.')[0];
+  const nextCliMajor = nextCliRange.slice(1).split('.')[0];
+  return replaceRangeReferences({
+    content,
+    markers: CLI_RANGE_MARKERS,
+    nextRange: nextCliRange,
+    previousRange: previousCliRange,
+  }).replaceAll(`CLI ${previousCliMajor}`, `CLI ${nextCliMajor}`);
 };
 
 const updateConformanceCases = ({
@@ -437,12 +456,10 @@ export const createCliReleaseUpdate = ({
     const currentContent = requireFile(currentFiles, relativePath);
     updatedFiles.set(
       relativePath,
-      replaceCompatibleRangeReferences({
+      replaceCliRangeReferences({
         content: currentContent,
         nextCliRange,
-        nextCoreRange,
         previousCliRange,
-        previousCoreRange,
       }),
     );
   }
@@ -450,7 +467,12 @@ export const createCliReleaseUpdate = ({
     const currentContent = requireFile(updatedFiles, relativePath);
     updatedFiles.set(
       relativePath,
-      currentContent.replaceAll(previousSupportedCoreRange, nextSupportedCoreRange),
+      replaceRangeReferences({
+        content: currentContent,
+        markers: CORE_RANGE_MARKERS,
+        nextRange: nextSupportedCoreRange,
+        previousRange: previousSupportedCoreRange,
+      }),
     );
   }
   const previousCliJsonSchemaVersion = currentPackageManifest.moldeaRelease?.cliJsonSchemaVersion;

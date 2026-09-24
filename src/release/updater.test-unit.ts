@@ -6,6 +6,7 @@ import { z } from 'zod';
 import {
   CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
   CLI_VERSION_RANGE_TEXT_PATHS,
+  CORE_VERSION_RANGE_TEXT_PATHS,
   RELEASE_PATHS,
 } from './constants.ts';
 import { createCliReleaseUpdate } from './updater.ts';
@@ -31,7 +32,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   const currentFiles = new Map<string, string>(
     CLI_VERSION_RANGE_TEXT_PATHS.map((relativePath) => [
       relativePath,
-      `${relativePath}: @moldea.ai/cli ^6.0.0\n${relativePath}: CLI 6\n${relativePath}: Yarn 6.0.0\n${relativePath}: @moldea.ai/core ^2.0.0\n${relativePath}: unrelated-package ^6.0.0\n`,
+      `${relativePath}: @moldea.ai/cli ^6.0.0\n${relativePath}: CLI 6\n${relativePath}: Yarn 6.0.0\n${relativePath}: @moldea.ai/core ^2.0.1\n${relativePath}: unrelated-package ^6.0.0\n`,
     ]),
   );
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
@@ -131,9 +132,12 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
     if (relativePath === RELEASE_PATHS.skillRepositoryPackage) continue;
     assert.match(getUpdated(relativePath), /@moldea\.ai\/cli \^7\.0\.0/u);
     assert.match(getUpdated(relativePath), /CLI 7/u);
-    assert.match(getUpdated(relativePath), /@moldea\.ai\/core \^3\.0\.1/u);
     assert.match(getUpdated(relativePath), new RegExp(`${relativePath}: Yarn 6\\.0\\.0`));
     assert.match(getUpdated(relativePath), /unrelated-package \^6\.0\.0/u);
+  }
+  for (const relativePath of CORE_VERSION_RANGE_TEXT_PATHS) {
+    if (relativePath === RELEASE_PATHS.skillRepositoryPackage) continue;
+    assert.match(getUpdated(relativePath), /@moldea\.ai\/core \^3\.0\.1/u);
   }
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
     assert.match(getUpdated(relativePath), /CLI JSON schema `4`/u);
@@ -196,7 +200,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
 });
 
 test('createCliReleaseUpdate preserves portable ranges for a same-major patch', () => {
-  const portableText = '@moldea.ai/cli ^7.0.0\nCLI 7\n@moldea.ai/core ^3.0.0\n';
+  const portableText = '@moldea.ai/cli ^7.0.0\nCLI 7\n@moldea.ai/core ^3.0.1\n';
   const currentFiles = new Map<string, string>(
     CLI_VERSION_RANGE_TEXT_PATHS.map((relativePath) => [relativePath, portableText]),
   );
@@ -283,7 +287,7 @@ test('createCliReleaseUpdate preserves portable ranges for a same-major patch', 
     return content;
   };
 
-  for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {
+  for (const relativePath of CORE_VERSION_RANGE_TEXT_PATHS) {
     assert.match(getUpdated(relativePath), /@moldea\.ai\/core \^3\.0\.1/u);
   }
   const cases = ConformanceCasesSchema.parse(
@@ -295,4 +299,85 @@ test('createCliReleaseUpdate preserves portable ranges for a same-major patch', 
   assert.equal(packageManagerCase.input.cli.declaration, '^7.0.0');
   assert.equal(packageManagerCase.input.cli.installedVersion, '7.0.1');
   assert.equal(envelopeCase.input.output.cliVersion, '7.0.1');
+});
+
+test('createCliReleaseUpdate keeps coincident CLI and Core ranges independent', () => {
+  const portableText =
+    '@moldea.ai/core ^6.0.0, @moldea.ai/cli ^6.0.0\nCLI 6\nCLI JSON schema `4`\n';
+  const currentFiles = new Map<string, string>(
+    CLI_VERSION_RANGE_TEXT_PATHS.map((relativePath) => [relativePath, portableText]),
+  );
+  currentFiles.set(
+    'docs/compatibility-and-local-tooling.md',
+    `${portableText}The CLI declaration must satisfy ^6.0.0; installed Core must satisfy ^6.0.0\n`,
+  );
+  currentFiles.set(
+    RELEASE_PATHS.skill,
+    `${portableText}cliVersionRange: '^6.0.0'\ncoreVersionRange: '^6.0.0'\ncliJsonSchemaVersion: '4'\n`,
+  );
+  currentFiles.set(
+    RELEASE_PATHS.skillRepositoryPackage,
+    "const EXPECTED_CLI_RANGE = '^6.0.0';\nconst SUPPORTED_CORE_RANGE = '^6.0.0';\n",
+  );
+  currentFiles.set(
+    RELEASE_PATHS.packageManifest,
+    '{"moldeaRelease":{"cliJsonSchemaVersion":4,"coreVersionRange":"^6.0.0"}}\n',
+  );
+  currentFiles.set(RELEASE_PATHS.packageLock, '{}\n');
+  currentFiles.set(
+    RELEASE_PATHS.semanticCliManifest,
+    '{"dependencies":{"@moldea.ai/core":"^6.0.0"},"moldeaRelease":{"cliJsonSchemaVersion":4},"version":"6.0.0"}\n',
+  );
+  currentFiles.set(
+    RELEASE_PATHS.conformanceCases,
+    JSON.stringify({
+      cliEnvelopeCases: [
+        { id: 'schema-mismatch', input: { output: { cliVersion: '6.0.0', schemaVersion: 3 } } },
+        { id: 'version-mismatch', input: { output: { cliVersion: '7.0.0', schemaVersion: 4 } } },
+      ],
+      packageManagerCases: [],
+    }),
+  );
+
+  const update = (version: string, coreRange: string): Map<string, string> =>
+    createCliReleaseUpdate({
+      currentFiles,
+      previousCliVersion: '6.0.0',
+      publishedManifest: {
+        dependencies: { '@moldea.ai/core': coreRange },
+        jsonSchemaVersion: 4,
+        version,
+      },
+      updatedRootManifests: { packageLock: '{}\n', packageManifest: '{}\n' },
+    });
+  const cliMajorUpdate = update('7.0.0', '^6.0.0');
+  const coreMajorUpdate = update('6.0.1', '^7.0.0');
+
+  for (const relativePath of CORE_VERSION_RANGE_TEXT_PATHS) {
+    if (relativePath === RELEASE_PATHS.skillRepositoryPackage) continue;
+    assert.match(
+      cliMajorUpdate.get(relativePath) ?? '',
+      /@moldea\.ai\/core \^6\.0\.0, @moldea\.ai\/cli \^7\.0\.0/u,
+    );
+    assert.match(
+      coreMajorUpdate.get(relativePath) ?? '',
+      /@moldea\.ai\/core \^7\.0\.0, @moldea\.ai\/cli \^6\.0\.0/u,
+    );
+  }
+  assert.match(
+    cliMajorUpdate.get('docs/compatibility-and-local-tooling.md') ?? '',
+    /CLI declaration must satisfy \^7\.0\.0; installed Core must satisfy \^6\.0\.0/u,
+  );
+  assert.match(
+    coreMajorUpdate.get('docs/compatibility-and-local-tooling.md') ?? '',
+    /CLI declaration must satisfy \^6\.0\.0; installed Core must satisfy \^7\.0\.0/u,
+  );
+  assert.equal(
+    cliMajorUpdate.get(RELEASE_PATHS.skillRepositoryPackage),
+    "const EXPECTED_CLI_RANGE = '^7.0.0';\nconst SUPPORTED_CORE_RANGE = '^6.0.0';\n",
+  );
+  assert.equal(
+    coreMajorUpdate.get(RELEASE_PATHS.skillRepositoryPackage),
+    "const EXPECTED_CLI_RANGE = '^6.0.0';\nconst SUPPORTED_CORE_RANGE = '^7.0.0';\n",
+  );
 });

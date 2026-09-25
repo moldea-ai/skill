@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The current release is `5.0.12`. Install the latest version from `main` inside each repository that will use it:
+The current release is `5.0.13`. Install the latest version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release:
 
 ```bash
-npx skills add "moldea-ai/skill#v5.0.12"
+npx skills add "moldea-ai/skill#v5.0.13"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -67,7 +67,7 @@ Evaluation is read-only. Repair corrects established errors without inventing po
 
 ## Compatibility
 
-Release `5.0.12` supports exactly:
+Release `5.0.13` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -178,7 +178,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluations and adapter qualifications are separate evidence-backed assurance; a passing tag does not establish them. Release `5.0.12` has no selected evidence and does not qualify the production website or satisfy `npm run release:check`. See [Release evidence](docs/release-evidence.md) for the exact workflows.
+During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluations and adapter qualifications are separate evidence-backed assurance; a passing tag does not establish them. Release `5.0.13` has no selected evidence and does not qualify the production website or satisfy `npm run release:check`. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
 ## License
 

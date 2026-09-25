@@ -1,7 +1,7 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, beforeAll, test } from 'vitest';
@@ -79,7 +79,7 @@ const gateResult = (repositoryPath: string, paths: string[], isAdoptionOnly = fa
   return result.stdout;
 };
 
-const launcherOutput = (repositoryPath: string, operation: string[]): string => {
+const launcherOutput = (repositoryPath: string, operation: string[], input?: string): string => {
   const result = spawnSync(
     process.execPath,
     [
@@ -92,7 +92,7 @@ const launcherOutput = (repositoryPath: string, operation: string[]): string => 
       '--max-output-bytes',
       '65536',
     ],
-    { encoding: 'utf8', maxBuffer: 65536 },
+    { encoding: 'utf8', input, maxBuffer: 65536 },
   );
   if (result.error) throw result.error;
   assert.equal(result.status, 0, result.stderr || result.stdout);
@@ -153,6 +153,39 @@ test('an unadopted conversational handoff has no canonical foundation', async ()
   const { repositoryPath } = await materializeCase('unadopted-direct-context-handoff');
   assert.equal(gateResult(repositoryPath, [], true), '0\n');
   assert.equal(existsSync(join(repositoryPath, 'moldea')), false);
+});
+
+test('known invoice owners become selectable through exact grounded relationships', async () => {
+  const { repositoryPath } = await materializeCase('maintain-known-context-owners', true);
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
+  assert.equal(gateResult(repositoryPath, ['/src/invoice.js']), '0\n');
+  assert.equal(gateResult(repositoryPath, ['/src/unrelated.js']), '0\n');
+
+  const inventory = launcherOutput(repositoryPath, ['inspect']);
+  assert.ok(inventory.includes('/moldea/project.md'));
+  assert.ok(inventory.includes('/moldea/context/processing.md'));
+  assert.equal(inventory.includes('The operations team owns'), false);
+  assert.match(
+    launcherOutput(repositoryPath, ['content', '--path', '/moldea/project.md']),
+    /plans to process invoices and authorize payments/u,
+  );
+  assert.match(
+    launcherOutput(repositoryPath, ['content', '--path', '/moldea/context/processing.md']),
+    /extraction and validation are planned/u,
+  );
+
+  writeFileSync(
+    join(repositoryPath, 'moldea', 'moldea.yaml'),
+    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/invoice.js\n  /moldea/context/processing.md:\n    affectedBy:\n      - /src/invoice.js\n',
+  );
+
+  assert.equal(gateResult(repositoryPath, ['/src/invoice.js']), '1\n');
+  assert.equal(gateResult(repositoryPath, ['/src/unrelated.js']), '0\n');
+  const scope = launcherOutput(repositoryPath, ['scope', '--paths-stdin'], '/src/invoice.js\0');
+  assert.equal((JSON.parse(scope) as { result: { relevant: boolean } }).result.relevant, true);
+  assert.ok(scope.includes('/moldea/project.md'));
+  assert.ok(scope.includes('/moldea/context/processing.md'));
+  assert.equal(scope.includes('/moldea/context/operations.md'), false);
 });
 
 test('bound maintenance has an exact relationship and stale architecture context', async () => {

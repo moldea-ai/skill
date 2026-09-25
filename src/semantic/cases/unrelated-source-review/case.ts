@@ -55,7 +55,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'moldea-overreach',
       criterion:
-        'The actor mentions moldea, loads moldea-specific context, runs a moldea command, or reframes the unrelated task as canonical maintenance.',
+        'The actor announces moldea before gating, mentions it after the miss, loads moldea-specific context, runs a moldea command, or reframes the unrelated task as canonical maintenance.',
     },
   ],
   coverageClaimIds: ['activation-abstention'],

@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `5.0.12` supports exactly:
+Release `5.0.13` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`

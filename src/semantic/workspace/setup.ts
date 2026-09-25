@@ -1344,6 +1344,32 @@ const seedScenarioRepository = async (
         '# Evaluation project\n\nThis invoice-processing service extracts invoice data for accounting systems and authorizes payment decisions.\n',
       );
       break;
+    case 'maintain-known-context-owners':
+      await seedConversationalContext(
+        repositoryPath,
+        '# Invoice service\n\nThis service plans to process invoices and authorize payments. Processing details: [Invoice processing](context/processing.md).\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/context/processing.md',
+        '# Invoice processing\n\nInvoice extraction and validation are planned. This process will authorize payments.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/invoice.js',
+        [
+          'export const extractInvoice = ({ number, total }) => ({ number, total });',
+          'export const isInvoiceValid = ({ number, total }) =>',
+          "  typeof number === 'string' && typeof total === 'number';",
+          '',
+        ].join('\n'),
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/unrelated.js',
+        'export const unrelatedStatus = "unchanged";\n',
+      );
+      break;
     case 'approved-context-change':
       await seedConversationalContext(
         repositoryPath,

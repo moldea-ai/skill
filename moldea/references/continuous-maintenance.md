@@ -52,20 +52,13 @@ Relevance permits bounded assessment, not automatic persistence. Informational h
 
 A developer can select intended policy without proving that software already implements it. Preserve that distinction, proposals, and unresolved factual conflicts. Apply the existing authority rules instead of guessing. Do not ask whether incidental information should be saved unless the answer is necessary for the requested work.
 
-For an authorized relevant change:
+For an authorized relevant change, use one completion sequence:
 
-1. Reuse the host task's established facts, decisions, exact paths, and hunks.
-2. Identify canonical owners from direct paths, bounded conversational assessment, or valid `scope` results for the task's covered path batches.
-3. Read only the owner and the relevant implementation or consumer.
-4. Update the smallest coherent set of canonical declarations, mirrors, requirements, and documentation.
-5. Preserve unrelated canonical content and developer work.
-6. After every canonical and mirror write is complete, run any required project-native checks, then the narrowest structural validation as the final moldea command. Follow the entrypoint's supported recovery rule for structural defects.
-
-Before each authorized write scope, retain one coherent change set containing its implementation paths, selected canonical owners, declared mirrors, and affected requirement criteria. A read-only host plan identifies likely context obligations without writing them. During implementation, carry those obligations forward; newly relevant path batches can add owners but an unrelated batch cannot cancel them. An implementation-only edit is incomplete when an established owner or mirror expresses the changed behavior. Compare final behavior with every still-valid selected owner, update contradictions, run relevant native checks, and validate after the last canonical write before claiming completion.
-
-During already-authorized context creation or relevant maintenance, add or correct a narrow `affectedBy` relationship only when inspected implementation evidence materially governs the canonical fact. Prefer exact paths or established subsystem boundaries. Do not invent relationships to make implicit activation universal, broaden a glob merely to catch future work, or scan unselected owners for missing bindings. Zero relationships remain valid. Keep the selected installation, operation, owners, and unresolved obligations in the host's existing handoff when useful; a compaction summary is not complete instructions, fresh evidence, or write authority.
-
-Enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path. Before completion, compare the final state and diff with that list, record each remaining material unresolved fact under its exact canonical owner with resolution criteria and related paths, and confirm every changed path is authorized. Continue correcting instead of claiming completion while an item is missing.
+1. Retain the host task's authorized outcomes, negative constraints, exact implementation paths and hunks, selected canonical owners, declared mirrors, and affected requirement criteria. Identify owners from direct paths, bounded conversational assessment, or valid `scope` results. A read-only plan records likely obligations without authorizing writes.
+2. Read only selected owners and relevant implementation or consumers. Carry the selected owners and outstanding obligations through host planning, implementation, and handoff. Newly relevant path batches can add owners; unrelated misses cannot cancel earlier owners. Neither compaction summaries nor handoffs supply fresh evidence or write authority.
+3. Compare completed behavior with every still-applicable selected owner and mirror. Correct contradicted declarations, requirements, and documentation as the smallest coherent authorized change set. Preserve accurate and unrelated content and developer work. An implementation-only edit is incomplete while an established owner or mirror states the old behavior.
+4. During authorized context creation or maintenance, add or correct a narrow `affectedBy` declaration only when already-inspected implementation materially governs that owner's fact. Prefer exact paths or established subsystem boundaries; preserve valid declarations. Do not invent bindings, broaden globs for future work, or search unselected owners. Zero relationships remain valid.
+5. Compare the final state and diff with every authorized outcome, constraint, and path. Record material unresolved facts under their exact owners with resolution criteria and related paths. Finish required project-native checks, then run the narrowest launcher-backed structural validation after the final canonical or relationship write. Follow the entrypoint's bounded recovery rule for structural defects. Report actual results and limitations; structural validity does not prove semantic alignment.
 
 ## Requirements and removal
 

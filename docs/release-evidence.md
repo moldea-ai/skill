@@ -67,7 +67,7 @@ Preparation downloads public release assets over bounded HTTPS and does not requ
 
 Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence. Production `website:build`, Pages deployment, and complete evidence-backed release assurance require prepared official selections. The Pages workflow skips deployment when both selections are null and rejects a partial selection.
 
-During continued prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Tagged CI does not prepare selected evidence or run evidence-backed assurance, and there are no version-specific exceptions. A passing tag does not establish semantic evaluation or adapter qualification. Release `5.0.12` leaves both selections empty; no new model-backed results are claimed. Evidence-backed assurance remains a separate explicit operation below, and production website requirements are unchanged.
+During continued prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Tagged CI does not prepare selected evidence or run evidence-backed assurance, and there are no version-specific exceptions. A passing tag does not establish semantic evaluation or adapter qualification. Release `5.0.13` leaves both selections empty; no new model-backed results are claimed. Evidence-backed assurance remains a separate explicit operation below, and production website requirements are unchanged.
 
 ## Check a release
 

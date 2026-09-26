@@ -50,6 +50,15 @@ describe('createSemanticCatalogWebsiteModel', () => {
       status: 'not-recorded',
     });
     expect(model.groups.flatMap(({ cases }) => cases)).toHaveLength(definitions.length);
+    expect(model.groups.find(({ id }) => id === 'pre-adoption-boundary')).toMatchObject({
+      title: 'Pre adoption boundary',
+      cases: [
+        {
+          title: 'Case pre adoption boundary',
+          presentation: { title: 'Case pre adoption boundary' },
+        },
+      ],
+    });
     expect(
       model.groups
         .flatMap(({ cases }) => cases)

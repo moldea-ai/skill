@@ -130,6 +130,8 @@ Install every workspace dependency from the repository root without lifecycle sc
 npm ci --ignore-scripts
 ```
 
+To prepare an exact published CLI release, run `npm run release:update-cli -- <version>`. The updater verifies the published CLI, installs its locked dependency closure in a temporary directory, regenerates portable scripts from maintained TypeScript, and checks release identity before completing. It restores files it changed if preparation or verification fails, while preserving concurrent edits. Run `npm ci --ignore-scripts` afterward to bring local dependencies in line with the updated lockfile before running conformance checks.
+
 The private qualification workspace installs its exact pnpm 11.27.1 dependency through this command. Qualification invokes that copy directly; a globally installed pnpm is not required.
 
 After packages are published, refresh the reviewed qualification catalog with `npm run qualification:compatibility:update`, inspect and commit `qualification/compatibility/snapshot.json`, then run `npm run qualification:compatibility:check` before paid qualification. Ordinary qualification commands use the committed local snapshot and do not need an adjacent packages checkout.

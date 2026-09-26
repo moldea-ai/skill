@@ -7,7 +7,7 @@ export type {
 } from './types.ts';
 
 // artifact generation
-export { generatePortableArtifacts } from './generation.ts';
+export { generatePortableArtifacts, PORTABLE_ARTIFACT_PATHS } from './generation.ts';
 
 // isolated runtime generation
 export { generateRuntimeArtifacts } from './runtime-generation.ts';

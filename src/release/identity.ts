@@ -182,6 +182,7 @@ export const inspectReleaseIdentity = (repositoryRoot: string): string[] => {
     readJson(repositoryRoot, RELEASE_PATHS.semanticCliManifest),
   );
   const repositoryPackage = readText(repositoryRoot, RELEASE_PATHS.skillRepositoryPackage);
+  const sourceRepositoryPackage = readText(repositoryRoot, RELEASE_PATHS.sourceRepositoryPackage);
 
   if (
     skillMetadata.name !== 'moldea' ||
@@ -212,6 +213,20 @@ export const inspectReleaseIdentity = (repositoryRoot: string): string[] => {
     issues.push(
       'The semantic CLI fixture dependency inventory does not match the locked CLI closure.',
     );
+  }
+  if (
+    !includesStringConstant(
+      sourceRepositoryPackage,
+      'EXPECTED_CLI_RANGE',
+      identity.cliVersionRange,
+    ) ||
+    !includesStringConstant(
+      sourceRepositoryPackage,
+      'SUPPORTED_CORE_RANGE',
+      identity.coreVersionRange,
+    )
+  ) {
+    issues.push('The repository package source does not match the compatible CLI/Core closure.');
   }
   if (
     !includesStringConstant(repositoryPackage, 'EXPECTED_CLI_RANGE', identity.cliVersionRange) ||

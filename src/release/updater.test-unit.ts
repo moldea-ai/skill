@@ -42,12 +42,12 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
     );
   }
   currentFiles.set(
-    RELEASE_PATHS.skill,
-    `${currentFiles.get(RELEASE_PATHS.skill)}cliJsonSchemaVersion: '3'\n`,
+    RELEASE_PATHS.sourceRepositoryPackage,
+    "export const EXPECTED_CLI_RANGE = '^6.0.0';\nexport const SUPPORTED_CORE_RANGE = '^2.0.1';\n",
   );
   currentFiles.set(
-    RELEASE_PATHS.skillRepositoryPackage,
-    "const EXPECTED_CLI_RANGE = '^6.0.0';\nconst SUPPORTED_CORE_RANGE = '^2.0.1';\n",
+    RELEASE_PATHS.skill,
+    `${currentFiles.get(RELEASE_PATHS.skill)}cliJsonSchemaVersion: '3'\n`,
   );
   currentFiles.set(
     RELEASE_PATHS.packageManifest,
@@ -129,14 +129,14 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   };
 
   for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {
-    if (relativePath === RELEASE_PATHS.skillRepositoryPackage) continue;
+    if (relativePath === RELEASE_PATHS.sourceRepositoryPackage) continue;
     assert.match(getUpdated(relativePath), /@moldea\.ai\/cli \^7\.0\.0/u);
     assert.match(getUpdated(relativePath), /CLI 7/u);
     assert.match(getUpdated(relativePath), new RegExp(`${relativePath}: Yarn 6\\.0\\.0`));
     assert.match(getUpdated(relativePath), /unrelated-package \^6\.0\.0/u);
   }
   for (const relativePath of CORE_VERSION_RANGE_TEXT_PATHS) {
-    if (relativePath === RELEASE_PATHS.skillRepositoryPackage) continue;
+    if (relativePath === RELEASE_PATHS.sourceRepositoryPackage) continue;
     assert.match(getUpdated(relativePath), /@moldea\.ai\/core \^3\.0\.1/u);
   }
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
@@ -146,8 +146,8 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   assert.equal(updatedFiles.get(RELEASE_PATHS.packageLock), '{"lockfileVersion":3}\n');
   assert.equal(updatedFiles.get(RELEASE_PATHS.packageManifest), '{"version":"3.1.0"}\n');
   assert.equal(
-    updatedFiles.get(RELEASE_PATHS.skillRepositoryPackage),
-    "const EXPECTED_CLI_RANGE = '^7.0.0';\nconst SUPPORTED_CORE_RANGE = '^3.0.1';\n",
+    getUpdated(RELEASE_PATHS.sourceRepositoryPackage),
+    "export const EXPECTED_CLI_RANGE = '^7.0.0';\nexport const SUPPORTED_CORE_RANGE = '^3.0.1';\n",
   );
   const conformanceCases = ConformanceCasesSchema.parse(
     JSON.parse(getUpdated(RELEASE_PATHS.conformanceCases)) as unknown,
@@ -316,8 +316,8 @@ test('createCliReleaseUpdate keeps coincident CLI and Core ranges independent', 
     `${portableText}cliVersionRange: '^6.0.0'\ncoreVersionRange: '^6.0.0'\ncliJsonSchemaVersion: '4'\n`,
   );
   currentFiles.set(
-    RELEASE_PATHS.skillRepositoryPackage,
-    "const EXPECTED_CLI_RANGE = '^6.0.0';\nconst SUPPORTED_CORE_RANGE = '^6.0.0';\n",
+    RELEASE_PATHS.sourceRepositoryPackage,
+    "export const EXPECTED_CLI_RANGE = '^6.0.0';\nexport const SUPPORTED_CORE_RANGE = '^6.0.0';\n",
   );
   currentFiles.set(
     RELEASE_PATHS.packageManifest,
@@ -354,7 +354,7 @@ test('createCliReleaseUpdate keeps coincident CLI and Core ranges independent', 
   const coreMajorUpdate = update('6.0.1', '^7.0.0');
 
   for (const relativePath of CORE_VERSION_RANGE_TEXT_PATHS) {
-    if (relativePath === RELEASE_PATHS.skillRepositoryPackage) continue;
+    if (relativePath === RELEASE_PATHS.sourceRepositoryPackage) continue;
     assert.match(
       cliMajorUpdate.get(relativePath) ?? '',
       /@moldea\.ai\/core \^6\.0\.0, @moldea\.ai\/cli \^7\.0\.0/u,
@@ -373,11 +373,11 @@ test('createCliReleaseUpdate keeps coincident CLI and Core ranges independent', 
     /CLI declaration must satisfy \^6\.0\.0; installed Core must satisfy \^7\.0\.0/u,
   );
   assert.equal(
-    cliMajorUpdate.get(RELEASE_PATHS.skillRepositoryPackage),
-    "const EXPECTED_CLI_RANGE = '^7.0.0';\nconst SUPPORTED_CORE_RANGE = '^6.0.0';\n",
+    cliMajorUpdate.get(RELEASE_PATHS.sourceRepositoryPackage),
+    "export const EXPECTED_CLI_RANGE = '^7.0.0';\nexport const SUPPORTED_CORE_RANGE = '^6.0.0';\n",
   );
   assert.equal(
-    coreMajorUpdate.get(RELEASE_PATHS.skillRepositoryPackage),
-    "const EXPECTED_CLI_RANGE = '^6.0.0';\nconst SUPPORTED_CORE_RANGE = '^7.0.0';\n",
+    coreMajorUpdate.get(RELEASE_PATHS.sourceRepositoryPackage),
+    "export const EXPECTED_CLI_RANGE = '^6.0.0';\nexport const SUPPORTED_CORE_RANGE = '^7.0.0';\n",
   );
 });

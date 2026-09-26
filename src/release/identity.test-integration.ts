@@ -72,6 +72,16 @@ test('release identity inspection detects a stale maintained copy', () => {
     writeFileSync(lockPath, `${JSON.stringify(packageLock, null, 2)}\n`, 'utf8');
     assert.equal(readReleaseIdentity(temporaryRoot).cliCoreVersionRange, '^4.0.1');
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
+
+    const sourcePath = join(temporaryRoot, RELEASE_PATHS.sourceRepositoryPackage);
+    const sourceContent = readFileSync(sourcePath, 'utf8');
+    writeFileSync(sourcePath, sourceContent.replace(cliVersionRange, '^999.0.0'));
+    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), [
+      'The repository package source does not match the compatible CLI/Core closure.',
+      `${RELEASE_PATHS.sourceRepositoryPackage} does not name CLI range ${cliVersionRange}.`,
+    ]);
+    writeFileSync(sourcePath, sourceContent);
+
     lockedCli.dependencies['@moldea.ai/core'] = '^4.1.0';
     writeFileSync(lockPath, `${JSON.stringify(packageLock, null, 2)}\n`, 'utf8');
     assert.throws(() => readReleaseIdentity(temporaryRoot), /does not bind a Core release/u);

@@ -28,8 +28,8 @@ describe('LANDING_EXAMPLE_PREVIEW', () => {
     expect(LANDING_EXAMPLE_PREVIEW.instructionDiff).toStrictEqual({
       path: LANDING_EXAMPLE.paths.instruction,
       source: [
-        `-${getLandingExampleLine(LANDING_EXAMPLE_INITIAL_FILES, LANDING_EXAMPLE.paths.instruction, 'Explain that refunds')}`,
-        `+${getLandingExampleLine(LANDING_EXAMPLE_MAINTAINED_FILES, LANDING_EXAMPLE.paths.instruction, 'Explain that refunds')}`,
+        `-${getLandingExampleLine(LANDING_EXAMPLE_INITIAL_FILES, LANDING_EXAMPLE.paths.instruction, 'Explain that customers may request')}`,
+        `+${getLandingExampleLine(LANDING_EXAMPLE_MAINTAINED_FILES, LANDING_EXAMPLE.paths.instruction, 'Explain that customers may request')}`,
       ].join('\n'),
     });
     expect(LANDING_EXAMPLE_PREVIEW.testDiff).toStrictEqual({

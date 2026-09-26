@@ -1,0 +1,232 @@
+---
+import { ChevronDown, FileCodeCorner, FileText, FolderOpen } from '@lucide/astro';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
+import Dialog from '@moldea.ai/website-ui/dialog';
+import FilePreview from '@moldea.ai/website-ui/file-preview';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+
+import {
+  getLandingExampleFile,
+  LANDING_EXAMPLE,
+  LANDING_EXAMPLE_BEFORE_AGENT_FILES,
+  LANDING_EXAMPLE_HERO_SOURCES,
+  LANDING_EXAMPLE_INITIAL_FILES,
+} from '../../lib/landing-example/index.ts';
+
+// a compact view of the generated agent and its connected project files
+const entries = [
+  { kind: 'directory', label: 'src/', depth: 0 },
+  {
+    kind: 'file',
+    id: 'code',
+    label: 'Agent code',
+    path: LANDING_EXAMPLE.paths.agent,
+    language: 'typescript',
+    depth: 1,
+  },
+  {
+    kind: 'file',
+    id: 'contracts',
+    label: 'Contracts',
+    path: LANDING_EXAMPLE.paths.contracts,
+    language: 'typescript',
+    depth: 1,
+  },
+  {
+    kind: 'file',
+    id: 'lookup',
+    label: 'Order lookup',
+    path: LANDING_EXAMPLE.paths.orderLookup,
+    language: 'typescript',
+    depth: 1,
+  },
+  { kind: 'directory', label: 'moldea/', depth: 0 },
+  {
+    kind: 'file',
+    id: 'connections',
+    label: 'Connections',
+    path: LANDING_EXAMPLE.paths.manifest,
+    language: 'yaml',
+    depth: 1,
+  },
+  {
+    kind: 'file',
+    id: 'project',
+    label: 'Project context',
+    path: LANDING_EXAMPLE.paths.project,
+    language: 'markdown',
+    depth: 1,
+  },
+  { kind: 'directory', label: 'context/', depth: 1 },
+  {
+    kind: 'file',
+    id: 'policy',
+    label: 'Refund policy',
+    path: LANDING_EXAMPLE.paths.policyContext,
+    language: 'markdown',
+    depth: 2,
+  },
+  { kind: 'directory', label: 'agents/support/', depth: 1 },
+  {
+    kind: 'file',
+    id: 'description',
+    label: 'Agent description',
+    path: LANDING_EXAMPLE.paths.agentDescription,
+    language: 'markdown',
+    depth: 2,
+  },
+  {
+    kind: 'file',
+    id: 'instructions',
+    label: 'Instructions',
+    path: LANDING_EXAMPLE.paths.instruction,
+    language: 'markdown',
+    depth: 2,
+  },
+] as const;
+const fileEntries = await Promise.all(
+  entries
+    .filter((entry) => entry.kind === 'file')
+    .map(async (entry) => {
+      const source = getLandingExampleFile(LANDING_EXAMPLE_INITIAL_FILES, entry.path);
+      const before = LANDING_EXAMPLE_BEFORE_AGENT_FILES[entry.path];
+      const status = before === undefined ? 'Added' : before === source ? 'Unchanged' : 'Modified';
+      const previewSource = LANDING_EXAMPLE_HERO_SOURCES[entry.path] ?? source;
+      return {
+        ...entry,
+        source: previewSource,
+        status,
+        html:
+          entry.language === 'markdown' ? await renderMarkdownFragment(previewSource) : undefined,
+      };
+    }),
+);
+---
+
+<ul
+  class="min-w-0 font-mono text-xs"
+  aria-label="Support agent file changes"
+  data-agent-artifacts
+>
+  {
+    entries.map((entry) => {
+      const file =
+        entry.kind === 'file' ? fileEntries.find(({ id }) => id === entry.id) : undefined;
+      return (
+        <li
+          class:list={[
+            'min-w-0',
+            entry.depth === 1 && 'ml-3 border-l border-border pl-2',
+            entry.depth === 2 && 'ml-8 border-l border-border pl-2',
+          ]}
+        >
+          {entry.kind === 'directory' ? (
+            <div class="flex h-7 items-center gap-1.5 px-1 text-muted-foreground">
+              <ChevronDown
+                class="size-3"
+                aria-hidden="true"
+              />
+              <FolderOpen
+                class="size-3.5"
+                aria-hidden="true"
+              />
+              <code>{entry.label}</code>
+            </div>
+          ) : (
+            file && (
+              <div
+                class="[&_[data-dialog-trigger]]:h-7 [&_[data-dialog-trigger]]:w-full [&_[data-dialog-trigger]]:justify-start [&_[data-dialog-trigger]]:rounded-sm [&_[data-dialog-trigger]]:border-0 [&_[data-dialog-trigger]]:px-1.5 [&_[data-dialog-trigger]]:text-xs"
+                data-artifact-path={entry.path}
+                data-file-status={file.status}
+              >
+                <Dialog
+                  id={`landing-agent-${entry.id}`}
+                  title={entry.label}
+                  triggerLabel={`${entry.label} (${file.status.toLowerCase()})`}
+                  triggerAriaLabel={`Open ${entry.path.slice(1)}, ${file.status.toLowerCase()}`}
+                  triggerVariant="ghost"
+                  triggerSize="icon"
+                  size="medium"
+                  closeLabel={`Close ${entry.label.toLowerCase()}`}
+                  isOverlayCloseEnabled
+                >
+                  <span
+                    slot="trigger-icon"
+                    class:list={[
+                      'flex min-w-0 flex-1 items-center gap-2',
+                      file.status === 'Added'
+                        ? 'font-semibold text-(--syntax-string) dark:font-medium'
+                        : file.status === 'Modified'
+                          ? 'font-semibold text-warning-foreground dark:font-medium dark:text-warning'
+                          : 'font-medium text-foreground',
+                    ]}
+                    aria-hidden="true"
+                  >
+                    {entry.language === 'markdown' ? (
+                      <FileText class="size-4 shrink-0" />
+                    ) : (
+                      <FileCodeCorner class="size-4 shrink-0" />
+                    )}
+                    <code class="min-w-0 truncate">{entry.path.split('/').at(-1)}</code>
+                    {file.status !== 'Unchanged' && (
+                      <span
+                        class:list={[
+                          'ml-auto inline-flex size-5 shrink-0 items-center justify-center rounded-sm font-semibold',
+                          file.status === 'Added'
+                            ? 'bg-(--syntax-string)/10 text-(--syntax-string)'
+                            : 'bg-warning/15 text-warning-foreground dark:text-warning',
+                        ]}
+                        title={file.status}
+                      >
+                        {file.status === 'Added' ? 'A' : 'M'}
+                      </span>
+                    )}
+                  </span>
+                  <FilePreview path={entry.path.slice(1)}>
+                    <Fragment slot="status">
+                      {file.status !== 'Unchanged' && (
+                        <span
+                          class:list={[
+                            'inline-flex size-5 shrink-0 items-center justify-center rounded-sm font-mono text-xs font-semibold',
+                            file.status === 'Added'
+                              ? 'bg-(--syntax-string)/10 text-(--syntax-string)'
+                              : 'bg-warning/15 text-warning-foreground dark:text-warning',
+                          ]}
+                          title={file.status}
+                        >
+                          <span aria-hidden="true">{file.status === 'Added' ? 'A' : 'M'}</span>
+                          <span class="sr-only">{file.status}</span>
+                        </span>
+                      )}
+                    </Fragment>
+                    <div class="max-h-[calc(100dvh-10rem)] overflow-auto bg-elevated p-4 sm:max-h-[26rem] dark:bg-background">
+                      {entry.language === 'markdown' ? (
+                        <div
+                          class="prose-moldea text-sm leading-6 [&_p]:my-0 [&_p+p]:mt-3"
+                          set:html={file.html}
+                        />
+                      ) : (
+                        <CodeBlock
+                          ariaLabel={`${entry.label} source`}
+                          copyable={false}
+                          language={entry.language}
+                          source={file.source}
+                          variant="plain"
+                        />
+                      )}
+                    </div>
+                  </FilePreview>
+                </Dialog>
+              </div>
+            )
+          )}
+        </li>
+      );
+    })
+  }
+</ul>
+<noscript
+  ><p class="mt-2 text-sm text-muted-foreground">
+    Enable JavaScript to open the example files.
+  </p></noscript
+>

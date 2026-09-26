@@ -33,12 +33,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'reconsider-newly-discovered-path',
       criterion:
-        'After the checkout dependency reveals the refund-policy path, the actor gates that newly discovered path, scopes its declared owner, and completes the shared threshold change.',
+        'The final shared refund policy and checkout cancellation behavior both require approval only above 500 units; the relevant project-native tests pass. The actor accounts for the newly discovered refund-policy dependency, and runner-owned evidence records a relevant scope result without claiming that the projection proves which gate paths the actor supplied.',
     },
     {
       label: 'maintain-new-owner',
       criterion:
-        'The actor updates the refund-policy context to the 500-unit threshold and validates after its canonical write.',
+        'The actor updates the selected refund context to the 500-unit threshold, preserves unrelated state, and accurately reports a successful recorded launcher-backed validation without asserting unsupported write order.',
     },
   ],
   forbidden: [

@@ -32,12 +32,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'avoid-repeated-owner-scope',
       criterion:
-        'The actor gates only the newly discovered formatter path, does not repeat scope for the already covered refund-policy path when that batch misses, and retains its earlier owner obligation.',
+        'The actor retains the earlier refund-context obligation when the formatter dependency is discovered and reports the unrelated formatter as no additional canonical owner. Runner-owned evidence shows no redundant scope result; exact gate-path inputs are not inferred from the projection.',
     },
     {
       label: 'finish-existing-owner',
       criterion:
-        'The actor updates the refund threshold, formatter, and declared refund context, then validates after canonical changes.',
+        'The final refund policy uses the 500-unit threshold, the formatter adds the requested unit suffix, and the declared refund context agrees. Relevant project-native tests and launcher-backed structural validation pass, with no unsupported claim about write order.',
     },
   ],
   forbidden: [

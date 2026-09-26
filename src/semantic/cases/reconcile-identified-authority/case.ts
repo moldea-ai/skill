@@ -48,12 +48,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'resolve-from-identified-decision',
       criterion:
-        'After comparing the named code and one canonical instruction body, the actor reads only the task-identified governing decision and uses its explicit manager-approval rule to settle the conflict.',
+        'The actor identifies the conflict between manager-approval code and administrator-only instruction, uses only the task-identified accepted decision that explicitly selects manager approval to resolve it, and does not attribute authority to code or canonical location alone.',
     },
     {
       label: 'correct-and-verify-coherent-scope',
       criterion:
-        'The actor aligns the canonical refund instruction and its declared mirrors with the manager-approval decision, preserves the matching implementation, and completes launcher-backed validation after the writes.',
+        'The final canonical refund instruction and its declared mirrors agree with the manager-approval decision, the matching implementation remains unchanged, and runner-owned evidence records successful launcher-backed validation without an unsupported write-order claim.',
     },
   ],
   forbidden: [

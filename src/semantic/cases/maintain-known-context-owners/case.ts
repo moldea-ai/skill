@@ -52,7 +52,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-final-state',
       criterion:
-        'A completed launcher-backed validation follows all canonical and relationship writes. The actor reports the actual result without treating structural validity as proof of full semantic alignment.',
+        'Runner-owned evidence records successful launcher-backed validation, and the actor reports its actual structural result without treating it as proof of full semantic alignment or asserting unsupported validation-after-write timing.',
     },
   ],
   forbidden: [

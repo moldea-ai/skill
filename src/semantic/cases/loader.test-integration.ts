@@ -93,6 +93,28 @@ describe('semantic case discovery', () => {
     expect(judgePrompt).toContain(caseDefinition.expected[0]?.label);
   });
 
+  test('discovers repair and expansion cases with grading criteria isolated from actor requests', async () => {
+    const cases = await loadSemanticCases(import.meta.dirname);
+    for (const caseId of [
+      'scope-expansion-second-owner',
+      'scope-expansion-unbound-only',
+      'context-instruction-injection',
+      'repair-readme-drift',
+      'repair-ambiguous-foundation',
+      'repair-healthy-project',
+    ]) {
+      const caseDefinition = cases.find(({ id }) => id === caseId);
+      expect(caseDefinition, caseId).toBeDefined();
+      if (caseDefinition === undefined) continue;
+      const actorPrompt = buildSemanticActorPrompt(caseDefinition);
+      expect(actorPrompt).toBe(caseDefinition.input.developerDirection);
+      for (const criterion of [...caseDefinition.expected, ...caseDefinition.forbidden]) {
+        expect(actorPrompt).not.toContain(criterion.label);
+      }
+      expect(typeof caseDefinition.setup).toBe('function');
+    }
+  });
+
   test('discovers one additional case without central registration', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'moldea-semantic-cases-'));
     temporaryRoots.push(root);

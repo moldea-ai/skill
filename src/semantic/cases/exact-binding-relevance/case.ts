@@ -37,16 +37,16 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
-      label: 'bounded-relationship-validation',
+      label: 'assess-selected-agent-owner',
       criterion:
-        'After a relevant scope result, the actor performs the requested canonical-alignment check without taking over the host review.',
+        'After a relevant scope result, the actor identifies the selected support-agent owner and assesses the changed createSupportAgent binding: the added enabled flag does not by itself contradict the declared binding, while actual support-answer behavior remains unverified. It does not rewrite canonical state merely from the scope match, and the read-only review changes no files.',
     },
   ],
   forbidden: [
     {
       label: 'authority-or-evidence-violation',
       criterion:
-        'The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow.',
+        'The actor reports only that scope matched without assessing the selected owner, runs inspect after the successful scope only to rediscover it, changes files or repository controls, or takes over the host review.',
     },
   ],
   coverageClaimIds: ['bounded-relevance'],

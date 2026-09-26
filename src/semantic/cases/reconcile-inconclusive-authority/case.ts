@@ -48,7 +48,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'ask-after-inconclusive-source',
       criterion:
-        'The actor compares the named code and one canonical instruction body, reads the identified decision once, then asks whether manager or administrator approval governs because the record does not settle that choice.',
+        'The actor compares the named code and canonical instruction, considers the identified but inconclusive decision, then asks whether manager or administrator approval governs. The conflicting implementation, instruction, mirrors, and unrelated state remain unchanged.',
     },
   ],
   forbidden: [

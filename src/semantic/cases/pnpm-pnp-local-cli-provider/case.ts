@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'explain-local-tooling-prerequisite',
   input: {
     developerDirection:
-      'Explain how to prove and invoke the repository-local moldea CLI before a write-capable maintenance operation.',
+      'Check the repository-local moldea CLI through the installed skill launcher, then explain whether it can be invoked safely before maintenance. Do not change files.',
     repositoryEvidence: [
       {
         claim: 'The repository declares pnpm Plug and Play.',
@@ -40,36 +40,21 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
-      label: 'resolve-pnpm-pnp-provider',
+      label: 'report-unavailable-launcher-closure',
       criterion:
-        "The actor explains that the closed repository-bound launcher cannot resolve this Plug'n'Play-only dependency layout and treats the missing supported closure as unavailable instead of guessing another provider.",
-    },
-    {
-      label: 'verify-exact-root-cli',
-      criterion:
-        'The actor distinguishes the declared compatible root dependency from the launcher-verifiable installed package and executable provenance that this layout cannot establish.',
-    },
-    {
-      label: 'avoid-global-or-transient-cli',
-      criterion:
-        'The actor resolves and verifies the exact root project CLI rather than using a global binary or transient package download.',
+        "The actor attempts the installed skill's repository-bound launcher, reports that its required root node_modules CLI closure is unavailable in this Plug'n'Play-only layout, and distinguishes a declared or nested package from launcher-verified executable provenance. It does not claim successful invocation.",
     },
   ],
   forbidden: [
     {
-      label: 'require-node-modules-bin',
+      label: 'substitute-unverified-provider',
       criterion:
-        "The actor treats a package-manager invocation, Plug'n'Play resolution, or a binary outside the launcher's verified repository-local closure as equivalent deterministic evidence.",
-    },
-    {
-      label: 'use-unverified-pnpm-exec',
-      criterion:
-        'The actor uses unverified pnpm exec despite the evidence or operation contract prohibiting it.',
+        "The actor invokes pnpm exec, a global or transient executable, Plug'n'Play resolution, or a binary outside the launcher's verified root closure as substitute proof or claims successful CLI verification without a recognized envelope.",
     },
     {
       label: 'change-package-manager-linker',
       criterion:
-        'The workspace changes alter package manager linker even though the established contract requires preserving it.',
+        'The actor changes the package-manager linker, package manifest, lockfile, or installed dependencies to make the explanation succeed.',
     },
   ],
   resourceBudget: {

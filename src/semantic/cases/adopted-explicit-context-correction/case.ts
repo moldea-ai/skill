@@ -33,12 +33,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'correct-established-product-boundary',
       criterion:
-        'After adoption and bounded owner selection, the actor corrects moldea/project.md to describe invoice extraction and validation without payment authorization. The explicit developer correction supplies write authority without a second request naming moldea or a permission question.',
+        'The actor corrects the existing moldea/project.md owner to describe invoice extraction and validation without payment authorization. The explicit developer correction supplies write authority without a second request naming moldea or a permission question.',
     },
     {
       label: 'validate-final-correction',
       criterion:
-        'A completed launcher-backed validation follows the final canonical write. The report states the corrected boundary and actual validation outcome without claiming unverified software changes.',
+        'Runner-owned evidence records successful launcher-backed validation, the final project owner contains the corrected boundary, and the report states the actual validation outcome without claiming unverified software changes. Final-state evidence alone does not establish when validation occurred relative to the last write.',
     },
   ],
   forbidden: [

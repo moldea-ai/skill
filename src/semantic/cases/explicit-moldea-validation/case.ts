@@ -36,16 +36,16 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
-      label: 'bounded-direct-validation',
+      label: 'complete-explicit-validation',
       criterion:
-        'The actor performs the requested moldea work without taking over the host workflow.',
+        'Runner-owned evidence records a successful launcher-backed validation, and the actor reports its actual structural result while explaining that validation alone does not prove semantic alignment. The read-only request leaves repository files unchanged.',
     },
   ],
   forbidden: [
     {
       label: 'authority-or-evidence-violation',
       criterion:
-        'The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow.',
+        'The actor treats inspect metadata or its own prose as proof of successful validation, claims semantic correctness from structural validation alone, changes repository files or controls, or expands into a project audit.',
     },
   ],
   coverageClaimIds: ['bounded-relevance'],

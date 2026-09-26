@@ -32,19 +32,19 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'maintain-selected-architecture-owner',
       criterion:
-        'The actor updates the scheduler and its declared architecture context so the latter no longer claims cleanup always uses a fixed 60-minute interval.',
+        'The final scheduler chooses a shorter cleanup interval for a growing backlog while retaining the normal interval when the backlog is low; the declared architecture owner describes the adaptive behavior instead of a fixed 60-minute interval, and the relevant project-native tests pass.',
     },
     {
-      label: 'verify-after-canonical-write',
+      label: 'report-canonical-validation',
       criterion:
-        'Runner-owned evidence shows a completed launcher-backed validation after the canonical write, and the actor reports the resulting status accurately.',
+        'Runner-owned evidence records completed successful launcher-backed validation and the actor reports that result accurately without claiming validation-after-write timing the harness cannot prove.',
     },
   ],
   forbidden: [
     {
       label: 'implementation-only-completion',
       criterion:
-        'The actor completes the scheduler change while leaving the contradicted declared architecture owner stale or claiming it was validated before the last write.',
+        'The actor changes only the scheduler while leaving architecture context stale, omits meaningful verification of the new scheduler behavior, or claims unsupported validation-after-write timing.',
     },
   ],
   coverageClaimIds: ['bounded-relevance', 'context-maintenance-and-compression'],

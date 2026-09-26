@@ -176,7 +176,6 @@ const breadcrumbs = [
             {effectiveJourneys.map(({ evidence, presentation, profileCase }, index) => (
               <QualificationCaseEvidence
                 evidence={evidence}
-                group={`qualification-${profileCase.id}`}
                 id={`qualification-${profileCase.id}`}
                 number={index + 1}
                 {presentation}

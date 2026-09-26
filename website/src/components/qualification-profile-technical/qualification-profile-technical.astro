@@ -41,7 +41,6 @@ const getAttemptRole = (index: number): string =>
 <div class="grid gap-3">
   <Accordion
     id="qualification-result-source"
-    group="qualification-technical-details"
     title={hasAttempts ? 'How this result was produced' : 'Evidence status'}
     description={hasAttempts
       ? 'Attempt identity, release source, model configuration, and immutable artifacts.'
@@ -147,7 +146,6 @@ const getAttemptRole = (index: number): string =>
 
   <Accordion
     id="qualification-package-source"
-    group="qualification-technical-details"
     title="Packages and source"
     description="Configured inputs, exact executed package closure, and profile definitions."
   >
@@ -277,7 +275,6 @@ const getAttemptRole = (index: number): string =>
 
   <Accordion
     id="qualification-compatibility-coverage"
-    group="qualification-technical-details"
     title="Compatibility coverage"
     description={`${profile.probes.length} behavior ${profile.probes.length === 1 ? 'claim' : 'claims'} mapped to project journeys.`}
   >

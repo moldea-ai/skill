@@ -136,7 +136,7 @@ The private qualification workspace installs its exact pnpm 11.27.1 dependency t
 
 After packages are published, refresh the reviewed qualification catalog with `npm run qualification:compatibility:update`, inspect and commit `qualification/compatibility/snapshot.json`, then run `npm run qualification:compatibility:check` before paid qualification. Ordinary qualification commands use the committed local snapshot and do not need an adjacent packages checkout.
 
-The root manifest temporarily overrides Astro to `7.2.8` because Website UI `1.9.1` declares the vulnerable `7.2.2` release as an exact peer. Remove the override after Website UI publishes compatible peer metadata; the clean install and website checks verify the patched combination in the meantime.
+Both the root tooling and the website consume Website UI `1.10.2` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
 
 Run the deterministic boundaries:
 

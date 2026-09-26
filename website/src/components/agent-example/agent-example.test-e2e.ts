@@ -134,6 +134,43 @@ test('shows generated artifacts inside the developer and coding agent conversati
   }
 });
 
+for (const width of [320, 1440]) {
+  test(`preserves layout and resets dialog scrolling at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ height: 740, width });
+    await page.goto(toPublicPath('/'));
+    const example = page.getByRole('article', { name: 'Illustrative support agent project' });
+    const trigger = example.getByRole('button', {
+      name: getTriggerName(LANDING_EXAMPLE.paths.manifest),
+      exact: true,
+    });
+    const layoutBefore = await example.evaluate((element) => ({
+      pageWidth: document.documentElement.clientWidth,
+      x: element.getBoundingClientRect().x,
+    }));
+
+    await trigger.click();
+    const dialog = example.getByRole('dialog', { name: 'Connections', exact: true });
+    await expect(dialog).toBeVisible();
+    const layoutDuring = await example.evaluate((element) => ({
+      pageWidth: document.documentElement.clientWidth,
+      x: element.getBoundingClientRect().x,
+    }));
+    expect(layoutDuring.pageWidth).toBe(layoutBefore.pageWidth);
+    expect(Math.abs(layoutDuring.x - layoutBefore.x)).toBeLessThanOrEqual(1);
+
+    const dialogBody = dialog.locator(':scope > div');
+    await dialogBody.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await expect.poll(() => dialogBody.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await dialog.getByRole('button', { name: 'Close connections' }).click();
+    await expect(dialog).toBeHidden();
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    await expect.poll(() => dialogBody.evaluate((element) => element.scrollTop)).toBe(0);
+  });
+}
+
 for (const colorScheme of ['light', 'dark'] as const) {
   test(`keeps artifacts usable at 320px in the ${colorScheme} theme`, async ({ browser }) => {
     const context = await browser.newContext({

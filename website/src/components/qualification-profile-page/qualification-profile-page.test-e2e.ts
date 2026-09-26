@@ -59,6 +59,22 @@ test('opens a selected journey through its stable fragment', async ({ page }) =>
   await expect(page.locator('#qualification-release-case')).toHaveAttribute('open', '');
 });
 
+test('keeps technical accordions open independently', async ({ page }) => {
+  await page.goto(toPublicPath(customProfile.route));
+  const resultSource = page.locator('#qualification-result-source');
+  const packageSource = page.locator('#qualification-package-source');
+  const coverage = page.locator('#qualification-compatibility-coverage');
+
+  await resultSource.locator(':scope > summary').click();
+  await packageSource.locator(':scope > summary').click();
+  await coverage.locator(':scope > summary').focus();
+  await page.keyboard.press('Enter');
+
+  await expect(resultSource).toHaveAttribute('open', '');
+  await expect(packageSource).toHaveAttribute('open', '');
+  await expect(coverage).toHaveAttribute('open', '');
+});
+
 test('remains accessible, responsive, and theme-safe for selected evidence', async ({
   browser,
 }) => {

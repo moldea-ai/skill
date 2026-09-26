@@ -4,6 +4,10 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
+import { projectCodexEvaluationExecutionEvidence } from '../../execution/host/index.ts';
+
+import { buildSemanticActorPrompt, buildSemanticJudgePrompt } from '../judging/index.ts';
+
 import { loadSemanticCases } from './loader.ts';
 
 const temporaryRoots: string[] = [];
@@ -60,6 +64,33 @@ describe('semantic case discovery', () => {
     expect(cases.map(({ id }) => id)).toContain('preinit-information');
     expect(cases.every(({ coverageClaimIds }) => coverageClaimIds.length > 0)).toBe(true);
     expect(cases.every(({ setup }) => typeof setup === 'function')).toBe(true);
+  });
+
+  test('builds actor and judge prompts for a real case with a setup callback', async () => {
+    const cases = await loadSemanticCases(import.meta.dirname);
+    const caseDefinition = cases.find(({ id }) => id === 'adopted-explicit-context-correction');
+    expect(caseDefinition).toBeDefined();
+    if (caseDefinition === undefined) return;
+
+    const actorPrompt = buildSemanticActorPrompt(caseDefinition);
+    const judgePrompt = buildSemanticJudgePrompt({
+      actorCommandPolicyEvidence: projectCodexEvaluationExecutionEvidence('').commandPolicy,
+      actorExecutionEvidence: [],
+      actorResourceEvidence: {
+        commandCount: 0,
+        maximumInvocationByteCount: 0,
+        modelVisibleToolOutputByteCount: 0,
+        operations: [],
+        stdoutByteCount: 0,
+      },
+      actorResponse: 'The correction was requested.',
+      caseDefinition,
+      workspaceChanges: { created: [], deleted: [], modified: [] },
+    });
+
+    expect(actorPrompt).toBe(caseDefinition.input.developerDirection);
+    expect(actorPrompt).not.toContain(caseDefinition.expected[0]?.label);
+    expect(judgePrompt).toContain(caseDefinition.expected[0]?.label);
   });
 
   test('discovers one additional case without central registration', async () => {

@@ -864,6 +864,7 @@ const run = async (): Promise<void> => {
   const cli = createSemanticCliIdentity(REPOSITORY_ROOT);
 
   if (arguments_.isPreflightRequested) {
+    for (const caseDefinition of cases) buildSemanticActorPrompt(caseDefinition);
     process.stdout.write(
       `${JSON.stringify({ artifactDigest, caseCount: cases.length, caseSuiteDigest, coverageDigest })}\n`,
     );

@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -7,7 +8,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 
 import type { ICodexEvaluationCommandPolicyEvidence } from '../../execution/host/index.ts';
 
-import type { ISemanticCase } from '../cases/index.ts';
+import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
 import {
   createSemanticActiveTrial,
   getSemanticCheckpointPath,
@@ -178,6 +179,18 @@ afterEach(async () => {
 });
 
 describe('semantic runner case orchestration', () => {
+  test('preflight constructs prompts for every discovered case before model execution', async () => {
+    const repositoryRoot = path.resolve(import.meta.dirname, '../../..');
+    const cases = await loadSemanticCases(path.join(repositoryRoot, 'src', 'semantic', 'cases'));
+    const output = execFileSync(
+      process.execPath,
+      [path.join(repositoryRoot, 'src', 'semantic', 'command-line', 'runner.ts'), '--preflight'],
+      { cwd: repositoryRoot, encoding: 'utf8' },
+    );
+
+    expect(JSON.parse(output)).toMatchObject({ caseCount: cases.length });
+  });
+
   test('round trips interrupted confirmation progress and resumes without replay', async () => {
     const repositoryRoot = await mkdtemp(path.join(tmpdir(), 'moldea-semantic-runner-'));
     temporaryRoots.push(repositoryRoot);

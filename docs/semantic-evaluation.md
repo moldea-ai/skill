@@ -14,7 +14,7 @@ Semantic evaluation tests whether a coding agent applies the portable skill corr
 
 Each case owns its definition at `src/semantic/cases/<case-id>/case.ts`. The module exports one typed `semanticCase` with the request, repository evidence declarations, expected and forbidden behavior, resource budget, coverage claims, and setup callback. The runner discovers these directories, validates unique IDs, and derives the coverage map. There is no fixed case count, central case catalog, disposition list, or website registration step.
 
-To add a case, add its directory and `case.ts`, plus any fixture files used only by that case. The setup callback prepares the isolated repository before its Git baseline is captured. A loader integration test proves that an additional valid case is discovered without changing a registry.
+To add a case, add its directory and `case.ts`, plus any fixture files used only by that case. The setup callback prepares the isolated repository before its Git baseline is captured. Validation checks the serializable definition, including unique behavior labels and coverage claims and an ordered command budget; it checks the callback's type separately. The callback does not enter the case digest or judge prompt. A loader integration test proves that an additional valid case is discovered without changing a registry.
 
 Current case definitions include bound-context maintenance, implementation and read-only review expansion into a bound path, unrelated task expansion, discovery of an unbound context path, explicit validation of a damaged setup, and initialization with grounded relationships. The explicit pre-initialization validation case also expects a bounded setup diagnosis. Deterministic fixture and gate tests cover their repository setup; defining these cases and passing preflight do not establish model behavior. No semantic actor or judge result is implied until those cases are run.
 
@@ -38,7 +38,7 @@ Private checkpoints live at `.evidence/semantic/checkpoint.json`. Matching recor
 
 ## Deterministic inspection
 
-The preflight inspects current definitions and identities without starting a model host:
+The preflight inspects current definitions and identities and builds every discovered actor prompt without preparing workspaces or starting a model host:
 
 ```bash
 npm run eval:semantic:preflight

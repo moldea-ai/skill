@@ -5,13 +5,13 @@ title: LangChain createAgent qualification
 description: Qualifies direct TypeScript createAgent definitions, system-prompt loaders, structured output, closed normal function tools, conservative middleware boundaries.
 runtimePackages:
   - name: '@langchain/core'
-    version: 1.2.9
+    version: 1.2.12
   - name: '@langchain/langgraph'
-    version: 1.4.12
+    version: 1.4.18
   - name: '@types/node'
     version: 22.20.1
   - name: langchain
-    version: 1.5.9
+    version: 1.5.12
   - name: zod
     version: 4.3.6
 probesFile: probes/claims.yaml

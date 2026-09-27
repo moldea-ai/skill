@@ -1,9 +1,20 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 
 import { z } from 'zod';
+
+import { generatePortableArtifacts, PORTABLE_ARTIFACT_PATHS } from '../portable/index.ts';
 
 import {
   CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
@@ -29,14 +40,16 @@ const PublishedRegistryManifestSchema = z.object({
 const PublishedCliManifestSchema = PublishedRegistryManifestSchema.extend({
   jsonSchemaVersion: z.number().int().positive(),
 });
-const RootPackageManifestSchema = z.object({
-  devDependencies: StringRecordSchema.default({}),
-  moldeaRelease: z.object({
-    cliJsonSchemaVersion: z.number().int().positive(),
-    coreVersionRange: z.string(),
-  }),
-  version: z.string().optional(),
-});
+const RootPackageManifestSchema = z
+  .object({
+    devDependencies: StringRecordSchema.default({}),
+    moldeaRelease: z.object({
+      cliJsonSchemaVersion: z.number().int().positive(),
+      coreVersionRange: z.string(),
+    }),
+    version: z.string(),
+  })
+  .passthrough();
 const SemanticCliManifestSchema = z
   .object({
     dependencies: StringRecordSchema,
@@ -352,10 +365,12 @@ export const resolvePublishedCliManifest = (version: string): IPublishedCliManif
 const createUpdatedRootManifests = ({
   packageLock,
   packageManifest,
+  repositoryRoot,
   version,
 }: {
   packageLock: string;
   packageManifest: IReleasePackageManifest;
+  repositoryRoot: string;
   version: string;
 }): IUpdatedRootManifests => {
   const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-cli-'));
@@ -367,6 +382,11 @@ const createUpdatedRootManifests = ({
       'utf8',
     );
     writeFileSync(join(temporaryRoot, RELEASE_PATHS.packageLock), packageLock, 'utf8');
+    for (const relativePath of ['qualification/package.json', 'website/package.json']) {
+      const destination = join(temporaryRoot, relativePath);
+      mkdirSync(dirname(destination), { recursive: true });
+      cpSync(join(repositoryRoot, relativePath), destination);
+    }
     const result = spawnSync(
       NPM_EXECUTABLE,
       [
@@ -562,26 +582,69 @@ const writeFileAtomically = (path: string, content: string, mode: number | undef
     dirname(path),
     `.${basename(path)}.${process.pid}.${Date.now()}.temporary`,
   );
-  writeFileSync(temporaryPath, content, { encoding: 'utf8', mode });
-  renameSync(temporaryPath, path);
+  try {
+    writeFileSync(temporaryPath, content, { encoding: 'utf8', mode });
+    renameSync(temporaryPath, path);
+  } finally {
+    rmSync(temporaryPath, { force: true });
+  }
 };
 
-/** Updates every release-owned CLI identity after validating the published package. */
-export const updateCliRelease = ({
+/** Installs the updated lock in an isolated generation root. */
+const installReleaseDependencies = (temporaryRoot: string): void => {
+  const result = spawnSync(NPM_EXECUTABLE, ['ci', '--ignore-scripts', '--no-audit', '--no-fund'], {
+    cwd: temporaryRoot,
+    encoding: 'utf8',
+    env: { ...process.env, npm_config_update_notifier: 'false' },
+  });
+  if (result.status !== 0) {
+    throw new Error(
+      ['Unable to install the updated release closure.', result.stdout, result.stderr]
+        .filter(Boolean)
+        .join('\n'),
+    );
+  }
+};
+
+/** Copies generator inputs without reading excluded historical directories. */
+const stagePortableSource = (repositoryRoot: string, temporaryRoot: string): void => {
+  cpSync(join(repositoryRoot, 'src/portable'), join(temporaryRoot, 'src/portable'), {
+    recursive: true,
+    filter: (sourcePath) =>
+      !['_archive', '_archives', '_backup', '_backups'].includes(basename(sourcePath)),
+  });
+  for (const relativePath of [
+    'moldea/assets/managed-readme-block.md',
+    'qualification/package.json',
+    'website/package.json',
+  ]) {
+    const destination = join(temporaryRoot, relativePath);
+    mkdirSync(dirname(destination), { recursive: true });
+    cpSync(join(repositoryRoot, relativePath), destination);
+  }
+};
+
+/** Updates authoritative CLI identity and regenerates the portable artifacts. */
+export const updateCliRelease = async ({
   repositoryRoot,
   version,
   resolveManifest = resolvePublishedCliManifest,
   updateRootManifests = createUpdatedRootManifests,
+  generateArtifacts = generatePortableArtifacts,
+  installDependencies = installReleaseDependencies,
 }: {
+  generateArtifacts?: typeof generatePortableArtifacts;
+  installDependencies?: (temporaryRoot: string) => void;
   repositoryRoot: string;
   resolveManifest?: (version: string) => IPublishedCliManifest;
   updateRootManifests?: (options: {
     packageLock: string;
     packageManifest: IReleasePackageManifest;
+    repositoryRoot: string;
     version: string;
   }) => IUpdatedRootManifests;
   version: string;
-}): IReleaseIdentity => {
+}): Promise<IReleaseIdentity> => {
   parseStableVersion(version);
   const publishedManifest = resolveManifest(version);
   const managedPaths = [
@@ -592,6 +655,7 @@ export const updateCliRelease = ({
       RELEASE_PATHS.packageManifest,
       RELEASE_PATHS.packageLock,
       RELEASE_PATHS.semanticCliManifest,
+      ...PORTABLE_ARTIFACT_PATHS,
     ]),
   ];
   const currentFiles = new Map(
@@ -640,9 +704,8 @@ export const updateCliRelease = ({
   };
   const updatedRootManifests = updateRootManifests({
     packageLock: requireFile(currentFiles, RELEASE_PATHS.packageLock),
-    packageManifest: RootPackageManifestSchema.parse(
-      nextPackageManifest,
-    ) as IReleasePackageManifest,
+    packageManifest: RootPackageManifestSchema.parse(nextPackageManifest),
+    repositoryRoot,
     version,
   });
   const updatedFiles = createCliReleaseUpdate({
@@ -665,17 +728,85 @@ export const updateCliRelease = ({
       statSync(join(repositoryRoot, relativePath)).mode & 0o777,
     ]),
   );
-  try {
-    for (const [relativePath, content] of updatedFiles) {
-      writeFileAtomically(join(repositoryRoot, relativePath), content, fileModes.get(relativePath));
+  const artifactPaths = new Set<string>(PORTABLE_ARTIFACT_PATHS);
+  const writtenFiles = new Map<string, string>();
+  const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-portable-'));
+  const writeOwnedFile = (relativePath: string, expected: string, content: string): void => {
+    const filePath = join(repositoryRoot, relativePath);
+    if (
+      readFileSync(filePath, 'utf8') !== expected ||
+      (statSync(filePath).mode & 0o777) !== fileModes.get(relativePath)
+    ) {
+      throw new Error(`${relativePath} changed while the CLI update was being applied.`);
     }
-    assertReleaseIdentity(repositoryRoot);
+    if (content === expected) return;
+    writeFileAtomically(filePath, content, fileModes.get(relativePath));
+    writtenFiles.set(relativePath, content);
+  };
+
+  try {
+    stagePortableSource(repositoryRoot, temporaryRoot);
+    for (const relativePath of [
+      RELEASE_PATHS.packageManifest,
+      RELEASE_PATHS.packageLock,
+      RELEASE_PATHS.sourceRepositoryPackage,
+    ]) {
+      writeFileAtomically(
+        join(temporaryRoot, relativePath),
+        requireFile(updatedFiles, relativePath),
+        undefined,
+      );
+    }
+    installDependencies(temporaryRoot);
+    const generation = await generateArtifacts({ rootDirectory: temporaryRoot });
+    if (
+      generation.artifacts.length !== PORTABLE_ARTIFACT_PATHS.length ||
+      generation.artifacts.some((relativePath) => !artifactPaths.has(relativePath))
+    ) {
+      throw new Error('Portable generation returned an unexpected artifact set.');
+    }
+    for (const [relativePath, content] of updatedFiles) {
+      if (!artifactPaths.has(relativePath)) {
+        writeOwnedFile(relativePath, requireFile(currentFiles, relativePath), content);
+      }
+    }
+    for (const relativePath of generation.artifacts) {
+      writeOwnedFile(
+        relativePath,
+        requireFile(currentFiles, relativePath),
+        readFileSync(join(temporaryRoot, relativePath), 'utf8'),
+      );
+    }
+    return assertReleaseIdentity(repositoryRoot);
   } catch (error) {
-    for (const [relativePath, content] of currentFiles) {
-      writeFileAtomically(join(repositoryRoot, relativePath), content, fileModes.get(relativePath));
+    const conflicts: string[] = [];
+    for (const [relativePath, writtenContent] of [...writtenFiles].reverse()) {
+      const filePath = join(repositoryRoot, relativePath);
+      try {
+        if (
+          readFileSync(filePath, 'utf8') !== writtenContent ||
+          (statSync(filePath).mode & 0o777) !== fileModes.get(relativePath)
+        ) {
+          conflicts.push(relativePath);
+          continue;
+        }
+        writeFileAtomically(
+          filePath,
+          requireFile(currentFiles, relativePath),
+          fileModes.get(relativePath),
+        );
+      } catch {
+        conflicts.push(relativePath);
+      }
+    }
+    if (conflicts.length > 0) {
+      throw new Error(
+        `CLI update failed and externally changed files were preserved: ${conflicts.join(', ')}.`,
+        { cause: error },
+      );
     }
     throw error;
+  } finally {
+    rmSync(temporaryRoot, { force: true, recursive: true });
   }
-
-  return assertReleaseIdentity(repositoryRoot);
 };

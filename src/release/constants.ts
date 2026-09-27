@@ -2,8 +2,8 @@
 export const CLI_PACKAGE_NAME = '@moldea.ai/cli';
 
 // protocol versions recorded by the current evaluators
-export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 25;
-export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 11;
+export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 26;
+export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 12;
 
 // portable release files that carry the supported CLI major range
 export const CLI_VERSION_RANGE_TEXT_PATHS = [
@@ -11,7 +11,7 @@ export const CLI_VERSION_RANGE_TEXT_PATHS = [
   'docs/compatibility-and-local-tooling.md',
   'moldea/SKILL.md',
   'moldea/references/local-tooling.md',
-  'moldea/scripts/repository-package.mjs',
+  'src/portable/repository-package.ts',
   'qualification/README.md',
 ] as const;
 
@@ -21,7 +21,7 @@ export const CORE_VERSION_RANGE_TEXT_PATHS = [
   'docs/compatibility-and-local-tooling.md',
   'moldea/SKILL.md',
   'moldea/references/local-tooling.md',
-  'moldea/scripts/repository-package.mjs',
+  'src/portable/repository-package.ts',
 ] as const;
 
 // release files that carry the exact CLI JSON schema version
@@ -48,4 +48,5 @@ export const RELEASE_PATHS = {
   skillLocalTooling: 'moldea/references/local-tooling.md',
   skillRelevanceGate: 'moldea/scripts/relevance-gate.mjs',
   skillRepositoryPackage: 'moldea/scripts/repository-package.mjs',
+  sourceRepositoryPackage: 'src/portable/repository-package.ts',
 } as const;

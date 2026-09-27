@@ -29,8 +29,12 @@ describe('semantic coverage', () => {
       ),
     );
     const claim = coverage.claims.find(({ id }) => id === 'pre-adoption-boundary');
+    const repairClaim = coverage.claims.find(({ id }) => id === 'project-repair-and-recovery');
 
     expect(claim?.evidence).toContainEqual({ id: 'synthetic-case', kind: 'semantic-case' });
+    expect(repairClaim?.evidence).toStrictEqual([
+      { id: 'synthetic-project-repair-and-recovery', kind: 'semantic-case' },
+    ]);
     expect(createSemanticCoverageDigest(coverage)).toMatch(/^[a-f0-9]{64}$/u);
   });
 

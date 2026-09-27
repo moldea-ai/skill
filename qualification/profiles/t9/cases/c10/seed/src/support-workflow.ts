@@ -18,10 +18,10 @@ export const supportWorkflow = entrypoint(
   async (input: ISupportInput) => {
     const previous = getPreviousState<ISupportSavedState>();
     const orderStatus = await lookupOrder(input.orderId);
-    const isApproved = interrupt<{ orderId: string; orderStatus: string }, boolean>({
-      orderId: input.orderId,
-      orderStatus,
-    });
+    const isApproved = interrupt<{ orderId: string; orderStatus: string }, boolean>(
+      { orderId: input.orderId, orderStatus },
+      { responseSchema: { type: 'boolean' } },
+    );
 
     return entrypoint.final<string, ISupportSavedState>({
       value: `${orderStatus}; approved: ${isApproved}; previous: ${previous?.lastOrderId ?? 'none'}`,

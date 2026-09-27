@@ -262,7 +262,10 @@ describe('qualification execution', () => {
       workerCount: 1,
     });
 
-    expect(resumedOutcome.result.status).toBe('passed');
+    expect(
+      resumedOutcome.result.status,
+      JSON.stringify(resumedOutcome.result.stages.filter(({ status }) => status === 'errored')),
+    ).toBe('passed');
     expect(resumedActorCalls).toBe(1);
     expect(resumedJudgeCalls).toBe(1);
     expect(resumedOutcome.result.stages.find(({ id }) => id === actorStageId)?.status).toBe(

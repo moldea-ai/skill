@@ -37,6 +37,14 @@ const PORTABLE_ENTRY_OUTPUTS = {
   'repository-package.ts': 'moldea/scripts/repository-package.mjs',
 } as const;
 
+// complete set of files owned by portable generation
+export const PORTABLE_ARTIFACT_PATHS = [
+  ...Object.values(PORTABLE_ENTRY_OUTPUTS),
+  'moldea/scripts/repository-package.license.txt',
+  'moldea/scripts/manifest-scope.cjs',
+  'moldea/scripts/manifest-scope.license.txt',
+] as const;
+
 const PORTABLE_EXTERNAL_IMPORTS = new Map([
   ['./managed-readme.ts', './managed-readme.mjs'],
   ['./manifest-scope.ts', './manifest-scope.cjs'],
@@ -131,7 +139,9 @@ const buildBundledNotices = async (
       ) as unknown,
     );
     if (lockfile.packages[packageRoot]?.version !== manifest.version) {
-      throw new Error(`${label} dependency does not match the lockfile: ${manifest.name}`);
+      throw new Error(
+        `${label} dependency does not match the lockfile: ${manifest.name} (${packageRoot}: ${lockfile.packages[packageRoot]?.version ?? 'missing'} versus ${manifest.version})`,
+      );
     }
     const license = await readFile(path.join(rootDirectory, packageRoot, 'LICENSE'), 'utf8');
     notices.push(`${manifest.name}@${manifest.version}\n\n${license.trim()}\n`);
@@ -227,6 +237,12 @@ export const generatePortableArtifacts = async (
 ): Promise<IPortableGenerationResult> => {
   const rootDirectory = path.resolve(options.rootDirectory ?? DEFAULT_ROOT_DIRECTORY);
   const artifacts = await buildPortableArtifacts(rootDirectory);
+  if (
+    artifacts.size !== PORTABLE_ARTIFACT_PATHS.length ||
+    PORTABLE_ARTIFACT_PATHS.some((relativePath) => !artifacts.has(relativePath))
+  ) {
+    throw new Error('Portable generation produced an unexpected artifact set.');
+  }
 
   for (const [relativePath, content] of artifacts) {
     const outputPath = path.join(rootDirectory, relativePath);

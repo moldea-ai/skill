@@ -29,6 +29,8 @@ agents:
   support:
     runtime:
       id: openai
+    context:
+      - /moldea/context/refund-policy.md
     bindings:
       runtimeAgent:
         path: /src/agent.ts
@@ -46,14 +48,58 @@ agents:
         registration:
           path: /src/order-lookup.ts
           symbol: lookupOrderTool
-        inputSchema:
-          path: /src/contracts.ts
-          symbol: LookupOrderInput
     affectedBy:
+      - /src/contracts.ts
       - /src/refund-policy.ts
-      - /src/refund-policy.test-unit.ts
       - /moldea/context/refund-policy.md
 `;
+
+// source segments keep the modified files and their illustrated edits in sync
+type ILandingExampleEdit = { kind: 'context' | 'added' | 'removed'; source: string };
+const LANDING_EXAMPLE_AGENT_EDITS: Readonly<Record<string, readonly ILandingExampleEdit[]>> = {
+  '/moldea/moldea.yaml': [
+    { kind: 'context', source: 'version: 1\n' },
+    { kind: 'removed', source: 'agents: {}\n' },
+    { kind: 'added', source: createManifest().slice('version: 1\n'.length) },
+  ],
+  '/src/order-lookup.ts': [
+    {
+      kind: 'context',
+      source: `export const lookupOrder = async (orderId: string) => ({
+  orderId,
+  status: orderId === 'order-1042' ? 'shipped' : 'not_found',
+});
+`,
+    },
+    {
+      kind: 'added',
+      source: `
+export const lookupOrderTool = {
+  type: 'function',
+  name: 'lookup_order',
+  description: 'Looks up one order by identifier.',
+  parameters: {
+    additionalProperties: false,
+    properties: { orderId: { type: 'string' } },
+    required: ['orderId'],
+    type: 'object',
+  },
+  strict: true,
+} as const;
+`,
+    },
+  ],
+};
+
+const modifiedAgentFiles: ILandingExampleFiles = Object.fromEntries(
+  Object.entries(LANDING_EXAMPLE_AGENT_EDITS).map(([path, edits]) => [
+    path,
+    edits
+      .filter(({ kind }) => kind !== 'removed')
+      .map(({ source }) => source)
+      .join(''),
+  ]),
+);
 
 const createPolicy = (refundWindowDays: number): string => `# Refund policy
 
@@ -61,10 +107,37 @@ Customers may request a refund within ${refundWindowDays} completed days of purc
 The application decides eligibility. The support agent explains the decision and looks up the order when needed.
 `;
 
-const createInstruction = (refundWindowDays: number): string => `You are the \`support\` agent.
+const projectSource = `# Trailside
 
-Explain that refunds are available within ${refundWindowDays} completed days of purchase.
+Trailside sells hiking and camping gear online. Customers contact support about deliveries and returns.
+
+The TypeScript backend owns order status and refund eligibility. The return rules live in \`context/refund-policy.md\`.
+
+Support can explain the policy and look up orders. It cannot approve refunds or change orders.
+`;
+
+// existing hero files before agent creation; project context and policy are reused unchanged
+export const LANDING_EXAMPLE_BEFORE_AGENT_FILES: ILandingExampleFiles = {
+  ...Object.fromEntries(
+    Object.entries(LANDING_EXAMPLE_AGENT_EDITS).map(([path, edits]) => [
+      path,
+      edits
+        .filter(({ kind }) => kind !== 'added')
+        .map(({ source }) => source)
+        .join(''),
+    ]),
+  ),
+  [LANDING_EXAMPLE.paths.project]: projectSource,
+  [LANDING_EXAMPLE.paths.policyContext]: createPolicy(LANDING_EXAMPLE.initialRefundWindowDays),
+};
+
+const createInstruction = (
+  refundWindowDays: number,
+): string => `You are the \`support\` agent for Trailside.
+
+Explain that customers may request a refund within ${refundWindowDays} completed days; the application decides eligibility.
 Use the order lookup for current order details. Do not invent order status or eligibility.
+Do not approve refunds or change orders.
 `;
 
 const createRefundPolicySource = (
@@ -98,16 +171,15 @@ test('rejects invalid completed-day ages', () => {
 `;
 
 const createCommonFiles = (refundWindowDays: number): ILandingExampleFiles => ({
+  ...modifiedAgentFiles,
   '/moldea/agents/support/description.md':
-    'Helps customers understand refund eligibility and current order status.\n',
+    'Helps Trailside customers track outdoor gear orders and understand the return policy.\n',
   '/moldea/agents/support/instruction.md': createInstruction(refundWindowDays),
   '/moldea/context/refund-policy.md': createPolicy(refundWindowDays),
-  '/moldea/moldea.yaml': createManifest(),
-  '/moldea/project.md':
-    '# Acme Store\n\nThe application owns refund eligibility. The support agent explains it.\n',
+  '/moldea/project.md': projectSource,
   '/package.json': `${JSON.stringify(
     {
-      dependencies: { openai: '^7.4.0' },
+      dependencies: { openai: '^7.4.0', zod: '4.3.6' },
       name: 'moldea-landing-example',
       private: true,
       scripts: {
@@ -120,26 +192,59 @@ const createCommonFiles = (refundWindowDays: number): ILandingExampleFiles => ({
     2,
   )}\n`,
   '/src/agent.ts': `import OpenAI from 'openai';
+import { zodTextFormat } from 'openai/helpers/zod';
+import { z } from 'zod';
 
+import { SupportInput, SupportOutput } from './contracts.js';
 import { loadSupportInstruction } from './instructions.js';
-import { lookupOrderTool } from './order-lookup.js';
+import { lookupOrder, lookupOrderTool } from './order-lookup.js';
 
 const client = new OpenAI();
 
-export const supportAgent = async (prompt: string) =>
-  client.responses.create({
-    input: prompt,
+export const supportAgent = async (input: unknown) => {
+  const response = await client.responses.create({
+    input: JSON.stringify(SupportInput.parse(input)),
     model: '${LANDING_EXAMPLE.model}',
     instructions: loadSupportInstruction(),
     tools: [lookupOrderTool],
+    text: { format: zodTextFormat(SupportOutput, 'support') },
+    parallel_tool_calls: false,
   });
+
+  const toolCall = response.output.find((item) => item.type === 'function_call');
+  if (!toolCall) return response;
+  if (toolCall.name !== lookupOrderTool.name) throw new Error('Unexpected support tool call.');
+
+  const { orderId } = z.strictObject({ orderId: z.string() }).parse(
+    JSON.parse(toolCall.arguments) as unknown,
+  );
+  const order = await lookupOrder(orderId);
+
+  return client.responses.create({
+    input: [{ type: 'function_call_output', call_id: toolCall.call_id, output: JSON.stringify(order) }],
+    model: '${LANDING_EXAMPLE.model}',
+    previous_response_id: response.id,
+    instructions: loadSupportInstruction(),
+    tools: [lookupOrderTool],
+    tool_choice: 'none',
+    text: { format: zodTextFormat(SupportOutput, 'support') },
+  });
+};
 `,
-  '/src/contracts.ts': `export const LookupOrderInput = {
-  additionalProperties: false,
-  properties: { orderId: { type: 'string' } },
-  required: ['orderId'],
-  type: 'object',
-} as const;
+  '/src/contracts.ts': `import { z } from 'zod';
+
+// validated input and structured output for the support agent
+export const SupportInput = z.strictObject({
+  message: z.string().trim().min(1),
+  orderId: z.string().min(1).nullable(),
+});
+
+export const SupportOutput = z.strictObject({
+  reply: z.string(),
+});
+
+export type ISupportInput = z.infer<typeof SupportInput>;
+export type ISupportOutput = z.infer<typeof SupportOutput>;
 `,
   '/src/instructions.ts': `import { readFileSync } from 'node:fs';
 
@@ -149,22 +254,6 @@ export const loadSupportInstruction = (): string =>
     new URL('../moldea/agents/support/instruction.md', import.meta.url),
     'utf8',
   );
-`,
-  '/src/order-lookup.ts': `import { LookupOrderInput } from './contracts.js';
-
-/** Looks up an order in the example catalog. */
-export const lookupOrder = async (orderId: string) => ({
-  orderId,
-  status: orderId === 'order-1042' ? 'shipped' : 'not_found',
-});
-
-export const lookupOrderTool = {
-  type: 'function',
-  name: 'lookup_order',
-  description: 'Looks up one order by identifier.',
-  parameters: LookupOrderInput,
-  strict: true,
-} as const;
 `,
   '/src/refund-policy.test-unit.ts': createRefundPolicyTest(refundWindowDays),
   '/src/refund-policy.ts': createRefundPolicySource(refundWindowDays),
@@ -183,7 +272,7 @@ export const LANDING_EXAMPLE_MAINTAINED_FILES = createCommonFiles(
 // supported defect where saved instructions exist but the runtime call bypasses their loader
 export const LANDING_EXAMPLE_DISCONNECTED_FILES: ILandingExampleFiles = {
   ...LANDING_EXAMPLE_MAINTAINED_FILES,
-  '/src/agent.ts': LANDING_EXAMPLE_MAINTAINED_FILES['/src/agent.ts']!.replace(
+  '/src/agent.ts': LANDING_EXAMPLE_MAINTAINED_FILES['/src/agent.ts']!.replaceAll(
     'instructions: loadSupportInstruction()',
     "instructions: 'Be helpful.'",
   ),

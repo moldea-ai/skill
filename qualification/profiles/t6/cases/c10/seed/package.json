@@ -7,8 +7,8 @@
     "node": ">=24"
   },
   "dependencies": {
-    "ai": "7.0.77",
-    "eve": "0.39.1",
+    "ai": "7.0.116",
+    "eve": "0.67.0",
     "zod": "4.3.6"
   },
   "devDependencies": {

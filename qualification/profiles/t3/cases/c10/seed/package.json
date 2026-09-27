@@ -5,8 +5,8 @@
   "type": "module",
   "dependencies": {
     "@cloudflare/ai-chat": "0.10.2",
-    "agents": "0.21.0",
-    "ai": "7.0.85",
+    "agents": "0.24.0",
+    "ai": "7.0.116",
     "zod": "4.3.6"
   },
   "devDependencies": {

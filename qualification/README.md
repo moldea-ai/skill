@@ -17,7 +17,7 @@ Deterministic verification runs before and after the actor. It verifies:
 - exact registry package integrity and dependency closure
 - repository filesystem and in-memory reader equivalence
 - Core behavior and project validity
-- exact evaluated CLI 8/schema 4 envelopes within the skill's supported `^8.0.0` range
+- exact evaluated CLI 9/schema 5 envelopes within the skill's supported `^9.0.0` range
 - content-free `inspect` and `validate` behavior
 - project-local typechecking
 - scenario-specific diagnostics and assertions
@@ -53,7 +53,7 @@ Semantic and qualification stages receive the same evaluator-owned closed-host d
 
 Qualification mounts `.git`, `.agents/skills/moldea`, and `node_modules` read-only for both roles. The Git command boundary skips those exact immutable subtrees while scanning and budgeting every writable path, including siblings beneath `.agents`. Large evaluator-owned dependency trees therefore cannot cause false failures, repeated disk traversal, or a hiding place for actor-authored repository content.
 
-Protocol 11 classifies actual operations instead of matching security vocabulary in repository searches. Evidence retains only bounded sorted reason codes and counts for network, sensitive, credential, or indeterminate operations. It never retains raw commands, paths, patterns, outputs, or credentials. Indeterminate evidence is not a safety attestation; official runs accept it only alongside independently established read-only filesystem and restricted-egress sandbox boundaries.
+Protocol 12 classifies actual operations instead of matching security vocabulary in repository searches. Evidence retains only bounded sorted reason codes and counts for network, sensitive, credential, or indeterminate operations. It never retains raw commands, paths, patterns, outputs, or credentials. Indeterminate evidence is not a safety attestation; official runs accept it only alongside independently established read-only filesystem and restricted-egress sandbox boundaries.
 
 The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,144 bytes of aggregate `moldea` output. It also requires exact or bounded host discovery that excludes dependency, VCS, generated, cache, and package-store trees. Large repositories remain supported through paginated metadata and explicit content chunks. A budget failure states which observed value exceeded which limit; it never silently truncates evidence into an apparently valid result.
 
@@ -61,7 +61,7 @@ The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,
 
 ## Current-only evidence
 
-Qualification protocol 11 is the sole accepted contract. A passing attempt must match the current skill bytes, CLI closure, evaluator, role-specific actor and judge hosts, resource profile, probes, cases, target, execution environment, reviewed compatibility snapshot, and package closure. Earlier attempts are outside the current resume, reuse, recording, and selection contracts.
+Qualification protocol 12 is the sole accepted contract for current runs. A passing attempt must match the current skill bytes, CLI closure, evaluator, role-specific actor and judge hosts, resource profile, probes, cases, target, execution environment, reviewed compatibility snapshot, and package closure. Earlier raw attempts are outside the current resume, reuse, and recording contracts. Self-contained protocol-11 public bundles retain their recorded protocol and may still be selected for website presentation.
 
 Behavior-bearing filesystem identity preserves file contents, paths, symlinks, and executability while ignoring host-only read and write permission differences.
 
@@ -77,6 +77,8 @@ Adapter qualification requires a current passing Custom baseline. Custom itself 
 - `profiles/t<number>/cases/c<number>/` contains a transparent task, scenario, seed project, and expected state when applicable.
 
 Scenario paths use repository-relative portable names. Test files remain colocated with the implementation they exercise.
+
+`deterministicEvidence.before` and `.after` may assert complete `errorCount` and `warningCount`, required or forbidden diagnostic selectors, and required or forbidden evidence selectors alongside simple code and kind lists. A diagnostic selector requires `code` and `severity`; it may identify the agent, capability, relationship, reason, and warning details `packageName`, `boundaryVersion`, or nullable `declaredRange`. An evidence selector requires `kind`; it may identify the agent, capability, one exact `{ path, symbol? }` reference, and `declaredDeferredLoading`, `patternId`, `interruptForm`, or `responseSchemaRole`. All specified fields must match one record. Missing and explicit `null` are distinct. Selectors are closed; unrelated producer metadata is ignored. CLI aggregate counts are checked against the complete direct Core result, not the visible page.
 
 ## Local setup
 
@@ -222,4 +224,4 @@ npm run qualification:format:check
 npm run qualification:verify
 ```
 
-The generic test script runs both unit and integration categories. Qualification results become fresh release evidence only after every recorded identity, resource budget, artifact digest, and target requirement passes. Selecting an older supported protocol-11 bundle leaves its original version, date, and provenance visible and does not claim a new qualification run.
+The generic test script runs both unit and integration categories. Qualification results become fresh release evidence only after every recorded identity, resource budget, artifact digest, and target requirement passes. Selecting a supported protocol-11 public bundle leaves its original protocol, version, date, and provenance visible and does not claim a new qualification run.

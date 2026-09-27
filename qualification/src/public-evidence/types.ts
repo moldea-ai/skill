@@ -8,13 +8,19 @@ import type {
 } from '@moldea.ai/website-ui/evaluation-replay-model';
 import { z } from 'zod';
 
+import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
+
 import {
   EVALUATION_CONFIRMATION_POLICY,
   getEvaluationConfirmationResolution,
 } from '../../../src/execution/confirmation/index.ts';
 
 const QUALIFICATION_PROTOCOL_VERSION = 2;
-const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 11;
+// public bundles may present the previous producer protocol alongside the current one
+const PresentationEvidenceProtocolSchema = z.union([
+  z.literal(11),
+  z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
+]);
 const INITIAL_OPERATIONAL_RETRY_DELAY_MS = 5_000;
 const MAXIMUM_OPERATIONAL_RETRY_DELAY_MS = 60_000;
 const StableIdSchema = z
@@ -128,6 +134,50 @@ export const QualificationProbesSchema = z.object({
     )
     .min(1),
 });
+const PresentationDiagnosticSelectorSchema = z.object({
+  code: z.string(),
+  severity: z.enum(['error', 'warning']),
+  agentId: z.string().optional(),
+  capabilityKind: z.enum(['skill', 'tool']).optional(),
+  capabilityId: z.string().optional(),
+  relationship: z.string().optional(),
+  reason: z.string().optional(),
+  details: z
+    .object({
+      packageName: z.string().optional(),
+      boundaryVersion: z.string().optional(),
+      declaredRange: z.string().nullable().optional(),
+    })
+    .optional(),
+});
+const PresentationEvidenceSelectorSchema = z.object({
+  kind: z.string(),
+  agentId: z.string().optional(),
+  capabilityKind: z.enum(['skill', 'tool']).optional(),
+  capabilityId: z.string().optional(),
+  reference: z.object({ path: z.string(), symbol: z.string().optional() }).optional(),
+  details: z
+    .object({
+      declaredDeferredLoading: z.enum(['absent', 'enabled', 'disabled', 'unknown']).optional(),
+      patternId: z.string().optional(),
+      interruptForm: z.literal('two-argument').optional(),
+      responseSchemaRole: z.literal('resume-value').optional(),
+    })
+    .optional(),
+});
+const PresentationDeterministicExpectationSchema = z.object({
+  errorCount: z.number().int().nonnegative().optional(),
+  warningCount: z.number().int().nonnegative().optional(),
+  requiredDiagnosticCodes: z.array(z.string()),
+  forbiddenDiagnosticCodes: z.array(z.string()),
+  requiredEvidenceKinds: z.array(z.string()),
+  forbiddenEvidenceKinds: z.array(z.string()),
+  requiredDiagnostics: z.array(PresentationDiagnosticSelectorSchema).optional(),
+  forbiddenDiagnostics: z.array(PresentationDiagnosticSelectorSchema).optional(),
+  requiredEvidence: z.array(PresentationEvidenceSelectorSchema).optional(),
+  forbiddenEvidence: z.array(PresentationEvidenceSelectorSchema).optional(),
+});
+
 export const QualificationScenarioSchema = z.object({
   version: z.literal(QUALIFICATION_PROTOCOL_VERSION),
   id: StableIdSchema,
@@ -148,18 +198,8 @@ export const QualificationScenarioSchema = z.object({
     after: z.enum(['invalid', 'valid']),
   }),
   deterministicEvidence: z.object({
-    before: z.object({
-      requiredDiagnosticCodes: z.array(z.string()),
-      forbiddenDiagnosticCodes: z.array(z.string()),
-      requiredEvidenceKinds: z.array(z.string()),
-      forbiddenEvidenceKinds: z.array(z.string()),
-    }),
-    after: z.object({
-      requiredDiagnosticCodes: z.array(z.string()),
-      forbiddenDiagnosticCodes: z.array(z.string()),
-      requiredEvidenceKinds: z.array(z.string()),
-      forbiddenEvidenceKinds: z.array(z.string()),
-    }),
+    before: PresentationDeterministicExpectationSchema,
+    after: PresentationDeterministicExpectationSchema,
   }),
   expectedActorOutcome: z.enum(['blocked', 'completed']),
   workspace: z.object({
@@ -244,7 +284,7 @@ const QualificationLatestResultShape = {
   updatedAt: z.iso.datetime(),
 };
 export const QualificationLatestResultSchema = z.object({
-  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
+  protocolVersion: PresentationEvidenceProtocolSchema,
   ...QualificationLatestResultShape,
 });
 const ModelUsageSchema = z
@@ -604,7 +644,7 @@ const QualificationCurrentStageSchema = QualificationStageSchema.extend({
   }
 });
 export const QualificationAttemptResultSchema = z.strictObject({
-  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
+  protocolVersion: PresentationEvidenceProtocolSchema,
   ...QualificationAttemptResultShape,
   confirmationPolicy: QualificationConfirmationPolicySchema,
   mode: z.literal('official'),

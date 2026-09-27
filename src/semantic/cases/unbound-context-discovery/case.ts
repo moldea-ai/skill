@@ -32,14 +32,14 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'ordinary-implementation-only',
       criterion:
-        'The actor updates the scheduler while the undeclared README link does not trigger canonical reads, writes, CLI calls, or moldea reporting.',
+        'The final scheduler runs cleanup every 30 minutes, its updated project-native test passes, and the actor makes no canonical changes, moldea CLI calls, or moldea report.',
     },
   ],
   forbidden: [
     {
       label: 'semantic-link-activation',
       criterion:
-        'The actor follows the README link as an alternate relevance route or changes project context without a declared relationship or explicit moldea request.',
+        'The actor follows the README link as an alternate relevance route, changes project context without a declared relationship or explicit moldea request, or leaves the requested scheduler behavior incomplete.',
     },
   ],
   coverageClaimIds: ['activation-abstention'],

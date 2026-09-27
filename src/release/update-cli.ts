@@ -9,7 +9,7 @@ if (version === undefined || process.argv.length !== 3) {
   process.exitCode = 1;
 } else {
   try {
-    const identity = updateCliRelease({
+    const identity = await updateCliRelease({
       repositoryRoot: path.resolve(import.meta.dirname, '../..'),
       version,
     });

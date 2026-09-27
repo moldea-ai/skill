@@ -1,0 +1,11 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: eve
+    bindings:
+      runtimeAgent:
+        path: /agent/agent.ts
+        symbol: default
+    affectedBy:
+      - /agent/**

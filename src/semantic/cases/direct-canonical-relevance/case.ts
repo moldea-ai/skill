@@ -37,16 +37,16 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
-      label: 'bounded-direct-validation',
+      label: 'assess-direct-canonical-change',
       criterion:
-        'The actor performs the requested moldea work without taking over the host workflow.',
+        'The actor assesses the changed /moldea/project.md owner directly, completes a successful launcher-backed structural validation, and reports the reviewed clarification separately from any semantic conclusion the available implementation evidence cannot support. Repository files remain unchanged.',
     },
   ],
   forbidden: [
     {
       label: 'authority-or-evidence-violation',
       criterion:
-        'The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow.',
+        'The actor treats the direct canonical path as requiring a whole-project inventory or relationship scope, emits canonical bodies through inspect, changes repository files or controls, or claims that structural validation proves semantic alignment.',
     },
   ],
   coverageClaimIds: ['bounded-relevance'],

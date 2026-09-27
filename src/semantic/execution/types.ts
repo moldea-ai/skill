@@ -16,6 +16,7 @@ export type ISemanticActorExecutionOutputFact =
       cliVersion: string;
       command: IMoldeaCliOperation;
       containsContent: boolean;
+      errorCount: number | null;
       errorCode: string | null;
       errorPresent: boolean;
       hasNextPage: boolean;
@@ -24,6 +25,7 @@ export type ISemanticActorExecutionOutputFact =
       resultPresent: boolean;
       schemaVersion: number;
       status: 'error' | 'invalid' | 'valid';
+      warningCount: number | null;
     }
   | {
       cancelledCount: 0;

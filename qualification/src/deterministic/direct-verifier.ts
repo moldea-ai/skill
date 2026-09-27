@@ -11,11 +11,16 @@ import {
   createFilesystemRepositoryReader,
 } from '@moldea.ai/repository-fs';
 import { createCore } from '@moldea.ai/core';
-import type { IProjectValidationResult } from '@moldea.ai/core';
+import type {
+  IDiagnostic,
+  IProjectValidationResult,
+  IRuntimeAdapterEvidence,
+} from '@moldea.ai/core';
 
 type IRuntimeAdapter = NonNullable<
   NonNullable<Parameters<typeof createCore>[0]>['adapters']
 >[number];
+const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 
 /** Collects every selected repository entry through bounded continuation pages. */
 const collectRepositoryEntries = async (
@@ -79,13 +84,67 @@ const readRepositoryFile = async (
 const toComparableValidation = ({
   diagnostics,
   evidence,
+  errorCount,
   formatVersion,
   summary,
   valid,
+  warningCount,
 }: IProjectValidationResult): Pick<
   IProjectValidationResult,
-  'diagnostics' | 'evidence' | 'formatVersion' | 'summary' | 'valid'
-> => ({ diagnostics, evidence, formatVersion, summary, valid });
+  'diagnostics' | 'evidence' | 'errorCount' | 'formatVersion' | 'summary' | 'valid' | 'warningCount'
+> => ({ diagnostics, evidence, errorCount, formatVersion, summary, valid, warningCount });
+
+const projectDetails = (
+  source: object,
+  allowedFields: readonly string[],
+): Record<string, unknown> => {
+  const details: Record<string, unknown> = {};
+  const fields = source as Record<string, unknown>;
+  for (const field of allowedFields) {
+    if (Object.hasOwn(source, field)) details[field] = fields[field];
+  }
+  return details;
+};
+
+const projectDiagnostic = (diagnostic: IDiagnostic) => ({
+  code: diagnostic.code,
+  severity: diagnostic.severity,
+  ...(diagnostic.entity?.agentId === undefined ? {} : { agentId: diagnostic.entity.agentId }),
+  ...(diagnostic.entity?.capabilityKind === undefined
+    ? {}
+    : { capabilityKind: diagnostic.entity.capabilityKind }),
+  ...(diagnostic.entity?.capabilityId === undefined
+    ? {}
+    : { capabilityId: diagnostic.entity.capabilityId }),
+  ...(diagnostic.severity === 'warning'
+    ? {
+        relationship: diagnostic.details.relationship,
+        reason: diagnostic.details.reason,
+        details: projectDetails(diagnostic.details, [
+          'packageName',
+          'boundaryVersion',
+          'declaredRange',
+        ]),
+      }
+    : {}),
+});
+
+const projectEvidence = (evidence: IRuntimeAdapterEvidence) => ({
+  kind: evidence.kind,
+  agentId: evidence.agentId,
+  capabilityKind: evidence.capabilityKind,
+  capabilityId: evidence.capabilityId,
+  references: evidence.references.map(({ path, symbol }) => ({
+    path,
+    ...(symbol === undefined ? {} : { symbol }),
+  })),
+  details: projectDetails(evidence.details, [
+    'declaredDeferredLoading',
+    'patternId',
+    'interruptForm',
+    'responseSchemaRole',
+  ]),
+});
 
 const [projectDirectory, adapterId, adapterPackage] = process.argv.slice(2);
 
@@ -104,6 +163,10 @@ const gitPaths = execFileSync(
 )
   .split('\0')
   .filter((relativePath) => relativePath !== '')
+  .filter(
+    (relativePath) =>
+      !relativePath.split(/[\\/]/).some((name) => EXCLUDED_CONTEXT_DIRECTORY_NAMES.has(name)),
+  )
   .filter((relativePath) => {
     try {
       lstatSync(path.join(projectDirectory, relativePath));
@@ -178,17 +241,25 @@ process.stdout.write(
     equivalent,
     filesystem: {
       valid: filesystemResult.valid,
+      errorCount: filesystemResult.errorCount,
+      warningCount: filesystemResult.warningCount,
       formatVersion: filesystemResult.formatVersion,
       diagnosticCodes: filesystemResult.diagnostics.map(({ code }) => code),
+      diagnostics: filesystemResult.diagnostics.map(projectDiagnostic),
       evidenceKinds: filesystemResult.evidence.map(({ kind }) => kind),
+      evidence: filesystemResult.evidence.map(projectEvidence),
       evidenceCount: filesystemResult.evidence.length,
       agentCount: filesystemResult.summary?.counts.agents ?? 0,
     },
     memory: {
       valid: memoryResult.valid,
+      errorCount: memoryResult.errorCount,
+      warningCount: memoryResult.warningCount,
       formatVersion: memoryResult.formatVersion,
       diagnosticCodes: memoryResult.diagnostics.map(({ code }) => code),
+      diagnostics: memoryResult.diagnostics.map(projectDiagnostic),
       evidenceKinds: memoryResult.evidence.map(({ kind }) => kind),
+      evidence: memoryResult.evidence.map(projectEvidence),
       evidenceCount: memoryResult.evidence.length,
       agentCount: memoryResult.summary?.counts.agents ?? 0,
     },

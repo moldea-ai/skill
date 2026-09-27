@@ -72,6 +72,9 @@ const NODE_TEST_DURATION_LINE_PATTERN = /^(?:#|ℹ) duration_ms \d+(?:\.\d+)?$/u
 const isPlainRecord = (input: unknown): input is Record<string, unknown> =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
 
+const isNonnegativeSafeInteger = (input: unknown): input is number =>
+  typeof input === 'number' && Number.isSafeInteger(input) && input >= 0;
+
 const hasExactKeys = (
   record: Record<string, unknown>,
   expectedKeys: readonly string[],
@@ -136,6 +139,31 @@ const hasNextPage = (result: unknown): boolean => {
   return typeof cursor === 'string' && cursor.length > 0;
 };
 
+const readDiagnosticTotals = (
+  result: unknown,
+  operation: IMoldeaCliOperation,
+  status: IMoldeaStatus,
+): { errorCount: number; warningCount: number } | null => {
+  if (!isPlainRecord(result) || typeof result['valid'] !== 'boolean') return null;
+  const totals = operation === 'inspect' ? result['counts'] : result;
+  if (!isPlainRecord(totals)) return null;
+  const diagnosticCount =
+    operation === 'inspect' ? totals['diagnostics'] : totals['diagnosticCount'];
+  const errorCount = operation === 'inspect' ? totals['errors'] : totals['errorCount'];
+  const warningCount = operation === 'inspect' ? totals['warnings'] : totals['warningCount'];
+  if (
+    !isNonnegativeSafeInteger(diagnosticCount) ||
+    !isNonnegativeSafeInteger(errorCount) ||
+    !isNonnegativeSafeInteger(warningCount) ||
+    errorCount + warningCount !== diagnosticCount ||
+    result['valid'] !== (errorCount === 0) ||
+    status !== (result['valid'] ? 'valid' : 'invalid')
+  ) {
+    return null;
+  }
+  return { errorCount, warningCount };
+};
+
 const hasConsistentMoldeaEnvelope = (
   envelope: unknown,
   operation: IMoldeaCliOperation,
@@ -184,10 +212,17 @@ const projectMoldeaEnvelope = (
   if (!hasConsistentMoldeaEnvelope(envelope, operation, exitCode, options)) return null;
   const { error, result, status } = envelope;
   if (!isMoldeaStatus(status)) return null;
+  const hasDiagnosticTotals = operation === 'validate' || operation === 'inspect';
+  const diagnosticTotals =
+    hasDiagnosticTotals && status !== 'error'
+      ? readDiagnosticTotals(result, operation, status)
+      : null;
+  if (hasDiagnosticTotals && status !== 'error' && diagnosticTotals === null) return null;
   return {
     cliVersion: options.cliVersion,
     command: operation,
     containsContent: result !== null && containsContentField(result),
+    errorCount: diagnosticTotals?.errorCount ?? null,
     errorCode:
       status === 'error' && isPlainRecord(error) && typeof error['code'] === 'string'
         ? error['code']
@@ -203,6 +238,7 @@ const projectMoldeaEnvelope = (
     resultPresent: result !== null,
     schemaVersion: options.jsonSchemaVersion,
     status,
+    warningCount: diagnosticTotals?.warningCount ?? null,
   };
 };
 
@@ -217,6 +253,7 @@ const hasValidMoldeaFact = (
       'cliVersion',
       'command',
       'containsContent',
+      'errorCount',
       'errorCode',
       'errorPresent',
       'hasNextPage',
@@ -226,6 +263,7 @@ const hasValidMoldeaFact = (
       'resultPresent',
       'schemaVersion',
       'status',
+      'warningCount',
     ])
   ) {
     return false;
@@ -234,6 +272,7 @@ const hasValidMoldeaFact = (
     cliVersion,
     command,
     containsContent,
+    errorCount,
     errorCode,
     errorPresent,
     hasNextPage: doesHaveNextPage,
@@ -243,6 +282,7 @@ const hasValidMoldeaFact = (
     resultPresent,
     schemaVersion,
     status,
+    warningCount,
   } = fact;
   if (
     kind !== 'moldea-cli-envelope' ||
@@ -270,6 +310,22 @@ const hasValidMoldeaFact = (
         : !containsContent
       : !containsContent;
   if (!hasValidContent) return false;
+  const hasDiagnosticTotals = command === 'validate' || command === 'inspect';
+  if (hasDiagnosticTotals && status !== 'error') {
+    if (
+      typeof errorCount !== 'number' ||
+      !Number.isSafeInteger(errorCount) ||
+      errorCount < 0 ||
+      typeof warningCount !== 'number' ||
+      !Number.isSafeInteger(warningCount) ||
+      warningCount < 0 ||
+      status !== (errorCount === 0 ? 'valid' : 'invalid')
+    ) {
+      return false;
+    }
+  } else if (errorCount !== null || warningCount !== null) {
+    return false;
+  }
   return (
     (status === 'valid' &&
       exitCode === 0 &&

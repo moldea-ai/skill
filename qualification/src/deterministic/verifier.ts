@@ -3,7 +3,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
-import { DeterministicVerificationSchema, type ICandidateClosure } from '../contracts/index.ts';
+import {
+  DeterministicVerificationSchema,
+  type ICandidateClosure,
+  type IQualificationCaseScenario,
+} from '../contracts/index.ts';
 import {
   collectDirectoryFingerprintEntries,
   writeBufferFileAtomically,
@@ -11,25 +15,76 @@ import {
 import { executeProcess } from '../../../src/process/index.ts';
 import { inspectProjectTypeScriptInstallation } from '../project-fixture/index.ts';
 import type { IDeterministicVerificationArtifact } from './types.ts';
+import { inspectDeterministicSelectors } from './validations.ts';
+
+const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+
+const ProjectedDiagnosticSchema = z.strictObject({
+  code: z.string(),
+  severity: z.enum(['error', 'warning']),
+  agentId: z.string().optional(),
+  capabilityKind: z.enum(['skill', 'tool']).optional(),
+  capabilityId: z.string().optional(),
+  relationship: z.string().optional(),
+  reason: z.string().optional(),
+  details: z
+    .strictObject({
+      packageName: z.string().optional(),
+      boundaryVersion: z.string().optional(),
+      declaredRange: z.string().nullable().optional(),
+    })
+    .optional(),
+});
+
+const ProjectedEvidenceSchema = z.strictObject({
+  kind: z.string(),
+  agentId: z.string().nullable(),
+  capabilityKind: z.enum(['skill', 'tool']).nullable(),
+  capabilityId: z.string().nullable(),
+  references: z.array(z.strictObject({ path: z.string(), symbol: z.string().optional() })),
+  details: z.strictObject({
+    declaredDeferredLoading: z.enum(['absent', 'enabled', 'disabled', 'unknown']).optional(),
+    patternId: z.string().optional(),
+    interruptForm: z.literal('two-argument').optional(),
+    responseSchemaRole: z.literal('resume-value').optional(),
+  }),
+});
+
+const DirectResultSchema = z.strictObject({
+  valid: z.boolean(),
+  formatVersion: z.number().int().nullable(),
+  errorCount: z.number().int().nonnegative(),
+  warningCount: z.number().int().nonnegative(),
+  diagnosticCodes: z.array(z.string()),
+  diagnostics: z.array(ProjectedDiagnosticSchema),
+  evidenceKinds: z.array(z.string()),
+  evidence: z.array(ProjectedEvidenceSchema),
+  evidenceCount: z.number().int().nonnegative(),
+  agentCount: z.number().int().nonnegative(),
+});
 
 const DirectVerificationSchema = z.strictObject({
   equivalent: z.boolean(),
-  filesystem: z.strictObject({
-    valid: z.boolean(),
-    formatVersion: z.number().int().nullable(),
-    diagnosticCodes: z.array(z.string()),
-    evidenceKinds: z.array(z.string()),
-    evidenceCount: z.number().int().nonnegative(),
-    agentCount: z.number().int().nonnegative(),
+  filesystem: DirectResultSchema,
+  memory: DirectResultSchema,
+});
+
+const CliValidateResultSchema = z.object({
+  diagnosticCount: z.number().int().nonnegative(),
+  errorCount: z.number().int().nonnegative(),
+  warningCount: z.number().int().nonnegative(),
+  valid: z.boolean(),
+});
+
+const CliInspectResultSchema = z.object({
+  counts: z.object({
+    diagnostics: z.number().int().nonnegative(),
+    errors: z.number().int().nonnegative(),
+    warnings: z.number().int().nonnegative(),
+    evidence: z.number().int().nonnegative(),
+    agents: z.number().int().nonnegative(),
   }),
-  memory: z.strictObject({
-    valid: z.boolean(),
-    formatVersion: z.number().int().nullable(),
-    diagnosticCodes: z.array(z.string()),
-    evidenceKinds: z.array(z.string()),
-    evidenceCount: z.number().int().nonnegative(),
-    agentCount: z.number().int().nonnegative(),
-  }),
+  valid: z.boolean(),
 });
 
 const CliEnvelopeSchema = z.strictObject({
@@ -96,19 +151,19 @@ export const verifyDeterministicProject = async (options: {
   adapterId: string;
   adapterPackage: string;
   candidate: ICandidateClosure;
-  expectedEvidence: {
-    requiredDiagnosticCodes: readonly string[];
-    forbiddenDiagnosticCodes: readonly string[];
-    requiredEvidenceKinds: readonly string[];
-    forbiddenEvidenceKinds: readonly string[];
-  };
+  expectedEvidence: IQualificationCaseScenario['deterministicEvidence']['before'];
   expectedInspectionStatus: 'invalid' | 'valid';
   signal?: AbortSignal | undefined;
   workspaceDirectory: string;
 }): Promise<IDeterministicVerificationArtifact> => {
   const startedAt = performance.now();
   const projectStateBefore = await collectDirectoryFingerprintEntries(options.workspaceDirectory, {
-    excludedDirectoryNames: new Set(['.git', '.moldea-qualification', 'node_modules']),
+    excludedDirectoryNames: new Set([
+      '.git',
+      '.moldea-qualification',
+      'node_modules',
+      ...EXCLUDED_CONTEXT_DIRECTORY_NAMES,
+    ]),
   });
   const directVerifierSourcePath = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
@@ -198,11 +253,18 @@ export const verifyDeterministicProject = async (options: {
   const failures: string[] = [];
   const typecheckPassed = typecheckResult.exitCode === 0;
   const projectStateAfter = await collectDirectoryFingerprintEntries(options.workspaceDirectory, {
-    excludedDirectoryNames: new Set(['.git', '.moldea-qualification', 'node_modules']),
+    excludedDirectoryNames: new Set([
+      '.git',
+      '.moldea-qualification',
+      'node_modules',
+      ...EXCLUDED_CONTEXT_DIRECTORY_NAMES,
+    ]),
   });
   const repositoryUnchanged =
     JSON.stringify(projectStateBefore) === JSON.stringify(projectStateAfter);
   const compositionResultPayload = CompositionResultSchema.safeParse(cliComposition.result);
+  const validatePayload = CliValidateResultSchema.safeParse(cliValidate.result);
+  const inspectPayload = CliInspectResultSchema.safeParse(cliInspect.result);
   const cliIdentityValid = [
     ['composition', cliComposition, compositionResult.exitCode],
     ['validate', cliValidate, validateResult.exitCode],
@@ -241,7 +303,24 @@ export const verifyDeterministicProject = async (options: {
     expectedRepositoryFormatVersions.some((formatVersion) =>
       selectedAdapter.repositoryFormatVersions.includes(formatVersion),
     );
-  const cliEnvelopeValid = cliIdentityValid;
+  const cliAggregatesValid =
+    validatePayload.success &&
+    inspectPayload.success &&
+    validatePayload.data.diagnosticCount === direct.filesystem.diagnostics.length &&
+    validatePayload.data.errorCount === direct.filesystem.errorCount &&
+    validatePayload.data.warningCount === direct.filesystem.warningCount &&
+    validatePayload.data.diagnosticCount ===
+      validatePayload.data.errorCount + validatePayload.data.warningCount &&
+    validatePayload.data.valid === direct.filesystem.valid &&
+    inspectPayload.data.counts.diagnostics === direct.filesystem.diagnostics.length &&
+    inspectPayload.data.counts.errors === direct.filesystem.errorCount &&
+    inspectPayload.data.counts.warnings === direct.filesystem.warningCount &&
+    inspectPayload.data.counts.diagnostics ===
+      inspectPayload.data.counts.errors + inspectPayload.data.counts.warnings &&
+    inspectPayload.data.counts.evidence === direct.filesystem.evidenceCount &&
+    inspectPayload.data.counts.agents === direct.filesystem.agentCount &&
+    inspectPayload.data.valid === direct.filesystem.valid;
+  const cliEnvelopeValid = cliIdentityValid && cliAggregatesValid;
 
   if (direct.filesystem.valid !== expectedCoreValidity) {
     failures.push(
@@ -253,7 +332,29 @@ export const verifyDeterministicProject = async (options: {
     failures.push('Repository FS and reconstructed Repository memory inspection results differ.');
   }
 
+  if (
+    options.expectedEvidence.errorCount !== undefined &&
+    direct.filesystem.errorCount !== options.expectedEvidence.errorCount
+  ) {
+    failures.push(
+      `Expected ${options.expectedEvidence.errorCount} errors; observed ${direct.filesystem.errorCount}.`,
+    );
+  }
+  if (
+    options.expectedEvidence.warningCount !== undefined &&
+    direct.filesystem.warningCount !== options.expectedEvidence.warningCount
+  ) {
+    failures.push(
+      `Expected ${options.expectedEvidence.warningCount} warnings; observed ${direct.filesystem.warningCount}.`,
+    );
+  }
+
   failures.push(
+    ...inspectDeterministicSelectors(
+      options.expectedEvidence,
+      direct.filesystem.diagnostics,
+      direct.filesystem.evidence,
+    ),
     ...inspectDeclaredEvidence({
       actual: direct.filesystem.diagnosticCodes,
       forbidden: options.expectedEvidence.forbiddenDiagnosticCodes,
@@ -271,6 +372,12 @@ export const verifyDeterministicProject = async (options: {
   if (!cliIdentityValid) {
     failures.push(
       'Installed CLI version, schema, command, status, payload, or exit code differed.',
+    );
+  }
+
+  if (!cliAggregatesValid) {
+    failures.push(
+      'Installed CLI aggregate counts or validity differed from the complete Core result.',
     );
   }
 

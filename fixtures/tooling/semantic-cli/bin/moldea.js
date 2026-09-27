@@ -55,17 +55,63 @@ if (command === '--version') {
   });
 } else if (['inspect', 'validate'].includes(command) && process.argv.includes('--json')) {
   const project = readAsset('/moldea/project.md');
-  const records = command === 'inspect'
-    ? [{ asset: project.metadata, key: '["project"]', kind: 'project' }]
-    : [];
-  writeEnvelope({
-    counts: { agents: 0, context: 1, diagnostics: 0 },
+  const manifestAsset = readAsset('/moldea/moldea.yaml');
+  const common = {
     formatVersion: 1,
-    page: { cursor: null, records },
-    snapshotDigest: digest(project.content),
+    snapshotDigest: digest(manifestAsset.content + project.content),
     source: { kind: 'git-working-tree' },
     valid: true,
-  });
+  };
+  if (command === 'validate') {
+    writeEnvelope({
+      ...common,
+      diagnosticCount: 0,
+      errorCount: 0,
+      page: { cursor: null, records: [] },
+      warningCount: 0,
+    });
+  } else {
+    const metadataRecord = (asset, metadataKind, key) => ({
+      agentId: null,
+      byteLength: asset.metadata.utf8ByteLength,
+      canonicalDigest: null,
+      decisionId: null,
+      digest: asset.metadata.digest,
+      key,
+      kind: 'metadata',
+      metadataKind,
+      path: asset.metadata.path,
+      scalarLength: asset.metadata.scalarLength,
+    });
+    writeEnvelope({
+      ...common,
+      counts: {
+        agents: 0,
+        context: 0,
+        decisions: 0,
+        diagnostics: 0,
+        errors: 0,
+        evidence: 0,
+        metadata: 2,
+        mirrors: 0,
+        runtimes: 0,
+        unresolved: 0,
+        warnings: 0,
+      },
+      page: {
+        cursor: null,
+        records: [
+          metadataRecord(manifestAsset, 'manifest', '["000000","metadata","/moldea/moldea.yaml","manifest",null]'),
+          metadataRecord(project, 'project', '["000001","metadata","/moldea/project.md","project",null]'),
+        ],
+      },
+      project: {
+        manifest: { digest: manifestAsset.metadata.digest, path: manifestAsset.metadata.path },
+        project: { digest: project.metadata.digest, path: project.metadata.path },
+      },
+      view: 'all',
+    });
+  }
 } else if (command === 'content' && process.argv.includes('--json')) {
   const logicalPath = optionValue('--path');
   if (logicalPath === null || !logicalPath.startsWith('/moldea/')) {

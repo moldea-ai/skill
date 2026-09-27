@@ -64,7 +64,7 @@ judgeRequirements:
       kind: judge
       evidenceSources: [current-workspace, deterministic-after, workspace-patch]
   - id: preserves-binding-closure
-    description: Runtime-agent, Markdown instruction, agent output-schema, tool implementation, registration, input-schema, and tool output-schema bindings remain exact and evidenced.
+    description: Runtime-agent, Markdown instruction, tool implementation, registration, input-schema, and tool output-schema bindings remain exact and evidenced.
     evaluation:
       kind: judge
       evidenceSources: [current-workspace, deterministic-after]

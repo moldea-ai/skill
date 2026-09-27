@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@cloudflare/think": "0.16.0",
-    "agents": "0.21.0",
-    "ai": "7.0.85",
+    "@cloudflare/think": "0.19.0",
+    "agents": "0.24.0",
+    "ai": "7.0.116",
     "zod": "4.3.6"
   },
   "devDependencies": {

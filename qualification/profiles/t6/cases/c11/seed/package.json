@@ -1,0 +1,16 @@
+{
+  "name": "moldea-qualification-eve-stale-agent-schema",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.0.0" },
+  "dependencies": {
+    "ai": "7.0.116",
+    "eve": "0.67.0",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "typescript": "6.0.3"
+  }
+}

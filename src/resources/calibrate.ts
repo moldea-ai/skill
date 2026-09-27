@@ -99,7 +99,7 @@ interface ICalibrationArtifact {
 const CliEnvelopeSchema = z.object({
   result: z
     .object({ page: z.object({ cursor: z.string().nullable().optional() }).optional() })
-    .optional(),
+    .nullable(),
   status: z.string(),
 });
 const ProcessMetricsSchema = z.object({

@@ -1,4 +1,156 @@
 {
+  "cliEnvelopeCases": [
+    {
+      "id": "inspect-valid",
+      "input": {
+        "output": {
+          "cliVersion": "9.0.0",
+          "schemaVersion": 5,
+          "command": "inspect",
+          "status": "valid",
+          "result": {
+            "page": {
+              "cursor": null,
+              "records": []
+            }
+          },
+          "error": null
+        }
+      },
+      "expected": "interpret-result"
+    },
+    {
+      "id": "scope-valid",
+      "input": {
+        "output": {
+          "cliVersion": "9.0.0",
+          "schemaVersion": 5,
+          "command": "scope",
+          "status": "valid",
+          "result": {
+            "relevant": true,
+            "page": {
+              "cursor": null,
+              "records": []
+            }
+          },
+          "error": null
+        }
+      },
+      "expected": "interpret-result"
+    },
+    {
+      "id": "content-valid",
+      "input": {
+        "output": {
+          "cliVersion": "9.0.0",
+          "schemaVersion": 5,
+          "command": "content",
+          "status": "valid",
+          "result": {
+            "chunk": {
+              "content": "bounded"
+            }
+          },
+          "error": null
+        }
+      },
+      "expected": "interpret-result"
+    },
+    {
+      "id": "schema-mismatch",
+      "input": {
+        "output": {
+          "cliVersion": "9.0.0",
+          "schemaVersion": 1,
+          "command": "inspect",
+          "status": "valid",
+          "result": {},
+          "error": null
+        }
+      },
+      "scenario": "Inspect returns an otherwise plausible envelope using unsupported machine schema version 1.",
+      "expected": "reject-envelope"
+    },
+    {
+      "id": "version-mismatch",
+      "input": {
+        "output": {
+          "cliVersion": "10.0.0",
+          "schemaVersion": 5,
+          "command": "inspect",
+          "status": "valid",
+          "result": {},
+          "error": null
+        }
+      },
+      "scenario": "The machine envelope reports unsupported CLI 10.0.0 while the declared and installed root package is 9.0.0.",
+      "expected": "reject-envelope"
+    },
+    {
+      "id": "command-mismatch",
+      "input": {
+        "output": {
+          "cliVersion": "9.0.0",
+          "schemaVersion": 5,
+          "command": "validate",
+          "status": "valid",
+          "result": {},
+          "error": null
+        }
+      },
+      "expected": "reject-envelope"
+    },
+    {
+      "id": "status-exit-mismatch",
+      "input": {
+        "output": {
+          "cliVersion": "9.0.0",
+          "schemaVersion": 5,
+          "command": "inspect",
+          "status": "valid",
+          "result": {},
+          "error": null
+        }
+      },
+      "expected": "reject-envelope"
+    },
+    {
+      "id": "inspect-content-leak",
+      "input": {
+        "output": {
+          "cliVersion": "9.0.0",
+          "schemaVersion": 5,
+          "command": "inspect",
+          "status": "valid",
+          "result": {
+            "page": {
+              "cursor": null,
+              "records": [
+                {
+                  "asset": {
+                    "content": "not allowed"
+                  }
+                }
+              ]
+            }
+          },
+          "error": null
+        }
+      },
+      "expected": "reject-envelope"
+    },
+    {
+      "id": "invocation-too-large",
+      "input": {},
+      "expected": "reject-output"
+    },
+    {
+      "id": "ordinary-aggregate-too-large",
+      "input": {},
+      "expected": "stop-traversal"
+    }
+  ],
   "activationCases": [
     {
       "id": "moldea-product-payment-review",
@@ -6,7 +158,10 @@
         "initialized": true,
         "hostCommand": "review",
         "repositoryName": "moldea",
-        "paths": ["/src/payment.ts", "/tests/agent-auth/payment.test.ts"],
+        "paths": [
+          "/src/payment.ts",
+          "/tests/agent-auth/payment.test.ts"
+        ],
         "agentWorkIntent": false
       },
       "expected": "abstain"
@@ -17,7 +172,9 @@
         "initialized": true,
         "hostCommand": "fix",
         "repositoryName": "moldea",
-        "paths": ["/src/payment.ts"],
+        "paths": [
+          "/src/payment.ts"
+        ],
         "agentWorkIntent": false
       },
       "expected": "abstain"
@@ -28,7 +185,10 @@
         "initialized": true,
         "hostCommand": "repo push",
         "repositoryName": "moldea",
-        "paths": ["/README.md", "/src/payment.ts"],
+        "paths": [
+          "/README.md",
+          "/src/payment.ts"
+        ],
         "readmeHunk": "outside-markers"
       },
       "expected": "abstain"
@@ -39,7 +199,9 @@
         "initialized": true,
         "activeAgentTask": true,
         "continuesActiveTask": false,
-        "paths": ["/src/payment.ts"],
+        "paths": [
+          "/src/payment.ts"
+        ],
         "agentWorkIntent": false
       },
       "expected": "abstain"
@@ -116,7 +278,9 @@
       "id": "preinit-canonical-looking-path",
       "input": {
         "initialized": false,
-        "paths": ["/moldea/project.md"]
+        "paths": [
+          "/moldea/project.md"
+        ]
       },
       "expected": "abstain"
     },
@@ -125,7 +289,9 @@
       "input": {
         "hostCommand": "review",
         "initialized": false,
-        "paths": ["/docs/operations.md"]
+        "paths": [
+          "/docs/operations.md"
+        ]
       },
       "expected": "abstain"
     },
@@ -141,7 +307,9 @@
       "id": "canonical",
       "input": {
         "initialized": true,
-        "paths": ["/moldea/project.md"]
+        "paths": [
+          "/moldea/project.md"
+        ]
       },
       "expected": "direct"
     },
@@ -149,7 +317,9 @@
       "id": "managed-readme",
       "input": {
         "initialized": true,
-        "paths": ["/README.md"],
+        "paths": [
+          "/README.md"
+        ],
         "readmeHunk": "inside-markers"
       },
       "expected": "direct"
@@ -158,7 +328,9 @@
       "id": "exact-binding",
       "input": {
         "initialized": true,
-        "paths": ["/src/support-agent.js"],
+        "paths": [
+          "/src/support-agent.js"
+        ],
         "relationshipMatch": true
       },
       "expected": "relationship-gate"
@@ -167,7 +339,9 @@
       "id": "affected-by",
       "input": {
         "initialized": true,
-        "paths": ["/src/project-state.js"],
+        "paths": [
+          "/src/project-state.js"
+        ],
         "relationshipMatch": true
       },
       "expected": "relationship-gate"
@@ -176,7 +350,9 @@
       "id": "unrelated-doc",
       "input": {
         "initialized": true,
-        "paths": ["/docs/branding.md"]
+        "paths": [
+          "/docs/branding.md"
+        ]
       },
       "expected": "abstain"
     },
@@ -184,7 +360,9 @@
       "id": "unrelated-source",
       "input": {
         "initialized": true,
-        "paths": ["/src/unrelated.js"]
+        "paths": [
+          "/src/unrelated.js"
+        ]
       },
       "expected": "abstain"
     },
@@ -192,7 +370,9 @@
       "id": "readme-outside",
       "input": {
         "initialized": true,
-        "paths": ["/README.md"],
+        "paths": [
+          "/README.md"
+        ],
         "readmeHunk": "outside-markers"
       },
       "expected": "abstain"
@@ -202,7 +382,9 @@
       "input": {
         "hostCommand": "review",
         "initialized": true,
-        "paths": ["/docs/operations.md"]
+        "paths": [
+          "/docs/operations.md"
+        ]
       },
       "expected": "abstain"
     },
@@ -228,7 +410,9 @@
       "input": {
         "initialized": true,
         "agentWorkIntent": true,
-        "paths": ["/src/triage.ts"],
+        "paths": [
+          "/src/triage.ts"
+        ],
         "relationshipMatch": false
       },
       "expected": "direct"
@@ -265,7 +449,9 @@
         "initialized": true,
         "activeAgentTask": true,
         "continuesActiveTask": false,
-        "paths": ["/docs/branding.md"]
+        "paths": [
+          "/docs/branding.md"
+        ]
       },
       "expected": "abstain"
     },
@@ -274,7 +460,9 @@
       "input": {
         "initialized": true,
         "agentWorkIntent": false,
-        "paths": ["/package.json"]
+        "paths": [
+          "/package.json"
+        ]
       },
       "expected": "abstain"
     },
@@ -285,178 +473,6 @@
         "activeAgentTask": true
       },
       "expected": "abstain"
-    }
-  ],
-  "cliEnvelopeCases": [
-    {
-      "id": "inspect-valid",
-      "input": {
-        "invokedCommand": "inspect",
-        "exitCode": 0,
-        "output": {
-          "schemaVersion": 4,
-          "cliVersion": "8.0.0",
-          "command": "inspect",
-          "status": "valid",
-          "result": {
-            "page": {
-              "cursor": null,
-              "records": []
-            }
-          },
-          "error": null
-        }
-      },
-      "expected": "interpret-result"
-    },
-    {
-      "id": "scope-valid",
-      "input": {
-        "invokedCommand": "scope",
-        "exitCode": 0,
-        "output": {
-          "schemaVersion": 4,
-          "cliVersion": "8.0.0",
-          "command": "scope",
-          "status": "valid",
-          "result": {
-            "relevant": true,
-            "page": {
-              "cursor": null,
-              "records": []
-            }
-          },
-          "error": null
-        }
-      },
-      "expected": "interpret-result"
-    },
-    {
-      "id": "content-valid",
-      "input": {
-        "invokedCommand": "content",
-        "exitCode": 0,
-        "output": {
-          "schemaVersion": 4,
-          "cliVersion": "8.0.0",
-          "command": "content",
-          "status": "valid",
-          "result": {
-            "chunk": {
-              "content": "bounded"
-            }
-          },
-          "error": null
-        }
-      },
-      "expected": "interpret-result"
-    },
-    {
-      "id": "schema-mismatch",
-      "input": {
-        "invokedCommand": "inspect",
-        "exitCode": 0,
-        "output": {
-          "schemaVersion": 1,
-          "cliVersion": "8.0.0",
-          "command": "inspect",
-          "status": "valid",
-          "result": {},
-          "error": null
-        }
-      },
-      "expected": "reject-envelope",
-      "scenario": "Inspect returns an otherwise plausible envelope using unsupported machine schema version 1."
-    },
-    {
-      "id": "version-mismatch",
-      "input": {
-        "invokedCommand": "inspect",
-        "exitCode": 0,
-        "output": {
-          "schemaVersion": 4,
-          "cliVersion": "9.0.0",
-          "command": "inspect",
-          "status": "valid",
-          "result": {},
-          "error": null
-        }
-      },
-      "expected": "reject-envelope",
-      "scenario": "The machine envelope reports unsupported CLI 9.0.0 while the declared and installed root package is 8.0.0."
-    },
-    {
-      "id": "command-mismatch",
-      "input": {
-        "invokedCommand": "inspect",
-        "exitCode": 0,
-        "output": {
-          "schemaVersion": 4,
-          "cliVersion": "8.0.0",
-          "command": "validate",
-          "status": "valid",
-          "result": {},
-          "error": null
-        }
-      },
-      "expected": "reject-envelope"
-    },
-    {
-      "id": "status-exit-mismatch",
-      "input": {
-        "invokedCommand": "inspect",
-        "exitCode": 1,
-        "output": {
-          "schemaVersion": 4,
-          "cliVersion": "8.0.0",
-          "command": "inspect",
-          "status": "valid",
-          "result": {},
-          "error": null
-        }
-      },
-      "expected": "reject-envelope"
-    },
-    {
-      "id": "inspect-content-leak",
-      "input": {
-        "invokedCommand": "inspect",
-        "exitCode": 0,
-        "output": {
-          "schemaVersion": 4,
-          "cliVersion": "8.0.0",
-          "command": "inspect",
-          "status": "valid",
-          "result": {
-            "page": {
-              "cursor": null,
-              "records": [
-                {
-                  "asset": {
-                    "content": "not allowed"
-                  }
-                }
-              ]
-            }
-          },
-          "error": null
-        }
-      },
-      "expected": "reject-envelope"
-    },
-    {
-      "id": "invocation-too-large",
-      "input": {
-        "outputBytes": 1048577
-      },
-      "expected": "reject-output"
-    },
-    {
-      "id": "ordinary-aggregate-too-large",
-      "input": {
-        "outputBytes": 262145
-      },
-      "expected": "stop-traversal"
     }
   ]
 }

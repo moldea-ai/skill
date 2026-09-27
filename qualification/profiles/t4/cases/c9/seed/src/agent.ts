@@ -7,8 +7,8 @@ export const loadSupportInstruction = (): string =>
 
 /** Answers support requests with a closed order lookup tool map. */
 export class SupportAgent extends Think {
-  public override getSystemPrompt(): string {
-    return loadSupportInstruction();
+  public override configureContext() {
+    return [{ label: 'soul', provider: { get: async () => loadSupportInstruction() } }];
   }
 
   public override getTools() {

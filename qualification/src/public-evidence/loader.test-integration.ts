@@ -11,16 +11,17 @@ import {
 import { writeTextFileAtomically } from '../../../src/filesystem/index.ts';
 import { recordQualificationResult } from '../result/index.ts';
 import { loadQualificationWebsiteModel } from './loader.ts';
+import { parseQualificationWebsiteModel } from './validation.ts';
 
 const temporaryRoots: string[] = [];
 const CANDIDATE_PACKAGE = {
   name: '@moldea.ai/cli',
   registryIntegrity: `sha512-${'a'.repeat(86)}`,
   registryShasum: 'b'.repeat(40),
-  registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-8.0.0.tgz',
+  registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-9.0.0.tgz',
   sha256: 'c'.repeat(64),
-  tarballName: 'cli-8.0.0.tgz',
-  version: '8.0.0',
+  tarballName: 'cli-9.0.0.tgz',
+  version: '9.0.0',
 };
 
 afterEach(async () => {
@@ -95,5 +96,27 @@ describe('qualification public evidence selection', () => {
       latestAttemptId: 'attempt-old',
       latestStatus: 'passed',
     });
+
+    const historicalPresentation = structuredClone(websiteModel);
+    for (const historicalProfile of historicalPresentation.profiles) {
+      for (const attempt of historicalProfile.attempts) attempt.result.protocolVersion = 11;
+      if (historicalProfile.currentLatest !== null) {
+        historicalProfile.currentLatest.result.protocolVersion = 11;
+      }
+      if (historicalProfile.currentLastPassing !== null) {
+        historicalProfile.currentLastPassing.result.protocolVersion = 11;
+      }
+    }
+    expect(
+      parseQualificationWebsiteModel(historicalPresentation).profiles[0]?.attempts[0]?.result
+        .protocolVersion,
+    ).toBe(11);
+
+    const unsupportedAttempt = historicalPresentation.profiles[0]!.attempts[0]!.result;
+    Object.assign(unsupportedAttempt, { protocolVersion: 0 });
+    expect(() => parseQualificationWebsiteModel(historicalPresentation)).toThrow();
+
+    Object.assign(unsupportedAttempt, { protocolVersion: 99 });
+    expect(() => parseQualificationWebsiteModel(historicalPresentation)).toThrow();
   });
 });

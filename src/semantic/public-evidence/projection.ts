@@ -1,4 +1,4 @@
-import { toTitleCase } from 'web-utils-kit';
+import { capitalizeFirst } from 'web-utils-kit';
 
 import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
 
@@ -18,7 +18,7 @@ import type {
 
 const SEMANTIC_ROUTE = '/evidence/semantic/';
 
-const createCaseTitle = (caseId: string): string => toTitleCase(caseId.replaceAll('-', ' '));
+const createCaseTitle = (caseId: string): string => capitalizeFirst(caseId.replaceAll('-', ' '));
 
 const createCaseScenario = (definition: ISemanticCase): string =>
   definition.operation.trim() === ''

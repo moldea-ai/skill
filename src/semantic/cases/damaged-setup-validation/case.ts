@@ -9,8 +9,13 @@ export const semanticCase = defineSemanticCase({
     'A previously adopted project retains its canonical files, but the managed README block has lost its required blank line.',
   operation: 'validate-damaged-setup',
   input: {
-    developerDirection: 'Validate moldea for this repository without changing files.',
+    developerDirection:
+      'This repository was previously initialized with moldea. Validate the setup without changing files.',
     repositoryEvidence: [
+      {
+        claim: 'The developer confirms prior initialization.',
+        source: { kind: 'developer-direction' },
+      },
       {
         claim: 'The canonical manifest remains present.',
         source: { kind: 'workspace-path', path: 'moldea/moldea.yaml', expectedType: 'file' },
@@ -35,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'diagnose-drift-read-only',
       criterion:
-        'The actor compares the managed README region with the selected skill asset, explains that block drift prevents adoption and validation, and treats the remaining canonical files as evidence of prior setup without claiming full validity.',
+        'The actor identifies the damaged README managed block against the installed block, explains that the current gate failure prevents CLI validation without denying the developer-confirmed prior setup, and leaves structural and semantic validity unverified.',
     },
   ],
   forbidden: [

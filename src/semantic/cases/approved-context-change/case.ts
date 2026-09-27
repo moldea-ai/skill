@@ -41,7 +41,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-final-policy',
       criterion:
-        'The final canonical write is followed by completed launcher-backed validation, and the report identifies the policy update and actual validation outcome.',
+        'The final project owner contains the approved policy, runner-owned evidence records successful launcher-backed validation, and the report identifies the actual validation outcome without asserting runtime compliance or unsupported validation timing.',
     },
   ],
   forbidden: [

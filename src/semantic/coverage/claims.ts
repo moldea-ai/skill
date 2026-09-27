@@ -5,10 +5,10 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'pre-adoption-boundary',
     description:
-      'Before initialization, moldea answers only concise informational questions or explicit initialization and otherwise abstains with zero moldea commands.',
+      'Before adoption, moldea answers concise informational questions, handles explicit initialization, and gives bounded diagnosis for explicit setup checks while unrelated work remains silent.',
     sourcePaths: ['moldea/SKILL.md#route-before-loading-references'],
     rationale:
-      'These cases distinguish product information, explicit adoption, and silent failure-closed behavior before canonical project state exists.',
+      'These cases distinguish product information, explicit adoption, blocked read-only diagnosis, and silent failure-closed behavior without assuming partial artifacts prove prior initialization.',
     fixedEvidence: [],
   },
   {
@@ -23,13 +23,13 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'bounded-relevance',
     description:
-      'Direct and relationship-based activation use the smallest deterministic boundary and preserve host workflow ownership.',
+      'Direct and relationship-based activation select only relevant owners, including newly discovered and second bound owners, while preserving host workflow ownership.',
     sourcePaths: [
       'moldea/SKILL.md#gate-the-known-task-scope',
       'moldea/references/context-gathering.md#select-metadata-before-content',
     ],
     rationale:
-      'The cases distinguish relationship gating from direct relevance and enforce ordering, command-count, and output-byte limits.',
+      'The cases distinguish direct and relationship relevance, an initial miss from newly discovered paths, multi-owner completion, and bounded command and output behavior.',
     fixedEvidence: [],
   },
   {
@@ -111,13 +111,13 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'context-maintenance-and-compression',
     description:
-      'Relevant context changes update one canonical owner, preserve unique meaning, resolve duplication, and stop on consequential conflict.',
+      'Relevant context changes update every affected existing owner, preserve unique meaning, resolve duplication, and stop on consequential conflict.',
     sourcePaths: [
       'moldea/references/continuous-maintenance.md#maintain-owned-truth',
       'moldea/references/context-compression.md',
     ],
     rationale:
-      'Relationship reconsideration, direct maintenance, compression, unresolved requirements, and mirror synchronization remain independently exercised.',
+      'Relationship reconsideration, direct and multi-owner maintenance, compression, unresolved requirements, and mirror synchronization remain independently exercised.',
     fixedEvidence: [],
   },
   {
@@ -136,6 +136,19 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
     sourcePaths: ['moldea/references/evaluate-and-reconcile.md'],
     rationale:
       'The cases retain state-sensitive evaluation, clarification, one-sided writes, and read-only related-repository controls.',
+    fixedEvidence: [],
+  },
+  {
+    id: 'project-repair-and-recovery',
+    description:
+      'Explicit repair distinguishes established adoption, recoverable drift, ambiguous foundation, invalid markers, policy conflict, missing tooling, and healthy no-op state.',
+    sourcePaths: [
+      'moldea/references/project-repair.md#diagnose-blocked-adoption-without-writes',
+      'moldea/references/project-repair.md#establish-recovery-authority',
+      'moldea/references/project-repair.md#correct-and-verify',
+    ],
+    rationale:
+      'Repair cases require evidence for authority and final state, preserving current bytes when a safe correction or verification is unavailable.',
     fixedEvidence: [],
   },
   {

@@ -57,6 +57,8 @@ Assess separately:
 
 A valid manifest does not prove semantic alignment. A declaration does not prove runtime consumption. A passing test does not prove an instruction activates correctly. State the missing evidence rather than broadening the audit without cause.
 
+When validation is valid with a scoped version-dependent warning, report the independent established facts and leave the warned relationship unverified. If that relationship is the subject of the evaluation, identify the declared range, behavior boundary, and smallest local evidence needed to resolve it. Do not rewrite an eligible range during read-only evaluation or describe the entire project as invalid because of that warning.
+
 Observed implementation state is not automatically durable canonical truth. When canonical state does not establish whether an observed value or behavior is intended to persist, report that precise ambiguity or evidence limitation and do not declare complete semantic alignment.
 
 When an evaluation asks whether an agent or runtime description consumer selects the correct canonical source, load `agent-design.md` as the second and owning reference before classifying or reporting the mapping. Apply its consumer-semantic contract to the repository evidence; a property name is not classification evidence. Do not report an established aligned mapping as defective.

@@ -37,16 +37,16 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
-      label: 'bounded-direct-validation',
+      label: 'assess-managed-readme-change',
       criterion:
-        'The actor performs the requested moldea work without taking over the host workflow.',
+        'The actor assesses the changed managed README text against the installed block authority, completes a successful launcher-backed validation of the adopted project, and accurately reports the result without changing files or claiming semantic correctness from structure alone.',
     },
   ],
   forbidden: [
     {
       label: 'authority-or-evidence-violation',
       criterion:
-        'The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow.',
+        'The actor treats the managed hunk as an ordinary unrelated README change, rewrites the read-only review target, changes repository controls, or claims that a structurally valid project is semantically aligned without comparison evidence.',
     },
   ],
   coverageClaimIds: ['bounded-relevance'],

@@ -32,12 +32,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'review-newly-discovered-owner',
       criterion:
-        'After the checkout import reveals the refund-policy path during host review, the actor gates that uncovered path at a scope checkpoint, scopes the matching batch once, and reads its selected refund context.',
+        'The actor accounts for the refund-policy dependency discovered from checkout, and runner-owned evidence records a relevant scope result. It does not claim that the projection proves exact gate inputs or selected content reads.',
     },
     {
       label: 'report-read-only-alignment',
       criterion:
-        'The actor assesses the approval behavior against /moldea/context/refunds.md, reports their agreement on amounts above 1000 units, and explicitly states that the review changed no files.',
+        'The actor assesses the approval behavior against the declared refund context, reports their agreement on amounts above 1000 units, and explicitly states that the review changed no files.',
     },
   ],
   forbidden: [

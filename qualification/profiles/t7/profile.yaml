@@ -5,9 +5,9 @@ title: Google Gen AI qualification
 description: Qualifies direct TypeScript generate-content integrations, system-instruction loaders, closed function-declaration collections, direct JSON-schema bindings, conservative static boundaries.
 runtimePackages:
   - name: '@google/genai'
-    version: 2.17.1
+    version: 2.24.0
   - name: '@modelcontextprotocol/sdk'
-    version: 1.29.0
+    version: 1.30.1
   - name: '@types/node'
     version: 22.20.1
 probesFile: probes/claims.yaml

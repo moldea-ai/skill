@@ -12,6 +12,7 @@ import {
   type IQualificationAttemptStorage,
   type IQualificationProfileIndexTarget,
 } from '../storage/index.ts';
+import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import { buildActorPrompt } from '../prompts/index.ts';
 import { isQualificationTestFilePath } from '../input-identity/index.ts';
 import { normalizePortableFilesystemMode } from '../../../src/filesystem/index.ts';
@@ -107,7 +108,7 @@ const parseQualificationJsonInput = <Output>(
   }
 };
 
-/** Derives the immutable protocol 11 task boundary from the authoritative actor prompt builder. */
+/** Derives the immutable current-protocol task boundary from the authoritative actor prompt builder. */
 const createQualificationActorPromptBoundary = (): readonly [string, string] => {
   const prompt = `${buildActorPrompt({ task: QUALIFICATION_ACTOR_TASK_SENTINEL }).trim()}\n`;
   const taskStartIndex = prompt.indexOf(QUALIFICATION_ACTOR_TASK_SENTINEL);
@@ -243,16 +244,14 @@ const createExpectedCurrentArtifactPaths = (
     ]),
   ].sort((left, right) => left.localeCompare(right, 'en'));
 
-const assertCurrentArtifactInventory = (
-  result: Extract<IQualificationAttemptResult, { protocolVersion: 11 }>,
-): void => {
+const assertCurrentArtifactInventory = (result: IQualificationAttemptResult): void => {
   const expectedPaths = createExpectedCurrentArtifactPaths(result.cases);
   const actualPaths = Object.keys(result.artifactDigests).sort((left, right) =>
     left.localeCompare(right, 'en'),
   );
 
   if (JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)) {
-    throw new Error('Qualification evidence has an incomplete protocol 11 artifact inventory.');
+    throw new Error('Qualification evidence has an incomplete artifact inventory.');
   }
 };
 
@@ -534,7 +533,7 @@ const readRecordedDeveloperTask = (
 
 const loadCurrentAttemptCase = (
   readArtifact: IReadAttemptArtifact,
-  attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 11 }>,
+  attemptResult: IQualificationAttemptResult,
   result: IQualificationCurrentCaseResult,
   artifacts: IQualificationArtifactModel[],
   profileCase: Pick<IQualificationProfileCaseModel, 'id' | 'scenario'>,
@@ -933,6 +932,7 @@ const loadAttempts = (
     );
     if (
       result.attemptId !== selectedAttemptId ||
+      result.protocolVersion !== QUALIFICATION_EVIDENCE_PROTOCOL_VERSION ||
       result.provenance.profileDigest !== currentProfileDigest
     ) {
       throw new Error(`Selected qualification attempt ${selectedAttemptId} is not current.`);
@@ -985,7 +985,9 @@ const loadAttempts = (
         left.summary.attemptId.localeCompare(right.summary.attemptId, 'en'),
     );
   const currentAttemptRecords = attemptRecords.filter(
-    ({ summary }) => summary.provenance.profileDigest === currentProfileDigest,
+    ({ summary }) =>
+      summary.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
+      summary.provenance.profileDigest === currentProfileDigest,
   );
   const attempts = currentAttemptRecords.map(({ attemptSource, directory, input }) => {
     const result = parseQualificationJsonInput(

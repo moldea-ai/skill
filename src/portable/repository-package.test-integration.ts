@@ -48,11 +48,11 @@ const writeJson = (filePath: string, content: object): void => {
 };
 
 const createPackageFixture = ({
-  cliDeclaration = '^8.0.0',
-  cliVersion = '8.0.1',
-  coreDeclaration = '^4.0.1',
+  cliDeclaration = '^9.0.0',
+  cliVersion = '9.0.1',
+  coreDeclaration = '^5.0.1',
   coreLocation = 'hoisted',
-  coreVersion = '4.0.2',
+  coreVersion = '5.0.2',
 }: IPackageFixtureOptions = {}): IPackageFixture => {
   const repositoryRoot = mkdtempSync(join(tmpdir(), 'moldea-package-'));
   temporaryRoots.push(repositoryRoot);
@@ -67,7 +67,7 @@ const createPackageFixture = ({
     devDependencies: { '@moldea.ai/cli': cliDeclaration },
   });
   writeJson(join(repositoryRoot, 'package-lock.json'), {
-    packages: { 'node_modules/@moldea.ai/cli': { version: '8.0.0' } },
+    packages: { 'node_modules/@moldea.ai/cli': { version: '9.0.0' } },
   });
   writeJson(join(cliRoot, 'package.json'), {
     bin: { moldea: './dist/moldea.js' },
@@ -94,15 +94,15 @@ afterEach(() => {
 });
 
 test.each([
-  ['^4.0.1', '4.0.2'],
-  ['^4.0.2', '4.0.2'],
-  ['>=4.0.1 <5.0.0', '4.2.0'],
+  ['^5.0.1', '5.0.2'],
+  ['^5.0.2', '5.0.2'],
+  ['>=5.0.1 <6.0.0', '5.2.0'],
 ])('resolves declaration %s with installed Core %s', async (coreDeclaration, coreVersion) => {
   const fixture = createPackageFixture({ coreDeclaration, coreVersion });
 
   const resolved = await resolveRepositoryCli(fixture.repositoryRoot);
 
-  assert.equal(resolved.cliVersion, '8.0.1');
+  assert.equal(resolved.cliVersion, '9.0.1');
   assert.equal(resolved.cliRoot, fixture.cliRoot);
   assert.equal(resolved.repositoryRoot, fixture.repositoryRoot);
   assert.equal(existsSync(fixture.invocationMarker), false);
@@ -110,10 +110,10 @@ test.each([
 
 test('accepts a compatible CLI minor and its nearest nested Core package', async () => {
   const fixture = createPackageFixture({
-    cliVersion: '8.1.0',
-    coreDeclaration: '^4.1.0',
+    cliVersion: '9.1.0',
+    coreDeclaration: '^5.1.0',
     coreLocation: 'nested',
-    coreVersion: '4.1.1',
+    coreVersion: '5.1.1',
   });
   const hoistedCoreRoot = join(fixture.repositoryRoot, 'node_modules', '@moldea.ai', 'core');
   writeJson(join(hoistedCoreRoot, 'package.json'), {
@@ -121,7 +121,7 @@ test('accepts a compatible CLI minor and its nearest nested Core package', async
     version: '3.0.0',
   });
 
-  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '8.1.0');
+  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '9.1.0');
 });
 
 test('preserves repository-contained CLI and nested Core directory links', async () => {
@@ -154,24 +154,24 @@ test('accepts a compatible installed CLI when the target lock selects an older p
   const lock = JSON.parse(readFileSync(lockPath, 'utf8')) as {
     packages: Record<string, { version: string }>;
   };
-  assert.equal(lock.packages['node_modules/@moldea.ai/cli']?.version, '8.0.0');
-  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '8.0.1');
+  assert.equal(lock.packages['node_modules/@moldea.ai/cli']?.version, '9.0.0');
+  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '9.0.1');
 
   writeFileSync(lockPath, '{not valid JSON');
-  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '8.0.1');
+  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '9.0.1');
 });
 
 test.each([
-  [{ coreDeclaration: '^4.1.0' }, /unsupported Core package/u],
+  [{ coreDeclaration: '^5.1.0' }, /unsupported Core package/u],
   [{ coreDeclaration: '^3.0.0' }, /unsupported Core package/u],
   [{ coreDeclaration: 'not-a-range' }, /unsupported CLI package closure/u],
   [{ coreDeclaration: '' }, /unsupported CLI package closure/u],
   [{ coreVersion: '4.0.0' }, /unsupported Core package/u],
-  [{ coreVersion: '4.1.0-beta.1' }, /unsupported Core package/u],
+  [{ coreVersion: '5.1.0-beta.1' }, /unsupported Core package/u],
   [{ coreVersion: '5.0.0' }, /unsupported Core package/u],
-  [{ cliDeclaration: '8.0.0' }, /unsupported CLI package closure/u],
-  [{ cliVersion: '8.1.0-beta.1' }, /unsupported CLI package closure/u],
-  [{ cliVersion: '9.0.0' }, /unsupported CLI package closure/u],
+  [{ cliDeclaration: '9.0.0' }, /unsupported CLI package closure/u],
+  [{ cliVersion: '9.1.0-beta.1' }, /unsupported CLI package closure/u],
+  [{ cliVersion: '10.0.0' }, /unsupported CLI package closure/u],
 ])('rejects an incompatible package closure %o', async (options, expectedError) => {
   const fixture = createPackageFixture(options);
 
@@ -185,7 +185,7 @@ test('rejects missing Core declarations, packages, and executable entries', asyn
     bin: { moldea: './dist/moldea.js' },
     dependencies: {},
     name: '@moldea.ai/cli',
-    version: '8.0.1',
+    version: '9.0.1',
   });
   await assert.rejects(
     resolveRepositoryCli(missingDeclaration.repositoryRoot),
@@ -232,7 +232,7 @@ test('generated launcher invokes only an eligible repository CLI', () => {
   assert.equal(invocation.stdout, 'fixture-cli-invoked\n');
   assert.equal(existsSync(eligible.invocationMarker), true);
 
-  const ineligible = createPackageFixture({ coreDeclaration: '^4.1.0' });
+  const ineligible = createPackageFixture({ coreDeclaration: '^5.1.0' });
   const rejection = spawnSync(
     process.execPath,
     [LAUNCHER_PATH, '--repository', ineligible.repositoryRoot, '--', 'composition', '--json'],

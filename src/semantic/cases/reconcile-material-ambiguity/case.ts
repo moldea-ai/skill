@@ -34,7 +34,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'ask-focused-developer-question-before-writing',
       criterion:
-        'Before changing either asset, the actor asks one focused question that resolves whether manager or administrator approval is authoritative.',
+        'The actor states that code permits manager approval while the agent instruction requires an administrator, asks which policy governs, and leaves both claims, declared mirrors, and unrelated files unchanged.',
     },
   ],
   forbidden: [

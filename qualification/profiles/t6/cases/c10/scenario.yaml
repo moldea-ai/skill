@@ -83,7 +83,7 @@ workspace:
   mustChangePathPatterns: [moldea/runtimes/**/*.md]
 judgeRequirements:
   - id: preserves-supported-static-relationships
-    description: The exact root agent, lowercase Markdown instructions, output schema, static status tool, and TypeScript triage skill remain canonically bound and deterministically evidenced.
+    description: The exact root agent, lowercase Markdown instructions, static status tool and its output schema, and TypeScript triage skill remain canonically bound and deterministically evidenced.
     evaluation:
       kind: judge
       evidenceSources: [current-workspace, deterministic-after, workspace-patch]

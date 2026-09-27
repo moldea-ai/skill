@@ -1,4 +1,4 @@
-import { entrypoint, task } from '@langchain/langgraph';
+import { entrypoint, interrupt, task } from '@langchain/langgraph';
 
 const summarize = task('summarize_request', (value: string): string => value.trim());
 const escalate = task('escalate_request', (value: string): string => `Escalate: ${value}`);
@@ -14,7 +14,8 @@ export const dynamicSupportWorkflow = entrypoint(
     const selectedTask = input.route === 'summary' ? summarize : escalate;
     const primary = await runSelectedTask(selectedTask, input.request);
     const related = await Promise.all(input.related.map(async (value) => summarize(value)));
+    const review = interrupt<{ request: string }, boolean>({ request: input.request }, {});
 
-    return { primary, related };
+    return { primary, related, review };
   },
 );

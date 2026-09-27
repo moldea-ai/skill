@@ -26,6 +26,8 @@ Use only the installed skill's closed launcher and current local package eligibi
 
 Start with content-free `inspect` when owner inventory or structural diagnostics are needed. A completed `invalid` envelope provides diagnostics, not validity; an operational error provides no inspection conclusion. If a malformed manifest prevents inventory, use its bounded diagnostic and exact source range to make only an established structural correction, then inspect the resulting state. Never retry unchanged failure.
 
+A valid result with a version-dependent warning permits unrelated authorized repair but leaves the named runtime relationship unverified. Repair confirmed errors even when warnings coexist. Do not pin or replace an eligible runtime, or remove a material binding, merely to clear uncertainty.
+
 Process owners one at a time. Use existing metadata, then request only necessary `content` and exact implementation evidence. Assess:
 
 - foundation and canonical asset structure, missing references, and existing unresolved criteria;

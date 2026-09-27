@@ -15,7 +15,6 @@ import QualificationTrialEvidence from '../qualification-trial-evidence/qualific
 
 interface Props {
   evidence: IQualificationAttemptCaseModel;
-  group?: string;
   id?: string;
   isOpen?: boolean;
   number: number;
@@ -33,7 +32,6 @@ const TABS = [
 
 const {
   evidence,
-  group = 'qualification-cases',
   id: suppliedId,
   isOpen = false,
   number,
@@ -123,7 +121,6 @@ const resultRationaleHtml = await renderMarkdownFragment(resultRationale, markdo
 ---
 
 <Accordion
-  {group}
   {id}
   {isOpen}
   title={`${String(number).padStart(2, '0')} · ${profileCase.title}`}

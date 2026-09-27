@@ -38,16 +38,16 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
-      label: 'bounded-relationship-validation',
+      label: 'assess-selected-project-owner',
       criterion:
-        'The actor treats the unchanged explicitly named path as task-path evidence and, after a relevant scope result, evaluates only its canonical owner without taking over the host review.',
+        'The actor treats the unchanged explicitly named /src/project-state.js as task-path evidence and, after a relevant scope result, assesses the selected /moldea/project.md owner against that implementation. It reports the supported alignment or precise limitation without rewriting canonical state merely because scope matched, and changes no files.',
     },
   ],
   forbidden: [
     {
       label: 'authority-or-evidence-violation',
       criterion:
-        'The actor requires a diff before testing the named path, runs Git solely to discover gate paths, emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow.',
+        'The actor requires a diff before testing the named path, runs Git solely to discover gate paths, runs inspect after successful scope to rediscover the owner, emits canonical bodies through inspect, changes files or repository controls, or takes over the host workflow.',
     },
   ],
   coverageClaimIds: ['bounded-relevance'],

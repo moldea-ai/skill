@@ -1,5 +1,6 @@
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { mkdir } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -37,7 +38,11 @@ import { DEFAULT_SITE_URL } from '../site/constants.ts';
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const GENERATED_NOTICE =
   'Generated from repository-owned documentation, semantic evaluation, qualification evidence, and moldea/SKILL.md metadata. Do not edit generated output.';
-let cachedWebsiteModel: IWebsiteModel | null = null;
+let cachedWebsiteModel: {
+  model: IWebsiteModel;
+  modifiedTime: bigint;
+  size: bigint;
+} | null = null;
 
 /** Formats the product name as semantic inline code in generated Markdown prose. */
 const formatProductNameAsMarkdownCode = (value: string): string =>
@@ -576,13 +581,19 @@ const restoreGeneratedWebsiteModel = (envelope: IGeneratedWebsiteModelEnvelope):
  */
 export const writeWebsiteModel = async (model: IWebsiteModel): Promise<void> => {
   const outputPath = join(getRepositoryRoot(), 'website/.generated/model.json');
+  const temporaryPath = join(dirname(outputPath), `model.${randomUUID()}.json`);
 
   await mkdir(dirname(outputPath), { recursive: true });
-  writeFileSync(
-    outputPath,
-    `${JSON.stringify(createGeneratedWebsiteModelEnvelope(model), null, 2)}\n`,
-    'utf8',
-  );
+  try {
+    await writeFile(
+      temporaryPath,
+      `${JSON.stringify(createGeneratedWebsiteModelEnvelope(model), null, 2)}\n`,
+      'utf8',
+    );
+    await rename(temporaryPath, outputPath);
+  } finally {
+    await rm(temporaryPath, { force: true });
+  }
 };
 
 /**
@@ -592,13 +603,21 @@ export const writeWebsiteModel = async (model: IWebsiteModel): Promise<void> => 
  * - If the website model has not been generated
  */
 export const loadWebsiteModel = (): IWebsiteModel => {
-  if (cachedWebsiteModel !== null) return cachedWebsiteModel;
   const path = join(getRepositoryRoot(), 'website/.generated/model.json');
 
   if (!existsSync(path)) throw new Error('Website model is missing. Run npm run docs:generate.');
+  const { mtimeNs: modifiedTime, size } = statSync(path, { bigint: true });
+  if (
+    cachedWebsiteModel !== null &&
+    cachedWebsiteModel.modifiedTime === modifiedTime &&
+    cachedWebsiteModel.size === size
+  ) {
+    return cachedWebsiteModel.model;
+  }
 
-  cachedWebsiteModel = restoreGeneratedWebsiteModel(
+  const model = restoreGeneratedWebsiteModel(
     JSON.parse(readFileSync(path, 'utf8')) as IGeneratedWebsiteModelEnvelope,
   );
-  return cachedWebsiteModel;
+  cachedWebsiteModel = { model, modifiedTime, size };
+  return model;
 };

@@ -134,6 +134,40 @@ test('shows generated artifacts inside the developer and coding agent conversati
   }
 });
 
+test('renders the complete file tree before dialog enhancement without a layout shift', async ({
+  browser,
+}) => {
+  for (const width of [320, 1440]) {
+    const viewport = { height: 740, width };
+    const withoutJavaScript = await browser.newContext({ javaScriptEnabled: false, viewport });
+    const staticPage = await withoutJavaScript.newPage();
+    await staticPage.goto(toPublicPath('/'));
+    const staticTree = staticPage.getByRole('list', { name: 'Support agent file changes' });
+    const staticLabels = staticTree.locator('[data-artifact-fallback]');
+    await expect(staticLabels).toHaveCount(8);
+    for (const label of await staticLabels.all()) await expect(label).toBeVisible();
+    await expect(staticTree.getByRole('button')).toHaveCount(0);
+    const staticHeight = await staticTree.evaluate(
+      (element) => element.getBoundingClientRect().height,
+    );
+
+    const withJavaScript = await browser.newContext({ viewport });
+    const enhancedPage = await withJavaScript.newPage();
+    await enhancedPage.goto(toPublicPath('/'));
+    const enhancedTree = enhancedPage.getByRole('list', { name: 'Support agent file changes' });
+    await expect(enhancedTree.getByRole('button')).toHaveCount(8);
+    for (const label of await enhancedTree.locator('[data-artifact-fallback]').all())
+      await expect(label).toBeHidden();
+    const enhancedHeight = await enhancedTree.evaluate(
+      (element) => element.getBoundingClientRect().height,
+    );
+    expect(Math.abs(enhancedHeight - staticHeight)).toBeLessThanOrEqual(1);
+
+    await withoutJavaScript.close();
+    await withJavaScript.close();
+  }
+});
+
 for (const width of [320, 1440]) {
   test(`preserves layout and resets dialog scrolling at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ height: 740, width });

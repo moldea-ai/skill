@@ -1,0 +1,55 @@
+---
+import { FileCodeCorner, FileText } from '@lucide/astro';
+
+interface Props {
+  isDecorative?: boolean;
+  language: 'markdown' | 'typescript' | 'yaml';
+  path: string;
+  status: 'Added' | 'Modified' | 'Unchanged';
+}
+
+const { isDecorative = false, language, path, status } = Astro.props;
+---
+
+<span
+  class:list={[
+    'flex min-w-0 flex-1 items-center gap-2',
+    status === 'Added'
+      ? 'font-semibold text-(--syntax-string) dark:font-medium'
+      : status === 'Modified'
+        ? 'font-semibold text-warning-foreground dark:font-medium dark:text-warning'
+        : 'font-medium text-foreground',
+  ]}
+  aria-hidden={isDecorative ? 'true' : undefined}
+>
+  {
+    language === 'markdown' ? (
+      <FileText
+        class="size-4 shrink-0"
+        aria-hidden="true"
+      />
+    ) : (
+      <FileCodeCorner
+        class="size-4 shrink-0"
+        aria-hidden="true"
+      />
+    )
+  }
+  <code class="min-w-0 truncate">{path.split('/').at(-1)}</code>
+  {
+    status !== 'Unchanged' && (
+      <span
+        class:list={[
+          'ml-auto inline-flex size-5 shrink-0 items-center justify-center rounded-sm font-semibold',
+          status === 'Added'
+            ? 'bg-(--syntax-string)/10 text-(--syntax-string)'
+            : 'bg-warning/15 text-warning-foreground dark:text-warning',
+        ]}
+        title={status}
+      >
+        <span aria-hidden="true">{status === 'Added' ? 'A' : 'M'}</span>
+        {!isDecorative && <span class="sr-only">{status}</span>}
+      </span>
+    )
+  }
+</span>

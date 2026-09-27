@@ -1,5 +1,5 @@
 ---
-import { ChevronDown, FileCodeCorner, FileText, FolderOpen } from '@lucide/astro';
+import { ChevronDown, FolderOpen } from '@lucide/astro';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
 import Dialog from '@moldea.ai/website-ui/dialog';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
@@ -12,6 +12,8 @@ import {
   LANDING_EXAMPLE_HERO_SOURCES,
   LANDING_EXAMPLE_INITIAL_FILES,
 } from '../../lib/landing-example/index.ts';
+
+import ArtifactLabel from './artifact-label.astro';
 
 // a compact view of the generated agent and its connected project files
 const entries = [
@@ -90,7 +92,8 @@ const fileEntries = await Promise.all(
     .map(async (entry) => {
       const source = getLandingExampleFile(LANDING_EXAMPLE_INITIAL_FILES, entry.path);
       const before = LANDING_EXAMPLE_BEFORE_AGENT_FILES[entry.path];
-      const status = before === undefined ? 'Added' : before === source ? 'Unchanged' : 'Modified';
+      const status: 'Added' | 'Modified' | 'Unchanged' =
+        before === undefined ? 'Added' : before === source ? 'Unchanged' : 'Modified';
       const previewSource = LANDING_EXAMPLE_HERO_SOURCES[entry.path] ?? source;
       return {
         ...entry,
@@ -135,10 +138,20 @@ const fileEntries = await Promise.all(
           ) : (
             file && (
               <div
-                class="[&_[data-dialog-trigger]]:h-7 [&_[data-dialog-trigger]]:w-full [&_[data-dialog-trigger]]:justify-start [&_[data-dialog-trigger]]:rounded-sm [&_[data-dialog-trigger]]:border-0 [&_[data-dialog-trigger]]:px-1.5 [&_[data-dialog-trigger]]:text-xs"
+                class="group/artifact [&_[data-dialog-trigger]]:h-7 [&_[data-dialog-trigger]]:w-full [&_[data-dialog-trigger]]:justify-start [&_[data-dialog-trigger]]:rounded-sm [&_[data-dialog-trigger]]:border-0 [&_[data-dialog-trigger]]:px-1.5 [&_[data-dialog-trigger]]:text-xs"
                 data-artifact-path={entry.path}
                 data-file-status={file.status}
               >
+                <span
+                  class="flex h-7 w-full items-center rounded-sm px-1.5 text-xs group-has-[[data-enhanced=true]]/artifact:hidden"
+                  data-artifact-fallback
+                >
+                  <ArtifactLabel
+                    language={entry.language}
+                    path={entry.path}
+                    status={file.status}
+                  />
+                </span>
                 <Dialog
                   id={`landing-agent-${entry.id}`}
                   title={entry.label}
@@ -150,38 +163,13 @@ const fileEntries = await Promise.all(
                   closeLabel={`Close ${entry.label.toLowerCase()}`}
                   isOverlayCloseEnabled
                 >
-                  <span
+                  <ArtifactLabel
                     slot="trigger-icon"
-                    class:list={[
-                      'flex min-w-0 flex-1 items-center gap-2',
-                      file.status === 'Added'
-                        ? 'font-semibold text-(--syntax-string) dark:font-medium'
-                        : file.status === 'Modified'
-                          ? 'font-semibold text-warning-foreground dark:font-medium dark:text-warning'
-                          : 'font-medium text-foreground',
-                    ]}
-                    aria-hidden="true"
-                  >
-                    {entry.language === 'markdown' ? (
-                      <FileText class="size-4 shrink-0" />
-                    ) : (
-                      <FileCodeCorner class="size-4 shrink-0" />
-                    )}
-                    <code class="min-w-0 truncate">{entry.path.split('/').at(-1)}</code>
-                    {file.status !== 'Unchanged' && (
-                      <span
-                        class:list={[
-                          'ml-auto inline-flex size-5 shrink-0 items-center justify-center rounded-sm font-semibold',
-                          file.status === 'Added'
-                            ? 'bg-(--syntax-string)/10 text-(--syntax-string)'
-                            : 'bg-warning/15 text-warning-foreground dark:text-warning',
-                        ]}
-                        title={file.status}
-                      >
-                        {file.status === 'Added' ? 'A' : 'M'}
-                      </span>
-                    )}
-                  </span>
+                    isDecorative
+                    language={entry.language}
+                    path={entry.path}
+                    status={file.status}
+                  />
                   <FilePreview path={entry.path.slice(1)}>
                     <Fragment slot="status">
                       {file.status !== 'Unchanged' && (

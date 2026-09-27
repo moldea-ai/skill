@@ -37,7 +37,7 @@ test.each([
   ['langgraph', 'typescript-functional-api-1-4', 2],
   ['cloudflare-agents', 'typescript-think-0-16-ai-sdk-7', 2],
   ['cloudflare-agents', 'typescript-ai-chat-agent-0-10-ai-sdk-7', 2],
-  ['eve', 'typescript-filesystem-agent-0-39', 2],
+  ['eve', 'typescript-filesystem-agent-0-39', 3],
 ] as const)(
   'preflights every %s/%s scenario with its intended adoption state',
   async (adapterId, implementationId, expectedCaseCount) => {
@@ -286,9 +286,9 @@ describe('Custom qualification profile', () => {
       'compatible Core range',
       (adapter: Awaited<ReturnType<typeof resolveQualificationTarget>>['adapter']) => ({
         ...adapter,
-        compatibleCoreRange: '^5.0.0',
+        compatibleCoreRange: '^6.0.0',
       }),
-      'adapter.compatible-core-range.^5.0.0',
+      'adapter.compatible-core-range.^6.0.0',
     ],
   ] as const)(
     'invalidates coverage when the matrix adds or changes its %s claim',
@@ -359,7 +359,7 @@ describe('Anthropic Messages API qualification profile', () => {
     );
 
     expect(target.profile.runtimePackages).toStrictEqual([
-      { name: '@anthropic-ai/sdk', version: '0.117.1' },
+      { name: '@anthropic-ai/sdk', version: '0.128.0' },
       { name: '@types/node', version: '22.20.1' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
@@ -391,9 +391,9 @@ describe('Claude Agent SDK qualification profile', () => {
     );
 
     expect(target.profile.runtimePackages).toStrictEqual([
-      { name: '@anthropic-ai/claude-agent-sdk', version: '0.3.234' },
-      { name: '@anthropic-ai/sdk', version: '0.117.1' },
-      { name: '@modelcontextprotocol/sdk', version: '1.29.0' },
+      { name: '@anthropic-ai/claude-agent-sdk', version: '0.3.282' },
+      { name: '@anthropic-ai/sdk', version: '0.128.0' },
+      { name: '@modelcontextprotocol/sdk', version: '1.30.1' },
       { name: '@types/node', version: '22.20.1' },
       { name: 'zod', version: '4.3.6' },
     ]);
@@ -428,7 +428,7 @@ describe('Vercel AI SDK direct-generation qualification profile', () => {
     expect(target.profile.runtimePackages).toStrictEqual([
       { name: '@types/json-schema', version: '7.0.15' },
       { name: '@types/node', version: '22.20.1' },
-      { name: 'ai', version: '7.0.77' },
+      { name: 'ai', version: '7.0.116' },
       { name: 'zod', version: '4.3.6' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
@@ -458,7 +458,7 @@ describe('Vercel AI SDK direct-generation qualification profile', () => {
         matrix,
       ),
     ).rejects.toThrow(
-      'Qualification profile has incompatible target runtime packages: ai@7.0.77 does not satisfy >=8.0.0.',
+      'Qualification profile has incompatible target runtime packages: ai@7.0.116 does not satisfy >=8.0.0.',
     );
   });
 });
@@ -480,7 +480,7 @@ describe('Vercel AI SDK ToolLoopAgent qualification profile', () => {
       { name: '@ai-sdk/workflow', version: '2.0.7' },
       { name: '@types/json-schema', version: '7.0.15' },
       { name: '@types/node', version: '22.20.1' },
-      { name: 'ai', version: '7.0.77' },
+      { name: 'ai', version: '7.0.116' },
       { name: 'workflow', version: '5.0.0-beta.42' },
       { name: 'zod', version: '4.3.6' },
     ]);
@@ -513,7 +513,7 @@ describe('OpenAI Responses API qualification profile', () => {
     );
 
     expect(target.profile.runtimePackages).toStrictEqual([
-      { name: 'openai', version: '7.8.0' },
+      { name: 'openai', version: '7.23.0' },
       { name: '@types/node', version: '22.20.1' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
@@ -545,8 +545,8 @@ describe('OpenAI Agents SDK qualification profile', () => {
     );
 
     expect(target.profile.runtimePackages).toStrictEqual([
-      { name: '@openai/agents', version: '0.16.1' },
-      { name: '@openai/agents-realtime', version: '0.16.1' },
+      { name: '@openai/agents', version: '0.18.0' },
+      { name: '@openai/agents-realtime', version: '0.18.0' },
       { name: '@types/node', version: '22.20.1' },
       { name: 'zod', version: '4.3.6' },
     ]);
@@ -579,8 +579,8 @@ describe('LangGraph Functional API qualification profile', () => {
     );
 
     expect(target.profile.runtimePackages).toStrictEqual([
-      { name: '@langchain/core', version: '1.2.9' },
-      { name: '@langchain/langgraph', version: '1.4.12' },
+      { name: '@langchain/core', version: '1.2.12' },
+      { name: '@langchain/langgraph', version: '1.4.18' },
       { name: '@types/node', version: '22.20.1' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([

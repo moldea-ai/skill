@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The current release is `5.0.13`. Install the latest version from `main` inside each repository that will use it:
+The latest published release is `5.0.13`; the `development` branch is preparing `6.0.0`. Install the latest version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -67,14 +67,14 @@ Evaluation is read-only. Repair corrects established errors without inventing po
 
 ## Compatibility
 
-Release `5.0.13` supports exactly:
+The `6.0.0` candidate supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- stable `@moldea.ai/core` releases satisfying `^4.0.1`
-- stable `@moldea.ai/cli` releases satisfying `^8.0.0`
+- stable `@moldea.ai/core` releases satisfying `^5.0.0`
+- stable `@moldea.ai/cli` releases satisfying `^9.0.0`
 - repository format version 1
-- CLI JSON schema 4
+- CLI JSON schema 5
 
 The CLI must be a repository-root-local development dependency whose manifest declaration and installed stable version satisfy the supported range. The launcher also checks that installed Core satisfies both the CLI's declared Core range and moldea's supported range. The package manager and repository setup or CI own lockfile consistency; the launcher does not check target-project lockfiles. The skill never falls back to a global installation, another workspace, a package-manager launcher, or a transient download. Tooling establishment belongs only to authorized write-capable work. See [Compatibility and local tooling](docs/compatibility-and-local-tooling.md) for the complete launcher, machine-output, resource, and runtime contracts.
 

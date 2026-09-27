@@ -4,8 +4,9 @@ implementationId: custom
 probes:
   - id: compatible-core-range
     kind: compatibility
-    matrixPath: adapter.compatible-core-range.^4.0.0
-    description: The complete workflow runs against the exact published Core 3.x artifact declared compatible with this adapter.
+    matrixPath: adapter.compatible-core-range.^5.0.0
+    description: The complete workflow runs against the exact published Core 3.x
+      artifact declared compatible with this adapter.
     coveredBy:
       - evaluate-aligned-project
       - initialize-grounded-project
@@ -18,7 +19,8 @@ probes:
   - id: repository-format-version-1
     kind: compatibility
     matrixPath: adapter.supported-repository-format-version.1
-    description: Repository format version 1 is exercised through every independent validation layer in every project.
+    description: Repository format version 1 is exercised through every independent
+      validation layer in every project.
     coveredBy:
       - evaluate-aligned-project
       - initialize-grounded-project
@@ -31,7 +33,8 @@ probes:
   - id: runtime-guidance
     kind: runtime-guidance
     matrixPath: adapter.runtime-guidance
-    description: Required project-local custom runtime guidance is present and reconciled with the registered agent.
+    description: Required project-local custom runtime guidance is present and
+      reconciled with the registered agent.
     coveredBy:
       - evaluate-aligned-project
       - initialize-grounded-project
@@ -44,7 +47,8 @@ probes:
   - id: support-gate
     kind: support-gate
     matrixPath: qualification.support-gate
-    description: All semantic journeys and deterministic full-stack checks must pass for qualification.
+    description: All semantic journeys and deterministic full-stack checks must pass
+      for qualification.
     coveredBy:
       - evaluate-aligned-project
       - initialize-grounded-project
@@ -61,7 +65,8 @@ probes:
   - id: target-kind
     kind: support-gate
     matrixPath: target.kind
-    description: The projects exercise the built-in custom runtime target without a provider package.
+    description: The projects exercise the built-in custom runtime target without a
+      provider package.
     coveredBy:
       - evaluate-aligned-project
       - initialize-grounded-project
@@ -74,7 +79,8 @@ probes:
   - id: target-language
     kind: support-gate
     matrixPath: target.language
-    description: Repository relationships remain valid around ordinary TypeScript project sources without language-specific adapter inference.
+    description: Repository relationships remain valid around ordinary TypeScript
+      project sources without language-specific adapter inference.
     coveredBy:
       - evaluate-aligned-project
       - initialize-grounded-project
@@ -87,7 +93,8 @@ probes:
   - id: explicit-repository-relationships
     kind: pattern
     matrixPath: target.pattern.explicit-repository-relationships
-    description: Explicit bindings, context relationships, affected paths, and unresolved requirements are validated without runtime-specific inference.
+    description: Explicit bindings, context relationships, affected paths, and
+      unresolved requirements are validated without runtime-specific inference.
     coveredBy:
       - evaluate-aligned-project
       - initialize-grounded-project

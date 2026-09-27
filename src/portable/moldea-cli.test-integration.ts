@@ -29,20 +29,20 @@ const runFixture = async (signal?: 'SIGINT' | 'SIGTERM', ignoresSignal = false) 
   mkdirSync(join(coreRoot, 'dist'), { recursive: true });
   writeFileSync(
     join(root, 'package.json'),
-    JSON.stringify({ devDependencies: { '@moldea.ai/cli': '^8.0.0' } }),
+    JSON.stringify({ devDependencies: { '@moldea.ai/cli': '^9.0.0' } }),
   );
   writeFileSync(
     join(cliRoot, 'package.json'),
     JSON.stringify({
       name: '@moldea.ai/cli',
-      version: '8.0.1',
+      version: '9.0.1',
       bin: { moldea: './dist/moldea.js' },
-      dependencies: { '@moldea.ai/core': '^4.0.1' },
+      dependencies: { '@moldea.ai/core': '^5.0.1' },
     }),
   );
   writeFileSync(
     join(coreRoot, 'package.json'),
-    JSON.stringify({ name: '@moldea.ai/core', version: '4.0.2' }),
+    JSON.stringify({ name: '@moldea.ai/core', version: '5.0.2' }),
   );
   writeFileSync(join(coreRoot, 'dist', 'index.js'), 'module.exports = {};\n');
   writeFileSync(

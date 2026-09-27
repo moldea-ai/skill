@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 
 import { parseSemanticEvaluationHostOutput } from './host-output.ts';
 
-const OPTIONS = { cliVersion: '8.0.0', jsonSchemaVersion: 4 } as const;
+const OPTIONS = { cliVersion: '9.0.0', jsonSchemaVersion: 5 } as const;
 
 describe('semantic host output', () => {
   test('projects the final response and usage without retaining raw command content', () => {

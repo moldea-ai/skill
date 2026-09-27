@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
+import { satisfies } from 'semver';
 import { test } from 'vitest';
 import { z } from 'zod';
 
@@ -143,7 +144,6 @@ const createRootManifestUpdater =
     const coreRange = cliDependencies['@moldea.ai/core'];
     if (coreRange === undefined) throw new Error('Synthetic CLI requires a Core dependency.');
     const coreMinimumVersion = coreRange.slice(1);
-    const coreMajor = coreMinimumVersion.split('.')[0];
     const rootPackage = updatedPackageLock.packages[''];
     const cliPackage = updatedPackageLock.packages['node_modules/@moldea.ai/cli'];
     const corePackage = updatedPackageLock.packages['node_modules/@moldea.ai/core'];
@@ -155,7 +155,7 @@ const createRootManifestUpdater =
       throw new Error('Synthetic package lock is missing the CLI closure.');
     }
     const existingCoreVersion = corePackage.version;
-    const coreVersion = existingCoreVersion.startsWith(`${coreMajor}.`)
+    const coreVersion = satisfies(existingCoreVersion, coreRange)
       ? existingCoreVersion
       : coreMinimumVersion;
     rootPackage.devDependencies['@moldea.ai/cli'] = version;
@@ -179,6 +179,9 @@ const createRootManifestUpdater =
 
 test('updateCliRelease synchronizes a complete copied release tree', async () => {
   const temporaryRoot = createTemporaryReleaseRoot();
+  const originalRootManifest = JSON.parse(
+    readFileSync(join(temporaryRoot, RELEASE_PATHS.packageManifest), 'utf8'),
+  ) as Record<string, unknown>;
   const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
   const nextVersion = '9.0.0';
   const nextCliJsonSchemaVersion = currentIdentity.cliJsonSchemaVersion + 1;
@@ -208,6 +211,13 @@ test('updateCliRelease synchronizes a complete copied release tree', async () =>
     assert.equal(identity.cliVersion, nextVersion);
     assert.equal(identity.cliJsonSchemaVersion, nextCliJsonSchemaVersion);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
+    const updatedRootManifest = JSON.parse(
+      readFileSync(join(temporaryRoot, RELEASE_PATHS.packageManifest), 'utf8'),
+    ) as Record<string, unknown>;
+    for (const field of ['name', 'workspaces', 'engines', 'scripts']) {
+      assert.notEqual(originalRootManifest[field], undefined);
+      assert.deepEqual(updatedRootManifest[field], originalRootManifest[field]);
+    }
     assert.match(
       readFileSync(join(temporaryRoot, RELEASE_PATHS.skill), 'utf8'),
       new RegExp(`cliJsonSchemaVersion: '${nextCliJsonSchemaVersion}'`, 'u'),
@@ -269,28 +279,28 @@ test('updateCliRelease accepts a higher same-major Core declaration minimum', as
   const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
   const cliDependencies = {
     ...currentIdentity.cliDependencies,
-    '@moldea.ai/core': '^4.0.1',
+    '@moldea.ai/core': '^5.0.1',
   };
 
   try {
     const identity = await updateCliRelease({
       repositoryRoot: temporaryRoot,
-      version: '8.0.1',
+      version: '9.0.1',
       resolveManifest: () => ({
         dependencies: cliDependencies,
         jsonSchemaVersion: currentIdentity.cliJsonSchemaVersion,
-        version: '8.0.1',
+        version: '9.0.1',
       }),
       updateRootManifests: createRootManifestUpdater(cliDependencies),
       installDependencies: installSyntheticDependencies,
     });
 
-    assert.equal(identity.cliCoreVersionRange, '^4.0.1');
-    assert.equal(identity.coreVersionRange, '^4.0.1');
+    assert.equal(identity.cliCoreVersionRange, '^5.0.1');
+    assert.equal(identity.coreVersionRange, '^5.0.0');
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
     assert.match(
       readFileSync(join(temporaryRoot, RELEASE_PATHS.skill), 'utf8'),
-      /cliJsonSchemaVersion: '4'/u,
+      /cliJsonSchemaVersion: '5'/u,
     );
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });
@@ -313,10 +323,10 @@ test('updateCliRelease preserves the supported Core range when the CLI minimum r
   const lockedCli = packageLock.packages['node_modules/@moldea.ai/cli'];
   const lockedCore = packageLock.packages['node_modules/@moldea.ai/core'];
   assert.ok(lockedCli?.dependencies && lockedCore);
-  semanticCliManifest.dependencies['@moldea.ai/core'] = '^4.0.1';
-  lockedCli.dependencies['@moldea.ai/core'] = '^4.0.1';
-  lockedCore.version = '4.1.0';
-  lockedCore.integrity = 'sha512-4.1.0';
+  semanticCliManifest.dependencies['@moldea.ai/core'] = '^5.0.0';
+  lockedCli.dependencies['@moldea.ai/core'] = '^5.0.0';
+  lockedCore.version = '5.1.0';
+  lockedCore.integrity = 'sha512-5.1.0';
   writeFileSync(semanticCliManifestPath, `${JSON.stringify(semanticCliManifest, null, 2)}\n`);
   writeFileSync(packageLockPath, `${JSON.stringify(packageLock, null, 2)}\n`);
 
@@ -325,31 +335,31 @@ test('updateCliRelease preserves the supported Core range when the CLI minimum r
     const currentIdentity = readReleaseIdentity(temporaryRoot);
     const cliDependencies = {
       ...currentIdentity.cliDependencies,
-      '@moldea.ai/core': '^4.1.0',
+      '@moldea.ai/core': '^5.1.0',
     };
 
     const identity = await updateCliRelease({
       repositoryRoot: temporaryRoot,
-      version: '8.0.1',
+      version: '9.0.1',
       resolveManifest: () => ({
         dependencies: cliDependencies,
         jsonSchemaVersion: currentIdentity.cliJsonSchemaVersion,
-        version: '8.0.1',
+        version: '9.0.1',
       }),
       updateRootManifests: createRootManifestUpdater(cliDependencies),
       installDependencies: installSyntheticDependencies,
     });
 
-    assert.equal(identity.cliCoreVersionRange, '^4.1.0');
-    assert.equal(identity.coreVersionRange, '^4.0.1');
+    assert.equal(identity.cliCoreVersionRange, '^5.1.0');
+    assert.equal(identity.coreVersionRange, '^5.0.0');
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
     assert.match(
       readFileSync(join(temporaryRoot, RELEASE_PATHS.readme), 'utf8'),
-      /stable `@moldea\.ai\/core` releases satisfying `\^4\.0\.1`/u,
+      /stable `@moldea\.ai\/core` releases satisfying `\^5\.0\.0`/u,
     );
     assert.match(
       readFileSync(join(temporaryRoot, RELEASE_PATHS.skillLocalTooling), 'utf8'),
-      /stable `@moldea\.ai\/core` releases satisfying `\^4\.0\.1`/u,
+      /stable `@moldea\.ai\/core` releases satisfying `\^5\.0\.0`/u,
     );
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });

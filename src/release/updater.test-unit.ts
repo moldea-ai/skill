@@ -51,7 +51,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   );
   currentFiles.set(
     RELEASE_PATHS.packageManifest,
-    '{"moldeaRelease":{"cliJsonSchemaVersion":3,"coreVersionRange":"^2.0.1"}}\n',
+    '{"version":"3.0.0","moldeaRelease":{"cliJsonSchemaVersion":3,"coreVersionRange":"^2.0.1"}}\n',
   );
   currentFiles.set(RELEASE_PATHS.packageLock, '{}\n');
   currentFiles.set(
@@ -213,7 +213,7 @@ test('createCliReleaseUpdate preserves portable ranges for a same-major patch', 
   );
   currentFiles.set(
     RELEASE_PATHS.packageManifest,
-    '{"moldeaRelease":{"cliJsonSchemaVersion":4,"coreVersionRange":"^3.0.1"}}\n',
+    '{"version":"5.0.0","moldeaRelease":{"cliJsonSchemaVersion":4,"coreVersionRange":"^3.0.1"}}\n',
   );
   currentFiles.set(RELEASE_PATHS.packageLock, '{}\n');
   currentFiles.set(
@@ -321,7 +321,7 @@ test('createCliReleaseUpdate keeps coincident CLI and Core ranges independent', 
   );
   currentFiles.set(
     RELEASE_PATHS.packageManifest,
-    '{"moldeaRelease":{"cliJsonSchemaVersion":4,"coreVersionRange":"^6.0.0"}}\n',
+    '{"version":"5.0.0","moldeaRelease":{"cliJsonSchemaVersion":4,"coreVersionRange":"^6.0.0"}}\n',
   );
   currentFiles.set(RELEASE_PATHS.packageLock, '{}\n');
   currentFiles.set(

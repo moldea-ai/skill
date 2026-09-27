@@ -83,4 +83,4 @@ When initialization or an established project-repair correction is authorized, i
 
 Never rewrite README outside the markers as part of moldea maintenance. The writer rejects malformed, duplicated, or ambiguous marker layouts before writing; report its compact structural error and stop.
 
-After every canonical and mirror write is complete, validate schema-4 metadata as the final moldea command. A validation performed before a later repair does not verify the resulting state and cannot support completion. Inspect only the changed canonical owners, and do not run full-project content inspection.
+After every canonical and mirror write is complete, validate schema-5 metadata as the final moldea command. A validation performed before a later repair does not verify the resulting state and cannot support completion. Inspect only the changed canonical owners, and do not run full-project content inspection.

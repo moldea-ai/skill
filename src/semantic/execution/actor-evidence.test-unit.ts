@@ -20,8 +20,8 @@ import type {
 } from './types.ts';
 
 const OPTIONS = {
-  cliVersion: '7.0.0',
-  jsonSchemaVersion: 4,
+  cliVersion: '9.0.0',
+  jsonSchemaVersion: 5,
 } satisfies ISemanticActorExecutionEvidenceOptions;
 const LAUNCHER_PREFIX =
   'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt --';
@@ -29,20 +29,31 @@ const LAUNCHER_PREFIX =
 const createLauncherCommand = (operation: string, ...arguments_: string[]): string =>
   [LAUNCHER_PREFIX, operation, ...arguments_].join(' ');
 
-const createEnvelope = (command: string, result: unknown): string =>
-  JSON.stringify({
-    schemaVersion: 4,
-    cliVersion: '7.0.0',
+const createEnvelope = (command: string, result: Record<string, unknown>): string => {
+  const completeResult =
+    command === 'validate'
+      ? { diagnosticCount: 0, errorCount: 0, warningCount: 0, valid: true, ...result }
+      : command === 'inspect'
+        ? {
+            counts: { diagnostics: 0, errors: 0, warnings: 0 },
+            valid: true,
+            ...result,
+          }
+        : result;
+  return JSON.stringify({
+    schemaVersion: 5,
+    cliVersion: '9.0.0',
     command,
     status: 'valid',
-    result,
+    result: completeResult,
     error: null,
   });
+};
 
 const createErrorEnvelope = (command: string): string =>
   JSON.stringify({
-    schemaVersion: 4,
-    cliVersion: '7.0.0',
+    schemaVersion: 5,
+    cliVersion: '9.0.0',
     command,
     status: 'error',
     result: null,
@@ -120,9 +131,10 @@ test('projects launcher-backed content-free inspect metadata and exact output by
   );
   assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
   assert.deepEqual(evidence.item.outputEvidence.facts[0], {
-    cliVersion: '7.0.0',
+    cliVersion: '9.0.0',
     command: 'inspect',
     containsContent: false,
+    errorCount: 0,
     errorCode: null,
     errorPresent: false,
     hasNextPage: false,
@@ -130,8 +142,9 @@ test('projects launcher-backed content-free inspect metadata and exact output by
     pageRecordCount: 1,
     relevant: null,
     resultPresent: true,
-    schemaVersion: 4,
+    schemaVersion: 5,
     status: 'valid',
+    warningCount: 0,
   });
   assert.equal(evidence.item.outputEvidence.byteCount, Buffer.byteLength(output));
 });
@@ -199,9 +212,10 @@ test('projects failed content commands without requiring a canonical body', () =
 
   assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
   assert.deepEqual(evidence.item.outputEvidence.facts[0], {
-    cliVersion: '7.0.0',
+    cliVersion: '9.0.0',
     command: 'content',
     containsContent: false,
+    errorCount: null,
     errorCode: 'CONTENT_PATH_INVALID',
     errorPresent: true,
     hasNextPage: false,
@@ -209,15 +223,16 @@ test('projects failed content commands without requiring a canonical body', () =
     pageRecordCount: 0,
     relevant: null,
     resultPresent: false,
-    schemaVersion: 4,
+    schemaVersion: 5,
     status: 'error',
+    warningCount: null,
   });
 });
 
 test('rejects unsafe CLI error classifications without retaining error bodies', () => {
   const unsafeOutput = JSON.stringify({
-    schemaVersion: 4,
-    cliVersion: '7.0.0',
+    schemaVersion: 5,
+    cliVersion: '9.0.0',
     command: 'content',
     status: 'error',
     result: null,
@@ -363,11 +378,17 @@ test('recognizes validate and fixed-boundary composition launcher operations', (
 test('projects standalone validation continuation pages independently', () => {
   const createInvalidValidationEnvelope = (cursor: string | null): string =>
     JSON.stringify({
-      schemaVersion: 4,
-      cliVersion: '7.0.0',
+      schemaVersion: 5,
+      cliVersion: '9.0.0',
       command: 'validate',
       status: 'invalid',
-      result: { page: { cursor, records: [{ kind: 'diagnostic' }] } },
+      result: {
+        diagnosticCount: 2,
+        errorCount: 1,
+        warningCount: 1,
+        valid: false,
+        page: { cursor, records: [{ kind: 'diagnostic' }] },
+      },
       error: null,
     });
   const firstPage = projectActorExecutionEvidenceEvent(
@@ -407,6 +428,106 @@ test('projects standalone validation continuation pages independently', () => {
     'validate',
   ]);
   assert.equal(JSON.stringify([firstPage, finalPage]).includes('opaque.snapshot.cursor'), false);
+});
+
+test('uses complete command totals for warning-only and mixed diagnostic results', () => {
+  for (const command of ['validate', 'inspect'] as const) {
+    for (const [status, errorCount, warningCount, exitCode] of [
+      ['valid', 0, 1, 0],
+      ['invalid', 1, 1, 1],
+    ] as const) {
+      const totals =
+        command === 'validate'
+          ? { diagnosticCount: errorCount + warningCount, errorCount, warningCount }
+          : {
+              counts: {
+                diagnostics: errorCount + warningCount,
+                errors: errorCount,
+                warnings: warningCount,
+              },
+            };
+      const output = JSON.stringify({
+        cliVersion: OPTIONS.cliVersion,
+        command,
+        error: null,
+        result: { ...totals, page: { cursor: 'next-page', records: [] }, valid: errorCount === 0 },
+        schemaVersion: OPTIONS.jsonSchemaVersion,
+        status,
+      });
+      const evidence = projectActorExecutionEvidenceEvent(
+        createEvent(
+          createLauncherCommand(command, '--json', '--max-output-bytes', '65536'),
+          output,
+          {
+            exitCode,
+          },
+        ),
+        OPTIONS,
+      );
+      assert.deepEqual(evidence.item.outputEvidence.facts[0], {
+        cliVersion: OPTIONS.cliVersion,
+        command,
+        containsContent: false,
+        errorCount,
+        errorCode: null,
+        errorPresent: false,
+        hasNextPage: true,
+        kind: 'moldea-cli-envelope',
+        pageRecordCount: 0,
+        relevant: null,
+        resultPresent: true,
+        schemaVersion: OPTIONS.jsonSchemaVersion,
+        status,
+        warningCount,
+      });
+    }
+  }
+});
+
+test('does not derive validation conclusions from missing or contradictory totals', () => {
+  for (const command of ['validate', 'inspect'] as const) {
+    const validTotals =
+      command === 'validate'
+        ? { diagnosticCount: 1, errorCount: 0, warningCount: 1 }
+        : { counts: { diagnostics: 1, errors: 0, warnings: 1 } };
+    const malformedResults = [
+      { page: { cursor: null, records: [] }, valid: true },
+      { ...validTotals, page: { cursor: null, records: [] }, valid: false },
+      command === 'validate'
+        ? { diagnosticCount: 2, errorCount: 0, warningCount: 1, valid: true }
+        : { counts: { diagnostics: 2, errors: 0, warnings: 1 }, valid: true },
+      command === 'validate'
+        ? {
+            diagnosticCount: 1,
+            errorCount: 0,
+            warningCount: Number.MAX_SAFE_INTEGER + 1,
+            valid: true,
+          }
+        : {
+            counts: { diagnostics: 1, errors: 0, warnings: Number.MAX_SAFE_INTEGER + 1 },
+            valid: true,
+          },
+    ];
+    for (const result of malformedResults) {
+      const output = JSON.stringify({
+        cliVersion: OPTIONS.cliVersion,
+        command,
+        error: null,
+        result,
+        schemaVersion: OPTIONS.jsonSchemaVersion,
+        status: 'valid',
+      });
+      const evidence = projectActorExecutionEvidenceEvent(
+        createEvent(
+          createLauncherCommand(command, '--json', '--max-output-bytes', '65536'),
+          output,
+        ),
+        OPTIONS,
+      );
+      assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
+      assert.deepEqual(evidence.item.outputEvidence.facts, []);
+    }
+  }
 });
 
 test('counts a valid launcher with malformed output as an unrecognized moldea operation', () => {

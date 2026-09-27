@@ -655,3 +655,86 @@ test('large context inventory requires real bounded continuation pages', async (
   assert.ok(pages > 1, 'The inventory fixture must require pagination.');
   assert.ok(records >= 256, 'Every declared context owner should appear in the inventory.');
 });
+
+test.each([
+  'eve-warning-unrelated-change',
+  'eve-warning-output-unverified',
+  'eve-warning-read-only-evaluation',
+])('%s produces one scoped warning and no errors through the installed CLI', async (caseId) => {
+  const { repositoryPath } = await materializeCase(caseId, true);
+  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+    status: string;
+    result: {
+      diagnosticCount: number;
+      errorCount: number;
+      warningCount: number;
+      page: {
+        records: Array<{ kind: string; code?: string; details?: Record<string, unknown> }>;
+      };
+    };
+  };
+  assert.equal(validation.status, 'valid');
+  assert.equal(validation.result.diagnosticCount, 1);
+  assert.equal(validation.result.errorCount, 0);
+  assert.equal(validation.result.warningCount, 1);
+  const warning = validation.result.page.records.find(({ kind }) => kind === 'diagnostic');
+  assert.equal(warning?.code, 'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED');
+  assert.deepEqual(warning?.details, {
+    boundaryVersion: '0.67.0',
+    declaredRange: '>=0.54.3',
+    packageName: 'eve',
+    reason: 'version-dependent-behavior',
+    relationship: 'agent-output-schema',
+  });
+  const inspection = JSON.parse(launcherOutput(repositoryPath, ['inspect'])) as {
+    result: { counts: { diagnostics: number; errors: number; warnings: number } };
+  };
+  assert.deepEqual(
+    {
+      diagnostics: inspection.result.counts.diagnostics,
+      errors: inspection.result.counts.errors,
+      warnings: inspection.result.counts.warnings,
+    },
+    { diagnostics: 1, errors: 0, warnings: 1 },
+  );
+});
+
+test('a confirmed Eve defect remains invalid beside an unrelated version warning', async () => {
+  const { repositoryPath } = await materializeCase('eve-warning-mixed-repair', true);
+  const result = spawnSync(
+    process.execPath,
+    [
+      LAUNCHER_PATH,
+      '--repository',
+      repositoryPath,
+      '--',
+      'validate',
+      '--json',
+      '--max-output-bytes',
+      '65536',
+    ],
+    { encoding: 'utf8' },
+  );
+  if (result.error) throw result.error;
+  assert.equal(result.status, 1, result.stderr || result.stdout);
+  const validation = JSON.parse(result.stdout) as {
+    status: string;
+    result: {
+      diagnosticCount: number;
+      errorCount: number;
+      warningCount: number;
+      page: { records: Array<{ kind: string; code?: string }> };
+    };
+  };
+  assert.equal(validation.status, 'invalid');
+  assert.equal(validation.result.diagnosticCount, 2);
+  assert.equal(validation.result.errorCount, 1);
+  assert.equal(validation.result.warningCount, 1);
+  assert.deepEqual(
+    validation.result.page.records
+      .filter(({ kind }) => kind === 'diagnostic')
+      .map(({ code }) => code)
+      .sort(),
+    ['EVE_RUNTIME_RELATIONSHIP_UNVERIFIED', 'EVE_TOOL_NAME_MISMATCH'],
+  );
+});

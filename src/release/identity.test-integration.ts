@@ -32,13 +32,13 @@ test('release identity inspection detects a stale maintained copy', () => {
     const skillSource = readFileSync(skillPath, 'utf8');
     writeFileSync(
       skillPath,
-      skillSource.replace("cliJsonSchemaVersion: '4'", 'cliJsonSchemaVersion: 4'),
+      skillSource.replace("cliJsonSchemaVersion: '5'", 'cliJsonSchemaVersion: 5'),
       'utf8',
     );
     assert.throws(() => inspectReleaseIdentity(temporaryRoot), /invalid_type/u);
     writeFileSync(
       skillPath,
-      skillSource.replace("cliJsonSchemaVersion: '4'", "cliJsonSchemaVersion: '0'"),
+      skillSource.replace("cliJsonSchemaVersion: '5'", "cliJsonSchemaVersion: '0'"),
       'utf8',
     );
     assert.throws(() => inspectReleaseIdentity(temporaryRoot), /invalid_format/u);
@@ -57,7 +57,7 @@ test('release identity inspection detects a stale maintained copy', () => {
     const matchingSemanticCliManifest = SemanticCliManifestSchema.parse(
       JSON.parse(semanticCliManifestSource) as unknown,
     );
-    matchingSemanticCliManifest.dependencies['@moldea.ai/core'] = '^4.0.1';
+    matchingSemanticCliManifest.dependencies['@moldea.ai/core'] = '^5.0.0';
     writeFileSync(
       semanticCliManifestPath,
       `${JSON.stringify(matchingSemanticCliManifest, null, 2)}\n`,
@@ -68,9 +68,9 @@ test('release identity inspection detects a stale maintained copy', () => {
     };
     const lockedCli = packageLock.packages['node_modules/@moldea.ai/cli'];
     assert.ok(lockedCli?.dependencies !== undefined);
-    lockedCli.dependencies['@moldea.ai/core'] = '^4.0.1';
+    lockedCli.dependencies['@moldea.ai/core'] = '^5.0.0';
     writeFileSync(lockPath, `${JSON.stringify(packageLock, null, 2)}\n`, 'utf8');
-    assert.equal(readReleaseIdentity(temporaryRoot).cliCoreVersionRange, '^4.0.1');
+    assert.equal(readReleaseIdentity(temporaryRoot).cliCoreVersionRange, '^5.0.0');
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
 
     const sourcePath = join(temporaryRoot, RELEASE_PATHS.sourceRepositoryPackage);
@@ -82,7 +82,7 @@ test('release identity inspection detects a stale maintained copy', () => {
     ]);
     writeFileSync(sourcePath, sourceContent);
 
-    lockedCli.dependencies['@moldea.ai/core'] = '^4.1.0';
+    lockedCli.dependencies['@moldea.ai/core'] = '^6.0.0';
     writeFileSync(lockPath, `${JSON.stringify(packageLock, null, 2)}\n`, 'utf8');
     assert.throws(() => readReleaseIdentity(temporaryRoot), /does not bind a Core release/u);
     writeFileSync(lockPath, lockSource, 'utf8');

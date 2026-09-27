@@ -76,6 +76,12 @@ const UNINITIALIZED_CASE_IDS = new Set([
   'preinit-explicit-validation',
   'preinit-information',
 ]);
+const EVE_VERSION_WARNING_CASE_IDS = new Set([
+  'eve-warning-mixed-repair',
+  'eve-warning-output-unverified',
+  'eve-warning-read-only-evaluation',
+  'eve-warning-unrelated-change',
+]);
 const YARN_CONFLICTING_PROVIDER_NAME = 'conflicting-moldea-provider';
 const YARN_CONFLICT_SENTINEL = 'unexpected-yarn-cli-invocation.txt';
 const EVALUATION_GIT_COMMIT_ENV: NodeJS.ProcessEnv = {
@@ -768,13 +774,22 @@ const seedEveRuntimeEvidence = async (repositoryPath: string, caseId: string): P
   });
   const manifestPath = join(repositoryPath, 'moldea', 'moldea.yaml');
   const manifest = await readFile(manifestPath, 'utf8');
+  const hasVersionWarning = EVE_VERSION_WARNING_CASE_IDS.has(caseId);
   await writeScenarioFile(
     repositoryPath,
     'moldea/moldea.yaml',
     manifest +
-      '    bindings:\n      runtimeAgent:\n        path: /src/agent/agent.ts\n        symbol: default\n',
+      '    bindings:\n      runtimeAgent:\n        path: /src/agent/agent.ts\n        symbol: default\n' +
+      (hasVersionWarning
+        ? '      outputSchema:\n        path: /src/agent/contracts.ts\n        symbol: RefundOutputSchema\n'
+        : ''),
   );
-  const version = caseId === 'runtime-package-version-mismatch' ? '0.38.0' : '0.54.3';
+  const version =
+    caseId === 'runtime-package-version-mismatch'
+      ? '0.38.0'
+      : hasVersionWarning
+        ? '>=0.54.3'
+        : '0.54.3';
   await writeScenarioFile(
     repositoryPath,
     'src/package.json',
@@ -789,6 +804,54 @@ const seedEveRuntimeEvidence = async (repositoryPath: string, caseId: string): P
     'src/agent/agent.ts',
     "import { defineAgent } from 'eve';\nexport default defineAgent({ model: " + model + ' });\n',
   );
+  if (hasVersionWarning) {
+    await writeScenarioFile(
+      repositoryPath,
+      'src/agent/contracts.ts',
+      "export const RefundOutputSchema = { type: 'object' };\n",
+    );
+  }
+  if (caseId === 'eve-warning-mixed-repair') {
+    const triageFixtureRoot = join(
+      REPOSITORY_ROOT,
+      'qualification',
+      'profiles',
+      't6',
+      'cases',
+      'c9',
+      'seed',
+    );
+    await cp(join(triageFixtureRoot, 'agent'), join(repositoryPath, 'triage'), {
+      recursive: true,
+    });
+    await writeScenarioFile(
+      repositoryPath,
+      'triage/package.json',
+      `${JSON.stringify({ private: true, dependencies: { eve: '0.67.0' } })}\n`,
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/agents/triage/instruction.md',
+      '# Triage agent\n\nYou are the `triage` agent. Handle support requests.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/agents/triage/description.md',
+      'Handles support triage.\n',
+    );
+    const triageManifest = await readFile(join(triageFixtureRoot, 'moldea', 'moldea.yaml'), 'utf8');
+    const triageDefinition = triageManifest.split('  support:\n')[1];
+    if (triageDefinition === undefined) {
+      throw new Error('The Eve triage fixture has no support agent definition.');
+    }
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/moldea.yaml',
+      (await readFile(manifestPath, 'utf8')) +
+        '  triage:\n' +
+        triageDefinition.replaceAll('/agent/', '/triage/'),
+    );
+  }
 };
 
 /** Seeds one custom runtime whose description consumers have case-specific semantic roles. */
@@ -1473,6 +1536,10 @@ const seedScenarioRepository = async (
     case 'eve-source-pattern-unresolved':
     case 'eve-invalid-package-metadata':
     case 'eve-later-stable-local-eligibility':
+    case 'eve-warning-mixed-repair':
+    case 'eve-warning-output-unverified':
+    case 'eve-warning-read-only-evaluation':
+    case 'eve-warning-unrelated-change':
       await seedEveRuntimeEvidence(repositoryPath, caseDefinition.id);
       break;
     case 'adopted-relevance-no-change':

@@ -3,10 +3,10 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, skills, and project context. After adoption, assess established project facts, approved policies, clear corrections, and context-ownership questions without requiring moldea wording. Handle explicit moldea operations. Ordinary code requirements need a declared relationship; abstain silently on a miss. Initialize only when asked.
 metadata:
-  version: '5.0.13'
-  cliVersionRange: '^8.0.0'
-  coreVersionRange: '^4.0.1'
-  cliJsonSchemaVersion: '4'
+  version: '6.0.0'
+  cliVersionRange: '^9.0.0'
+  coreVersionRange: '^5.0.0'
+  cliJsonSchemaVersion: '5'
 ---
 
 # moldea
@@ -60,7 +60,7 @@ After a relationship `1`, send only that matching batch once, before references:
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- scope --paths-stdin --json --max-output-bytes 65536
 ```
 
-Accept only exit 0, CLI 8, JSON schema 4, exact installed stable version, `command: scope`, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. Keep earlier valid owners on a new-batch miss or failure. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
+Accept only exit 0, CLI 9, JSON schema 5, exact installed stable version, `command: scope`, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. Keep earlier valid owners on a new-batch miss or failure. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
 
 ## Select the operation owner
 
@@ -75,9 +75,11 @@ After relevance, read only the required operation references.
 - Adapter eligibility or fit: `references/runtime-compatibility.md`, before package exploration.
 - CLI proof or machine contracts: `references/local-tooling.md`. Only authorized installation uses `references/tooling-installation.md`.
 
-Aim for four ordinary CLI calls, including scope and final validation. Keep 65,536-byte raw pages and 262,144-byte aggregate output across initial work, expansions, recovery, and validation. Never reset budgets or reconstruct a project dump.
+Aim for four ordinary CLI calls, including scope and final validation. Keep 65,536-byte raw pages and 262,144-byte cumulative output. Never reset budgets or reconstruct a project dump.
 
 After authorized canonical writes and native checks, run final launcher-backed validation. On failure, follow `references/local-tooling.md`'s bounded recovery procedure. Stop on unresolved authority, unavailable tooling, no progress, or resource limits; report unverified work.
+
+For `validate` and `inspect`, use aggregate totals. Warnings leave named claims unverified; errors require repair or reporting. See `references/local-tooling.md`.
 
 ## Preserve authority and complete the relevant work
 

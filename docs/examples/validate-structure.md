@@ -29,4 +29,13 @@ I ran the verified repository-local validation boundary. The project is structur
 5. It treats `status: invalid` as completed deterministic evidence and `status: error` as an operational failure.
 6. It reports the diagnostic without editing the mirror or claiming semantic alignment.
 
+The CLI reports aggregate totals for the complete validation snapshot, even when records continue onto another page. These are excerpts, not copyable JSON responses; omitted fields and records are marked with `...`.
+
+```text
+Warning only: {"schemaVersion":5,"cliVersion":"9.0.0","command":"validate","status":"valid","result":{"diagnosticCount":1,"errorCount":0,"warningCount":1,"valid":true,"page":{"cursor":null,"records":[{"kind":"diagnostic","code":"EVE_RUNTIME_RELATIONSHIP_UNVERIFIED",...}]}},"error":null}
+Confirmed defect: {"schemaVersion":5,"cliVersion":"9.0.0","command":"validate","status":"invalid","result":{"diagnosticCount":2,"errorCount":1,"warningCount":1,"valid":false,"page":{"cursor":null,"records":[{"kind":"diagnostic","code":"EVE_RUNTIME_RELATIONSHIP_UNVERIFIED",...},{"kind":"diagnostic","code":"EVE_TOOL_NAME_MISMATCH",...}]}},"error":null}
+```
+
+The warning leaves only its named Eve relationship unverified. The separate tool-name error makes the second result invalid and still needs repair.
+
 To authorize a repair, the developer can later request reconciliation or a focused write-capable correction.

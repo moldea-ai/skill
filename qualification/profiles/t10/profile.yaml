@@ -5,9 +5,9 @@ title: LangGraph StateGraph qualification
 description: Qualifies direct compiled TypeScript StateGraph definitions, explicit graph schemas, supported graph operations, conservative runtime boundaries.
 runtimePackages:
   - name: '@langchain/core'
-    version: 1.2.9
+    version: 1.2.12
   - name: '@langchain/langgraph'
-    version: 1.4.12
+    version: 1.4.18
   - name: '@types/node'
     version: 22.20.1
   - name: zod

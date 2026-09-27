@@ -9,7 +9,7 @@ runtimePackages:
   - name: '@types/node'
     version: 22.20.1
   - name: ai
-    version: 7.0.77
+    version: 7.0.116
   - name: zod
     version: 4.3.6
 probesFile: probes/claims.yaml

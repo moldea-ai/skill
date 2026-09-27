@@ -143,10 +143,10 @@ const createCandidateCheckpoint = (cases: ISemanticCase[]): ISemanticCandidateCh
   caseSuiteDigest: SHA256,
   cli: {
     integrity: 'sha512-synthetic',
-    jsonSchemaVersion: 4,
+    jsonSchemaVersion: 5,
     name: '@moldea.ai/cli',
     packageLockSha256: SHA256,
-    version: '8.0.0',
+    version: '9.0.0',
   },
   coverageDigest: SHA256,
   createdAt: '2026-09-20T00:00:00.000Z',

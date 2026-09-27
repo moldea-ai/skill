@@ -34,6 +34,8 @@ From the repository root, install every workspace dependency without lifecycle s
 npm ci --ignore-scripts
 ```
 
+The website pins `cookie` 2.0.1 alongside Astro 7.2.8. Qualification's MCP dependency also installs `cookie` 0.7.2; without the website-local pin, npm can resolve the older copy for Astro's prerendered module and the build fails on its `parseCookie` import.
+
 Generate and validate documentation data:
 
 ```bash

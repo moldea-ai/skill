@@ -23,7 +23,7 @@ Do not ask a project-purpose question, execute the extension, change configurati
 
 After preflight permits installation, apply `continuous-maintenance.md` to establish sufficient project purpose and boundaries before any dependency change. Insufficient or partial foundations stop with that reference's evidence and clarification result.
 
-For sufficient foundation evidence and authorized installation, use the repository's established package manager and root development-dependency location. Install `@moldea.ai/cli@^8.0.0` with lifecycle scripts disabled and update the ordinary lockfile. Retain a compatible caret declaration or the exact stable version selected by the lockfile. Never load repository-supplied executable extensions, use global or transient providers, weaken host trust controls, or broaden the task into dependency upgrades.
+For sufficient foundation evidence and authorized installation, use the repository's established package manager and root development-dependency location. Install `@moldea.ai/cli@^9.0.0` with lifecycle scripts disabled and update the ordinary lockfile. Retain a compatible caret declaration or the exact stable version selected by the lockfile. Never load repository-supplied executable extensions, use global or transient providers, weaken host trust controls, or broaden the task into dependency upgrades.
 
 Complete installation before canonical or managed README writes and the first validation. On failure, preserve and report any package-manager changes and stop before those writes or validation. Do not automatically roll back or claim adoption. An already-present compatible CLI needs no reinstall or extra availability check. For invocation and machine evidence, `local-tooling.md` owns the closed launcher contract.
 

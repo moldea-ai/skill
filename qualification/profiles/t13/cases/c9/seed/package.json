@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "ai": "7.0.77",
+    "ai": "7.0.116",
     "zod": "4.3.6"
   },
   "devDependencies": {

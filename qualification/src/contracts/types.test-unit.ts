@@ -115,6 +115,84 @@ test('validates model usage structure independently from source-committed resour
   ).toBe(true);
 });
 
+test('accepts bounded diagnostic and evidence selectors while rejecting unsupported metadata', () => {
+  const scenario = createScenario('moldea/runtimes/*.md');
+  const before = {
+    ...scenario.deterministicEvidence.before,
+    errorCount: 0,
+    warningCount: 1,
+    requiredDiagnostics: [
+      {
+        code: 'THINK_RUNTIME_RELATIONSHIP_UNVERIFIED',
+        severity: 'warning',
+        relationship: 'instruction-loader',
+        reason: 'version-dependent-behavior',
+        details: {
+          packageName: '@cloudflare/think',
+          boundaryVersion: '0.18.0',
+          declaredRange: null,
+        },
+      },
+    ],
+    forbiddenDiagnostics: [{ code: 'THINK_RUNTIME_RELATIONSHIP_UNVERIFIED', severity: 'error' }],
+    requiredEvidence: [
+      {
+        kind: 'runtime-pattern',
+        reference: { path: '/src/agent.ts', symbol: 'supportAgent' },
+        details: { declaredDeferredLoading: 'absent', patternId: 'functional-interrupt' },
+      },
+    ],
+    forbiddenEvidence: [
+      { kind: 'runtime-pattern', details: { responseSchemaRole: 'resume-value' } },
+    ],
+  };
+  const withBefore = (candidate: unknown) => ({
+    ...scenario,
+    deterministicEvidence: { ...scenario.deterministicEvidence, before: candidate },
+  });
+  expect(QualificationCaseScenarioSchema.safeParse(withBefore(before)).success).toBe(true);
+
+  for (const details of [
+    {},
+    { packageName: '' },
+    { declaredRange: 0 },
+    { arbitraryMetadata: 'accepted' },
+  ]) {
+    expect(
+      QualificationCaseScenarioSchema.safeParse(
+        withBefore({
+          ...before,
+          requiredDiagnostics: [{ code: 'X', severity: 'warning', details }],
+        }),
+      ).success,
+    ).toBe(false);
+  }
+  for (const details of [
+    {},
+    { declaredDeferredLoading: 'maybe' },
+    { interruptForm: 'one-argument' },
+    { responseSchemaRole: 'agent-output' },
+    { arbitraryMetadata: 'accepted' },
+  ]) {
+    expect(
+      QualificationCaseScenarioSchema.safeParse(
+        withBefore({
+          ...before,
+          requiredEvidence: [{ kind: 'runtime-pattern', details }],
+        }),
+      ).success,
+    ).toBe(false);
+  }
+  expect(
+    QualificationCaseScenarioSchema.safeParse(
+      withBefore({
+        ...before,
+        requiredEvidence: [{ kind: 'runtime-pattern', unsupported: 'field' }],
+      }),
+    ).success,
+  ).toBe(false);
+});
+
 test('requires privacy-safe command-policy reasons to be counted, unique, and sorted', () => {
   const evidence = {
     completedCommandCount: 2,
@@ -389,7 +467,7 @@ const createTerminalNonSemanticTrial = (): IQualificationTrialResult => {
   });
 };
 
-describe('protocol 11 qualification contracts', () => {
+describe('current qualification contracts', () => {
   test.each([
     ['passed', 'not-required', [createTrial('initial', true)], []],
     [

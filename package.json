@@ -1,6 +1,6 @@
 {
   "name": "@moldea.ai/skill-conformance",
-  "version": "5.0.13",
+  "version": "6.0.0",
   "private": true,
   "description": "Development-only conformance checks for the moldea Agent Skill.",
   "type": "module",
@@ -13,8 +13,8 @@
     "npm": ">=10.9.0"
   },
   "moldeaRelease": {
-    "cliJsonSchemaVersion": 4,
-    "coreVersionRange": "^4.0.1"
+    "cliJsonSchemaVersion": 5,
+    "coreVersionRange": "^5.0.0"
   },
   "scripts": {
     "docs:check": "npm --workspace website run docs:check",
@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@moldea.ai/cli": "8.0.0",
+    "@moldea.ai/cli": "9.0.0",
     "@moldea.ai/website-ui": "1.10.2",
     "@types/node": "22.20.1",
     "@types/semver": "7.8.0",

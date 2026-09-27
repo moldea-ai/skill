@@ -20,11 +20,47 @@ deterministicEvidence:
     forbiddenDiagnosticCodes: []
     requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern]
     forbiddenEvidenceKinds: [instruction-loader, tool-registration]
+    requiredEvidence:
+      - kind: runtime-pattern
+        agentId: support
+        reference: { path: /src/support-workflow.ts }
+        details:
+          {
+            patternId: functional-interrupt,
+            interruptForm: two-argument,
+            responseSchemaRole: resume-value,
+          }
+      - kind: runtime-pattern
+        agentId: dynamic-support
+        reference: { path: /src/dynamic-support-workflow.ts }
+        details: { patternId: functional-interrupt, interruptForm: two-argument }
+    forbiddenEvidence:
+      - kind: runtime-pattern
+        agentId: dynamic-support
+        details: { patternId: functional-interrupt, responseSchemaRole: resume-value }
   after:
     requiredDiagnosticCodes: []
     forbiddenDiagnosticCodes: []
     requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern]
     forbiddenEvidenceKinds: [instruction-loader, tool-registration]
+    requiredEvidence:
+      - kind: runtime-pattern
+        agentId: support
+        reference: { path: /src/support-workflow.ts }
+        details:
+          {
+            patternId: functional-interrupt,
+            interruptForm: two-argument,
+            responseSchemaRole: resume-value,
+          }
+      - kind: runtime-pattern
+        agentId: dynamic-support
+        reference: { path: /src/dynamic-support-workflow.ts }
+        details: { patternId: functional-interrupt, interruptForm: two-argument }
+    forbiddenEvidence:
+      - kind: runtime-pattern
+        agentId: dynamic-support
+        details: { patternId: functional-interrupt, responseSchemaRole: resume-value }
 expectedActorOutcome: completed
 workspace:
   expectation: changed

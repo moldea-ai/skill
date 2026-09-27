@@ -5,7 +5,7 @@ title: OpenAI Responses API qualification
 description: Qualifies direct TypeScript Responses API integrations, instruction loaders, closed function-tool arrays, direct input-schema bindings, conservative static boundaries.
 runtimePackages:
   - name: openai
-    version: 7.8.0
+    version: 7.23.0
   - name: '@types/node'
     version: 22.20.1
 probesFile: probes/claims.yaml

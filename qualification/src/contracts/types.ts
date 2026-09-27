@@ -163,6 +163,78 @@ const addUniqueArrayIssue = (
   }
 };
 
+// closed metadata selectors for deterministic adapter diagnostics and evidence
+const DiagnosticSelectorSchema = z.strictObject({
+  code: z.string().trim().min(1),
+  severity: z.enum(['error', 'warning']),
+  agentId: z.string().trim().min(1).optional(),
+  capabilityKind: z.enum(['skill', 'tool']).optional(),
+  capabilityId: z.string().trim().min(1).optional(),
+  relationship: z
+    .enum([
+      'runtime-agent',
+      'instruction-loader',
+      'agent-input-schema',
+      'agent-output-schema',
+      'tool-implementation',
+      'tool-registration',
+      'tool-input-schema',
+      'tool-output-schema',
+      'skill-implementation',
+      'skill-registration',
+      'handoff-registration',
+      'routing-description',
+      'variable-provider',
+    ])
+    .optional(),
+  reason: z
+    .enum(['unsupported-source-pattern', 'dynamic-source-pattern', 'version-dependent-behavior'])
+    .optional(),
+  details: z
+    .strictObject({
+      packageName: z.string().trim().min(1).optional(),
+      boundaryVersion: z.string().trim().min(1).optional(),
+      declaredRange: z.string().trim().min(1).nullable().optional(),
+    })
+    .refine((details) => Object.keys(details).length > 0)
+    .optional(),
+});
+
+const EvidenceSelectorSchema = z.strictObject({
+  kind: z.string().trim().min(1),
+  agentId: z.string().trim().min(1).optional(),
+  capabilityKind: z.enum(['skill', 'tool']).optional(),
+  capabilityId: z.string().trim().min(1).optional(),
+  reference: z
+    .strictObject({
+      path: z.string().trim().startsWith('/'),
+      symbol: z.string().trim().min(1).optional(),
+    })
+    .optional(),
+  details: z
+    .strictObject({
+      declaredDeferredLoading: z.enum(['absent', 'enabled', 'disabled', 'unknown']).optional(),
+      patternId: z.string().trim().min(1).optional(),
+      interruptForm: z.literal('two-argument').optional(),
+      responseSchemaRole: z.literal('resume-value').optional(),
+    })
+    .refine((details) => Object.keys(details).length > 0)
+    .optional(),
+});
+
+const DeterministicExpectationSchema = z.strictObject({
+  errorCount: z.number().int().nonnegative().optional(),
+  warningCount: z.number().int().nonnegative().optional(),
+  requiredDiagnosticCodes: z.array(z.string().trim().min(1)),
+  forbiddenDiagnosticCodes: z.array(z.string().trim().min(1)),
+  requiredEvidenceKinds: z.array(z.string().trim().min(1)),
+  forbiddenEvidenceKinds: z.array(z.string().trim().min(1)),
+  requiredDiagnostics: z.array(DiagnosticSelectorSchema).optional(),
+  forbiddenDiagnostics: z.array(DiagnosticSelectorSchema).optional(),
+  requiredEvidence: z.array(EvidenceSelectorSchema).optional(),
+  forbiddenEvidence: z.array(EvidenceSelectorSchema).optional(),
+});
+
 // deterministic fixture setup and observable post-actor requirements for one case
 export const QualificationCaseScenarioSchema = z
   .strictObject({
@@ -185,18 +257,8 @@ export const QualificationCaseScenarioSchema = z
       after: z.enum(['valid', 'invalid']),
     }),
     deterministicEvidence: z.strictObject({
-      before: z.strictObject({
-        requiredDiagnosticCodes: z.array(z.string().trim().min(1)),
-        forbiddenDiagnosticCodes: z.array(z.string().trim().min(1)),
-        requiredEvidenceKinds: z.array(z.string().trim().min(1)),
-        forbiddenEvidenceKinds: z.array(z.string().trim().min(1)),
-      }),
-      after: z.strictObject({
-        requiredDiagnosticCodes: z.array(z.string().trim().min(1)),
-        forbiddenDiagnosticCodes: z.array(z.string().trim().min(1)),
-        requiredEvidenceKinds: z.array(z.string().trim().min(1)),
-        forbiddenEvidenceKinds: z.array(z.string().trim().min(1)),
-      }),
+      before: DeterministicExpectationSchema,
+      after: DeterministicExpectationSchema,
     }),
     expectedActorOutcome: z.enum(['blocked', 'completed']),
     workspace: z.strictObject({
@@ -993,7 +1055,7 @@ const QualificationFailureClassificationSchema = z.enum([
   'operational',
 ]);
 
-// one protocol 11 initial or confirmation trial and its complete artifact references
+// one current-protocol initial or confirmation trial and its complete artifact references
 export const QualificationTrialResultSchema = z
   .strictObject({
     trialId: z.enum(QUALIFICATION_TRIAL_IDS),
@@ -1093,7 +1155,7 @@ export const QualificationCaseReuseSchema = z.strictObject({
 
 export type IQualificationCaseReuse = z.infer<typeof QualificationCaseReuseSchema>;
 
-// terminal protocol 11 case history preserving the original trial and every confirmation
+// terminal current-protocol case history preserving the original trial and every confirmation
 export const QualificationCaseResultSchema = z
   .strictObject({
     caseId: StableIdSchema,

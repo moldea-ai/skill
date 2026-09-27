@@ -42,7 +42,7 @@ const CliEnvelopeSchema = z.object({
     snapshotDigest: z.string(),
     valid: z.boolean(),
   }),
-  schemaVersion: z.literal(4),
+  schemaVersion: z.literal(5),
   status: z.enum(['invalid', 'valid']),
 });
 
@@ -113,7 +113,7 @@ const writeFixture = async (root: string, files: ILandingExampleFiles): Promise<
   }
 };
 
-/** Runs one CLI command and parses its schema-4 response. */
+/** Runs one CLI command and parses its schema-5 response. */
 const runCli = async (root: string, args: readonly string[]) => {
   const processResult = await executeProcess(
     process.execPath,

@@ -1,0 +1,70 @@
+version: 2
+resourceProfile: ordinary
+id: remove-stale-eve-agent-schema
+title: Remove stale Eve agent schema
+layer: adapter-specific
+description: Repair a confirmed Eve 0.67.0 agent output-schema incompatibility without changing the current SDK source.
+challenge: The bound schema symbol exists, but Eve's current defineAgent contract no longer accepts the relationship.
+purpose: Verify that a real exported symbol cannot override a confirmed removed SDK feature.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: [agent/contracts.ts]
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    errorCount: 1
+    warningCount: 0
+    requiredDiagnosticCodes: [EVE_SDK_FEATURE_UNAVAILABLE]
+    forbiddenDiagnosticCodes: [EVE_AGENT_OUTPUT_SCHEMA_SYMBOL_NOT_FOUND]
+    requiredDiagnostics:
+      - code: EVE_SDK_FEATURE_UNAVAILABLE
+        severity: error
+        agentId: support
+    requiredEvidenceKinds: [language, runtime-package]
+    forbiddenEvidenceKinds: [schema]
+  after:
+    errorCount: 0
+    warningCount: 0
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: [EVE_SDK_FEATURE_UNAVAILABLE]
+    requiredEvidenceKinds: [agent-definition, language, runtime-package]
+    forbiddenEvidenceKinds: [schema]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    - agent/agent.ts
+    - package.json
+    - moldea/project.md
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    - agent/agent.ts
+    - package.json
+    - moldea/moldea.yaml
+    - moldea/agents/support/instruction.md
+  mustNotExistPaths: [agent/contracts.ts]
+  allowedChangePaths: [agent/contracts.ts, moldea/moldea.yaml]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: identifies-removed-feature
+    description: The actor identifies the confirmed Eve 0.67.0 feature removal despite the real exported schema symbol and does not describe it as an uncertain range warning.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, workspace-patch]
+  - id: removes-obsolete-agent-schema
+    description: The actor removes only the unsupported agent output-schema binding and its now-unused source while retaining the current type-correct agent and canonical instruction.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: validates-current-project
+    description: The confirmed error disappears and the real project passes all deterministic checks after correction.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

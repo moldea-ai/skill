@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "environment": {
-    "cliVersion": "8.0.0",
+    "cliVersion": "9.0.0",
     "gitVersion": "git version 2.53.0",
     "nodeVersion": "v24.15.0",
     "platform": "linux-x64"
@@ -59,7 +59,9 @@
       "id": "binary-large-file",
       "resourceClass": "attack",
       "sampleCount": 3,
-      "completionStates": ["explicit-error"],
+      "completionStates": [
+        "explicit-error"
+      ],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 4,
@@ -74,10 +76,10 @@
           "p95": 1
         },
         "durationMs": {
-          "maximum": 131.01374,
-          "median": 127.764954,
-          "minimum": 121.79266,
-          "p95": 131.01374
+          "maximum": 117.390698,
+          "median": 115.45708,
+          "minimum": 114.890401,
+          "p95": 117.390698
         },
         "estimatedModelTokens": {
           "maximum": 71,
@@ -98,10 +100,10 @@
           "p95": 283
         },
         "processMaxRssBytes": {
-          "maximum": 74555392,
-          "median": 74174464,
-          "minimum": 74067968,
-          "p95": 74555392
+          "maximum": 74653696,
+          "median": 74625024,
+          "minimum": 74100736,
+          "p95": 74653696
         },
         "stdoutBytes": {
           "maximum": 283,
@@ -125,7 +127,9 @@
       "id": "broadly-relevant",
       "resourceClass": "largeTraversal",
       "sampleCount": 3,
-      "completionStates": ["complete"],
+      "completionStates": [
+        "complete"
+      ],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 2,
@@ -140,10 +144,10 @@
           "p95": 8
         },
         "durationMs": {
-          "maximum": 1267.008378,
-          "median": 1262.923964,
-          "minimum": 1218.931405,
-          "p95": 1267.008378
+          "maximum": 1157.147734,
+          "median": 1150.818002,
+          "minimum": 1145.6373389999999,
+          "p95": 1157.147734
         },
         "estimatedModelTokens": {
           "maximum": 115730,
@@ -164,10 +168,10 @@
           "p95": 462919
         },
         "processMaxRssBytes": {
-          "maximum": 84602880,
-          "median": 84557824,
-          "minimum": 83935232,
-          "p95": 84602880
+          "maximum": 85381120,
+          "median": 84738048,
+          "minimum": 84385792,
+          "p95": 85381120
         },
         "stdoutBytes": {
           "maximum": 462919,
@@ -191,7 +195,9 @@
       "id": "diagnostic-heavy",
       "resourceClass": "largeTraversal",
       "sampleCount": 3,
-      "completionStates": ["complete"],
+      "completionStates": [
+        "complete"
+      ],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 3,
@@ -200,46 +206,46 @@
           "p95": 3
         },
         "commandCount": {
-          "maximum": 8,
-          "median": 8,
-          "minimum": 8,
-          "p95": 8
+          "maximum": 9,
+          "median": 9,
+          "minimum": 9,
+          "p95": 9
         },
         "durationMs": {
-          "maximum": 3781.1802440000006,
-          "median": 3707.3090460000003,
-          "minimum": 3700.7077409999997,
-          "p95": 3781.1802440000006
+          "maximum": 3940.114216,
+          "median": 3928.680913,
+          "minimum": 3890.717984000001,
+          "p95": 3940.114216
         },
         "estimatedModelTokens": {
-          "maximum": 130309,
-          "median": 130309,
-          "minimum": 130309,
-          "p95": 130309
+          "maximum": 139369,
+          "median": 139369,
+          "minimum": 139369,
+          "p95": 139369
         },
         "maximumInvocationOutputBytes": {
-          "maximum": 65335,
-          "median": 65335,
-          "minimum": 65335,
-          "p95": 65335
+          "maximum": 65446,
+          "median": 65446,
+          "minimum": 65446,
+          "p95": 65446
         },
         "modelVisibleOutputBytes": {
-          "maximum": 521234,
-          "median": 521234,
-          "minimum": 521234,
-          "p95": 521234
+          "maximum": 557476,
+          "median": 557476,
+          "minimum": 557476,
+          "p95": 557476
         },
         "processMaxRssBytes": {
-          "maximum": 164040704,
-          "median": 164024320,
-          "minimum": 163512320,
-          "p95": 164040704
+          "maximum": 166768640,
+          "median": 166576128,
+          "minimum": 166465536,
+          "p95": 166768640
         },
         "stdoutBytes": {
-          "maximum": 521234,
-          "median": 521234,
-          "minimum": 521234,
-          "p95": 521234
+          "maximum": 557476,
+          "median": 557476,
+          "minimum": 557476,
+          "p95": 557476
         },
         "temporaryDiskBytesPeak": {
           "maximum": 65333,
@@ -257,7 +263,9 @@
       "id": "large-remote-shape",
       "resourceClass": "ordinary",
       "sampleCount": 3,
-      "completionStates": ["complete"],
+      "completionStates": [
+        "complete"
+      ],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 2,
@@ -272,10 +280,10 @@
           "p95": 1
         },
         "durationMs": {
-          "maximum": 127.415104,
-          "median": 125.895705,
-          "minimum": 125.066797,
-          "p95": 127.415104
+          "maximum": 123.450978,
+          "median": 123.368688,
+          "minimum": 121.87376,
+          "p95": 123.450978
         },
         "estimatedModelTokens": {
           "maximum": 261,
@@ -296,10 +304,10 @@
           "p95": 1044
         },
         "processMaxRssBytes": {
-          "maximum": 74752000,
-          "median": 74735616,
-          "minimum": 74579968,
-          "p95": 74752000
+          "maximum": 75300864,
+          "median": 75247616,
+          "minimum": 75005952,
+          "p95": 75300864
         },
         "stdoutBytes": {
           "maximum": 1044,
@@ -323,7 +331,9 @@
       "id": "large-unicode",
       "resourceClass": "largeTraversal",
       "sampleCount": 3,
-      "completionStates": ["complete"],
+      "completionStates": [
+        "complete"
+      ],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 4,
@@ -338,10 +348,10 @@
           "p95": 1
         },
         "durationMs": {
-          "maximum": 147.234874,
-          "median": 141.299951,
-          "minimum": 129.827492,
-          "p95": 147.234874
+          "maximum": 127.194552,
+          "median": 124.689856,
+          "minimum": 123.810887,
+          "p95": 127.194552
         },
         "estimatedModelTokens": {
           "maximum": 8850,
@@ -362,10 +372,10 @@
           "p95": 35399
         },
         "processMaxRssBytes": {
-          "maximum": 79298560,
-          "median": 79282176,
-          "minimum": 79261696,
-          "p95": 79298560
+          "maximum": 79642624,
+          "median": 79642624,
+          "minimum": 79462400,
+          "p95": 79642624
         },
         "stdoutBytes": {
           "maximum": 35399,
@@ -389,7 +399,9 @@
       "id": "medium-mostly-irrelevant",
       "resourceClass": "ordinary",
       "sampleCount": 3,
-      "completionStates": ["complete"],
+      "completionStates": [
+        "complete"
+      ],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 2,
@@ -404,10 +416,10 @@
           "p95": 1
         },
         "durationMs": {
-          "maximum": 137.018804,
-          "median": 128.021604,
-          "minimum": 126.106135,
-          "p95": 137.018804
+          "maximum": 122.930019,
+          "median": 119.747334,
+          "minimum": 118.694336,
+          "p95": 122.930019
         },
         "estimatedModelTokens": {
           "maximum": 261,
@@ -428,10 +440,10 @@
           "p95": 1044
         },
         "processMaxRssBytes": {
-          "maximum": 75202560,
-          "median": 75034624,
-          "minimum": 74948608,
-          "p95": 75202560
+          "maximum": 75272192,
+          "median": 75108352,
+          "minimum": 75079680,
+          "p95": 75272192
         },
         "stdoutBytes": {
           "maximum": 1044,
@@ -455,7 +467,9 @@
       "id": "small-ordinary",
       "resourceClass": "ordinary",
       "sampleCount": 3,
-      "completionStates": ["complete"],
+      "completionStates": [
+        "complete"
+      ],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 4,
@@ -470,40 +484,40 @@
           "p95": 1
         },
         "durationMs": {
-          "maximum": 399.882434,
-          "median": 382.121833,
-          "minimum": 368.320086,
-          "p95": 399.882434
+          "maximum": 356.489566,
+          "median": 355.588078,
+          "minimum": 347.49403,
+          "p95": 356.489566
         },
         "estimatedModelTokens": {
-          "maximum": 419,
-          "median": 419,
-          "minimum": 419,
-          "p95": 419
+          "maximum": 425,
+          "median": 425,
+          "minimum": 425,
+          "p95": 425
         },
         "maximumInvocationOutputBytes": {
-          "maximum": 1675,
-          "median": 1675,
-          "minimum": 1675,
-          "p95": 1675
+          "maximum": 1699,
+          "median": 1699,
+          "minimum": 1699,
+          "p95": 1699
         },
         "modelVisibleOutputBytes": {
-          "maximum": 1675,
-          "median": 1675,
-          "minimum": 1675,
-          "p95": 1675
+          "maximum": 1699,
+          "median": 1699,
+          "minimum": 1699,
+          "p95": 1699
         },
         "processMaxRssBytes": {
-          "maximum": 132902912,
-          "median": 132395008,
-          "minimum": 132202496,
-          "p95": 132902912
+          "maximum": 133386240,
+          "median": 132984832,
+          "minimum": 132816896,
+          "p95": 133386240
         },
         "stdoutBytes": {
-          "maximum": 1675,
-          "median": 1675,
-          "minimum": 1675,
-          "p95": 1675
+          "maximum": 1699,
+          "median": 1699,
+          "minimum": 1699,
+          "p95": 1699
         },
         "temporaryDiskBytesPeak": {
           "maximum": 26683,

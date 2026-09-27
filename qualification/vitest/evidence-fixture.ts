@@ -212,7 +212,7 @@ const createScenarioSource = (caseId: string, title: string): string =>
     '',
   ].join('\n');
 
-/** Seeds one complete protocol 11 Custom profile and its engine-verifiable public evidence. */
+/** Seeds one complete current-protocol Custom profile and its engine-verifiable public evidence. */
 export const seedPassingQualificationEvidenceFixture = async (options: {
   artifactDirectory: string;
   attemptId: string;

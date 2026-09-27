@@ -47,6 +47,12 @@ deterministicEvidence:
         tool-registration,
       ]
     forbiddenEvidenceKinds: []
+    requiredEvidence:
+      - kind: tool-registration
+        agentId: support
+        capabilityId: lookup-order
+        reference: { path: /src/tools.ts, symbol: lookupOrderTool }
+        details: { declaredDeferredLoading: absent }
 expectedActorOutcome: completed
 workspace:
   expectation: changed

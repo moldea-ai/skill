@@ -40,14 +40,16 @@ const PublishedRegistryManifestSchema = z.object({
 const PublishedCliManifestSchema = PublishedRegistryManifestSchema.extend({
   jsonSchemaVersion: z.number().int().positive(),
 });
-const RootPackageManifestSchema = z.object({
-  devDependencies: StringRecordSchema.default({}),
-  moldeaRelease: z.object({
-    cliJsonSchemaVersion: z.number().int().positive(),
-    coreVersionRange: z.string(),
-  }),
-  version: z.string().optional(),
-});
+const RootPackageManifestSchema = z
+  .object({
+    devDependencies: StringRecordSchema.default({}),
+    moldeaRelease: z.object({
+      cliJsonSchemaVersion: z.number().int().positive(),
+      coreVersionRange: z.string(),
+    }),
+    version: z.string(),
+  })
+  .passthrough();
 const SemanticCliManifestSchema = z
   .object({
     dependencies: StringRecordSchema,
@@ -702,9 +704,7 @@ export const updateCliRelease = async ({
   };
   const updatedRootManifests = updateRootManifests({
     packageLock: requireFile(currentFiles, RELEASE_PATHS.packageLock),
-    packageManifest: RootPackageManifestSchema.parse(
-      nextPackageManifest,
-    ) as IReleasePackageManifest,
+    packageManifest: RootPackageManifestSchema.parse(nextPackageManifest),
     repositoryRoot,
     version,
   });

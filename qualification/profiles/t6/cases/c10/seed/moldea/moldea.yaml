@@ -9,9 +9,6 @@ agents:
         symbol: default
       instructionLoader:
         path: /agent/instructions.md
-      outputSchema:
-        path: /agent/contracts.ts
-        symbol: SupportOutputSchema
     tools:
       status:
         name: status

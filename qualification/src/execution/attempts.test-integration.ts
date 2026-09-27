@@ -349,7 +349,7 @@ describe('qualification attempt discovery', () => {
       {
         ...validCheckpoint,
         attemptId: unsupportedAttemptId,
-        protocolVersion: 7,
+        protocolVersion: 11,
       },
     );
     const unreadableAttemptId = '20260820T000003000Z-custom-custom-unreadable';
@@ -393,8 +393,8 @@ describe('qualification attempt discovery', () => {
       {
         attemptId: unsupportedAttemptId,
         kind: 'unsupported-protocol',
-        message: `Checkpoint protocol version 7 is not supported by protocol version ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION} and was left unchanged.`,
-        protocolVersion: 7,
+        message: `Checkpoint protocol version 11 is not supported by protocol version ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION} and was left unchanged.`,
+        protocolVersion: 11,
       },
     ]);
     expect(

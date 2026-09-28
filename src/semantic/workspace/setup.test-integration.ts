@@ -8,7 +8,7 @@ import { afterEach, beforeAll, test } from 'vitest';
 
 import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
 
-import { createActorRepository } from './setup.ts';
+import { createActorRepository, snapshotSemanticWorkspace } from './setup.ts';
 
 const CASE_DIRECTORY = resolve(import.meta.dirname, '..', 'cases');
 const GATE_PATH = resolve(
@@ -113,6 +113,27 @@ const runFixtureTests = (repositoryPath: string, testPaths: string[]): void => {
   if (result.error) throw result.error;
   assert.equal(result.status, 0, result.stderr || result.stdout);
 };
+
+test('every semantic case materializes a snapshot-ready actor repository', async () => {
+  for (const caseDefinition of cases) {
+    const root = mkdtempSync(join(tmpdir(), 'moldea-setup-'));
+    try {
+      const { repositoryPath } = await createActorRepository(
+        root,
+        caseDefinition,
+        join(root, 'sandbox-home'),
+        join(root, 'actor-tools'),
+      );
+      await snapshotSemanticWorkspace(repositoryPath);
+    } catch (error) {
+      throw new Error(`Unable to materialize semantic case ${caseDefinition.id}.`, {
+        cause: error,
+      });
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  }
+}, 300_000);
 
 test.each([
   'adopted-direct-context-handoff',

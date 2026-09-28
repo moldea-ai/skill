@@ -41,7 +41,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-complete-foundation',
       criterion:
-        'The actor preserves unrelated README content, creates no agent, and completes launcher-backed validation after the canonical and managed README writes.',
+        'The actor preserves unrelated README content and creates no agent. Runner-owned evidence records completed launcher-backed validation, and the actor reports its result accurately.',
     },
   ],
   forbidden: [

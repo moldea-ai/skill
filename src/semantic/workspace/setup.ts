@@ -517,8 +517,10 @@ export const seedSemanticTooling = async (
     `${JSON.stringify(
       {
         devDependencies: { '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version },
+        name: 'moldea-semantic-fixture',
         packageManager: `npm@${CODEX_EVALUATION_NPM_VERSION}`,
         private: true,
+        version: '0.0.0',
       },
       null,
       2,

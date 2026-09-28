@@ -39,7 +39,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'minimal-grounded-initialization',
       criterion:
-        'The actor creates the minimum grounded manifest, project document, and managed README block, then validates with the repository-local CLI.',
+        'The actor creates the minimum grounded manifest, project document, and managed README block. Runner-owned evidence records a completed repository-local CLI validation, and the actor reports its result accurately.',
     },
   ],
   forbidden: [

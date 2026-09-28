@@ -4,6 +4,8 @@ This Astro application renders the public documentation and selected release evi
 
 ## Source model
 
+The site also presents one manually prepared mock-project run as an independent third evidence source. It does not contribute to semantic or qualification scores.
+
 The site consumes Markdown under `../docs/`, the portable skill under `../moldea/`, and the two prepared public bundles selected by `../evidence/selection.json`. The producer-owned bundles already contain the semantic and qualification definitions, presentation metadata, replays, projects, artifacts, version, date, and technical provenance required by the existing pages.
 
 Generation is fail-closed. Missing selections, malformed bundles, wrong digests, unsafe artifacts, or a prepared manifest that does not match the selection fail the production build. The website does not import evaluator modules, inspect Git history, calculate compatibility, or compare selected evidence with current cases.
@@ -13,6 +15,27 @@ Public replay is bounded and privacy-safe. It may contain developer direction, a
 Qualification journey pages also present a static Project view from the same validated evidence. It explains the starting fixture, recorded task, verified result, complete starting path tree, exact changed paths, and final-workspace patch in one non-technical sequence. The patch is labeled as a comparison with the fixture baseline because fixture setup can precede the coding agent. Complete project source and raw patch artifacts remain linked for deeper inspection.
 
 The shared layout adds copy controls to useful code blocks after each direct load or client navigation. Illustrative and incomplete excerpts opt out at their owning component, remain selectable, and reserve no toolbar space. Clipboard failures keep the source readable and explain how to copy it manually.
+
+## Project runs
+
+`project-runs.json` is a maintainer setting, with no visitor-facing selector. It starts as `{ "run": null }`, which omits project-run pages and makes no source requests. When the public repository is ready, set `run` to `{ "commit": "<full-public-commit-sha>", "runId": "<recorded-run-id>" }`. The generator reads the existing index, run, attempts, and scenario headings from `moldea-ai/moldea-mock-project-public`. Code links use recorded project SHAs; manifest and review links use the selected evidence commit. Full sessions remain GitHub Release asset links.
+
+Visitors see the prepared run directly, with project stories and static pages of up to 16 summaries. Recorded interventions and limitations remain alongside outcomes. Source statuses do not gate selection or become badges. Parsing checks source identity and safe references without certifying behavior or requiring a passing review.
+
+To preview the existing private checkout locally, run these commands from the skill repository root:
+
+```sh
+node website/scripts/generate-development.ts --project-runs-root ../moldea-mock-project-private --project-run historical-20260927
+npm exec --workspace website -- astro dev --host 127.0.0.1
+```
+
+Keep both preview arguments together. Relative paths resolve from the invoking directory. Local preview reads current checkout files, including scenario headings; the public reader uses their recorded definition commits. Local preview suppresses source links and shows a notice. It never exports files, accesses native sessions, or changes the source repository. Stop the foreground server with Ctrl+C when finished.
+
+Website tests and typechecking replace the generated model with synthetic evidence. Stop the preview, regenerate the local model, and restart Astro afterward. Restart after changing runs as well: Astro caches static route lists and their props during development. `npm run website:dev` always generates the ordinary development model, using the public setting if configured. Production generation always reloads the public setting and cannot inherit a local override.
+
+For a manual refresh, inspect the requested public run, update the commit and run ID, check the site locally, then follow the requested deployment workflow. There is no separate approval record or automated passing threshold. Set `run` to null or restore an earlier selection to undo the update. The existing semantic/qualification production requirements remain unchanged.
+
+The reader accepts additive fields and missing optional evidence. It reads selected attempts sequentially, reuses scenario reads within one generation, and limits each metadata file to 8 MiB with a 120-second HTTP timeout. Explicitly selected missing, malformed, or inconsistent records stop generation with their logical source path; they never silently fall back to another run. No project source trees or large assets are downloaded, and no persistent source cache is added.
 
 ## Landing example
 

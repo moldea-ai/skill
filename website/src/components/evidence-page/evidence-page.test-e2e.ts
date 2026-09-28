@@ -8,17 +8,17 @@ import { getQualificationReleaseEvidenceSummary } from '../../lib/release-eviden
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('explains both evidence types with release-backed status', async ({ page }) => {
+test('explains the evidence types with release-backed status', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/'));
 
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'Follow each result from request to verdict.',
+      name: 'Explore how moldea works in practice.',
     }),
   ).toBeVisible();
   const evidenceFlow = page.getByRole('list', {
-    name: 'Evidence included with every result',
+    name: 'Explore the evidence',
   });
   await expect(evidenceFlow.getByRole('heading')).toHaveText([
     'Request',

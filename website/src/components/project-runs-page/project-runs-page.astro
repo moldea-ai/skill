@@ -1,0 +1,175 @@
+---
+import { ArrowLeft, ArrowRight, CalendarDays, FolderGit2 } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import BaseLayout from '../../layouts/base-layout.astro';
+import {
+  PROJECT_RUN_PAGE_SIZE,
+  type IProjectRunModel,
+  type IProjectRunPage,
+} from '../../lib/project-runs/index.ts';
+import ProjectRunCard from '../project-run-card/project-run-card.astro';
+
+interface Props {
+  run: IProjectRunModel;
+  page: IProjectRunPage;
+}
+const { run, page } = Astro.props;
+const basePath = import.meta.env.BASE_URL;
+const breadcrumbs = [
+  { href: '/', label: 'Home' },
+  { href: '/evidence/', label: 'Evidence' },
+  { label: 'Project runs' },
+];
+const countBefore = (page.number - 1) * PROJECT_RUN_PAGE_SIZE;
+---
+
+<BaseLayout
+  title={page.number === 1 ? 'Project runs' : `Project runs, page ${page.number}`}
+  description={`Explore real coding sessions in mock projects, from the first request to the project context left behind. Page ${page.number} of ${run.pages.length}.`}
+  {breadcrumbs}
+>
+  <div class="page-shell pt-4 sm:pt-7">
+    <Breadcrumbs
+      {basePath}
+      items={breadcrumbs}
+    />
+  </div>
+  <header class="mt-5 border-b border-border sm:mt-8">
+    <div class="page-shell grid gap-8 pt-4 pb-9 sm:py-12 lg:grid-cols-[1fr_auto] lg:items-end">
+      <div class="max-w-3xl">
+        <p class="eyebrow mb-4">Project runs</p>
+        <h1 class="page-title">Small projects.<br />Real coding sessions.</h1>
+        <p class="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+          <InlineBrandText
+            text="See what happened when a coding agent used moldea to build and maintain mock projects."
+          />
+        </p>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+          A separate view of day-to-day use, alongside semantic evaluations and adapter
+          qualifications.
+        </p>
+      </div>
+      <div class="flex items-center gap-3 text-sm text-muted-foreground lg:pb-2">
+        <CalendarDays
+          class="size-4"
+          aria-hidden="true"
+        /><time datetime={run.date}>{run.dateLabel}</time>
+      </div>
+    </div>
+  </header>
+  <section
+    class="page-shell py-8 sm:py-12"
+    aria-labelledby="projects-title"
+  >
+    {
+      run.provenance !== 'public' && (
+        <p
+          class="mb-6 border-l-2 border-border pl-4 text-sm leading-6 text-muted-foreground"
+          data-project-preview
+        >
+          {run.provenance === 'local'
+            ? 'Local preview. Source links will be available with the public records.'
+            : 'Illustrative test records. These are not recorded coding sessions.'}
+        </p>
+      )
+    }
+    <div class="flex items-center gap-3">
+      <FolderGit2
+        class="size-5 text-muted-foreground"
+        aria-hidden="true"
+      /><h2
+        id="projects-title"
+        class="text-xl font-semibold"
+      >
+        Inside this run
+      </h2>
+    </div>
+    <p class="mt-3 max-w-3xl text-sm leading-7 break-words text-muted-foreground">
+      <InlineBrandText text={run.summary} />
+    </p>
+    {
+      run.notes.length > 0 && (
+        <ul class="mt-3 max-w-3xl list-disc space-y-2 pl-5 text-sm leading-6 break-words text-muted-foreground">
+          {run.notes.map((note) => (
+            <li>
+              <InlineBrandText text={note} />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    <div class="mt-4 grid gap-x-6 sm:mt-8 sm:grid-cols-2 sm:gap-y-6 xl:grid-cols-3">
+      {
+        page.attempts.map((attempt, index) => (
+          <ProjectRunCard
+            {attempt}
+            number={countBefore + index + 1}
+          />
+        ))
+      }
+    </div>
+    {
+      page.attempts.length === 0 && (
+        <p class="py-8 text-muted-foreground">No project records are included in this run.</p>
+      )
+    }
+    {
+      (page.previous !== null || page.next !== null) && (
+        <nav
+          class="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6"
+          aria-label="Project pages"
+        >
+          {page.previous !== null && (
+            <ActionLink
+              variant="outline"
+              href={withBase(page.previous, basePath)}
+              rel="prev"
+            >
+              <ArrowLeft
+                class="size-4"
+                aria-hidden="true"
+              />
+              Previous
+            </ActionLink>
+          )}
+          <p class="text-sm text-muted-foreground">
+            Page {page.number} of {run.pages.length}
+          </p>
+          {page.next !== null && (
+            <ActionLink
+              variant="outline"
+              href={withBase(page.next, basePath)}
+              rel="next"
+            >
+              Next
+              <ArrowRight
+                class="size-4"
+                aria-hidden="true"
+              />
+            </ActionLink>
+          )}
+        </nav>
+      )
+    }
+    {
+      run.links.length > 0 && (
+        <div class="mt-8 flex flex-wrap gap-3 border-t border-border pt-6">
+          {run.links.map((link) => (
+            <ActionLink
+              variant="link"
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {link.label}
+            </ActionLink>
+          ))}
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>

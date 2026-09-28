@@ -3,6 +3,7 @@ import {
   ArrowRight,
   Bot,
   GitCompareArrows,
+  FolderGit2,
   Link2,
   ListChecks,
   MessageSquareText,
@@ -10,11 +11,13 @@ import {
   ShieldCheck,
 } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import { PROJECT_RUN_ROUTE } from '../../lib/project-runs/index.ts';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import {
@@ -78,7 +81,7 @@ const qualificationSteps = [
 
 <BaseLayout
   title="Evidence"
-  description="Follow each moldea evaluation from the developer request through the verified project changes and final verdict."
+  description="Explore moldea through semantic evaluations, adapter qualifications, and coding sessions in mock projects."
   {breadcrumbs}
 >
   <div class="page-shell pt-4 sm:pt-7">
@@ -92,18 +95,18 @@ const qualificationSteps = [
     <div class="page-shell py-9 sm:py-16 lg:py-20">
       <div class="max-w-4xl">
         <p class="eyebrow mb-3 sm:mb-4">Evidence you can inspect</p>
-        <h1 class="page-title">Follow each result from request to verdict.</h1>
+        <h1 class="page-title"><InlineBrandText text="Explore how moldea works in practice." /></h1>
         <p
           class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-8"
         >
-          Every evaluation records the developer request, the coding agent’s work, verified project
-          changes, and the final verdict. Open any result to inspect the complete journey.
+          Explore focused evaluations and coding sessions. Follow the request, see what happened,
+          and inspect the records behind each result.
         </p>
       </div>
 
       <ol
         class="mt-7 grid gap-2 bg-background/70 sm:mt-10 md:grid-cols-4 md:gap-0 md:divide-x md:divide-border md:overflow-hidden md:rounded-2xl md:border md:border-border md:shadow-raised"
-        aria-label="Evidence included with every result"
+        aria-label="Explore the evidence"
       >
         {
           evidenceSteps.map(({ description, icon: StepIcon, title }, index) => (
@@ -144,7 +147,12 @@ const qualificationSteps = [
       </h2>
     </div>
 
-    <div class="mt-6 grid gap-4 sm:mt-8 lg:grid-cols-2">
+    <div
+      class:list={[
+        'mt-6 grid gap-4 sm:mt-8',
+        model.projectRuns === null ? 'lg:grid-cols-2' : 'lg:grid-cols-3',
+      ]}
+    >
       <article
         class="surface-card -mx-4 flex min-w-0 flex-col overflow-hidden rounded-none border-0 shadow-none sm:mx-0 sm:rounded-2xl sm:border sm:shadow-raised"
         data-evidence-path="decision"
@@ -284,6 +292,58 @@ const qualificationSteps = [
           </div>
         </div>
       </article>
+      {
+        model.projectRuns !== null && (
+          <article
+            class="surface-card -mx-4 flex min-w-0 flex-col overflow-hidden rounded-none border-0 shadow-none sm:mx-0 sm:rounded-2xl sm:border sm:shadow-raised"
+            data-evidence-path="projects"
+          >
+            <div class="flex flex-1 flex-col px-4 pt-5 pb-2 sm:p-7">
+              <p class="eyebrow">Project runs</p>
+              <h3 class="mt-3 text-xl font-semibold sm:mt-4 sm:text-2xl">
+                What happens in a coding session?
+              </h3>
+              <p class="mt-3 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
+                Small mock projects show how the skill fits into everyday work, including follow-ups
+                and the context left behind.
+              </p>
+              <ol class="mt-5 grid gap-2 sm:mt-6 sm:gap-3">
+                {[
+                  { icon: MessageSquareText, label: 'Start with a project request' },
+                  { icon: FolderGit2, label: 'Follow the work and saved context' },
+                  { icon: GitCompareArrows, label: 'Explore the code and session records' },
+                ].map(({ icon: Icon, label }, index) => (
+                  <li class="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-3 sm:px-4">
+                    <Icon
+                      class="size-4 shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span class="text-sm font-semibold">{label}</span>
+                    <span class="ms-auto font-mono text-xs text-muted-foreground">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div
+              class="mt-auto px-4 pt-2 pb-5 sm:border-t sm:border-border sm:px-7 sm:py-5"
+              data-evidence-path-action
+            >
+              <ActionLink
+                class="w-full justify-center font-bold sm:w-auto"
+                href={withBase(PROJECT_RUN_ROUTE, basePath)}
+              >
+                Explore project runs
+                <ArrowRight
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </ActionLink>
+            </div>
+          </article>
+        )
+      }
     </div>
   </section>
 </BaseLayout>

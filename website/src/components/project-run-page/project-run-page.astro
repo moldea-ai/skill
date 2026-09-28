@@ -1,0 +1,250 @@
+---
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  FileText,
+  MessageSquareText,
+  GitCommitHorizontal,
+} from '@lucide/astro';
+import { truncateText } from 'web-utils-kit';
+import Accordion from '@moldea.ai/website-ui/accordion';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import BaseLayout from '../../layouts/base-layout.astro';
+import {
+  PROJECT_RUN_ROUTE,
+  PROJECT_RUN_EXCERPT_LENGTH,
+  type IProjectAttempt,
+  type IProjectRunModel,
+} from '../../lib/project-runs/index.ts';
+
+interface Props {
+  attempt: IProjectAttempt;
+  run: IProjectRunModel;
+}
+const { attempt, run } = Astro.props;
+const basePath = import.meta.env.BASE_URL;
+const breadcrumbs = [
+  { href: '/', label: 'Home' },
+  { href: '/evidence/', label: 'Evidence' },
+  { href: PROJECT_RUN_ROUTE, label: 'Project runs' },
+  { label: attempt.title },
+];
+---
+
+<BaseLayout
+  title={`${attempt.title} (${attempt.id}) | Project runs`}
+  description={`${attempt.excerpt} Project record: ${attempt.id}.`}
+  {breadcrumbs}
+>
+  <div class="page-shell pt-4 sm:pt-7">
+    <Breadcrumbs
+      {basePath}
+      items={breadcrumbs}
+    />
+  </div>
+  <header class="page-shell pt-8 pb-8 sm:pt-12 sm:pb-10">
+    <p class="eyebrow mb-4">Inside a project</p>
+    <h1 class="page-title break-words"><InlineBrandText text={attempt.title} /></h1>
+    <div class="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+      <time datetime={run.date}>{run.dateLabel}</time>{
+        attempt.skillRelease !== null && <span>Skill {attempt.skillRelease}</span>
+      }
+    </div>
+    {
+      run.provenance !== 'public' && (
+        <p
+          class="mt-5 text-sm leading-6 text-muted-foreground"
+          data-project-preview
+        >
+          {run.provenance === 'local'
+            ? 'Local preview. Source links will be available with the public records.'
+            : 'Illustrative test records. These are not recorded coding sessions.'}
+        </p>
+      )
+    }
+  </header>
+  <div class="page-shell pb-12 sm:pb-20">
+    <div class="grid gap-8 border-y border-border py-7 sm:gap-10 sm:py-10 lg:grid-cols-[1fr_1.2fr]">
+      <section
+        aria-labelledby="request-title"
+        class="min-w-0"
+      >
+        <div class="mb-4 flex items-center gap-3 text-muted-foreground">
+          <MessageSquareText
+            class="size-5"
+            aria-hidden="true"
+          /><h2
+            id="request-title"
+            class="eyebrow"
+          >
+            The request
+          </h2>
+        </div>
+        {
+          attempt.initialRequest === null ? (
+            <p class="text-sm leading-7 text-muted-foreground">
+              The original request is not available in this record.
+            </p>
+          ) : (
+            <blockquote class="text-base leading-8 break-words whitespace-pre-line sm:text-lg">
+              <InlineBrandText
+                text={truncateText(attempt.initialRequest.text, PROJECT_RUN_EXCERPT_LENGTH)}
+              />
+            </blockquote>
+          )
+        }
+        {
+          attempt.initialRequest !== null &&
+            attempt.initialRequest.text.length > PROJECT_RUN_EXCERPT_LENGTH && (
+              <div class="mt-5">
+                <Accordion
+                  id="full-request"
+                  title="Read the full request"
+                >
+                  <p class="text-sm leading-7 break-words whitespace-pre-line">
+                    <InlineBrandText text={attempt.initialRequest.text} />
+                  </p>
+                </Accordion>
+              </div>
+            )
+        }
+      </section>
+      <section
+        aria-labelledby="outcome-title"
+        class="min-w-0 border-t border-border pt-7 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10"
+      >
+        <div class="mb-4 flex items-center gap-3 text-muted-foreground">
+          <FileText
+            class="size-5"
+            aria-hidden="true"
+          /><h2
+            id="outcome-title"
+            class="eyebrow"
+          >
+            What happened
+          </h2>
+        </div>
+        <p class="text-base leading-8 break-words whitespace-pre-line sm:text-lg">
+          <InlineBrandText text={truncateText(attempt.summary, PROJECT_RUN_EXCERPT_LENGTH)} />
+        </p>
+        {
+          attempt.summary.length > PROJECT_RUN_EXCERPT_LENGTH && (
+            <div class="mt-5">
+              <Accordion
+                id="full-outcome"
+                title="Read the full outcome"
+              >
+                <p class="text-sm leading-7 break-words whitespace-pre-line">
+                  <InlineBrandText text={attempt.summary} />
+                </p>
+              </Accordion>
+            </div>
+          )
+        }
+        {
+          attempt.notes.length > 0 && (
+            <div class="mt-6 border-l-2 border-border pl-4">
+              <>
+                <h3 class="text-sm font-semibold">Context for this result</h3>
+                <ul class="mt-3 space-y-3 text-sm leading-7 break-words whitespace-pre-line text-muted-foreground">
+                  {attempt.notes.map((note) => (
+                    <li>
+                      <InlineBrandText text={note} />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            </div>
+          )
+        }
+      </section>
+    </div>
+    {
+      attempt.followUp !== null && (
+        <div class="mt-8">
+          <Accordion
+            id="project-follow-up"
+            title="A closer look at the follow-up"
+          >
+            <div class="space-y-4 text-sm leading-7 break-words whitespace-pre-line">
+              <>
+                <p>
+                  <InlineBrandText text={attempt.followUp.text} />
+                </p>
+                <p class="text-muted-foreground">
+                  <InlineBrandText text={attempt.followUp.observedResult} />
+                </p>
+              </>
+            </div>
+          </Accordion>
+        </div>
+      )
+    }
+    <section
+      class="mt-10"
+      aria-labelledby="records-title"
+    >
+      <div class="flex items-center gap-3">
+        <GitCommitHorizontal
+          class="size-5 text-muted-foreground"
+          aria-hidden="true"
+        /><h2
+          id="records-title"
+          class="text-xl font-semibold"
+        >
+          Follow the work
+        </h2>
+      </div>
+      <p class="mt-3 text-sm leading-6 text-muted-foreground">
+        The source checkpoints behind this record.
+      </p>
+      <dl class="mt-5 flex flex-wrap gap-x-10 gap-y-4 text-sm">
+        <div>
+          <dt class="text-muted-foreground">Starting point</dt><dd class="mt-1 font-mono break-all">
+            {attempt.baseCommit}
+          </dd>
+        </div><div>
+          <dt class="text-muted-foreground">Recorded checkpoint</dt><dd
+            class="mt-1 font-mono break-all"
+          >
+            {attempt.reachedCommit}
+          </dd>
+        </div>
+      </dl>
+      {
+        attempt.links.length > 0 && (
+          <div class="mt-6 flex flex-wrap gap-3">
+            {attempt.links.map((link) => (
+              <ActionLink
+                class="h-auto max-w-full py-3 text-left [overflow-wrap:anywhere] whitespace-normal"
+                variant="outline"
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {link.label}
+                <ArrowUpRight
+                  class="size-4 shrink-0"
+                  aria-hidden="true"
+                />
+              </ActionLink>
+            ))}
+          </div>
+        )
+      }
+    </section>
+    <ActionLink
+      class="mt-10"
+      variant="link"
+      href={withBase(PROJECT_RUN_ROUTE, basePath)}
+      ><ArrowLeft
+        class="size-4"
+        aria-hidden="true"
+      />Back to project runs</ActionLink
+    >
+  </div>
+</BaseLayout>

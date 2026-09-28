@@ -42,7 +42,7 @@ export const writeProjectRunFixture = async (root: string, count = 17): Promise<
       formatVersion: 1,
       runId: PROJECT_RUN_FIXTURE_ID,
       scenarioId: `field-notes-${index}`,
-      attemptId: `project-${index}`,
+      attemptId: index === 3 ? 'project_3' : `project-${index}`,
       baseCommit: 'b'.repeat(40),
       finalCommit: 'c'.repeat(40),
       lastDurableCommit: 'c'.repeat(40),
@@ -104,12 +104,102 @@ export const prepareProjectRunFixture = async (
   const root = await mkdtemp(path.join(parent, 'website-project-runs-'));
   try {
     await writeProjectRunFixture(root);
-    return await loadProjectRun({
+    const model = await loadProjectRun({
       kind: 'fixture',
       root,
       runId: PROJECT_RUN_FIXTURE_ID,
       commit: PROJECT_RUN_FIXTURE_COMMIT,
     });
+    const example = model.pages[0]?.attempts[1];
+    if (example !== undefined && example.initialRequest !== null) {
+      const timestamp = '2026-09-27T12:00:00.000Z';
+      example.session = [
+        {
+          ordinal: 0,
+          lastOrdinal: 0,
+          timestamp,
+          kind: 'session',
+          title: 'Session started',
+          content: 'Host test',
+          isRedacted: false,
+        },
+        {
+          ordinal: 1,
+          lastOrdinal: 1,
+          timestamp,
+          kind: 'turn',
+          title: 'Agent turn',
+          content: 'Synthetic example',
+          isRedacted: false,
+        },
+        {
+          ordinal: 2,
+          lastOrdinal: 2,
+          timestamp,
+          kind: 'message',
+          role: 'user',
+          title: 'Developer',
+          content: example.initialRequest.text,
+          isRedacted: false,
+        },
+        {
+          ordinal: 3,
+          lastOrdinal: 3,
+          timestamp,
+          kind: 'message',
+          role: 'assistant',
+          title: 'Coding agent',
+          content: 'I will check the saved scheduling policy.',
+          isRedacted: false,
+        },
+        {
+          ordinal: 4,
+          lastOrdinal: 5,
+          timestamp,
+          kind: 'tool',
+          title: 'exec',
+          content: 'cat moldea/project.md',
+          output: 'The reminder schedule uses each customer timezone.',
+          status: 'completed',
+          isRedacted: false,
+        },
+        {
+          ordinal: 6,
+          lastOrdinal: 7,
+          timestamp,
+          kind: 'tool',
+          title: 'apply_patch',
+          content: '*** Begin Patch\\n*** Update File: moldea/project.md\\n*** End Patch',
+          output: 'Script failed: apply_patch verification failed: invalid patch.',
+          status: 'completed',
+          patchTargets: [{ action: 'Update', path: 'moldea/project.md' }],
+          isRedacted: false,
+        },
+        {
+          ordinal: 8,
+          lastOrdinal: 9,
+          timestamp,
+          kind: 'tool',
+          title: 'apply_patch',
+          content: '*** Begin Patch\\n*** Update File: moldea/project.md\\n*** End Patch',
+          output: 'Patch applied.',
+          status: 'completed',
+          patchTargets: [{ action: 'Update', path: 'moldea/project.md' }],
+          isRedacted: false,
+        },
+        {
+          ordinal: 10,
+          lastOrdinal: 10,
+          timestamp,
+          kind: 'message',
+          role: 'assistant',
+          title: 'Coding agent',
+          content: 'The saved policy requires the customer timezone.',
+          isRedacted: false,
+        },
+      ];
+    }
+    return model;
   } finally {
     await rm(root, { recursive: true, force: true });
   }

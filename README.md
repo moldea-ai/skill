@@ -112,7 +112,7 @@ Tooling establishment occurs only during authorized write-capable work and only 
 | `src/`                                    | Maintained TypeScript for portable generation, isolated execution, semantic evaluation, evidence assets, release checks, and shared developer tooling. |
 | `qualification/`                          | Reviewed published compatibility snapshot, adapter profiles, and TypeScript execution. Attempts retain private local state below `.evidence/`.         |
 | `evidence/selection.json`                 | Independent maintainer selections for the semantic and qualification bundles shown on the website.                                                     |
-| `website/`                                | Static documentation and evidence presentation, including independently selected mock-project runs and their source links.                             |
+| `website/`                                | Static documentation and evidence presentation, including independently selected mock-project runs, sanitized session replays, and source links.       |
 | `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation and qualification attempts are not committed.                               |
 | `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                               |
 | `.github/workflows/conformance.yml`       | Portable generation, runtime, path, release, and installation checks.                                                                                  |

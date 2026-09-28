@@ -1,16 +1,13 @@
 ---
-import { ArrowLeft, ArrowRight, CalendarDays, FolderGit2 } from '@lucide/astro';
+import { ArrowLeft, ArrowRight, FolderGit2 } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import BaseLayout from '../../layouts/base-layout.astro';
-import {
-  PROJECT_RUN_PAGE_SIZE,
-  type IProjectRunModel,
-  type IProjectRunPage,
-} from '../../lib/project-runs/index.ts';
+import { type IProjectRunModel, type IProjectRunPage } from '../../lib/project-runs/index.ts';
 import ProjectRunCard from '../project-run-card/project-run-card.astro';
 
 interface Props {
@@ -24,12 +21,12 @@ const breadcrumbs = [
   { href: '/evidence/', label: 'Evidence' },
   { label: 'Project runs' },
 ];
-const countBefore = (page.number - 1) * PROJECT_RUN_PAGE_SIZE;
+const allAttempts = run.pages.flatMap(({ attempts }) => attempts);
 ---
 
 <BaseLayout
   title={page.number === 1 ? 'Project runs' : `Project runs, page ${page.number}`}
-  description={`Explore real coding sessions in mock projects, from the first request to the project context left behind. Page ${page.number} of ${run.pages.length}.`}
+  description={`Explore ${allAttempts.length} mock projects and the coding sessions, context, and source records behind them. Page ${page.number} of ${run.pages.length}.`}
   {breadcrumbs}
 >
   <div class="page-shell pt-4 sm:pt-7">
@@ -38,31 +35,55 @@ const countBefore = (page.number - 1) * PROJECT_RUN_PAGE_SIZE;
       items={breadcrumbs}
     />
   </div>
-  <header class="mt-5 border-b border-border sm:mt-8">
-    <div class="page-shell grid gap-8 pt-4 pb-9 sm:py-12 lg:grid-cols-[1fr_auto] lg:items-end">
-      <div class="max-w-3xl">
+  <header class="relative overflow-hidden border-b border-border bg-sidebar">
+    <HeroBackdrop />
+    <div
+      class="page-shell relative grid gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.7fr)] lg:items-center lg:gap-16 lg:py-20"
+    >
+      <div class="min-w-0">
         <p class="eyebrow mb-4">Project runs</p>
-        <h1 class="page-title">Small projects.<br />Real coding sessions.</h1>
-        <p class="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+        <h1 class="display-title max-w-3xl">Explore the projects behind the evidence.</h1>
+        <p class="mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
           <InlineBrandText
-            text="See what happened when a coding agent used moldea to build and maintain mock projects."
+            text="See how a coding agent used moldea while building and maintaining mock projects with different needs and boundaries."
           />
         </p>
-        <p class="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          A separate view of day-to-day use, alongside semantic evaluations and adapter
-          qualifications.
-        </p>
       </div>
-      <div class="flex items-center gap-3 text-sm text-muted-foreground lg:pb-2">
-        <CalendarDays
-          class="size-4"
-          aria-hidden="true"
-        /><time datetime={run.date}>{run.dateLabel}</time>
+      <div
+        class="dark-surface-selection -mx-4 bg-primary p-6 text-primary-foreground sm:mx-0 sm:rounded-3xl sm:p-7 sm:shadow-raised"
+      >
+        <div
+          class="flex items-end justify-between gap-4 border-b border-primary-foreground/15 pb-5"
+        >
+          <p class="text-sm font-semibold text-primary-foreground/70">Projects to explore</p>
+          <strong class="font-mono text-6xl leading-none tracking-tight sm:text-7xl"
+            >{allAttempts.length}</strong
+          >
+        </div>
+        <nav
+          class="mt-3"
+          aria-label="Explore project examples"
+        >
+          {
+            allAttempts.slice(0, 3).map((attempt) => (
+              <a
+                class="group flex items-center justify-between gap-4 border-b border-primary-foreground/15 py-3 text-sm font-semibold last:border-0 hover:text-primary-foreground/70 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring"
+                href={withBase(attempt.route, basePath)}
+              >
+                {attempt.title}
+                <ArrowRight
+                  class="size-4 shrink-0 transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
+                  aria-hidden="true"
+                />
+              </a>
+            ))
+          }
+        </nav>
       </div>
     </div>
   </header>
   <section
-    class="page-shell py-8 sm:py-12"
+    class="page-shell py-10 sm:py-16"
     aria-labelledby="projects-title"
   >
     {
@@ -77,40 +98,29 @@ const countBefore = (page.number - 1) * PROJECT_RUN_PAGE_SIZE;
         </p>
       )
     }
-    <div class="flex items-center gap-3">
-      <FolderGit2
-        class="size-5 text-muted-foreground"
-        aria-hidden="true"
-      /><h2
-        id="projects-title"
-        class="text-xl font-semibold"
-      >
-        Inside this run
-      </h2>
-    </div>
-    <p class="mt-3 max-w-3xl text-sm leading-7 break-words text-muted-foreground">
-      <InlineBrandText text={run.summary} />
-    </p>
-    {
-      run.notes.length > 0 && (
-        <ul class="mt-3 max-w-3xl list-disc space-y-2 pl-5 text-sm leading-6 break-words text-muted-foreground">
-          {run.notes.map((note) => (
-            <li>
-              <InlineBrandText text={note} />
-            </li>
-          ))}
-        </ul>
-      )
-    }
-    <div class="mt-4 grid gap-x-6 sm:mt-8 sm:grid-cols-2 sm:gap-y-6 xl:grid-cols-3">
-      {
-        page.attempts.map((attempt, index) => (
-          <ProjectRunCard
-            {attempt}
-            number={countBefore + index + 1}
+    <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.7fr)] sm:items-end">
+      <div>
+        <div class="flex items-center gap-3">
+          <FolderGit2
+            class="size-5 text-muted-foreground"
+            aria-hidden="true"
           />
-        ))
-      }
+          <h2
+            id="projects-title"
+            class="section-title"
+          >
+            Choose a project.
+          </h2>
+        </div>
+      </div>
+      <p class="text-sm leading-7 text-muted-foreground sm:justify-self-end">
+        <InlineBrandText
+          text="Open a project to see what was asked, what changed, and where moldea fit into the work."
+        />
+      </p>
+    </div>
+    <div class="mt-8 grid gap-5 lg:grid-cols-2 lg:gap-6">
+      {page.attempts.map((attempt) => <ProjectRunCard {attempt} />)}
     </div>
     {
       page.attempts.length === 0 && (
@@ -132,7 +142,7 @@ const countBefore = (page.number - 1) * PROJECT_RUN_PAGE_SIZE;
               <ArrowLeft
                 class="size-4"
                 aria-hidden="true"
-              />
+              />{' '}
               Previous
             </ActionLink>
           )}
@@ -145,7 +155,7 @@ const countBefore = (page.number - 1) * PROJECT_RUN_PAGE_SIZE;
               href={withBase(page.next, basePath)}
               rel="next"
             >
-              Next
+              Next{' '}
               <ArrowRight
                 class="size-4"
                 aria-hidden="true"
@@ -153,22 +163,6 @@ const countBefore = (page.number - 1) * PROJECT_RUN_PAGE_SIZE;
             </ActionLink>
           )}
         </nav>
-      )
-    }
-    {
-      run.links.length > 0 && (
-        <div class="mt-8 flex flex-wrap gap-3 border-t border-border pt-6">
-          {run.links.map((link) => (
-            <ActionLink
-              variant="link"
-              href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {link.label}
-            </ActionLink>
-          ))}
-        </div>
       )
     }
   </section>

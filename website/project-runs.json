@@ -1,3 +1,7 @@
 {
-  "run": null
+  "run": {
+    "commit": "0cbfc7c04995a12fd2ffd6d6e6494fd23a1648aa",
+    "runId": "run-20260928-02"
+  },
+  "history": ["historical-20260927"]
 }

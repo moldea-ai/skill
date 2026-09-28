@@ -70,11 +70,78 @@ test('public and local sources retain the same facts, with pinned public links a
     `${'b'.repeat(40)}...${'c'.repeat(40)}`,
   );
   expect(urls.filter((url) => url.endsWith('/scenarios/field-notes.md'))).toStrictEqual([
-    `https://raw.githubusercontent.com/moldea-ai/moldea-mock-project-public/${'d'.repeat(40)}/scenarios/field-notes.md`,
+    `https://raw.githubusercontent.com/jesusgraterol/moldea-mock-project-public/${'d'.repeat(40)}/scenarios/field-notes.md`,
   ]);
   expect(urls).toHaveLength(5);
   expect(JSON.stringify(local)).not.toContain('github.com');
   expect(JSON.stringify(local)).not.toContain(root);
+});
+
+test('includes earlier projects once while keeping the selected project attempt', async () => {
+  await changeRecord('evidence/index.json', {
+    runs: [
+      { runId: PROJECT_RUN_FIXTURE_ID, manifestPath: 'evidence/run.json' },
+      { runId: 'earlier', manifestPath: 'evidence/earlier.json' },
+    ],
+  });
+  await changeRecord('evidence/attempt-1.json', { branch: 'fixture_eve_02' });
+  await writeFile(
+    path.join(root, 'evidence/earlier.json'),
+    JSON.stringify({
+      formatVersion: 1,
+      runId: 'earlier',
+      date: '2026-09-26',
+      summary: 'Earlier projects.',
+      attempts: ['evidence/old-field.json', 'evidence/cedar.json'],
+    }),
+  );
+  const existing = JSON.parse(
+    await readFile(path.join(root, 'evidence/attempt-1.json'), 'utf8'),
+  ) as Record<string, unknown>;
+  await writeFile(
+    path.join(root, 'evidence/old-field.json'),
+    JSON.stringify({
+      ...existing,
+      runId: 'earlier',
+      attemptId: 'old-field',
+      branch: 'fixture_eve_01',
+    }),
+  );
+  await writeFile(
+    path.join(root, 'evidence/cedar.json'),
+    JSON.stringify({
+      ...existing,
+      runId: 'earlier',
+      attemptId: 'cedar',
+      branch: 'fixture_initialized_01',
+      scenarioDefinition: { state: 'unknown', reason: 'Not imported.' },
+    }),
+  );
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: string) => {
+      const relative = new URL(input).pathname
+        .split('/')
+        .slice(4)
+        .map(decodeURIComponent)
+        .join('/');
+      return new Response(await readFile(path.join(root, relative), 'utf8'));
+    }),
+  );
+  const selection = path.join(root, 'selection.json');
+  await writeFile(
+    selection,
+    JSON.stringify({
+      run: { commit: PROJECT_RUN_FIXTURE_COMMIT, runId: PROJECT_RUN_FIXTURE_ID },
+      history: ['earlier'],
+    }),
+  );
+  const projects = (await loadPublicProjectRuns(selection))!.pages.flatMap(
+    ({ attempts }) => attempts,
+  );
+  expect(projects).toHaveLength(3);
+  expect(projects.map(({ id }) => id)).toStrictEqual(['project-1', 'project-2', 'cedar']);
+  expect(projects[2]?.title).toBe('Cedar Workshop');
 });
 
 test('unknown optional evidence and new status values do not block a run', async () => {

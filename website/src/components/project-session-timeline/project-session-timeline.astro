@@ -1,0 +1,245 @@
+---
+import { Bot, Clock3, FilePenLine, SquareTerminal, UserRound } from '@lucide/astro';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
+import Dialog from '@moldea.ai/website-ui/dialog';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+
+import type { IProjectSessionEntry } from '../../lib/project-runs/types.ts';
+
+import { formatProjectToolInput } from './utilities.ts';
+
+interface Props {
+  entries: IProjectSessionEntry[];
+}
+
+const { entries } = Astro.props;
+const messageHtml = await Promise.all(
+  entries.map((entry) =>
+    entry.kind === 'message' && entry.role !== 'developer'
+      ? renderMarkdownFragment(entry.content, {
+          basePath: import.meta.env.BASE_URL,
+          localLinks: 'unwrap',
+          productNameTreatment: 'code',
+        })
+      : null,
+  ),
+);
+const toolPreview = (entry: IProjectSessionEntry): string =>
+  entry.content
+    .split('\n')
+    .find((line) => line.trim().length > 0)
+    ?.trim()
+    .slice(0, 100) ?? '';
+const displayInputs = entries.map((entry) =>
+  entry.kind === 'tool' ? formatProjectToolInput(entry.content) : null,
+);
+const ordinalClass = 'shrink-0 whitespace-nowrap font-mono text-xs text-muted-foreground';
+---
+
+<ol
+  class="relative space-y-4 before:absolute before:top-0 before:bottom-0 before:left-4 before:w-px before:bg-border sm:before:left-6"
+  aria-label="Recorded session events"
+>
+  {
+    entries.map((entry, index) => (
+      <li
+        class="relative min-w-0 pl-10 sm:pl-14"
+        data-session-entry={entry.kind}
+      >
+        {entry.kind === 'message' &&
+        entry.role !== 'developer' &&
+        entry.content !== '[redacted]' ? (
+          <article
+            class:list={[
+              'min-w-0 rounded-2xl border p-4 shadow-surface sm:p-5',
+              entry.role === 'assistant'
+                ? 'border-border bg-card'
+                : 'border-primary/15 bg-primary/5',
+            ]}
+            data-session-role={entry.role}
+          >
+            <div class="mb-3 flex items-start justify-between gap-3">
+              <div class="flex min-w-0 items-center gap-2">
+                <span
+                  class:list={[
+                    'inline-flex size-8 items-center justify-center rounded-lg',
+                    entry.role === 'assistant'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-primary/10 text-primary',
+                  ]}
+                >
+                  {entry.role === 'assistant' ? (
+                    <Bot
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <UserRound
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  )}
+                </span>
+                <span class="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+                  {entry.title}
+                </span>
+              </div>
+              <span
+                class={ordinalClass}
+                data-session-ordinal
+              >
+                #{entry.ordinal}
+                {entry.lastOrdinal !== entry.ordinal && <>–{entry.lastOrdinal}</>}
+              </span>
+            </div>
+            <div
+              class="prose-moldea prose-moldea-wrap-code replay-markdown min-w-0 text-sm leading-7 sm:text-base"
+              set:html={messageHtml[index]}
+            />
+          </article>
+        ) : entry.kind === 'tool' ? (
+          <article
+            class="min-w-0 rounded-xl border border-border bg-card p-4 shadow-surface sm:p-5"
+            data-session-tool
+          >
+            <div class="flex min-w-0 items-start gap-2 text-sm">
+              {entry.patchTargets && entry.patchTargets.length > 0 ? (
+                <FilePenLine
+                  class="size-4 shrink-0 text-primary"
+                  aria-hidden="true"
+                />
+              ) : (
+                <SquareTerminal
+                  class="size-4 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
+              )}
+              <span class="min-w-0 flex-1 font-semibold">Tool call · {entry.title}</span>
+              <span
+                class={ordinalClass}
+                data-session-ordinal
+              >
+                #{entry.ordinal}
+                {entry.lastOrdinal !== entry.ordinal && <>–{entry.lastOrdinal}</>}
+              </span>
+            </div>
+            {entry.patchTargets && entry.patchTargets.length > 0 ? (
+              <div class="mt-3">
+                <p class="text-xs text-muted-foreground">Patch targets</p>
+                <ul class="mt-1.5 flex min-w-0 flex-wrap gap-1.5 text-xs">
+                  {entry.patchTargets.map(({ action, path }) => (
+                    <li class="max-w-full rounded-md bg-primary/5 px-2 py-1 text-primary">
+                      {action} <code class="break-all">{path}</code>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <code class="mt-2 block truncate text-xs text-muted-foreground">
+                {toolPreview(entry)}
+              </code>
+            )}
+            <Dialog
+              id={`project-tool-${entry.ordinal}`}
+              title={`${entry.title} · event ${entry.ordinal}`}
+              triggerLabel="Read call and result"
+              triggerAriaLabel={`Read ${entry.title} call ${entry.ordinal} and result`}
+              triggerClass="mt-3 w-full justify-between"
+              size="medium"
+              closeLabel="Close tool call"
+              isOverlayCloseEnabled
+            >
+              <div class="grid min-w-0 gap-6">
+                <section class="min-w-0">
+                  <h2 class="mb-2 text-sm font-semibold">Input</h2>
+                  <div class="min-w-0 [&_pre]:[overflow-wrap:anywhere] [&_pre]:whitespace-pre-wrap">
+                    <CodeBlock
+                      ariaLabel={`${entry.title} input`}
+                      copyable={false}
+                      language={displayInputs[index]?.language ?? 'javascript'}
+                      source={displayInputs[index]?.source ?? entry.content}
+                    />
+                  </div>
+                </section>
+                <section class="min-w-0">
+                  <h2 class="mb-2 text-sm font-semibold">Tool result</h2>
+                  <div class="min-w-0 [&_pre]:[overflow-wrap:anywhere] [&_pre]:whitespace-pre-wrap">
+                    <CodeBlock
+                      ariaLabel={`${entry.title} result`}
+                      copyable={false}
+                      language="text"
+                      source={entry.output?.trim() ?? ''}
+                    />
+                  </div>
+                </section>
+              </div>
+            </Dialog>
+          </article>
+        ) : entry.kind === 'message' ? (
+          <div
+            class="min-w-0 rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground sm:p-5"
+            data-session-context
+          >
+            <div class="flex items-start justify-between gap-3">
+              <span>{entry.content === '[redacted]' ? 'Redacted message' : entry.title}</span>
+              <span
+                class={ordinalClass}
+                data-session-ordinal
+              >
+                #{entry.ordinal}
+                {entry.lastOrdinal !== entry.ordinal && <>–{entry.lastOrdinal}</>}
+              </span>
+            </div>
+            <Dialog
+              id={`project-context-${entry.ordinal}`}
+              title={entry.title}
+              triggerLabel="Read message"
+              triggerAriaLabel={`Read ${entry.title.toLowerCase()} message ${entry.ordinal}`}
+              triggerClass="mt-2 w-full justify-between"
+              size="medium"
+              closeLabel="Close message"
+              isOverlayCloseEnabled
+            >
+              <div class="min-w-0 [&_pre]:[overflow-wrap:anywhere] [&_pre]:whitespace-pre-wrap">
+                <CodeBlock
+                  ariaLabel={`${entry.title} message`}
+                  copyable={false}
+                  language="text"
+                  source={entry.content}
+                />
+              </div>
+            </Dialog>
+          </div>
+        ) : (
+          <div class="flex min-h-9 items-start gap-3 py-1 pr-4 text-xs text-muted-foreground sm:pr-5">
+            <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+              <span class="inline-flex size-7 items-center justify-center rounded-full border border-border bg-background">
+                <Clock3
+                  class="size-3.5"
+                  aria-hidden="true"
+                />
+              </span>
+              <span class="font-semibold text-foreground">{entry.title}</span>
+              {entry.content && (
+                <span>
+                  <InlineBrandText
+                    text={entry.content}
+                    variant="compact"
+                  />
+                </span>
+              )}
+            </div>
+            <span
+              class={ordinalClass}
+              data-session-ordinal
+            >
+              #{entry.ordinal}
+              {entry.lastOrdinal !== entry.ordinal && <>–{entry.lastOrdinal}</>}
+            </span>
+          </div>
+        )}
+      </li>
+    ))
+  }
+</ol>

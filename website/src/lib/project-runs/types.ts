@@ -39,6 +39,7 @@ export const ProjectRunPathSchema = z
 // only fields consumed by this independently deployed reader are described here
 export const ProjectRunSelectionSchema = z.strictObject({
   run: z.strictObject({ commit: CommitSchema, runId: IdSchema }).nullable(),
+  history: z.array(IdSchema).default([]),
 });
 export const ProjectRunIndexSchema = z.object({
   formatVersion: z.literal(1),
@@ -65,6 +66,7 @@ export const ProjectAttemptRecordSchema = z.object({
   runId: IdSchema,
   scenarioId: IdSchema,
   attemptId: IdSchema,
+  branch: IdSchema.optional(),
   baseCommit: CommitSchema,
   finalCommit: CommitSchema.nullable(),
   lastDurableCommit: CommitSchema,
@@ -78,7 +80,22 @@ export const ProjectAttemptRecordSchema = z.object({
   skillRelease: z.union([TextSchema, UnknownSchema]).optional(),
   assets: z
     .union([
-      z.array(z.object({ kind: TextSchema, tag: AssetPartSchema, name: AssetPartSchema })),
+      z.array(
+        z.object({
+          kind: TextSchema,
+          tag: AssetPartSchema,
+          name: AssetPartSchema,
+          sizeBytes: z.int().nonnegative().optional(),
+          sha256: z
+            .string()
+            .regex(/^[a-f0-9]{64}$/u)
+            .optional(),
+          mediaType: TextSchema.optional(),
+          sessionId: TextSchema.nullable().optional(),
+          firstEventOrdinal: z.int().nonnegative().nullable().optional(),
+          lastEventOrdinal: z.int().nonnegative().nullable().optional(),
+        }),
+      ),
       UnknownSchema,
     ])
     .optional(),
@@ -105,19 +122,35 @@ export interface IProjectRunLink {
   label: string;
   href: string;
 }
+export interface IProjectSessionEntry {
+  ordinal: number;
+  lastOrdinal: number;
+  timestamp: string;
+  kind: 'session' | 'task_started' | 'turn' | 'message' | 'tool' | 'task_complete';
+  role?: 'developer' | 'user' | 'assistant';
+  title: string;
+  content: string;
+  output?: string;
+  status?: string;
+  patchTargets?: { action: 'Add' | 'Update' | 'Delete'; path: string }[];
+  sessionId?: string;
+  isRedacted: boolean;
+}
 export interface IProjectAttempt {
   id: string;
+  projectKey: string;
   title: string;
   route: string;
   summary: string;
   excerpt: string;
   initialRequest: IProjectRequest | null;
-  followUp: IProjectRequest | null;
+  followUps: IProjectRequest[];
   notes: string[];
   links: IProjectRunLink[];
   skillRelease: string | null;
   baseCommit: string;
   reachedCommit: string;
+  session: IProjectSessionEntry[] | null;
 }
 export interface IProjectRunPage {
   number: number;

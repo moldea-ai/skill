@@ -5,6 +5,7 @@ import {
   Cable,
   Check,
   ListChecks,
+  FolderGit2,
   ShieldCheck,
   Sparkles,
 } from '@lucide/astro';
@@ -28,6 +29,7 @@ import {
   getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
 } from '../../lib/release-evidence/index.ts';
+import { PROJECT_RUN_ROUTE } from '../../lib/project-runs/index.ts';
 
 const model = loadWebsiteModel();
 const basePath = import.meta.env.BASE_URL;
@@ -73,6 +75,8 @@ const additionalQualificationAdapterCount = Math.max(
   0,
   qualificationAdapterIds.length - qualificationAdapterPreviewIds.length,
 );
+const projectAttempts = model.projectRuns?.pages.flatMap(({ attempts }) => attempts) ?? [];
+const recordedSessionCount = projectAttempts.filter(({ session }) => session !== null).length;
 ---
 
 <BaseLayout
@@ -438,6 +442,61 @@ const additionalQualificationAdapterCount = Math.max(
               </ActionLink>
             </div>
           </article>
+          {
+            model.projectRuns !== null && (
+              <article
+                class="light-surface-selection grid min-w-0 gap-6 rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7 md:col-span-2 md:grid-cols-2 md:items-center md:gap-10"
+                data-home-evidence-card="projects"
+              >
+                <div class="min-w-0">
+                  <div class="flex items-center gap-3">
+                    <span class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                      <FolderGit2
+                        class="size-5"
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
+                      Project runs
+                    </p>
+                  </div>
+                  <h3 class="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
+                    What happens in a real coding session?
+                  </h3>
+                  <p class="mt-3 max-w-xl text-sm leading-6 text-primary/70 sm:text-base sm:leading-7">
+                    Follow the requests, agent messages, tool calls, and project changes from
+                    mock-project work.
+                  </p>
+                </div>
+                <div class="min-w-0 rounded-xl border border-primary/10 bg-primary/5 p-5">
+                  <div class="grid grid-cols-2 gap-5 border-b border-primary/10 pb-5">
+                    <p class="text-sm text-primary/70">
+                      <span class="block font-mono text-3xl font-semibold text-primary">
+                        {projectAttempts.length}
+                      </span>{' '}
+                      projects
+                    </p>
+                    <p class="text-sm text-primary/70">
+                      <span class="block font-mono text-3xl font-semibold text-primary">
+                        {recordedSessionCount}
+                      </span>{' '}
+                      session replays
+                    </p>
+                  </div>
+                  <ActionLink
+                    class="mt-5 font-bold"
+                    href={withBase(PROJECT_RUN_ROUTE, basePath)}
+                  >
+                    Explore project runs{' '}
+                    <ArrowRight
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  </ActionLink>
+                </div>
+              </article>
+            )
+          }
         </div>
       </div>
     </div>

@@ -343,11 +343,25 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     evidenceSection.getByLabel(/runtime adapters represented/u).locator('img'),
   ).toHaveCount(3);
 
-  const evidenceCardHeights = await evidenceSection
+  const evidenceCardBoxes = await evidenceSection
     .locator('[data-home-evidence-card]')
-    .evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().height));
-  expect(evidenceCardHeights).toHaveLength(2);
-  expect(Math.abs((evidenceCardHeights[0] ?? 0) - (evidenceCardHeights[1] ?? 0))).toBeLessThan(2);
+    .evaluateAll((cards) =>
+      cards.map((card) => {
+        const box = card.getBoundingClientRect();
+        return { x: box.x, y: box.y, width: box.width, height: box.height };
+      }),
+    );
+  expect(evidenceCardBoxes).toHaveLength(3);
+  expect(
+    Math.abs((evidenceCardBoxes[0]?.height ?? 0) - (evidenceCardBoxes[1]?.height ?? 0)),
+  ).toBeLessThan(2);
+  expect(evidenceCardBoxes[0]?.y).toBe(evidenceCardBoxes[1]?.y);
+  expect(evidenceCardBoxes[2]?.y).toBeGreaterThan(evidenceCardBoxes[0]?.y ?? 0);
+  expect(evidenceCardBoxes[2]?.width).toBeGreaterThan((evidenceCardBoxes[0]?.width ?? 0) * 1.9);
+  await expect(evidenceSection.getByRole('link', { name: 'Explore project runs' })).toHaveAttribute(
+    'href',
+    toPublicPath('/evidence/project-runs/'),
+  );
 
   const compatibilitySection = page.getByRole('region', {
     name: 'Use the coding agent you already trust.',

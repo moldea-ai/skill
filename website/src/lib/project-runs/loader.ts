@@ -14,10 +14,12 @@ import {
   PROJECT_RUN_TIMEOUT_MS,
 } from './constants.ts';
 import {
+  combineProjectRuns,
   createProjectAttempt,
   createProjectRunModel,
   encodeProjectRunPath,
 } from './presentation.ts';
+import { loadProjectSession } from './session.ts';
 import {
   ProjectAttemptRecordSchema,
   ProjectRunIndexSchema,
@@ -148,7 +150,9 @@ export const loadProjectRun = async (source: IProjectRunSource): Promise<IProjec
         scenario = scenarioCache.get(key) ?? (await readText(definition.path, definition.commit));
         scenarioCache.set(key, scenario);
       }
-      attempts.push(createProjectAttempt(attempt, source, attemptPath, scenario));
+      currentPath = attemptPath;
+      const session = source.kind === 'public' ? await loadProjectSession(attempt.assets) : null;
+      attempts.push(createProjectAttempt(attempt, source, attemptPath, scenario, session));
     }
     return createProjectRunModel(record, source, manifestPath, attempts);
   } catch (cause) {
@@ -172,5 +176,12 @@ export const loadPublicProjectRuns = async (
   const selection = ProjectRunSelectionSchema.parse(
     JSON.parse(await readFile(selectionPath, 'utf8')),
   );
-  return selection.run === null ? null : loadProjectRun({ kind: 'public', ...selection.run });
+  if (selection.run === null) return null;
+  if (new Set([selection.run.runId, ...selection.history]).size !== selection.history.length + 1)
+    throw new Error('Project-run selection contains a duplicate run.');
+  const selected = await loadProjectRun({ kind: 'public', ...selection.run });
+  const history: IProjectRunModel[] = [];
+  for (const runId of selection.history)
+    history.push(await loadProjectRun({ kind: 'public', commit: selection.run.commit, runId }));
+  return selection.history.length === 0 ? selected : combineProjectRuns(selected, history);
 };

@@ -134,11 +134,16 @@ test('unselected project runs are absent from navigation and static routes', asy
   ).toBe(false);
 });
 
-test('explicit local preview never persists through ordinary generation and failed arguments preserve the model', async () => {
+test('loading a selection replaces local preview and failed arguments preserve the model', async () => {
   const repositoryRoot = getRepositoryRoot();
   const root = await mkdtemp(path.join(tmpdir(), 'project-preview-'));
   const generator = path.join(repositoryRoot, 'website/scripts/generate-development.ts');
   const modelPath = path.join(repositoryRoot, 'website/.generated/model.json');
+  const selectionArgs = [
+    generator,
+    '--project-runs-selection',
+    path.join(repositoryRoot, 'website/scripts/project-run-fixture/unselected.json'),
+  ];
   try {
     await writeProjectRunFixture(root, 1);
     await executeFile(process.execPath, [
@@ -158,6 +163,16 @@ test('explicit local preview never persists through ordinary generation and fail
     expect(await readFile(modelPath, 'utf8')).toBe(before);
     await expect(
       executeFile(process.execPath, [
+        ...selectionArgs,
+        '--project-runs-root',
+        root,
+        '--project-run',
+        PROJECT_RUN_FIXTURE_ID,
+      ]),
+    ).rejects.toThrow('Choose either');
+    expect(await readFile(modelPath, 'utf8')).toBe(before);
+    await expect(
+      executeFile(process.execPath, [
         generator,
         '--project-runs-root',
         root,
@@ -166,10 +181,10 @@ test('explicit local preview never persists through ordinary generation and fail
       ]),
     ).rejects.toThrow('Project run source');
     expect(await readFile(modelPath, 'utf8')).toBe(before);
-    await executeFile(process.execPath, [generator]);
+    await executeFile(process.execPath, selectionArgs);
     expect(loadWebsiteModel().projectRuns).toBeNull();
   } finally {
     await rm(root, { force: true, recursive: true });
-    await executeFile(process.execPath, [generator]);
+    await executeFile(process.execPath, selectionArgs);
   }
 });

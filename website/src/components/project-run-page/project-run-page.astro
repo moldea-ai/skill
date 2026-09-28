@@ -65,21 +65,24 @@ const tabs = [
         {
           turnCount > 0 && (
             <span class="rounded-full border border-border bg-muted/40 px-3 py-1.5">
-              <strong class="font-mono text-foreground">{turnCount}</strong> turns
+              <strong class="font-mono text-foreground">{turnCount}</strong>{' '}
+              {turnCount === 1 ? 'turn' : 'turns'}
             </span>
           )
         }
         {
           attempt.session !== null && (
             <span class="rounded-full border border-border bg-muted/40 px-3 py-1.5">
-              <strong class="font-mono text-foreground">{toolCount}</strong> tool calls
+              <strong class="font-mono text-foreground">{toolCount}</strong>{' '}
+              {toolCount === 1 ? 'tool call' : 'tool calls'}
             </span>
           )
         }
         {
           attempt.session !== null && (
             <span class="rounded-full border border-border bg-muted/40 px-3 py-1.5">
-              <strong class="font-mono text-foreground">{eventCount}</strong> recorded events
+              <strong class="font-mono text-foreground">{eventCount}</strong>{' '}
+              {eventCount === 1 ? 'recorded event' : 'recorded events'}
             </span>
           )
         }
@@ -127,7 +130,7 @@ const tabs = [
               attempt.session !== null && (
                 <p class="max-w-sm text-sm leading-6 text-muted-foreground">
                   {run.provenance === 'public'
-                    ? 'The complete sanitized recording, in event order.'
+                    ? 'The sanitized session recording, in event order.'
                     : 'Illustrative session events for layout checks.'}{' '}
                   Open a tool call to read its input and result.
                 </p>

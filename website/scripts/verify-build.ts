@@ -103,9 +103,11 @@ const verifyHtmlLinks = (
     }
   }
 
-  for (const match of html.matchAll(/\s(?:href|src)="([^"]+)"/g)) {
-    const target = match[1] ?? '';
-
+  // code samples can contain attribute-shaped text without an HTML element.
+  const resourceTargets = [...html.matchAll(/<[a-z][^>]*>/gi)].flatMap((element) =>
+    [...element[0].matchAll(/\s(?:href|src)="([^"]+)"/g)].map((attribute) => attribute[1] ?? ''),
+  );
+  for (const target of resourceTargets) {
     if (
       target.startsWith('mailto:') ||
       target.startsWith('tel:') ||

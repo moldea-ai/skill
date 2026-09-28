@@ -191,6 +191,26 @@ export const prepareProjectRunFixture = async (
           ordinal: 10,
           lastOrdinal: 10,
           timestamp,
+          kind: 'compaction',
+          title: 'Context compacted',
+          content: 'Encrypted summary omitted from this recording.',
+          compaction: {
+            message: '',
+            replacementHistory: [
+              { role: 'user', content: 'Keep the customer timezone.' },
+              { role: 'assistant', content: 'I checked the scheduling policy.' },
+            ],
+            retainedUserMessages: [
+              { order: 0, text: 'Keep the customer timezone.', complete: true },
+            ],
+            encryptedSummaryOmitted: true,
+          },
+          isRedacted: false,
+        },
+        {
+          ordinal: 11,
+          lastOrdinal: 11,
+          timestamp,
           kind: 'message',
           role: 'assistant',
           title: 'Coding agent',

@@ -10,7 +10,10 @@ import {
 } from './constants.ts';
 import type { IProjectAttemptRecord, IProjectSessionEntry } from './types.ts';
 
-const TextPartSchema = z.object({ type: z.enum(['input_text', 'output_text']), text: z.string() });
+const TextPartSchema = z.object({
+  type: z.enum(['input_text', 'output_text', '[redacted]']),
+  text: z.string(),
+});
 const EventSchema = z.discriminatedUnion('kind', [
   z.object({
     ordinal: z.int().nonnegative(),
@@ -38,7 +41,7 @@ const EventSchema = z.discriminatedUnion('kind', [
     timestamp: z.iso.datetime(),
     kind: z.literal('message'),
     payload: z.object({
-      role: z.enum(['developer', 'user', 'assistant']),
+      role: z.enum(['developer', 'user', 'assistant', '[redacted]']),
       content: z.array(TextPartSchema),
     }),
     redactionIds: z.array(z.string()).default([]),
@@ -67,6 +70,26 @@ const EventSchema = z.discriminatedUnion('kind', [
     timestamp: z.iso.datetime(),
     kind: z.literal('task_complete'),
     payload: z.object({ turnId: z.string() }),
+    redactionIds: z.array(z.string()).default([]),
+  }),
+  z.object({
+    ordinal: z.int().nonnegative(),
+    timestamp: z.iso.datetime(),
+    kind: z.literal('compaction'),
+    payload: z.object({
+      message: z.string(),
+      replacementHistory: z.array(z.object({ role: z.string(), content: z.array(TextPartSchema) })),
+      retainedUserMessages: z.array(
+        z.object({
+          order: z.int().nonnegative(),
+          turnId: z.string(),
+          messageId: z.string(),
+          text: z.string(),
+          complete: z.boolean(),
+        }),
+      ),
+      encryptedSummaryOmitted: z.boolean(),
+    }),
     redactionIds: z.array(z.string()).default([]),
   }),
 ]);
@@ -122,19 +145,23 @@ export const parseProjectSession = (compressed: Uint8Array): IProjectSessionEntr
       continue;
     }
     if (event.kind === 'message') {
+      const isFullyRedacted =
+        event.redactionIds.length > 0 &&
+        event.payload.content.length > 0 &&
+        event.payload.content.every(({ text }) => text === '[redacted]');
       entries.push({
         ordinal: event.ordinal,
         lastOrdinal: event.ordinal,
         timestamp: event.timestamp,
         kind: 'message',
-        role: event.payload.role,
+        ...(event.payload.role === '[redacted]' ? {} : { role: event.payload.role }),
         title:
           event.payload.role === 'assistant'
             ? 'Coding agent'
             : event.payload.role === 'user'
               ? 'Developer'
               : 'Host context',
-        content: joinText(event.payload.content),
+        content: isFullyRedacted ? '[redacted]' : joinText(event.payload.content),
         isRedacted: event.redactionIds.length > 0,
       });
       continue;
@@ -146,13 +173,17 @@ export const parseProjectSession = (compressed: Uint8Array): IProjectSessionEntr
           ? 'Task started'
           : event.kind === 'task_complete'
             ? 'Task complete'
-            : 'Agent turn';
+            : event.kind === 'compaction'
+              ? 'Context compacted'
+              : 'Agent turn';
     const content =
       event.kind === 'session'
         ? `Host ${event.payload.hostVersion}`
         : event.kind === 'turn'
           ? `${event.payload.model} · ${event.payload.effort}`
-          : '';
+          : event.kind === 'compaction' && event.payload.encryptedSummaryOmitted
+            ? 'Encrypted summary omitted from this recording.'
+            : '';
     entries.push({
       ordinal: event.ordinal,
       lastOrdinal: event.ordinal,
@@ -161,6 +192,21 @@ export const parseProjectSession = (compressed: Uint8Array): IProjectSessionEntr
       title,
       content,
       ...(event.kind === 'session' ? { sessionId: event.payload.sessionId } : {}),
+      ...(event.kind === 'compaction'
+        ? {
+            compaction: {
+              message: event.payload.message,
+              encryptedSummaryOmitted: event.payload.encryptedSummaryOmitted,
+              replacementHistory: event.payload.replacementHistory.map(({ role, content }) => ({
+                role,
+                content: joinText(content),
+              })),
+              retainedUserMessages: event.payload.retainedUserMessages.map(
+                ({ order, text, complete }) => ({ order, text, complete }),
+              ),
+            },
+          }
+        : {}),
       isRedacted: event.redactionIds.length > 0,
     });
   }

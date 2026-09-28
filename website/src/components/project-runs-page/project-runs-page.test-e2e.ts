@@ -11,10 +11,11 @@ test('opens the third evidence section directly and follows bounded project page
   await page.goto(route('/evidence/'));
   await page.getByRole('link', { name: 'Explore project runs' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'Explore coding work, project by project.',
+    'See the work behind each project.',
   );
+  await expect(page.getByRole('link', { name: 'Explore this project' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 2, name: 'Browse project runs' })).toBeVisible();
-  await expect(page.getByText('17 project runs', { exact: true })).toBeVisible();
+  await expect(page.getByText('17 projects to explore', { exact: true })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Explore project examples' })).toHaveCount(0);
   await expect(page.getByRole('combobox')).toHaveCount(0);
   await expect(page.locator('[data-project-story]')).toHaveCount(16);

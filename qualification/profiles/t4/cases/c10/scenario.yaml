@@ -60,7 +60,7 @@ workspace:
       moldea/moldea.yaml,
     ]
   mustNotExistPaths: []
-  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePaths: [moldea/moldea.yaml, moldea/project.md]
   allowedChangePathPatterns: [moldea/runtimes/**/*.md]
   mustChangePathPatterns: [moldea/runtimes/**/*.md]
 judgeRequirements:

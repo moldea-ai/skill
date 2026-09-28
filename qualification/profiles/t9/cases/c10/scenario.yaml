@@ -69,7 +69,6 @@ workspace:
       src/support-workflow.ts,
       src/dynamic-support-workflow.ts,
       src/runtime-boundaries.ts,
-      moldea/agents/support/description.md,
       moldea/agents/support/instruction.md,
       moldea/agents/dynamic-support/description.md,
       moldea/agents/dynamic-support/instruction.md,
@@ -83,7 +82,7 @@ workspace:
       moldea/moldea.yaml,
     ]
   mustNotExistPaths: []
-  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePaths: [moldea/moldea.yaml, moldea/project.md, moldea/agents/support/description.md]
   allowedChangePathPatterns: [moldea/runtimes/**/*.md]
   mustChangePathPatterns: [moldea/runtimes/**/*.md]
 judgeRequirements:

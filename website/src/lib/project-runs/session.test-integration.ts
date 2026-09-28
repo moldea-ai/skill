@@ -79,6 +79,59 @@ test('preserves messages and joins each adjacent tool call with its complete res
   });
 });
 
+test('keeps natural compaction visible without claiming the encrypted summary was captured', () => {
+  const entries = parseProjectSession(
+    gzipSync(
+      [
+        events[0],
+        {
+          ordinal: 1,
+          timestamp: '2026-09-28T02:24:25.000Z',
+          kind: 'compaction',
+          payload: { encryptedSummaryOmitted: true },
+          redactionIds: [],
+        },
+      ]
+        .map((event) => JSON.stringify(event))
+        .join('\n'),
+    ),
+  );
+  expect(entries[1]).toMatchObject({
+    kind: 'compaction',
+    title: 'Context compacted',
+    content: 'Encrypted summary omitted from this recording.',
+  });
+});
+
+test('accepts explicitly redacted host message metadata without exposing it as a developer message', () => {
+  const entries = parseProjectSession(
+    gzipSync(
+      [
+        events[0],
+        {
+          ordinal: 1,
+          timestamp: '2026-09-28T02:24:25.000Z',
+          kind: 'message',
+          payload: {
+            role: '[redacted]',
+            content: [{ type: '[redacted]', text: '[redacted]' }],
+          },
+          redactionIds: ['host-context'],
+        },
+      ]
+        .map((event) => JSON.stringify(event))
+        .join('\n'),
+    ),
+  );
+  expect(entries[1]).toMatchObject({
+    kind: 'message',
+    title: 'Host context',
+    content: '[redacted]',
+    isRedacted: true,
+  });
+  expect(entries[1]?.role).toBeUndefined();
+});
+
 test('surfaces attempted patch targets without treating ordinary tool input as a patch', () => {
   const patch = [
     ...events.slice(0, 2),

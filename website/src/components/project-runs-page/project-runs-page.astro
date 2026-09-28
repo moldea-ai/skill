@@ -21,6 +21,7 @@ const breadcrumbs = [
   { label: 'Project runs' },
 ];
 const allAttempts = run.pages.flatMap(({ attempts }) => attempts);
+const featuredAttempt = allAttempts.find(({ initialRequest }) => initialRequest !== null);
 ---
 
 <BaseLayout
@@ -28,23 +29,52 @@ const allAttempts = run.pages.flatMap(({ attempts }) => attempts);
   description={`Explore ${allAttempts.length} mock projects and the coding sessions, context, and source records behind them. Page ${page.number} of ${run.pages.length}.`}
   {breadcrumbs}
 >
-  <header class="border-b border-border bg-secondary">
-    <div class="page-shell pt-4 sm:pt-7">
-      <Breadcrumbs
-        {basePath}
-        items={breadcrumbs}
-      />
-    </div>
-    <div class="page-shell pt-8 pb-12 sm:pt-10 sm:pb-16">
-      <p class="eyebrow mb-4">Project runs</p>
-      <h1 class="display-title max-w-4xl">Explore coding work, project by project.</h1>
-      <p class="mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-        See each mock project's request, resulting changes, and any recorded agent session.
-      </p>
-      <p class="mt-6 text-sm font-semibold text-foreground">
-        <span class="font-mono text-xl">{allAttempts.length}</span>
-        {allAttempts.length === 1 ? ' project run' : ' project runs'}
-      </p>
+  <div class="page-shell pt-7">
+    <Breadcrumbs
+      {basePath}
+      items={breadcrumbs}
+    />
+  </div>
+  <header class="mt-6 border-y border-border">
+    <div
+      class="page-shell grid gap-9 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.78fr)] lg:items-center lg:gap-14 lg:py-20"
+    >
+      <div class="min-w-0">
+        <p class="eyebrow mb-4">Project runs</p>
+        <h1 class="page-title max-w-4xl">See the work behind each project.</h1>
+        <p class="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
+          Follow the developer request, the coding agent's conversation, and the source changes in
+          each mock project.
+        </p>
+        <p class="mt-7 text-sm font-semibold text-foreground">
+          <span class="font-mono text-xl">{allAttempts.length}</span>
+          {allAttempts.length === 1 ? ' project to explore' : ' projects to explore'}
+        </p>
+      </div>
+      {
+        featuredAttempt !== undefined && (
+          <aside class="min-w-0 rounded-3xl border border-border bg-card p-5 shadow-surface sm:p-7">
+            <p class="eyebrow mb-4">Start with a request</p>
+            <h2 class="text-xl font-semibold tracking-tight sm:text-2xl">
+              <InlineBrandText text={featuredAttempt.title} />
+            </h2>
+            <p class="mt-4 line-clamp-4 text-sm leading-7 text-muted-foreground sm:text-base">
+              <InlineBrandText text={featuredAttempt.initialRequest!.text} />
+            </p>
+            <ActionLink
+              class="mt-6 w-full justify-between font-semibold"
+              href={withBase(featuredAttempt.route, basePath)}
+              variant="outline"
+            >
+              Explore this project
+              <ArrowRight
+                class="size-4"
+                aria-hidden="true"
+              />
+            </ActionLink>
+          </aside>
+        )
+      }
     </div>
   </header>
   <section

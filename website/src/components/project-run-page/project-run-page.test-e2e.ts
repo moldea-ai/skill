@@ -61,20 +61,47 @@ test('keeps recorded session marks and tools readable in dark mode', async ({ br
       );
       const toolIcon = document.querySelector('[data-session-tool] svg.lucide-file-pen-line');
       const patchTarget = document.querySelector('[data-session-tool] ul li');
-      if (developerIcon === null || toolIcon === null || patchTarget === null) {
+      const developerAvatar = developerIcon?.parentElement;
+      if (developerIcon === null || !developerAvatar || toolIcon === null || patchTarget === null) {
         throw new Error('Expected recorded developer, tool, and patch-target elements.');
       }
       return {
         foreground: getComputedStyle(document.body).color,
+        background: getComputedStyle(document.body).backgroundColor,
         developer: getComputedStyle(developerIcon).color,
+        developerAvatar: getComputedStyle(developerAvatar).backgroundColor,
         tool: getComputedStyle(toolIcon).color,
         patchTarget: getComputedStyle(patchTarget).color,
       };
     });
-    expect(colors.developer).toBe(colors.foreground);
+    expect(colors.developer).toBe(colors.background);
+    expect(colors.developerAvatar).toBe(colors.foreground);
     expect(colors.tool).toBe(colors.foreground);
     expect(colors.patchTarget).toBe(colors.foreground);
     expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
+test('gives the developer avatar a distinct surface in light mode', async ({ browser }) => {
+  const context = await browser.newContext({ colorScheme: 'light' });
+  try {
+    const page = await context.newPage();
+    await page.goto(recordedPath);
+    const colors = await page.evaluate(() => {
+      const icon = document.querySelector('[data-session-role="user"] svg.lucide-user-round');
+      const avatar = icon?.parentElement;
+      if (!icon || !avatar) throw new Error('Expected a developer avatar.');
+      return {
+        foreground: getComputedStyle(document.body).color,
+        background: getComputedStyle(document.body).backgroundColor,
+        avatar: getComputedStyle(avatar).backgroundColor,
+        icon: getComputedStyle(icon).color,
+      };
+    });
+    expect(colors.avatar).toBe(colors.foreground);
+    expect(colors.icon).toBe(colors.background);
   } finally {
     await context.close();
   }

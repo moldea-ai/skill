@@ -126,7 +126,7 @@ export interface IProjectSessionEntry {
   ordinal: number;
   lastOrdinal: number;
   timestamp: string;
-  kind: 'session' | 'task_started' | 'turn' | 'message' | 'tool' | 'task_complete';
+  kind: 'session' | 'task_started' | 'turn' | 'message' | 'tool' | 'task_complete' | 'compaction';
   role?: 'developer' | 'user' | 'assistant';
   title: string;
   content: string;

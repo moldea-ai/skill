@@ -28,7 +28,7 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
     '#integrations',
   );
   await expect(navigation.getByRole('link', { name: /Project runs/u })).toContainText(
-    `${projectCount} project runs`,
+    `${projectCount} projects`,
   );
   await expect(sections.locator('[data-evidence-path-action]').getByRole('link')).toHaveText([
     'Explore decisions',

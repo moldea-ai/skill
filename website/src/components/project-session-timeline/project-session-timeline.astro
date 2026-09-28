@@ -63,7 +63,14 @@ const ordinalClass = 'shrink-0 whitespace-nowrap font-mono text-xs text-muted-fo
           >
             <div class="mb-3 flex items-start justify-between gap-3">
               <div class="flex min-w-0 items-center gap-2">
-                <span class="inline-flex size-8 items-center justify-center rounded-lg bg-secondary text-foreground">
+                <span
+                  class:list={[
+                    'inline-flex size-8 items-center justify-center rounded-lg',
+                    entry.role === 'assistant'
+                      ? 'bg-secondary text-foreground'
+                      : 'bg-foreground text-background',
+                  ]}
+                >
                   {entry.role === 'assistant' ? (
                     <img
                       src={skillMarkPath}

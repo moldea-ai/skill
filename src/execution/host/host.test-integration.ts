@@ -205,6 +205,58 @@ test('shared host aligns the Git traversal budget with its read-only dependency 
   }
 });
 
+test('shared host preserves the sandbox PATH in Codex shell commands', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-shell-path-test-'));
+  const executableDirectory = join(evaluationRoot, 'bin');
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  const codexPath = join(executableDirectory, 'codex');
+  const companionPath = join(executableDirectory, 'codex-code-mode-host');
+  mkdirSync(executableDirectory);
+  mkdirSync(join(repositoryPath, 'node_modules'), { recursive: true });
+  writeFileSync(
+    codexPath,
+    '#!/bin/sh\nfor argument do\n  case "$argument" in\n    shell_environment_policy.set.PATH=*) printf "%s\\n" "$argument"; exit 0 ;;\n  esac\ndone\nexit 2\n',
+  );
+  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+  chmodSync(codexPath, 0o755);
+  chmodSync(companionPath, 0o755);
+  await prepareCodexEvaluationHome(sandboxHome);
+  const originalPath = process.env['PATH'];
+  process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
+
+  try {
+    const actorOutput = await runCodexEvaluationHost({
+      command: HOST_COMMAND,
+      cwd: repositoryPath,
+      includeWorkspaceBinaryDirectory: true,
+      prompt: 'test actor shell path',
+      role: 'actor',
+      sandboxHome,
+    });
+    assert.equal(
+      actorOutput,
+      'shell_environment_policy.set.PATH="/home/evaluator/bin:/opt:/usr/bin:/bin:/mnt/node_modules/.bin"',
+    );
+
+    const judgeOutput = await runCodexEvaluationHost({
+      command: HOST_COMMAND,
+      cwd: repositoryPath,
+      prompt: 'test judge shell path',
+      role: 'judge',
+      sandboxHome,
+    });
+    assert.equal(
+      judgeOutput,
+      'shell_environment_policy.set.PATH="/home/evaluator/bin:/opt:/usr/bin:/bin"',
+    );
+  } finally {
+    if (originalPath === undefined) delete process.env['PATH'];
+    else process.env['PATH'] = originalPath;
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
 test('shared host permits the installed release CLI selected scope inventory', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-cli-scope-test-'));
   const executableDirectory = join(evaluationRoot, 'bin');

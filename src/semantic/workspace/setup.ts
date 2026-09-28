@@ -1115,6 +1115,92 @@ const seedInlineInstructionRuntime = async (repositoryPath: string): Promise<voi
   );
 };
 
+/** Seeds identical unbound model work and SDK bookkeeping for paired routing cases. */
+const seedModelWorkflow = async (repositoryPath: string): Promise<void> => {
+  const manifestPath = join(repositoryPath, 'package.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
+  await writeScenarioFile(
+    repositoryPath,
+    'package.json',
+    `${JSON.stringify(
+      {
+        ...manifest,
+        type: 'module',
+        scripts: {
+          test: 'npm run test:unit && npm run test:integration',
+          'test:unit': 'node --test src/sdk-usage.test-unit.js',
+          'test:integration': 'node --test src/incident-workflow.test-integration.js',
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/project.md',
+    '# Incident desk\n\nThis project drafts incident classifications and briefings for human operators. Operators retain responsibility for incident resolution.\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'docs/model-runtime.md',
+    '# Model runtime\n\nThe application owns the injected `client.generate({ instructions, input })` protocol. `runIncidentWorkflow` makes one call and returns its result. The client supplies `{ category, summary }`. Tests capture the real workflow request and return a canned response. No production provider is selected or exercised by these tests.\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/incident-workflow.js',
+    [
+      "const INSTRUCTIONS = 'Classify the report as availability or performance and return a category and a concise summary for the operator.';",
+      '',
+      'export const runIncidentWorkflow = async (client, report) =>',
+      '  client.generate({ instructions: INSTRUCTIONS, input: report });',
+      '',
+    ].join('\n'),
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/incident-workflow.test-integration.js',
+    [
+      "import assert from 'node:assert/strict';",
+      "import test from 'node:test';",
+      "import { runIncidentWorkflow } from './incident-workflow.js';",
+      '',
+      "test('sends the report and behavioral instructions through the real workflow', async () => {",
+      '  const requests = [];',
+      "  const response = { category: 'availability', summary: 'The report describes an outage.' };",
+      '  const client = { generate: async (request) => { requests.push(request); return response; } };',
+      "  const report = 'Customers cannot reach the service.';",
+      '  assert.deepEqual(await runIncidentWorkflow(client, report), response);',
+      '  assert.equal(requests.length, 1);',
+      '  assert.equal(requests[0].input, report);',
+      '  assert.match(requests[0].instructions, /availability/u);',
+      '  assert.match(requests[0].instructions, /performance/u);',
+      '});',
+      '',
+    ].join('\n'),
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/sdk-usage.js',
+    'export const totalTokens = (usage) => usage.inputTokens + usage.outputTokens;\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/sdk-usage.test-unit.js',
+    [
+      "import assert from 'node:assert/strict';",
+      "import test from 'node:test';",
+      "import { totalTokens } from './sdk-usage.js';",
+      '',
+      "test('totals reported SDK input and output usage', () => {",
+      '  assert.equal(totalTokens({ inputTokens: 12, outputTokens: 4 }), 16);',
+      '  assert.equal(totalTokens({ inputTokens: 0, outputTokens: 0 }), 0);',
+      '});',
+      '',
+    ].join('\n'),
+  );
+};
+
 /** Seeds executable package-manager configuration that must not be loaded implicitly. */
 const seedPackageManagerExecutionTrap = async (
   repositoryPath: string,
@@ -1524,6 +1610,10 @@ const seedScenarioRepository = async (
   await seedAdoptedProject(repositoryPath, caseDefinition);
 
   switch (caseDefinition.id) {
+    case 'model-workflow-routing':
+    case 'unrelated-sdk-maintenance':
+      await seedModelWorkflow(repositoryPath);
+      break;
     case 'available-runtime-insufficient-behavioral-evidence':
       await seedRefundAgent(
         repositoryPath,

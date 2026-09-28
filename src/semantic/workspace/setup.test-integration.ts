@@ -162,6 +162,39 @@ test.each([
   }
 });
 
+test.each(['model-workflow-routing', 'unrelated-sdk-maintenance'])(
+  '%s supplies executable unbound model and SDK evidence after adoption',
+  async (caseId) => {
+    const { caseDefinition, repositoryPath } = await materializeCase(caseId, true);
+    assert.equal(gateResult(repositoryPath, [], true), '1\n');
+    assert.equal(
+      gateResult(repositoryPath, ['/src/incident-workflow.js', '/src/sdk-usage.js']),
+      '0\n',
+    );
+    runFixtureTests(repositoryPath, [
+      'src/sdk-usage.test-unit.js',
+      'src/incident-workflow.test-integration.js',
+    ]);
+    for (const { source } of caseDefinition.input.repositoryEvidence) {
+      if (source.kind === 'workspace-path') {
+        assert.equal(existsSync(join(repositoryPath, source.path)), true, source.path);
+      }
+    }
+    // the real invocation test must detect lost model instructions
+    writeFileSync(
+      join(repositoryPath, 'src', 'incident-workflow.js'),
+      'export const runIncidentWorkflow = async (client, report) => client.generate({ input: report });\n',
+    );
+    const brokenRuntime = spawnSync(
+      process.execPath,
+      ['--test', 'src/incident-workflow.test-integration.js'],
+      { cwd: repositoryPath, encoding: 'utf8' },
+    );
+    if (brokenRuntime.error) throw brokenRuntime.error;
+    assert.equal(brokenRuntime.status, 1, brokenRuntime.stderr || brokenRuntime.stdout);
+  },
+);
+
 test('an unadopted conversational handoff has no canonical foundation', async () => {
   const { repositoryPath } = await materializeCase('unadopted-direct-context-handoff');
   assert.equal(gateResult(repositoryPath, [], true), '0\n');

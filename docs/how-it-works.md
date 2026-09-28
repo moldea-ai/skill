@@ -22,7 +22,7 @@ There is no separate `moldea` chat surface to operate.
 
 The coding agent can activate the skill in four ways:
 
-- **Direct activation:** after initialization, you ask to plan, build, review, or maintain AI agents, establish a project fact or policy, supply a clear correction, ask about project-context ownership, or request a specific `moldea` operation. The project-level meaning must be evident from the conversation independently of any code edit. Initialization itself requires an explicit request.
+- **Direct activation:** after initialization, you ask to plan, build, review, or maintain AI agents, including model instructions and responsibilities in one-shot calls and workflows; establish a project fact or policy; supply a clear correction; ask about project-context ownership; or request a specific `moldea` operation. The project-level meaning must be evident from the conversation independently of any code edit. Initialization itself requires an explicit request.
 - **Canonical activation:** the task changes a path under `/moldea/**`.
 - **Managed README activation:** a changed README hunk intersects the content between the full-line `moldea` markers.
 - **Declared-relationship activation:** in an adopted repository, a known task path exactly matches a binding or `affectedBy` declaration. The initial check combines exact repository paths explicitly named or targeted by the developer, whether changed or unchanged, with changed paths already established by the host. At an existing scope checkpoint, a materially new path independently discovered during the task gets one new-batch check; unchanged paths reuse the earlier decision. A new-batch miss leaves earlier matched owners in place.

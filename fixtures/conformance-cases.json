@@ -4,7 +4,7 @@
       "id": "inspect-valid",
       "input": {
         "output": {
-          "cliVersion": "9.0.0",
+          "cliVersion": "9.0.1",
           "schemaVersion": 5,
           "command": "inspect",
           "status": "valid",
@@ -23,7 +23,7 @@
       "id": "scope-valid",
       "input": {
         "output": {
-          "cliVersion": "9.0.0",
+          "cliVersion": "9.0.1",
           "schemaVersion": 5,
           "command": "scope",
           "status": "valid",
@@ -43,7 +43,7 @@
       "id": "content-valid",
       "input": {
         "output": {
-          "cliVersion": "9.0.0",
+          "cliVersion": "9.0.1",
           "schemaVersion": 5,
           "command": "content",
           "status": "valid",
@@ -61,7 +61,7 @@
       "id": "schema-mismatch",
       "input": {
         "output": {
-          "cliVersion": "9.0.0",
+          "cliVersion": "9.0.1",
           "schemaVersion": 1,
           "command": "inspect",
           "status": "valid",
@@ -84,14 +84,14 @@
           "error": null
         }
       },
-      "scenario": "The machine envelope reports unsupported CLI 10.0.0 while the declared and installed root package is 9.0.0.",
+      "scenario": "The machine envelope reports unsupported CLI 10.0.0 while the declared and installed root package is 9.0.1.",
       "expected": "reject-envelope"
     },
     {
       "id": "command-mismatch",
       "input": {
         "output": {
-          "cliVersion": "9.0.0",
+          "cliVersion": "9.0.1",
           "schemaVersion": 5,
           "command": "validate",
           "status": "valid",
@@ -105,7 +105,7 @@
       "id": "status-exit-mismatch",
       "input": {
         "output": {
-          "cliVersion": "9.0.0",
+          "cliVersion": "9.0.1",
           "schemaVersion": 5,
           "command": "inspect",
           "status": "valid",
@@ -119,7 +119,7 @@
       "id": "inspect-content-leak",
       "input": {
         "output": {
-          "cliVersion": "9.0.0",
+          "cliVersion": "9.0.1",
           "schemaVersion": 5,
           "command": "inspect",
           "status": "valid",

@@ -163,7 +163,6 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
     aria-labelledby="home-evidence-title"
     data-home-evidence
   >
-    <HeroBackdrop />
     <div class="page-shell relative">
       <div
         class="dark-surface-selection -mx-4 overflow-hidden bg-primary text-primary-foreground sm:mx-0 sm:rounded-3xl sm:shadow-raised"
@@ -195,7 +194,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
             <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-3">
                 <span
-                  class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"
+                  class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--website-ui-light-secondary)]"
                 >
                   <ListChecks
                     class="size-5"
@@ -252,7 +251,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                     />
                   </div>
                   <span
-                    class="mt-4 block h-1.5 overflow-hidden rounded-full bg-primary/10"
+                    class="mt-4 block h-1.5 overflow-hidden rounded-full bg-[var(--website-ui-light-secondary)]"
                     aria-hidden="true"
                   >
                     <span class="block h-full w-full rounded-full bg-emerald-600" />
@@ -260,7 +259,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                 </div>
               ) : hasSemanticReleaseEvidence ? (
                 <p
-                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  class="mt-5 rounded-xl bg-[var(--website-ui-light-secondary)] p-4 text-sm text-primary/65"
                   data-semantic-release-count
                 >
                   {successfulSemanticCaseCount} of {model.semanticEvaluation.caseCount} decisions
@@ -268,7 +267,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                 </p>
               ) : (
                 <p
-                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  class="mt-5 rounded-xl bg-[var(--website-ui-light-secondary)] p-4 text-sm text-primary/65"
                   data-semantic-release-count
                 >
                   No release decision result is recorded yet.
@@ -316,7 +315,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
             <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-3">
                 <span
-                  class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10"
+                  class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--website-ui-light-secondary)]"
                 >
                   <Cable
                     class="size-5"
@@ -379,14 +378,14 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                         />
                       ))}
                       {additionalQualificationAdapterCount > 0 && (
-                        <span class="inline-flex size-7 items-center justify-center rounded-md border border-primary/15 bg-primary/5 text-xs font-bold">
+                        <span class="inline-flex size-7 items-center justify-center rounded-md border border-primary/15 bg-[var(--website-ui-light-secondary)] text-xs font-bold">
                           +{additionalQualificationAdapterCount}
                         </span>
                       )}
                     </div>
                   </div>
                   <span
-                    class="mt-4 block h-1.5 overflow-hidden rounded-full bg-primary/10"
+                    class="mt-4 block h-1.5 overflow-hidden rounded-full bg-[var(--website-ui-light-secondary)]"
                     aria-hidden="true"
                   >
                     <span class="block h-full w-full rounded-full bg-emerald-600" />
@@ -394,7 +393,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                 </div>
               ) : hasQualificationReleaseEvidence ? (
                 <p
-                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  class="mt-5 rounded-xl bg-[var(--website-ui-light-secondary)] p-4 text-sm text-primary/65"
                   data-qualification-release-count
                 >
                   {qualifiedProfileCount} of {model.qualification.profiles.length} adapter setups
@@ -402,7 +401,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                 </p>
               ) : (
                 <p
-                  class="mt-5 rounded-xl bg-primary/5 p-4 text-sm text-primary/65"
+                  class="mt-5 rounded-xl bg-[var(--website-ui-light-secondary)] p-4 text-sm text-primary/65"
                   data-qualification-release-count
                 >
                   No adapter qualification result is recorded yet.
@@ -450,7 +449,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
               >
                 <div class="min-w-0">
                   <div class="flex items-center gap-3">
-                    <span class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                    <span class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--website-ui-light-secondary)]">
                       <FolderGit2
                         class="size-5"
                         aria-hidden="true"
@@ -468,7 +467,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                     mock-project work.
                   </p>
                 </div>
-                <div class="min-w-0 rounded-xl border border-primary/10 bg-primary/5 p-5">
+                <div class="min-w-0 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-5">
                   <div class="grid grid-cols-2 gap-5 border-b border-primary/10 pb-5">
                     <p class="text-sm text-primary/70">
                       <span class="block font-mono text-3xl font-semibold text-primary">
@@ -503,7 +502,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
   </section>
 
   <section
-    class="bg-sidebar py-12 sm:py-16"
+    class="bg-secondary py-12 sm:py-16"
     data-adoption
   >
     <div class="page-shell">

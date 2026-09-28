@@ -279,12 +279,12 @@ const getAttemptRole = (index: number): string =>
     description={`${profile.probes.length} behavior ${profile.probes.length === 1 ? 'claim' : 'claims'} mapped to project journeys.`}
   >
     <div
-      class="table-scroll overflow-x-auto pt-5"
+      class="table-scroll overflow-x-auto"
       tabindex="0"
       role="region"
       aria-label="Qualification compatibility coverage"
     >
-      <table class="w-full min-w-[48rem] border-collapse text-left text-sm">
+      <table class="w-full min-w-[64rem] border-collapse text-left text-sm">
         <thead class="bg-muted">
           <tr>
             <th class="px-4 py-3 font-semibold">Claim</th>
@@ -297,13 +297,13 @@ const getAttemptRole = (index: number): string =>
             profile.probes.map((probe) => (
               <tr>
                 <td class="px-4 py-3 align-top">
-                  <code class="break-all">{probe.matrixPath}</code>
+                  <code class="whitespace-nowrap">{probe.matrixPath}</code>
                 </td>
                 <td class="px-4 py-3 align-top">
                   <ul class="grid gap-1">
                     {probe.coveredBy.map((caseId) => (
                       <li>
-                        <code>{caseId}</code>
+                        <code class="whitespace-nowrap">{caseId}</code>
                       </li>
                     ))}
                   </ul>

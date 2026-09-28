@@ -10,7 +10,6 @@ import {
 } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
@@ -46,8 +45,9 @@ const adapterPreview = [
   { id: 'vercel-ai-sdk', name: 'Vercel AI SDK' },
   { id: 'eve', name: 'Eve' },
 ].filter(({ id }) => adapterIds.has(id));
-const projectPreviews =
-  model.projectRuns?.pages.flatMap(({ attempts }) => attempts).slice(0, 3) ?? [];
+const projectAttempts = model.projectRuns?.pages.flatMap(({ attempts }) => attempts) ?? [];
+const projectPreviews = projectAttempts.slice(0, 3);
+const remainingProjectCount = projectAttempts.length - projectPreviews.length;
 const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
 ---
 
@@ -56,63 +56,85 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
   description="Explore moldea through semantic evaluations, adapter qualifications, and coding sessions in mock projects."
   {breadcrumbs}
 >
-  <div class="page-shell pt-4 sm:pt-7">
-    <Breadcrumbs
-      {basePath}
-      items={breadcrumbs}
-    />
-  </div>
-
-  <header class="relative overflow-hidden border-b border-border bg-background">
-    <HeroBackdrop />
+  <header class="border-b border-border bg-secondary">
+    <div class="page-shell pt-4 sm:pt-7">
+      <Breadcrumbs
+        {basePath}
+        items={breadcrumbs}
+      />
+    </div>
     <div
-      class="page-shell relative grid gap-10 py-12 sm:py-18 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.7fr)] lg:items-end lg:gap-16 lg:py-24"
+      class="page-shell grid gap-8 pt-8 pb-12 sm:pt-10 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,0.85fr)] lg:items-center lg:gap-14"
     >
       <div class="min-w-0">
         <p class="eyebrow mb-4">Evidence</p>
-        <h1 class="display-title max-w-4xl">See the work behind the result.</h1>
+        <h1 class="display-title max-w-4xl">
+          <InlineBrandText text="Follow the evidence behind moldea." />
+        </h1>
         <p class="mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
           <InlineBrandText
-            text="Explore how moldea makes decisions, connects to real agent runtimes, and holds up across complete coding projects."
+            text={model.projectRuns === null
+              ? 'Inspect decision evaluations and adapter qualifications through their available records.'
+              : 'Inspect decision evaluations, adapter qualifications, and project runs through their available records.'}
           />
         </p>
       </div>
       <nav
-        class="grid overflow-hidden rounded-2xl border border-border bg-card/90 shadow-raised backdrop-blur-sm"
+        class="grid gap-3"
         aria-label="Evidence sections"
       >
         <a
-          class="group flex items-center justify-between gap-4 border-b border-border px-5 py-4 font-semibold transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:px-6"
+          class="group rounded-2xl border border-border bg-card p-4 shadow-surface transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-5"
           href="#decisions"
         >
-          Decisions <ArrowRight
-            class="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
-            aria-hidden="true"
-          />
+          <span class="flex items-center justify-between gap-4 text-base font-semibold">
+            Decision evaluation
+            <ArrowRight
+              class="size-4 shrink-0 transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
+              aria-hidden="true"
+            />
+          </span>
+          <span class="mt-2 block text-sm leading-6 text-muted-foreground">
+            See the context, changes, and project-boundary checks.
+          </span>
+          <span class="mt-3 inline-flex"><EvidenceStatus status={decisionStatus} /></span>
         </a>
         <a
-          class:list={[
-            'group flex items-center justify-between gap-4 px-5 py-4 font-semibold transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:px-6',
-            model.projectRuns !== null && 'border-b border-border',
-          ]}
+          class="group rounded-2xl border border-border bg-card p-4 shadow-surface transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-5"
           href="#integrations"
         >
-          Integrations <ArrowRight
-            class="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
-            aria-hidden="true"
-          />
+          <span class="flex items-center justify-between gap-4 text-base font-semibold">
+            Adapter qualification
+            <ArrowRight
+              class="size-4 shrink-0 transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
+              aria-hidden="true"
+            />
+          </span>
+          <span class="mt-2 block text-sm leading-6 text-muted-foreground">
+            Inspect runtime connections and compatibility coverage.
+          </span>
+          <span class="mt-3 inline-flex"><EvidenceStatus status={qualificationStatus} /></span>
         </a>
         {
           model.projectRuns !== null && (
             <a
-              class="group flex items-center justify-between gap-4 px-5 py-4 font-semibold transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:px-6"
+              class="group rounded-2xl border border-border bg-card p-4 shadow-surface transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-5"
               href="#projects"
             >
-              Project runs{' '}
-              <ArrowRight
-                class="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
-                aria-hidden="true"
-              />
+              <span class="flex items-center justify-between gap-4 text-base font-semibold">
+                Project runs
+                <ArrowRight
+                  class="size-4 shrink-0 transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
+                  aria-hidden="true"
+                />
+              </span>
+              <span class="mt-2 block text-sm leading-6 text-muted-foreground">
+                Follow the request, conversation, tools, and changed files.
+              </span>
+              <span class="mt-3 block text-xs font-semibold text-foreground">
+                {projectAttempts.length}{' '}
+                {projectAttempts.length === 1 ? 'project run' : 'project runs'}
+              </span>
             </a>
           )
         }
@@ -166,7 +188,7 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         </div>
       </div>
       <div
-        class="overflow-hidden rounded-3xl border border-primary-foreground/15 bg-primary-foreground p-5 text-primary shadow-raised sm:p-7"
+        class="light-surface-selection overflow-hidden rounded-3xl border border-primary-foreground/15 bg-primary-foreground p-5 text-primary shadow-raised sm:p-7"
       >
         <p class="text-xs font-bold tracking-[0.14em] text-primary/50 uppercase">
           Follow the decision
@@ -175,19 +197,25 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
           class="mt-5 grid gap-3"
           aria-label="Decision evidence"
         >
-          <li class="flex items-center gap-4 rounded-xl border border-primary/10 bg-primary/5 p-4">
+          <li
+            class="flex items-center gap-4 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-4"
+          >
             <MessageSquareText
               class="size-5 shrink-0"
               aria-hidden="true"
             /><span class="font-semibold">The developer's request</span>
           </li>
-          <li class="flex items-center gap-4 rounded-xl border border-primary/10 bg-primary/5 p-4">
+          <li
+            class="flex items-center gap-4 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-4"
+          >
             <Bot
               class="size-5 shrink-0"
               aria-hidden="true"
             /><span class="font-semibold">The agent's choices</span>
           </li>
-          <li class="flex items-center gap-4 rounded-xl border border-primary/10 bg-primary/5 p-4">
+          <li
+            class="flex items-center gap-4 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-4"
+          >
             <FileSearch
               class="size-5 shrink-0"
               aria-hidden="true"
@@ -230,7 +258,7 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
       </div>
       <div class="order-1 min-w-0 lg:order-2">
         <span
-          class="inline-flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"
+          class="inline-flex size-12 items-center justify-center rounded-2xl bg-secondary text-foreground"
           ><Cable
             class="size-6"
             aria-hidden="true"
@@ -270,13 +298,13 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
     model.projectRuns !== null && (
       <section
         id="projects"
-        class="scroll-mt-20 bg-sidebar py-14 sm:py-20"
+        class="scroll-mt-20 bg-secondary py-14 sm:py-20"
         aria-labelledby="projects-title"
         data-evidence-path="projects"
       >
         <div class="page-shell grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
           <div class="min-w-0">
-            <span class="inline-flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <span class="inline-flex size-12 items-center justify-center rounded-2xl bg-background text-foreground">
               <FolderGit2
                 class="size-6"
                 aria-hidden="true"
@@ -287,11 +315,8 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
               id="projects-title"
               class="section-title mt-3 max-w-xl"
             >
-              What happened in the project?
+              Follow the work from request to result.
             </h2>
-            <div class="mt-5">
-              <EvidenceStatus status="passed" />
-            </div>
             <p class="mt-6 max-w-xl text-base leading-8 text-muted-foreground">
               Follow real coding work from the request through agent messages, tool calls, changed
               files, and the resulting project.
@@ -312,13 +337,29 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
               </ActionLink>
             </div>
           </div>
-          <div class="grid gap-3">
-            {projectPreviews.map((attempt) => (
-              <article class="rounded-2xl border border-border bg-card p-5 shadow-surface sm:p-6">
-                <h3 class="text-lg font-semibold">{attempt.title}</h3>
-                <p class="mt-2 text-sm leading-6 text-muted-foreground">{attempt.excerpt}</p>
-              </article>
-            ))}
+          <div class="min-w-0">
+            <p class="eyebrow mb-4">Selected project records</p>
+            <div class="grid gap-3">
+              {projectPreviews.map((attempt) => (
+                <article class="rounded-2xl border border-border bg-card p-5 shadow-surface sm:p-6">
+                  <h3 class="text-lg font-semibold">{attempt.title}</h3>
+                  <p class="mt-2 text-sm leading-6 text-muted-foreground">{attempt.excerpt}</p>
+                </article>
+              ))}
+            </div>
+            {remainingProjectCount > 0 && (
+              <a
+                class="mt-5 inline-flex min-h-10 items-center gap-2 text-link font-semibold link-feedback focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                href={withBase(PROJECT_RUN_ROUTE, basePath)}
+              >
+                View {remainingProjectCount} more project{' '}
+                {remainingProjectCount === 1 ? 'run' : 'runs'}
+                <ArrowRight
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </a>
+            )}
           </div>
         </div>
       </section>

@@ -1,5 +1,13 @@
 ---
-import { ArrowRight, Bot, ExternalLink, FileCheck, Search, ShieldCheck } from '@lucide/astro';
+import {
+  ArrowDown,
+  ArrowRight,
+  Bot,
+  ExternalLink,
+  FileCheck,
+  Search,
+  ShieldCheck,
+} from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import { withBase } from '@moldea.ai/website-ui/site';
@@ -81,7 +89,7 @@ const proofSteps = [
           size="lg"
         >
           {hasRecordedEvidence ? 'Browse the results' : 'Browse the integrations'}
-          <ArrowRight
+          <ArrowDown
             class="size-4"
             aria-hidden="true"
           />

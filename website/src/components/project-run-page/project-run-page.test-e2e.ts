@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
@@ -43,6 +44,40 @@ test('shows attempted patch targets without presenting a failed tool result as s
   await expect(page.getByRole('dialog', { name: 'apply_patch · event 8' })).toContainText(
     'Patch applied.',
   );
+});
+
+test('keeps recorded session marks and tools readable in dark mode', async ({ browser }) => {
+  const context = await browser.newContext({ colorScheme: 'dark' });
+  try {
+    const page = await context.newPage();
+    await page.goto(recordedPath);
+    await expect(
+      page.locator('[data-session-role="assistant"] [data-agent-response-mark]'),
+    ).toHaveCount(2);
+
+    const colors = await page.evaluate(() => {
+      const developerIcon = document.querySelector(
+        '[data-session-role="user"] svg.lucide-user-round',
+      );
+      const toolIcon = document.querySelector('[data-session-tool] svg.lucide-file-pen-line');
+      const patchTarget = document.querySelector('[data-session-tool] ul li');
+      if (developerIcon === null || toolIcon === null || patchTarget === null) {
+        throw new Error('Expected recorded developer, tool, and patch-target elements.');
+      }
+      return {
+        foreground: getComputedStyle(document.body).color,
+        developer: getComputedStyle(developerIcon).color,
+        tool: getComputedStyle(toolIcon).color,
+        patchTarget: getComputedStyle(patchTarget).color,
+      };
+    });
+    expect(colors.developer).toBe(colors.foreground);
+    expect(colors.tool).toBe(colors.foreground);
+    expect(colors.patchTarget).toBe(colors.foreground);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
+  } finally {
+    await context.close();
+  }
 });
 
 test('keeps event numbers aligned within their rows at mobile and desktop widths', async ({

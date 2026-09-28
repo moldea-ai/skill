@@ -1,8 +1,7 @@
 ---
-import { ArrowLeft, ArrowRight, FolderGit2 } from '@lucide/astro';
+import { ArrowLeft, ArrowRight } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
@@ -29,57 +28,23 @@ const allAttempts = run.pages.flatMap(({ attempts }) => attempts);
   description={`Explore ${allAttempts.length} mock projects and the coding sessions, context, and source records behind them. Page ${page.number} of ${run.pages.length}.`}
   {breadcrumbs}
 >
-  <div class="page-shell pt-4 sm:pt-7">
-    <Breadcrumbs
-      {basePath}
-      items={breadcrumbs}
-    />
-  </div>
-  <header class="relative overflow-hidden border-b border-border bg-sidebar">
-    <HeroBackdrop />
-    <div
-      class="page-shell relative grid gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.7fr)] lg:items-center lg:gap-16 lg:py-20"
-    >
-      <div class="min-w-0">
-        <p class="eyebrow mb-4">Project runs</p>
-        <h1 class="display-title max-w-3xl">Explore the projects behind the evidence.</h1>
-        <p class="mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-          <InlineBrandText
-            text="See how a coding agent used moldea while building and maintaining mock projects with different needs and boundaries."
-          />
-        </p>
-      </div>
-      <div
-        class="dark-surface-selection -mx-4 bg-primary p-6 text-primary-foreground sm:mx-0 sm:rounded-3xl sm:p-7 sm:shadow-raised"
-      >
-        <div
-          class="flex items-end justify-between gap-4 border-b border-primary-foreground/15 pb-5"
-        >
-          <p class="text-sm font-semibold text-primary-foreground/70">Projects to explore</p>
-          <strong class="font-mono text-6xl leading-none tracking-tight sm:text-7xl"
-            >{allAttempts.length}</strong
-          >
-        </div>
-        <nav
-          class="mt-3"
-          aria-label="Explore project examples"
-        >
-          {
-            allAttempts.slice(0, 3).map((attempt) => (
-              <a
-                class="group flex items-center justify-between gap-4 border-b border-primary-foreground/15 py-3 text-sm font-semibold last:border-0 hover:text-primary-foreground/70 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring"
-                href={withBase(attempt.route, basePath)}
-              >
-                {attempt.title}
-                <ArrowRight
-                  class="size-4 shrink-0 transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
-                  aria-hidden="true"
-                />
-              </a>
-            ))
-          }
-        </nav>
-      </div>
+  <header class="border-b border-border bg-secondary">
+    <div class="page-shell pt-4 sm:pt-7">
+      <Breadcrumbs
+        {basePath}
+        items={breadcrumbs}
+      />
+    </div>
+    <div class="page-shell pt-8 pb-12 sm:pt-10 sm:pb-16">
+      <p class="eyebrow mb-4">Project runs</p>
+      <h1 class="display-title max-w-4xl">Explore coding work, project by project.</h1>
+      <p class="mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+        See each mock project's request, resulting changes, and any recorded agent session.
+      </p>
+      <p class="mt-6 text-sm font-semibold text-foreground">
+        <span class="font-mono text-xl">{allAttempts.length}</span>
+        {allAttempts.length === 1 ? ' project run' : ' project runs'}
+      </p>
     </div>
   </header>
   <section
@@ -99,20 +64,12 @@ const allAttempts = run.pages.flatMap(({ attempts }) => attempts);
       )
     }
     <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.7fr)] sm:items-end">
-      <div>
-        <div class="flex items-center gap-3">
-          <FolderGit2
-            class="size-5 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <h2
-            id="projects-title"
-            class="section-title"
-          >
-            Choose a project.
-          </h2>
-        </div>
-      </div>
+      <h2
+        id="projects-title"
+        class="section-title"
+      >
+        Browse project runs
+      </h2>
       <p class="text-sm leading-7 text-muted-foreground sm:justify-self-end">
         <InlineBrandText
           text="Open a project to see what was asked, what changed, and where moldea fit into the work."

@@ -78,6 +78,9 @@ test('renders current coverage without recorded results', async ({ page }) => {
 
   await page.goto(toPublicPath(model.qualification.route));
   await expect(page.getByText('No recorded attempt', { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'Browse the integrations' }).locator('svg.lucide-arrow-down'),
+  ).toHaveCount(1);
   await expect(page.getByRole('heading', { name: 'Review the cases' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Await the evidence' })).toBeVisible();
   await expect(page.getByText(/qualification cases/u).first()).toBeVisible();
@@ -129,9 +132,54 @@ test('unselected project runs are absent from navigation and static routes', asy
   expect(model.routes.some((route) => route.startsWith('/evidence/project-runs/'))).toBe(false);
   await page.goto(toPublicPath('/evidence/'));
   await expect(page.getByRole('link', { name: 'Explore project runs' })).toHaveCount(0);
+  await expect(
+    page.getByRole('navigation', { name: 'Evidence sections' }).getByRole('link'),
+  ).toHaveCount(2);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Follow the evidence behind moldea.',
+  );
   expect(
     existsSync(path.join(getRepositoryRoot(), 'website/dist/evidence/project-runs/index.html')),
   ).toBe(false);
+});
+
+test('keeps evidence selection readable on neutral badges and fixed light cards', async ({
+  page,
+}) => {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme });
+    await page.goto(toPublicPath('/evidence/'));
+
+    const expectedSelection = await page.locator('#decisions').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { background: style.backgroundColor, foreground: style.color };
+    });
+    const badgeSelection = await page
+      .locator('#decisions [data-evidence-status="not-recorded"] [data-status-badge="neutral"]')
+      .evaluate((element) => {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        const style = getComputedStyle(element, '::selection');
+        return { background: style.backgroundColor, foreground: style.color };
+      });
+    const cardSelection = await page
+      .getByText('Follow the decision', { exact: true })
+      .evaluate((element) => {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        const style = getComputedStyle(element, '::selection');
+        return { background: style.backgroundColor, foreground: style.color };
+      });
+
+    expect(badgeSelection).toStrictEqual(expectedSelection);
+    expect(cardSelection).toStrictEqual(expectedSelection);
+  }
 });
 
 test('loading a selection replaces local preview and failed arguments preserve the model', async () => {

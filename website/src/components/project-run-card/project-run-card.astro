@@ -14,22 +14,16 @@ const { attempt } = Astro.props;
 ---
 
 <article
-  class="group flex min-w-0 flex-col border-b border-border py-7 sm:rounded-3xl sm:border sm:bg-gradient-to-br sm:from-card sm:to-muted/40 sm:p-7 sm:shadow-surface sm:transition-shadow sm:hover:shadow-raised"
+  class="group flex min-w-0 flex-col border-b border-border py-7 sm:rounded-3xl sm:border sm:bg-card sm:p-7 sm:shadow-surface sm:transition-shadow sm:hover:shadow-raised"
   data-project-story
 >
-  <span
-    class="inline-flex size-14 items-center justify-center rounded-2xl bg-primary/10 font-mono text-2xl font-bold text-primary"
-    aria-hidden="true"
-  >
-    {attempt.title.charAt(0)}
-  </span>
-  <h3 class="mt-6 text-2xl font-semibold tracking-tight break-words sm:text-3xl">
+  <h3 class="text-2xl font-semibold tracking-tight break-words sm:text-3xl">
     <InlineBrandText text={attempt.title} />
   </h3>
-  <p class="mt-3 pb-7 text-sm leading-7 break-words text-muted-foreground sm:text-base">
+  <p class="mt-3 text-sm leading-7 break-words text-muted-foreground sm:text-base">
     <InlineBrandText text={attempt.summary} />
   </p>
-  <div class="mt-auto border-t border-border pt-5">
+  <div class="mt-auto pt-7">
     <ActionLink
       class="w-full justify-between font-semibold"
       variant="outline"

@@ -2,17 +2,34 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+
 const toPublicPath = (route: string): string =>
   withBase(route, process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH);
 
 test('presents each evidence source as a navigable section', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(toPublicPath('/evidence/'));
+  const projectCount =
+    loadWebsiteModel().projectRuns?.pages.reduce(
+      (count, { attempts }) => count + attempts.length,
+      0,
+    ) ?? 0;
   const sections = page.locator('[data-evidence-path]');
   await expect(sections).toHaveCount(3);
-  await expect(
-    page.getByRole('navigation', { name: 'Evidence sections' }).getByRole('link'),
-  ).toHaveText(['Decisions', 'Integrations', 'Project runs']);
+  const navigation = page.getByRole('navigation', { name: 'Evidence sections' });
+  await expect(navigation.getByRole('link')).toHaveCount(3);
+  await expect(navigation.getByRole('link', { name: /Decision evaluation/u })).toHaveAttribute(
+    'href',
+    '#decisions',
+  );
+  await expect(navigation.getByRole('link', { name: /Adapter qualification/u })).toHaveAttribute(
+    'href',
+    '#integrations',
+  );
+  await expect(navigation.getByRole('link', { name: /Project runs/u })).toContainText(
+    `${projectCount} project runs`,
+  );
   await expect(sections.locator('[data-evidence-path-action]').getByRole('link')).toHaveText([
     'Explore decisions',
     'Explore adapters',
@@ -26,7 +43,10 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
   );
   expect(boxes[0]!.y).toBeLessThan(boxes[1]!.y);
   expect(boxes[1]!.y).toBeLessThan(boxes[2]!.y);
-  await expect(sections.last().locator('[data-evidence-status="passed"]')).toBeVisible();
+  await expect(sections.last().locator('[data-evidence-status]')).toHaveCount(0);
+  await expect(
+    sections.last().getByRole('link', { name: `View ${projectCount - 3} more project runs` }),
+  ).toHaveAttribute('href', toPublicPath('/evidence/project-runs/'));
   for (const section of await sections.all()) {
     const action = section.locator('[data-evidence-path-action]');
     const link = action.getByRole('link');

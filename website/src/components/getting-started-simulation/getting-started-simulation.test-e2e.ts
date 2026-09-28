@@ -52,6 +52,10 @@ test('shows one install followed by an ordinary coding-agent request', async ({ 
   await expect(
     gettingStarted.getByRole('heading', { level: 3, name: 'Your coding agent handles the rest' }),
   ).toBeVisible();
+  await expect(gettingStarted.locator('[data-getting-started-agent-panel] img')).toHaveAttribute(
+    'src',
+    toPublicPath('/logo/icon-xs-dark.png'),
+  );
   await expect(gettingStarted.getByText('Support agent ready.', { exact: true })).toBeVisible();
   const projectResult = gettingStarted.getByRole('list', {
     name: 'Created support agent result',

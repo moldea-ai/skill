@@ -250,7 +250,7 @@ describe('verifyProductionBuild', () => {
     const evidenceHeading = /<h1[^>]*>(.*?)<\/h1>/su
       .exec(evidenceHtml)?.[1]
       ?.replace(/<[^>]+>/gu, '');
-    expect(evidenceHeading).toBe('See the work behind the result.');
+    expect(evidenceHeading).toBe('Follow the evidence behind moldea.');
     expect(semanticHtml).toContain(
       `${successfulCaseCount}/${model.semanticEvaluation.caseCount} decisions verified`,
     );

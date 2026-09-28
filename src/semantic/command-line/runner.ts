@@ -267,12 +267,13 @@ const runSemanticTrial = async (options: {
   try {
     const actorHome = path.join(evaluationRoot, 'actor-home');
     const actorToolDirectory = path.join(evaluationRoot, 'actor-tools');
-    const { readOnlyMounts, repositoryPath } = await createActorRepository(
-      evaluationRoot,
-      options.caseDefinition,
-      actorHome,
-      actorToolDirectory,
-    );
+    const { hasWorkspaceBinaryDirectory, readOnlyMounts, repositoryPath } =
+      await createActorRepository(
+        evaluationRoot,
+        options.caseDefinition,
+        actorHome,
+        actorToolDirectory,
+      );
     const beforeWorkspace = await snapshotSemanticWorkspace(repositoryPath);
     const beforeGitState = await snapshotSemanticWorkspace(path.join(repositoryPath, '.git'));
     const relatedMounts = readOnlyMounts.filter(({ target }) => target !== '/home/evaluator/bin');
@@ -428,7 +429,7 @@ const runSemanticTrial = async (options: {
           runCodexEvaluationHost({
             command: options.actorCommand,
             cwd: repositoryPath,
-            includeWorkspaceBinaryDirectory: true,
+            includeWorkspaceBinaryDirectory: hasWorkspaceBinaryDirectory,
             prompt: actorPrompt,
             readOnlyMounts,
             readOnlyWorkspacePaths: ['.agents', '.git'],

@@ -2482,6 +2482,7 @@ export const createActorRepository = async (
   sandboxHome: string,
   actorToolDirectory: string,
 ): Promise<{
+  hasWorkspaceBinaryDirectory: boolean;
   readOnlyMounts: Array<{ source: string; target: string }>;
   repositoryPath: string;
 }> => {
@@ -2544,7 +2545,11 @@ export const createActorRepository = async (
 
   await setupResult.afterBaseline?.();
 
-  return { readOnlyMounts: setupResult.readOnlyToolMounts ?? [], repositoryPath };
+  return {
+    hasWorkspaceBinaryDirectory: existsSync(join(repositoryPath, 'node_modules')),
+    readOnlyMounts: setupResult.readOnlyToolMounts ?? [],
+    repositoryPath,
+  };
 };
 
 /** Records repository-visible files without following symlinks. */

@@ -118,12 +118,18 @@ test('every semantic case materializes a snapshot-ready actor repository', async
   for (const caseDefinition of cases) {
     const root = mkdtempSync(join(tmpdir(), 'moldea-setup-'));
     try {
-      const { repositoryPath } = await createActorRepository(
+      const { hasWorkspaceBinaryDirectory, repositoryPath } = await createActorRepository(
         root,
         caseDefinition,
         join(root, 'sandbox-home'),
         join(root, 'actor-tools'),
       );
+      if (caseDefinition.id === 'host-plan-command-precedence') {
+        assert.equal(hasWorkspaceBinaryDirectory, false);
+      }
+      if (caseDefinition.id === 'explicit-moldea-validation') {
+        assert.equal(hasWorkspaceBinaryDirectory, true);
+      }
       await snapshotSemanticWorkspace(repositoryPath);
     } catch (error) {
       throw new Error(`Unable to materialize semantic case ${caseDefinition.id}.`, {

@@ -42,9 +42,7 @@ workspace:
       src/delegation.ts,
       src/delegation-tool.ts,
       src/workflow-agent.mts,
-      moldea/agents/support/description.md,
       moldea/agents/support/instruction.md,
-      moldea/agents/step-support/description.md,
       moldea/agents/step-support/instruction.md,
       moldea/agents/delegating-support/description.md,
       moldea/agents/delegating-support/instruction.md,
@@ -60,7 +58,12 @@ workspace:
       moldea/moldea.yaml,
     ]
   mustNotExistPaths: []
-  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePaths:
+    [
+      moldea/moldea.yaml,
+      moldea/agents/support/description.md,
+      moldea/agents/step-support/description.md,
+    ]
   allowedChangePathPatterns: [moldea/runtimes/**/*.md]
   mustChangePathPatterns: [moldea/runtimes/**/*.md]
 judgeRequirements:

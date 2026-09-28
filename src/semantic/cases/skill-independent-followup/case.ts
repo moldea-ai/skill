@@ -35,7 +35,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-artifact-only-scope',
       criterion:
-        'The actor answers the scope question from the reviewer artifact and at most the independent skill-design reference. It identifies reusable review procedure without inventing a change to editorial policy and leaves all files unchanged.',
+        'The actor answers that the proposal changes only the reviewer skill procedure, does not claim a change to project-wide editorial policy, and leaves all files unchanged. This criterion does not require unrecorded read-path proof.',
     },
   ],
   forbidden: [

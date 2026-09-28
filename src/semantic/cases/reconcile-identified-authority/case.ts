@@ -29,7 +29,7 @@ export const semanticCase = defineSemanticCase({
         source: { kind: 'workspace-path', path: 'src/refund-policy.js', expectedType: 'file' },
       },
       {
-        claim: 'The identified decision record is available in the repository.',
+        claim: 'The identified accepted decision selects manager approval for this dispute.',
         source: {
           kind: 'workspace-path',
           path: 'docs/decisions/refund-approval.md',
@@ -48,7 +48,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'resolve-from-identified-decision',
       criterion:
-        'The actor identifies the conflict between manager-approval code and administrator-only instruction, uses only the task-identified accepted decision that explicitly selects manager approval to resolve it, and does not attribute authority to code or canonical location alone.',
+        'The actor identifies the manager-versus-administrator conflict and attributes manager approval to the task-identified accepted decision, not to code or canonical location alone. The final correction agrees with that decision.',
     },
     {
       label: 'correct-and-verify-coherent-scope',

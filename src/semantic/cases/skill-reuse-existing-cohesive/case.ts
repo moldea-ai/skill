@@ -65,7 +65,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-single-activation-boundary',
       criterion:
-        'The response and workspace changes preserve single activation boundary throughout the operation.',
+        'The response and final workspace changes retain one cohesive activation boundary.',
     },
     {
       label: 'reuse-existing-deterministic-script',

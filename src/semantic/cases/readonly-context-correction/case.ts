@@ -31,7 +31,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-selected-discrepancy',
       criterion:
-        'After adoption and bounded owner selection, the actor identifies the payment-authority error in moldea/project.md and the supplied extraction-and-validation boundary. It accurately reports that no files changed.',
+        'The actor identifies the payment-authority error in moldea/project.md and the supplied extraction-and-validation boundary. It accurately reports that no files changed.',
     },
   ],
   forbidden: [

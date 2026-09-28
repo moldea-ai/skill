@@ -534,11 +534,7 @@ const runSemanticTrial = async (options: {
         judgeHost: options.judgeHost,
         judgePrompt,
       });
-      const assessment = assessSemanticJudgeOutput(
-        options.caseDefinition,
-        judgeEvidence.response,
-        actorEvidence.response,
-      );
+      const assessment = assessSemanticJudgeOutput(options.caseDefinition, judgeEvidence.response);
       const dimensions = createSemanticResultDimensions({
         actorCommandPolicy: actorEvidence.commandPolicyEvidence,
         actorResourceEvidence: actorEvidence.actorResourceEvidence,

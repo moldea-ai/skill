@@ -41,7 +41,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'treat-current-paths-as-new',
       criterion:
-        'The actor treats current paths as new according to the evidence and operation contract.',
+        'The actor assesses the current repository paths, including src/initial.js, despite the missing HEAD commit; the response need not describe the internal path classification.',
     },
     {
       label: 'report-no-writes',

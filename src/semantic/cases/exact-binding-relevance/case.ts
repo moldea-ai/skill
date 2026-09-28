@@ -8,8 +8,7 @@ export const semanticCase = defineSemanticCase({
   scenario: 'The changed path is an exact agent binding declared in the canonical manifest.',
   operation: 'exact-binding-relevance',
   input: {
-    developerDirection:
-      'Review the current change to src/support-agent.js and verify whether its declared agent contract remains aligned. Do not edit files.',
+    developerDirection: 'Review the current change to src/support-agent.js. Do not edit files.',
     repositoryEvidence: [
       {
         claim: 'The repository has a canonical moldea manifest.',

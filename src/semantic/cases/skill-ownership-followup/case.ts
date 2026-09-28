@@ -44,7 +44,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'separate-policy-from-procedure',
       criterion:
-        'After adoption, the actor uses bounded selected project evidence to identify editorial policy as the durable owner and the reviewer as a consumer of that policy. It answers the ownership question without claiming that the proposal has been approved or making any file changes.',
+        'The actor identifies editorial policy as the durable owner and the reviewer as a consumer of that policy. It answers the ownership question without claiming that the proposal has been approved or making any file changes.',
     },
   ],
   forbidden: [

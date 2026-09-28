@@ -159,8 +159,14 @@ test('requires calibrated cumulative headroom after internally consistent tamper
 
 test('requires command-output headroom and a rejected over-limit observation', async () => {
   const artifactWithoutHeadroom = await readArtifact();
-  getCommandOutputObservation(artifactWithoutHeadroom, 0).stage.maximumCommandOutputByteCount =
-    104_858;
+  const acceptedStage = getCommandOutputObservation(artifactWithoutHeadroom, 0).stage;
+  const outputBeyondHeadroom =
+    Math.floor(
+      MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes /
+        (1 + CALIBRATION_MINIMUM_HEADROOM_PERCENT / 100),
+    ) + 1;
+  acceptedStage.maximumCommandOutputByteCount = outputBeyondHeadroom;
+  acceptedStage.modelVisibleToolOutputByteCount = outputBeyondHeadroom;
   artifactWithoutHeadroom.commandOutputObservationsSha256 =
     calculateCommandOutputObservationsSha256(artifactWithoutHeadroom.commandOutputObservations);
   assert.throws(

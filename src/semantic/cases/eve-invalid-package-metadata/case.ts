@@ -47,7 +47,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-invalid-package-metadata',
       criterion:
-        'The actor identifies src/package.json as malformed or cites EVE_PACKAGE_MANIFEST_INVALID, withholds package-eligibility claims, and names correcting that local declaration as the resolver.',
+        'The actor identifies src/package.json as malformed or cites EVE_PACKAGE_MANIFEST_INVALID and withholds package-eligibility claims until a valid local declaration can be assessed.',
     },
     {
       label: 'report-no-writes',

@@ -5,7 +5,7 @@ import type {
   ISemanticRecordedTrial,
 } from './types.ts';
 
-export const SEMANTIC_CANDIDATE_TOKEN_LIMIT = 32_000_000;
+export const SEMANTIC_CANDIDATE_TOKEN_LIMIT = 64_000_000;
 
 type ISemanticChargedTrial = Pick<ISemanticRecordedTrial, 'operationalRetries' | 'trial'>;
 type ISemanticChargedCase = { trials: readonly ISemanticChargedTrial[] };

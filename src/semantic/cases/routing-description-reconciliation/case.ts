@@ -42,7 +42,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'confirm-semantic-routing-problem',
       criterion:
-        'The actor establishes from the runtime guidance and closed registration that routing-facing metadata incorrectly consumes the general agent description.',
+        'The actor response or final changes identify the original routing-facing metadata mapping to the general agent description as the problem being corrected.',
     },
     {
       label: 'update-runtime-registration-to-handoff-description',

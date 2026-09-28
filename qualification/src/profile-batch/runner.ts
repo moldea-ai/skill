@@ -520,8 +520,8 @@ const assertExactCustomBaseline = async (options: {
   matrix: ReturnType<typeof getRuntimeCompatibilityMatrix>;
   resultsRoot: string;
   stateDirectory: string;
-}): Promise<void> => {
-  if (options.isDryRun) return;
+}): Promise<string | null> => {
+  if (options.isDryRun) return null;
   const target = await resolveQualificationTarget(options.firstSelection, options.matrix);
   const attemptDirectory = path.join(
     options.stateDirectory,
@@ -551,6 +551,10 @@ const assertExactCustomBaseline = async (options: {
         `Adapter qualification requires an exact passing Custom baseline: ${baseline.failures.join(' ')}`,
       );
     }
+    if (baseline.baselineAttemptId === null) {
+      throw new Error('Passing adapter qualification requires a Custom baseline attempt.');
+    }
+    return baseline.baselineAttemptId;
   } finally {
     await rm(attemptDirectory, { force: true, recursive: true });
   }
@@ -613,7 +617,7 @@ export const runQualificationProfileBatch = async (options: {
   await assertQualificationBatchDiskAdmission(workerCount, skillRepository);
   const firstTargetId = selector.targetIds[0];
   if (firstTargetId === undefined) throw new Error('Qualification profile batch has no target.');
-  await assertExactCustomBaseline({
+  const baselineAttemptId = await assertExactCustomBaseline({
     customInputState,
     customTargetDigest: customTarget.targetDigest,
     executionEnvironment,
@@ -883,9 +887,12 @@ export const runQualificationProfileBatch = async (options: {
     getHistoryPath(historyRoot, activeLedger.batchId),
     activeLedger,
   );
-  await Promise.all([rm(checkpointPath, { force: true }), rm(ledgerPath, { force: true })]);
   const outcome = await createOutcome({ checkpoint: null, ledger: activeLedger });
+  assertQualificationProfileBatchOutputSize(outcome);
   if (!isDryRun && selector.kind === 'all') {
+    if (baselineAttemptId === null) {
+      throw new Error('Qualification evidence requires the exact Custom baseline attempt.');
+    }
     const packageManifest = JSON.parse(
       await readFile(path.join(SKILL_REPOSITORY_ROOT, 'package.json'), 'utf8'),
     ) as { version?: unknown };
@@ -895,15 +902,18 @@ export const runQualificationProfileBatch = async (options: {
     const bundle = await createQualificationEvidenceBundle({
       attemptId: activeLedger.batchId,
       evaluatedAt: activeLedger.updatedAt,
-      targets: activeLedger.records.map(({ adapterId, attemptId, implementationId }) => ({
-        adapterId,
-        attemptId,
-        implementationId,
-      })),
+      targets: [
+        { adapterId: 'custom', implementationId: 'custom', attemptId: baselineAttemptId },
+        ...activeLedger.records.map(({ adapterId, attemptId, implementationId }) => ({
+          adapterId,
+          attemptId,
+          implementationId,
+        })),
+      ],
       version: packageManifest.version,
     });
     await storeCompletedEvidenceRun(SKILL_REPOSITORY_ROOT, bundle);
   }
-  assertQualificationProfileBatchOutputSize(outcome);
+  await Promise.all([rm(checkpointPath, { force: true }), rm(ledgerPath, { force: true })]);
   return outcome;
 };

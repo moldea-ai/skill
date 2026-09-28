@@ -110,4 +110,13 @@ describe('semantic token admission', () => {
     await controller.release('case-one');
     await expect(controller.reserve('case-three')).resolves.toBeUndefined();
   });
+
+  test('admits a stage after the former 32-million-token ceiling', async () => {
+    const controller = createSemanticTokenAdmissionController({
+      getConsumedTokenCount: () => 32_000_000,
+    });
+
+    await expect(controller.reserve('continued-case')).resolves.toBeUndefined();
+    await controller.release('continued-case');
+  });
 });

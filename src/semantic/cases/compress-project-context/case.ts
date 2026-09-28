@@ -81,7 +81,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-implementation-during-compression',
       criterion:
-        'Workspace evidence shows that implementation remains unchanged throughout the context-only compression.',
+        'The final workspace changes contain no implementation change during the context-only compression.',
     },
   ],
   forbidden: [

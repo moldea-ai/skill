@@ -678,14 +678,14 @@ export const hasPassingMoldeaActivation = (
   budget: IMoldeaResourceBudget,
 ): boolean => {
   if (!hasValidMoldeaResourceEvidence(evidence)) return false;
-  if (evidence.commandCount < budget.minimumMoldeaCommands) return false;
   if (budget.activation === 'abstain' || budget.activation === 'informational') {
     return evidence.commandCount === 0;
   }
+  if (budget.activation === 'direct') return true;
+  if (evidence.commandCount < budget.minimumMoldeaCommands) return false;
   if (budget.activation === 'relationship') {
     return evidence.operations[0] === 'scope' && !evidence.operations.includes('inspect');
   }
-  if (budget.activation === 'direct') return true;
   return evidence.operations[0] !== 'scope';
 };
 

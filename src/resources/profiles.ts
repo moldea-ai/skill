@@ -5,7 +5,7 @@ export const MOLDEA_SKILL_RESOURCE_PROFILES: Readonly<IMoldeaSkillResourceProfil
   {
     ordinary: Object.freeze({
       maxCompletedCommandCount: 64,
-      maxCommandOutputBytes: 131_072,
+      maxCommandOutputBytes: 262_144,
       maxHostTokenCount: 1_625_000,
       maxModelVisibleToolOutputBytes: 1_048_576,
       maxAggregateMoldeaOutputBytes: 262_144,
@@ -14,7 +14,7 @@ export const MOLDEA_SKILL_RESOURCE_PROFILES: Readonly<IMoldeaSkillResourceProfil
     }),
     largeTraversal: Object.freeze({
       maxCompletedCommandCount: 64,
-      maxCommandOutputBytes: 131_072,
+      maxCommandOutputBytes: 262_144,
       maxHostTokenCount: 1_625_000,
       maxModelVisibleToolOutputBytes: 4_194_304,
       maxAggregateMoldeaOutputBytes: 1_048_576,

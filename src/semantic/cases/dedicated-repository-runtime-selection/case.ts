@@ -30,6 +30,16 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
+        claim:
+          'The related application configures provider-hosted web search in its response call.',
+        source: {
+          kind: 'related-path',
+          mount: '/related-application',
+          path: 'src/refund-agent.ts',
+          expectedType: 'file',
+        },
+      },
+      {
         claim: 'The related manifest declares the provider package.',
         source: {
           kind: 'related-path',

@@ -290,6 +290,31 @@ describe('scenario resource profiles', () => {
     ).toStrictEqual({ failures: [], hasJudgeBlocker: false, violations: [] });
   });
 
+  test('accepts the recorded Eve command peak within the aggregate and token budgets', () => {
+    expect(
+      inspectQualificationResourceUsage({
+        allowMissingUsage: false,
+        evidence: {
+          commandPolicy: {
+            ...createCommandPolicyEvidence('not-observed'),
+            completedCommandCount: 42,
+            maximumCommandOutputByteCount: 206_652,
+            modelVisibleToolOutputByteCount: 342_607,
+            moldeaCommandCount: 4,
+            moldeaOutputByteCount: 6_301,
+          },
+          usage: {
+            cachedInputTokens: 782_848,
+            inputTokens: 842_284,
+            outputTokens: 5_242,
+          },
+        },
+        role: 'Actor',
+        scenario,
+      }),
+    ).toStrictEqual({ failures: [], hasJudgeBlocker: false, violations: [] });
+  });
+
   test('uses an explicitly supplied historical profile instead of the active profile', () => {
     const historicalProfile = { ...ordinaryProfile, maxCompletedCommandCount: 32 };
     const observed = historicalProfile.maxCompletedCommandCount + 1;

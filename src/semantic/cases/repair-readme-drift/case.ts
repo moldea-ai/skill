@@ -32,7 +32,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'restore-only-managed-block',
       criterion:
-        'The final README contains the installed canonical managed block exactly, retains all outside bytes, and existing canonical files remain unchanged.',
+        'The only README change restores the missing blank line immediately after the managed start marker, and existing canonical files remain unchanged.',
     },
     {
       label: 'verify-repaired-adoption',

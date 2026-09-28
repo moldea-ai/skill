@@ -334,6 +334,7 @@ test('classifies activation and upper resource containment independently', () =>
     'content',
   ]);
   const directBudget: IMoldeaResourceBudget = { ...relationshipBudget, activation: 'direct' };
+  assert.equal(hasPassingMoldeaActivation(zeroCommandEvidence, directBudget), true);
   assert.equal(hasPassingMoldeaActivation(excessiveCommandEvidence, directBudget), true);
   assert.equal(hasPassingMoldeaResourceContainment(excessiveCommandEvidence, directBudget), false);
   assert.equal(hasPassingMoldeaResourceBudget(excessiveCommandEvidence, directBudget), false);

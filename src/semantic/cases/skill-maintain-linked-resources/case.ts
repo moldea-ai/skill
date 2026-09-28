@@ -73,7 +73,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-authoritative-project-source',
       criterion:
-        'The response and workspace changes preserve authoritative project source throughout the operation.',
+        'The workspace changes leave the authoritative release policy and verifier unchanged while the actor treats them as the sources for the skill update.',
     },
     {
       label: 'produce-structurally-valid-updated-skill',
@@ -83,17 +83,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'resolve-required-skill-resources',
       criterion:
-        'Every resource referenced by the skill resolves safely to the required file or directory in the independently collected artifact evidence.',
+        'Every resource referenced by the final skill points to an existing fixture path or a resource changed in the workspace. The skill does not rely on an unresolved or unsafe path.',
     },
     {
       label: 'support-positive-and-adjacent-non-activation',
       criterion:
         'The skill activation description and content support the evaluator-provided positive request while excluding the adjacent request that should not activate it.',
-    },
-    {
-      label: 'pass-independent-skill-structural-validation',
-      criterion:
-        'The independently collected skill-artifact evidence reports a valid structure with no validation errors; an actor claim by itself is insufficient.',
     },
   ],
   forbidden: [

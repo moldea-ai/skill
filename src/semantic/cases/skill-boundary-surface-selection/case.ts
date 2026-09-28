@@ -37,7 +37,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-deterministic-software-boundary',
       criterion:
-        'The response and workspace changes preserve deterministic software boundary throughout the operation.',
+        'The response and final workspace state preserve the deterministic software boundary.',
     },
     {
       label: 'report-no-writes',

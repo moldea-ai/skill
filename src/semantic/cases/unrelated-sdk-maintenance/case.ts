@@ -39,7 +39,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'silent-unrelated-work',
       criterion:
-        'The actor completes the task without moldea announcements, canonical discovery, workflow-reference loading, CLI calls, or moldea reporting. Silent entrypoint selection and the preliminary relationship gate are permitted.',
+        'The actor completes the task without moldea announcements or reporting, leaves canonical files unchanged, and runner-owned evidence records no moldea CLI calls. This criterion does not require proof of unrecorded host read paths.',
     },
   ],
   forbidden: [

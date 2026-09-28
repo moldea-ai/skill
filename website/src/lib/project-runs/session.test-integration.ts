@@ -79,7 +79,7 @@ test('preserves messages and joins each adjacent tool call with its complete res
   });
 });
 
-test('keeps natural compaction visible without claiming the encrypted summary was captured', () => {
+test('preserves compaction context without claiming the encrypted summary was captured', () => {
   const entries = parseProjectSession(
     gzipSync(
       [
@@ -88,7 +88,28 @@ test('keeps natural compaction visible without claiming the encrypted summary wa
           ordinal: 1,
           timestamp: '2026-09-28T02:24:25.000Z',
           kind: 'compaction',
-          payload: { encryptedSummaryOmitted: true },
+          payload: {
+            message: 'The host compacted its context.',
+            replacementHistory: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'input_text', text: 'Keep the customer timezone.' },
+                  { type: '[redacted]', text: '[redacted]' },
+                ],
+              },
+            ],
+            retainedUserMessages: [
+              {
+                order: 3,
+                turnId: 'turn-1',
+                messageId: 'message-1',
+                text: 'Keep the customer timezone.',
+                complete: false,
+              },
+            ],
+            encryptedSummaryOmitted: true,
+          },
           redactionIds: [],
         },
       ]
@@ -100,7 +121,41 @@ test('keeps natural compaction visible without claiming the encrypted summary wa
     kind: 'compaction',
     title: 'Context compacted',
     content: 'Encrypted summary omitted from this recording.',
+    compaction: {
+      message: 'The host compacted its context.',
+      replacementHistory: [{ role: 'user', content: 'Keep the customer timezone.\n\n[redacted]' }],
+      retainedUserMessages: [{ order: 3, text: 'Keep the customer timezone.', complete: false }],
+      encryptedSummaryOmitted: true,
+    },
   });
+});
+
+test('keeps empty and literal-marker messages distinct from applied redactions', () => {
+  const entries = parseProjectSession(
+    gzipSync(
+      [
+        events[0],
+        {
+          ordinal: 1,
+          timestamp: '2026-09-28T02:24:25.000Z',
+          kind: 'message',
+          payload: { role: 'user', content: [] },
+          redactionIds: [],
+        },
+        {
+          ordinal: 2,
+          timestamp: '2026-09-28T02:24:26.000Z',
+          kind: 'message',
+          payload: { role: 'assistant', content: [{ type: 'output_text', text: '[redacted]' }] },
+          redactionIds: [],
+        },
+      ]
+        .map((event) => JSON.stringify(event))
+        .join('\n'),
+    ),
+  );
+  expect(entries[1]).toMatchObject({ content: '', isRedacted: false });
+  expect(entries[2]).toMatchObject({ content: '[redacted]', isRedacted: false });
 });
 
 test('accepts explicitly redacted host message metadata without exposing it as a developer message', () => {

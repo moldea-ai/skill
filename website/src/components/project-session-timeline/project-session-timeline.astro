@@ -51,7 +51,7 @@ const ordinalClass = 'shrink-0 whitespace-nowrap font-mono text-xs text-muted-fo
       >
         {entry.kind === 'message' &&
         entry.role !== 'developer' &&
-        entry.content !== '[redacted]' ? (
+        !(entry.isRedacted && entry.content === '[redacted]') ? (
           <article
             class:list={[
               'min-w-0 rounded-2xl border p-4 shadow-surface sm:p-5',
@@ -188,7 +188,11 @@ const ordinalClass = 'shrink-0 whitespace-nowrap font-mono text-xs text-muted-fo
             data-session-context
           >
             <div class="flex items-start justify-between gap-3">
-              <span>{entry.content === '[redacted]' ? 'Redacted message' : entry.title}</span>
+              <span>
+                {entry.isRedacted && entry.content === '[redacted]'
+                  ? 'Redacted message'
+                  : entry.title}
+              </span>
               <span
                 class={ordinalClass}
                 data-session-ordinal
@@ -217,6 +221,100 @@ const ordinalClass = 'shrink-0 whitespace-nowrap font-mono text-xs text-muted-fo
               </div>
             </Dialog>
           </div>
+        ) : entry.kind === 'compaction' && entry.compaction !== undefined ? (
+          <article
+            class="min-w-0 rounded-lg border border-border bg-muted/30 p-4 text-sm sm:p-5"
+            data-session-compaction
+          >
+            <div class="flex items-start justify-between gap-3">
+              <span class="font-semibold text-foreground">{entry.title}</span>
+              <span
+                class={ordinalClass}
+                data-session-ordinal
+              >
+                #{entry.ordinal}
+              </span>
+            </div>
+            <p class="mt-2 text-muted-foreground">
+              {entry.compaction.replacementHistory.length} replacement{' '}
+              {entry.compaction.replacementHistory.length === 1 ? 'message' : 'messages'} and{' '}
+              {entry.compaction.retainedUserMessages.length} retained user{' '}
+              {entry.compaction.retainedUserMessages.length === 1 ? 'message' : 'messages'}.
+              {entry.compaction.encryptedSummaryOmitted && ' Encrypted summary omitted.'}
+            </p>
+            <Dialog
+              id={`project-compaction-${entry.ordinal}`}
+              title={`Preserved context · event ${entry.ordinal}`}
+              triggerLabel="Read preserved context"
+              triggerAriaLabel={`Read preserved context from compaction event ${entry.ordinal}`}
+              triggerClass="mt-3 w-full justify-between"
+              size="medium"
+              closeLabel="Close preserved context"
+              isOverlayCloseEnabled
+            >
+              <div class="grid min-w-0 gap-6">
+                <p class="text-sm leading-6 text-muted-foreground">
+                  This view shows the host's context snapshot at compaction. The timeline keeps the
+                  original conversation turns separately.
+                  {entry.compaction.encryptedSummaryOmitted &&
+                    ' The encrypted summary is not included in this recording.'}
+                </p>
+                {entry.compaction.message && (
+                  <section class="min-w-0">
+                    <h2 class="mb-2 text-sm font-semibold">Host note</h2>
+                    <div class="min-w-0 [&_pre]:[overflow-wrap:anywhere] [&_pre]:whitespace-pre-wrap">
+                      <CodeBlock
+                        ariaLabel="Compaction host note"
+                        copyable={false}
+                        language="text"
+                        source={entry.compaction.message}
+                      />
+                    </div>
+                  </section>
+                )}
+                <section class="min-w-0">
+                  <h2 class="mb-3 text-sm font-semibold">Replacement history</h2>
+                  <ol class="grid min-w-0 gap-4">
+                    {entry.compaction.replacementHistory.map(({ role, content }, position) => (
+                      <li class="min-w-0">
+                        <p class="mb-2 text-xs font-semibold text-muted-foreground">
+                          Message {position + 1} · {role}
+                        </p>
+                        <div class="min-w-0 [&_pre]:[overflow-wrap:anywhere] [&_pre]:whitespace-pre-wrap">
+                          <CodeBlock
+                            ariaLabel={`Replacement message ${position + 1}`}
+                            copyable={false}
+                            language="text"
+                            source={content}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+                <section class="min-w-0">
+                  <h2 class="mb-3 text-sm font-semibold">Retained user messages</h2>
+                  <ol class="grid min-w-0 gap-4">
+                    {entry.compaction.retainedUserMessages.map(({ order, text, complete }) => (
+                      <li class="min-w-0">
+                        <p class="mb-2 text-xs font-semibold text-muted-foreground">
+                          Order {order} · {complete ? 'complete' : 'partial'}
+                        </p>
+                        <div class="min-w-0 [&_pre]:[overflow-wrap:anywhere] [&_pre]:whitespace-pre-wrap">
+                          <CodeBlock
+                            ariaLabel={`Retained user message ${order}`}
+                            copyable={false}
+                            language="text"
+                            source={text}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              </div>
+            </Dialog>
+          </article>
         ) : (
           <div class="flex min-h-9 items-start gap-3 py-1 pr-4 text-xs text-muted-foreground sm:pr-5">
             <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">

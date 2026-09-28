@@ -76,7 +76,20 @@ const EventSchema = z.discriminatedUnion('kind', [
     ordinal: z.int().nonnegative(),
     timestamp: z.iso.datetime(),
     kind: z.literal('compaction'),
-    payload: z.object({ encryptedSummaryOmitted: z.boolean() }),
+    payload: z.object({
+      message: z.string(),
+      replacementHistory: z.array(z.object({ role: z.string(), content: z.array(TextPartSchema) })),
+      retainedUserMessages: z.array(
+        z.object({
+          order: z.int().nonnegative(),
+          turnId: z.string(),
+          messageId: z.string(),
+          text: z.string(),
+          complete: z.boolean(),
+        }),
+      ),
+      encryptedSummaryOmitted: z.boolean(),
+    }),
     redactionIds: z.array(z.string()).default([]),
   }),
 ]);
@@ -132,7 +145,10 @@ export const parseProjectSession = (compressed: Uint8Array): IProjectSessionEntr
       continue;
     }
     if (event.kind === 'message') {
-      const isFullyRedacted = event.payload.content.every(({ text }) => text === '[redacted]');
+      const isFullyRedacted =
+        event.redactionIds.length > 0 &&
+        event.payload.content.length > 0 &&
+        event.payload.content.every(({ text }) => text === '[redacted]');
       entries.push({
         ordinal: event.ordinal,
         lastOrdinal: event.ordinal,
@@ -176,6 +192,21 @@ export const parseProjectSession = (compressed: Uint8Array): IProjectSessionEntr
       title,
       content,
       ...(event.kind === 'session' ? { sessionId: event.payload.sessionId } : {}),
+      ...(event.kind === 'compaction'
+        ? {
+            compaction: {
+              message: event.payload.message,
+              encryptedSummaryOmitted: event.payload.encryptedSummaryOmitted,
+              replacementHistory: event.payload.replacementHistory.map(({ role, content }) => ({
+                role,
+                content: joinText(content),
+              })),
+              retainedUserMessages: event.payload.retainedUserMessages.map(
+                ({ order, text, complete }) => ({ order, text, complete }),
+              ),
+            },
+          }
+        : {}),
       isRedacted: event.redactionIds.length > 0,
     });
   }

@@ -122,6 +122,13 @@ export interface IProjectRunLink {
   label: string;
   href: string;
 }
+// host context preserved at compaction, separate from chronological session messages
+interface IProjectCompactionContext {
+  message: string;
+  encryptedSummaryOmitted: boolean;
+  replacementHistory: { role: string; content: string }[];
+  retainedUserMessages: { order: number; text: string; complete: boolean }[];
+}
 export interface IProjectSessionEntry {
   ordinal: number;
   lastOrdinal: number;
@@ -134,6 +141,7 @@ export interface IProjectSessionEntry {
   status?: string;
   patchTargets?: { action: 'Add' | 'Update' | 'Delete'; path: string }[];
   sessionId?: string;
+  compaction?: IProjectCompactionContext;
   isRedacted: boolean;
 }
 export interface IProjectAttempt {

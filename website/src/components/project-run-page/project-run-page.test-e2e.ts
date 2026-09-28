@@ -16,7 +16,7 @@ test('shows attempted patch targets without presenting a failed tool result as s
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(recordedPath);
-  await expect(page.locator('[data-session-entry]')).toHaveCount(8);
+  await expect(page.locator('[data-session-entry]')).toHaveCount(9);
   await expect(page.locator('[data-session-role="user"]')).toContainText('Add visit reminders');
   await expect(page.locator('[data-session-role="assistant"]')).toHaveCount(2);
   const tools = page.locator('[data-session-tool]');
@@ -44,6 +44,39 @@ test('shows attempted patch targets without presenting a failed tool result as s
   await expect(page.getByRole('dialog', { name: 'apply_patch · event 8' })).toContainText(
     'Patch applied.',
   );
+});
+
+test('shows preserved compaction context without adding conversation turns', async ({
+  browser,
+}) => {
+  for (const [colorScheme, width] of [
+    ['light', 320],
+    ['dark', 1440],
+  ] as const) {
+    const context = await browser.newContext({ colorScheme, viewport: { width, height: 900 } });
+    try {
+      const page = await context.newPage();
+      await page.goto(recordedPath);
+      const compaction = page.locator('[data-session-compaction]');
+      await expect(compaction).toContainText('2 replacement messages and 1 retained user message');
+      await compaction
+        .getByRole('button', { name: 'Read preserved context from compaction event 10' })
+        .click();
+      const dialog = page.getByRole('dialog', { name: 'Preserved context · event 10' });
+      await expect(dialog.getByRole('heading', { name: 'Replacement history' })).toBeVisible();
+      await expect(dialog.getByRole('heading', { name: 'Retained user messages' })).toBeVisible();
+      await expect(dialog.getByText('Message 2 · assistant')).toBeVisible();
+      await expect(dialog.getByText('Order 0 · complete')).toBeVisible();
+      await expect(dialog).toContainText('The encrypted summary is not included');
+      await expect(dialog).toContainText('Keep the customer timezone.');
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
+      ).toBe(false);
+      expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
+    } finally {
+      await context.close();
+    }
+  }
 });
 
 test('keeps recorded session marks and tools readable in dark mode', async ({ browser }) => {
@@ -121,7 +154,7 @@ test('keeps event numbers aligned within their rows at mobile and desktop widths
         rowRight: element.parentElement?.getBoundingClientRect().right ?? 0,
       })),
     );
-    expect(ordinals).toHaveLength(8);
+    expect(ordinals).toHaveLength(9);
     expect(
       Math.max(...ordinals.map(({ right }) => right)) -
         Math.min(...ordinals.map(({ right }) => right)),

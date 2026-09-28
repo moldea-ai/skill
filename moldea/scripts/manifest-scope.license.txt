@@ -1,4 +1,4 @@
-@moldea.ai/core@5.0.0
+@moldea.ai/core@5.0.1
 
 MIT License
 

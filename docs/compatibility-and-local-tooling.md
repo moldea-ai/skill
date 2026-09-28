@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-The `6.0.0` candidate supports exactly:
+The `6.0.1` candidate supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`

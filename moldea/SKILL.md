@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, skills, and project context. After adoption, assess established project facts, approved policies, clear corrections, and context-ownership questions without requiring moldea wording. Handle explicit moldea operations. Ordinary code requirements need a declared relationship; abstain silently on a miss. Initialize only when asked.
 metadata:
-  version: '6.0.0'
+  version: '6.0.1'
   cliVersionRange: '^9.0.0'
   coreVersionRange: '^5.0.0'
   cliJsonSchemaVersion: '5'
@@ -29,7 +29,7 @@ README selection and gating are silent preflight, not activation. Defer moldea a
 2. **Independent Agent Skill artifact:** For established artifact-only work, load only `references/skill-design.md`; no gate, CLI, or canonical status. Project-context questions use route 5.
 3. **Explicit initialization:** Read `references/tooling-installation.md` for inert preflight, then `references/continuous-maintenance.md`. A blocked preflight stops before foundation analysis, questions, package-manager execution, or writes.
 4. **Explicit setup check or repair:** Validation, evaluation, or inspection of this repository's moldea setup, or authorized repair, uses adoption-only. Load `references/project-repair.md` for repair or bounded diagnosis after a miss, failure, or unavailable gate. Read-only checks never repair; repair never initializes or guesses policy. Named reconciliation stays narrower.
-5. **Direct or canonical work:** Use adoption-only for genuine AI-agent work; established project facts, approved policies, clear corrections, or project-context questions; explicit setup operations; `/moldea/**` paths; or managed README hunks. Identify the concrete project-level meaning from the conversation, independently of any code edit. Generic information, proposals, and temporary status alone do not qualify.
+5. **Direct or canonical work:** Adoption-only for AI agents, model instructions and responsibilities in one-shot calls and workflows; established project facts, approved policies, clear corrections or context questions; explicit setup operations; `/moldea/**`; managed README hunks. Establish project meaning from conversation, not code edits. Generic information, proposals or temporary status alone do not qualify.
 6. **Other repository work:** Relationship-gate known paths. Lasting code requirements, product/host command names, test-agent terms, generic SDK work, “use moldea,” and README hunks outside markers are not direct relevance. Never bypass a miss for unknown context.
 
 Before initialization, other repository-dependent work abstains silently. Adoption alone never makes ordinary work relevant.

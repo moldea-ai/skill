@@ -166,6 +166,12 @@ test('follows one booking request through five connected stages', async ({ page 
   await expect(page.locator('[data-connection-map]')).toContainText(
     'Four affected parts found before the first edit.',
   );
+  await expect(page.locator('[data-requested-outcome-agent-mark]')).toHaveAttribute(
+    'src',
+    toPublicPath('/logo/icon-xs-dark.png'),
+  );
+  await expect(page.locator('[data-connection-map] .lucide-bot')).toHaveCount(0);
+  await expect(page.locator('[data-connected-change] .lucide-bot')).toHaveCount(1);
   await expect(page.locator('[data-connected-change]')).toContainText(
     'Each rule keeps one owner. No duplicate prompt policy.',
   );

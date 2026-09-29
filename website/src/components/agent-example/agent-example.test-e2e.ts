@@ -215,6 +215,29 @@ for (const colorScheme of ['light', 'dark'] as const) {
     const page = await context.newPage();
     await page.goto(toPublicPath('/'));
     const example = page.getByRole('article', { name: 'Illustrative support agent project' });
+    const responseCard = example.locator('[data-agent-response-card]');
+    const cardAppearance = await responseCard.evaluate((element) => {
+      const styles = getComputedStyle(element);
+      return {
+        background: styles.backgroundColor,
+        borderWidth: styles.borderTopWidth,
+        radius: styles.borderTopRightRadius,
+      };
+    });
+    expect(cardAppearance.background).not.toBe('rgba(0, 0, 0, 0)');
+    expect(parseFloat(cardAppearance.borderWidth)).toBeGreaterThan(0);
+    expect(parseFloat(cardAppearance.radius)).toBeGreaterThan(0);
+    const cardBounds = await responseCard.boundingBox();
+    const artifactBounds = await example.locator('[data-agent-artifacts]').boundingBox();
+    expect(cardBounds).not.toBeNull();
+    expect(artifactBounds).not.toBeNull();
+    if (cardBounds && artifactBounds) {
+      expect(artifactBounds.x).toBeGreaterThan(cardBounds.x);
+      expect(artifactBounds.x + artifactBounds.width).toBeLessThan(cardBounds.x + cardBounds.width);
+      expect(artifactBounds.y + artifactBounds.height).toBeLessThan(
+        cardBounds.y + cardBounds.height,
+      );
+    }
     const folderColor = await example
       .getByText('moldea/', { exact: true })
       .evaluate((element) => getComputedStyle(element).color);

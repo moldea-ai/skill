@@ -1,1 +1,13 @@
 @import '@moldea.ai/website-ui/styles.css';
+
+/* Website UI's replay has no avatar slot; replace only its decorative coding-agent icon. */
+[data-evaluation-replay] span:has(> .lucide-bot) {
+  background-color: var(--secondary);
+  color: var(--foreground);
+}
+
+[data-evaluation-replay] .lucide-bot {
+  background-color: currentColor;
+  mask: var(--coding-agent-mark) center / contain no-repeat;
+  stroke: none;
+}

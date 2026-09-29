@@ -204,6 +204,17 @@ test('keeps semantic evidence accessible without JavaScript and at 320px', async
     const firstScenario = noJavaScriptPage.locator('main details').first();
     await firstScenario.locator(':scope > summary').click();
     await expect(firstScenario.locator(':scope > summary')).toBeVisible();
+    const codingAgentMark = firstScenario.locator('[data-evaluation-replay] .lucide-bot').first();
+    await expect(codingAgentMark).toBeVisible();
+    await expect(codingAgentMark).toHaveCSS(
+      'mask-image',
+      `url("${new URL(toPublicPath('/logo/icon-xs-dark.png'), noJavaScriptPage.url()).href}")`,
+    );
+    await expect(codingAgentMark).toHaveCSS('stroke', 'none');
+    await expect(codingAgentMark).toHaveCSS(
+      'background-color',
+      await codingAgentMark.evaluate((element) => getComputedStyle(element).color),
+    );
     const widths = await noJavaScriptPage.evaluate(() => ({
       client: document.documentElement.clientWidth,
       scroll: document.documentElement.scrollWidth,
@@ -217,6 +228,7 @@ test('keeps semantic evidence accessible without JavaScript and at 320px', async
     });
     const accessibilityPage = await accessibilityContext.newPage();
     await accessibilityPage.goto(toPublicPath('/evidence/semantic/'));
+    await accessibilityPage.locator('main details').first().locator(':scope > summary').click();
     const accessibilityResults = await new AxeBuilder({ page: accessibilityPage }).analyze();
     expect(
       accessibilityResults.violations.filter(

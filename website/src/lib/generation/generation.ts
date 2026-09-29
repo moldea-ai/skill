@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
+import type { IProjectRunModel } from '../project-runs/index.ts';
 import type { IQualificationWebsiteModel } from '../qualification/index.ts';
 import type { ISemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
 import {
@@ -37,7 +38,7 @@ import { DEFAULT_SITE_URL } from '../site/constants.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const GENERATED_NOTICE =
-  'Generated from repository-owned documentation, semantic evaluation, qualification evidence, and moldea/SKILL.md metadata. Do not edit generated output.';
+  'Generated from repository-owned documentation, semantic evaluation, qualification evidence, project runs, and moldea/SKILL.md metadata. Do not edit generated output.';
 let cachedWebsiteModel: {
   model: IWebsiteModel;
   modifiedTime: bigint;
@@ -355,6 +356,7 @@ export const createLlmsText = (
   qualification: IQualificationWebsiteModel,
   releaseEvidence: IWebsiteModel['releaseEvidence'],
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
+  projectRuns: IProjectRunModel | null = null,
 ): string => {
   const semanticReleaseSummary = getSemanticReleaseEvidenceSummary(
     releaseEvidence,
@@ -426,10 +428,16 @@ export const createLlmsText = (
     createSemanticReleaseEvidenceLine(semanticReleaseSummary),
     `Qualification release evidence: ${releaseQualifiedProfileCount}/${qualification.profiles.length} profiles passing${verifiedQualificationSourceCount === 0 ? '.' : ` across ${verifiedQualificationSourceCount} selected recorded ${verifiedQualificationSourceCount === 1 ? 'profile' : 'profiles'}.`}`,
     '',
-    `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
+    `- [Evidence overview](${EVIDENCE_ROUTE}): Explore the recorded evidence and its source records.`,
     `- [Semantic evaluation](${semanticEvaluation.route}): Follow ${semanticEvaluation.caseCount} difficult coding-agent decisions from request to independent verdict.`,
     `- [Adapter qualification](${qualification.route}): Follow realistic project journeys that verify the complete skill, tooling, packages, and supported integrations.`,
   );
+
+  if (projectRuns !== null) {
+    lines.push(
+      `- [Project runs](${projectRuns.pages[0]!.route}): Recorded coding sessions in mock projects. Independent of semantic evaluation and adapter qualification.`,
+    );
+  }
 
   for (const profile of qualification.profiles) {
     lines.push(`- [${profile.title}](${profile.route}): ${profile.description}`);
@@ -455,6 +463,7 @@ export const createRouteManifest = (
   documents: IWebsiteDocument[],
   qualification: IQualificationWebsiteModel,
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
+  projectRuns: IProjectRunModel | null = null,
 ): string[] => {
   const routes = new Set([
     '/',
@@ -467,6 +476,10 @@ export const createRouteManifest = (
     ...Object.values(PRODUCT_PAGE_METADATA).map(({ route }) => route),
     semanticEvaluation.route,
     ...semanticEvaluation.attempts.map(({ route }) => route),
+    ...(projectRuns?.pages.flatMap((page) => [
+      page.route,
+      ...page.attempts.map(({ route }) => route),
+    ]) ?? []),
   ]);
 
   for (const document of documents) {
@@ -490,6 +503,7 @@ export const createRouteManifest = (
  */
 export const createWebsiteModel = (
   options: {
+    projectRuns?: IProjectRunModel | null;
     allowFixtureEvidence?: boolean | undefined;
     preparedEvidenceDirectory?: string | undefined;
     selectionPath?: string | undefined;
@@ -497,6 +511,7 @@ export const createWebsiteModel = (
       Pick<IReleaseEvidenceWebsiteState, 'qualification' | 'semantic'> | undefined;
   } = {},
 ): IWebsiteModel => {
+  const projectRuns = options.projectRuns ?? null;
   const repositoryRoot = getRepositoryRoot();
   const documents = discoverDocuments(repositoryRoot);
   const skill = readSkillMetadata(repositoryRoot);
@@ -529,15 +544,41 @@ export const createWebsiteModel = (
   }
 
   return {
+    projectRuns,
     currentSemanticAssurance: semanticEvaluation.currentAssurance,
     documents,
     generatedNotice: GENERATED_NOTICE,
-    llmsText: createLlmsText(documents, skill, qualification, releaseEvidence, semanticEvaluation),
+    llmsText: createLlmsText(
+      documents,
+      skill,
+      qualification,
+      releaseEvidence,
+      semanticEvaluation,
+      projectRuns,
+    ),
     navigation: createNavigation(documents),
     qualification,
     releaseEvidence,
-    routes: createRouteManifest(documents, qualification, semanticEvaluation),
+    routes: createRouteManifest(documents, qualification, semanticEvaluation, projectRuns),
     searchRecords: [
+      ...(projectRuns === null
+        ? []
+        : [
+            {
+              title: 'Project runs',
+              route: projectRuns.pages[0]!.route,
+              description: projectRuns.summary,
+              searchText: projectRuns.summary,
+            },
+            ...projectRuns.pages.flatMap(({ attempts }) =>
+              attempts.map((attempt) => ({
+                title: attempt.title,
+                route: attempt.route,
+                description: attempt.excerpt,
+                searchText: `${attempt.title} ${attempt.summary}`,
+              })),
+            ),
+          ]),
       ...createProductPageSearchRecords(),
       ...createSearchRecords(documents),
       {

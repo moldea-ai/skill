@@ -29,6 +29,10 @@ const LAUNCHER_PREFIX =
 const createLauncherCommand = (operation: string, ...arguments_: string[]): string =>
   [LAUNCHER_PREFIX, operation, ...arguments_].join(' ');
 
+const GATE_COMMAND = 'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt';
+const MANAGED_README_COMMAND =
+  'node /mnt/.agents/skills/moldea/scripts/managed-readme.mjs --repository /mnt';
+
 const createEnvelope = (command: string, result: Record<string, unknown>): string => {
   const completeResult =
     command === 'validate'
@@ -93,6 +97,66 @@ const projectActorExecutionEvidenceEvent = (
   assert(evidence !== null);
   return evidence;
 };
+
+test('projects bounded gate results without counting them as moldea CLI operations', () => {
+  const relationshipMiss = projectActorExecutionEvidenceEvent(
+    createEvent(GATE_COMMAND, '0\n'),
+    OPTIONS,
+  );
+  const adoptionHit = projectActorExecutionEvidenceEvent(
+    createEvent(`${GATE_COMMAND} --adoption-only`, '1\n'),
+    OPTIONS,
+  );
+  assert.deepEqual(relationshipMiss.item.outputEvidence.facts, [
+    { kind: 'relevance-gate-result', matched: false, mode: 'relationship' },
+  ]);
+  assert.deepEqual(adoptionHit.item.outputEvidence.facts, [
+    { kind: 'relevance-gate-result', matched: true, mode: 'adoption-only' },
+  ]);
+  assert.equal(hasValidActorExecutionEvidence([relationshipMiss, adoptionHit], OPTIONS), true);
+  assert.deepEqual(
+    createMoldeaResourceEvidence([relationshipMiss, adoptionHit], OPTIONS).operations,
+    [],
+  );
+
+  const malformedOutput = projectActorExecutionEvidenceEvent(
+    createEvent(GATE_COMMAND, '1\nextra'),
+    OPTIONS,
+  );
+  assert.equal(malformedOutput.item.outputEvidence.disposition, 'unrecognized');
+});
+
+test('projects exact managed README writer results without retaining output text', () => {
+  const rejection = projectActorExecutionEvidenceEvent(
+    createEvent(
+      MANAGED_README_COMMAND,
+      'managed README update failed: README.md must contain exactly one moldea marker pair\n',
+      { exitCode: 1, status: 'failed' },
+    ),
+    OPTIONS,
+  );
+  const unchanged = projectActorExecutionEvidenceEvent(
+    createEvent(MANAGED_README_COMMAND, 'unchanged\n'),
+    OPTIONS,
+  );
+  assert.deepEqual(rejection.item.outputEvidence.facts, [
+    { kind: 'managed-readme-result', status: 'invalid-marker-pair' },
+  ]);
+  assert.deepEqual(unchanged.item.outputEvidence.facts, [
+    { kind: 'managed-readme-result', status: 'unchanged' },
+  ]);
+  assert.equal(hasValidActorExecutionEvidence([rejection, unchanged], OPTIONS), true);
+  assert.deepEqual(createMoldeaResourceEvidence([rejection, unchanged], OPTIONS).operations, []);
+
+  const unrecognized = projectActorExecutionEvidenceEvent(
+    createEvent(MANAGED_README_COMMAND, 'managed README update failed: other error\n', {
+      exitCode: 1,
+      status: 'failed',
+    }),
+    OPTIONS,
+  );
+  assert.equal(unrecognized.item.outputEvidence.disposition, 'unrecognized');
+});
 
 const createNodeTestOutput = ({
   cancelled = 0,
@@ -334,6 +398,7 @@ test('classifies activation and upper resource containment independently', () =>
     'content',
   ]);
   const directBudget: IMoldeaResourceBudget = { ...relationshipBudget, activation: 'direct' };
+  assert.equal(hasPassingMoldeaActivation(zeroCommandEvidence, directBudget), true);
   assert.equal(hasPassingMoldeaActivation(excessiveCommandEvidence, directBudget), true);
   assert.equal(hasPassingMoldeaResourceContainment(excessiveCommandEvidence, directBudget), false);
   assert.equal(hasPassingMoldeaResourceBudget(excessiveCommandEvidence, directBudget), false);

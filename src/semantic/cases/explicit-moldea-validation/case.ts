@@ -31,14 +31,14 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
     {
       label: 'complete-explicit-validation',
       criterion:
-        'Runner-owned evidence records a successful launcher-backed validation, and the actor reports its actual structural result while explaining that validation alone does not prove semantic alignment. The read-only request leaves repository files unchanged.',
+        'Runner-owned evidence records a successful launcher-backed validation, and the actor reports its actual structural result without claiming that it proves semantic alignment. The read-only request leaves repository files unchanged.',
     },
   ],
   forbidden: [

@@ -81,6 +81,7 @@ const EGRESS_PROXY_PORT = 3128;
 const EGRESS_PROXY_SHUTDOWN_TIMEOUT_MS = 5_000;
 const MAX_HOST_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostOutputBytes;
 const NODE_EXECUTABLE_PATH = realpathSync(process.execPath);
+const SANDBOX_BASE_PATH = '/home/evaluator/bin:/opt:/usr/bin:/bin';
 const REQUIRED_CODEX_FLAGS = [
   '--ephemeral',
   '--ignore-rules',
@@ -94,6 +95,11 @@ const EXCLUDED_WORKSPACE_PATH_NAMES = new Set(['_archive', '_archives', '_backup
 const BubblewrapStatusSchema = z.looseObject({
   'child-pid': z.number().int().positive(),
 });
+
+const getSandboxPath = (includeWorkspaceBinaryDirectory: boolean): string =>
+  includeWorkspaceBinaryDirectory
+    ? `${SANDBOX_BASE_PATH}:/mnt/node_modules/.bin`
+    : SANDBOX_BASE_PATH;
 
 /** Loads the generated Git boundary used by isolated evaluator processes. */
 const loadGitCommandPolicyBoundary = async (): Promise<IGitCommandPolicyBoundaryModule> => {
@@ -726,9 +732,7 @@ export const buildCodexEvaluationBwrapArguments = ({
     'C.UTF-8',
     '--setenv',
     'PATH',
-    includeWorkspaceBinaryDirectory
-      ? '/home/evaluator/bin:/opt:/usr/bin:/bin:/mnt/node_modules/.bin'
-      : '/home/evaluator/bin:/opt:/usr/bin:/bin',
+    getSandboxPath(includeWorkspaceBinaryDirectory),
     '--setenv',
     'TMPDIR',
     '/tmp',
@@ -1046,6 +1050,12 @@ export const runCodexEvaluationHost = async ({
   });
   const hostExecutable = resolveExecutablePath(command[0] ?? '');
   const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);
+  const sandboxCommand = [
+    ...command.slice(0, -1),
+    '-c',
+    `shell_environment_policy.set.PATH=${JSON.stringify(getSandboxPath(includeWorkspaceBinaryDirectory))}`,
+    '-',
+  ];
   const hostConfiguration = identifyCodexEvaluationHostConfiguration({
     defaultHostTimeoutMs,
   });
@@ -1061,7 +1071,7 @@ export const runCodexEvaluationHost = async ({
     await waitForProxyReady(proxyProcess);
     return await runBubblewrapProcess({
       argumentsList: buildCodexEvaluationBwrapArguments({
-        command,
+        command: sandboxCommand,
         cwd,
         hostCompanionExecutable,
         hostExecutable,

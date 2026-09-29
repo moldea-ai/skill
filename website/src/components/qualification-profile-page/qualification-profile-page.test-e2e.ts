@@ -28,6 +28,9 @@ test('shows the selected qualification snapshot without a visitor selector', asy
     getQualificationReleaseEvidenceSummary(customProfile).status,
   );
   await expect(page.getByRole('combobox')).toHaveCount(0);
+  await expect(
+    page.getByRole('link', { name: 'Browse the results' }).locator('svg.lucide-arrow-down'),
+  ).toHaveCount(1);
 });
 
 test('keeps replay, project, evidence, and technical views available', async ({ page }) => {
@@ -73,6 +76,16 @@ test('keeps technical accordions open independently', async ({ page }) => {
   await expect(resultSource).toHaveAttribute('open', '');
   await expect(packageSource).toHaveAttribute('open', '');
   await expect(coverage).toHaveAttribute('open', '');
+  const coverageRegion = coverage.getByRole('region', {
+    name: 'Qualification compatibility coverage',
+  });
+  const tableTopGap = await coverageRegion.evaluate((region) => {
+    const table = region.querySelector('table');
+    if (table === null) throw new Error('Expected the compatibility coverage table.');
+    return table.getBoundingClientRect().top - region.getBoundingClientRect().top;
+  });
+  expect(tableTopGap).toBeLessThan(2);
+  await expect(coverageRegion.locator('tbody td code').first()).toHaveCSS('white-space', 'nowrap');
 });
 
 test('remains accessible, responsive, and theme-safe for selected evidence', async ({

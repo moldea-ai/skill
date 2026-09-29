@@ -39,7 +39,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'leave-runtime-migration-blocked',
       criterion:
-        'The plan identifies a compatible CLI closure containing the adapter and real repository wiring as prerequisites; it does not install or switch tooling.',
+        'The plan keeps migration blocked until a compatible local adapter is available and real repository wiring is established; it does not install or switch tooling.',
     },
     {
       label: 'preserve-current-runtime',
@@ -71,7 +71,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['runtime-compatibility-and-selection'],

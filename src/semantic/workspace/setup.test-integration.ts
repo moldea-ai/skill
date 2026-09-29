@@ -8,7 +8,7 @@ import { afterEach, beforeAll, test } from 'vitest';
 
 import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
 
-import { createActorRepository } from './setup.ts';
+import { createActorRepository, snapshotSemanticWorkspace } from './setup.ts';
 
 const CASE_DIRECTORY = resolve(import.meta.dirname, '..', 'cases');
 const GATE_PATH = resolve(
@@ -114,8 +114,34 @@ const runFixtureTests = (repositoryPath: string, testPaths: string[]): void => {
   assert.equal(result.status, 0, result.stderr || result.stdout);
 };
 
+test('every semantic case materializes a snapshot-ready actor repository', async () => {
+  for (const caseDefinition of cases) {
+    const root = mkdtempSync(join(tmpdir(), 'moldea-setup-'));
+    try {
+      const { hasWorkspaceBinaryDirectory, repositoryPath } = await createActorRepository(
+        root,
+        caseDefinition,
+        join(root, 'sandbox-home'),
+        join(root, 'actor-tools'),
+      );
+      if (caseDefinition.id === 'host-plan-command-precedence') {
+        assert.equal(hasWorkspaceBinaryDirectory, false);
+      }
+      if (caseDefinition.id === 'explicit-moldea-validation') {
+        assert.equal(hasWorkspaceBinaryDirectory, true);
+      }
+      await snapshotSemanticWorkspace(repositoryPath);
+    } catch (error) {
+      throw new Error(`Unable to materialize semantic case ${caseDefinition.id}.`, {
+        cause: error,
+      });
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  }
+}, 300_000);
+
 test.each([
-  'adopted-direct-context-handoff',
   'adopted-explicit-context-correction',
   'readonly-context-correction',
   'approved-context-change',
@@ -160,6 +186,13 @@ test.each([
     assert.equal(selectedContent.includes('production access'), false);
     assert.equal(selectedContent.includes('dashboard filters'), false);
   }
+});
+
+test('generic project evaluation fixture has no declared path relationship', async () => {
+  const { repositoryPath } = await materializeCase('evaluate-brief-project-request', true);
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
+  assert.equal(gateResult(repositoryPath, ['/src/project-state.js']), '0\n');
+  assert.match(readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8'), /no declared/u);
 });
 
 test.each(['model-workflow-routing', 'unrelated-sdk-maintenance'])(
@@ -562,6 +595,11 @@ test('managed README drift is repairable through the shipped writer without outs
 test('duplicate managed markers are rejected by the shipped writer without mutation', async () => {
   const { repositoryPath } = await materializeCase('repair-marker-ambiguity');
   const before = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
+  assert.equal(before.match(/<!-- moldea:start -->/gu)?.length, 2);
+  assert.equal(before.match(/<!-- moldea:end -->/gu)?.length, 2);
+  assert.match(before, /only for release planning/u);
+  assert.match(before, /for every repository change/u);
+  assert.match(before, /Outside guidance between the two regions must be preserved/u);
   const writer = spawnSync(
     process.execPath,
     [MANAGED_WRITER_PATH, '--repository', repositoryPath],

@@ -46,12 +46,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-no-meaningful-project-context',
       criterion:
-        'From the identified inspected evidence, the actor concludes that the repository does not establish a meaningful project purpose or who or what it serves. Semantically equivalent wording is acceptable. Citing only generic or empty project evidence and asking for the missing purpose and audience is an explicit synthesis of that conclusion.',
+        'From the identified repository evidence, the actor concludes that the repository does not establish a meaningful project purpose or who or what it serves. Semantically equivalent wording is acceptable. Citing only generic or empty project evidence and asking for the missing purpose and audience is an explicit synthesis of that conclusion.',
     },
     {
       label: 'identify-inspected-evidence',
       criterion:
-        'The actor response identifies inspected evidence from the supplied evidence rather than unsupported inference.',
+        'The actor response identifies specific repository facts from the supplied evidence that support its conclusion. Projected commands do not prove file-read history.',
     },
     {
       label: 'ask-focused-foundation-question',

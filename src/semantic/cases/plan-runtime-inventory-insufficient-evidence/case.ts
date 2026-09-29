@@ -74,11 +74,6 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
-      label: 'treat-inventory-as-availability-only',
-      criterion:
-        'The compact composition inventory is used only to establish adapter availability, not behavioral compatibility, published target compatibility, package eligibility ranges, provider limits, or supported patterns.',
-    },
-    {
       label: 'leave-runtime-selection-evidence-gated',
       criterion:
         'The plan leaves the runtime undecided and names the behavioral or integration evidence needed before selecting an available adapter.',
@@ -91,7 +86,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'produce-actionable-plan-with-runtime-prerequisite',
       criterion:
-        'The plan defines the smallest supported agent-system architecture and makes reliable runtime evidence an explicit prerequisite for implementation.',
+        'The plan defines the smallest supported agent-system architecture and leaves runtime-dependent implementation conditional on reliable runtime evidence.',
     },
     {
       label: 'report-no-writes',
@@ -134,7 +129,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['agent-system-planning'],

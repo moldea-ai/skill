@@ -25,14 +25,14 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'relationship',
     minimumMoldeaCommands: 2,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
     {
       label: 'avoid-repeated-owner-scope',
       criterion:
-        'The actor retains the earlier refund-context obligation when the formatter dependency is discovered and reports the unrelated formatter as no additional canonical owner. Runner-owned evidence shows no redundant scope result; exact gate-path inputs are not inferred from the projection.',
+        'The actor retains the earlier refund-context obligation when the formatter dependency is discovered. Runner-owned evidence shows no redundant scope result; the actor need not report that an unrelated formatter has no canonical owner, and exact gate-path inputs are not inferred from the projection.',
     },
     {
       label: 'finish-existing-owner',

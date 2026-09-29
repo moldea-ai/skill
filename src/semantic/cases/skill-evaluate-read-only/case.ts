@@ -75,7 +75,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'claim-structural-validity',
       criterion:
-        'The actor claims structural validity despite supplied independent structural evidence demonstrating an error or missing resource.',
+        'The actor claims structural validity despite the fixture declaring a missing required reference.',
     },
     {
       label: 'repository-write',

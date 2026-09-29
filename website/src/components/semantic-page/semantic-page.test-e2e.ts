@@ -46,7 +46,7 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
       name: 'Every trial remains available.',
     }),
   ).toBeVisible();
-  const attemptLinks = page.getByRole('link', { name: /Open the complete attempt/u });
+  const attemptLinks = page.getByRole('link', { name: /Open the results/u });
   await expect(attemptLinks).toHaveCount(semanticEvaluation.attempts.length);
   await expect(page.getByRole('link', { name: 'How the evaluation works' })).toHaveAttribute(
     'href',

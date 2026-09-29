@@ -3,16 +3,15 @@ import { z } from 'zod';
 import { QualificationAttemptResultSchema } from './types.ts';
 import type { IQualificationWebsiteModel } from './types.ts';
 
+const AttemptCaseSchema = z.looseObject({
+  artifacts: z.array(z.unknown()),
+  replay: z.looseObject({ trials: z.array(z.unknown()) }),
+  result: z.looseObject({ caseId: z.string() }),
+  trials: z.array(z.unknown()),
+});
 const AttemptSchema = z.looseObject({
   artifacts: z.array(z.looseObject({ path: z.string(), rawUrl: z.string() })),
-  cases: z.array(
-    z.looseObject({
-      artifacts: z.array(z.unknown()),
-      replay: z.looseObject({ trials: z.array(z.unknown()) }),
-      result: z.looseObject({ caseId: z.string() }),
-      trials: z.array(z.unknown()),
-    }),
-  ),
+  cases: z.array(AttemptCaseSchema),
   evidenceSource: z.strictObject({ kind: z.literal('recorded') }),
   rawAttemptUrl: z.string(),
   result: QualificationAttemptResultSchema,
@@ -33,6 +32,17 @@ const ProfileSchema = z.looseObject({
   description: z.string(),
   implementationId: z.string(),
   route: z.string(),
+  selectedAttempts: z.array(AttemptSchema).optional(),
+  selectedJourneys: z
+    .array(
+      z.looseObject({
+        evidence: AttemptCaseSchema,
+        origin: z.enum(['Adapter-specific', 'Core behavior', 'Shared foundation']),
+        profileCase: ProfileCaseSchema,
+        sourceAttemptUrl: z.string().optional(),
+      }),
+    )
+    .optional(),
   sharedCases: z.array(ProfileCaseSchema),
   title: z.string(),
 });

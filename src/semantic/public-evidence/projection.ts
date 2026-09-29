@@ -25,6 +25,16 @@ const createCaseScenario = (definition: ISemanticCase): string =>
     ? definition.scenario
     : `${definition.scenario} Requested operation: ${definition.operation}.`;
 
+// a reviewed initial pass can retain historical failed confirmations
+const getAssessmentTrial = (
+  resultCase: ISemanticAttemptModel['result']['cases'][number],
+): ISemanticAttemptModel['result']['cases'][number]['trials'][number] | undefined => {
+  const initialTrial = resultCase.trials[0];
+  return resultCase.status === 'passed' && initialTrial?.passed
+    ? initialTrial
+    : resultCase.trials.at(-1);
+};
+
 /** Creates one immutable website case from its recorded result and definition. */
 const createCaseModel = (
   definition: ISemanticCase,
@@ -44,7 +54,7 @@ const createCaseModel = (
     hasCurrentCaseDefinition: true,
     id: definition.id,
     presentation: { summary: definition.scenario, title },
-    rationale: latestTrial?.rationale ?? null,
+    rationale: getAssessmentTrial(resultCase)?.rationale ?? null,
     replay,
     scenario: createCaseScenario(definition),
     status: resultCase.status,
@@ -142,8 +152,11 @@ export const createSemanticCatalogWebsiteModel = (
  */
 export const createSemanticEvidenceBundle = (options: {
   artifacts?: readonly IEvidenceArtifactInput[];
+  caseModels?: ReadonlyMap<string, ISemanticEvaluationCaseModel>;
   classification: IEvidenceClassification;
   definitions: readonly ISemanticCase[];
+  evaluatedAt?: string;
+  presentationOnly?: boolean;
   replays?: ReadonlyMap<string, IEvaluationReplayModel>;
   result: ISemanticAttemptModel['result'];
   version: string;
@@ -167,7 +180,20 @@ export const createSemanticEvidenceBundle = (options: {
     if (definition === undefined) {
       throw new Error(`Semantic attempt references unknown case ${resultCase.id}.`);
     }
-    return createCaseModel(definition, resultCase, options.replays?.get(resultCase.id) ?? null);
+    const sourceModel = options.caseModels?.get(resultCase.id);
+    if (sourceModel === undefined) {
+      return createCaseModel(definition, resultCase, options.replays?.get(resultCase.id) ?? null);
+    }
+    return {
+      ...sourceModel,
+      confirmationStatus: resultCase.confirmationStatus,
+      evaluatedAt: resultCase.trials.at(-1)?.evaluatedAt ?? null,
+      hasCurrentCaseDefinition: false,
+      rationale: getAssessmentTrial(resultCase)?.rationale ?? null,
+      replay: options.replays?.get(resultCase.id) ?? null,
+      status: resultCase.status,
+      trials: resultCase.trials,
+    };
   });
   const attempt: ISemanticAttemptModel = {
     cases,
@@ -185,10 +211,13 @@ export const createSemanticEvidenceBundle = (options: {
     caseSuiteDigest: options.result.caseSuiteDigest,
     cli: options.result.cli,
     coverageDigest: options.result.coverageDigest,
-    coverageUrl: '/evidence-assets/semantic/.evidence/semantic/results/coverage.json',
-    currentAssurance: isPassing ? attempt : null,
-    evidenceMatch: isPassing ? 'exact' : null,
-    evaluatedAt: options.result.updatedAt,
+    coverageUrl:
+      options.presentationOnly === true
+        ? null
+        : '/evidence-assets/semantic/.evidence/semantic/results/coverage.json',
+    currentAssurance: isPassing && options.presentationOnly !== true ? attempt : null,
+    evidenceMatch: isPassing && options.presentationOnly !== true ? 'exact' : null,
+    evaluatedAt: options.evaluatedAt ?? options.result.updatedAt,
     evaluationModel: options.result.hostContract.actor.model,
     failedCaseCount: options.result.failedCaseCount,
     groups: createGroups(cases, 'Recorded'),
@@ -207,6 +236,7 @@ export const createSemanticEvidenceBundle = (options: {
     pendingCaseCount: options.result.pendingCaseCount,
     recoveredCaseCount: options.result.recoveredCaseCount,
     route: SEMANTIC_ROUTE,
+    ...(options.presentationOnly === true ? { selectedCases: true as const } : {}),
     status: options.result.status,
   };
 
@@ -217,8 +247,11 @@ export const createSemanticEvidenceBundle = (options: {
     payload: { websiteModel },
     run: {
       attemptId: options.result.attemptId,
-      evaluatedAt: options.result.updatedAt,
-      provenance: { sourceUrl: 'https://github.com/moldea-ai/skill' },
+      evaluatedAt: options.evaluatedAt ?? options.result.updatedAt,
+      provenance: {
+        ...(options.presentationOnly === true ? { composition: 'selected-recorded-cases' } : {}),
+        sourceUrl: 'https://github.com/moldea-ai/skill',
+      },
       status: options.result.status,
       version: options.version,
     },

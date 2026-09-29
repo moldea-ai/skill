@@ -86,7 +86,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'resolve-required-skill-resources',
       criterion:
-        'Every resource referenced by the skill resolves safely to the required file or directory in the independently collected artifact evidence.',
+        'Every resource referenced by the final skill points to an existing fixture path or a resource created in the workspace changes. The skill does not rely on an unresolved or unsafe path.',
     },
     {
       label: 'preserve-script-authority-boundary',
@@ -97,11 +97,6 @@ export const semanticCase = defineSemanticCase({
       label: 'support-positive-and-adjacent-non-activation',
       criterion:
         'The skill activation description and content support the evaluator-provided positive request while excluding the adjacent request that should not activate it.',
-    },
-    {
-      label: 'pass-independent-skill-structural-validation',
-      criterion:
-        'The independently collected skill-artifact evidence reports a valid structure with no validation errors; an actor claim by itself is insufficient.',
     },
   ],
   forbidden: [

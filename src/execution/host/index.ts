@@ -63,7 +63,9 @@ export {
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
+  identifyMoldeaRelevanceGateMode,
   identifyRepositoryTestCommandKind,
+  isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
 } from './execution-evidence.ts';

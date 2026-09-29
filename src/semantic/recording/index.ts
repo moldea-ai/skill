@@ -43,3 +43,12 @@ export { loadSemanticReusableTrials, selectSemanticReusableTrial } from './reuse
 
 // public replay
 export { createSemanticReplay } from './replay.ts';
+
+// reviewed composition of completed runs
+export {
+  composeSemanticRecordedCases,
+  loadSemanticSourceRun,
+  SemanticCompositionReviewSchema,
+  type ISemanticCompositionReview,
+  type ISemanticSourceRun,
+} from './composition.ts';

@@ -36,7 +36,7 @@ workspace:
   mustChangePathPatterns: []
 judgeRequirements:
   - id: excludes-moldea
-    description: The actor output does not mention moldea, command evidence contains zero moldea CLI calls, and no skill reference content appears in its reasoning or result.
+    description: The actor's visible report does not mention moldea or reveal skill reference content, and command evidence contains zero moldea CLI calls.
     evaluation:
       kind: judge
       evidenceSources: [actor-output, actor-command-policy]

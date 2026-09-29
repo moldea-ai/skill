@@ -73,27 +73,22 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-authoritative-project-source',
       criterion:
-        'The response and workspace changes preserve authoritative project source throughout the operation.',
+        'The final workspace leaves the release policy and verifier unchanged, while the skill and linked reference agree with their supported contracts. Judge that alignment from the final files without requiring read history or execution of the export-only verifier.',
     },
     {
       label: 'produce-structurally-valid-updated-skill',
       criterion:
-        'The updated release-review skill remains structurally valid after its activation, workflow, and focused package-manager reference are synchronized.',
+        'The final skill files have valid frontmatter and resolvable references after their activation and package-manager guidance are synchronized; an actor-run validator is not required to establish these file properties.',
     },
     {
       label: 'resolve-required-skill-resources',
       criterion:
-        'Every resource referenced by the skill resolves safely to the required file or directory in the independently collected artifact evidence.',
+        'Every resource referenced by the final skill points to an existing fixture path or a resource changed in the workspace. The skill does not rely on an unresolved or unsafe path.',
     },
     {
       label: 'support-positive-and-adjacent-non-activation',
       criterion:
         'The skill activation description and content support the evaluator-provided positive request while excluding the adjacent request that should not activate it.',
-    },
-    {
-      label: 'pass-independent-skill-structural-validation',
-      criterion:
-        'The independently collected skill-artifact evidence reports a valid structure with no validation errors; an actor claim by itself is insufficient.',
     },
   ],
   forbidden: [

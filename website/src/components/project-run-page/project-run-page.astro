@@ -1,0 +1,281 @@
+---
+import { ArrowLeft, ExternalLink, GitCommitHorizontal, MessageSquareText } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
+import TabbedPanels from '@moldea.ai/website-ui/tabbed-panels';
+
+import ProjectSessionTimeline from '../project-session-timeline/project-session-timeline.astro';
+import BaseLayout from '../../layouts/base-layout.astro';
+import {
+  PROJECT_RUN_ROUTE,
+  type IProjectAttempt,
+  type IProjectRunModel,
+} from '../../lib/project-runs/index.ts';
+
+interface Props {
+  attempt: IProjectAttempt;
+  run: IProjectRunModel;
+}
+
+const { attempt, run } = Astro.props;
+const basePath = import.meta.env.BASE_URL;
+const breadcrumbs = [
+  { href: '/', label: 'Home' },
+  { href: '/evidence/', label: 'Evidence' },
+  { href: PROJECT_RUN_ROUTE, label: 'Project runs' },
+  { label: attempt.title },
+];
+const turnCount =
+  attempt.session?.filter((entry) => entry.kind === 'turn').length ??
+  Number(attempt.initialRequest !== null) + attempt.followUps.length;
+const toolCount = attempt.session?.filter((entry) => entry.kind === 'tool').length ?? 0;
+const eventCount =
+  attempt.session?.reduce((count, entry) => count + (entry.kind === 'tool' ? 2 : 1), 0) ?? 0;
+const requests = [
+  ...(attempt.initialRequest === null ? [] : [attempt.initialRequest]),
+  ...attempt.followUps,
+];
+const tabs = [
+  { id: 'conversation', label: 'Conversation', slotName: 'conversation' },
+  { id: 'record', label: 'Project record', slotName: 'record' },
+] as const;
+---
+
+<BaseLayout
+  title={`${attempt.title} (${attempt.id}) | Project runs`}
+  description={`${attempt.excerpt} Project record: ${attempt.id}.`}
+  {breadcrumbs}
+>
+  <div class="page-shell pt-4 sm:pt-7">
+    <Breadcrumbs
+      {basePath}
+      items={breadcrumbs}
+    />
+  </div>
+  <header class="page-shell border-b border-border pt-8 pb-9 sm:pt-12 sm:pb-12">
+    <div class="max-w-4xl">
+      <p class="eyebrow mb-4">Recorded project</p>
+      <h1 class="page-title break-words"><InlineBrandText text={attempt.title} /></h1>
+      <p class="mt-5 max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg">
+        <InlineBrandText text={attempt.summary} />
+      </p>
+      <div class="mt-7 flex flex-wrap gap-2 text-sm">
+        {
+          turnCount > 0 && (
+            <span class="rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <strong class="font-mono text-foreground">{turnCount}</strong>{' '}
+              {turnCount === 1 ? 'turn' : 'turns'}
+            </span>
+          )
+        }
+        {
+          attempt.session !== null && (
+            <span class="rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <strong class="font-mono text-foreground">{toolCount}</strong>{' '}
+              {toolCount === 1 ? 'tool call' : 'tool calls'}
+            </span>
+          )
+        }
+        {
+          attempt.session !== null && (
+            <span class="rounded-full border border-border bg-muted/40 px-3 py-1.5">
+              <strong class="font-mono text-foreground">{eventCount}</strong>{' '}
+              {eventCount === 1 ? 'recorded event' : 'recorded events'}
+            </span>
+          )
+        }
+      </div>
+      {
+        run.provenance !== 'public' && (
+          <p
+            class="mt-5 text-sm text-muted-foreground"
+            data-project-preview
+          >
+            {run.provenance === 'local'
+              ? 'Local preview. Published session and source links are not included.'
+              : 'Illustrative test records. These are not recorded coding sessions.'}
+          </p>
+        )
+      }
+    </div>
+  </header>
+
+  <div class="page-shell py-8 sm:py-12">
+    <div class="max-w-5xl">
+      <h2 class="sr-only">Project views</h2>
+      <TabbedPanels
+        ariaLabel="Project views"
+        id={`project-${attempt.id.replaceAll('_', '-')}`}
+        items={tabs}
+      >
+        <section
+          slot="conversation"
+          aria-labelledby="conversation-title"
+        >
+          <div
+            class="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5"
+          >
+            <div>
+              <p class="eyebrow mb-2">The session</p>
+              <h4
+                id="conversation-title"
+                class="text-2xl font-semibold tracking-tight sm:text-3xl"
+              >
+                Follow the conversation
+              </h4>
+            </div>
+            {
+              attempt.session !== null && (
+                <p class="max-w-sm text-sm leading-6 text-muted-foreground">
+                  {run.provenance === 'public'
+                    ? 'The sanitized session recording, in event order.'
+                    : 'Illustrative session events for layout checks.'}{' '}
+                  Open a tool call to read its input and result.
+                </p>
+              )
+            }
+          </div>
+          {
+            attempt.session !== null ? (
+              <ProjectSessionTimeline entries={attempt.session} />
+            ) : (
+              <div class="rounded-2xl border border-border bg-muted/30 p-5 sm:p-7">
+                <h5 class="font-semibold">Conversation not included</h5>
+                <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                  {requests.length > 0
+                    ? 'The recorded requests and observed results are below.'
+                    : 'The project record contains the observed result and source links.'}
+                </p>
+                {requests.length > 0 && (
+                  <ol class="mt-6 space-y-5">
+                    {requests.map((request) => (
+                      <li class="border-t border-border pt-5">
+                        <p class="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+                          Turn {request.ordinal} · {request.kind}
+                        </p>
+                        <p class="mt-2 text-sm leading-7 break-words whitespace-pre-wrap">
+                          <InlineBrandText text={request.text} />
+                        </p>
+                        <p class="mt-3 text-sm leading-7 break-words text-muted-foreground">
+                          <InlineBrandText text={request.observedResult} />
+                        </p>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+            )
+          }
+        </section>
+
+        <div
+          slot="record"
+          class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-12"
+        >
+          <section
+            aria-labelledby="record-outcome-title"
+            class="min-w-0"
+          >
+            <div class="flex items-center gap-3">
+              <MessageSquareText
+                class="size-5 text-muted-foreground"
+                aria-hidden="true"
+              /><h4
+                id="record-outcome-title"
+                class="text-xl font-semibold"
+              >
+                What changed
+              </h4>
+            </div>
+            <p class="mt-4 text-sm leading-7 break-words whitespace-pre-wrap">
+              <InlineBrandText text={attempt.summary} />
+            </p>
+            {
+              attempt.notes.length > 0 && (
+                <div class="mt-7 border-t border-border pt-6">
+                  <>
+                    <h5 class="font-semibold">Review notes</h5>
+                    <ul class="mt-3 space-y-3 text-sm leading-7 break-words whitespace-pre-wrap text-muted-foreground">
+                      {attempt.notes.map((note) => (
+                        <li>
+                          <InlineBrandText text={note} />
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                </div>
+              )
+            }
+          </section>
+          <section
+            aria-labelledby="record-source-title"
+            class="min-w-0 lg:border-l lg:border-border lg:pl-10"
+          >
+            <div class="flex items-center gap-3">
+              <GitCommitHorizontal
+                class="size-5 text-muted-foreground"
+                aria-hidden="true"
+              /><h4
+                id="record-source-title"
+                class="text-xl font-semibold"
+              >
+                Inspect the source
+              </h4>
+            </div>
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">
+              Open the recorded code, changes, review, and source session.
+            </p>
+            <dl class="mt-6 grid gap-4 text-sm">
+              <div>
+                <dt class="text-muted-foreground">Starting commit</dt><dd
+                  class="mt-1 font-mono text-xs break-all"
+                >
+                  {attempt.baseCommit}
+                </dd>
+              </div><div>
+                <dt class="text-muted-foreground">Recorded commit</dt><dd
+                  class="mt-1 font-mono text-xs break-all"
+                >
+                  {attempt.reachedCommit}
+                </dd>
+              </div>
+            </dl>
+            {
+              attempt.links.length > 0 && (
+                <div class="mt-7 grid gap-2">
+                  {attempt.links.map((link) => (
+                    <ActionLink
+                      class="h-auto min-w-0 justify-between gap-3 py-3 text-left [overflow-wrap:anywhere] whitespace-normal"
+                      variant="outline"
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {link.label}
+                      <ExternalLink
+                        class="size-4 shrink-0"
+                        aria-hidden="true"
+                        data-external-link-icon
+                      />
+                    </ActionLink>
+                  ))}
+                </div>
+              )
+            }
+          </section>
+        </div>
+      </TabbedPanels>
+      <ActionLink
+        class="mt-10"
+        variant="link"
+        href={withBase(PROJECT_RUN_ROUTE, basePath)}
+        ><ArrowLeft
+          class="size-4"
+          aria-hidden="true"
+        />Back to project runs</ActionLink
+      >
+    </div>
+  </div>
+</BaseLayout>

@@ -53,7 +53,7 @@ Execution rules:
 - Preserve all unrelated pre-existing changes and untracked files.
 - Treat runner-mounted Agent Skill and qualification inputs as read-only.
 - Treat ambiguous or unsupported runtime behavior conservatively. Record it explicitly instead of inventing evidence.
-- Inspect the final Git diff and run the relevant local validation before finishing.
+- Follow the task's inspection boundary. For repository work, inspect the final Git diff and run relevant local validation when appropriate; do not inspect a repository when the task expressly forbids it.
 - Return only the structured result required by the output schema.
 
 ${GIT_INSPECTION_GUIDANCE}

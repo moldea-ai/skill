@@ -5,7 +5,7 @@ import type {
   ISemanticRecordedTrial,
 } from './types.ts';
 
-export const SEMANTIC_CANDIDATE_TOKEN_LIMIT = 32_000_000;
+export const SEMANTIC_CANDIDATE_TOKEN_LIMIT = 64_000_000;
 
 type ISemanticChargedTrial = Pick<ISemanticRecordedTrial, 'operationalRetries' | 'trial'>;
 type ISemanticChargedCase = { trials: readonly ISemanticChargedTrial[] };
@@ -21,7 +21,7 @@ const getUsageTokenCount = (usage: ISemanticRecordedTrial['trial']['actorUsage']
     : usage.inputTokens + usage.outputTokens;
 
 const getTrialPaidTokenCount = (recordedTrial: ISemanticChargedTrial): number => {
-  if (recordedTrial.trial.executionOrigin === 'reused') return 0;
+  if (recordedTrial.trial.executionOrigin !== 'executed') return 0;
   return (
     getUsageTokenCount(recordedTrial.trial.actorUsage) +
     getUsageTokenCount(recordedTrial.trial.judgeUsage) +

@@ -52,11 +52,25 @@ const { scenarioId, trials } = Astro.props;
             <div>
               <dt class="text-muted-foreground">Execution origin</dt>
               <dd class="mt-1 font-mono text-xs break-all">
-                {trial.executionOrigin === 'reused'
-                  ? 'Exact stage reuse'
-                  : 'Executed in this attempt'}
+                {trial.executionOrigin === 'carried'
+                  ? 'Carried from an earlier attempt'
+                  : trial.executionOrigin === 'reused'
+                    ? 'Exact stage reuse'
+                    : 'Executed in this attempt'}
               </dd>
             </div>
+            {trial.carriedFrom !== undefined && (
+              <div class="sm:col-span-2">
+                <dt class="text-muted-foreground">Earlier evidence</dt>
+                <dd class="mt-1 grid gap-1 font-mono text-xs break-all">
+                  <span>Attempt: {trial.carriedFrom.attemptId}</span>
+                  <span>Evidence: {trial.carriedFrom.evidenceSha256}</span>
+                  {trial.carriedFrom.reassessment !== null && (
+                    <span>Reviewed assessment: {trial.carriedFrom.reassessment}</span>
+                  )}
+                </dd>
+              </div>
+            )}
             {trial.stageReuse !== null && (
               <div class="sm:col-span-2">
                 <dt class="text-muted-foreground">Reuse source</dt>

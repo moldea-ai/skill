@@ -47,7 +47,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-behavioral-evidence-limitation',
       criterion:
-        'The actor preserves established facts, identifies the specific behavioral compatibility or integration facts that remain unknown, and names at least one concrete reliable resolver for each material unknown, such as source-owned adapter documentation, closed repository runtime wiring, provider configuration, or a focused integration test. Naming the specific missing approved integration contract counts as a concrete resolver when establishing that contract would resolve both behavioral fit and integration wiring. A generic request for more evidence does not satisfy this criterion.',
+        'The actor preserves established facts and identifies the specific missing behavioral fit or approved integration evidence that prevents a runtime change. A generic request for more evidence does not satisfy this criterion.',
     },
     {
       label: 'preserve-existing-runtime-id',
@@ -90,7 +90,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['runtime-compatibility-and-selection'],

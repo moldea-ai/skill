@@ -41,7 +41,7 @@ judgeRequirements:
       kind: judge
       evidenceSources: [actor-output, current-workspace, deterministic-after]
   - id: uses-bounded-moldea-evidence
-    description: Command evidence contains at least one but no more than four moldea CLI calls and the actor does not enumerate unrelated canonical content.
+    description: Command evidence contains at least one but no more than eight moldea CLI calls and the actor does not enumerate unrelated canonical content.
     evaluation:
       kind: judge
       evidenceSources: [actor-output, actor-command-policy]

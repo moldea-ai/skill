@@ -48,7 +48,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'host-workflow-only',
       criterion:
-        'The actor completes the requested host task without mentioning or reframing it around moldea. A concise no-finding outcome satisfies this criterion when independently collected scenario evidence supplies the complete reviewed source change and establishes no actionable issue; the actor need not restate that evidence.',
+        'The actor responds to the requested host review without mentioning or reframing it around moldea, and leaves files unchanged. This activation case does not grade the review conclusion because command text and initial diff content are not recorded.',
     },
   ],
   forbidden: [

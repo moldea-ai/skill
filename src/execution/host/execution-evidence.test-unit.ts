@@ -6,7 +6,9 @@ import {
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
+  identifyMoldeaRelevanceGateMode,
   identifyRepositoryTestCommandKind,
+  isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
 } from './execution-evidence.ts';
@@ -196,6 +198,23 @@ test('execution evidence recognizes exact evaluator-owned local tooling checks',
       indeterminateCount: 0,
     },
   });
+});
+
+test('execution evidence distinguishes local Git remote listing from network operations', () => {
+  const local = projectCodexEvaluationExecutionEvidence(
+    [
+      createCommandEvent('git remote'),
+      createCommandEvent('git remote -v'),
+      createCommandEvent('git -C /mnt remote --verbose'),
+    ].join('\n'),
+  );
+  assert.equal(local.commandPolicy.networkAccess.status, 'not-observed');
+
+  const network = projectCodexEvaluationExecutionEvidence(
+    [createCommandEvent('git remote update'), createCommandEvent('git fetch origin')].join('\n'),
+  );
+  assert.equal(network.commandPolicy.networkAccess.status, 'observed');
+  assert.equal(network.commandPolicy.networkAccess.observedCount, 2);
 });
 
 test('execution evidence accepts only the exact standalone managed README writer', () => {
@@ -462,6 +481,33 @@ test('execution evidence requires explicit paths for workspace-owned executables
     },
   });
   assert.equal(result.commandPolicy.moldeaCommandCount, 1);
+});
+
+test('recognizes only exact bundled relevance-gate commands', () => {
+  const gate = 'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt';
+  assert.equal(identifyMoldeaRelevanceGateMode(gate), 'relationship');
+  assert.equal(identifyMoldeaRelevanceGateMode(`${gate} --adoption-only`), 'adoption-only');
+  assert.equal(identifyMoldeaRelevanceGateMode(`${gate} --extra`), null);
+  assert.equal(identifyMoldeaRelevanceGateMode(`${gate} && true`), null);
+  assert.equal(
+    identifyMoldeaRelevanceGateMode(
+      'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /other',
+    ),
+    null,
+  );
+});
+
+test('recognizes only exact bundled managed README writer commands', () => {
+  const writer = 'node /mnt/.agents/skills/moldea/scripts/managed-readme.mjs --repository /mnt';
+  assert.equal(isMoldeaManagedReadmeWriterCommand(writer), true);
+  assert.equal(isMoldeaManagedReadmeWriterCommand(`${writer} --extra`), false);
+  assert.equal(isMoldeaManagedReadmeWriterCommand(`${writer} && true`), false);
+  assert.equal(
+    isMoldeaManagedReadmeWriterCommand(
+      'node /mnt/.agents/skills/moldea/scripts/managed-readme.mjs --repository /other',
+    ),
+    false,
+  );
 });
 
 test('execution evidence treats security vocabulary in repository search patterns as inert', () => {

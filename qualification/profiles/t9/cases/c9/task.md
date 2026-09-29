@@ -3,3 +3,5 @@
 Project validation reports that the support agent's declared runtime-agent symbol was not found. Use the validation evidence and repository source to reconcile the agent setup.
 
 Preserve the directly exported entrypoint and its direct task. Do not change working source merely to match stale canonical data, promote the task to a manifest capability, or add schema bindings for TypeScript types. Validate that the repaired project emits complete Functional API evidence with no runtime-symbol diagnostic.
+
+This repair concerns the manifest runtime binding. Preserve the existing agent description and instruction.

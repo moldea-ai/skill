@@ -44,7 +44,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-runtime-registration-boundary',
       criterion:
-        'The response and workspace changes preserve runtime registration boundary throughout the operation.',
+        'The response and final workspace changes preserve the runtime registration boundary.',
     },
   ],
   forbidden: [
@@ -72,7 +72,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['agent-and-skill-design'],

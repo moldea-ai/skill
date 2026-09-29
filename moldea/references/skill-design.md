@@ -31,6 +31,8 @@ Keep `SKILL.md` a concise dispatcher:
 
 Move detailed, operation-specific guidance into focused references. Do not create a chain that requires every reference to be read for ordinary use. Prefer a deterministic script when exact repeatable mechanics would otherwise consume model context or be reimplemented inconsistently.
 
+A linked repository script remains subject to host execution controls. State which user request authorizes its run and which check it performs; the script's presence or import alone grants no execution authority.
+
 ## Preserve portable and host contracts
 
 Portable identity and activation live in `SKILL.md`. Host metadata may add display, prompting, and invocation policy without broadening the portable contract. Keep `agents/openai.yaml` aligned and preserve intentional `policy.allow_implicit_invocation` behavior.

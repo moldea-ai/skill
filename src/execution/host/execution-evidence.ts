@@ -669,6 +669,31 @@ const isSafeRelevanceGateCommand = (words: readonly string[]): boolean =>
   words[3] === '/mnt' &&
   (words.length === 4 || words[4] === '--adoption-only');
 
+const getStandaloneCommandWords = (command: unknown): readonly string[] | null => {
+  if (typeof command !== 'string' || Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
+    return null;
+  }
+  const directCommand = unwrapCodexShellCommand(command);
+  const commands =
+    directCommand === null
+      ? null
+      : tokenizeStaticShellList(stripSafeShellRedirections(directCommand));
+  return commands?.length === 1 ? commands[0]! : null;
+};
+
+/**
+ * Identifies one exact bundled relevance-gate invocation without retaining its command.
+ * @param command The host command to classify.
+ * @returns The gate mode, or null when the command is not an exact gate invocation.
+ */
+export const identifyMoldeaRelevanceGateMode = (
+  command: unknown,
+): 'adoption-only' | 'relationship' | null => {
+  const words = getStandaloneCommandWords(command);
+  if (words === null || !isSafeRelevanceGateCommand(words)) return null;
+  return words.length === 5 ? 'adoption-only' : 'relationship';
+};
+
 /** Checks the exact standalone Node invocation for the bundled README writer. */
 const isSafeManagedReadmeCommand = (words: readonly string[]): boolean =>
   isTrustedLocalExecutable(words[0], 'node') &&
@@ -676,6 +701,16 @@ const isSafeManagedReadmeCommand = (words: readonly string[]): boolean =>
   SAFE_MANAGED_README_PATHS.has(words[1] ?? '') &&
   words[2] === '--repository' &&
   words[3] === '/mnt';
+
+/**
+ * Identifies one exact bundled README-writer invocation without retaining its command.
+ * @param command The host command to classify.
+ * @returns Whether the command invokes the installed writer alone.
+ */
+export const isMoldeaManagedReadmeWriterCommand = (command: unknown): boolean => {
+  const words = getStandaloneCommandWords(command);
+  return words !== null && isSafeManagedReadmeCommand(words);
+};
 
 /** Parses the strict option surface for one launcher-backed CLI operation. */
 const parseMoldeaCliOperationArguments = (
@@ -945,6 +980,13 @@ const classifyNetworkCommand = (
     if (words.length === 2 && words[1] === '--version') return 'not-observed';
     const subcommand = identifyGitSubcommand(words);
     if (subcommand === null) return 'indeterminate';
+    if (
+      subcommand === 'remote' &&
+      (words.at(-1) === 'remote' ||
+        (words.at(-2) === 'remote' && ['-v', '--verbose'].includes(words.at(-1) ?? '')))
+    ) {
+      return 'not-observed';
+    }
     if (NETWORK_GIT_SUBCOMMANDS.has(subcommand)) return 'observed';
     return SAFE_GIT_SUBCOMMANDS.has(subcommand) ? 'not-observed' : 'indeterminate';
   }

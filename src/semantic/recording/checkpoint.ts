@@ -112,7 +112,23 @@ const RecordedTrialSchema = z.strictObject({
       semantic: z.boolean(),
     }),
     evaluatedAt: z.iso.datetime(),
-    executionOrigin: z.enum(['executed', 'reused']),
+    executionOrigin: z.enum(['carried', 'executed', 'reused']),
+    carriedFrom: z
+      .strictObject({
+        attemptId: z.string().min(1),
+        artifactDigest: Sha256Schema.optional(),
+        cliVersion: z.string().min(1).optional(),
+        evidenceSha256: Sha256Schema,
+        reassessment: z.string().trim().min(1).nullable(),
+        recordedVerdict: z
+          .strictObject({
+            passed: z.boolean(),
+            rationale: z.string(),
+          })
+          .optional(),
+        version: z.string().min(1).optional(),
+      })
+      .optional(),
     failureClassifications: z.array(
       z.enum([
         'semantic',

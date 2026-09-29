@@ -55,17 +55,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-authoritative-skill-source',
       criterion:
-        'The response and workspace changes preserve authoritative skill source throughout the operation.',
+        'The workspace changes leave the authoritative skill source unchanged while the actor treats it as the source for reconciliation.',
     },
     {
       label: 'synchronize-distributed-copy',
       criterion:
-        'The workspace changes synchronize distributed copy in the same coherent operation.',
-    },
-    {
-      label: 'verify-source-and-copy-independently',
-      criterion:
-        'The supplied response and artifacts verify source and copy independently at the closest practical boundary.',
+        'The final distributed copy equals this authoritative source text, including LF line endings: ---\nname: release-review\ndescription: Review npm and pnpm release readiness when publication approval is requested.\n---\n\n# Release review\n\nReview npm and pnpm evidence before publication.\n',
     },
     {
       label: 'report-copy-relationship',

@@ -31,7 +31,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `node scripts/generate-development.ts && npm exec -- astro build && npm exec -- vite preview --base ${basePath} --host 127.0.0.1 --port ${previewPort} --strictPort`,
+    command: `node scripts/generate-development.ts --project-runs-selection scripts/project-run-fixture/unselected.json && npm exec -- astro build && npm exec -- vite preview --base ${basePath} --host 127.0.0.1 --port ${previewPort} --strictPort`,
     reuseExistingServer: false,
     timeout: 120_000,
     url: new URL(basePath, previewOrigin).href,

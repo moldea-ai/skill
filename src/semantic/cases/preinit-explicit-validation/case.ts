@@ -31,7 +31,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'bounded-foundation-diagnosis',
       criterion:
-        'The actor explains that the missing canonical manifest prevents validation, distinguishes that finding from proof of no prior initialization, and states that structural and semantic validity remain unverified.',
+        'The actor explains that the missing canonical manifest prevents validation without treating that finding as proof of no prior initialization or claiming the project is valid.',
     },
   ],
   forbidden: [

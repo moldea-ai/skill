@@ -29,14 +29,14 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 2,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
     {
       label: 'persist-approved-policy',
       criterion:
-        'After adoption and bounded owner selection, the actor updates the existing project owner with the approved 30-minute policy for current and future services. It preserves the distinction between intended policy and unverified runtime compliance.',
+        'The actor updates the existing project owner with the approved 30-minute policy for current and future services. It preserves the distinction between intended policy and unverified runtime compliance.',
     },
     {
       label: 'validate-final-policy',

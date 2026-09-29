@@ -97,10 +97,7 @@ export {
   assessSemanticJudgeOutput,
   buildSemanticActorPrompt,
   buildSemanticJudgePrompt,
-  enforceMoldeaProductNameCasing,
-  hasValidMoldeaProductNameCasing,
-  INCORRECT_MOLDEA_PRODUCT_NAME_CASING_LABEL,
-  type ISemanticProductNameAssessment,
+  type ISemanticJudgeAssessment,
   type ISemanticJudgePromptOptions,
 } from './judging/index.ts';
 

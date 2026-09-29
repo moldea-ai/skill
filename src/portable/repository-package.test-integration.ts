@@ -124,6 +124,29 @@ test('accepts a compatible CLI minor and its nearest nested Core package', async
   assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '9.1.0');
 });
 
+test('launcher ignores a conflicting node_modules/.bin/moldea executable', () => {
+  const fixture = createPackageFixture();
+  const foreignMarker = join(fixture.repositoryRoot, 'foreign-cli-invoked.txt');
+  const binPath = join(fixture.repositoryRoot, 'node_modules', '.bin', 'moldea');
+  mkdirSync(dirname(binPath), { recursive: true });
+  writeFileSync(
+    binPath,
+    `require('node:fs').writeFileSync(${JSON.stringify(foreignMarker)}, 'invoked');\n`,
+    { mode: 0o755 },
+  );
+
+  const invocation = spawnSync(
+    process.execPath,
+    [LAUNCHER_PATH, '--repository', fixture.repositoryRoot, '--', 'composition', '--json'],
+    { cwd: fixture.repositoryRoot, encoding: 'utf8' },
+  );
+
+  assert.equal(invocation.status, 0, invocation.stderr);
+  assert.equal(invocation.stdout, 'fixture-cli-invoked\n');
+  assert.equal(existsSync(fixture.invocationMarker), true);
+  assert.equal(existsSync(foreignMarker), false);
+});
+
 test('preserves repository-contained CLI and nested Core directory links', async () => {
   const fixture = createPackageFixture();
   const storeRoot = join(fixture.repositoryRoot, 'node_modules', '.store');

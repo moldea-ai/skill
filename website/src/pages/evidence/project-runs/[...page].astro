@@ -1,0 +1,25 @@
+---
+import ProjectRunsPage from '../../../components/project-runs-page/project-runs-page.astro';
+import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
+import type { IProjectRunModel, IProjectRunPage } from '../../../lib/project-runs/index.ts';
+
+interface Props {
+  run: IProjectRunModel;
+  page: IProjectRunPage;
+}
+export const getStaticPaths = () => {
+  const run = loadWebsiteModel().projectRuns;
+  return (
+    run?.pages.map((page) => ({
+      params: { page: page.number === 1 ? undefined : String(page.number) },
+      props: { run, page },
+    })) ?? []
+  );
+};
+const { run, page } = Astro.props;
+---
+
+<ProjectRunsPage
+  {run}
+  {page}
+/>

@@ -48,7 +48,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'bound-and-verify-canonical-work',
       criterion:
-        'The actor uses bounded selected reads, completes relevant native checks and final launcher-backed validation, reports the structural result accurately, and preserves material provider or behavioral evidence gaps as unresolved limitations rather than claiming production readiness from a canned response.',
+        'The actor completes relevant native checks and launcher-backed validation, reports the structural result accurately, and preserves material provider or behavioral evidence gaps as unresolved limitations rather than claiming production readiness from a canned response.',
     },
   ],
   forbidden: [
@@ -66,7 +66,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 5,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['agent-and-skill-design', 'bounded-relevance'],

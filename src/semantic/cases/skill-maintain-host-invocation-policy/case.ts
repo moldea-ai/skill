@@ -57,12 +57,11 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-existing-invocation-policy',
       criterion:
-        'The response and workspace changes preserve existing invocation policy throughout the operation.',
+        'The final host metadata preserves the existing invocation policy, and the actor does not claim to change it.',
     },
     {
       label: 'preserve-unrelated-host-metadata',
-      criterion:
-        'The response and workspace changes preserve unrelated host metadata throughout the operation.',
+      criterion: 'The final host metadata preserves unrelated supported fields.',
     },
     {
       label: 'support-positive-and-adjacent-non-activation',

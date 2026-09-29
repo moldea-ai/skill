@@ -1,6 +1,6 @@
 {
   "name": "@moldea.ai/skill-conformance",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "private": true,
   "description": "Development-only conformance checks for the moldea Agent Skill.",
   "type": "module",
@@ -24,6 +24,7 @@
     "evidence:publish": "node src/command-line/evidence.ts publish",
     "eval:semantic": "node src/semantic/command-line/runner.ts",
     "eval:semantic:diagnose": "node src/semantic/command-line/runner.ts --diagnose-batch",
+    "eval:semantic:compose": "node src/semantic/command-line/compose.ts",
     "eval:semantic:identity": "node src/semantic/command-line/runner.ts --preflight",
     "eval:semantic:preflight": "node src/semantic/command-line/runner.ts --preflight",
     "eval:semantic:verify": "node src/semantic/command-line/runner.ts --verify-attempts",
@@ -38,6 +39,7 @@
     "qualification:dry-run": "npm --workspace qualification run qualification -- run --adapter custom --implementation custom --dry-run --json",
     "qualification:compatibility:check": "npm --workspace qualification run qualification -- compatibility-check",
     "qualification:compatibility:update": "npm --workspace qualification run qualification -- compatibility-update",
+    "qualification:compose": "node qualification/src/cli/compose.ts",
     "qualification:dry-run:all": "npm run qualification:dry-run && npm --workspace qualification run qualification -- run-batch --all --dry-run --workers 4 --json",
     "qualification:format:check": "npm --workspace qualification run format:check",
     "qualification:lint": "npm --workspace qualification run lint",

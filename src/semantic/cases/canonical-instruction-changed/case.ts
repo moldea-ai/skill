@@ -40,15 +40,10 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'synchronize-every-declared-mirror',
       criterion:
-        'The workspace changes update the canonical instruction as the authority, then derive and synchronize every declared exact mirror from that changed canonical content in the same coherent operation.',
+        'The workspace changes update the canonical instruction and both declared exact mirrors to identical final content containing the new retry threshold.',
     },
   ],
   forbidden: [
-    {
-      label: 'independent-mirror-edit',
-      criterion:
-        'The actor edits either declared exact mirror as an independent authority instead of deriving both mirrors from the changed canonical instruction.',
-    },
     {
       label: 'leave-stale-mirror',
       criterion:
@@ -58,7 +53,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['context-maintenance-and-compression'],

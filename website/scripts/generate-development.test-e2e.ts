@@ -1,8 +1,19 @@
+import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { promisify } from 'node:util';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { loadWebsiteModel } from '../src/lib/generation/generation.ts';
+import { PROJECT_RUN_FIXTURE_ID, writeProjectRunFixture } from './project-run-fixture/index.ts';
+
+import { getRepositoryRoot, loadWebsiteModel } from '../src/lib/generation/generation.ts';
+
+test.describe.configure({ mode: 'serial' });
+const executeFile = promisify(execFile);
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -67,6 +78,9 @@ test('renders current coverage without recorded results', async ({ page }) => {
 
   await page.goto(toPublicPath(model.qualification.route));
   await expect(page.getByText('No recorded attempt', { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'Browse the integrations' }).locator('svg.lucide-arrow-down'),
+  ).toHaveCount(1);
   await expect(page.getByRole('heading', { name: 'Review the cases' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Await the evidence' })).toBeVisible();
   await expect(page.getByText(/qualification cases/u).first()).toBeVisible();
@@ -109,5 +123,116 @@ test('keeps clean evidence pages accessible at 320px in both themes', async ({ b
     }
 
     await context.close();
+  }
+});
+
+test('unselected project runs are absent from navigation and static routes', async ({ page }) => {
+  const model = loadWebsiteModel();
+  expect(model.projectRuns).toBeNull();
+  expect(model.routes.some((route) => route.startsWith('/evidence/project-runs/'))).toBe(false);
+  await page.goto(toPublicPath('/evidence/'));
+  await expect(page.getByRole('link', { name: 'Explore project runs' })).toHaveCount(0);
+  await expect(
+    page.getByRole('navigation', { name: 'Evidence sections' }).getByRole('link'),
+  ).toHaveCount(2);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Follow the evidence behind moldea.',
+  );
+  expect(
+    existsSync(path.join(getRepositoryRoot(), 'website/dist/evidence/project-runs/index.html')),
+  ).toBe(false);
+});
+
+test('keeps evidence selection readable on neutral badges and fixed light cards', async ({
+  page,
+}) => {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme });
+    await page.goto(toPublicPath('/evidence/'));
+
+    const expectedSelection = await page.locator('#decisions').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { background: style.backgroundColor, foreground: style.color };
+    });
+    const badgeSelection = await page
+      .locator('#decisions [data-evidence-status="not-recorded"] [data-status-badge="neutral"]')
+      .evaluate((element) => {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        const style = getComputedStyle(element, '::selection');
+        return { background: style.backgroundColor, foreground: style.color };
+      });
+    const cardSelection = await page
+      .getByText('Follow the decision', { exact: true })
+      .evaluate((element) => {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        const style = getComputedStyle(element, '::selection');
+        return { background: style.backgroundColor, foreground: style.color };
+      });
+
+    expect(badgeSelection).toStrictEqual(expectedSelection);
+    expect(cardSelection).toStrictEqual(expectedSelection);
+  }
+});
+
+test('loading a selection replaces local preview and failed arguments preserve the model', async () => {
+  const repositoryRoot = getRepositoryRoot();
+  const root = await mkdtemp(path.join(tmpdir(), 'project-preview-'));
+  const generator = path.join(repositoryRoot, 'website/scripts/generate-development.ts');
+  const modelPath = path.join(repositoryRoot, 'website/.generated/model.json');
+  const selectionArgs = [
+    generator,
+    '--project-runs-selection',
+    path.join(repositoryRoot, 'website/scripts/project-run-fixture/unselected.json'),
+  ];
+  try {
+    await writeProjectRunFixture(root, 1);
+    await executeFile(process.execPath, [
+      generator,
+      '--project-runs-root',
+      root,
+      '--project-run',
+      PROJECT_RUN_FIXTURE_ID,
+    ]);
+    const local = loadWebsiteModel();
+    expect(local.projectRuns?.provenance).toBe('local');
+    expect(local.projectRuns?.pages[0]?.attempts[0]?.links).toStrictEqual([]);
+    const before = await readFile(modelPath, 'utf8');
+    await expect(
+      executeFile(process.execPath, [generator, '--project-runs-root', root]),
+    ).rejects.toThrow('Supply both');
+    expect(await readFile(modelPath, 'utf8')).toBe(before);
+    await expect(
+      executeFile(process.execPath, [
+        ...selectionArgs,
+        '--project-runs-root',
+        root,
+        '--project-run',
+        PROJECT_RUN_FIXTURE_ID,
+      ]),
+    ).rejects.toThrow('Choose either');
+    expect(await readFile(modelPath, 'utf8')).toBe(before);
+    await expect(
+      executeFile(process.execPath, [
+        generator,
+        '--project-runs-root',
+        root,
+        '--project-run',
+        'missing',
+      ]),
+    ).rejects.toThrow('Project run source');
+    expect(await readFile(modelPath, 'utf8')).toBe(before);
+    await executeFile(process.execPath, selectionArgs);
+    expect(loadWebsiteModel().projectRuns).toBeNull();
+  } finally {
+    await rm(root, { force: true, recursive: true });
+    await executeFile(process.execPath, selectionArgs);
   }
 });

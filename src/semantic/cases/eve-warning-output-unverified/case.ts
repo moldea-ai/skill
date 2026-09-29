@@ -30,12 +30,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'separate-structural-status-and-wiring',
       criterion:
-        'The actor reports zero validation errors and the scoped warning, then leaves the output-schema wiring conclusion unresolved across the declared range.',
+        'The actor reports zero validation errors and the scoped warning, distinguishes the confirmed missing output-schema binding for earlier supported versions from the later API boundary, and does not treat structural validity as proof that wiring works across the declared range.',
     },
     {
       label: 'identify-boundary-and-resolver',
       criterion:
-        'The actor identifies Eve 0.67.0 as the behavior boundary and names the nearest declaration or exact supported version choice needed to establish the requested wiring claim.',
+        'The actor identifies the declared Eve range and the 0.67.0 behavior boundary, without recommending a forced range change solely to clear the warning.',
     },
     {
       label: 'report-no-writes',
@@ -61,7 +61,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['runtime-compatibility-and-selection'],

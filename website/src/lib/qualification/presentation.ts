@@ -46,6 +46,36 @@ const pairAttempt = (
 export const createQualificationJourneyCollection = (
   profile: IQualificationProfileModel,
 ): IQualificationJourneyCollectionModel => {
+  if (profile.selectedJourneys !== undefined) {
+    const adapterJourneys = profile.selectedJourneys.filter(
+      ({ origin }) => origin === 'Adapter-specific',
+    );
+    const foundationJourneys = profile.selectedJourneys.filter(
+      ({ origin }) => origin !== 'Adapter-specific',
+    );
+    const chapters: IQualificationJourneyChapterModel[] = [];
+    if (adapterJourneys.length > 0) {
+      chapters.push({
+        description: 'Checks specific to this adapter and its project files.',
+        id: 'adapter-journeys',
+        journeys: adapterJourneys,
+        title: 'Adapter journeys',
+      });
+    }
+    if (foundationJourneys.length > 0) {
+      chapters.push({
+        description: 'Shared project behavior checked for every adapter.',
+        id: 'foundation-journeys',
+        journeys: foundationJourneys,
+        title: 'Foundation journeys',
+      });
+    }
+    return {
+      attempts: profile.selectedAttempts ?? [],
+      chapters,
+      journeys: chapters.flatMap(({ journeys }) => journeys),
+    };
+  }
   const isCustom = profile.adapterId === 'custom' && profile.implementationId === 'custom';
   const directAttempt = profile.currentAssurance?.directAttempt ?? profile.currentLatest;
   const baselineAttempt = profile.currentAssurance?.baselineAttempt ?? null;

@@ -20,6 +20,7 @@ describe('semantic evaluation argument parsing', () => {
       isRestartRequested: false,
       isResumeStoppedStageRequested: false,
       isVerifyAttemptsRequested: false,
+      recordCaseIds: null,
       requestedCaseId: undefined,
       workerCount: 4,
     });
@@ -30,6 +31,18 @@ describe('semantic evaluation argument parsing', () => {
     expect(() =>
       parseSemanticEvaluationArguments(['--record', '--restart', '--resume-stopped-stage']),
     ).toThrow(/cannot be combined/u);
+  });
+
+  test('records only explicitly selected cases', () => {
+    expect(
+      parseSemanticEvaluationArguments(['--record', '--cases', 'one,two', '--workers', '2']),
+    ).toMatchObject({ recordCaseIds: ['one', 'two'], workerCount: 2 });
+    expect(() => parseSemanticEvaluationArguments(['--record', '--cases', 'one,one'])).toThrow(
+      /unique comma-separated/u,
+    );
+    expect(() => parseSemanticEvaluationArguments(['--record', '--all'])).toThrow(
+      /Diagnostic selectors require|accepts only/u,
+    );
   });
 
   test('keeps one targeted case diagnostic-only', () => {

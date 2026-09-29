@@ -67,7 +67,6 @@ const CUSTOM_SETUP_CASE_IDS = new Set([
   'repair-unproven-adoption',
   'unadopted-direct-context-handoff',
   'unadopted-relevance-no-initialization',
-  'yarn-conflicting-cli-provider',
   'yarn-plugin-install-blocked',
 ]);
 const UNINITIALIZED_CASE_IDS = new Set([
@@ -82,8 +81,6 @@ const EVE_VERSION_WARNING_CASE_IDS = new Set([
   'eve-warning-read-only-evaluation',
   'eve-warning-unrelated-change',
 ]);
-const YARN_CONFLICTING_PROVIDER_NAME = 'conflicting-moldea-provider';
-const YARN_CONFLICT_SENTINEL = 'unexpected-yarn-cli-invocation.txt';
 const EVALUATION_GIT_COMMIT_ENV: NodeJS.ProcessEnv = {
   ...process.env,
   GIT_AUTHOR_DATE: '2000-01-01T00:00:00+00:00',
@@ -251,99 +248,6 @@ const seedPublishedCli = async (repositoryPath: string): Promise<void> => {
   await linkLocalCliExecutable(repositoryPath, installedCliRoot, PUBLISHED_CLI_MANIFEST);
 };
 
-/** Seeds exact Yarn dependencies whose effective moldea provider is intentionally conflicting. */
-const seedYarnConflictingCliProvider = async (repositoryPath: string): Promise<void> => {
-  await writeScenarioFile(
-    repositoryPath,
-    'package.json',
-    `${JSON.stringify(
-      {
-        devDependencies: {
-          '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version,
-          [YARN_CONFLICTING_PROVIDER_NAME]: '1.0.0',
-        },
-        name: 'yarn-conflicting-provider-evaluation',
-        packageManager: 'yarn@4.18.0',
-        private: true,
-      },
-      null,
-      2,
-    )}\n`,
-  );
-  await writeScenarioFile(repositoryPath, '.yarnrc.yml', 'nodeLinker: node-modules\n');
-  await writeScenarioFile(
-    repositoryPath,
-    'yarn.lock',
-    [
-      '__metadata:',
-      '  version: 8',
-      '  cacheKey: 10c0',
-      '',
-      `"@moldea.ai/cli@npm:${PUBLISHED_CLI_MANIFEST.version}":`,
-      `  version: ${PUBLISHED_CLI_MANIFEST.version}`,
-      `  resolution: "@moldea.ai/cli@npm:${PUBLISHED_CLI_MANIFEST.version}"`,
-      '  languageName: node',
-      '  linkType: hard',
-      '',
-      `"${YARN_CONFLICTING_PROVIDER_NAME}@npm:1.0.0":`,
-      '  version: 1.0.0',
-      `  resolution: "${YARN_CONFLICTING_PROVIDER_NAME}@npm:1.0.0"`,
-      '  languageName: node',
-      '  linkType: hard',
-      '',
-      '"yarn-conflicting-provider-evaluation@workspace:.":',
-      '  version: 0.0.0-use.local',
-      '  resolution: "yarn-conflicting-provider-evaluation@workspace:."',
-      '  dependencies:',
-      `    "@moldea.ai/cli": "npm:${PUBLISHED_CLI_MANIFEST.version}"`,
-      `    "${YARN_CONFLICTING_PROVIDER_NAME}": "npm:1.0.0"`,
-      '  languageName: unknown',
-      '  linkType: soft',
-      '',
-    ].join('\n'),
-  );
-
-  await seedPublishedCli(repositoryPath);
-
-  const conflictingPackageRoot = join(
-    repositoryPath,
-    'node_modules',
-    YARN_CONFLICTING_PROVIDER_NAME,
-  );
-  const conflictingBinPath = join(conflictingPackageRoot, 'bin', 'moldea.cjs');
-  await writeScenarioFile(
-    repositoryPath,
-    relative(repositoryPath, join(conflictingPackageRoot, 'package.json')),
-    `${JSON.stringify(
-      {
-        bin: { moldea: './bin/moldea.cjs' },
-        name: YARN_CONFLICTING_PROVIDER_NAME,
-        version: '1.0.0',
-      },
-      null,
-      2,
-    )}\n`,
-  );
-  await writeScenarioFile(
-    repositoryPath,
-    relative(repositoryPath, conflictingBinPath),
-    [
-      '#!/opt/node',
-      "const { writeFileSync } = require('node:fs');",
-      `writeFileSync('${YARN_CONFLICT_SENTINEL}', \`direct moldea \${process.argv.slice(2).join(' ')}\\n\`);`,
-      "process.stderr.write('The conflicting moldea provider must not be invoked.\\n');",
-      'process.exitCode = 2;',
-      '',
-    ].join('\n'),
-  );
-  await chmod(conflictingBinPath, 0o755);
-
-  const binDirectory = join(repositoryPath, 'node_modules', '.bin');
-  const moldeaLinkPath = join(binDirectory, 'moldea');
-  await unlink(moldeaLinkPath);
-  await symlink(relative(binDirectory, conflictingBinPath), moldeaLinkPath);
-};
-
 /** Copies the evaluator-owned base commands into a scenario-specific command mount. */
 const prepareSemanticActorToolDirectory = async (
   sandboxHome: string,
@@ -404,55 +308,6 @@ export const prepareSemanticEvaluationHome = async (
     await chmod(pnpmProbePath, 0o755);
     return actorToolMounts;
   }
-  if (caseDefinition.id !== 'yarn-conflicting-cli-provider') return actorToolMounts;
-
-  const yarnProbePath = join(actorToolDirectory, 'yarn');
-  await writeFile(
-    yarnProbePath,
-    [
-      '#!/opt/node',
-      "const { writeFileSync } = require('node:fs');",
-      'const argumentsList = process.argv.slice(2);',
-      'const writeJson = (record) => process.stdout.write(`${JSON.stringify(record)}\\n`);',
-      "if (argumentsList.length === 1 && ['--version', '-v'].includes(argumentsList[0])) {",
-      "  process.stdout.write('4.18.0\\n');",
-      '} else if (',
-      "  argumentsList.length === 3 && argumentsList[0] === 'info' &&",
-      "  argumentsList[1] === '@moldea.ai/cli' && argumentsList[2] === '--json'",
-      ') {',
-      '  writeJson({',
-      `    value: '@moldea.ai/cli@npm:${PUBLISHED_CLI_MANIFEST.version}',`,
-      '    children: {',
-      `      Version: '${PUBLISHED_CLI_MANIFEST.version}',`,
-      "      'Exported Binaries': ['moldea'],",
-      '    },',
-      '  });',
-      '} else if (',
-      "  argumentsList.length === 3 && argumentsList[0] === 'bin' &&",
-      "  argumentsList[1] === '-v' && argumentsList[2] === '--json'",
-      ') {',
-      '  writeJson({',
-      "    name: 'moldea',",
-      `    source: '${YARN_CONFLICTING_PROVIDER_NAME}',`,
-      `    path: '/mnt/node_modules/${YARN_CONFLICTING_PROVIDER_NAME}/bin/moldea.cjs',`,
-      '  });',
-      '} else if (',
-      "  (argumentsList[0] === 'bin' && argumentsList[1] === 'moldea') ||",
-      "  (['exec', 'run'].includes(argumentsList[0]) && argumentsList.slice(1).includes('moldea')) ||",
-      "  argumentsList[0] === 'moldea'",
-      ') {',
-      `  writeFileSync('${YARN_CONFLICT_SENTINEL}', \`yarn \${argumentsList.join(' ')}\\n\`);`,
-      "  process.stderr.write('The conflicting moldea provider must not be invoked.\\n');",
-      '  process.exitCode = 2;',
-      '} else {',
-      "  process.stderr.write('The evaluation Yarn probe supports only declared read-only inspections.\\n');",
-      '  process.exitCode = 2;',
-      '}',
-      '',
-    ].join('\n'),
-    'utf8',
-  );
-  await chmod(yarnProbePath, 0o755);
   return actorToolMounts;
 };
 
@@ -517,8 +372,10 @@ export const seedSemanticTooling = async (
     `${JSON.stringify(
       {
         devDependencies: { '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version },
+        name: 'moldea-semantic-fixture',
         packageManager: `npm@${CODEX_EVALUATION_NPM_VERSION}`,
         private: true,
+        version: '0.0.0',
       },
       null,
       2,
@@ -1510,7 +1367,7 @@ const seedScenarioRepository = async (
     await writeScenarioFile(
       repositoryPath,
       'README.md',
-      '# Evaluation service\n\nThis small TypeScript service returns the current service status.\n',
+      '# Evaluation service\n\nThis small TypeScript service returns the fixed `available` status.\n',
     );
     await writeScenarioFile(
       repositoryPath,
@@ -1522,12 +1379,6 @@ const seedScenarioRepository = async (
 
   if (INITIALIZATION_CONTEXT_CASE_IDS.has(caseDefinition.id)) {
     await seedInitializationContext(repositoryPath, caseDefinition);
-    return;
-  }
-
-  if (caseDefinition.id === 'yarn-conflicting-cli-provider') {
-    await seedYarnConflictingCliProvider(repositoryPath);
-    await seedAdoptedProjectState(repositoryPath);
     return;
   }
 
@@ -1610,6 +1461,18 @@ const seedScenarioRepository = async (
   await seedAdoptedProject(repositoryPath, caseDefinition);
 
   switch (caseDefinition.id) {
+    case 'evaluate-brief-project-request':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy: []\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Evaluation project\n\nThis synthetic project has no declared implementation relationships.\n',
+      );
+      break;
     case 'model-workflow-routing':
     case 'unrelated-sdk-maintenance':
       await seedModelWorkflow(repositoryPath);
@@ -1642,19 +1505,6 @@ const seedScenarioRepository = async (
         repositoryPath,
         'src/internal-helper.js',
         'export const normalizeRefundId = (refundId) => refundId.trim();\n',
-      );
-      break;
-    case 'adopted-ambiguous-context-handoff':
-      await writeScenarioFile(
-        repositoryPath,
-        'moldea/project.md',
-        '# Evaluation project\n\nThis synthetic project exercises local `moldea` maintenance behavior. Finance currently owns refund approval.\n',
-      );
-      break;
-    case 'adopted-direct-context-handoff':
-      await seedConversationalContext(
-        repositoryPath,
-        '# Invoice service\n\nThis service extracts and validates invoice data for accounting systems.\n',
       );
       break;
     case 'repair-known-context-drift':
@@ -1821,13 +1671,6 @@ const seedScenarioRepository = async (
       ]) {
         await writeScenarioFile(repositoryPath, relativePath, 'export const state = "baseline";\n');
       }
-      break;
-    case 'evaluate-unborn-repository':
-      await writeScenarioFile(
-        repositoryPath,
-        'src/initial.js',
-        'export const initialState = true;\n',
-      );
       break;
     case 'reconcile-material-ambiguity':
     case 'reconcile-identified-authority':
@@ -2258,7 +2101,26 @@ const applyScenarioWorkingTree = async (
     }
     case 'repair-marker-ambiguity': {
       const readme = await readFile(join(repositoryPath, 'README.md'), 'utf8');
-      await writeScenarioFile(repositoryPath, 'README.md', `${readme}<!-- moldea:start -->\n`);
+      const startMarker = '<!-- moldea:start -->';
+      const endMarker = '<!-- moldea:end -->';
+      const startIndex = readme.indexOf(startMarker);
+      const endIndex = readme.indexOf(endMarker, startIndex) + endMarker.length;
+      const conflictingRegions = [
+        startMarker,
+        'This project uses moldea only for release planning.',
+        endMarker,
+        '',
+        'Outside guidance between the two regions must be preserved.',
+        '',
+        startMarker,
+        'This project uses moldea for every repository change.',
+        endMarker,
+      ].join('\n');
+      await writeScenarioFile(
+        repositoryPath,
+        'README.md',
+        `${readme.slice(0, startIndex)}${conflictingRegions}${readme.slice(endIndex)}`,
+      );
       return;
     }
     case 'repair-ambiguous-foundation':
@@ -2480,6 +2342,7 @@ export const createActorRepository = async (
   sandboxHome: string,
   actorToolDirectory: string,
 ): Promise<{
+  hasWorkspaceBinaryDirectory: boolean;
   readOnlyMounts: Array<{ source: string; target: string }>;
   repositoryPath: string;
 }> => {
@@ -2507,26 +2370,24 @@ export const createActorRepository = async (
       };
     })());
 
-  const gitCommands: string[][] = [['init', '--quiet', '--initial-branch=main']];
-  if (caseDefinition.id !== 'evaluate-unborn-repository') {
-    gitCommands.push(
-      ['add', '--all'],
-      [
-        '-c',
-        'gc.auto=0',
-        '-c',
-        'maintenance.auto=false',
-        '-c',
-        'user.name=moldea Evaluation',
-        '-c',
-        'user.email=evaluation@invalid.example',
-        'commit',
-        '--quiet',
-        '-m',
-        'test: initialize evaluation repository',
-      ],
-    );
-  }
+  const gitCommands: string[][] = [
+    ['init', '--quiet', '--initial-branch=main'],
+    ['add', '--all'],
+    [
+      '-c',
+      'gc.auto=0',
+      '-c',
+      'maintenance.auto=false',
+      '-c',
+      'user.name=moldea Evaluation',
+      '-c',
+      'user.email=evaluation@invalid.example',
+      'commit',
+      '--quiet',
+      '-m',
+      'test: initialize evaluation repository',
+    ],
+  ];
 
   for (const args of gitCommands) {
     const result = spawnSync('git', args, {
@@ -2542,7 +2403,11 @@ export const createActorRepository = async (
 
   await setupResult.afterBaseline?.();
 
-  return { readOnlyMounts: setupResult.readOnlyToolMounts ?? [], repositoryPath };
+  return {
+    hasWorkspaceBinaryDirectory: existsSync(join(repositoryPath, 'node_modules')),
+    readOnlyMounts: setupResult.readOnlyToolMounts ?? [],
+    repositoryPath,
+  };
 };
 
 /** Records repository-visible files without following symlinks. */

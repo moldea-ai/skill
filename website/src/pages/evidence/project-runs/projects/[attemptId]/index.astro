@@ -1,0 +1,24 @@
+---
+import ProjectRunPage from '../../../../../components/project-run-page/project-run-page.astro';
+import { loadWebsiteModel } from '../../../../../lib/generation/generation.ts';
+import type { IProjectAttempt, IProjectRunModel } from '../../../../../lib/project-runs/index.ts';
+
+interface Props {
+  attempt: IProjectAttempt;
+  run: IProjectRunModel;
+}
+export const getStaticPaths = () => {
+  const run = loadWebsiteModel().projectRuns;
+  return (
+    run?.pages.flatMap(({ attempts }) =>
+      attempts.map((attempt) => ({ params: { attemptId: attempt.id }, props: { attempt, run } })),
+    ) ?? []
+  );
+};
+const { attempt, run } = Astro.props;
+---
+
+<ProjectRunPage
+  {attempt}
+  {run}
+/>

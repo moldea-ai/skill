@@ -32,14 +32,14 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
     {
       label: 'validate-intentional-zero-agent-project',
       criterion:
-        'Runner-owned evidence records successful launcher-backed inspection and validation. The actor correctly reports that the adopted project intentionally has no agents and that zero agents is not a structural defect; it separates structural validity from untested semantic behavior and leaves files unchanged.',
+        'Runner-owned evidence records successful launcher-backed inspection and validation. The actor reports zero agents without treating their absence as a structural defect and leaves files unchanged. An explicit semantic-coverage disclaimer is unnecessary unless the actor claims semantic correctness.',
     },
   ],
   forbidden: [

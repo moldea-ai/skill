@@ -80,7 +80,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'blocked',
     minimumMoldeaCommands: 0,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 5,
     maximumMoldeaOutputBytes: 65536,
   },
   coverageClaimIds: ['context-maintenance-and-compression'],

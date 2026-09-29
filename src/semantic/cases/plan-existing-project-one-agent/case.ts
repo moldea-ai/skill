@@ -9,7 +9,7 @@ export const semanticCase = defineSemanticCase({
     'An adopted moldea project with compatible local inspection needs a plan for semantically triaging support messages while keeping authorization and state transitions deterministic.',
   operation: 'plan-agent-system',
   input: {
-    developerDirection: 'Plan the smallest agent system for support triage.',
+    developerDirection: 'Plan the smallest agent system for support triage in this project.',
     repositoryEvidence: [
       {
         claim:
@@ -42,7 +42,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'use-existing-evidence-read-only',
       criterion:
-        'The response and workspace changes use existing evidence read only in the material behavior exercised by this scenario.',
+        'The response grounds its proposed boundaries in the existing support API and project triage documentation, and workspace evidence shows no changes. Projected commands do not establish file-read history.',
     },
     {
       label: 'recommend-one-justified-agent',
@@ -62,7 +62,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-no-writes',
       criterion:
-        'The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes.',
+        'Workspace evidence contains no repository changes, and the actor does not claim that it created or updated an agent. A read-only plan need not announce an empty diff.',
     },
   ],
   forbidden: [
@@ -85,7 +85,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['agent-system-planning'],

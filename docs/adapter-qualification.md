@@ -46,15 +46,17 @@ Reuse is limited to complete passed or recovered groups from validated local att
 
 Earlier raw attempts are unsupported for current resume, reuse, and recording. Current `gpt-6-sol` baselines and reuse require fresh matching evidence.
 
-Fresh evidence is normal. A maintainer may publish and select a self-contained protocol-11 qualification bundle when that is the evidence the website should show. Semantic evidence is selected independently. The selected bundle retains its recorded projects, replays, closure, protocol, version, date, and technical provenance without requiring today's evaluator or profile inventory. See [Release evidence](/docs/release-evidence/).
+Fresh evidence is normal. A maintainer may publish and select a self-contained official qualification bundle when that is the evidence the website should show. Semantic evidence is selected independently. The selected bundle retains its recorded projects, replays, closure, protocol, version, date, and technical provenance without requiring today's evaluator or profile inventory. See [Release evidence](/docs/release-evidence/).
 
-Current target keys come from `qualification/profiles/index.yaml`. Private target attempts and `latest.json` pointers live below `.evidence/qualification/results/`; manifests bind files by SHA-256. After a completed official batch, the producer stores a self-contained local public bundle below `.evidence/runs/qualification/`. The website reads only a prepared selected bundle. Replays are not terminal transcripts, and technical attempt identities do not become separate public routes.
+Current target keys come from `qualification/profiles/index.yaml`. Private target attempts and `latest.json` pointers live below `.evidence/qualification/results/`; manifests bind files by SHA-256. After a completed official adapter batch, the producer stores a self-contained local public bundle for the selected targets and their exact Custom baseline below `.evidence/runs/qualification/`. Targeted bundles can be composed with earlier public bundles. The website reads only a prepared selected bundle. Replays are not terminal transcripts, and technical attempt identities do not become separate public routes.
 
 An adapter requires a current passing Custom baseline. Custom requires no baseline.
 
 Publish packages first, then explicitly run `npm run qualification:compatibility:update` in the skill checkout. Review and commit `qualification/compatibility/snapshot.json` before paid qualification. `npm run qualification:compatibility:check` validates the local publication against every indexed profile and claim without network access. Ordinary qualification and evidence verification use local or embedded inputs and do not read an adjacent packages checkout.
 
-| Changed input                                                      | Required fresh evidence                          |
+The following applies when a maintainer wants a new exact current-qualification claim.
+
+| Changed input                                                      | New current evidence to run                      |
 | ------------------------------------------------------------------ | ------------------------------------------------ |
 | Portable skill, semantic activation contract, or CLI closure       | Semantic evaluation, Custom, and every adapter   |
 | Shared qualification runner, host, universal cases, or environment | Custom and every adapter                         |

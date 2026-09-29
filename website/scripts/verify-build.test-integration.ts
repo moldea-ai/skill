@@ -247,7 +247,10 @@ describe('verifyProductionBuild', () => {
     expect(homeHtml).toContain(`${qualifiedProfileCount}/${model.qualification.profiles.length}`);
     expect(homeHtml).toContain(`href="${withBase(model.semanticEvaluation.route, basePath)}"`);
     expect(homeHtml).toContain(`href="${withBase(model.qualification.route, basePath)}"`);
-    expect(evidenceHtml).toContain('Follow each result from request to verdict.');
+    const evidenceHeading = /<h1[^>]*>(.*?)<\/h1>/su
+      .exec(evidenceHtml)?.[1]
+      ?.replace(/<[^>]+>/gu, '');
+    expect(evidenceHeading).toBe('Follow the evidence behind moldea.');
     expect(semanticHtml).toContain(
       `${successfulCaseCount}/${model.semanticEvaluation.caseCount} decisions verified`,
     );
@@ -328,4 +331,29 @@ describe('verifyProductionBuild', () => {
     expect(getTitle(qualificationGuide)).not.toBe(getTitle(qualificationEvidence));
     expect(getTitle(semanticGuide)).not.toBe(getTitle(semanticEvidence));
   });
+});
+
+test('publishes bounded project stories and their independent discovery records', () => {
+  const run = loadWebsiteModel().projectRuns;
+  expect(run).not.toBeNull();
+  const overview = readFileSync(getDistPath('evidence/project-runs/index.html'), 'utf8');
+  const finalPage = readFileSync(getDistPath('evidence/project-runs/2/index.html'), 'utf8');
+  const sitemap = readFileSync(getDistPath('sitemap-0.xml'), 'utf8');
+  const search = readFileSync(getDistPath('search-index.json'), 'utf8');
+  const llms = readFileSync(getDistPath('llms.txt'), 'utf8');
+  expect(overview.match(/data-project-story/g)).toHaveLength(16);
+  expect(finalPage.match(/data-project-story/g)).toHaveLength(1);
+  expect(overview).not.toContain('projects/project-17/');
+  expect(llms).toContain('[Project runs]');
+  for (const projectPage of run!.pages) {
+    expect(sitemap).toContain(projectPage.route);
+    for (const attempt of projectPage.attempts) {
+      expect(sitemap).toContain(attempt.route);
+      expect(search).toContain(attempt.route);
+      const html = readFileSync(getDistPath(attempt.route.slice(1), 'index.html'), 'utf8');
+      expect(html).not.toContain('moldea-mock-project-private');
+      expect(html).not.toContain('payload.baseInstructions');
+      expect(html).not.toContain(getRepositoryRoot());
+    }
+  }
 });

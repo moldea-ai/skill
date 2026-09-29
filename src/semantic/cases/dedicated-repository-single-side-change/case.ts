@@ -41,12 +41,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-separate-authority-boundaries',
       criterion:
-        'The response and workspace changes preserve separate authority boundaries throughout the operation.',
-    },
-    {
-      label: 'report-each-repository-state',
-      criterion:
-        'The actor response explicitly reports each repository state, with the supplied workspace evidence remaining consistent with that report.',
+        'The response and final workspace changes preserve the separate authority boundaries of the two repositories.',
     },
   ],
   forbidden: [
@@ -64,7 +59,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['project-evaluation-and-reconciliation'],

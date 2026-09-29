@@ -267,12 +267,13 @@ const runSemanticTrial = async (options: {
   try {
     const actorHome = path.join(evaluationRoot, 'actor-home');
     const actorToolDirectory = path.join(evaluationRoot, 'actor-tools');
-    const { readOnlyMounts, repositoryPath } = await createActorRepository(
-      evaluationRoot,
-      options.caseDefinition,
-      actorHome,
-      actorToolDirectory,
-    );
+    const { hasWorkspaceBinaryDirectory, readOnlyMounts, repositoryPath } =
+      await createActorRepository(
+        evaluationRoot,
+        options.caseDefinition,
+        actorHome,
+        actorToolDirectory,
+      );
     const beforeWorkspace = await snapshotSemanticWorkspace(repositoryPath);
     const beforeGitState = await snapshotSemanticWorkspace(path.join(repositoryPath, '.git'));
     const relatedMounts = readOnlyMounts.filter(({ target }) => target !== '/home/evaluator/bin');
@@ -428,7 +429,7 @@ const runSemanticTrial = async (options: {
           runCodexEvaluationHost({
             command: options.actorCommand,
             cwd: repositoryPath,
-            includeWorkspaceBinaryDirectory: true,
+            includeWorkspaceBinaryDirectory: hasWorkspaceBinaryDirectory,
             prompt: actorPrompt,
             readOnlyMounts,
             readOnlyWorkspacePaths: ['.agents', '.git'],
@@ -533,11 +534,7 @@ const runSemanticTrial = async (options: {
         judgeHost: options.judgeHost,
         judgePrompt,
       });
-      const assessment = assessSemanticJudgeOutput(
-        options.caseDefinition,
-        judgeEvidence.response,
-        actorEvidence.response,
-      );
+      const assessment = assessSemanticJudgeOutput(options.caseDefinition, judgeEvidence.response);
       const dimensions = createSemanticResultDimensions({
         actorCommandPolicy: actorEvidence.commandPolicyEvidence,
         actorResourceEvidence: actorEvidence.actorResourceEvidence,
@@ -905,6 +902,10 @@ const run = async (): Promise<void> => {
     if (selectedCase === undefined)
       throw new Error(`Unknown semantic case ${arguments_.requestedCaseId}.`);
     selectedCases = [selectedCase];
+  } else if (arguments_.recordCaseIds !== null) {
+    const ids = new Set(arguments_.recordCaseIds);
+    selectedCases = cases.filter(({ id }) => ids.has(id));
+    if (selectedCases.length !== ids.size) throw new Error('Unknown semantic recording case id.');
   } else if (arguments_.diagnosticBatchSelector !== null) {
     selectedCases = await resolveDiagnosticCases(cases, arguments_.diagnosticBatchSelector);
   } else {

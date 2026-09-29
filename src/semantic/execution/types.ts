@@ -28,6 +28,15 @@ export type ISemanticActorExecutionOutputFact =
       warningCount: number | null;
     }
   | {
+      kind: 'relevance-gate-result';
+      matched: boolean;
+      mode: 'adoption-only' | 'relationship';
+    }
+  | {
+      kind: 'managed-readme-result';
+      status: 'created' | 'invalid-marker-pair' | 'unchanged' | 'updated';
+    }
+  | {
       cancelledCount: 0;
       failedCount: 0;
       kind: 'node-test-summary';

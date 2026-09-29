@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The latest release is `6.0.1`. Install the latest version from `main` inside each repository that will use it:
+The latest release is `6.0.2`. Install the latest version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release:
 
 ```bash
-npx skills add "moldea-ai/skill#v6.0.1"
+npx skills add "moldea-ai/skill#v6.0.2"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -67,7 +67,7 @@ Evaluation is read-only. Repair corrects established errors without inventing po
 
 ## Compatibility
 
-Release `6.0.1` supports exactly:
+Release `6.0.2` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -104,7 +104,7 @@ Tooling establishment occurs only during authorized write-capable work and only 
 
 ## Project blueprint
 
-`moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, adapter qualification, evidence publication, and documentation tooling. The website renders selected evidence snapshots and has no evaluator responsibility.
+`moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, adapter qualification, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.
 
 | Area                                      | Responsibility                                                                                                                                         |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -112,7 +112,7 @@ Tooling establishment occurs only during authorized write-capable work and only 
 | `src/`                                    | Maintained TypeScript for portable generation, isolated execution, semantic evaluation, evidence assets, release checks, and shared developer tooling. |
 | `qualification/`                          | Reviewed published compatibility snapshot, adapter profiles, and TypeScript execution. Attempts retain private local state below `.evidence/`.         |
 | `evidence/selection.json`                 | Independent maintainer selections for the semantic and qualification bundles shown on the website.                                                     |
-| `website/`                                | Static presentation of prepared selected evidence. It preserves the public sections and detailed replay, project, evidence, and technical views.       |
+| `website/`                                | Static documentation and evidence presentation, including independently selected mock-project runs, sanitized session replays, and source links.       |
 | `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation and qualification attempts are not committed.                               |
 | `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                               |
 | `.github/workflows/conformance.yml`       | Portable generation, runtime, path, release, and installation checks.                                                                                  |
@@ -180,7 +180,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluations and adapter qualifications are separate evidence-backed assurance; a passing tag does not establish them. Release `6.0.1` has no selected evidence and does not qualify the production website or satisfy `npm run release:check`. See [Release evidence](docs/release-evidence.md) for the exact workflows.
+During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluations and adapter qualifications are separate evidence-backed assurance; a passing tag does not establish them. Release `6.0.2` selects passing semantic and qualification evidence for the production website and `npm run release:check`. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
 ## License
 

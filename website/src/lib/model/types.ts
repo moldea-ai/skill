@@ -1,3 +1,4 @@
+import type { IProjectRunModel } from '../project-runs/index.ts';
 import type { IQualificationWebsiteModel } from '../qualification/index.ts';
 import type { IReleaseEvidenceModel } from '../release-evidence/index.ts';
 import type {
@@ -47,6 +48,7 @@ export interface ISearchRecord {
 
 // deterministic website model consumed by static routes
 export interface IWebsiteModel {
+  projectRuns: IProjectRunModel | null;
   documents: IWebsiteDocument[];
   generatedNotice: string;
   llmsText: string;

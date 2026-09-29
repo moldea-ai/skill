@@ -92,7 +92,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'moldea/SKILL.md#gate-the-known-task-scope',
     ],
     rationale:
-      'These cases retain negative controls for ambiguous handoffs and unrelated host work; concrete conversational context is assessed separately under bounded relevance.',
+      'These cases retain negative controls for unrelated host work; concrete conversational context is assessed separately under bounded relevance.',
     fixedEvidence: [],
   },
   {
@@ -105,7 +105,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'moldea/references/tooling-installation.md',
     ],
     rationale:
-      'The cases distinguish valid initialization, evidence blockers, exact local tooling, conflicting providers, and executable package-manager configuration.',
+      'The cases distinguish valid initialization, evidence blockers, exact local tooling, nonstandard local layouts, and executable package-manager configuration.',
     fixedEvidence: [],
   },
   {
@@ -132,7 +132,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'project-evaluation-and-reconciliation',
     description:
-      'Explicit project evaluation and reconciliation handle dirty, clean, unborn, ambiguous, and dedicated-repository states without losing boundaries.',
+      'Explicit project evaluation and reconciliation handle dirty, clean, ambiguous, and dedicated-repository states without losing boundaries.',
     sourcePaths: ['moldea/references/evaluate-and-reconcile.md'],
     rationale:
       'The cases retain state-sensitive evaluation, clarification, one-sided writes, and read-only related-repository controls.',

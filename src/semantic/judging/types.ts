@@ -1,4 +1,4 @@
-export type ISemanticProductNameAssessment = {
+export type ISemanticJudgeAssessment = {
   forbidden: string[];
   isPassed: boolean;
   observed: string[];

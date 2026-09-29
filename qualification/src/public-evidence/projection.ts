@@ -101,6 +101,7 @@ export const createQualificationEvidenceBundle = async (options: {
     selectedAttemptIds.set(indexedTarget.key, target.attemptId);
   }
   const websiteModel = loadQualificationWebsiteModel(SKILL_REPOSITORY_ROOT, {
+    profileKeys: new Set(selectedAttemptIds.keys()),
     selectedAttemptIds,
   });
   assertPublishableQualificationEvidence(websiteModel);
@@ -112,37 +113,39 @@ export const createQualificationEvidenceBundle = async (options: {
       : 'incomplete';
   const selectedResultArtifacts = (
     await Promise.all(
-      profileIndex.targets.map(async (target) => {
-        const attemptId = selectedAttemptIds.get(target.key);
-        if (attemptId === undefined) {
-          throw new Error(`Qualification evidence has no selected attempt for ${target.key}.`);
-        }
-        const profile = websiteModel.profiles.find(
-          ({ adapterId, implementationId }) =>
-            adapterId === target.adapterId && implementationId === target.implementationId,
-        );
-        if (profile?.latest === null || profile?.latest === undefined) {
-          throw new Error(`Qualification evidence has no latest pointer for ${target.key}.`);
-        }
-        const attemptPrefix = path.posix.join(
-          '.evidence/qualification/results',
-          target.key,
-          'attempts',
-          createQualificationAttemptKey(attemptId),
-        );
-        const attemptDirectory = resolveContainedPath(
-          QUALIFICATION_RESULTS_ROOT,
-          path.posix.join(target.key, 'attempts', createQualificationAttemptKey(attemptId)),
-        );
-        return [
-          ...(await collectArtifacts(attemptDirectory, attemptPrefix)),
-          {
-            content: Buffer.from(`${JSON.stringify(profile.latest, null, 2)}\n`),
-            mediaType: 'application/json',
-            path: path.posix.join('.evidence/qualification/results', target.key, 'latest.json'),
-          },
-        ];
-      }),
+      profileIndex.targets
+        .filter(({ key }) => selectedAttemptIds.has(key))
+        .map(async (target) => {
+          const attemptId = selectedAttemptIds.get(target.key);
+          if (attemptId === undefined) {
+            throw new Error(`Qualification evidence has no selected attempt for ${target.key}.`);
+          }
+          const profile = websiteModel.profiles.find(
+            ({ adapterId, implementationId }) =>
+              adapterId === target.adapterId && implementationId === target.implementationId,
+          );
+          if (profile?.latest === null || profile?.latest === undefined) {
+            throw new Error(`Qualification evidence has no latest pointer for ${target.key}.`);
+          }
+          const attemptPrefix = path.posix.join(
+            '.evidence/qualification/results',
+            target.key,
+            'attempts',
+            createQualificationAttemptKey(attemptId),
+          );
+          const attemptDirectory = resolveContainedPath(
+            QUALIFICATION_RESULTS_ROOT,
+            path.posix.join(target.key, 'attempts', createQualificationAttemptKey(attemptId)),
+          );
+          return [
+            ...(await collectArtifacts(attemptDirectory, attemptPrefix)),
+            {
+              content: Buffer.from(`${JSON.stringify(profile.latest, null, 2)}\n`),
+              mediaType: 'application/json',
+              path: path.posix.join('.evidence/qualification/results', target.key, 'latest.json'),
+            },
+          ];
+        }),
     )
   ).flat();
   const artifacts = [

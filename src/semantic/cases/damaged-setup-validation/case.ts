@@ -40,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'diagnose-drift-read-only',
       criterion:
-        'The actor identifies the damaged README managed block against the installed block, explains that the current gate failure prevents CLI validation without denying the developer-confirmed prior setup, and leaves structural and semantic validity unverified.',
+        'The actor identifies the missing blank line after the README managed-block start marker, explains that the current gate failure prevents CLI validation without denying the developer-confirmed prior setup, and leaves structural and semantic validity unverified.',
     },
   ],
   forbidden: [

@@ -51,9 +51,10 @@ const isWorkerCount = (input: number): input is IEvaluationBatchWorkerCount =>
 const createDiagnosticSelector = (
   arguments_: readonly string[],
   isDiagnoseBatchRequested: boolean,
+  isRecordRequested: boolean,
 ): ISemanticDiagnosticSelector | null => {
-  const selectedOptions = Object.entries(DIAGNOSTIC_SELECTOR_OPTIONS).filter(([option]) =>
-    arguments_.includes(option),
+  const selectedOptions = Object.entries(DIAGNOSTIC_SELECTOR_OPTIONS).filter(
+    ([option]) => arguments_.includes(option) && !(isRecordRequested && option === '--cases'),
   );
   if (isDiagnoseBatchRequested && selectedOptions.length !== 1) {
     throw new Error('--diagnose-batch requires exactly one diagnostic selector.');
@@ -107,6 +108,10 @@ export const parseSemanticEvaluationArguments = (
   const isResumeStoppedStageRequested = seenOptions.has('--resume-stopped-stage');
   const isVerifyAttemptsRequested = seenOptions.has('--verify-attempts');
   const requestedCaseId = getOptionValue(arguments_, '--case');
+  const recordCaseIds =
+    isRecordRequested && seenOptions.has('--cases')
+      ? parseSelectorValues(getOptionValue(arguments_, '--cases') ?? '', '--cases')
+      : null;
 
   if (isPreflightRequested && arguments_.length !== 1) {
     throw new Error('--preflight must run without other options.');
@@ -135,7 +140,7 @@ export const parseSemanticEvaluationArguments = (
   }
 
   const allowedOptions = isRecordRequested
-    ? new Set(['--record', '--restart', '--resume-stopped-stage', '--workers'])
+    ? new Set(['--record', '--cases', '--restart', '--resume-stopped-stage', '--workers'])
     : isDiagnoseBatchRequested
       ? new Set([
           '--all',
@@ -162,7 +167,11 @@ export const parseSemanticEvaluationArguments = (
     throw new Error('--resume-stopped-stage requires --record or --diagnose-batch.');
   }
 
-  const diagnosticBatchSelector = createDiagnosticSelector(arguments_, isDiagnoseBatchRequested);
+  const diagnosticBatchSelector = createDiagnosticSelector(
+    arguments_,
+    isDiagnoseBatchRequested,
+    isRecordRequested,
+  );
   const workerCount =
     isRecordRequested || isDiagnoseBatchRequested
       ? (parsedWorkerCount ?? EVALUATION_BATCH_DEFAULT_WORKER_COUNT)
@@ -177,6 +186,7 @@ export const parseSemanticEvaluationArguments = (
     isRestartRequested,
     isResumeStoppedStageRequested,
     isVerifyAttemptsRequested,
+    recordCaseIds,
     requestedCaseId,
     workerCount,
   };

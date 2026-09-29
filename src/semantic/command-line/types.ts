@@ -12,6 +12,7 @@ export interface ISemanticEvaluationArguments {
   isRestartRequested: boolean;
   isResumeStoppedStageRequested: boolean;
   isVerifyAttemptsRequested: boolean;
+  recordCaseIds: string[] | null;
   requestedCaseId: string | undefined;
   workerCount: IEvaluationBatchWorkerCount | null;
 }

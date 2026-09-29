@@ -6,6 +6,8 @@ Agent-system planning decides whether an agent should exist and proposes its res
 
 When a direct request says to create, register, and make an existing runtime agent ready, and bounded repository source plus focused tests establish its current behavior, complete the coherent implementation rather than stopping because the current instruction is inline. Create the canonical agent assets, derive every material invocation from canonical instruction through a real loader or necessary exact mirror, remove the independently maintained inline policy, register the evidenced runtime, loader, mirror, and impact relationships, preserve or strengthen focused coverage, and complete all runtime, test, and canonical file writes before final validation. If any required behavior or runtime path is not evidenced, report that exact limitation instead of inventing it.
 
+A direct change to a one-shot model's decisions or output is agent-design work even when its policy is inline and no relationship exists. Establish the actual invocation, then give that cohesive responsibility canonical instructions consumed through a real loader or necessary exact mirror. Register only evidenced runtime and impact relationships, preserve the client contract, and test instruction consumption. Do not split one workflow into artificial agents or claim provider behavior from a canned client.
+
 ## Establish behavior before prose
 
 Establish the supported behavioral contract before drafting or broadly rewriting model-facing text. Include only material identity, purpose, responsibility, project context, inputs, outputs, rules, scope, exclusions, capabilities, variables, ambiguity, failure, escalation, routing, and quality expectations.

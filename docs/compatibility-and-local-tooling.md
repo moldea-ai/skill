@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-The `6.0.1` candidate supports exactly:
+Release `6.0.2` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -58,14 +58,14 @@ Qualification scenarios select one operating profile:
 
 | Limit                     | `ordinary` | `largeTraversal` |
 | ------------------------- | ---------: | ---------------: |
-| One completed command     |    128 KiB |          128 KiB |
+| One completed command     |    256 KiB |          256 KiB |
 | Completed commands        |         64 |               64 |
 | `moldea` calls            |         16 |               16 |
 | `moldea` output           |    256 KiB |            1 MiB |
 | Model-visible tool output |      1 MiB |            4 MiB |
 | Input plus output tokens  |  1,625,000 |        1,625,000 |
 
-The host retains absolute ceilings of 128 completed commands, 32 `moldea` calls, 8 MiB of `moldea` output, 16 MiB of complete-stage model-visible tool output, 32 KiB of raw command text, and 2,097,152 tokens. These are failure containment, not operating targets. The 128 KiB peak applies to one completed command and is distinct from the 32 KiB raw-command ceiling.
+The host retains absolute ceilings of 128 completed commands, 32 `moldea` calls, 8 MiB of `moldea` output, 16 MiB of complete-stage model-visible tool output, 32 KiB of raw command text, and 2,097,152 tokens. These are failure containment, not operating targets. The 256 KiB peak applies to one completed command and is distinct from the 32 KiB raw-command ceiling.
 
 Crossing an operating dimension fails with its profile, dimension, observed value, and limit. A safe cumulative command, `moldea`-call, or token overage may still reach semantic judging for calibration, but the trial remains failed. Missing token usage and output-volume, deterministic, workspace, runner-owned, or command-policy failures skip judging. Duration and peak memory are diagnostics rather than brittle pass/fail thresholds.
 

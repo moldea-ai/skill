@@ -1,0 +1,210 @@
+import AxeBuilder from '@axe-core/playwright';
+import { expect, test } from '@playwright/test';
+import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
+
+const detailPath = withBase(
+  '/evidence/project-runs/projects/project-1/',
+  process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH,
+);
+const recordedPath = withBase(
+  '/evidence/project-runs/projects/project-2/',
+  process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH,
+);
+
+test('shows attempted patch targets without presenting a failed tool result as success', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(recordedPath);
+  await expect(page.locator('[data-session-entry]')).toHaveCount(9);
+  await expect(page.locator('[data-session-role="user"]')).toContainText('Add visit reminders');
+  await expect(page.locator('[data-session-role="assistant"]')).toHaveCount(2);
+  const tools = page.locator('[data-session-tool]');
+  await expect(tools).toHaveCount(3);
+  await tools.first().getByRole('button', { name: 'Read exec call 4 and result' }).click();
+  const dialog = page.getByRole('dialog', { name: 'exec · event 4' });
+  await expect(dialog).toBeVisible();
+  expect((await dialog.boundingBox())!.width).toBeLessThan(700);
+  await expect(dialog.locator('[data-code-block]').first()).toContainText('cat moldea/project.md');
+  await expect(dialog.locator('[data-code-block]').last()).toContainText(
+    'The reminder schedule uses each customer timezone.',
+  );
+  await dialog.getByRole('button', { name: 'Close tool call' }).click();
+  await expect(dialog).toBeHidden();
+  const failedPatch = tools.nth(1);
+  await expect(failedPatch).toContainText('Patch targets');
+  await expect(failedPatch).toContainText('Update moldea/project.md');
+  await failedPatch.getByRole('button', { name: 'Read apply_patch call 6 and result' }).click();
+  const failedDialog = page.getByRole('dialog', { name: 'apply_patch · event 6' });
+  await expect(failedDialog.getByRole('heading', { name: 'Tool result' })).toBeVisible();
+  await expect(failedDialog).toContainText('Script failed: apply_patch verification failed');
+  await expect(failedDialog).not.toContainText('Result · completed');
+  await failedDialog.getByRole('button', { name: 'Close tool call' }).click();
+  await tools.last().getByRole('button', { name: 'Read apply_patch call 8 and result' }).click();
+  await expect(page.getByRole('dialog', { name: 'apply_patch · event 8' })).toContainText(
+    'Patch applied.',
+  );
+});
+
+test('shows preserved compaction context without adding conversation turns', async ({
+  browser,
+}) => {
+  for (const [colorScheme, width] of [
+    ['light', 320],
+    ['dark', 1440],
+  ] as const) {
+    const context = await browser.newContext({ colorScheme, viewport: { width, height: 900 } });
+    try {
+      const page = await context.newPage();
+      await page.goto(recordedPath);
+      const compaction = page.locator('[data-session-compaction]');
+      await expect(compaction).toContainText('2 replacement messages and 1 retained user message');
+      await compaction
+        .getByRole('button', { name: 'Read preserved context from compaction event 10' })
+        .click();
+      const dialog = page.getByRole('dialog', { name: 'Preserved context · event 10' });
+      await expect(dialog.getByRole('heading', { name: 'Replacement history' })).toBeVisible();
+      await expect(dialog.getByRole('heading', { name: 'Retained user messages' })).toBeVisible();
+      await expect(dialog.getByText('Message 2 · assistant')).toBeVisible();
+      await expect(dialog.getByText('Order 0 · complete')).toBeVisible();
+      await expect(dialog).toContainText('The encrypted summary is not included');
+      await expect(dialog).toContainText('Keep the customer timezone.');
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
+      ).toBe(false);
+      expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
+    } finally {
+      await context.close();
+    }
+  }
+});
+
+test('keeps recorded session marks and tools readable in dark mode', async ({ browser }) => {
+  const context = await browser.newContext({ colorScheme: 'dark' });
+  try {
+    const page = await context.newPage();
+    await page.goto(recordedPath);
+    await expect(
+      page.locator('[data-session-role="assistant"] [data-agent-response-mark]'),
+    ).toHaveCount(2);
+
+    const colors = await page.evaluate(() => {
+      const developerIcon = document.querySelector(
+        '[data-session-role="user"] svg.lucide-user-round',
+      );
+      const toolIcon = document.querySelector('[data-session-tool] svg.lucide-file-pen-line');
+      const patchTarget = document.querySelector('[data-session-tool] ul li');
+      const developerAvatar = developerIcon?.parentElement;
+      if (developerIcon === null || !developerAvatar || toolIcon === null || patchTarget === null) {
+        throw new Error('Expected recorded developer, tool, and patch-target elements.');
+      }
+      return {
+        foreground: getComputedStyle(document.body).color,
+        background: getComputedStyle(document.body).backgroundColor,
+        developer: getComputedStyle(developerIcon).color,
+        developerAvatar: getComputedStyle(developerAvatar).backgroundColor,
+        tool: getComputedStyle(toolIcon).color,
+        patchTarget: getComputedStyle(patchTarget).color,
+      };
+    });
+    expect(colors.developer).toBe(colors.background);
+    expect(colors.developerAvatar).toBe(colors.foreground);
+    expect(colors.tool).toBe(colors.foreground);
+    expect(colors.patchTarget).toBe(colors.foreground);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
+test('gives the developer avatar a distinct surface in light mode', async ({ browser }) => {
+  const context = await browser.newContext({ colorScheme: 'light' });
+  try {
+    const page = await context.newPage();
+    await page.goto(recordedPath);
+    const colors = await page.evaluate(() => {
+      const icon = document.querySelector('[data-session-role="user"] svg.lucide-user-round');
+      const avatar = icon?.parentElement;
+      if (!icon || !avatar) throw new Error('Expected a developer avatar.');
+      return {
+        foreground: getComputedStyle(document.body).color,
+        background: getComputedStyle(document.body).backgroundColor,
+        avatar: getComputedStyle(avatar).backgroundColor,
+        icon: getComputedStyle(icon).color,
+      };
+    });
+    expect(colors.avatar).toBe(colors.foreground);
+    expect(colors.icon).toBe(colors.background);
+  } finally {
+    await context.close();
+  }
+});
+
+test('keeps event numbers aligned within their rows at mobile and desktop widths', async ({
+  page,
+}) => {
+  for (const width of [320, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(recordedPath);
+    const ordinals = await page.locator('[data-session-ordinal]').evaluateAll((elements) =>
+      elements.map((element) => ({
+        right: element.getBoundingClientRect().right,
+        height: element.getBoundingClientRect().height,
+        whiteSpace: getComputedStyle(element).whiteSpace,
+        rowRight: element.parentElement?.getBoundingClientRect().right ?? 0,
+      })),
+    );
+    expect(ordinals).toHaveLength(9);
+    expect(
+      Math.max(...ordinals.map(({ right }) => right)) -
+        Math.min(...ordinals.map(({ right }) => right)),
+    ).toBeLessThan(2);
+    expect(
+      ordinals.every(
+        ({ height, whiteSpace, right, rowRight }) =>
+          height < 20 && whiteSpace === 'nowrap' && right <= rowRight,
+      ),
+    ).toBe(true);
+  }
+});
+
+test('shows request history honestly when a full session is unavailable', async ({ page }) => {
+  await page.goto(detailPath);
+  await expect(page.getByRole('heading', { name: 'Follow the conversation' })).toBeVisible();
+  await expect(page.getByText('Conversation not included')).toBeVisible();
+  await expect(
+    page.getByText('The policy and implementation relationship were checked.'),
+  ).toBeVisible();
+  await page.getByRole('tab', { name: 'Project record' }).click();
+  await expect(page.getByText(/The timezone correction required a developer prompt/)).toBeVisible();
+  const externalLink = page.getByRole('link', { name: 'Explore the code', exact: true });
+  await expect(externalLink).toHaveAttribute(
+    'href',
+    `https://github.com/jesusgraterol/moldea-mock-project-public/tree/${'c'.repeat(40)}`,
+  );
+  await expect(externalLink.locator('[data-external-link-icon]')).toBeVisible();
+  await expect(page.locator('[data-session-entry]')).toHaveCount(0);
+});
+
+test('keeps both views available without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  try {
+    const page = await context.newPage();
+    await page.goto(detailPath);
+    await expect(page.getByRole('heading', { name: 'Follow the conversation' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Inspect the source' })).toBeVisible();
+  } finally {
+    await context.close();
+  }
+});
+
+test('keeps project tabs usable for source IDs containing underscores', async ({ page }) => {
+  await page.goto(
+    withBase(
+      '/evidence/project-runs/projects/project_3/',
+      process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH,
+    ),
+  );
+  await page.getByRole('tab', { name: 'Project record' }).click();
+  await expect(page.getByRole('heading', { name: 'Inspect the source' })).toBeVisible();
+});

@@ -104,7 +104,19 @@ export interface ISemanticAttemptTrialModel {
   confirmationIndex: 1 | 2 | 3 | null;
   dimensions: ISemanticResultDimensions;
   evaluatedAt: string;
-  executionOrigin: 'executed' | 'reused';
+  executionOrigin: 'carried' | 'executed' | 'reused';
+  carriedFrom?: {
+    attemptId: string;
+    artifactDigest?: string;
+    cliVersion?: string;
+    evidenceSha256: string;
+    reassessment: string | null;
+    recordedVerdict?: {
+      passed: boolean;
+      rationale: string;
+    };
+    version?: string;
+  };
   forbidden: string[];
   failureClassifications: ISemanticFailureClassification[];
   judgeCommandPolicyEvidence: ICodexEvaluationCommandPolicyEvidence;
@@ -131,6 +143,9 @@ export type ISemanticAttemptRecord = {
     trials: ISemanticAttemptTrialModel[];
   }>;
   cli: ISemanticCliIdentity;
+  composition?: {
+    basisAttemptId: string;
+  };
   confirmationPolicy: {
     maximumConfirmations: 3;
     requiredFailingConfirmations: 2;
@@ -159,6 +174,7 @@ export type ISemanticAttemptRecord = {
   recoveredCaseCount: number;
   reusedStageCount: number;
   reusedTrialCount: number;
+  carriedTrialCount?: number;
   schemaVersion: number;
   status: 'failed' | 'incomplete' | 'passed';
   stopReason: string;
@@ -240,5 +256,6 @@ export interface ISemanticEvaluationWebsiteModel {
   pendingCaseCount: number;
   recoveredCaseCount: number;
   route: string;
+  selectedCases?: true;
   status: ISemanticAttemptRecord['status'] | 'not-recorded';
 }

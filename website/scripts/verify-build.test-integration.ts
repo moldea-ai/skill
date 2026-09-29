@@ -8,6 +8,7 @@ import { createCanonicalUrl, DEFAULT_BASE_PATH, withBase } from '@moldea.ai/webs
 import { createDocumentationBreadcrumbs } from '../src/lib/documentation-navigation/index.ts';
 import { getRepositoryRoot, loadWebsiteModel } from '../src/lib/generation/generation.ts';
 import { PRODUCT_PAGE_METADATA, SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
+import { PROJECT_RUN_PAGE_SIZE } from '../src/lib/project-runs/index.ts';
 import {
   getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
@@ -336,22 +337,31 @@ describe('verifyProductionBuild', () => {
 test('publishes bounded project stories and their independent discovery records', () => {
   const run = loadWebsiteModel().projectRuns;
   expect(run).not.toBeNull();
-  const overview = readFileSync(getDistPath('evidence/project-runs/index.html'), 'utf8');
-  const finalPage = readFileSync(getDistPath('evidence/project-runs/2/index.html'), 'utf8');
+  const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
   const sitemap = readFileSync(getDistPath('sitemap-0.xml'), 'utf8');
   const search = readFileSync(getDistPath('search-index.json'), 'utf8');
   const llms = readFileSync(getDistPath('llms.txt'), 'utf8');
-  expect(overview.match(/data-project-story/g)).toHaveLength(16);
-  expect(finalPage.match(/data-project-story/g)).toHaveLength(1);
-  expect(overview).not.toContain('projects/project-17/');
   expect(llms).toContain('[Project runs]');
   for (const projectPage of run!.pages) {
+    const pageHtml = readFileSync(getDistPath(projectPage.route.slice(1), 'index.html'), 'utf8');
+    const cards = [
+      ...pageHtml.matchAll(/<article\b[^>]*\bdata-project-story\b[^>]*>[\s\S]*?<\/article>/gu),
+    ];
+    expect(cards).toHaveLength(projectPage.attempts.length);
+    expect(cards.length).toBeLessThanOrEqual(PROJECT_RUN_PAGE_SIZE);
+    for (const [index, attempt] of projectPage.attempts.entries()) {
+      expect(cards[index]?.[0]).toContain(`href="${withBase(attempt.route, basePath)}"`);
+    }
     expect(sitemap).toContain(projectPage.route);
     for (const attempt of projectPage.attempts) {
       expect(sitemap).toContain(attempt.route);
       expect(search).toContain(attempt.route);
       const html = readFileSync(getDistPath(attempt.route.slice(1), 'index.html'), 'utf8');
-      expect(html).not.toContain('moldea-mock-project-private');
+      // sanitized session text can name its source, but links must use public records
+      const privateSourceLinks = [
+        ...html.matchAll(/href="[^"]*moldea-mock-project-private[^"]*"/gu),
+      ];
+      expect(privateSourceLinks).toStrictEqual([]);
       expect(html).not.toContain('payload.baseInstructions');
       expect(html).not.toContain(getRepositoryRoot());
     }

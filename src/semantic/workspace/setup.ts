@@ -1512,7 +1512,7 @@ const seedScenarioRepository = async (
     await writeScenarioFile(
       repositoryPath,
       'README.md',
-      '# Evaluation service\n\nThis small TypeScript service returns the current service status.\n',
+      '# Evaluation service\n\nThis small TypeScript service returns the fixed `available` status.\n',
     );
     await writeScenarioFile(
       repositoryPath,
@@ -1663,12 +1663,6 @@ const seedScenarioRepository = async (
         repositoryPath,
         'moldea/project.md',
         '# Evaluation project\n\nThis synthetic project exercises local `moldea` maintenance behavior. Finance currently owns refund approval.\n',
-      );
-      break;
-    case 'adopted-direct-context-handoff':
-      await seedConversationalContext(
-        repositoryPath,
-        '# Invoice service\n\nThis service extracts and validates invoice data for accounting systems.\n',
       );
       break;
     case 'repair-known-context-drift':

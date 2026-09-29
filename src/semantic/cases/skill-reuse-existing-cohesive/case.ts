@@ -70,7 +70,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'reuse-existing-deterministic-script',
       criterion:
-        'The existing release-review skill delegates the changelog check to the established verifier instead of duplicating its deterministic logic.',
+        'The existing release-review skill reuses the verifier for its supported package-manager and nonempty-changelog checks without duplicating that logic. Because the verifier does not check whether the entry is current for the intended release, the skill handles that separate policy requirement explicitly.',
     },
     {
       label: 'support-positive-and-adjacent-non-activation',

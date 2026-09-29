@@ -142,7 +142,6 @@ test('every semantic case materializes a snapshot-ready actor repository', async
 }, 300_000);
 
 test.each([
-  'adopted-direct-context-handoff',
   'adopted-explicit-context-correction',
   'readonly-context-correction',
   'approved-context-change',

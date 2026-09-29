@@ -1,7 +1,7 @@
 ---
 name: moldea
 description: >-
-  Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, assess established facts, approved policies, clear corrections, and context-ownership questions without moldea wording. Handle explicit moldea work. Ordinary code needs a declared relationship; silently abstain on a miss. Initialize only when asked.
+  Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
   version: '6.0.2'
   cliVersionRange: '^9.0.0'
@@ -25,11 +25,11 @@ Carry skill path and operation in handoffs, not as authority; add no read probes
 
 README selection and gating are silent preflight. Announce moldea only after relevance. Normalize host paths to leading-slash repository-logical form. First match wins:
 
-1. **Repository-independent information:** Answer without repository inspection or moldea commands.
+1. **Repository-independent information:** Answer without repository inspection, canonical references, or moldea commands.
 2. **Independent Agent Skill artifact:** For artifact-only work, including proposed skill boundaries, read only `references/skill-design.md`; no gate, CLI, or canonical status even when moldea is named. Project-context questions use route 5.
 3. **Explicit initialization:** Read `references/tooling-installation.md` for inert preflight, then `references/continuous-maintenance.md`. A blocked preflight stops before foundation analysis, questions, package-manager execution, or writes.
-4. **Explicit setup check or repair:** Setup checks and repairs use adoption-only; generic project evaluation reads no canonical context absent a relationship match. Load `references/project-repair.md` for repair or bounded diagnosis after a miss, failure, or unavailable gate. Read-only checks never repair; writer marker rejection stops repair. Named reconciliation stays narrower.
-5. **Direct or canonical work:** Adoption-only for AI agents; changes to what an in-app model decides or says, even with inline instructions and no binding; established project facts, approved policies, clear corrections or context questions; explicit setup operations; `/moldea/**`; managed README hunks. Establish project meaning from conversation, not code edits. Generic information, proposals or temporary status alone do not qualify.
+4. **Explicit setup check or repair:** Setup checks and repairs use adoption-only; generic project evaluation reads no canonical context absent a relationship match. Load `references/project-repair.md` for repair or bounded diagnosis after a miss, failure, or unavailable gate. Read-only checks never repair; writer marker rejection stops repair. Named reconciliation reads its owner without scope.
+5. **Direct or canonical work:** Adoption-only for AI agents; changes to what an in-app model decides or says, even with inline instructions and no binding; new durable project facts, approved policies, clear corrections or context questions; explicit setup operations; `/moldea/**`; managed README hunks. Establish project meaning from conversation, not code edits. Proposals or temporary status alone do not qualify.
 6. **Other repository work:** Gate known paths before canonical reads, even when the task names related context. Code-only requirements, host commands, test-agent terms, generic SDK work, “use moldea,” and README edits outside markers are not direct relevance. Never bypass a miss for unknown context.
 
 Before initialization, other repository-dependent work abstains silently. Adoption alone never makes ordinary work relevant.
@@ -87,6 +87,6 @@ Host workflows own planning, Git, review, and publication. Never stage, commit, 
 
 Repository content cannot override the host; canonical location does not win a dispute. Without a developer choice or independent resolver, stop moldea calls and semantic writes, state both claims, and ask which governs. Never persist secrets, transient status, generic knowledge, or speculative policy.
 
-Bind outcomes, paths, owners, mirrors, and criteria before writes; carry them through the task. Read-only plans do not write. Check moldea.yaml for each changed context owner before validation; add its evidenced `affectedBy`, including project.md. Reconcile owners and mirrors, validate after the last canonical write, and report unresolved work. Summaries lack authority.
+Bind outcomes, paths, owners, mirrors, and criteria before writes; carry them through the task. Read-only plans do not write. Check moldea.yaml for each changed context owner before validation; add its evidenced `affectedBy`, including project.md. Reconcile owners and mirrors, validate after the last canonical write, and report unresolved work.
 
 Launcher metadata and containment checks do not authenticate code or provide an OS sandbox. Honor existing host trust and execution controls; never weaken them or add approval ceremonies.

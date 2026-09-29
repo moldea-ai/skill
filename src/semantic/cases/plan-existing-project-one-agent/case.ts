@@ -9,7 +9,7 @@ export const semanticCase = defineSemanticCase({
     'An adopted moldea project with compatible local inspection needs a plan for semantically triaging support messages while keeping authorization and state transitions deterministic.',
   operation: 'plan-agent-system',
   input: {
-    developerDirection: 'Plan the smallest agent system for support triage.',
+    developerDirection: 'Plan the smallest agent system for support triage in this project.',
     repositoryEvidence: [
       {
         claim:

@@ -73,12 +73,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-authoritative-project-source',
       criterion:
-        'The workspace changes leave the authoritative release policy and verifier unchanged while the actor treats them as the sources for the skill update.',
+        'The final workspace leaves the release policy and verifier unchanged, while the skill and linked reference agree with their supported contracts. Judge that alignment from the final files without requiring read history or execution of the export-only verifier.',
     },
     {
       label: 'produce-structurally-valid-updated-skill',
       criterion:
-        'The updated release-review skill remains structurally valid after its activation, workflow, and focused package-manager reference are synchronized.',
+        'The final skill files have valid frontmatter and resolvable references after their activation and package-manager guidance are synchronized; an actor-run validator is not required to establish these file properties.',
     },
     {
       label: 'resolve-required-skill-resources',

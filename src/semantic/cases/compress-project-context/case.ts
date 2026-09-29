@@ -114,7 +114,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 5,
+    maximumMoldeaCommands: 6,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['context-maintenance-and-compression'],

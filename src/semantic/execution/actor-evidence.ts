@@ -2,6 +2,7 @@ import {
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyRepositoryTestCommandKind,
+  isMoldeaManagedReadmeWriterCommand,
 } from '../../execution/host/index.ts';
 import type {
   IMoldeaCliOperation,
@@ -69,6 +70,8 @@ type INodeTestSummaryField = (typeof NODE_TEST_SUMMARY_FIELDS)[number];
 const NODE_TEST_SUMMARY_LINE_PATTERN =
   /^(?:#|ℹ) (cancelled|fail|pass|skipped|suites|tests|todo) (\d+)$/u;
 const NODE_TEST_DURATION_LINE_PATTERN = /^(?:#|ℹ) duration_ms \d+(?:\.\d+)?$/u;
+const MANAGED_README_MARKER_PAIR_ERROR =
+  'managed README update failed: README.md must contain exactly one moldea marker pair\n';
 
 const isPlainRecord = (input: unknown): input is Record<string, unknown> =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
@@ -458,10 +461,44 @@ const hasValidRelevanceGateFact = (fact: unknown, byteCount: number, exitCode: n
   typeof fact['matched'] === 'boolean' &&
   (fact['mode'] === 'adoption-only' || fact['mode'] === 'relationship');
 
+const projectManagedReadmeResult = (
+  source: string,
+  exitCode: number,
+): ISemanticActorExecutionOutputFact | null => {
+  if (exitCode === 0) {
+    if (source === 'created\n') return { kind: 'managed-readme-result', status: 'created' };
+    if (source === 'updated\n') return { kind: 'managed-readme-result', status: 'updated' };
+    if (source === 'unchanged\n') return { kind: 'managed-readme-result', status: 'unchanged' };
+  }
+  return exitCode === 1 && source === MANAGED_README_MARKER_PAIR_ERROR
+    ? { kind: 'managed-readme-result', status: 'invalid-marker-pair' }
+    : null;
+};
+
+const hasValidManagedReadmeFact = (fact: unknown, byteCount: number, exitCode: number): boolean => {
+  if (
+    !isPlainRecord(fact) ||
+    !hasExactKeys(fact, ['kind', 'status']) ||
+    fact['kind'] !== 'managed-readme-result'
+  ) {
+    return false;
+  }
+  const status = fact['status'];
+  if (status === 'invalid-marker-pair') {
+    return exitCode === 1 && byteCount === Buffer.byteLength(MANAGED_README_MARKER_PAIR_ERROR);
+  }
+  return (
+    exitCode === 0 &&
+    (status === 'created' || status === 'updated' || status === 'unchanged') &&
+    byteCount === status.length + 1
+  );
+};
+
 const createOutputEvidence = (
   source: string,
   operation: IMoldeaCliOperation | null,
   gateMode: 'adoption-only' | 'relationship' | null,
+  isManagedReadmeWriter: boolean,
   exitCode: number,
   options: ISemanticActorExecutionEvidenceOptions,
   testKind: IRepositoryTestCommandKind | null,
@@ -475,9 +512,11 @@ const createOutputEvidence = (
     operation === null
       ? gateMode !== null
         ? projectRelevanceGateResult(source, gateMode, exitCode)
-        : testKind !== null
-          ? projectNodeTestSummary(source, exitCode, testKind)
-          : null
+        : isManagedReadmeWriter
+          ? projectManagedReadmeResult(source, exitCode)
+          : testKind !== null
+            ? projectNodeTestSummary(source, exitCode, testKind)
+            : null
       : projectMoldeaEnvelope(source, operation, exitCode, options);
   return fact === null
     ? { byteCount, disposition: 'unrecognized', facts: [] }
@@ -524,6 +563,7 @@ const hasValidOutputEvidence = (
     (commandKind === 'moldea'
       ? hasValidMoldeaFact(facts[0], exitCode, options)
       : hasValidRelevanceGateFact(facts[0], byteCount, exitCode) ||
+        hasValidManagedReadmeFact(facts[0], byteCount, exitCode) ||
         hasValidNodeTestFact(facts[0], exitCode))
   );
 };
@@ -583,8 +623,12 @@ export const projectActorExecutionEvidenceEvent = (
   }
   const operation = identifyMoldeaCliLauncherOperation(command);
   const gateMode = operation === null ? identifyMoldeaRelevanceGateMode(command) : null;
+  const isManagedReadmeWriter =
+    operation === null && gateMode === null && isMoldeaManagedReadmeWriterCommand(command);
   const testKind =
-    operation === null && gateMode === null ? identifyRepositoryTestCommandKind(command) : null;
+    operation === null && gateMode === null && !isManagedReadmeWriter
+      ? identifyRepositoryTestCommandKind(command)
+      : null;
   const entry: ISemanticActorExecutionEvidence = {
     eventType: 'item.completed',
     item: {
@@ -594,6 +638,7 @@ export const projectActorExecutionEvidenceEvent = (
         aggregatedOutput,
         operation,
         gateMode,
+        isManagedReadmeWriter,
         exitCode,
         options,
         testKind,

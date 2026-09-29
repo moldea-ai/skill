@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'evaluate-brief-project-request',
   setup: createSemanticCaseSetup('evaluate-brief-project-request'),
   scenario:
-    'A brief natural project-evaluation request is made in an adopted repository where the installed operating skill and project-owned canonical state are both present.',
+    'A brief natural project-evaluation request is made in an adopted repository with no declared implementation relationship.',
   operation: 'evaluate',
   input: {
     developerDirection: 'Evaluate this project.',
@@ -19,7 +19,7 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
-        claim: 'The project is adopted.',
+        claim: 'The project is adopted but has no declared implementation relationship.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/moldea.yaml',

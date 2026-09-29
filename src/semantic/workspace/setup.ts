@@ -1612,6 +1612,18 @@ const seedScenarioRepository = async (
   await seedAdoptedProject(repositoryPath, caseDefinition);
 
   switch (caseDefinition.id) {
+    case 'evaluate-brief-project-request':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy: []\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Evaluation project\n\nThis synthetic project has no declared implementation relationships.\n',
+      );
+      break;
     case 'model-workflow-routing':
     case 'unrelated-sdk-maintenance':
       await seedModelWorkflow(repositoryPath);
@@ -2260,7 +2272,26 @@ const applyScenarioWorkingTree = async (
     }
     case 'repair-marker-ambiguity': {
       const readme = await readFile(join(repositoryPath, 'README.md'), 'utf8');
-      await writeScenarioFile(repositoryPath, 'README.md', `${readme}<!-- moldea:start -->\n`);
+      const startMarker = '<!-- moldea:start -->';
+      const endMarker = '<!-- moldea:end -->';
+      const startIndex = readme.indexOf(startMarker);
+      const endIndex = readme.indexOf(endMarker, startIndex) + endMarker.length;
+      const conflictingRegions = [
+        startMarker,
+        'This project uses moldea only for release planning.',
+        endMarker,
+        '',
+        'Outside guidance between the two regions must be preserved.',
+        '',
+        startMarker,
+        'This project uses moldea for every repository change.',
+        endMarker,
+      ].join('\n');
+      await writeScenarioFile(
+        repositoryPath,
+        'README.md',
+        `${readme.slice(0, startIndex)}${conflictingRegions}${readme.slice(endIndex)}`,
+      );
       return;
     }
     case 'repair-ambiguous-foundation':

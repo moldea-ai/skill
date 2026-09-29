@@ -30,6 +30,8 @@ const createLauncherCommand = (operation: string, ...arguments_: string[]): stri
   [LAUNCHER_PREFIX, operation, ...arguments_].join(' ');
 
 const GATE_COMMAND = 'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt';
+const MANAGED_README_COMMAND =
+  'node /mnt/.agents/skills/moldea/scripts/managed-readme.mjs --repository /mnt';
 
 const createEnvelope = (command: string, result: Record<string, unknown>): string => {
   const completeResult =
@@ -122,6 +124,38 @@ test('projects bounded gate results without counting them as moldea CLI operatio
     OPTIONS,
   );
   assert.equal(malformedOutput.item.outputEvidence.disposition, 'unrecognized');
+});
+
+test('projects exact managed README writer results without retaining output text', () => {
+  const rejection = projectActorExecutionEvidenceEvent(
+    createEvent(
+      MANAGED_README_COMMAND,
+      'managed README update failed: README.md must contain exactly one moldea marker pair\n',
+      { exitCode: 1, status: 'failed' },
+    ),
+    OPTIONS,
+  );
+  const unchanged = projectActorExecutionEvidenceEvent(
+    createEvent(MANAGED_README_COMMAND, 'unchanged\n'),
+    OPTIONS,
+  );
+  assert.deepEqual(rejection.item.outputEvidence.facts, [
+    { kind: 'managed-readme-result', status: 'invalid-marker-pair' },
+  ]);
+  assert.deepEqual(unchanged.item.outputEvidence.facts, [
+    { kind: 'managed-readme-result', status: 'unchanged' },
+  ]);
+  assert.equal(hasValidActorExecutionEvidence([rejection, unchanged], OPTIONS), true);
+  assert.deepEqual(createMoldeaResourceEvidence([rejection, unchanged], OPTIONS).operations, []);
+
+  const unrecognized = projectActorExecutionEvidenceEvent(
+    createEvent(MANAGED_README_COMMAND, 'managed README update failed: other error\n', {
+      exitCode: 1,
+      status: 'failed',
+    }),
+    OPTIONS,
+  );
+  assert.equal(unrecognized.item.outputEvidence.disposition, 'unrecognized');
 });
 
 const createNodeTestOutput = ({

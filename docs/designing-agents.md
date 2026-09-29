@@ -26,6 +26,8 @@ That readiness judgment is separate from the outcome of a narrower maintenance r
 
 Instructions should be complete, evidence-grounded, actionable, aligned with executable contracts, explicit about consequential ambiguity and failure, and concise enough that each runtime token earns its cost.
 
+For an unbound one-shot model workflow, a direct change to model decisions or output establishes one cohesive agent responsibility. The actual invocation must consume its canonical instruction through an evidenced loader or exact mirror, with focused tests for that path. A separate agent for every call is unnecessary.
+
 For routing metadata, the coding agent inspects the target directory directly. It uses `handoff-description.md` when present. When that optional asset is absent, it reads `description.md`, runtime guidance, and the consumer before judging the fallback. Under dynamic wiring, it records the consumer purpose, required canonical source, current selected source, and evidence that could resolve selection. If the selected source is unknown, it gives only conditional conclusions.
 
 ## Register real capabilities

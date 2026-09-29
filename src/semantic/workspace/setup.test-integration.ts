@@ -189,6 +189,13 @@ test.each([
   }
 });
 
+test('generic project evaluation fixture has no declared path relationship', async () => {
+  const { repositoryPath } = await materializeCase('evaluate-brief-project-request', true);
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
+  assert.equal(gateResult(repositoryPath, ['/src/project-state.js']), '0\n');
+  assert.match(readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8'), /no declared/u);
+});
+
 test.each(['model-workflow-routing', 'unrelated-sdk-maintenance'])(
   '%s supplies executable unbound model and SDK evidence after adoption',
   async (caseId) => {
@@ -589,6 +596,11 @@ test('managed README drift is repairable through the shipped writer without outs
 test('duplicate managed markers are rejected by the shipped writer without mutation', async () => {
   const { repositoryPath } = await materializeCase('repair-marker-ambiguity');
   const before = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
+  assert.equal(before.match(/<!-- moldea:start -->/gu)?.length, 2);
+  assert.equal(before.match(/<!-- moldea:end -->/gu)?.length, 2);
+  assert.match(before, /only for release planning/u);
+  assert.match(before, /for every repository change/u);
+  assert.match(before, /Outside guidance between the two regions must be preserved/u);
   const writer = spawnSync(
     process.execPath,
     [MANAGED_WRITER_PATH, '--repository', repositoryPath],

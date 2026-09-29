@@ -8,6 +8,7 @@ import {
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyRepositoryTestCommandKind,
+  isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
 } from './execution-evidence.ts';
@@ -476,6 +477,19 @@ test('recognizes only exact bundled relevance-gate commands', () => {
       'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /other',
     ),
     null,
+  );
+});
+
+test('recognizes only exact bundled managed README writer commands', () => {
+  const writer = 'node /mnt/.agents/skills/moldea/scripts/managed-readme.mjs --repository /mnt';
+  assert.equal(isMoldeaManagedReadmeWriterCommand(writer), true);
+  assert.equal(isMoldeaManagedReadmeWriterCommand(`${writer} --extra`), false);
+  assert.equal(isMoldeaManagedReadmeWriterCommand(`${writer} && true`), false);
+  assert.equal(
+    isMoldeaManagedReadmeWriterCommand(
+      'node /mnt/.agents/skills/moldea/scripts/managed-readme.mjs --repository /other',
+    ),
+    false,
   );
 });
 

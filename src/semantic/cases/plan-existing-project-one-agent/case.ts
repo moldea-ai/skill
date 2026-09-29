@@ -42,7 +42,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'use-existing-evidence-read-only',
       criterion:
-        'The response and workspace changes use existing evidence read only in the material behavior exercised by this scenario.',
+        'The response grounds its proposed boundaries in the existing support API and project triage documentation, and workspace evidence shows no changes. Projected commands do not establish file-read history.',
     },
     {
       label: 'recommend-one-justified-agent',

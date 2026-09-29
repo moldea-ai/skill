@@ -669,14 +669,7 @@ const isSafeRelevanceGateCommand = (words: readonly string[]): boolean =>
   words[3] === '/mnt' &&
   (words.length === 4 || words[4] === '--adoption-only');
 
-/**
- * Identifies one exact bundled relevance-gate invocation without retaining its command.
- * @param command The host command to classify.
- * @returns The gate mode, or null when the command is not an exact gate invocation.
- */
-export const identifyMoldeaRelevanceGateMode = (
-  command: unknown,
-): 'adoption-only' | 'relationship' | null => {
+const getStandaloneCommandWords = (command: unknown): readonly string[] | null => {
   if (typeof command !== 'string' || Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
     return null;
   }
@@ -685,8 +678,20 @@ export const identifyMoldeaRelevanceGateMode = (
     directCommand === null
       ? null
       : tokenizeStaticShellList(stripSafeShellRedirections(directCommand));
-  if (commands?.length !== 1 || !isSafeRelevanceGateCommand(commands[0]!)) return null;
-  return commands[0]!.length === 5 ? 'adoption-only' : 'relationship';
+  return commands?.length === 1 ? commands[0]! : null;
+};
+
+/**
+ * Identifies one exact bundled relevance-gate invocation without retaining its command.
+ * @param command The host command to classify.
+ * @returns The gate mode, or null when the command is not an exact gate invocation.
+ */
+export const identifyMoldeaRelevanceGateMode = (
+  command: unknown,
+): 'adoption-only' | 'relationship' | null => {
+  const words = getStandaloneCommandWords(command);
+  if (words === null || !isSafeRelevanceGateCommand(words)) return null;
+  return words.length === 5 ? 'adoption-only' : 'relationship';
 };
 
 /** Checks the exact standalone Node invocation for the bundled README writer. */
@@ -696,6 +701,16 @@ const isSafeManagedReadmeCommand = (words: readonly string[]): boolean =>
   SAFE_MANAGED_README_PATHS.has(words[1] ?? '') &&
   words[2] === '--repository' &&
   words[3] === '/mnt';
+
+/**
+ * Identifies one exact bundled README-writer invocation without retaining its command.
+ * @param command The host command to classify.
+ * @returns Whether the command invokes the installed writer alone.
+ */
+export const isMoldeaManagedReadmeWriterCommand = (command: unknown): boolean => {
+  const words = getStandaloneCommandWords(command);
+  return words !== null && isSafeManagedReadmeCommand(words);
+};
 
 /** Parses the strict option surface for one launcher-backed CLI operation. */
 const parseMoldeaCliOperationArguments = (

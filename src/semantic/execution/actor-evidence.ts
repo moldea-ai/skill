@@ -1,5 +1,6 @@
 import {
   identifyMoldeaCliLauncherOperation,
+  identifyMoldeaRelevanceGateMode,
   identifyRepositoryTestCommandKind,
 } from '../../execution/host/index.ts';
 import type {
@@ -439,9 +440,28 @@ const hasValidNodeTestFact = (
   );
 };
 
+const projectRelevanceGateResult = (
+  source: string,
+  mode: 'adoption-only' | 'relationship',
+  exitCode: number,
+): ISemanticActorExecutionOutputFact | null =>
+  exitCode === 0 && (source === '0\n' || source === '1\n')
+    ? { kind: 'relevance-gate-result', matched: source === '1\n', mode }
+    : null;
+
+const hasValidRelevanceGateFact = (fact: unknown, byteCount: number, exitCode: number): boolean =>
+  byteCount === 2 &&
+  exitCode === 0 &&
+  isPlainRecord(fact) &&
+  hasExactKeys(fact, ['kind', 'matched', 'mode']) &&
+  fact['kind'] === 'relevance-gate-result' &&
+  typeof fact['matched'] === 'boolean' &&
+  (fact['mode'] === 'adoption-only' || fact['mode'] === 'relationship');
+
 const createOutputEvidence = (
   source: string,
   operation: IMoldeaCliOperation | null,
+  gateMode: 'adoption-only' | 'relationship' | null,
   exitCode: number,
   options: ISemanticActorExecutionEvidenceOptions,
   testKind: IRepositoryTestCommandKind | null,
@@ -453,9 +473,11 @@ const createOutputEvidence = (
   if (source.includes('\0')) return { byteCount, disposition: 'unrecognized', facts: [] };
   const fact =
     operation === null
-      ? testKind !== null
-        ? projectNodeTestSummary(source, exitCode, testKind)
-        : null
+      ? gateMode !== null
+        ? projectRelevanceGateResult(source, gateMode, exitCode)
+        : testKind !== null
+          ? projectNodeTestSummary(source, exitCode, testKind)
+          : null
       : projectMoldeaEnvelope(source, operation, exitCode, options);
   return fact === null
     ? { byteCount, disposition: 'unrecognized', facts: [] }
@@ -501,7 +523,8 @@ const hasValidOutputEvidence = (
     facts.length === 1 &&
     (commandKind === 'moldea'
       ? hasValidMoldeaFact(facts[0], exitCode, options)
-      : hasValidNodeTestFact(facts[0], exitCode))
+      : hasValidRelevanceGateFact(facts[0], byteCount, exitCode) ||
+        hasValidNodeTestFact(facts[0], exitCode))
   );
 };
 
@@ -559,7 +582,9 @@ export const projectActorExecutionEvidenceEvent = (
     throw new Error('A completed Codex command event did not include its result evidence.');
   }
   const operation = identifyMoldeaCliLauncherOperation(command);
-  const testKind = operation === null ? identifyRepositoryTestCommandKind(command) : null;
+  const gateMode = operation === null ? identifyMoldeaRelevanceGateMode(command) : null;
+  const testKind =
+    operation === null && gateMode === null ? identifyRepositoryTestCommandKind(command) : null;
   const entry: ISemanticActorExecutionEvidence = {
     eventType: 'item.completed',
     item: {
@@ -568,6 +593,7 @@ export const projectActorExecutionEvidenceEvent = (
       outputEvidence: createOutputEvidence(
         aggregatedOutput,
         operation,
+        gateMode,
         exitCode,
         options,
         testKind,

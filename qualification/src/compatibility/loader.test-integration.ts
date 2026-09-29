@@ -143,6 +143,11 @@ describe('Custom qualification profile', () => {
         caseId: 'create-grounded-agent',
         path: 'test/order-triage-agent.test.mjs',
       },
+      {
+        adapterId: 'custom',
+        caseId: 'create-grounded-agent',
+        path: 'tests/order-triage-agent.test.mjs',
+      },
     ]);
   });
 

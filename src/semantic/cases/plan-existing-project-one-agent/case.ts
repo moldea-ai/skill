@@ -62,7 +62,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-no-writes',
       criterion:
-        'The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes.',
+        'Workspace evidence contains no repository changes, and the actor does not claim that it created or updated an agent. A read-only plan need not announce an empty diff.',
     },
   ],
   forbidden: [

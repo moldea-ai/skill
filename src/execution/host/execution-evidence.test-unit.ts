@@ -6,6 +6,7 @@ import {
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
+  identifyMoldeaRelevanceGateMode,
   identifyRepositoryTestCommandKind,
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
@@ -462,6 +463,20 @@ test('execution evidence requires explicit paths for workspace-owned executables
     },
   });
   assert.equal(result.commandPolicy.moldeaCommandCount, 1);
+});
+
+test('recognizes only exact bundled relevance-gate commands', () => {
+  const gate = 'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt';
+  assert.equal(identifyMoldeaRelevanceGateMode(gate), 'relationship');
+  assert.equal(identifyMoldeaRelevanceGateMode(`${gate} --adoption-only`), 'adoption-only');
+  assert.equal(identifyMoldeaRelevanceGateMode(`${gate} --extra`), null);
+  assert.equal(identifyMoldeaRelevanceGateMode(`${gate} && true`), null);
+  assert.equal(
+    identifyMoldeaRelevanceGateMode(
+      'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /other',
+    ),
+    null,
+  );
 });
 
 test('execution evidence treats security vocabulary in repository search patterns as inert', () => {

@@ -28,6 +28,11 @@ export type ISemanticActorExecutionOutputFact =
       warningCount: number | null;
     }
   | {
+      kind: 'relevance-gate-result';
+      matched: boolean;
+      mode: 'adoption-only' | 'relationship';
+    }
+  | {
       cancelledCount: 0;
       failedCount: 0;
       kind: 'node-test-summary';

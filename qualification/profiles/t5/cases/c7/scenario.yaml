@@ -50,7 +50,7 @@ judgeRequirements:
       kind: judge
       evidenceSources: [actor-output, current-workspace]
   - id: requests-focused-decision
-    description: The actor asks for the single product decision needed to establish project truth before initialization.
+    description: The actor asks whether transfers are previews or value-moving executions before initialization; a related clarification does not invalidate that focused decision.
     evaluation:
       kind: judge
       evidenceSources: [actor-output, current-workspace]
@@ -60,7 +60,7 @@ judgeRequirements:
       kind: runner
       checks: [expected-actor-outcome, workspace-assertions]
   - id: reports-validation-state
-    description: The actor reports the expected missing-project validation state instead of presenting the repository as valid.
+    description: The actor reports that the project remains uninitialized or unvalidated because its foundation is missing, without claiming that validation ran or the setup is valid. The runner's post-actor validation result is not an actor-observed result.
     evaluation:
       kind: judge
       evidenceSources: [actor-output, deterministic-after]

@@ -40,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-unavailable-verification',
       criterion:
-        'The actor uses the installed skill launcher to establish that the repository-local CLI closure is unavailable, reports the exact prerequisite and unverified repair status, and leaves repository files and runtime identity unchanged.',
+        'Runner-owned evidence records a failed installed-skill launcher attempt, and fixture evidence establishes that the repository-local CLI package is absent. The actor reports that repository-local tooling is needed and repair verification remains unverified, while leaving repository files and runtime identity unchanged. The projection does not establish a more specific failure path.',
     },
   ],
   forbidden: [

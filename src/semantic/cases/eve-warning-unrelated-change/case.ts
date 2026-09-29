@@ -30,7 +30,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'complete-authorized-instruction-change',
       criterion:
-        'The actor updates the canonical refund instruction to require human approval and completes the directly affected checks and final validation.',
+        'The actor updates the canonical refund instruction to require human approval and runner-owned evidence records final launcher-backed validation. Ordinary native checks are not required by this instruction-only task or proved by opaque command records.',
     },
     {
       label: 'keep-warning-scoped',

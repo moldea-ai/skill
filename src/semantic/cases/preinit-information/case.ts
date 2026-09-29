@@ -30,7 +30,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'concise-information-only',
       criterion:
-        'The actor answers the informational question concisely from the skill entrypoint without claiming repository-dependent work.',
+        'The actor answers the informational question accurately and concisely without claiming repository-dependent work. The projected command record does not prove which instructions the actor read.',
     },
   ],
   forbidden: [

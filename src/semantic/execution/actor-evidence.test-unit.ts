@@ -29,6 +29,8 @@ const LAUNCHER_PREFIX =
 const createLauncherCommand = (operation: string, ...arguments_: string[]): string =>
   [LAUNCHER_PREFIX, operation, ...arguments_].join(' ');
 
+const GATE_COMMAND = 'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt';
+
 const createEnvelope = (command: string, result: Record<string, unknown>): string => {
   const completeResult =
     command === 'validate'
@@ -93,6 +95,34 @@ const projectActorExecutionEvidenceEvent = (
   assert(evidence !== null);
   return evidence;
 };
+
+test('projects bounded gate results without counting them as moldea CLI operations', () => {
+  const relationshipMiss = projectActorExecutionEvidenceEvent(
+    createEvent(GATE_COMMAND, '0\n'),
+    OPTIONS,
+  );
+  const adoptionHit = projectActorExecutionEvidenceEvent(
+    createEvent(`${GATE_COMMAND} --adoption-only`, '1\n'),
+    OPTIONS,
+  );
+  assert.deepEqual(relationshipMiss.item.outputEvidence.facts, [
+    { kind: 'relevance-gate-result', matched: false, mode: 'relationship' },
+  ]);
+  assert.deepEqual(adoptionHit.item.outputEvidence.facts, [
+    { kind: 'relevance-gate-result', matched: true, mode: 'adoption-only' },
+  ]);
+  assert.equal(hasValidActorExecutionEvidence([relationshipMiss, adoptionHit], OPTIONS), true);
+  assert.deepEqual(
+    createMoldeaResourceEvidence([relationshipMiss, adoptionHit], OPTIONS).operations,
+    [],
+  );
+
+  const malformedOutput = projectActorExecutionEvidenceEvent(
+    createEvent(GATE_COMMAND, '1\nextra'),
+    OPTIONS,
+  );
+  assert.equal(malformedOutput.item.outputEvidence.disposition, 'unrecognized');
+});
 
 const createNodeTestOutput = ({
   cancelled = 0,

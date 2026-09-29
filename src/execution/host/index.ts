@@ -63,6 +63,7 @@ export {
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
+  identifyMoldeaRelevanceGateMode,
   identifyRepositoryTestCommandKind,
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,

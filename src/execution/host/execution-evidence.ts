@@ -669,6 +669,26 @@ const isSafeRelevanceGateCommand = (words: readonly string[]): boolean =>
   words[3] === '/mnt' &&
   (words.length === 4 || words[4] === '--adoption-only');
 
+/**
+ * Identifies one exact bundled relevance-gate invocation without retaining its command.
+ * @param command The host command to classify.
+ * @returns The gate mode, or null when the command is not an exact gate invocation.
+ */
+export const identifyMoldeaRelevanceGateMode = (
+  command: unknown,
+): 'adoption-only' | 'relationship' | null => {
+  if (typeof command !== 'string' || Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
+    return null;
+  }
+  const directCommand = unwrapCodexShellCommand(command);
+  const commands =
+    directCommand === null
+      ? null
+      : tokenizeStaticShellList(stripSafeShellRedirections(directCommand));
+  if (commands?.length !== 1 || !isSafeRelevanceGateCommand(commands[0]!)) return null;
+  return commands[0]!.length === 5 ? 'adoption-only' : 'relationship';
+};
+
 /** Checks the exact standalone Node invocation for the bundled README writer. */
 const isSafeManagedReadmeCommand = (words: readonly string[]): boolean =>
   isTrustedLocalExecutable(words[0], 'node') &&

@@ -33,7 +33,7 @@ npm exec --workspace website -- astro dev --host 127.0.0.1
 
 Keep both preview arguments together. Relative paths resolve from the invoking directory. Local preview reads current checkout files, including scenario headings; the public reader uses their recorded definition commits. Local preview suppresses source links and shows a notice. It never exports files, accesses native sessions, or changes the source repository. Stop the foreground server with Ctrl+C when finished.
 
-Website tests and typechecking replace the generated model with synthetic evidence. Stop the preview, regenerate the local model, and restart Astro afterward. Restart after changing runs as well: Astro caches static route lists and their props during development. `npm run website:dev` always generates the ordinary development model, using the public setting if configured. Production generation always reloads the public setting and cannot inherit a local override.
+Website tests and typechecking replace the generated model with synthetic evidence. Stop the preview, regenerate the local model, and restart Astro afterward. Restart after changing runs as well: Astro caches static route lists and their props during development. `npm run website:dev` loads the selected release evidence and public project runs. The separate `npm --workspace website run dev:catalog` command generates the unrecorded development catalog. Production generation always reloads the public setting and cannot inherit a local override.
 
 Development browser tests use `--project-runs-selection scripts/project-run-fixture/unselected.json` to keep the unselected-state checks independent of the published run and network access. This alternative selection cannot be combined with a local preview; it does not modify the maintainer setting.
 
@@ -80,13 +80,14 @@ npm run build:fixture
 
 `npm run test:unit` prepares the existing synthetic website model before running the unit suite, so it also works on a clean checkout without selected release evidence.
 
-Start the local development server from the repository root:
+Prepare the selected release evidence once, then start the local development server from the repository root:
 
 ```bash
+npm run evidence:prepare
 npm run website:dev
 ```
 
-The development server loads the current semantic cases and qualification profiles without recorded results, so a clean checkout shows the available coverage without invented evidence. It rereads the generated model when another command changes that cache; synthetic test evidence must not remain stuck in a running preview after the clean model is regenerated. Browser checks exercise both this clean state and isolated synthetic results, keeping the empty and complete evidence presentations testable. After both official selections are populated, production generation runs from the repository root with `npm run evidence:prepare` followed by `npm run website:build`.
+The development server shows the selected recorded semantic and qualification results. It rereads the generated model when another command changes that cache, so tests can replace the visible evidence until the model is regenerated. For the unrecorded case and profile catalog, run `npm --workspace website run dev:catalog` instead. Browser checks exercise both the catalog and isolated recorded results. Production generation uses `npm run evidence:prepare` followed by `npm run website:build`.
 
 ## Deployment
 

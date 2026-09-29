@@ -13,6 +13,8 @@ export default defineConfig({
   base,
   output: 'static',
   trailingSlash: 'always',
+  // the public CDN rejects requests carrying Sec-Purpose: prefetch
+  prefetch: false,
   integrations: [
     sitemap({
       filter: (page) => new URL(page).pathname !== withBase('/search/', base),

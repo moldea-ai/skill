@@ -121,7 +121,7 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
 
   await page.setViewportSize({ height: 740, width: 320 });
   await page.reload();
-  await page.getByLabel('Open navigation').click();
+  await page.getByRole('banner').locator('summary').click();
 
   const mobileDistributionLink = page.getByLabel('Mobile navigation').getByRole('link', {
     name: 'Get the skill on skills.sh',
@@ -392,20 +392,66 @@ test('persists an explicit theme and exposes mobile navigation from the keyboard
   await expect(page.locator('header img[src$="/logo/logo-light.png"]')).toBeVisible();
   await expect(page.locator('header').getByText('skill', { exact: true })).toBeVisible();
 
-  const navigationButton = page.getByLabel('Open navigation');
+  const navigationButton = page.getByRole('banner').locator('summary');
+  await expect(navigationButton).toHaveAccessibleName('Open navigation');
+  await expect(navigationButton.locator('svg.lucide-menu')).toBeVisible();
   await navigationButton.focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
+  await expect(navigationButton).toHaveAccessibleName('Close navigation');
+  await expect(navigationButton.locator('svg.lucide-x')).toBeVisible();
+  await expect(navigationButton.locator('svg.lucide-menu')).toBeHidden();
 
   const themeControl = page.getByRole('button', { name: 'Use dark theme' }).last();
   await themeControl.focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('html')).toHaveClass(/dark/);
   await expect(page.locator('header img[src$="/logo/logo-dark.png"]')).toBeVisible();
+  await navigationButton.focus();
+  await page.keyboard.press('Space');
+  await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeHidden();
+  await expect(navigationButton).toBeFocused();
+  await expect(navigationButton).toHaveAccessibleName('Open navigation');
   await page.reload();
   await expect(page.locator('html')).toHaveClass(/dark/);
   await navigationButton.click();
   await expect(page.getByRole('button', { name: 'Use light theme' }).last()).toBeVisible();
+});
+
+test('waits for navigation activation before requesting header destinations', async ({ page }) => {
+  await page.goto(toPublicPath('/'));
+  await page.clock.install();
+
+  const destinationPaths = [
+    '/capabilities/',
+    '/how-it-works/',
+    '/evidence/',
+    '/docs/',
+    '/search/',
+  ].map(toPublicPath);
+  const destinationRequests: string[] = [];
+  page.on('request', (request) => {
+    const url = new URL(request.url());
+    if (url.origin === new URL(page.url()).origin && destinationPaths.includes(url.pathname)) {
+      destinationRequests.push(url.pathname);
+    }
+  });
+
+  const header = page.getByRole('banner');
+  for (const destinationPath of destinationPaths) {
+    const link = header.locator(`a[href="${destinationPath}"]:visible`).first();
+    await link.hover();
+    // advance beyond Astro's 80ms hover/focus prefetch delay
+    await page.clock.runFor(160);
+    await link.focus();
+    await page.clock.runFor(160);
+  }
+
+  await expect(page.locator('link[rel="prefetch"]')).toHaveCount(0);
+  expect(destinationRequests).toStrictEqual([]);
+  await header.getByRole('link', { name: 'Capabilities', exact: true }).first().click();
+  await expect(page).toHaveURL(toPublicPath('/capabilities/'));
+  expect(destinationRequests).toStrictEqual([toPublicPath('/capabilities/')]);
 });
 
 test('uses smooth client navigation and browser history across product pages', async ({ page }) => {
@@ -480,7 +526,7 @@ test('shows accessible progress during delayed client navigation and hides it af
     { times: 1 },
   );
 
-  await page.getByLabel('Open navigation').click();
+  await page.getByRole('banner').locator('summary').click();
   const navigation = page
     .getByRole('navigation', { name: 'Mobile navigation' })
     .getByRole('link', { name: 'Capabilities', exact: true })
@@ -567,7 +613,7 @@ test('marks the most specific current desktop and mobile navigation destinations
   const mobilePage = await mobileContext.newPage();
   await mobilePage.setViewportSize({ height: 740, width: 320 });
   await mobilePage.goto(toPublicPath('/how-it-works/'));
-  await mobilePage.getByLabel('Open navigation').click();
+  await mobilePage.getByRole('banner').locator('summary').click();
 
   const mobileNavigation = mobilePage.getByRole('navigation', { name: 'Mobile navigation' });
   const activeMobileLink = mobileNavigation.locator('a[aria-current="page"]');

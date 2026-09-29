@@ -24,6 +24,7 @@ import { PRODUCT_PAGE_METADATA } from '../../lib/model/constants.ts';
 const basePath = import.meta.env.BASE_URL;
 const pageMetadata = PRODUCT_PAGE_METADATA.howItWorks;
 const skillMarkPath = withBase('/logo/icon-xs-light.png', basePath);
+const requestedOutcomeMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
 const connectionItems = [
   {
     icon: FileText,
@@ -326,10 +327,15 @@ const connectionItems = [
           <article class="bg-elevated p-5 sm:p-6 lg:border-e lg:border-border">
             <span
               class="dark-surface-selection inline-flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-surface"
+              aria-hidden="true"
             >
-              <Bot
-                class="size-5"
-                aria-hidden="true"
+              <img
+                src={requestedOutcomeMarkPath}
+                width="207"
+                height="215"
+                alt=""
+                class="h-5 w-auto"
+                data-requested-outcome-agent-mark
               />
             </span>
             <p class="eyebrow mt-5">Requested outcome</p>

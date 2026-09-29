@@ -3,6 +3,7 @@ import Accordion from '@moldea.ai/website-ui/accordion';
 import EvaluationReplay from '@moldea.ai/website-ui/evaluation-replay';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import { withBase } from '@moldea.ai/website-ui/site';
 import TabbedPanels from '@moldea.ai/website-ui/tabbed-panels';
 
 import type {
@@ -38,6 +39,7 @@ const {
   presentation = null,
   profileCase,
 } = Astro.props;
+const codingAgentMarkPath = withBase('/logo/icon-xs-dark.png', import.meta.env.BASE_URL);
 const id = suppliedId ?? `qualification-${profileCase.id}`;
 const { result, trials } = evidence;
 const terminalTrial = trials.at(-1);
@@ -130,7 +132,11 @@ const resultRationaleHtml = await renderMarkdownFragment(resultRationale, markdo
     slot="status"
     status={result.status}
   />
-  <div class="px-5 py-6 sm:px-6">
+  <div
+    class="px-5 py-6 sm:px-6"
+    data-evaluation-replay
+    style={{ '--coding-agent-mark': `url("${codingAgentMarkPath}")` }}
+  >
     <TabbedPanels
       ariaLabel="Qualification journey views"
       id={`qualification-${result.caseId}`}

@@ -28,6 +28,10 @@ test('shows the selected qualification snapshot without a visitor selector', asy
     getQualificationReleaseEvidenceSummary(customProfile).status,
   );
   await expect(page.getByRole('combobox')).toHaveCount(0);
+  await expect(page.locator('[data-qualification-agent-mark]')).toHaveAttribute(
+    'src',
+    toPublicPath('/logo/icon-xs-light.png'),
+  );
   await expect(
     page.getByRole('link', { name: 'Browse the results' }).locator('svg.lucide-arrow-down'),
   ).toHaveCount(1);
@@ -101,6 +105,25 @@ test('remains accessible, responsive, and theme-safe for selected evidence', asy
     await page.goto(toPublicPath(customProfile.route));
     const accessibilityResults = await new AxeBuilder({ page }).analyze();
     expect(accessibilityResults.violations).toStrictEqual([]);
+    const journey = page
+      .locator('details[data-accordion-item]')
+      .filter({ hasText: 'Release case' });
+    await journey.locator(':scope > summary').click();
+    const codingAgentMark = journey.locator('[data-evaluation-replay] .lucide-bot').first();
+    await expect(codingAgentMark).toBeVisible();
+    await expect(codingAgentMark).toHaveCSS(
+      'mask-image',
+      `url("${new URL(toPublicPath('/logo/icon-xs-dark.png'), page.url()).href}")`,
+    );
+    await expect(codingAgentMark).toHaveCSS('stroke', 'none');
+    await expect(codingAgentMark).toHaveCSS(
+      'background-color',
+      await codingAgentMark.evaluate((element) => getComputedStyle(element).color),
+    );
+    const messageAccessibility = await new AxeBuilder({ page })
+      .include('#qualification-release-case article:has(.lucide-bot)')
+      .analyze();
+    expect(messageAccessibility.violations).toStrictEqual([]);
     const widths = await page.evaluate(() => ({
       client: document.documentElement.clientWidth,
       scroll: document.documentElement.scrollWidth,

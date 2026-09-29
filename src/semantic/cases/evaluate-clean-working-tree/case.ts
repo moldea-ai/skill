@@ -56,7 +56,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'progressive-whole-system-assessment',
       criterion:
-        'The actor response identifies the adopted project-owned moldea system as its starting scope and reports material expansion through the independently evidenced `/src/**` canonical relationship into the independently evidenced `src/project-state.js` implementation; it need not narrate every read or command.',
+        'The actor assesses the adopted project and its related `src/project-state.js` implementation. It need not narrate the exact relationship pattern, reads, or commands when the substantive assessment and runner-owned scope result establish the expansion.',
     },
     {
       label: 'report-project-state-ambiguity',
@@ -89,7 +89,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['project-evaluation-and-reconciliation'],

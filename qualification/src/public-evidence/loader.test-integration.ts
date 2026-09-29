@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
@@ -31,6 +31,37 @@ afterEach(async () => {
 });
 
 describe('qualification public evidence selection', () => {
+  test('loads a selected adapter with its Custom baseline without other profile results', async () => {
+    const temporaryRoot = await mkdtemp(path.join(tmpdir(), 'moldea-qualification-profiles-'));
+    temporaryRoots.push(temporaryRoot);
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    await mkdir(resultsRoot);
+    const repositoryRoot = path.resolve(import.meta.dirname, '../../..');
+    const profileKeys = new Set(['t5', 't10']);
+
+    const websiteModel = loadQualificationWebsiteModel(repositoryRoot, {
+      profileKeys,
+      resultsRoot,
+    });
+
+    expect(
+      websiteModel.profiles.map(
+        ({ adapterId, implementationId }) => `${adapterId}/${implementationId}`,
+      ),
+    ).toStrictEqual(['custom/custom', 'langgraph/typescript-state-graph-1-4']);
+    expect(websiteModel.profiles[1]?.sharedCases).toStrictEqual(websiteModel.profiles[0]?.cases);
+    expect(websiteModel.profiles.map(({ currentStatus }) => currentStatus)).toStrictEqual([
+      'not-recorded',
+      'not-recorded',
+    ]);
+    expect(() =>
+      loadQualificationWebsiteModel(repositoryRoot, {
+        profileKeys: new Set(['t10']),
+        resultsRoot,
+      }),
+    ).toThrow('Selected qualification profiles must include the indexed Custom baseline.');
+  });
+
   test('loads only the exact attempt selected for each profile snapshot', async () => {
     const repositoryRoot = await mkdtemp(path.join(tmpdir(), 'moldea-qualification-selection-'));
     temporaryRoots.push(repositoryRoot);

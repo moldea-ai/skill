@@ -980,6 +980,13 @@ const classifyNetworkCommand = (
     if (words.length === 2 && words[1] === '--version') return 'not-observed';
     const subcommand = identifyGitSubcommand(words);
     if (subcommand === null) return 'indeterminate';
+    if (
+      subcommand === 'remote' &&
+      (words.at(-1) === 'remote' ||
+        (words.at(-2) === 'remote' && ['-v', '--verbose'].includes(words.at(-1) ?? '')))
+    ) {
+      return 'not-observed';
+    }
     if (NETWORK_GIT_SUBCOMMANDS.has(subcommand)) return 'observed';
     return SAFE_GIT_SUBCOMMANDS.has(subcommand) ? 'not-observed' : 'indeterminate';
   }

@@ -101,6 +101,8 @@ describe('qualification prompts', () => {
     expect(prompt).toContain('# Review the support agent');
     expect(prompt).toContain('Use applicable project-local tooling');
     expect(prompt).toContain('Agent Skill guidance discovered in the workspace');
+    expect(prompt).toContain("Follow the task's inspection boundary.");
+    expect(prompt).toContain('do not inspect a repository when the task expressly forbids it');
     expect(prompt).toContain('status --porcelain=v2 -z --ignore-submodules=all');
     expect(prompt).toContain(
       'diff --no-ext-diff --no-textconv --ignore-submodules=all -- <one-or-more-repository-relative-paths>',

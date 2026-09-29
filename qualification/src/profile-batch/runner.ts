@@ -889,7 +889,7 @@ export const runQualificationProfileBatch = async (options: {
   );
   const outcome = await createOutcome({ checkpoint: null, ledger: activeLedger });
   assertQualificationProfileBatchOutputSize(outcome);
-  if (!isDryRun && selector.kind === 'all') {
+  if (!isDryRun) {
     if (baselineAttemptId === null) {
       throw new Error('Qualification evidence requires the exact Custom baseline attempt.');
     }

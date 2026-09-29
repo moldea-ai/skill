@@ -21,7 +21,7 @@ const getUsageTokenCount = (usage: ISemanticRecordedTrial['trial']['actorUsage']
     : usage.inputTokens + usage.outputTokens;
 
 const getTrialPaidTokenCount = (recordedTrial: ISemanticChargedTrial): number => {
-  if (recordedTrial.trial.executionOrigin === 'reused') return 0;
+  if (recordedTrial.trial.executionOrigin !== 'executed') return 0;
   return (
     getUsageTokenCount(recordedTrial.trial.actorUsage) +
     getUsageTokenCount(recordedTrial.trial.judgeUsage) +

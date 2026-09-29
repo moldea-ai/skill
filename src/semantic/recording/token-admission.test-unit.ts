@@ -9,7 +9,9 @@ import {
 } from './token-admission.ts';
 import type { ISemanticCaseCheckpoint, ISemanticRecordedCase } from './types.ts';
 
-const createChargedCase = (executionOrigin: 'executed' | 'reused'): ISemanticRecordedCase =>
+const createChargedCase = (
+  executionOrigin: 'carried' | 'executed' | 'reused',
+): ISemanticRecordedCase =>
   ({
     trials: [
       {
@@ -28,10 +30,10 @@ const createChargedCase = (executionOrigin: 'executed' | 'reused'): ISemanticRec
   }) as ISemanticRecordedCase;
 
 describe('semantic token admission', () => {
-  test('charges direct usage and failed calls while reused trials remain free', () => {
+  test('charges direct usage and failed calls while reused and carried trials remain free', () => {
     expect(
       getSemanticCandidatePaidTokenCount(
-        [createChargedCase('executed'), createChargedCase('reused')],
+        [createChargedCase('executed'), createChargedCase('reused'), createChargedCase('carried')],
         {},
       ),
     ).toBe(MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount + 225);

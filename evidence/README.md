@@ -1,0 +1,11 @@
+# Manual evidence selection
+
+The execution runners keep exact checkpoint and automatic reuse identities. Website evidence is selected separately from completed local official runs. Selection does not invoke a model or claim that an older case ran against current inputs.
+
+For semantic cases, record a targeted replacement with `npm run eval:semantic -- --record --cases <comma-separated-case-ids>`. Preview an ordered selection with `npm run eval:semantic:compose -- --sources <attempt-id>,<earlier-attempt-id> --preview`; omit `--preview` to store it. Add `--cases <comma-separated-case-ids>` to limit the selected cases. The first source containing a case is used unless `--review <repository-relative-json-file>` names its source. The review JSON needs `formatVersion: 1`; optional `caseSources` entries contain `caseId` and `attemptId`, while `acceptedCriteria` and `reassessments` entries contain `caseId` and a concrete `rationale`.
+
+For qualification cases, an official `run-batch --targets <adapter>/<implementation>` records a source bundle containing the selected adapter and its exact Custom baseline. Preview a selection with `npm run qualification:compose -- --sources <run-id>,<earlier-run-id> --preview`; omit `--preview` to store the selected bundle. Optional `--review <repository-relative-json-file>` JSON needs `formatVersion: 1`. Its `caseSources` entries contain `adapterId`, `implementationId`, `caseId`, `runId`, and optionally `attemptId`. Use `includeCases` with the three case identifiers to limit the selected cases. Selected qualification bundles carry the referenced source artifacts.
+
+Both commands can select recorded cases across skill versions and changed current case inputs. Each selected case keeps its recorded request and source identity. A semantic case with changed inputs keeps its original verdict unless an explicit same-request reassessment applies. The commands report failed and unavailable cases in their preview output. Pack and pin the resulting bundle through the ordinary release-evidence workflow.
+
+In a composed semantic attempt, the top-level CLI, host, and artifact fields identify the basis attempt named by `composition.basisAttemptId`. Each trial's `carriedFrom` identifies the source of that case. A reviewed outcome retains the original judge verdict and every recorded trial in its replay.

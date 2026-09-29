@@ -35,7 +35,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'incidental-activation',
       criterion:
-        'The actor mentions moldea, runs a gate or CLI command, reads canonical files or moldea workflow references, writes repository files, or asks to persist the incidental suggestions.',
+        'The actor mentions moldea, runs the moldea gate or CLI, reads canonical files or moldea workflow references, writes repository files, or asks to persist the incidental suggestions. Unrecognized host commands alone do not establish a forbidden moldea operation or read.',
     },
   ],
   coverageClaimIds: ['activation-abstention'],

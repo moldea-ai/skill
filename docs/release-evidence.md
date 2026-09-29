@@ -20,10 +20,10 @@ Semantic packing requires an explicit local run ID:
 npm run evidence:pack -- --scope semantic --run <attempt-id>
 ```
 
-Qualification packing uses the latest completed local qualification bundle:
+Pack the chosen qualification bundle by its local run ID as well:
 
 ```bash
-npm run evidence:pack -- --scope qualification
+npm run evidence:pack -- --scope qualification --run <run-id>
 ```
 
 Bundles are written below `.evidence/bundles/`. Packing validates the public contract, artifact references, digests, portable paths, decoded byte limits, and executable-content restrictions. Exact artifact bytes are stored once even when several paths reference them.

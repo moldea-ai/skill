@@ -54,6 +54,7 @@ const CaseSchema = z.looseObject({
 const ResultSchema = z.looseObject({
   artifactDigest: z.string(),
   attemptId: z.string().min(1),
+  composition: z.strictObject({ basisAttemptId: z.string().min(1) }).optional(),
   createdAt: z.iso.datetime(),
   failedCaseCount: z.number().int().nonnegative(),
   passedCaseCount: z.number().int().nonnegative(),
@@ -110,6 +111,7 @@ const SemanticWebsiteModelSchema = z
     pendingCaseCount: z.number().int().nonnegative(),
     recoveredCaseCount: z.number().int().nonnegative(),
     route: z.string(),
+    selectedCases: z.literal(true).optional(),
     status: z.enum(['failed', 'incomplete', 'not-recorded', 'passed']),
   })
   .superRefine((model, context) => {
@@ -118,7 +120,7 @@ const SemanticWebsiteModelSchema = z
         model.attempts.length === 0 ||
         model.artifactDigest === null ||
         model.cli === null ||
-        model.coverageUrl === null ||
+        (model.coverageUrl === null && model.selectedCases !== true) ||
         model.evaluationModel === null
       ) {
         context.addIssue({
@@ -135,6 +137,7 @@ const SemanticWebsiteModelSchema = z
       model.artifactDigest !== null ||
       model.cli !== null ||
       model.coverageUrl !== null ||
+      model.selectedCases === true ||
       model.currentAssurance !== null ||
       model.evidenceMatch !== null ||
       model.evaluatedAt !== null ||

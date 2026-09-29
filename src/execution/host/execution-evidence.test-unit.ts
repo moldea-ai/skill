@@ -200,6 +200,23 @@ test('execution evidence recognizes exact evaluator-owned local tooling checks',
   });
 });
 
+test('execution evidence distinguishes local Git remote listing from network operations', () => {
+  const local = projectCodexEvaluationExecutionEvidence(
+    [
+      createCommandEvent('git remote'),
+      createCommandEvent('git remote -v'),
+      createCommandEvent('git -C /mnt remote --verbose'),
+    ].join('\n'),
+  );
+  assert.equal(local.commandPolicy.networkAccess.status, 'not-observed');
+
+  const network = projectCodexEvaluationExecutionEvidence(
+    [createCommandEvent('git remote update'), createCommandEvent('git fetch origin')].join('\n'),
+  );
+  assert.equal(network.commandPolicy.networkAccess.status, 'observed');
+  assert.equal(network.commandPolicy.networkAccess.observedCount, 2);
+});
+
 test('execution evidence accepts only the exact standalone managed README writer', () => {
   const accepted = projectCodexEvaluationExecutionEvidence(
     createCommandEvent(

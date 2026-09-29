@@ -44,6 +44,7 @@ export const createSemanticReplay = (
 ): IEvaluationReplayModel => ({
   trials: recordedCase.trials.map((recordedTrial) => {
     const { trial } = recordedTrial;
+    const recordedVerdict = trial.carriedFrom?.recordedVerdict;
     const commandCount = trial.actorCommandPolicyEvidence.completedCommandCount;
     const steps: IEvaluationReplayStep[] = [
       {
@@ -73,10 +74,10 @@ export const createSemanticReplay = (
       },
       {
         kind: 'verdict',
-        rationale: trial.rationale,
+        rationale: recordedVerdict?.rationale ?? trial.rationale,
         role: 'independent-judge',
         source: 'recorded',
-        status: trial.passed ? 'passed' : 'failed',
+        status: (recordedVerdict?.passed ?? trial.passed) ? 'passed' : 'failed',
       },
     ];
     return {

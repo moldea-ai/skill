@@ -3,7 +3,12 @@ import { describe, expect, test } from 'vitest';
 
 import type { ISemanticCase } from '../cases/index.ts';
 import { SEMANTIC_COVERAGE_CLAIMS } from '../coverage/index.ts';
-import { createSemanticCatalogWebsiteModel, parseSemanticWebsiteModel } from './index.ts';
+import {
+  createSemanticCatalogWebsiteModel,
+  createSemanticEvidenceBundle,
+  parseSemanticWebsiteModel,
+  type ISemanticAttemptRecord,
+} from './index.ts';
 
 const createCase = (claimId: string): ISemanticCase => ({
   coverageClaimIds: [claimId],
@@ -69,5 +74,126 @@ describe('createSemanticCatalogWebsiteModel', () => {
             semanticCase.trials.length === 0,
         ),
     ).toBe(true);
+  });
+});
+
+describe('selected semantic cases', () => {
+  test('displays a passing selection without claiming exact current assurance', () => {
+    const definition = createCase(SEMANTIC_COVERAGE_CLAIMS[0].id);
+    const recordedAt = '2026-09-29T00:00:00.000Z';
+    const result = {
+      artifactDigest: 'a'.repeat(64),
+      attemptId: 'sem-selected-cases',
+      caseSuiteDigest: 'b'.repeat(64),
+      cases: [
+        { confirmationStatus: 'not-required', id: definition.id, status: 'passed', trials: [] },
+      ],
+      cli: {
+        integrity: 'sha512-test',
+        jsonSchemaVersion: 5,
+        name: '@moldea.ai/cli',
+        packageLockSha256: 'c'.repeat(64),
+        version: '9.0.1',
+      },
+      coverageDigest: 'd'.repeat(64),
+      createdAt: recordedAt,
+      failedCaseCount: 0,
+      hostContract: { actor: { model: 'gpt-6-sol' } },
+      passedCaseCount: 1,
+      pendingCaseCount: 0,
+      recoveredCaseCount: 0,
+      status: 'passed',
+      totalCaseCount: 1,
+      updatedAt: recordedAt,
+    } as ISemanticAttemptRecord;
+    const bundle = createSemanticEvidenceBundle({
+      classification: 'official',
+      definitions: [definition],
+      presentationOnly: true,
+      result,
+      version: 'multiple releases',
+    });
+    const recordedCase = parseSemanticWebsiteModel(
+      (bundle.payload as { websiteModel: unknown }).websiteModel,
+    ).latest?.cases[0];
+    if (recordedCase === undefined) throw new Error('Expected a recorded case.');
+    const selectedBundle = createSemanticEvidenceBundle({
+      caseModels: new Map([
+        [definition.id, { ...recordedCase, developerDirection: 'The original recorded request.' }],
+      ]),
+      classification: 'official',
+      definitions: [
+        {
+          ...definition,
+          input: { developerDirection: 'A new request.', repositoryEvidence: [] },
+        },
+      ],
+      presentationOnly: true,
+      result,
+      version: 'multiple releases',
+    });
+    const model = parseSemanticWebsiteModel(
+      (selectedBundle.payload as { websiteModel: unknown }).websiteModel,
+    );
+
+    expect(model.status).toBe('passed');
+    expect(model.coverageUrl).toBeNull();
+    expect(model.currentAssurance).toBeNull();
+    expect(model.evidenceMatch).toBeNull();
+    expect(model.groups.flatMap(({ cases }) => cases)).toHaveLength(1);
+    expect(model.latest?.cases[0]?.developerDirection).toBe('The original recorded request.');
+
+    const trial = {
+      actorUsage: null,
+      confirmationIndex: null,
+      dimensions: {
+        commandPolicy: true,
+        mountIntegrity: true,
+        operational: true,
+        repositoryControl: true,
+        resource: true,
+        semantic: true,
+      },
+      evaluatedAt: recordedAt,
+      forbidden: [],
+      judgeUsage: null,
+      kind: 'initial',
+      observed: [],
+      passed: true,
+      rationale: 'Maintainer reassessment accepted the initial trial.',
+    } as ISemanticAttemptRecord['cases'][number]['trials'][number];
+    const selectedHistory = createSemanticEvidenceBundle({
+      classification: 'official',
+      definitions: [definition],
+      presentationOnly: true,
+      result: {
+        ...result,
+        cases: [
+          {
+            confirmationStatus: 'not-required',
+            id: definition.id,
+            status: 'passed',
+            trials: [
+              trial,
+              {
+                ...trial,
+                confirmationIndex: 1,
+                kind: 'confirmation',
+                passed: false,
+                rationale: 'The recorded confirmation failed.',
+              },
+            ],
+          },
+        ],
+      },
+      version: 'multiple releases',
+    });
+    const historyModel = parseSemanticWebsiteModel(
+      (selectedHistory.payload as { websiteModel: unknown }).websiteModel,
+    );
+    expect(historyModel.latest?.cases[0]?.rationale).toBe(
+      'Maintainer reassessment accepted the initial trial.',
+    );
+    expect(historyModel.latest?.cases[0]?.trials).toHaveLength(2);
   });
 });

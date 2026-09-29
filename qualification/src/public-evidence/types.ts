@@ -1041,6 +1041,7 @@ export interface IQualificationAttemptCaseModel {
 
 // one profile definition paired with its owning immutable attempt evidence
 export interface IQualificationJourneyModel {
+  sourceAttemptUrl?: string;
   evidence: IQualificationAttemptCaseModel;
   origin: 'Adapter-specific' | 'Core behavior' | 'Shared foundation';
   presentation: IQualificationCasePresentationModel | null;
@@ -1091,6 +1092,8 @@ export interface IQualificationProfileModel {
   currentLastPassing: IQualificationAttemptModel | null;
   currentLatest: IQualificationAttemptModel | null;
   currentStatus: IQualificationStatus | 'not-recorded';
+  selectedAttempts?: IQualificationAttemptModel[];
+  selectedJourneys?: IQualificationJourneyModel[];
   description: string;
   implementationId: string;
   sharedCases: IQualificationProfileCaseModel[];

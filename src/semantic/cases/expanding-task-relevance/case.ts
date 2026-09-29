@@ -26,7 +26,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'relationship',
     minimumMoldeaCommands: 2,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [

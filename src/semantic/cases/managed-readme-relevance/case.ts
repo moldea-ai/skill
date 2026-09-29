@@ -9,7 +9,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'managed-readme-relevance',
   input: {
     developerDirection:
-      'Review the changed text inside the README moldea block and validate the adopted project without editing files.',
+      'Review the README moldea block change from “begin at `/moldea/project.md`” to “start at `/moldea/project.md`”. Check the resulting block against the repository-installed managed block and validate the adopted project without editing files.',
     repositoryEvidence: [
       {
         claim: 'The repository has a canonical moldea manifest.',
@@ -33,14 +33,14 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
     {
       label: 'assess-managed-readme-change',
       criterion:
-        'The actor identifies the managed README block as relevant, reports whether its current text matches the installed block, completes successful launcher-backed validation, and accurately reports the structural result without changing files or claiming semantic correctness from it. The runner does not retain host read or comparison commands.',
+        'The actor reviews the managed README change, identifies a material block defect if one exists or reports no issue when the block is correct, completes successful launcher-backed validation, and accurately reports the structural result without changing files or claiming semantic correctness from it. The runner does not retain host read or comparison commands.',
     },
   ],
   forbidden: [

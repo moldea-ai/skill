@@ -67,7 +67,7 @@ Behavior-bearing filesystem identity preserves file contents, paths, symlinks, a
 
 An official run may reuse a passed or recovered case group from validated local evidence only while every behavior-bearing identity, artifact digest, Custom baseline, and package closure remains exact. Failed and incomplete case groups, diagnostic attempts, chained reuse, and tampered artifacts are never eligible.
 
-Adapter qualification requires a current passing Custom baseline. Custom itself requires no baseline. Every target must produce one current passing attempt for this release. That attempt identifies direct and exactly reused case groups separately instead of claiming that reused model work ran again.
+For a new current qualification claim, an adapter requires a current passing Custom baseline. Custom itself requires no baseline. Every target must produce one current passing attempt for that claim. That attempt identifies direct and exactly reused case groups separately instead of claiming that reused model work ran again.
 
 ## Input layout
 
@@ -207,7 +207,7 @@ The committed `qualification/compatibility/snapshot.json` contains the complete 
 
 `.evidence/qualification/results/<target-key>/attempts/a-<digest>/` contains private local attempts and numbered artifacts. `storage.json` binds logical artifact paths to physical files and verifies every SHA-256 digest. `latest.json` points to the latest attempt and latest passing attempt when one exists.
 
-After an official batch completes, qualification projects the complete recorded snapshot into a self-contained local public bundle below `.evidence/runs/qualification/`. The public bundle contains the definitions, projects, replay, artifacts, version, date, and provenance required by the website, but it is not a backup for private checkpoints or reuse state.
+After an official adapter batch completes, qualification projects its selected profiles and exact Custom baseline into a self-contained local public bundle below `.evidence/runs/qualification/`. A targeted batch can therefore supply cases to a later manual composition without rerunning every adapter. The public bundle contains the definitions, projects, replay, artifacts, version, date, and provenance required by the website, but it is not a backup for private checkpoints or reuse state.
 
 Use the root evidence commands to pack, publish, and independently select the qualification bundle. The website consumes only the prepared selection and never reads the current profile tree or private result storage. See [release evidence](../docs/release-evidence.md).
 

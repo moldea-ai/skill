@@ -1243,6 +1243,7 @@ export const loadQualificationWebsiteModel = (
   options: {
     evidenceSource?: IQualificationEvidenceSourceModel;
     profilesRoot?: string;
+    profileKeys?: ReadonlySet<string>;
     resultsRoot?: string;
     revision?: string;
     selectedAttemptIds?: ReadonlyMap<string, string>;
@@ -1259,15 +1260,27 @@ export const loadQualificationWebsiteModel = (
     QualificationProfileIndexSchema,
   );
   const catalog = createDiscoveredCatalog(profilesRoot, profileIndex.targets);
-  const profileKeys = new Set(profileIndex.targets.map(({ key }) => key));
+  const indexedProfileKeys = new Set(profileIndex.targets.map(({ key }) => key));
+  const profileKeys = options.profileKeys ?? indexedProfileKeys;
+  const customKey = profileIndex.targets.find(
+    ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
+  )?.key;
+  if (
+    customKey === undefined ||
+    !profileKeys.has(customKey) ||
+    [...profileKeys].some((key) => !indexedProfileKeys.has(key))
+  ) {
+    throw new Error('Selected qualification profiles must include the indexed Custom baseline.');
+  }
   if (
     options.selectedAttemptIds !== undefined &&
     (options.selectedAttemptIds.size !== profileKeys.size ||
       [...options.selectedAttemptIds.keys()].some((key) => !profileKeys.has(key)))
   ) {
-    throw new Error('Selected qualification attempts must cover every indexed profile exactly.');
+    throw new Error('Selected qualification attempts must cover every selected profile exactly.');
   }
   const loadedProfiles = profileIndex.targets
+    .filter(({ key }) => profileKeys.has(key))
     .map((target) =>
       loadProfile(
         repositoryRoot,
@@ -1287,12 +1300,12 @@ export const loadQualificationWebsiteModel = (
     );
   if (
     JSON.stringify(listDirectories(profilesRoot).map(({ name }) => name)) !==
-    JSON.stringify([...profileKeys].sort((left, right) => left.localeCompare(right, 'en')))
+    JSON.stringify([...indexedProfileKeys].sort((left, right) => left.localeCompare(right, 'en')))
   ) {
     throw new Error('Qualification profile index does not match its physical directories.');
   }
 
-  verifyResultTargetsHaveProfiles(resultsRoot, profileKeys);
+  verifyResultTargetsHaveProfiles(resultsRoot, indexedProfileKeys);
 
   const directProfiles = loadedProfiles.map(({ model }) => model);
   const customProfiles = directProfiles.filter(

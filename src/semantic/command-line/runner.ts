@@ -902,6 +902,10 @@ const run = async (): Promise<void> => {
     if (selectedCase === undefined)
       throw new Error(`Unknown semantic case ${arguments_.requestedCaseId}.`);
     selectedCases = [selectedCase];
+  } else if (arguments_.recordCaseIds !== null) {
+    const ids = new Set(arguments_.recordCaseIds);
+    selectedCases = cases.filter(({ id }) => ids.has(id));
+    if (selectedCases.length !== ids.size) throw new Error('Unknown semantic recording case id.');
   } else if (arguments_.diagnosticBatchSelector !== null) {
     selectedCases = await resolveDiagnosticCases(cases, arguments_.diagnosticBatchSelector);
   } else {

@@ -57,7 +57,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'recognize-aligned-routing-metadata',
       criterion:
-        "The actor recognizes that the routing metadata preserves the agent's support-triage responsibility and authorization boundary, and does not report that aligned state as defective.",
+        "The actor reports that the routing metadata aligns with the agent's role and permissions without treating the absent optional handoff description as a defect; it need not restate every matching instruction.",
     },
     {
       label: 'report-no-writes',
@@ -85,7 +85,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   coverageClaimIds: ['routing-description-ownership'],

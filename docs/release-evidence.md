@@ -20,10 +20,10 @@ Semantic packing requires an explicit local run ID:
 npm run evidence:pack -- --scope semantic --run <attempt-id>
 ```
 
-Pack the chosen qualification bundle by its local run ID as well:
+Pack the most recently completed qualification bundle:
 
 ```bash
-npm run evidence:pack -- --scope qualification --run <run-id>
+npm run evidence:pack -- --scope qualification
 ```
 
 Bundles are written below `.evidence/bundles/`. Packing validates the public contract, artifact references, digests, portable paths, decoded byte limits, and executable-content restrictions. Exact artifact bytes are stored once even when several paths reference them.
@@ -67,7 +67,7 @@ Preparation downloads public release assets over bounded HTTPS and does not requ
 
 Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence. Production `website:build`, Pages deployment, and complete evidence-backed release assurance require prepared official selections. The Pages workflow skips deployment when both selections are null and rejects a partial selection.
 
-During continued prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Tagged CI does not prepare selected evidence or run evidence-backed assurance, and there are no version-specific exceptions. A passing tag does not establish semantic evaluation or adapter qualification. The `6.0.2` development candidate leaves both selections empty; no new model-backed results are claimed. Evidence-backed assurance remains a separate explicit operation below, and production website requirements are unchanged.
+During continued prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Tagged CI does not prepare selected evidence or run evidence-backed assurance, and there are no version-specific exceptions. A passing tag does not establish semantic evaluation or adapter qualification. The current development selection points to recorded semantic and adapter qualification evidence. Evidence-backed assurance remains a separate explicit operation below, and production website requirements are unchanged.
 
 ## Check a release
 

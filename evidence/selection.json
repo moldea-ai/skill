@@ -1,5 +1,17 @@
 {
   "formatVersion": 1,
-  "qualification": null,
-  "semantic": null
+  "qualification": {
+    "assetName": "qualification-qual-selected-20260929162330885-f4e474a6.json.gz",
+    "classification": "official",
+    "repository": "moldea-ai/skill",
+    "sha256": "a94a27601a3cd25d91ab627ffdb2a69e9a898e6198286efa173381ecef77fa66",
+    "tag": "evidence-20260929-6-0-2"
+  },
+  "semantic": {
+    "assetName": "semantic-sem-20260929152245630-13953e69.json.gz",
+    "classification": "official",
+    "repository": "moldea-ai/skill",
+    "sha256": "865d4637b52470042c9e6a61d911154c0d99adc9be788bc1ccefcaa572f93993",
+    "tag": "evidence-20260929-6-0-2"
+  }
 }

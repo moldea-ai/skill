@@ -46,7 +46,7 @@ Reuse is limited to complete passed or recovered groups from validated local att
 
 Earlier raw attempts are unsupported for current resume, reuse, and recording. Current `gpt-6-sol` baselines and reuse require fresh matching evidence.
 
-Fresh evidence is normal. A maintainer may publish and select a self-contained protocol-11 qualification bundle when that is the evidence the website should show. Semantic evidence is selected independently. The selected bundle retains its recorded projects, replays, closure, protocol, version, date, and technical provenance without requiring today's evaluator or profile inventory. See [Release evidence](/docs/release-evidence/).
+Fresh evidence is normal. A maintainer may publish and select a self-contained official qualification bundle when that is the evidence the website should show. Semantic evidence is selected independently. The selected bundle retains its recorded projects, replays, closure, protocol, version, date, and technical provenance without requiring today's evaluator or profile inventory. See [Release evidence](/docs/release-evidence/).
 
 Current target keys come from `qualification/profiles/index.yaml`. Private target attempts and `latest.json` pointers live below `.evidence/qualification/results/`; manifests bind files by SHA-256. After a completed official adapter batch, the producer stores a self-contained local public bundle for the selected targets and their exact Custom baseline below `.evidence/runs/qualification/`. Targeted bundles can be composed with earlier public bundles. The website reads only a prepared selected bundle. Replays are not terminal transcripts, and technical attempt identities do not become separate public routes.
 

@@ -7,6 +7,7 @@ import SemanticEvaluationCase from '../semantic-evaluation-case/semantic-evaluat
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import type { ISemanticAttemptModel } from '../../lib/semantic-evaluation/index.ts';
+import { getSemanticSourceIdentities } from '../../lib/semantic-evaluation/presentation.ts';
 
 interface Props {
   attempt: ISemanticAttemptModel;
@@ -16,6 +17,8 @@ const { attempt } = Astro.props;
 const { releaseEvidence } = loadWebsiteModel();
 const { result } = attempt;
 const evaluationModel = result.hostContract.actor.model;
+const isSelectedResult = result.composition !== undefined;
+const sourceIdentities = isSelectedResult ? getSemanticSourceIdentities(attempt) : [];
 const basePath = import.meta.env.BASE_URL;
 const successfulCaseCount = result.passedCaseCount + result.recoveredCaseCount;
 const semanticReleaseSection =
@@ -30,7 +33,7 @@ const breadcrumbs = [
 
 <BaseLayout
   title={`Semantic attempt: ${result.attemptId}`}
-  description={`Follow ${result.totalCaseCount} coding-agent decisions and the independent verdicts recorded by this semantic evaluation.`}
+  description={`Follow ${result.totalCaseCount} coding-agent decisions and their recorded evidence.`}
   {breadcrumbs}
 >
   <div class="page-shell pt-7">
@@ -53,8 +56,8 @@ const breadcrumbs = [
         <h1 class="page-title">Follow the recorded decisions.</h1>
         <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
           Open a decision to replay the developer request, the coding agent's response, project
-          changes, and the independent verdict. Trial confirmations and technical evidence remain
-          attached to each result.
+          changes, and the recorded judge verdict. The evidence tab shows the final assessment and
+          every recorded trial.
         </p>
         <p class="mt-5 font-mono text-xs break-all text-muted-foreground">{result.attemptId}</p>
       </div>
@@ -131,17 +134,39 @@ const breadcrumbs = [
               <dt class="text-muted-foreground">Evidence source</dt>
               <dd class="mt-1 font-mono text-xs break-all">Selected recorded evidence</dd>
             </div>
-            <div>
-              <dt class="text-muted-foreground">Model configuration</dt>
-              <dd class="mt-1 font-mono text-xs break-all">
-                {evaluationModel}, actor {result.hostContract.actor.reasoningEffort}, judge{' '}
-                {result.hostContract.judge.reasoningEffort}
-              </dd>
-            </div>
-            <div>
-              <dt class="text-muted-foreground">Portable artifact digest</dt>
-              <dd class="mt-1 font-mono text-xs break-all">{result.artifactDigest}</dd>
-            </div>
+            {
+              isSelectedResult ? (
+                <div class="sm:col-span-2">
+                  <dt class="text-muted-foreground">Recorded source attempts</dt>
+                  <dd class="mt-2 grid gap-3">
+                    {sourceIdentities.map((source) => (
+                      <div class="min-w-0 rounded-lg border border-border p-3 font-mono text-xs break-all">
+                        <p>Attempt: {source.attemptId}</p>
+                        <p>Skill release: {source.version ?? 'Not recorded'}</p>
+                        <p>Actor configuration: {source.actorConfigurations.join(', ')}</p>
+                        <p>Judge configuration: {source.judgeConfigurations.join(', ')}</p>
+                        <p>CLI: {source.cliVersion ?? 'Not recorded'}</p>
+                        <p>Portable artifact digest: {source.artifactDigest ?? 'Not recorded'}</p>
+                      </div>
+                    ))}
+                  </dd>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <dt class="text-muted-foreground">Model configuration</dt>
+                    <dd class="mt-1 font-mono text-xs break-all">
+                      {evaluationModel}, actor {result.hostContract.actor.reasoningEffort}, judge{' '}
+                      {result.hostContract.judge.reasoningEffort}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-muted-foreground">Portable artifact digest</dt>
+                    <dd class="mt-1 font-mono text-xs break-all">{result.artifactDigest}</dd>
+                  </div>
+                </>
+              )
+            }
             <div>
               <dt class="text-muted-foreground">Evidence digest</dt>
               <dd class="mt-1 font-mono text-xs break-all">{result.evidence.sha256}</dd>

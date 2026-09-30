@@ -109,6 +109,11 @@ test('remains accessible, responsive, and theme-safe for selected evidence', asy
       .locator('details[data-accordion-item]')
       .filter({ hasText: 'Release case' });
     await journey.locator(':scope > summary').click();
+    await expect(journey).toHaveCSS('border-left-width', '1px');
+    await expect(journey).toHaveCSS('border-right-width', '1px');
+    await expect(journey).toHaveCSS('border-radius', '14px');
+    await expect(journey.locator('[data-accordion-panel]')).toHaveCSS('padding-left', '12px');
+    await expect(journey.locator('[data-evaluation-replay]')).toHaveCSS('padding-left', '0px');
     const codingAgentMark = journey.locator('[data-evaluation-replay] .lucide-bot').first();
     await expect(codingAgentMark).toBeVisible();
     await expect(codingAgentMark).toHaveCSS(

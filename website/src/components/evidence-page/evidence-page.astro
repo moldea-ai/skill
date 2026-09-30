@@ -1,28 +1,26 @@
 ---
-import {
-  ArrowRight,
-  Bot,
-  Cable,
-  FileSearch,
-  FolderGit2,
-  ListChecks,
-  MessageSquareText,
-} from '@lucide/astro';
+import { ArrowRight, Cable, FolderGit2, ListChecks } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
-import StatusBadge from '@moldea.ai/website-ui/status-badge';
 
 import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import RecordedReview from '../recorded-review/recorded-review.astro';
+import RecordedChange from '../recorded-change/recorded-change.astro';
+import RecordedConnection from '../recorded-connection/recorded-connection.astro';
+import RecordedProject from '../recorded-project/recorded-project.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+import { createQualificationJourneyCollection } from '../../lib/qualification/index.ts';
 import { PROJECT_RUN_ROUTE } from '../../lib/project-runs/index.ts';
 import {
   getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
 } from '../../lib/release-evidence/index.ts';
+
+import { getSemanticPreviewCase } from './presentation.ts';
 
 const model = loadWebsiteModel();
 const basePath = import.meta.env.BASE_URL;
@@ -31,30 +29,45 @@ const semanticSummary = getSemanticReleaseEvidenceSummary(
   model.currentSemanticAssurance,
 );
 const decisionStatus = semanticSummary.result?.status ?? model.semanticEvaluation.status;
-const anthropicProfile = model.qualification.profiles.find(
-  ({ adapterId }) => adapterId === 'anthropic',
+const reviewCase = getSemanticPreviewCase(
+  model.semanticEvaluation,
+  'context-instruction-injection',
 );
-const qualificationStatus = anthropicProfile
-  ? getQualificationReleaseEvidenceSummary(anthropicProfile).status
-  : 'not-recorded';
+const changeCase = getSemanticPreviewCase(model.semanticEvaluation, 'bound-context-maintenance');
+const openaiProfile = model.qualification.profiles.find(({ adapterId }) => adapterId === 'openai');
+const repairJourney =
+  openaiProfile === undefined
+    ? null
+    : (createQualificationJourneyCollection(openaiProfile).journeys.find(
+        ({ profileCase }) => profileCase.id === 'repair-openai-tool-registration',
+      ) ?? null);
+const qualificationSummaries = model.qualification.profiles.map(
+  getQualificationReleaseEvidenceSummary,
+);
+const recordedProfileCount = qualificationSummaries.filter(
+  ({ kind }) => kind === 'recorded',
+).length;
+const passedProfileCount = qualificationSummaries.filter(
+  ({ status }) => status === 'passed',
+).length;
 const adapterIds = new Set(model.qualification.profiles.map(({ adapterId }) => adapterId));
 const adapterPreview = [
   { id: 'openai', name: 'OpenAI' },
   { id: 'anthropic', name: 'Anthropic' },
-  { id: 'google-genai', name: 'Google GenAI' },
+  { id: 'google-genai', name: 'Google' },
   { id: 'langgraph', name: 'LangGraph' },
   { id: 'vercel-ai-sdk', name: 'Vercel AI SDK' },
-  { id: 'eve', name: 'Eve' },
 ].filter(({ id }) => adapterIds.has(id));
 const projectAttempts = model.projectRuns?.pages.flatMap(({ attempts }) => attempts) ?? [];
 const projectPreviews = projectAttempts.slice(0, 3);
 const remainingProjectCount = projectAttempts.length - projectPreviews.length;
 const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
+const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
 ---
 
 <BaseLayout
   title="Evidence"
-  description="Explore moldea through semantic evaluations, adapter qualifications, and coding sessions in mock projects."
+  description="See how we tested moldea with real requests, checked project connections, and recorded complete coding sessions."
   {breadcrumbs}
 >
   <header class="border-b border-border bg-background">
@@ -65,234 +78,237 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
       />
     </div>
     <div
-      class="page-shell grid gap-8 pt-8 pb-12 sm:pt-10 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,0.85fr)] lg:items-center lg:gap-14"
+      class="page-shell grid items-center gap-10 py-10 sm:py-16 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-12"
     >
       <div class="min-w-0">
         <p class="eyebrow mb-4">Evidence</p>
-        <h1 class="display-title max-w-4xl">
-          <InlineBrandText text="Follow the evidence behind moldea." />
-        </h1>
-        <p class="mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+        <h1 class="page-title">We tested the work. You can inspect the results.</h1>
+        <p class="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
           <InlineBrandText
-            text={model.projectRuns === null
-              ? 'Inspect decision evaluations and adapter qualifications through their available records.'
-              : 'Inspect decision evaluations, adapter qualifications, and project runs through their available records.'}
+            text="We give a coding agent real tasks with moldea, record what it does, and check the result. Start with a test where the right answer includes leaving the files alone."
           />
         </p>
+        <div class="mt-7">
+          <ActionLink
+            href={reviewCase === null
+              ? semanticRoute
+              : `${semanticRoute}#semantic-case-${reviewCase.id}`}
+            size="lg"
+            class="font-bold"
+            >Open the test record<ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            /></ActionLink
+          >
+        </div>
       </div>
-      <nav
-        class="grid gap-3"
-        aria-label="Evidence sections"
-      >
-        <a
-          class="group rounded-2xl border border-border bg-card p-4 shadow-surface transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-5"
-          href="#decisions"
-        >
-          <span class="flex items-center justify-between gap-4 text-base font-semibold">
-            Decision evaluation
-            <ArrowRight
-              class="size-4 shrink-0 transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
-              aria-hidden="true"
-            />
-          </span>
-          <span class="mt-2 block text-sm leading-6 text-muted-foreground">
-            See the context, changes, and project-boundary checks.
-          </span>
-          <span class="mt-3 inline-flex"><EvidenceStatus status={decisionStatus} /></span>
-        </a>
-        <a
-          class="group rounded-2xl border border-border bg-card p-4 shadow-surface transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-5"
-          href="#integrations"
-        >
-          <span class="flex items-center justify-between gap-4 text-base font-semibold">
-            Adapter qualification
-            <ArrowRight
-              class="size-4 shrink-0 transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
-              aria-hidden="true"
-            />
-          </span>
-          <span class="mt-2 block text-sm leading-6 text-muted-foreground">
-            Inspect runtime connections and compatibility coverage.
-          </span>
-          <span class="mt-3 inline-flex"><EvidenceStatus status={qualificationStatus} /></span>
-        </a>
-        {
-          model.projectRuns !== null && (
-            <a
-              class="group rounded-2xl border border-border bg-card p-4 shadow-surface transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-5"
-              href="#projects"
-            >
-              <span class="flex items-center justify-between gap-4 text-base font-semibold">
-                Project runs
-                <ArrowRight
-                  class="size-4 shrink-0 transition-transform group-hover:translate-x-1 motion-reduce:transform-none"
-                  aria-hidden="true"
-                />
-              </span>
-              <span class="mt-2 block text-sm leading-6 text-muted-foreground">
-                Follow the request, conversation, tools, and changed files.
-              </span>
-              <span class="light-surface-selection mt-3 inline-flex">
-                <StatusBadge
-                  label={`${projectAttempts.length} ${projectAttempts.length === 1 ? 'project' : 'projects'}`}
-                  tone="neutral"
-                />
-              </span>
-            </a>
-          )
-        }
-      </nav>
+      <RecordedReview evaluationCase={reviewCase} />
     </div>
+    <nav
+      class="page-shell grid gap-3 pb-8 sm:grid-cols-3 sm:pb-12"
+      aria-label="Evidence sections"
+    >
+      <a
+        href="#decisions"
+        class="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-4 link-feedback"
+      >
+        <ListChecks
+          class="size-5 shrink-0 text-muted-foreground"
+          aria-hidden="true"
+        />
+        <span
+          ><span class="block text-sm font-semibold">Agent decisions</span><span
+            class="mt-1 block text-xs text-muted-foreground"
+            >{
+              semanticSummary.result === null
+                ? 'Explore the test scenarios'
+                : `${semanticSummary.result.totalCaseCount} recorded tests`
+            }</span
+          ></span
+        >
+      </a>
+      <a
+        href="#integrations"
+        class="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-4 link-feedback"
+      >
+        <Cable
+          class="size-5 shrink-0 text-muted-foreground"
+          aria-hidden="true"
+        />
+        <span
+          ><span class="block text-sm font-semibold">Project connections</span><span
+            class="mt-1 block text-xs text-muted-foreground"
+            >{
+              recordedProfileCount === 0
+                ? 'Explore the supported setups'
+                : `${passedProfileCount}/${model.qualification.profiles.length} setups passed`
+            }</span
+          ></span
+        >
+      </a>
+      {
+        model.projectRuns !== null && (
+          <a
+            href="#projects"
+            class="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-4 link-feedback"
+          >
+            <FolderGit2
+              class="size-5 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <span>
+              <>
+                <span class="block text-sm font-semibold">Coding projects</span>
+                <span class="mt-1 block text-xs text-muted-foreground">
+                  {projectAttempts.length} projects
+                </span>
+              </>
+            </span>
+          </a>
+        )
+      }
+    </nav>
   </header>
 
   <section
     id="decisions"
-    class="dark-surface-selection scroll-mt-20 border-b border-border bg-primary py-14 text-primary-foreground sm:py-20"
+    class="scroll-mt-24 border-b border-border bg-elevated py-12 sm:py-16"
     aria-labelledby="decisions-title"
-    data-evidence-path="decision"
+    data-evidence-path
   >
-    <div class="page-shell grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
+    <div
+      class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-14"
+    >
       <div class="min-w-0">
-        <span
-          class="inline-flex size-12 items-center justify-center rounded-2xl bg-primary-foreground/10"
-          ><ListChecks
-            class="size-6"
-            aria-hidden="true"
-          /></span
-        >
-        <p class="mt-6 text-xs font-bold tracking-[0.16em] text-primary-foreground/60 uppercase">
-          Decision evaluation
-        </p>
+        <p class="eyebrow mb-3">01 Follow the request</p>
         <h2
           id="decisions-title"
-          class="section-title mt-3 max-w-xl"
+          class="section-title"
         >
-          Did the agent make the right call?
+          Did the agent change the right things?
         </h2>
-        <div class="mt-5"><EvidenceStatus status={decisionStatus} /></div>
-        <p class="mt-6 max-w-xl text-base leading-8 text-primary-foreground/75">
-          See which context it used, what it changed, and whether it respected the project's
-          boundaries.
+        <p class="mt-4 text-base leading-7 text-muted-foreground">
+          We ask for a code change that also affects saved project knowledge. Then we check the
+          implementation, the tests, and the notes it leaves for the next session.
         </p>
+        <div class="mt-5"><EvidenceStatus status={decisionStatus} /></div>
         <div
-          class="mt-8 max-w-sm"
+          class="mt-6 grid gap-3"
           data-evidence-path-action
         >
           <ActionLink
-            class="w-full justify-between font-semibold"
-            variant="secondary"
-            href={withBase(model.semanticEvaluation.route, basePath)}
-          >
-            Explore decisions <ArrowRight
+            href={semanticRoute}
+            variant="outline"
+            class="w-full font-bold"
+            >Explore decisions<ArrowRight
               class="size-4"
               aria-hidden="true"
-            />
-          </ActionLink>
+            /></ActionLink
+          >
         </div>
-      </div>
-      <div
-        class="light-surface-selection overflow-hidden rounded-3xl border border-primary-foreground/15 bg-primary-foreground p-5 text-primary shadow-raised sm:p-7"
-      >
-        <p class="text-xs font-bold tracking-[0.14em] text-primary/50 uppercase">
-          Follow the decision
+        <p class="mt-3 text-xs leading-5 text-muted-foreground">
+          Includes read-only requests, missing rules, context changes, and attempts to override the
+          task.
         </p>
-        <ol
-          class="mt-5 grid gap-3"
-          aria-label="Decision evidence"
-        >
-          <li
-            class="flex items-center gap-4 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-4"
-          >
-            <MessageSquareText
-              class="size-5 shrink-0"
-              aria-hidden="true"
-            /><span class="font-semibold">The developer's request</span>
-          </li>
-          <li
-            class="flex items-center gap-4 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-4"
-          >
-            <Bot
-              class="size-5 shrink-0"
-              aria-hidden="true"
-            /><span class="font-semibold">The agent's choices</span>
-          </li>
-          <li
-            class="flex items-center gap-4 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-4"
-          >
-            <FileSearch
-              class="size-5 shrink-0"
-              aria-hidden="true"
-            /><span class="font-semibold">The evidence behind the assessment</span>
-          </li>
-        </ol>
+      </div>
+      <div class="min-w-0">
+        <RecordedChange evaluationCase={changeCase} />
+        {
+          changeCase !== null && (
+            <div class="mt-3">
+              <ActionLink
+                href={`${semanticRoute}#semantic-case-${changeCase.id}`}
+                variant="link"
+              >
+                Open this test's conversation and checks
+                <ArrowRight
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </ActionLink>
+            </div>
+          )
+        }
       </div>
     </div>
   </section>
 
   <section
     id="integrations"
-    class="scroll-mt-20 border-b border-border bg-background py-14 sm:py-20"
+    class="scroll-mt-24 border-b border-border bg-background py-12 sm:py-16"
     aria-labelledby="integrations-title"
-    data-evidence-path="qualification"
+    data-evidence-path
   >
-    <div class="page-shell grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
+    <div
+      class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-14"
+    >
       <div class="order-2 min-w-0 lg:order-1">
-        <div class="rounded-3xl border border-border bg-card p-5 shadow-raised sm:p-7">
-          <p class="text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">
-            Across agent runtimes
-          </p>
-          <div class="mt-5 grid gap-3 sm:grid-cols-2">
-            {
-              adapterPreview.map(({ id, name }) => (
-                <div class="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-muted/30 p-3">
-                  <AdapterCompanyLogo
-                    adapterId={id}
-                    size="sm"
-                  />
-                  <span class="min-w-0 font-semibold">{name}</span>
-                </div>
-              ))
-            }
-          </div>
-          <p class="mt-5 text-sm leading-6 text-muted-foreground">
-            Open a profile to inspect its project, runtime connection, and checks.
-          </p>
-        </div>
+        <RecordedConnection journey={repairJourney} />
+        {
+          repairJourney !== null && openaiProfile !== undefined && (
+            <div class="mt-3">
+              <ActionLink
+                href={withBase(
+                  `${openaiProfile.route}#qualification-${repairJourney.profileCase.id}`,
+                  basePath,
+                )}
+                variant="link"
+              >
+                Open this repair's files and checks
+                <ArrowRight
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </ActionLink>
+            </div>
+          )
+        }
       </div>
       <div class="order-1 min-w-0 lg:order-2">
-        <span
-          class="inline-flex size-12 items-center justify-center rounded-2xl bg-secondary text-foreground"
-          ><Cable
-            class="size-6"
-            aria-hidden="true"
-          /></span
-        >
-        <p class="eyebrow mt-6">Adapter qualification</p>
+        <p class="eyebrow mb-3">02 Check the connections</p>
         <h2
           id="integrations-title"
-          class="section-title mt-3 max-w-xl"
+          class="section-title"
         >
-          Does the integration work?
+          Can it find the instructions and tools?
         </h2>
-        <div class="mt-5"><EvidenceStatus status={qualificationStatus} /></div>
-        <p class="mt-6 max-w-xl text-base leading-8 text-muted-foreground">
-          Explore example projects built through supported adapter packages and inspect how each
-          runtime receives its instructions.
+        <p class="mt-4 text-base leading-7 text-muted-foreground">
+          A declared tool can point to the wrong name in code. We give the agent a broken
+          connection, check its repair, and verify that the working files stay intact.
         </p>
         <div
-          class="mt-8 max-w-sm"
+          class="mt-5 flex flex-wrap gap-2"
+          aria-label="Example supported providers"
+        >
+          {
+            adapterPreview.map(({ id, name }) => (
+              <span class="inline-flex items-center gap-2 rounded-lg border border-border px-2.5 py-2 text-xs font-semibold">
+                <AdapterCompanyLogo
+                  adapterId={id}
+                  size="xs"
+                />
+                {name}
+              </span>
+            ))
+          }
+        </div>
+        <div
+          class="mt-6 grid gap-3"
           data-evidence-path-action
         >
           <ActionLink
-            class="w-full justify-between font-semibold"
             href={withBase(model.qualification.route, basePath)}
-          >
-            Explore adapters <ArrowRight
+            variant="outline"
+            class="w-full font-bold"
+            >Browse connection tests<ArrowRight
               class="size-4"
               aria-hidden="true"
-            />
-          </ActionLink>
+            /></ActionLink
+          >
         </div>
+        <p class="mt-3 text-xs leading-5 text-muted-foreground">
+          See all providers and tested project setups.
+        </p>
       </div>
     </div>
   </section>
@@ -301,38 +317,34 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
     model.projectRuns !== null && (
       <section
         id="projects"
-        class="scroll-mt-20 bg-secondary py-14 sm:py-20"
+        class="scroll-mt-24 border-b border-border bg-elevated py-12 sm:py-16"
         aria-labelledby="projects-title"
-        data-evidence-path="projects"
+        data-evidence-path
       >
-        <div class="page-shell grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
-          <div class="min-w-0">
-            <span class="inline-flex size-12 items-center justify-center rounded-2xl bg-background text-foreground">
-              <FolderGit2
-                class="size-6"
-                aria-hidden="true"
-              />
-            </span>
-            <p class="eyebrow mt-6">Project runs</p>
+        <div class="page-shell grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-start lg:gap-14">
+          <div class="min-w-0 lg:sticky lg:top-24">
+            <p class="eyebrow mb-3">03 Watch the work</p>
             <h2
               id="projects-title"
-              class="section-title mt-3 max-w-xl"
+              class="section-title"
             >
-              Follow the work from request to result.
+              What happens in a complete coding task?
             </h2>
-            <p class="mt-6 max-w-xl text-base leading-8 text-muted-foreground">
-              Follow real coding work from the request through agent messages, tool calls, changed
-              files, and the resulting project.
+            <p class="mt-4 text-base leading-7 text-muted-foreground">
+              Open a project and follow the requests, agent messages, tool calls, and file edits.
+              These recordings show what happened, including follow-up changes and limits in the
+              available evidence.
             </p>
             <div
-              class="mt-8 max-w-sm"
+              class="mt-6 grid gap-3"
               data-evidence-path-action
             >
               <ActionLink
-                class="w-full justify-between font-semibold"
                 href={withBase(PROJECT_RUN_ROUTE, basePath)}
+                variant="outline"
+                class="w-full font-bold"
               >
-                Explore project runs{' '}
+                Explore project runs
                 <ArrowRight
                   class="size-4"
                   aria-hidden="true"
@@ -340,28 +352,22 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
               </ActionLink>
             </div>
           </div>
-          <div class="min-w-0">
-            <p class="eyebrow mb-4">Selected project records</p>
-            <div class="grid gap-3">
-              {projectPreviews.map((attempt) => (
-                <article class="rounded-2xl border border-border bg-card p-5 shadow-surface sm:p-6">
-                  <h3 class="text-lg font-semibold">{attempt.title}</h3>
-                  <p class="mt-2 text-sm leading-6 text-muted-foreground">{attempt.excerpt}</p>
-                </article>
-              ))}
-            </div>
+          <div class="grid min-w-0 gap-4">
+            {projectPreviews.map((attempt) => (
+              <RecordedProject {attempt} />
+            ))}
             {remainingProjectCount > 0 && (
-              <a
-                class="mt-5 inline-flex min-h-10 items-center gap-2 text-link font-semibold link-feedback focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+              <ActionLink
                 href={withBase(PROJECT_RUN_ROUTE, basePath)}
+                variant="outline"
+                class="w-full"
               >
-                View {remainingProjectCount} more project{' '}
-                {remainingProjectCount === 1 ? 'run' : 'runs'}
+                View {remainingProjectCount} more project runs
                 <ArrowRight
                   class="size-4"
                   aria-hidden="true"
                 />
-              </a>
+              </ActionLink>
             )}
           </div>
         </div>

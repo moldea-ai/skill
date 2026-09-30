@@ -209,7 +209,7 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'Your request is one sentence. The work stays connected.',
+      name: 'One request. A connected, working agent.',
     }),
   ).toBeVisible();
 });

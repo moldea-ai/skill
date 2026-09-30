@@ -19,20 +19,20 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
   await expect(sections).toHaveCount(3);
   const navigation = page.getByRole('navigation', { name: 'Evidence sections' });
   await expect(navigation.getByRole('link')).toHaveCount(3);
-  await expect(navigation.getByRole('link', { name: /Decision evaluation/u })).toHaveAttribute(
+  await expect(navigation.getByRole('link', { name: /Agent decisions/u })).toHaveAttribute(
     'href',
     '#decisions',
   );
-  await expect(navigation.getByRole('link', { name: /Adapter qualification/u })).toHaveAttribute(
+  await expect(navigation.getByRole('link', { name: /Project connections/u })).toHaveAttribute(
     'href',
     '#integrations',
   );
-  await expect(navigation.getByRole('link', { name: /Project runs/u })).toContainText(
+  await expect(navigation.getByRole('link', { name: /Coding projects/u })).toContainText(
     `${projectCount} projects`,
   );
   await expect(sections.locator('[data-evidence-path-action]').getByRole('link')).toHaveText([
     'Explore decisions',
-    'Explore adapters',
+    'Browse connection tests',
     'Explore project runs',
   ]);
   const boxes = await sections.evaluateAll((elements) =>
@@ -67,6 +67,14 @@ test('keeps evidence paths readable at 320px in both themes', async ({ browser }
       const page = await context.newPage();
       await page.goto(toPublicPath('/evidence/'));
       await expect(page.locator('[data-evidence-path]')).toHaveCount(3);
+      await page
+        .locator('[data-recorded-project] [data-file-preview] code[title]')
+        .first()
+        .evaluate((element) => {
+          const directory = element.querySelector('span');
+          if (directory === null) throw new Error('Expected a recorded file directory.');
+          directory.textContent = '[redacted]/recorded-project/long-repository-prefix/moldea';
+        });
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
@@ -81,5 +89,30 @@ test('keeps evidence paths readable at 320px in both themes', async ({ browser }
     } finally {
       await context.close();
     }
+  }
+});
+
+test('keeps the test examples and project links readable without JavaScript', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  try {
+    const page = await context.newPage();
+    await page.goto(toPublicPath('/evidence/'));
+    await expect(page.locator('[data-recorded-review]')).toContainText(
+      'Review the refund rule. Do not change any files.',
+    );
+    await expect(page.locator('[data-recorded-change]')).toContainText(
+      'Run document cleanup more often when the backlog grows.',
+    );
+    await expect(page.locator('[data-recorded-connection]')).toContainText(
+      'The declared tool name did not match the code.',
+    );
+    await expect(page.locator('[data-recorded-project]')).toHaveCount(3);
+    await expect(
+      page.getByRole('link', { name: 'Open the recorded session', exact: true }),
+    ).toHaveCount(3);
+  } finally {
+    await context.close();
   }
 });

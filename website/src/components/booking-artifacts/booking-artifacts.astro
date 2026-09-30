@@ -1,0 +1,138 @@
+---
+import { ChevronDown, FolderOpen } from '@lucide/astro';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
+import CodeDiff from '@moldea.ai/website-ui/code-diff';
+import Dialog from '@moldea.ai/website-ui/dialog';
+import FilePreview from '@moldea.ai/website-ui/file-preview';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+
+import { BOOKING_EXAMPLE, BOOKING_EXAMPLE_BEFORE_FILES } from '../../lib/booking-example/index.ts';
+import { ArtifactLabel } from '../agent-artifacts/index.ts';
+
+// keep the connected files in the same compact repository hierarchy as the landing example
+const entries = [
+  { kind: 'directory', label: 'src/', depth: 0 },
+  { kind: 'file', id: 'service', depth: 1 },
+  { kind: 'file', id: 'availability', depth: 1 },
+  { kind: 'directory', label: 'moldea/', depth: 0 },
+  { kind: 'directory', label: 'agents/booking/', depth: 1 },
+  { kind: 'file', id: 'instructions', depth: 2 },
+  { kind: 'directory', label: 'context/', depth: 1 },
+  { kind: 'file', id: 'policy', depth: 2 },
+] as const;
+const files = await Promise.all(
+  Object.values(BOOKING_EXAMPLE.files).filter((file) => file.id !== 'tests').map(async (file) => {
+    const before = BOOKING_EXAMPLE_BEFORE_FILES[file.path];
+    const status: 'Added' | 'Modified' | 'Unchanged' =
+      before === undefined ? 'Added' : before === file.source ? 'Unchanged' : 'Modified';
+    return {
+      ...file,
+      status,
+      before,
+      // keep the embedded file title below the dialog heading in the page outline
+      html:
+        file.language === 'markdown'
+          ? await renderMarkdownFragment(file.source.replace(/^# /u, '### '))
+          : null,
+    };
+  }),
+);
+---
+
+<ul
+  class="min-w-0 font-mono text-xs"
+  aria-label="Booking assistant connected files"
+  data-booking-artifacts
+>
+  {
+    entries.map((entry) => {
+      const file = entry.kind === 'file' ? files.find(({ id }) => id === entry.id) : null;
+      return (
+        <li
+          class:list={[
+            'min-w-0',
+            entry.depth === 1 && 'ml-3 border-l border-border pl-2',
+            entry.depth === 2 && 'ml-8 border-l border-border pl-2',
+          ]}
+        >
+          {entry.kind === 'directory' ? (
+            <div class="flex h-7 items-center gap-1.5 px-1 text-muted-foreground">
+              <ChevronDown
+                class="size-3"
+                aria-hidden="true"
+              />
+              <FolderOpen
+                class="size-3.5"
+                aria-hidden="true"
+              />
+              <code>{entry.label}</code>
+            </div>
+          ) : (
+            file && (
+              <div
+                class="group/booking-file [&_[data-dialog-trigger]]:h-9 [&_[data-dialog-trigger]]:w-full [&_[data-dialog-trigger]]:justify-start [&_[data-dialog-trigger]]:rounded-sm [&_[data-dialog-trigger]]:px-1.5 [&_[data-dialog-trigger]]:py-0 [&_[data-dialog-trigger]]:text-xs sm:[&_[data-dialog-trigger]]:h-7"
+                data-booking-path={file.path}
+                data-file-status={file.status}
+              >
+                <span
+                  class="flex h-9 items-center gap-2 px-1.5 group-has-[[data-enhanced=true]]/booking-file:hidden sm:h-7"
+                  data-booking-file-fallback
+                >
+                  <ArtifactLabel
+                    language={file.language}
+                    path={file.path}
+                    status={file.status}
+                  />
+                </span>
+                <Dialog
+                  id={`booking-${file.id}`}
+                  title={file.label}
+                  triggerLabel={`${file.label} (${file.status.toLowerCase()})`}
+                  triggerAriaLabel={`Open ${file.path}, ${file.status.toLowerCase()}`}
+                  triggerVariant="ghost"
+                  triggerSize="icon"
+                  closeLabel={`Close ${file.label.toLowerCase()}`}
+                  isOverlayCloseEnabled
+                >
+                  <ArtifactLabel
+                    slot="trigger-icon"
+                    isDecorative
+                    language={file.language}
+                    path={file.path}
+                    status={file.status}
+                  />
+                  <FilePreview path={file.path}>
+                    {file.status === 'Modified' ? (
+                      <CodeDiff
+                        oldValue={file.before!}
+                        newValue={file.source}
+                        language={file.language}
+                        ariaLabel={`${file.label} changes`}
+                        view="unified"
+                        variant="plain"
+                      />
+                    ) : <div class="p-4">
+                      {file.html === null ? (
+                        <CodeBlock
+                          source={file.source}
+                          language={file.language}
+                          copyable={false}
+                          variant="plain"
+                        />
+                      ) : (
+                        <div
+                          class="prose-moldea text-sm"
+                          set:html={file.html}
+                        />
+                      )}
+                    </div>}
+                  </FilePreview>
+                </Dialog>
+              </div>
+            )
+          )}
+        </li>
+      );
+    })
+  }
+</ul>

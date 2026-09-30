@@ -1,0 +1,109 @@
+---
+import { Link2, ShieldCheck } from '@lucide/astro';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
+import FilePreview from '@moldea.ai/website-ui/file-preview';
+import StatusBadge from '@moldea.ai/website-ui/status-badge';
+
+import type { IQualificationJourneyModel } from '../../lib/qualification/index.ts';
+import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+
+interface Props {
+  journey: IQualificationJourneyModel | null;
+}
+const { journey } = Astro.props;
+const trial = journey?.evidence.trials.at(-1);
+const patchLines = trial?.workspacePatch.content
+  .split('\n')
+  .filter((line) => /^[+-]/u.test(line) && !/^(?:---|\+\+\+)/u.test(line));
+const patchExcerpt =
+  patchLines
+    ?.slice(0, 16)
+    .map((line) => line.slice(0, 256))
+    .join('\n') ?? '';
+---
+
+<article
+  class="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-raised sm:p-6"
+  aria-label="OpenAI tool connection repair"
+  data-recorded-connection
+>
+  <div class="mb-5 flex items-center gap-3">
+    <AdapterCompanyLogo
+      adapterId="openai"
+      size="sm"
+    /><div>
+      <p class="text-xs text-muted-foreground">OpenAI project</p><h3
+        class="text-base font-semibold"
+      >
+        The declared tool name did not match the code.
+      </h3>
+    </div>
+  </div>
+  <FilePreview
+    path="moldea/moldea.yaml"
+    label="Repair excerpt"
+  >
+    <div class="p-3 sm:p-4">
+      {
+        patchExcerpt ? (
+          <CodeBlock
+            language="diff"
+            source={patchExcerpt}
+            copyable={false}
+            variant="plain"
+          />
+        ) : (
+          <p class="text-sm leading-6 text-muted-foreground">
+            We check whether the project's declared tool matches the tool registered in code.
+          </p>
+        )
+      }
+    </div>
+  </FilePreview>
+  <div class="mt-4 grid gap-3">
+    <div class="flex items-center justify-between gap-3 rounded-lg bg-secondary p-3 text-sm">
+      <span class="flex items-center gap-2"
+        ><Link2
+          class="size-4 shrink-0"
+          aria-hidden="true"
+        />Connection before</span
+      ><StatusBadge
+        label={trial?.deterministicBefore.inspectionStatus ?? 'Not recorded'}
+        tone={trial?.deterministicBefore.inspectionStatus === 'invalid' ? 'warning' : 'neutral'}
+        size="sm"
+      />
+    </div>
+    <div class="flex items-center justify-between gap-3 rounded-lg bg-secondary p-3 text-sm">
+      <span class="flex items-center gap-2"
+        ><ShieldCheck
+          class="size-4 shrink-0"
+          aria-hidden="true"
+        />Connection after</span
+      ><StatusBadge
+        label={trial?.deterministicAfter.inspectionStatus ?? 'Not recorded'}
+        tone={trial?.deterministicAfter.inspectionStatus === 'valid' ? 'success' : 'neutral'}
+        size="sm"
+      />
+    </div>
+  </div>
+  <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+    <p class="text-xs leading-5 text-muted-foreground">
+      {
+        trial === undefined
+          ? 'Project wiring checked against source code.'
+          : `${trial.workspaceAssertions.changedPaths.length} ${trial.workspaceAssertions.changedPaths.length === 1 ? 'file' : 'files'} changed. Source checked, without running provider tools.`
+      }
+    </p>
+    {
+      journey === null ? (
+        <StatusBadge
+          label="No example result selected"
+          tone="neutral"
+        />
+      ) : (
+        <EvidenceStatus status={journey.evidence.result.status} />
+      )
+    }
+  </div>
+</article>

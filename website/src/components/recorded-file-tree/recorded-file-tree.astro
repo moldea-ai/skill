@@ -1,0 +1,63 @@
+---
+import { ChevronDown, FolderOpen } from '@lucide/astro';
+
+import { ArtifactLabel } from '../agent-artifacts/index.ts';
+
+import type { IRecordedFileChange } from './types.ts';
+import { buildRecordedFileTreeRows } from './utilities.ts';
+
+interface Props {
+  changes: IRecordedFileChange[];
+  label: string;
+}
+
+const { changes, label } = Astro.props;
+const rows = buildRecordedFileTreeRows(changes);
+const statusLabels = { created: 'Added', modified: 'Modified', deleted: 'Deleted' } as const;
+---
+
+<ul
+  class="min-w-0 font-mono text-xs"
+  aria-label={label}
+  data-recorded-file-tree
+>
+  {
+    rows.map((row) => (
+      <li
+        class:list={['min-w-0', row.depth > 0 && 'border-l border-border pl-2']}
+        style={row.depth > 0 ? `margin-inline-start: ${row.depth * 0.75}rem` : undefined}
+      >
+        {row.kind === 'folder' ? (
+          <div class="flex h-7 min-w-0 items-center gap-1.5 px-1 text-muted-foreground">
+            <ChevronDown
+              class="size-3 shrink-0"
+              aria-hidden="true"
+            />
+            <FolderOpen
+              class="size-3.5 shrink-0"
+              aria-hidden="true"
+            />
+            <code class="min-w-0 truncate">{row.name}</code>
+          </div>
+        ) : (
+          <div
+            class="flex h-7 min-w-0 items-center px-1.5"
+            title={row.path}
+            data-recorded-file-path={row.path}
+            data-file-status={row.status}
+          >
+            <span class="sr-only">
+              {row.path}, {statusLabels[row.status]}
+            </span>
+            <ArtifactLabel
+              isDecorative
+              language={row.path.endsWith('.md') ? 'markdown' : 'typescript'}
+              path={row.path}
+              status={statusLabels[row.status]}
+            />
+          </div>
+        )}
+      </li>
+    ))
+  }
+</ul>

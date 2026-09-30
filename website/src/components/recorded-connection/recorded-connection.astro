@@ -1,0 +1,100 @@
+---
+import CodeDiff from '@moldea.ai/website-ui/code-diff';
+import FilePreview from '@moldea.ai/website-ui/file-preview';
+import StatusBadge from '@moldea.ai/website-ui/status-badge';
+
+import type { IQualificationJourneyModel } from '../../lib/qualification/index.ts';
+import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+
+interface Props {
+  journey: IQualificationJourneyModel | null;
+}
+const { journey } = Astro.props;
+const trial = journey?.evidence.trials.at(-1);
+---
+
+<!-- the shared diff has no raw-patch visibility option; this preview shows only the readable change. -->
+<article
+  class="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-raised sm:p-5 [&_[data-code-diff]>details]:hidden"
+  aria-label="OpenAI tool connection repair"
+  data-recorded-connection
+>
+  <div class="mb-4 flex items-center gap-3">
+    <AdapterCompanyLogo
+      adapterId="openai"
+      size="sm"
+    /><div>
+      <p class="text-xs text-muted-foreground">OpenAI project</p><h3
+        class="text-base font-semibold"
+      >
+        The declared tool name did not match the code.
+      </h3>
+    </div>
+  </div>
+  <FilePreview path={trial?.workspacePatch.path ?? 'workspace.patch'}>
+    {
+      trial?.workspacePatch.content ? (
+        <CodeDiff
+          patch={trial.workspacePatch.content}
+          language="yaml"
+          ariaLabel="Recorded OpenAI connection repair"
+          variant="plain"
+        />
+      ) : (
+        <p class="p-3 text-sm leading-6 text-muted-foreground sm:p-4">
+          We check whether the project's declared tool matches the tool registered in code.
+        </p>
+      )
+    }
+  </FilePreview>
+  <dl class="mt-4 grid grid-cols-2 gap-3">
+    <div class="rounded-lg bg-secondary p-3">
+      <dt class="mb-2 text-xs text-muted-foreground">Before repair</dt>
+      <dd>
+        <StatusBadge
+          label={trial?.deterministicBefore.inspectionStatus ?? 'Not recorded'}
+          tone={trial?.deterministicBefore.inspectionStatus === 'invalid'
+            ? 'danger'
+            : trial?.deterministicBefore.inspectionStatus === 'valid'
+              ? 'success'
+              : 'neutral'}
+          size="sm"
+        />
+      </dd>
+    </div>
+    <div class="rounded-lg bg-secondary p-3">
+      <dt class="mb-2 text-xs text-muted-foreground">After repair</dt>
+      <dd>
+        <StatusBadge
+          label={trial?.deterministicAfter.inspectionStatus ?? 'Not recorded'}
+          tone={trial?.deterministicAfter.inspectionStatus === 'invalid'
+            ? 'danger'
+            : trial?.deterministicAfter.inspectionStatus === 'valid'
+              ? 'success'
+              : 'neutral'}
+          size="sm"
+        />
+      </dd>
+    </div>
+  </dl>
+  <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+    <p class="text-xs leading-5 text-muted-foreground">
+      {
+        trial === undefined
+          ? 'Project wiring checked against source code.'
+          : `${trial.workspaceAssertions.changedPaths.length} ${trial.workspaceAssertions.changedPaths.length === 1 ? 'file' : 'files'} changed. Source checked, without running provider tools.`
+      }
+    </p>
+    {
+      journey === null ? (
+        <StatusBadge
+          label="No example result selected"
+          tone="neutral"
+        />
+      ) : (
+        <EvidenceStatus status={journey.evidence.result.status} />
+      )
+    }
+  </div>
+</article>

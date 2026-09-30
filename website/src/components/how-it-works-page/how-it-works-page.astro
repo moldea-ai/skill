@@ -15,10 +15,14 @@ import {
   UserRound,
 } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
+import CodeBlock from '@moldea.ai/website-ui/code-block';
+import FilePreview from '@moldea.ai/website-ui/file-preview';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import BaseLayout from '../../layouts/base-layout.astro';
+import BookingArtifacts from '../booking-artifacts/booking-artifacts.astro';
+import { BOOKING_EXAMPLE } from '../../lib/booking-example/index.ts';
 import { PRODUCT_PAGE_METADATA } from '../../lib/model/constants.ts';
 
 const basePath = import.meta.env.BASE_URL;
@@ -29,25 +33,25 @@ const connectionItems = [
   {
     icon: FileText,
     label: 'Agent guidance',
-    path: 'instruction.md',
+    path: BOOKING_EXAMPLE.files.instructions.path,
     title: 'Offer only returned time slots',
   },
   {
     icon: Terminal,
     label: 'Availability tool',
-    path: 'get-availability',
+    path: BOOKING_EXAMPLE.files.availability.path,
     title: 'Read open times from the service',
   },
   {
     icon: ShieldCheck,
     label: 'Software guardrail',
-    path: 'booking-service.ts',
+    path: BOOKING_EXAMPLE.files.service.path,
     title: 'Hold same-day requests for staff',
   },
   {
     icon: FileCheck,
     label: 'Project checks',
-    path: 'booking.test-unit.ts',
+    path: BOOKING_EXAMPLE.files.tests.path,
     title: 'Protect availability and approval',
   },
 ] as const;
@@ -59,17 +63,17 @@ const connectionItems = [
 >
   <header class="border-b border-border bg-background sm:border-y">
     <div
-      class="page-shell grid items-center gap-10 py-10 sm:py-16 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:gap-12 lg:py-20"
+      class="page-shell grid items-center gap-10 py-10 sm:py-16 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-6 lg:py-20"
     >
       <div
         class="min-w-0"
         data-workflow-hero-copy
       >
         <p class="eyebrow mb-4">How it works</p>
-        <h1 class="page-title">Your request is one sentence. The work stays connected.</h1>
+        <h1 class="page-title">One request. A connected, working agent.</h1>
         <p class="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
           <InlineBrandText
-            text="moldea helps your coding agent find the project rules behind a task, follow every affected connection, and prove the result before it says it is done."
+            text="Ask your coding agent to build it. moldea helps it use your project rules, connect the right files, and check that the result works."
           />
         </p>
         <div class="mt-7 flex flex-wrap gap-3">
@@ -119,8 +123,7 @@ const connectionItems = [
           >
             <p class="text-xs font-semibold text-muted-foreground">You</p>
             <p class="mt-1 text-sm leading-6 font-medium sm:text-base">
-              Make our booking assistant offer only available times and send same-day requests to
-              staff.
+              {BOOKING_EXAMPLE.request}
             </p>
           </div>
         </li>
@@ -146,28 +149,26 @@ const connectionItems = [
                 I connected live availability, kept same-day approval in the scheduling service, and
                 checked the complete flow.
               </p>
+              <div class="mt-4"><BookingArtifacts /></div>
             </div>
-            <dl class="grid border-t border-border sm:grid-cols-3 sm:divide-x sm:divide-border">
-              <div class="px-4 py-3 sm:px-4">
-                <dt class="text-xs text-muted-foreground">Context</dt>
-                <dd class="mt-1 text-sm font-semibold">The right rules found</dd>
-              </div>
-              <div class="border-t border-border px-4 py-3 sm:border-t-0 sm:px-4">
-                <dt class="text-xs text-muted-foreground">Connections</dt>
-                <dd class="mt-1 text-sm font-semibold">Four parts followed</dd>
-              </div>
-              <div class="border-t border-border px-4 py-3 sm:border-t-0 sm:px-4">
-                <dt class="text-xs text-muted-foreground">Proof</dt>
-                <dd
-                  class="mt-1 flex items-center gap-1.5 text-sm font-semibold text-emerald-800 dark:text-emerald-200"
+            <div class="border-t border-border bg-secondary/50 px-4 py-3 sm:px-5">
+              <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                <span class="rounded-md border border-border bg-background px-2.5 py-1.5"
+                  >10:00 available</span
                 >
-                  <Check
-                    class="size-4 shrink-0"
-                    aria-hidden="true"
-                  />Checks passed
-                </dd>
+                <ArrowRight
+                  class="size-3.5 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <span
+                  class="rounded-md border border-warning/40 bg-warning/10 px-2.5 py-1.5 text-warning-foreground dark:text-foreground"
+                  >Same day: staff approval</span
+                >
               </div>
-            </dl>
+              <p class="mt-2 text-xs text-muted-foreground">
+                Illustrative project. Open a file to inspect the example.
+              </p>
+            </div>
           </article>
         </li>
       </ol>
@@ -211,71 +212,48 @@ const connectionItems = [
       </div>
 
       <div
-        class="-mx-4 border-y border-border bg-background sm:mx-0 sm:overflow-hidden sm:rounded-2xl sm:border sm:shadow-raised"
+        class="grid min-w-0 gap-4"
         data-context-selection
       >
-        <div class="grid md:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]">
-          <div
-            class="flex items-center gap-3 bg-muted/40 px-4 py-4 md:flex-col md:items-start md:border-e md:border-border md:px-6 md:py-6"
-          >
-            <span
-              class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-background shadow-surface"
-            >
-              <Search
-                class="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <div class="min-w-0 md:mt-4">
-              <p class="text-xs text-muted-foreground">Selected for this request</p>
-              <h3 class="mt-0.5 text-base font-semibold">Two project rules</h3>
-              <p class="mt-3 hidden text-xs leading-5 text-muted-foreground md:block">
-                Unrelated project notes stay out of the task.
-              </p>
-            </div>
-            <span
-              class="ms-auto inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-emerald-800 md:ms-0 md:mt-auto md:pt-6 dark:text-emerald-200"
-            >
-              <Check
-                class="size-3.5"
-                aria-hidden="true"
-              />Relevant
-            </span>
-          </div>
-          <ol
-            class="divide-y divide-border border-t border-border md:border-t-0"
-            aria-label="Project rules selected for the request"
-          >
-            <li class="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-3 px-4 py-4 sm:px-6 sm:py-5">
-              <Check
-                class="mt-0.5 size-4 text-emerald-700 dark:text-emerald-300"
-                aria-hidden="true"
-              />
-              <div class="min-w-0">
-                <code class="text-xs text-muted-foreground">moldea/context/booking-policy.md</code>
-                <p class="mt-2 text-sm font-semibold">Same-day requests need staff approval.</p>
-                <p class="mt-1.5 text-xs leading-5 text-muted-foreground">
-                  The assistant can explain the status. It cannot approve the booking.
-                </p>
-              </div>
-            </li>
-            <li class="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-3 px-4 py-4 sm:px-6 sm:py-5">
-              <Check
-                class="mt-0.5 size-4 text-emerald-700 dark:text-emerald-300"
-                aria-hidden="true"
-              />
-              <div class="min-w-0">
-                <code class="text-xs text-muted-foreground">moldea/project.md</code>
-                <p class="mt-2 text-sm font-semibold">
-                  The scheduling service enforces availability and approval state.
-                </p>
-                <p class="mt-1.5 text-xs leading-5 text-muted-foreground">
-                  Staff makes the approval decision. Software keeps the boundary.
-                </p>
-              </div>
-            </li>
-          </ol>
+        <div class="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+          <Search
+            class="size-4"
+            aria-hidden="true"
+          />
+          Two rules selected for this request
         </div>
+        <FilePreview
+          path={BOOKING_EXAMPLE.files.policy.path}
+          label="Your project policy"
+        >
+          <div class="p-4 sm:p-5">
+            <p class="text-base font-semibold">Same-day requests need staff approval.</p>
+            <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+              <span class="rounded-md bg-secondary px-2.5 py-1.5 font-semibold">Customer asks</span>
+              <ArrowRight
+                class="size-3.5 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <span
+                class="rounded-md border border-warning/40 bg-warning/10 px-2.5 py-1.5 font-semibold text-warning-foreground dark:text-foreground"
+                >Staff decides</span
+              >
+            </div>
+          </div>
+        </FilePreview>
+        <FilePreview
+          path="moldea/project.md"
+          label="Who owns the decision"
+        >
+          <div class="p-4 sm:p-5">
+            <p class="text-sm font-semibold">
+              The scheduling service enforces availability and approval state.
+            </p>
+            <p class="mt-2 text-sm text-muted-foreground">
+              The assistant explains the status. It cannot approve the booking.
+            </p>
+          </div>
+        </FilePreview>
       </div>
     </div>
   </section>
@@ -384,7 +362,7 @@ const connectionItems = [
                   />
                   <div class="mt-0.5 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
                     <h3 class="text-sm font-semibold">{title}</h3>
-                    <code class="text-xs text-muted-foreground">{path}</code>
+                    <code class="min-w-0 text-xs break-all text-muted-foreground">{path}</code>
                   </div>
                 </li>
               ))
@@ -418,7 +396,7 @@ const connectionItems = [
 
   <section
     id="connected-change"
-    class="dark-surface-selection scroll-mt-24 border-b border-border bg-primary py-12 text-primary-foreground sm:py-16"
+    class="dark-surface-selection scroll-mt-24 border-b border-border bg-primary pt-12 text-primary-foreground sm:py-16"
     aria-labelledby="connected-change-title"
     data-workflow-stage="connected-change"
   >
@@ -463,9 +441,11 @@ const connectionItems = [
           </div>
         </div>
         <div
-          class="grid border-t border-primary/10 md:grid-cols-3 md:divide-x md:divide-primary/10"
+          class="grid border-t border-primary/10 md:grid-cols-3 md:grid-rows-[auto_1fr] md:gap-y-4 md:divide-x md:divide-primary/10"
         >
-          <article class="px-4 py-5 sm:px-7">
+          <article
+            class="grid min-w-0 gap-y-4 px-4 py-5 sm:px-7 md:row-span-2 md:grid-rows-subgrid"
+          >
             <div class="flex items-center gap-3">
               <span
                 class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--website-ui-light-secondary)]"
@@ -480,11 +460,24 @@ const connectionItems = [
                 <h3 class="mt-0.5 text-sm font-semibold">Enforces the approval path</h3>
               </div>
             </div>
-            <p class="mt-3 text-sm leading-6 text-primary/70">
-              Same-day requests remain pending until a staff member approves them.
-            </p>
+            <div
+              class="theme-surface-selection text-foreground [&>[data-file-preview]]:flex [&>[data-file-preview]]:h-full [&>[data-file-preview]]:flex-col [&>[data-file-preview]]:bg-card"
+            >
+              <FilePreview path={BOOKING_EXAMPLE.files.service.path}>
+                <div class="flex-1 bg-card p-3">
+                  <CodeBlock
+                    source={BOOKING_EXAMPLE.serviceExcerpt}
+                    language="typescript"
+                    copyable={false}
+                    variant="plain"
+                  />
+                </div>
+              </FilePreview>
+            </div>
           </article>
-          <article class="border-t border-primary/10 px-4 py-5 sm:px-7 md:border-t-0">
+          <article
+            class="grid min-w-0 gap-y-4 border-t border-primary/10 px-4 py-5 sm:px-7 md:row-span-2 md:grid-rows-subgrid md:border-t-0"
+          >
             <div class="flex items-center gap-3">
               <span
                 class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--website-ui-light-secondary)]"
@@ -499,11 +492,23 @@ const connectionItems = [
                 <h3 class="mt-0.5 text-sm font-semibold">Explains only verified options</h3>
               </div>
             </div>
-            <p class="mt-3 text-sm leading-6 text-primary/70">
-              The assistant offers times returned by the tool and explains pending approval.
-            </p>
+            <div
+              class="theme-surface-selection text-foreground [&>[data-file-preview]]:flex [&>[data-file-preview]]:h-full [&>[data-file-preview]]:flex-col [&>[data-file-preview]]:bg-card"
+            >
+              <FilePreview path={BOOKING_EXAMPLE.files.instructions.path}>
+                <div class="flex-1 bg-card p-3">
+                  <p class="text-sm leading-6">Never describe a pending request as confirmed.</p>
+                  <div class="mt-3 rounded-lg bg-secondary p-3 text-sm leading-6">
+                    Your request is waiting for staff approval.
+                  </div>
+                  <p class="mt-2 text-xs text-muted-foreground">Example customer response</p>
+                </div>
+              </FilePreview>
+            </div>
           </article>
-          <article class="border-t border-primary/10 px-4 py-5 sm:px-7 md:border-t-0">
+          <article
+            class="grid min-w-0 gap-y-4 border-t border-primary/10 px-4 py-5 sm:px-7 md:row-span-2 md:grid-rows-subgrid md:border-t-0"
+          >
             <div class="flex items-center gap-3">
               <span
                 class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--website-ui-light-secondary)]"
@@ -518,9 +523,15 @@ const connectionItems = [
                 <h3 class="mt-0.5 text-sm font-semibold">Records the ownership boundary</h3>
               </div>
             </div>
-            <p class="mt-3 text-sm leading-6 text-primary/70">
-              The scheduling service enforces the rule. Staff owns the approval decision.
-            </p>
+            <div
+              class="theme-surface-selection text-foreground [&>[data-file-preview]]:flex [&>[data-file-preview]]:h-full [&>[data-file-preview]]:flex-col [&>[data-file-preview]]:bg-card"
+            >
+              <FilePreview path={BOOKING_EXAMPLE.files.policy.path}>
+                <div class="flex-1 bg-card p-3 text-sm leading-6">
+                  <p>The scheduling service enforces the rule. Staff owns the approval decision.</p>
+                </div>
+              </FilePreview>
+            </div>
           </article>
         </div>
         <p
@@ -550,11 +561,11 @@ const connectionItems = [
           id="verification-title"
           class="section-title"
         >
-          Ask the right check for each claim.
+          Check what the customer will actually get.
         </h2>
         <p class="mt-4 text-base leading-7 text-muted-foreground">
-          One green result cannot prove every part of an agent system. Deterministic checks, project
-          tests, semantic evaluation, and adapter qualification each answer a different question.
+          Try an unavailable time, an available time today, and an available time tomorrow. Each
+          must produce the right result before the assistant reports a booking.
         </p>
         <div class="mt-5 flex flex-wrap gap-x-5 gap-y-3">
           <ActionLink
@@ -583,115 +594,86 @@ const connectionItems = [
       </div>
 
       <div
-        class="-mx-4 border-y border-border bg-card sm:mx-0 sm:overflow-hidden sm:rounded-2xl sm:border sm:shadow-raised"
+        class="min-w-0"
         data-verification-board
       >
-        <div
-          class="flex items-center justify-between gap-4 border-b border-border px-4 py-4 sm:px-6"
+        <FilePreview
+          path={BOOKING_EXAMPLE.files.tests.path}
+          label="Expected booking results"
         >
-          <div>
-            <p class="text-xs text-muted-foreground">Booking change</p>
-            <p class="mt-0.5 text-sm font-semibold">Four questions, four kinds of proof</p>
+          <div
+            class="border-b border-border px-3 py-4 sm:px-5"
+            data-booking-availability
+          >
+            <p class="text-xs font-semibold text-muted-foreground">Availability</p>
+            <dl class="mt-2 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+              <div class="flex items-baseline gap-2">
+                <dt class="text-muted-foreground">Today:</dt>
+                <dd>
+                  <code class="font-semibold">{BOOKING_EXAMPLE.availability.today.join(', ')}</code>
+                </dd>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <dt class="text-muted-foreground">Tomorrow:</dt>
+                <dd>
+                  <code class="font-semibold"
+                    >{BOOKING_EXAMPLE.availability.tomorrow.join(', ')}</code
+                  >
+                </dd>
+              </div>
+            </dl>
           </div>
-          <span
-            class="inline-flex items-center gap-1.5 rounded-full bg-emerald-600/10 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200"
+          <table class="w-full text-left text-sm">
+            <caption class="sr-only">Booking requests and expected customer outcomes</caption>
+            <thead class="border-b border-border bg-muted/30 text-xs text-muted-foreground">
+              <tr
+                ><th
+                  scope="col"
+                  class="px-3 py-3 sm:px-5"
+                  >Request</th
+                ><th
+                  scope="col"
+                  class="px-3 py-3 sm:px-5"
+                  >Result</th
+                ></tr
+              >
+            </thead>
+            <tbody class="divide-y divide-border">
+              {
+                BOOKING_EXAMPLE.checks.map((check) => (
+                  <tr data-verification-row>
+                    <th
+                      scope="row"
+                      class="px-3 py-4 font-normal sm:px-5"
+                    >
+                      <span class="flex flex-wrap items-baseline gap-x-1.5 font-semibold">
+                        <span>{check.isSameDay ? 'Today' : 'Tomorrow'}</span>
+                        <span aria-hidden="true">·</span>
+                        <code>{check.slot}</code>
+                      </span>
+                      <span class="mt-1 block text-xs text-muted-foreground">{check.label}</span>
+                    </th>
+                    <td class="px-3 py-4 sm:px-5">
+                      <span class="flex items-center gap-2 font-semibold">
+                        <Check
+                          class="size-4 shrink-0 text-success"
+                          aria-hidden="true"
+                        />
+                        {check.outcome}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+          <p
+            class="border-t border-border bg-secondary/50 px-3 py-3 text-xs leading-5 text-muted-foreground sm:px-5"
           >
-            <Check
-              class="size-3.5"
-              aria-hidden="true"
-            />Complete
-          </span>
-        </div>
-        <div class="divide-y divide-border">
-          <article
-            class="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 px-4 py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)] sm:items-center sm:px-6"
-            data-verification-row="deterministic"
-          >
-            <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
-              <Link2
-                class="size-4"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <div class="flex items-start justify-between gap-3">
-                <p class="text-sm font-semibold">Do all declared connections resolve?</p>
-                <span class="shrink-0 text-xs font-semibold text-emerald-800 dark:text-emerald-200"
-                  >Passed</span
-                >
-              </div>
-              <p class="mt-1 text-xs leading-5 text-muted-foreground">
-                Deterministic validation returns the same answer for the same project state.
-              </p>
-            </div>
-          </article>
-          <article
-            class="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 px-4 py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)] sm:items-center sm:px-6"
-            data-verification-row="project"
-          >
-            <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
-              <FileCheck
-                class="size-4"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <div class="flex items-start justify-between gap-3">
-                <p class="text-sm font-semibold">Does the application enforce the rule?</p>
-                <span class="shrink-0 text-xs font-semibold text-emerald-800 dark:text-emerald-200"
-                  >Passed</span
-                >
-              </div>
-              <p class="mt-1 text-xs leading-5 text-muted-foreground">
-                Project tests block unavailable times and hold same-day requests.
-              </p>
-            </div>
-          </article>
-          <article
-            class="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 px-4 py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)] sm:items-center sm:px-6"
-            data-verification-row="semantic"
-          >
-            <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
-              <ShieldCheck
-                class="size-4"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <div class="flex items-start justify-between gap-3">
-                <p class="text-sm font-semibold">Did the coding agent respect the boundary?</p>
-                <span class="shrink-0 text-xs font-semibold text-emerald-800 dark:text-emerald-200"
-                  >Assessed</span
-                >
-              </div>
-              <p class="mt-1 text-xs leading-5 text-muted-foreground">
-                Semantic evaluation assesses the decision and the final report.
-              </p>
-            </div>
-          </article>
-          <article
-            class="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-3 px-4 py-4 sm:grid-cols-[2.5rem_minmax(0,1fr)] sm:items-center sm:px-6"
-            data-verification-row="adapter"
-          >
-            <span class="inline-flex size-9 items-center justify-center rounded-lg bg-muted">
-              <Terminal
-                class="size-4"
-                aria-hidden="true"
-              />
-            </span>
-            <div>
-              <div class="flex items-start justify-between gap-3">
-                <p class="text-sm font-semibold">Does the runtime load the connection?</p>
-                <span class="shrink-0 text-xs font-semibold text-emerald-800 dark:text-emerald-200"
-                  >Qualified</span
-                >
-              </div>
-              <p class="mt-1 text-xs leading-5 text-muted-foreground">
-                Adapter qualification checks instruction loading and tool registration.
-              </p>
-            </div>
-          </article>
-        </div>
+            The example's code is tested against these outcomes, including empty availability.
+            Recorded skill tests are on the Evidence page.
+          </p>
+        </FilePreview>
       </div>
     </div>
   </section>

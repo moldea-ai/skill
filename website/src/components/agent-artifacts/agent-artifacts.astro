@@ -1,6 +1,7 @@
 ---
 import { ChevronDown, FolderOpen } from '@lucide/astro';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
+import CodeDiff from '@moldea.ai/website-ui/code-diff';
 import Dialog from '@moldea.ai/website-ui/dialog';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
@@ -98,6 +99,8 @@ const fileEntries = await Promise.all(
       return {
         ...entry,
         source: previewSource,
+        completeSource: source,
+        before,
         status,
         html:
           entry.language === 'markdown' ? await renderMarkdownFragment(previewSource) : undefined,
@@ -187,22 +190,33 @@ const fileEntries = await Promise.all(
                         </span>
                       )}
                     </Fragment>
-                    <div class="bg-elevated p-4 dark:bg-background">
-                      {entry.language === 'markdown' ? (
-                        <div
-                          class="prose-moldea text-sm leading-6 [&_p]:my-0 [&_p+p]:mt-3"
-                          set:html={file.html}
-                        />
-                      ) : (
-                        <CodeBlock
-                          ariaLabel={`${entry.label} source`}
-                          copyable={false}
-                          language={entry.language}
-                          source={file.source}
-                          variant="plain"
-                        />
-                      )}
-                    </div>
+                    {file.status === 'Modified' ? (
+                      <CodeDiff
+                        oldValue={file.before!}
+                        newValue={file.completeSource}
+                        language={entry.language}
+                        ariaLabel={`${entry.label} changes`}
+                        view="unified"
+                        variant="plain"
+                      />
+                    ) : (
+                      <div class="bg-elevated p-4 dark:bg-background">
+                        {entry.language === 'markdown' ? (
+                          <div
+                            class="prose-moldea text-sm leading-6 [&_p]:my-0 [&_p+p]:mt-3"
+                            set:html={file.html}
+                          />
+                        ) : (
+                          <CodeBlock
+                            ariaLabel={`${entry.label} source`}
+                            copyable={false}
+                            language={entry.language}
+                            source={file.source}
+                            variant="plain"
+                          />
+                        )}
+                      </div>
+                    )}
                   </FilePreview>
                 </Dialog>
               </div>

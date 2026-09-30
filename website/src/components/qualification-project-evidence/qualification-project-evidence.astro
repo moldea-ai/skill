@@ -1,6 +1,6 @@
 ---
 import { ExternalLink, GitCompareArrows } from '@lucide/astro';
-import CodeBlock from '@moldea.ai/website-ui/code-block';
+import CodeDiff from '@moldea.ai/website-ui/code-diff';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
 import StatusBadge from '@moldea.ai/website-ui/status-badge';
@@ -169,14 +169,11 @@ const changePresentation = {
             path={terminalTrial.workspacePatch.path}
             label="Verified workspace diff"
           >
-            <div class="p-4 sm:p-5">
-              <CodeBlock
-                copyable={false}
-                language="diff"
-                source={terminalTrial.workspacePatch.content}
-                variant="plain"
-              />
-            </div>
+            <CodeDiff
+              patch={terminalTrial.workspacePatch.content}
+              ariaLabel={`${evidence.result.caseId} verified workspace changes`}
+              variant="plain"
+            />
           </FilePreview>
         </div>
       )

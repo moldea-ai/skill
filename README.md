@@ -136,7 +136,7 @@ The private qualification workspace installs its exact pnpm 11.27.1 dependency t
 
 After packages are published, refresh the reviewed qualification catalog with `npm run qualification:compatibility:update`, inspect and commit `qualification/compatibility/snapshot.json`, then run `npm run qualification:compatibility:check` before paid qualification. Ordinary qualification commands use the committed local snapshot and do not need an adjacent packages checkout.
 
-Both the root tooling and the website consume Website UI `1.11.2` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
+Both the root tooling and the website consume Website UI `1.13.0` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
 
 Run the deterministic boundaries:
 

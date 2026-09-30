@@ -487,7 +487,7 @@ test('uses smooth client navigation and browser history across product pages', a
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'Your request is one sentence. The work stays connected.',
+      name: 'One request. A connected, working agent.',
     }),
   ).toBeVisible();
 
@@ -834,7 +834,7 @@ test('copies exact code across direct loads and client navigation while excludin
   ).toBe(normalizeClipboardLineEndings((await installCode.textContent()) ?? ''));
 
   await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
-  const projectDiffBlocks = page.locator('[data-project-patch] [data-code-block]');
+  const projectDiffBlocks = page.locator('[data-project-patch] [data-code-diff]');
 
   expect(await projectDiffBlocks.count()).toBeGreaterThan(0);
   expect(

@@ -204,6 +204,14 @@ test('keeps semantic evidence accessible without JavaScript and at 320px', async
     const firstScenario = noJavaScriptPage.locator('main details').first();
     await firstScenario.locator(':scope > summary').click();
     await expect(firstScenario.locator(':scope > summary')).toBeVisible();
+    await expect(firstScenario).toHaveCSS('border-left-width', '1px');
+    await expect(firstScenario).toHaveCSS('border-right-width', '1px');
+    await expect(firstScenario).toHaveCSS('border-radius', '14px');
+    await expect(firstScenario.locator('[data-accordion-panel]')).toHaveCSS('padding-left', '12px');
+    await expect(firstScenario.locator('[data-evaluation-replay]')).toHaveCSS(
+      'padding-left',
+      '0px',
+    );
     const codingAgentMark = firstScenario.locator('[data-evaluation-replay] .lucide-bot').first();
     await expect(codingAgentMark).toBeVisible();
     await expect(codingAgentMark).toHaveCSS(

@@ -284,22 +284,8 @@ assert.equal(OpenAI.requests.length, 1);
         .join('\n');
       const excerptLines = excerpt.split('\n');
       expect(excerptLines.length).toBeGreaterThan(0);
-      expect(excerptLines.length).toBeLessThanOrEqual(
-        logicalPath === LANDING_EXAMPLE.paths.orderLookup ? 16 : 8,
-      );
-      if (logicalPath === LANDING_EXAMPLE.paths.orderLookup) {
-        const [outline, registration] = excerpt.split('\n\n');
-        expect(outline).toBe('export const lookupOrder = async (orderId: string) => ({ ... });');
-        expect(sourceLines).toContain('export const lookupOrder = async (orderId: string) => ({');
-        expect(sourceLines).toContain(
-          registration!
-            .split('\n')
-            .map((line) => line.trim())
-            .join('\n'),
-        );
-      } else {
-        expect(sourceLines).toContain(excerptLines.map((line) => line.trim()).join('\n'));
-      }
+      expect(excerptLines.length).toBeLessThanOrEqual(8);
+      expect(sourceLines).toContain(excerptLines.map((line) => line.trim()).join('\n'));
       expect(excerpt).not.toMatch(/^import |^export type |^@@|^[+-]/mu);
     }
     for (const [logicalPath, before] of Object.entries(LANDING_EXAMPLE_BEFORE_AGENT_FILES)) {

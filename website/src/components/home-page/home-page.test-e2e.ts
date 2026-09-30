@@ -190,18 +190,20 @@ test('leads with the connected-agent example and direct paths to act or inspect'
     .getByRole('link', { name: 'See how it works', exact: true });
   await expect(workflowLink).toHaveAttribute('href', toPublicPath('/how-it-works/'));
 
-  await expect(page.locator('[data-maintenance-diff="application"]')).toContainText(
-    LANDING_EXAMPLE_PREVIEW.policyDiff.source,
-  );
-  await expect(page.locator('[data-maintenance-diff="tests"]')).toContainText(
-    LANDING_EXAMPLE_PREVIEW.testDiff.source,
-  );
-  await expect(page.locator('[data-maintenance-diff="context"]')).toContainText(
-    LANDING_EXAMPLE_PREVIEW.contextDiff.source,
-  );
-  await expect(page.locator('[data-maintenance-diff="instruction"]')).toContainText(
-    LANDING_EXAMPLE_PREVIEW.instructionDiff.source,
-  );
+  for (const [kind, preview] of [
+    ['application', LANDING_EXAMPLE_PREVIEW.policyDiff],
+    ['tests', LANDING_EXAMPLE_PREVIEW.testDiff],
+    ['context', LANDING_EXAMPLE_PREVIEW.contextDiff],
+    ['instruction', LANDING_EXAMPLE_PREVIEW.instructionDiff],
+  ] as const) {
+    const comparison = page.locator(`[data-maintenance-diff="${kind}"]`);
+    expect(
+      await comparison.locator('[data-diff-line="removed"] code').allTextContents(),
+    ).toStrictEqual(preview.oldValue.trimEnd().split('\n'));
+    expect(
+      await comparison.locator('[data-diff-line="added"] code').allTextContents(),
+    ).toStrictEqual(preview.newValue.trimEnd().split('\n'));
+  }
 
   await workflowLink.focus();
   await workflowLink.press('Enter');

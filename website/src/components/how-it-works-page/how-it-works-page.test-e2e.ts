@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { BOOKING_EXAMPLE } from '../../lib/booking-example/index.ts';
+import { BOOKING_EXAMPLE, BOOKING_EXAMPLE_BEFORE_FILES } from '../../lib/booking-example/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const route = withBase('/how-it-works/', basePath);
@@ -14,7 +14,6 @@ const PAGE_TITLE_WIDTHS = [320, 639, 640, 1023, 1024, 1279, 1280, 1440] as const
 const BOOKING_FILE_STATUSES = {
   service: 'modified',
   availability: 'unchanged',
-  tests: 'added',
   instructions: 'modified',
   policy: 'unchanged',
 } as const;
@@ -160,14 +159,14 @@ test('follows one booking request through five connected stages', async ({ page 
     expect(heroConversationBounds.width / heroCopyBounds.width).toBeCloseTo(1 / 0.9, 2);
   }
 
-  for (const file of Object.values(BOOKING_EXAMPLE.files)) {
+  for (const file of Object.values(BOOKING_EXAMPLE.files).filter((file) => file.id !== 'tests')) {
     const status = BOOKING_FILE_STATUSES[file.id];
     const trigger = page.getByRole('button', {
       name: `Open ${file.path}, ${status}`,
       exact: true,
     });
     await expect(trigger).toBeVisible();
-    const marker = trigger.getByText(status === 'added' ? 'A' : 'M', { exact: true });
+    const marker = trigger.getByText('M', { exact: true });
     await expect(marker).toHaveCount(status === 'unchanged' ? 0 : 1);
   }
 
@@ -264,14 +263,14 @@ test('keeps both visual narratives and their technical links available without J
 
   await page.goto(route);
   await expect(page.locator('[data-workflow-stage]')).toHaveCount(5);
-  await expect(page.locator('[data-booking-path]')).toHaveCount(5);
-  await expect(page.locator('[data-booking-file-fallback]')).toHaveCount(5);
+  await expect(page.locator('[data-booking-path]')).toHaveCount(4);
+  await expect(page.locator('[data-booking-file-fallback]')).toHaveCount(4);
   await expect(
     page.locator('[data-booking-file-fallback]').getByText('M', { exact: true }),
   ).toHaveCount(2);
   await expect(
     page.locator('[data-booking-file-fallback]').getByText('A', { exact: true }),
-  ).toHaveCount(1);
+  ).toHaveCount(0);
   await expect(page.locator('[data-verification-row]')).toHaveCount(3);
   await expect(
     page.getByRole('link', { name: 'Inspect the evidence', exact: true }),
@@ -295,7 +294,9 @@ test('opens the booking project files with the keyboard and returns focus on mob
     try {
       const page = await context.newPage();
       await page.goto(route);
-      for (const file of Object.values(BOOKING_EXAMPLE.files)) {
+      for (const file of Object.values(BOOKING_EXAMPLE.files).filter(
+        (file) => file.id !== 'tests',
+      )) {
         const trigger = page.getByRole('button', {
           name: `Open ${file.path}, ${BOOKING_FILE_STATUSES[file.id]}`,
           exact: true,
@@ -306,7 +307,26 @@ test('opens the booking project files with the keyboard and returns focus on mob
         const dialog = page.getByRole('dialog', { name: file.label, exact: true });
         await expect(dialog).toBeVisible();
         await expect(dialog).toContainText(file.path.split('/').at(-1)!);
-        if (file.language === 'typescript') {
+        if (BOOKING_FILE_STATUSES[file.id] === 'modified') {
+          const diff = dialog.getByRole('region', { name: `${file.label} changes`, exact: true });
+          await expect(diff).toHaveAttribute('data-code-diff', 'unified');
+          await expect(diff.locator('[data-diff-line] code').first()).toHaveCSS(
+            'white-space',
+            file.language === 'markdown' ? 'pre-wrap' : 'pre',
+          );
+          await expect(diff).not.toContainText('No newline at end of file');
+          await expect(diff).not.toContainText('Before');
+          await expect(diff).not.toContainText('After');
+          const before = await diff
+            .locator('[data-diff-line]:not([data-diff-line="added"]) code')
+            .allTextContents();
+          const after = await diff
+            .locator('[data-diff-line]:not([data-diff-line="removed"]) code')
+            .allTextContents();
+          expect(before.join('\n')).toBe(BOOKING_EXAMPLE_BEFORE_FILES[file.path]!.trimEnd());
+          expect(after.join('\n')).toBe(file.source.trimEnd());
+          await expect(diff.locator('[data-diff-line="added"]')).not.toHaveCount(0);
+        } else if (file.language === 'typescript') {
           await expect(dialog.locator('pre')).toHaveText(file.source);
         } else {
           await expect(dialog.getByRole('heading', { level: 3 })).toBeVisible();
@@ -335,13 +355,13 @@ test('keeps the file tree compact and the owner previews balanced across viewpor
       await page.goto(route);
       await page.evaluate(() => document.fonts.ready);
       const tree = page.locator('[data-booking-artifacts]');
-      await expect(tree.locator('[data-booking-path]')).toHaveCount(5);
+      await expect(tree.locator('[data-booking-path]')).toHaveCount(4);
       await expect(tree).toContainText('src/');
       await expect(tree).toContainText('moldea/');
       const treeBounds = await tree.boundingBox();
       expect(treeBounds).not.toBeNull();
-      // five file rows and four directory rows remain single-line, with larger mobile targets
-      expect(treeBounds!.height).toBeLessThanOrEqual(5 * (width < 640 ? 36 : 28) + 4 * 28 + 1);
+      // four file rows and four directory rows remain single-line, with larger mobile targets
+      expect(treeBounds!.height).toBeLessThanOrEqual(4 * (width < 640 ? 36 : 28) + 4 * 28 + 1);
 
       const previews = await page
         .locator('[data-connected-change] [data-file-preview]')

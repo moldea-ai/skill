@@ -6,6 +6,7 @@ import {
   getLandingExampleFile,
   LANDING_EXAMPLE,
   LANDING_EXAMPLE_INITIAL_FILES,
+  LANDING_EXAMPLE_BEFORE_AGENT_FILES,
 } from '../../lib/landing-example/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
@@ -116,12 +117,26 @@ test('shows generated artifacts inside the developer and coding agent conversati
       await expect(dialog).toContainText('SupportOutput = z.strictObject');
       await expect(dialog).not.toContainText('LookupOrderInput');
     }
-    if (name === 'Order lookup') {
-      await expect(dialog).toContainText(
-        'export const lookupOrder = async (orderId: string) => ({ ... });',
+    if (modifiedPaths.includes(artifactPaths[name])) {
+      const diff = dialog.getByRole('region', { name: `${name} changes`, exact: true });
+      await expect(diff).toHaveAttribute('data-code-diff', 'unified');
+      await expect(diff.locator('[data-diff-line] code').first()).toHaveCSS('white-space', 'pre');
+      await expect(diff).not.toContainText('No newline at end of file');
+      await expect(diff).not.toContainText('Before');
+      await expect(diff).not.toContainText('After');
+      const before = await diff
+        .locator('[data-diff-line]:not([data-diff-line="added"]) code')
+        .allTextContents();
+      const after = await diff
+        .locator('[data-diff-line]:not([data-diff-line="removed"]) code')
+        .allTextContents();
+      expect(before.join('\n')).toBe(
+        LANDING_EXAMPLE_BEFORE_AGENT_FILES[artifactPaths[name]]!.trimEnd(),
       );
-      await expect(dialog).toContainText("properties: { orderId: { type: 'string' } }");
-      await expect(dialog).not.toContainText('Looks up an order in the mock catalog.');
+      expect(after.join('\n')).toBe(
+        getLandingExampleFile(LANDING_EXAMPLE_INITIAL_FILES, artifactPaths[name]).trimEnd(),
+      );
+      await expect(diff.locator('[data-diff-line="added"]')).not.toHaveCount(0);
     }
     if (name === 'Project context')
       await expect(dialog).toContainText('It cannot approve refunds or change orders.');

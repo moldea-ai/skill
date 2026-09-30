@@ -139,7 +139,8 @@ test('unselected project runs are absent from navigation and static routes', asy
     'We tested the work. You can inspect the results.',
   );
   await expect(page.getByText('No example result selected', { exact: true })).toHaveCount(3);
-  await expect(page.locator('[data-review-result]')).not.toContainText('0 files changed');
+  await expect(page.locator('[data-agent-result]')).toContainText('No workspace result selected');
+  await expect(page.locator('[data-agent-result]')).not.toContainText('0 files changed');
   await expect(page.locator('[data-scheduler-observations]')).toHaveCount(0);
   await expect(page.locator('[data-recorded-connection]')).not.toContainText('file changed');
   await expect(
@@ -159,20 +160,8 @@ test('keeps evidence selection readable on neutral badges and themed cards', asy
       const style = getComputedStyle(element, '::selection');
       return { background: style.backgroundColor, foreground: style.color };
     });
-    const expectedBadgeSelection = await page.locator('html').evaluate((element) => {
-      const probe = document.createElement('span');
-      probe.style.backgroundColor = 'var(--website-ui-light-primary)';
-      probe.style.color = 'var(--website-ui-light-primary-foreground)';
-      element.append(probe);
-      try {
-        const style = getComputedStyle(probe);
-        return { background: style.backgroundColor, foreground: style.color };
-      } finally {
-        probe.remove();
-      }
-    });
     const badgeSelection = await page
-      .locator('#decisions [data-evidence-status="not-recorded"] [data-status-badge="neutral"]')
+      .locator('#decisions [data-recorded-change] [data-status-badge="neutral"]')
       .evaluate((element) => {
         const selection = window.getSelection();
         const range = document.createRange();
@@ -194,7 +183,7 @@ test('keeps evidence selection readable on neutral badges and themed cards', asy
         return { background: style.backgroundColor, foreground: style.color };
       });
 
-    expect(badgeSelection).toStrictEqual(expectedBadgeSelection);
+    expect(badgeSelection).toStrictEqual(expectedSelection);
     expect(cardSelection).toStrictEqual(expectedSelection);
   }
 });

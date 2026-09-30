@@ -16,8 +16,11 @@ export const getSemanticPreviewCase = (
   return evaluationCase?.replay?.trials.length ? evaluationCase : null;
 };
 
-/** Returns the final recorded workspace delta, keeping absent evidence distinct from no edits. */
-export const getRecordedWorkspace = (replay: IEvaluationReplayModel | null) => {
+/** Returns the final workspace count and bounded matching paths; missing evidence stays null. */
+export const getRecordedWorkspace = (
+  replay: IEvaluationReplayModel | null,
+  includePath: (path: string) => boolean = () => true,
+) => {
   const workspace = replay?.trials.at(-1)?.steps.find((step) => step.kind === 'workspace');
   if (workspace === undefined) return null;
   let changeCount = 0;
@@ -26,6 +29,7 @@ export const getRecordedWorkspace = (replay: IEvaluationReplayModel | null) => {
     changeCount += group.changes.length;
     for (const change of group.changes) {
       if (paths.length === PREVIEW_PATH_COUNT) break;
+      if (!includePath(change.path)) continue;
       paths.push({ path: change.path, status: group.status });
     }
   }

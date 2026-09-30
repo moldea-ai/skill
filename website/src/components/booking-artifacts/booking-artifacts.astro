@@ -21,21 +21,23 @@ const entries = [
   { kind: 'file', id: 'policy', depth: 2 },
 ] as const;
 const files = await Promise.all(
-  Object.values(BOOKING_EXAMPLE.files).filter((file) => file.id !== 'tests').map(async (file) => {
-    const before = BOOKING_EXAMPLE_BEFORE_FILES[file.path];
-    const status: 'Added' | 'Modified' | 'Unchanged' =
-      before === undefined ? 'Added' : before === file.source ? 'Unchanged' : 'Modified';
-    return {
-      ...file,
-      status,
-      before,
-      // keep the embedded file title below the dialog heading in the page outline
-      html:
-        file.language === 'markdown'
-          ? await renderMarkdownFragment(file.source.replace(/^# /u, '### '))
-          : null,
-    };
-  }),
+  Object.values(BOOKING_EXAMPLE.files)
+    .filter((file) => file.id !== 'tests')
+    .map(async (file) => {
+      const before = BOOKING_EXAMPLE_BEFORE_FILES[file.path];
+      const status: 'Added' | 'Modified' | 'Unchanged' =
+        before === undefined ? 'Added' : before === file.source ? 'Unchanged' : 'Modified';
+      return {
+        ...file,
+        status,
+        before,
+        // keep the embedded file title below the dialog heading in the page outline
+        html:
+          file.language === 'markdown'
+            ? await renderMarkdownFragment(file.source.replace(/^# /u, '### '))
+            : null,
+      };
+    }),
 );
 ---
 
@@ -111,21 +113,23 @@ const files = await Promise.all(
                         view="unified"
                         variant="plain"
                       />
-                    ) : <div class="p-4">
-                      {file.html === null ? (
-                        <CodeBlock
-                          source={file.source}
-                          language={file.language}
-                          copyable={false}
-                          variant="plain"
-                        />
-                      ) : (
-                        <div
-                          class="prose-moldea text-sm"
-                          set:html={file.html}
-                        />
-                      )}
-                    </div>}
+                    ) : (
+                      <div class="p-4">
+                        {file.html === null ? (
+                          <CodeBlock
+                            source={file.source}
+                            language={file.language}
+                            copyable={false}
+                            variant="plain"
+                          />
+                        ) : (
+                          <div
+                            class="prose-moldea text-sm"
+                            set:html={file.html}
+                          />
+                        )}
+                      </div>
+                    )}
                   </FilePreview>
                 </Dialog>
               </div>

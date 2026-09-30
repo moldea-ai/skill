@@ -6,9 +6,6 @@ import {
   LANDING_EXAMPLE_MAINTAINED_FILES,
 } from './fixture.ts';
 
-const createLineDiff = (initialLine: string, maintainedLine: string): string =>
-  `-${initialLine}\n+${maintainedLine}`;
-
 /**
  * Selects a current-source excerpt and removes its surrounding indentation.
  * @throws
@@ -27,14 +24,6 @@ const getHeroExcerpt = (path: string, firstLine: string, lastLine: string): stri
     .map((line) => line.slice(indentation))
     .join('\n');
 };
-
-const lookupOutline = getHeroExcerpt(
-  LANDING_EXAMPLE.paths.orderLookup,
-  'export const lookupOrder = async (orderId: string) => ({',
-  '});',
-)
-  .split('\n')[0]!
-  .replace('=> ({', '=> ({ ... });');
 
 // concise current-state excerpts; the full fixture remains available to deterministic checks
 export const LANDING_EXAMPLE_HERO_SOURCES: Readonly<Record<string, string>> = {
@@ -58,14 +47,6 @@ export const LANDING_EXAMPLE_HERO_SOURCES: Readonly<Record<string, string>> = {
       LANDING_EXAMPLE.paths.contracts,
       'export const SupportOutput = z.strictObject({',
       '});',
-    ),
-  ].join('\n\n'),
-  [LANDING_EXAMPLE.paths.orderLookup]: [
-    lookupOutline,
-    getHeroExcerpt(
-      LANDING_EXAMPLE.paths.orderLookup,
-      'export const lookupOrderTool = {',
-      '} as const;',
     ),
   ].join('\n\n'),
   [LANDING_EXAMPLE.paths.policyContext]: getHeroExcerpt(
@@ -100,58 +81,56 @@ const maintainedBoundaryAssertions = [
   ),
 ];
 
-// source-derived previews shared by the landing and visual product pages
+// source-derived version excerpts; Website UI owns diff calculation and presentation
 export const LANDING_EXAMPLE_PREVIEW = {
   contextDiff: {
     path: LANDING_EXAMPLE.paths.policyContext,
-    source: createLineDiff(
+    oldValue:
       getLandingExampleLine(
         LANDING_EXAMPLE_INITIAL_FILES,
         LANDING_EXAMPLE.paths.policyContext,
         'Customers may request',
-      ),
+      ) + '\n',
+    newValue:
       getLandingExampleLine(
         LANDING_EXAMPLE_MAINTAINED_FILES,
         LANDING_EXAMPLE.paths.policyContext,
         'Customers may request',
-      ),
-    ),
+      ) + '\n',
   },
   instructionDiff: {
     path: LANDING_EXAMPLE.paths.instruction,
-    source: createLineDiff(
+    oldValue:
       getLandingExampleLine(
         LANDING_EXAMPLE_INITIAL_FILES,
         LANDING_EXAMPLE.paths.instruction,
         'Explain that customers may request',
-      ),
+      ) + '\n',
+    newValue:
       getLandingExampleLine(
         LANDING_EXAMPLE_MAINTAINED_FILES,
         LANDING_EXAMPLE.paths.instruction,
         'Explain that customers may request',
-      ),
-    ),
+      ) + '\n',
   },
   policyDiff: {
     path: LANDING_EXAMPLE.paths.refundPolicy,
-    source: createLineDiff(
+    oldValue:
       getLandingExampleLine(
         LANDING_EXAMPLE_INITIAL_FILES,
         LANDING_EXAMPLE.paths.refundPolicy,
         'return completedDays',
-      ),
+      ) + '\n',
+    newValue:
       getLandingExampleLine(
         LANDING_EXAMPLE_MAINTAINED_FILES,
         LANDING_EXAMPLE.paths.refundPolicy,
         'return completedDays',
-      ),
-    ),
+      ) + '\n',
   },
   testDiff: {
     path: LANDING_EXAMPLE.paths.refundPolicyTest,
-    source: [
-      ...initialBoundaryAssertions.map((line) => `-${line}`),
-      ...maintainedBoundaryAssertions.map((line) => `+${line}`),
-    ].join('\n'),
+    oldValue: initialBoundaryAssertions.join('\n') + '\n',
+    newValue: maintainedBoundaryAssertions.join('\n') + '\n',
   },
 } as const;

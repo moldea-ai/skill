@@ -1,6 +1,6 @@
 ---
 import { Check, FileCode, FileText, Link2, UserRound } from '@lucide/astro';
-import CodeBlock from '@moldea.ai/website-ui/code-block';
+import CodeDiff from '@moldea.ai/website-ui/code-diff';
 import ConnectionLabel from '@moldea.ai/website-ui/connection-label';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
@@ -96,11 +96,11 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
             </div>
 
             <div
-              class="grid items-stretch gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)]"
+              class="grid items-stretch gap-4 px-3 py-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)]"
               data-behavior-alignment-flow
             >
               <section
-                class="flex min-w-0 flex-col rounded-xl border border-border bg-background p-4 sm:p-5"
+                class="flex min-w-0 flex-col sm:rounded-xl sm:border sm:border-border sm:bg-background sm:p-5"
                 aria-labelledby="application-behavior-title"
               >
                 <div class="mb-5 flex items-center gap-3">
@@ -122,27 +122,23 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
                 </div>
                 <div class="grid flex-1 content-start gap-3">
                   <FilePreview path={LANDING_EXAMPLE_PREVIEW.policyDiff.path}>
-                    <div
-                      class="p-4"
-                      data-maintenance-diff="application"
-                    >
-                      <CodeBlock
-                        copyable={false}
-                        language="diff"
-                        source={LANDING_EXAMPLE_PREVIEW.policyDiff.source}
+                    <div data-maintenance-diff="application">
+                      <CodeDiff
+                        oldValue={LANDING_EXAMPLE_PREVIEW.policyDiff.oldValue}
+                        newValue={LANDING_EXAMPLE_PREVIEW.policyDiff.newValue}
+                        language="typescript"
+                        ariaLabel={`${LANDING_EXAMPLE_PREVIEW.policyDiff.path} changes`}
                         variant="plain"
                       />
                     </div>
                   </FilePreview>
                   <FilePreview path={LANDING_EXAMPLE_PREVIEW.testDiff.path}>
-                    <div
-                      class="p-4"
-                      data-maintenance-diff="tests"
-                    >
-                      <CodeBlock
-                        copyable={false}
-                        language="diff"
-                        source={LANDING_EXAMPLE_PREVIEW.testDiff.source}
+                    <div data-maintenance-diff="tests">
+                      <CodeDiff
+                        oldValue={LANDING_EXAMPLE_PREVIEW.testDiff.oldValue}
+                        newValue={LANDING_EXAMPLE_PREVIEW.testDiff.newValue}
+                        language="typescript"
+                        ariaLabel={`${LANDING_EXAMPLE_PREVIEW.testDiff.path} changes`}
                         variant="plain"
                       />
                     </div>
@@ -173,7 +169,7 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
               </div>
 
               <section
-                class="flex min-w-0 flex-col rounded-xl border border-border bg-background p-4 sm:p-5"
+                class="flex min-w-0 flex-col sm:rounded-xl sm:border sm:border-border sm:bg-background sm:p-5"
                 aria-labelledby="agent-behavior-title"
               >
                 <div class="mb-5 flex items-center gap-3">
@@ -195,27 +191,23 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
                 </div>
                 <div class="grid flex-1 content-start gap-3">
                   <FilePreview path={LANDING_EXAMPLE_PREVIEW.contextDiff.path}>
-                    <div
-                      class="p-4"
-                      data-maintenance-diff="context"
-                    >
-                      <CodeBlock
-                        copyable={false}
-                        language="diff"
-                        source={LANDING_EXAMPLE_PREVIEW.contextDiff.source}
+                    <div data-maintenance-diff="context">
+                      <CodeDiff
+                        oldValue={LANDING_EXAMPLE_PREVIEW.contextDiff.oldValue}
+                        newValue={LANDING_EXAMPLE_PREVIEW.contextDiff.newValue}
+                        language="markdown"
+                        ariaLabel={`${LANDING_EXAMPLE_PREVIEW.contextDiff.path} changes`}
                         variant="plain"
                       />
                     </div>
                   </FilePreview>
                   <FilePreview path={LANDING_EXAMPLE_PREVIEW.instructionDiff.path}>
-                    <div
-                      class="p-4"
-                      data-maintenance-diff="instruction"
-                    >
-                      <CodeBlock
-                        copyable={false}
-                        language="diff"
-                        source={LANDING_EXAMPLE_PREVIEW.instructionDiff.source}
+                    <div data-maintenance-diff="instruction">
+                      <CodeDiff
+                        oldValue={LANDING_EXAMPLE_PREVIEW.instructionDiff.oldValue}
+                        newValue={LANDING_EXAMPLE_PREVIEW.instructionDiff.newValue}
+                        language="markdown"
+                        ariaLabel={`${LANDING_EXAMPLE_PREVIEW.instructionDiff.path} changes`}
                         variant="plain"
                       />
                     </div>

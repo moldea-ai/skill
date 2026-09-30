@@ -95,6 +95,63 @@ test('the final workspace count includes changes beyond the bounded preview', ()
   });
 });
 
+test('filtering preview paths retains the complete final workspace change count', () => {
+  const replay: IEvaluationReplayModel = {
+    trials: [
+      {
+        id: 'final',
+        title: 'Final',
+        kind: 'initial',
+        confirmationIndex: null,
+        evaluatedAt: '',
+        steps: [
+          {
+            kind: 'workspace',
+            groups: [
+              {
+                status: 'created',
+                changes: [
+                  { path: 'moldea/agents/support/description.md', type: 'file' },
+                  { path: 'moldea/agents/support/instruction.md', type: 'file' },
+                  { path: 'moldea/runtimes/custom.md', type: 'file' },
+                ],
+                tree: [],
+              },
+              {
+                status: 'modified',
+                changes: [
+                  { path: 'moldea/moldea.yaml', type: 'file' },
+                  { path: 'src/support-agent.js', type: 'file' },
+                  { path: 'src/support-agent.test-integration.js', type: 'file' },
+                ],
+                tree: [],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  expect(
+    getRecordedWorkspace(
+      replay,
+      (path) =>
+        path.startsWith('src/') ||
+        path.endsWith('/instruction.md') ||
+        path === 'moldea/moldea.yaml',
+    ),
+  ).toStrictEqual({
+    changeCount: 6,
+    paths: [
+      { path: 'moldea/agents/support/instruction.md', status: 'created' },
+      { path: 'moldea/moldea.yaml', status: 'modified' },
+      { path: 'src/support-agent.js', status: 'modified' },
+      { path: 'src/support-agent.test-integration.js', status: 'modified' },
+    ],
+  });
+  expect(getRecordedWorkspace(replay, () => false)).toStrictEqual({ changeCount: 6, paths: [] });
+});
+
 test('project previews retain distinct recorded paths and do not invent missing edits', () => {
   expect(getProjectPatchPaths({ session: null })).toStrictEqual([]);
   const session = Array.from({ length: 8 }, (_, ordinal) => ({

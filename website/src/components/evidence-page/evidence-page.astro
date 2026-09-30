@@ -6,8 +6,7 @@ import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
-import EvidenceStatus from '../evidence-status/evidence-status.astro';
-import RecordedReview from '../recorded-review/recorded-review.astro';
+import RecordedAgent from '../recorded-agent/recorded-agent.astro';
 import RecordedChange from '../recorded-change/recorded-change.astro';
 import RecordedConnection from '../recorded-connection/recorded-connection.astro';
 import RecordedProject from '../recorded-project/recorded-project.astro';
@@ -28,10 +27,9 @@ const semanticSummary = getSemanticReleaseEvidenceSummary(
   model.releaseEvidence,
   model.currentSemanticAssurance,
 );
-const decisionStatus = semanticSummary.result?.status ?? model.semanticEvaluation.status;
-const reviewCase = getSemanticPreviewCase(
+const agentCase = getSemanticPreviewCase(
   model.semanticEvaluation,
-  'context-instruction-injection',
+  'agent-adoption-inline-runtime-instruction',
 );
 const changeCase = getSemanticPreviewCase(model.semanticEvaluation, 'bound-context-maintenance');
 const openaiProfile = model.qualification.profiles.find(({ adapterId }) => adapterId === 'openai');
@@ -51,16 +49,11 @@ const passedProfileCount = qualificationSummaries.filter(
   ({ status }) => status === 'passed',
 ).length;
 const adapterIds = new Set(model.qualification.profiles.map(({ adapterId }) => adapterId));
-const adapterPreview = [
-  { id: 'openai', name: 'OpenAI' },
-  { id: 'anthropic', name: 'Anthropic' },
-  { id: 'google-genai', name: 'Google' },
-  { id: 'langgraph', name: 'LangGraph' },
-  { id: 'vercel-ai-sdk', name: 'Vercel AI SDK' },
-].filter(({ id }) => adapterIds.has(id));
+const adapterPreview = ['openai', 'anthropic', 'google-genai', 'langgraph', 'vercel-ai-sdk'].filter(
+  (id) => adapterIds.has(id),
+);
 const projectAttempts = model.projectRuns?.pages.flatMap(({ attempts }) => attempts) ?? [];
-const projectPreviews = projectAttempts.slice(0, 3);
-const remainingProjectCount = projectAttempts.length - projectPreviews.length;
+const projectPreview = projectAttempts[0];
 const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
 const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
 ---
@@ -78,21 +71,22 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
       />
     </div>
     <div
-      class="page-shell grid items-center gap-10 py-10 sm:py-16 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-12"
+      class="page-shell grid items-center gap-10 py-10 sm:py-16 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-6 lg:py-20"
+      data-evidence-hero
     >
       <div class="min-w-0">
         <p class="eyebrow mb-4">Evidence</p>
         <h1 class="page-title">We tested the work. You can inspect the results.</h1>
         <p class="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
           <InlineBrandText
-            text="We give a coding agent real tasks with moldea, record what it does, and check the result. Start with a test where the right answer includes leaving the files alone."
+            text="We give a coding agent real tasks with moldea, record what it does, and check the result. See it connect a support agent’s instructions to both model calls, preserve the existing flow, and verify the change."
           />
         </p>
         <div class="mt-7">
           <ActionLink
-            href={reviewCase === null
+            href={agentCase === null
               ? semanticRoute
-              : `${semanticRoute}#semantic-case-${reviewCase.id}`}
+              : `${semanticRoute}#semantic-case-${agentCase.id}`}
             size="lg"
             class="font-bold"
             >Open the test record<ArrowRight
@@ -102,7 +96,7 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
           >
         </div>
       </div>
-      <RecordedReview evaluationCase={reviewCase} />
+      <RecordedAgent evaluationCase={agentCase} />
     </div>
     <nav
       class="page-shell grid gap-3 pb-8 sm:grid-cols-3 sm:pb-12"
@@ -191,14 +185,13 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
           We ask for a code change that also affects saved project knowledge. Then we check the
           implementation, the tests, and the notes it leaves for the next session.
         </p>
-        <div class="mt-5"><EvidenceStatus status={decisionStatus} /></div>
         <div
           class="mt-6 grid gap-3"
           data-evidence-path-action
         >
           <ActionLink
             href={semanticRoute}
-            variant="outline"
+            variant="primary"
             class="w-full font-bold"
             >Explore decisions<ArrowRight
               class="size-4"
@@ -235,7 +228,10 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
 
   <section
     id="integrations"
-    class="scroll-mt-24 border-b border-border bg-background py-12 sm:py-16"
+    class:list={[
+      'scroll-mt-24 bg-background py-12 sm:py-16',
+      model.projectRuns !== null && 'border-b border-border',
+    ]}
     aria-labelledby="integrations-title"
     data-evidence-path
   >
@@ -277,17 +273,17 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
           connection, check its repair, and verify that the working files stay intact.
         </p>
         <div
-          class="mt-5 flex flex-wrap gap-2"
+          class="mt-5 flex items-center justify-center gap-5 sm:gap-6"
           aria-label="Example supported providers"
+          data-adapter-logos
         >
           {
-            adapterPreview.map(({ id, name }) => (
-              <span class="inline-flex items-center gap-2 rounded-lg border border-border px-2.5 py-2 text-xs font-semibold">
+            adapterPreview.map((id) => (
+              <span class="inline-flex [&_img]:size-7 [&>span]:size-9 [&>span]:border-0 [&>span]:bg-transparent">
                 <AdapterCompanyLogo
                   adapterId={id}
-                  size="xs"
+                  size="sm"
                 />
-                {name}
               </span>
             ))
           }
@@ -298,7 +294,7 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
         >
           <ActionLink
             href={withBase(model.qualification.route, basePath)}
-            variant="outline"
+            variant="primary"
             class="w-full font-bold"
             >Browse connection tests<ArrowRight
               class="size-4"
@@ -317,12 +313,12 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
     model.projectRuns !== null && (
       <section
         id="projects"
-        class="scroll-mt-24 border-b border-border bg-elevated py-12 sm:py-16"
+        class="scroll-mt-24 bg-elevated py-12 sm:py-16"
         aria-labelledby="projects-title"
         data-evidence-path
       >
-        <div class="page-shell grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-start lg:gap-14">
-          <div class="min-w-0 lg:sticky lg:top-24">
+        <div class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-14">
+          <div class="min-w-0">
             <p class="eyebrow mb-3">03 Watch the work</p>
             <h2
               id="projects-title"
@@ -341,7 +337,7 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
             >
               <ActionLink
                 href={withBase(PROJECT_RUN_ROUTE, basePath)}
-                variant="outline"
+                variant="primary"
                 class="w-full font-bold"
               >
                 Explore project runs
@@ -352,22 +348,21 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
               </ActionLink>
             </div>
           </div>
-          <div class="grid min-w-0 gap-4">
-            {projectPreviews.map((attempt) => (
-              <RecordedProject {attempt} />
-            ))}
-            {remainingProjectCount > 0 && (
-              <ActionLink
-                href={withBase(PROJECT_RUN_ROUTE, basePath)}
-                variant="outline"
-                class="w-full"
-              >
-                View {remainingProjectCount} more project runs
-                <ArrowRight
-                  class="size-4"
-                  aria-hidden="true"
-                />
-              </ActionLink>
+          <div class="min-w-0">
+            {projectPreview !== undefined && <RecordedProject attempt={projectPreview} />}
+            {projectPreview !== undefined && (
+              <div class="mt-3">
+                <ActionLink
+                  href={withBase(projectPreview.route, basePath)}
+                  variant="link"
+                >
+                  Open the recorded session
+                  <ArrowRight
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </ActionLink>
+              </div>
             )}
           </div>
         </div>

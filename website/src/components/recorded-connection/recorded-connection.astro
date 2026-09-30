@@ -1,6 +1,5 @@
 ---
-import { Link2, ShieldCheck } from '@lucide/astro';
-import CodeBlock from '@moldea.ai/website-ui/code-block';
+import CodeDiff from '@moldea.ai/website-ui/code-diff';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
 import StatusBadge from '@moldea.ai/website-ui/status-badge';
 
@@ -13,22 +12,15 @@ interface Props {
 }
 const { journey } = Astro.props;
 const trial = journey?.evidence.trials.at(-1);
-const patchLines = trial?.workspacePatch.content
-  .split('\n')
-  .filter((line) => /^[+-]/u.test(line) && !/^(?:---|\+\+\+)/u.test(line));
-const patchExcerpt =
-  patchLines
-    ?.slice(0, 16)
-    .map((line) => line.slice(0, 256))
-    .join('\n') ?? '';
 ---
 
+<!-- the shared diff has no raw-patch visibility option; this preview shows only the readable change. -->
 <article
-  class="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-raised sm:p-6"
+  class="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-raised sm:p-5 [&_[data-code-diff]>details]:hidden"
   aria-label="OpenAI tool connection repair"
   data-recorded-connection
 >
-  <div class="mb-5 flex items-center gap-3">
+  <div class="mb-4 flex items-center gap-3">
     <AdapterCompanyLogo
       adapterId="openai"
       size="sm"
@@ -40,54 +32,53 @@ const patchExcerpt =
       </h3>
     </div>
   </div>
-  <FilePreview
-    path="moldea/moldea.yaml"
-    label="Repair excerpt"
-  >
-    <div class="p-3 sm:p-4">
-      {
-        patchExcerpt ? (
-          <CodeBlock
-            language="diff"
-            source={patchExcerpt}
-            copyable={false}
-            variant="plain"
-          />
-        ) : (
-          <p class="text-sm leading-6 text-muted-foreground">
-            We check whether the project's declared tool matches the tool registered in code.
-          </p>
-        )
-      }
-    </div>
+  <FilePreview path={trial?.workspacePatch.path ?? 'workspace.patch'}>
+    {
+      trial?.workspacePatch.content ? (
+        <CodeDiff
+          patch={trial.workspacePatch.content}
+          language="yaml"
+          ariaLabel="Recorded OpenAI connection repair"
+          variant="plain"
+        />
+      ) : (
+        <p class="p-3 text-sm leading-6 text-muted-foreground sm:p-4">
+          We check whether the project's declared tool matches the tool registered in code.
+        </p>
+      )
+    }
   </FilePreview>
-  <div class="mt-4 grid gap-3">
-    <div class="flex items-center justify-between gap-3 rounded-lg bg-secondary p-3 text-sm">
-      <span class="flex items-center gap-2"
-        ><Link2
-          class="size-4 shrink-0"
-          aria-hidden="true"
-        />Connection before</span
-      ><StatusBadge
-        label={trial?.deterministicBefore.inspectionStatus ?? 'Not recorded'}
-        tone={trial?.deterministicBefore.inspectionStatus === 'invalid' ? 'warning' : 'neutral'}
-        size="sm"
-      />
+  <dl class="mt-4 grid grid-cols-2 gap-3">
+    <div class="rounded-lg bg-secondary p-3">
+      <dt class="mb-2 text-xs text-muted-foreground">Before repair</dt>
+      <dd>
+        <StatusBadge
+          label={trial?.deterministicBefore.inspectionStatus ?? 'Not recorded'}
+          tone={trial?.deterministicBefore.inspectionStatus === 'invalid'
+            ? 'danger'
+            : trial?.deterministicBefore.inspectionStatus === 'valid'
+              ? 'success'
+              : 'neutral'}
+          size="sm"
+        />
+      </dd>
     </div>
-    <div class="flex items-center justify-between gap-3 rounded-lg bg-secondary p-3 text-sm">
-      <span class="flex items-center gap-2"
-        ><ShieldCheck
-          class="size-4 shrink-0"
-          aria-hidden="true"
-        />Connection after</span
-      ><StatusBadge
-        label={trial?.deterministicAfter.inspectionStatus ?? 'Not recorded'}
-        tone={trial?.deterministicAfter.inspectionStatus === 'valid' ? 'success' : 'neutral'}
-        size="sm"
-      />
+    <div class="rounded-lg bg-secondary p-3">
+      <dt class="mb-2 text-xs text-muted-foreground">After repair</dt>
+      <dd>
+        <StatusBadge
+          label={trial?.deterministicAfter.inspectionStatus ?? 'Not recorded'}
+          tone={trial?.deterministicAfter.inspectionStatus === 'invalid'
+            ? 'danger'
+            : trial?.deterministicAfter.inspectionStatus === 'valid'
+              ? 'success'
+              : 'neutral'}
+          size="sm"
+        />
+      </dd>
     </div>
-  </div>
-  <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+  </dl>
+  <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
     <p class="text-xs leading-5 text-muted-foreground">
       {
         trial === undefined

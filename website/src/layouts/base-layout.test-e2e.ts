@@ -834,7 +834,7 @@ test('copies exact code across direct loads and client navigation while excludin
   ).toBe(normalizeClipboardLineEndings((await installCode.textContent()) ?? ''));
 
   await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
-  const projectDiffBlocks = page.locator('[data-project-patch] [data-code-block]');
+  const projectDiffBlocks = page.locator('[data-project-patch] [data-code-diff]');
 
   expect(await projectDiffBlocks.count()).toBeGreaterThan(0);
   expect(

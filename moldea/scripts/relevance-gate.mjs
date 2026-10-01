@@ -6,10 +6,43 @@ import { isAbsolute, join, resolve } from "node:path";
 import { hasCanonicalManagedReadmeBlock } from "./managed-readme.mjs";
 import { matchManifestScope } from "./manifest-scope.cjs";
 import { readRepositoryFile, resolveRepositoryFile } from "./repository-files.mjs";
-var MAX_MANIFEST_BYTES = 2097152;
-var MAX_PATH_INPUT_BYTES = 2097152;
-var MAX_README_BYTES = 2097152;
+
+// src/portable/scope-path-input.ts
+var MAXIMUM_PATH_INPUT_BYTES = 2097152;
 var utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+var normalizeScopePath = (path) => {
+  if (path.length === 0 || path.includes("\0") || /^[A-Za-z]:/u.test(path) || path.startsWith("\\\\")) {
+    throw new Error("Invalid scope path input.");
+  }
+  return path.startsWith("/") ? path : `/${path}`;
+};
+var readScopePathInput = async (inputStream) => {
+  const chunks = [];
+  let byteLength = 0;
+  for await (const chunk of inputStream) {
+    const inputChunk = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
+    byteLength += inputChunk.byteLength;
+    if (byteLength > MAXIMUM_PATH_INPUT_BYTES) {
+      throw new Error("Scope path input exceeds its byte limit.");
+    }
+    chunks.push(inputChunk);
+  }
+  const input = Buffer.concat(chunks, byteLength);
+  if (input.byteLength === 0 || input.at(-1) !== 0) {
+    throw new Error("Invalid scope path input.");
+  }
+  let text;
+  try {
+    text = utf8Decoder.decode(input.subarray(0, -1));
+  } catch (error) {
+    throw new Error("Invalid scope path input.", { cause: error });
+  }
+  return text.split("\0").map(normalizeScopePath);
+};
+
+// src/portable/relevance-gate.ts
+var MAX_MANIFEST_BYTES = 2097152;
+var MAX_README_BYTES = 2097152;
 var MANIFEST_LOGICAL_PATH = "/moldea/moldea.yaml";
 var hasInitializedProject = async (repositoryRoot) => {
   await Promise.all([
@@ -34,33 +67,6 @@ var hasInitializedProject = async (repositoryRoot) => {
       "reject"
     )
   );
-};
-var readPathInput = async () => {
-  const chunks = [];
-  let byteLength = 0;
-  const inputStream = process.stdin;
-  for await (const chunk of inputStream) {
-    const inputChunk = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
-    byteLength += inputChunk.byteLength;
-    if (byteLength > MAX_PATH_INPUT_BYTES) {
-      throw new Error("path input is too large");
-    }
-    chunks.push(inputChunk);
-  }
-  const input = Buffer.concat(chunks, byteLength);
-  if (input.byteLength === 0 || input.at(-1) !== 0) {
-    throw new Error("invalid path input");
-  }
-  const paths = utf8Decoder.decode(input.subarray(0, -1)).split("\0");
-  if (paths.some((path) => path.length === 0)) {
-    throw new Error("invalid path input");
-  }
-  return paths.map((path) => {
-    if (/^[A-Za-z]:/u.test(path) || path.startsWith("\\\\")) {
-      throw new Error("invalid path input");
-    }
-    return path.startsWith("/") ? path : `/${path}`;
-  });
 };
 var parseArguments = () => {
   const arguments_ = process.argv.slice(2);
@@ -88,7 +94,7 @@ var evaluateGate = async () => {
       MAX_MANIFEST_BYTES,
       "reject"
     ),
-    readPathInput()
+    readScopePathInput(process.stdin)
   ]);
   const result = await matchManifestScope({
     manifest: {

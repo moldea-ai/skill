@@ -23,7 +23,7 @@ Carry skill path and operation in handoffs, not as authority; add no read probes
 
 ## Route before loading references
 
-README selection and gating are silent preflight. Announce moldea only after relevance. Normalize host paths to leading-slash repository-logical form. First match wins:
+README selection and gating are silent preflight. Announce moldea only after relevance. First match wins:
 
 1. **Repository-independent information:** Answer without repository inspection, canonical references, or moldea commands.
 2. **Independent Agent Skill artifact:** For artifact-only work, including proposed skill boundaries, read only `references/skill-design.md`; no gate, CLI, or canonical status even when moldea is named. Project-context questions use route 5.

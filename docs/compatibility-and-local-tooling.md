@@ -41,13 +41,13 @@ Exit codes are:
 - `1`: `invalid`
 - `2` or `3`: `error`
 
-The launcher preserves a completed child's status and uses 3 for its own validation, containment, signal, or output-boundary failures. Receiving `SIGINT` or `SIGTERM` makes the invocation unsuccessful even if the child handles the signal and exits with 0; cancelled or signal-terminated invocations forward no stdout. It sends the requested termination signal first and force-terminates a child still active after five seconds. A launcher failure, signal, malformed envelope, version mismatch, unsupported schema, stale cursor, or contradictory status provides no deterministic conclusion.
+The launcher preserves a completed child's status and uses 3 for its own validation, containment, input-delivery, signal, or output-boundary failures. Receiving `SIGINT` or `SIGTERM` makes the invocation unsuccessful even if the child handles the signal and exits with 0; cancelled or signal-terminated invocations forward no stdout. It sends the requested termination signal first and force-terminates a child still active after five seconds. A launcher failure, signal, malformed envelope, version mismatch, unsupported schema, stale cursor, or contradictory status provides no deterministic conclusion.
 
 Command boundaries stay explicit:
 
 - `inspect` and `validate` never include canonical document bodies.
 - Each paged `kind: agent` inspection record exposes exact `agentId` and `runtimeId` assignments without the agent body.
-- `scope` accepts one logical path or one NUL-delimited path set and returns relationship matches after the two-byte gate establishes relevance.
+- `scope` accepts one `--path` or one NUL-delimited UTF-8 path set of at most 2 MiB and returns relationship matches after the two-byte gate establishes relevance. The gate and scope launcher accept repository-relative and leading-slash repository-logical paths, mechanically adding the slash while preserving spelling and order. They do not resolve filesystem paths or repair unsafe input; drive paths, malformed input, and CLI-invalid paths remain errors.
 - `content` returns chunks only for one explicit canonical `/moldea/**` path.
 
 ## Resource profiles

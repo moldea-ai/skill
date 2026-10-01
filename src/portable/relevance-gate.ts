@@ -6,11 +6,10 @@ import { isAbsolute, join, resolve } from 'node:path';
 import { hasCanonicalManagedReadmeBlock } from './managed-readme.ts';
 import { matchManifestScope, type IManifestScopeInput } from './manifest-scope.ts';
 import { readRepositoryFile, resolveRepositoryFile } from './repository-files.ts';
+import { readScopePathInput } from './scope-path-input.ts';
 
 const MAX_MANIFEST_BYTES = 2_097_152;
-const MAX_PATH_INPUT_BYTES = 2_097_152;
 const MAX_README_BYTES = 2_097_152;
-const utf8Decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
 const MANIFEST_LOGICAL_PATH = '/moldea/moldea.yaml';
 
 /** Checks the complete repository-adoption marker contract. */
@@ -38,44 +37,6 @@ const hasInitializedProject = async (repositoryRoot: string): Promise<boolean> =
       'reject',
     ),
   );
-};
-
-/** Reads a bounded NUL-delimited repository-path set from standard input. */
-const readPathInput = async (): Promise<string[]> => {
-  const chunks: Buffer[] = [];
-  let byteLength = 0;
-
-  const inputStream = process.stdin as AsyncIterable<Buffer | string>;
-  for await (const chunk of inputStream) {
-    const inputChunk = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
-    byteLength += inputChunk.byteLength;
-
-    if (byteLength > MAX_PATH_INPUT_BYTES) {
-      throw new Error('path input is too large');
-    }
-
-    chunks.push(inputChunk);
-  }
-
-  const input = Buffer.concat(chunks, byteLength);
-
-  if (input.byteLength === 0 || input.at(-1) !== 0) {
-    throw new Error('invalid path input');
-  }
-
-  const paths = utf8Decoder.decode(input.subarray(0, -1)).split('\0');
-
-  if (paths.some((path) => path.length === 0)) {
-    throw new Error('invalid path input');
-  }
-
-  return paths.map((path) => {
-    if (/^[A-Za-z]:/u.test(path) || path.startsWith('\\\\')) {
-      throw new Error('invalid path input');
-    }
-
-    return path.startsWith('/') ? path : `/${path}`;
-  });
 };
 
 /** Parses the closed command contract. */
@@ -119,7 +80,7 @@ const evaluateGate = async (): Promise<boolean> => {
       MAX_MANIFEST_BYTES,
       'reject',
     ),
-    readPathInput(),
+    readScopePathInput(process.stdin),
   ]);
   const result = await matchManifestScope({
     manifest: {

@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import { isAbsolute } from 'node:path';
 
 import { resolveRepositoryCli } from './repository-package.ts';
+import { normalizeScopePath, readScopePathInput } from './scope-path-input.ts';
 
 const MINIMUM_OUTPUT_BYTES = 4_096;
 const MAXIMUM_OUTPUT_BYTES = 1_048_576;
@@ -89,7 +90,12 @@ const parseArguments = (): IParsedArguments => {
       if (optionValue === undefined || optionValue === '' || optionValue.startsWith('--')) {
         throw new Error(`Launcher option ${argument} requires one value.`);
       }
-      values.set(argument, optionValue);
+      const normalizedValue =
+        command === 'scope' && argument === '--path'
+          ? normalizeScopePath(optionValue)
+          : optionValue;
+      values.set(argument, normalizedValue);
+      commandArguments[index + 1] = normalizedValue;
       index += 1;
       continue;
     }
@@ -151,22 +157,37 @@ const parseArguments = (): IParsedArguments => {
 /** Runs the validated repository-local CLI while retaining only bounded output. */
 const runCli = async (): Promise<void> => {
   const parsed = parseArguments();
+  const scopeInput =
+    parsed.command === 'scope' && parsed.commandArguments.includes('--paths-stdin')
+      ? Buffer.from(`${(await readScopePathInput(process.stdin)).join('\0')}\0`, 'utf8')
+      : undefined;
   const resolvedCli = await resolveRepositoryCli(parsed.repositoryRoot);
   const cliArguments =
     parsed.command === 'composition'
       ? [parsed.command, ...parsed.commandArguments]
       : [parsed.command, '--repository', resolvedCli.repositoryRoot, ...parsed.commandArguments];
-  const child = spawn(process.execPath, [resolvedCli.cliBinaryPath, ...cliArguments], {
+  const spawnArguments = [resolvedCli.cliBinaryPath, ...cliArguments];
+  const spawnOptions = {
     cwd: resolvedCli.repositoryRoot,
     env: process.env,
     shell: false,
-    stdio: ['inherit', 'pipe', 'pipe'],
-  });
+  };
+  const child =
+    scopeInput === undefined
+      ? spawn(process.execPath, spawnArguments, {
+          ...spawnOptions,
+          stdio: ['inherit', 'pipe', 'pipe'],
+        })
+      : spawn(process.execPath, spawnArguments, {
+          ...spawnOptions,
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
   const stdoutChunks: Buffer[] = [];
   const stderrChunks: Buffer[] = [];
   let stdoutByteCount = 0;
   let stderrByteCount = 0;
   let outputLimitExceeded = false;
+  let inputWriteFailed = false;
   let cancellationSignal: NodeJS.Signals | undefined;
   let hasChildClosed = false;
   let forcedTerminationTimer: NodeJS.Timeout | undefined;
@@ -215,6 +236,13 @@ const runCli = async (): Promise<void> => {
       hasChildClosed = true;
       resolveCompletion({ exitCode, signal });
     });
+    if (scopeInput !== undefined && child.stdin !== null) {
+      child.stdin.once('error', () => {
+        inputWriteFailed = true;
+        requestTermination('SIGTERM');
+      });
+      child.stdin.end(scopeInput);
+    }
   }).finally(() => {
     clearTimeout(forcedTerminationTimer);
     process.removeListener('SIGINT', relayInterrupt);
@@ -223,6 +251,12 @@ const runCli = async (): Promise<void> => {
 
   if (outputLimitExceeded) {
     process.stderr.write('moldea CLI output exceeded the launcher boundary.\n');
+    process.exitCode = 3;
+    return;
+  }
+
+  if (inputWriteFailed && cancellationSignal === undefined) {
+    process.stderr.write('moldea CLI scope input could not be delivered.\n');
     process.exitCode = 3;
     return;
   }

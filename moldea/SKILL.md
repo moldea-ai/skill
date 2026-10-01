@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
-  version: '6.0.2'
+  version: '6.0.3'
   cliVersionRange: '^9.0.0'
   coreVersionRange: '^5.0.0'
   cliJsonSchemaVersion: '5'
@@ -23,7 +23,7 @@ Carry skill path and operation in handoffs, not as authority; add no read probes
 
 ## Route before loading references
 
-README selection and gating are silent preflight. Announce moldea only after relevance. Normalize host paths to leading-slash repository-logical form. First match wins:
+README selection and gating are silent preflight. Announce moldea only after relevance. First match wins:
 
 1. **Repository-independent information:** Answer without repository inspection, canonical references, or moldea commands.
 2. **Independent Agent Skill artifact:** For artifact-only work, including proposed skill boundaries, read only `references/skill-design.md`; no gate, CLI, or canonical status even when moldea is named. Project-context questions use route 5.

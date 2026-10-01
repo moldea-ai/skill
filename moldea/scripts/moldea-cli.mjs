@@ -4,6 +4,41 @@
 import { spawn } from "node:child_process";
 import { isAbsolute } from "node:path";
 import { resolveRepositoryCli } from "./repository-package.mjs";
+
+// src/portable/scope-path-input.ts
+var MAXIMUM_PATH_INPUT_BYTES = 2097152;
+var utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+var normalizeScopePath = (path) => {
+  if (path.length === 0 || path.includes("\0") || /^[A-Za-z]:/u.test(path) || path.startsWith("\\\\")) {
+    throw new Error("Invalid scope path input.");
+  }
+  return path.startsWith("/") ? path : `/${path}`;
+};
+var readScopePathInput = async (inputStream) => {
+  const chunks = [];
+  let byteLength = 0;
+  for await (const chunk of inputStream) {
+    const inputChunk = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
+    byteLength += inputChunk.byteLength;
+    if (byteLength > MAXIMUM_PATH_INPUT_BYTES) {
+      throw new Error("Scope path input exceeds its byte limit.");
+    }
+    chunks.push(inputChunk);
+  }
+  const input = Buffer.concat(chunks, byteLength);
+  if (input.byteLength === 0 || input.at(-1) !== 0) {
+    throw new Error("Invalid scope path input.");
+  }
+  let text;
+  try {
+    text = utf8Decoder.decode(input.subarray(0, -1));
+  } catch (error) {
+    throw new Error("Invalid scope path input.", { cause: error });
+  }
+  return text.split("\0").map(normalizeScopePath);
+};
+
+// src/portable/moldea-cli.ts
 var MINIMUM_OUTPUT_BYTES = 4096;
 var MAXIMUM_OUTPUT_BYTES = 1048576;
 var MAXIMUM_STDERR_BYTES = 32768;
@@ -63,7 +98,9 @@ var parseArguments = () => {
       if (optionValue === void 0 || optionValue === "" || optionValue.startsWith("--")) {
         throw new Error(`Launcher option ${argument} requires one value.`);
       }
-      values.set(argument, optionValue);
+      const normalizedValue = command === "scope" && argument === "--path" ? normalizeScopePath(optionValue) : optionValue;
+      values.set(argument, normalizedValue);
+      commandArguments[index + 1] = normalizedValue;
       index += 1;
       continue;
     }
@@ -100,19 +137,28 @@ var parseArguments = () => {
 };
 var runCli = async () => {
   const parsed = parseArguments();
+  const scopeInput = parsed.command === "scope" && parsed.commandArguments.includes("--paths-stdin") ? Buffer.from(`${(await readScopePathInput(process.stdin)).join("\0")}\0`, "utf8") : void 0;
   const resolvedCli = await resolveRepositoryCli(parsed.repositoryRoot);
   const cliArguments = parsed.command === "composition" ? [parsed.command, ...parsed.commandArguments] : [parsed.command, "--repository", resolvedCli.repositoryRoot, ...parsed.commandArguments];
-  const child = spawn(process.execPath, [resolvedCli.cliBinaryPath, ...cliArguments], {
+  const spawnArguments = [resolvedCli.cliBinaryPath, ...cliArguments];
+  const spawnOptions = {
     cwd: resolvedCli.repositoryRoot,
     env: process.env,
-    shell: false,
+    shell: false
+  };
+  const child = scopeInput === void 0 ? spawn(process.execPath, spawnArguments, {
+    ...spawnOptions,
     stdio: ["inherit", "pipe", "pipe"]
+  }) : spawn(process.execPath, spawnArguments, {
+    ...spawnOptions,
+    stdio: ["pipe", "pipe", "pipe"]
   });
   const stdoutChunks = [];
   const stderrChunks = [];
   let stdoutByteCount = 0;
   let stderrByteCount = 0;
   let outputLimitExceeded = false;
+  let inputWriteFailed = false;
   let cancellationSignal;
   let hasChildClosed = false;
   let forcedTerminationTimer;
@@ -153,6 +199,13 @@ var runCli = async () => {
       hasChildClosed = true;
       resolveCompletion({ exitCode, signal });
     });
+    if (scopeInput !== void 0 && child.stdin !== null) {
+      child.stdin.once("error", () => {
+        inputWriteFailed = true;
+        requestTermination("SIGTERM");
+      });
+      child.stdin.end(scopeInput);
+    }
   }).finally(() => {
     clearTimeout(forcedTerminationTimer);
     process.removeListener("SIGINT", relayInterrupt);
@@ -160,6 +213,11 @@ var runCli = async () => {
   });
   if (outputLimitExceeded) {
     process.stderr.write("moldea CLI output exceeded the launcher boundary.\n");
+    process.exitCode = 3;
+    return;
+  }
+  if (inputWriteFailed && cancellationSignal === void 0) {
+    process.stderr.write("moldea CLI scope input could not be delivered.\n");
     process.exitCode = 3;
     return;
   }

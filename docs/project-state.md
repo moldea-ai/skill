@@ -30,6 +30,8 @@ moldea/
 
 `project.md` captures concise foundational identity, purpose, users, goals, boundaries, and universally important facts. `moldea.yaml` registers versioned relationships and project or agent configuration supported by the repository format.
 
+The foundation also provides descriptive links that help readers select relevant focused context. Context is reachable directly or through linked topic indexes, with detailed rules kept in their authoritative owners. Authorized changes that add, move, remove, or change an owner's responsibility update the affected navigation in the same change, using known paths and metadata without reading unrelated context.
+
 ## Focused context
 
 Durable domain, architecture, security, integration, terminology, team responsibility or ownership, and operational truth can live under `/moldea/context/**`. Focused context is created only when it improves understanding or future change analysis; it is not an exhaustive repository inventory.

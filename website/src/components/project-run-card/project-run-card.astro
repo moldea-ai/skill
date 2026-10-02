@@ -5,6 +5,7 @@ import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import type { IProjectAttempt } from '../../lib/project-runs/index.ts';
+import { SITE_GHOST_LINK_CLASS_NAME } from '../../lib/site/index.ts';
 
 interface Props {
   attempt: IProjectAttempt;
@@ -25,8 +26,8 @@ const { attempt } = Astro.props;
   </p>
   <div class="mt-auto pt-7">
     <ActionLink
-      class="w-full justify-between font-semibold"
-      variant="outline"
+      class={`w-full justify-between font-semibold ${SITE_GHOST_LINK_CLASS_NAME}`}
+      variant="ghost"
       href={withBase(attempt.route, import.meta.env.BASE_URL)}
       aria-label={`Explore ${attempt.title}`}
     >

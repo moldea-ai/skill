@@ -8,6 +8,7 @@ import type { IRenderedMarkdownHeading } from '@moldea.ai/website-ui/markdown';
 
 import { SKILLS_DIRECTORY_URL, SOURCE_REPOSITORY_URL } from '../../lib/model/constants.ts';
 import type { INavigationGroup, ISkillMetadata, IWebsiteDocument } from '../../lib/model/types.ts';
+import { SITE_GHOST_LINK_CLASS_NAME } from '../../lib/site/index.ts';
 
 interface Props {
   breadcrumbs: IBreadcrumb[];
@@ -100,12 +101,12 @@ const navigationGroups = navigation.map((group) => ({
         />
       </ActionLink>
       <ActionLink
-        class="font-bold"
+        class={`font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
         href={`${SOURCE_REPOSITORY_URL}/blob/main/${currentDocument.sourcePath}`}
         size="md"
         target="_blank"
         rel="noopener noreferrer"
-        variant="outline"
+        variant="ghost"
       >
         View source
         <ExternalLink

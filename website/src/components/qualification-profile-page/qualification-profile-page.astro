@@ -16,6 +16,7 @@ import {
   type IQualificationProfileModel,
 } from '../../lib/qualification/index.ts';
 import { getQualificationReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
+import { SITE_GHOST_LINK_CLASS_NAME } from '../../lib/site/index.ts';
 
 interface Props {
   profile: IQualificationProfileModel;
@@ -103,10 +104,10 @@ const breadcrumbs = [
             />
           </ActionLink>
           <ActionLink
-            class="font-bold"
+            class={`font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
             href={withBase('/evidence/qualification/', basePath)}
             size="lg"
-            variant="outline"
+            variant="ghost"
           >
             Choose another integration
           </ActionLink>

@@ -10,6 +10,7 @@ import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import { SOURCE_REPOSITORY_URL } from '../../lib/model/constants.ts';
 import { getQualificationReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
+import { SITE_GHOST_LINK_CLASS_NAME } from '../../lib/site/index.ts';
 
 const model = loadWebsiteModel();
 const { qualification } = model;
@@ -212,9 +213,9 @@ const proofSteps = [
           </p>
           <div class="mt-5 flex flex-wrap gap-3">
             <ActionLink
-              class="font-bold"
+              class={`font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
               href={withBase('/docs/adapter-qualification/', basePath)}
-              variant="outline"
+              variant="ghost"
             >
               Read the methodology
               <FileCheck
@@ -223,11 +224,11 @@ const proofSteps = [
               />
             </ActionLink>
             <ActionLink
-              class="font-bold"
+              class={`font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
               href={`${SOURCE_REPOSITORY_URL}/tree/main/qualification`}
               target="_blank"
               rel="noopener noreferrer"
-              variant="outline"
+              variant="ghost"
             >
               Inspect qualification source
               <ExternalLink

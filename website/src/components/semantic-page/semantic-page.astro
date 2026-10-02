@@ -10,6 +10,7 @@ import SemanticEvaluationCase from '../semantic-evaluation-case/semantic-evaluat
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import { getSemanticReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
+import { SITE_GHOST_LINK_CLASS_NAME } from '../../lib/site/index.ts';
 
 const model = loadWebsiteModel();
 const { currentSemanticAssurance, semanticEvaluation } = model;
@@ -86,9 +87,9 @@ const semanticReleaseSection =
           repository.
         </p>
         <ActionLink
-          class="mt-7 font-bold"
+          class={`mt-7 font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
           href={withBase(semanticEvaluation.methodologyUrl, basePath)}
-          variant="outline"
+          variant="ghost"
         >
           How the evaluation works
           <BookOpen
@@ -131,8 +132,9 @@ const semanticReleaseSection =
         {
           presentationGroups.map((group) => (
             <ActionLink
+              class={SITE_GHOST_LINK_CLASS_NAME}
               href={`#${group.id}`}
-              variant="outline"
+              variant="ghost"
             >
               {group.title}
             </ActionLink>

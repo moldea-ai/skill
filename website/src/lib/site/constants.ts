@@ -9,3 +9,7 @@ export const SOCIAL_IMAGE = {
   width: 1730,
 } as const;
 export const THEME_STORAGE_KEY = 'moldea-skill-theme';
+
+// secondary navigation stays transparent in light mode and retains its dark surface
+export const SITE_GHOST_LINK_CLASS_NAME =
+  'dark:border-border dark:bg-border/30 dark:not-disabled:not-aria-disabled:hover:bg-border/50';

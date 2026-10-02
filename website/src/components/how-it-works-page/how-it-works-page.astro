@@ -24,6 +24,7 @@ import BaseLayout from '../../layouts/base-layout.astro';
 import BookingArtifacts from '../booking-artifacts/booking-artifacts.astro';
 import { BOOKING_EXAMPLE } from '../../lib/booking-example/index.ts';
 import { PRODUCT_PAGE_METADATA } from '../../lib/model/constants.ts';
+import { SITE_GHOST_LINK_CLASS_NAME } from '../../lib/site/index.ts';
 
 const basePath = import.meta.env.BASE_URL;
 const pageMetadata = PRODUCT_PAGE_METADATA.howItWorks;
@@ -89,10 +90,10 @@ const connectionItems = [
             />
           </ActionLink>
           <ActionLink
-            class="font-bold"
+            class={`font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
             href={withBase('/docs/how-it-works/', basePath)}
             size="lg"
-            variant="outline"
+            variant="ghost"
           >
             Read the technical guide
           </ActionLink>

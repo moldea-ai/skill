@@ -16,6 +16,8 @@ Qualification journey pages also present a static Project view from the same val
 
 The shared layout adds copy controls to useful code blocks after each direct load or client navigation. Illustrative and incomplete excerpts opt out at their owning component, remain selectable, and reserve no toolbar space. Clipboard failures keep the source readable and explain how to copy it manually.
 
+Secondary navigation uses Website UI's ghost `ActionLink`: transparent in light mode, with the existing outline border and translucent surface in dark mode. `src/lib/site` owns the reused dark-theme classes. Primary calls to action, inverted links on dark emphasis sections, and button controls retain their existing variants.
+
 Website UI owns the source overflow policy across code blocks, Markdown fences, diffs, and recorded tool dialogs. Markdown and plain text wrap; code, YAML, JSON, and unlabelled source preserve their lines with horizontal scrolling. Mixed recorded patches choose the default per file. Consumers can select `overflow="wrap"` or `"scroll"` on `CodeBlock` and `CodeDiff`, or `codeOverflow` on Markdown renderers, without local wrapping styles. Diff edge rows include the small leading and trailing inset, so change backgrounds fill it while unchanged comparisons retain the same spacing.
 
 ## Project runs

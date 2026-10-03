@@ -15,27 +15,6 @@ import { lstat, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
-// src/filesystem/atomic-bytes/atomic-bytes.ts
-import { randomUUID } from "node:crypto";
-import { mkdir, rename, rm, writeFile } from "node:fs/promises";
-import path from "node:path";
-var writeBufferFileAtomically = async (filePath, content, signal) => {
-  signal?.throwIfAborted();
-  await mkdir(path.dirname(filePath), { recursive: true });
-  const temporaryPath = path.join(path.dirname(filePath), `.${randomUUID()}.tmp`);
-  try {
-    signal?.throwIfAborted();
-    await writeFile(temporaryPath, content, { flag: "wx", signal });
-    signal?.throwIfAborted();
-    await rename(temporaryPath, filePath);
-  } finally {
-    await rm(temporaryPath, { force: true });
-  }
-};
-
-// src/portable/response-page/response-page.ts
-import { isPathWithin, readRepositoryFile } from "./repository-files.mjs";
-
 // node_modules/zod/v4/classic/external.js
 var external_exports = {};
 __export(external_exports, {
@@ -13804,37 +13783,128 @@ function date4(params) {
 // node_modules/zod/v4/classic/external.js
 config(en_default());
 
+// src/filesystem/atomic-bytes/atomic-bytes.ts
+import { randomUUID } from "node:crypto";
+import { mkdir, rename, rm, writeFile } from "node:fs/promises";
+import path from "node:path";
+var writeBufferFileAtomically = async (filePath, content, signal) => {
+  signal?.throwIfAborted();
+  await mkdir(path.dirname(filePath), { recursive: true });
+  const temporaryPath = path.join(path.dirname(filePath), `.${randomUUID()}.tmp`);
+  try {
+    signal?.throwIfAborted();
+    await writeFile(temporaryPath, content, { flag: "wx", signal });
+    signal?.throwIfAborted();
+    await rename(temporaryPath, filePath);
+  } finally {
+    await rm(temporaryPath, { force: true });
+  }
+};
+
+// src/portable/response-page/response-page.ts
+import { isPathWithin, readRepositoryFile } from "./repository-files.mjs";
+
 // src/portable/response-page/types.ts
-var ResponsePageSchema = external_exports.object({
+var responseIdentity = {
   schemaVersion: external_exports.literal(5),
   cliVersion: external_exports.string(),
-  command: external_exports.enum(["content", "inspect", "scope", "validate"]),
-  status: external_exports.enum(["valid", "invalid"]),
-  error: external_exports.null(),
-  result: external_exports.object({
-    cursor: external_exports.string().nullable().optional(),
-    page: external_exports.object({ cursor: external_exports.string().nullable() }).optional()
+  command: external_exports.enum(["composition", "content", "inspect", "scope", "validate"])
+};
+var ResponsePageSchema = external_exports.discriminatedUnion("status", [
+  external_exports.object({
+    ...responseIdentity,
+    status: external_exports.enum(["valid", "invalid"]),
+    error: external_exports.null(),
+    result: external_exports.looseObject({})
+  }),
+  external_exports.object({
+    ...responseIdentity,
+    status: external_exports.literal("error"),
+    error: external_exports.object({}),
+    result: external_exports.null()
+  })
+]);
+var ValidationResultSchema = external_exports.object({
+  valid: external_exports.boolean(),
+  diagnosticCount: external_exports.int().nonnegative(),
+  errorCount: external_exports.int().nonnegative(),
+  warningCount: external_exports.int().nonnegative()
+});
+var InspectionResultSchema = external_exports.object({
+  valid: external_exports.boolean(),
+  counts: external_exports.object({
+    diagnostics: external_exports.int().nonnegative(),
+    errors: external_exports.int().nonnegative(),
+    warnings: external_exports.int().nonnegative()
   })
 });
 
 // src/portable/response-page/response-page.ts
 var MAXIMUM_RESPONSE_BYTES = 1048576;
 var MAXIMUM_CURSOR_BYTES = 8192;
-var parseResponsePage = (bytes, identity) => {
+var parseResponse = (bytes, identity) => {
   if (bytes.byteLength > MAXIMUM_RESPONSE_BYTES) {
-    throw new Error("Saved moldea response exceeds the 1 MiB page limit.");
+    throw new Error("Moldea response exceeds the 1 MiB page limit.");
   }
-  const page = ResponsePageSchema.parse(
-    JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes))
-  );
+  let decoded;
+  try {
+    decoded = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch (cause) {
+    throw new Error("Moldea response is not complete UTF-8 JSON.", { cause });
+  }
+  const parsed = ResponsePageSchema.safeParse(decoded);
+  if (!parsed.success) {
+    throw new Error("Moldea response does not match the supported envelope contract.");
+  }
+  const page = parsed.data;
   if (page.command !== identity.command || page.cliVersion !== identity.cliVersion) {
-    throw new Error("Saved moldea response does not match this command and installed CLI version.");
+    throw new Error("Moldea response does not match this command and installed CLI version.");
   }
-  const cursor = page.command === "content" ? page.result.cursor : page.result.page?.cursor;
-  if (cursor === void 0 || cursor !== null && Buffer.byteLength(cursor) > MAXIMUM_CURSOR_BYTES) {
+  if (page.status === "error") return page;
+  if (page.command === "composition" && page.status !== "valid") {
+    throw new Error("Moldea composition response must be valid or error.");
+  }
+  if (page.command === "validate") {
+    const result = ValidationResultSchema.safeParse(page.result);
+    if (!result.success) throw new Error("Moldea response has invalid diagnostic totals.");
+    verifyDiagnosticTotals(result.data, page.status);
+  } else if (page.command === "inspect") {
+    const result = InspectionResultSchema.safeParse(page.result);
+    if (!result.success) throw new Error("Moldea response has invalid diagnostic totals.");
+    verifyDiagnosticTotals(
+      {
+        valid: result.data.valid,
+        diagnosticCount: result.data.counts.diagnostics,
+        errorCount: result.data.counts.errors,
+        warningCount: result.data.counts.warnings
+      },
+      page.status
+    );
+  }
+  return page;
+};
+var verifyDiagnosticTotals = (result, status) => {
+  if (result.diagnosticCount !== result.errorCount + result.warningCount || result.valid !== (result.errorCount === 0) || result.valid !== (status === "valid")) {
+    throw new Error("Moldea response diagnostic totals contradict its validity or status.");
+  }
+};
+var readContinuationCursor = (page) => {
+  if (page.status === "error" || page.command === "composition") {
     throw new Error("Saved moldea response has no supported continuation cursor.");
   }
-  return { status: page.status, cursor };
+  const parsed = page.command === "content" ? external_exports.string().nullable().safeParse(page.result["cursor"]) : external_exports.object({ cursor: external_exports.string().nullable() }).safeParse(page.result["page"]);
+  if (!parsed.success) {
+    throw new Error("Saved moldea response has no supported continuation cursor.");
+  }
+  const cursor = typeof parsed.data === "object" && parsed.data !== null ? parsed.data.cursor : parsed.data;
+  if (cursor !== null && Buffer.byteLength(cursor) > MAXIMUM_CURSOR_BYTES) {
+    throw new Error("Saved moldea response has no supported continuation cursor.");
+  }
+  return cursor;
+};
+var parseResponsePage = (bytes, identity) => {
+  const page = parseResponse(bytes, identity);
+  return { status: page.status, cursor: readContinuationCursor(page) };
 };
 var resolveResponsePath = async (filePath, repositoryRoot) => {
   const temporaryRoot = await realpath(tmpdir());
@@ -13892,12 +13962,14 @@ var prepareResponseFiles = async (repositoryRoot, identity, cursorPath, savePath
   }
   return files;
 };
-var saveResponsePage = async (files, repositoryRoot, bytes, identity, exitCode, signal) => {
-  if (files.savePath === void 0 || exitCode !== 0 && exitCode !== 1) return;
-  const page = parseResponsePage(bytes, identity);
-  if ((page.status === "valid" ? 0 : 1) !== exitCode) {
+var verifyAndSaveResponse = async (files, repositoryRoot, bytes, identity, exitCode, signal) => {
+  signal.throwIfAborted();
+  const page = parseResponse(bytes, identity);
+  if (page.status === "error" ? exitCode !== 2 && exitCode !== 3 : (page.status === "valid" ? 0 : 1) !== exitCode) {
     throw new Error("Moldea response status contradicts the child exit code.");
   }
+  if (files.savePath === void 0 || page.status === "error") return;
+  readContinuationCursor(page);
   const checked = await prepareCapturePath(files.savePath, files.checkpointPath, repositoryRoot);
   await writeBufferFileAtomically(checked, bytes, signal);
 };
@@ -14027,7 +14099,7 @@ var parseArguments = () => {
       if (optionValue === void 0 || optionValue === "" || optionValue.startsWith("--")) {
         throw new Error(`Launcher option ${argument} requires one value.`);
       }
-      const normalizedValue = command === "scope" && argument === "--path" ? normalizeScopePath(optionValue) : optionValue;
+      const normalizedValue = (command === "scope" || command === "content") && argument === "--path" ? normalizeScopePath(optionValue) : optionValue;
       values.set(argument, normalizedValue);
       commandArguments[index + 1] = normalizedValue;
       index += 1;
@@ -14180,16 +14252,14 @@ var runCli = async () => {
       return;
     }
     const stdout = Buffer.concat(stdoutChunks, stdoutByteCount);
-    if (parsed.command !== "composition") {
-      await saveResponsePage(
-        responseFiles,
-        resolvedCli.repositoryRoot,
-        stdout,
-        { command: parsed.command, cliVersion: resolvedCli.cliVersion },
-        completion.exitCode,
-        captureController.signal
-      );
-    }
+    await verifyAndSaveResponse(
+      responseFiles,
+      resolvedCli.repositoryRoot,
+      stdout,
+      { command: parsed.command, cliVersion: resolvedCli.cliVersion },
+      completion.exitCode,
+      captureController.signal
+    );
     if (cancellationSignal !== void 0) {
       process.stderr.write(`moldea CLI terminated by ${cancellationSignal}.
 `);

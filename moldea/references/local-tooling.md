@@ -6,9 +6,9 @@ For a direct request to prove or safely invoke the local CLI, apply this referen
 
 ## Supported contract
 
-Skill 6.0.5 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^5.0.0`, stable `@moldea.ai/cli` releases satisfying `^9.0.0`, repository format 1, and CLI JSON schema 5. Never substitute a global, transient, out-of-range, or prerelease CLI.
+Skill 6.0.6 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^5.0.0`, stable `@moldea.ai/cli` releases satisfying `^9.0.0`, repository format 1, and CLI JSON schema 5. Never substitute a global, transient, out-of-range, or prerelease CLI.
 
-Use only `<installed-skill-root>/scripts/moldea-cli.mjs`. The launcher resolves the repository-root-local package and executable, verifies the package name, exact installed stable version, supported repository declaration, declared `moldea` binary, installed Core against both the CLI's declared range and moldea's supported range, and resolved-path containment from inert package metadata, then invokes the executable without a shell. Package management and repository setup or CI own lockfile consistency; the launcher does not read target-project lockfiles. Require the exact envelope version to match that installed version. Do not reproduce these probes, inspect links manually, search parent workspaces, inspect unrelated repositories, use package-manager launchers, or search `PATH` for another copy.
+Use only `<installed-skill-root>/scripts/moldea-cli.mjs`. The launcher resolves the repository-root-local package and executable, verifies the package name, exact installed stable version, supported repository declaration, declared `moldea` binary, installed Core against both the CLI's declared range and moldea's supported range, and resolved-path containment from inert package metadata, then invokes the executable without a shell. Package management and repository setup or CI own lockfile consistency; the launcher does not read target-project lockfiles. Do not reproduce these probes, inspect links manually, search parent workspaces, inspect unrelated repositories, use package-manager launchers, or search `PATH` for another copy.
 
 Reuse the exact skill root already selected by the host. Package metadata and containment establish a supported local layout, not executable authenticity. The launcher is not an OS sandbox and may execute repository-installed code under the host's existing repository-trust and execution controls. Do not weaken those controls or add a new per-command approval ceremony. The pre-activation gate is separate: it executes only shipped skill code, never repository dependencies.
 
@@ -32,23 +32,15 @@ node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-reposi
 
 `scope` is the single pre-reference relationship query, `validate` returns structural diagnostics, `inspect` returns content-free inventory, `content` reads one explicit canonical asset, and `composition` is used only when installed package composition matters. The launcher's fixed 65,536-byte composition boundary replaces a caller-supplied page budget.
 
-The gate and scope launcher accept repository-relative or leading-slash repository-logical paths and add the leading slash mechanically. For stdin scope, encode each path's UTF-8 bytes followed by one NUL, never put a delimiter before the first path, and pass the complete stream once within the 2 MiB input limit. Never call `scope` separately per path. `content` still requires an explicit canonical path.
+The gate and the launcher's `scope` and `content --path` accept repository-relative or leading-slash repository-logical paths and add the leading slash mechanically without changing segments. `content` still selects one explicit canonical asset. For stdin scope, encode each path's UTF-8 bytes followed by one NUL, never put a delimiter before the first path, and pass the complete stream once within the 2 MiB input limit. Never call `scope` separately per path.
 
 ## Envelope verification
 
-Interpret JSON only after the child process completes. Require:
-
-- integer `schemaVersion: 5`
-- string `cliVersion` equal to the exact installed stable CLI version satisfying `^9.0.0`
-- the exact invoked `command`
-- `status` equal to `valid`, `invalid`, or `error`
-- `error: null` and a non-null result only for `valid` or `invalid`
-- a non-null machine error and `result: null` only for `error`
-- exit code 0 for `valid`, 1 for `invalid`, and 2 or 3 for `error`
+The launcher verifies complete UTF-8 JSON, schema 5, the exact installed CLI version, invoked command, result/error shape, and exit/status agreement for every completed response, including calls without capture and `composition`. It preserves verified raw bytes and legitimate exit codes: 0 for `valid`, 1 for `invalid`, and 2 or 3 for `error`. Malformed or contradictory output returns 3 with a short diagnostic and no stdout. It accepts additive fields without interpreting full CLI payloads.
 
 Signals, launcher failures, output-boundary termination, malformed output, contradictory status, version mismatch, unsupported schema, and incomplete output establish no conclusion. The launcher sends the requested termination signal first and force-terminates a child that remains active after five seconds. An `invalid` result is diagnostic evidence, not validity.
 
-For `validate`, use the complete result's `diagnosticCount`, `errorCount`, and `warningCount`; for `inspect`, use `counts.diagnostics`, `counts.errors`, and `counts.warnings`. Require nonnegative integer totals, diagnostics equal to errors plus warnings, and `result.valid` and envelope status consistent with zero errors. These totals cover the snapshot even when `page.records` has a continuation cursor. A warning-only valid result does not verify the warned relationship or capability; it does not block unrelated authorized work. Errors remain failures. If totals, status, or pagination contradict the contract, report that validation or inspection is unverified rather than treating an empty page as clean.
+For `validate`, use the complete result's `diagnosticCount`, `errorCount`, and `warningCount`; for `inspect`, use `counts.diagnostics`, `counts.errors`, and `counts.warnings`. The launcher verifies these nonnegative integer totals, their arithmetic, and agreement with `result.valid` and status. Totals cover the snapshot even when `page.records` has a continuation cursor; an empty page does not establish a clean result. A warning-only valid result leaves its named relationship or capability unverified without blocking unrelated authorized work. Errors remain failures. The agent still interprets relevance, authority, warnings, completeness, and whether another page is necessary.
 
 Every paged result carries a snapshot identity. Use launcher-owned response files to continue without transcribing opaque cursors. Create a private task-owned directory beneath the host's temporary root, outside the repository (for example, Node's `mkdtemp` with `tmpdir`); use short portable filenames such as `page.json`. The directory must already exist. On POSIX it must be owned by the current user with no group/other access; on Windows use the host's private temporary storage. Hosts that prohibit scratch writes retain that constraint; report incomplete traversal instead of bypassing it.
 

@@ -1,35 +1,115 @@
 import { lstat, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { z } from 'zod';
 
 import { writeBufferFileAtomically } from '../../filesystem/atomic-bytes/index.ts';
 
 import { isPathWithin, readRepositoryFile } from '../repository-files.ts';
 
-import { ResponsePageSchema, type IResponseFiles, type IResponseIdentity } from './types.ts';
+import {
+  InspectionResultSchema,
+  ResponsePageSchema,
+  ValidationResultSchema,
+  type IResponseDiagnostics,
+  type IResponseFiles,
+  type IResponseIdentity,
+  type IResponsePage,
+} from './types.ts';
 
 const MAXIMUM_RESPONSE_BYTES = 1_048_576;
 const MAXIMUM_CURSOR_BYTES = 8_192;
 
-/** Validates one bounded raw page without transforming its opaque cursor. */
-export const parseResponsePage = (bytes: Uint8Array, identity: IResponseIdentity) => {
+/** Checks bounded JSON and mechanical invariants without interpreting CLI-owned payloads. */
+const parseResponse = (bytes: Uint8Array, identity: IResponseIdentity): IResponsePage => {
   if (bytes.byteLength > MAXIMUM_RESPONSE_BYTES) {
-    throw new Error('Saved moldea response exceeds the 1 MiB page limit.');
+    throw new Error('Moldea response exceeds the 1 MiB page limit.');
   }
-  const page = ResponsePageSchema.parse(
-    JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as unknown,
-  );
+  let decoded: unknown;
+  try {
+    decoded = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as unknown;
+  } catch (cause) {
+    throw new Error('Moldea response is not complete UTF-8 JSON.', { cause });
+  }
+  const parsed = ResponsePageSchema.safeParse(decoded);
+  if (!parsed.success) {
+    throw new Error('Moldea response does not match the supported envelope contract.');
+  }
+  const page = parsed.data;
   if (page.command !== identity.command || page.cliVersion !== identity.cliVersion) {
-    throw new Error('Saved moldea response does not match this command and installed CLI version.');
+    throw new Error('Moldea response does not match this command and installed CLI version.');
   }
-  const cursor = page.command === 'content' ? page.result.cursor : page.result.page?.cursor;
+  if (page.status === 'error') return page;
+  if (page.command === 'composition' && page.status !== 'valid') {
+    throw new Error('Moldea composition response must be valid or error.');
+  }
+  if (page.command === 'validate') {
+    const result = ValidationResultSchema.safeParse(page.result);
+    if (!result.success) throw new Error('Moldea response has invalid diagnostic totals.');
+    verifyDiagnosticTotals(result.data, page.status);
+  } else if (page.command === 'inspect') {
+    const result = InspectionResultSchema.safeParse(page.result);
+    if (!result.success) throw new Error('Moldea response has invalid diagnostic totals.');
+    verifyDiagnosticTotals(
+      {
+        valid: result.data.valid,
+        diagnosticCount: result.data.counts.diagnostics,
+        errorCount: result.data.counts.errors,
+        warningCount: result.data.counts.warnings,
+      },
+      page.status,
+    );
+  }
+  return page;
+};
+
+const verifyDiagnosticTotals = (
+  result: IResponseDiagnostics,
+  status: 'valid' | 'invalid',
+): void => {
   if (
-    cursor === undefined ||
-    (cursor !== null && Buffer.byteLength(cursor) > MAXIMUM_CURSOR_BYTES)
+    result.diagnosticCount !== result.errorCount + result.warningCount ||
+    result.valid !== (result.errorCount === 0) ||
+    result.valid !== (status === 'valid')
   ) {
+    throw new Error('Moldea response diagnostic totals contradict its validity or status.');
+  }
+};
+
+const readContinuationCursor = (page: IResponsePage): string | null => {
+  if (page.status === 'error' || page.command === 'composition') {
     throw new Error('Saved moldea response has no supported continuation cursor.');
   }
-  return { status: page.status, cursor };
+  const parsed =
+    page.command === 'content'
+      ? z.string().nullable().safeParse(page.result['cursor'])
+      : z.object({ cursor: z.string().nullable() }).safeParse(page.result['page']);
+  if (!parsed.success) {
+    throw new Error('Saved moldea response has no supported continuation cursor.');
+  }
+  const cursor =
+    typeof parsed.data === 'object' && parsed.data !== null ? parsed.data.cursor : parsed.data;
+  if (cursor !== null && Buffer.byteLength(cursor) > MAXIMUM_CURSOR_BYTES) {
+    throw new Error('Saved moldea response has no supported continuation cursor.');
+  }
+  return cursor;
+};
+
+/**
+ * Validates one bounded saved page without transforming its opaque cursor.
+ * @throws
+ * - Moldea response exceeds the 1 MiB page limit.
+ * - Moldea response is not complete UTF-8 JSON.
+ * - Moldea response does not match the supported envelope contract.
+ * - Moldea response does not match this command and installed CLI version.
+ * - Moldea composition response must be valid or error.
+ * - Moldea response has invalid diagnostic totals.
+ * - Moldea response diagnostic totals contradict its validity or status.
+ * - Saved moldea response has no supported continuation cursor.
+ */
+export const parseResponsePage = (bytes: Uint8Array, identity: IResponseIdentity) => {
+  const page = parseResponse(bytes, identity);
+  return { status: page.status, cursor: readContinuationCursor(page) };
 };
 
 /** Requires an existing private scratch directory with no linked components below the temp root. */
@@ -78,6 +158,9 @@ const resolveResponsePath = async (filePath: string, repositoryRoot: string): Pr
 /**
  * Resolves explicit scratch files and reads exactly one saved continuation before child execution.
  * @returns A promise resolving to checked paths and the unchanged cursor, when requested.
+ * @throws
+ * - Response-path or saved-page validation errors, including a final page without continuation.
+ * - Native filesystem errors when checking scratch paths or reading saved input.
  */
 export const prepareResponseFiles = async (
   repositoryRoot: string,
@@ -114,10 +197,15 @@ export const prepareResponseFiles = async (
 };
 
 /**
- * Captures only a complete valid/invalid page without replacing a checkpoint on input failure.
- * @returns A promise resolving after eligible capture, or without a write for child errors.
+ * Verifies every completed response and optionally captures a valid/invalid continuation page.
+ * @returns A promise resolving after verification and eligible capture; errors preserve checkpoints.
+ * @throws
+ * - Response validation errors documented by parseResponsePage.
+ * - Moldea response status contradicts the child exit code.
+ * - Response-path validation errors or native filesystem errors during capture and cleanup.
+ * - The signal's abort reason when cancelled before rename submission.
  */
-export const saveResponsePage = async (
+export const verifyAndSaveResponse = async (
   files: IResponseFiles,
   repositoryRoot: string,
   bytes: Uint8Array,
@@ -125,11 +213,17 @@ export const saveResponsePage = async (
   exitCode: number | null,
   signal: AbortSignal,
 ): Promise<void> => {
-  if (files.savePath === undefined || (exitCode !== 0 && exitCode !== 1)) return;
-  const page = parseResponsePage(bytes, identity);
-  if ((page.status === 'valid' ? 0 : 1) !== exitCode) {
+  signal.throwIfAborted();
+  const page = parseResponse(bytes, identity);
+  if (
+    page.status === 'error'
+      ? exitCode !== 2 && exitCode !== 3
+      : (page.status === 'valid' ? 0 : 1) !== exitCode
+  ) {
     throw new Error('Moldea response status contradicts the child exit code.');
   }
+  if (files.savePath === undefined || page.status === 'error') return;
+  readContinuationCursor(page);
   // recheck immediately before staging; the private directory belongs to this task
   const checked = await prepareCapturePath(files.savePath, files.checkpointPath, repositoryRoot);
   await writeBufferFileAtomically(checked, bytes, signal);

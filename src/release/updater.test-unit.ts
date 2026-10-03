@@ -42,6 +42,10 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
     );
   }
   currentFiles.set(
+    'src/portable/response-page/types.ts',
+    'CLI JSON schema `3`\nschemaVersion: z.literal(3),\n',
+  );
+  currentFiles.set(
     RELEASE_PATHS.sourceRepositoryPackage,
     "export const EXPECTED_CLI_RANGE = '^6.0.0';\nexport const SUPPORTED_CORE_RANGE = '^2.0.1';\n",
   );
@@ -143,6 +147,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
     assert.match(getUpdated(relativePath), /CLI JSON schema `4`/u);
   }
   assert.match(getUpdated(RELEASE_PATHS.skill), /cliJsonSchemaVersion: '4'/u);
+  assert.match(getUpdated('src/portable/response-page/types.ts'), /schemaVersion: z.literal\(4\)/u);
   assert.equal(updatedFiles.get(RELEASE_PATHS.packageLock), '{"lockfileVersion":3}\n');
   assert.equal(updatedFiles.get(RELEASE_PATHS.packageManifest), '{"version":"3.1.0"}\n');
   assert.equal(
@@ -202,7 +207,9 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
 test('createCliReleaseUpdate preserves portable ranges for a same-major patch', () => {
   const portableText = '@moldea.ai/cli ^7.0.0\nCLI 7\n@moldea.ai/core ^3.0.1\n';
   const currentFiles = new Map<string, string>(
-    CLI_VERSION_RANGE_TEXT_PATHS.map((relativePath) => [relativePath, portableText]),
+    [...new Set([...CLI_VERSION_RANGE_TEXT_PATHS, ...CLI_JSON_SCHEMA_VERSION_TEXT_PATHS])].map(
+      (relativePath) => [relativePath, portableText],
+    ),
   );
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
     currentFiles.set(relativePath, `${currentFiles.get(relativePath)}CLI JSON schema \`4\`\n`);
@@ -305,7 +312,9 @@ test('createCliReleaseUpdate keeps coincident CLI and Core ranges independent', 
   const portableText =
     '@moldea.ai/core ^6.0.0, @moldea.ai/cli ^6.0.0\nCLI 6\nCLI JSON schema `4`\n';
   const currentFiles = new Map<string, string>(
-    CLI_VERSION_RANGE_TEXT_PATHS.map((relativePath) => [relativePath, portableText]),
+    [...new Set([...CLI_VERSION_RANGE_TEXT_PATHS, ...CLI_JSON_SCHEMA_VERSION_TEXT_PATHS])].map(
+      (relativePath) => [relativePath, portableText],
+    ),
   );
   currentFiles.set(
     'docs/compatibility-and-local-tooling.md',

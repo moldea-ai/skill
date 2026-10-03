@@ -13,7 +13,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
 
-import { prepareResponseFiles, saveResponsePage } from './index.ts';
+import { prepareResponseFiles, verifyAndSaveResponse } from './index.ts';
 
 const roots: string[] = [];
 const identity = { command: 'content' as const, cliVersion: '9.0.1' };
@@ -36,12 +36,12 @@ afterEach(async () => {
 test('saves exact raw bytes, continues unchanged, and explicitly replaces the loaded checkpoint', async () => {
   const { repository, scratch, path } = await fixture();
   const files = await prepareResponseFiles(repository, identity, undefined, path);
-  await saveResponsePage(files, repository, raw, identity, 0, new AbortController().signal);
+  await verifyAndSaveResponse(files, repository, raw, identity, 0, new AbortController().signal);
   expect(await readFile(path)).toStrictEqual(raw);
   const continuation = await prepareResponseFiles(repository, identity, path, path);
   expect(continuation.cursor).toBe('exact_É+/=');
   const final = Buffer.from(raw.toString().replace('"exact_É+/="', 'null'));
-  await saveResponsePage(
+  await verifyAndSaveResponse(
     continuation,
     repository,
     final,
@@ -58,16 +58,25 @@ test('preserves existing checkpoints after errors, malformed output, contradicto
   const { repository, path } = await fixture();
   await writeFile(path, raw);
   const files = await prepareResponseFiles(repository, identity, path, path);
-  await saveResponsePage(
+  await verifyAndSaveResponse(
     files,
     repository,
-    Buffer.from('error'),
+    Buffer.from(
+      JSON.stringify({
+        schemaVersion: 5,
+        cliVersion: '9.0.1',
+        command: 'content',
+        status: 'error',
+        error: { code: 'CURSOR_INVALID' },
+        result: null,
+      }),
+    ),
     identity,
     3,
     new AbortController().signal,
   );
   await expect(
-    saveResponsePage(
+    verifyAndSaveResponse(
       files,
       repository,
       Buffer.from('{'),
@@ -77,12 +86,12 @@ test('preserves existing checkpoints after errors, malformed output, contradicto
     ),
   ).rejects.toThrow();
   await expect(
-    saveResponsePage(files, repository, raw, identity, 1, new AbortController().signal),
+    verifyAndSaveResponse(files, repository, raw, identity, 1, new AbortController().signal),
   ).rejects.toThrow('contradicts');
   const controller = new AbortController();
   controller.abort();
   await expect(
-    saveResponsePage(files, repository, raw, identity, 0, controller.signal),
+    verifyAndSaveResponse(files, repository, raw, identity, 0, controller.signal),
   ).rejects.toThrow();
   expect(await readFile(path)).toStrictEqual(raw);
 });
@@ -90,7 +99,7 @@ test('preserves existing checkpoints after errors, malformed output, contradicto
 test('captures invalid diagnostic pages with exit one', async () => {
   const { repository, path } = await fixture();
   const invalid = Buffer.from(raw.toString().replace('"valid"', '"invalid"'));
-  await saveResponsePage(
+  await verifyAndSaveResponse(
     await prepareResponseFiles(repository, identity, undefined, path),
     repository,
     invalid,

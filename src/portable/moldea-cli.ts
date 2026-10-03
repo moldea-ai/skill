@@ -3,7 +3,7 @@
 import { spawn } from 'node:child_process';
 import { isAbsolute } from 'node:path';
 
-import { prepareResponseFiles, saveResponsePage } from './response-page/index.ts';
+import { prepareResponseFiles, verifyAndSaveResponse } from './response-page/index.ts';
 import { resolveRepositoryCli } from './repository-package.ts';
 import { normalizeScopePath, readScopePathInput } from './scope-path-input.ts';
 
@@ -110,7 +110,7 @@ const parseArguments = (): IParsedArguments => {
         throw new Error(`Launcher option ${argument} requires one value.`);
       }
       const normalizedValue =
-        command === 'scope' && argument === '--path'
+        (command === 'scope' || command === 'content') && argument === '--path'
           ? normalizeScopePath(optionValue)
           : optionValue;
       values.set(argument, normalizedValue);
@@ -315,16 +315,14 @@ const runCli = async (): Promise<void> => {
     }
 
     const stdout = Buffer.concat(stdoutChunks, stdoutByteCount);
-    if (parsed.command !== 'composition') {
-      await saveResponsePage(
-        responseFiles,
-        resolvedCli.repositoryRoot,
-        stdout,
-        { command: parsed.command, cliVersion: resolvedCli.cliVersion },
-        completion.exitCode,
-        captureController.signal,
-      );
-    }
+    await verifyAndSaveResponse(
+      responseFiles,
+      resolvedCli.repositoryRoot,
+      stdout,
+      { command: parsed.command, cliVersion: resolvedCli.cliVersion },
+      completion.exitCode,
+      captureController.signal,
+    );
     if (cancellationSignal !== undefined) {
       process.stderr.write(`moldea CLI terminated by ${cancellationSignal}.\n`);
       process.exitCode = 3;

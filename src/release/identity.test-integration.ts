@@ -6,11 +6,17 @@ import { dirname, join, resolve } from 'node:path';
 import { test } from 'vitest';
 import { z } from 'zod';
 
-import { RELEASE_PATHS } from './constants.ts';
+import { CLI_JSON_SCHEMA_VERSION_TEXT_PATHS, RELEASE_PATHS } from './constants.ts';
 import { inspectReleaseIdentity, readReleaseIdentity } from './identity.ts';
 
 const REPOSITORY_ROOT = resolve(import.meta.dirname, '..', '..');
-const IDENTITY_PATHS = [...Object.values(RELEASE_PATHS), 'docs/compatibility-and-local-tooling.md'];
+const IDENTITY_PATHS = [
+  ...new Set([
+    ...Object.values(RELEASE_PATHS),
+    ...CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
+    'docs/compatibility-and-local-tooling.md',
+  ]),
+];
 const SemanticCliManifestSchema = z.looseObject({
   dependencies: z.record(z.string(), z.string()),
 });

@@ -53,7 +53,7 @@ Repository-local Agent Skills stay in their authoritative repository-native dire
 
 ## Example: connect focused context to the code
 
-Suppose support policy is durable enough to deserve focused context:
+Suppose the foundation identifies a support-triage service whose scope is defined in `/src/service.ts`, and support policy deserves focused context:
 
 ```text
 moldea/
@@ -61,9 +61,13 @@ moldea/
 ├── project.md
 └── context/
     └── support-policy.md
+src/
+├── service.ts
+└── support/
+    └── policy.ts
 ```
 
-The manifest can connect both foundation and focused context to the implementation surfaces that may affect them:
+Connect the shared service boundary to its governing file and the support policy to its coherent implementation subtree:
 
 ```yaml
 version: 1
@@ -71,7 +75,7 @@ version: 1
 context:
   /moldea/project.md:
     affectedBy:
-      - /src/**
+      - /src/service.ts
   /moldea/context/support-policy.md:
     affectedBy:
       - /src/support/**
@@ -98,6 +102,9 @@ moldea/
         ├── description.md
         └── instruction.md
 src/
+├── service.ts
+├── support/
+│   └── policy.ts
 └── agents/
     ├── support-agent.ts
     └── support-agent.test-integration.ts
@@ -111,7 +118,7 @@ version: 1
 context:
   /moldea/project.md:
     affectedBy:
-      - /src/**
+      - /src/service.ts
   /moldea/context/support-policy.md:
     affectedBy:
       - /src/support/**

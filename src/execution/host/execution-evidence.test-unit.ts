@@ -917,3 +917,16 @@ test('execution evidence rejects model token usage above the host ceiling', () =
     /total model token usage is 2097153 tokens; the limit is 2097152 tokens/u,
   );
 });
+
+test('launcher identification counts mechanical continuation and capture as one call', () => {
+  const base =
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- content --path /moldea/project.md --json --max-output-bytes 65536';
+  const continuation = `${base} --cursor-from-response /tmp/moldea-task/page.json --save-response /tmp/moldea-task/page.json`;
+  assert.equal(identifyMoldeaCliLauncherOperation(continuation), 'content');
+  const evidence = projectCodexEvaluationExecutionEvidence(
+    createCommandEvent(continuation, 'raw page'),
+  );
+  assert.equal(evidence.commandPolicy.moldeaCommandCount, 1);
+  assert.equal(identifyMoldeaCliLauncherOperation(`${continuation} --cursor conflicting`), null);
+  assert.equal(identifyMoldeaCliLauncherOperation(`${base} --save-response /mnt/page.json`), null);
+});

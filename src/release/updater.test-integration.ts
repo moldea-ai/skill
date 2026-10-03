@@ -52,11 +52,13 @@ const createTemporaryReleaseRoot = (): string => {
     mkdirSync(dirname(destinationPath), { recursive: true });
     cpSync(sourcePath, destinationPath);
   }
-  cpSync(join(REPOSITORY_ROOT, 'src/portable'), join(temporaryRoot, 'src/portable'), {
-    recursive: true,
-    filter: (sourcePath) =>
-      !['_archive', '_archives', '_backup', '_backups'].includes(basename(sourcePath)),
-  });
+  for (const relativePath of ['src/portable', 'src/filesystem/atomic-bytes']) {
+    cpSync(join(REPOSITORY_ROOT, relativePath), join(temporaryRoot, relativePath), {
+      recursive: true,
+      filter: (sourcePath) =>
+        !['_archive', '_archives', '_backup', '_backups'].includes(basename(sourcePath)),
+    });
+  }
   return temporaryRoot;
 };
 

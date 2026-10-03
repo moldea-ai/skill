@@ -209,7 +209,13 @@ const SAFE_MOLDEA_CLI_LAUNCHER_PATHS = new Set([
   '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
 ]);
 const MOLDEA_CLI_OPERATIONS = new Set(['composition', 'content', 'inspect', 'scope', 'validate']);
-const MOLDEA_CLI_VALUE_OPTIONS = new Set(['--cursor', '--max-output-bytes', '--path']);
+const MOLDEA_CLI_VALUE_OPTIONS = new Set([
+  '--cursor',
+  '--max-output-bytes',
+  '--path',
+  '--save-response',
+  '--cursor-from-response',
+]);
 const MOLDEA_CLI_PAGE_OUTPUT_BYTES = '65536';
 const REPOSITORY_TEST_PATH_PATTERN =
   /(?:^|\/)[a-z0-9][a-z0-9._-]*\.test-(?:e2e|integration|unit)\.(?:c|m)?js$/u;
@@ -748,6 +754,17 @@ const parseMoldeaCliOperationArguments = (
   }
   if (values.get('--max-output-bytes') !== MOLDEA_CLI_PAGE_OUTPUT_BYTES) return null;
 
+  if (values.has('--cursor') && values.has('--cursor-from-response')) return null;
+  for (const option of ['--save-response', '--cursor-from-response']) {
+    const filePath = values.get(option);
+    if (
+      filePath !== undefined &&
+      (!filePath.startsWith('/tmp/') ||
+        posix.normalize(filePath) !== filePath ||
+        filePath.includes('\\'))
+    )
+      return null;
+  }
   const cursor = values.get('--cursor');
   if (cursor !== undefined && Buffer.byteLength(cursor, 'utf8') > 8_192) return null;
   const logicalPath = values.get('--path');
@@ -768,8 +785,14 @@ const parseMoldeaCliOperationArguments = (
 
   const allowedValues =
     operation === 'content'
-      ? new Set(['--cursor', '--max-output-bytes', '--path'])
-      : new Set(['--cursor', '--max-output-bytes']);
+      ? new Set([
+          '--cursor',
+          '--max-output-bytes',
+          '--path',
+          '--save-response',
+          '--cursor-from-response',
+        ])
+      : new Set(['--cursor', '--max-output-bytes', '--save-response', '--cursor-from-response']);
   return [...values.keys()].every((option) => allowedValues.has(option)) ? operation : null;
 };
 

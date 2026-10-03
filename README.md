@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The latest release is `6.0.3`. Install the latest version from `main` inside each repository that will use it:
+The latest release is `6.0.4`. Install the latest version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release:
 
 ```bash
-npx skills add "moldea-ai/skill#v6.0.3"
+npx skills add "moldea-ai/skill#v6.0.4"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -67,7 +67,7 @@ Evaluation is read-only. Repair corrects established errors without inventing po
 
 ## Compatibility
 
-Release `6.0.3` supports exactly:
+Release `6.0.4` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -115,10 +115,21 @@ Tooling establishment occurs only during authorized write-capable work and only 
 | `website/`                                | Static documentation and evidence presentation, including independently selected mock-project runs, sanitized session replays, and source links.       |
 | `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation and qualification attempts are not committed.                               |
 | `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                               |
+| `project-specification`                   | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                             |
 | `.github/workflows/conformance.yml`       | Portable generation, runtime, path, release, and installation checks.                                                                                  |
 | `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                |
 
 The distributed artifact is exactly `moldea/`; development-only tooling is not installed with the skill. Run `npm run matcher:generate` after changing the relevance gate's locked inputs and `npm run matcher:check` to verify the committed artifact.
+
+## Authoritative project specifications
+
+The sibling `platform` repository owns the canonical `moldea` product and skill specifications. The root `project-specification` symlink targets `../platform/moldea`. Before work that requires those specifications, read the [project foundation](project-specification/project.md), then only the relevant focused context. Start with the [Agent Skill specification](project-specification/context/agent-skill.md) for skill behavior and follow its references as needed.
+
+Specifications define intended product requirements and design constraints. This repository owns the skill implementation, public documentation, compatibility declarations, and release evidence. The `packages` repository owns the [public Repository Format](../packages/specifications/repository-format.md), package implementations, tests, and releases. Specifications alone do not establish shipped behavior or availability. Report conflicts or version drift and establish the affected authority before changing a contract; do not silently regress supported behavior to match an older specification.
+
+This reference is read-only by workflow, not filesystem permissions. Never create, modify, move, or delete files through `project-specification/`. Changes to its authority require separate authorization in the owning platform checkout. A working native symlink and adjacent platform checkout are required to use the reference. If required specifications are missing, inaccessible, or the checkout contains a link-text file instead of a symlink, report the problem and stop the specification-dependent work. Do not copy specifications here or change host settings as a fallback.
+
+The reference is for repository development only. Builds, tests, CI, and installed skill behavior remain independent of the sibling checkout. The link and its target are outside the distributed `moldea/` artifact and must not be bundled or published as skill content.
 
 ## Development
 
@@ -180,7 +191,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluations and adapter qualifications are separate evidence-backed assurance; a passing tag does not establish them. Release `6.0.3` selects passing semantic and qualification evidence for the production website and `npm run release:check`. See [Release evidence](docs/release-evidence.md) for the exact workflows.
+During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluations and adapter qualifications are separate evidence-backed assurance; a passing tag does not establish them. Release `6.0.4` selects passing semantic and qualification evidence for the production website and `npm run release:check`. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
 ## License
 

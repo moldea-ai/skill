@@ -272,10 +272,10 @@ if (${signal !== undefined}) {
   if (scopeMode) launcher.stdin?.end('src/refund.ts\0');
   let stdout = '';
   let stderr = '';
-  launcher.stdout.on('data', (chunk: Buffer) => {
+  launcher.stdout?.on('data', (chunk: Buffer) => {
     stdout += chunk.toString('utf8');
   });
-  launcher.stderr.on('data', (chunk: Buffer) => {
+  launcher.stderr?.on('data', (chunk: Buffer) => {
     stderr += chunk.toString('utf8');
   });
   const completion = new Promise<{ code: number | null; signal: NodeJS.Signals | null }>(
@@ -349,3 +349,293 @@ test.skipIf(process.platform === 'win32')(
     });
   },
 );
+
+const runPage = (root: string, command: string, options: string[]) => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      LAUNCHER_PATH,
+      '--repository',
+      root,
+      '--',
+      command,
+      '--json',
+      '--max-output-bytes',
+      '4096',
+      ...options,
+    ],
+    { encoding: 'utf8', timeout: 15_000 },
+  );
+  if (result.error) throw result.error;
+  return result;
+};
+
+test('continues real Unicode content one page at a time and preserves CLI snapshot/filter errors', () => {
+  const { root, cliRoot } = createScopeFixture();
+  const scratch = mkdtempSync(join(tmpdir(), 'moldea-pages-'));
+  scopeFixtureRoots.push(scratch);
+  const checkpoint = join(scratch, 'page.json');
+  const content = `# Project\n\n${'Éclair 🌍 中文\n'.repeat(500)}`;
+  writeFileSync(join(root, 'moldea/project.md'), content);
+  const countPath = join(root, 'calls.txt');
+  writeFileSync(
+    join(cliRoot, 'dist/moldea.js'),
+    `import { appendFileSync } from 'node:fs';\nappendFileSync(${JSON.stringify(countPath)}, '1');\nawait import(${JSON.stringify(PUBLISHED_CLI_URL)});\n`,
+  );
+  const paths = ['--path', '/moldea/project.md'];
+  let result = runPage(root, 'content', [...paths, '--save-response', checkpoint]);
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.equal(readFileSync(checkpoint, 'utf8'), result.stdout);
+  const first = result.stdout;
+  let accumulated = '';
+  let byteEnd = 0;
+  let calls = 0;
+  for (;;) {
+    const page = JSON.parse(result.stdout) as {
+      result: {
+        cursor: string | null;
+        content: string;
+        chunk: { content: string; byteStart: number; byteEnd: number };
+      };
+    };
+    assert.equal(page.result.chunk.byteStart, byteEnd);
+    byteEnd = page.result.chunk.byteEnd;
+    accumulated += page.result.chunk.content;
+    calls += 1;
+    assert.equal(readFileSync(countPath, 'utf8'), '1'.repeat(calls));
+    if (page.result.cursor === null) break;
+    assert.ok(calls < 16, 'bounded test traversal');
+    result = runPage(root, 'content', [
+      ...paths,
+      '--cursor-from-response',
+      checkpoint,
+      '--save-response',
+      checkpoint,
+    ]);
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.equal(readFileSync(checkpoint, 'utf8'), result.stdout);
+  }
+  assert.equal(accumulated, content);
+  assert.equal(byteEnd, Buffer.byteLength(content));
+  assert.ok(calls > 1);
+  const final = runPage(root, 'content', [...paths, '--cursor-from-response', checkpoint]);
+  assert.equal(final.status, 3);
+  assert.equal(readFileSync(countPath, 'utf8'), '1'.repeat(calls));
+  writeFileSync(checkpoint, first);
+  const changedFilter = runPage(root, 'content', [
+    '--path',
+    '/moldea/moldea.yaml',
+    '--cursor-from-response',
+    checkpoint,
+    '--save-response',
+    checkpoint,
+  ]);
+  assert.equal(changedFilter.status, 3);
+  assert.equal(
+    (JSON.parse(changedFilter.stdout) as { error: { code: string } }).error.code,
+    'CURSOR_INVALID',
+  );
+  assert.equal(readFileSync(checkpoint, 'utf8'), first);
+  writeFileSync(join(root, 'moldea/project.md'), `${content}\nchanged\n`);
+  const stale = runPage(root, 'content', [
+    ...paths,
+    '--cursor-from-response',
+    checkpoint,
+    '--save-response',
+    checkpoint,
+  ]);
+  assert.equal(stale.status, 3);
+  assert.equal(
+    (JSON.parse(stale.stdout) as { error: { code: string } }).error.code,
+    'CURSOR_SNAPSHOT_CHANGED',
+  );
+  assert.equal(readFileSync(checkpoint, 'utf8'), first);
+});
+
+test.each(['composition', 'duplicate', 'conflicting'] as const)(
+  'rejects %s capture options before child execution',
+  (mode) => {
+    const { root, invokedPath } = createScopeFixture();
+    const scratch = mkdtempSync(join(tmpdir(), 'moldea-options-'));
+    scopeFixtureRoots.push(scratch);
+    const path = join(scratch, 'page.json');
+    const options =
+      mode === 'conflicting'
+        ? ['--cursor', 'raw', '--cursor-from-response', path]
+        : ['--save-response', path, ...(mode === 'duplicate' ? ['--save-response', path] : [])];
+    const result = runPage(root, mode === 'composition' ? 'composition' : 'validate', options);
+    assert.equal(result.status, 3);
+    assert.equal(result.stdout, '');
+    assert.equal(existsSync(invokedPath), false);
+  },
+);
+
+// use a native-I/O boundary hook to pause capture deterministically after the child has closed
+const runCaptureCancellation = async (
+  signal: 'SIGINT' | 'SIGTERM',
+  phase: 'write' | 'commit' | 'rename',
+) => {
+  const { root, cliRoot } = createScopeFixture();
+  const scratch = mkdtempSync(join(tmpdir(), 'moldea-capture-'));
+  scopeFixtureRoots.push(scratch);
+  const checkpoint = join(scratch, 'page.json');
+  const oldPage = JSON.stringify({
+    schemaVersion: 5,
+    cliVersion: '9.0.1',
+    command: 'validate',
+    status: 'valid',
+    error: null,
+    result: { page: { cursor: 'old' } },
+  });
+  const newPage = oldPage.replace('"old"', 'null');
+  writeFileSync(checkpoint, oldPage);
+  writeFileSync(
+    join(cliRoot, 'dist/moldea.js'),
+    `process.stdout.write(${JSON.stringify(newPage)});`,
+  );
+  const preloadPath = join(scratch, 'preload.mjs');
+  writeFileSync(
+    preloadPath,
+    `
+import fs from 'node:fs/promises';
+import { syncBuiltinESMExports } from 'node:module';
+import { watch, existsSync, writeFileSync } from 'node:fs';
+const original = fs.${phase === 'rename' ? 'rename' : 'writeFile'};
+fs.${phase === 'rename' ? 'rename' : 'writeFile'} = async (...args) => {
+  ${phase === 'write' ? '' : 'const result = await original(...args);'}
+  writeFileSync(${JSON.stringify(join(scratch, 'ready'))}, 'ready');
+  await new Promise(resolve => {
+    const watcher = watch(${JSON.stringify(scratch)}, () => {
+      if (existsSync(${JSON.stringify(join(scratch, 'resume'))})) { watcher.close(); resolve(); }
+    });
+  });
+  ${phase === 'write' ? 'return original(...args);' : 'return result;'}
+};
+process.once('${signal}', () => writeFileSync(${JSON.stringify(join(scratch, 'cancelled'))}, 'cancelled'));
+syncBuiltinESMExports();
+`,
+  );
+  const launcher = spawn(
+    process.execPath,
+    [
+      '--import',
+      pathToFileURL(preloadPath).href,
+      LAUNCHER_PATH,
+      '--repository',
+      root,
+      '--',
+      'validate',
+      '--json',
+      '--max-output-bytes',
+      '65536',
+      '--cursor-from-response',
+      checkpoint,
+      '--save-response',
+      checkpoint,
+    ],
+    { stdio: ['ignore', 'pipe', 'pipe'] },
+  );
+  let stdout = '';
+  let stderr = '';
+  launcher.stdout?.on('data', (chunk: Buffer) => {
+    stdout += chunk.toString();
+  });
+  launcher.stderr?.on('data', (chunk: Buffer) => {
+    stderr += chunk.toString();
+  });
+  const completion = new Promise<number | null>((resolveCompletion, rejectCompletion) => {
+    launcher.once('error', rejectCompletion);
+    launcher.once('close', resolveCompletion);
+  });
+  const timeout = setTimeout(() => launcher.kill('SIGKILL'), 15_000);
+  try {
+    await vi.waitFor(() => assert.equal(existsSync(join(scratch, 'ready')), true), {
+      timeout: 5000,
+    });
+    launcher.kill(signal);
+    await vi.waitFor(() => assert.equal(existsSync(join(scratch, 'cancelled')), true), {
+      timeout: 5000,
+    });
+    writeFileSync(join(scratch, 'resume'), 'resume');
+    assert.equal(await completion, 3);
+    assert.equal(stdout, '');
+    assert.notEqual(stderr, '');
+    assert.equal(readFileSync(checkpoint, 'utf8'), phase === 'rename' ? newPage : oldPage);
+    assert.deepEqual((await (await import('node:fs/promises')).readdir(scratch)).sort(), [
+      'cancelled',
+      'page.json',
+      'preload.mjs',
+      'ready',
+      'resume',
+    ]);
+  } finally {
+    clearTimeout(timeout);
+    if (launcher.exitCode === null && launcher.signalCode === null) launcher.kill('SIGKILL');
+    await completion;
+  }
+};
+
+test.skipIf(process.platform === 'win32').each([
+  ['SIGINT', 'write'],
+  ['SIGTERM', 'write'],
+  ['SIGINT', 'commit'],
+  ['SIGTERM', 'commit'],
+  ['SIGINT', 'rename'],
+  ['SIGTERM', 'rename'],
+] as const)('cancels capture after child close with %s at %s submission', async (signal, phase) => {
+  await runCaptureCancellation(signal, phase);
+});
+
+test('captures and continues real paged invalid inspection diagnostics', () => {
+  const { root } = createScopeFixture();
+  const scratch = mkdtempSync(join(tmpdir(), 'moldea-metadata-'));
+  scopeFixtureRoots.push(scratch);
+  const checkpoint = join(scratch, 'page.json');
+  writeFileSync(
+    join(root, 'moldea/moldea.yaml'),
+    `version: 1\ncontext:\n${Array.from({ length: 64 }, (_, index) => `  /moldea/context/missing-${index}.md: {}\n`).join('')}`,
+  );
+  const first = runPage(root, 'inspect', ['--save-response', checkpoint]);
+  assert.equal(first.status, 1, first.stderr || first.stdout);
+  assert.equal(readFileSync(checkpoint, 'utf8'), first.stdout);
+  const envelope = JSON.parse(first.stdout) as {
+    result: { page: { cursor: string | null; records: unknown[] } };
+  };
+  assert.notEqual(envelope.result.page.cursor, null);
+  assert.ok(envelope.result.page.records.length > 0);
+  const next = runPage(root, 'inspect', [
+    '--cursor-from-response',
+    checkpoint,
+    '--save-response',
+    checkpoint,
+  ]);
+  assert.equal(next.status, 1, next.stderr || next.stdout);
+  assert.notEqual(next.stdout, first.stdout);
+  assert.equal(readFileSync(checkpoint, 'utf8'), next.stdout);
+});
+
+test('suppresses over-limit capture and preserves the previous checkpoint', () => {
+  const { root, cliRoot } = createScopeFixture();
+  const scratch = mkdtempSync(join(tmpdir(), 'moldea-limit-'));
+  scopeFixtureRoots.push(scratch);
+  const checkpoint = join(scratch, 'page.json');
+  const previous = JSON.stringify({
+    schemaVersion: 5,
+    cliVersion: '9.0.1',
+    command: 'validate',
+    status: 'valid',
+    error: null,
+    result: { page: { cursor: 'old' } },
+  });
+  writeFileSync(checkpoint, previous);
+  writeFileSync(join(cliRoot, 'dist/moldea.js'), "process.stdout.write('x'.repeat(5000));");
+  const result = runPage(root, 'validate', [
+    '--cursor-from-response',
+    checkpoint,
+    '--save-response',
+    checkpoint,
+  ]);
+  assert.equal(result.status, 3);
+  assert.equal(result.stdout, '');
+  assert.equal(readFileSync(checkpoint, 'utf8'), previous);
+});

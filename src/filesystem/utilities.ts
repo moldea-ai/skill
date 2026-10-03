@@ -94,22 +94,6 @@ export const writeTextFileAtomically = async (filePath: string, content: string)
   }
 };
 
-/** Writes exact bytes through a same-directory atomic rename. */
-export const writeBufferFileAtomically = async (
-  filePath: string,
-  content: Uint8Array,
-): Promise<void> => {
-  await ensureDirectory(path.dirname(filePath));
-  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
-
-  try {
-    await writeFile(temporaryPath, content, { flag: 'wx' });
-    await rename(temporaryPath, filePath);
-  } finally {
-    await rm(temporaryPath, { force: true });
-  }
-};
-
 /** Serializes a readable JSON artifact and commits it atomically. */
 export const writeJsonFileAtomically = async (
   filePath: string,

@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `6.0.3` supports exactly:
+Release `6.0.4` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -49,6 +49,10 @@ Command boundaries stay explicit:
 - Each paged `kind: agent` inspection record exposes exact `agentId` and `runtimeId` assignments without the agent body.
 - `scope` accepts one `--path` or one NUL-delimited UTF-8 path set of at most 2 MiB and returns relationship matches after the two-byte gate establishes relevance. The gate and scope launcher accept repository-relative and leading-slash repository-logical paths, mechanically adding the slash while preserving spelling and order. They do not resolve filesystem paths or repair unsafe input; drive paths, malformed input, and CLI-invalid paths remain errors.
 - `content` returns chunks only for one explicit canonical `/moldea/**` path.
+
+Paged commands accept launcher-only `--save-response <absolute-temporary-file>` and `--cursor-from-response <absolute-temporary-file>` options. A private task directory beneath the host temporary root, outside the repository, holds one exact raw response. The next call extracts its opaque cursor mechanically and fetches one page with unchanged filters and budget. File and directory links are rejected; new targets must be unused unless replacing the explicitly loaded checkpoint. `composition` does not support these options, and a saved cursor cannot be combined with `--cursor`. Complete valid/invalid pages can be saved; error and interrupted output cannot replace a checkpoint. The coding agent removes owned scratch files when finished. Hosts that prohibit scratch writes retain that constraint.
+
+Cancellation before atomic rename submission preserves the prior checkpoint. A rename already submitted may complete with the new page, but the cancelled invocation still returns 3 with no stdout. Continuation never aggregates pages, automatically fetches more, or resets the shared resource budget.
 
 ## Resource profiles
 

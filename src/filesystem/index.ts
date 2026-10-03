@@ -22,7 +22,8 @@ export {
   readJsonFile,
   readYamlFile,
   resolveContainedPath,
-  writeBufferFileAtomically,
   writeJsonFileAtomically,
   writeTextFileAtomically,
 } from './utilities.ts';
+
+export { writeBufferFileAtomically } from './atomic-bytes/index.ts';

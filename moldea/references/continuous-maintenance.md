@@ -34,7 +34,7 @@ An installation failure stops before foundation writes and validation. Preserve 
 
 ## Write and validate the complete foundation
 
-Keep `project.md` as a concise project entry point: explain the project's purpose, users, goals, and material boundaries, then provide descriptive links that help readers select relevant focused context. Keep detailed rules with their authoritative owners. Make focused context reachable directly or through linked topic indexes. When authorized work adds, moves, removes, or changes an owner's responsibility, update the affected navigation in the same change, using known paths and metadata without reading unrelated context.
+Keep `project.md` as a concise project entry point: explain the project's purpose, users, goals, and material boundaries, then provide descriptive links that help readers select relevant focused context. Keep detailed rules with their authoritative owners. Make focused context reachable directly or through linked topic indexes. When authorized work adds, moves, removes, or changes an owner's responsibility, update the affected navigation in the same change, using known paths and metadata without reading unrelated context. Around 32 KiB for this entry point and 128 KiB for a focused context document are review points for readability and cohesion, never validity requirements, errors, warnings, or automatic splitting rules. A larger cohesive document can remain intact. Keep ordinary maintenance local; broader reorganization still requires explicit intent. Do not run size-measurement commands or audits solely for these guidelines.
 
 When repository evidence establishes no manifest relationship, the complete manifest is exactly:
 

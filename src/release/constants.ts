@@ -31,6 +31,7 @@ export const CLI_JSON_SCHEMA_VERSION_TEXT_PATHS = [
   'moldea/SKILL.md',
   'moldea/references/local-tooling.md',
   'qualification/README.md',
+  'src/portable/response-page/types.ts',
 ] as const;
 
 // repository-owned release identity paths

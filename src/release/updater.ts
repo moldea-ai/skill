@@ -512,6 +512,10 @@ export const createCliReleaseUpdate = ({
       relativePath,
       currentContent
         .replaceAll(
+          `schemaVersion: z.literal(${previousCliJsonSchemaVersion})`,
+          `schemaVersion: z.literal(${publishedManifest.jsonSchemaVersion})`,
+        )
+        .replaceAll(
           `cliJsonSchemaVersion: ${previousCliJsonSchemaVersion}`,
           `cliJsonSchemaVersion: ${publishedManifest.jsonSchemaVersion}`,
         )
@@ -752,6 +756,7 @@ export const updateCliRelease = async ({
       RELEASE_PATHS.packageManifest,
       RELEASE_PATHS.packageLock,
       RELEASE_PATHS.sourceRepositoryPackage,
+      'src/portable/response-page/types.ts',
     ]) {
       writeFileAtomically(
         join(temporaryRoot, relativePath),

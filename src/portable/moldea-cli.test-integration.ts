@@ -9,7 +9,7 @@ import { afterEach, test, vi } from 'vitest';
 
 const LAUNCHER_PATH = resolve(import.meta.dirname, '../../moldea/scripts/moldea-cli.mjs');
 const SUCCESS_OUTPUT =
-  '{"command":"validate","status":"valid","error":null,"result":{"valid":true}}\n';
+  '{"schemaVersion":5,"cliVersion":"9.0.1","command":"validate","status":"valid","error":null,"result":{"valid":true,"diagnosticCount":0,"errorCount":0,"warningCount":0}}\n';
 const GATE_PATH = resolve(import.meta.dirname, '../../moldea/scripts/relevance-gate.mjs');
 const PUBLISHED_CLI_URL = pathToFileURL(
   resolve(import.meta.dirname, '../../node_modules/@moldea.ai/cli/dist/moldea.js'),
@@ -149,29 +149,43 @@ test.each([
   assert.equal(existsSync(invokedPath), false);
 });
 
-test('rejects relative content paths without invoking repository code', () => {
-  const { root, invokedPath } = createScopeFixture();
-  const result = spawnSync(
-    process.execPath,
-    [
-      LAUNCHER_PATH,
-      '--repository',
-      root,
-      '--',
-      'content',
-      '--path',
-      'moldea/project.md',
-      '--json',
-      '--max-output-bytes',
-      '65536',
-    ],
-    { encoding: 'utf8', timeout: 15_000 },
-  );
-  if (result.error) throw result.error;
-  assert.equal(result.status, 3);
-  assert.equal(result.stdout, '');
-  assert.equal(existsSync(invokedPath), false);
-});
+test.each(['moldea/project.md', 'moldea/context/Éclair plan.md'])(
+  'normalizes content path %s through the published CLI',
+  (path) => {
+    const { root } = createScopeFixture();
+    mkdirSync(join(root, 'moldea/context'));
+    writeFileSync(join(root, 'moldea/context/Éclair plan.md'), '# Éclair plan\n');
+    const relative = runPage(root, 'content', ['--path', path]);
+    const absolute = runPage(root, 'content', ['--path', `/${path}`]);
+    assert.equal(relative.status, 0, relative.stderr || relative.stdout);
+    assert.equal(relative.stdout, absolute.stdout);
+    assert.equal(relative.stderr, '');
+    assert.equal(absolute.status, 0);
+  },
+);
+
+test.each(['C:project.md', '\\\\host\\share', 'moldea\\project.md'])(
+  'rejects unsafe content path %s before repository code',
+  (path) => {
+    const { root, invokedPath } = createScopeFixture();
+    const result = runPage(root, 'content', ['--path', path]);
+    assert.equal(result.status, 3);
+    assert.equal(result.stdout, '');
+    assert.equal(existsSync(invokedPath), false);
+  },
+);
+
+test.each(['moldea/../README.md', 'README.md', '//host/share'])(
+  'retains CLI rejection for content path %s',
+  (path) => {
+    const { root, invokedPath } = createScopeFixture();
+    const result = runPage(root, 'content', ['--path', path]);
+    assert.equal(result.status, 3, result.stdout);
+    assert.equal(existsSync(invokedPath), true);
+    assert.equal((JSON.parse(result.stdout) as { status: string }).status, 'error');
+    assert.equal(result.stderr, '');
+  },
+);
 
 test('suppresses success when the child closes its scope input pipe early', () => {
   const { root, cliRoot } = createScopeFixture();
@@ -360,8 +374,7 @@ const runPage = (root: string, command: string, options: string[]) => {
       '--',
       command,
       '--json',
-      '--max-output-bytes',
-      '4096',
+      ...(command === 'composition' ? [] : ['--max-output-bytes', '4096']),
       ...options,
     ],
     { encoding: 'utf8', timeout: 15_000 },
@@ -369,6 +382,93 @@ const runPage = (root: string, command: string, options: string[]) => {
   if (result.error) throw result.error;
   return result;
 };
+
+test.each(['composition', 'content', 'inspect', 'scope', 'validate'])(
+  'preserves the real %s CLI response without capture',
+  (command) => {
+    const { root, cliRoot } = createScopeFixture();
+    const options =
+      command === 'content'
+        ? ['--path', '/moldea/project.md']
+        : command === 'scope'
+          ? ['--path', '/src/unrelated.ts']
+          : [];
+    const result = runPage(root, command, options);
+    const direct = spawnSync(
+      process.execPath,
+      [
+        join(cliRoot, 'dist/moldea.js'),
+        command,
+        ...(command === 'composition' ? [] : ['--repository', root]),
+        '--json',
+        ...(command === 'composition' ? [] : ['--max-output-bytes', '4096']),
+        ...options,
+      ],
+      { cwd: root, encoding: 'utf8', timeout: 15_000 },
+    );
+    if (direct.error) throw direct.error;
+    assert.ok(result.status === 0 || result.status === 1, result.stderr || result.stdout);
+    assert.equal(result.status, direct.status);
+    assert.equal(result.stdout, direct.stdout);
+    assert.equal(result.stderr, direct.stderr);
+    if (command === 'scope')
+      assert.equal(
+        (JSON.parse(result.stdout) as { result: { relevant: boolean } }).result.relevant,
+        false,
+      );
+  },
+);
+
+test.each(['composition', 'content', 'inspect', 'scope', 'validate'])(
+  'suppresses malformed uncaptured %s output',
+  (command) => {
+    const { root, cliRoot } = createScopeFixture();
+    writeFileSync(
+      join(cliRoot, 'dist/moldea.js'),
+      'process.stdout.write(\'{"private":"sensitive\');',
+    );
+    const options =
+      command === 'content'
+        ? ['--path', 'moldea/project.md']
+        : command === 'scope'
+          ? ['--path', 'src/unrelated.ts']
+          : [];
+    const result = runPage(root, command, options);
+    assert.equal(result.status, 3);
+    assert.equal(result.stdout, '');
+    assert.equal(result.stderr, 'Moldea response is not complete UTF-8 JSON.\n');
+  },
+);
+
+test.each([1, 2, 3])('preserves raw diagnostic/error output with exit %d', (exitCode) => {
+  const { root, cliRoot } = createScopeFixture();
+  const raw = ` ${JSON.stringify({
+    schemaVersion: 5,
+    cliVersion: '9.0.1',
+    command: 'validate',
+    status: exitCode === 1 ? 'invalid' : 'error',
+    error: exitCode === 1 ? null : { code: 'RESOURCE_LIMIT_EXCEEDED' },
+    result:
+      exitCode === 1
+        ? {
+            valid: false,
+            diagnosticCount: 2,
+            errorCount: 1,
+            warningCount: 1,
+            page: { cursor: null, records: [] },
+          }
+        : null,
+    future: 'preserved',
+  })}\n`;
+  writeFileSync(
+    join(cliRoot, 'dist/moldea.js'),
+    `process.stdout.write(${JSON.stringify(raw)}); process.exitCode = ${exitCode};`,
+  );
+  const result = runPage(root, 'validate', []);
+  assert.equal(result.status, exitCode);
+  assert.equal(result.stdout, raw);
+  assert.equal(result.stderr, '');
+});
 
 test('continues real Unicode content one page at a time and preserves CLI snapshot/filter errors', () => {
   const { root, cliRoot } = createScopeFixture();
@@ -485,7 +585,13 @@ const runCaptureCancellation = async (
     command: 'validate',
     status: 'valid',
     error: null,
-    result: { page: { cursor: 'old' } },
+    result: {
+      valid: true,
+      diagnosticCount: 0,
+      errorCount: 0,
+      warningCount: 0,
+      page: { cursor: 'old' },
+    },
   });
   const newPage = oldPage.replace('"old"', 'null');
   writeFileSync(checkpoint, oldPage);
@@ -625,7 +731,13 @@ test('suppresses over-limit capture and preserves the previous checkpoint', () =
     command: 'validate',
     status: 'valid',
     error: null,
-    result: { page: { cursor: 'old' } },
+    result: {
+      valid: true,
+      diagnosticCount: 0,
+      errorCount: 0,
+      warningCount: 0,
+      page: { cursor: 'old' },
+    },
   });
   writeFileSync(checkpoint, previous);
   writeFileSync(join(cliRoot, 'dist/moldea.js'), "process.stdout.write('x'.repeat(5000));");

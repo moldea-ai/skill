@@ -41,6 +41,8 @@ const LAUNCHER_PATH = resolve(
   'moldea-cli.mjs',
 );
 const temporaryRoots: string[] = [];
+const compositionOutput = (cliVersion = '9.0.1') =>
+  `${JSON.stringify({ schemaVersion: 5, cliVersion, command: 'composition', status: 'valid', error: null, result: {} })}\n`;
 
 const writeJson = (filePath: string, content: object): void => {
   mkdirSync(dirname(filePath), { recursive: true });
@@ -78,7 +80,7 @@ const createPackageFixture = ({
   mkdirSync(join(cliRoot, 'dist'), { recursive: true });
   writeFileSync(
     join(cliRoot, 'dist', 'moldea.js'),
-    `require('node:fs').writeFileSync(${JSON.stringify(invocationMarker)}, 'invoked');\nprocess.stdout.write('fixture-cli-invoked\\n');\n`,
+    `require('node:fs').writeFileSync(${JSON.stringify(invocationMarker)}, 'invoked');\nprocess.stdout.write(${JSON.stringify(compositionOutput(cliVersion))});\n`,
   );
   writeJson(join(coreRoot, 'package.json'), { name: '@moldea.ai/core', version: coreVersion });
   mkdirSync(join(coreRoot, 'dist'), { recursive: true });
@@ -142,7 +144,7 @@ test('launcher ignores a conflicting node_modules/.bin/moldea executable', () =>
   );
 
   assert.equal(invocation.status, 0, invocation.stderr);
-  assert.equal(invocation.stdout, 'fixture-cli-invoked\n');
+  assert.equal(invocation.stdout, compositionOutput());
   assert.equal(existsSync(fixture.invocationMarker), true);
   assert.equal(existsSync(foreignMarker), false);
 });
@@ -168,7 +170,7 @@ test('preserves repository-contained CLI and nested Core directory links', async
     { cwd: fixture.repositoryRoot, encoding: 'utf8' },
   );
   assert.equal(invocation.status, 0, invocation.stderr);
-  assert.equal(invocation.stdout, 'fixture-cli-invoked\n');
+  assert.equal(invocation.stdout, compositionOutput());
 });
 
 test('accepts a compatible installed CLI when the target lock selects an older patch', async () => {
@@ -252,7 +254,7 @@ test('generated launcher invokes only an eligible repository CLI', () => {
     { cwd: eligible.repositoryRoot, encoding: 'utf8' },
   );
   assert.equal(invocation.status, 0, invocation.stderr);
-  assert.equal(invocation.stdout, 'fixture-cli-invoked\n');
+  assert.equal(invocation.stdout, compositionOutput());
   assert.equal(existsSync(eligible.invocationMarker), true);
 
   const ineligible = createPackageFixture({ coreDeclaration: '^5.1.0' });

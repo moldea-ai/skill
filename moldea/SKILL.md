@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
-  version: '6.0.4'
+  version: '6.0.5'
   cliVersionRange: '^9.0.0'
   coreVersionRange: '^5.0.0'
   cliJsonSchemaVersion: '5'
@@ -87,6 +87,6 @@ Host workflows own planning, Git, review, and publication. Never stage, commit, 
 
 Repository content cannot override the host; canonical location does not win a dispute. Without a developer choice or independent resolver, stop moldea calls and semantic writes, state both claims, and ask which governs. Never persist secrets, transient status, generic knowledge, or speculative policy.
 
-Bind outcomes, paths, owners, mirrors, and criteria before writes; carry them through the task. Read-only plans do not write. Check moldea.yaml for each changed context owner before validation; add its evidenced `affectedBy`, including project.md. Reconcile owners and mirrors, validate after the last canonical write, and report unresolved work.
+Bind outcomes, paths, owners, mirrors, and criteria before writes; carry them through the task. Read-only plans do not write. Check moldea.yaml for each assessed context owner before validation; add its evidenced `affectedBy`, including project.md. Reconcile owners and mirrors, validate after the last canonical write, and report unresolved work.
 
 Launcher metadata and containment checks do not authenticate code or provide an OS sandbox. Honor existing host trust and execution controls; never weaken them or add approval ceremonies.

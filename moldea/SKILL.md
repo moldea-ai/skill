@@ -3,7 +3,7 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
-  version: '6.0.3'
+  version: '6.0.4'
   cliVersionRange: '^9.0.0'
   coreVersionRange: '^5.0.0'
   cliJsonSchemaVersion: '5'

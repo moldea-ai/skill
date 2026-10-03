@@ -58,6 +58,8 @@ Depending on the change, maintenance can reconsider:
 
 ## Keep accumulated context organized
 
+`project.md` stays a light entry point explaining purpose, users, goals, and boundaries, with descriptive links to focused owners or topic indexes. Around 32 KiB for that entry point and 128 KiB for a focused document are practical review points, not validity limits. Larger cohesive documents can remain intact; the skill introduces no size errors, warnings, or automatic splitting.
+
 Ordinary maintenance keeps each affected fact with its established authoritative owner. It removes only duplication or stale wording directly affected by the authorized change, leaving unrelated accumulated context alone. When broader cleanup would materially help, the coding agent may recommend a separate explicit request without performing it.
 
 You can authorize broader context compression naturally:

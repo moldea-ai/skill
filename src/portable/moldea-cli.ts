@@ -3,6 +3,7 @@
 import { spawn } from 'node:child_process';
 import { isAbsolute } from 'node:path';
 
+import { prepareResponseFiles, saveResponsePage } from './response-page/index.ts';
 import { resolveRepositoryCli } from './repository-package.ts';
 import { normalizeScopePath, readScopePathInput } from './scope-path-input.ts';
 
@@ -12,7 +13,13 @@ const MAXIMUM_STDERR_BYTES = 32_768;
 const MAXIMUM_CURSOR_BYTES = 8_192;
 const DEFAULT_COMPOSITION_OUTPUT_BYTES = 65_536;
 const PROCESS_TERMINATION_GRACE_PERIOD_MS = 5_000;
-const VALUE_OPTIONS = new Set<string>(['--cursor', '--max-output-bytes', '--path']);
+const RESPONSE_OPTIONS = ['--save-response', '--cursor-from-response'];
+const VALUE_OPTIONS = new Set<string>([
+  '--cursor',
+  '--max-output-bytes',
+  '--path',
+  ...RESPONSE_OPTIONS,
+]);
 
 const COMMAND_CONTRACTS = Object.freeze({
   composition: {
@@ -22,22 +29,32 @@ const COMMAND_CONTRACTS = Object.freeze({
   },
   content: {
     allowedFlags: new Set<string>(['--json']),
-    allowedValues: new Set<string>(['--cursor', '--max-output-bytes', '--path']),
+    allowedValues: new Set<string>([
+      '--cursor',
+      '--max-output-bytes',
+      '--path',
+      ...RESPONSE_OPTIONS,
+    ]),
     requiresOutputBudget: true,
   },
   inspect: {
     allowedFlags: new Set<string>(['--json']),
-    allowedValues: new Set<string>(['--cursor', '--max-output-bytes']),
+    allowedValues: new Set<string>(['--cursor', '--max-output-bytes', ...RESPONSE_OPTIONS]),
     requiresOutputBudget: true,
   },
   scope: {
     allowedFlags: new Set<string>(['--json', '--paths-stdin']),
-    allowedValues: new Set<string>(['--cursor', '--max-output-bytes', '--path']),
+    allowedValues: new Set<string>([
+      '--cursor',
+      '--max-output-bytes',
+      '--path',
+      ...RESPONSE_OPTIONS,
+    ]),
     requiresOutputBudget: true,
   },
   validate: {
     allowedFlags: new Set<string>(['--json']),
-    allowedValues: new Set<string>(['--cursor', '--max-output-bytes']),
+    allowedValues: new Set<string>(['--cursor', '--max-output-bytes', ...RESPONSE_OPTIONS]),
     requiresOutputBudget: true,
   },
 });
@@ -49,6 +66,8 @@ interface IParsedArguments {
   commandArguments: string[];
   outputByteLimit: number;
   repositoryRoot: string;
+  cursorResponsePath: string | undefined;
+  saveResponsePath: string | undefined;
 }
 
 const isLauncherCommand = (command: string | undefined): command is ILauncherCommand =>
@@ -128,6 +147,9 @@ const parseArguments = (): IParsedArguments => {
     );
   }
 
+  if (values.has('--cursor') && values.has('--cursor-from-response')) {
+    throw new Error('Use either --cursor or --cursor-from-response, never both.');
+  }
   const cursor = values.get('--cursor');
   if (cursor !== undefined && Buffer.byteLength(cursor, 'utf8') > MAXIMUM_CURSOR_BYTES) {
     throw new Error('The launcher cursor exceeds its byte limit.');
@@ -151,7 +173,19 @@ const parseArguments = (): IParsedArguments => {
     throw new Error('The scope command requires exactly one of --path or --paths-stdin.');
   }
 
-  return { command, commandArguments, outputByteLimit, repositoryRoot };
+  const forwardedArguments = commandArguments.filter(
+    (_argument, index) =>
+      !RESPONSE_OPTIONS.includes(commandArguments[index] ?? '') &&
+      !RESPONSE_OPTIONS.includes(commandArguments[index - 1] ?? ''),
+  );
+  return {
+    command,
+    commandArguments: forwardedArguments,
+    outputByteLimit,
+    repositoryRoot,
+    cursorResponsePath: values.get('--cursor-from-response'),
+    saveResponsePath: values.get('--save-response'),
+  };
 };
 
 /** Runs the validated repository-local CLI while retaining only bounded output. */
@@ -162,6 +196,18 @@ const runCli = async (): Promise<void> => {
       ? Buffer.from(`${(await readScopePathInput(process.stdin)).join('\0')}\0`, 'utf8')
       : undefined;
   const resolvedCli = await resolveRepositoryCli(parsed.repositoryRoot);
+  const responseFiles =
+    parsed.command === 'composition'
+      ? {}
+      : await prepareResponseFiles(
+          resolvedCli.repositoryRoot,
+          { command: parsed.command, cliVersion: resolvedCli.cliVersion },
+          parsed.cursorResponsePath,
+          parsed.saveResponsePath,
+        );
+  if (responseFiles.cursor !== undefined)
+    parsed.commandArguments.push('--cursor', responseFiles.cursor);
+  const captureController = new AbortController();
   const cliArguments =
     parsed.command === 'composition'
       ? [parsed.command, ...parsed.commandArguments]
@@ -220,6 +266,7 @@ const runCli = async (): Promise<void> => {
 
   const cancelInvocation = (signal: NodeJS.Signals): void => {
     cancellationSignal ??= signal;
+    captureController.abort();
     requestTermination(signal);
   };
   const relayInterrupt = (): void => cancelInvocation('SIGINT');
@@ -227,51 +274,70 @@ const runCli = async (): Promise<void> => {
   process.once('SIGINT', relayInterrupt);
   process.once('SIGTERM', relayTermination);
 
-  const completion = await new Promise<{
-    exitCode: number | null;
-    signal: NodeJS.Signals | null;
-  }>((resolveCompletion, rejectCompletion) => {
-    child.once('error', rejectCompletion);
-    child.once('close', (exitCode, signal) => {
-      hasChildClosed = true;
-      resolveCompletion({ exitCode, signal });
-    });
-    if (scopeInput !== undefined && child.stdin !== null) {
-      child.stdin.once('error', () => {
-        inputWriteFailed = true;
-        requestTermination('SIGTERM');
+  try {
+    const completion = await new Promise<{
+      exitCode: number | null;
+      signal: NodeJS.Signals | null;
+    }>((resolveCompletion, rejectCompletion) => {
+      child.once('error', rejectCompletion);
+      child.once('close', (exitCode, signal) => {
+        hasChildClosed = true;
+        resolveCompletion({ exitCode, signal });
       });
-      child.stdin.end(scopeInput);
+      if (scopeInput !== undefined && child.stdin !== null) {
+        child.stdin.once('error', () => {
+          inputWriteFailed = true;
+          requestTermination('SIGTERM');
+        });
+        child.stdin.end(scopeInput);
+      }
+    });
+    clearTimeout(forcedTerminationTimer);
+
+    if (outputLimitExceeded) {
+      process.stderr.write('moldea CLI output exceeded the launcher boundary.\n');
+      process.exitCode = 3;
+      return;
     }
-  }).finally(() => {
+
+    if (inputWriteFailed && cancellationSignal === undefined) {
+      process.stderr.write('moldea CLI scope input could not be delivered.\n');
+      process.exitCode = 3;
+      return;
+    }
+
+    const terminationSignal = cancellationSignal ?? completion.signal;
+    if (terminationSignal !== null) {
+      process.stderr.write(Buffer.concat(stderrChunks, stderrByteCount));
+      process.stderr.write(`moldea CLI terminated by ${terminationSignal}.\n`);
+      process.exitCode = 3;
+      return;
+    }
+
+    const stdout = Buffer.concat(stdoutChunks, stdoutByteCount);
+    if (parsed.command !== 'composition') {
+      await saveResponsePage(
+        responseFiles,
+        resolvedCli.repositoryRoot,
+        stdout,
+        { command: parsed.command, cliVersion: resolvedCli.cliVersion },
+        completion.exitCode,
+        captureController.signal,
+      );
+    }
+    if (cancellationSignal !== undefined) {
+      process.stderr.write(`moldea CLI terminated by ${cancellationSignal}.\n`);
+      process.exitCode = 3;
+      return;
+    }
+    process.stdout.write(stdout);
+    process.stderr.write(Buffer.concat(stderrChunks, stderrByteCount));
+    process.exitCode = completion.exitCode ?? 3;
+  } finally {
     clearTimeout(forcedTerminationTimer);
     process.removeListener('SIGINT', relayInterrupt);
     process.removeListener('SIGTERM', relayTermination);
-  });
-
-  if (outputLimitExceeded) {
-    process.stderr.write('moldea CLI output exceeded the launcher boundary.\n');
-    process.exitCode = 3;
-    return;
   }
-
-  if (inputWriteFailed && cancellationSignal === undefined) {
-    process.stderr.write('moldea CLI scope input could not be delivered.\n');
-    process.exitCode = 3;
-    return;
-  }
-
-  const terminationSignal = cancellationSignal ?? completion.signal;
-  if (terminationSignal !== null) {
-    process.stderr.write(Buffer.concat(stderrChunks, stderrByteCount));
-    process.stderr.write(`moldea CLI terminated by ${terminationSignal}.\n`);
-    process.exitCode = 3;
-    return;
-  }
-
-  process.stdout.write(Buffer.concat(stdoutChunks, stdoutByteCount));
-  process.stderr.write(Buffer.concat(stderrChunks, stderrByteCount));
-  process.exitCode = completion.exitCode ?? 3;
 };
 
 try {

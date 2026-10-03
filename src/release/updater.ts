@@ -608,11 +608,13 @@ const installReleaseDependencies = (temporaryRoot: string): void => {
 
 /** Copies generator inputs without reading excluded historical directories. */
 const stagePortableSource = (repositoryRoot: string, temporaryRoot: string): void => {
-  cpSync(join(repositoryRoot, 'src/portable'), join(temporaryRoot, 'src/portable'), {
-    recursive: true,
-    filter: (sourcePath) =>
-      !['_archive', '_archives', '_backup', '_backups'].includes(basename(sourcePath)),
-  });
+  for (const relativePath of ['src/portable', 'src/filesystem/atomic-bytes']) {
+    cpSync(join(repositoryRoot, relativePath), join(temporaryRoot, relativePath), {
+      recursive: true,
+      filter: (sourcePath) =>
+        !['_archive', '_archives', '_backup', '_backups'].includes(basename(sourcePath)),
+    });
+  }
   for (const relativePath of [
     'moldea/assets/managed-readme-block.md',
     'qualification/package.json',

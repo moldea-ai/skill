@@ -16,6 +16,7 @@ test('portable generation reproduces every committed runtime', async () => {
   assert.deepEqual(result.artifacts, [
     'moldea/scripts/managed-readme.mjs',
     'moldea/scripts/moldea-cli.mjs',
+    'moldea/scripts/moldea-cli.license.txt',
     'moldea/scripts/relevance-gate.mjs',
     'moldea/scripts/repository-files.mjs',
     'moldea/scripts/repository-package.mjs',
@@ -23,6 +24,10 @@ test('portable generation reproduces every committed runtime', async () => {
     'moldea/scripts/manifest-scope.cjs',
     'moldea/scripts/manifest-scope.license.txt',
   ]);
+  assert.match(
+    readFileSync(path.join(ROOT_DIRECTORY, 'moldea/scripts/moldea-cli.license.txt'), 'utf8'),
+    /^zod@4\.3\.6$/mu,
+  );
   const resolver = readFileSync(
     path.join(ROOT_DIRECTORY, 'moldea', 'scripts', 'repository-package.mjs'),
     'utf8',

@@ -185,10 +185,16 @@ describe('semantic judging', () => {
       outcomeCase,
       JSON.stringify({
         expected: Object.fromEntries(
-          outcomeCase.expected.map(({ label }) => [label, observed.includes(label)]),
+          outcomeCase.expected.map(({ label }) => [
+            label,
+            observed.some((observedLabel) => observedLabel === label),
+          ]),
         ),
         forbidden: Object.fromEntries(
-          outcomeCase.forbidden.map(({ label }) => [label, forbidden.includes(label)]),
+          outcomeCase.forbidden.map(({ label }) => [
+            label,
+            forbidden.some((forbiddenLabel) => forbiddenLabel === label),
+          ]),
         ),
         rationale: 'Based on the stated example evidence.',
       }),

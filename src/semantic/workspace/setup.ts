@@ -1246,6 +1246,35 @@ const seedContextMaintenanceScenario = async (
   throw new Error(`Unsupported context-maintenance case ${caseId}.`);
 };
 
+/** Seeds accurate refund context with one linked caller and one unlinked governing policy. */
+const seedAssessedOwnerScenario = async (repositoryPath: string): Promise<void> => {
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/moldea.yaml',
+    'version: 1\ncontext:\n  /moldea/context/refunds.md:\n    affectedBy:\n      - /src/refund-request.js\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/context/refunds.md',
+    '# Refund approval\n\nRefunds above 1000 units require approval. A refund request reports its amount and whether approval is required.\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/refund-policy.js',
+    'export const requiresApproval = (amount) => amount > 1000;\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/refund-request.js',
+    "import { requiresApproval } from './refund-policy.js';\n\nexport const createRefundRequest = (amount) => ({ amount, requiresApproval: requiresApproval(amount) });\n",
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/refund-request.test-unit.js',
+    "import assert from 'node:assert/strict';\nimport { test } from 'node:test';\nimport { createRefundRequest } from './refund-request.js';\n\nfor (const [amount, requiresApproval] of [[0, false], [1000, false], [1001, true]]) {\n  test(`refund approval for ${amount}`, () => {\n    assert.deepEqual(createRefundRequest(amount), { amount, requiresApproval });\n  });\n}\n",
+  );
+};
+
 /** Seeds task-scope changes whose canonical relationships differ by scenario. */
 const seedActivationMaintenanceScenario = async (
   repositoryPath: string,
@@ -1583,6 +1612,10 @@ const seedScenarioRepository = async (
         'src/refund-policy.js',
         'export const requiresApproval = () => false;\n',
       );
+      break;
+    case 'assessed-owner-relationships':
+    case 'assessed-owner-readonly':
+      await seedAssessedOwnerScenario(repositoryPath);
       break;
     case 'bound-context-maintenance':
     case 'expanding-task-relevance':

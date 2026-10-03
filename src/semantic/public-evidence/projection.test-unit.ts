@@ -77,6 +77,7 @@ describe('createSemanticCatalogWebsiteModel', () => {
   });
 });
 
+// partial presentation fixtures intentionally omit execution provenance
 describe('selected semantic cases', () => {
   test('displays a passing selection without claiming exact current assurance', () => {
     const definition = createCase(SEMANTIC_COVERAGE_CLAIMS[0].id);
@@ -105,7 +106,7 @@ describe('selected semantic cases', () => {
       status: 'passed',
       totalCaseCount: 1,
       updatedAt: recordedAt,
-    } as ISemanticAttemptRecord;
+    } as unknown as ISemanticAttemptRecord;
     const bundle = createSemanticEvidenceBundle({
       classification: 'official',
       definitions: [definition],
@@ -161,7 +162,7 @@ describe('selected semantic cases', () => {
       observed: [],
       passed: true,
       rationale: 'Maintainer reassessment accepted the initial trial.',
-    } as ISemanticAttemptRecord['cases'][number]['trials'][number];
+    } as unknown as ISemanticAttemptRecord['cases'][number]['trials'][number];
     const selectedHistory = createSemanticEvidenceBundle({
       classification: 'official',
       definitions: [definition],

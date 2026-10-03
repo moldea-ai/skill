@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import type { IManifestScopeMatch } from '@moldea.ai/core';
 import { afterEach, beforeAll, test } from 'vitest';
 
 import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
@@ -34,6 +35,15 @@ const MANAGED_WRITER_PATH = resolve(
   import.meta.dirname,
   '../../../moldea/scripts/managed-readme.mjs',
 );
+type IScopeFixtureEnvelope = {
+  result: {
+    valid: boolean;
+    relevant: boolean;
+    counts: { inputPaths: number };
+    page: { cursor: string | null; records: Array<{ match: IManifestScopeMatch }> };
+  };
+};
+
 const temporaryRoots: string[] = [];
 let cases: ISemanticCase[];
 
@@ -265,6 +275,83 @@ test('known invoice owners become selectable through exact grounded relationship
   assert.ok(scope.includes('/moldea/project.md'));
   assert.ok(scope.includes('/moldea/context/processing.md'));
   assert.equal(scope.includes('/moldea/context/operations.md'), false);
+});
+
+test('an assessed accurate owner exposes missing coverage through completed scope evidence', async () => {
+  const { repositoryPath } = await materializeCase('assessed-owner-relationships', true);
+  const ownerPath = join(repositoryPath, 'moldea', 'context', 'refunds.md');
+  const manifestPath = join(repositoryPath, 'moldea', 'moldea.yaml');
+  const originalOwner = readFileSync(ownerPath);
+  const policyPath = '/src/refund-policy.js';
+  const batch = ['/src/refund-request.js', policyPath];
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
+  assert.equal(gateResult(repositoryPath, batch), '1\n');
+  assert.equal(gateResult(repositoryPath, [policyPath]), '0\n');
+  assert.equal(gateResult(repositoryPath, ['/src/project-state.js']), '0\n');
+
+  const scope = JSON.parse(
+    launcherOutput(repositoryPath, ['scope', '--paths-stdin'], `${batch.join('\0')}\0`),
+  ) as IScopeFixtureEnvelope;
+  assert.equal(scope.result.valid, true);
+  assert.equal(scope.result.relevant, true);
+  assert.equal(scope.result.counts.inputPaths, 2);
+  assert.equal(scope.result.page.cursor, null);
+  assert.deepEqual(
+    scope.result.page.records.map(({ match }) => [match.inputPath, match.owner.id]),
+    [['/src/refund-request.js', '/moldea/context/refunds.md']],
+  );
+  assert.ok(
+    launcherOutput(repositoryPath, ['content', '--path', '/moldea/context/refunds.md']).includes(
+      'Refunds above 1000 units require approval.',
+    ),
+  );
+  runFixtureTests(repositoryPath, ['src/refund-request.test-unit.js']);
+
+  // model-free fixture repair establishes the declaration and its repeatable routing result
+  const repairedManifest =
+    'version: 1\ncontext:\n  /moldea/context/refunds.md:\n    affectedBy:\n      - /src/refund-request.js\n      - /src/refund-policy.js\n';
+  writeFileSync(manifestPath, repairedManifest);
+  assert.equal(gateResult(repositoryPath, [policyPath]), '1\n');
+  assert.equal(gateResult(repositoryPath, ['/src/project-state.js']), '0\n');
+  const repairedScope = JSON.parse(
+    launcherOutput(repositoryPath, ['scope', '--paths-stdin'], '/src/refund-policy.js\0'),
+  ) as IScopeFixtureEnvelope;
+  assert.deepEqual(
+    repairedScope.result.page.records.map(({ match }) => [match.inputPath, match.owner.id]),
+    [['/src/refund-policy.js', '/moldea/context/refunds.md']],
+  );
+  assert.deepEqual(readFileSync(ownerPath), originalOwner);
+  const repairedSnapshot = await snapshotSemanticWorkspace(repositoryPath);
+  writeFileSync(manifestPath, repairedManifest);
+  assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), repairedSnapshot);
+  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+    status: string;
+  };
+  assert.equal(validation.status, 'valid');
+});
+
+test('direct read-only assessed-owner evidence leaves the complete fixture unchanged', async () => {
+  const { repositoryPath } = await materializeCase('assessed-owner-readonly', true);
+  const before = await snapshotSemanticWorkspace(repositoryPath);
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
+  const inventory = launcherOutput(repositoryPath, ['inspect']);
+  const inventoryEnvelope = JSON.parse(inventory) as {
+    result: { page: { cursor: string | null } };
+  };
+  assert.equal(inventoryEnvelope.result.page.cursor, null);
+  const owner = launcherOutput(repositoryPath, ['content', '--path', '/moldea/context/refunds.md']);
+  // inventory identifies the manifest but does not prove relationship coverage
+  assert.ok(inventory.includes('/moldea/moldea.yaml'));
+  assert.equal(inventory.includes('/src/refund-request.js'), false);
+  const manifest = JSON.parse(
+    launcherOutput(repositoryPath, ['content', '--path', '/moldea/moldea.yaml']),
+  ) as { result: { chunk: { content: string }; cursor: string | null } };
+  assert.equal(manifest.result.cursor, null);
+  assert.ok(manifest.result.chunk.content.includes('/src/refund-request.js'));
+  assert.equal(manifest.result.chunk.content.includes('/src/refund-policy.js'), false);
+  assert.ok(owner.includes('Refunds above 1000 units require approval.'));
+  runFixtureTests(repositoryPath, ['src/refund-request.test-unit.js']);
+  assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
 });
 
 test('bound maintenance has an exact relationship and stale architecture context', async () => {

@@ -42,7 +42,7 @@ For direct evaluation of a named owner, begin with its exact `content` instead o
 1. Run `validate` when structural validity is material.
 2. Run content-free `inspect` only when inventory, diagnostics, requirements, mirrors, or runtime declarations are needed.
 3. Read one canonical owner with `content` when semantic comparison requires its body.
-4. Compare it with only the relevant implementation, consumer, test, or public contract.
+4. Compare its facts and evidenced relationship coverage with only the relevant implementation, consumer, test, or public contract, even when prose remains accurate. Reuse completed scope results for relationship-gated work; do not run `inspect` after `scope`. Other metadata reads remain subject to the selected route and `context-gathering.md`. Incomplete evidence cannot establish missing coverage.
 5. Stop when more evidence cannot change a material finding.
 
 The conclusion must name the canonical owner or declared relationship actually assessed. Accounting for host paths without reporting the related canonical assessment is incomplete.

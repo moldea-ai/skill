@@ -470,7 +470,10 @@ test('uses smooth client navigation and browser history across product pages', a
 
   await page.getByRole('link', { name: 'Capabilities', exact: true }).first().click();
   await expect(
-    page.getByRole('heading', { level: 1, name: 'From project knowledge to working agents.' }),
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Project context first. Agent capabilities when you need them.',
+    }),
   ).toBeVisible();
   expect(new URL(page.url()).pathname).toBe(toPublicPath('/capabilities/'));
   expect(
@@ -487,7 +490,7 @@ test('uses smooth client navigation and browser history across product pages', a
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'One request. A connected, working agent.',
+      name: 'From project context to a working agent.',
     }),
   ).toBeVisible();
 

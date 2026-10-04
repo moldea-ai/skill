@@ -17,7 +17,7 @@ import {
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-const HEADING_ROLE_WIDTHS = [320, 639, 640, 1023, 1024, 1279, 1280, 1440] as const;
+const HEADING_ROLE_WIDTHS = [320, 359, 360, 639, 640, 1023, 1024, 1279, 1280, 1440] as const;
 const HOME_HEADING_ROLE_VALUES = {
   display: { letterSpacing: -0.045, lineHeight: 1.1 },
   section: { letterSpacing: -0.025, lineHeight: 1.2 },
@@ -25,9 +25,10 @@ const HOME_HEADING_ROLE_VALUES = {
 
 type IHomeHeadingRole = keyof typeof HOME_HEADING_ROLE_VALUES;
 
-/** Returns the exact responsive font size owned by a shared Website UI heading role. */
+/** Returns a home heading's size, including the narrow-phone hero adjustment. */
 const getHeadingRoleFontSize = (role: IHomeHeadingRole, width: number): number => {
   if (role === 'display') {
+    if (width < 360) return 36;
     if (width >= 1280) return 72;
     if (width >= 640) return 60;
     return 48;
@@ -124,7 +125,7 @@ for (const width of HEADING_ROLE_WIDTHS) {
 
       const displayTitle = page.getByRole('heading', {
         level: 1,
-        name: 'Build agents that stay in sync with your project.',
+        name: 'Keep project knowledge with your code.',
       });
       const sectionTitle = page.getByRole('heading', {
         level: 2,
@@ -149,7 +150,7 @@ for (const width of HEADING_ROLE_WIDTHS) {
   }
 }
 
-test('leads with the connected-agent example and direct paths to act or inspect', async ({
+test('leads with project context while retaining the connected-agent example and adoption paths', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -158,12 +159,12 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'Build agents that stay in sync with your project.',
+      name: 'Keep project knowledge with your code.',
     }),
   ).toBeVisible();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
     'content',
-    'Give coding agents saved project context, visible connections between agent behavior and code, and repeatable software checks.',
+    'Use saved project rules and decisions in coding-agent planning and development. Keep context, runtime agents, and reusable skills aligned with moldea.',
   );
   await expect(
     page.getByRole('article', { name: 'Illustrative support agent project' }),
@@ -211,7 +212,7 @@ test('leads with the connected-agent example and direct paths to act or inspect'
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'One request. A connected, working agent.',
+      name: 'From project context to a working agent.',
     }),
   ).toBeVisible();
 });
@@ -290,10 +291,10 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   await expect(capabilitiesSection.getByRole('listitem')).toHaveCount(6);
   const capabilityHeadings = [
     'Establish project truth',
+    'Keep behavior current',
     'Plan agent systems',
     'Create real agents',
     'Build Agent Skills',
-    'Keep behavior current',
     'Evaluate and repair',
   ] as const;
   await expect(capabilitiesSection.getByRole('heading', { level: 3 })).toHaveText(
@@ -301,10 +302,10 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   );
   const capabilityDestinations = [
     '/capabilities/#project-truth',
+    '/capabilities/#keep-behavior-current',
     '/capabilities/#plan-agent-systems',
     '/capabilities/#create-agents',
     '/capabilities/#build-agent-skills',
-    '/capabilities/#keep-behavior-current',
     '/capabilities/#evaluate-and-repair',
   ] as const;
   const capabilityCards = capabilitiesSection.getByRole('listitem').getByRole('link');

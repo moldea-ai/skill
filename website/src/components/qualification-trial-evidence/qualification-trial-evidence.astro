@@ -9,6 +9,7 @@ import type {
   IQualificationAttemptTrialModel,
   IQualificationProfileCaseModel,
 } from '../../lib/qualification/index.ts';
+import { getPublicEvidenceHref } from '../../lib/release-evidence/index.ts';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
 
 interface Props {
@@ -573,7 +574,7 @@ const getArtifactLabel = (artifactPath: string): string =>
                 <li class="min-w-0">
                   <a
                     class="inline-flex min-w-0 items-center gap-2 text-link font-mono text-xs font-semibold hover:underline"
-                    href={artifact.rawUrl}
+                    href={getPublicEvidenceHref(artifact.rawUrl, import.meta.env.BASE_URL)}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

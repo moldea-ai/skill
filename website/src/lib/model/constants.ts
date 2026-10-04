@@ -13,15 +13,15 @@ export const EVIDENCE_ROUTE = '/evidence/';
 export const PRODUCT_PAGE_METADATA = {
   capabilities: {
     description:
-      'See how moldea turns project knowledge into connected agents, reusable skills, maintained behavior, and evidence you can inspect.',
+      'Save and maintain project context for coding-agent planning and development. Explore runtime agents, reusable skills, and alignment checks with moldea.',
     route: '/capabilities/',
     searchText:
-      'capabilities project truth plan agent systems create agents build agent skills maintain behavior evaluate reconcile validate repair project',
+      'capabilities project context knowledge rules decisions coding agent planning development project truth plan agent systems create runtime agents build agent skills maintain behavior evaluate reconcile validate repair project',
     title: 'Capabilities',
   },
   howItWorks: {
     description:
-      'Follow one project change from saved context through connected files, deterministic checks, semantic assessment, and the next coding-agent session.',
+      'Follow a booking-agent change from relevant project context through connected code, deterministic checks, and saved knowledge for the next coding session.',
     route: '/how-it-works/',
     searchText:
       'how it works project context connections changes deterministic checks semantic assessment adapters next coding agent session',

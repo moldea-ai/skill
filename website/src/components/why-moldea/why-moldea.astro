@@ -20,13 +20,14 @@ const agentStrengths = [
 const durableOutcomes = [
   {
     description:
-      'Reviewed context stays with the project and can guide every supported coding agent.',
+      'Relevant project rules guide planning and development across supported coding agents.',
     icon: GitBranch,
     label: 'Project truth',
     title: 'The project owns the truth',
   },
   {
-    description: 'Rules point to the instructions, tools, code, and tests that may need attention.',
+    description:
+      'Declared relationships connect context to the instructions, code, and tests that need review.',
     icon: Link2,
     label: 'Explicit connections',
     title: 'Every connection is explicit',
@@ -58,8 +59,8 @@ const durableOutcomes = [
         </h2>
       </div>
       <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-        Memory can recall useful context. <InlineBrandText
-          text="moldea makes the source of truth, relationships, deterministic validation, and evidence part of the repository."
+        <InlineBrandText
+          text="moldea keeps reviewed project knowledge in Git, brings relevant context into the task, and checks declared connections to code."
         />
       </p>
     </header>
@@ -152,7 +153,7 @@ const durableOutcomes = [
 
     <p class="mt-6 max-w-4xl text-sm leading-6 text-muted-foreground">
       <InlineBrandText
-        text="moldea makes these safeguards part of the project. Without it, your team still has to choose how context is saved, map every connection, write the checks, and keep the evidence current."
+        text="Start with durable context for ordinary software work. Add runtime agents and reusable skills when your project needs them."
       />
     </p>
   </div>

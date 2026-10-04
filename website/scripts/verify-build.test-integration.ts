@@ -306,6 +306,8 @@ describe('verifyProductionBuild', () => {
       '@type': 'WebSite',
       name: SITE_NAME,
       alternateName: SITE_ALTERNATE_NAMES,
+      description:
+        'Use saved project rules and decisions in coding-agent planning and development. Keep context, runtime agents, and reusable skills aligned with moldea.',
       url: homeUrl,
     });
     expect(homeHtml).toContain(`<link rel="canonical" href="${homeUrl}">`);

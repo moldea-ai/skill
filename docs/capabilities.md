@@ -1,7 +1,7 @@
 ---
 title: Capability reference
 navigationTitle: Capability reference
-description: Technical reference for planning, initialization, agent and skill design, maintenance, evaluation, reconciliation, and validation.
+description: Technical reference for project-context adoption and maintenance, agent and skill design, evaluation, reconciliation, and validation.
 section: start
 order: 20
 ---
@@ -10,7 +10,9 @@ order: 20
 
 Start with the [visual Capabilities page](/capabilities/) to see each outcome through a project example. This reference explains the exact behavior and boundaries.
 
-`moldea` gives a capable coding agent a disciplined way to manage project context and agent behavior. The operations below are outcomes you can request naturally.
+`moldea` keeps durable project knowledge in Git and brings relevant context into coding-agent planning and development. You can ask to use saved rules when planning an ordinary API change, maintain approved project facts, or organize accumulated context without creating a runtime agent.
+
+The same foundation supports the agent and skill capabilities below. Direct context requests and declared implementation relationships determine which knowledge is relevant; the skill does not load all project context for every task.
 
 ## Plan an agent-enabled system
 

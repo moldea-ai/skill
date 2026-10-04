@@ -382,7 +382,7 @@ export const createLlmsText = (
   const lines = [
     '# `moldea` Agent Skill',
     '',
-    '> The Git-native semantic operating layer that helps coding agents plan, create, maintain, evaluate, reconcile, and validate grounded agents, reusable Agent Skills, and project context.',
+    '> Keep durable project knowledge in Git and bring relevant context into coding-agent planning and development. The same foundation supports runtime agents, reusable Agent Skills, and their instructions.',
     '',
     `Current skill release: ${skill.version}.`,
     '',
@@ -392,7 +392,7 @@ export const createLlmsText = (
     INSTALL_COMMAND,
     '```',
     '',
-    'Developers interact with their coding agent in natural language. The coding agent loads the skill and handles repository-local evidence and deterministic tooling underneath.',
+    'Initialize project context explicitly, then describe outcomes to your coding agent in natural language. Direct context requests and declared relationships select relevant knowledge; unrelated implementation work does not load all project context. The coding agent handles repository-local evidence and deterministic tooling.',
     '',
   ];
 

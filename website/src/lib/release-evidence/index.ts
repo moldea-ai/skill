@@ -18,3 +18,6 @@ export {
   getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
 } from './utilities.ts';
+
+// public evidence links
+export { getPublicEvidenceHref } from './utilities.ts';

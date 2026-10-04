@@ -6,6 +6,7 @@ import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import SemanticEvaluationCase from '../semantic-evaluation-case/semantic-evaluation-case.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+import { getPublicEvidenceHref } from '../../lib/release-evidence/index.ts';
 import type { ISemanticAttemptModel } from '../../lib/semantic-evaluation/index.ts';
 import { getSemanticSourceIdentities } from '../../lib/semantic-evaluation/presentation.ts';
 
@@ -175,7 +176,7 @@ const breadcrumbs = [
           <div class="mt-5 flex flex-wrap gap-4 text-sm">
             <a
               class="inline-flex items-center gap-1.5 text-link font-semibold"
-              href={attempt.rawAttemptUrl}
+              href={getPublicEvidenceHref(attempt.rawAttemptUrl, basePath)}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -187,7 +188,7 @@ const breadcrumbs = [
             </a>
             <a
               class="inline-flex items-center gap-1.5 text-link font-semibold"
-              href={attempt.rawEvidenceUrl}
+              href={getPublicEvidenceHref(attempt.rawEvidenceUrl, basePath)}
               target="_blank"
               rel="noopener noreferrer"
             >

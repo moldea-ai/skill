@@ -19,7 +19,7 @@ test('stacks the three benefits without a cramped comparison table at 320px', as
   ).toBeVisible();
   await expect(
     comparison.getByText(
-      'Memory can recall useful context. moldea makes the source of truth, relationships, deterministic validation, and evidence part of the repository.',
+      'moldea keeps reviewed project knowledge in Git, brings relevant context into the task, and checks declared connections to code.',
       { exact: true },
     ),
   ).toBeVisible();
@@ -33,10 +33,10 @@ test('stacks the three benefits without a cramped comparison table at 320px', as
   for (const copy of [
     'Project truth',
     'The project owns the truth',
-    'Reviewed context stays with the project and can guide every supported coding agent.',
+    'Relevant project rules guide planning and development across supported coding agents.',
     'Explicit connections',
     'Every connection is explicit',
-    'Rules point to the instructions, tools, code, and tests that may need attention.',
+    'Declared relationships connect context to the instructions, code, and tests that need review.',
     'Deterministic checks',
     'Validation does not depend on memory',
     'The same files produce the same result, with evidence the team can inspect.',

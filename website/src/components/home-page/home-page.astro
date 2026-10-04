@@ -81,8 +81,8 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
 ---
 
 <BaseLayout
-  title="moldea Agent Skill"
-  description="Give coding agents saved project context, visible connections between agent behavior and code, and repeatable software checks."
+  title="Use and maintain project context"
+  description="Use saved project rules and decisions in coding-agent planning and development. Keep context, runtime agents, and reusable skills aligned with moldea."
 >
   <section
     class="relative overflow-hidden border-b border-border bg-background"
@@ -106,15 +106,14 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
           <span class="text-sm text-muted-foreground">Git-native · local-first · open source</span>
         </div>
         <h1
-          class="display-title"
+          class="display-title max-[360px]:text-4xl max-[360px]:leading-[1.1]"
           data-hero-title
         >
-          <span class="block">Build agents</span>
-          <span class="block">that stay in sync with your project.</span>
+          Keep project knowledge with your code.
         </h1>
         <p class="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
           <InlineBrandText
-            text="Turn your project’s rules, decisions, and context into a source of truth for the agents you build. moldea keeps that knowledge connected to instructions and code as your project evolves."
+            text="Save the decisions behind your project in Git. moldea helps your coding agent use relevant context and update it as the project evolves."
           />
         </p>
         <p class="mt-4 text-sm font-semibold text-foreground">Versioned in Git. Owned by you.</p>

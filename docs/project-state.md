@@ -8,7 +8,7 @@ order: 40
 
 # Git-owned project state
 
-A project owns its canonical `moldea` state under `/moldea/**`. The state is reviewed, versioned, and changed with the implementation rather than hidden in a hosted memory store.
+A project owns its canonical `moldea` state under `/moldea/**`. Project purpose, rules, and decisions stay in Git, where they can be reviewed with the code and selected as relevant context during planning and development. The minimum foundation works without runtime agents; agent instructions and runtime guidance are added when the application needs them.
 
 Start with the [Repository format guide](/docs/repository-format/) for the complete structure and progressive examples. This page describes the responsibilities of each canonical state surface in more detail.
 

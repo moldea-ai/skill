@@ -8,7 +8,7 @@ order: 70
 
 # Keep behavior aligned while you ship
 
-After a repository adopts `moldea`, you should not need to append “and update `moldea`” to relevant knowledge or implementation requests.
+After a repository adopts `moldea`, durable project knowledge can stay current as you plan and develop ordinary software or runtime agents. Direct context requests and declared relationships establish relevance; you should not need to append “and update `moldea`” to those requests.
 
 ```text
 Add manager approval to refunds over $500.

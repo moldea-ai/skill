@@ -107,7 +107,7 @@ for (const width of PAGE_TITLE_WIDTHS) {
 
       const pageTitle = page.getByRole('heading', {
         level: 1,
-        name: 'One request. A connected, working agent.',
+        name: 'From project context to a working agent.',
       });
 
       await expectPageTitle(
@@ -127,7 +127,7 @@ test('follows one booking request through five connected stages', async ({ page 
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'One request. A connected, working agent.',
+      name: 'From project context to a working agent.',
     }),
   ).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0);
@@ -253,7 +253,10 @@ test('keeps both visual narratives and their technical links available without J
 
   await page.goto(toPublicPath('/capabilities/'));
   await expect(
-    page.getByRole('heading', { level: 1, name: 'From project knowledge to working agents.' }),
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Project context first. Agent capabilities when you need them.',
+    }),
   ).toBeVisible();
   await expect(page.locator('[data-capability-section]')).toHaveCount(6);
   await expect(page.getByRole('link', { name: 'Project state guide' })).toHaveAttribute(

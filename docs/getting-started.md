@@ -1,7 +1,7 @@
 ---
 title: Getting started
 navigationTitle: Getting started
-description: Install the skill from skills.sh and begin using it through ordinary requests to your coding agent.
+description: Install moldea, initialize Git-owned project context, and use relevant knowledge through requests to your coding agent.
 section: start
 order: 10
 ---
@@ -76,7 +76,13 @@ You may supply context directly or point to an accessible source. The coding age
 
 ## Make your first request
 
-After initialization, describe the outcome naturally:
+After initialization, start with a project-context request for ordinary software work:
+
+```text
+Use the saved project context to plan the next API change. Identify the relevant rules before proposing the implementation.
+```
+
+When your application needs a runtime agent, describe that outcome naturally:
 
 ```text
 Create a support agent for this application.

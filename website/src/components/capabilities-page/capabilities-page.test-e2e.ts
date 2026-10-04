@@ -10,7 +10,10 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
   await page.goto(route);
 
   await expect(
-    page.getByRole('heading', { level: 1, name: 'From project knowledge to working agents.' }),
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Project context first. Agent capabilities when you need them.',
+    }),
   ).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0);
   await expect(page.locator('[data-capability-section]')).toHaveCount(6);
@@ -82,7 +85,7 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'One request. A connected, working agent.',
+      name: 'From project context to a working agent.',
     }),
   ).toBeVisible();
 });

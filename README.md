@@ -20,11 +20,14 @@ Both commands install the portable skill named `moldea`. They do not install the
 
 ## What `moldea` is
 
-`moldea` keeps durable project context and agent behavior in a Git repository. Adopted projects own a canonical `/moldea/**` tree containing project truth, focused context, decisions, agent instructions, implementation relationships, runtime guidance, mirrors, and unresolved requirements.
+`moldea` helps developers keep durable project knowledge in Git and bring relevant context into coding-agent planning and development. Start with project purpose, rules, and decisions, even when your application has no runtime agents. The same foundation supports creating and maintaining runtime agents, reusable Agent Skills, and their instructions.
+
+Adopted projects own a canonical `/moldea/**` tree. Focused context, implementation relationships, runtime guidance, mirrors, and unresolved requirements are added only when current project evidence calls for them.
 
 The skill helps a coding agent:
 
 - initialize the minimum useful project state when explicitly requested
+- use and maintain relevant project knowledge during planning and development
 - plan agent-enabled systems and decide what should remain ordinary software
 - create and maintain grounded agents and reusable Agent Skills
 - keep affected canonical knowledge aligned with implementation work
@@ -37,6 +40,7 @@ After initialization, ask naturally to plan, build, review, or maintain AI agent
 | Outcome          | Example request                                                  |
 | ---------------- | ---------------------------------------------------------------- |
 | Initialize       | `Initialize moldea`                                              |
+| Use context      | `Use the saved API rules to plan the next change.`               |
 | Plan             | `Plan the agents for this project's support-triage workflow.`    |
 | Create an agent  | `Create a support agent grounded in the current project policy.` |
 | Maintain context | `Update moldea context for the approved refund policy.`          |

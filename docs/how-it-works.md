@@ -8,7 +8,7 @@ order: 30
 
 # Natural on the surface, rigorous underneath
 
-Start with [How `moldea` works](/how-it-works/) for a visual walkthrough of one connected project change. This reference explains the workflow underneath it.
+Start with [How `moldea` works](/how-it-works/) for a visual booking-agent walkthrough. The same project-context foundation also supports ordinary software planning and development, without a runtime agent. This reference explains when relevant context is selected and which operations can change it.
 
 The normal experience has three steps:
 

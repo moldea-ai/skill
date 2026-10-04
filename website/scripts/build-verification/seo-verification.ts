@@ -135,6 +135,7 @@ export const verifySeoMetadata = (
       if (
         websiteIdentity?.['@context'] !== 'https://schema.org' ||
         websiteIdentity['name'] !== SITE_NAME ||
+        websiteIdentity['description'] !== description ||
         websiteIdentity['url'] !== expectedHomeUrl ||
         JSON.stringify(websiteIdentity['alternateName']) !== JSON.stringify(SITE_ALTERNATE_NAMES)
       ) {

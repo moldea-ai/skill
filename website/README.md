@@ -18,6 +18,10 @@ The shared layout adds copy controls to useful code blocks after each direct loa
 
 Secondary navigation uses Website UI's ghost `ActionLink`: transparent in light mode, with the existing outline border and translucent surface in dark mode. `src/lib/site` owns the reused dark-theme classes. Primary calls to action, inverted links on dark emphasis sections, and button controls retain their existing variants.
 
+The homepage hero uses Website UI's `py-14 sm:py-18 lg:py-20` insets, matching the platform and packages homepages. On desktop, the support-agent example aligns with the vertical center of the complete text column. Three compact badges retain the Skill version alongside `Git-owned context` and `Local-first`. The badge row keeps a 28px gap before the muted `Open-source coding agent skill` eyebrow, followed by a 16px gap before the headline. The ghost `See how it works` action ends with a decorative right arrow. A muted row beneath the actions links to the Cloud website in a new tab for pull-request review, with the complete `moldea Cloud` name rendered using Website UI's `inline-code` style.
+
+Homepages follow the [shared homepage alignment rules](../../platform/DESIGN.md#layout): side-by-side content columns align at their vertical centers, split section headers align at the bottom on desktop, and icons, controls, and diagram connectors remain centered. Hero copy includes its badges and actions in the centered block. The rule applies at each composition's column breakpoint; stacked mobile content retains its natural height.
+
 Website UI owns the source overflow policy across code blocks, Markdown fences, diffs, and recorded tool dialogs. Markdown and plain text wrap; code, YAML, JSON, and unlabelled source preserve their lines with horizontal scrolling. Mixed recorded patches choose the default per file. Consumers can select `overflow="wrap"` or `"scroll"` on `CodeBlock` and `CodeDiff`, or `codeOverflow` on Markdown renderers, without local wrapping styles. Diff edge rows include the small leading and trailing inset, so change backgrounds fill it while unchanged comparisons retain the same spacing.
 
 ## Project runs

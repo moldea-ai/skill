@@ -4,8 +4,11 @@ import {
   ArrowRight,
   Cable,
   Check,
+  ExternalLink,
   ListChecks,
   FolderGit2,
+  GitBranch,
+  LaptopMinimal,
   ShieldCheck,
   Sparkles,
 } from '@lucide/astro';
@@ -25,6 +28,7 @@ import RepositoryFormat from '../repository-format/repository-format.astro';
 import WhyMoldea from '../why-moldea/why-moldea.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+import { CLOUD_WEBSITE_URL } from '../../lib/model/constants.ts';
 import {
   getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
@@ -90,21 +94,42 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
   >
     <HeroBackdrop />
     <div
-      class="page-shell relative grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-6 lg:py-20"
+      class="page-shell relative grid items-center gap-10 py-14 sm:py-18 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-6 lg:py-20"
     >
       <div class="min-w-0">
-        <div class="mb-6 flex flex-wrap items-center gap-3">
-          <span
-            class="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5 text-sm font-semibold shadow-surface backdrop-blur"
+        <ul
+          class="mb-7 flex flex-wrap items-center gap-2"
+          aria-label="Skill foundations"
+        >
+          <li
+            class="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-medium"
           >
             <Sparkles
-              class="size-3.5"
+              class="size-3.5 text-muted-foreground"
               aria-hidden="true"
             />
             Agent Skill · v{model.skill.version}
-          </span>
-          <span class="text-sm text-muted-foreground">Git-native · local-first · open source</span>
-        </div>
+          </li>
+          <li
+            class="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-medium"
+          >
+            <GitBranch
+              class="size-3.5 text-muted-foreground"
+              aria-hidden="true"
+            />
+            Git-owned context
+          </li>
+          <li
+            class="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-medium"
+          >
+            <LaptopMinimal
+              class="size-3.5 text-muted-foreground"
+              aria-hidden="true"
+            />
+            Local-first
+          </li>
+        </ul>
+        <p class="eyebrow mb-4">Open-source coding agent skill</p>
         <h1
           class="display-title max-[360px]:text-4xl max-[360px]:leading-[1.1]"
           data-hero-title
@@ -140,8 +165,27 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
             variant="ghost"
           >
             See how it works
+            <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            />
           </ActionLink>
         </div>
+        <p class="mt-5 text-sm leading-7 text-muted-foreground">
+          Want to review pull requests with your saved context? <a
+            class="text-link"
+            href={CLOUD_WEBSITE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            >Explore <span class="whitespace-nowrap"
+              ><code class="inline-code">moldea Cloud</code>&nbsp;<ExternalLink
+                class="inline size-3.5"
+                aria-hidden="true"
+                data-external-link-icon
+              /></span
+            ></a
+          >.
+        </p>
       </div>
 
       <AgentExample />

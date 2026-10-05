@@ -139,6 +139,78 @@ for (const width of HEADING_ROLE_WIDTHS) {
         'display',
         width,
       );
+      const hero = page.locator('[data-home-hero]');
+      const heroBounds = await hero.boundingBox();
+      const copyBounds = await displayTitle.locator('..').boundingBox();
+      const previewBounds = await hero
+        .getByRole('article', { name: 'Illustrative support agent project' })
+        .boundingBox();
+      expect(heroBounds).not.toBeNull();
+      expect(copyBounds).not.toBeNull();
+      expect(previewBounds).not.toBeNull();
+      if (!heroBounds || !copyBounds || !previewBounds) return;
+      const heroInset = width >= 1024 ? 80 : width >= 640 ? 72 : 56;
+      expect(Math.min(copyBounds.y, previewBounds.y) - heroBounds.y).toBeCloseTo(heroInset, 0);
+      if (width >= 1024) {
+        expect(copyBounds.y + copyBounds.height / 2).toBeCloseTo(
+          previewBounds.y + previewBounds.height / 2,
+          0,
+        );
+      }
+      const badgeBounds = await hero.getByRole('list', { name: 'Skill foundations' }).boundingBox();
+      const eyebrowBounds = await hero
+        .getByText('Open-source coding agent skill', { exact: true })
+        .boundingBox();
+      const titleBounds = await displayTitle.boundingBox();
+      expect(badgeBounds).not.toBeNull();
+      expect(eyebrowBounds).not.toBeNull();
+      expect(titleBounds).not.toBeNull();
+      if (!badgeBounds || !eyebrowBounds || !titleBounds) return;
+      expect(eyebrowBounds.y - badgeBounds.y - badgeBounds.height).toBeCloseTo(28, 0);
+      expect(titleBounds.y - eyebrowBounds.y - eyebrowBounds.height).toBeCloseTo(16, 0);
+      if (width >= 768) {
+        const projectCard = page.locator('[data-home-evidence-card="projects"]');
+        await expect(projectCard).toBeVisible();
+        const contentCenter = await projectCard
+          .locator(':scope > div')
+          .first()
+          .evaluate((element) => {
+            const bounds = element.getBoundingClientRect();
+            return bounds.top + bounds.height / 2;
+          });
+        const summaryCenter = await projectCard
+          .locator(':scope > div')
+          .last()
+          .evaluate((element) => {
+            const bounds = element.getBoundingClientRect();
+            return bounds.top + bounds.height / 2;
+          });
+        expect(contentCenter).toBeCloseTo(summaryCenter, 0);
+      }
+      if (width >= 1024) {
+        for (const titleId of [
+          'why-moldea-title',
+          'capabilities-overview-title',
+          'behavior-alignment-title',
+          'open-source-system-title',
+          'repository-format-title',
+          'getting-started-title',
+          'coding-agent-compatibility-title',
+        ]) {
+          const headerBottoms = await page.locator(`#${titleId}`).evaluate((element) => {
+            const header = element.closest('header');
+            const [titleColumn, descriptionColumn] = header?.children ?? [];
+            if (!titleColumn || !descriptionColumn) return null;
+            return {
+              title: titleColumn.getBoundingClientRect().bottom,
+              description: descriptionColumn.getBoundingClientRect().bottom,
+            };
+          });
+          expect(headerBottoms).not.toBeNull();
+          if (!headerBottoms) return;
+          expect(headerBottoms.title).toBeCloseTo(headerBottoms.description, 0);
+        }
+      }
       await expectHeadingRole(
         page,
         sectionTitle,
@@ -190,6 +262,20 @@ test('leads with project context while retaining the connected-agent example and
     .locator('[data-home-hero]')
     .getByRole('link', { name: 'See how it works', exact: true });
   await expect(workflowLink).toHaveAttribute('href', toPublicPath('/how-it-works/'));
+  await expect(workflowLink.locator('svg.lucide-arrow-right')).toHaveAttribute(
+    'aria-hidden',
+    'true',
+  );
+
+  const cloudLink = page
+    .locator('[data-home-hero]')
+    .getByRole('link', { name: 'Explore moldea Cloud', exact: true });
+  await expect(cloudLink).toHaveAttribute('href', CLOUD_WEBSITE_URL);
+  await expect(cloudLink).toHaveAttribute('target', '_blank');
+  await expect(cloudLink).toHaveAttribute('rel', 'noopener noreferrer');
+  await expect(cloudLink.locator('code')).toHaveText('moldea Cloud');
+  await cloudLink.focus();
+  await expect(cloudLink).toBeFocused();
 
   for (const [kind, preview] of [
     ['application', LANDING_EXAMPLE_PREVIEW.policyDiff],

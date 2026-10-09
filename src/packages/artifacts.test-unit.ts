@@ -85,6 +85,16 @@ test('accepts an additional reachable selected package root', () => {
   );
 });
 
+test('accepts a stable patch minimum and rejects an unsatisfied minimum', () => {
+  const artifacts = createArtifacts();
+  const cli = artifacts.get('@moldea.ai/cli');
+  assert.ok(cli?.manifest.dependencies !== undefined);
+  cli.manifest.dependencies['@moldea.ai/core'] = '^2.0.3';
+  assert.doesNotThrow(() => validateCandidateArtifacts(artifacts));
+  cli.manifest.dependencies['@moldea.ai/core'] = '^2.0.4';
+  assert.throws(() => validateCandidateArtifacts(artifacts), /does not satisfy \^2\.0\.4/);
+});
+
 test('rejects missing dependencies and incompatible internal ranges', () => {
   const incompleteArtifacts = createArtifacts();
   incompleteArtifacts.delete('@moldea.ai/repository');
@@ -99,7 +109,7 @@ test('rejects missing dependencies and incompatible internal ranges', () => {
   exactCliArtifact.manifest.dependencies['@moldea.ai/core'] = '2.0.3';
   assert.throws(
     () => validateCandidateArtifacts(exactArtifacts),
-    /must declare @moldea\.ai\/core with a compatible-major range/,
+    /Expected a compatible stable range/,
   );
 
   const mismatchedArtifacts = createArtifacts();

@@ -9,6 +9,7 @@ import {
   parseRuntimeCompatibilityPublication,
   RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
 } from '../compatibility/index.ts';
+import { parseCompatibleStableRange } from '../release/index.ts';
 
 import { loadCandidateArtifacts } from './artifacts.ts';
 import type {
@@ -111,7 +112,7 @@ const getLocalDependencies = (
         leftName.localeCompare(rightName, 'en') || leftField.localeCompare(rightField, 'en'),
     );
 
-/** Validates one source dependency against its local compatible-major package. */
+/** Validates one stable caret minimum against its local source package. */
 const validateSourceDependencyVersion = ({
   dependency,
   dependencyName,
@@ -127,14 +128,13 @@ const validateSourceDependencyVersion = ({
 }): void => {
   if (fieldName === 'devDependencies' && dependencyVersion === 'workspace:*') return;
 
-  const expectedRange = `workspace:^${semver.major(dependency.version)}.0.0`;
-  if (dependencyVersion !== expectedRange) {
-    throw new Error(
-      `${owner.name} must declare ${dependencyName} as compatible source range ${expectedRange}.`,
-    );
-  }
   assert.ok(
-    semver.satisfies(dependency.version, dependencyVersion.slice('workspace:'.length)),
+    dependencyVersion.startsWith('workspace:'),
+    `${owner.name} must declare ${dependencyName} as a workspace dependency.`,
+  );
+  const versionRange = parseCompatibleStableRange(dependencyVersion.slice('workspace:'.length));
+  assert.ok(
+    semver.satisfies(dependency.version, versionRange),
     `${dependencyName}@${dependency.version} does not satisfy ${dependencyVersion}.`,
   );
 };

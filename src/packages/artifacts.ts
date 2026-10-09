@@ -6,6 +6,8 @@ import { basename, join } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import semver from 'semver';
 
+import { parseCompatibleStableRange } from '../release/index.ts';
+
 import type {
   ICandidateRegistry,
   IPackageCandidateArtifact,
@@ -16,7 +18,6 @@ import type {
 const CLI_PACKAGE_NAME = '@moldea.ai/cli';
 const MOLDEA_PACKAGE_PREFIX = '@moldea.ai/';
 const STABLE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
-const COMPATIBLE_MAJOR_RANGE_PATTERN = /^\^[1-9]\d*\.0\.0$/u;
 
 type ICandidatePackageVersionMetadata = IPackageCandidateManifest & {
   dist: {
@@ -80,18 +81,12 @@ const validateInternalDependencyVersion = ({
   dependencyArtifact,
   dependencyName,
   dependencyVersion,
-  manifest,
 }: {
   dependencyArtifact: IPackageCandidateArtifact;
   dependencyName: string;
   dependencyVersion: string;
-  manifest: IPackageCandidateManifest;
 }): void => {
-  if (!COMPATIBLE_MAJOR_RANGE_PATTERN.test(dependencyVersion)) {
-    throw new Error(
-      `${manifest.name} must declare ${dependencyName} with a compatible-major range.`,
-    );
-  }
+  parseCompatibleStableRange(dependencyVersion);
   assert.ok(
     semver.satisfies(dependencyArtifact.manifest.version, dependencyVersion),
     `${dependencyName}@${dependencyArtifact.manifest.version} does not satisfy ${dependencyVersion}.`,
@@ -160,7 +155,6 @@ export const validateCandidateArtifacts = (
         dependencyArtifact,
         dependencyName,
         dependencyVersion,
-        manifest: artifact.manifest,
       });
       visitPackage(dependencyName);
     }

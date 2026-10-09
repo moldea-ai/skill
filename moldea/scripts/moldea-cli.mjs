@@ -14029,7 +14029,7 @@ var MAXIMUM_OUTPUT_BYTES = 1048576;
 var MAXIMUM_STDERR_BYTES = 32768;
 var MAXIMUM_CURSOR_BYTES2 = 8192;
 var DEFAULT_COMPOSITION_OUTPUT_BYTES = 65536;
-var PROCESS_TERMINATION_GRACE_PERIOD_MS = 5e3;
+var PROCESS_TERMINATION_GRACE_PERIOD_MS = 1e3;
 var RESPONSE_OPTIONS = ["--save-response", "--cursor-from-response"];
 var VALUE_OPTIONS = /* @__PURE__ */ new Set([
   "--cursor",
@@ -14166,15 +14166,19 @@ var runCli = async () => {
   const spawnArguments = [resolvedCli.cliBinaryPath, ...cliArguments];
   const spawnOptions = {
     cwd: resolvedCli.repositoryRoot,
-    env: process.env,
+    env: Object.fromEntries(
+      Object.entries(process.env).filter(
+        ([name]) => !["node_options", "node_path"].includes(name.toLowerCase())
+      )
+    ),
     shell: false
   };
   const child = scopeInput === void 0 ? spawn(process.execPath, spawnArguments, {
     ...spawnOptions,
-    stdio: ["inherit", "pipe", "pipe"]
+    stdio: ["inherit", "pipe", "pipe", "ipc"]
   }) : spawn(process.execPath, spawnArguments, {
     ...spawnOptions,
-    stdio: ["pipe", "pipe", "pipe"]
+    stdio: ["pipe", "pipe", "pipe", "ipc"]
   });
   const stdoutChunks = [];
   const stderrChunks = [];
@@ -14198,12 +14202,12 @@ var runCli = async () => {
       requestTermination("SIGTERM");
     }
   };
-  child.stdout.on("data", (chunk) => {
+  child.stdout?.on("data", (chunk) => {
     stdoutByteCount += chunk.byteLength;
     if (stdoutByteCount > parsed.outputByteLimit) terminateForLimit();
     else stdoutChunks.push(chunk);
   });
-  child.stderr.on("data", (chunk) => {
+  child.stderr?.on("data", (chunk) => {
     stderrByteCount += chunk.byteLength;
     if (stderrByteCount > MAXIMUM_STDERR_BYTES) terminateForLimit();
     else stderrChunks.push(chunk);

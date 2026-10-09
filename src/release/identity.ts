@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import semver from 'semver';
-import { parseDocument } from 'yaml';
+import { isScalar, parseDocument } from 'yaml';
 import { z } from 'zod';
 
 import {
@@ -45,6 +45,7 @@ const PackageLockSchema = z.object({
 });
 const SkillMetadataSchema = z.object({
   metadata: z.object({
+    cliRepairVersion: z.string(),
     cliJsonSchemaVersion: z
       .string()
       .regex(/^[1-9]\d*$/u)
@@ -81,6 +82,13 @@ const parseSkillMetadata = (source: string): z.infer<typeof SkillMetadataSchema>
   const document = parseDocument(match[1] ?? '', { uniqueKeys: true });
   if (document.errors.length > 0) {
     throw new Error(document.errors.map(({ message }) => message).join('\n'));
+  }
+  const repairVersion = document.getIn(['metadata', 'cliRepairVersion'], true);
+  if (
+    !isScalar(repairVersion) ||
+    (repairVersion.type !== 'QUOTE_SINGLE' && repairVersion.type !== 'QUOTE_DOUBLE')
+  ) {
+    throw new Error('The skill CLI repair version must be one quoted stable version.');
   }
   return SkillMetadataSchema.parse(document.toJS());
 };
@@ -186,6 +194,7 @@ export const inspectReleaseIdentity = (repositoryRoot: string): string[] => {
 
   if (
     skillMetadata.name !== 'moldea' ||
+    parseStableVersion(skillMetadata.metadata.cliRepairVersion) !== identity.cliVersion ||
     parseStableVersion(skillMetadata.metadata.version) !== identity.releaseVersion ||
     parseCompatibleMajorRange(skillMetadata.metadata.cliVersionRange) !==
       identity.cliVersionRange ||

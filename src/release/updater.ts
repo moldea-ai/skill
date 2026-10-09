@@ -499,6 +499,14 @@ export const createCliReleaseUpdate = ({
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
     let currentContent = requireFile(updatedFiles, relativePath);
     if (relativePath === RELEASE_PATHS.skill) {
+      const previousRepairVersion = `cliRepairVersion: '${previousCliVersion}'`;
+      if (currentContent.split(previousRepairVersion).length !== 2) {
+        throw new Error('The skill CLI repair metadata must be one quoted exact current version.');
+      }
+      currentContent = currentContent.replace(
+        previousRepairVersion,
+        `cliRepairVersion: '${version}'`,
+      );
       const previousMetadata = `cliJsonSchemaVersion: '${previousCliJsonSchemaVersion}'`;
       if (currentContent.split(previousMetadata).length !== 2) {
         throw new Error('The skill JSON schema metadata must be one quoted string value.');
@@ -640,19 +648,19 @@ export const updateCliRelease = async ({
   installDependencies = installReleaseDependencies,
 }: {
   generateArtifacts?: typeof generatePortableArtifacts;
-  installDependencies?: (temporaryRoot: string) => void;
+  installDependencies?: (temporaryRoot: string) => void | Promise<void>;
   repositoryRoot: string;
-  resolveManifest?: (version: string) => IPublishedCliManifest;
+  resolveManifest?: (version: string) => IPublishedCliManifest | Promise<IPublishedCliManifest>;
   updateRootManifests?: (options: {
     packageLock: string;
     packageManifest: IReleasePackageManifest;
     repositoryRoot: string;
     version: string;
-  }) => IUpdatedRootManifests;
+  }) => IUpdatedRootManifests | Promise<IUpdatedRootManifests>;
   version: string;
 }): Promise<IReleaseIdentity> => {
   parseStableVersion(version);
-  const publishedManifest = resolveManifest(version);
+  const publishedManifest = await resolveManifest(version);
   const managedPaths = [
     ...new Set([
       ...CLI_VERSION_RANGE_TEXT_PATHS,
@@ -708,7 +716,7 @@ export const updateCliRelease = async ({
       [CLI_PACKAGE_NAME]: version,
     },
   };
-  const updatedRootManifests = updateRootManifests({
+  const updatedRootManifests = await updateRootManifests({
     packageLock: requireFile(currentFiles, RELEASE_PATHS.packageLock),
     packageManifest: RootPackageManifestSchema.parse(nextPackageManifest),
     repositoryRoot,
@@ -764,7 +772,7 @@ export const updateCliRelease = async ({
         undefined,
       );
     }
-    installDependencies(temporaryRoot);
+    await installDependencies(temporaryRoot);
     const generation = await generateArtifacts({ rootDirectory: temporaryRoot });
     if (
       generation.artifacts.length !== PORTABLE_ARTIFACT_PATHS.length ||

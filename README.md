@@ -49,7 +49,7 @@ After initialization, ask naturally to plan, build, review, or maintain AI agent
 | Repair           | `Fix moldea.`                                                    |
 | Validate         | `Validate moldea.`                                               |
 
-Evaluation is read-only. Repair corrects established errors without inventing policy, upgrading dependencies, or treating structural validity as proof that every behavior is correct.
+Evaluation is read-only. Repair corrects established errors and may recover necessary local CLI tooling to the exact target recorded by the installed skill. It preserves host restrictions, healthy newer compatible tooling, and unresolved policy. Completed static checks do not prove every runtime behavior.
 
 ## Documentation
 
@@ -146,6 +146,8 @@ npm ci --ignore-scripts
 ```
 
 To prepare an exact published CLI release, run `npm run release:update-cli -- <version>`. The updater verifies the published CLI, installs its locked dependency closure in a temporary directory, regenerates portable scripts from maintained TypeScript, and checks release identity before completing. It restores files it changed if preparation or verification fails, while preserving concurrent edits. Run `npm ci --ignore-scripts` afterward to bring local dependencies in line with the updated lockfile before running conformance checks.
+
+Before publication, `npm run candidate:prepare -- --artifacts <packed-closure-directory> --output <empty-directory-outside-this-repository>` prepares a complete isolated skill through the same updater against the candidate registry. An optional `--release-version <version>` selects the isolated skill version. The release-candidate workflow uses this full distribution for real manager and closed-launcher checks. Candidate registry URLs stay in the disposable output; they must not enter the official release lockfile. These checks establish tooling mechanics, not coding-agent repair effectiveness.
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 

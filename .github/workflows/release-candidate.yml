@@ -7,6 +7,10 @@ on:
         description: Exact moldea-ai/packages branch, tag, or commit to verify
         required: true
         type: string
+      skill_version:
+        description: Isolated skill release version (empty uses checkout version)
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -17,7 +21,7 @@ defaults:
 
 env:
   NODE_VERSION: 24.15.0
-  PNPM_VERSION: 11.9.0
+  PNPM_VERSION: 12.4.0
 
 jobs:
   pack:
@@ -140,14 +144,27 @@ jobs:
       - name: Install skill development dependencies
         run: npm ci --ignore-scripts
 
-      - name: Install tested package manager
-        run: npm install --global --ignore-scripts "${{ matrix.package }}@${{ matrix.version }}"
-
       - name: Download candidate closure
         uses: actions/download-artifact@v8
         with:
           name: cli-candidate-packages
           path: ${{ runner.temp }}/cli-candidate-packages
+
+      - name: Prepare complete skill candidate with development npm
+        env:
+          MOLDEA_CANDIDATE_SKILL_VERSION: ${{ inputs.skill_version }}
+        run: |
+          candidate_arguments=(
+            --artifacts "${{ runner.temp }}/cli-candidate-packages"
+            --output "${{ runner.temp }}/skill-candidate"
+          )
+          if [ -n "$MOLDEA_CANDIDATE_SKILL_VERSION" ]; then
+            candidate_arguments+=(--release-version "$MOLDEA_CANDIDATE_SKILL_VERSION")
+          fi
+          npm run candidate:prepare -- "${candidate_arguments[@]}"
+
+      - name: Install tested package manager
+        run: npm install --global --ignore-scripts "${{ matrix.package }}@${{ matrix.version }}"
 
       - name: Exercise real candidate conformance
         env:
@@ -156,4 +173,5 @@ jobs:
           MOLDEA_TEST_MANAGER: ${{ matrix.manager }}
           MOLDEA_TEST_MANAGER_VERSION: ${{ matrix.version }}
           MOLDEA_TEST_EXISTING_VITEST_VERSION: ${{ matrix.existing_vitest_version || '' }}
+          MOLDEA_CANDIDATE_SKILL_ROOT: ${{ runner.temp }}/skill-candidate/moldea
         run: node src/packages/package-manager-conformance.ts

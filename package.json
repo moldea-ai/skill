@@ -17,6 +17,7 @@
     "coreVersionRange": "^5.0.0"
   },
   "scripts": {
+    "candidate:prepare": "node src/packages/skill-candidate.ts",
     "docs:check": "npm --workspace website run docs:check",
     "docs:generate": "npm --workspace website run docs:generate",
     "evidence:pack": "node src/command-line/evidence.ts pack",

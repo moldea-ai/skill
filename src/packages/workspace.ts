@@ -156,7 +156,11 @@ export const discoverSourcePackageManifests = (
     for (const directoryEntry of readdirSync(collectionDirectory, {
       withFileTypes: true,
     }).sort(({ name: left }, { name: right }) => left.localeCompare(right, 'en'))) {
-      if (!directoryEntry.isDirectory()) continue;
+      if (
+        !directoryEntry.isDirectory() ||
+        ['_archive', '_archives', '_backup', '_backups'].includes(directoryEntry.name)
+      )
+        continue;
       const projectDirectory = join(collectionName, directoryEntry.name);
       const manifestPath = join(workspaceRoot, projectDirectory, 'package.json');
       if (!existsSync(manifestPath)) continue;

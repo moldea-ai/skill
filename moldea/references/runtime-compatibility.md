@@ -17,6 +17,8 @@ Inspect the relevant repository package declaration or lockfile entry for versio
 3. Root-local `composition --json` establishes the installed executable, active adapter IDs, package versions, repository-format versions, and Node.js and Git requirements. It proves availability only.
 4. Installed adapter contracts and deterministic inspection establish package eligibility, recognized source patterns, and specific limitations for that installed implementation. Absence of diagnostics alone does not prove behavioral fit or support for uninspected source.
 
+Static verification covers recognized closed source relationships. Dynamic loaders, registries, mutations, provider exports, or handoffs can remain unverified without being defective. A warning identifies the withheld claim, not a mandate to restructure the application. An operational resource failure withholds the whole incomplete inspection conclusion.
+
 The packages website is a discovery and reference catalog, not a runtime prerequisite. Website presentation labels never affect runtime identity, eligibility, or unresolved state. Missing online information cannot erase independently established local facts or block eligible local inspection.
 
 ## Make runtime claims precisely

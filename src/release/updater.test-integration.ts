@@ -191,7 +191,7 @@ test('updateCliRelease synchronizes a complete copied release tree', async () =>
     Object.entries(currentIdentity.cliDependencies).map(([name, versionRange]) => [
       name,
       name === '@moldea.ai/core'
-        ? '^5.0.0'
+        ? currentIdentity.coreVersionRange
         : versionRange.replace(/^\^?\d+/u, (major) => `^${Number(major.replace('^', '')) + 1}`),
     ]),
   );
@@ -281,7 +281,7 @@ test('updateCliRelease accepts a higher same-major Core declaration minimum', as
   const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
   const cliDependencies = {
     ...currentIdentity.cliDependencies,
-    '@moldea.ai/core': '^5.0.1',
+    '@moldea.ai/core': currentIdentity.coreVersionRange.replace(/\.\d+$/u, '.1'),
   };
 
   try {
@@ -297,12 +297,12 @@ test('updateCliRelease accepts a higher same-major Core declaration minimum', as
       installDependencies: installSyntheticDependencies,
     });
 
-    assert.equal(identity.cliCoreVersionRange, '^5.0.1');
-    assert.equal(identity.coreVersionRange, '^5.0.0');
+    assert.equal(identity.cliCoreVersionRange, cliDependencies['@moldea.ai/core']);
+    assert.equal(identity.coreVersionRange, currentIdentity.coreVersionRange);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
     assert.match(
       readFileSync(join(temporaryRoot, RELEASE_PATHS.skill), 'utf8'),
-      /cliJsonSchemaVersion: '5'/u,
+      new RegExp(`cliJsonSchemaVersion: '${currentIdentity.cliJsonSchemaVersion}'`, 'u'),
     );
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });
@@ -311,6 +311,8 @@ test('updateCliRelease accepts a higher same-major Core declaration minimum', as
 
 test('updateCliRelease preserves the supported Core range when the CLI minimum rises again', async () => {
   const temporaryRoot = createTemporaryReleaseRoot();
+  const initialIdentity = readReleaseIdentity(REPOSITORY_ROOT);
+  const coreMajor = Number(initialIdentity.coreVersion.split('.')[0]);
   const semanticCliManifestPath = join(temporaryRoot, RELEASE_PATHS.semanticCliManifest);
   const semanticCliManifest = JSON.parse(readFileSync(semanticCliManifestPath, 'utf8')) as {
     dependencies: Record<string, string>;
@@ -325,10 +327,10 @@ test('updateCliRelease preserves the supported Core range when the CLI minimum r
   const lockedCli = packageLock.packages['node_modules/@moldea.ai/cli'];
   const lockedCore = packageLock.packages['node_modules/@moldea.ai/core'];
   assert.ok(lockedCli?.dependencies && lockedCore);
-  semanticCliManifest.dependencies['@moldea.ai/core'] = '^5.0.0';
-  lockedCli.dependencies['@moldea.ai/core'] = '^5.0.0';
-  lockedCore.version = '5.1.0';
-  lockedCore.integrity = 'sha512-5.1.0';
+  semanticCliManifest.dependencies['@moldea.ai/core'] = initialIdentity.coreVersionRange;
+  lockedCli.dependencies['@moldea.ai/core'] = initialIdentity.coreVersionRange;
+  lockedCore.version = `${coreMajor}.1.0`;
+  lockedCore.integrity = `sha512-${coreMajor}.1.0`;
   writeFileSync(semanticCliManifestPath, `${JSON.stringify(semanticCliManifest, null, 2)}\n`);
   writeFileSync(packageLockPath, `${JSON.stringify(packageLock, null, 2)}\n`);
 
@@ -337,7 +339,7 @@ test('updateCliRelease preserves the supported Core range when the CLI minimum r
     const currentIdentity = readReleaseIdentity(temporaryRoot);
     const cliDependencies = {
       ...currentIdentity.cliDependencies,
-      '@moldea.ai/core': '^5.1.0',
+      '@moldea.ai/core': `^${coreMajor}.1.0`,
     };
 
     const identity = await updateCliRelease({
@@ -352,16 +354,22 @@ test('updateCliRelease preserves the supported Core range when the CLI minimum r
       installDependencies: installSyntheticDependencies,
     });
 
-    assert.equal(identity.cliCoreVersionRange, '^5.1.0');
-    assert.equal(identity.coreVersionRange, '^5.0.0');
+    assert.equal(identity.cliCoreVersionRange, `^${coreMajor}.1.0`);
+    assert.equal(identity.coreVersionRange, currentIdentity.coreVersionRange);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
     assert.match(
       readFileSync(join(temporaryRoot, RELEASE_PATHS.readme), 'utf8'),
-      /stable `@moldea\.ai\/core` releases satisfying `\^5\.0\.0`/u,
+      new RegExp(
+        `stable \`@moldea\\.ai/core\` releases satisfying \`\\^${coreMajor}\\.0\\.0\``,
+        'u',
+      ),
     );
     assert.match(
       readFileSync(join(temporaryRoot, RELEASE_PATHS.skillLocalTooling), 'utf8'),
-      /stable `@moldea\.ai\/core` releases satisfying `\^5\.0\.0`/u,
+      new RegExp(
+        `stable \`@moldea\\.ai/core\` releases satisfying \`\\^${coreMajor}\\.0\\.0\``,
+        'u',
+      ),
     );
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });

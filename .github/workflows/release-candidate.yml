@@ -33,6 +33,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+          path: skill
 
       - name: Checkout packages candidate
         uses: actions/checkout@v6
@@ -55,6 +56,7 @@ jobs:
           cache-dependency-path: packages/pnpm-lock.yaml
 
       - name: Install skill packing dependencies
+        working-directory: skill
         run: npm ci --ignore-scripts
 
       - name: Install candidate dependencies
@@ -68,7 +70,7 @@ jobs:
           candidate_directory="${{ runner.temp }}/cli-candidate-packages"
           mkdir -p "$candidate_directory"
           git -C packages rev-parse HEAD > "$candidate_directory/packages-commit.txt"
-          node src/packages/pack.ts \
+          node skill/src/packages/pack.ts \
             --workspace packages \
             --output "$candidate_directory" \
             --runtime-compatibility-publication packages/apps/website/dist/compatibility/runtimes.json

@@ -21,7 +21,7 @@ defaults:
 
 env:
   NODE_VERSION: 24.15.0
-  PNPM_VERSION: 12.4.0
+  PNPM_VERSION: 11.9.0
 
 jobs:
   pack:

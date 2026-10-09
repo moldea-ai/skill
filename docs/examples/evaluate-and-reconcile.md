@@ -8,6 +8,8 @@ order: 140
 
 # Find drift before deciding how to fix it
 
+The requests and reports below illustrate the workflow. They are not recorded coding-agent outcomes.
+
 ## First request: evaluate
 
 **Developer**
@@ -19,7 +21,7 @@ Evaluate the support agent's instruction path. Do not change files.
 **Coding agent**
 
 ```text
-Evaluation found no structural diagnostics. It confirmed one semantic problem: the runtime uses an independently maintained inline instruction instead of the canonical support-agent instruction. No material ambiguity changes the correction direction. No repository files were changed.
+For this supported OpenAI source pattern, validation reported OPENAI_INSTRUCTION_LOADER_NOT_WIRED: a runtime request bypasses its declared canonical instruction loader. Evaluation also compared the active instruction with the approved support policy. No material ambiguity changes the correction direction. No repository files were changed.
 ```
 
 ### Under the hood
@@ -28,7 +30,7 @@ Evaluation found no structural diagnostics. It confirmed one semantic problem: t
 2. It confirms adoption and requests the named agent's canonical content through the installed skill's bounded launcher. Metadata inspection is added only when necessary.
 3. It follows the registered runtime-agent relationship into every material invocation path.
 4. It compares canonical instructions, runtime construction, tests, and adapter evidence.
-5. It reports the provenance gap separately from deterministic validity and states that no files changed.
+5. It reports the proven source relationship error separately from semantic findings and states that no files changed. If a custom source pattern cannot be proved, it reports the specific unverified warning instead of assuming the same defect.
 
 ## Second request: reconcile
 

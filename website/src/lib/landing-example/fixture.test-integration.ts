@@ -8,6 +8,8 @@ import ts from 'typescript';
 import { z } from 'zod';
 import { describe, expect, test } from 'vitest';
 
+import { assertReleaseIdentity } from '../../../../src/release/index.ts';
+
 import {
   getLandingExampleFile,
   LANDING_EXAMPLE,
@@ -23,11 +25,18 @@ const MAX_PROCESS_OUTPUT_BYTES = 65_536;
 const PROCESS_TIMEOUT_MS = 10_000;
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const websiteRoot = path.join(repositoryRoot, 'website');
-const cliPath = path.join(repositoryRoot, 'node_modules', '@moldea.ai', 'cli', 'dist', 'moldea.js');
+// release qualification can exercise the same example against the complete installed candidate
+const candidateSkillRoot = process.env['MOLDEA_CANDIDATE_SKILL_ROOT'];
+const releaseRoot =
+  candidateSkillRoot === undefined ? repositoryRoot : path.dirname(candidateSkillRoot);
+const releaseIdentity = assertReleaseIdentity(releaseRoot);
+const cliPath = path.join(releaseRoot, 'node_modules', '@moldea.ai', 'cli', 'dist', 'moldea.js');
 
 const CliRecordSchema = z.object({
   code: z.string().optional(),
   evidenceKind: z.string().optional(),
+  severity: z.enum(['error', 'warning']).optional(),
+  details: z.object({ relationship: z.string(), reason: z.string() }).optional(),
   kind: z.enum(['agent', 'diagnostic', 'evidence', 'match', 'metadata']),
   match: z
     .object({ owner: z.object({ agentId: z.string().nullable(), id: z.string() }) })
@@ -42,7 +51,7 @@ const CliEnvelopeSchema = z.object({
     snapshotDigest: z.string(),
     valid: z.boolean(),
   }),
-  schemaVersion: z.literal(5),
+  schemaVersion: z.literal(releaseIdentity.cliJsonSchemaVersion),
   status: z.enum(['invalid', 'valid']),
 });
 
@@ -113,7 +122,7 @@ const writeFixture = async (root: string, files: ILandingExampleFiles): Promise<
   }
 };
 
-/** Runs one CLI command and parses its schema-5 response. */
+/** Runs one CLI command and parses the response schema owned by the installed release. */
 const runCli = async (root: string, args: readonly string[]) => {
   const processResult = await executeProcess(
     process.execPath,
@@ -348,7 +357,19 @@ assert.equal(OpenAI.requests.length, 1);
       const repairedRecords = repaired.envelope.result.page.records;
 
       expect(repaired.processResult.exitCode).toBe(0);
-      expect(repairedRecords.filter(({ kind }) => kind === 'diagnostic')).toStrictEqual([]);
+      const repairedDiagnostics = repairedRecords.filter(({ kind }) => kind === 'diagnostic');
+      expect(repairedDiagnostics.filter(({ severity }) => severity === 'error')).toStrictEqual([]);
+      for (const diagnostic of repairedDiagnostics) {
+        expect({
+          code: diagnostic.code,
+          severity: diagnostic.severity,
+          details: diagnostic.details,
+        }).toStrictEqual({
+          code: 'OPENAI_RUNTIME_RELATIONSHIP_UNVERIFIED',
+          severity: 'warning',
+          details: { relationship: 'tool-implementation', reason: 'unsupported-source-pattern' },
+        });
+      }
       expect(
         repairedRecords
           .filter(({ kind }) => kind === 'evidence')

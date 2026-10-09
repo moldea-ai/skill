@@ -274,7 +274,7 @@ const verifyBrokenInstallation = async (options: {
     expectedExitCodes: [3],
   });
   assert.equal(rejected.stdout, '');
-  // pnpm removal and cleanup use configuration; supported versions recognize these prefixes.
+  // pnpm removal uses configuration; supported versions recognize these prefixes.
   const recoveryEnvironment: NodeJS.ProcessEnv = {
     ...options.environment,
     npm_config_ignore_scripts: 'true',
@@ -301,12 +301,15 @@ const verifyBrokenInstallation = async (options: {
       environment: recoveryEnvironment,
     });
   }
+  const reinstallArguments = createInstallArguments({
+    manager: options.manager,
+    packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
+  });
+  // some pnpm versions reuse damaged materialization even after scoped cleanup.
+  if (options.manager === 'pnpm') reinstallArguments.push('--force');
   await runCommand({
     command: getManagerExecutable(options.manager),
-    args: createInstallArguments({
-      manager: options.manager,
-      packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
-    }),
+    args: reinstallArguments,
     cwd: options.clientDirectory,
     environment: recoveryEnvironment,
   });

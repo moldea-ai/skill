@@ -274,25 +274,31 @@ const verifyBrokenInstallation = async (options: {
     expectedExitCodes: [3],
   });
   assert.equal(rejected.stdout, '');
+  // pnpm removal and cleanup use configuration; supported versions recognize these prefixes.
+  const recoveryEnvironment: NodeJS.ProcessEnv = {
+    ...options.environment,
+    npm_config_ignore_scripts: 'true',
+    PNPM_CONFIG_IGNORE_SCRIPTS: 'true',
+  };
   const removeArguments =
     options.manager === 'npm'
       ? ['uninstall', '--save-dev', '--ignore-scripts', '@moldea.ai/cli']
       : options.manager === 'pnpm'
-        ? ['remove', '--workspace-root', '--ignore-scripts', '@moldea.ai/cli']
+        ? ['remove', '--workspace-root', '@moldea.ai/cli']
         : ['remove', '--mode=skip-build', '@moldea.ai/cli'];
   await runCommand({
     command: getManagerExecutable(options.manager),
     args: removeArguments,
     cwd: options.clientDirectory,
-    environment: options.environment,
+    environment: recoveryEnvironment,
   });
   // this fixture has no extraneous application packages; pruning removes only the removed CLI closure
   if (options.manager === 'pnpm') {
     await runCommand({
       command: getManagerExecutable(options.manager),
-      args: ['prune', '--ignore-scripts'],
+      args: ['prune'],
       cwd: options.clientDirectory,
-      environment: options.environment,
+      environment: recoveryEnvironment,
     });
   }
   await runCommand({
@@ -302,7 +308,7 @@ const verifyBrokenInstallation = async (options: {
       packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
     }),
     cwd: options.clientDirectory,
-    environment: options.environment,
+    environment: recoveryEnvironment,
   });
   const repaired = await runCli({ ...options, argumentsList: ['composition', '--json'] });
   z.object({ cliVersion: z.literal(options.targetVersion), status: z.literal('valid') }).parse(
@@ -398,20 +404,7 @@ const verifyOlderInstallation = async (options: {
       description: 'An existing application whose tooling needs recovery.',
     }),
   );
-  if (options.manager === 'yarn') {
-    await writeFile(path.join(olderDirectory, 'yarn.lock'), '');
-    await writeFile(
-      path.join(olderDirectory, '.yarnrc.yml'),
-      'nodeLinker: node-modules\nenableGlobalCache: false\nnpmScopes:\n  moldea.ai:\n    npmRegistryServer: https://registry.npmjs.org\n',
-    );
-  }
-  if (options.manager === 'pnpm') {
-    await writeFile(path.join(olderDirectory, 'pnpm-workspace.yaml'), 'packages: []\n');
-    await writeFile(
-      path.join(olderDirectory, '.npmrc'),
-      'store-dir=.manager-store\n@moldea.ai:registry=https://registry.npmjs.org/\n',
-    );
-  }
+  await configureCandidateRegistry(olderDirectory, options.manager, 'https://registry.npmjs.org');
   // this exact historical package is installation input only, never execution evidence
   await runCommand({
     args: createInstallArguments({
@@ -429,6 +422,15 @@ const verifyOlderInstallation = async (options: {
   };
   assert.equal(before.devDependencies['@moldea.ai/cli'], '9.0.1');
   await configureCandidateRegistry(olderDirectory, options.manager, options.registryUrl);
+  // only this fixture switches registries; pnpm install recreates its registry metadata.
+  if (options.manager === 'pnpm') {
+    await runCommand({
+      args: ['install', '--force', '--ignore-scripts'],
+      command: getManagerExecutable(options.manager),
+      cwd: olderDirectory,
+      environment: options.environment,
+    });
+  }
   await runCommand({
     args: createInstallArguments({
       manager: options.manager,

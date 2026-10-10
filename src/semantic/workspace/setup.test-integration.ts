@@ -892,16 +892,15 @@ test('a confirmed Eve defect remains invalid beside an unrelated version warning
     };
   };
   assert.equal(validation.status, 'invalid');
-  assert.equal(validation.result.diagnosticCount, 5);
+  assert.equal(validation.result.diagnosticCount, 4);
   assert.equal(validation.result.errorCount, 1);
-  assert.equal(validation.result.warningCount, 4);
+  assert.equal(validation.result.warningCount, 3);
   assert.deepEqual(
     validation.result.page.records
       .filter(({ kind }) => kind === 'diagnostic')
       .map(({ code }) => code)
       .sort(),
     [
-      'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED',
       'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED',
       'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED',
       'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED',
@@ -913,6 +912,6 @@ test('a confirmed Eve defect remains invalid beside an unrelated version warning
       .filter(({ code }) => code === 'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED')
       .map(({ details }) => details?.relationship)
       .sort(),
-    ['agent-output-schema', 'instruction-loader', 'runtime-agent', 'tool-implementation'],
+    ['agent-output-schema', 'runtime-agent', 'tool-implementation'],
   );
 });

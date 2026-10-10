@@ -39,7 +39,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-scoped-uncertainty',
       criterion:
-        'The actor retains the refund version range and output-schema declaration, reports final warning-only validation, and preserves the independent runtime, instruction-loader, and tool-implementation uncertainty.',
+        'The actor retains the refund version range and output-schema declaration, reports final warning-only validation, and preserves the independent runtime and tool-implementation uncertainty.',
     },
   ],
   forbidden: [

@@ -60,7 +60,9 @@ Cancellation before atomic rename submission preserves the prior checkpoint. A r
 
 Ordinary work uses 65,536-byte pages and stops when the relevant record or diagnostic is available. Aggregate `moldea` output should remain at or below 262,144 bytes. Large repositories use deterministic metadata pagination; an explicitly required large traversal may use more pages, but each CLI invocation remains at or below 1 MiB and stays task-scoped. Page limits bound encoded responses, not source parsing. The isolated Node inspection has fixed memory and elapsed-time safeguards. Verified heap exhaustion (`RESOURCE_LIMIT_EXCEEDED`) and elapsed timeout (`INSPECTION_TIMEOUT`) leave verification incomplete; neither establishes faulty application code. Capacity contention (`INSPECTION_BUSY`) and process failure (`INSPECTION_PROCESS_FAILED`) also provide no inspection conclusion. Preserve earlier changes and report remaining checks; do not retry unchanged failures repeatedly or split healthy source automatically.
 
-Qualification scenarios select one operating profile:
+For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
+
+The following profiles constrain release-assurance trials, not users’ repositories or coding-agent sessions. Qualification scenarios select one operating profile:
 
 | Limit                     | `ordinary` | `largeTraversal` |
 | ------------------------- | ---------: | ---------------: |
@@ -71,7 +73,7 @@ Qualification scenarios select one operating profile:
 | Model-visible tool output |      1 MiB |            4 MiB |
 | Input plus output tokens  |  1,625,000 |        1,625,000 |
 
-The host retains absolute ceilings of 128 completed commands, 32 `moldea` calls, 8 MiB of `moldea` output, 16 MiB of complete-stage model-visible tool output, 32 KiB of raw command text, and 2,097,152 tokens. These are failure containment, not operating targets. The 256 KiB peak applies to one completed command and is distinct from the 32 KiB raw-command ceiling.
+The qualification runner retains absolute ceilings of 128 completed commands, 32 `moldea` calls, 8 MiB of `moldea` output, 16 MiB of complete-stage model-visible tool output, 32 KiB of raw command text, and 2,097,152 tokens. These are failure containment, not operating targets. The 256 KiB peak applies to one completed command and is distinct from the 32 KiB raw-command ceiling.
 
 Crossing an operating dimension fails with its profile, dimension, observed value, and limit. A safe cumulative command, `moldea`-call, or token overage may still reach semantic judging for calibration, but the trial remains failed. Missing token usage and output-volume, deterministic, workspace, runner-owned, or command-policy failures skip judging. Duration and peak memory are diagnostics rather than brittle pass/fail thresholds.
 

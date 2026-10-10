@@ -45,6 +45,7 @@ export const REQUIRED_DOCUMENT_ROUTES = [
   '/docs/coding-agent-compatibility/',
   '/docs/capabilities/',
   '/docs/how-it-works/',
+  '/docs/limitations/',
   '/docs/semantic-evaluation/',
   '/docs/adapter-qualification/',
   '/docs/repository-format/',

@@ -22,7 +22,7 @@
     "cliJsonSchemaVersion": 6,
     "coreVersionRange": "^6.0.0"
   },
-  "version": "7.0.0",
+  "version": "7.1.0",
   "name": "@moldea.ai/skill-conformance",
   "private": true,
   "description": "Development-only conformance checks for the moldea Agent Skill.",

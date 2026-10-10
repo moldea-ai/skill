@@ -14,7 +14,7 @@ This page introduces how to adopt the format. The [official Repository Format sp
 
 The format is deliberately additive. A new project begins with two files and earns more structure only when real context, rationale, runtime guidance, or agent behavior needs a durable owner.
 
-The project is adopted only when direct probes establish the complete two-file canonical foundation and the owned README awareness block. Otherwise it is unadopted. Partial or inconsistent artifacts are preserved and reported precisely rather than represented through a third status or overwritten as a fresh scaffold.
+Adoption requires the bounded regular canonical foundation files `/moldea/moldea.yaml` and `/moldea/project.md`. README explains the project integration; AGENTS.md routes ordinary tasks. Neither document controls adoption or Core validity. Missing routing produces a setup warning, while damaged canonical files receive bounded diagnosis rather than a fresh scaffold.
 
 ## Start with two files
 

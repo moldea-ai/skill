@@ -1,6 +1,7 @@
 import {
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
+  identifyMoldeaManagedAgentsMode,
   identifyRepositoryTestCommandKind,
   isMoldeaManagedReadmeWriterCommand,
 } from '../../execution/host/index.ts';
@@ -494,11 +495,45 @@ const hasValidManagedReadmeFact = (fact: unknown, byteCount: number, exitCode: n
   );
 };
 
+const projectManagedAgentsResult = (
+  source: string,
+  mode: 'write' | 'print' | 'check' | null,
+  exitCode: number,
+): ISemanticActorExecutionOutputFact | null => {
+  if (exitCode !== 0) return null;
+  if (mode === 'write') {
+    for (const status of ['created', 'updated', 'unchanged'] as const)
+      if (source === `${status}\n`) return { kind: 'managed-agents-result', status };
+  }
+  if (mode === 'check' && source === 'ready\n')
+    return { kind: 'managed-agents-result', status: 'ready' };
+  if (mode === 'check' && /^warning: [^\r\n]+\n$/u.test(source))
+    return { kind: 'managed-agents-result', status: 'warning' };
+  return null;
+};
+
+const hasValidManagedAgentsFact = (fact: unknown, byteCount: number, exitCode: number): boolean => {
+  if (
+    exitCode !== 0 ||
+    !isPlainRecord(fact) ||
+    !hasExactKeys(fact, ['kind', 'status']) ||
+    fact['kind'] !== 'managed-agents-result'
+  )
+    return false;
+  const status = fact['status'];
+  return status === 'warning'
+    ? byteCount > 'warning: \n'.length && byteCount <= MAX_OTHER_OUTPUT_BYTES
+    : typeof status === 'string' &&
+        ['created', 'updated', 'unchanged', 'ready'].includes(status) &&
+        byteCount === status.length + 1;
+};
+
 const createOutputEvidence = (
   source: string,
   operation: IMoldeaCliOperation | null,
   gateMode: 'adoption-only' | 'relationship' | null,
   isManagedReadmeWriter: boolean,
+  agentsMode: 'write' | 'print' | 'check' | null,
   exitCode: number,
   options: ISemanticActorExecutionEvidenceOptions,
   testKind: IRepositoryTestCommandKind | null,
@@ -514,9 +549,11 @@ const createOutputEvidence = (
         ? projectRelevanceGateResult(source, gateMode, exitCode)
         : isManagedReadmeWriter
           ? projectManagedReadmeResult(source, exitCode)
-          : testKind !== null
-            ? projectNodeTestSummary(source, exitCode, testKind)
-            : null
+          : agentsMode !== null
+            ? projectManagedAgentsResult(source, agentsMode, exitCode)
+            : testKind !== null
+              ? projectNodeTestSummary(source, exitCode, testKind)
+              : null
       : projectMoldeaEnvelope(source, operation, exitCode, options);
   return fact === null
     ? { byteCount, disposition: 'unrecognized', facts: [] }
@@ -564,6 +601,7 @@ const hasValidOutputEvidence = (
       ? hasValidMoldeaFact(facts[0], exitCode, options)
       : hasValidRelevanceGateFact(facts[0], byteCount, exitCode) ||
         hasValidManagedReadmeFact(facts[0], byteCount, exitCode) ||
+        hasValidManagedAgentsFact(facts[0], byteCount, exitCode) ||
         hasValidNodeTestFact(facts[0], exitCode))
   );
 };
@@ -625,6 +663,10 @@ export const projectActorExecutionEvidenceEvent = (
   const gateMode = operation === null ? identifyMoldeaRelevanceGateMode(command) : null;
   const isManagedReadmeWriter =
     operation === null && gateMode === null && isMoldeaManagedReadmeWriterCommand(command);
+  const agentsMode =
+    operation === null && gateMode === null && !isManagedReadmeWriter
+      ? identifyMoldeaManagedAgentsMode(command)
+      : null;
   const testKind =
     operation === null && gateMode === null && !isManagedReadmeWriter
       ? identifyRepositoryTestCommandKind(command)
@@ -639,6 +681,7 @@ export const projectActorExecutionEvidenceEvent = (
         operation,
         gateMode,
         isManagedReadmeWriter,
+        agentsMode,
         exitCode,
         options,
         testKind,

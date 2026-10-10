@@ -7,6 +7,7 @@ import {
   hasValidCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
+  identifyMoldeaManagedAgentsMode,
   identifyRepositoryTestCommandKind,
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
@@ -929,4 +930,46 @@ test('launcher identification counts mechanical continuation and capture as one 
   assert.equal(evidence.commandPolicy.moldeaCommandCount, 1);
   assert.equal(identifyMoldeaCliLauncherOperation(`${continuation} --cursor conflicting`), null);
   assert.equal(identifyMoldeaCliLauncherOperation(`${base} --save-response /mnt/page.json`), null);
+});
+
+test('recognizes bounded gate argv and diagnostic modes without widening Node execution', () => {
+  const gate = 'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt';
+  assert.equal(
+    identifyMoldeaRelevanceGateMode(
+      `${gate} --diagnose --path "src/éclair plan.ts" --path src/other.ts`,
+    ),
+    'relationship',
+  );
+  assert.equal(
+    identifyMoldeaRelevanceGateMode(`${gate} --diagnose --adoption-only`),
+    'adoption-only',
+  );
+  for (const suffix of [
+    '--path',
+    '--path ""',
+    '--path ../secret',
+    '--path C:secret',
+    '--adoption-only --path src/a.ts',
+    '--diagnose --diagnose',
+    '--path src/a.ts && true',
+  ])
+    assert.equal(identifyMoldeaRelevanceGateMode(`${gate} ${suffix}`), null);
+});
+
+test('recognizes only closed installed AGENTS helper operations', () => {
+  const helper = 'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt';
+  assert.equal(identifyMoldeaManagedAgentsMode(helper), 'write');
+  assert.equal(identifyMoldeaManagedAgentsMode(`${helper} --print`), 'print');
+  assert.equal(identifyMoldeaManagedAgentsMode(`${helper} --check`), 'check');
+  for (const suffix of [
+    '--check --print',
+    '--target file.md',
+    '--skill-path /outside',
+    '--check && true',
+  ])
+    assert.equal(identifyMoldeaManagedAgentsMode(`${helper} ${suffix}`), null);
+  assert.equal(
+    identifyMoldeaManagedAgentsMode(helper.replace('/mnt/.agents', '/other/.agents')),
+    null,
+  );
 });

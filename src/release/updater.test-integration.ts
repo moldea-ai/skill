@@ -31,6 +31,7 @@ const UPDATE_PATHS = [
     ...PORTABLE_ARTIFACT_PATHS,
     'docs/compatibility-and-local-tooling.md',
     'moldea/assets/managed-readme-block.md',
+    'moldea/assets/managed-agents-block.md',
     'qualification/package.json',
     'website/package.json',
     SEMANTIC_CLI_EXECUTABLE_PATH,

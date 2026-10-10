@@ -7,11 +7,14 @@ import { z } from 'zod';
 
 import { writeTextFileAtomically } from '../filesystem/index.ts';
 
+import { assertManagedBlock } from './managed-block/index.ts';
+
 import type { IPortableGenerationOptions, IPortableGenerationResult } from './types.ts';
 
 const PORTABLE_SOURCE_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_ROOT_DIRECTORY = path.resolve(PORTABLE_SOURCE_ROOT, '../..');
 const MANAGED_README_PLACEHOLDER = '__MOLDEA_MANAGED_README_BLOCK_JSON__';
+const MANAGED_AGENTS_PLACEHOLDER = '__MOLDEA_MANAGED_AGENTS_BLOCK_JSON__';
 const MAXIMUM_MATCHER_BUNDLE_BYTES = 1_048_576;
 
 const LockfileSchema = z.object({
@@ -30,6 +33,7 @@ const PackageManifestSchema = z.object({
 });
 
 const PORTABLE_ENTRY_OUTPUTS = {
+  'managed-agents/managed-agents.ts': 'moldea/scripts/managed-agents.mjs',
   'managed-readme.ts': 'moldea/scripts/managed-readme.mjs',
   'moldea-cli.ts': 'moldea/scripts/moldea-cli.mjs',
   'relevance-gate.ts': 'moldea/scripts/relevance-gate.mjs',
@@ -54,6 +58,7 @@ const PORTABLE_EXTERNAL_IMPORTS = new Map([
   ['./repository-package.ts', './repository-package.mjs'],
 ]);
 const EXECUTABLE_PORTABLE_OUTPUTS = new Set([
+  'moldea/scripts/managed-agents.mjs',
   'moldea/scripts/managed-readme.mjs',
   'moldea/scripts/relevance-gate.mjs',
 ]);
@@ -161,6 +166,14 @@ const buildPortableArtifacts = async (rootDirectory: string): Promise<Map<string
     'utf8',
   );
 
+  const managedAgentsBlock = await readFile(
+    path.join(rootDirectory, 'moldea/assets/managed-agents-block.md'),
+    'utf8',
+  );
+
+  assertManagedBlock(managedReadmeBlock);
+  assertManagedBlock(managedAgentsBlock, 'AGENTS.md', false);
+
   for (const [entryFile, outputPath] of Object.entries(PORTABLE_ENTRY_OUTPUTS)) {
     const result = await buildSource({
       absWorkingDir: rootDirectory,
@@ -178,22 +191,28 @@ const buildPortableArtifacts = async (rootDirectory: string): Promise<Map<string
     });
     assertBuiltinRuntimeImports(result.metafile);
 
-    const placeholder = JSON.stringify(MANAGED_README_PLACEHOLDER);
-    const occurrenceCount = result.source.split(placeholder).length - 1;
-    if (entryFile === 'managed-readme.ts') {
-      if (occurrenceCount !== 1) {
-        throw new Error('Managed README generation requires exactly one embedded placeholder.');
-      }
-      artifacts.set(
-        outputPath,
-        result.source.replace(placeholder, JSON.stringify(managedReadmeBlock)),
-      );
-    } else {
-      if (occurrenceCount !== 0) {
-        throw new Error(`Unexpected managed README placeholder in ${entryFile}.`);
-      }
-      artifacts.set(outputPath, result.source);
+    const embeddedTemplate =
+      entryFile === 'managed-readme.ts'
+        ? { placeholder: MANAGED_README_PLACEHOLDER, block: managedReadmeBlock }
+        : entryFile === 'managed-agents/managed-agents.ts'
+          ? { placeholder: MANAGED_AGENTS_PLACEHOLDER, block: managedAgentsBlock }
+          : undefined;
+    let source = result.source;
+    if (embeddedTemplate !== undefined) {
+      const placeholder = JSON.stringify(embeddedTemplate.placeholder);
+      if (source.split(placeholder).length - 1 !== 1)
+        throw new Error(
+          `Managed block generation requires exactly one embedded placeholder in ${entryFile}.`,
+        );
+      source = source.replace(placeholder, JSON.stringify(embeddedTemplate.block));
     }
+    if (
+      [MANAGED_README_PLACEHOLDER, MANAGED_AGENTS_PLACEHOLDER].some((placeholder) =>
+        source.includes(placeholder),
+      )
+    )
+      throw new Error(`Unexpected unresolved managed block placeholder in ${entryFile}.`);
+    artifacts.set(outputPath, source);
     if (entryFile === 'moldea-cli.ts') {
       artifacts.set(
         'moldea/scripts/moldea-cli.license.txt',

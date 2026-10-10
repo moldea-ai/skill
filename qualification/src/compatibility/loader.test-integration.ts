@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { describe, expect, test } from 'vitest';
@@ -54,13 +55,19 @@ test.each([
       );
 
       const readme = await readFile(readmePath, 'utf8');
+      const seedRoot = path.dirname(readmePath);
+      const hasFoundation = ['moldea.yaml', 'project.md'].every((name) =>
+        existsSync(path.join(seedRoot, 'moldea', name)),
+      );
 
       if (UNADOPTED_QUALIFICATION_CASE_IDS.has(profileCase.id)) {
+        expect(hasFoundation).toBe(false);
         expect(readme).not.toContain('<!-- moldea:start -->');
         expect(readme).not.toContain('<!-- moldea:end -->');
         continue;
       }
 
+      expect(hasFoundation).toBe(true);
       expect(readme.split('<!-- moldea:start -->')).toHaveLength(2);
       expect(readme.split('<!-- moldea:end -->')).toHaveLength(2);
       expect(readme).toContain(MANAGED_README_BLOCK);

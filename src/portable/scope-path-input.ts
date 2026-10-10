@@ -52,3 +52,20 @@ export const readScopePathInput = async (
 
   return text.split('\0').map(normalizeScopePath);
 };
+
+/**
+ * Normalizes an argv batch using the same pre-normalization byte allowance as stdin.
+ * @throws
+ * - Invalid scope path input.
+ * - Scope path input exceeds its byte limit.
+ */
+export const normalizeScopePathArguments = (paths: string[]): string[] => {
+  if (paths.length === 0) throw new Error('Invalid scope path input.');
+  let byteLength = 0;
+  return paths.map((path) => {
+    byteLength += Buffer.byteLength(path, 'utf8') + 1;
+    if (byteLength > MAXIMUM_PATH_INPUT_BYTES)
+      throw new Error('Scope path input exceeds its byte limit.');
+    return normalizeScopePath(path);
+  });
+};

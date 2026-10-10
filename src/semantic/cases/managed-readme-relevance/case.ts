@@ -9,7 +9,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'managed-readme-relevance',
   input: {
     developerDirection:
-      'Review the README moldea block change from “begin at `/moldea/project.md`” to “start at `/moldea/project.md`”. Check the resulting block against the repository-installed managed block and validate the adopted project without editing files.',
+      'Review the README moldea block change from “Begin at [the project overview](moldea/project.md)” to “Start at [the project overview](moldea/project.md)”. Check the resulting block against the repository-installed managed block and validate the adopted project without editing files.',
     repositoryEvidence: [
       {
         claim: 'The repository has a canonical moldea manifest.',

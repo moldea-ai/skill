@@ -75,7 +75,7 @@ Next actions:
 3. It distinguishes durable foundational truth from temporary, speculative, or easily rediscovered details and determines whether the foundation is insufficient, partial, or sufficient.
 4. It asks a focused question when missing context or a material gap prevents a useful and truthful foundation.
 5. Once the foundation is sufficient, it safely installs a known missing CLI before foundation writes or validation. Failed installation stops initialization and reports any package-manager changes. Already-present compatible tooling needs no reinstall or availability probe.
-6. It writes the complete three-file foundation. With no evidenced relationship, `/moldea/moldea.yaml` is exactly `version: 1` plus its final LF; `/moldea/project.md` contains concise grounded context; and README receives exactly one managed awareness block.
+6. It writes the canonical foundation and managed document integration. With no evidenced relationship, `/moldea/moldea.yaml` is exactly `version: 1` plus its final LF; `/moldea/project.md` contains concise grounded context; README receives explanatory navigation, and AGENTS.md receives the routing block where permitted, or an exact manual handoff.
 7. It runs repository-local `validate`. Success ends initialization without `inspect`; a structural failure starts supported recovery within the foundation scope and resource limits. Each repair follows diagnosis of the complete affected contract and is validated afterward. Recovery stops when it cannot make supported progress.
 8. It reports the established understanding, files, evidence, limitations, and practical next actions.
 
@@ -89,4 +89,4 @@ moldea/
 
 No empty agent, context, decision, runtime, or requirements directories are created.
 
-Partial or inconsistent `moldea` artifacts do not create a separate status. Until the complete foundation and owned README awareness block are established, the project is unadopted. The coding agent reports the exact existing artifacts and missing contract elements, preserves valid content, and waits for explicit authority and any needed clarification before repairing them.
+The canonical foundation establishes adoption independently of README and AGENTS.md. Explicit setup checks report missing or unsafe canonical files and warn about absent integration. They preserve existing content and require the appropriate authority before repairs.

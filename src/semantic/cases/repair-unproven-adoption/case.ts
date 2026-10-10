@@ -12,15 +12,11 @@ export const semanticCase = defineSemanticCase({
     developerDirection: 'Repair the existing moldea setup in this repository.',
     repositoryEvidence: [
       {
-        claim: 'A malformed partial manifest exists.',
-        source: { kind: 'workspace-path', path: 'moldea/moldea.yaml', expectedType: 'file' },
-      },
-      {
         claim: 'A draft project note exists.',
         source: { kind: 'workspace-path', path: 'moldea/project.md', expectedType: 'file' },
       },
       {
-        claim: 'The README lacks the adopted managed block.',
+        claim: 'The README lacks the informational moldea block.',
         source: { kind: 'workspace-path', path: 'README.md', expectedType: 'file' },
       },
     ],

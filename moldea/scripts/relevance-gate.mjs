@@ -3,7 +3,6 @@
 // src/portable/relevance-gate.ts
 import { realpath } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
-import { hasCanonicalManagedReadmeBlock } from "./managed-readme.mjs";
 import { matchManifestScope } from "./manifest-scope.cjs";
 import { readRepositoryFile, resolveRepositoryFile } from "./repository-files.mjs";
 
@@ -39,71 +38,91 @@ var readScopePathInput = async (inputStream) => {
   }
   return text.split("\0").map(normalizeScopePath);
 };
+var normalizeScopePathArguments = (paths) => {
+  if (paths.length === 0) throw new Error("Invalid scope path input.");
+  let byteLength = 0;
+  return paths.map((path) => {
+    byteLength += Buffer.byteLength(path, "utf8") + 1;
+    if (byteLength > MAXIMUM_PATH_INPUT_BYTES)
+      throw new Error("Scope path input exceeds its byte limit.");
+    return normalizeScopePath(path);
+  });
+};
 
 // src/portable/relevance-gate.ts
-var MAX_MANIFEST_BYTES = 2097152;
-var MAX_README_BYTES = 2097152;
-var MANIFEST_LOGICAL_PATH = "/moldea/moldea.yaml";
+var MAX_FOUNDATION_BYTES = 2097152;
 var hasInitializedProject = async (repositoryRoot) => {
-  await Promise.all([
-    resolveRepositoryFile(
-      repositoryRoot,
-      join(repositoryRoot, "moldea", "moldea.yaml"),
-      MAX_MANIFEST_BYTES,
-      "reject"
-    ),
-    resolveRepositoryFile(
-      repositoryRoot,
-      join(repositoryRoot, "moldea", "project.md"),
-      MAX_README_BYTES,
-      "reject"
-    )
-  ]);
-  return hasCanonicalManagedReadmeBlock(
-    await readRepositoryFile(
-      repositoryRoot,
-      join(repositoryRoot, "README.md"),
-      MAX_README_BYTES,
-      "reject"
-    )
-  );
+  try {
+    await Promise.all(
+      ["moldea.yaml", "project.md"].map(
+        (fileName) => resolveRepositoryFile(
+          repositoryRoot,
+          join(repositoryRoot, "moldea", fileName),
+          MAX_FOUNDATION_BYTES,
+          "reject"
+        )
+      )
+    );
+    return true;
+  } catch (error) {
+    if (error !== null && typeof error === "object" && "code" in error && error.code === "ENOENT")
+      return false;
+    throw error;
+  }
 };
 var parseArguments = () => {
   const arguments_ = process.argv.slice(2);
-  if (arguments_.length < 2 || arguments_.length > 3 || arguments_[0] !== "--repository" || arguments_[1] === void 0 || !isAbsolute(arguments_[1]) || arguments_.length === 3 && arguments_[2] !== "--adoption-only") {
-    throw new Error("invalid arguments");
+  if (arguments_[0] !== "--repository" || arguments_[1] === void 0 || !isAbsolute(arguments_[1]))
+    throw new Error("Invalid gate arguments.");
+  let isAdoptionOnly = false;
+  let hasDiagnosticFlag = false;
+  const paths = [];
+  for (let index = 2; index < arguments_.length; index++) {
+    const argument = arguments_[index];
+    if (argument === "--adoption-only" && !isAdoptionOnly) isAdoptionOnly = true;
+    else if (argument === "--diagnose" && !hasDiagnosticFlag) hasDiagnosticFlag = true;
+    else if (argument === "--path" && arguments_[index + 1] !== void 0 && !arguments_[index + 1].startsWith("--"))
+      paths.push(arguments_[++index]);
+    else throw new Error("Invalid gate arguments.");
   }
+  if (isAdoptionOnly && paths.length > 0) throw new Error("Adoption-only does not accept paths.");
   return {
-    isAdoptionOnly: arguments_[2] === "--adoption-only",
-    repositoryRoot: resolve(arguments_[1])
+    isAdoptionOnly,
+    repositoryRoot: resolve(arguments_[1]),
+    paths: paths.length === 0 ? void 0 : normalizeScopePathArguments(paths)
   };
 };
 var evaluateGate = async () => {
   const parsed = parseArguments();
   const repositoryRoot = await realpath(parsed.repositoryRoot);
-  if (!await hasInitializedProject(repositoryRoot)) {
-    return false;
-  }
-  if (parsed.isAdoptionOnly) {
-    return true;
-  }
+  if (!await hasInitializedProject(repositoryRoot)) return false;
+  if (parsed.isAdoptionOnly) return true;
   const [manifest, paths] = await Promise.all([
     readRepositoryFile(
       repositoryRoot,
       join(repositoryRoot, "moldea", "moldea.yaml"),
-      MAX_MANIFEST_BYTES,
+      MAX_FOUNDATION_BYTES,
       "reject"
     ),
-    readScopePathInput(process.stdin)
+    parsed.paths ?? readScopePathInput(process.stdin)
   ]);
   const result = await matchManifestScope({
     manifest: {
       content: manifest,
-      path: MANIFEST_LOGICAL_PATH
+      path: "/moldea/moldea.yaml"
     },
     paths
   });
-  return result.valid && result.relevant;
+  if (!result.valid) throw new Error("Invalid manifest or relationship path input.");
+  return result.relevant;
 };
-var isRelevant = await evaluateGate().catch(() => false);
-process.stdout.write(isRelevant ? "1\n" : "0\n");
+try {
+  process.stdout.write(await evaluateGate() ? "1\n" : "0\n");
+} catch {
+  if (process.argv.slice(2).includes("--diagnose")) {
+    process.stderr.write(
+      "moldea gate failed: check arguments, canonical files, and relationship paths.\n"
+    );
+    process.exitCode = 1;
+  } else process.stdout.write("0\n");
+}

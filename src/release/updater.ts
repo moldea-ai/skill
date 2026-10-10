@@ -629,6 +629,7 @@ const stagePortableSource = (repositoryRoot: string, temporaryRoot: string): voi
   }
   for (const relativePath of [
     'moldea/assets/managed-readme-block.md',
+    'moldea/assets/managed-agents-block.md',
     'qualification/package.json',
     'website/package.json',
   ]) {

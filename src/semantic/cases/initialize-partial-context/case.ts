@@ -30,7 +30,7 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'A project context file exists, but the manifest and owned README awareness block are missing, so the canonical adoption contract is incomplete.',
+          'A project context file exists, but the manifest is missing, so the canonical adoption contract is incomplete.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/project.md',
@@ -43,7 +43,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-unadopted-partial-artifacts',
       criterion:
-        'The actor reports the project as unadopted, identifies the existing `/moldea/project.md` artifact, and identifies the missing `/moldea/moldea.yaml` and owned README awareness block rather than inventing a third adoption status.',
+        'The actor reports the project as unadopted, identifies the existing `/moldea/project.md` artifact, and identifies the missing `/moldea/moldea.yaml` rather than inventing a third adoption status.',
     },
     {
       label: 'summarize-supported-foundation',

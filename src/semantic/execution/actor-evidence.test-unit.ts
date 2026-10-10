@@ -889,3 +889,31 @@ test('enforces activation-specific moldea operation ordering', () => {
     false,
   );
 });
+
+test('projects only completed AGENTS write/check facts and no diagnostic failure hit', () => {
+  const helper = 'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt';
+  for (const [suffix, output, status] of [
+    ['', 'created\n', 'created'],
+    [' --check', 'ready\n', 'ready'],
+    [' --check', 'warning: AGENTS.md is missing\n', 'warning'],
+  ]) {
+    const result = projectActorExecutionEvidenceEvent(
+      createEvent(helper + suffix, output!),
+      OPTIONS,
+    );
+    assert.deepEqual(result.item.outputEvidence.facts, [{ kind: 'managed-agents-result', status }]);
+    assert.equal(hasValidActorExecutionEvidence([result], OPTIONS), true);
+    assert.deepEqual(createMoldeaResourceEvidence([result], OPTIONS).operations, []);
+  }
+  for (const [command, output, exitCode] of [
+    [helper + ' --print', 'created\n', 0],
+    [helper + ' --check', 'ready\n', 1],
+    [GATE_COMMAND + ' --diagnose --path README.md', '1\n', 1],
+  ] as const) {
+    const result = projectActorExecutionEvidenceEvent(
+      createEvent(command, output, { exitCode }),
+      OPTIONS,
+    );
+    assert.deepEqual(result.item.outputEvidence.facts, []);
+  }
+});

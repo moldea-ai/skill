@@ -54,68 +54,72 @@ const navigationGroups = navigation.map((group) => ({
 }));
 ---
 
-<DocumentationShell
-  {basePath}
-  {breadcrumbs}
-  currentRoute={currentDocument.route}
-  {headings}
-  navigationAriaLabel="Documentation navigation"
-  {navigationGroups}
-  {...adjacentPages}
->
-  <header
-    slot="header"
-    class="mb-10 border-b border-border pb-8"
+<div class="pb-section-gap">
+  <DocumentationShell
+    {basePath}
+    {breadcrumbs}
+    currentRoute={currentDocument.route}
+    {headings}
+    navigationAriaLabel="Documentation navigation"
+    {navigationGroups}
+    {...adjacentPages}
   >
-    <div class="mb-4 flex flex-wrap items-center gap-2 text-sm">
-      <span class="inline-flex items-center rounded-full border bg-muted px-3 py-1.5 font-semibold">
-        v{skill.version}
-      </span>
-      <span class="text-muted-foreground">Portable Agent Skill</span>
-    </div>
-    <h1 class="page-title">
-      <InlineBrandText
-        text={currentDocument.title}
-        variant="compact"
-      />
-    </h1>
-    <p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
-      <InlineBrandText
-        text={currentDocument.description}
-        variant="compact"
-      />
-    </p>
-    <div class="mt-6 flex flex-wrap gap-3">
-      <ActionLink
-        class="font-bold"
-        href={SKILLS_DIRECTORY_URL}
-        size="md"
-        target="_blank"
-        rel="noopener noreferrer"
-        data-primary-action
-      >
-        Get the skill
-        <ExternalLink
-          class="size-3.5"
-          aria-hidden="true"
+    <header
+      slot="header"
+      class="mb-10 border-b border-border pb-8"
+    >
+      <div class="mb-4 flex flex-wrap items-center gap-2 text-sm">
+        <span
+          class="inline-flex items-center rounded-full border bg-muted px-3 py-1.5 font-semibold"
+        >
+          v{skill.version}
+        </span>
+        <span class="text-muted-foreground">Portable Agent Skill</span>
+      </div>
+      <h1 class="page-title">
+        <InlineBrandText
+          text={currentDocument.title}
+          variant="compact"
         />
-      </ActionLink>
-      <ActionLink
-        class={`font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
-        href={`${SOURCE_REPOSITORY_URL}/blob/main/${currentDocument.sourcePath}`}
-        size="md"
-        target="_blank"
-        rel="noopener noreferrer"
-        variant="ghost"
-      >
-        View source
-        <ExternalLink
-          class="size-3.5"
-          aria-hidden="true"
+      </h1>
+      <p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
+        <InlineBrandText
+          text={currentDocument.description}
+          variant="compact"
         />
-      </ActionLink>
-    </div>
-  </header>
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <ActionLink
+          class="font-bold"
+          href={SKILLS_DIRECTORY_URL}
+          size="md"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-primary-action
+        >
+          Get the skill
+          <ExternalLink
+            class="size-3.5"
+            aria-hidden="true"
+          />
+        </ActionLink>
+        <ActionLink
+          class={`font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
+          href={`${SOURCE_REPOSITORY_URL}/blob/main/${currentDocument.sourcePath}`}
+          size="md"
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="ghost"
+        >
+          View source
+          <ExternalLink
+            class="size-3.5"
+            aria-hidden="true"
+          />
+        </ActionLink>
+      </div>
+    </header>
 
-  <slot />
-</DocumentationShell>
+    <slot />
+  </DocumentationShell>
+</div>

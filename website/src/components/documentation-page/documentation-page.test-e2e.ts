@@ -93,10 +93,22 @@ for (const width of [320, 768, 1440]) {
             return style.outlineStyle !== 'none' || style.boxShadow !== 'none';
           }),
         ).toBe(true);
-        // audit the new guide; the unchanged shared shell has duplicate desktop aside landmarks
-        expect(
-          (await new AxeBuilder({ page }).include('main article').analyze()).violations,
-        ).toStrictEqual([]);
+        if (width === 1440) {
+          await expect(
+            page.getByRole('complementary', { name: 'Documentation navigation', exact: true }),
+          ).toHaveCount(1);
+          await expect(
+            page.getByRole('complementary', { name: 'On this page', exact: true }),
+          ).toHaveCount(1);
+        }
+        const navigationBottom = await page
+          .getByRole('navigation', { name: 'Previous and next documentation' })
+          .evaluate((element) => element.getBoundingClientRect().bottom);
+        const footerTop = await page
+          .getByRole('contentinfo')
+          .evaluate((element) => element.getBoundingClientRect().top);
+        expect(footerTop - navigationBottom).toBeGreaterThanOrEqual(32);
+        expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
       } finally {
         await context.close();
       }

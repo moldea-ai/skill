@@ -75,6 +75,8 @@ const buildSource = async (
     bundle: true,
     platform: 'node',
     target: 'node22.11',
+    // release transactions and candidate directories must not inherit ambient compiler settings
+    tsconfigRaw: { compilerOptions: { strict: true, useDefineForClassFields: true } },
     write: false,
     metafile: true,
     ...options,

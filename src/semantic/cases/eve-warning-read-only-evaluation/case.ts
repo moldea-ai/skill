@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'eve-warning-read-only-evaluation',
   setup: createSemanticCaseSetup('eve-warning-read-only-evaluation'),
   scenario:
-    'A read-only project evaluation encounters one Eve version-dependent output-schema warning and no confirmed validation error.',
+    'A read-only project evaluation encounters scoped Eve runtime and version-dependent output-schema warnings and no confirmed validation error.',
   operation: 'evaluate',
   input: {
     developerDirection:
@@ -26,7 +26,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-independent-conclusions',
       criterion:
-        'The actor distinguishes structural validity and independently proved local facts from the single unverified agent output-schema relationship; it does not describe the whole setup as broken.',
+        'The actor distinguishes structural validity and independently proved local facts from the unverified runtime-agent and agent output-schema relationships; it does not describe the whole setup as broken.',
     },
     {
       label: 'retain-read-only-boundary',

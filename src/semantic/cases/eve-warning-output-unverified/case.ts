@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'eve-warning-output-unverified',
   setup: createSemanticCaseSetup('eve-warning-output-unverified'),
   scenario:
-    'The Eve declaration spans the 0.67.0 agent output-schema removal. The installed CLI returns valid with one scoped warning and no positive output-schema evidence.',
+    'The Eve declaration spans the 0.67.0 agent output-schema removal. The installed CLI returns valid with scoped runtime and output-schema warnings and no positive output-schema evidence.',
   operation: 'evaluate-runtime-relationship',
   input: {
     developerDirection:

@@ -1,16 +1,16 @@
 {
   "formatVersion": 1,
   "sourceUrl": "https://packages.moldea.ai/compatibility/runtimes.json",
-  "sha256": "3c2ebecfb2c3ce5072bcb29d2b9b83952ef46e8a8f27ba8f14b5aca9175f91bf",
+  "sha256": "48e58be7a11a574e419aaa074594782f83480bc17ddaeed09b6150cde164409b",
   "publication": {
     "adapters": {
       "anthropic": {
-        "compatibleCoreRange": "^5.0.0",
+        "compatibleCoreRange": "^6.0.0",
         "implementation": {
           "distribution": "public",
           "kind": "package",
           "package": "@moldea.ai/adapter-anthropic",
-          "versionRange": "^5.0.0"
+          "versionRange": "^6.0.0"
         },
         "implementationStatus": "available",
         "lastVerifiedAt": "2026-09-25",
@@ -18,9 +18,7 @@
           "expectation": "optional",
           "notes": "Project-local guidance is needed only for repository-specific wrappers or unsupported indirect integration patterns."
         },
-        "supportedRepositoryFormatVersions": [
-          1
-        ],
+        "supportedRepositoryFormatVersions": [1],
         "targets": [
           {
             "bindingSupport": {
@@ -139,12 +137,12 @@
         ]
       },
       "claude-agent-sdk": {
-        "compatibleCoreRange": "^5.0.0",
+        "compatibleCoreRange": "^6.0.0",
         "implementation": {
           "distribution": "public",
           "kind": "package",
           "package": "@moldea.ai/adapter-claude-agent-sdk",
-          "versionRange": "^4.1.0"
+          "versionRange": "^5.0.0"
         },
         "implementationStatus": "available",
         "lastVerifiedAt": "2026-09-25",
@@ -152,9 +150,7 @@
           "expectation": "optional",
           "notes": "Project-local guidance is needed only for repository-specific wrappers, main-thread agent selection, tool aliases, string-array prompts, filesystem-defined agents, dynamic agent construction, observer behavior, external MCP configuration, or other unsupported indirect integration patterns."
         },
-        "supportedRepositoryFormatVersions": [
-          1
-        ],
+        "supportedRepositoryFormatVersions": [1],
         "targets": [
           {
             "bindingSupport": {
@@ -416,12 +412,12 @@
         ]
       },
       "cloudflare-agents": {
-        "compatibleCoreRange": "^5.0.0",
+        "compatibleCoreRange": "^6.0.0",
         "implementation": {
           "distribution": "public",
           "kind": "package",
           "package": "@moldea.ai/adapter-cloudflare-agents",
-          "versionRange": "^4.0.0"
+          "versionRange": "^5.0.0"
         },
         "implementationStatus": "available",
         "lastVerifiedAt": "2026-09-25",
@@ -429,9 +425,7 @@
           "expectation": "recommended",
           "notes": "Project-local guidance should document Cloudflare bindings, Durable Object wiring, and deployment-specific behavior outside the verified static source boundary."
         },
-        "supportedRepositoryFormatVersions": [
-          1
-        ],
+        "supportedRepositoryFormatVersions": [1],
         "targets": [
           {
             "bindingSupport": {
@@ -621,7 +615,7 @@
         ]
       },
       "custom": {
-        "compatibleCoreRange": "^5.0.0",
+        "compatibleCoreRange": "^6.0.0",
         "implementation": {
           "distribution": "public",
           "kind": "built-in",
@@ -633,9 +627,7 @@
           "expectation": "required",
           "notes": "Project-local guidance defines the custom runtime integration."
         },
-        "supportedRepositoryFormatVersions": [
-          1
-        ],
+        "supportedRepositoryFormatVersions": [1],
         "targets": [
           {
             "id": "custom",
@@ -658,12 +650,12 @@
         ]
       },
       "eve": {
-        "compatibleCoreRange": "^5.0.0",
+        "compatibleCoreRange": "^6.0.0",
         "implementation": {
           "distribution": "public",
           "kind": "package",
           "package": "@moldea.ai/adapter-eve",
-          "versionRange": "^4.0.0"
+          "versionRange": "^5.0.0"
         },
         "implementationStatus": "available",
         "lastVerifiedAt": "2026-09-26",
@@ -671,9 +663,7 @@
           "expectation": "optional",
           "notes": "Project-local guidance is needed only for unsupported dynamic capabilities, extensions, remote agents, non-canonical or composed instructions, positive single-file subagent analysis, Markdown skill registration, framework-tool overrides, or other repository-specific Eve patterns outside the verified static filesystem target."
         },
-        "supportedRepositoryFormatVersions": [
-          1
-        ],
+        "supportedRepositoryFormatVersions": [1],
         "targets": [
           {
             "bindingSupport": {
@@ -948,12 +938,12 @@
         ]
       },
       "google-genai": {
-        "compatibleCoreRange": "^5.0.0",
+        "compatibleCoreRange": "^6.0.0",
         "implementation": {
           "distribution": "public",
           "kind": "package",
           "package": "@moldea.ai/adapter-google-genai",
-          "versionRange": "^4.0.0"
+          "versionRange": "^5.0.0"
         },
         "implementationStatus": "available",
         "lastVerifiedAt": "2026-09-25",
@@ -961,9 +951,7 @@
           "expectation": "optional",
           "notes": "Project-local guidance is needed only for repository-specific wrappers or unsupported indirect integration patterns."
         },
-        "supportedRepositoryFormatVersions": [
-          1
-        ],
+        "supportedRepositoryFormatVersions": [1],
         "targets": [
           {
             "bindingSupport": {
@@ -1102,12 +1090,12 @@
         ]
       },
       "langchain": {
-        "compatibleCoreRange": "^5.0.0",
+        "compatibleCoreRange": "^6.0.0",
         "implementation": {
           "distribution": "public",
           "kind": "package",
           "package": "@moldea.ai/adapter-langchain",
-          "versionRange": "^4.0.0"
+          "versionRange": "^5.0.0"
         },
         "implementationStatus": "available",
         "lastVerifiedAt": "2026-09-01",
@@ -1115,9 +1103,7 @@
           "expectation": "optional",
           "notes": "Project-local guidance is needed only for repository-specific wrappers, middleware-driven relationships, supervisor composition around a supported LangChain boundary, headless tools, dynamic tool collections, or other unsupported indirect LangChain integration patterns."
         },
-        "supportedRepositoryFormatVersions": [
-          1
-        ],
+        "supportedRepositoryFormatVersions": [1],
         "targets": [
           {
             "bindingSupport": {
@@ -1277,12 +1263,12 @@
         ]
       },
       "langgraph": {
-        "compatibleCoreRange": "^5.0.0",
+        "compatibleCoreRange": "^6.0.0",
         "implementation": {
           "distribution": "public",
           "kind": "package",
           "package": "@moldea.ai/adapter-langgraph",
-          "versionRange": "^4.0.0"
+          "versionRange": "^5.0.0"
         },
         "implementationStatus": "available",
         "lastVerifiedAt": "2026-09-01",
@@ -1290,9 +1276,7 @@
           "expectation": "recommended",
           "notes": "Project-local guidance is recommended for prompt ownership, model and tool boundaries, node responsibilities, dynamic routing, state semantics, subgraphs, persistence, interrupts, human control, supervisor composition, and other repository-specific LangGraph behavior not represented by the initial static targets."
         },
-        "supportedRepositoryFormatVersions": [
-          1
-        ],
+        "supportedRepositoryFormatVersions": [1],
         "targets": [
           {
             "bindingSupport": {
@@ -1301,12 +1285,7 @@
                 "symbol": "partial"
               }
             },
-            "evidenceKinds": [
-              "agent-definition",
-              "language",
-              "runtime-package",
-              "runtime-pattern"
-            ],
+            "evidenceKinds": ["agent-definition", "language", "runtime-package", "runtime-pattern"],
             "id": "typescript-functional-api-1-4",
             "kind": "package",
             "knownLimitations": [
@@ -1544,12 +1523,12 @@
         ]
       },
       "openai": {
-        "compatibleCoreRange": "^5.0.0",
+        "compatibleCoreRange": "^6.0.0",
         "implementation": {
           "distribution": "public",
           "kind": "package",
           "package": "@moldea.ai/adapter-openai",
-          "versionRange": "^5.0.0"
+          "versionRange": "^6.0.0"
         },
         "implementationStatus": "available",
         "lastVerifiedAt": "2026-09-25",
@@ -1557,9 +1536,7 @@
           "expectation": "recommended",
           "notes": "Document project-specific model selection, tool execution, streaming, retry, and error behavior that static inspection cannot establish."
         },
-        "supportedRepositoryFormatVersions": [
-          1
-        ],
+        "supportedRepositoryFormatVersions": [1],
         "targets": [
           {
             "bindingSupport": {
@@ -1668,12 +1645,12 @@
         ]
       },
       "openai-agents-sdk": {
-        "compatibleCoreRange": "^5.0.0",
+        "compatibleCoreRange": "^6.0.0",
         "implementation": {
           "distribution": "public",
           "kind": "package",
           "package": "@moldea.ai/adapter-openai-agents-sdk",
-          "versionRange": "^4.0.0"
+          "versionRange": "^5.0.0"
         },
         "implementationStatus": "available",
         "lastVerifiedAt": "2026-09-01",
@@ -1681,9 +1658,7 @@
           "expectation": "optional",
           "notes": "Project-local guidance is needed only for repository-specific wrappers, dynamic graph construction, or unsupported indirect integration patterns."
         },
-        "supportedRepositoryFormatVersions": [
-          1
-        ],
+        "supportedRepositoryFormatVersions": [1],
         "targets": [
           {
             "bindingSupport": {
@@ -1846,12 +1821,12 @@
         ]
       },
       "vercel-ai-sdk": {
-        "compatibleCoreRange": "^5.0.0",
+        "compatibleCoreRange": "^6.0.0",
         "implementation": {
           "distribution": "public",
           "kind": "package",
           "package": "@moldea.ai/adapter-vercel-ai-sdk",
-          "versionRange": "^4.0.0"
+          "versionRange": "^5.0.0"
         },
         "implementationStatus": "available",
         "lastVerifiedAt": "2026-09-25",
@@ -1859,9 +1834,7 @@
           "expectation": "optional",
           "notes": "Project-local guidance is needed only for repository-specific wrappers or unsupported dynamic integration patterns."
         },
-        "supportedRepositoryFormatVersions": [
-          1
-        ],
+        "supportedRepositoryFormatVersions": [1],
         "targets": [
           {
             "bindingSupport": {

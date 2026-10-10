@@ -4,7 +4,7 @@ implementationId: typescript-state-graph-1-4
 probes:
   - id: compatible-core-range
     kind: compatibility
-    matrixPath: adapter.compatible-core-range.^5.0.0
+    matrixPath: adapter.compatible-core-range.^6.0.0
     description: The exact published adapter and StateGraph runtime composition
       exercises the compatible Core range through aligned and newly registered
       graphs.

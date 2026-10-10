@@ -213,6 +213,15 @@ test('updateCliRelease synchronizes a complete copied release tree', async () =>
     assert.equal(identity.cliVersion, nextVersion);
     assert.equal(identity.cliJsonSchemaVersion, nextCliJsonSchemaVersion);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
+    installSyntheticDependencies(temporaryRoot);
+    // staged generation must reproduce the same bytes under either surrounding compiler profile
+    for (const strict of [true, false]) {
+      writeFileSync(
+        join(temporaryRoot, 'tsconfig.json'),
+        JSON.stringify({ compilerOptions: { strict, useDefineForClassFields: strict } }),
+      );
+      await generatePortableArtifacts({ check: true, rootDirectory: temporaryRoot });
+    }
     const updatedRootManifest = JSON.parse(
       readFileSync(join(temporaryRoot, RELEASE_PATHS.packageManifest), 'utf8'),
     ) as Record<string, unknown>;

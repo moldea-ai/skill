@@ -818,7 +818,7 @@ test.each([
   'eve-warning-unrelated-change',
   'eve-warning-output-unverified',
   'eve-warning-read-only-evaluation',
-])('%s produces one scoped warning and no errors through the installed CLI', async (caseId) => {
+])('%s preserves scoped warnings and no errors through the installed CLI', async (caseId) => {
   const { repositoryPath } = await materializeCase(caseId, true);
   const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
     status: string;
@@ -832,10 +832,17 @@ test.each([
     };
   };
   assert.equal(validation.status, 'valid');
-  assert.equal(validation.result.diagnosticCount, 1);
+  assert.equal(validation.result.diagnosticCount, 2);
   assert.equal(validation.result.errorCount, 0);
-  assert.equal(validation.result.warningCount, 1);
-  const warning = validation.result.page.records.find(({ kind }) => kind === 'diagnostic');
+  assert.equal(validation.result.warningCount, 2);
+  const diagnostics = validation.result.page.records.filter(({ kind }) => kind === 'diagnostic');
+  assert.deepEqual(diagnostics.map(({ details }) => details?.relationship).sort(), [
+    'agent-output-schema',
+    'runtime-agent',
+  ]);
+  const warning = diagnostics.find(
+    ({ details }) => details?.relationship === 'agent-output-schema',
+  );
   assert.equal(warning?.code, 'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED');
   assert.deepEqual(warning?.details, {
     boundaryVersion: '0.67.0',
@@ -853,7 +860,7 @@ test.each([
       errors: inspection.result.counts.errors,
       warnings: inspection.result.counts.warnings,
     },
-    { diagnostics: 1, errors: 0, warnings: 1 },
+    { diagnostics: 2, errors: 0, warnings: 2 },
   );
 });
 
@@ -881,18 +888,31 @@ test('a confirmed Eve defect remains invalid beside an unrelated version warning
       diagnosticCount: number;
       errorCount: number;
       warningCount: number;
-      page: { records: Array<{ kind: string; code?: string }> };
+      page: { records: Array<{ kind: string; code?: string; details?: Record<string, unknown> }> };
     };
   };
   assert.equal(validation.status, 'invalid');
-  assert.equal(validation.result.diagnosticCount, 2);
+  assert.equal(validation.result.diagnosticCount, 5);
   assert.equal(validation.result.errorCount, 1);
-  assert.equal(validation.result.warningCount, 1);
+  assert.equal(validation.result.warningCount, 4);
   assert.deepEqual(
     validation.result.page.records
       .filter(({ kind }) => kind === 'diagnostic')
       .map(({ code }) => code)
       .sort(),
-    ['EVE_RUNTIME_RELATIONSHIP_UNVERIFIED', 'EVE_TOOL_NAME_MISMATCH'],
+    [
+      'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED',
+      'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED',
+      'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED',
+      'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED',
+      'EVE_TOOL_NAME_MISMATCH',
+    ],
+  );
+  assert.deepEqual(
+    validation.result.page.records
+      .filter(({ code }) => code === 'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED')
+      .map(({ details }) => details?.relationship)
+      .sort(),
+    ['agent-output-schema', 'instruction-loader', 'runtime-agent', 'tool-implementation'],
   );
 });

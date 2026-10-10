@@ -13806,7 +13806,7 @@ import { isPathWithin, readRepositoryFile } from "./repository-files.mjs";
 
 // src/portable/response-page/types.ts
 var responseIdentity = {
-  schemaVersion: external_exports.literal(5),
+  schemaVersion: external_exports.literal(6),
   cliVersion: external_exports.string(),
   command: external_exports.enum(["composition", "content", "inspect", "scope", "validate"])
 };

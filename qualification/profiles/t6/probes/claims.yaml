@@ -4,7 +4,7 @@ implementationId: typescript-filesystem-agent-0-39
 probes:
   - id: compatible-core-range
     kind: compatibility
-    matrixPath: adapter.compatible-core-range.^5.0.0
+    matrixPath: adapter.compatible-core-range.^6.0.0
     description: The published adapter and exact Eve runtime composition exercise
       the compatible Core range.
     coveredBy:

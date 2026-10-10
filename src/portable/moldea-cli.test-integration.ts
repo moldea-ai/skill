@@ -7,9 +7,13 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterEach, test, vi } from 'vitest';
 
+import { readReleaseIdentity } from '../release/index.ts';
+
+const { cliJsonSchemaVersion, cliVersion, cliVersionRange, coreVersion, coreVersionRange } =
+  readReleaseIdentity(resolve(import.meta.dirname, '../..'));
+
 const LAUNCHER_PATH = resolve(import.meta.dirname, '../../moldea/scripts/moldea-cli.mjs');
-const SUCCESS_OUTPUT =
-  '{"schemaVersion":5,"cliVersion":"9.0.1","command":"validate","status":"valid","error":null,"result":{"valid":true,"diagnosticCount":0,"errorCount":0,"warningCount":0}}\n';
+const SUCCESS_OUTPUT = `${JSON.stringify({ schemaVersion: cliJsonSchemaVersion, cliVersion, command: 'validate', status: 'valid', error: null, result: { valid: true, diagnosticCount: 0, errorCount: 0, warningCount: 0 } })}\n`;
 const GATE_PATH = resolve(import.meta.dirname, '../../moldea/scripts/relevance-gate.mjs');
 const PUBLISHED_CLI_URL = pathToFileURL(
   resolve(import.meta.dirname, '../../node_modules/@moldea.ai/cli/dist/moldea.js'),
@@ -30,21 +34,21 @@ const createScopeFixture = () => {
   mkdirSync(join(root, 'moldea'));
   writeFileSync(
     join(root, 'package.json'),
-    JSON.stringify({ devDependencies: { '@moldea.ai/cli': '^9.0.0' } }),
+    JSON.stringify({ devDependencies: { '@moldea.ai/cli': cliVersionRange } }),
   );
   writeFileSync(
     join(cliRoot, 'package.json'),
     JSON.stringify({
       name: '@moldea.ai/cli',
-      version: '9.0.1',
+      version: cliVersion,
       type: 'module',
       bin: { moldea: './dist/moldea.js' },
-      dependencies: { '@moldea.ai/core': '^5.0.1' },
+      dependencies: { '@moldea.ai/core': coreVersionRange },
     }),
   );
   writeFileSync(
     join(coreRoot, 'package.json'),
-    JSON.stringify({ name: '@moldea.ai/core', version: '5.0.1' }),
+    JSON.stringify({ name: '@moldea.ai/core', version: coreVersion }),
   );
   writeFileSync(join(coreRoot, 'dist', 'index.js'), 'module.exports = {};\n');
   // retain the real published CLI parser, Core matcher, and filesystem reads behind the fixture entry
@@ -236,20 +240,20 @@ const runFixture = async (
   mkdirSync(join(coreRoot, 'dist'), { recursive: true });
   writeFileSync(
     join(root, 'package.json'),
-    JSON.stringify({ devDependencies: { '@moldea.ai/cli': '^9.0.0' } }),
+    JSON.stringify({ devDependencies: { '@moldea.ai/cli': cliVersionRange } }),
   );
   writeFileSync(
     join(cliRoot, 'package.json'),
     JSON.stringify({
       name: '@moldea.ai/cli',
-      version: '9.0.1',
+      version: cliVersion,
       bin: { moldea: './dist/moldea.js' },
-      dependencies: { '@moldea.ai/core': '^5.0.1' },
+      dependencies: { '@moldea.ai/core': coreVersionRange },
     }),
   );
   writeFileSync(
     join(coreRoot, 'package.json'),
-    JSON.stringify({ name: '@moldea.ai/core', version: '5.0.2' }),
+    JSON.stringify({ name: '@moldea.ai/core', version: coreVersion }),
   );
   writeFileSync(join(coreRoot, 'dist', 'index.js'), 'module.exports = {};\n');
   writeFileSync(
@@ -443,8 +447,8 @@ test.each(['composition', 'content', 'inspect', 'scope', 'validate'])(
 test.each([1, 2, 3])('preserves raw diagnostic/error output with exit %d', (exitCode) => {
   const { root, cliRoot } = createScopeFixture();
   const raw = ` ${JSON.stringify({
-    schemaVersion: 5,
-    cliVersion: '9.0.1',
+    schemaVersion: cliJsonSchemaVersion,
+    cliVersion,
     command: 'validate',
     status: exitCode === 1 ? 'invalid' : 'error',
     error: exitCode === 1 ? null : { code: 'RESOURCE_LIMIT_EXCEEDED' },
@@ -580,8 +584,8 @@ const runCaptureCancellation = async (
   scopeFixtureRoots.push(scratch);
   const checkpoint = join(scratch, 'page.json');
   const oldPage = JSON.stringify({
-    schemaVersion: 5,
-    cliVersion: '9.0.1',
+    schemaVersion: cliJsonSchemaVersion,
+    cliVersion,
     command: 'validate',
     status: 'valid',
     error: null,
@@ -726,8 +730,8 @@ test('suppresses over-limit capture and preserves the previous checkpoint', () =
   scopeFixtureRoots.push(scratch);
   const checkpoint = join(scratch, 'page.json');
   const previous = JSON.stringify({
-    schemaVersion: 5,
-    cliVersion: '9.0.1',
+    schemaVersion: cliJsonSchemaVersion,
+    cliVersion,
     command: 'validate',
     status: 'valid',
     error: null,

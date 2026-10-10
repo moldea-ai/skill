@@ -6,7 +6,7 @@ For a direct request to prove or safely invoke the local CLI, apply this referen
 
 ## Supported contract
 
-Skill 6.0.6 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^5.0.0`, stable `@moldea.ai/cli` releases satisfying `^9.0.0`, repository format 1, and CLI JSON schema 5. Never substitute a global, transient, out-of-range, or prerelease CLI.
+Skill 7.0.0 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^6.0.0`, stable `@moldea.ai/cli` releases satisfying `^10.0.0`, repository format 1, and CLI JSON schema 6. Never substitute a global, transient, out-of-range, or prerelease CLI.
 
 Use only `<installed-skill-root>/scripts/moldea-cli.mjs`. The launcher resolves the repository-root-local package and executable, verifies the package name, exact installed stable version, supported repository declaration, declared `moldea` binary, installed Core against both the CLI's declared range and moldea's supported range, and resolved-path containment from inert package metadata, then invokes the executable without a shell. Package management and repository setup or CI own lockfile consistency; the launcher does not read target-project lockfiles. Do not reproduce these probes, inspect links manually, search parent workspaces, inspect unrelated repositories, use package-manager launchers, or search `PATH` for another copy.
 
@@ -36,7 +36,7 @@ The gate and the launcher's `scope` and `content --path` accept repository-relat
 
 ## Envelope verification
 
-The launcher verifies complete UTF-8 JSON, schema 5, the exact installed CLI version, invoked command, result/error shape, and exit/status agreement for every completed response, including calls without capture and `composition`. It preserves verified raw bytes and legitimate exit codes: 0 for `valid`, 1 for `invalid`, and 2 or 3 for `error`. Malformed or contradictory output returns 3 with a short diagnostic and no stdout. It accepts additive fields without interpreting full CLI payloads.
+The launcher verifies complete UTF-8 JSON, schema 6, the exact installed CLI version, invoked command, result/error shape, and exit/status agreement for every completed response, including calls without capture and `composition`. It preserves verified raw bytes and legitimate exit codes: 0 for `valid`, 1 for `invalid`, and 2 or 3 for `error`. Malformed or contradictory output returns 3 with a short diagnostic and no stdout. It accepts additive fields without interpreting full CLI payloads.
 
 Signals, launcher failures, output-boundary termination, malformed output, contradictory status, version mismatch, unsupported schema, and incomplete output establish no conclusion. The launcher sends the requested termination signal first and force-terminates a child that remains active after five seconds. An `invalid` result is diagnostic evidence, not validity.
 

@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'eve-warning-unrelated-change',
   setup: createSemanticCaseSetup('eve-warning-unrelated-change'),
   scenario:
-    'An adopted Eve agent has a valid warning about an output-schema declaration spanning 0.67.0. The developer requests an instruction change unrelated to that schema.',
+    'An adopted Eve agent has scoped runtime and output-schema warnings for a declaration spanning 0.67.0. The developer requests an instruction change unrelated to that schema.',
   operation: 'maintain-agent',
   input: {
     developerDirection:

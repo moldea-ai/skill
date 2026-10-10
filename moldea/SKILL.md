@@ -3,11 +3,11 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
-  cliRepairVersion: '9.0.1'
-  version: '6.0.6'
-  cliVersionRange: '^9.0.0'
-  coreVersionRange: '^5.0.0'
-  cliJsonSchemaVersion: '5'
+  cliRepairVersion: '10.0.0'
+  version: '7.0.0'
+  cliVersionRange: '^10.0.0'
+  coreVersionRange: '^6.0.0'
+  cliJsonSchemaVersion: '6'
 ---
 
 # moldea
@@ -61,7 +61,7 @@ After a relationship `1`, send only that matching batch once, before references:
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- scope --paths-stdin --json --max-output-bytes 65536
 ```
 
-Accept only exit 0, CLI 9, JSON schema 5, exact installed stable version, `command: scope`, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. Keep earlier valid owners on a new-batch miss or failure. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
+Accept only exit 0, CLI 10, JSON schema 6, exact installed stable version, `command: scope`, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. Keep earlier valid owners on a new-batch miss or failure. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
 
 ## Select the operation owner
 

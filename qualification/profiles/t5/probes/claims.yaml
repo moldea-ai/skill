@@ -4,8 +4,8 @@ implementationId: custom
 probes:
   - id: compatible-core-range
     kind: compatibility
-    matrixPath: adapter.compatible-core-range.^5.0.0
-    description: The complete workflow runs against the exact published Core 3.x
+    matrixPath: adapter.compatible-core-range.^6.0.0
+    description: The complete workflow runs against the exact published Core
       artifact declared compatible with this adapter.
     coveredBy:
       - evaluate-aligned-project

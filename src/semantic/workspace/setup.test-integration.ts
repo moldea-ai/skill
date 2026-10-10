@@ -428,11 +428,11 @@ test.each(['bound-context-maintenance', 'unbound-context-discovery'])(
   },
 );
 
-test('damaged managed README blocks adoption while retaining prior canonical files', async () => {
+test('damaged managed README does not block adoption while retaining prior canonical files', async () => {
   const { repositoryPath } = await materializeCase('damaged-setup-validation');
-  assert.equal(gateResult(repositoryPath, [], true), '0\n');
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
   const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
-  assert.match(readme, /<!-- moldea:start -->\nFor every repository task/u);
+  assert.match(readme, /<!-- moldea:start -->\nThis project uses/u);
   assert.equal(readme.includes(readFileSync(MANAGED_BLOCK_PATH, 'utf8')), false);
   assert.equal(existsSync(join(repositoryPath, 'moldea', 'moldea.yaml')), true);
   assert.equal(existsSync(join(repositoryPath, 'moldea', 'project.md')), true);
@@ -448,7 +448,7 @@ test('a changed managed README hunk can restore the exact adopted block for read
     encoding: 'utf8',
   });
   assert.equal(baseline.status, 0, baseline.stderr);
-  assert.match(baseline.stdout, /begin at `\/moldea\/project\.md`/u);
+  assert.match(baseline.stdout, /Begin at \[the project overview\]/u);
   const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as { status: string };
   assert.equal(validation.status, 'valid');
 });
@@ -555,7 +555,7 @@ test('actor repository creation accepts a case setup callback and applies post-b
   assert.equal(baseline.status, 0, baseline.stderr);
   assert.match(baseline.stdout, /<!-- moldea:start -->\n\n/u);
   assert.notEqual(readFileSync(join(repositoryPath, 'README.md'), 'utf8'), baseline.stdout);
-  assert.equal(gateResult(repositoryPath, [], true), '0\n');
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
 });
 
 test.each([
@@ -653,7 +653,7 @@ test('managed README drift is repairable through the shipped writer without outs
   const { repositoryPath } = await materializeCase('repair-readme-drift', true);
   const before = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
   const projectBefore = readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8');
-  assert.equal(gateResult(repositoryPath, [], true), '0\n');
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
   const writer = spawnSync(
     process.execPath,
     [MANAGED_WRITER_PATH, '--repository', repositoryPath],
@@ -697,7 +697,7 @@ test('duplicate managed markers are rejected by the shipped writer without mutat
   assert.equal(writer.status, 1);
   assert.match(writer.stderr, /exactly one moldea marker pair/u);
   assert.equal(readFileSync(join(repositoryPath, 'README.md'), 'utf8'), before);
-  assert.equal(gateResult(repositoryPath, [], true), '0\n');
+  assert.equal(gateResult(repositoryPath, [], true), '1\n');
 });
 
 test('repair authority distinguishes known drift, unproven adoption, and ambiguous foundation', async () => {
@@ -836,12 +836,12 @@ test.each([
   assert.equal(validation.result.errorCount, 0);
   assert.equal(validation.result.warningCount, 2);
   const diagnostics = validation.result.page.records.filter(({ kind }) => kind === 'diagnostic');
-  assert.deepEqual(diagnostics.map(({ details }) => details?.relationship).sort(), [
+  assert.deepEqual(diagnostics.map(({ details }) => details?.['relationship']).sort(), [
     'agent-output-schema',
     'runtime-agent',
   ]);
   const warning = diagnostics.find(
-    ({ details }) => details?.relationship === 'agent-output-schema',
+    ({ details }) => details?.['relationship'] === 'agent-output-schema',
   );
   assert.equal(warning?.code, 'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED');
   assert.deepEqual(warning?.details, {
@@ -910,7 +910,7 @@ test('a confirmed Eve defect remains invalid beside an unrelated version warning
   assert.deepEqual(
     validation.result.page.records
       .filter(({ code }) => code === 'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED')
-      .map(({ details }) => details?.relationship)
+      .map(({ details }) => details?.['relationship'])
       .sort(),
     ['agent-output-schema', 'runtime-agent', 'tool-implementation'],
   );

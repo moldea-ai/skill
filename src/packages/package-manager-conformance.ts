@@ -469,6 +469,18 @@ const verifyFoundationMechanics = async (options: {
 }): Promise<void> => {
   const readmePath = path.join(options.clientDirectory, 'README.md');
   const outside = '# Existing application\n\nKeep these project-owned bytes.\n';
+  const adoption = {
+    command: process.execPath,
+    args: [
+      path.join(options.skillRoot, 'scripts/relevance-gate.mjs'),
+      '--repository',
+      options.clientDirectory,
+      '--adoption-only',
+    ],
+    cwd: options.clientDirectory,
+    environment: options.environment,
+  };
+  assert.equal((await runCommand(adoption)).stdout, '1');
   await writeFile(readmePath, outside);
   const writer = {
     command: process.execPath,
@@ -485,16 +497,9 @@ const verifyFoundationMechanics = async (options: {
   assert.ok(first.startsWith(outside));
   await runCommand(writer);
   assert.equal(await readFile(readmePath, 'utf8'), first);
-  const gate = await runCommand({
-    ...writer,
-    args: [
-      path.join(options.skillRoot, 'scripts/relevance-gate.mjs'),
-      '--repository',
-      options.clientDirectory,
-      '--adoption-only',
-    ],
-  });
-  assert.equal(gate.stdout, '1');
+  await writeFile(readmePath, '# Informational README drift\n');
+  assert.equal((await runCommand(adoption)).stdout, '1');
+  await writeFile(readmePath, first);
 };
 
 /** Exercises one exact candidate closure through the selected real package manager. */

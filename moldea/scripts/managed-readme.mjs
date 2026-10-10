@@ -1,17 +1,18 @@
 #!/usr/bin/env node
 
 // src/portable/managed-readme.ts
+import { resolve as resolve2 } from "node:path";
+import { pathToFileURL } from "node:url";
+
+// src/portable/managed-block/managed-block.ts
 import { randomUUID } from "node:crypto";
 import { constants } from "node:fs";
 import { chmod, lstat, open, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
-var MAX_README_BYTES = 2 * 1024 * 1024;
+var MAX_DOCUMENT_BYTES = 2 * 1024 * 1024;
 var MAX_MANAGED_BLOCK_BYTES = 4 * 1024;
-var README_FILE_NAME = "README.md";
 var START_MARKER = "<!-- moldea:start -->";
 var END_MARKER = "<!-- moldea:end -->";
-var DEFAULT_MANAGED_README_BLOCK = "<!-- moldea:start -->\n\nFor every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.\nCanonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.\n<!-- moldea:end -->\n";
 var UTF8_BOM = Buffer.from([239, 187, 191]);
 var START_MARKER_BYTES = Buffer.from(START_MARKER, "ascii");
 var END_MARKER_BYTES = Buffer.from(END_MARKER, "ascii");
@@ -27,10 +28,7 @@ var decodeUtf8 = (bytes, description) => {
 var isEqualBytes = (left, right) => left.length === right.length && left.equals(right);
 var isUtf8Bom = (bytes) => bytes.length === UTF8_BOM.length && isEqualBytes(bytes, UTF8_BOM);
 var hasUtf8Bom = (bytes) => bytes.length >= UTF8_BOM.length && isEqualBytes(bytes.subarray(0, UTF8_BOM.length), UTF8_BOM);
-var renderManagedReadmeBlock = (managedReadmeBlock, lineEndingBytes) => Buffer.from(
-  managedReadmeBlock.replaceAll("\n", lineEndingBytes === CRLF_BYTES ? "\r\n" : "\n"),
-  "utf8"
-);
+var renderBlock = (block, lineEndingBytes) => Buffer.from(block.replaceAll("\n", lineEndingBytes === CRLF_BYTES ? "\r\n" : "\n"), "utf8");
 var parseMarkerLine = (lineBytes, lineStart, isFirstLine) => {
   const contentBytes = isFirstLine && hasUtf8Bom(lineBytes) ? lineBytes.subarray(UTF8_BOM.length) : lineBytes;
   const markerOffset = lineBytes.length - contentBytes.length;
@@ -53,31 +51,33 @@ var parseMarkerLine = (lineBytes, lineStart, isFirstLine) => {
   }
   return void 0;
 };
-var parseManagedRegion = (readmeBytes) => {
-  if (!Buffer.isBuffer(readmeBytes)) {
-    throw new TypeError("README content must be a Buffer");
+var parseManagedRegion = (documentBytes, fileName) => {
+  if (!Buffer.isBuffer(documentBytes)) {
+    throw new TypeError(
+      `${fileName === "README.md" ? "README" : fileName} content must be a Buffer`
+    );
   }
-  if (readmeBytes.length > MAX_README_BYTES) {
-    throw new Error(`README.md exceeds the ${MAX_README_BYTES}-byte limit`);
+  if (documentBytes.length > MAX_DOCUMENT_BYTES) {
+    throw new Error(`${fileName} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
   }
-  decodeUtf8(readmeBytes, "README.md");
+  decodeUtf8(documentBytes, fileName);
   const starts = [];
   const ends = [];
   let lineStart = 0;
   let isFirstLine = true;
-  while (lineStart < readmeBytes.length) {
-    const newlineIndex = readmeBytes.indexOf(10, lineStart);
-    const lineEnd = newlineIndex === -1 ? readmeBytes.length : newlineIndex + 1;
-    const contentEnd = newlineIndex !== -1 && readmeBytes[newlineIndex - 1] === 13 ? newlineIndex - 1 : newlineIndex === -1 ? readmeBytes.length : newlineIndex;
+  while (lineStart < documentBytes.length) {
+    const newlineIndex = documentBytes.indexOf(10, lineStart);
+    const lineEnd = newlineIndex === -1 ? documentBytes.length : newlineIndex + 1;
+    const contentEnd = newlineIndex !== -1 && documentBytes[newlineIndex - 1] === 13 ? newlineIndex - 1 : newlineIndex === -1 ? documentBytes.length : newlineIndex;
     const marker = parseMarkerLine(
-      readmeBytes.subarray(lineStart, contentEnd),
+      documentBytes.subarray(lineStart, contentEnd),
       lineStart,
       isFirstLine
     );
     if (marker?.kind === "start") {
       starts.push({
         markerStart: marker.markerStart,
-        lineEnding: newlineIndex === -1 ? Buffer.alloc(0) : readmeBytes.subarray(contentEnd, lineEnd)
+        lineEnding: newlineIndex === -1 ? Buffer.alloc(0) : documentBytes.subarray(contentEnd, lineEnd)
       });
     } else if (marker?.kind === "end") {
       ends.push({ markerStart: marker.markerStart, lineEnd });
@@ -89,7 +89,7 @@ var parseManagedRegion = (readmeBytes) => {
     return void 0;
   }
   if (starts.length !== 1 || ends.length !== 1) {
-    throw new Error("README.md must contain exactly one moldea marker pair");
+    throw new Error(`${fileName} must contain exactly one moldea marker pair`);
   }
   const start = starts[0];
   const end = ends[0];
@@ -105,95 +105,106 @@ var parseManagedRegion = (readmeBytes) => {
     lineEnding: isEqualBytes(start.lineEnding, CRLF_BYTES) ? CRLF_BYTES : LF_BYTES
   };
 };
-var getAppendLineEnding = (readmeBytes) => {
+var getAppendLineEnding = (documentBytes) => {
   let newlineCount = 0;
   let crlfCount = 0;
-  for (let index = 0; index < readmeBytes.length; index += 1) {
-    if (readmeBytes[index] === 10) {
+  for (let index = 0; index < documentBytes.length; index += 1) {
+    if (documentBytes[index] === 10) {
       newlineCount += 1;
-      if (index > 0 && readmeBytes[index - 1] === 13) {
+      if (index > 0 && documentBytes[index - 1] === 13) {
         crlfCount += 1;
       }
     }
   }
   return newlineCount > 0 && newlineCount === crlfCount ? CRLF_BYTES : LF_BYTES;
 };
-var getAppendSeparator = (readmeBytes, lineEndingBytes) => {
-  if (readmeBytes.length === 0 || isUtf8Bom(readmeBytes)) {
+var getAppendSeparator = (documentBytes, lineEndingBytes) => {
+  if (documentBytes.length === 0 || isUtf8Bom(documentBytes)) {
     return Buffer.alloc(0);
   }
   return Buffer.concat([
-    readmeBytes[readmeBytes.length - 1] === 10 ? Buffer.alloc(0) : lineEndingBytes,
+    documentBytes[documentBytes.length - 1] === 10 ? Buffer.alloc(0) : lineEndingBytes,
     lineEndingBytes
   ]);
 };
-var assertCanonicalManagedReadmeBlock = (managedReadmeBlock) => {
-  if (typeof managedReadmeBlock !== "string") {
-    throw new TypeError("The canonical managed README block must be a string");
+var assertManagedBlock = (block, description = "README", requiresBlankLine = true) => {
+  if (typeof block !== "string") {
+    throw new TypeError(`The canonical managed ${description} block must be a string`);
   }
-  const managedReadmeBytes = Buffer.from(managedReadmeBlock, "utf8");
-  if (managedReadmeBytes.length > MAX_MANAGED_BLOCK_BYTES) {
+  const blockBytes = Buffer.from(block, "utf8");
+  if (blockBytes.length > MAX_MANAGED_BLOCK_BYTES) {
     throw new Error(
-      `The canonical managed README block exceeds the ${MAX_MANAGED_BLOCK_BYTES}-byte limit`
+      `The canonical managed ${description} block exceeds the ${MAX_MANAGED_BLOCK_BYTES}-byte limit`
     );
   }
-  if (managedReadmeBlock.includes("\r") || !managedReadmeBlock.endsWith("\n") || managedReadmeBlock.endsWith("\n\n")) {
+  if (block.includes("\r") || !block.endsWith("\n") || block.endsWith("\n\n")) {
     throw new Error(
-      "The canonical managed README block must use LF and end with exactly one newline"
+      `The canonical managed ${description} block must use LF and end with exactly one newline`
     );
   }
-  const lines = managedReadmeBlock.slice(0, -1).split("\n");
-  if (lines.length < 4 || lines[0] !== START_MARKER || lines[1] !== "" || lines.at(-1) !== END_MARKER || lines.filter((line) => line === START_MARKER).length !== 1 || lines.filter((line) => line === END_MARKER).length !== 1) {
+  const lines = block.slice(0, -1).split("\n");
+  if (lines.length < (requiresBlankLine ? 4 : 3) || lines[0] !== START_MARKER || requiresBlankLine && lines[1] !== "" || lines.at(-1) !== END_MARKER || lines.filter((line) => line === START_MARKER).length !== 1 || lines.filter((line) => line === END_MARKER).length !== 1) {
     throw new Error(
-      "The canonical managed README block must contain one ordered marker pair and a blank line after the opening marker"
+      `The canonical managed ${description} block must contain one ordered marker pair${requiresBlankLine ? " and a blank line after the opening marker" : ""}`
     );
   }
 };
-var hasCanonicalManagedReadmeBlock = (readmeBytes, managedReadmeBlock = DEFAULT_MANAGED_README_BLOCK) => {
+var hasManagedBlock = (documentBytes, block, fileName = "README.md") => {
   try {
-    assertCanonicalManagedReadmeBlock(managedReadmeBlock);
-    const region = parseManagedRegion(readmeBytes);
+    assertManagedBlock(
+      block,
+      fileName === "README.md" ? "README" : fileName,
+      fileName === "README.md"
+    );
+    const region = parseManagedRegion(documentBytes, fileName);
     if (region === void 0) {
       return false;
     }
-    const expectedBytes = renderManagedReadmeBlock(managedReadmeBlock, region.lineEnding);
-    return isEqualBytes(readmeBytes.subarray(region.regionStart, region.regionEnd), expectedBytes);
+    const expectedBytes = renderBlock(block, region.lineEnding);
+    return isEqualBytes(
+      documentBytes.subarray(region.regionStart, region.regionEnd),
+      expectedBytes
+    );
   } catch {
     return false;
   }
 };
-var createManagedReadmeBytes = (readmeBytes, managedReadmeBlock = DEFAULT_MANAGED_README_BLOCK) => {
-  assertCanonicalManagedReadmeBlock(managedReadmeBlock);
-  const region = parseManagedRegion(readmeBytes);
+var createManagedBlockBytes = (documentBytes, block, fileName = "README.md") => {
+  assertManagedBlock(
+    block,
+    fileName === "README.md" ? "README" : fileName,
+    fileName === "README.md"
+  );
+  const region = parseManagedRegion(documentBytes, fileName);
   if (region !== void 0) {
     const updatedBytes2 = Buffer.concat([
-      readmeBytes.subarray(0, region.regionStart),
-      renderManagedReadmeBlock(managedReadmeBlock, region.lineEnding),
-      readmeBytes.subarray(region.regionEnd)
+      documentBytes.subarray(0, region.regionStart),
+      renderBlock(block, region.lineEnding),
+      documentBytes.subarray(region.regionEnd)
     ]);
-    if (updatedBytes2.length > MAX_README_BYTES) {
-      throw new Error(`Updated README.md exceeds the ${MAX_README_BYTES}-byte limit`);
+    if (updatedBytes2.length > MAX_DOCUMENT_BYTES) {
+      throw new Error(`Updated ${fileName} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
     }
     return updatedBytes2;
   }
-  const lineEnding = getAppendLineEnding(readmeBytes);
+  const lineEnding = getAppendLineEnding(documentBytes);
   const updatedBytes = Buffer.concat([
-    readmeBytes,
-    getAppendSeparator(readmeBytes, lineEnding),
-    renderManagedReadmeBlock(managedReadmeBlock, lineEnding)
+    documentBytes,
+    getAppendSeparator(documentBytes, lineEnding),
+    renderBlock(block, lineEnding)
   ]);
-  if (updatedBytes.length > MAX_README_BYTES) {
-    throw new Error(`Updated README.md exceeds the ${MAX_README_BYTES}-byte limit`);
+  if (updatedBytes.length > MAX_DOCUMENT_BYTES) {
+    throw new Error(`Updated ${fileName} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
   }
   return updatedBytes;
 };
-var readBoundedRegularFile = async (filePath) => {
+var readManagedFile = async (filePath) => {
   const pathStats = await lstat(filePath);
   if (!pathStats.isFile()) {
     throw new Error(`${basename(filePath)} must be a regular file`);
   }
-  if (pathStats.size > MAX_README_BYTES) {
-    throw new Error(`${basename(filePath)} exceeds the ${MAX_README_BYTES}-byte limit`);
+  if (pathStats.size > MAX_DOCUMENT_BYTES) {
+    throw new Error(`${basename(filePath)} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
   }
   const fileHandle = await open(filePath, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
   try {
@@ -201,7 +212,7 @@ var readBoundedRegularFile = async (filePath) => {
     if (!openStats.isFile() || openStats.dev !== pathStats.dev || openStats.ino !== pathStats.ino) {
       throw new Error(`${basename(filePath)} changed while it was being opened`);
     }
-    const boundedBytes = Buffer.allocUnsafe(MAX_README_BYTES + 1);
+    const boundedBytes = Buffer.allocUnsafe(MAX_DOCUMENT_BYTES + 1);
     let bytesRead = 0;
     while (bytesRead < boundedBytes.length) {
       const result = await fileHandle.read(
@@ -215,18 +226,20 @@ var readBoundedRegularFile = async (filePath) => {
       }
       bytesRead += result.bytesRead;
     }
-    if (bytesRead > MAX_README_BYTES) {
-      throw new Error(`${basename(filePath)} exceeds the ${MAX_README_BYTES}-byte limit`);
+    if (bytesRead > MAX_DOCUMENT_BYTES) {
+      throw new Error(`${basename(filePath)} exceeds the ${MAX_DOCUMENT_BYTES}-byte limit`);
     }
     return {
       bytes: Buffer.from(boundedBytes.subarray(0, bytesRead)),
-      mode: pathStats.mode & 4095
+      mode: pathStats.mode & 4095,
+      dev: pathStats.dev,
+      ino: pathStats.ino
     };
   } finally {
     await fileHandle.close();
   }
 };
-var writeAtomically = async (filePath, bytes, mode) => {
+var writeAtomically = async (filePath, bytes, mode, expected) => {
   const temporaryPath = join(
     dirname(filePath),
     `.${basename(filePath)}.${process.pid}.${randomUUID()}.tmp`
@@ -234,12 +247,21 @@ var writeAtomically = async (filePath, bytes, mode) => {
   try {
     await writeFile(temporaryPath, bytes, { flag: "wx", mode });
     await chmod(temporaryPath, mode);
+    let observed;
+    try {
+      observed = await readManagedFile(filePath);
+    } catch (error) {
+      if (!isMissingFile(error)) throw error;
+    }
+    if (expected === void 0 ? observed !== void 0 : observed === void 0 || observed.dev !== expected.dev || observed.ino !== expected.ino || observed.mode !== expected.mode || !observed.bytes.equals(expected.bytes)) {
+      throw new Error(`${basename(filePath)} changed before replacement`);
+    }
     await rename(temporaryPath, filePath);
   } finally {
     await rm(temporaryPath, { force: true });
   }
 };
-var updateManagedReadme = async (repositoryRoot, managedReadmeBlock = DEFAULT_MANAGED_README_BLOCK) => {
+var updateManagedFile = async (repositoryRoot, block, fileName = "README.md") => {
   if (typeof repositoryRoot !== "string" || !isAbsolute(repositoryRoot) || resolve(repositoryRoot) !== repositoryRoot) {
     throw new Error("The repository root must be a normalized absolute path");
   }
@@ -247,13 +269,19 @@ var updateManagedReadme = async (repositoryRoot, managedReadmeBlock = DEFAULT_MA
   if (!rootStats.isDirectory() || rootStats.isSymbolicLink()) {
     throw new Error("The repository root must be a regular directory");
   }
-  assertCanonicalManagedReadmeBlock(managedReadmeBlock);
-  const readmePath = join(repositoryRoot, README_FILE_NAME);
+  assertManagedBlock(
+    block,
+    fileName === "README.md" ? "README" : fileName,
+    fileName === "README.md"
+  );
+  const targetPath = join(repositoryRoot, fileName);
   let currentBytes = Buffer.alloc(0);
   let currentMode = 420;
   let status = "created";
+  let expected;
   try {
-    const currentFile = await readBoundedRegularFile(readmePath);
+    const currentFile = await readManagedFile(targetPath);
+    expected = currentFile;
     currentBytes = currentFile.bytes;
     currentMode = currentFile.mode;
     status = "updated";
@@ -262,20 +290,28 @@ var updateManagedReadme = async (repositoryRoot, managedReadmeBlock = DEFAULT_MA
       throw error;
     }
   }
-  const updatedBytes = createManagedReadmeBytes(currentBytes, managedReadmeBlock);
+  const updatedBytes = createManagedBlockBytes(currentBytes, block, fileName);
   if (isEqualBytes(currentBytes, updatedBytes)) {
     return "unchanged";
   }
-  await writeAtomically(readmePath, updatedBytes, currentMode);
+  await writeAtomically(targetPath, updatedBytes, currentMode, expected);
   return status;
 };
+var isMissingFile = (error) => error !== null && typeof error === "object" && "code" in error && error.code === "ENOENT";
+
+// src/portable/managed-readme.ts
+var DEFAULT_MANAGED_README_BLOCK = "<!-- moldea:start -->\n\nThis project uses [moldea](https://skill.moldea.ai) to keep project knowledge in Git and bring relevant context into coding-agent work.\nStart at [the project overview](moldea/project.md); [the manifest](moldea/moldea.yaml) maps context and implementation relationships.\n<!-- moldea:end -->\n";
+var assertCanonicalManagedReadmeBlock = (block) => assertManagedBlock(block);
+var hasCanonicalManagedReadmeBlock = (bytes, block = DEFAULT_MANAGED_README_BLOCK) => hasManagedBlock(bytes, block);
+var createManagedReadmeBytes = (bytes, block = DEFAULT_MANAGED_README_BLOCK) => createManagedBlockBytes(bytes, block);
+var updateManagedReadme = (repositoryRoot, block = DEFAULT_MANAGED_README_BLOCK) => updateManagedFile(repositoryRoot, block);
 var parseArguments = (argumentsList) => {
   if (argumentsList.length !== 2 || argumentsList[0] !== "--repository" || typeof argumentsList[1] !== "string") {
     throw new Error("Usage: managed-readme.mjs --repository <normalized-absolute-root>");
   }
   return argumentsList[1];
 };
-var isDirectExecution = process.argv[1] !== void 0 && pathToFileURL(resolve(process.argv[1])).href === import.meta.url;
+var isDirectExecution = process.argv[1] !== void 0 && pathToFileURL(resolve2(process.argv[1])).href === import.meta.url;
 if (isDirectExecution) {
   try {
     const repositoryRoot = parseArguments(process.argv.slice(2));

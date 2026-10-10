@@ -20,7 +20,7 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
-        claim: 'The root README contains the adopted-project routing block.',
+        claim: 'The root README contains the explanatory moldea block.',
         source: {
           kind: 'workspace-path',
           path: 'README.md',

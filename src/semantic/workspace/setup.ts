@@ -19,6 +19,8 @@ import path, { join, relative } from 'node:path';
 
 import { z } from 'zod';
 
+import { createManagedBlockBytes } from '../../portable/managed-block/index.ts';
+
 import {
   CODEX_EVALUATION_NPM_VERSION,
   prepareCodexEvaluationHome,
@@ -1431,7 +1433,6 @@ const seedScenarioRepository = async (
       'README.md',
       '# Evaluation repository\n\nA former contributor left moldea-looking notes. No adoption decision is recorded.\n',
     );
-    await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', 'version: [unfinished\n');
     await writeScenarioFile(
       repositoryPath,
       'moldea/project.md',
@@ -2001,8 +2002,8 @@ const seedScenarioRepository = async (
         repositoryPath,
         'README.md',
         readme.replace(
-          'Canonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.',
-          'Canonical moldea project state lives under `/moldea/**`; begin at `/moldea/project.md`.',
+          'Start at [the project overview](moldea/project.md);',
+          'Begin at [the project overview](moldea/project.md);',
         ),
       );
       break;
@@ -2223,8 +2224,8 @@ const applyScenarioWorkingTree = async (
         repositoryPath,
         'README.md',
         readme.replace(
-          'Canonical moldea project state lives under `/moldea/**`; begin at `/moldea/project.md`.',
-          'Canonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.',
+          'Begin at [the project overview](moldea/project.md);',
+          'Start at [the project overview](moldea/project.md);',
         ),
       );
       return;
@@ -2387,6 +2388,8 @@ export const createActorRepository = async (
   await mkdir(join(repositoryPath, '.agents', 'skills'), { recursive: true });
   await cp(PORTABLE_SKILL_ROOT, join(repositoryPath, '.agents', 'skills', 'moldea'), {
     recursive: true,
+    filter: (source) =>
+      !source.split(path.sep).some((name) => EXCLUDED_CONTEXT_DIRECTORY_NAMES.has(name)),
   });
   await writeFile(join(repositoryPath, '.gitignore'), '.agents/\nnode_modules/\n', 'utf8');
   await writeFile(join(repositoryPath, 'README.md'), '# Evaluation repository\n', 'utf8');
@@ -2405,6 +2408,18 @@ export const createActorRepository = async (
         ),
       };
     })());
+
+  if (
+    existsSync(join(repositoryPath, 'moldea', 'moldea.yaml')) &&
+    existsSync(join(repositoryPath, 'moldea', 'project.md'))
+  ) {
+    const agentsPath = join(repositoryPath, 'AGENTS.md');
+    const current = existsSync(agentsPath) ? await readFile(agentsPath) : Buffer.alloc(0);
+    const block = (
+      await readFile(join(PORTABLE_SKILL_ROOT, 'assets', 'managed-agents-block.md'), 'utf8')
+    ).replaceAll('{{skill-path}}', '.agents/skills/moldea');
+    await writeFile(agentsPath, createManagedBlockBytes(current, block, 'AGENTS.md'));
+  }
 
   const gitCommands: string[][] = [
     ['init', '--quiet', '--initial-branch=main'],

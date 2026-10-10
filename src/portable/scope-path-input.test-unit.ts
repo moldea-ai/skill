@@ -3,7 +3,11 @@ import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
 import { test } from 'vitest';
 
-import { normalizeScopePath, readScopePathInput } from './scope-path-input.ts';
+import {
+  normalizeScopePath,
+  normalizeScopePathArguments,
+  readScopePathInput,
+} from './scope-path-input.ts';
 
 test.each([
   ['src/agent.ts', '/src/agent.ts'],
@@ -64,4 +68,16 @@ test('stops consuming stdin when the original byte boundary is exceeded', async 
   };
   await assert.rejects(readScopePathInput(inputStream), /exceeds its byte limit/u);
   assert.equal(reads, 2);
+});
+
+test('argv byte limits count every original UTF-8 path and NUL delimiter', () => {
+  assert.deepEqual(normalizeScopePathArguments(['src/éclair plan.ts', '/src/a.ts']), [
+    '/src/éclair plan.ts',
+    '/src/a.ts',
+  ]);
+  assert.equal(normalizeScopePathArguments(['a'.repeat(2_097_151)])[0]?.length, 2_097_152);
+  assert.throws(() => normalizeScopePathArguments(['a'.repeat(2_097_151), 'b']), /exceeds/u);
+  assert.throws(() => normalizeScopePathArguments(['é'.repeat(1_048_576)]), /exceeds/u);
+  assert.throws(() => normalizeScopePathArguments([]), /Invalid/u);
+  assert.throws(() => normalizeScopePathArguments(['']), /Invalid/u);
 });

@@ -14,7 +14,7 @@ Start with the [Repository format guide](/docs/repository-format/) for the compl
 
 ## Derived adoption state
 
-A project is adopted when direct inspection establishes the complete canonical foundation and the owned README awareness block. Otherwise it is unadopted. This binary state is derived rather than stored in a status field. Partial or inconsistent artifacts remain unadopted. On an explicit setup check, the coding agent reports their exact paths and missing contract elements through bounded read-only diagnosis and preserves their contents instead of treating the repository as empty. Evidence of prior initialization is distinct from conformance with the current README block; it can justify repair investigation without making a damaged setup adopted.
+A project is adopted when bounded regular-file checks establish `/moldea/moldea.yaml` and `/moldea/project.md`. README and AGENTS.md are not adoption prerequisites. Missing or drifted AGENTS.md integration produces a setup warning because ordinary work may miss context maintenance; it does not invalidate canonical state or prevent explicit operations. Foundation presence is separate from full structural validation and evidence of prior initialization.
 
 Adoption does not describe semantic quality. An adopted project can still have deterministic diagnostics, drift, conflicts, unresolved requirements, or evidence limitations. Those findings are reported concretely and do not alter the binary adoption state.
 

@@ -64,6 +64,7 @@ export {
   hasValidCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
+  identifyMoldeaManagedAgentsMode,
   identifyRepositoryTestCommandKind,
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,

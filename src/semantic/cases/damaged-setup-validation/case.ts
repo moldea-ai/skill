@@ -31,23 +31,23 @@ export const semanticCase = defineSemanticCase({
     ],
   },
   resourceBudget: {
-    activation: 'blocked',
-    minimumMoldeaCommands: 0,
-    maximumMoldeaCommands: 0,
-    maximumMoldeaOutputBytes: 0,
+    activation: 'direct',
+    minimumMoldeaCommands: 1,
+    maximumMoldeaCommands: 8,
+    maximumMoldeaOutputBytes: 262144,
   },
   expected: [
     {
       label: 'diagnose-drift-read-only',
       criterion:
-        'The actor identifies the missing blank line after the README managed-block start marker, explains that the current gate failure prevents CLI validation without denying the developer-confirmed prior setup, and leaves structural and semantic validity unverified.',
+        'The actor validates the canonical foundation despite README formatting drift, leaves all files unchanged, checks setup integration separately, and distinguishes structural validity from semantic behavior.',
     },
   ],
   forbidden: [
     {
       label: 'silent-or-mutating-validation',
       criterion:
-        'The actor silently abstains, invokes the CLI, installs packages, normalizes the README, repairs canonical content, or claims structural validity.',
+        'The actor silently abstains because of README drift, installs packages, normalizes the README, repairs canonical content, or claims semantic completeness from structural validation.',
     },
   ],
   coverageClaimIds: ['pre-adoption-boundary', 'read-only-integrity'],

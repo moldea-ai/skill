@@ -62,11 +62,11 @@ The coding agent first decides whether the behavior belongs in a skill, protecte
 
 ## Maintain context as understanding evolves
 
-Once a repository adopts `moldea`, its managed README block routes repository-aware hosts to the repository-bound skill entrypoint for the two-byte relevance gate. Continuous maintenance activates only when a known task path matches a declared binding or `affectedBy` relationship. Known task paths include exact repository paths explicitly named or targeted by the developer, even when unchanged, plus any complete changed-path set already established by the host. Generic project knowledge and unrelated work stop at the gate without loading workflow references or running the CLI.
+After adoption, a small managed AGENTS.md block checks host-known ordinary paths before loading the skill. Declared bindings and `affectedBy` relationships select relevant context; unrelated work ends after the small instruction block and bounded gate invocation. Direct agent and concrete project-context requests retain their own routing.
 
 The coding agent classifies supplied knowledge by meaning rather than format, traces affected context and behavior, and updates only representations whose truth actually changed. Clear current truth and explicit corrections can be maintained. Proposed, transient, speculative, secret, or materially ambiguous information is omitted or clarified first. Each affected fact stays with its established authoritative owner, so ordinary maintenance does not create parallel current truth. A correct outcome can be no `/moldea/**` edit.
 
-If direct probes do not establish the complete canonical foundation and owned README awareness block, the project is unadopted. Partial or inconsistent artifacts do not create a separate status. The coding agent completes the authorized request, reports the precise gap, preserves existing content, and may recommend `Initialize moldea` as an optional way to give future coding agents durable Git-owned context.
+The canonical foundation files establish adoption independently of README or AGENTS.md. Explicit setup checks diagnose missing foundation evidence and warn about missing integration without writes or invented policy. Missing integration does not invalidate the project or block explicit moldea work.
 
 ## Compress accumulated project context
 

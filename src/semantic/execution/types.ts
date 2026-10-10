@@ -37,6 +37,10 @@ export type ISemanticActorExecutionOutputFact =
       status: 'created' | 'invalid-marker-pair' | 'unchanged' | 'updated';
     }
   | {
+      kind: 'managed-agents-result';
+      status: 'created' | 'updated' | 'unchanged' | 'ready' | 'warning';
+    }
+  | {
       cancelledCount: 0;
       failedCount: 0;
       kind: 'node-test-summary';

@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, test } from 'vitest';
 
+const TEST_NODE_EXECUTABLE = process.env['MOLDEA_TEST_NODE'] ?? process.execPath;
 const GATE_PATH = resolve(
   import.meta.dirname,
   '..',
@@ -48,7 +49,7 @@ const runGate = (
 ): { status: number | null; stderr: string; stdout: string } => {
   const input = Buffer.isBuffer(paths) ? paths : Buffer.from(`${paths.join('\0')}\0`);
   const result = spawnSync(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [GATE_PATH, '--repository', repositoryRoot, ...(isAdoptionOnly ? ['--adoption-only'] : [])],
     { encoding: 'utf8', input },
   );
@@ -82,18 +83,22 @@ test('adoption and exact relationship checks return only two bytes', () => {
   assertGateResult(root, Buffer.alloc(0), '0\n');
 });
 
-test('a damaged README or manifest fails closed without a diagnostic leak', () => {
-  const root = createAdoptedRepository();
-  const readmePath = join(root, 'README.md');
-  const originalReadme = readFileSync(readmePath, 'utf8');
-  writeFileSync(
-    readmePath,
-    originalReadme.replace('<!-- moldea:start -->\n\n', '<!-- moldea:start -->\n'),
-  );
-  assertGateResult(root, ['/src/refund.js'], '0\n');
-  assertGateResult(root, [], '0\n', true);
+test.each(['absent', 'drift', 'markers', 'linked'])(
+  'README %s does not control canonical adoption or relationship matching',
+  (condition) => {
+    const root = createAdoptedRepository();
+    const readme = join(root, 'README.md');
+    rmSync(readme);
+    if (condition === 'drift') writeFileSync(readme, '# Other information\n');
+    if (condition === 'markers') writeFileSync(readme, '<!-- moldea:start -->\nbroken');
+    if (condition === 'linked') symlinkSync(join(root, 'moldea', 'project.md'), readme);
+    assertGateResult(root, [], '1\n', true);
+    assertGateResult(root, ['src/refund.js'], '1\n');
+  },
+);
 
-  writeFileSync(readmePath, originalReadme);
+test('an invalid manifest fails closed without diagnostic leakage', () => {
+  const root = createAdoptedRepository();
   writeFileSync(join(root, 'moldea', 'moldea.yaml'), 'version: [\n');
   assertGateResult(root, ['/src/refund.js'], '0\n');
 });
@@ -193,4 +198,74 @@ test('the gate never executes repository dependencies', () => {
   assertGateResult(root, ['/src/refund.js'], '1\n');
   assert.equal(readFileSync(join(root, 'moldea', 'project.md'), 'utf8'), '# Project\n');
   assert.throws(() => readFileSync(markerPath), /ENOENT/u);
+});
+
+test('argv batches use repository-root-relative paths from a nested cwd without stdin', () => {
+  const root = createAdoptedRepository();
+  mkdirSync(join(root, 'nested'));
+  writeFileSync(
+    join(root, 'moldea', 'moldea.yaml'),
+    'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/éclair plan.js\n',
+  );
+  for (const cwd of [root, join(root, 'nested')]) {
+    const result = spawnSync(
+      TEST_NODE_EXECUTABLE,
+      [GATE_PATH, '--repository', root, '--path', 'src/other.js', '--path', 'src/éclair plan.js'],
+      { cwd, encoding: 'utf8', timeout: 5_000 },
+    );
+    assert.ifError(result.error);
+    assert.equal(result.stdout, '1\n');
+    assert.equal(result.stderr, '');
+    assert.equal(result.status, 0);
+  }
+});
+
+test.each([
+  ['--path', ''],
+  ['--path'],
+  ['--path', 'C:refund.js'],
+  ['--path', '//host/share'],
+  ['--path', 'src/../refund.js'],
+  ['--adoption-only', '--path', 'src/refund.js'],
+  ['--unknown'],
+  ['--diagnose', '--diagnose'],
+  ['--adoption-only', '--adoption-only'],
+])('invalid argv %o fails silently or explicitly in diagnostic mode', (...arguments_) => {
+  const root = createAdoptedRepository();
+  const normal = spawnSync(TEST_NODE_EXECUTABLE, [GATE_PATH, '--repository', root, ...arguments_], {
+    encoding: 'utf8',
+    timeout: 5_000,
+  });
+  if (!arguments_.includes('--diagnose')) {
+    assert.equal(normal.status, 0);
+    assert.equal(normal.stdout, '0\n');
+    assert.equal(normal.stderr, '');
+  }
+  const diagnostic = spawnSync(
+    TEST_NODE_EXECUTABLE,
+    [GATE_PATH, '--repository', root, '--diagnose', ...arguments_],
+    { encoding: 'utf8', timeout: 5_000 },
+  );
+  assert.equal(diagnostic.status, 1);
+  assert.equal(diagnostic.stdout, '');
+  assert.match(diagnostic.stderr, /gate failed/u);
+});
+
+test('diagnostic misses complete successfully, while unsafe foundation or invalid manifest fails', () => {
+  const root = createAdoptedRepository();
+  const run = () =>
+    spawnSync(
+      TEST_NODE_EXECUTABLE,
+      [GATE_PATH, '--repository', root, '--diagnose', '--path', 'README.md'],
+      { encoding: 'utf8' },
+    );
+  assert.equal(run().stdout, '0\n');
+  assert.equal(run().status, 0);
+  writeFileSync(join(root, 'moldea', 'moldea.yaml'), 'version: [\n');
+  assert.equal(run().status, 1);
+  rmSync(join(root, 'moldea', 'project.md'));
+  assert.equal(run().status, 0);
+  assert.equal(run().stdout, '0\n');
+  mkdirSync(join(root, 'moldea', 'project.md'));
+  assert.equal(run().status, 1);
 });

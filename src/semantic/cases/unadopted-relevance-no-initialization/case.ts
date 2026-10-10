@@ -28,7 +28,7 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
-        claim: 'The README has no adoption marker.',
+        claim: 'The README has no informational moldea region.',
         source: {
           kind: 'workspace-path',
           path: 'README.md',

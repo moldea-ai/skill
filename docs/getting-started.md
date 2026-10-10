@@ -36,7 +36,7 @@ This request explicitly authorizes adoption. The coding agent:
 2. Selects the `initialize` operation and confirms that repository and developer authority permit its writes.
 3. Determines whether the evidence establishes a sufficient project foundation or requires one focused clarification.
 4. After the foundation is sufficient, installs a known missing compatible repository-local `@moldea.ai/cli` development dependency with lifecycle scripts disabled. A failed installation stops canonical and README writes and reports any package-manager changes. An existing compatible CLI needs no reinstall or failing availability probe; a global CLI is never a fallback.
-5. Creates the minimum canonical state and runs the bundled deterministic writer for the owned README awareness block.
+5. Creates canonical state and the explanatory README region, then establishes the managed AGENTS.md bridge when host instructions permit. Otherwise it provides the exact important manual block. Explicit setup checks verify the bridge and smoke-test its command before final validation.
 6. Runs final structural validation, maps the material sources to the conclusions they established, and reports the files, decisions, verification, and practical next actions.
 
 The minimum canonical foundation is:
@@ -48,21 +48,17 @@ The minimum canonical foundation is:
 
 `moldea.yaml` starts with schema version `1` and omits empty optional mappings. `project.md` contains only durable identity, purpose, users, goals, values, boundaries, and universally important facts supported by repository evidence.
 
-The root README receives this exact logical block:
+README receives a short introduction with links to `moldea/project.md` and `moldea/moldea.yaml`. Its deterministic writer preserves outside bytes and rejects ambiguous or unsafe input.
 
-```text
-<!-- moldea:start -->
+AGENTS.md receives a separate managed block with the verified local installation path. For ordinary planning, implementation, or review, it runs the relevance gate once the files are known and before acting. Only a relationship hit loads SKILL.md. New independently discovered files get one new-batch check; unchanged results are reused. No repository scan is performed for moldea.
 
-For every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.
-Canonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.
-<!-- moldea:end -->
-```
+If AGENTS.md cannot be safely edited or host instructions prohibit it, the coding agent gives you the exact block to add. Adding it is important: ordinary work may otherwise miss context maintenance and leave saved knowledge stale. Explicit moldea operations remain available. A missing block produces a setup warning, never canonical invalidity. Updating the installed skill alone does not rewrite project integration; ask for `Fix moldea` to refresh permitted managed regions.
 
-The blank line after the opening marker separates ownership metadata from the Markdown paragraph. The writer preserves all README bytes outside the managed region, follows a consistent existing CRLF style when applicable, and otherwise writes LF. It rejects duplicate, unpaired, reversed, linked, invalid, or oversized README input instead of guessing.
+Some coding hosts ask for permission to execute commands. If desired, approve a rule for this specific installed gate command using your host’s controls. Do not grant blanket Node execution or weaken repository trust controls. The small instruction block and bounded Node invocation are the cost of an unrelated precheck; the full skill and workflow references are not loaded on a miss. Host compliance is not guaranteed.
 
 Initialization does not create an agent, ceremonial empty directories, speculative context, or a parallel source of truth. With no evidenced relationships, `moldea.yaml` contains only `version: 1` and its final LF. A successful validation ends the operation without a follow-up inspection. Bounded structural diagnostics permit supported repairs while each correction makes progress within the authorized scope and resource limits. Every repair requires validation of the resulting state; unresolved failures are reported without claiming completion.
 
-An adopted project turns the same request into focused foundation maintenance. Partial or inconsistent artifacts leave it unadopted: the coding agent identifies the existing artifacts and missing contract elements, preserves valid content, and does not initialize or repair over them without the required authority and decisions.
+An adopted project turns the same request into focused foundation maintenance. Missing or unsafe canonical foundation files prevent adoption: the coding agent identifies the existing artifacts and missing contract elements, preserves valid content, and does not initialize or repair over them without the required authority and decisions.
 
 ## When the repository does not explain itself
 
@@ -94,7 +90,7 @@ To design the system before implementation, ask:
 Use moldea to plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software and what genuinely needs model reasoning.
 ```
 
-Planning is read-only and may recommend no agents. You do not need to mention `moldea` again or create bindings first. The managed README selects the entrypoint; clear agent work checks adoption, other known paths check declared relationships, and a follow-up continues only the active task and its authorization. Unrelated work remains unaffected. See the [workflow reference](/docs/how-it-works/) for the complete activation contract.
+Planning is read-only and may recommend no agents. You do not need to mention `moldea` again or create bindings first. The managed AGENTS.md block checks ordinary paths before loading the entrypoint; clear agent work checks adoption, and a follow-up continues only the active task and its authorization. Unrelated work remains unaffected. See the [workflow reference](/docs/how-it-works/) for the complete activation contract.
 
 You do not need to create `/moldea` directories by hand, invoke the local CLI directly, translate requests into special commands, maintain duplicate instructions, or create a `moldea` Cloud account. The coding agent owns safe interaction with the repository-local skill and tooling.
 

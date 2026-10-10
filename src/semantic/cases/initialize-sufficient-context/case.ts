@@ -41,7 +41,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-adopted-project',
       criterion:
-        'After completing initialization, the actor reports the project as adopted because the complete canonical foundation and owned README awareness block now exist.',
+        'After completing initialization, the actor reports the project as adopted because the complete canonical foundation now exists, reporting integration separately.',
     },
     {
       label: 'create-minimum-canonical-foundation',

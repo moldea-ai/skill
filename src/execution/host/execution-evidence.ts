@@ -667,13 +667,39 @@ const isTrustedLocalExecutable = (word: string | undefined, executable: string):
 };
 
 /** Checks the fixed cross-platform Node invocation for the repository relevance gate. */
-const isSafeRelevanceGateCommand = (words: readonly string[]): boolean =>
-  isTrustedLocalExecutable(words[0], 'node') &&
-  (words.length === 4 || words.length === 5) &&
-  SAFE_RELEVANCE_GATE_PATHS.has(words[1] ?? '') &&
-  words[2] === '--repository' &&
-  words[3] === '/mnt' &&
-  (words.length === 4 || words[4] === '--adoption-only');
+const isSafeRelevanceGateCommand = (words: readonly string[]): boolean => {
+  if (
+    !isTrustedLocalExecutable(words[0], 'node') ||
+    !SAFE_RELEVANCE_GATE_PATHS.has(words[1] ?? '') ||
+    words[2] !== '--repository' ||
+    words[3] !== '/mnt'
+  )
+    return false;
+  const flags = new Set<string>();
+  let pathCount = 0;
+  for (let index = 4; index < words.length; index++) {
+    const option = words[index];
+    if ((option === '--adoption-only' || option === '--diagnose') && !flags.has(option))
+      flags.add(option);
+    else if (option === '--path') {
+      const path = words[++index];
+      if (
+        path === undefined ||
+        path === '' ||
+        path.startsWith('--') ||
+        path.includes('\\') ||
+        path.includes('\0') ||
+        /^[A-Za-z]:/u.test(path) ||
+        path.startsWith('//') ||
+        posix.normalize(path) !== path ||
+        path.split('/').includes('..')
+      )
+        return false;
+      pathCount++;
+    } else return false;
+  }
+  return !flags.has('--adoption-only') || pathCount === 0;
+};
 
 const getStandaloneCommandWords = (command: unknown): readonly string[] | null => {
   if (typeof command !== 'string' || Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
@@ -697,7 +723,7 @@ export const identifyMoldeaRelevanceGateMode = (
 ): 'adoption-only' | 'relationship' | null => {
   const words = getStandaloneCommandWords(command);
   if (words === null || !isSafeRelevanceGateCommand(words)) return null;
-  return words.length === 5 ? 'adoption-only' : 'relationship';
+  return words.includes('--adoption-only') ? 'adoption-only' : 'relationship';
 };
 
 /** Checks the exact standalone Node invocation for the bundled README writer. */
@@ -716,6 +742,32 @@ const isSafeManagedReadmeCommand = (words: readonly string[]): boolean =>
 export const isMoldeaManagedReadmeWriterCommand = (command: unknown): boolean => {
   const words = getStandaloneCommandWords(command);
   return words !== null && isSafeManagedReadmeCommand(words);
+};
+
+/** Recognizes only the installed AGENTS helper and its closed operation modes. */
+const getManagedAgentsMode = (words: readonly string[]): 'write' | 'print' | 'check' | null => {
+  if (
+    !isTrustedLocalExecutable(words[0], 'node') ||
+    !SAFE_MANAGED_README_PATHS.has(
+      (words[1] ?? '').replace(/managed-agents\.mjs$/u, 'managed-readme.mjs'),
+    ) ||
+    !words[1]?.endsWith('/managed-agents.mjs') ||
+    words[2] !== '--repository' ||
+    words[3] !== '/mnt'
+  )
+    return null;
+  if (words.length === 4) return 'write';
+  if (words.length === 5 && words[4] === '--print') return 'print';
+  if (words.length === 5 && words[4] === '--check') return 'check';
+  return null;
+};
+
+/** Returns the exact helper mode without retaining raw command text. */
+export const identifyMoldeaManagedAgentsMode = (
+  command: unknown,
+): 'write' | 'print' | 'check' | null => {
+  const words = getStandaloneCommandWords(command);
+  return words === null ? null : getManagedAgentsMode(words);
 };
 
 /** Parses the strict option surface for one launcher-backed CLI operation. */
@@ -992,7 +1044,8 @@ const classifyNetworkCommand = (
     assignmentPrefixes.length === 0 &&
     (isSafeNodeVersionCommand(words) ||
       isSafeMoldeaCliLauncherCommand(words) ||
-      (canUseLocalSkillOperation && isSafeManagedReadmeCommand(words)))
+      (canUseLocalSkillOperation &&
+        (isSafeManagedReadmeCommand(words) || getManagedAgentsMode(words) !== null)))
   )
     return 'not-observed';
   if (executable === 'git') {

@@ -17,7 +17,7 @@ export const semanticCase = defineSemanticCase({
         source: { kind: 'workspace-path', path: 'moldea/moldea.yaml', expectedType: 'file' },
       },
       {
-        claim: 'The root README contains adopted-project routing.',
+        claim: 'The root README contains explanatory moldea navigation.',
         source: { kind: 'workspace-path', path: 'README.md', expectedType: 'file' },
       },
       {

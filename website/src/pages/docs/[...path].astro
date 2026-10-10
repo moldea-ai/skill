@@ -27,7 +27,27 @@ const model = loadWebsiteModel();
 const rendered = await renderMarkdownDocument(document.markdown, {
   basePath: import.meta.env.BASE_URL,
   productNameTreatment: 'code',
+  strongLabelBadges:
+    document.route === '/docs/limitations/'
+      ? [
+          { id: 'result-completed', label: 'Completed', tone: 'info' },
+          { id: 'result-error', label: 'Error', tone: 'danger' },
+          { id: 'result-unverified', label: 'Unverified', tone: 'warning' },
+          { id: 'result-unfinished', label: 'Unfinished', tone: 'neutral' },
+        ]
+      : [],
 });
+// the installed renderer labels table regions generically; distinguish this guide’s three tables
+const tableLabels = ['Result meanings', 'Common situations', 'Resource boundaries'];
+let tableIndex = 0;
+const html =
+  document.route === '/docs/limitations/'
+    ? rendered.html.replaceAll('aria-label="Scrollable table"', () => {
+        const label = tableLabels[tableIndex++];
+        if (label === undefined) throw new Error('The limitations guide has an unlabelled table.');
+        return `aria-label="${label}"`;
+      })
+    : rendered.html;
 const breadcrumbs = createDocumentationBreadcrumbs(document);
 ---
 
@@ -45,8 +65,11 @@ const breadcrumbs = createDocumentationBreadcrumbs(document);
     skill={model.skill}
   >
     <div
-      class="prose-moldea prose-moldea-wrap-code"
-      set:html={rendered.html}
+      class:list={[
+        'prose-moldea prose-moldea-wrap-code',
+        document.route === '/docs/limitations/' && '[&_table]:min-w-xl',
+      ]}
+      set:html={html}
     />
   </DocumentationPage>
 </BaseLayout>

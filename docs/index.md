@@ -37,6 +37,7 @@ After adoption, the coding agent uses `moldea` for agent work, established proje
 - [How `moldea` works](/how-it-works/): follow one change through context, connections, updates, and checks.
 - [Capability reference](/docs/capabilities/): read the exact capability behavior and boundaries.
 - [Workflow reference](/docs/how-it-works/): inspect activation, operation selection, evidence, and local tooling.
+- [Limitations](/docs/limitations/): understand warnings, unfinished checks, large inputs, and practical next steps.
 - [Repository format](/docs/repository-format/): see how a two-file foundation grows into focused, explicit project organization.
 - [Continuous maintenance](/docs/continuous-maintenance/): keep affected truth aligned and explicitly compress accumulated context without losing unique meaning.
 - [Evidence](/evidence/): inspect current behavioral semantic evaluation and real-project adapter qualification evidence, including failed attempts.

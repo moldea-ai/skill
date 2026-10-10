@@ -112,6 +112,8 @@ The skill respects the developer's scope, protected coding instructions, unrelat
 
 ## Boundaries
 
+See [Limitations](/docs/limitations/) for practical handling of warnings, unfinished checks, large inputs, and repair boundaries.
+
 `moldea` does not:
 
 - initialize an unrelated project without explicit adoption intent

@@ -132,6 +132,47 @@ describe('verifyProductionBuild', () => {
     expect(exploreCopy?.replaceAll('`moldea`', '')).not.toMatch(/\bmoldea\b/iu);
   });
 
+  test('publishes the limitations guide with outcome labels and complete discovery', () => {
+    const route = '/docs/limitations/';
+    const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
+    const canonicalUrl = createCanonicalUrl(
+      route,
+      process.env['SITE_URL'] ?? DEFAULT_SITE_URL,
+      basePath,
+    );
+    const document = loadWebsiteModel().documents.find((candidate) => candidate.route === route);
+    const html = readFileSync(getDistPath('docs/limitations/index.html'), 'utf8');
+    expect(document).toMatchObject({
+      navigationTitle: 'Limitations',
+      sourcePath: 'docs/limitations.md',
+    });
+    expect(html.match(/<h1\b/gu)).toHaveLength(1);
+    expect(html).toContain('https://github.com/moldea-ai/skill/blob/main/docs/limitations.md');
+    expect(html).toContain(`<link rel="canonical" href="${canonicalUrl}">`);
+    expect(html).toContain(`<meta property="og:url" content="${canonicalUrl}">`);
+    for (const id of [
+      'result-completed',
+      'result-error',
+      'result-unverified',
+      'result-unfinished',
+    ]) {
+      expect(html).toContain(`data-markdown-badge="${id}"`);
+    }
+    for (const name of ['llms.txt', 'sitemap-0.xml']) {
+      expect(readFileSync(getDistPath(name), 'utf8')).toContain(canonicalUrl);
+    }
+    const records = JSON.parse(readFileSync(getDistPath('search-index.json'), 'utf8')) as Array<{
+      url: string;
+      title: string;
+    }>;
+    expect(records.find(({ url }) => url === withBase(route, basePath))?.title).toBe(
+      document?.title,
+    );
+    expect(readFileSync(getDistPath('capabilities/index.html'), 'utf8')).toContain(
+      `href="${withBase(route, basePath)}"`,
+    );
+  });
+
   test('publishes distinct technical reference identities through discovery surfaces', () => {
     const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
     const model = loadWebsiteModel();

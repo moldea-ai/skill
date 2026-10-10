@@ -8,6 +8,8 @@ The site also presents one manually prepared mock-project run as an independent 
 
 The site consumes Markdown under `../docs/`, the portable skill under `../moldea/`, and the two prepared public bundles selected by `../evidence/selection.json`. The producer-owned bundles already contain the semantic and qualification definitions, presentation metadata, replays, projects, artifacts, version, date, and technical provenance required by the existing pages.
 
+The canonical `docs/limitations.md` guide is published at `/docs/limitations/` with route-local outcome badges and distinct accessible table-region names, ordinary documentation navigation, search, and discovery. Package-owned references supply numeric limits; the guide explains consequences and next actions.
+
 Generation is fail-closed. Missing selections, malformed bundles, wrong digests, unsafe artifacts, or a prepared manifest that does not match the selection fail the production build. The website does not import evaluator modules, inspect Git history, calculate compatibility, or compare selected evidence with current cases.
 
 Public replay is bounded and privacy-safe. It may contain developer direction, actor response, deterministic facts, the maximum output byte count from one completed command, aggregate byte counts, token usage, durations, judge rationale, and verdicts. It never includes raw command text, raw command output, hidden reasoning, credentials, or arbitrary workspace contents.

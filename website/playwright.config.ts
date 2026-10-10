@@ -11,6 +11,8 @@ const previewPort = z.coerce
   .parse(process.env['PREVIEW_PORT'] ?? 4322);
 const previewOrigin = `http://127.0.0.1:${previewPort}`;
 const isCi = Boolean(process.env['CI']);
+const shouldUsePrebuiltFixture =
+  z.enum(['0', '1']).parse(process.env['MOLDEA_WEBSITE_PREBUILT_FIXTURE'] ?? '0') === '1';
 
 export default defineConfig({
   testDir: './src',
@@ -32,7 +34,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run build:fixture && npm exec -- vite preview --base ${basePath} --host 127.0.0.1 --port ${previewPort} --strictPort`,
+    command: `${shouldUsePrebuiltFixture ? 'node scripts/verify-build.ts' : 'npm run build:fixture'} && npm exec -- vite preview --base ${basePath} --host 127.0.0.1 --port ${previewPort} --strictPort`,
     reuseExistingServer: false,
     timeout: 120_000,
     url: new URL(basePath, previewOrigin).href,

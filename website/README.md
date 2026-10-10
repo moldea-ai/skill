@@ -113,11 +113,13 @@ The development server shows the selected recorded semantic and qualification re
 
 ## PR verification
 
-Every pull request runs the complete website quality, artifact, recorded-browser, and clean-development checks. The final `Verify Website` job succeeds only when those checks succeed, including website typechecking. Conformance can skip unrelated heavy suites for presentation-only changes, but website verification is never path-filtered. Tag conformance separately retains website typechecking.
+Every pull request runs the complete website quality, artifact, recorded-browser, and clean-development checks. `.github/workflows/website-checks.yml` provides the shared read-only checks for PRs and Pages. Shard 1 runs quality checks, artifact integration, and half the recorded-browser suite. Shard 2 runs the other half, followed sequentially by the complete clean-development browser suite. Each shard installs dependencies and Chromium and builds its own synthetic fixture once; generated models and build output are never shared between runners. The final `Verify Website` job succeeds only when those checks succeed, including website typechecking. Conformance can skip unrelated heavy suites for presentation-only changes, but website verification is never path-filtered. Tag conformance separately retains website typechecking.
+
+Set `MOLDEA_WEBSITE_PREBUILT_FIXTURE=1` only after a successful `build:fixture` in the same job. Recorded-browser startup validates that artifact before preview instead of rebuilding it. Missing or invalid output fails. The default `0` keeps local recorded-browser commands building fresh fixtures; other flag values fail configuration. The independent clean-development suite always prepares its own catalog and build.
 
 ## Deployment
 
-`.github/workflows/pages.yml` runs browser checks against both clean current catalogs and synthetic evidence, prepares both selected official bundles, rebuilds the production artifact, validates it, and then deploys GitHub Pages. The `CNAME` file owns the custom domain.
+`.github/workflows/pages.yml` checks evidence selection and reads Pages configuration in a shared preflight. Empty selections skip production work; partial selections or missing site configuration fail. The reusable website checks and the production build then run independently with the same base path and HTTPS site URL, including empty root base paths. The production branch prepares both selected official bundles, builds and validates the artifact, and uploads it. Deployment requires both branches to succeed. Only deployment receives Pages and OIDC write permissions; preflight has Pages read permission. The `CNAME` file owns the custom domain, and sitemap submission remains after successful deployment.
 
 ## Boundaries
 

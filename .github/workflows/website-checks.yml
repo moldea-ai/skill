@@ -1,0 +1,89 @@
+name: Website Checks
+
+on:
+  workflow_call:
+    inputs:
+      base_path:
+        required: true
+        type: string
+      site_url:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  NODE_VERSION: 24.15.0
+  BASE_PATH: ${{ inputs.base_path }}
+  SITE_URL: ${{ inputs.site_url }}
+
+jobs:
+  checks:
+    name: Website shard / ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - name: Checkout exact caller commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install website browser
+        run: npm exec --workspace website -- playwright install --with-deps chromium
+
+      - name: Check documentation sources
+        if: matrix.shard == 1
+        run: npm run docs:check
+
+      - name: Test website units
+        if: matrix.shard == 1
+        run: npm --workspace website run test:unit
+
+      - name: Typecheck website
+        if: matrix.shard == 1
+        run: npm --workspace website run typecheck
+
+      - name: Lint website
+        if: matrix.shard == 1
+        run: npm --workspace website run lint
+
+      - name: Check website formatting
+        if: matrix.shard == 1
+        run: npm --workspace website run format:check
+
+      - name: Build and validate static website with synthetic evidence
+        run: npm --workspace website run build:fixture
+
+      - name: Test static artifact integration
+        if: matrix.shard == 1
+        run: npm --workspace website run test:integration:artifact
+
+      - name: Test recorded browser shard
+        env:
+          MOLDEA_WEBSITE_PREBUILT_FIXTURE: '1'
+          SHARD: ${{ matrix.shard }}
+        run: npm --workspace website run test:e2e:recorded -- --shard="$SHARD/2"
+
+      - name: Test clean-development browser behavior
+        if: matrix.shard == 2
+        run: npm --workspace website run test:e2e:development

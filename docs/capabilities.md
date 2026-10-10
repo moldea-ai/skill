@@ -8,7 +8,7 @@ order: 20
 
 # What `moldea` can do
 
-Start with the [visual Capabilities page](/capabilities/) to explore 48 requests with connected artifacts, expected outcomes, and evidence boundaries. This reference explains the exact behavior and boundaries.
+Start with the [visual Capabilities page](/capabilities/) for six visual journeys through project knowledge, agent design, maintenance, and repair. This reference explains the exact behavior and boundaries.
 
 `moldea` keeps durable project knowledge in Git and brings relevant context into coding-agent planning and development. You can ask to use saved rules when planning an ordinary API change, maintain approved project facts, or organize accumulated context without creating a runtime agent.
 

@@ -15,6 +15,7 @@ const isCi = Boolean(process.env['CI']);
 export default defineConfig({
   testDir: './src',
   testMatch: '**/*.test-e2e.ts',
+  testIgnore: ['**/{_archive,_archives,_backup,_backups}/**'],
   fullyParallel: true,
   forbidOnly: isCi,
   retries: isCi ? 2 : 0,

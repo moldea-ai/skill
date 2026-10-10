@@ -21,5 +21,13 @@
     "verbatimModuleSyntax": true
   },
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", "playwright-report", "test-results"]
+  "exclude": [
+    "dist",
+    "playwright-report",
+    "test-results",
+    "**/_archive/**",
+    "**/_archives/**",
+    "**/_backup/**",
+    "**/_backups/**"
+  ]
 }

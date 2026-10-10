@@ -21,7 +21,68 @@ env:
   DEVELOPMENT_NODE_VERSION: 24.15.0
 
 jobs:
+  changes:
+    name: Classify changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      full: ${{ steps.selection.outputs.full }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup development Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.DEVELOPMENT_NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install workspace dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Check repository path portability
+        run: npm run path:check
+      - name: Select conformance checks
+        id: selection
+        env:
+          CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node src/ci/changes.ts
+
+  correctness:
+    name: Root correctness
+    needs: changes
+    if: needs.changes.outputs.full == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup development Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.DEVELOPMENT_NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install workspace dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Install semantic sandbox dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap socat
+          sudo install -m 0644 \
+            /usr/share/apparmor/extra-profiles/bwrap-userns-restrict \
+            /etc/apparmor.d/bwrap-userns-restrict
+          sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
+      - name: Build isolated runtime helpers
+        run: npm run runtime:build
+      - name: Run maintained root correctness tests
+        env:
+          MOLDEA_RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        run: npm run test:unit && npm run test:integration
+
   portable:
+    needs: changes
+    if: needs.changes.outputs.full == 'true'
     name: Portable contract / Node.js ${{ matrix.node }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -62,16 +123,14 @@ jobs:
             /usr/share/apparmor/extra-profiles/bwrap-userns-restrict \
             /etc/apparmor.d/bwrap-userns-restrict
           sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
-      - name: Check repository path portability
-        run: npm run path:check
       - name: Build isolated runtime helpers
         run: npm run runtime:build
       - name: Check portable generated artifacts
         run: npm run portable:check
-      - name: Run maintained root correctness tests
+      - name: Run portable integration tests
         env:
           MOLDEA_RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
-        run: npm run test:unit && npm run test:integration
+        run: npm run test:integration -- src/portable
       - name: Check tagged skill release identity
         if: github.ref_type == 'tag'
         env:
@@ -96,7 +155,9 @@ jobs:
           diff --recursive --brief moldea "$SKILLS_TEST_HOME/.agents/skills/moldea"
 
   quality:
-    name: Repository quality and qualification tests
+    needs: changes
+    if: needs.changes.outputs.full == 'true'
+    name: Repository quality and qualification units
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -114,17 +175,24 @@ jobs:
       - name: Build isolated runtime helpers
         run: npm run runtime:build
       - name: Typecheck maintained code
-        run: npm run typecheck
+        run: npm run typecheck:root && npm run qualification:typecheck
+      - name: Typecheck website on tags
+        if: github.ref_type == 'tag'
+        run: npm --workspace website run typecheck
       - name: Check reviewed compatibility snapshot
         run: npm run qualification:compatibility:check
       - name: Lint root and qualification code
         run: npm run lint && npm run qualification:lint
       - name: Check root and qualification formatting
         run: npm run format:check && npm run qualification:format:check
-      - name: Run synthetic qualification correctness tests
-        run: npm run qualification:test
+      - name: Run qualification unit tests
+        run: npm run qualification:test:unit
+      - name: Audit qualification partition coverage
+        run: node src/ci/coverage.ts
 
   windows-portability:
+    needs: changes
+    if: needs.changes.outputs.full == 'true'
     name: Windows 2025 deep-path clone and install
     runs-on: windows-2025
     timeout-minutes: 15
@@ -218,3 +286,70 @@ jobs:
           } finally {
             Pop-Location
           }
+
+  qualification:
+    name: Qualification integration / ${{ matrix.partition }}
+    needs: changes
+    if: needs.changes.outputs.full == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        partition:
+          - remaining
+          - ci-executor-1
+          - ci-executor-2
+          - ci-executor-3
+          - ci-executor-4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup development Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.DEVELOPMENT_NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install workspace dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Build isolated runtime helpers
+        run: npm run runtime:build
+      - name: Run non-executor integration tests
+        if: matrix.partition == 'remaining'
+        run: npm --workspace qualification run test:integration -- --exclude src/execution/executor.test-integration.ts
+      - name: Run executor partition
+        if: matrix.partition != 'remaining'
+        env:
+          PARTITION: ${{ matrix.partition }}
+        run: npm --workspace qualification run test:integration -- src/execution/executor.test-integration.ts --tagsFilter="$PARTITION"
+
+  result:
+    name: Conformance result
+    if: always()
+    needs: [changes, correctness, portable, quality, windows-portability, qualification]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every selected check to succeed
+        env:
+          CLASSIFICATION: ${{ needs.changes.result }}
+          FULL: ${{ needs.changes.outputs.full }}
+          CORRECTNESS: ${{ needs.correctness.result }}
+          PORTABLE: ${{ needs.portable.result }}
+          QUALITY: ${{ needs.quality.result }}
+          WINDOWS: ${{ needs.windows-portability.result }}
+          QUALIFICATION: ${{ needs.qualification.result }}
+        run: |
+          test "$CLASSIFICATION" = success
+          if [ "$FULL" = true ]; then
+            expected=success
+          elif [ "$FULL" = false ]; then
+            expected=skipped
+          else
+            exit 1
+          fi
+          for result in "$CORRECTNESS" "$PORTABLE" "$QUALITY" "$WINDOWS" "$QUALIFICATION"; do
+            test "$result" = "$expected" || exit 1
+          done

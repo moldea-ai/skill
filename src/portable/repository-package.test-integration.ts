@@ -6,6 +6,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   renameSync,
   rmSync,
   symlinkSync,
@@ -31,6 +32,8 @@ interface IPackageFixture {
   invocationMarker: string;
   repositoryRoot: string;
 }
+
+const TEST_NODE_EXECUTABLE = process.env['MOLDEA_TEST_NODE'] ?? process.execPath;
 
 const LAUNCHER_PATH = resolve(
   import.meta.dirname,
@@ -80,7 +83,7 @@ const createPackageFixture = ({
   mkdirSync(join(cliRoot, 'dist'), { recursive: true });
   writeFileSync(
     join(cliRoot, 'dist', 'moldea.js'),
-    `require('node:fs').writeFileSync(${JSON.stringify(invocationMarker)}, 'invoked');\nprocess.stdout.write(${JSON.stringify(compositionOutput(cliVersion))});\n`,
+    `require('node:fs').writeFileSync(${JSON.stringify(invocationMarker)}, process.execPath);\nprocess.stdout.write(${JSON.stringify(compositionOutput(cliVersion))});\n`,
   );
   writeJson(join(coreRoot, 'package.json'), { name: '@moldea.ai/core', version: coreVersion });
   mkdirSync(join(coreRoot, 'dist'), { recursive: true });
@@ -138,7 +141,7 @@ test('launcher ignores a conflicting node_modules/.bin/moldea executable', () =>
   );
 
   const invocation = spawnSync(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [LAUNCHER_PATH, '--repository', fixture.repositoryRoot, '--', 'composition', '--json'],
     { cwd: fixture.repositoryRoot, encoding: 'utf8' },
   );
@@ -165,7 +168,7 @@ test('preserves repository-contained CLI and nested Core directory links', async
 
   assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliRoot, storedCliRoot);
   const invocation = spawnSync(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [LAUNCHER_PATH, '--repository', fixture.repositoryRoot, '--', 'composition', '--json'],
     { cwd: fixture.repositoryRoot, encoding: 'utf8' },
   );
@@ -249,17 +252,18 @@ test('rejects a Core package redirected outside repository dependencies', async 
 test('generated launcher invokes only an eligible repository CLI', () => {
   const eligible = createPackageFixture();
   const invocation = spawnSync(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [LAUNCHER_PATH, '--repository', eligible.repositoryRoot, '--', 'composition', '--json'],
     { cwd: eligible.repositoryRoot, encoding: 'utf8' },
   );
   assert.equal(invocation.status, 0, invocation.stderr);
   assert.equal(invocation.stdout, compositionOutput());
   assert.equal(existsSync(eligible.invocationMarker), true);
+  assert.equal(readFileSync(eligible.invocationMarker, 'utf8'), realpathSync(TEST_NODE_EXECUTABLE));
 
   const ineligible = createPackageFixture({ coreDeclaration: '^6.1.0' });
   const rejection = spawnSync(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [LAUNCHER_PATH, '--repository', ineligible.repositoryRoot, '--', 'composition', '--json'],
     { cwd: ineligible.repositoryRoot, encoding: 'utf8' },
   );

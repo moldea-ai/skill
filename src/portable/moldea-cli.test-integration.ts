@@ -20,6 +20,8 @@ import { readReleaseIdentity } from '../release/index.ts';
 const { cliJsonSchemaVersion, cliVersion, cliVersionRange, coreVersion, coreVersionRange } =
   readReleaseIdentity(resolve(import.meta.dirname, '../..'));
 
+const TEST_NODE_EXECUTABLE = process.env['MOLDEA_TEST_NODE'] ?? process.execPath;
+
 const LAUNCHER_PATH = resolve(import.meta.dirname, '../../moldea/scripts/moldea-cli.mjs');
 const SUCCESS_OUTPUT = `${JSON.stringify({ schemaVersion: cliJsonSchemaVersion, cliVersion, command: 'validate', status: 'valid', error: null, result: { valid: true, diagnosticCount: 0, errorCount: 0, warningCount: 0 } })}\n`;
 const GATE_PATH = resolve(import.meta.dirname, '../../moldea/scripts/relevance-gate.mjs');
@@ -85,7 +87,7 @@ const runScope = (root: string, paths: string[] | Buffer | string, cwd = root) =
         ? paths
         : Buffer.from(`${paths.join('\0')}\0`);
   const result = spawnSync(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [
       LAUNCHER_PATH,
       '--repository',
@@ -115,7 +117,7 @@ test('the gate and launcher resolve a mixed Git path batch through the published
     './src/Éclair plan.ts',
     join(root, 'src/refund.ts'),
   ];
-  const gate = spawnSync(process.execPath, [GATE_PATH, '--repository', root], {
+  const gate = spawnSync(TEST_NODE_EXECUTABLE, [GATE_PATH, '--repository', root], {
     encoding: 'utf8',
     input: Buffer.from(`${paths.join('\0')}\0`),
     timeout: 15_000,
@@ -351,8 +353,8 @@ if (${signal !== undefined}) {
     '65536',
   ];
   const launcher = scopeMode
-    ? spawn(process.execPath, launcherArguments, { stdio: ['pipe', 'pipe', 'pipe'] })
-    : spawn(process.execPath, launcherArguments, { stdio: ['ignore', 'pipe', 'pipe'] });
+    ? spawn(TEST_NODE_EXECUTABLE, launcherArguments, { stdio: ['pipe', 'pipe', 'pipe'] })
+    : spawn(TEST_NODE_EXECUTABLE, launcherArguments, { stdio: ['ignore', 'pipe', 'pipe'] });
   if (scopeMode) launcher.stdin?.end('src/refund.ts\0');
   let stdout = '';
   let stderr = '';
@@ -436,7 +438,7 @@ test.skipIf(process.platform === 'win32')(
 
 const runPage = (root: string, command: string, options: string[], cwd = root) => {
   const result = spawnSync(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [
       LAUNCHER_PATH,
       '--repository',
@@ -465,7 +467,7 @@ test.each(['composition', 'content', 'inspect', 'scope', 'validate'])(
           : [];
     const result = runPage(root, command, options);
     const direct = spawnSync(
-      process.execPath,
+      TEST_NODE_EXECUTABLE,
       [
         join(cliRoot, 'dist/moldea.js'),
         command,
@@ -692,7 +694,7 @@ syncBuiltinESMExports();
 `,
   );
   const launcher = spawn(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [
       '--import',
       pathToFileURL(preloadPath).href,

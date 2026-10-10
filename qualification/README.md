@@ -103,6 +103,10 @@ The update validates the publication, every indexed profile, and claim coverage 
 
 The default skill candidate is `moldea/`.
 
+## Correctness checks
+
+`npm run qualification:test` runs every unit and integration scenario locally. CI runs units in repository quality, splits executor scenarios across the registered `ci-executor-1` through `ci-executor-4` tags, and runs all other integration files in a fifth job. Each partition preserves serial execution and isolated attempt-local stores and workspaces. `node src/ci/coverage.ts` collects the full suite and the actual CI selections without executing test bodies, then requires exactly-once coverage and one known tag per executor scenario. New executor scenarios must receive exactly one partition tag; the unfiltered local test command remains authoritative.
+
 ## Commands
 
 Start the guided workflow:

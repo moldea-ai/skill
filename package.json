@@ -83,7 +83,8 @@
     "test:e2e": "npm --workspace website run test:e2e",
     "test:unit": "vitest run --config vitest/test-unit.config.ts",
     "test:integration": "vitest run --config vitest/test-integration.config.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit && npm run qualification:typecheck && npm --workspace website run typecheck",
+    "typecheck:root": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "npm run typecheck:root && npm run qualification:typecheck && npm --workspace website run typecheck",
     "website:build": "npm --workspace website run build",
     "website:check": "npm --workspace website run check",
     "website:dev": "npm --workspace website run dev"

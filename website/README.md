@@ -111,6 +111,10 @@ npm run website:dev
 
 The development server shows the selected recorded semantic and qualification results. It rereads the generated model when another command changes that cache, so tests can replace the visible evidence until the model is regenerated. For the unrecorded case and profile catalog, run `npm --workspace website run dev:catalog` instead. Browser checks exercise both the catalog and isolated recorded results. Production generation uses `npm run evidence:prepare` followed by `npm run website:build`.
 
+## PR verification
+
+Every pull request runs the complete website quality, artifact, recorded-browser, and clean-development checks. The final `Verify Website` job succeeds only when those checks succeed, including website typechecking. Conformance can skip unrelated heavy suites for presentation-only changes, but website verification is never path-filtered. Tag conformance separately retains website typechecking.
+
 ## Deployment
 
 `.github/workflows/pages.yml` runs browser checks against both clean current catalogs and synthetic evidence, prepares both selected official bundles, rebuilds the production artifact, validates it, and then deploys GitHub Pages. The `CNAME` file owns the custom domain.

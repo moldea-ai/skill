@@ -121,7 +121,7 @@ Tooling establishment occurs only during authorized write-capable work and only 
 | `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation and qualification attempts are not committed.                               |
 | `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                               |
 | `project-specification`                   | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                             |
-| `.github/workflows/conformance.yml`       | Portable generation, runtime, path, release, and installation checks.                                                                                  |
+| `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, qualification partitions, and portable/Windows contracts.                                                 |
 | `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                |
 
 The distributed artifact is exactly `moldea/`; development-only tooling is not installed with the skill. Portable builds use fixed compiler settings in checkouts and temporary release directories. Run `npm run matcher:generate` after changing the relevance gate's locked inputs and `npm run matcher:check` to verify the committed artifact.
@@ -180,6 +180,8 @@ npm run path:check
 npm run docs:check
 npm run website:check
 ```
+
+Conformance runs root correctness once on development Node, portable integration on all three supported Node versions, and the Windows deep-path contract. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. Qualification uses four serial executor partitions plus the remaining integration files, with a real-collection exactly-once coverage audit in quality. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
 
 `npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require both evidence selections to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
 

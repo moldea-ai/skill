@@ -67,168 +67,351 @@ describe('qualification execution', () => {
     }
   });
 
-  test('records dirty official input before candidate or model execution', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-execution-'));
-    const skillRepository = path.join(temporaryRoot, 'skill-repository');
-    const skillPath = path.join(skillRepository, 'SKILL.md');
-    const resultsRoot = path.join(temporaryRoot, 'results');
-    await ensureDirectory(skillRepository);
-    await writeFile(skillPath, '# Committed skill\n', 'utf8');
-    await executeProcess({
-      command: 'git',
-      args: ['init', '--initial-branch=main'],
-      cwd: skillRepository,
-    });
-    await executeProcess({
-      command: 'git',
-      args: ['add', '-A'],
-      cwd: skillRepository,
-    });
-    await executeProcess({
-      command: 'git',
-      args: [
-        '-c',
-        'commit.gpgsign=false',
-        '-c',
-        'user.name=moldea qualification',
-        '-c',
-        'user.email=qualification@moldea.local',
-        'commit',
-        '-m',
-        'test: establish skill fixture',
-      ],
-      cwd: skillRepository,
-    });
-    await writeFile(skillPath, '# Dirty skill\n', 'utf8');
+  test(
+    'records dirty official input before candidate or model execution',
+    { tags: ['ci-executor-1'] },
+    async () => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-execution-'));
+      const skillRepository = path.join(temporaryRoot, 'skill-repository');
+      const skillPath = path.join(skillRepository, 'SKILL.md');
+      const resultsRoot = path.join(temporaryRoot, 'results');
+      await ensureDirectory(skillRepository);
+      await writeFile(skillPath, '# Committed skill\n', 'utf8');
+      await executeProcess({
+        command: 'git',
+        args: ['init', '--initial-branch=main'],
+        cwd: skillRepository,
+      });
+      await executeProcess({
+        command: 'git',
+        args: ['add', '-A'],
+        cwd: skillRepository,
+      });
+      await executeProcess({
+        command: 'git',
+        args: [
+          '-c',
+          'commit.gpgsign=false',
+          '-c',
+          'user.name=moldea qualification',
+          '-c',
+          'user.email=qualification@moldea.local',
+          'commit',
+          '-m',
+          'test: establish skill fixture',
+        ],
+        cwd: skillRepository,
+      });
+      await writeFile(skillPath, '# Dirty skill\n', 'utf8');
 
-    let actorCalls = 0;
-    let judgeCalls = 0;
-    const host = new FakeCodexHost({
-      actor: () => {
-        actorCalls += 1;
-        return Promise.reject(new Error('Actor must not run after source-state failure.'));
-      },
-      judge: () => {
-        judgeCalls += 1;
-        return Promise.reject(new Error('Judge must not run after source-state failure.'));
-      },
-    });
-    const outcome = await runQualification({
-      host,
-      selection: { adapterId: 'custom', implementationId: 'custom' },
-      skillRepository,
-      isDryRun: false,
-      resultsRoot,
-    });
-    temporaryAttemptDirectory = outcome.attemptDirectory;
-
-    expect(outcome.result.status).toBe('failed');
-    expect(outcome.wasRecorded).toBe(true);
-    expect(actorCalls).toBe(0);
-    expect(judgeCalls).toBe(0);
-    expect(outcome.result.stages.find(({ id }) => id === 'source-state')?.status).toBe('failed');
-    expect(outcome.result.stages.find(({ id }) => id === 'candidate')?.status).toBe('pending');
-    expect(
-      outcome.result.stages
-        .filter(({ id }) => id.endsWith(':actor') || id.endsWith(':judge'))
-        .every(({ status }) => status === 'pending'),
-    ).toBe(true);
-
-    expect(
-      await readJsonFile(
-        path.join(outcome.attemptDirectory, 'public', 'source-state.json'),
-        QualificationSourceStateResultSchema,
-      ),
-    ).toMatchObject({
-      passed: false,
-      requiresCleanInputs: true,
-      skillRepositoryDirty: true,
-    });
-    for (const relativeDirectory of [
-      'internal',
-      'pnpm-cache',
-      'pnpm-store',
-      'runtime',
-      'workspaces',
-    ]) {
-      await expectPathToBeMissing(path.join(outcome.attemptDirectory, relativeDirectory));
-    }
-    expect(
-      await readJsonFile(
-        path.join(
-          resultsRoot,
-          't5',
-          'attempts',
-          createQualificationAttemptKey(outcome.result.attemptId),
-          'attempt.json',
-        ),
-        QualificationAttemptResultSchema,
-      ),
-    ).toMatchObject({
-      attemptId: outcome.result.attemptId,
-      status: 'failed',
-      provenance: { skillRepositoryDirty: true },
-    });
-    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
-      passed: true,
-      attempts: 1,
-      issues: [],
-    });
-  });
-
-  test('resumes a model stage paused at the paid approval boundary', async () => {
-    temporaryResultsRoot = await mkdtemp(path.join(QUALIFICATION_ROOT, '.qualification-results-'));
-    const resultsRoot = temporaryResultsRoot;
-    const inspectRepositoryState = repositoryState.inspectGitRepositoryState;
-    vi.spyOn(repositoryState, 'inspectGitRepositoryState').mockImplementation(
-      async (repositoryRoot, options) => ({
-        ...(await inspectRepositoryState(repositoryRoot, options)),
-        isDirty: false,
-      }),
-    );
-    let pausedActorCalls = 0;
-    const pausedOutcome = await runQualification({
-      caseId: 'answer-information-before-adoption',
-      host: new FakeCodexHost({
+      let actorCalls = 0;
+      let judgeCalls = 0;
+      const host = new FakeCodexHost({
         actor: () => {
-          pausedActorCalls += 1;
-          return Promise.reject(new Error('Actor must not run before paid approval.'));
+          actorCalls += 1;
+          return Promise.reject(new Error('Actor must not run after source-state failure.'));
         },
-      }),
-      mode: 'diagnostic',
-      requestPaidExecutionApproval: () => Promise.resolve(false),
-      resultsRoot,
-      reuseEvidence: false,
-      selection: { adapterId: 'custom', implementationId: 'custom' },
-      skillRepository: DEFAULT_SKILL_REPOSITORY,
-      workerCount: 1,
-    });
-    temporaryAttemptDirectory = pausedOutcome.attemptDirectory;
-    const actorStageId = 'case:answer-information-before-adoption:trial:initial:actor';
+        judge: () => {
+          judgeCalls += 1;
+          return Promise.reject(new Error('Judge must not run after source-state failure.'));
+        },
+      });
+      const outcome = await runQualification({
+        host,
+        selection: { adapterId: 'custom', implementationId: 'custom' },
+        skillRepository,
+        isDryRun: false,
+        resultsRoot,
+      });
+      temporaryAttemptDirectory = outcome.attemptDirectory;
 
-    expect(pausedOutcome.result.status).toBe('incomplete');
-    expect(pausedOutcome.wasRecorded).toBe(false);
-    expect(pausedActorCalls).toBe(0);
-    expect(pausedOutcome.result.stages.find(({ id }) => id === actorStageId)?.status).toBe(
-      'pending',
-    );
+      expect(outcome.result.status).toBe('failed');
+      expect(outcome.wasRecorded).toBe(true);
+      expect(actorCalls).toBe(0);
+      expect(judgeCalls).toBe(0);
+      expect(outcome.result.stages.find(({ id }) => id === 'source-state')?.status).toBe('failed');
+      expect(outcome.result.stages.find(({ id }) => id === 'candidate')?.status).toBe('pending');
+      expect(
+        outcome.result.stages
+          .filter(({ id }) => id.endsWith(':actor') || id.endsWith(':judge'))
+          .every(({ status }) => status === 'pending'),
+      ).toBe(true);
 
-    let resumedActorCalls = 0;
-    let resumedJudgeCalls = 0;
-    const usage = { cachedInputTokens: 0, inputTokens: 1, outputTokens: 1 };
-    const resumedOutcome = await runQualification({
-      host: new FakeCodexHost({
+      expect(
+        await readJsonFile(
+          path.join(outcome.attemptDirectory, 'public', 'source-state.json'),
+          QualificationSourceStateResultSchema,
+        ),
+      ).toMatchObject({
+        passed: false,
+        requiresCleanInputs: true,
+        skillRepositoryDirty: true,
+      });
+      for (const relativeDirectory of [
+        'internal',
+        'pnpm-cache',
+        'pnpm-store',
+        'runtime',
+        'workspaces',
+      ]) {
+        await expectPathToBeMissing(path.join(outcome.attemptDirectory, relativeDirectory));
+      }
+      expect(
+        await readJsonFile(
+          path.join(
+            resultsRoot,
+            't5',
+            'attempts',
+            createQualificationAttemptKey(outcome.result.attemptId),
+            'attempt.json',
+          ),
+          QualificationAttemptResultSchema,
+        ),
+      ).toMatchObject({
+        attemptId: outcome.result.attemptId,
+        status: 'failed',
+        provenance: { skillRepositoryDirty: true },
+      });
+      expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
+        passed: true,
+        attempts: 1,
+        issues: [],
+      });
+    },
+  );
+
+  test(
+    'resumes a model stage paused at the paid approval boundary',
+    { tags: ['ci-executor-4'], timeout: 120_000 },
+    async () => {
+      temporaryResultsRoot = await mkdtemp(
+        path.join(QUALIFICATION_ROOT, '.qualification-results-'),
+      );
+      const resultsRoot = temporaryResultsRoot;
+      const inspectRepositoryState = repositoryState.inspectGitRepositoryState;
+      vi.spyOn(repositoryState, 'inspectGitRepositoryState').mockImplementation(
+        async (repositoryRoot, options) => ({
+          ...(await inspectRepositoryState(repositoryRoot, options)),
+          isDirty: false,
+        }),
+      );
+      let pausedActorCalls = 0;
+      const pausedOutcome = await runQualification({
+        caseId: 'answer-information-before-adoption',
+        host: new FakeCodexHost({
+          actor: () => {
+            pausedActorCalls += 1;
+            return Promise.reject(new Error('Actor must not run before paid approval.'));
+          },
+        }),
+        mode: 'diagnostic',
+        requestPaidExecutionApproval: () => Promise.resolve(false),
+        resultsRoot,
+        reuseEvidence: false,
+        selection: { adapterId: 'custom', implementationId: 'custom' },
+        skillRepository: DEFAULT_SKILL_REPOSITORY,
+        workerCount: 1,
+      });
+      temporaryAttemptDirectory = pausedOutcome.attemptDirectory;
+      const actorStageId = 'case:answer-information-before-adoption:trial:initial:actor';
+
+      expect(pausedOutcome.result.status).toBe('incomplete');
+      expect(pausedOutcome.wasRecorded).toBe(false);
+      expect(pausedActorCalls).toBe(0);
+      expect(pausedOutcome.result.stages.find(({ id }) => id === actorStageId)?.status).toBe(
+        'pending',
+      );
+
+      let resumedActorCalls = 0;
+      let resumedJudgeCalls = 0;
+      const usage = { cachedInputTokens: 0, inputTokens: 1, outputTokens: 1 };
+      const resumedOutcome = await runQualification({
+        host: new FakeCodexHost({
+          actor: (input) => {
+            resumedActorCalls += 1;
+            return Promise.resolve({
+              output: {
+                outcome: input.scenario.expectedActorOutcome,
+                summary: `Completed ${input.caseId}.`,
+                changedFiles: input.scenario.workspace.allowedChangePaths,
+                observations: [],
+                unresolved: [],
+              },
+              usage,
+              durationMs: 0,
+              commandPolicy: emptyCommandPolicy,
+              events: '',
+            });
+          },
+          judge: (input) => {
+            resumedJudgeCalls += 1;
+            return Promise.resolve({
+              output: {
+                verdict: 'pass',
+                summary: `Accepted ${input.caseId}.`,
+                requirements: input.scenario.judgeRequirements
+                  .filter((requirement) => requirement.evaluation.kind === 'judge')
+                  .map(({ id }) => ({
+                    id,
+                    verdict: 'pass' as const,
+                    evidence: 'The deterministic fixture evidence passed.',
+                  })),
+                failures: [],
+              },
+              usage,
+              durationMs: 0,
+              commandPolicy: emptyCommandPolicy,
+              events: '',
+            });
+          },
+        }),
+        requestPaidExecutionApproval: () => Promise.resolve(true),
+        resultsRoot,
+        resumeAttemptId: pausedOutcome.result.attemptId,
+        workerCount: 1,
+      });
+
+      expect(
+        resumedOutcome.result.status,
+        JSON.stringify(resumedOutcome.result.stages.filter(({ status }) => status === 'errored')),
+      ).toBe('passed');
+      expect(resumedActorCalls).toBe(1);
+      expect(resumedJudgeCalls).toBe(1);
+      expect(resumedOutcome.result.stages.find(({ id }) => id === actorStageId)?.status).toBe(
+        'passed',
+      );
+    },
+  );
+
+  test(
+    'resumes the complete Custom state machine without repeating completed cases',
+    { tags: ['ci-executor-3'], timeout: 120_000 },
+    async () => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-resume-'));
+      const skillRepository = path.join(temporaryRoot, 'skill-repository');
+      const resultsRoot = path.join(temporaryRoot, 'results');
+      await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+      await executeProcess({
+        command: 'git',
+        args: ['init', '--initial-branch=main'],
+        cwd: skillRepository,
+      });
+      await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+      await executeProcess({
+        command: 'git',
+        args: [
+          '-c',
+          'commit.gpgsign=false',
+          '-c',
+          'user.name=moldea qualification',
+          '-c',
+          'user.email=qualification@moldea.local',
+          'commit',
+          '-m',
+          'test: establish resumable skill fixture',
+        ],
+        cwd: skillRepository,
+      });
+
+      const abortController = new AbortController();
+      let initialActorCalls = 0;
+      let initialJudgeCalls = 0;
+      const interruptedHost = new FakeCodexHost({
+        actor: (input) => {
+          initialActorCalls += 1;
+
+          if (initialActorCalls === 2) {
+            abortController.abort();
+            return Promise.reject(new Error('Fixture interruption.'));
+          }
+
+          return Promise.resolve({
+            output: {
+              outcome: input.scenario.expectedActorOutcome,
+              summary: `Completed ${input.caseId}.`,
+              changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
+              observations: [],
+              unresolved: [],
+            },
+            usage: null,
+            durationMs: 0,
+            commandPolicy: emptyCommandPolicy,
+            events: '',
+          });
+        },
+        judge: (input) => {
+          initialJudgeCalls += 1;
+          return Promise.resolve({
+            output: {
+              verdict: 'pass',
+              summary: `Accepted ${input.caseId}.`,
+              requirements: input.scenario.judgeRequirements.map(({ id }) => ({
+                id,
+                verdict: 'pass' as const,
+                evidence: 'The deterministic fixture evidence passed.',
+              })),
+              failures: [],
+            },
+            usage: null,
+            durationMs: 0,
+            commandPolicy: emptyCommandPolicy,
+            events: '',
+          });
+        },
+      });
+      const interruptedOutcome = await runQualification({
+        host: interruptedHost,
+        selection: { adapterId: 'custom', implementationId: 'custom' },
+        skillRepository,
+        isDryRun: true,
+        resultsRoot,
+        signal: abortController.signal,
+        workerCount: 1,
+      });
+      temporaryAttemptDirectory = interruptedOutcome.attemptDirectory;
+      const attemptBackup = path.join(temporaryRoot, 'attempt-backup');
+      await copyDirectory(interruptedOutcome.attemptDirectory, attemptBackup);
+
+      expect(interruptedOutcome.result.status).toBe('incomplete');
+      expect(interruptedOutcome.wasRecorded).toBe(false);
+      expect(initialActorCalls).toBe(2);
+      expect(initialJudgeCalls).toBe(0);
+      expect(
+        interruptedOutcome.result.stages.find(
+          ({ id }) => id === 'case:evaluate-aligned-project:result',
+        )?.status,
+      ).toBe('pending');
+      expect(
+        interruptedOutcome.result.stages.find(
+          ({ id }) => id === 'case:evaluate-aligned-project:trial:initial:actor',
+        )?.status,
+      ).toBe('passed');
+      expect(
+        interruptedOutcome.result.stages.find(
+          ({ id }) => id === 'case:initialize-grounded-project:trial:initial:actor',
+        )?.status,
+      ).toBe('pending');
+      await access(path.join(interruptedOutcome.attemptDirectory, 'internal'));
+      for (const relativeDirectory of ['pnpm-cache', 'pnpm-store', 'runtime', 'workspaces']) {
+        await expectPathToBeMissing(
+          path.join(interruptedOutcome.attemptDirectory, relativeDirectory),
+        );
+      }
+
+      let resumedActorCalls = 0;
+      let resumedJudgeCalls = 0;
+      const resumedHost = new FakeCodexHost({
         actor: (input) => {
           resumedActorCalls += 1;
           return Promise.resolve({
             output: {
               outcome: input.scenario.expectedActorOutcome,
               summary: `Completed ${input.caseId}.`,
-              changedFiles: input.scenario.workspace.allowedChangePaths,
+              changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
               observations: [],
               unresolved: [],
             },
-            usage,
+            usage: null,
             durationMs: 0,
             commandPolicy: emptyCommandPolicy,
             events: '',
@@ -240,396 +423,93 @@ describe('qualification execution', () => {
             output: {
               verdict: 'pass',
               summary: `Accepted ${input.caseId}.`,
-              requirements: input.scenario.judgeRequirements
-                .filter((requirement) => requirement.evaluation.kind === 'judge')
-                .map(({ id }) => ({
-                  id,
-                  verdict: 'pass' as const,
-                  evidence: 'The deterministic fixture evidence passed.',
-                })),
+              requirements: input.scenario.judgeRequirements.map(({ id }) => ({
+                id,
+                verdict: 'pass' as const,
+                evidence: 'The deterministic fixture evidence passed.',
+              })),
               failures: [],
             },
-            usage,
+            usage: null,
             durationMs: 0,
             commandPolicy: emptyCommandPolicy,
             events: '',
           });
         },
-      }),
-      requestPaidExecutionApproval: () => Promise.resolve(true),
-      resultsRoot,
-      resumeAttemptId: pausedOutcome.result.attemptId,
-      workerCount: 1,
-    });
-
-    expect(
-      resumedOutcome.result.status,
-      JSON.stringify(resumedOutcome.result.stages.filter(({ status }) => status === 'errored')),
-    ).toBe('passed');
-    expect(resumedActorCalls).toBe(1);
-    expect(resumedJudgeCalls).toBe(1);
-    expect(resumedOutcome.result.stages.find(({ id }) => id === actorStageId)?.status).toBe(
-      'passed',
-    );
-  }, 120_000);
-
-  test('resumes the complete Custom state machine without repeating completed cases', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-resume-'));
-    const skillRepository = path.join(temporaryRoot, 'skill-repository');
-    const resultsRoot = path.join(temporaryRoot, 'results');
-    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
-    await executeProcess({
-      command: 'git',
-      args: ['init', '--initial-branch=main'],
-      cwd: skillRepository,
-    });
-    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
-    await executeProcess({
-      command: 'git',
-      args: [
-        '-c',
-        'commit.gpgsign=false',
-        '-c',
-        'user.name=moldea qualification',
-        '-c',
-        'user.email=qualification@moldea.local',
-        'commit',
-        '-m',
-        'test: establish resumable skill fixture',
-      ],
-      cwd: skillRepository,
-    });
-
-    const abortController = new AbortController();
-    let initialActorCalls = 0;
-    let initialJudgeCalls = 0;
-    const interruptedHost = new FakeCodexHost({
-      actor: (input) => {
-        initialActorCalls += 1;
-
-        if (initialActorCalls === 2) {
-          abortController.abort();
-          return Promise.reject(new Error('Fixture interruption.'));
-        }
-
-        return Promise.resolve({
-          output: {
-            outcome: input.scenario.expectedActorOutcome,
-            summary: `Completed ${input.caseId}.`,
-            changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
-            observations: [],
-            unresolved: [],
-          },
-          usage: null,
-          durationMs: 0,
-          commandPolicy: emptyCommandPolicy,
-          events: '',
-        });
-      },
-      judge: (input) => {
-        initialJudgeCalls += 1;
-        return Promise.resolve({
-          output: {
-            verdict: 'pass',
-            summary: `Accepted ${input.caseId}.`,
-            requirements: input.scenario.judgeRequirements.map(({ id }) => ({
-              id,
-              verdict: 'pass' as const,
-              evidence: 'The deterministic fixture evidence passed.',
-            })),
-            failures: [],
-          },
-          usage: null,
-          durationMs: 0,
-          commandPolicy: emptyCommandPolicy,
-          events: '',
-        });
-      },
-    });
-    const interruptedOutcome = await runQualification({
-      host: interruptedHost,
-      selection: { adapterId: 'custom', implementationId: 'custom' },
-      skillRepository,
-      isDryRun: true,
-      resultsRoot,
-      signal: abortController.signal,
-      workerCount: 1,
-    });
-    temporaryAttemptDirectory = interruptedOutcome.attemptDirectory;
-    const attemptBackup = path.join(temporaryRoot, 'attempt-backup');
-    await copyDirectory(interruptedOutcome.attemptDirectory, attemptBackup);
-
-    expect(interruptedOutcome.result.status).toBe('incomplete');
-    expect(interruptedOutcome.wasRecorded).toBe(false);
-    expect(initialActorCalls).toBe(2);
-    expect(initialJudgeCalls).toBe(0);
-    expect(
-      interruptedOutcome.result.stages.find(
-        ({ id }) => id === 'case:evaluate-aligned-project:result',
-      )?.status,
-    ).toBe('pending');
-    expect(
-      interruptedOutcome.result.stages.find(
-        ({ id }) => id === 'case:evaluate-aligned-project:trial:initial:actor',
-      )?.status,
-    ).toBe('passed');
-    expect(
-      interruptedOutcome.result.stages.find(
-        ({ id }) => id === 'case:initialize-grounded-project:trial:initial:actor',
-      )?.status,
-    ).toBe('pending');
-    await access(path.join(interruptedOutcome.attemptDirectory, 'internal'));
-    for (const relativeDirectory of ['pnpm-cache', 'pnpm-store', 'runtime', 'workspaces']) {
-      await expectPathToBeMissing(
-        path.join(interruptedOutcome.attemptDirectory, relativeDirectory),
-      );
-    }
-
-    let resumedActorCalls = 0;
-    let resumedJudgeCalls = 0;
-    const resumedHost = new FakeCodexHost({
-      actor: (input) => {
-        resumedActorCalls += 1;
-        return Promise.resolve({
-          output: {
-            outcome: input.scenario.expectedActorOutcome,
-            summary: `Completed ${input.caseId}.`,
-            changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
-            observations: [],
-            unresolved: [],
-          },
-          usage: null,
-          durationMs: 0,
-          commandPolicy: emptyCommandPolicy,
-          events: '',
-        });
-      },
-      judge: (input) => {
-        resumedJudgeCalls += 1;
-        return Promise.resolve({
-          output: {
-            verdict: 'pass',
-            summary: `Accepted ${input.caseId}.`,
-            requirements: input.scenario.judgeRequirements.map(({ id }) => ({
-              id,
-              verdict: 'pass' as const,
-              evidence: 'The deterministic fixture evidence passed.',
-            })),
-            failures: [],
-          },
-          usage: null,
-          durationMs: 0,
-          commandPolicy: emptyCommandPolicy,
-          events: '',
-        });
-      },
-    });
-    const resumedOutcome = await runQualification({
-      host: resumedHost,
-      resumeAttemptId: interruptedOutcome.result.attemptId,
-      resultsRoot,
-    });
-
-    expect(resumedOutcome.result.status).toBe('passed');
-    expect(resumedOutcome.wasRecorded).toBe(false);
-    expect(resumedActorCalls).toBe(11);
-    expect(resumedJudgeCalls).toBe(0);
-    for (const relativeDirectory of [
-      'internal',
-      'pnpm-cache',
-      'pnpm-store',
-      'runtime',
-      'workspaces',
-    ]) {
-      await expectPathToBeMissing(path.join(resumedOutcome.attemptDirectory, relativeDirectory));
-    }
-
-    await rm(interruptedOutcome.attemptDirectory, { force: true, recursive: true });
-    await copyDirectory(attemptBackup, interruptedOutcome.attemptDirectory);
-    await writeFile(path.join(skillRepository, 'SKILL.md'), '# Changed skill\n', 'utf8');
-
-    await expect(
-      runQualification({
-        host: new FakeCodexHost(),
+      });
+      const resumedOutcome = await runQualification({
+        host: resumedHost,
         resumeAttemptId: interruptedOutcome.result.attemptId,
         resultsRoot,
-      }),
-    ).rejects.toThrow('Attempt inputs changed after checkpoint creation.');
-    expect((await readAttemptCheckpoint(interruptedOutcome.attemptDirectory)).status).toBe(
-      'incomplete',
-    );
-  }, 120_000);
+      });
 
-  test('resumes a pending actor retry without repeating completed model stages', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-retry-resume-'));
-    const skillRepository = path.join(temporaryRoot, 'skill-repository');
-    const resultsRoot = path.join(temporaryRoot, 'results');
-    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
-    await executeProcess({
-      command: 'git',
-      args: ['init', '--initial-branch=main'],
-      cwd: skillRepository,
-    });
-    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
-    await executeProcess({
-      command: 'git',
-      args: [
-        '-c',
-        'commit.gpgsign=false',
-        '-c',
-        'user.name=moldea qualification',
-        '-c',
-        'user.email=qualification@moldea.local',
-        'commit',
-        '-m',
-        'test: establish retry resume fixture',
-      ],
-      cwd: skillRepository,
-    });
+      expect(resumedOutcome.result.status).toBe('passed');
+      expect(resumedOutcome.wasRecorded).toBe(false);
+      expect(resumedActorCalls).toBe(11);
+      expect(resumedJudgeCalls).toBe(0);
+      for (const relativeDirectory of [
+        'internal',
+        'pnpm-cache',
+        'pnpm-store',
+        'runtime',
+        'workspaces',
+      ]) {
+        await expectPathToBeMissing(path.join(resumedOutcome.attemptDirectory, relativeDirectory));
+      }
 
-    const abortController = new AbortController();
-    let initialActorCalls = 0;
-    let initialJudgeCalls = 0;
-    const interruptedHost = new FakeCodexHost({
-      actor: () => {
-        initialActorCalls += 1;
-        return Promise.reject(
-          new CodexEvaluationHostError(
-            CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
-            'Retryable actor timeout.',
-          ),
-        );
-      },
-      judge: () => {
-        initialJudgeCalls += 1;
-        return Promise.reject(new Error('Dry-run judge must not execute.'));
-      },
-    });
-    const interruptedOutcome = await runQualification({
-      host: interruptedHost,
-      selection: { adapterId: 'custom', implementationId: 'custom' },
-      skillRepository,
-      isDryRun: true,
-      operationalRetry: {
-        now: () => '2026-08-28T12:00:00.000Z',
-        random: () => 1,
-        wait: (_delayMs, signal) => {
-          abortController.abort(new Error('Stop during retry backoff.'));
-          signal?.throwIfAborted();
-          return Promise.resolve();
-        },
-      },
-      resultsRoot,
-      workerCount: 1,
-      signal: abortController.signal,
-    });
-    temporaryAttemptDirectory = interruptedOutcome.attemptDirectory;
-    const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
-    const interruptedActorStage = interruptedOutcome.result.stages.find(
-      ({ id }) => id === actorStageId,
-    );
+      await rm(interruptedOutcome.attemptDirectory, { force: true, recursive: true });
+      await copyDirectory(attemptBackup, interruptedOutcome.attemptDirectory);
+      await writeFile(path.join(skillRepository, 'SKILL.md'), '# Changed skill\n', 'utf8');
 
-    expect(interruptedOutcome.result.status).toBe('incomplete');
-    expect(interruptedOutcome.wasRecorded).toBe(false);
-    expect(initialActorCalls).toBe(1);
-    expect(initialJudgeCalls).toBe(0);
-    expect(interruptedActorStage).toMatchObject({
-      status: 'pending',
-      operationalRetries: [
-        {
-          category: 'timed-out',
-          failureCount: 1,
-          retryDelayMs: 5_000,
-        },
-      ],
-    });
+      await expect(
+        runQualification({
+          host: new FakeCodexHost(),
+          resumeAttemptId: interruptedOutcome.result.attemptId,
+          resultsRoot,
+        }),
+      ).rejects.toThrow('Attempt inputs changed after checkpoint creation.');
+      expect((await readAttemptCheckpoint(interruptedOutcome.attemptDirectory)).status).toBe(
+        'incomplete',
+      );
+    },
+  );
 
-    const resumedActorCallsByCase = new Map<string, number>();
-    let resumedJudgeCalls = 0;
-    const resumedHost = new FakeCodexHost({
-      actor: (input) => {
-        resumedActorCallsByCase.set(
-          input.caseId,
-          (resumedActorCallsByCase.get(input.caseId) ?? 0) + 1,
-        );
-        return Promise.resolve({
-          output: {
-            outcome: input.scenario.expectedActorOutcome,
-            summary: `Completed ${input.caseId}.`,
-            changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
-            observations: [],
-            unresolved: [],
-          },
-          usage: null,
-          durationMs: 0,
-          commandPolicy: emptyCommandPolicy,
-          events: '',
-        });
-      },
-      judge: () => {
-        resumedJudgeCalls += 1;
-        return Promise.reject(new Error('Dry-run judge must not execute.'));
-      },
-    });
-    const resumedOutcome = await runQualification({
-      host: resumedHost,
-      resumeAttemptId: interruptedOutcome.result.attemptId,
-      operationalRetry: {
-        now: () => '2026-08-28T12:01:00.000Z',
-        random: () => 1,
-        wait: () => Promise.resolve(),
-      },
-      resultsRoot,
-      workerCount: 1,
-    });
-    const resumedActorStage = resumedOutcome.result.stages.find(({ id }) => id === actorStageId);
+  test(
+    'resumes a pending actor retry without repeating completed model stages',
+    { tags: ['ci-executor-2'], timeout: 120_000 },
+    async () => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-retry-resume-'));
+      const skillRepository = path.join(temporaryRoot, 'skill-repository');
+      const resultsRoot = path.join(temporaryRoot, 'results');
+      await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+      await executeProcess({
+        command: 'git',
+        args: ['init', '--initial-branch=main'],
+        cwd: skillRepository,
+      });
+      await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+      await executeProcess({
+        command: 'git',
+        args: [
+          '-c',
+          'commit.gpgsign=false',
+          '-c',
+          'user.name=moldea qualification',
+          '-c',
+          'user.email=qualification@moldea.local',
+          'commit',
+          '-m',
+          'test: establish retry resume fixture',
+        ],
+        cwd: skillRepository,
+      });
 
-    expect(resumedOutcome.result.status).toBe('passed');
-    expect(resumedActorCallsByCase.get('evaluate-aligned-project')).toBe(1);
-    expect(resumedJudgeCalls).toBe(0);
-    expect(
-      resumedActorStage?.operationalRetries.map(({ failureCount, retryDelayMs }) => ({
-        failureCount,
-        retryDelayMs,
-      })),
-    ).toStrictEqual([{ failureCount: 1, retryDelayMs: 5_000 }]);
-    expect(
-      resumedOutcome.result.stages
-        .filter(({ id }) => id.includes('evaluate-aligned-project:trial:confirmation-'))
-        .every(({ status }) => status === 'skipped'),
-    ).toBe(true);
-  }, 120_000);
-
-  test('requires one explicit resume for a terminally stopped model stage', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-stop-resume-'));
-    const skillRepository = path.join(temporaryRoot, 'skill-repository');
-    const resultsRoot = path.join(temporaryRoot, 'results');
-    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
-    await executeProcess({
-      command: 'git',
-      args: ['init', '--initial-branch=main'],
-      cwd: skillRepository,
-    });
-    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
-    await executeProcess({
-      command: 'git',
-      args: [
-        '-c',
-        'commit.gpgsign=false',
-        '-c',
-        'user.name=moldea qualification',
-        '-c',
-        'user.email=qualification@moldea.local',
-        'commit',
-        '-m',
-        'test: establish stopped-stage fixture',
-      ],
-      cwd: skillRepository,
-    });
-    const createStoppedHost = (onActorCall: () => void) =>
-      new FakeCodexHost({
+      const abortController = new AbortController();
+      let initialActorCalls = 0;
+      let initialJudgeCalls = 0;
+      const interruptedHost = new FakeCodexHost({
         actor: () => {
-          onActorCall();
+          initialActorCalls += 1;
           return Promise.reject(
             new CodexEvaluationHostError(
               CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
@@ -637,362 +517,648 @@ describe('qualification execution', () => {
             ),
           );
         },
+        judge: () => {
+          initialJudgeCalls += 1;
+          return Promise.reject(new Error('Dry-run judge must not execute.'));
+        },
       });
-    let initialActorCalls = 0;
-    const stoppedOutcome = await runQualification({
-      host: createStoppedHost(() => {
-        initialActorCalls += 1;
-      }),
-      selection: { adapterId: 'custom', implementationId: 'custom' },
-      skillRepository,
-      isDryRun: true,
-      operationalRetry: {
-        now: () => '2026-08-28T12:00:00.000Z',
-        random: () => 1,
-        wait: () => Promise.resolve(),
-      },
-      resultsRoot,
-      workerCount: 1,
-    });
-    temporaryAttemptDirectory = stoppedOutcome.attemptDirectory;
-    const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
-    const stoppedAttemptBackup = path.join(temporaryRoot, 'stopped-attempt-backup');
-    await copyDirectory(stoppedOutcome.attemptDirectory, stoppedAttemptBackup);
-
-    expect(stoppedOutcome.result.status).toBe('incomplete');
-    expect(stoppedOutcome.wasRecorded).toBe(false);
-    expect(initialActorCalls).toBe(2);
-    expect(stoppedOutcome.result.stages.find(({ id }) => id === actorStageId)).toMatchObject({
-      status: 'stopped',
-      hasUsedOperationalStopResume: false,
-      operationalRetries: [{ category: 'timed-out', failureCount: 1 }],
-      operationalStops: [{ category: 'timed-out', failureCount: 2 }],
-    });
-
-    await expect(
-      runQualification({
-        host: new FakeCodexHost(),
-        resumeAttemptId: stoppedOutcome.result.attemptId,
+      const interruptedOutcome = await runQualification({
+        host: interruptedHost,
+        selection: { adapterId: 'custom', implementationId: 'custom' },
+        skillRepository,
+        isDryRun: true,
+        operationalRetry: {
+          now: () => '2026-08-28T12:00:00.000Z',
+          random: () => 1,
+          wait: (_delayMs, signal) => {
+            abortController.abort(new Error('Stop during retry backoff.'));
+            signal?.throwIfAborted();
+            return Promise.resolve();
+          },
+        },
         resultsRoot,
         workerCount: 1,
-      }),
-    ).rejects.toThrow('resume requires --resume-stopped-stage');
+        signal: abortController.signal,
+      });
+      temporaryAttemptDirectory = interruptedOutcome.attemptDirectory;
+      const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
+      const interruptedActorStage = interruptedOutcome.result.stages.find(
+        ({ id }) => id === actorStageId,
+      );
 
-    const resumedOutcome = await runQualification({
-      host: new FakeCodexHost(),
-      resumeAttemptId: stoppedOutcome.result.attemptId,
-      resumeStoppedStage: true,
-      resultsRoot,
-      workerCount: 1,
-    });
+      expect(interruptedOutcome.result.status).toBe('incomplete');
+      expect(interruptedOutcome.wasRecorded).toBe(false);
+      expect(initialActorCalls).toBe(1);
+      expect(initialJudgeCalls).toBe(0);
+      expect(interruptedActorStage).toMatchObject({
+        status: 'pending',
+        operationalRetries: [
+          {
+            category: 'timed-out',
+            failureCount: 1,
+            retryDelayMs: 5_000,
+          },
+        ],
+      });
 
-    expect(resumedOutcome.result.status).toBe('passed');
-    await expectPathToBeMissing(
-      path.join(resumedOutcome.attemptDirectory, 'public', 'interruption.json'),
-    );
+      const resumedActorCallsByCase = new Map<string, number>();
+      let resumedJudgeCalls = 0;
+      const resumedHost = new FakeCodexHost({
+        actor: (input) => {
+          resumedActorCallsByCase.set(
+            input.caseId,
+            (resumedActorCallsByCase.get(input.caseId) ?? 0) + 1,
+          );
+          return Promise.resolve({
+            output: {
+              outcome: input.scenario.expectedActorOutcome,
+              summary: `Completed ${input.caseId}.`,
+              changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
+              observations: [],
+              unresolved: [],
+            },
+            usage: null,
+            durationMs: 0,
+            commandPolicy: emptyCommandPolicy,
+            events: '',
+          });
+        },
+        judge: () => {
+          resumedJudgeCalls += 1;
+          return Promise.reject(new Error('Dry-run judge must not execute.'));
+        },
+      });
+      const resumedOutcome = await runQualification({
+        host: resumedHost,
+        resumeAttemptId: interruptedOutcome.result.attemptId,
+        operationalRetry: {
+          now: () => '2026-08-28T12:01:00.000Z',
+          random: () => 1,
+          wait: () => Promise.resolve(),
+        },
+        resultsRoot,
+        workerCount: 1,
+      });
+      const resumedActorStage = resumedOutcome.result.stages.find(({ id }) => id === actorStageId);
 
-    await rm(stoppedOutcome.attemptDirectory, { force: true, recursive: true });
-    await copyDirectory(stoppedAttemptBackup, stoppedOutcome.attemptDirectory);
+      expect(resumedOutcome.result.status).toBe('passed');
+      expect(resumedActorCallsByCase.get('evaluate-aligned-project')).toBe(1);
+      expect(resumedJudgeCalls).toBe(0);
+      expect(
+        resumedActorStage?.operationalRetries.map(({ failureCount, retryDelayMs }) => ({
+          failureCount,
+          retryDelayMs,
+        })),
+      ).toStrictEqual([{ failureCount: 1, retryDelayMs: 5_000 }]);
+      expect(
+        resumedOutcome.result.stages
+          .filter(({ id }) => id.includes('evaluate-aligned-project:trial:confirmation-'))
+          .every(({ status }) => status === 'skipped'),
+      ).toBe(true);
+    },
+  );
 
-    let resumedActorCalls = 0;
-    const restoppedOutcome = await runQualification({
-      host: createStoppedHost(() => {
-        resumedActorCalls += 1;
-      }),
-      resumeAttemptId: stoppedOutcome.result.attemptId,
-      resumeStoppedStage: true,
-      operationalRetry: {
-        now: () => '2026-08-28T12:01:00.000Z',
-        random: () => 1,
-        wait: () => Promise.reject(new Error('Explicit resume cannot schedule a new retry.')),
-      },
-      resultsRoot,
-      workerCount: 1,
-    });
+  test(
+    'requires one explicit resume for a terminally stopped model stage',
+    { tags: ['ci-executor-1'], timeout: 120_000 },
+    async () => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-stop-resume-'));
+      const skillRepository = path.join(temporaryRoot, 'skill-repository');
+      const resultsRoot = path.join(temporaryRoot, 'results');
+      await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+      await executeProcess({
+        command: 'git',
+        args: ['init', '--initial-branch=main'],
+        cwd: skillRepository,
+      });
+      await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+      await executeProcess({
+        command: 'git',
+        args: [
+          '-c',
+          'commit.gpgsign=false',
+          '-c',
+          'user.name=moldea qualification',
+          '-c',
+          'user.email=qualification@moldea.local',
+          'commit',
+          '-m',
+          'test: establish stopped-stage fixture',
+        ],
+        cwd: skillRepository,
+      });
+      const createStoppedHost = (onActorCall: () => void) =>
+        new FakeCodexHost({
+          actor: () => {
+            onActorCall();
+            return Promise.reject(
+              new CodexEvaluationHostError(
+                CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
+                'Retryable actor timeout.',
+              ),
+            );
+          },
+        });
+      let initialActorCalls = 0;
+      const stoppedOutcome = await runQualification({
+        host: createStoppedHost(() => {
+          initialActorCalls += 1;
+        }),
+        selection: { adapterId: 'custom', implementationId: 'custom' },
+        skillRepository,
+        isDryRun: true,
+        operationalRetry: {
+          now: () => '2026-08-28T12:00:00.000Z',
+          random: () => 1,
+          wait: () => Promise.resolve(),
+        },
+        resultsRoot,
+        workerCount: 1,
+      });
+      temporaryAttemptDirectory = stoppedOutcome.attemptDirectory;
+      const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
+      const stoppedAttemptBackup = path.join(temporaryRoot, 'stopped-attempt-backup');
+      await copyDirectory(stoppedOutcome.attemptDirectory, stoppedAttemptBackup);
 
-    expect(restoppedOutcome.result.status).toBe('incomplete');
-    expect(resumedActorCalls).toBe(1);
-    expect(restoppedOutcome.result.stages.find(({ id }) => id === actorStageId)).toMatchObject({
-      status: 'stopped',
-      hasUsedOperationalStopResume: true,
-      operationalStops: [
-        { category: 'timed-out', failureCount: 2 },
-        { category: 'timed-out', failureCount: 2 },
-      ],
-    });
+      expect(stoppedOutcome.result.status).toBe('incomplete');
+      expect(stoppedOutcome.wasRecorded).toBe(false);
+      expect(initialActorCalls).toBe(2);
+      expect(stoppedOutcome.result.stages.find(({ id }) => id === actorStageId)).toMatchObject({
+        status: 'stopped',
+        hasUsedOperationalStopResume: false,
+        operationalRetries: [{ category: 'timed-out', failureCount: 1 }],
+        operationalStops: [{ category: 'timed-out', failureCount: 2 }],
+      });
 
-    await expect(
-      runQualification({
+      await expect(
+        runQualification({
+          host: new FakeCodexHost(),
+          resumeAttemptId: stoppedOutcome.result.attemptId,
+          resultsRoot,
+          workerCount: 1,
+        }),
+      ).rejects.toThrow('resume requires --resume-stopped-stage');
+
+      const resumedOutcome = await runQualification({
         host: new FakeCodexHost(),
         resumeAttemptId: stoppedOutcome.result.attemptId,
         resumeStoppedStage: true,
         resultsRoot,
         workerCount: 1,
-      }),
-    ).rejects.toThrow('already used its one explicit resume');
-  }, 120_000);
+      });
 
-  test('resumes a completed dry-run actor stage without invoking a judge', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-stage-resume-'));
-    const skillRepository = path.join(temporaryRoot, 'skill-repository');
-    const resultsRoot = path.join(temporaryRoot, 'results');
-    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
-    await executeProcess({
-      command: 'git',
-      args: ['init', '--initial-branch=main'],
-      cwd: skillRepository,
-    });
-    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
-    await executeProcess({
-      command: 'git',
-      args: [
-        '-c',
-        'commit.gpgsign=false',
-        '-c',
-        'user.name=moldea qualification',
-        '-c',
-        'user.email=qualification@moldea.local',
-        'commit',
-        '-m',
-        'test: establish stage recovery fixture',
-      ],
-      cwd: skillRepository,
-    });
+      expect(resumedOutcome.result.status).toBe('passed');
+      await expectPathToBeMissing(
+        path.join(resumedOutcome.attemptDirectory, 'public', 'interruption.json'),
+      );
 
-    const abortController = new AbortController();
-    let interruptedActorCalls = 0;
-    let interruptedJudgeCalls = 0;
-    const interruptedHost = new FakeCodexHost({
-      actor: (input) => {
-        interruptedActorCalls += 1;
-        return Promise.resolve({
-          output: {
-            outcome: input.scenario.expectedActorOutcome,
-            summary: `Completed ${input.caseId}.`,
-            changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
-            observations: [],
-            unresolved: [],
-          },
-          usage: null,
-          durationMs: 0,
-          commandPolicy: emptyCommandPolicy,
-          events: '',
-        });
-      },
-      judge: () => {
-        interruptedJudgeCalls += 1;
-        return Promise.reject(new Error('Dry-run judge must not execute.'));
-      },
-    });
-    const interruptedOutcome = await runQualification({
-      host: interruptedHost,
-      selection: { adapterId: 'custom', implementationId: 'custom' },
-      skillRepository,
-      isDryRun: true,
-      onProgress: (progress) => {
-        if (
-          progress.kind === 'trial' &&
-          progress.caseId === 'evaluate-aligned-project' &&
-          progress.trialId === 'initial' &&
-          progress.status === 'completed'
-        ) {
-          abortController.abort(new Error('Stop after the initial completed trial.'));
-          abortController.signal.throwIfAborted();
-        } else if (abortController.signal.aborted) {
-          abortController.signal.throwIfAborted();
-        }
-      },
-      resultsRoot,
-      signal: abortController.signal,
-      workerCount: 1,
-    });
-    temporaryAttemptDirectory = interruptedOutcome.attemptDirectory;
+      await rm(stoppedOutcome.attemptDirectory, { force: true, recursive: true });
+      await copyDirectory(stoppedAttemptBackup, stoppedOutcome.attemptDirectory);
 
-    expect(interruptedOutcome.result.status).toBe('incomplete');
-    expect(interruptedActorCalls).toBe(1);
-    expect(interruptedJudgeCalls).toBe(0);
-
-    const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
-
-    const resumedActorCallsByCase = new Map<string, number>();
-    let resumedJudgeCalls = 0;
-    const resumedHost = new FakeCodexHost({
-      actor: (input) => {
-        resumedActorCallsByCase.set(
-          input.caseId,
-          (resumedActorCallsByCase.get(input.caseId) ?? 0) + 1,
-        );
-        return Promise.resolve({
-          output: {
-            outcome: input.scenario.expectedActorOutcome,
-            summary: `Completed ${input.caseId}.`,
-            changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
-            observations: [],
-            unresolved: [],
-          },
-          usage: null,
-          durationMs: 0,
-          commandPolicy: emptyCommandPolicy,
-          events: '',
-        });
-      },
-      judge: () => {
-        resumedJudgeCalls += 1;
-        return Promise.reject(new Error('Dry-run judge must not execute.'));
-      },
-    });
-    const resumedOutcome = await runQualification({
-      host: resumedHost,
-      resumeAttemptId: interruptedOutcome.result.attemptId,
-      resultsRoot,
-    });
-    const resumedCase = resumedOutcome.result.cases[0];
-
-    expect(resumedOutcome.result.status).toBe('passed');
-    expect(resumedCase).toMatchObject({
-      caseId: 'evaluate-aligned-project',
-      confirmationStatus: 'not-required',
-      status: 'passed',
-    });
-    expect(
-      resumedCase?.trials.map(
-        ({ actorReuseSourceAttemptId, judgeReuseSourceAttemptId, trialId }) => ({
-          actorReuseSourceAttemptId,
-          judgeReuseSourceAttemptId,
-          trialId,
+      let resumedActorCalls = 0;
+      const restoppedOutcome = await runQualification({
+        host: createStoppedHost(() => {
+          resumedActorCalls += 1;
         }),
-      ),
-    ).toStrictEqual([
-      {
-        actorReuseSourceAttemptId: null,
-        judgeReuseSourceAttemptId: null,
-        trialId: 'initial',
-      },
-    ]);
-    expect(resumedActorCallsByCase.get('evaluate-aligned-project')).toBeUndefined();
-    expect(resumedJudgeCalls).toBe(0);
-    expect(resumedOutcome.result.stages.find(({ id }) => id === actorStageId)).toMatchObject({
-      status: 'passed',
-      reuseSourceAttemptId: null,
-    });
-    expect(
-      resumedOutcome.result.stages
-        .filter(({ id }) => id.includes('evaluate-aligned-project:trial:confirmation-'))
-        .every(({ status }) => status === 'skipped'),
-    ).toBe(true);
-  }, 120_000);
+        resumeAttemptId: stoppedOutcome.result.attemptId,
+        resumeStoppedStage: true,
+        operationalRetry: {
+          now: () => '2026-08-28T12:01:00.000Z',
+          random: () => 1,
+          wait: () => Promise.reject(new Error('Explicit resume cannot schedule a new retry.')),
+        },
+        resultsRoot,
+        workerCount: 1,
+      });
 
-  test('marks model-owned dry-run requirements as not evaluated without calling a judge', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-recovery-'));
-    const skillRepository = path.join(temporaryRoot, 'skill-repository');
-    const resultsRoot = path.join(temporaryRoot, 'results');
-    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
-    await executeProcess({
-      command: 'git',
-      args: ['init', '--initial-branch=main'],
-      cwd: skillRepository,
-    });
-    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
-    await executeProcess({
-      command: 'git',
-      args: [
-        '-c',
-        'commit.gpgsign=false',
-        '-c',
-        'user.name=moldea qualification',
-        '-c',
-        'user.email=qualification@moldea.local',
-        'commit',
-        '-m',
-        'test: establish recovery skill fixture',
-      ],
-      cwd: skillRepository,
-    });
+      expect(restoppedOutcome.result.status).toBe('incomplete');
+      expect(resumedActorCalls).toBe(1);
+      expect(restoppedOutcome.result.stages.find(({ id }) => id === actorStageId)).toMatchObject({
+        status: 'stopped',
+        hasUsedOperationalStopResume: true,
+        operationalStops: [
+          { category: 'timed-out', failureCount: 2 },
+          { category: 'timed-out', failureCount: 2 },
+        ],
+      });
 
-    let judgeCalls = 0;
-    const host = new FakeCodexHost({
-      judge: () => {
-        judgeCalls += 1;
-        return Promise.reject(new Error('Dry-run judge must not execute.'));
-      },
-    });
-    const outcome = await runQualification({
-      host,
-      selection: { adapterId: 'custom', implementationId: 'custom' },
-      skillRepository,
-      isDryRun: true,
-      resultsRoot,
-    });
-    temporaryAttemptDirectory = outcome.attemptDirectory;
-    const firstCase = outcome.result.cases[0];
+      await expect(
+        runQualification({
+          host: new FakeCodexHost(),
+          resumeAttemptId: stoppedOutcome.result.attemptId,
+          resumeStoppedStage: true,
+          resultsRoot,
+          workerCount: 1,
+        }),
+      ).rejects.toThrow('already used its one explicit resume');
+    },
+  );
 
-    expect(outcome.result.status).toBe('passed');
-    expect(outcome.wasRecorded).toBe(false);
-    expect(judgeCalls).toBe(0);
-    expect(firstCase).toMatchObject({
-      caseId: 'evaluate-aligned-project',
-      status: 'passed',
-      confirmationStatus: 'not-required',
-      failures: [],
-    });
-    expect(
-      firstCase?.trials[0]?.requirementAssessments.some(
-        ({ evaluator, verdict }) => evaluator === 'judge' && verdict === 'not-evaluated',
-      ),
-    ).toBe(true);
-    expect(
-      outcome.result.stages
-        .filter(({ id }) => id.includes('evaluate-aligned-project:trial:confirmation-'))
-        .every(({ status }) => status === 'skipped'),
-    ).toBe(true);
-  }, 120_000);
+  test(
+    'resumes a completed dry-run actor stage without invoking a judge',
+    { tags: ['ci-executor-3'], timeout: 120_000 },
+    async () => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-stage-resume-'));
+      const skillRepository = path.join(temporaryRoot, 'skill-repository');
+      const resultsRoot = path.join(temporaryRoot, 'results');
+      await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+      await executeProcess({
+        command: 'git',
+        args: ['init', '--initial-branch=main'],
+        cwd: skillRepository,
+      });
+      await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+      await executeProcess({
+        command: 'git',
+        args: [
+          '-c',
+          'commit.gpgsign=false',
+          '-c',
+          'user.name=moldea qualification',
+          '-c',
+          'user.email=qualification@moldea.local',
+          'commit',
+          '-m',
+          'test: establish stage recovery fixture',
+        ],
+        cwd: skillRepository,
+      });
 
-  test('judges cumulative overages but skips output-volume overages', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-judge-gate-'));
-    const skillRepository = path.join(temporaryRoot, 'skill-repository');
-    temporaryResultsRoot = await mkdtemp(path.join(QUALIFICATION_ROOT, '.qualification-results-'));
-    const resultsRoot = temporaryResultsRoot;
-    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
-    await executeProcess({
-      command: 'git',
-      args: ['init', '--initial-branch=main'],
-      cwd: skillRepository,
-    });
-    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
-    await executeProcess({
-      command: 'git',
-      args: [
-        '-c',
-        'commit.gpgsign=false',
-        '-c',
-        'user.name=moldea qualification',
-        '-c',
-        'user.email=qualification@moldea.local',
-        'commit',
-        '-m',
-        'test: establish judge-gate skill fixture',
-      ],
-      cwd: skillRepository,
-    });
+      const abortController = new AbortController();
+      let interruptedActorCalls = 0;
+      let interruptedJudgeCalls = 0;
+      const interruptedHost = new FakeCodexHost({
+        actor: (input) => {
+          interruptedActorCalls += 1;
+          return Promise.resolve({
+            output: {
+              outcome: input.scenario.expectedActorOutcome,
+              summary: `Completed ${input.caseId}.`,
+              changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
+              observations: [],
+              unresolved: [],
+            },
+            usage: null,
+            durationMs: 0,
+            commandPolicy: emptyCommandPolicy,
+            events: '',
+          });
+        },
+        judge: () => {
+          interruptedJudgeCalls += 1;
+          return Promise.reject(new Error('Dry-run judge must not execute.'));
+        },
+      });
+      const interruptedOutcome = await runQualification({
+        host: interruptedHost,
+        selection: { adapterId: 'custom', implementationId: 'custom' },
+        skillRepository,
+        isDryRun: true,
+        onProgress: (progress) => {
+          if (
+            progress.kind === 'trial' &&
+            progress.caseId === 'evaluate-aligned-project' &&
+            progress.trialId === 'initial' &&
+            progress.status === 'completed'
+          ) {
+            abortController.abort(new Error('Stop after the initial completed trial.'));
+            abortController.signal.throwIfAborted();
+          } else if (abortController.signal.aborted) {
+            abortController.signal.throwIfAborted();
+          }
+        },
+        resultsRoot,
+        signal: abortController.signal,
+        workerCount: 1,
+      });
+      temporaryAttemptDirectory = interruptedOutcome.attemptDirectory;
 
-    const inspectRepositoryState = repositoryState.inspectGitRepositoryState;
-    vi.spyOn(repositoryState, 'inspectGitRepositoryState').mockImplementation(
-      async (repositoryRoot, options) => ({
-        ...(await inspectRepositoryState(repositoryRoot, options)),
-        isDirty: false,
-      }),
-    );
+      expect(interruptedOutcome.result.status).toBe('incomplete');
+      expect(interruptedActorCalls).toBe(1);
+      expect(interruptedJudgeCalls).toBe(0);
 
-    const runCase = async (
-      commandPolicy: IQualificationCommandPolicyEvidence,
-    ): Promise<{
-      actorCalls: number;
-      judgeCalls: number;
-      outcome: Awaited<ReturnType<typeof runQualification>>;
-    }> => {
+      const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
+
+      const resumedActorCallsByCase = new Map<string, number>();
+      let resumedJudgeCalls = 0;
+      const resumedHost = new FakeCodexHost({
+        actor: (input) => {
+          resumedActorCallsByCase.set(
+            input.caseId,
+            (resumedActorCallsByCase.get(input.caseId) ?? 0) + 1,
+          );
+          return Promise.resolve({
+            output: {
+              outcome: input.scenario.expectedActorOutcome,
+              summary: `Completed ${input.caseId}.`,
+              changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
+              observations: [],
+              unresolved: [],
+            },
+            usage: null,
+            durationMs: 0,
+            commandPolicy: emptyCommandPolicy,
+            events: '',
+          });
+        },
+        judge: () => {
+          resumedJudgeCalls += 1;
+          return Promise.reject(new Error('Dry-run judge must not execute.'));
+        },
+      });
+      const resumedOutcome = await runQualification({
+        host: resumedHost,
+        resumeAttemptId: interruptedOutcome.result.attemptId,
+        resultsRoot,
+      });
+      const resumedCase = resumedOutcome.result.cases[0];
+
+      expect(resumedOutcome.result.status).toBe('passed');
+      expect(resumedCase).toMatchObject({
+        caseId: 'evaluate-aligned-project',
+        confirmationStatus: 'not-required',
+        status: 'passed',
+      });
+      expect(
+        resumedCase?.trials.map(
+          ({ actorReuseSourceAttemptId, judgeReuseSourceAttemptId, trialId }) => ({
+            actorReuseSourceAttemptId,
+            judgeReuseSourceAttemptId,
+            trialId,
+          }),
+        ),
+      ).toStrictEqual([
+        {
+          actorReuseSourceAttemptId: null,
+          judgeReuseSourceAttemptId: null,
+          trialId: 'initial',
+        },
+      ]);
+      expect(resumedActorCallsByCase.get('evaluate-aligned-project')).toBeUndefined();
+      expect(resumedJudgeCalls).toBe(0);
+      expect(resumedOutcome.result.stages.find(({ id }) => id === actorStageId)).toMatchObject({
+        status: 'passed',
+        reuseSourceAttemptId: null,
+      });
+      expect(
+        resumedOutcome.result.stages
+          .filter(({ id }) => id.includes('evaluate-aligned-project:trial:confirmation-'))
+          .every(({ status }) => status === 'skipped'),
+      ).toBe(true);
+    },
+  );
+
+  test(
+    'marks model-owned dry-run requirements as not evaluated without calling a judge',
+    { tags: ['ci-executor-2'], timeout: 120_000 },
+    async () => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-recovery-'));
+      const skillRepository = path.join(temporaryRoot, 'skill-repository');
+      const resultsRoot = path.join(temporaryRoot, 'results');
+      await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+      await executeProcess({
+        command: 'git',
+        args: ['init', '--initial-branch=main'],
+        cwd: skillRepository,
+      });
+      await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+      await executeProcess({
+        command: 'git',
+        args: [
+          '-c',
+          'commit.gpgsign=false',
+          '-c',
+          'user.name=moldea qualification',
+          '-c',
+          'user.email=qualification@moldea.local',
+          'commit',
+          '-m',
+          'test: establish recovery skill fixture',
+        ],
+        cwd: skillRepository,
+      });
+
+      let judgeCalls = 0;
+      const host = new FakeCodexHost({
+        judge: () => {
+          judgeCalls += 1;
+          return Promise.reject(new Error('Dry-run judge must not execute.'));
+        },
+      });
+      const outcome = await runQualification({
+        host,
+        selection: { adapterId: 'custom', implementationId: 'custom' },
+        skillRepository,
+        isDryRun: true,
+        resultsRoot,
+      });
+      temporaryAttemptDirectory = outcome.attemptDirectory;
+      const firstCase = outcome.result.cases[0];
+
+      expect(outcome.result.status).toBe('passed');
+      expect(outcome.wasRecorded).toBe(false);
+      expect(judgeCalls).toBe(0);
+      expect(firstCase).toMatchObject({
+        caseId: 'evaluate-aligned-project',
+        status: 'passed',
+        confirmationStatus: 'not-required',
+        failures: [],
+      });
+      expect(
+        firstCase?.trials[0]?.requirementAssessments.some(
+          ({ evaluator, verdict }) => evaluator === 'judge' && verdict === 'not-evaluated',
+        ),
+      ).toBe(true);
+      expect(
+        outcome.result.stages
+          .filter(({ id }) => id.includes('evaluate-aligned-project:trial:confirmation-'))
+          .every(({ status }) => status === 'skipped'),
+      ).toBe(true);
+    },
+  );
+
+  test(
+    'judges cumulative overages but skips output-volume overages',
+    { tags: ['ci-executor-1'], timeout: 120_000 },
+    async () => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-judge-gate-'));
+      const skillRepository = path.join(temporaryRoot, 'skill-repository');
+      temporaryResultsRoot = await mkdtemp(
+        path.join(QUALIFICATION_ROOT, '.qualification-results-'),
+      );
+      const resultsRoot = temporaryResultsRoot;
+      await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+      await executeProcess({
+        command: 'git',
+        args: ['init', '--initial-branch=main'],
+        cwd: skillRepository,
+      });
+      await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+      await executeProcess({
+        command: 'git',
+        args: [
+          '-c',
+          'commit.gpgsign=false',
+          '-c',
+          'user.name=moldea qualification',
+          '-c',
+          'user.email=qualification@moldea.local',
+          'commit',
+          '-m',
+          'test: establish judge-gate skill fixture',
+        ],
+        cwd: skillRepository,
+      });
+
+      const inspectRepositoryState = repositoryState.inspectGitRepositoryState;
+      vi.spyOn(repositoryState, 'inspectGitRepositoryState').mockImplementation(
+        async (repositoryRoot, options) => ({
+          ...(await inspectRepositoryState(repositoryRoot, options)),
+          isDirty: false,
+        }),
+      );
+
+      const runCase = async (
+        commandPolicy: IQualificationCommandPolicyEvidence,
+      ): Promise<{
+        actorCalls: number;
+        judgeCalls: number;
+        outcome: Awaited<ReturnType<typeof runQualification>>;
+      }> => {
+        let actorCalls = 0;
+        let judgeCalls = 0;
+        const usage = { cachedInputTokens: 0, inputTokens: 1, outputTokens: 1 };
+        const host = new FakeCodexHost({
+          actor: (input) => {
+            actorCalls += 1;
+            return Promise.resolve({
+              output: {
+                outcome: input.scenario.expectedActorOutcome,
+                summary: `Completed ${input.caseId}.`,
+                changedFiles: [],
+                observations: [],
+                unresolved: [],
+              },
+              usage,
+              durationMs: 0,
+              commandPolicy,
+              events: '',
+            });
+          },
+          judge: (input) => {
+            judgeCalls += 1;
+            return Promise.resolve({
+              output: {
+                verdict: 'pass',
+                summary: `Accepted ${input.caseId}.`,
+                requirements: input.scenario.judgeRequirements
+                  .filter((requirement) => requirement.evaluation.kind === 'judge')
+                  .map(({ id }) => ({
+                    id,
+                    verdict: 'pass' as const,
+                    evidence: 'The deterministic fixture evidence passed.',
+                  })),
+                failures: [],
+              },
+              usage,
+              durationMs: 0,
+              commandPolicy: emptyCommandPolicy,
+              events: '',
+            });
+          },
+        });
+        const outcome = await runQualification({
+          caseId: 'evaluate-aligned-project',
+          host,
+          mode: 'diagnostic',
+          requestPaidExecutionApproval: () => Promise.resolve(true),
+          resultsRoot,
+          selection: { adapterId: 'custom', implementationId: 'custom' },
+          skillRepository,
+          reuseEvidence: false,
+        });
+
+        return { actorCalls, judgeCalls, outcome };
+      };
+      const cumulativeCommandPolicy = {
+        ...emptyCommandPolicy,
+        completedCommandCount: MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCompletedCommandCount + 1,
+      };
+      const cumulative = await runCase(cumulativeCommandPolicy);
+      temporaryAttemptDirectory = cumulative.outcome.attemptDirectory;
+
+      expect(cumulative.outcome.result.status).toBe('failed');
+      expect(cumulative.actorCalls).toBe(1);
+      expect(cumulative.judgeCalls).toBe(1);
+      expect(
+        cumulative.outcome.result.cases[0]?.trials.every(
+          ({ failures, judgeStatus, passed }) =>
+            !passed &&
+            judgeStatus === 'completed' &&
+            failures.some((failure) => failure.includes('exceeded completed-host-commands')),
+        ),
+      ).toBe(true);
+
+      await rm(cumulative.outcome.attemptDirectory, { force: true, recursive: true });
+      temporaryAttemptDirectory = null;
+      const outputVolume = await runCase({
+        ...emptyCommandPolicy,
+        completedCommandCount: 1,
+        maximumCommandOutputByteCount:
+          MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes + 1,
+        modelVisibleToolOutputByteCount:
+          MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes + 1,
+      });
+      temporaryAttemptDirectory = outputVolume.outcome.attemptDirectory;
+
+      expect(outputVolume.outcome.result.status, outputVolume.outcome.result.summary).toBe(
+        'failed',
+      );
+      expect(outputVolume.actorCalls).toBe(1);
+      expect(outputVolume.judgeCalls).toBe(0);
+      expect(
+        outputVolume.outcome.result.cases[0]?.trials.every(
+          ({ failures, judgeStatus, passed }) =>
+            !passed &&
+            judgeStatus === 'skipped' &&
+            failures.some((failure) => failure.includes('exceeded maximum-command-output-bytes')),
+        ),
+      ).toBe(true);
+    },
+  );
+
+  test(
+    'terminates after an observed actor command-policy violation',
+    { tags: ['ci-executor-4'], timeout: 120_000 },
+    async () => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-actor-policy-'));
+      const skillRepository = path.join(temporaryRoot, 'skill-repository');
+      const resultsRoot = path.join(temporaryRoot, 'results');
+      await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+      await executeProcess({
+        command: 'git',
+        args: ['init', '--initial-branch=main'],
+        cwd: skillRepository,
+      });
+      await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+      await executeProcess({
+        command: 'git',
+        args: [
+          '-c',
+          'commit.gpgsign=false',
+          '-c',
+          'user.name=moldea qualification',
+          '-c',
+          'user.email=qualification@moldea.local',
+          'commit',
+          '-m',
+          'test: establish command-policy skill fixture',
+        ],
+        cwd: skillRepository,
+      });
+
       let actorCalls = 0;
       let judgeCalls = 0;
-      const usage = { cachedInputTokens: 0, inputTokens: 1, outputTokens: 1 };
       const host = new FakeCodexHost({
         actor: (input) => {
           actorCalls += 1;
@@ -1000,294 +1166,174 @@ describe('qualification execution', () => {
             output: {
               outcome: input.scenario.expectedActorOutcome,
               summary: `Completed ${input.caseId}.`,
-              changedFiles: [],
+              changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
               observations: [],
               unresolved: [],
             },
-            usage,
+            usage: null,
             durationMs: 0,
-            commandPolicy,
+            commandPolicy: {
+              ...emptyCommandPolicy,
+              completedCommandCount: 1,
+              sensitiveAccess: {
+                status: 'observed',
+                observedCount: 1,
+                indeterminateCount: 0,
+                reasons: [{ code: 'evaluator-home', count: 1 }],
+              },
+            },
             events: '',
           });
         },
-        judge: (input) => {
+        judge: () => {
           judgeCalls += 1;
+          return Promise.reject(new Error('Actor policy failure must skip the judge.'));
+        },
+      });
+      const outcome = await runQualification({
+        host,
+        selection: { adapterId: 'custom', implementationId: 'custom' },
+        skillRepository,
+        isDryRun: true,
+        resultsRoot,
+      });
+      temporaryAttemptDirectory = outcome.attemptDirectory;
+      const failedCase = outcome.result.cases[0];
+
+      expect(outcome.result.status, outcome.result.summary).toBe('failed');
+      expect(outcome.wasRecorded).toBe(false);
+      expect(actorCalls).toBe(12);
+      expect(judgeCalls).toBe(0);
+      expect(failedCase).toMatchObject({
+        caseId: 'evaluate-aligned-project',
+        status: 'failed',
+        confirmationStatus: 'not-applicable',
+      });
+      expect(failedCase?.trials).toHaveLength(1);
+      expect(
+        failedCase?.trials.every(
+          ({ confirmationEligible, dimensions, failures, judgeStatus, passed }) =>
+            !passed &&
+            !confirmationEligible &&
+            !dimensions.commandPolicy &&
+            dimensions.repositoryControl &&
+            dimensions.mountIntegrity &&
+            judgeStatus === 'skipped' &&
+            failures.includes(
+              'Actor command policy observed prohibited credential, network, or sensitive evaluator access.',
+            ),
+        ),
+      ).toBe(true);
+    },
+  );
+
+  test(
+    'skips every judge call after deterministic or workspace failure',
+    { tags: ['ci-executor-4'], timeout: 120_000 },
+    async () => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-judge-skip-'));
+      const skillRepository = path.join(temporaryRoot, 'skill-repository');
+      const resultsRoot = path.join(temporaryRoot, 'results');
+      await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+      await executeProcess({
+        command: 'git',
+        args: ['init', '--initial-branch=main'],
+        cwd: skillRepository,
+      });
+      await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+      await executeProcess({
+        command: 'git',
+        args: [
+          '-c',
+          'commit.gpgsign=false',
+          '-c',
+          'user.name=moldea qualification',
+          '-c',
+          'user.email=qualification@moldea.local',
+          'commit',
+          '-m',
+          'test: establish judge-skip skill fixture',
+        ],
+        cwd: skillRepository,
+      });
+
+      let actorCalls = 0;
+      let judgeCalls = 0;
+      const host = new FakeCodexHost({
+        actor: (input) => {
+          actorCalls += 1;
           return Promise.resolve({
             output: {
-              verdict: 'pass',
-              summary: `Accepted ${input.caseId}.`,
-              requirements: input.scenario.judgeRequirements
-                .filter((requirement) => requirement.evaluation.kind === 'judge')
-                .map(({ id }) => ({
-                  id,
-                  verdict: 'pass' as const,
-                  evidence: 'The deterministic fixture evidence passed.',
-                })),
-              failures: [],
+              outcome: input.scenario.expectedActorOutcome,
+              summary: `Intentionally failed ${input.caseId}.`,
+              changedFiles: ['README.md'],
+              observations: [],
+              unresolved: [],
             },
-            usage,
+            usage: null,
             durationMs: 0,
             commandPolicy: emptyCommandPolicy,
             events: '',
           });
         },
+        judge: () => {
+          judgeCalls += 1;
+          return Promise.reject(new Error('Judge must not run after deterministic failure.'));
+        },
       });
       const outcome = await runQualification({
-        caseId: 'evaluate-aligned-project',
         host,
-        mode: 'diagnostic',
-        requestPaidExecutionApproval: () => Promise.resolve(true),
-        resultsRoot,
         selection: { adapterId: 'custom', implementationId: 'custom' },
         skillRepository,
-        reuseEvidence: false,
+        isDryRun: true,
+        resultsRoot,
       });
+      temporaryAttemptDirectory = outcome.attemptDirectory;
 
-      return { actorCalls, judgeCalls, outcome };
-    };
-    const cumulativeCommandPolicy = {
-      ...emptyCommandPolicy,
-      completedCommandCount: MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCompletedCommandCount + 1,
-    };
-    const cumulative = await runCase(cumulativeCommandPolicy);
-    temporaryAttemptDirectory = cumulative.outcome.attemptDirectory;
-
-    expect(cumulative.outcome.result.status).toBe('failed');
-    expect(cumulative.actorCalls).toBe(1);
-    expect(cumulative.judgeCalls).toBe(1);
-    expect(
-      cumulative.outcome.result.cases[0]?.trials.every(
-        ({ failures, judgeStatus, passed }) =>
-          !passed &&
-          judgeStatus === 'completed' &&
-          failures.some((failure) => failure.includes('exceeded completed-host-commands')),
-      ),
-    ).toBe(true);
-
-    await rm(cumulative.outcome.attemptDirectory, { force: true, recursive: true });
-    temporaryAttemptDirectory = null;
-    const outputVolume = await runCase({
-      ...emptyCommandPolicy,
-      completedCommandCount: 1,
-      maximumCommandOutputByteCount:
-        MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes + 1,
-      modelVisibleToolOutputByteCount:
-        MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes + 1,
-    });
-    temporaryAttemptDirectory = outputVolume.outcome.attemptDirectory;
-
-    expect(outputVolume.outcome.result.status, outputVolume.outcome.result.summary).toBe('failed');
-    expect(outputVolume.actorCalls).toBe(1);
-    expect(outputVolume.judgeCalls).toBe(0);
-    expect(
-      outputVolume.outcome.result.cases[0]?.trials.every(
-        ({ failures, judgeStatus, passed }) =>
-          !passed &&
-          judgeStatus === 'skipped' &&
-          failures.some((failure) => failure.includes('exceeded maximum-command-output-bytes')),
-      ),
-    ).toBe(true);
-  }, 120_000);
-
-  test('terminates after an observed actor command-policy violation', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-actor-policy-'));
-    const skillRepository = path.join(temporaryRoot, 'skill-repository');
-    const resultsRoot = path.join(temporaryRoot, 'results');
-    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
-    await executeProcess({
-      command: 'git',
-      args: ['init', '--initial-branch=main'],
-      cwd: skillRepository,
-    });
-    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
-    await executeProcess({
-      command: 'git',
-      args: [
-        '-c',
-        'commit.gpgsign=false',
-        '-c',
-        'user.name=moldea qualification',
-        '-c',
-        'user.email=qualification@moldea.local',
-        'commit',
-        '-m',
-        'test: establish command-policy skill fixture',
-      ],
-      cwd: skillRepository,
-    });
-
-    let actorCalls = 0;
-    let judgeCalls = 0;
-    const host = new FakeCodexHost({
-      actor: (input) => {
-        actorCalls += 1;
-        return Promise.resolve({
-          output: {
-            outcome: input.scenario.expectedActorOutcome,
-            summary: `Completed ${input.caseId}.`,
-            changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
-            observations: [],
-            unresolved: [],
-          },
-          usage: null,
-          durationMs: 0,
-          commandPolicy: {
-            ...emptyCommandPolicy,
-            completedCommandCount: 1,
-            sensitiveAccess: {
-              status: 'observed',
-              observedCount: 1,
-              indeterminateCount: 0,
-              reasons: [{ code: 'evaluator-home', count: 1 }],
-            },
-          },
-          events: '',
-        });
-      },
-      judge: () => {
-        judgeCalls += 1;
-        return Promise.reject(new Error('Actor policy failure must skip the judge.'));
-      },
-    });
-    const outcome = await runQualification({
-      host,
-      selection: { adapterId: 'custom', implementationId: 'custom' },
-      skillRepository,
-      isDryRun: true,
-      resultsRoot,
-    });
-    temporaryAttemptDirectory = outcome.attemptDirectory;
-    const failedCase = outcome.result.cases[0];
-
-    expect(outcome.result.status, outcome.result.summary).toBe('failed');
-    expect(outcome.wasRecorded).toBe(false);
-    expect(actorCalls).toBe(12);
-    expect(judgeCalls).toBe(0);
-    expect(failedCase).toMatchObject({
-      caseId: 'evaluate-aligned-project',
-      status: 'failed',
-      confirmationStatus: 'not-applicable',
-    });
-    expect(failedCase?.trials).toHaveLength(1);
-    expect(
-      failedCase?.trials.every(
-        ({ confirmationEligible, dimensions, failures, judgeStatus, passed }) =>
-          !passed &&
-          !confirmationEligible &&
-          !dimensions.commandPolicy &&
-          dimensions.repositoryControl &&
-          dimensions.mountIntegrity &&
-          judgeStatus === 'skipped' &&
-          failures.includes(
-            'Actor command policy observed prohibited credential, network, or sensitive evaluator access.',
-          ),
-      ),
-    ).toBe(true);
-  }, 120_000);
-
-  test('skips every judge call after deterministic or workspace failure', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-judge-skip-'));
-    const skillRepository = path.join(temporaryRoot, 'skill-repository');
-    const resultsRoot = path.join(temporaryRoot, 'results');
-    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
-    await executeProcess({
-      command: 'git',
-      args: ['init', '--initial-branch=main'],
-      cwd: skillRepository,
-    });
-    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
-    await executeProcess({
-      command: 'git',
-      args: [
-        '-c',
-        'commit.gpgsign=false',
-        '-c',
-        'user.name=moldea qualification',
-        '-c',
-        'user.email=qualification@moldea.local',
-        'commit',
-        '-m',
-        'test: establish judge-skip skill fixture',
-      ],
-      cwd: skillRepository,
-    });
-
-    let actorCalls = 0;
-    let judgeCalls = 0;
-    const host = new FakeCodexHost({
-      actor: (input) => {
-        actorCalls += 1;
-        return Promise.resolve({
-          output: {
-            outcome: input.scenario.expectedActorOutcome,
-            summary: `Intentionally failed ${input.caseId}.`,
-            changedFiles: ['README.md'],
-            observations: [],
-            unresolved: [],
-          },
-          usage: null,
-          durationMs: 0,
-          commandPolicy: emptyCommandPolicy,
-          events: '',
-        });
-      },
-      judge: () => {
-        judgeCalls += 1;
-        return Promise.reject(new Error('Judge must not run after deterministic failure.'));
-      },
-    });
-    const outcome = await runQualification({
-      host,
-      selection: { adapterId: 'custom', implementationId: 'custom' },
-      skillRepository,
-      isDryRun: true,
-      resultsRoot,
-    });
-    temporaryAttemptDirectory = outcome.attemptDirectory;
-
-    expect(outcome.result.status).toBe('failed');
-    expect(outcome.wasRecorded).toBe(false);
-    expect(actorCalls).toBe(12);
-    expect(judgeCalls).toBe(0);
-    expect(
-      outcome.result.cases.every(
-        ({ confirmationStatus, trials }) =>
-          confirmationStatus === 'not-applicable' &&
-          trials.length === 1 &&
-          trials.every(
-            ({ confirmationEligible, dimensions }) =>
-              !confirmationEligible && !dimensions.mountIntegrity,
-          ),
-      ),
-    ).toBe(true);
-    expect(
-      outcome.result.stages
-        .filter(
-          ({ id }) => id.startsWith('case:evaluate-aligned-project:') && id.endsWith(':judge'),
-        )
-        .every(({ status }) => status === 'skipped'),
-    ).toBe(true);
-    expect(
-      outcome.result.cases.every(({ trials }) =>
-        trials.every(({ judgeStatus }) => judgeStatus === 'skipped'),
-      ),
-    ).toBe(true);
-    expect(
-      await readJsonFile(
-        path.join(
-          outcome.attemptDirectory,
-          'public',
-          'cases',
-          'evaluate-aligned-project',
-          'trials',
-          'initial',
-          'judge-skipped.json',
+      expect(outcome.result.status).toBe('failed');
+      expect(outcome.wasRecorded).toBe(false);
+      expect(actorCalls).toBe(12);
+      expect(judgeCalls).toBe(0);
+      expect(
+        outcome.result.cases.every(
+          ({ confirmationStatus, trials }) =>
+            confirmationStatus === 'not-applicable' &&
+            trials.length === 1 &&
+            trials.every(
+              ({ confirmationEligible, dimensions }) =>
+                !confirmationEligible && !dimensions.mountIntegrity,
+            ),
         ),
-        QualificationJudgeSkippedSchema,
-      ),
-    ).toMatchObject({
-      deterministicAfterPassed: true,
-      workspaceAssertionsPassed: false,
-    });
-  }, 120_000);
+      ).toBe(true);
+      expect(
+        outcome.result.stages
+          .filter(
+            ({ id }) => id.startsWith('case:evaluate-aligned-project:') && id.endsWith(':judge'),
+          )
+          .every(({ status }) => status === 'skipped'),
+      ).toBe(true);
+      expect(
+        outcome.result.cases.every(({ trials }) =>
+          trials.every(({ judgeStatus }) => judgeStatus === 'skipped'),
+        ),
+      ).toBe(true);
+      expect(
+        await readJsonFile(
+          path.join(
+            outcome.attemptDirectory,
+            'public',
+            'cases',
+            'evaluate-aligned-project',
+            'trials',
+            'initial',
+            'judge-skipped.json',
+          ),
+          QualificationJudgeSkippedSchema,
+        ),
+      ).toMatchObject({
+        deterministicAfterPassed: true,
+        workspaceAssertionsPassed: false,
+      });
+    },
+  );
 });

@@ -14,6 +14,9 @@ export type ITestSuiteKind = 'integration' | 'unit';
 export const createTestConfig = (suite: ITestSuiteKind): ViteUserConfig =>
   defineConfig({
     test: {
+      tags: ['ci-executor-1', 'ci-executor-2', 'ci-executor-3', 'ci-executor-4'].map((name) => ({
+        name,
+      })),
       clearMocks: true,
       environment: 'node',
       exclude: [

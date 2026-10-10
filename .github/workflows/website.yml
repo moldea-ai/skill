@@ -6,21 +6,6 @@ on:
       - opened
       - synchronize
       - reopened
-    paths:
-      - '.github/workflows/pages.yml'
-      - '.github/workflows/website.yml'
-      - 'assets/**'
-      - 'CNAME'
-      - 'docs/**'
-      - 'evidence/**'
-      - 'fixtures/conformance-cases.json'
-      - 'moldea/**'
-      - 'package-lock.json'
-      - 'package.json'
-      - 'qualification/**'
-      - 'README.md'
-      - 'src/**'
-      - 'website/**'
 
 permissions:
   contents: read
@@ -37,8 +22,8 @@ env:
   NODE_VERSION: 24.15.0
 
 jobs:
-  verify:
-    name: Verify Website
+  checks:
+    name: Website checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -83,3 +68,15 @@ jobs:
 
       - name: Test browser behavior
         run: npm --workspace website run test:e2e
+
+  verify:
+    name: Verify Website
+    if: always()
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require website checks to succeed
+        env:
+          CHECKS: ${{ needs.checks.result }}
+        run: test "$CHECKS" = success

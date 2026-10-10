@@ -1,12 +1,18 @@
 // @vitest-environment node
+import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
+
+import { readReleaseIdentity } from '../../release/index.ts';
 
 import { parseResponsePage, verifyAndSaveResponse, type IResponseIdentity } from './index.ts';
 
-const identity = { command: 'content' as const, cliVersion: '9.0.1' };
+const { cliJsonSchemaVersion, cliVersion } = readReleaseIdentity(
+  resolve(import.meta.dirname, '../../..'),
+);
+const identity = { command: 'content' as const, cliVersion };
 const page = {
-  schemaVersion: 5,
-  cliVersion: '9.0.1',
+  schemaVersion: cliJsonSchemaVersion,
+  cliVersion,
   command: 'content',
   status: 'valid',
   error: null,
@@ -50,7 +56,7 @@ test.each([
   ['truncated JSON', Buffer.from('{')],
   ['invalid UTF-8', Buffer.from([0xff])],
   ['oversized', Buffer.alloc(1_048_577)],
-  ['schema', encode({ ...page, schemaVersion: 4 })],
+  ['schema', encode({ ...page, schemaVersion: cliJsonSchemaVersion - 1 })],
   ['version', encode({ ...page, cliVersion: '9.0.2' })],
   ['command', encode({ ...page, command: 'validate' })],
   ['error', encode({ ...page, status: 'error', error: {}, result: null })],
@@ -121,7 +127,7 @@ test.each([
   ['valid with array result', { ...page, result: [] }, 0],
   ['error with null error', { ...page, status: 'error', result: null }, 3],
   ['unsupported status', { ...page, status: 'success' }, 0],
-  ['schema mismatch', { ...page, schemaVersion: 6 }, 0],
+  ['schema mismatch', { ...page, schemaVersion: cliJsonSchemaVersion + 1 }, 0],
   ['version mismatch', { ...page, cliVersion: '9.0.2' }, 0],
   ['command mismatch', { ...page, command: 'scope' }, 0],
 ] as const)('rejects %s without capture', async (_description, response, exitCode) => {

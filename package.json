@@ -1,6 +1,29 @@
 {
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@moldea.ai/cli": "10.0.0",
+    "@moldea.ai/website-ui": "1.13.0",
+    "@types/node": "22.20.1",
+    "@types/semver": "7.8.0",
+    "esbuild": "0.28.2",
+    "eslint": "10.8.1",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.9.0",
+    "prettier": "3.9.6",
+    "semver": "7.8.5",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.66.0",
+    "vitest": "4.1.11",
+    "web-utils-kit": "1.3.1",
+    "yaml": "2.9.0",
+    "zod": "4.3.6"
+  },
+  "moldeaRelease": {
+    "cliJsonSchemaVersion": 6,
+    "coreVersionRange": "^6.0.0"
+  },
+  "version": "7.0.0",
   "name": "@moldea.ai/skill-conformance",
-  "version": "6.0.6",
   "private": true,
   "description": "Development-only conformance checks for the moldea Agent Skill.",
   "type": "module",
@@ -12,11 +35,8 @@
     "node": "^24.15.0",
     "npm": ">=10.9.0"
   },
-  "moldeaRelease": {
-    "cliJsonSchemaVersion": 5,
-    "coreVersionRange": "^5.0.0"
-  },
   "scripts": {
+    "candidate:prepare": "node src/packages/skill-candidate.ts",
     "docs:check": "npm --workspace website run docs:check",
     "docs:generate": "npm --workspace website run docs:generate",
     "evidence:pack": "node src/command-line/evidence.ts pack",
@@ -67,24 +87,5 @@
     "website:build": "npm --workspace website run build",
     "website:check": "npm --workspace website run check",
     "website:dev": "npm --workspace website run dev"
-  },
-  "devDependencies": {
-    "@eslint/js": "10.0.1",
-    "@moldea.ai/cli": "9.0.1",
-    "@moldea.ai/website-ui": "1.13.0",
-    "@types/node": "22.20.1",
-    "@types/semver": "7.8.0",
-    "esbuild": "0.28.2",
-    "eslint": "10.8.1",
-    "eslint-config-prettier": "10.1.8",
-    "globals": "17.9.0",
-    "prettier": "3.9.6",
-    "semver": "7.8.5",
-    "typescript": "6.0.3",
-    "typescript-eslint": "8.66.0",
-    "vitest": "4.1.11",
-    "web-utils-kit": "1.3.1",
-    "yaml": "2.9.0",
-    "zod": "4.3.6"
   }
 }

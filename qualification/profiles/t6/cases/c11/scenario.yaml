@@ -17,13 +17,18 @@ inspection:
 deterministicEvidence:
   before:
     errorCount: 1
-    warningCount: 0
-    requiredDiagnosticCodes: [EVE_SDK_FEATURE_UNAVAILABLE]
+    warningCount: 1
+    requiredDiagnosticCodes: [EVE_SDK_FEATURE_UNAVAILABLE, EVE_RUNTIME_RELATIONSHIP_UNVERIFIED]
     forbiddenDiagnosticCodes: [EVE_AGENT_OUTPUT_SCHEMA_SYMBOL_NOT_FOUND]
     requiredDiagnostics:
       - code: EVE_SDK_FEATURE_UNAVAILABLE
         severity: error
         agentId: support
+      - code: EVE_RUNTIME_RELATIONSHIP_UNVERIFIED
+        severity: warning
+        agentId: support
+        relationship: runtime-agent
+        reason: unsupported-source-pattern
     requiredEvidenceKinds: [language, runtime-package]
     forbiddenEvidenceKinds: [schema]
   after:

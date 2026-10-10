@@ -5,6 +5,9 @@ import path from 'node:path';
 import { afterEach, expect, test } from 'vitest';
 
 import type { ICandidateClosure } from '../contracts/index.ts';
+import { discoverQualificationProfileCases } from '../profiles/index.ts';
+import { loadQualificationProfileIndex } from '../storage/index.ts';
+import { copyDirectory, resolveContainedPath } from '../../../src/filesystem/index.ts';
 
 import { verifyDeterministicProject } from './verifier.ts';
 import { inspectDeterministicSelectors } from './validations.ts';
@@ -93,8 +96,17 @@ test('real Repository FS, memory, Core, and CLI reject an incorrect evidence sel
   };
   const expectedEvidence = {
     errorCount: 0,
-    warningCount: 0,
-    requiredDiagnosticCodes: [],
+    warningCount: 1,
+    requiredDiagnosticCodes: ['CUSTOM_RUNTIME_RELATIONSHIP_UNVERIFIED'],
+    requiredDiagnostics: [
+      {
+        code: 'CUSTOM_RUNTIME_RELATIONSHIP_UNVERIFIED',
+        severity: 'warning' as const,
+        agentId: 'support',
+        relationship: 'runtime-agent' as const,
+        reason: 'unsupported-source-pattern' as const,
+      },
+    ],
     forbiddenDiagnosticCodes: [],
     requiredEvidenceKinds: [],
     forbiddenEvidenceKinds: [],
@@ -371,11 +383,24 @@ test.each([
         valid: boolean;
         errorCount: number;
         warningCount: number;
+        diagnostics: Parameters<typeof inspectDeterministicSelectors>[1];
         evidence: Parameters<typeof inspectDeterministicSelectors>[2];
       };
     };
     expect(direct.equivalent).toBe(true);
-    expect(direct.filesystem).toMatchObject({ valid: true, errorCount: 0, warningCount: 0 });
+    expect(direct.filesystem).toMatchObject({ valid: true, errorCount: 0, warningCount: 1 });
+    expect(direct.filesystem.diagnostics).toStrictEqual([
+      {
+        code: `${adapterId.toUpperCase().replaceAll('-', '_')}_RUNTIME_RELATIONSHIP_UNVERIFIED`,
+        severity: 'warning',
+        agentId: 'support',
+        capabilityKind: 'tool',
+        capabilityId: 'lookup-order',
+        relationship: 'tool-implementation',
+        reason: 'unsupported-source-pattern',
+        details: {},
+      },
+    ]);
     expect(
       direct.filesystem.evidence.some(
         (item) =>
@@ -387,5 +412,112 @@ test.each([
           ),
       ),
     ).toBe(true);
+  },
+);
+
+/** Discovers every current model-free fixture contract, including its dirty overlays. */
+const discoverFixtureContracts = async () => {
+  const profilesRoot = path.join(REPOSITORY_ROOT, 'qualification/profiles');
+  const { targets } = await loadQualificationProfileIndex(profilesRoot);
+  const profiles = await Promise.all(
+    targets.map(async ({ key, adapterId }) => {
+      const profileDirectory = resolveContainedPath(profilesRoot, key);
+      const cases = await discoverQualificationProfileCases(profileDirectory);
+      return cases.flatMap(({ profileCase, scenario }) =>
+        (['before', 'after'] as const).map(
+          (phase) =>
+            [
+              key,
+              profileCase.id,
+              phase,
+              adapterId,
+              resolveContainedPath(profileDirectory, profileCase.projectDirectory),
+              scenario,
+            ] as const,
+        ),
+      );
+    }),
+  );
+  return profiles.flat();
+};
+
+test.each(await discoverFixtureContracts())(
+  'current fixture %s/%s (%s) satisfies its declared static evidence',
+  async (_profileKey, _caseId, phase, adapterId, scenarioDirectory, scenario) => {
+    const workspaceDirectory = await mkdtemp(path.join(REPOSITORY_ROOT, 'dist', 'case-proof-'));
+    roots.push(workspaceDirectory);
+    await copyDirectory(
+      resolveContainedPath(scenarioDirectory, scenario.seedDirectory),
+      workspaceDirectory,
+    );
+    if (scenario.overlayDirectory !== undefined) {
+      await copyDirectory(
+        resolveContainedPath(scenarioDirectory, scenario.overlayDirectory),
+        workspaceDirectory,
+        { overwrite: true },
+      );
+    }
+    for (const relativePath of scenario.removePaths) {
+      await rm(resolveContainedPath(workspaceDirectory, relativePath), {
+        recursive: true,
+        force: true,
+      });
+    }
+    if (phase === 'after') {
+      if (scenario.expectedDirectory !== undefined) {
+        await copyDirectory(
+          resolveContainedPath(scenarioDirectory, scenario.expectedDirectory),
+          workspaceDirectory,
+          { overwrite: true },
+        );
+      }
+      for (const relativePath of scenario.expectedRemovePaths) {
+        await rm(resolveContainedPath(workspaceDirectory, relativePath), {
+          recursive: true,
+          force: true,
+        });
+      }
+    }
+    execFileSync('git', ['init', '--quiet'], { cwd: workspaceDirectory });
+    const direct = JSON.parse(
+      execFileSync(
+        process.execPath,
+        [
+          path.join(REPOSITORY_ROOT, 'dist/runtime/qualification-direct-verifier.mjs'),
+          workspaceDirectory,
+          adapterId,
+          adapterId === 'custom' ? 'custom' : `@moldea.ai/adapter-${adapterId}`,
+        ],
+        { cwd: REPOSITORY_ROOT, encoding: 'utf8' },
+      ),
+    ) as {
+      equivalent: boolean;
+      filesystem: {
+        valid: boolean;
+        errorCount: number;
+        warningCount: number;
+        diagnosticCodes: string[];
+        evidenceKinds: string[];
+        diagnostics: Parameters<typeof inspectDeterministicSelectors>[1];
+        evidence: Parameters<typeof inspectDeterministicSelectors>[2];
+      };
+    };
+    const expected = scenario.deterministicEvidence[phase];
+    const actual = direct.filesystem;
+    expect(direct.equivalent).toBe(true);
+    expect(actual.valid).toBe(scenario.inspection[phase] === 'valid');
+    for (const count of ['errorCount', 'warningCount'] as const) {
+      if (expected[count] !== undefined) expect(actual[count]).toBe(expected[count]);
+    }
+    expect(
+      inspectDeterministicSelectors(expected, actual.diagnostics, actual.evidence),
+    ).toStrictEqual([]);
+    for (const code of expected.requiredDiagnosticCodes)
+      expect(actual.diagnosticCodes).toContain(code);
+    for (const code of expected.forbiddenDiagnosticCodes)
+      expect(actual.diagnosticCodes).not.toContain(code);
+    for (const kind of expected.requiredEvidenceKinds) expect(actual.evidenceKinds).toContain(kind);
+    for (const kind of expected.forbiddenEvidenceKinds)
+      expect(actual.evidenceKinds).not.toContain(kind);
   },
 );

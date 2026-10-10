@@ -38,11 +38,11 @@ The resulting correction is the smallest coherent change across all genuinely af
 
 ## Validate
 
-Use validation for deterministic structural evidence:
+Use validation for deterministic repository-format and declared runtime checks:
 
 > Validate the `moldea` project.
 
-Validation runs the root-local CLI's structural boundary through the installed skill's closed launcher. A structurally invalid result is a completed diagnostic result, not an operational failure. Validation does not prove that instructions or skills are useful, runtime behavior consumes them, or implementation semantics match them.
+Validation runs the root-local CLI's repository and registered runtime checks through the installed skill's closed launcher. Confirmed mismatches are errors; unsupported or unresolved static relationships remain scoped warnings. Operational failures mean verification did not complete. A structurally invalid result is a completed diagnostic result, not an operational failure. Validation does not prove that instructions or skills are useful, runtime behavior consumes them, or implementation semantics match them.
 
 If the adoption gate misses, fails, or is unavailable on an explicit setup validation, evaluation, or inspection request, the coding agent first inspects only the README awareness block and canonical foundation files in the target repository. When needed to establish block drift, it compares the README region with the selected skill installation's managed-block asset. All excerpts share a 65,536-byte model-visible limit. It reports the observed setup defect or unavailable evidence without invoking the CLI or writing files. Ordinary unrelated work still abstains silently.
 
@@ -56,9 +56,11 @@ Fix moldea.
 
 No special syntax is required. The coding agent checks the project setup, relationships, instructions, mirrors, runtime integration, and unresolved items. It corrects errors whose intended result is established, runs the relevant checks, and leaves healthy state unchanged.
 
-Repair can diagnose a damaged README block or missing foundation file even when ordinary activation cannot proceed. It must establish prior initialization and the correct replacement before restoring anything. It does not silently initialize a new project, guess missing policy, overwrite unrelated work, or upgrade dependencies. If two policies conflict without a reliable resolution, it asks which governs.
+Repair can diagnose a damaged README block or missing foundation file even when ordinary activation cannot proceed. It must establish prior initialization and the correct replacement before restoring anything. It does not silently initialize a new project, guess missing policy, or overwrite unrelated work. Explicit repair may recover missing, older, incompatible, or broken local CLI tooling to the exact validated target in the selected skill's metadata, using the existing package manager with scripts disabled. Read-only/no-install restrictions and executable-extension stops prevail. Healthy aligned tooling remains unchanged; a healthy newer compatible CLI is preserved with its difference from tested bytes reported. Downgrades and explicit pin conflicts require direction. If two policies conflict without a reliable resolution, it asks which governs.
 
-The result separates **Checked**, **Fixed**, **Verified**, **Needs input**, and **Not checked**. Large projects are checked progressively with bounded output. If a limit or missing evidence prevents complete coverage, the report names what remains. Structural validity is not proof that every runtime behavior works.
+The result separates **Checked**, **Fixed**, **Verified**, **Needs input**, and **Not checked**. Large projects are checked progressively with bounded output. If a limit or missing evidence prevents complete coverage, the report names what remains. A resource failure preserves earlier corrections as unverified. Pagination does not split source parsing, and repair does not automatically rewrite or split healthy source to clear a limit. Deterministic tooling trials verify installation and launcher mechanics; this expanded instruction-led repair behavior has not had fresh model trials.
+
+Structural validity is not proof that every runtime behavior works.
 
 ## Quick comparison
 

@@ -1,30 +1,38 @@
-# Establish missing local tooling
+# Establish or repair local tooling
 
-Use only for explicit initialization or another authorized write-capable moldea operation that requires a missing compatible local CLI. Read-only planning, evaluation, validation, and CLI-availability proof never enter this installation procedure. Project repair does not install or upgrade dependencies.
+Use for explicit initialization, explicit project repair, or another authorized write-capable moldea operation that requires local tooling. Read-only planning, evaluation, validation, availability proof, and updating the skill alone never authorize a project dependency change. Host no-install, trust, and execution restrictions prevail.
 
-## Preflight before initialization analysis
+## Preflight without executing project tooling
 
-Before foundation analysis, inspect `package.json`, its relevant exact lockfile entry when needed, and declared root package metadata as inert data. Establish whether the exact compatible repository-local CLI is declared and independently verified installed. Do not execute a package manager, enumerate dependencies, inspect binary links, or deliberately invoke a failing launcher to rediscover known absence.
+Inspect root `package.json`, the relevant lock entry, and installed CLI/Core package metadata as bounded inert data. Reuse known evidence; do not invoke an ineligible CLI, enumerate dependency trees, inspect executable links, or deliberately fail the launcher to rediscover known absence. Read the exact validated target from the selected installed skill's `metadata.cliRepairVersion`; `cliVersionRange` describes support, not the repair destination. Never substitute npm latest or a version from another skill copy.
 
-If a compatible CLI is already present, skip installation and availability probes. Continue with `continuous-maintenance.md`; its final launcher call still verifies the executable closure.
+Establish the repository's existing manager, lockfile, root development-dependency ownership, supported installed layout, and any explicit version policy. Missing or conflicting manager/manifest evidence requires direction, not an invented setup or manager switch. An exact declaration alone is not evidence of a developer policy forbidding updates; an explicit pin restriction is. Do not modify unrelated dependencies or runtime SDKs.
 
-When installation is required, inspect only the exact package-manager configuration needed to identify repository-supplied executable extensions. For pnpm, inspect `.pnpmfile.cjs` when present or configured. For Yarn, inspect `.yarnrc.yml` and the exact repository plugin path it declares as file data, never by importing or executing it. This preflight does not depend on the developer naming the hazard. An executable extension blocks automatic installation and preempts foundation-sufficiency inspection and questioning.
+Healthy tooling at the validated target needs no install. During repair, verify independently eligible tooling through `local-tooling.md`'s closed launcher `composition`. Preserve a healthy newer compatible CLI and report that its bytes differ from the skill's tested target. Initialization adds no availability probe; its final launcher validation verifies the closure. A downgrade, newer unsupported major, or conflict with an explicit version policy requires direction before changing tooling. An older, missing, incompatible, or broken installation may be recovered to the target when this operation authorizes installation and the target does not require a downgrade. Do not execute the old or broken CLI to diagnose it.
+
+When installation is required, inspect only the exact manager configuration needed to identify repository-supplied executable extensions. For pnpm, inspect `.pnpmfile.cjs` when present or configured. For Yarn, inspect `.yarnrc.yml` and the exact repository plugin path it declares as inert file data. Never import or execute them. An executable extension blocks automatic installation and preempts initialization foundation analysis and questioning.
 
 Return one concise blocked-install result containing all four facts:
 
 1. No compatible exact local CLI was independently verified as installed.
-2. Name the exact configuration and executable hook or plugin that blocks automatic local CLI installation through the named package manager.
-3. State that execution stopped before invoking the package manager.
-4. State that CLI establishment must use the repository's approved trusted setup workflow, preserving its controls; retry moldea after that workflow establishes a compatible repository-local CLI.
+2. Name the configuration and executable hook or plugin that blocks automatic installation through the named manager.
+3. State that execution stopped before invoking the manager.
+4. State that CLI establishment must use the repository's approved trusted setup workflow, preserving its controls; retry moldea after it establishes compatible root-local tooling.
 
-Do not ask a project-purpose question, execute the extension, change configuration, or prescribe removing or disabling hooks or plugins to unblock moldea. Do not switch package managers or installation providers to bypass the stop. If the approved setup workflow is unknown, report that prerequisite without inventing one. This is a stop in automatic moldea setup, not a claim that the extension is malicious or that the repository must remove it.
+Do not ask a project-purpose question, execute the extension, change configuration, or prescribe removing or disabling controls. Do not switch managers or providers to bypass the stop. If the trusted setup workflow is unknown, report the prerequisite without inventing one. This stop does not classify the extension as malicious.
 
-## Install only after a sufficient foundation
+## Install only within established authority
 
-After preflight permits installation, apply `continuous-maintenance.md` to establish sufficient project purpose and boundaries before any dependency change. Insufficient or partial foundations stop with that reference's evidence and clarification result.
+For initialization, apply `continuous-maintenance.md` after preflight and establish sufficient purpose and boundaries before any dependency change. For repair, `project-repair.md` must first establish prior initialization and an evidenced recovery scope. Missing purpose or conflicting policy requires input; package installation cannot resolve it.
 
-For sufficient foundation evidence and authorized installation, use the repository's established package manager and root development-dependency location. Install `@moldea.ai/cli@^9.0.0` with lifecycle scripts disabled and update the ordinary lockfile. Retain a compatible caret declaration or the exact stable version selected by the lockfile. Never load repository-supplied executable extensions, use global or transient providers, weaken host trust controls, or broaden the task into dependency upgrades.
+Use the established manager to install `@moldea.ai/cli` at the exact `cliRepairVersion` as a root development dependency and update the ordinary lockfile. Disable lifecycle scripts: npm uses `install --save-dev --save-exact --ignore-scripts`; pnpm uses `add --save-dev --save-exact --ignore-scripts` with its established root-workspace option when required; Yarn uses `add --dev --exact --mode=skip-build` in a supported node-modules layout. Preserve manager controls and unrelated declarations. Never use a global or transient CLI, hand-edit package links or lock resolution, install adapters independently, or broaden recovery into SDK upgrades.
 
-Complete installation before canonical or managed README writes and the first validation. On failure, preserve and report any package-manager changes and stop before those writes or validation. Do not automatically roll back or claim adoption. An already-present compatible CLI needs no reinstall or extra availability check. For invocation and machine evidence, `local-tooling.md` owns the closed launcher contract.
+For pnpm removal or cleanup, establish the selected version's script-disabling configuration. Not every command accepts `--ignore-scripts`. Use an operation-scoped setting and confirm it is effective before proceeding.
 
-These rules govern only moldea CLI establishment. Host-owned package management, planning, review, and publication remain under the host workflow. Existing host execution controls apply; this reference adds no per-command approval requirement.
+When inert evidence proves a broken installation at the target version, an ordinary add may leave damaged files in place. If permitted by the repository workflow, use the manager's targeted CLI removal and exact re-add with scripts disabled. Some managers retain the removed CLI's damaged files even with a healthy cache. Establish whether the manager needs a supported refetch or relink operation. After scope-verified manager cleanup, pnpm may need a forced exact re-add to restore retained files; disable scripts and establish that unrelated declarations and locked versions will be preserved before using it. Use manager-owned cleanup only when its scope is established and unrelated dependencies will be preserved; otherwise report that prerequisite and stop. Verify unrelated declarations and locked versions remain unchanged. Do not delete dependency trees, edit executable links, or repeat reinstall attempts without new evidence. A failed operation stops recovery and preserves its partial state.
+
+Complete installation and establish eligible package metadata before foundation or managed README writes. Repair additionally verifies launcher `composition` before foundation correction or inspection; initialization retains `continuous-maintenance.md`'s final-validation sequence. Manager exit success or a corrected manifest alone is not proof of a healthy installed closure. PnP-only and other unsupported layouts remain prerequisites for the repository's trusted setup workflow; do not silently reconfigure them.
+
+On failure or interruption, preserve and report partial manifest, lock, and installation changes, the last completed step, and remaining verification. Stop before canonical writes and validation. Do not automatically reinstall, roll back, or claim adoption or repair complete. Resume only after new evidence establishes the current state and safe next step. A healthy repeated repair makes no dependency writes.
+
+Host-owned package management, planning, review, and publication retain their workflows. This reference adds no per-command approval ceremony.

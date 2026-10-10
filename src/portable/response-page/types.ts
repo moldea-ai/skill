@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-// schema 5 identity; payload interpretation remains owned by the CLI
+// schema 6 identity; payload interpretation remains owned by the CLI
 const responseIdentity = {
-  schemaVersion: z.literal(5),
+  schemaVersion: z.literal(6),
   cliVersion: z.string(),
   command: z.enum(['composition', 'content', 'inspect', 'scope', 'validate']),
 };

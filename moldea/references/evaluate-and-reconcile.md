@@ -55,6 +55,8 @@ Assess separately:
 - evidence limitations that prevent a conclusion
 - unrelated invalidity observed incidentally
 
+Keep validation, completed static inspection, and live behavior separate. Confirmed contradictions are errors; unsupported or unresolved static relationships are scoped warnings. An operational error is incomplete verification, never a valid inspection with zero findings. Do not rewrite healthy implementation merely to obtain static proof.
+
 A valid manifest does not prove semantic alignment. A declaration does not prove runtime consumption. A passing test does not prove an instruction activates correctly. State the missing evidence rather than broadening the audit without cause.
 
 When validation is valid with a scoped version-dependent warning, report the independent established facts and leave the warned relationship unverified. If that relationship is the subject of the evaluation, identify the declared range, behavior boundary, and smallest local evidence needed to resolve it. Do not rewrite an eligible range during read-only evaluation or describe the entire project as invalid because of that warning.

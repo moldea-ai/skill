@@ -36,6 +36,8 @@ agents:
         registration:
           path: /agent/skills/triage.ts
           symbol: default
+    mirrors:
+      - /agent/instructions.md
     affectedBy:
       - /agent/**
     unresolved:

@@ -8,20 +8,22 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `6.0.6` supports exactly:
+Release `7.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- stable `@moldea.ai/core` releases satisfying `^5.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^9.0.0`
+- stable `@moldea.ai/core` releases satisfying `^6.0.0`
+- stable `@moldea.ai/cli` releases satisfying `^10.0.0`
 - repository format version 1
-- CLI JSON schema 5
+- CLI JSON schema 6
 
-The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^9.0.0`; compatible CLI 9 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and moldea's supported `^5.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
+The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^10.0.0`; compatible CLI 10 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and moldea's supported `^6.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
 ## Tooling ownership
 
 This page owns CLI invocation and machine-evidence contracts. The tooling-installation reference owns authorized setup. Neither replaces Git, package management, planning, review, commit, or publication procedures owned by the host workflow.
+
+Explicit repair reads its exact CLI recovery target from the selected installed skill's `metadata.cliRepairVersion`, maintained from the locked development CLI. This target is distinct from the supported range. Updating the skill alone changes no project. Healthy aligned tooling is a no-op; healthy newer compatible versions are preserved after composition checks. Downgrades, newer unsupported majors, and explicit pin conflicts need direction.
 
 A write-capable `moldea` operation may establish the compatible dependency through the repository's package manager with lifecycle scripts disabled. Read-only work reports missing or mismatched tooling without changing dependencies, lockfiles, or configuration. Executable package-manager extensions stop automatic setup; the skill reports the obstacle and defers to the repository's trusted workflow instead of weakening host controls.
 
@@ -33,7 +35,7 @@ The pre-activation gate instead uses the Core matcher bundled with the installed
 
 ## Machine output
 
-Compatible stable CLI 9 releases emit schema 5 JSON. Paged commands use `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary. The envelope contains `schemaVersion`, the exact installed `cliVersion`, `command`, `status`, `result`, and `error`.
+Compatible stable CLI 10 releases emit schema 6 JSON. Paged commands use `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary. The envelope contains `schemaVersion`, the exact installed `cliVersion`, `command`, `status`, `result`, and `error`.
 
 Exit codes are:
 
@@ -56,7 +58,7 @@ Cancellation before atomic rename submission preserves the prior checkpoint. A r
 
 ## Resource profiles
 
-Ordinary work uses 65,536-byte pages and stops when the relevant record or diagnostic is available. Aggregate `moldea` output should remain at or below 262,144 bytes. Large repositories use deterministic metadata pagination; an explicitly required large traversal may use more pages, but each CLI invocation remains at or below 1 MiB and stays task-scoped. Page limits bound encoded responses, not repository capacity.
+Ordinary work uses 65,536-byte pages and stops when the relevant record or diagnostic is available. Aggregate `moldea` output should remain at or below 262,144 bytes. Large repositories use deterministic metadata pagination; an explicitly required large traversal may use more pages, but each CLI invocation remains at or below 1 MiB and stays task-scoped. Page limits bound encoded responses, not source parsing. The isolated Node inspection has fixed memory and elapsed-time safeguards. Verified heap exhaustion (`RESOURCE_LIMIT_EXCEEDED`) and elapsed timeout (`INSPECTION_TIMEOUT`) leave verification incomplete; neither establishes faulty application code. Capacity contention (`INSPECTION_BUSY`) and process failure (`INSPECTION_PROCESS_FAILED`) also provide no inspection conclusion. Preserve earlier changes and report remaining checks; do not retry unchanged failures repeatedly or split healthy source automatically.
 
 Qualification scenarios select one operating profile:
 

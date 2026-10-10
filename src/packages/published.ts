@@ -6,6 +6,8 @@ import type { ReadableStreamDefaultReader } from 'node:stream/web';
 import semver from 'semver';
 import { z } from 'zod';
 
+import { parseCompatibleStableRange } from '../release/index.ts';
+
 import { loadCandidateArtifacts } from './artifacts.ts';
 import type {
   IFetchResource,
@@ -20,7 +22,6 @@ const NPM_REGISTRY_ORIGIN = 'https://registry.npmjs.org';
 const NPM_REGISTRY_REQUEST_TIMEOUT_MS = 300_000;
 const MAXIMUM_NPM_REGISTRY_RESPONSE_BYTES = 16 * 1024 * 1024;
 const STABLE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/u;
-const COMPATIBLE_MAJOR_RANGE_PATTERN = /^\^[1-9]\d*\.0\.0$/u;
 const SHA1_PATTERN = /^[a-f0-9]{40}$/u;
 const PublishedPackageSchema = z.object({
   dependencies: z.record(z.string(), z.string()).optional(),
@@ -226,7 +227,7 @@ export const resolvePublishedPackageManifest = async ({
   return parsePublishedPackage(JSON.parse(response.toString('utf8')), packageName, version);
 };
 
-/** Resolves the newest stable release satisfying one canonical compatible-major range. */
+/** Resolves the newest stable release satisfying one stable caret minimum. */
 const resolvePublishedPackageVersion = async ({
   fetchResource,
   packageName,
@@ -238,11 +239,7 @@ const resolvePublishedPackageVersion = async ({
   signal?: AbortSignal | undefined;
   versionRange: string;
 }): Promise<string> => {
-  assert.match(
-    versionRange,
-    COMPATIBLE_MAJOR_RANGE_PATTERN,
-    `${packageName} must use a compatible-major dependency range.`,
-  );
+  parseCompatibleStableRange(versionRange);
   const metadataUrl = `${NPM_REGISTRY_ORIGIN}/${encodeURIComponent(packageName)}`;
   const response = await fetchRegistryResource(metadataUrl, fetchResource, signal);
   const packument = PublishedPackumentSchema.parse(

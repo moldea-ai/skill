@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { AIChatAgent } from '@cloudflare/ai-chat';
 import { Output, streamText } from 'ai';
 
@@ -5,7 +6,7 @@ import { SupportOutputSchema } from './contracts.js';
 import { lookupOrderTool } from './tools.js';
 
 export const loadSupportInstruction = (): string =>
-  'Answer support requests from verified order evidence.';
+  readFileSync(new URL('../moldea/agents/support/instruction.md', import.meta.url), 'utf8');
 
 /** Answers support requests with structured output and a closed order lookup tool map. */
 export class SupportAgent extends AIChatAgent {

@@ -51,7 +51,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   );
   currentFiles.set(
     RELEASE_PATHS.skill,
-    `${currentFiles.get(RELEASE_PATHS.skill)}cliJsonSchemaVersion: '3'\n`,
+    `${currentFiles.get(RELEASE_PATHS.skill)}cliRepairVersion: '6.0.0'\ncliJsonSchemaVersion: '3'\n`,
   );
   currentFiles.set(
     RELEASE_PATHS.packageManifest,
@@ -147,6 +147,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
     assert.match(getUpdated(relativePath), /CLI JSON schema `4`/u);
   }
   assert.match(getUpdated(RELEASE_PATHS.skill), /cliJsonSchemaVersion: '4'/u);
+  assert.match(getUpdated(RELEASE_PATHS.skill), /cliRepairVersion: '7.0.0'/u);
   assert.match(getUpdated('src/portable/response-page/types.ts'), /schemaVersion: z.literal\(4\)/u);
   assert.equal(updatedFiles.get(RELEASE_PATHS.packageLock), '{"lockfileVersion":3}\n');
   assert.equal(updatedFiles.get(RELEASE_PATHS.packageManifest), '{"version":"3.1.0"}\n');
@@ -177,6 +178,31 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
     private: true,
     version: '7.0.0',
   });
+
+  for (const replacement of ['', 'cliRepairVersion: 6', "cliRepairVersion: '6.0.1'"]) {
+    const invalidRepairFiles = new Map(currentFiles);
+    invalidRepairFiles.set(
+      RELEASE_PATHS.skill,
+      (currentFiles.get(RELEASE_PATHS.skill) ?? '').replace(
+        "cliRepairVersion: '6.0.0'",
+        replacement,
+      ),
+    );
+    assert.throws(
+      () =>
+        createCliReleaseUpdate({
+          currentFiles: invalidRepairFiles,
+          previousCliVersion: '6.0.0',
+          publishedManifest: {
+            dependencies: { '@moldea.ai/core': '^3.0.1' },
+            jsonSchemaVersion: 4,
+            version: '7.0.0',
+          },
+          updatedRootManifests: { packageLock: '{}\n', packageManifest: '{}\n' },
+        }),
+      /repair metadata must be one quoted exact current version/u,
+    );
+  }
 
   const malformedFiles = new Map(currentFiles);
   const originalSkillContent = currentFiles.get(RELEASE_PATHS.skill);
@@ -216,7 +242,7 @@ test('createCliReleaseUpdate preserves portable ranges for a same-major patch', 
   }
   currentFiles.set(
     RELEASE_PATHS.skill,
-    `${currentFiles.get(RELEASE_PATHS.skill)}cliJsonSchemaVersion: '4'\n`,
+    `${currentFiles.get(RELEASE_PATHS.skill)}cliRepairVersion: '7.0.0'\ncliJsonSchemaVersion: '4'\n`,
   );
   currentFiles.set(
     RELEASE_PATHS.packageManifest,
@@ -322,7 +348,7 @@ test('createCliReleaseUpdate keeps coincident CLI and Core ranges independent', 
   );
   currentFiles.set(
     RELEASE_PATHS.skill,
-    `${portableText}cliVersionRange: '^6.0.0'\ncoreVersionRange: '^6.0.0'\ncliJsonSchemaVersion: '4'\n`,
+    `${portableText}cliRepairVersion: '6.0.0'\ncliVersionRange: '^6.0.0'\ncoreVersionRange: '^6.0.0'\ncliJsonSchemaVersion: '4'\n`,
   );
   currentFiles.set(
     RELEASE_PATHS.sourceRepositoryPackage,

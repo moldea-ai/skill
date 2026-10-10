@@ -5,114 +5,151 @@ import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const route = withBase('/capabilities/', basePath);
 
-test('presents all six capabilities as distinct visual outcomes', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
+test('reveals four more examples independently and moves final-button focus to the new content', async ({
+  page,
+}) => {
   await page.goto(route);
-
-  await expect(
-    page.getByRole('heading', {
-      level: 1,
-      name: 'Project context first. Agent capabilities when you need them.',
-    }),
-  ).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0);
-  await expect(page.locator('[data-capability-section]')).toHaveCount(6);
-  await expect(page.locator('[data-capability-conversation]')).toHaveCount(6);
-  await expect(page.locator('#evaluate-and-repair [data-repair-visual]')).toBeVisible();
-  await expect(
-    page.getByRole('navigation', { name: 'Primary navigation' }).locator('a[aria-current="page"]'),
-  ).toHaveText('Capabilities');
-
-  for (const heading of [
-    'Give every session the same starting point.',
-    'Put each responsibility where it belongs.',
-    'Build an agent from real project boundaries.',
-    'Package a repeatable workflow, not just a prompt.',
-    'Change one rule. Follow every connection.',
-    'Inspect first. Repair only when asked.',
-  ]) {
-    await expect(page.getByRole('heading', { level: 2, name: heading })).toBeVisible();
+  const sections = page.locator('[data-capability-section]');
+  await expect(sections).toHaveCount(6);
+  await expect(page.locator('[data-capability-example]')).toHaveCount(24);
+  for (const section of await sections.all()) {
+    await expect(section.locator('[data-capability-example]')).toHaveCount(4);
+    await expect(section.getByRole('status')).toHaveText('4 of 8 examples');
   }
-
-  await expect(page.getByRole('img', { name: 'OpenAI company logo' })).toBeVisible();
-  await expect(
-    page.getByText('Every connection resolves. Approval remains deterministic.', { exact: true }),
-  ).toBeVisible();
-  await expect(page.locator('[data-maintenance-visual] [data-code-copy-button]')).toHaveCount(0);
-  await expect(page.getByText('Fix moldea.', { exact: true }).locator('code')).toHaveText('moldea');
-  await expect(page.getByText('Planning is read-only.', { exact: true })).toBeVisible();
-  await expect(page.getByRole('list', { name: 'Saved project files' })).toContainText('refunds.md');
-  await expect(page.getByRole('list', { name: 'Release review skill files' })).toContainText(
-    'verify.mjs',
-  );
-  await expect(page.getByText('$49.99 is paid. $50 is free.', { exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'See the planning example' })).toHaveAttribute(
-    'href',
-    withBase('/examples/plan-an-agent-system/', basePath),
-  );
-  await expect(page.getByRole('link', { name: 'Repair and evaluation guide' })).toHaveAttribute(
-    'href',
-    withBase('/docs/evaluate-reconcile-validate/#repair-a-project', basePath),
-  );
-
-  const plainBrandMentions = await page.locator('body').evaluate((body) => {
-    const iterator = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
-    const invalidMentions: string[] = [];
-    let currentNode = iterator.nextNode();
-
-    while (currentNode !== null) {
-      if (
-        /\bmoldea\b/iu.test(currentNode.textContent ?? '') &&
-        currentNode.parentElement?.closest('code') === null
-      ) {
-        invalidMentions.push(currentNode.textContent?.trim() ?? '');
-      }
-      currentNode = iterator.nextNode();
-    }
-
-    return invalidMentions;
+  const first = sections.first();
+  const button = first.getByRole('button', {
+    name: 'Load 4 more examples: Establish project truth',
   });
-  expect(plainBrandMentions).toStrictEqual([]);
+  await expect(button).toHaveAttribute('aria-controls', 'project-truth-examples');
+  await button.focus();
+  await page.keyboard.press('Enter');
+  await expect(first.locator('[data-capability-example]')).toHaveCount(8);
+  await expect(first.getByRole('status')).toHaveText('8 of 8 examples');
+  await expect(
+    page.getByRole('heading', { name: 'Connect one policy to the code it governs' }),
+  ).toBeFocused();
+  await expect(button).toBeHidden();
+  await expect(sections.nth(1).locator('[data-capability-example]')).toHaveCount(4);
+  for (const section of (await sections.all()).slice(1)) {
+    await section.getByRole('button', { name: /^Load 4 more examples:/u }).click();
+    await expect(section.locator('[data-capability-example]')).toHaveCount(8);
+    await expect(section.getByRole('status')).toHaveText('8 of 8 examples');
+    await expect(section.locator('[data-capability-load]')).toBeHidden();
+  }
+  await expect(page.locator('[data-capability-example]')).toHaveCount(48);
+  await expect(page.locator('[data-capability-example] [data-code-copy-button]')).toHaveCount(0);
+  const ids = await page.locator('[id]').evaluateAll((elements) => elements.map(({ id }) => id));
+  expect(new Set(ids).size).toBe(ids.length);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
+});
 
-  const accessibilityResults = await new AxeBuilder({ page }).analyze();
-  expect(accessibilityResults.violations).toStrictEqual([]);
+test('reveals only the linked category for direct and subsequent hash navigation', async ({
+  page,
+}) => {
+  await page.goto(`${route}#declare-runtime-variables`);
+  await expect(page.locator('#declare-runtime-variables')).toBeVisible();
+  await expect(page.locator('#declare-runtime-variables')).toBeFocused();
+  await expect(page.locator('#create-agents [data-capability-example]')).toHaveCount(8);
+  await expect(page.locator('#project-truth [data-capability-example]')).toHaveCount(4);
+  await page.evaluate(() => {
+    window.location.hash = 'map-focused-context';
+  });
+  await expect(page.locator('#map-focused-context')).toBeVisible();
+  await expect(page.locator('#map-focused-context')).toBeFocused();
+  await expect(page.locator('#project-truth [data-capability-example]')).toHaveCount(8);
+  await expect(page.locator('#plan-agent-systems [data-capability-example]')).toHaveCount(4);
+  await page.evaluate(() => {
+    window.location.hash = '%invalid';
+  });
+  await expect(page.locator('[data-capability-example]')).toHaveCount(32);
+});
 
+test('reinitializes disclosure and its shared dialog after Astro navigation', async ({ page }) => {
+  await page.goto(route);
+  await page.locator('#project-truth [data-capability-load]').click();
   await page
     .getByLabel('See these capabilities work')
     .getByRole('link', { name: 'How it works', exact: true })
     .click();
-  await expect(page).toHaveURL(/\/how-it-works\/$/u);
-  await expect(
-    page.getByRole('heading', {
-      level: 1,
-      name: 'From project context to a working agent.',
-    }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(withBase('/how-it-works/', basePath));
+  await page
+    .getByRole('navigation', { name: 'Primary navigation' })
+    .getByRole('link', { name: 'Capabilities', exact: true })
+    .click();
+  await expect(page.locator('[data-capability-example]')).toHaveCount(24);
+  await page.locator('#project-truth [data-capability-load]').click();
+  await expect(page.locator('#project-truth [data-capability-example]')).toHaveCount(8);
+  const trigger = page.getByRole('button', { name: 'About these examples', exact: true });
+  await trigger.click();
+  const dialog = page.getByRole('dialog', { name: 'Reading the examples', exact: true });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('suggested requests and illustrative outcomes');
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
 });
 
-test('keeps the capability journey usable at 320px in both themes', async ({ browser }) => {
-  for (const colorScheme of ['light', 'dark'] as const) {
-    const context = await browser.newContext({
-      colorScheme,
-      reducedMotion: 'reduce',
-      viewport: { height: 900, width: 320 },
-    });
+test('renders all 48 examples from the same catalog without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 320, height: 900 },
+  });
+  try {
     const page = await context.newPage();
     await page.goto(route);
-
+    await expect(page.locator('[data-capability-example]')).toHaveCount(48);
+    await expect(page.getByRole('button', { name: /^Load 4 more examples:/u })).toHaveCount(0);
+    await expect(page.locator('#declare-runtime-variables')).toContainText('variableProviders');
+    await expect(page.locator('#report-interrupted-resource-limited-repair')).toContainText(
+      '8 MiB',
+    );
     const dimensions = await page.evaluate(() => ({
-      documentWidth: document.documentElement.scrollWidth,
-      viewportWidth: window.innerWidth,
+      document: document.documentElement.scrollWidth,
+      viewport: window.innerWidth,
     }));
-    expect(dimensions.documentWidth, colorScheme).toBeLessThanOrEqual(dimensions.viewportWidth);
-    await expect(page.locator('[data-project-truth-visual]')).toBeVisible();
-    await expect(page.locator('[data-maintenance-visual]')).toBeVisible();
-    await expect(page.locator('[data-repair-visual]')).toBeVisible();
-
-    const firstAnchor = page.getByRole('link', { name: 'Establish project truth' });
-    await firstAnchor.focus();
-    await expect(firstAnchor).toBeFocused();
-
+    expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+  } finally {
     await context.close();
   }
 });
+
+for (const width of [320, 1440]) {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    test(`keeps expanded examples accessible at ${width}px in ${colorScheme} with reduced motion`, async ({
+      browser,
+    }) => {
+      const context = await browser.newContext({
+        colorScheme,
+        reducedMotion: 'reduce',
+        viewport: { width, height: 900 },
+      });
+      try {
+        const page = await context.newPage();
+        await page.goto(route);
+        for (const button of await page.locator('[data-capability-load]').all())
+          await button.click();
+        const dimensions = await page.evaluate(() => ({
+          document: document.documentElement.scrollWidth,
+          viewport: window.innerWidth,
+        }));
+        expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+        await page.keyboard.press('Tab');
+        const anchor = page.getByRole('link', { name: 'Establish project truth', exact: true });
+        await anchor.focus();
+        await expect(anchor).toBeFocused();
+        const outline = await anchor.evaluate((element) => getComputedStyle(element).outlineStyle);
+        expect(outline).not.toBe('none');
+        const trigger = page.getByRole('button', { name: 'About these examples', exact: true });
+        await trigger.focus();
+        await page.keyboard.press('Enter');
+        const dialog = page.getByRole('dialog', { name: 'Reading the examples' });
+        await expect(dialog).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(trigger).toBeFocused();
+        expect((await new AxeBuilder({ page }).analyze()).violations).toStrictEqual([]);
+      } finally {
+        await context.close();
+      }
+    });
+  }
+}

@@ -63,7 +63,7 @@ test('resolves the newest stable compatible dependency-first closure from the CL
       '@moldea.ai/cli/6.0.0',
       createMetadata('@moldea.ai/cli', '6.0.0', {
         '@moldea.ai/adapter-example': '^1.0.0',
-        '@moldea.ai/core': '^2.0.0',
+        '@moldea.ai/core': '^2.0.3',
       }),
     ],
     [
@@ -336,7 +336,7 @@ test('rejects non-compatible CLI ranges and unreachable selected packages', asyn
       fetchResource: createRegistryFetch(exactMetadata),
       selectedPackageName: '@moldea.ai/core',
     }),
-    /must use a compatible-major dependency range/u,
+    /Expected a compatible stable range/u,
   );
 
   const reachableMetadata = new Map([

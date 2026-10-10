@@ -25,5 +25,7 @@ agents:
         outputSchema:
           path: /agent/contracts.ts
           symbol: FindOrderOutputSchema
+    mirrors:
+      - /agent/instructions.md
     affectedBy:
       - /agent/**

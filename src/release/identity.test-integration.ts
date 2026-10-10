@@ -23,7 +23,8 @@ const SemanticCliManifestSchema = z.looseObject({
 
 test('release identity inspection detects a stale maintained copy', () => {
   assert.deepEqual(inspectReleaseIdentity(REPOSITORY_ROOT), []);
-  const { cliVersionRange } = readReleaseIdentity(REPOSITORY_ROOT);
+  const { cliVersionRange, cliVersion, cliJsonSchemaVersion, coreVersionRange, coreVersion } =
+    readReleaseIdentity(REPOSITORY_ROOT);
   const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-identity-'));
 
   try {
@@ -38,16 +39,45 @@ test('release identity inspection detects a stale maintained copy', () => {
     const skillSource = readFileSync(skillPath, 'utf8');
     writeFileSync(
       skillPath,
-      skillSource.replace("cliJsonSchemaVersion: '5'", 'cliJsonSchemaVersion: 5'),
+      skillSource.replace(
+        `cliJsonSchemaVersion: '${cliJsonSchemaVersion}'`,
+        `cliJsonSchemaVersion: ${cliJsonSchemaVersion}`,
+      ),
       'utf8',
     );
     assert.throws(() => inspectReleaseIdentity(temporaryRoot), /invalid_type/u);
     writeFileSync(
       skillPath,
-      skillSource.replace("cliJsonSchemaVersion: '5'", "cliJsonSchemaVersion: '0'"),
+      skillSource.replace(
+        `cliJsonSchemaVersion: '${cliJsonSchemaVersion}'`,
+        "cliJsonSchemaVersion: '0'",
+      ),
       'utf8',
     );
     assert.throws(() => inspectReleaseIdentity(temporaryRoot), /invalid_format/u);
+    writeFileSync(skillPath, skillSource, 'utf8');
+
+    const repairMetadata = `cliRepairVersion: '${cliVersion}'`;
+    for (const replacement of [
+      '',
+      'cliRepairVersion: 10',
+      `cliRepairVersion: ${cliVersion}`,
+      `cliRepairVersion: '${cliVersionRange}'`,
+      `cliRepairVersion: '${cliVersion}-preview.1'`,
+    ]) {
+      writeFileSync(skillPath, skillSource.replace(repairMetadata, replacement), 'utf8');
+      assert.throws(() => inspectReleaseIdentity(temporaryRoot));
+    }
+    for (const version of [`${cliVersion.split('.')[0]}.999.0`, '999.0.0']) {
+      writeFileSync(
+        skillPath,
+        skillSource.replace(repairMetadata, `cliRepairVersion: '${version}'`),
+        'utf8',
+      );
+      assert.deepEqual(inspectReleaseIdentity(temporaryRoot), [
+        'Portable skill metadata does not match the exact current release identity.',
+      ]);
+    }
     writeFileSync(skillPath, skillSource, 'utf8');
 
     const lockPath = join(temporaryRoot, RELEASE_PATHS.packageLock);
@@ -63,7 +93,7 @@ test('release identity inspection detects a stale maintained copy', () => {
     const matchingSemanticCliManifest = SemanticCliManifestSchema.parse(
       JSON.parse(semanticCliManifestSource) as unknown,
     );
-    matchingSemanticCliManifest.dependencies['@moldea.ai/core'] = '^5.0.0';
+    matchingSemanticCliManifest.dependencies['@moldea.ai/core'] = coreVersionRange;
     writeFileSync(
       semanticCliManifestPath,
       `${JSON.stringify(matchingSemanticCliManifest, null, 2)}\n`,
@@ -74,9 +104,9 @@ test('release identity inspection detects a stale maintained copy', () => {
     };
     const lockedCli = packageLock.packages['node_modules/@moldea.ai/cli'];
     assert.ok(lockedCli?.dependencies !== undefined);
-    lockedCli.dependencies['@moldea.ai/core'] = '^5.0.0';
+    lockedCli.dependencies['@moldea.ai/core'] = coreVersionRange;
     writeFileSync(lockPath, `${JSON.stringify(packageLock, null, 2)}\n`, 'utf8');
-    assert.equal(readReleaseIdentity(temporaryRoot).cliCoreVersionRange, '^5.0.0');
+    assert.equal(readReleaseIdentity(temporaryRoot).cliCoreVersionRange, coreVersionRange);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
 
     const sourcePath = join(temporaryRoot, RELEASE_PATHS.sourceRepositoryPackage);
@@ -88,7 +118,7 @@ test('release identity inspection detects a stale maintained copy', () => {
     ]);
     writeFileSync(sourcePath, sourceContent);
 
-    lockedCli.dependencies['@moldea.ai/core'] = '^6.0.0';
+    lockedCli.dependencies['@moldea.ai/core'] = `^${Number(coreVersion.split('.')[0]) + 1}.0.0`;
     writeFileSync(lockPath, `${JSON.stringify(packageLock, null, 2)}\n`, 'utf8');
     assert.throws(() => readReleaseIdentity(temporaryRoot), /does not bind a Core release/u);
     writeFileSync(lockPath, lockSource, 'utf8');

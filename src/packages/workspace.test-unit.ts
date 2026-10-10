@@ -136,7 +136,7 @@ test('rejects duplicate identities and non-compatible source dependencies', () =
     });
     assert.throws(
       () => createSourceCandidatePlan(rangedWorkspaceRoot),
-      /must declare @moldea\.ai\/core as compatible source range workspace:\^2\.0\.0/,
+      /Expected a compatible stable range/,
     );
   } finally {
     rmSync(duplicateWorkspaceRoot, { force: true, recursive: true });
@@ -155,6 +155,16 @@ test('accepts later compatible source patches and rejects breaking-major ranges'
       version: '2.9.7',
     });
     assert.doesNotThrow(() => createSourceCandidatePlan(compatibleWorkspaceRoot));
+    writeManifest(compatibleWorkspaceRoot, 'projects/cli', {
+      dependencies: {
+        '@moldea.ai/adapter-next': 'workspace:^1.0.0',
+        '@moldea.ai/core': 'workspace:^2.9.7',
+        '@moldea.ai/repository': 'workspace:^1.0.0',
+      },
+      name: '@moldea.ai/cli',
+      version: '3.2.0',
+    });
+    assert.doesNotThrow(() => createSourceCandidatePlan(compatibleWorkspaceRoot));
 
     writeManifest(breakingWorkspaceRoot, 'projects/cli', {
       dependencies: {
@@ -167,7 +177,7 @@ test('accepts later compatible source patches and rejects breaking-major ranges'
     });
     assert.throws(
       () => createSourceCandidatePlan(breakingWorkspaceRoot),
-      /must declare @moldea\.ai\/core as compatible source range workspace:\^2\.0\.0/,
+      /@moldea\.ai\/core@2\.0\.0 does not satisfy workspace:\^3\.0\.0/,
     );
   } finally {
     rmSync(compatibleWorkspaceRoot, { force: true, recursive: true });

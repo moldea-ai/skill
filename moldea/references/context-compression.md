@@ -40,7 +40,7 @@ After authorized writes:
 1. Re-read every changed canonical file and affected consumer to confirm that all distinct established meaning remains represented once by its authoritative owner.
 2. Confirm that removed or moved paths have no stale manifest relationship, reference, index entry, consumer, or directly affected documentation.
 3. Confirm that unrelated context and implementation remain unchanged.
-4. Run relevant project-native checks and the narrowest repository-local schema-5 metadata command as separate completed processes.
+4. Run relevant project-native checks and the narrowest repository-local metadata command for the installed release as separate completed processes.
 5. Review only the diagnostics, mirrors, requirements, and semantic readiness relevant to the changed owners without claiming whole-project validity from a narrower result.
 
 Report the requested scope, authoritative owners selected, content consolidated or retained, unique truth and unresolved state preserved, relationships and consumers updated, intentionally unchanged surfaces, deterministic status, checks, and limitations. If conflict blocked compression, report the binary adoption state, exact conflict, that compression is blocked pending the focused answer, the question, and that no repository files changed.

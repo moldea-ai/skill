@@ -686,10 +686,13 @@ const seedEveRuntimeEvidence = async (repositoryPath: string, caseId: string): P
       'triage/package.json',
       `${JSON.stringify({ private: true, dependencies: { eve: '0.67.0' } })}\n`,
     );
+    const triageInstruction =
+      '# Triage agent\n\nYou are the `triage` agent. Handle support requests.\n';
+    await writeScenarioFile(repositoryPath, 'triage/instructions.md', triageInstruction);
     await writeScenarioFile(
       repositoryPath,
       'moldea/agents/triage/instruction.md',
-      '# Triage agent\n\nYou are the `triage` agent. Handle support requests.\n',
+      triageInstruction,
     );
     await writeScenarioFile(
       repositoryPath,

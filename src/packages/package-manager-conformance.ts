@@ -1,26 +1,37 @@
 import assert from 'node:assert/strict';
-import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { z } from 'zod';
+import { parseAllDocuments } from 'yaml';
 
 import {
   parseRuntimeCompatibilityPublication,
   RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
 } from '../compatibility/index.ts';
 import { executeProcess } from '../process/index.ts';
+import { assertReleaseIdentity } from '../release/index.ts';
 import { createCandidateRegistry, loadCandidateArtifacts } from './artifacts.ts';
+import type { ICandidateRegistry } from './types.ts';
 
 const EnvironmentSchema = z.strictObject({
   artifactDirectory: z.string().trim().min(1),
   existingVitestVersion: z.string().trim().min(1).optional(),
   manager: z.enum(['npm', 'pnpm', 'yarn']),
+  skillRoot: z.string().trim().min(1),
   managerVersion: z.string().regex(/^\d+\.\d+\.\d+$/u),
 });
 
 type IConformanceEnvironment = z.infer<typeof EnvironmentSchema>;
+
+/** Reads every lockfile document, including pnpm's multi-document format. */
+const readLockedGraph = (source: string): unknown[] =>
+  parseAllDocuments(source).map((document) => {
+    assert.deepEqual(document.errors, []);
+    return document.toJS() as unknown;
+  });
 
 const pathExists = async (candidatePath: string): Promise<boolean> => {
   try {
@@ -37,6 +48,7 @@ const readConformanceEnvironment = (): IConformanceEnvironment =>
     artifactDirectory: process.env['MOLDEA_CLI_ARTIFACT_DIRECTORY'],
     existingVitestVersion: process.env['MOLDEA_TEST_EXISTING_VITEST_VERSION'] || undefined,
     manager: process.env['MOLDEA_TEST_MANAGER'],
+    skillRoot: process.env['MOLDEA_CANDIDATE_SKILL_ROOT'],
     managerVersion: process.env['MOLDEA_TEST_MANAGER_VERSION'],
   });
 
@@ -50,6 +62,7 @@ const runCommand = async (options: {
   command: string;
   cwd: string;
   environment?: NodeJS.ProcessEnv;
+  expectedExitCodes?: number[];
 }): Promise<{ stderr: string; stdout: string }> => {
   const result = await executeProcess(options);
   return { stderr: result.stderr, stdout: result.stdout.trim() };
@@ -62,9 +75,10 @@ const configureCandidateRegistry = async (
   registryUrl: string,
 ): Promise<void> => {
   if (manager === 'yarn') {
+    await writeFile(path.join(clientDirectory, 'yarn.lock'), '', { flag: 'a' });
     await writeFile(
       path.join(clientDirectory, '.yarnrc.yml'),
-      `enableGlobalCache: false\nnpmScopes:\n  moldea.ai:\n    npmRegistryServer: "${registryUrl}"\nunsafeHttpWhitelist:\n  - 127.0.0.1\n`,
+      `nodeLinker: node-modules\nenableGlobalCache: false\nnpmScopes:\n  moldea.ai:\n    npmRegistryServer: "${registryUrl}"\nunsafeHttpWhitelist:\n  - 127.0.0.1\n`,
       'utf8',
     );
     return;
@@ -72,7 +86,7 @@ const configureCandidateRegistry = async (
 
   await writeFile(
     path.join(clientDirectory, '.npmrc'),
-    `@moldea.ai:registry=${registryUrl}/\n`,
+    `@moldea.ai:registry=${registryUrl}/\n${manager === 'pnpm' ? 'store-dir=.manager-home/store\n' : ''}`,
     'utf8',
   );
   if (manager === 'pnpm') {
@@ -146,32 +160,341 @@ const seedConformanceProject = async (clientDirectory: string): Promise<void> =>
   ]);
 };
 
-/** Executes the installed CLI without relying on a shell or global CLI resolution. */
+/** Exercises the shipped closed launcher without a manager or binary-shim provider. */
 const runCli = async (options: {
   argumentsList: readonly string[];
   clientDirectory: string;
   environment: NodeJS.ProcessEnv;
+  expectedExitCodes?: number[];
+  skillRoot: string;
+}): Promise<{ stderr: string; stdout: string }> =>
+  runCommand({
+    args: [
+      path.join(options.skillRoot, 'scripts/moldea-cli.mjs'),
+      '--repository',
+      options.clientDirectory,
+      '--',
+      ...options.argumentsList,
+    ],
+    command: process.execPath,
+    cwd: options.clientDirectory,
+    environment: options.environment,
+    ...(options.expectedExitCodes === undefined
+      ? {}
+      : { expectedExitCodes: options.expectedExitCodes }),
+  });
+
+/** Checks that damaged metadata is rejected before any candidate code can execute. */
+const verifyIneligibleMetadata = async (options: {
+  clientDirectory: string;
+  environment: NodeJS.ProcessEnv;
+  skillRoot: string;
+  cliVersion: string;
+}): Promise<void> => {
+  const cliRoot = await realpath(path.join(options.clientDirectory, 'node_modules/@moldea.ai/cli'));
+  const cliManifestPath = path.join(cliRoot, 'package.json');
+  const cliManifestSource = await readFile(cliManifestPath, 'utf8');
+  const cliManifest = JSON.parse(cliManifestSource) as { name: string; version: string };
+  const binaryPath = path.join(cliRoot, 'dist/moldea.js');
+  const binarySource = await readFile(binaryPath);
+  const sentinelPath = path.join(options.clientDirectory, 'ineligible-cli-ran.txt');
+  try {
+    await writeFile(
+      binaryPath,
+      `import { writeFileSync } from 'node:fs'; writeFileSync(${JSON.stringify(sentinelPath)}, 'executed');`,
+    );
+    for (const metadata of [
+      { ...cliManifest, name: '@moldea.ai/not-cli' },
+      { ...cliManifest, version: `${Number(options.cliVersion.split('.')[0]) - 1}.0.0` },
+      { ...cliManifest, version: `${Number(options.cliVersion.split('.')[0]) + 1}.0.0` },
+    ]) {
+      await writeFile(cliManifestPath, JSON.stringify(metadata));
+      const result = await runCli({
+        ...options,
+        argumentsList: ['composition', '--json'],
+        expectedExitCodes: [3],
+      });
+      assert.equal(result.stdout, '');
+      assert.equal(await pathExists(sentinelPath), false);
+    }
+    await writeFile(cliManifestPath, cliManifestSource);
+    const resolver = (await import(
+      pathToFileURL(path.join(options.skillRoot, 'scripts/repository-package.mjs')).href
+    )) as {
+      resolveRepositoryCli: (repositoryRoot: string) => Promise<{ cliRoot: string }>;
+    };
+    // the real resolver establishes eligibility before this fixture damages Core
+    await resolver.resolveRepositoryCli(options.clientDirectory);
+    const { createRequire } = await import('node:module');
+    const requireCli = createRequire(cliManifestPath);
+    const coreSearchRoots = requireCli.resolve.paths('@moldea.ai/core') ?? [];
+    let coreRoot: string | undefined;
+    for (const searchRoot of coreSearchRoots) {
+      const candidateRoot = path.join(searchRoot, '@moldea.ai/core');
+      if (await pathExists(path.join(candidateRoot, 'package.json'))) {
+        coreRoot = await realpath(candidateRoot);
+        break;
+      }
+    }
+    assert.ok(coreRoot);
+    const coreManifestPath = path.join(coreRoot, 'package.json');
+    const coreManifestSource = await readFile(coreManifestPath, 'utf8');
+    try {
+      const coreManifest = JSON.parse(coreManifestSource) as { version: string };
+      await writeFile(coreManifestPath, JSON.stringify({ ...coreManifest, version: '0.0.0' }));
+      const result = await runCli({
+        ...options,
+        argumentsList: ['composition', '--json'],
+        expectedExitCodes: [3],
+      });
+      assert.equal(result.stdout, '');
+      assert.equal(await pathExists(sentinelPath), false);
+    } finally {
+      await writeFile(coreManifestPath, coreManifestSource);
+    }
+  } finally {
+    await writeFile(cliManifestPath, cliManifestSource);
+    await writeFile(binaryPath, binarySource);
+  }
+};
+
+/** Recovers a proven missing CLI binary through the real manager's targeted remove/add path. */
+const verifyBrokenInstallation = async (options: {
+  clientDirectory: string;
+  environment: NodeJS.ProcessEnv;
   manager: IConformanceEnvironment['manager'];
-}): Promise<{ stderr: string; stdout: string }> => {
-  if (options.manager === 'yarn') {
-    return runCommand({
-      args: ['exec', 'moldea', ...options.argumentsList],
+  skillRoot: string;
+  targetVersion: string;
+}): Promise<void> => {
+  const cliRoot = await realpath(path.join(options.clientDirectory, 'node_modules/@moldea.ai/cli'));
+  await rm(path.join(cliRoot, 'dist/moldea.js'));
+  const rejected = await runCli({
+    ...options,
+    argumentsList: ['composition', '--json'],
+    expectedExitCodes: [3],
+  });
+  assert.equal(rejected.stdout, '');
+  // pnpm removal uses configuration; supported versions recognize these prefixes.
+  const recoveryEnvironment: NodeJS.ProcessEnv = {
+    ...options.environment,
+    npm_config_ignore_scripts: 'true',
+    PNPM_CONFIG_IGNORE_SCRIPTS: 'true',
+  };
+  const removeArguments =
+    options.manager === 'npm'
+      ? ['uninstall', '--save-dev', '--ignore-scripts', '@moldea.ai/cli']
+      : options.manager === 'pnpm'
+        ? ['remove', '--workspace-root', '@moldea.ai/cli']
+        : ['remove', '--mode=skip-build', '@moldea.ai/cli'];
+  await runCommand({
+    command: getManagerExecutable(options.manager),
+    args: removeArguments,
+    cwd: options.clientDirectory,
+    environment: recoveryEnvironment,
+  });
+  // this fixture has no extraneous application packages; pruning removes only the removed CLI closure
+  if (options.manager === 'pnpm') {
+    await runCommand({
       command: getManagerExecutable(options.manager),
+      args: ['prune'],
       cwd: options.clientDirectory,
+      environment: recoveryEnvironment,
+    });
+  }
+  const reinstallArguments = createInstallArguments({
+    manager: options.manager,
+    packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
+  });
+  // some pnpm versions reuse damaged materialization even after scoped cleanup.
+  if (options.manager === 'pnpm') reinstallArguments.push('--force');
+  await runCommand({
+    command: getManagerExecutable(options.manager),
+    args: reinstallArguments,
+    cwd: options.clientDirectory,
+    environment: recoveryEnvironment,
+  });
+  const repaired = await runCli({ ...options, argumentsList: ['composition', '--json'] });
+  z.object({ cliVersion: z.literal(options.targetVersion), status: z.literal('valid') }).parse(
+    JSON.parse(repaired.stdout) as unknown,
+  );
+};
+
+/** Interrupts a real manager at the registry boundary and preserves its partial state. */
+const verifyInterruptedInstallation = async (options: {
+  clientDirectory: string;
+  environment: NodeJS.ProcessEnv;
+  manager: IConformanceEnvironment['manager'];
+  registry: ICandidateRegistry;
+  targetVersion: string;
+}): Promise<void> => {
+  const interruptedDirectory = path.join(options.clientDirectory, 'interrupted-project');
+  await mkdir(interruptedDirectory);
+  await writeFile(
+    path.join(interruptedDirectory, 'package.json'),
+    JSON.stringify({
+      name: 'moldea-interrupted-tooling-fixture',
+      private: true,
+      scripts: { preinstall: 'node -e "process.exit(99)"' },
+    }),
+  );
+  const preservedPath = path.join(interruptedDirectory, 'policy.ts');
+  const preservedBytes = 'export const applicationPolicy = "retain existing work";\n';
+  await writeFile(preservedPath, preservedBytes);
+  await configureCandidateRegistry(
+    interruptedDirectory,
+    options.manager,
+    options.registry.registryUrl,
+  );
+  const controller = new AbortController();
+  let reachedRegistry = false;
+  const interrupt = (): void => {
+    reachedRegistry = true;
+    controller.abort();
+  };
+  options.registry.server.once('request', interrupt);
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+  try {
+    await assert.rejects(
+      executeProcess({
+        args: createInstallArguments({
+          manager: options.manager,
+          packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
+        }),
+        command: getManagerExecutable(options.manager),
+        cwd: interruptedDirectory,
+        environment: {
+          ...options.environment,
+          npm_config_cache: path.join(interruptedDirectory, '.npm-cache'),
+          XDG_CACHE_HOME: path.join(interruptedDirectory, '.cache'),
+        },
+        signal: controller.signal,
+      }),
+      /aborted/u,
+    );
+    assert.equal(
+      reachedRegistry,
+      true,
+      'The interrupted real manager must reach the candidate registry.',
+    );
+    assert.equal(await readFile(preservedPath, 'utf8'), preservedBytes);
+    assert.equal(await pathExists(path.join(interruptedDirectory, 'moldea')), false);
+    // no reinstall or rollback follows interruption; the outer fixture owns final disposal
+  } finally {
+    clearTimeout(timeout);
+    options.registry.server.off('request', interrupt);
+  }
+};
+
+/** Verifies an older real installation can be replaced without executing its CLI. */
+const verifyOlderInstallation = async (options: {
+  clientDirectory: string;
+  environment: NodeJS.ProcessEnv;
+  manager: IConformanceEnvironment['manager'];
+  registryUrl: string;
+  skillRoot: string;
+  targetVersion: string;
+}): Promise<void> => {
+  const olderDirectory = path.join(options.clientDirectory, 'older-project');
+  await mkdir(olderDirectory);
+  const unrelatedSource = 'export const projectPolicy = "preserve this application";\n';
+  await writeFile(path.join(olderDirectory, 'policy.ts'), unrelatedSource);
+  await writeFile(
+    path.join(olderDirectory, 'package.json'),
+    JSON.stringify({
+      name: 'moldea-older-tooling-fixture',
+      private: true,
+      scripts: { preinstall: 'node -e "process.exit(99)"' },
+      description: 'An existing application whose tooling needs recovery.',
+    }),
+  );
+  await configureCandidateRegistry(olderDirectory, options.manager, 'https://registry.npmjs.org');
+  // this exact historical package is installation input only, never execution evidence
+  await runCommand({
+    args: createInstallArguments({
+      manager: options.manager,
+      packageIdentity: '@moldea.ai/cli@9.0.1',
+    }),
+    command: getManagerExecutable(options.manager),
+    cwd: olderDirectory,
+    environment: options.environment,
+  });
+  const before = JSON.parse(await readFile(path.join(olderDirectory, 'package.json'), 'utf8')) as {
+    devDependencies: Record<string, string>;
+    scripts: Record<string, string>;
+    description: string;
+  };
+  assert.equal(before.devDependencies['@moldea.ai/cli'], '9.0.1');
+  await configureCandidateRegistry(olderDirectory, options.manager, options.registryUrl);
+  // only this fixture switches registries; pnpm install recreates its registry metadata.
+  if (options.manager === 'pnpm') {
+    await runCommand({
+      args: ['install', '--force', '--ignore-scripts'],
+      command: getManagerExecutable(options.manager),
+      cwd: olderDirectory,
       environment: options.environment,
     });
   }
-  return runCommand({
-    args: options.argumentsList,
-    command: path.join(
-      options.clientDirectory,
-      'node_modules',
-      '.bin',
-      process.platform === 'win32' ? 'moldea.cmd' : 'moldea',
-    ),
-    cwd: options.clientDirectory,
+  await runCommand({
+    args: createInstallArguments({
+      manager: options.manager,
+      packageIdentity: `@moldea.ai/cli@${options.targetVersion}`,
+    }),
+    command: getManagerExecutable(options.manager),
+    cwd: olderDirectory,
     environment: options.environment,
   });
+  const after = JSON.parse(
+    await readFile(path.join(olderDirectory, 'package.json'), 'utf8'),
+  ) as typeof before;
+  assert.equal(after.devDependencies['@moldea.ai/cli'], options.targetVersion);
+  assert.deepEqual(after.scripts, before.scripts);
+  assert.equal(after.description, before.description);
+  assert.equal(await readFile(path.join(olderDirectory, 'policy.ts'), 'utf8'), unrelatedSource);
+  const result = await runCli({
+    ...options,
+    clientDirectory: olderDirectory,
+    argumentsList: ['composition', '--json'],
+  });
+  const composition = z
+    .object({ cliVersion: z.literal(options.targetVersion), status: z.literal('valid') })
+    .parse(JSON.parse(result.stdout) as unknown);
+  assert.equal(composition.status, 'valid');
+};
+
+/** Exercises the real managed writer and adoption gate after successful tooling establishment. */
+const verifyFoundationMechanics = async (options: {
+  clientDirectory: string;
+  environment: NodeJS.ProcessEnv;
+  skillRoot: string;
+}): Promise<void> => {
+  const readmePath = path.join(options.clientDirectory, 'README.md');
+  const outside = '# Existing application\n\nKeep these project-owned bytes.\n';
+  await writeFile(readmePath, outside);
+  const writer = {
+    command: process.execPath,
+    args: [
+      path.join(options.skillRoot, 'scripts/managed-readme.mjs'),
+      '--repository',
+      options.clientDirectory,
+    ],
+    cwd: options.clientDirectory,
+    environment: options.environment,
+  };
+  await runCommand(writer);
+  const first = await readFile(readmePath, 'utf8');
+  assert.ok(first.startsWith(outside));
+  await runCommand(writer);
+  assert.equal(await readFile(readmePath, 'utf8'), first);
+  const gate = await runCommand({
+    ...writer,
+    args: [
+      path.join(options.skillRoot, 'scripts/relevance-gate.mjs'),
+      '--repository',
+      options.clientDirectory,
+      '--adoption-only',
+    ],
+  });
+  assert.equal(gate.stdout, '1');
 };
 
 /** Exercises one exact candidate closure through the selected real package manager. */
@@ -179,6 +502,7 @@ export const verifyPackageManagerCandidate = async (
   input: IConformanceEnvironment,
 ): Promise<void> => {
   const environment = EnvironmentSchema.parse(input);
+  const skillIdentity = assertReleaseIdentity(path.dirname(path.resolve(environment.skillRoot)));
   const artifactDirectory = path.resolve(environment.artifactDirectory);
   parseRuntimeCompatibilityPublication(
     await readFile(
@@ -187,7 +511,7 @@ export const verifyPackageManagerCandidate = async (
     ),
   );
   const candidate = loadCandidateArtifacts(artifactDirectory);
-  const registry = await createCandidateRegistry(candidate.artifacts);
+  assert.equal(skillIdentity.cliVersion, candidate.cliVersion);
   const clientDirectory = await mkdtemp(
     path.join(tmpdir(), `moldea-candidate-${environment.manager}-`),
   );
@@ -197,6 +521,7 @@ export const verifyPackageManagerCandidate = async (
   const managerEnvironment: NodeJS.ProcessEnv = {
     ...process.env,
     HOME: managerHomeDirectory,
+    npm_config_cache: path.join(managerHomeDirectory, '.npm'),
     MOLDEA_LIFECYCLE_SENTINEL: lifecycleSentinelPath,
     XDG_CACHE_HOME: path.join(managerHomeDirectory, '.cache'),
     XDG_CONFIG_HOME: path.join(managerHomeDirectory, '.config'),
@@ -204,7 +529,9 @@ export const verifyPackageManagerCandidate = async (
     npm_config_fund: 'false',
   };
 
+  let registry: ICandidateRegistry | undefined;
   try {
+    registry = await createCandidateRegistry(candidate.artifacts);
     await mkdir(managerHomeDirectory, { recursive: true });
     await writeFile(
       path.join(clientDirectory, 'package.json'),
@@ -274,37 +601,127 @@ export const verifyPackageManagerCandidate = async (
     assert.equal(clientManifest.devDependencies?.['vitest'], environment.existingVitestVersion);
 
     await seedConformanceProject(clientDirectory);
-    const version = await runCli({
-      argumentsList: ['--version'],
+    await verifyFoundationMechanics({
       clientDirectory,
       environment: managerEnvironment,
-      manager: environment.manager,
+      skillRoot: environment.skillRoot,
     });
-    assert.equal(version.stdout, candidate.cliVersion);
+    await runCommand({ command: 'git', args: ['init', '--quiet'], cwd: clientDirectory });
+    await runCommand({
+      command: 'git',
+      args: ['add', '--', 'README.md', 'moldea', 'src'],
+      cwd: clientDirectory,
+    });
+    await verifyIneligibleMetadata({
+      clientDirectory,
+      environment: managerEnvironment,
+      skillRoot: environment.skillRoot,
+      cliVersion: candidate.cliVersion,
+    });
+    const lockName =
+      environment.manager === 'npm'
+        ? 'package-lock.json'
+        : environment.manager === 'pnpm'
+          ? 'pnpm-lock.yaml'
+          : 'yarn.lock';
+    const preservedPaths = [
+      'package.json',
+      lockName,
+      'src/custom-agent.ts',
+      'moldea/moldea.yaml',
+      'README.md',
+    ];
+    const before = new Map(
+      await Promise.all(
+        preservedPaths.map(
+          async (relativePath) =>
+            [relativePath, await readFile(path.join(clientDirectory, relativePath))] as const,
+        ),
+      ),
+    );
 
     for (const command of ['composition', 'validate', 'inspect'] as const) {
       const execution = await runCli({
-        argumentsList: [command, '--json'],
+        argumentsList:
+          command === 'composition'
+            ? [command, '--json']
+            : [command, '--json', '--max-output-bytes', '65536'],
         clientDirectory,
         environment: managerEnvironment,
-        manager: environment.manager,
+        skillRoot: environment.skillRoot,
       });
       assert.equal(execution.stderr, '');
       assert.equal(execution.stdout.includes(`${String.fromCharCode(27)}[`), false);
       const envelope = z
         .looseObject({
           cliVersion: z.literal(candidate.cliVersion),
+          schemaVersion: z.literal(skillIdentity.cliJsonSchemaVersion),
           command: z.literal(command),
           status: z.literal('valid'),
         })
         .parse(JSON.parse(execution.stdout) as unknown);
       assert.equal(envelope.command, command);
     }
-  } finally {
-    await new Promise<void>((resolvePromise, rejectPromise) => {
-      registry.server.close((error) => (error ? rejectPromise(error) : resolvePromise()));
+    for (const [relativePath, bytes] of before) {
+      assert.deepEqual(await readFile(path.join(clientDirectory, relativePath)), bytes);
+    }
+    assert.equal(await pathExists(lifecycleSentinelPath), false);
+    await verifyBrokenInstallation({
+      clientDirectory,
+      environment: managerEnvironment,
+      manager: environment.manager,
+      skillRoot: environment.skillRoot,
+      targetVersion: candidate.cliVersion,
     });
-    await rm(clientDirectory, { force: true, recursive: true });
+    const repairedManifest = JSON.parse(
+      await readFile(path.join(clientDirectory, 'package.json'), 'utf8'),
+    ) as { devDependencies?: Record<string, string> };
+    assert.deepEqual(repairedManifest.devDependencies, clientManifest.devDependencies);
+    assert.deepEqual(
+      readLockedGraph(await readFile(path.join(clientDirectory, lockName), 'utf8')),
+      readLockedGraph(before.get(lockName)!.toString('utf8')),
+      'Same-target recovery must preserve the complete locked dependency graph.',
+    );
+    if (environment.existingVitestVersion !== undefined) {
+      const installedVitest = JSON.parse(
+        await readFile(path.join(clientDirectory, 'node_modules/vitest/package.json'), 'utf8'),
+      ) as { version: string };
+      assert.equal(installedVitest.version, environment.existingVitestVersion);
+    }
+    assert.equal(await pathExists(lifecycleSentinelPath), false);
+    for (const relativePath of ['src/custom-agent.ts', 'moldea/moldea.yaml', 'README.md']) {
+      assert.deepEqual(
+        await readFile(path.join(clientDirectory, relativePath)),
+        before.get(relativePath),
+      );
+    }
+    await verifyInterruptedInstallation({
+      clientDirectory,
+      environment: managerEnvironment,
+      manager: environment.manager,
+      registry,
+      targetVersion: candidate.cliVersion,
+    });
+    await verifyOlderInstallation({
+      clientDirectory,
+      environment: managerEnvironment,
+      manager: environment.manager,
+      registryUrl: registry.registryUrl,
+      skillRoot: environment.skillRoot,
+      targetVersion: candidate.cliVersion,
+    });
+  } finally {
+    try {
+      const server = registry?.server;
+      if (server !== undefined) {
+        await new Promise<void>((resolvePromise, rejectPromise) => {
+          server.close((error) => (error ? rejectPromise(error) : resolvePromise()));
+          server.closeIdleConnections();
+        });
+      }
+    } finally {
+      await rm(clientDirectory, { force: true, recursive: true });
+    }
   }
 };
 

@@ -12,7 +12,7 @@ const MAXIMUM_OUTPUT_BYTES = 1_048_576;
 const MAXIMUM_STDERR_BYTES = 32_768;
 const MAXIMUM_CURSOR_BYTES = 8_192;
 const DEFAULT_COMPOSITION_OUTPUT_BYTES = 65_536;
-const PROCESS_TERMINATION_GRACE_PERIOD_MS = 5_000;
+const PROCESS_TERMINATION_GRACE_PERIOD_MS = 1_000;
 const RESPONSE_OPTIONS = ['--save-response', '--cursor-from-response'];
 const VALUE_OPTIONS = new Set<string>([
   '--cursor',
@@ -215,18 +215,22 @@ const runCli = async (): Promise<void> => {
   const spawnArguments = [resolvedCli.cliBinaryPath, ...cliArguments];
   const spawnOptions = {
     cwd: resolvedCli.repositoryRoot,
-    env: process.env,
+    env: Object.fromEntries(
+      Object.entries(process.env).filter(
+        ([name]) => !['node_options', 'node_path'].includes(name.toLowerCase()),
+      ),
+    ),
     shell: false,
   };
   const child =
     scopeInput === undefined
       ? spawn(process.execPath, spawnArguments, {
           ...spawnOptions,
-          stdio: ['inherit', 'pipe', 'pipe'],
+          stdio: ['inherit', 'pipe', 'pipe', 'ipc'],
         })
       : spawn(process.execPath, spawnArguments, {
           ...spawnOptions,
-          stdio: ['pipe', 'pipe', 'pipe'],
+          stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
         });
   const stdoutChunks: Buffer[] = [];
   const stderrChunks: Buffer[] = [];
@@ -253,12 +257,12 @@ const runCli = async (): Promise<void> => {
     }
   };
 
-  child.stdout.on('data', (chunk: Buffer) => {
+  child.stdout?.on('data', (chunk: Buffer) => {
     stdoutByteCount += chunk.byteLength;
     if (stdoutByteCount > parsed.outputByteLimit) terminateForLimit();
     else stdoutChunks.push(chunk);
   });
-  child.stderr.on('data', (chunk: Buffer) => {
+  child.stderr?.on('data', (chunk: Buffer) => {
     stderrByteCount += chunk.byteLength;
     if (stderrByteCount > MAXIMUM_STDERR_BYTES) terminateForLimit();
     else stderrChunks.push(chunk);

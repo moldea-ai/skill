@@ -10,15 +10,20 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
+
+import { readReleaseIdentity } from '../../release/index.ts';
 
 import { prepareResponseFiles, verifyAndSaveResponse } from './index.ts';
 
+const { cliJsonSchemaVersion, cliVersion } = readReleaseIdentity(
+  resolve(import.meta.dirname, '../../..'),
+);
 const roots: string[] = [];
-const identity = { command: 'content' as const, cliVersion: '9.0.1' };
+const identity = { command: 'content' as const, cliVersion };
 const raw = Buffer.from(
-  ' {"schemaVersion":5,"cliVersion":"9.0.1","command":"content","status":"valid","error":null,"result":{"cursor":"exact_É+/="}}\n',
+  ` ${JSON.stringify({ schemaVersion: cliJsonSchemaVersion, cliVersion, command: 'content', status: 'valid', error: null, result: { cursor: 'exact_É+/=' } })}\n`,
 );
 const fixture = async () => {
   const root = await mkdtemp(join(await realpath(tmpdir()), 'moldea-response-'));
@@ -63,8 +68,8 @@ test('preserves existing checkpoints after errors, malformed output, contradicto
     repository,
     Buffer.from(
       JSON.stringify({
-        schemaVersion: 5,
-        cliVersion: '9.0.1',
+        schemaVersion: cliJsonSchemaVersion,
+        cliVersion,
         command: 'content',
         status: 'error',
         error: { code: 'CURSOR_INVALID' },

@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The latest release is `6.0.6`. Install the latest version from `main` inside each repository that will use it:
+The latest release is `7.0.0`. Install the latest version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release:
 
 ```bash
-npx skills add "moldea-ai/skill#v6.0.6"
+npx skills add "moldea-ai/skill#v7.0.0"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -49,7 +49,7 @@ After initialization, ask naturally to plan, build, review, or maintain AI agent
 | Repair           | `Fix moldea.`                                                    |
 | Validate         | `Validate moldea.`                                               |
 
-Evaluation is read-only. Repair corrects established errors without inventing policy, upgrading dependencies, or treating structural validity as proof that every behavior is correct.
+Evaluation is read-only. Repair corrects established errors and may recover necessary local CLI tooling to the exact target recorded by the installed skill. It preserves host restrictions, healthy newer compatible tooling, and unresolved policy. Completed static checks do not prove every runtime behavior.
 
 ## Documentation
 
@@ -71,14 +71,14 @@ Evaluation is read-only. Repair corrects established errors without inventing po
 
 ## Compatibility
 
-Release `6.0.6` supports exactly:
+Release `7.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- stable `@moldea.ai/core` releases satisfying `^5.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^9.0.0`
+- stable `@moldea.ai/core` releases satisfying `^6.0.0`
+- stable `@moldea.ai/cli` releases satisfying `^10.0.0`
 - repository format version 1
-- CLI JSON schema 5
+- CLI JSON schema 6
 
 The CLI must be a repository-root-local development dependency whose manifest declaration and installed stable version satisfy the supported range. The launcher also checks that installed Core satisfies both the CLI's declared Core range and moldea's supported range. The package manager and repository setup or CI own lockfile consistency; the launcher does not check target-project lockfiles. The skill never falls back to a global installation, another workspace, a package-manager launcher, or a transient download. Tooling establishment belongs only to authorized write-capable work. See [Compatibility and local tooling](docs/compatibility-and-local-tooling.md) for the complete launcher, machine-output, resource, and runtime contracts.
 
@@ -123,7 +123,7 @@ Tooling establishment occurs only during authorized write-capable work and only 
 | `.github/workflows/conformance.yml`       | Portable generation, runtime, path, release, and installation checks.                                                                                  |
 | `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                |
 
-The distributed artifact is exactly `moldea/`; development-only tooling is not installed with the skill. Run `npm run matcher:generate` after changing the relevance gate's locked inputs and `npm run matcher:check` to verify the committed artifact.
+The distributed artifact is exactly `moldea/`; development-only tooling is not installed with the skill. Portable builds use fixed compiler settings in checkouts and temporary release directories. Run `npm run matcher:generate` after changing the relevance gate's locked inputs and `npm run matcher:check` to verify the committed artifact.
 
 ## Authoritative project specifications
 
@@ -146,6 +146,12 @@ npm ci --ignore-scripts
 ```
 
 To prepare an exact published CLI release, run `npm run release:update-cli -- <version>`. The updater verifies the published CLI, installs its locked dependency closure in a temporary directory, regenerates portable scripts from maintained TypeScript, and checks release identity before completing. It restores files it changed if preparation or verification fails, while preserving concurrent edits. Run `npm ci --ignore-scripts` afterward to bring local dependencies in line with the updated lockfile before running conformance checks.
+
+Before publication, `npm run candidate:prepare -- --artifacts <packed-closure-directory> --output <empty-directory-outside-this-repository>` prepares a complete isolated skill through the same updater against the candidate registry. An optional `--release-version <version>` selects the isolated skill version. The release-candidate workflow uses this full distribution for real manager and closed-launcher checks. Candidate registry URLs stay in the disposable output; they must not enter the official release lockfile. These checks establish tooling mechanics, not coding-agent repair effectiveness.
+
+The same release-candidate workflow is reusable by the packages trusted build. Its caller pins the skill workflow and tooling to the same immutable commit and supplies that run's public-package artifact and exact packages commit. `src/packages/trusted-candidate.ts` verifies the recorded source identity, complete checksum manifest, package graph, and compatibility publication before copying the CLI closure. Website UI is verified in the public set but remains outside the CLI consumer closure. The manager matrix consumes those unchanged tarballs rather than repacking source; it requires only read access and cannot publish packages.
+
+Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
 The private qualification workspace installs its exact pnpm 11.27.1 dependency through this command. Qualification invokes that copy directly; a globally installed pnpm is not required.
 
@@ -195,7 +201,7 @@ The skill uses independent semantic versioning. Every release must:
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluations and adapter qualifications are separate evidence-backed assurance; a passing tag does not establish them. Release `6.0.6` selects passing semantic and qualification evidence for the production website and `npm run release:check`. See [Release evidence](docs/release-evidence.md) for the exact workflows.
+During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluations and adapter qualifications are separate evidence-backed assurance; a passing tag does not establish them. Release `7.0.0` selects passing semantic and qualification evidence for the production website and `npm run release:check`. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
 ## License
 

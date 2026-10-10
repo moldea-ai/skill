@@ -1,11 +1,33 @@
 name: Release Candidate
 
 on:
+  workflow_call:
+    inputs:
+      artifact_name:
+        description: Checksummed public-package artifact from this workflow run
+        required: true
+        type: string
+      packages_ref:
+        description: Exact source commit recorded in the trusted artifact
+        required: true
+        type: string
+      skill_ref:
+        description: Exact skill tooling commit matching the reusable workflow
+        required: true
+        type: string
+      skill_version:
+        description: Isolated skill release version
+        required: false
+        type: string
   workflow_dispatch:
     inputs:
       packages_ref:
         description: Exact moldea-ai/packages branch, tag, or commit to verify
         required: true
+        type: string
+      skill_version:
+        description: Isolated skill release version (empty uses checkout version)
+        required: false
         type: string
 
 permissions:
@@ -22,6 +44,7 @@ env:
 jobs:
   pack:
     name: Pack packages candidate
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.artifact_name == '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -29,6 +52,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+          path: skill
 
       - name: Checkout packages candidate
         uses: actions/checkout@v6
@@ -50,6 +74,10 @@ jobs:
           cache: pnpm
           cache-dependency-path: packages/pnpm-lock.yaml
 
+      - name: Install skill packing dependencies
+        working-directory: skill
+        run: npm ci --ignore-scripts
+
       - name: Install candidate dependencies
         run: pnpm --dir packages install --frozen-lockfile
 
@@ -61,7 +89,7 @@ jobs:
           candidate_directory="${{ runner.temp }}/cli-candidate-packages"
           mkdir -p "$candidate_directory"
           git -C packages rev-parse HEAD > "$candidate_directory/packages-commit.txt"
-          node src/packages/pack.ts \
+          node skill/src/packages/pack.ts \
             --workspace packages \
             --output "$candidate_directory" \
             --runtime-compatibility-publication packages/apps/website/dist/compatibility/runtimes.json
@@ -76,6 +104,9 @@ jobs:
   package-managers:
     name: Candidate / ${{ matrix.manager }} ${{ matrix.version }}
     needs: pack
+    if: >-
+      ${{ always() && (needs.pack.result == 'success' ||
+        (needs.pack.result == 'skipped' && inputs.artifact_name != '')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -130,6 +161,8 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+          repository: moldea-ai/skill
+          ref: ${{ inputs.skill_ref || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -140,14 +173,42 @@ jobs:
       - name: Install skill development dependencies
         run: npm ci --ignore-scripts
 
-      - name: Install tested package manager
-        run: npm install --global --ignore-scripts "${{ matrix.package }}@${{ matrix.version }}"
-
       - name: Download candidate closure
         uses: actions/download-artifact@v8
         with:
-          name: cli-candidate-packages
-          path: ${{ runner.temp }}/cli-candidate-packages
+          name: ${{ inputs.artifact_name || 'cli-candidate-packages' }}
+          path: ${{ runner.temp }}/downloaded-package-artifacts
+
+      - name: Select checksummed trusted CLI closure
+        if: ${{ inputs.artifact_name != '' }}
+        env:
+          PACKAGES_COMMIT: ${{ inputs.packages_ref }}
+        run: |
+          mkdir -p "${{ runner.temp }}/cli-candidate-packages"
+          node src/packages/trusted-candidate.ts \
+            "${{ runner.temp }}/downloaded-package-artifacts" \
+            "${{ runner.temp }}/cli-candidate-packages" \
+            "$PACKAGES_COMMIT"
+
+      - name: Use dispatched candidate closure
+        if: ${{ inputs.artifact_name == '' }}
+        run: mv "${{ runner.temp }}/downloaded-package-artifacts" "${{ runner.temp }}/cli-candidate-packages"
+
+      - name: Prepare complete skill candidate with development npm
+        env:
+          MOLDEA_CANDIDATE_SKILL_VERSION: ${{ inputs.skill_version }}
+        run: |
+          candidate_arguments=(
+            --artifacts "${{ runner.temp }}/cli-candidate-packages"
+            --output "${{ runner.temp }}/skill-candidate"
+          )
+          if [ -n "$MOLDEA_CANDIDATE_SKILL_VERSION" ]; then
+            candidate_arguments+=(--release-version "$MOLDEA_CANDIDATE_SKILL_VERSION")
+          fi
+          npm run candidate:prepare -- "${candidate_arguments[@]}"
+
+      - name: Install tested package manager
+        run: npm install --global --ignore-scripts "${{ matrix.package }}@${{ matrix.version }}"
 
       - name: Exercise real candidate conformance
         env:
@@ -156,4 +217,5 @@ jobs:
           MOLDEA_TEST_MANAGER: ${{ matrix.manager }}
           MOLDEA_TEST_MANAGER_VERSION: ${{ matrix.version }}
           MOLDEA_TEST_EXISTING_VITEST_VERSION: ${{ matrix.existing_vitest_version || '' }}
+          MOLDEA_CANDIDATE_SKILL_ROOT: ${{ runner.temp }}/skill-candidate/moldea
         run: node src/packages/package-manager-conformance.ts

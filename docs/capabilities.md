@@ -8,7 +8,7 @@ order: 20
 
 # What `moldea` can do
 
-Start with the [visual Capabilities page](/capabilities/) to see each outcome through a project example. This reference explains the exact behavior and boundaries.
+Start with the [visual Capabilities page](/capabilities/) to explore 48 requests with connected artifacts, expected outcomes, and evidence boundaries. This reference explains the exact behavior and boundaries.
 
 `moldea` keeps durable project knowledge in Git and brings relevant context into coding-agent planning and development. You can ask to use saved rules when planning an ordinary API change, maintain approved project facts, or organize accumulated context without creating a runtime agent.
 
@@ -92,13 +92,15 @@ Reconciliation starts from the same evidence model as evaluation, establishes in
 
 ## Validate structure
 
-Validation runs the deterministic repository-local structural boundary. It proves format and registered relationship validity, but it does not claim semantic alignment or production readiness.
+Validation runs the installed skill’s bounded repository-local boundary. It checks repository format and declared relationships, including supported source patterns for instruction loading, exports, registrations, tools, schemas, and runtime integration. A confirmed mismatch is an error. A relationship that cannot be proved remains explicitly unverified with a warning; a correct custom design does not need to be rewritten to remove that warning.
+
+Validity and inspection completion are separate. `valid: true` means no error diagnostics; `runtimeInspection: incomplete` identifies remaining unverified relationships. An operational or resource-limit failure is not a completed validity result. Static validation does not establish semantic alignment or production readiness.
 
 ## Repair a project
 
 When an initialized project has broken, missing, stale, or incomplete `moldea` state, ask the coding agent to `Fix moldea`. The coding agent establishes the current failure from project evidence, repairs the smallest coherent surface, and verifies the result before reporting completion.
 
-Repair does not silently initialize an unadopted project, invent policy, upgrade dependencies, or hide unresolved ambiguity. See [the evaluation and repair workflow](/docs/evaluate-reconcile-validate/#repair-a-project) for the complete contract.
+Repair may recover necessary repository-local CLI tooling to the installed skill’s exact validated repair target, using the established package manager with scripts disabled. It preserves host restrictions, unrelated dependency locks, and healthy newer compatible tooling. Downgrades and explicit version-policy conflicts need direction. Repair does not silently initialize an unadopted project, invent policy, broadly upgrade dependencies, or hide unresolved ambiguity. See [the evaluation and repair workflow](/docs/evaluate-reconcile-validate/#repair-a-project) for the complete contract.
 
 ## Work across dedicated repositories
 

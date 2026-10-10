@@ -17,7 +17,7 @@ Deterministic verification runs before and after the actor. It verifies:
 - exact registry package integrity and dependency closure
 - repository filesystem and in-memory reader equivalence
 - Core behavior and project validity
-- exact evaluated CLI 9/schema 5 envelopes within the skill's supported `^9.0.0` range
+- exact evaluated CLI 10/schema 6 envelopes within the skill's supported `^10.0.0` range
 - content-free `inspect` and `validate` behavior
 - project-local typechecking
 - scenario-specific diagnostics and assertions
@@ -25,6 +25,8 @@ Deterministic verification runs before and after the actor. It verifies:
 - resource accounting
 
 The CLI, runtime packages, auxiliary types, and TypeScript compiler are downloaded at exact versions, checked against registry SHA-512 and SHA-1 metadata, and recorded with downloaded SHA-256 digests. Candidate preparation installs those exact registry versions with lifecycle scripts disabled, strict peer validation, an attempt-local metadata cache and content store, an empty attempt-owned user config, and the explicit public npm registry. Case workspaces reuse the exact closure offline. No package is borrowed from a sibling checkout or installed through a local-tarball override.
+
+The correctness suite also checks every current scenario's declared validity, diagnostic and evidence selectors, and counts in both seeded and expected states through real filesystem and memory readers. These static fixture checks do not execute SDK behavior or make model calls.
 
 ## Model boundary
 

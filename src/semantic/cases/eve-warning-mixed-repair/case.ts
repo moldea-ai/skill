@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'eve-warning-mixed-repair',
   setup: createSemanticCaseSetup('eve-warning-mixed-repair'),
   scenario:
-    'Two Eve agents coexist: refund has a scoped version warning, while triage has a confirmed tool-name mismatch in a known 0.67.0 declaration.',
+    'Two Eve agents coexist: refund has scoped runtime and version warnings, while triage has a confirmed tool-name mismatch and independent unverified relationships in a known 0.67.0 declaration.',
   operation: 'repair-agent',
   input: {
     developerDirection:
@@ -39,7 +39,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-scoped-uncertainty',
       criterion:
-        'The actor retains the refund version range and output-schema declaration, reports final warning-only validation, and leaves only that relationship unverified.',
+        'The actor retains the refund version range and output-schema declaration, reports final warning-only validation, and preserves the independent runtime and tool-implementation uncertainty.',
     },
   ],
   forbidden: [

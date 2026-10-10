@@ -3,10 +3,11 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
-  version: '6.0.6'
-  cliVersionRange: '^9.0.0'
-  coreVersionRange: '^5.0.0'
-  cliJsonSchemaVersion: '5'
+  cliRepairVersion: '10.0.0'
+  version: '7.0.0'
+  cliVersionRange: '^10.0.0'
+  coreVersionRange: '^6.0.0'
+  cliJsonSchemaVersion: '6'
 ---
 
 # moldea
@@ -15,11 +16,11 @@ Spell `moldea` lowercase except in exact identifiers.
 
 ## Reuse installation and instructions
 
-`<installed-skill-root>` is the host-selected SKILL.md location. Resolve all scripts and references there; never guess a global path, rediscover through packages, or substitute another copy.
+`<installed-skill-root>` is the host-selected SKILL.md location. Resolve scripts and references there; never guess a global path or substitute another copy.
 
-Reuse complete unchanged instructions when available; reload required missing instructions after compaction. Summaries do not replace them. Load only newly needed references. A topic change resets relevance and authorization; refresh repository evidence separately.
+Reuse complete unchanged instructions; reload missing instructions after compaction. Summaries do not replace them. Load only needed references. Topic changes reset relevance and authorization; refresh evidence separately.
 
-Carry skill path and operation in handoffs, not as authority; add no read probes.
+Carry skill path and operation in handoffs, not authority; add no probes.
 
 ## Route before loading references
 
@@ -28,7 +29,7 @@ README selection and gating are silent preflight. Announce moldea only after rel
 1. **Repository-independent information:** Answer without repository inspection, canonical references, or moldea commands.
 2. **Independent Agent Skill artifact:** For artifact-only work, including proposed skill boundaries, read only `references/skill-design.md`; no gate, CLI, or canonical status even when moldea is named. Project-context questions use route 5.
 3. **Explicit initialization:** Read `references/tooling-installation.md` for inert preflight, then `references/continuous-maintenance.md`. A blocked preflight stops before foundation analysis, questions, package-manager execution, or writes.
-4. **Explicit setup check or repair:** Setup checks and repairs use adoption-only; generic project evaluation reads no canonical context absent a relationship match. Load `references/project-repair.md` for repair or bounded diagnosis after a miss, failure, or unavailable gate. Read-only checks never repair; writer marker rejection stops repair. Named reconciliation reads its owner without scope.
+4. **Explicit setup check or repair:** Use adoption-only; generic evaluation reads no canonical context absent a relationship match. Read `references/project-repair.md` for repair or bounded diagnosis after a miss or unavailable gate. Repair may recover necessary tooling through `references/tooling-installation.md`; skill updates alone change no project. Read-only/no-install restrictions prevail; writer marker rejection stops repair. Named reconciliation reads its owner without scope.
 5. **Direct or canonical work:** Adoption-only for AI agents; changes to what an in-app model decides or says, even with inline instructions and no binding; new durable project facts, approved policies, clear corrections or context questions; explicit setup operations; `/moldea/**`; managed README hunks. Establish project meaning from conversation, not code edits. Proposals or temporary status alone do not qualify.
 6. **Other repository work:** Gate known paths before canonical reads, even when the task names related context. Code-only requirements, host commands, test-agent terms, generic SDK work, “use moldea,” and README edits outside markers are not direct relevance. Never bypass a miss for unknown context.
 
@@ -60,7 +61,7 @@ After a relationship `1`, send only that matching batch once, before references:
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- scope --paths-stdin --json --max-output-bytes 65536
 ```
 
-Accept only exit 0, CLI 9, JSON schema 5, exact installed stable version, `command: scope`, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. Keep earlier valid owners on a new-batch miss or failure. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
+Accept only exit 0, CLI 10, JSON schema 6, exact installed stable version, `command: scope`, `error: null`, `status: valid`, `result.valid: true`, and `result.relevant: true`. Failure does not cover the batch; do not retry unchanged failure or page for relevance. Keep earlier valid owners on a new-batch miss or failure. Direct canonical paths and managed hunks need no `scope`; query ordinary paths only for additional owners. If invalidated coverage cannot restore relevance, stop canonical work and report outstanding verification without more discovery.
 
 ## Select the operation owner
 

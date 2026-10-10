@@ -1,12 +1,12 @@
 # Local moldea tooling
 
-Read this reference only after relevance when local CLI proof, machine-contract interpretation, or validation recovery is required. It owns observation, invocation, and diagnostic recovery, not installation. Read-only work never authorizes dependency, lockfile, or configuration changes; report unavailable deterministic evidence. Only a separately authorized write-capable operation may use `tooling-installation.md` to establish missing tooling.
+Read this reference only after relevance when local CLI proof, machine-contract interpretation, or validation recovery is required. It owns observation, invocation, and diagnostic recovery, not installation. Read-only work never authorizes dependency, lockfile, or configuration changes; report unavailable deterministic evidence. Explicit repair or another authorized write-capable operation may use `tooling-installation.md` for necessary recovery to the selected skill's `metadata.cliRepairVersion`. Skill updates alone authorize no project change.
 
 For a direct request to prove or safely invoke the local CLI, apply this reference before inspecting a declared dependency, package-manager provider, binary link, or other provider evidence and before reaching any conclusion. The required first proof attempt is the closed launcher `composition --json` call below.
 
 ## Supported contract
 
-Skill 6.0.6 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^5.0.0`, stable `@moldea.ai/cli` releases satisfying `^9.0.0`, repository format 1, and CLI JSON schema 5. Never substitute a global, transient, out-of-range, or prerelease CLI.
+Skill 7.0.0 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^6.0.0`, stable `@moldea.ai/cli` releases satisfying `^10.0.0`, repository format 1, and CLI JSON schema 6. Never substitute a global, transient, out-of-range, or prerelease CLI.
 
 Use only `<installed-skill-root>/scripts/moldea-cli.mjs`. The launcher resolves the repository-root-local package and executable, verifies the package name, exact installed stable version, supported repository declaration, declared `moldea` binary, installed Core against both the CLI's declared range and moldea's supported range, and resolved-path containment from inert package metadata, then invokes the executable without a shell. Package management and repository setup or CI own lockfile consistency; the launcher does not read target-project lockfiles. Do not reproduce these probes, inspect links manually, search parent workspaces, inspect unrelated repositories, use package-manager launchers, or search `PATH` for another copy.
 
@@ -30,13 +30,13 @@ node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-reposi
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- composition --json
 ```
 
-`scope` is the single pre-reference relationship query, `validate` returns structural diagnostics, `inspect` returns content-free inventory, `content` reads one explicit canonical asset, and `composition` is used only when installed package composition matters. The launcher's fixed 65,536-byte composition boundary replaces a caller-supplied page budget.
+`scope` is the single pre-reference relationship query, `validate` returns repository-format and registered runtime-inspection diagnostics, `inspect` returns content-free inventory, `content` reads one explicit canonical asset, and `composition` is used only when installed package composition matters. The launcher's fixed 65,536-byte composition boundary replaces a caller-supplied page budget.
 
 The gate and the launcher's `scope` and `content --path` accept repository-relative or leading-slash repository-logical paths and add the leading slash mechanically without changing segments. `content` still selects one explicit canonical asset. For stdin scope, encode each path's UTF-8 bytes followed by one NUL, never put a delimiter before the first path, and pass the complete stream once within the 2 MiB input limit. Never call `scope` separately per path.
 
 ## Envelope verification
 
-The launcher verifies complete UTF-8 JSON, schema 5, the exact installed CLI version, invoked command, result/error shape, and exit/status agreement for every completed response, including calls without capture and `composition`. It preserves verified raw bytes and legitimate exit codes: 0 for `valid`, 1 for `invalid`, and 2 or 3 for `error`. Malformed or contradictory output returns 3 with a short diagnostic and no stdout. It accepts additive fields without interpreting full CLI payloads.
+The launcher verifies complete UTF-8 JSON, schema 6, the exact installed CLI version, invoked command, result/error shape, and exit/status agreement for every completed response, including calls without capture and `composition`. It preserves verified raw bytes and legitimate exit codes: 0 for `valid`, 1 for `invalid`, and 2 or 3 for `error`. Malformed or contradictory output returns 3 with a short diagnostic and no stdout. It accepts additive fields without interpreting full CLI payloads.
 
 Signals, launcher failures, output-boundary termination, malformed output, contradictory status, version mismatch, unsupported schema, and incomplete output establish no conclusion. The launcher sends the requested termination signal first and force-terminates a child that remains active after five seconds. An `invalid` result is diagnostic evidence, not validity.
 
@@ -55,7 +55,7 @@ Files must be absolute beneath the resolved host temporary root, outside the rep
 
 ## Validation recovery
 
-For authorized canonical writes requiring validation, complete the writes and applicable project-native checks before final launcher-backed validation. Success ends verification without unnecessary inspection. Structural validity does not prove semantic alignment or runtime readiness. Read-only and independent Agent Skill operations retain their own verification boundaries.
+For authorized canonical writes requiring validation, complete the writes and applicable project-native checks before final launcher-backed validation. Success ends verification without unnecessary inspection. A valid result reports completed declared checks, not universal semantic alignment or runtime readiness. Inspect `runtimeInspection` and scoped warnings before claiming static coverage. Read-only and independent Agent Skill operations retain their own verification boundaries.
 
 On failure, establish the complete affected contract from diagnostics and the smallest relevant evidence before editing. Inspect equivalent occurrences in the authorized change set, apply the supported complete correction, rerun native checks affected by it, and validate the resulting state. Continue while changed state and new evidence support progress; a newly exposed diagnostic can represent progress even when the diagnostic count is unchanged.
 
@@ -67,7 +67,7 @@ Report the actual changes, final status, material diagnostics, completed checks,
 
 Use a 65,536-byte output page for ordinary work and stop after obtaining the relevant record, diagnostic, or passage. Keep ordinary aggregate moldea output within 262,144 bytes. Explicitly required large traversal remains purpose-bounded and paginated, with each invocation below 1 MiB. The launcher rejects missing, malformed, smaller-than-4-KiB, or larger-than-1-MiB page budgets and terminates a child that exceeds the declared stdout boundary. It also bounds stderr independently.
 
-`OUTPUT_BUDGET_TOO_SMALL` means the next complete record cannot fit and increasing the page within the 1 MiB ceiling may be appropriate when the record is necessary. `RESOURCE_LIMIT_EXCEEDED` means repository reading exceeded a configured compute or storage guard; do not treat it as an output-page problem or retry unboundedly. Report the observed operation, safe error code, and missing conclusion after direct activation.
+`OUTPUT_BUDGET_TOO_SMALL` means the next complete record cannot fit and increasing the page within the 1 MiB ceiling may be appropriate when the record is necessary. `RESOURCE_LIMIT_EXCEEDED` means a compute or storage guard was reached. Verified heap exhaustion is non-retryable for unchanged input; it does not prove the application code is wrong. `INSPECTION_TIMEOUT` is an elapsed-time failure, `INSPECTION_BUSY` is capacity contention, and `INSPECTION_PROCESS_FAILED` is an operational inspection failure. Retryable metadata never authorizes an unchanged retry loop. Preserve completed corrections and report the missing inspection conclusion. Do not tune internal limits, split or delete healthy source, or silently skip files. Output pagination bounds transfer, not arbitrary source parsing. Report the observed operation, safe error code, and missing conclusion after direct activation.
 
 Evaluation and qualification record command count and emitted bytes from the completed process evidence. Host failure-containment ceilings do not define normal skill consumption and must never be presented as repository-capacity limits.
 

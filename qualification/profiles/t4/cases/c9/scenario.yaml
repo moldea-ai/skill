@@ -17,7 +17,7 @@ inspection:
 deterministicEvidence:
   before:
     errorCount: 1
-    warningCount: 1
+    warningCount: 4
     requiredDiagnosticCodes:
       [CLOUDFLARE_AGENTS_TOOL_NAME_MISMATCH, CLOUDFLARE_AGENTS_RUNTIME_RELATIONSHIP_UNVERIFIED]
     forbiddenDiagnosticCodes: [CLOUDFLARE_AGENTS_TOOL_REGISTRATION_NOT_WIRED]

@@ -37,7 +37,7 @@ import {
   initializeQualificationPnpmInstallation,
   type IQualificationPnpmInstallation,
 } from '../pnpm-installation/index.ts';
-import { loadVerifiedCachedPackage } from './cache.ts';
+import { loadVerifiedCachedPackage, withCandidateCachePreparation } from './cache.ts';
 import { createPublicCandidatePackage } from './transformers.ts';
 import type { ICandidatePreparationOptions } from './types.ts';
 
@@ -309,16 +309,19 @@ export const prepareCandidateClosure = async (
   const cacheDirectory = path.join(LOCAL_QUALIFICATION_ROOT, 'candidates', fingerprint);
   const runtimeDirectory = path.join(options.attemptDirectory, 'runtime');
   const pnpmInstallation = createQualificationPnpmInstallation(options.attemptDirectory);
-  let candidate = await validateCachedCandidate({
-    adapterPackage: options.adapterPackage,
-    cacheDirectory,
-    expectedFingerprint: fingerprint,
-    manifests,
-    runtimePackageManifests,
-    typeScriptManifest,
-  });
+  const candidate = await withCandidateCachePreparation(cacheDirectory, async () => {
+    options.signal?.throwIfAborted();
+    const cachedCandidate = await validateCachedCandidate({
+      adapterPackage: options.adapterPackage,
+      cacheDirectory,
+      expectedFingerprint: fingerprint,
+      manifests,
+      runtimePackageManifests,
+      typeScriptManifest,
+    });
 
-  if (candidate === null) {
+    if (cachedCandidate !== null) return cachedCandidate;
+
     await rm(cacheDirectory, { force: true, recursive: true });
     const packages = await downloadPublishedPackageClosure({
       artifactDirectory: cacheDirectory,
@@ -349,8 +352,8 @@ export const prepareCandidateClosure = async (
       runtimePackages: runtimePackages.map(createPublicCandidatePackage),
       typeScriptPackage: createPublicCandidatePackage(typeScriptPackage),
     });
-    candidate = { packages, runtimePackages, typeScriptPackage };
-  }
+    return { packages, runtimePackages, typeScriptPackage };
+  });
 
   await installCandidateRuntime(
     candidate.packages,

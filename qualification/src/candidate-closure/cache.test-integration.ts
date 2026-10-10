@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { createHash } from 'node:crypto';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -8,8 +8,16 @@ import { afterEach, describe, expect, test } from 'vitest';
 
 import type { IPublishedPackageManifest } from '../../../src/packages/index.ts';
 
-import { loadVerifiedCachedPackage } from './cache.ts';
+import { loadVerifiedCachedPackage, withCandidateCachePreparation } from './cache.ts';
 import type { ICachedCandidatePackage } from './types.ts';
+
+const createBarrier = () => {
+  let release = (): void => {};
+  const promise = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  return { promise, resolve: () => release() };
+};
 
 const createManifest = (archive: Buffer): IPublishedPackageManifest => ({
   dependencies: {},
@@ -44,6 +52,69 @@ describe('candidate package cache', () => {
       await rm(temporaryRoot, { force: true, recursive: true });
       temporaryRoot = null;
     }
+  });
+
+  test('concurrent cold-cache workers publish one archive before another worker reads it', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-candidate-cache-'));
+    const archivePath = path.join(temporaryRoot, 'package.tgz');
+    const firstEntered = createBarrier();
+    const releaseFirst = createBarrier();
+    let creationCount = 0;
+    const prepare = async (): Promise<string> => {
+      if (
+        await access(archivePath).then(
+          () => true,
+          () => false,
+        )
+      ) {
+        return readFile(archivePath, 'utf8');
+      }
+      creationCount += 1;
+      firstEntered.resolve();
+      await releaseFirst.promise;
+      await writeFile(archivePath, 'verified archive', { flag: 'wx' });
+      return readFile(archivePath, 'utf8');
+    };
+    const first = withCandidateCachePreparation(temporaryRoot, prepare);
+    await firstEntered.promise;
+    const second = withCandidateCachePreparation(temporaryRoot, prepare);
+    releaseFirst.resolve();
+
+    expect(await Promise.all([first, second])).toStrictEqual([
+      'verified archive',
+      'verified archive',
+    ]);
+    expect(creationCount).toBe(1);
+  });
+
+  test('failed preparation releases queued workers and unrelated cache keys remain independent', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-candidate-cache-'));
+    const firstEntered = createBarrier();
+    const releaseFirst = createBarrier();
+    const first = withCandidateCachePreparation(temporaryRoot, async () => {
+      firstEntered.resolve();
+      await releaseFirst.promise;
+      throw new Error('Archive download failed.');
+    });
+    const rejection = expect(first).rejects.toThrow('Archive download failed.');
+    await firstEntered.promise;
+    const retry = withCandidateCachePreparation(temporaryRoot, () => Promise.resolve('retried'));
+
+    try {
+      expect(
+        await withCandidateCachePreparation(path.join(temporaryRoot, 'other'), () =>
+          Promise.resolve('other'),
+        ),
+      ).toBe('other');
+    } finally {
+      releaseFirst.resolve();
+    }
+
+    await rejection;
+    expect(await retry).toBe('retried');
+    expect(await withCandidateCachePreparation(temporaryRoot, () => Promise.resolve('warm'))).toBe(
+      'warm',
+    );
   });
 
   test('accepts only the registry-verified archive at the canonical contained path', async () => {

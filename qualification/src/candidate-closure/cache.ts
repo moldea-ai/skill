@@ -9,6 +9,35 @@ import type { ICandidatePackage } from '../contracts/index.ts';
 import { resolveContainedPath } from '../../../src/filesystem/index.ts';
 import type { ICachedCandidatePackage } from './types.ts';
 
+// batch workers share cache paths, but install into independent attempt directories
+const preparationByCacheDirectory = new Map<string, Promise<void>>();
+
+/**
+ * Serializes cache validation and rebuilding for workers in one qualification process.
+ * @returns The operation result after earlier preparation for this directory has finished.
+ */
+export const withCandidateCachePreparation = async <T>(
+  cacheDirectory: string,
+  prepare: () => Promise<T>,
+): Promise<T> => {
+  const previousPreparation = preparationByCacheDirectory.get(cacheDirectory);
+  let releasePreparation = (): void => {};
+  const completion = new Promise<void>((resolve) => {
+    releasePreparation = resolve;
+  });
+  preparationByCacheDirectory.set(cacheDirectory, completion);
+
+  try {
+    await previousPreparation;
+    return await prepare();
+  } finally {
+    releasePreparation();
+    if (preparationByCacheDirectory.get(cacheDirectory) === completion) {
+      preparationByCacheDirectory.delete(cacheDirectory);
+    }
+  }
+};
+
 const hasExpectedPackageIdentity = (
   candidatePackage: ICachedCandidatePackage,
   manifest: IPublishedPackageManifest,

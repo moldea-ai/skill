@@ -26,6 +26,8 @@ Deterministic verification runs before and after the actor. It verifies:
 
 The CLI, runtime packages, auxiliary types, and TypeScript compiler are downloaded at exact versions, checked against registry SHA-512 and SHA-1 metadata, and recorded with downloaded SHA-256 digests. Candidate preparation installs those exact registry versions with lifecycle scripts disabled, strict peer validation, an attempt-local metadata cache and content store, an empty attempt-owned user config, and the explicit public npm registry. Case workspaces reuse the exact closure offline. No package is borrowed from a sibling checkout or installed through a local-tarball override.
 
+Concurrent workers in one qualification process serialize validation and rebuilding of the same fingerprinted candidate archive cache. Failed preparation releases waiting workers to retry; different fingerprints and attempt-local runtime installations remain independent. This coordination is process-local and does not coordinate separate CLI processes sharing a checkout.
+
 The correctness suite also checks every current scenario's declared validity, diagnostic and evidence selectors, and counts in both seeded and expected states through real filesystem and memory readers. These static fixture checks do not execute SDK behavior or make model calls.
 
 ## Model boundary

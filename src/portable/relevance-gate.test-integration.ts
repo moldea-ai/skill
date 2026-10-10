@@ -83,6 +83,53 @@ test('adoption and exact relationship checks return only two bytes', () => {
   assertGateResult(root, Buffer.alloc(0), '0\n');
 });
 
+test.each(['argv', 'stdin'])(
+  'normalizes all supported path spellings in %s mode from a nested cwd',
+  (mode) => {
+    const root = createAdoptedRepository();
+    const cwd = join(root, 'nested');
+    mkdirSync(cwd);
+    for (const path of [
+      'src/refund.js',
+      '/src/refund.js',
+      './src/refund.js',
+      join(root, 'src/refund.js'),
+    ]) {
+      const result = spawnSync(
+        TEST_NODE_EXECUTABLE,
+        [GATE_PATH, '--repository', root, ...(mode === 'argv' ? ['--path', path] : [])],
+        {
+          cwd,
+          encoding: 'utf8',
+          ...(mode === 'stdin' ? { input: Buffer.from(`${path}\0`) } : {}),
+          timeout: 5_000,
+        },
+      );
+      assert.ifError(result.error);
+      assert.deepEqual(
+        { status: result.status, stdout: result.stdout, stderr: result.stderr },
+        { status: 0, stdout: '1\n', stderr: '' },
+      );
+    }
+    const outsideSpelling = join(`${root}-other`, 'src/refund.js');
+    const miss = spawnSync(
+      TEST_NODE_EXECUTABLE,
+      [GATE_PATH, '--repository', root, '--diagnose', '--path', outsideSpelling],
+      { cwd, encoding: 'utf8', timeout: 5_000 },
+    );
+    assert.ifError(miss.error);
+    if (process.platform === 'win32') {
+      assert.equal(miss.status, 1);
+      assert.equal(miss.stdout, '');
+      assert.notEqual(miss.stderr, '');
+    } else {
+      assert.equal(miss.status, 0);
+      assert.equal(miss.stdout, '0\n');
+      assert.equal(miss.stderr, '');
+    }
+  },
+);
+
 test.each(['absent', 'drift', 'markers', 'linked'])(
   'README %s does not control canonical adoption or relationship matching',
   (condition) => {
@@ -145,6 +192,18 @@ test('accepts a repository root reached through a directory link', () => {
 
   assertGateResult(linkedRoot, [], '1\n', true);
   assertGateResult(linkedRoot, ['/src/refund.js'], '1\n');
+  for (const path of [join(root, 'src/refund.js'), join(linkedRoot, 'src/refund.js')]) {
+    assertGateResult(linkedRoot, [path], '1\n');
+    const result = spawnSync(
+      TEST_NODE_EXECUTABLE,
+      [GATE_PATH, '--repository', linkedRoot, '--path', path],
+      { encoding: 'utf8', timeout: 5_000 },
+    );
+    assert.ifError(result.error);
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, '1\n');
+    assert.equal(result.stderr, '');
+  }
 });
 
 test('malformed, unsafe, and oversized inputs fail closed', () => {
@@ -226,6 +285,8 @@ test.each([
   ['--path', 'C:refund.js'],
   ['--path', '//host/share'],
   ['--path', 'src/../refund.js'],
+  ['--path', 'src/./refund.js'],
+  ['--path', './'],
   ['--adoption-only', '--path', 'src/refund.js'],
   ['--unknown'],
   ['--diagnose', '--diagnose'],

@@ -1,7 +1,15 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -69,7 +77,7 @@ const createScopeFixture = () => {
   return { root, invokedPath, cliRoot };
 };
 
-const runScope = (root: string, paths: string[] | Buffer | string) => {
+const runScope = (root: string, paths: string[] | Buffer | string, cwd = root) => {
   const input =
     typeof paths === 'string'
       ? undefined
@@ -89,7 +97,7 @@ const runScope = (root: string, paths: string[] | Buffer | string) => {
       '--max-output-bytes',
       '65536',
     ],
-    { encoding: 'utf8', ...(input === undefined ? {} : { input }), timeout: 15_000 },
+    { cwd, encoding: 'utf8', ...(input === undefined ? {} : { input }), timeout: 15_000 },
   );
   if (result.error) throw result.error;
   return { status: result.status, stdout: result.stdout, stderr: result.stderr };
@@ -101,7 +109,12 @@ afterEach(() => {
 
 test('the gate and launcher resolve a mixed Git path batch through the published CLI', () => {
   const { root } = createScopeFixture();
-  const paths = ['src/refund.ts', '/src/other.ts', 'src/Éclair plan.ts'];
+  const paths = [
+    'src/refund.ts',
+    '/src/other.ts',
+    './src/Éclair plan.ts',
+    join(root, 'src/refund.ts'),
+  ];
   const gate = spawnSync(process.execPath, [GATE_PATH, '--repository', root], {
     encoding: 'utf8',
     input: Buffer.from(`${paths.join('\0')}\0`),
@@ -112,10 +125,12 @@ test('the gate and launcher resolve a mixed Git path batch through the published
   assert.equal(gate.stdout, '1\n');
   assert.equal(gate.stderr, '');
   const mixed = runScope(root, paths);
-  const canonical = runScope(
-    root,
-    paths.map((path) => (path.startsWith('/') ? path : `/${path}`)),
-  );
+  const canonical = runScope(root, [
+    '/src/refund.ts',
+    '/src/other.ts',
+    '/src/Éclair plan.ts',
+    '/src/refund.ts',
+  ]);
   assert.equal(mixed.status, 0, mixed.stderr || mixed.stdout);
   assert.deepEqual(mixed, canonical);
   const envelope = JSON.parse(mixed.stdout) as {
@@ -128,11 +143,25 @@ test('the gate and launcher resolve a mixed Git path batch through the published
   assert.equal(envelope.result.counts.matchedPaths, 2);
 });
 
-test('normalizes one scope --path without changing the published CLI result', () => {
+test('normalizes every scope spelling in argv and stdin from a nested cwd', () => {
   const { root } = createScopeFixture();
-  const relative = runScope(root, 'src/refund.ts');
-  assert.equal(relative.status, 0, relative.stderr || relative.stdout);
-  assert.deepEqual(relative, runScope(root, '/src/refund.ts'));
+  const cwd = join(root, 'nested');
+  mkdirSync(cwd);
+  const canonical = runScope(root, '/src/refund.ts');
+  assert.equal(canonical.status, 0, canonical.stderr || canonical.stdout);
+  assert.equal(
+    (JSON.parse(canonical.stdout) as { result: { relevant: boolean } }).result.relevant,
+    true,
+  );
+  for (const path of [
+    'src/refund.ts',
+    '/src/refund.ts',
+    './src/refund.ts',
+    join(root, 'src/refund.ts'),
+  ]) {
+    assert.deepEqual(runScope(root, path, cwd), canonical);
+    assert.deepEqual(runScope(root, [path], cwd), canonical);
+  }
 });
 
 test.each([
@@ -159,37 +188,38 @@ test.each(['moldea/project.md', 'moldea/context/Éclair plan.md'])(
     const { root } = createScopeFixture();
     mkdirSync(join(root, 'moldea/context'));
     writeFileSync(join(root, 'moldea/context/Éclair plan.md'), '# Éclair plan\n');
-    const relative = runPage(root, 'content', ['--path', path]);
-    const absolute = runPage(root, 'content', ['--path', `/${path}`]);
-    assert.equal(relative.status, 0, relative.stderr || relative.stdout);
-    assert.equal(relative.stdout, absolute.stdout);
-    assert.equal(relative.stderr, '');
-    assert.equal(absolute.status, 0);
+    const cwd = join(root, 'nested');
+    mkdirSync(cwd);
+    const canonical = runPage(root, 'content', ['--path', `/${path}`]);
+    assert.equal(canonical.status, 0, canonical.stderr || canonical.stdout);
+    for (const spelling of [path, `/${path}`, `./${path}`, join(root, path)]) {
+      assert.deepEqual(runPage(root, 'content', ['--path', spelling], cwd), canonical);
+    }
   },
 );
 
-test.each(['C:project.md', '\\\\host\\share', 'moldea\\project.md'])(
-  'rejects unsafe content path %s before repository code',
-  (path) => {
-    const { root, invokedPath } = createScopeFixture();
-    const result = runPage(root, 'content', ['--path', path]);
-    assert.equal(result.status, 3);
-    assert.equal(result.stdout, '');
-    assert.equal(existsSync(invokedPath), false);
-  },
-);
+test.each([
+  'C:project.md',
+  '\\\\host\\share',
+  'moldea\\project.md',
+  'moldea/../README.md',
+  '//host/share',
+])('rejects unsafe content path %s before repository code', (path) => {
+  const { root, invokedPath } = createScopeFixture();
+  const result = runPage(root, 'content', ['--path', path]);
+  assert.equal(result.status, 3);
+  assert.equal(result.stdout, '');
+  assert.equal(existsSync(invokedPath), false);
+});
 
-test.each(['moldea/../README.md', 'README.md', '//host/share'])(
-  'retains CLI rejection for content path %s',
-  (path) => {
-    const { root, invokedPath } = createScopeFixture();
-    const result = runPage(root, 'content', ['--path', path]);
-    assert.equal(result.status, 3, result.stdout);
-    assert.equal(existsSync(invokedPath), true);
-    assert.equal((JSON.parse(result.stdout) as { status: string }).status, 'error');
-    assert.equal(result.stderr, '');
-  },
-);
+test('retains CLI rejection for noncanonical content', () => {
+  const { root, invokedPath } = createScopeFixture();
+  const result = runPage(root, 'content', ['--path', 'README.md']);
+  assert.equal(result.status, 3, result.stdout);
+  assert.equal(existsSync(invokedPath), true);
+  assert.equal((JSON.parse(result.stdout) as { status: string }).status, 'error');
+  assert.equal(result.stderr, '');
+});
 
 test('suppresses success when the child closes its scope input pipe early', () => {
   const { root, cliRoot } = createScopeFixture();
@@ -205,17 +235,53 @@ test('suppresses success when the child closes its scope input pipe early', () =
   assert.equal(result.stderr, 'moldea CLI scope input could not be delivered.\n');
 });
 
-test.each(['src/../refund.ts', 'src\\refund.ts', '//host/share'])(
-  'leaves unsafe path rejection to the published CLI for %s',
+test.each(['src/../refund.ts', 'src/./refund.ts', 'src\\refund.ts', '//host/share', './'])(
+  'rejects unsafe scope paths before repository code for %s',
   (path) => {
-    const { root } = createScopeFixture();
-    const result = runScope(root, [path]);
-    assert.equal(result.status, 3);
-    const envelope = JSON.parse(result.stdout) as { status: string; error: { code: string } };
-    assert.equal(envelope.status, 'error');
-    assert.equal(envelope.error.code, 'PATH_INPUT_INVALID');
+    const { root, invokedPath } = createScopeFixture();
+    for (const paths of [path, [path]]) {
+      const result = runScope(root, paths);
+      assert.equal(result.status, 3);
+      assert.equal(result.stdout, '');
+      assert.notEqual(result.stderr, '');
+      assert.equal(existsSync(invokedPath), false);
+    }
   },
 );
+
+test('normalizes supplied and resolved root spellings through the real CLI', () => {
+  const { root } = createScopeFixture();
+  const parent = mkdtempSync(join(tmpdir(), 'moldea-scope-link-'));
+  scopeFixtureRoots.push(parent);
+  const linkedRoot = join(parent, 'repository');
+  symlinkSync(root, linkedRoot, process.platform === 'win32' ? 'junction' : 'dir');
+  const scope = runScope(root, '/src/refund.ts');
+  const content = runPage(root, 'content', ['--path', '/moldea/project.md']);
+  assert.equal(scope.status, 0, scope.stderr || scope.stdout);
+  assert.equal(content.status, 0, content.stderr || content.stdout);
+  for (const spelling of [root, linkedRoot]) {
+    assert.deepEqual(runScope(linkedRoot, join(spelling, 'src/refund.ts')), scope);
+    assert.deepEqual(runScope(linkedRoot, [join(spelling, 'src/refund.ts')]), scope);
+    assert.deepEqual(
+      runPage(linkedRoot, 'content', ['--path', join(spelling, 'moldea/project.md')]),
+      content,
+    );
+  }
+});
+
+test('rejects repository-root-only selections before repository code', () => {
+  const { root, invokedPath } = createScopeFixture();
+  for (const result of [
+    runScope(root, root),
+    runScope(root, [root]),
+    runPage(root, 'content', ['--path', root]),
+  ]) {
+    assert.equal(result.status, 3);
+    assert.equal(result.stdout, '');
+    assert.notEqual(result.stderr, '');
+  }
+  assert.equal(existsSync(invokedPath), false);
+});
 
 const stopFixtureChild = (pid: number): void => {
   try {
@@ -368,7 +434,7 @@ test.skipIf(process.platform === 'win32')(
   },
 );
 
-const runPage = (root: string, command: string, options: string[]) => {
+const runPage = (root: string, command: string, options: string[], cwd = root) => {
   const result = spawnSync(
     process.execPath,
     [
@@ -381,10 +447,10 @@ const runPage = (root: string, command: string, options: string[]) => {
       ...(command === 'composition' ? [] : ['--max-output-bytes', '4096']),
       ...options,
     ],
-    { encoding: 'utf8', timeout: 15_000 },
+    { cwd, encoding: 'utf8', timeout: 15_000 },
   );
   if (result.error) throw result.error;
-  return result;
+  return { status: result.status, stdout: result.stdout, stderr: result.stderr };
 };
 
 test.each(['composition', 'content', 'inspect', 'scope', 'validate'])(

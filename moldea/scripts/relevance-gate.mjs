@@ -7,15 +7,34 @@ import { matchManifestScope } from "./manifest-scope.cjs";
 import { readRepositoryFile, resolveRepositoryFile } from "./repository-files.mjs";
 
 // src/portable/scope-path-input.ts
+import { posix, win32 } from "node:path";
 var MAXIMUM_PATH_INPUT_BYTES = 2097152;
 var utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-var normalizeScopePath = (path) => {
-  if (path.length === 0 || path.includes("\0") || /^[A-Za-z]:/u.test(path) || path.startsWith("\\\\")) {
+var normalizeScopePath = (path, context) => {
+  const isDriveAbsolute = /^[A-Za-z]:[\\/]/u.test(path);
+  const normalizedPath = path.replace(/^(?:\.\/)+/u, "");
+  const segments = normalizedPath.split(isDriveAbsolute ? /[\\/]/u : "/");
+  if (normalizedPath.length === 0 || path.includes("\0") || path.startsWith("./") && normalizedPath.startsWith("/") || normalizedPath.startsWith("//") || !isDriveAbsolute && (normalizedPath.includes("\\") || /^[A-Za-z]:/u.test(normalizedPath)) || segments.some(
+    (segment, index) => segment === "." || segment === ".." || segment === "" && !(index === 0 && normalizedPath.startsWith("/"))
+  )) {
     throw new Error("Invalid scope path input.");
   }
-  return path.startsWith("/") ? path : `/${path}`;
+  const usesWindowsPaths = /^[A-Za-z]:[\\/]|^\\\\/u.test(context.resolvedRepositoryRoot);
+  if (isDriveAbsolute && !usesWindowsPaths) throw new Error("Invalid scope path input.");
+  const pathApi = usesWindowsPaths ? win32 : posix;
+  if (isDriveAbsolute || !usesWindowsPaths && normalizedPath.startsWith("/")) {
+    for (const root of [context.repositoryRoot, context.resolvedRepositoryRoot]) {
+      const relativePath = pathApi.relative(root, normalizedPath);
+      if (relativePath === "") throw new Error("Invalid scope path input.");
+      if (!pathApi.isAbsolute(relativePath) && relativePath !== ".." && !relativePath.startsWith(`..${pathApi.sep}`)) {
+        return `/${relativePath.split(pathApi.sep).join("/")}`;
+      }
+    }
+    if (isDriveAbsolute) throw new Error("Invalid scope path input.");
+  }
+  return normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`;
 };
-var readScopePathInput = async (inputStream) => {
+var readScopePathInput = async (inputStream, context) => {
   const chunks = [];
   let byteLength = 0;
   for await (const chunk of inputStream) {
@@ -36,16 +55,16 @@ var readScopePathInput = async (inputStream) => {
   } catch (error) {
     throw new Error("Invalid scope path input.", { cause: error });
   }
-  return text.split("\0").map(normalizeScopePath);
+  return text.split("\0").map((path) => normalizeScopePath(path, context));
 };
-var normalizeScopePathArguments = (paths) => {
+var normalizeScopePathArguments = (paths, context) => {
   if (paths.length === 0) throw new Error("Invalid scope path input.");
   let byteLength = 0;
   return paths.map((path) => {
     byteLength += Buffer.byteLength(path, "utf8") + 1;
     if (byteLength > MAXIMUM_PATH_INPUT_BYTES)
       throw new Error("Scope path input exceeds its byte limit.");
-    return normalizeScopePath(path);
+    return normalizeScopePath(path, context);
   });
 };
 
@@ -89,12 +108,14 @@ var parseArguments = () => {
   return {
     isAdoptionOnly,
     repositoryRoot: resolve(arguments_[1]),
-    paths: paths.length === 0 ? void 0 : normalizeScopePathArguments(paths)
+    paths: paths.length === 0 ? void 0 : paths
   };
 };
 var evaluateGate = async () => {
   const parsed = parseArguments();
   const repositoryRoot = await realpath(parsed.repositoryRoot);
+  const context = { repositoryRoot: parsed.repositoryRoot, resolvedRepositoryRoot: repositoryRoot };
+  const argvPaths = parsed.paths === void 0 ? void 0 : normalizeScopePathArguments(parsed.paths, context);
   if (!await hasInitializedProject(repositoryRoot)) return false;
   if (parsed.isAdoptionOnly) return true;
   const [manifest, paths] = await Promise.all([
@@ -104,7 +125,7 @@ var evaluateGate = async () => {
       MAX_FOUNDATION_BYTES,
       "reject"
     ),
-    parsed.paths ?? readScopePathInput(process.stdin)
+    argvPaths ?? readScopePathInput(process.stdin, context)
   ]);
   const result = await matchManifestScope({
     manifest: {

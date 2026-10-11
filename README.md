@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The latest release is `8.0.0`. Install the latest version from `main` inside each repository that will use it:
+The latest release is `8.0.1`. Install the latest version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release:
 
 ```bash
-npx skills add "moldea-ai/skill#v8.0.0"
+npx skills add "moldea-ai/skill#v8.0.1"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -72,7 +72,7 @@ Evaluation is read-only. Repair corrects established errors and may recover nece
 
 ## Compatibility
 
-Release `8.0.0` supports exactly:
+Release `8.0.1` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`

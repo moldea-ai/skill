@@ -117,14 +117,14 @@ test('rejects unapproved content fields and invalid evidence identity', async ()
   );
 
   const artifactWithInvalidIdentity = await readArtifact();
-  artifactWithInvalidIdentity.qualificationAttempt.sha256 = 'invalid';
+  artifactWithInvalidIdentity.sourceAttempt.sha256 = 'invalid';
   assert.throws(
     () => validateModelStageCalibrationArtifact(artifactWithInvalidIdentity),
     /must be a SHA-256 digest/u,
   );
 
   const artifactWithInvalidCommandOutputIdentity = await readArtifact();
-  artifactWithInvalidCommandOutputIdentity.commandOutputQualificationAttempt.sha256 = 'invalid';
+  artifactWithInvalidCommandOutputIdentity.commandOutputSourceAttempt.sha256 = 'invalid';
   assert.throws(
     () => validateModelStageCalibrationArtifact(artifactWithInvalidCommandOutputIdentity),
     /must be a SHA-256 digest/u,

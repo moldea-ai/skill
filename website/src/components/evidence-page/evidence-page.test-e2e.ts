@@ -22,23 +22,18 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
       0,
     ) ?? 0;
   const sections = page.locator('[data-evidence-path]');
-  await expect(sections).toHaveCount(3);
+  await expect(sections).toHaveCount(2);
   const navigation = page.getByRole('navigation', { name: 'Evidence sections' });
-  await expect(navigation.getByRole('link')).toHaveCount(3);
+  await expect(navigation.getByRole('link')).toHaveCount(2);
   await expect(navigation.getByRole('link', { name: /Agent decisions/u })).toHaveAttribute(
     'href',
     '#decisions',
-  );
-  await expect(navigation.getByRole('link', { name: /Project connections/u })).toHaveAttribute(
-    'href',
-    '#integrations',
   );
   await expect(navigation.getByRole('link', { name: /Coding projects/u })).toContainText(
     `${projectCount} projects`,
   );
   await expect(sections.locator('[data-evidence-path-action]').getByRole('link')).toHaveText([
     'Explore decisions',
-    'Browse connection tests',
     'Explore project runs',
   ]);
   const boxes = await sections.evaluateAll((elements) =>
@@ -48,7 +43,6 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
     }),
   );
   expect(boxes[0]!.y).toBeLessThan(boxes[1]!.y);
-  expect(boxes[1]!.y).toBeLessThan(boxes[2]!.y);
   await expect(sections.last().locator('[data-evidence-status]')).toHaveCount(0);
   await expect(sections.last().locator('[data-recorded-project]')).toHaveCount(1);
   await expect(
@@ -149,21 +143,7 @@ test('keeps evidence paths readable at 320px in both themes', async ({ browser }
     try {
       const page = await context.newPage();
       await page.goto(toPublicPath('/evidence/'));
-      await expect(page.locator('[data-evidence-path]')).toHaveCount(3);
-      const logoBoxes = await page.locator('[data-adapter-logos] img').evaluateAll((elements) =>
-        elements.map((element) => {
-          const box = element.getBoundingClientRect();
-          return { top: box.top, left: box.left, right: box.right };
-        }),
-      );
-      expect(logoBoxes.length).toBeGreaterThan(0);
-      expect(
-        Math.max(...logoBoxes.map(({ top }) => top)) - Math.min(...logoBoxes.map(({ top }) => top)),
-      ).toBeLessThan(2);
-      const logoRow = await page.locator('[data-adapter-logos]').boundingBox();
-      expect(logoRow).not.toBeNull();
-      const marksCenter = (logoBoxes[0]!.left + logoBoxes.at(-1)!.right) / 2;
-      expect(Math.abs(marksCenter - (logoRow!.x + logoRow!.width / 2))).toBeLessThan(2);
+      await expect(page.locator('[data-evidence-path]')).toHaveCount(2);
       const recordedFiles = page.locator('[data-recorded-file-path]');
       expect(
         await recordedFiles.evaluateAll((files) =>
@@ -186,14 +166,6 @@ test('keeps evidence paths readable at 320px in both themes', async ({ browser }
         expect(dimensions.height).toBeLessThanOrEqual(dimensions.lineHeight + 1);
         await expect(file.locator('[data-file-preview], [data-status-badge]')).toHaveCount(0);
       }
-      await page
-        .locator('[data-recorded-connection] [data-file-preview] code[title]')
-        .first()
-        .evaluate((element) => {
-          const directory = element.querySelector('span');
-          if (directory === null) throw new Error('Expected a recorded file directory.');
-          directory.textContent = '[redacted]/recorded-project/long-repository-prefix/moldea';
-        });
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
@@ -223,9 +195,6 @@ test('keeps the test examples and project links readable without JavaScript', as
     );
     await expect(page.locator('[data-recorded-change]')).toContainText(
       'Run document cleanup more often when the backlog grows.',
-    );
-    await expect(page.locator('[data-recorded-connection]')).toContainText(
-      'The declared tool name did not match the code.',
     );
     await expect(page.locator('[data-recorded-project]')).toHaveCount(1);
     await expect(

@@ -92,9 +92,11 @@ Reconciliation starts from the same evidence model as evaluation, establishes in
 
 ## Validate structure
 
-Validation runs the installed skill’s bounded repository-local boundary. It checks repository format and declared relationships, including supported source patterns for instruction loading, exports, registrations, tools, schemas, and runtime integration. A confirmed mismatch is an error. A relationship that cannot be proved remains explicitly unverified with a warning; a correct custom design does not need to be rewritten to remove that warning.
+Validation runs the installed skill’s bounded repository-local boundary. It checks repository format, declared files, and explicit TypeScript or JavaScript ESM exports. A complete export inventory can establish that a declared runtime export is missing. Unsupported or inconclusive syntax, including CommonJS, remains not checked without a missing-export error. Coverage names the file or export check performed and does not establish runtime wiring.
 
-Validity and inspection completion are separate. `valid: true` means no error diagnostics; `runtimeInspection: incomplete` identifies remaining unverified relationships. An operational or resource-limit failure is not a completed validity result. Static validation does not establish semantic alignment or production readiness.
+`valid: true` means zero errors. Warnings and accepted warnings are counted separately, and not-checked coverage remains visible. Operational or resource-limit failure rejects the entire inspection instead of returning partial coverage. Structural validation does not establish semantic alignment or production readiness.
+
+Warnings offer two paths: ask the coding agent to fix the cause, or explicitly accept a supported warning with your own reason. The coding agent never accepts warnings on its own. Validation also checks AGENTS.md integration and the installed skill assets. Missing or stale integration warns without making canonical state invalid; protected instruction files receive an exact-block handoff for a separate update.
 
 ## Repair a project
 

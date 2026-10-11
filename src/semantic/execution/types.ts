@@ -13,6 +13,8 @@ export interface ISemanticActorExecutionEvidenceOptions {
 export type ISemanticActorExecutionOutputFact =
   | {
       kind: 'moldea-cli-envelope';
+      // schema 7 records acceptance separately; historical schemas retain their original shape
+      acceptedWarningCount?: number | null;
       cliVersion: string;
       command: IMoldeaCliOperation;
       containsContent: boolean;
@@ -38,7 +40,7 @@ export type ISemanticActorExecutionOutputFact =
     }
   | {
       kind: 'managed-agents-result';
-      status: 'created' | 'updated' | 'unchanged' | 'ready' | 'warning';
+      status: 'created' | 'updated' | 'unchanged';
     }
   | {
       cancelledCount: 0;

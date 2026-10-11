@@ -1,8 +1,8 @@
-import type { IQualificationStatus } from '../../lib/qualification/index.ts';
+import type { ISemanticEvaluationWebsiteModel } from '../../lib/semantic-evaluation/index.ts';
 
 // result and stage states presented by evidence pages
 export type IEvidenceDisplayStatus =
-  | IQualificationStatus
+  | ISemanticEvaluationWebsiteModel['status']
   | 'reused'
   | 'not-recorded'
   | 'pending'

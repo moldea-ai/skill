@@ -49,11 +49,11 @@ interface ICommandOutputObservation {
 interface ICalibrationArtifact {
   commandOutputObservations: ICommandOutputObservation[];
   commandOutputObservationsSha256: string;
-  commandOutputQualificationAttempt: { id: string; sha256: string };
+  commandOutputSourceAttempt: { id: string; sha256: string };
   minimumHeadroomPercent: number;
   modelStageObservations: ICalibrationObservation[];
   modelStageObservationsSha256: string;
-  qualificationAttempt: { id: string; sha256: string };
+  sourceAttempt: { id: string; sha256: string };
   schemaVersion: number;
 }
 
@@ -91,7 +91,7 @@ const requireSafeInteger = (input: unknown, label: string): number => {
 
 const requireAttemptId = (input: unknown, label: string): string => {
   if (typeof input !== 'string' || !ATTEMPT_ID_PATTERN.test(input)) {
-    throw new Error(`${label} must be a qualification attempt id.`);
+    throw new Error(`${label} must be a recorded source attempt id.`);
   }
   return input;
 };
@@ -260,7 +260,7 @@ const requireObservation = (input: unknown, index: number): ICalibrationObservat
 const requireCommandOutputObservation = (
   input: unknown,
   expectedDisposition: 'accepted' | 'rejected',
-  qualificationAttemptId: string,
+  sourceAttemptId: string,
   label: string,
 ): ICommandOutputObservation => {
   const observation = requireRecord(
@@ -312,8 +312,8 @@ const requireCommandOutputObservation = (
   }
 
   const stage = requireStageObservation(observationRecord.stage, 'actor', `${label}.stage`);
-  if (stage.sourceAttemptId !== qualificationAttemptId) {
-    throw new Error(`${label}.stage is not bound to the declared qualification attempt.`);
+  if (stage.sourceAttemptId !== sourceAttemptId) {
+    throw new Error(`${label}.stage is not bound to the declared recorded source attempt.`);
   }
 
   const profile = MOLDEA_SKILL_RESOURCE_PROFILES[observationRecord.resourceProfile];
@@ -382,49 +382,46 @@ export const validateModelStageCalibrationArtifact = (input: unknown): ICalibrat
     [
       'commandOutputObservations',
       'commandOutputObservationsSha256',
-      'commandOutputQualificationAttempt',
+      'commandOutputSourceAttempt',
       'minimumHeadroomPercent',
       'modelStageObservations',
       'modelStageObservationsSha256',
-      'qualificationAttempt',
+      'sourceAttempt',
       'schemaVersion',
     ],
     'model-stage calibration artifact',
   );
   const artifactRecord = artifact as unknown as ICalibrationArtifact;
   if (
-    artifactRecord.schemaVersion !== 3 ||
+    artifactRecord.schemaVersion !== 4 ||
     artifactRecord.minimumHeadroomPercent !== CALIBRATION_MINIMUM_HEADROOM_PERCENT
   ) {
     throw new Error('The model-stage calibration contract version or headroom is unsupported.');
   }
 
-  const qualificationAttempt = requireRecord(
-    artifactRecord.qualificationAttempt,
+  const sourceAttempt = requireRecord(
+    artifactRecord.sourceAttempt,
     ['id', 'sha256'],
-    'model-stage calibration qualificationAttempt',
+    'model-stage calibration sourceAttempt',
   );
-  requireAttemptId(qualificationAttempt['id'], 'model-stage calibration qualificationAttempt.id');
-  requireSha256(
-    qualificationAttempt['sha256'],
-    'model-stage calibration qualificationAttempt.sha256',
-  );
+  requireAttemptId(sourceAttempt['id'], 'model-stage calibration sourceAttempt.id');
+  requireSha256(sourceAttempt['sha256'], 'model-stage calibration sourceAttempt.sha256');
   requireSha256(
     artifactRecord.modelStageObservationsSha256,
     'model-stage calibration modelStageObservationsSha256',
   );
-  const commandOutputQualificationAttempt = requireRecord(
-    artifactRecord.commandOutputQualificationAttempt,
+  const commandOutputSourceAttempt = requireRecord(
+    artifactRecord.commandOutputSourceAttempt,
     ['id', 'sha256'],
-    'model-stage calibration commandOutputQualificationAttempt',
+    'model-stage calibration commandOutputSourceAttempt',
   );
   requireAttemptId(
-    commandOutputQualificationAttempt['id'],
-    'model-stage calibration commandOutputQualificationAttempt.id',
+    commandOutputSourceAttempt['id'],
+    'model-stage calibration commandOutputSourceAttempt.id',
   );
   requireSha256(
-    commandOutputQualificationAttempt['sha256'],
-    'model-stage calibration commandOutputQualificationAttempt.sha256',
+    commandOutputSourceAttempt['sha256'],
+    'model-stage calibration commandOutputSourceAttempt.sha256',
   );
   requireSha256(
     artifactRecord.commandOutputObservationsSha256,
@@ -466,8 +463,8 @@ export const validateModelStageCalibrationArtifact = (input: unknown): ICalibrat
       matchingObservations[0],
       disposition,
       requireAttemptId(
-        commandOutputQualificationAttempt['id'],
-        'model-stage calibration commandOutputQualificationAttempt.id',
+        commandOutputSourceAttempt['id'],
+        'model-stage calibration commandOutputSourceAttempt.id',
       ),
       `commandOutputObservations.${disposition}`,
     );

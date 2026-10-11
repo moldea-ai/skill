@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
+  copyFileSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -329,4 +331,46 @@ test('diagnostic misses complete successfully, while unsafe foundation or invali
   assert.equal(run().stdout, '0\n');
   mkdirSync(join(root, 'moldea', 'project.md'));
   assert.equal(run().status, 1);
+});
+
+test('the generated gate and bundled scope work without TypeScript or the CLI installed', () => {
+  const root = createAdoptedRepository();
+  const scripts = join(root, '.agents', 'skills', 'moldea', 'scripts');
+  mkdirSync(scripts, { recursive: true });
+  for (const name of ['relevance-gate.mjs', 'repository-files.mjs', 'manifest-scope.cjs']) {
+    copyFileSync(join(resolve(GATE_PATH, '..'), name), join(scripts, name));
+  }
+  assert.equal(existsSync(join(root, 'node_modules')), false);
+  const gate = spawnSync(
+    TEST_NODE_EXECUTABLE,
+    [join(scripts, 'relevance-gate.mjs'), '--repository', root, '--path', 'src/refund.js'],
+    { cwd: root, encoding: 'utf8', timeout: 15_000 },
+  );
+  assert.ifError(gate.error);
+  assert.deepEqual(
+    { status: gate.status, stdout: gate.stdout, stderr: gate.stderr },
+    { status: 0, stdout: '1\n', stderr: '' },
+  );
+  const scope = spawnSync(
+    TEST_NODE_EXECUTABLE,
+    [
+      '--input-type=commonjs',
+      '-e',
+      `
+    const { readFileSync } = require('node:fs');
+    const { join } = require('node:path');
+    const { matchManifestScope } = require(process.argv[1]);
+    matchManifestScope({ manifest: { path: '/moldea/moldea.yaml', content: readFileSync(join(process.argv[2], 'moldea', 'moldea.yaml'), 'utf8') }, paths: ['/src/refund.js'] }).then((result) => process.stdout.write(JSON.stringify(result)));
+  `,
+      join(scripts, 'manifest-scope.cjs'),
+      root,
+    ],
+    { cwd: root, encoding: 'utf8', timeout: 15_000 },
+  );
+  assert.ifError(scope.error);
+  assert.equal(scope.status, 0, scope.stderr || scope.stdout);
+  assert.equal(scope.stderr, '');
+  const result = JSON.parse(scope.stdout) as { relevant: boolean };
+  assert.equal(result.relevant, true);
+  assert.equal(existsSync(join(root, 'node_modules')), false);
 });

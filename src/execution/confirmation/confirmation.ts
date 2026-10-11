@@ -1,6 +1,6 @@
 import type { IEvaluationConfirmationResolution } from './types.ts';
 
-// one current aggregation policy shared by semantic and qualification evaluation
+// one current aggregation policy used by semantic evaluation
 export const EVALUATION_CONFIRMATION_POLICY = Object.freeze({
   version: 2,
   requiredPassingConfirmations: 2,

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 
@@ -429,7 +430,7 @@ test('recognizes validate and fixed-boundary composition launcher operations', (
   const composition = projectActorExecutionEvidenceEvent(
     createEvent(
       createLauncherCommand('composition', '--json'),
-      createEnvelope('composition', { adapters: [] }),
+      createEnvelope('composition', { packages: [] }),
     ),
     OPTIONS,
   );
@@ -546,6 +547,135 @@ test('uses complete command totals for warning-only and mixed diagnostic results
         warningCount,
       });
     }
+  }
+});
+
+test.each(['validate', 'inspect'] as const)(
+  'projects schema 7 accepted-warning totals for %s without changing validity',
+  (command) => {
+    const options = { cliVersion: '11.0.0', jsonSchemaVersion: 7 };
+    for (const [errorCount, warningCount, acceptedWarningCount] of [
+      [0, 0, 1],
+      [0, 1, 1],
+      [1, 1, 1],
+    ] as const) {
+      const diagnosticCount = errorCount + warningCount + acceptedWarningCount;
+      const result = {
+        ...(command === 'validate'
+          ? { diagnosticCount, errorCount, warningCount, acceptedWarningCount }
+          : {
+              counts: {
+                diagnostics: diagnosticCount,
+                errors: errorCount,
+                warnings: warningCount,
+                acceptedWarnings: acceptedWarningCount,
+              },
+            }),
+        valid: errorCount === 0,
+      };
+      const output = JSON.stringify({
+        cliVersion: options.cliVersion,
+        command,
+        error: null,
+        result,
+        schemaVersion: options.jsonSchemaVersion,
+        status: errorCount === 0 ? 'valid' : 'invalid',
+      });
+      const evidence = projectActorExecutionEvidenceEvent(
+        createEvent(
+          createLauncherCommand(command, '--json', '--max-output-bytes', '65536'),
+          output,
+          {
+            exitCode: errorCount === 0 ? 0 : 1,
+          },
+        ),
+        options,
+      );
+      assert.equal(evidence.item.outputEvidence.disposition, 'projected');
+      const fact = evidence.item.outputEvidence.facts[0];
+      assert(fact?.kind === 'moldea-cli-envelope');
+      assert.equal(fact.acceptedWarningCount, acceptedWarningCount);
+      assert.equal(fact.errorCount, errorCount);
+      assert.equal(fact.warningCount, warningCount);
+      assert.equal(hasValidActorExecutionEvidence([evidence], options), true);
+      const missingCount = structuredClone(evidence);
+      const missingFact = missingCount.item.outputEvidence.facts[0];
+      assert(missingFact?.kind === 'moldea-cli-envelope');
+      delete missingFact.acceptedWarningCount;
+      assert.equal(hasValidActorExecutionEvidence([missingCount], options), false);
+    }
+    for (const acceptedWarningCount of [undefined, null, -1, 0.5, 2, Number.MAX_SAFE_INTEGER + 1]) {
+      const result =
+        command === 'validate'
+          ? {
+              diagnosticCount: 1,
+              errorCount: 0,
+              warningCount: 0,
+              acceptedWarningCount,
+              valid: true,
+            }
+          : {
+              counts: {
+                diagnostics: 1,
+                errors: 0,
+                warnings: 0,
+                acceptedWarnings: acceptedWarningCount,
+              },
+              valid: true,
+            };
+      const output = JSON.stringify({
+        cliVersion: options.cliVersion,
+        command,
+        error: null,
+        result,
+        schemaVersion: options.jsonSchemaVersion,
+        status: 'valid',
+      });
+      const evidence = projectActorExecutionEvidenceEvent(
+        createEvent(
+          createLauncherCommand(command, '--json', '--max-output-bytes', '65536'),
+          output,
+        ),
+        options,
+      );
+      assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
+    }
+  },
+);
+
+test('records no accepted-warning total for schema 7 commands without diagnostics', () => {
+  const options = { cliVersion: '11.0.0', jsonSchemaVersion: 7 };
+  for (const command of ['scope', 'validate']) {
+    const output = JSON.stringify({
+      cliVersion: options.cliVersion,
+      command,
+      error: command === 'scope' ? null : { code: 'CONTENT_PATH_INVALID' },
+      result: command === 'scope' ? { relevant: false } : null,
+      schemaVersion: options.jsonSchemaVersion,
+      status: command === 'scope' ? 'valid' : 'error',
+    });
+    const evidence = projectActorExecutionEvidenceEvent(
+      createEvent(
+        createLauncherCommand(
+          command,
+          '--json',
+          '--max-output-bytes',
+          '65536',
+          ...(command === 'scope' ? ['--paths-stdin'] : []),
+        ),
+        output,
+        {
+          exitCode: command === 'scope' ? 0 : 2,
+        },
+      ),
+      options,
+    );
+    const fact = evidence.item.outputEvidence.facts[0];
+    assert(fact?.kind === 'moldea-cli-envelope');
+    assert.equal(fact.acceptedWarningCount, null);
+    assert.equal(hasValidActorExecutionEvidence([evidence], options), true);
+    fact.acceptedWarningCount = 1;
+    assert.equal(hasValidActorExecutionEvidence([evidence], options), false);
   }
 });
 
@@ -890,12 +1020,12 @@ test('enforces activation-specific moldea operation ordering', () => {
   );
 });
 
-test('projects only completed AGENTS write/check facts and no diagnostic failure hit', () => {
+test('projects only completed AGENTS write facts and no diagnostic failure hit', () => {
   const helper = 'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt';
   for (const [suffix, output, status] of [
     ['', 'created\n', 'created'],
-    [' --check', 'ready\n', 'ready'],
-    [' --check', 'warning: AGENTS.md is missing\n', 'warning'],
+    ['', 'updated\n', 'updated'],
+    ['', 'unchanged\n', 'unchanged'],
   ]) {
     const result = projectActorExecutionEvidenceEvent(
       createEvent(helper + suffix, output!),
@@ -907,7 +1037,9 @@ test('projects only completed AGENTS write/check facts and no diagnostic failure
   }
   for (const [command, output, exitCode] of [
     [helper + ' --print', 'created\n', 0],
-    [helper + ' --check', 'ready\n', 1],
+    [helper, 'created\n', 1],
+    [helper, 'ready\n', 0],
+    [helper, 'warning: AGENTS.md is missing\n', 0],
     [GATE_COMMAND + ' --diagnose --path README.md', '1\n', 1],
   ] as const) {
     const result = projectActorExecutionEvidenceEvent(

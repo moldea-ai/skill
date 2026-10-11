@@ -14,26 +14,17 @@ export const parsePackArguments = (
 ): Required<
   Pick<
     IPackSourceWorkspaceCandidateOptions,
-    | 'artifactDirectory'
-    | 'runtimeCompatibilityPublicationPath'
-    | 'selectedRootPackageNames'
-    | 'workspaceRoot'
+    'artifactDirectory' | 'selectedRootPackageNames' | 'workspaceRoot'
   >
 > => {
   let artifactDirectory: string | undefined;
-  let runtimeCompatibilityPublicationPath: string | undefined;
   let workspaceRoot: string | undefined;
   const selectedRootPackageNames: string[] = [];
 
   for (let index = 0; index < argumentsList.length; index += 1) {
     const argument = argumentsList[index];
     const optionValue = argumentsList[index + 1];
-    if (
-      argument === undefined ||
-      !['--output', '--root', '--runtime-compatibility-publication', '--workspace'].includes(
-        argument,
-      )
-    ) {
+    if (argument === undefined || !['--output', '--root', '--workspace'].includes(argument)) {
       throw new Error(`Unknown candidate packer option: ${argument}`);
     }
     if (!optionValue || optionValue.startsWith('--')) {
@@ -44,19 +35,12 @@ export const parsePackArguments = (
     if (argument === '--output') artifactDirectory = resolve(optionValue);
     if (argument === '--workspace') workspaceRoot = resolve(optionValue);
     if (argument === '--root') selectedRootPackageNames.push(optionValue);
-    if (argument === '--runtime-compatibility-publication') {
-      runtimeCompatibilityPublicationPath = resolve(optionValue);
-    }
   }
 
   if (!workspaceRoot) throw new Error('--workspace is required.');
   if (!artifactDirectory) throw new Error('--output is required.');
-  if (!runtimeCompatibilityPublicationPath) {
-    throw new Error('--runtime-compatibility-publication is required.');
-  }
   return {
     artifactDirectory,
-    runtimeCompatibilityPublicationPath,
     selectedRootPackageNames,
     workspaceRoot,
   };
@@ -71,7 +55,6 @@ const main = (): void => {
       {
         buildPackageNames: result.buildPackageNames,
         cliVersion: result.cliVersion,
-        runtimeCompatibilityPublicationArtifact: result.runtimeCompatibilityPublicationArtifact,
         runtimePackageNames: result.runtimePackageNames,
       },
       null,

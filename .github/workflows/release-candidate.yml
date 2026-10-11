@@ -91,8 +91,7 @@ jobs:
           git -C packages rev-parse HEAD > "$candidate_directory/packages-commit.txt"
           node skill/src/packages/pack.ts \
             --workspace packages \
-            --output "$candidate_directory" \
-            --runtime-compatibility-publication packages/apps/website/dist/compatibility/runtimes.json
+            --output "$candidate_directory"
 
       - name: Upload candidate closure
         uses: actions/upload-artifact@v7

@@ -8,11 +8,9 @@ import { createCanonicalUrl, DEFAULT_BASE_PATH, withBase } from '@moldea.ai/webs
 import { createDocumentationBreadcrumbs } from '../src/lib/documentation-navigation/index.ts';
 import { getRepositoryRoot, loadWebsiteModel } from '../src/lib/generation/generation.ts';
 import { PRODUCT_PAGE_METADATA, SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
+import { RETIRED_PAGE_REDIRECTS } from '../src/lib/redirects/index.ts';
 import { PROJECT_RUN_PAGE_SIZE } from '../src/lib/project-runs/index.ts';
-import {
-  getQualificationReleaseEvidenceSummary,
-  getSemanticReleaseEvidenceSummary,
-} from '../src/lib/release-evidence/index.ts';
+import { getSemanticReleaseEvidenceSummary } from '../src/lib/release-evidence/index.ts';
 import {
   DEFAULT_SITE_URL,
   SITE_ALTERNATE_NAMES,
@@ -150,14 +148,10 @@ describe('verifyProductionBuild', () => {
     expect(html).toContain('https://github.com/moldea-ai/skill/blob/main/docs/limitations.md');
     expect(html).toContain(`<link rel="canonical" href="${canonicalUrl}">`);
     expect(html).toContain(`<meta property="og:url" content="${canonicalUrl}">`);
-    for (const id of [
-      'result-completed',
-      'result-error',
-      'result-unverified',
-      'result-unfinished',
-    ]) {
+    for (const id of ['result-completed', 'result-error', 'result-unfinished']) {
       expect(html).toContain(`data-markdown-badge="${id}"`);
     }
+    expect(html).toContain('<strong>Not checked</strong>');
     for (const name of ['llms.txt', 'sitemap-0.xml']) {
       expect(readFileSync(getDistPath(name), 'utf8')).toContain(canonicalUrl);
     }
@@ -266,12 +260,6 @@ describe('verifyProductionBuild', () => {
     const semanticSearchRecord = searchRecords.find(
       ({ url }) => url === withBase(model.semanticEvaluation.route, basePath),
     );
-    const qualificationSummaries = model.qualification.profiles.map(
-      getQualificationReleaseEvidenceSummary,
-    );
-    const qualifiedProfileCount = qualificationSummaries.filter(
-      ({ status }) => status === 'passed',
-    ).length;
     const currentAssurance = model.currentSemanticAssurance;
     const hasAttemptHistory = model.semanticEvaluation.attempts.length > 0;
     const releaseSummary = getSemanticReleaseEvidenceSummary(
@@ -286,9 +274,7 @@ describe('verifyProductionBuild', () => {
       model.semanticEvaluation.currentAssurance === null ? null : 'exact',
     );
     expect(homeHtml).toContain(`${successfulCaseCount}/${model.semanticEvaluation.caseCount}`);
-    expect(homeHtml).toContain(`${qualifiedProfileCount}/${model.qualification.profiles.length}`);
     expect(homeHtml).toContain(`href="${withBase(model.semanticEvaluation.route, basePath)}"`);
-    expect(homeHtml).toContain(`href="${withBase(model.qualification.route, basePath)}"`);
     const evidenceHeading = /<h1[^>]*>(.*?)<\/h1>/su
       .exec(evidenceHtml)?.[1]
       ?.replace(/<[^>]+>/gu, '');
@@ -361,18 +347,9 @@ describe('verifyProductionBuild', () => {
   });
 
   test('distinguishes conceptual guides from their evidence surfaces', () => {
-    const qualificationGuide = readFileSync(
-      getDistPath('docs/adapter-qualification/index.html'),
-      'utf8',
-    );
-    const qualificationEvidence = readFileSync(
-      getDistPath('evidence/qualification/index.html'),
-      'utf8',
-    );
     const semanticGuide = readFileSync(getDistPath('docs/semantic-evaluation/index.html'), 'utf8');
     const semanticEvidence = readFileSync(getDistPath('evidence/semantic/index.html'), 'utf8');
 
-    expect(getTitle(qualificationGuide)).not.toBe(getTitle(qualificationEvidence));
     expect(getTitle(semanticGuide)).not.toBe(getTitle(semanticEvidence));
   });
 });
@@ -408,5 +385,28 @@ test('publishes bounded project stories and their independent discovery records'
       expect(html).not.toContain('payload.baseInstructions');
       expect(html).not.toContain(getRepositoryRoot());
     }
+  }
+});
+
+test('redirects every retired route immediately and excludes it from discovery', () => {
+  const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
+  const siteUrl = process.env['SITE_URL'] ?? DEFAULT_SITE_URL;
+  const sitemap = readFileSync(getDistPath('sitemap-0.xml'), 'utf8');
+  const search = readFileSync(getDistPath('search-index.json'), 'utf8');
+  const llms = readFileSync(getDistPath('llms.txt'), 'utf8');
+  expect(Object.keys(RETIRED_PAGE_REDIRECTS)).toHaveLength(16);
+  for (const [route, target] of Object.entries(RETIRED_PAGE_REDIRECTS)) {
+    const html = readFileSync(getDistPath(route.slice(1), 'index.html'), 'utf8');
+    expect(html).toContain(
+      `<meta http-equiv="refresh" content="0;url=${withBase(target, basePath)}">`,
+    );
+    expect(html).toContain('<meta name="robots" content="noindex">');
+    expect(html).toContain(
+      `<link rel="canonical" href="${createCanonicalUrl(target, siteUrl, basePath)}">`,
+    );
+    expect(html).toContain(`<a href="${withBase(target, basePath)}">`);
+    expect(sitemap).not.toContain(createCanonicalUrl(route, siteUrl, basePath));
+    expect(search).not.toContain(route);
+    expect(llms).not.toContain(route);
   }
 });

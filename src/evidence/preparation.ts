@@ -146,7 +146,7 @@ const getCachedBundle = async (
 };
 
 /**
- * Resolves both exact selected bundles and exposes an atomic prepared manifest.
+ * Resolves the exact selected bundle and exposes an atomic prepared manifest.
  * @param options Selection, cache, output, download, and cancellation controls.
  * @returns The manifest tied to the exact successfully prepared selection.
  */
@@ -154,10 +154,8 @@ export const prepareSelectedEvidence = async (
   options: IPrepareEvidenceOptions,
 ): Promise<IEvidencePreparationManifest> => {
   const selection = await readJsonFile(options.selectionPath, EvidenceSelectionSchema);
-  if (selection.semantic === null || selection.qualification === null) {
-    throw new Error(
-      'Production evidence is unselected. Select both semantic and qualification bundles first.',
-    );
+  if (selection.semantic === null) {
+    throw new Error('Production evidence is unselected. Select a semantic bundle first.');
   }
 
   const selectionSource = `${JSON.stringify(selection)}\n`;
@@ -184,7 +182,7 @@ export const prepareSelectedEvidence = async (
   > = {};
   const selectedCachePaths = new Set<string>();
   try {
-    for (const kind of ['semantic', 'qualification'] as const) {
+    for (const kind of ['semantic'] as const) {
       if (options.signal?.aborted === true) throw new Error('Evidence preparation was aborted.');
       const reference = selection[kind];
       if (reference === null) throw new Error(`Selected ${kind} evidence is missing.`);
@@ -228,13 +226,11 @@ export const prepareSelectedEvidence = async (
   }
 
   const semantic = prepared.semantic;
-  const qualification = prepared.qualification;
-  if (semantic === undefined || qualification === undefined) {
-    throw new Error('Evidence preparation did not produce both selected sections.');
+  if (semantic === undefined) {
+    throw new Error('Evidence preparation did not produce the selected semantic section.');
   }
   const manifest: IEvidencePreparationManifest = {
     formatVersion: 1,
-    qualification,
     selectionSha256,
     semantic,
   };
@@ -274,7 +270,7 @@ export const verifyPreparedReleaseEvidence = async (options: {
     throw new Error('Prepared evidence does not match the current selection.');
   }
 
-  for (const kind of ['semantic', 'qualification'] as const) {
+  for (const kind of ['semantic'] as const) {
     const reference = selection[kind];
     if (reference === null) throw new Error(`Release evidence has no selected ${kind} bundle.`);
     const preparedSection = manifest[kind];

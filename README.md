@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The latest release is `7.1.0`. Install the latest version from `main` inside each repository that will use it:
+The latest release is `8.0.0`. Install the latest version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release:
 
 ```bash
-npx skills add "moldea-ai/skill#v7.1.0"
+npx skills add "moldea-ai/skill#v8.0.0"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -49,37 +49,37 @@ After initialization, ask naturally to plan, build, review, or maintain AI agent
 | Repair           | `Fix moldea.`                                                    |
 | Validate         | `Validate moldea.`                                               |
 
-Evaluation is read-only. Repair corrects established errors and may recover necessary local CLI tooling to the exact target recorded by the installed skill. It preserves host restrictions, healthy newer compatible tooling, and unresolved policy. Completed static checks do not prove every runtime behavior.
+Evaluation is read-only. Repair corrects established errors and may recover necessary local CLI tooling to the exact target recorded by the installed skill. It preserves host restrictions, healthy newer compatible tooling, and unresolved policy. Validation checks declared files and explicit TypeScript or JavaScript ESM exports. Coverage names what was checked and does not prove runtime wiring. Warnings do not invalidate a project: ask to fix them or explicitly accept a supported warning with your own reason. The coding agent never chooses acceptance on your behalf.
 
 ## Documentation
 
-| Need                                                               | Authority                                                                                                                                                                       |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Install, initialize, update, or remove the skill                   | [Getting started](docs/getting-started.md)                                                                                                                                      |
-| Understand activation, operations, evidence, and change boundaries | [Workflow reference](docs/how-it-works.md)                                                                                                                                      |
-| Explore supported outcomes and examples                            | [Capabilities](docs/capabilities.md) and [examples](docs/examples/index.md)                                                                                                     |
-| Understand canonical project state and its repository layout       | [Project state](docs/project-state.md) and [repository format](docs/repository-format.md)                                                                                       |
-| Plan an agent system                                               | [Planning agent systems](docs/planning-agent-systems.md)                                                                                                                        |
-| Design agents or Agent Skills                                      | [Designing agents](docs/designing-agents.md) and [designing skills](docs/designing-skills.md)                                                                                   |
-| Maintain or compress accumulated context                           | [Continuous maintenance](docs/continuous-maintenance.md)                                                                                                                        |
-| Evaluate, reconcile, validate, or repair                           | [Evaluate, reconcile, and validate](docs/evaluate-reconcile-validate.md)                                                                                                        |
-| Understand warnings, unfinished checks, and large inputs           | [Limitations](docs/limitations.md)                                                                                                                                              |
-| Inspect compatibility, local tooling, and resource limits          | [Compatibility and local tooling](docs/compatibility-and-local-tooling.md)                                                                                                      |
-| Review instruction-loading behavior                                | [Reference-reading checks](docs/reference-reading.md)                                                                                                                           |
-| Run semantic evaluation or adapter qualification                   | [Semantic evaluation](docs/semantic-evaluation.md), [adapter qualification](docs/adapter-qualification.md), and the [qualification operator reference](qualification/README.md) |
-| Select fresh or pinned release evidence                            | [Release evidence](docs/release-evidence.md)                                                                                                                                    |
-| Browse all public documentation                                    | [Documentation index](docs/index.md)                                                                                                                                            |
+| Need                                                               | Authority                                                                                     |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Install, initialize, update, or remove the skill                   | [Getting started](docs/getting-started.md)                                                    |
+| Understand activation, operations, evidence, and change boundaries | [Workflow reference](docs/how-it-works.md)                                                    |
+| Explore supported outcomes and examples                            | [Capabilities](docs/capabilities.md) and [examples](docs/examples/index.md)                   |
+| Understand canonical project state and its repository layout       | [Project state](docs/project-state.md) and [repository format](docs/repository-format.md)     |
+| Plan an agent system                                               | [Planning agent systems](docs/planning-agent-systems.md)                                      |
+| Design agents or Agent Skills                                      | [Designing agents](docs/designing-agents.md) and [designing skills](docs/designing-skills.md) |
+| Maintain or compress accumulated context                           | [Continuous maintenance](docs/continuous-maintenance.md)                                      |
+| Evaluate, reconcile, validate, or repair                           | [Evaluate, reconcile, and validate](docs/evaluate-reconcile-validate.md)                      |
+| Understand warnings, unfinished checks, and large inputs           | [Limitations](docs/limitations.md)                                                            |
+| Inspect compatibility, local tooling, and resource limits          | [Compatibility and local tooling](docs/compatibility-and-local-tooling.md)                    |
+| Review instruction-loading behavior                                | [Reference-reading checks](docs/reference-reading.md)                                         |
+| Run semantic evaluation                                            | [Semantic evaluation](docs/semantic-evaluation.md)                                            |
+| Select fresh or pinned release evidence                            | [Release evidence](docs/release-evidence.md)                                                  |
+| Browse all public documentation                                    | [Documentation index](docs/index.md)                                                          |
 
 ## Compatibility
 
-Release `7.1.0` supports exactly:
+Release `8.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- stable `@moldea.ai/core` releases satisfying `^6.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^10.0.0`
+- stable `@moldea.ai/core` releases satisfying `^7.0.0`
+- stable `@moldea.ai/cli` releases satisfying `^11.0.0`
 - repository format version 1
-- CLI JSON schema 6
+- CLI JSON schema 7
 
 The CLI must be a repository-root-local development dependency whose manifest declaration and installed stable version satisfy the supported range. The launcher also checks that installed Core satisfies both the CLI's declared Core range and moldea's supported range. The package manager and repository setup or CI own lockfile consistency; the launcher does not check target-project lockfiles. The skill never falls back to a global installation, another workspace, a package-manager launcher, or a transient download. Tooling establishment belongs only to authorized write-capable work. See [Compatibility and local tooling](docs/compatibility-and-local-tooling.md) for the complete launcher, machine-output, resource, and runtime contracts.
 
@@ -109,19 +109,18 @@ Tooling establishment occurs only during authorized write-capable work and only 
 
 ## Project blueprint
 
-`moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, adapter qualification, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.
+`moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.
 
 | Area                                      | Responsibility                                                                                                                                         |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `moldea/`                                 | Complete distributed Agent Skill: entrypoint, focused references, host metadata, managed document assets, and bounded generated scripts.               |
 | `src/`                                    | Maintained TypeScript for portable generation, isolated execution, semantic evaluation, evidence assets, release checks, and shared developer tooling. |
-| `qualification/`                          | Reviewed published compatibility snapshot, adapter profiles, and TypeScript execution. Attempts retain private local state below `.evidence/`.         |
-| `evidence/selection.json`                 | Independent maintainer selections for the semantic and qualification bundles shown on the website.                                                     |
+| `evidence/selection.json`                 | Exact maintainer selection for the semantic evidence bundle shown on the website.                                                                      |
 | `website/`                                | Static documentation and evidence presentation, including independently selected mock-project runs, sanitized session replays, and source links.       |
-| `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation and qualification attempts are not committed.                               |
+| `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation attempts are not committed.                                                 |
 | `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                               |
 | `project-specification`                   | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                             |
-| `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, qualification partitions, and portable/Windows contracts.                                                 |
+| `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, quality, and portable/Windows contracts.                                                                  |
 | `.github/workflows/website-checks.yml`    | Shared read-only website quality, artifact, and two-shard browser verification.                                                                        |
 | `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                         |
 | `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                |
@@ -152,15 +151,11 @@ To prepare an exact published CLI release, run `npm run release:update-cli -- <v
 
 Before publication, `npm run candidate:prepare -- --artifacts <packed-closure-directory> --output <empty-directory-outside-this-repository>` prepares a complete isolated skill through the same updater against the candidate registry. An optional `--release-version <version>` selects the isolated skill version. The release-candidate workflow uses this full distribution for real manager and closed-launcher checks. Candidate registry URLs stay in the disposable output; they must not enter the official release lockfile. These checks establish tooling mechanics, not coding-agent repair effectiveness.
 
-The same release-candidate workflow is reusable by the packages trusted build. Its caller pins the skill workflow and tooling to the same immutable commit and supplies that run's public-package artifact and exact packages commit. `src/packages/trusted-candidate.ts` verifies the recorded source identity, complete checksum manifest, package graph, and compatibility publication before copying the CLI closure. Website UI is verified in the public set but remains outside the CLI consumer closure. The manager matrix consumes those unchanged tarballs rather than repacking source; it requires only read access and cannot publish packages.
+The same release-candidate workflow is reusable by the packages trusted build. Its caller pins the skill workflow and tooling to the same immutable commit and supplies that run's public-package artifact and exact packages commit. `src/packages/trusted-candidate.ts` verifies the recorded source identity, complete checksum manifest and package graph before copying the CLI closure. Website UI is verified in the public set but remains outside the CLI consumer closure. The manager matrix consumes those unchanged tarballs rather than repacking source; it requires only read access and cannot publish packages.
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
-The private qualification workspace installs its exact pnpm 11.27.1 dependency through this command. Qualification invokes that copy directly; a globally installed pnpm is not required.
-
-After packages are published, refresh the reviewed qualification catalog with `npm run qualification:compatibility:update`, inspect and commit `qualification/compatibility/snapshot.json`, then run `npm run qualification:compatibility:check` before paid qualification. Ordinary qualification commands use the committed local snapshot and do not need an adjacent packages checkout.
-
-Both the root tooling and the website consume Website UI `1.13.1` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
+Both the root tooling and the website consume Website UI `1.14.0` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
 
 Run the deterministic boundaries:
 
@@ -170,31 +165,25 @@ npm run portable:check
 npm run test:unit
 npm run test:integration
 npm test
-npm run qualification:test
-npm run qualification:compatibility:check
 npm run typecheck
 npm run lint
 npm run format:check
-npm run qualification:typecheck
-npm run qualification:lint
-npm run qualification:format:check
 npm run path:check
 npm run docs:check
 npm run website:check
 ```
 
-Conformance runs root correctness once on development Node, portable integration on all three supported Node versions, and the Windows deep-path contract. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. Qualification uses four serial executor partitions plus the remaining integration files, with a real-collection exactly-once coverage audit in quality. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. PRs and Pages share read-only website verification: two recorded-browser shards each build one isolated fixture, and shard 2 then checks clean development. Pages verification and the official production build run independently after shared configuration preflight; deployment requires both to succeed. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
+Conformance runs root correctness once on development Node, portable integration on all three supported Node versions, and the Windows deep-path contract. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. PRs and Pages share read-only website verification: two recorded-browser shards each build one isolated fixture, and shard 2 then checks clean development. Pages verification and the official production build run independently after shared configuration preflight; deployment requires both to succeed. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
 
-`npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require both evidence selections to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
+`npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require the semantic evidence selection to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
 
 Specialized workflows have focused operator references:
 
-| Workflow                                                   | Start here                                                                                                             |
-| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Resource profiles and calibration                          | [Compatibility and local tooling](docs/compatibility-and-local-tooling.md)                                             |
-| Semantic preflight, diagnosis, recording, and verification | [Semantic evaluation](docs/semantic-evaluation.md)                                                                     |
-| Custom and adapter qualification, batches, and diagnosis   | [Adapter qualification](docs/adapter-qualification.md) and [qualification operator reference](qualification/README.md) |
-| Fresh or explicitly pinned release evidence                | [Release evidence](docs/release-evidence.md)                                                                           |
+| Workflow                                                   | Start here                                                                 |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Resource profiles and calibration                          | [Compatibility and local tooling](docs/compatibility-and-local-tooling.md) |
+| Semantic preflight, diagnosis, recording, and verification | [Semantic evaluation](docs/semantic-evaluation.md)                         |
+| Fresh or explicitly pinned release evidence                | [Release evidence](docs/release-evidence.md)                               |
 
 ## Releases
 
@@ -202,11 +191,11 @@ The skill uses independent semantic versioning. Every release must:
 
 - record its exact version in `moldea/SKILL.md`
 - declare the compatible CLI major; evidence-backed production releases also bind the exact evaluated CLI closure plus CLI JSON schema in release evidence
-- pass current conformance; evidence-backed production releases also select verified fresh or explicitly pinned semantic and qualification evidence independently
+- pass current conformance; evidence-backed production releases also select verified fresh or explicitly pinned semantic evidence
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
-During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluations and adapter qualifications are separate evidence-backed assurance; a passing tag does not establish them. Release `7.1.0` selects passing semantic and qualification evidence for the production website and `npm run release:check`. See [Release evidence](docs/release-evidence.md) for the exact workflows.
+During prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Semantic evaluation is a separate evidence-backed operation; a passing tag does not establish it. The selected historical semantic bundle preserves its recorded versions, dates, and sources. Its presentation-only marking provides no current-release assurance. See [Release evidence](docs/release-evidence.md) for the exact workflows.
 
 ## License
 

@@ -10,12 +10,12 @@ import type { IEvidenceSelection, IEvidenceSelectionReference } from './types.ts
 
 const temporaryRoots: string[] = [];
 
-const createReference = (kind: 'qualification' | 'semantic'): IEvidenceSelectionReference => ({
-  assetName: `${kind}-attempt-1.json.gz`,
+const createReference = (suffix: 'a' | 'b'): IEvidenceSelectionReference => ({
+  assetName: `semantic-attempt-${suffix}.json.gz`,
   classification: 'official',
   repository: 'moldea-ai/skill',
-  sha256: (kind === 'semantic' ? 'a' : 'b').repeat(64),
-  tag: `evidence-${kind}-attempt-1`,
+  sha256: suffix.repeat(64),
+  tag: `evidence-semantic-attempt-${suffix}`,
 });
 
 afterEach(async () => {
@@ -24,24 +24,30 @@ afterEach(async () => {
   );
 });
 
-test('serializes independent concurrent selection updates without losing either section', async () => {
+test('serializes concurrent selection updates and retains the last completed reference', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-selection-'));
   temporaryRoots.push(root);
   const selectionPath = path.join(root, 'selection.json');
   await writeJsonFileAtomically(selectionPath, {
     formatVersion: 1,
-    qualification: null,
     semantic: null,
   } satisfies IEvidenceSelection);
 
-  await Promise.all([
-    updateEvidenceSelection(selectionPath, 'semantic', createReference('semantic')),
-    updateEvidenceSelection(selectionPath, 'qualification', createReference('qualification')),
-  ]);
+  const completed: IEvidenceSelectionReference[] = [];
+  await Promise.all(
+    (['a', 'b'] as const).map(async (suffix) => {
+      const result = await updateEvidenceSelection(
+        selectionPath,
+        'semantic',
+        createReference(suffix),
+      );
+      if (result.semantic !== null) completed.push(result.semantic);
+    }),
+  );
+  expect(completed).toHaveLength(2);
 
   expect(await readEvidenceSelection(selectionPath)).toStrictEqual({
     formatVersion: 1,
-    qualification: createReference('qualification'),
-    semantic: createReference('semantic'),
+    semantic: completed.at(-1),
   });
 });

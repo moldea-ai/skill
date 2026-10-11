@@ -63,7 +63,7 @@ describe('evidence bundles', () => {
           { content: Buffer.from('text'), mediaType: 'text/plain', path: '../outside.txt' },
         ],
         classification: 'fixture',
-        kind: 'qualification',
+        kind: 'semantic',
         payload: {},
         run: {
           attemptId: 'attempt-1',
@@ -81,7 +81,7 @@ describe('evidence bundles', () => {
           { content: Buffer.from('MZfake'), mediaType: 'text/plain', path: 'project/tool.exe' },
         ],
         classification: 'fixture',
-        kind: 'qualification',
+        kind: 'semantic',
         payload: {},
         run: {
           attemptId: 'attempt-1',
@@ -96,7 +96,7 @@ describe('evidence bundles', () => {
     expect(() =>
       createEvidenceBundle({
         classification: 'fixture',
-        kind: 'qualification',
+        kind: 'semantic',
         payload: { authorization: 'Bearer private' },
         run: {
           attemptId: 'attempt-1',

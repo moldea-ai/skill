@@ -12,7 +12,7 @@ Generic implementation, architecture, migration, refactor, deployment, and host-
 
 Repository-dependent moldea planning requires an adopted repository. Before adoption, moldea abstains and the host may still perform its own generic planning workflow independently. Planning changes no repository, dependency, Git, protected instruction, generated artifact, or external system. It creates no canonical plan, cache, or planning database.
 
-Use the installed skill's closed launcher read-only only when runtime identity is material. If provider proof is available, run its `composition --json` operation; the launcher applies a fixed 65,536-byte boundary, and the returned inventory proves availability only. Load `runtime-compatibility.md` when local adapter eligibility, source patterns, or limitations matter. Do not retrieve compatibility websites or open browsers for runtime selection. Never create metadata, install tooling, reproduce package-resolution probes, or use global or transient launchers to plan. Without compatible tooling, continue from evidence and disclose the limitation.
+When runtime identity is material, use `runtime-guidance.md` and bounded repository evidence. IDs select guidance, not adapter availability or compatibility. Do not install tooling, probe package resolution, or use global or transient launchers to plan. Without compatible local tooling, continue from evidence and disclose the limitation.
 
 ## Plan from the objective
 
@@ -50,13 +50,11 @@ Identify authoritative and derived data, transient and persistent state, readers
 
 Describe the principal inputs, outputs, events, service and tool contracts, and failure boundaries needed for interaction. Planning need not finalize schema syntax, but separation cannot depend on hidden contract assumptions.
 
-## Treat runtime compatibility honestly
+## Assess runtime connections honestly
 
-Use only facts stated by the bounded source or projected evidence actually inspected. A claim that an injected client is opaque establishes an evidence gap, not that tools, schemas, state, persistence, retries, or other behaviors are absent. Keep those dimensions as explicit evidence prerequisites and name the source contract, closed wiring, source-owned documentation, or focused integration test that must prove them.
+Use only inspected facts. An opaque injected client is an evidence gap, not proof that tools, schemas, state, persistence, retries, or other behavior are absent. Keep the declared runtime label, actual repository wiring, and behavioral fit separate. Core's binding coverage concerns declared files and explicit exports only; neither a passed check nor a guidance row proves a connection.
 
-Runtime selection is optional unless requested or material. Keep four conclusions separate: the canonical declared runtime identity; the repository's actual wiring and behavioral fit; launcher-verified local adapter composition; and installed adapter contracts and inspection evidence for package eligibility and source-pattern support. Missing evidence in one layer withholds only that layer's conclusion and never erases a fact established by another.
-
-Composition establishes availability only. Installed adapter contracts and inspection evidence establish local eligibility and recognized source patterns only. Neither establishes repository use or behavioral fit. Website presentation labels never participate in this decision. When fit is incomplete, name the material facts still required for the repository, such as model API and control flow, instruction loading, tools and schemas, continuation, state or handoffs, error and retry semantics, lifecycle, and persistence. Name reliable resolvers such as current source contracts, closed runtime wiring, source-owned target documentation, and focused integration tests. Preserve an existing `runtime.id`; for a new plan, leave it undecided until the required evidence exists rather than defaulting to `custom` or inferring from a package name.
+Runtime selection is optional unless requested or material. Select the SDK that defines the agent under `runtime-guidance.md`'s selection rule. Follow only the relevant call path, stop at dynamic boundaries, and search installed types once per needed field. Pair material unknowns with concrete resolvers: closed wiring, source-owned documentation, or focused connection tests. Preserve an existing ID when evidence is incomplete; for a new plan, leave it undecided rather than defaulting to `custom`. Recommend an authorized test of the outgoing canonical instruction and schema when it would resolve a connection gap.
 
 ## Produce one actionable recommendation
 

@@ -11,11 +11,10 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 
 import { afterAll, beforeAll, expect, test } from 'vitest';
 
-import { RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME } from '../compatibility/index.ts';
 import { executeProcess } from '../process/index.ts';
 
 import { loadCandidateArtifacts } from './artifacts.ts';
@@ -70,10 +69,6 @@ beforeAll(async () => {
   }
   writeChecksums(fixture);
   writeFileSync(join(fixture, 'packages-commit.txt'), `${PACKAGES_COMMIT}\n`);
-  cpSync(
-    resolve(import.meta.dirname, '../../fixtures/tooling/runtime-compatibility-publication.json'),
-    join(fixture, RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME),
-  );
 });
 
 afterAll(() => {
@@ -89,7 +84,7 @@ const createCandidate = () => {
   return { artifactDirectory, outputDirectory, packagesCommit: PACKAGES_COMMIT };
 };
 
-test('selects the complete CLI closure with identical tarball and publication bytes', () => {
+test('selects the complete CLI closure with identical tarball bytes', () => {
   const options = createCandidate();
   const originalNames = readdirSync(options.artifactDirectory).sort();
   prepareTrustedCandidate(options);
@@ -103,11 +98,6 @@ test('selects the complete CLI closure with identical tarball and publication by
       readFileSync(join(options.artifactDirectory, artifact.archiveName)),
     );
   }
-  expect(
-    readFileSync(join(options.outputDirectory, RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME)),
-  ).toStrictEqual(
-    readFileSync(join(options.artifactDirectory, RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME)),
-  );
   expect(readdirSync(options.artifactDirectory).sort()).toStrictEqual(originalNames);
   expect(readFileSync(join(options.outputDirectory, 'packages-commit.txt'), 'utf8')).toBe(
     `${PACKAGES_COMMIT}\n`,
@@ -117,7 +107,7 @@ test('selects the complete CLI closure with identical tarball and publication by
   expect(readFileSync(join(options.outputDirectory, 'SHA256SUMS'), 'utf8')).toBe(selectedManifest);
 });
 
-test.each(['checksum', 'corrupt archive', 'source', 'publication', 'dependency', 'extra archive'])(
+test.each(['checksum', 'corrupt archive', 'source', 'dependency', 'extra archive'])(
   'rejects invalid %s before writing candidate output',
   (failure) => {
     const options = createCandidate();
@@ -126,11 +116,6 @@ test.each(['checksum', 'corrupt archive', 'source', 'publication', 'dependency',
     if (failure === 'corrupt archive')
       writeFileSync(join(options.artifactDirectory, 'moldea.ai-core-2.0.0.tgz'), 'corrupt bytes');
     if (failure === 'source') options.packagesCommit = 'b'.repeat(40);
-    if (failure === 'publication')
-      writeFileSync(
-        join(options.artifactDirectory, RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME),
-        '{}',
-      );
     if (failure === 'dependency') {
       rmSync(join(options.artifactDirectory, 'moldea.ai-core-2.0.0.tgz'));
       writeChecksums(options.artifactDirectory);

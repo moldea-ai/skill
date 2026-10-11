@@ -28,9 +28,9 @@ test('connects the limitations guide to source, navigation, and result meanings'
   await expect(page.locator('[data-markdown-badge]')).toHaveText([
     'Completed',
     'Error',
-    'Unverified',
     'Unfinished',
   ]);
+  await expect(page.getByRole('cell', { name: 'Not checked', exact: true })).toBeVisible();
   await expect(page.getByRole('table').first()).toContainText(
     'It can still contain errors or unverified relationships',
   );
@@ -52,7 +52,8 @@ test('finds the guide through local search and client navigation', async ({ page
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'Limitations and how they’re handled',
   );
-  await expect(page.locator('[data-markdown-badge]')).toHaveCount(4);
+  await expect(page.locator('[data-markdown-badge]')).toHaveCount(3);
+  await expect(page.getByRole('cell', { name: 'Not checked', exact: true })).toBeVisible();
 });
 
 for (const width of [320, 768, 1440]) {
@@ -71,7 +72,8 @@ for (const width of [320, 768, 1440]) {
         expect(
           await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
         ).toBe(true);
-        await expect(page.locator('[data-markdown-badge]')).toHaveCount(4);
+        await expect(page.locator('[data-markdown-badge]')).toHaveCount(3);
+        await expect(page.getByRole('cell', { name: 'Not checked', exact: true })).toBeVisible();
         for (const name of ['Result meanings', 'Common situations', 'Resource boundaries']) {
           await expect(page.getByRole('region', { name, exact: true })).toHaveCount(1);
         }

@@ -27,10 +27,6 @@ export {
   updateManagedReadme,
 } from './managed-readme.ts';
 
-// manifest scope
-export type { IManifestScopeInput } from './manifest-scope.ts';
-export { matchManifestScope } from './manifest-scope.ts';
-
 // repository filesystem
 export { isPathWithin, readRepositoryFile, resolveRepositoryFile } from './repository-files.ts';
 

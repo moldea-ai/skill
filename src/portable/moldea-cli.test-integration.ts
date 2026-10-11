@@ -23,7 +23,7 @@ const { cliJsonSchemaVersion, cliVersion, cliVersionRange, coreVersion, coreVers
 const TEST_NODE_EXECUTABLE = process.env['MOLDEA_TEST_NODE'] ?? process.execPath;
 
 const LAUNCHER_PATH = resolve(import.meta.dirname, '../../moldea/scripts/moldea-cli.mjs');
-const SUCCESS_OUTPUT = `${JSON.stringify({ schemaVersion: cliJsonSchemaVersion, cliVersion, command: 'validate', status: 'valid', error: null, result: { valid: true, diagnosticCount: 0, errorCount: 0, warningCount: 0 } })}\n`;
+const SUCCESS_OUTPUT = `${JSON.stringify({ schemaVersion: cliJsonSchemaVersion, cliVersion, command: 'validate', status: 'valid', error: null, result: { valid: true, diagnosticCount: 0, errorCount: 0, warningCount: 0, acceptedWarningCount: 0 } })}\n`;
 const GATE_PATH = resolve(import.meta.dirname, '../../moldea/scripts/relevance-gate.mjs');
 const PUBLISHED_CLI_URL = pathToFileURL(
   resolve(import.meta.dirname, '../../node_modules/@moldea.ai/cli/dist/moldea.js'),
@@ -527,6 +527,7 @@ test.each([1, 2, 3])('preserves raw diagnostic/error output with exit %d', (exit
             diagnosticCount: 2,
             errorCount: 1,
             warningCount: 1,
+            acceptedWarningCount: 0,
             page: { cursor: null, records: [] },
           }
         : null,
@@ -662,6 +663,7 @@ const runCaptureCancellation = async (
       diagnosticCount: 0,
       errorCount: 0,
       warningCount: 0,
+      acceptedWarningCount: 0,
       page: { cursor: 'old' },
     },
   });
@@ -822,4 +824,28 @@ test('suppresses over-limit capture and preserves the previous checkpoint', () =
   assert.equal(result.status, 3);
   assert.equal(result.stdout, '');
   assert.equal(readFileSync(checkpoint, 'utf8'), previous);
+});
+
+test('accepted warnings do not prevent gate matching or launcher scope', () => {
+  const { root } = createScopeFixture();
+  const manifestPath = join(root, 'moldea', 'moldea.yaml');
+  writeFileSync(
+    manifestPath,
+    readFileSync(manifestPath, 'utf8') +
+      'acceptedWarnings:\n  - code: MOLDEA_INTEGRATION_BLOCK_MISSING\n    subject: /AGENTS.md\n    qualifier: block-missing\n    reason: This fixture tests scope independently of host integration.\n',
+  );
+  const gate = spawnSync(
+    TEST_NODE_EXECUTABLE,
+    [GATE_PATH, '--repository', root, '--path', 'src/refund.ts'],
+    { encoding: 'utf8', timeout: 15_000 },
+  );
+  assert.ifError(gate.error);
+  assert.deepEqual(
+    { status: gate.status, stdout: gate.stdout, stderr: gate.stderr },
+    { status: 0, stdout: '1\n', stderr: '' },
+  );
+  const scope = runScope(root, '/src/refund.ts');
+  assert.equal(scope.status, 0, scope.stderr || scope.stdout);
+  const envelope = JSON.parse(scope.stdout) as { result: { relevant: boolean } };
+  assert.equal(envelope.result.relevant, true);
 });

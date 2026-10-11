@@ -21,7 +21,7 @@ const getAttribute = (attributes: string, name: string): string | null => {
 
 const getMetaContents = (
   html: string,
-  identityName: 'name' | 'property',
+  identityName: 'name' | 'property' | 'http-equiv',
   identityValue: string,
 ): string[] => {
   return getTagAttributes(html, 'meta')
@@ -96,6 +96,30 @@ export const verifySeoMetadata = (
     const html = readFileSync(htmlPath, 'utf8');
     const relativeHtmlPath = relative(distDirectory, htmlPath).replaceAll(sep, '/');
     const logicalPagePath = getLogicalPagePath(distDirectory, htmlPath);
+    const refreshContents = getMetaContents(html, 'http-equiv', 'refresh');
+    if (refreshContents.length > 0) {
+      const refresh = requireSingleValue(refreshContents, 'redirect refresh', relativeHtmlPath);
+      const targetPath = /^0;url=(\/[^\s]*)$/u.exec(refresh)?.[1];
+      if (targetPath === undefined || targetPath.startsWith('//')) {
+        throw new Error(`${relativeHtmlPath} must redirect immediately to an internal path.`);
+      }
+      const targetUrl = new URL(targetPath, siteUrl).href;
+      const canonicalUrl = requireSingleValue(
+        getCanonicalHrefs(html),
+        'redirect canonical URL',
+        relativeHtmlPath,
+      );
+      if (
+        canonicalUrl !== targetUrl ||
+        getMetaContents(html, 'name', 'robots').join(',') !== 'noindex' ||
+        !getTagAttributes(html, 'a').some(
+          (attributes) => getAttribute(attributes, 'href') === targetPath,
+        )
+      ) {
+        throw new Error(`${relativeHtmlPath} has inconsistent redirect metadata or fallback link.`);
+      }
+      continue;
+    }
     const title = requireSingleValue(
       [...html.matchAll(/<title>([^<]*)<\/title>/gu)].map((match) => match[1] ?? ''),
       'title',

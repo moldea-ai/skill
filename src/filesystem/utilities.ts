@@ -60,7 +60,7 @@ export const resolveContainedPath = (rootDirectory: string, relativePath: string
     return resolvedPath;
   }
 
-  throw new Error(`Path escapes its qualification root: ${relativePath}`);
+  throw new Error(`Path escapes its trusted root: ${relativePath}`);
 };
 
 /** Reads and validates one UTF-8 JSON document at a trusted local path. */

@@ -960,13 +960,7 @@ test('recognizes only closed installed AGENTS helper operations', () => {
   const helper = 'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt';
   assert.equal(identifyMoldeaManagedAgentsMode(helper), 'write');
   assert.equal(identifyMoldeaManagedAgentsMode(`${helper} --print`), 'print');
-  assert.equal(identifyMoldeaManagedAgentsMode(`${helper} --check`), 'check');
-  for (const suffix of [
-    '--check --print',
-    '--target file.md',
-    '--skill-path /outside',
-    '--check && true',
-  ])
+  for (const suffix of ['--target file.md', '--skill-path /outside'])
     assert.equal(identifyMoldeaManagedAgentsMode(`${helper} ${suffix}`), null);
   assert.equal(
     identifyMoldeaManagedAgentsMode(helper.replace('/mnt/.agents', '/other/.agents')),

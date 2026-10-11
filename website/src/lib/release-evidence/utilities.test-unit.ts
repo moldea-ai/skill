@@ -5,11 +5,11 @@ import { expectToThrowCode } from 'web-utils-kit';
 import { getPublicEvidenceHref } from './index.ts';
 
 test.each([
-  ['/evidence-assets/qualification/trial.patch', '/', '/evidence-assets/qualification/trial.patch'],
+  ['/evidence-assets/semantic/trial.patch', '/', '/evidence-assets/semantic/trial.patch'],
   [
-    '/evidence-assets/qualification/trial.patch',
+    '/evidence-assets/semantic/trial.patch',
     '/skill-preview/',
-    '/skill-preview/evidence-assets/qualification/trial.patch',
+    '/skill-preview/evidence-assets/semantic/trial.patch',
   ],
   [
     '/evidence-assets/semantic/attempt.json',

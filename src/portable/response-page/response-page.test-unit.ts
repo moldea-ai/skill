@@ -1,14 +1,10 @@
 // @vitest-environment node
-import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-
-import { readReleaseIdentity } from '../../release/index.ts';
 
 import { parseResponsePage, verifyAndSaveResponse, type IResponseIdentity } from './index.ts';
 
-const { cliJsonSchemaVersion, cliVersion } = readReleaseIdentity(
-  resolve(import.meta.dirname, '../../..'),
-);
+const cliJsonSchemaVersion = 7;
+const cliVersion = '11.0.0';
 const identity = { command: 'content' as const, cliVersion };
 const page = {
   schemaVersion: cliJsonSchemaVersion,
@@ -41,7 +37,8 @@ test.each(['inspect', 'scope', 'validate'] as const)(
             diagnosticCount: 2,
             errorCount: 1,
             warningCount: 1,
-            counts: { diagnostics: 2, errors: 1, warnings: 1 },
+            acceptedWarningCount: 0,
+            counts: { diagnostics: 2, errors: 1, warnings: 1, acceptedWarnings: 0 },
             page: { cursor: null },
             future: true,
           },
@@ -94,7 +91,8 @@ test.each(['composition', 'content', 'inspect', 'scope', 'validate'] as const)(
             diagnosticCount: 1,
             errorCount: 0,
             warningCount: 1,
-            counts: { diagnostics: 1, errors: 0, warnings: 1 },
+            acceptedWarningCount: 0,
+            counts: { diagnostics: 1, errors: 0, warnings: 1, acceptedWarnings: 0 },
             relevant: false,
           },
         },
@@ -148,7 +146,8 @@ test.each(['inspect', 'validate'] as const)(
       diagnosticCount: 3,
       errorCount: 2,
       warningCount: 1,
-      counts: { diagnostics: 3, errors: 2, warnings: 1 },
+      acceptedWarningCount: 0,
+      counts: { diagnostics: 3, errors: 2, warnings: 1, acceptedWarnings: 0 },
       page: { records: [], cursor: 'more' },
     };
     await expect(
@@ -176,7 +175,7 @@ test.each(['inspect', 'validate'] as const)(
               diagnosticCount: diagnostics,
               errorCount: errors,
               warningCount: warnings,
-              counts: { diagnostics, errors, warnings },
+              counts: { diagnostics, errors, warnings, acceptedWarnings: 0 },
             },
           },
           valid ? 0 : 1,
@@ -211,3 +210,47 @@ test('verifies a maximum-size response and bounds failures without exposing its 
     );
   }
 });
+
+test.each(['validate', 'inspect'] as const)(
+  'verifies accepted-only and mixed %s totals without treating acceptance as validity',
+  async (command) => {
+    for (const [errors, warnings, acceptedWarnings] of [
+      [0, 0, 2],
+      [1, 2, 3],
+    ] as const) {
+      const diagnostics = errors + warnings + acceptedWarnings;
+      const valid = errors === 0;
+      const response = {
+        ...page,
+        command,
+        status: valid ? 'valid' : 'invalid',
+        result: {
+          valid,
+          diagnosticCount: diagnostics,
+          errorCount: errors,
+          warningCount: warnings,
+          acceptedWarningCount: acceptedWarnings,
+          counts: { diagnostics, errors, warnings, acceptedWarnings },
+          page: { records: [], cursor: 'more' },
+        },
+      };
+      await expect(verify(response, valid ? 0 : 1, command)).resolves.toBeUndefined();
+      for (const accepted of [-1, 0, 1.5, undefined]) {
+        await expect(
+          verify(
+            {
+              ...response,
+              result: {
+                ...response.result,
+                acceptedWarningCount: accepted,
+                counts: { ...response.result.counts, acceptedWarnings: accepted },
+              },
+            },
+            valid ? 0 : 1,
+            command,
+          ),
+        ).rejects.toThrow();
+      }
+    }
+  },
+);

@@ -4,7 +4,7 @@ export type IEvidenceCommand =
   | {
       kind: 'pack';
       evidenceKind: IEvidenceKind;
-      runId?: string;
+      runId: string;
     }
   | {
       kind: 'prepare';

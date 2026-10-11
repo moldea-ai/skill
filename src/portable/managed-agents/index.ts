@@ -1,2 +1,2 @@
 // integration rendering and inspection
-export { renderManagedAgentsBlock, checkManagedAgents } from './managed-agents.ts';
+export { renderManagedAgentsBlock } from './managed-agents.ts';

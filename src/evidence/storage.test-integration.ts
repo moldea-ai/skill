@@ -5,7 +5,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
 import { createEvidenceBundle, decodeEvidenceBundle } from './bundle.ts';
-import { packLatestCompletedEvidenceRun, storeCompletedEvidenceRun } from './storage.ts';
+import { packCompletedEvidenceRun, storeCompletedEvidenceRun } from './storage.ts';
 
 const temporaryRoots: string[] = [];
 
@@ -16,15 +16,15 @@ afterEach(async () => {
 });
 
 describe('completed evidence storage', () => {
-  test('packs the latest completed qualification run without a run selector', async () => {
+  test('packs the explicitly selected completed semantic run', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-storage-'));
     temporaryRoots.push(root);
-    for (const attemptId of ['qualification-first', 'qualification-second']) {
+    for (const attemptId of ['semantic-first', 'semantic-second']) {
       await storeCompletedEvidenceRun(
         root,
         createEvidenceBundle({
           classification: 'official',
-          kind: 'qualification',
+          kind: 'semantic',
           payload: { attemptId },
           run: {
             attemptId,
@@ -37,15 +37,15 @@ describe('completed evidence storage', () => {
       );
     }
 
-    const result = await packLatestCompletedEvidenceRun(
+    const result = await packCompletedEvidenceRun(
       root,
-      'qualification',
-      path.join(root, 'bundles'),
+      'semantic',
+      'semantic-first',
+      path.join(root, 'bundles', 'semantic-first.json.gz'),
     );
 
-    expect(result.attemptId).toBe('qualification-second');
     expect(decodeEvidenceBundle(await readFile(result.outputPath)).run.attemptId).toBe(
-      'qualification-second',
+      'semantic-first',
     );
   });
 });

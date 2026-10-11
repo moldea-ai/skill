@@ -187,7 +187,7 @@ describe('GitHub evidence release assets', () => {
     ).resolves.toMatchObject({ kind: 'semantic' });
   });
 
-  test('pins one validated bundle without changing the other selection', async () => {
+  test('pins the validated semantic bundle', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'moldea-release-evidence-'));
     temporaryRoots.push(root);
     const client = new FakeGitHubReleaseClient();
@@ -199,16 +199,8 @@ describe('GitHub evidence release assets', () => {
       temporaryDirectory: root,
     });
     const selectionPath = path.join(root, 'selection.json');
-    const qualificationReference: IEvidenceSelectionReference = {
-      assetName: 'qualification-existing.json.gz',
-      classification: 'official',
-      repository: 'moldea-ai/skill',
-      sha256: 'a'.repeat(64),
-      tag: 'evidence-qualification-existing',
-    };
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
-      qualification: qualificationReference,
       semantic: null,
     } satisfies IEvidenceSelection);
     const semanticReference: IEvidenceSelectionReference = {
@@ -227,7 +219,6 @@ describe('GitHub evidence release assets', () => {
       selectionPath,
     });
 
-    expect(selection.qualification).toStrictEqual(qualificationReference);
     expect(selection.semantic).toStrictEqual(semanticReference);
     expect(published.repository).toBe(EVIDENCE_RELEASE_REPOSITORY);
   });
@@ -244,7 +235,6 @@ describe('GitHub evidence release assets', () => {
     const selectionPath = path.join(root, 'selection.json');
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
-      qualification: null,
       semantic: null,
     } satisfies IEvidenceSelection);
 
@@ -276,7 +266,6 @@ describe('GitHub evidence release assets', () => {
     const selectionPath = path.join(root, 'selection.json');
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
-      qualification: null,
       semantic: null,
     } satisfies IEvidenceSelection);
 

@@ -10,10 +10,9 @@ Explain established missing canonical files, malformed foundation evidence, inac
 
 ## Check setup integration
 
-During initialization and explicit setup checks or repair only, check the root AGENTS.md bridge and smoke-test its command. These are bounded skill operations within the existing output budget, not additional canonical validation requirements or ordinary maintenance probes.
+During initialization and explicit setup checks or repair only, use final `validate` integration warnings to check the root AGENTS.md bridge and smoke-test its command. These are bounded skill operations within the existing output budget, not additional canonical validation requirements or ordinary maintenance probes.
 
 ```text
-node <installed-skill-root>/scripts/managed-agents.mjs --repository <absolute-repository-root> --check
 node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root> --diagnose --path README.md
 ```
 
@@ -21,7 +20,7 @@ Use the selected installation and absolute repository root, including from neste
 
 During initialization or authorized repair, create or update only the owned AGENTS.md region using `node <installed-skill-root>/scripts/managed-agents.mjs --repository <absolute-repository-root>`, but only when host instructions permit editing that file. Preserve unrelated instructions. Never use the helper to evade protected-file rules. If prohibited, unsafe, or unsuccessful, use its read-only `--print` mode and provide that exact block. Tell the developer: adding it to repository-local AGENTS.md is important because ordinary work may otherwise miss context maintenance and leave context stale; explicit moldea operations remain available. Do not replace an instruction symlink or put repository-specific routing into shared global instructions.
 
-When Node or execution is unavailable, report the limitation and render the manual block by bounded inspection of `<installed-skill-root>/assets/managed-agents-block.md`, substituting only the verified repository-relative installation for `{{skill-path}}`. Never guess an installation, follow unsafe links, or claim a probe ran. A helper failure permits no alternate writer. Expected check warnings are completed integration checks; unexpected execution failures remain unverified.
+When Node or execution is unavailable, report the limitation and render the manual block by bounded inspection of `<installed-skill-root>/assets/managed-agents-block.md`, substituting only the verified repository-relative installation for `{{skill-path}}`. Never guess an installation, follow unsafe links, or claim a probe ran. A helper failure permits no alternate writer. Use the `integration` warnings reported by `validate`, never a separate helper check. Present both paths for acceptable warnings: fix the cause through authorized `Fix moldea`, or accept the exact warning in `moldea.yaml` with the developer’s reason under `continuous-maintenance.md` → “Warnings and acceptance”. A developer may choose to keep a symlinked AGENTS.md; never replace it. Unexpected smoke-test execution failures remain unverified.
 
 ## Establish recovery authority
 
@@ -39,18 +38,18 @@ Use only the bundled `node <installed-skill-root>/scripts/managed-readme.mjs --r
 
 ## Check progressively
 
-Use only the installed skill's closed launcher after eligibility and composition are established. Necessary tooling recovery belongs solely to `tooling-installation.md`; do not install runtime SDKs or adapters, use package-manager CLI providers, or browse compatibility websites. A restricted or unsupported setup remains a reported prerequisite and never authorizes switching a declared runtime to `custom`. Host execution controls govern every invocation.
+Use only the installed skill's closed launcher after eligibility and composition are established. Necessary tooling recovery belongs solely to `tooling-installation.md`; do not install runtime SDKs or use package-manager CLI providers. A tooling prerequisite never authorizes switching a declared runtime to `custom`. Host execution controls govern every invocation.
 
-Start with content-free `inspect` when owner inventory or structural diagnostics are needed. A completed `invalid` envelope provides diagnostics, not validity; an operational error provides no inspection conclusion. If a malformed manifest prevents inventory, use its bounded diagnostic and exact source range to make only an established structural correction, then inspect the resulting state. Never retry unchanged failure. Inspection warnings leave the named relationship unverified; they are not proof that its implementation is wrong or permission to rewrite a supported design.
+Start with content-free `inspect` when owner inventory or structural diagnostics are needed. A completed `invalid` envelope provides diagnostics, not validity; an operational error provides no inspection conclusion. If a malformed manifest prevents inventory, use its bounded diagnostic and exact source range to make only an established structural correction, then inspect the resulting state. Never retry unchanged failure. Binding coverage names each completed file/export check and each unchecked reason; it does not prove runtime wiring. Warnings neither invalidate the project nor authorize rewriting a valid design.
 
-A valid result with a version-dependent warning permits unrelated authorized repair but leaves the named runtime relationship unverified. Repair confirmed errors even when warnings coexist. Do not pin or replace an eligible runtime, or remove a material binding, merely to clear uncertainty.
+Repair confirmed errors even when warnings coexist. Report unchecked connections from the relevant binding coverage without removing a material binding or changing the runtime merely to clear uncertainty. Apply the warnings-and-acceptance rule; never accept on the agent’s own initiative.
 
 Process owners one at a time. Use existing metadata, then request only necessary `content` and exact implementation evidence. Assess:
 
 - foundation and canonical asset structure, missing references, and existing unresolved criteria;
 - real bindings and material `affectedBy` paths, including overly broad declarations;
 - canonical instructions, declared mirrors, and actual runtime consumption;
-- runtime assignment, local adapter eligibility, capabilities, schemas, variables, and routing where present.
+- runtime labels, capabilities, schemas, variables, and routing where present, using installed SDK types and focused call-path evidence.
 
 Load `agent-design.md` for agent/relationship/provenance corrections or `continuous-maintenance.md` for context/requirement corrections only when needed. Their initialization branches do not apply to repair; tooling recovery stays with `tooling-installation.md`. A broad repair is not the named-reconciliation one-body procedure; the entrypoint's unresolved-conflict stop still applies immediately to every owner. State both conflicting claims and ask which governs when no current developer decision or independent resolver selects one. Do not keep inspecting to justify a preferred claim or persist an answerable policy question as a requirement.
 

@@ -12,7 +12,7 @@ Generic implementation, architecture, migration, refactor, deployment, and host-
 
 Repository-dependent moldea planning requires an adopted repository. Before adoption, moldea abstains and the host may still perform its own generic planning workflow independently. Planning changes no repository, dependency, Git, protected instruction, generated artifact, or external system. It creates no canonical plan, cache, or planning database.
 
-When runtime identity is material, use `runtime-guidance.md` and bounded repository evidence. IDs select guidance, not adapter availability or compatibility. Do not install tooling, probe package resolution, or use global or transient launchers to plan. Without compatible local tooling, continue from evidence and disclose the limitation.
+When runtime identity is material, use `runtime-guidance.md` and bounded repository evidence. IDs select guidance, not compatibility guarantees. Do not install tooling, probe package resolution, or use global or transient launchers to plan. Without compatible local tooling, continue from evidence and disclose the limitation.
 
 ## Plan from the objective
 

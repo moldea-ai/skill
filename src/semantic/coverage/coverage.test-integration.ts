@@ -62,10 +62,5 @@ describe('discovered semantic coverage', () => {
       expect.arrayContaining(['scope-expansion-second-owner', 'context-instruction-injection']),
     );
     expect(evidenceFor('activation-abstention')).toContain('scope-expansion-unbound-only');
-    expect(
-      coverage.claims
-        .find(({ id }) => id === 'adapter-ownership')
-        ?.evidence.filter(({ kind }) => kind === 'qualification-profile'),
-    ).toEqual(SEMANTIC_COVERAGE_CLAIMS.find(({ id }) => id === 'adapter-ownership')?.fixedEvidence);
   });
 });

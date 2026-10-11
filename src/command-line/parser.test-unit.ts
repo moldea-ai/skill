@@ -13,13 +13,12 @@ test('parses a pack command independently of option order', () => {
   );
 });
 
-test('packs the latest completed qualification batch without a run option', () => {
-  expect(parseEvidenceCommand('pack', ['--scope', 'qualification'])).toStrictEqual({
-    kind: 'pack',
-    evidenceKind: 'qualification',
-  });
-  expect(() => parseEvidenceCommand('pack', ['--scope', 'qualification', '--run', 'one'])).toThrow(
-    'Expected options: --scope.',
+test('requires an explicit semantic run and rejects unsupported scopes', () => {
+  expect(() => parseEvidenceCommand('pack', ['--scope', 'semantic'])).toThrow(
+    'Expected options: --scope, --run.',
+  );
+  expect(() => parseEvidenceCommand('pack', ['--scope', 'other', '--run', 'one'])).toThrow(
+    'Evidence kind must be semantic.',
   );
 });
 

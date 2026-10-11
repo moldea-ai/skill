@@ -382,7 +382,7 @@ const createUpdatedRootManifests = ({
       'utf8',
     );
     writeFileSync(join(temporaryRoot, RELEASE_PATHS.packageLock), packageLock, 'utf8');
-    for (const relativePath of ['qualification/package.json', 'website/package.json']) {
+    for (const relativePath of ['website/package.json']) {
       const destination = join(temporaryRoot, relativePath);
       mkdirSync(dirname(destination), { recursive: true });
       cpSync(join(repositoryRoot, relativePath), destination);
@@ -630,7 +630,6 @@ const stagePortableSource = (repositoryRoot: string, temporaryRoot: string): voi
   for (const relativePath of [
     'moldea/assets/managed-readme-block.md',
     'moldea/assets/managed-agents-block.md',
-    'qualification/package.json',
     'website/package.json',
   ]) {
     const destination = join(temporaryRoot, relativePath);

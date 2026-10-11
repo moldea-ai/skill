@@ -28,7 +28,6 @@
   "description": "Development-only conformance checks for the moldea Agent Skill.",
   "type": "module",
   "workspaces": [
-    "qualification",
     "website"
   ],
   "engines": {
@@ -55,20 +54,6 @@
     "managed-readme:generate": "npm run portable:generate",
     "matcher:check": "npm run portable:check",
     "matcher:generate": "npm run portable:generate",
-    "qualification": "npm --workspace qualification run qualification --",
-    "qualification:dry-run": "npm --workspace qualification run qualification -- run --adapter custom --implementation custom --dry-run --json",
-    "qualification:compatibility:check": "npm --workspace qualification run qualification -- compatibility-check",
-    "qualification:compatibility:update": "npm --workspace qualification run qualification -- compatibility-update",
-    "qualification:compose": "node qualification/src/cli/compose.ts",
-    "qualification:dry-run:all": "npm run qualification:dry-run && npm --workspace qualification run qualification -- run-batch --all --dry-run --workers 4 --json",
-    "qualification:format:check": "npm --workspace qualification run format:check",
-    "qualification:lint": "npm --workspace qualification run lint",
-    "qualification:list": "npm --workspace qualification run qualification -- list",
-    "qualification:test": "npm --workspace qualification test",
-    "qualification:test:integration": "npm --workspace qualification run test:integration",
-    "qualification:test:unit": "npm --workspace qualification run test:unit",
-    "qualification:typecheck": "npm --workspace qualification run typecheck",
-    "qualification:verify": "npm --workspace qualification run qualification -- verify",
     "path:check": "node src/paths/check.ts",
     "portable:check": "node src/portable/generate.ts --check",
     "portable:generate": "node src/portable/generate.ts",
@@ -84,7 +69,7 @@
     "test:unit": "vitest run --config vitest/test-unit.config.ts",
     "test:integration": "vitest run --config vitest/test-integration.config.ts",
     "typecheck:root": "tsc -p tsconfig.json --noEmit",
-    "typecheck": "npm run typecheck:root && npm run qualification:typecheck && npm --workspace website run typecheck",
+    "typecheck": "npm run typecheck:root && npm --workspace website run typecheck",
     "website:build": "npm --workspace website run build",
     "website:check": "npm --workspace website run check",
     "website:dev": "npm --workspace website run dev"

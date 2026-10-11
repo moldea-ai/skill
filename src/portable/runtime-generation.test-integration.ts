@@ -33,7 +33,6 @@ test('runtime generation emits standalone helpers for isolated execution', async
     [
       path.relative(process.cwd(), path.join(outputDirectory, 'git-command-policy-boundary.mjs')),
       path.relative(process.cwd(), path.join(outputDirectory, 'codex-evaluation-proxy.mjs')),
-      path.relative(process.cwd(), path.join(outputDirectory, 'qualification-direct-verifier.mjs')),
     ].map((artifactPath) => artifactPath.split(path.sep).join('/')),
   );
 
@@ -58,16 +57,4 @@ test('runtime generation emits standalone helpers for isolated execution', async
     expectedExitCodes: [1],
   });
   assert.match(proxyResult.stderr, /requires a socket path and allowed hosts/u);
-
-  const directVerifierResult = await executeProcess({
-    args: [path.join(outputDirectory, 'qualification-direct-verifier.mjs')],
-    command: TEST_NODE_EXECUTABLE,
-    cwd: temporaryDirectory,
-    expectedExitCodes: [1],
-  });
-  assert.match(
-    directVerifierResult.stderr,
-    /The direct verifier requires a project, adapter id, and adapter package/u,
-  );
-  assert.doesNotMatch(directVerifierResult.stderr, /Dynamic require of/u);
 });

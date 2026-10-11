@@ -96,7 +96,6 @@ export const prepareSkillCandidate = async (options: {
     ...CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
     ...PORTABLE_ARTIFACT_PATHS,
     'docs/compatibility-and-local-tooling.md',
-    'qualification/package.json',
     'website/package.json',
     'fixtures/tooling/semantic-cli/bin/moldea.js',
   ]);
@@ -198,7 +197,7 @@ export const prepareSkillCandidate = async (options: {
             `${JSON.stringify(packageManifest, null, 2)}\n`,
           );
           writeFileSync(join(temporaryRoot, 'package-lock.json'), packageLock);
-          for (const relativePath of ['qualification/package.json', 'website/package.json']) {
+          for (const relativePath of ['website/package.json']) {
             mkdirSync(dirname(join(temporaryRoot, relativePath)), { recursive: true });
             cpSync(join(options.outputDirectory, relativePath), join(temporaryRoot, relativePath));
           }

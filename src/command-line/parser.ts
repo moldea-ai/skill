@@ -18,8 +18,8 @@ const getOption = (arguments_: readonly string[], name: string): string => {
 
 const getEvidenceKind = (arguments_: readonly string[]): IEvidenceKind => {
   const kind = getOption(arguments_, '--scope');
-  if (kind !== 'semantic' && kind !== 'qualification') {
-    throw new Error('Evidence kind must be semantic or qualification.');
+  if (kind !== 'semantic') {
+    throw new Error('Evidence kind must be semantic.');
   }
   return kind;
 };
@@ -48,18 +48,11 @@ export const parseEvidenceCommand = (
 
   if (commandName === 'pack') {
     const evidenceKind = getEvidenceKind(arguments_);
-    if (evidenceKind === 'semantic') {
-      assertExactOptions(arguments_, ['--scope', '--run']);
-      return {
-        kind: 'pack',
-        evidenceKind,
-        runId: getOption(arguments_, '--run'),
-      };
-    }
-    assertExactOptions(arguments_, ['--scope']);
+    assertExactOptions(arguments_, ['--scope', '--run']);
     return {
       kind: 'pack',
       evidenceKind,
+      runId: getOption(arguments_, '--run'),
     };
   }
 

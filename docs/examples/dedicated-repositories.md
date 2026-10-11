@@ -19,7 +19,7 @@ The canonical agent repository is open here, and the application implementation 
 **Coding agent**
 
 ```text
-I inspected the canonical repository and the developer-identified storefront repository. Canonical state is structurally valid, and the application loads the canonical instruction through its provisioning step. The local adapter evidence is partial because implementation lives externally; that is an evidence-location limitation, not proof that the runtime is absent. No files changed in either repository.
+I inspected the canonical repository and the developer-identified storefront repository. Canonical state is structurally valid, and the application loads the canonical instruction through its provisioning step. Local coverage checks only declarations observable in the canonical repository. My separate application review establishes the provisioning behavior; local coverage does not prove cross-repository runtime wiring. No files changed in either repository.
 ```
 
 ## Coding agent and `moldea` under the hood

@@ -430,7 +430,7 @@ test('recognizes validate and fixed-boundary composition launcher operations', (
   const composition = projectActorExecutionEvidenceEvent(
     createEvent(
       createLauncherCommand('composition', '--json'),
-      createEnvelope('composition', { adapters: [] }),
+      createEnvelope('composition', { packages: [] }),
     ),
     OPTIONS,
   );

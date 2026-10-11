@@ -268,7 +268,6 @@ export const inspectReleaseIdentity = (repositoryRoot: string): string[] => {
     RELEASE_PATHS.readme,
     RELEASE_PATHS.gettingStarted,
     'docs/compatibility-and-local-tooling.md',
-    RELEASE_PATHS.qualificationReadme,
     RELEASE_PATHS.skill,
     RELEASE_PATHS.skillLocalTooling,
   ]

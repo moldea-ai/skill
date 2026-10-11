@@ -1,6 +1,6 @@
 export type ISemanticCoverageEvidence = {
   id: string;
-  kind: 'deterministic-suite' | 'qualification-profile' | 'semantic-case';
+  kind: 'deterministic-suite' | 'semantic-case';
 };
 
 export type ISemanticCoverageClaimSource = {

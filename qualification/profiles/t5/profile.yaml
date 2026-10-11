@@ -1,6 +1,0 @@
-version: 2
-adapterId: custom
-implementationId: custom
-title: Custom runtime qualification
-description: Qualifies universal repository behavior without invoking a provider or runtime SDK.
-probesFile: probes/claims.yaml

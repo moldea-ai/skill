@@ -1,14 +1,10 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import semver from 'semver';
 import { z } from 'zod';
 
-import {
-  parseRuntimeCompatibilityPublication,
-  RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
-} from '../compatibility/index.ts';
 import { parseCompatibleStableRange } from '../release/index.ts';
 
 import { loadCandidateArtifacts } from './artifacts.ts';
@@ -317,12 +313,10 @@ export const packSourceWorkspaceCandidate = ({
   artifactDirectory,
   executeCommand = executePnpmCommand,
   loadArtifacts = loadCandidateArtifacts,
-  runtimeCompatibilityPublicationPath,
   selectedRootPackageNames = [],
   workspaceRoot,
 }: IPackSourceWorkspaceCandidateOptions): IValidatedPackageCandidate & {
   buildPackageNames: string[];
-  runtimeCompatibilityPublicationArtifact: string | null;
   runtimePackageNames: string[];
 } => {
   mkdirSync(artifactDirectory, { recursive: true });
@@ -330,18 +324,6 @@ export const packSourceWorkspaceCandidate = ({
   if (existingTarballs.length > 0) {
     throw new Error('Candidate artifact directory must not contain existing tarballs.');
   }
-  const publicationArtifactPath = join(
-    artifactDirectory,
-    RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
-  );
-  if (existsSync(publicationArtifactPath)) {
-    throw new Error('Candidate artifact directory must not contain a runtime publication.');
-  }
-  if (runtimeCompatibilityPublicationPath !== undefined) {
-    parseRuntimeCompatibilityPublication(readFileSync(runtimeCompatibilityPublicationPath, 'utf8'));
-    copyFileSync(runtimeCompatibilityPublicationPath, publicationArtifactPath);
-  }
-
   const { buildClosure, runtimeClosure } = createSourceCandidatePlan(
     workspaceRoot,
     selectedRootPackageNames,
@@ -373,10 +355,6 @@ export const packSourceWorkspaceCandidate = ({
   return {
     ...candidate,
     buildPackageNames: buildClosure.map(({ name }) => name),
-    runtimeCompatibilityPublicationArtifact:
-      runtimeCompatibilityPublicationPath === undefined
-        ? null
-        : RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
     runtimePackageNames: runtimeClosure.map(({ name }) => name),
   };
 };

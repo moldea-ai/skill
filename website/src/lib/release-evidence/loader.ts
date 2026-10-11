@@ -4,20 +4,15 @@ import path from 'node:path';
 
 import { z } from 'zod';
 
-import { parseQualificationWebsiteModel } from '../../../../qualification/src/public-evidence/index.ts';
 import { parseSemanticWebsiteModel } from '../../../../src/semantic/public-evidence/index.ts';
 
-import type {
-  IQualificationReleaseEvidenceSectionModel,
-  IReleaseEvidenceSectionModel,
-  IReleaseEvidenceWebsiteState,
-} from './types.ts';
+import type { IReleaseEvidenceSectionModel, IReleaseEvidenceWebsiteState } from './types.ts';
 
 const SOURCE_REPOSITORY_URL = 'https://github.com/moldea-ai/skill';
 
 const PreparedEvidenceBundleSchema = z.object({
   formatVersion: z.literal(1),
-  kind: z.enum(['qualification', 'semantic']),
+  kind: z.literal('semantic'),
   classification: z.enum(['fixture', 'official']),
   run: z.object({
     attemptId: z.string().min(1),
@@ -38,7 +33,6 @@ const PreparedEvidenceSectionSchema = z.strictObject({
 
 const PreparedEvidenceManifestSchema = z.strictObject({
   formatVersion: z.literal(1),
-  qualification: PreparedEvidenceSectionSchema,
   selectionSha256: z.string().regex(/^[a-f0-9]{64}$/u),
   semantic: PreparedEvidenceSectionSchema,
 });
@@ -53,7 +47,6 @@ const EvidenceSelectionReferenceSchema = z.strictObject({
 
 const EvidenceSelectionSchema = z.strictObject({
   formatVersion: z.literal(1),
-  qualification: EvidenceSelectionReferenceSchema.nullable(),
   semantic: EvidenceSelectionReferenceSchema.nullable(),
 });
 
@@ -61,7 +54,7 @@ type IPreparedEvidenceBundle = z.infer<typeof PreparedEvidenceBundleSchema>;
 
 const readPreparedBundle = (
   preparedDirectory: string,
-  kind: 'qualification' | 'semantic',
+  kind: 'semantic',
   section: z.infer<typeof PreparedEvidenceSectionSchema>,
   allowFixture: boolean,
 ): IPreparedEvidenceBundle => {
@@ -96,7 +89,7 @@ const copyPreparedAssets = (
   rmSync(publicAssetsDirectory, { force: true, recursive: true });
   mkdirSync(publicAssetsDirectory, { recursive: true });
 
-  for (const kind of ['semantic', 'qualification'] as const) {
+  for (const kind of ['semantic'] as const) {
     const sourceDirectory = path.resolve(preparedDirectory, manifest[kind].assetsPath);
     const relativeSourcePath = path.relative(preparedDirectory, sourceDirectory);
     if (relativeSourcePath.startsWith('..') || path.isAbsolute(relativeSourcePath)) {
@@ -122,7 +115,7 @@ const createSectionModel = (bundle: IPreparedEvidenceBundle): IReleaseEvidenceSe
   };
 };
 
-/** Loads the two exact evidence bundles prepared from the maintainer selection. */
+/** Loads the exact semantic evidence bundle prepared from the maintainer selection. */
 export const loadReleaseEvidenceWebsiteState = (
   repositoryRoot: string,
   _targetVersion: string,
@@ -157,44 +150,18 @@ export const loadReleaseEvidenceWebsiteState = (
     manifest.semantic,
     options.allowFixture === true,
   );
-  const qualificationBundle = readPreparedBundle(
-    preparedDirectory,
-    'qualification',
-    manifest.qualification,
-    options.allowFixture === true,
-  );
   copyPreparedAssets(repositoryRoot, preparedDirectory, manifest);
   const semantic = parseSemanticWebsiteModel(semanticBundle.payload.websiteModel);
-  const qualification = parseQualificationWebsiteModel(qualificationBundle.payload.websiteModel);
   const semanticAttempt = semantic.latest ?? semantic.currentAssurance;
 
   if (semanticAttempt === null) {
     throw new Error('Selected semantic evidence has no displayable recorded attempt.');
   }
 
-  const qualificationSection: IQualificationReleaseEvidenceSectionModel = {
-    ...createSectionModel(qualificationBundle),
-    targets: qualification.profiles.flatMap((profile) => {
-      const attempt = profile.currentLatest ?? profile.currentLastPassing;
-      return attempt === null
-        ? []
-        : [
-            {
-              adapterId: profile.adapterId,
-              attemptId: attempt.result.attemptId,
-              implementationId: profile.implementationId,
-              sourceAttemptUrl: attempt.rawAttemptUrl,
-            },
-          ];
-    }),
-  };
-
   return {
-    qualification,
     semantic,
     releaseEvidence: {
       mode: 'recorded',
-      qualification: qualificationSection,
       semantic: {
         ...createSectionModel(semanticBundle),
         attempt: semanticAttempt.result,

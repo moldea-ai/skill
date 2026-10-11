@@ -7,7 +7,7 @@ const manifest = require('../package.json');
 const command = process.argv[2];
 const optionValue = (name) => {
   const index = process.argv.indexOf(name);
-  return index === -1 ? null : process.argv[index + 1] ?? null;
+  return index === -1 ? null : (process.argv[index + 1] ?? null);
 };
 const digest = (content) => `sha256:${createHash('sha256').update(content).digest('hex')}`;
 const readAsset = (logicalPath) => {
@@ -40,11 +40,6 @@ if (command === '--version') {
   process.stdout.write(`${manifest.version}\n`);
 } else if (command === 'composition' && process.argv.includes('--json')) {
   writeEnvelope({
-    adapters: ['custom', ...Object.keys(manifest.dependencies)
-      .filter((name) => name.startsWith('@moldea.ai/adapter-'))
-      .map((name) => name.slice('@moldea.ai/adapter-'.length))]
-      .sort()
-      .map((id) => ({ id, repositoryFormatVersions: [1] })),
     minimumGitVersion: '2.30.0',
     packages: Object.entries(manifest.dependencies)
       .filter(([name]) => name.startsWith('@moldea.ai/'))
@@ -101,8 +96,16 @@ if (command === '--version') {
       page: {
         cursor: null,
         records: [
-          metadataRecord(manifestAsset, 'manifest', '["000000","metadata","/moldea/moldea.yaml","manifest",null]'),
-          metadataRecord(project, 'project', '["000001","metadata","/moldea/project.md","project",null]'),
+          metadataRecord(
+            manifestAsset,
+            'manifest',
+            '["000000","metadata","/moldea/moldea.yaml","manifest",null]',
+          ),
+          metadataRecord(
+            project,
+            'project',
+            '["000001","metadata","/moldea/project.md","project",null]',
+          ),
         ],
       },
       project: {
@@ -129,7 +132,14 @@ if (command === '--version') {
   const logicalPath = optionValue('--path');
   const relevant = logicalPath === '/src/project-state.js';
   writeEnvelope({
-    counts: { declarations: 1, diagnostics: 0, inputPaths: 1, matchedOwners: relevant ? 1 : 0, matchedPaths: relevant ? 1 : 0, matches: relevant ? 1 : 0 },
+    counts: {
+      declarations: 1,
+      diagnostics: 0,
+      inputPaths: 1,
+      matchedOwners: relevant ? 1 : 0,
+      matchedPaths: relevant ? 1 : 0,
+      matches: relevant ? 1 : 0,
+    },
     inputDigest: digest(logicalPath ?? ''),
     manifestDigest: digest(readFileSync('./moldea/moldea.yaml', 'utf8')),
     page: { cursor: null, records: relevant ? [{ kind: 'match', path: logicalPath }] : [] },

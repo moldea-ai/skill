@@ -93,8 +93,8 @@ test('sandbox npm probe is immutable, reports the fixture version, and rejects e
   }
 });
 
-test('qualification actor PATH enforces the Git boundary over repository helpers', async () => {
-  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-qualification-git-boundary-test-'));
+test('semantic actor PATH enforces the Git boundary over repository helpers', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-semantic-git-boundary-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');
   const sandboxHome = join(evaluationRoot, 'home');
   const fsmonitorSentinelPath = join(repositoryPath, 'git-fsmonitor-ran.txt');

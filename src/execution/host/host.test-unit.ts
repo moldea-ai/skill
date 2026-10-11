@@ -191,7 +191,7 @@ test('host commands carry one neutral runner-owned developer policy and exact di
   assert.match(instruction, /read-only repositories explicitly named by the current task/u);
   assert.match(instruction, /Host-injected system-skill paths are unavailable/u);
   assert.match(instruction, /do not search evaluator home for a substitute/u);
-  assert.doesNotMatch(instruction, /moldea|scenario|criterion|adapter/u);
+  assert.doesNotMatch(instruction, /moldea|scenario|criterion/u);
   assert.equal(
     createHash('sha256').update(instruction).digest('hex'),
     CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_SHA256,

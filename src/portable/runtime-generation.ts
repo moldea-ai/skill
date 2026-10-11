@@ -13,7 +13,6 @@ const DEFAULT_RUNTIME_OUTPUT_DIRECTORY = 'dist/runtime';
 const RUNTIME_ENTRY_OUTPUTS = {
   'src/execution/host/git-command-policy-boundary.ts': 'git-command-policy-boundary.mjs',
   'src/execution/host/proxy.ts': 'codex-evaluation-proxy.mjs',
-  'qualification/src/deterministic/direct-verifier.ts': 'qualification-direct-verifier.mjs',
 } as const;
 
 /** Builds one standalone Node runtime helper and returns its inspectable output. */
@@ -24,13 +23,6 @@ const buildRuntimeSource = async (
   const buildOptions: BuildOptions = {
     absWorkingDir: rootDirectory,
     alias: { buffer: 'node:buffer', process: 'node:process' },
-    ...(entryPath === 'qualification/src/deterministic/direct-verifier.ts'
-      ? {
-          banner: {
-            js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);",
-          },
-        }
-      : {}),
     bundle: true,
     entryPoints: [entryPath],
     format: 'esm',

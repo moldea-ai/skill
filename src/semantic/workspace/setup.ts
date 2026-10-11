@@ -593,7 +593,7 @@ const seedRefundAgent = async (
   }
 };
 
-/** Copies the bounded, case-owned fixture without depending on retired qualification files. */
+/** Copies the bounded, case-owned fixture into its isolated repository. */
 const copyMigratedCaseFiles = async (
   repositoryPath: string,
   caseId: string,

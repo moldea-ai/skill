@@ -15,8 +15,8 @@ const createArtifacts = (): Map<string, IPackageCandidateArtifact> => {
   const manifests: IPackageCandidateManifest[] = [
     {
       dependencies: {
-        '@moldea.ai/adapter-anthropic': '^2.0.0',
-        '@moldea.ai/adapter-next': '^1.0.0',
+        '@moldea.ai/extension-primary': '^2.0.0',
+        '@moldea.ai/extension-next': '^1.0.0',
         '@moldea.ai/core': '^2.0.0',
         '@moldea.ai/repository': '^1.0.0',
       },
@@ -26,12 +26,12 @@ const createArtifacts = (): Map<string, IPackageCandidateArtifact> => {
     },
     {
       dependencies: { '@moldea.ai/core': '^2.0.0' },
-      name: '@moldea.ai/adapter-anthropic',
+      name: '@moldea.ai/extension-primary',
       version: '2.0.4',
     },
     {
       dependencies: { '@moldea.ai/core': '^2.0.0' },
-      name: '@moldea.ai/adapter-next',
+      name: '@moldea.ai/extension-next',
       version: '1.0.0',
     },
     {
@@ -57,7 +57,7 @@ const createArtifacts = (): Map<string, IPackageCandidateArtifact> => {
   );
 };
 
-test('validates independently versioned packages and newly added CLI adapters', () => {
+test('validates independently versioned packages and newly added CLI dependencies', () => {
   const artifacts = createArtifacts();
 
   assert.deepEqual(validateCandidateArtifacts(artifacts), {
@@ -69,18 +69,18 @@ test('validates independently versioned packages and newly added CLI adapters', 
 test('accepts an additional reachable selected package root', () => {
   const artifacts = createArtifacts();
   const rootArtifact = {
-    archive: Buffer.from('@moldea.ai/adapter-selected'),
-    archiveName: 'adapter-selected-1.0.0.tgz',
+    archive: Buffer.from('@moldea.ai/extension-selected'),
+    archiveName: 'extension-selected-1.0.0.tgz',
     manifest: {
       dependencies: { '@moldea.ai/core': '^2.0.0' },
-      name: '@moldea.ai/adapter-selected',
+      name: '@moldea.ai/extension-selected',
       version: '1.0.0',
     },
   };
   artifacts.set(rootArtifact.manifest.name, rootArtifact);
 
   assert.equal(
-    validateCandidateArtifacts(artifacts, ['@moldea.ai/adapter-selected']).cliVersion,
+    validateCandidateArtifacts(artifacts, ['@moldea.ai/extension-selected']).cliVersion,
     '3.1.5',
   );
 });

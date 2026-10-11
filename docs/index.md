@@ -40,7 +40,7 @@ After adoption, the coding agent uses `moldea` for agent work, established proje
 - [Limitations](/docs/limitations/): understand warnings, unfinished checks, large inputs, and practical next steps.
 - [Repository format](/docs/repository-format/): see how a two-file foundation grows into focused, explicit project organization.
 - [Continuous maintenance](/docs/continuous-maintenance/): keep affected truth aligned and explicitly compress accumulated context without losing unique meaning.
-- [Evidence](/evidence/): inspect current behavioral semantic evaluation and real-project adapter qualification evidence, including failed attempts.
+- [Evidence](/evidence/): inspect recorded semantic evaluation and independently recorded project runs, including failures and provenance.
 - [Semantic evaluation](/docs/semantic-evaluation/): inspect actor blindness, sourced scenarios, protected repository controls, coverage, and release evidence.
 - [Examples](/examples/): follow complete developer, coding-agent, and skill interactions.
 

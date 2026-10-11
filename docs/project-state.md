@@ -38,7 +38,7 @@ Durable domain, architecture, security, integration, terminology, team responsib
 
 ## Decisions and runtime guidance
 
-`/moldea/decisions/**` preserves active rationale when meaningful alternatives or consequences make the reason important. `/moldea/runtimes/**` explains project-specific runtime behavior that implementation and adapter evidence cannot establish reliably by themselves.
+`/moldea/decisions/**` preserves active rationale when meaningful alternatives or consequences make the reason important. `/moldea/runtimes/**` explains project-specific runtime behavior that implementation and file/export coverage cannot establish reliably by themselves.
 
 ## Agents
 

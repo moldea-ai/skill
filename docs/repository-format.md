@@ -45,7 +45,7 @@ Add a surface when it protects a distinct kind of durable truth:
 | Project foundation | `/moldea/project.md`                      | Identity, purpose, users, goals, boundaries, and shared facts                                            |
 | Focused context    | `/moldea/context/**/*.md`                 | Domain, architecture, security, integration, terminology, or operational truth                           |
 | Decisions          | `/moldea/decisions/<timestamp>-<slug>.md` | Active rationale whose alternatives or consequences matter                                               |
-| Runtime guidance   | `/moldea/runtimes/**/*.md`                | Project-specific integration behavior that source and adapter evidence cannot establish alone            |
+| Runtime guidance   | `/moldea/runtimes/**/*.md`                | Project-specific integration behavior that source and file/export coverage cannot establish alone        |
 | Agent behavior     | `/moldea/agents/<agent-id>/`              | Canonical description, instruction, and optional routing description                                     |
 | Relationships      | `/moldea/moldea.yaml`                     | Impact paths, bindings, capabilities, variables, mirrors, runtime selection, and unresolved requirements |
 
@@ -155,7 +155,7 @@ Repository format stays efficient through a few operating principles:
 
 ## What validates the structure
 
-The repository-local `@moldea.ai/cli` reads the Git working tree and delegates Repository format interpretation to `@moldea.ai/core`. Validation checks canonical paths, strict manifest values, referenced files, decisions, agent assets, runtime availability, placeholders, mirrors, and adapter evidence without executing repository code.
+The repository-local `@moldea.ai/cli` reads the Git working tree and delegates Repository format interpretation to `@moldea.ai/core`. Validation checks canonical paths, strict manifest values, referenced files, decisions, agent assets, runtime labels, placeholders, mirrors, declared files, explicit TypeScript or JavaScript ESM exports, and coding-agent integration without executing repository code.
 
 The coding agent invokes that deterministic boundary when a workflow needs structural evidence. A valid structure does not automatically prove semantic quality, and semantic review does not replace structural validation. Consult the [official Repository Format specification](https://packages.moldea.ai/repository-format/) when exact property or conformance requirements matter.
 

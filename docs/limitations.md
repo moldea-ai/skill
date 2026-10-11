@@ -12,33 +12,35 @@ order: 32
 
 ## Read the result
 
-| Result         | What it means                                                                              | Next step                                                                     |
-| -------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| **Completed**  | The operation finished. It can still contain errors or unverified relationships.           | Read validity, diagnostic totals, and runtime inspection separately.          |
-| **Error**      | A check established a broken rule or relationship.                                         | Correct the identified problem using intended project behavior.               |
-| **Unverified** | An applicable relationship could not be proved. It is a warning, not proof of faulty code. | Inspect the named relationship and its available evidence.                    |
-| **Unfinished** | A limit, cancellation, or operational failure prevented a conclusion.                      | Preserve work and resolve the reported obstacle before relying on that check. |
+| Result          | What it means                                                                                          | Next step                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| **Completed**   | The operation finished. It can still contain errors or unverified relationships.                       | Read validity, diagnostic totals, and binding coverage separately.            |
+| **Error**       | A check established a broken rule or relationship.                                                     | Correct the identified problem using intended project behavior.               |
+| **Not checked** | A declared file or export check was unsupported or inconclusive. This alone is not a warning or error. | Inspect the named check and establish any required behavior separately.       |
+| **Unfinished**  | A limit, cancellation, or operational failure prevented a conclusion.                                  | Preserve work and resolve the reported obstacle before relying on that check. |
 
-`valid: true` means **zero errors**. Runtime inspection can still be `incomplete` or `not-run`. Unresolved requirements describe missing project decisions separately. None of these fields certifies business readiness or production correctness.
+`valid: true` means **zero errors**. Warnings and not-checked binding relationships can remain. Accepted warnings retain their identity and the developer’s reason in a separate count. Unresolved requirements describe missing project decisions separately. None of these fields certifies business readiness or production correctness.
+
+Ask the coding agent to fix a warning, or explicitly accept a supported warning with your own reason. Acceptance does not fix its cause or change errors. Remove an obsolete acceptance after its warning disappears, then validate again. Integration warnings identify a missing or stale AGENTS.md block or installed skill assets. If your instructions protect AGENTS.md, repair supplies the exact block for a separate model to apply.
 
 ## Common situations
 
-| What happened                                  | How it is handled                                                                       | Next step                                                                                                                       |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Custom wiring is correct but unverified        | Static adapters recognize supported source patterns, not every possible implementation. | Review the relationship. Keep healthy custom code; a warning alone does not justify rewriting it.                               |
-| A changed file received no maintenance         | Ordinary work uses declared relationships; the host must also select the skill.         | Check the relevant owner’s declarations and [host activation](/docs/how-it-works/#activation).                                  |
-| A file or traversal exceeds a budget           | The operation refuses explicitly instead of returning a fabricated clean result.        | Ask the coding agent to identify the named limit and required scope using the [resource references](#large-projects-and-files). |
-| Analysis runs out of memory or time            | Fixed worker safeguards end the attempt without declaring the project invalid.          | Review the input shape and failure evidence. Do not repeatedly retry unchanged input or split healthy source automatically.     |
-| Capacity is busy                               | Another inspection holds the same installed Core owner.                                 | Let that inspection finish, then retry.                                                                                         |
-| Work is cancelled or the worker fails          | No successful inspection is inferred.                                                   | Resume deliberately after cancellation; investigate a process failure before retrying.                                          |
-| Files change during inspection or continuation | Snapshot checks refuse to combine incompatible states.                                  | Finish the edits and begin a fresh inspection; discard the old cursor.                                                          |
-| A complete record cannot fit an output page    | Records remain whole; output pagination can refuse.                                     | Let the coding agent assess the page budget within the invocation’s allowed bounds.                                             |
+| What happened                                  | How it is handled                                                                | Next step                                                                                                                       |
+| ---------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime wiring needs separate evidence         | Core checks declared files and explicit TypeScript or JavaScript ESM exports.    | Review the relationship. Keep healthy custom code; a warning alone does not justify rewriting it.                               |
+| A changed file received no maintenance         | Ordinary work uses declared relationships; the host must also select the skill.  | Check the relevant owner’s declarations and [host activation](/docs/how-it-works/#activation).                                  |
+| A file or traversal exceeds a budget           | The operation refuses explicitly instead of returning a fabricated clean result. | Ask the coding agent to identify the named limit and required scope using the [resource references](#large-projects-and-files). |
+| Analysis runs out of memory or time            | Fixed worker safeguards end the attempt without declaring the project invalid.   | Review the input shape and failure evidence. Do not repeatedly retry unchanged input or split healthy source automatically.     |
+| Capacity is busy                               | Another inspection holds the same installed Core owner.                          | Let that inspection finish, then retry.                                                                                         |
+| Work is cancelled or the worker fails          | No successful inspection is inferred.                                            | Resume deliberately after cancellation; investigate a process failure before retrying.                                          |
+| Files change during inspection or continuation | Snapshot checks refuse to combine incompatible states.                           | Finish the edits and begin a fresh inspection; discard the old cursor.                                                          |
+| A complete record cannot fit an output page    | Records remain whole; output pagination can refuse.                              | Let the coding agent assess the page budget within the invocation’s allowed bounds.                                             |
 
 See [deterministic examples](https://packages.moldea.ai/capabilities/) and the [inspection contracts](https://packages.moldea.ai/packages/core/repository-inspection/) for concrete results.
 
 ## Large projects and files
 
-The current Core 6 and CLI 10 defaults allow **8 MiB per file read**, **2 MiB for the manifest**, **100,000 entries**, and **128 MiB of source reads per operation**. These measure different things. An entry can be a directory or a requested path; this is not a universal file-count limit. A large file’s presence alone does not mean an adapter reads it.
+The current Core 6 and CLI 10 defaults allow **8 MiB per file read**, **2 MiB for the manifest**, **100,000 entries**, and **128 MiB of source reads per operation**. These measure different things. An entry can be a directory or a requested path; this is not a universal file-count limit. A large file’s presence alone does not mean an inspection reads it.
 
 | Boundary                   | What to know                                                                                                                                                           | Numeric authority                                                                                           |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
@@ -51,13 +53,13 @@ Users do not need to configure packages for ordinary work. Ask the coding agent 
 
 ## Judgment and repair
 
-Static checks establish structure and supported relationships. Meaning, policy, and arbitrary application behavior require the coding agent’s assessment and relevant tests.
+Static checks establish structure and the file or export checks named in coverage. Meaning, policy, and arbitrary application behavior require the coding agent’s assessment and relevant tests.
 
 `Fix moldea` uses established intended behavior, respects host permissions, and reports checks it could not complete. It cannot invent missing policy, guarantee every repair, or silently initialize an unrelated project. Its validated CLI recovery target belongs to the installed skill; healthy newer compatible tooling is preserved. See [repair](/docs/evaluate-reconcile-validate/#repair-a-project) and [local tooling](/docs/compatibility-and-local-tooling/).
 
 ## Compatibility and evidence
 
-A supported package range establishes eligibility. A recognized source pattern establishes what static inspection can check. Qualification covers **exact tested versions and projects**. These are separate claims; consult the [runtime catalog](https://packages.moldea.ai/compatibility/) and [published evidence](/evidence/).
+Runtime IDs select SDK guidance. They do not certify SDK versions or application behavior. Unsupported CommonJS, type-only declarations, and inconclusive export inventories are not checked and never become missing-export errors. Read the [runtime guidance](https://packages.moldea.ai/runtimes/) and [recorded evidence](/evidence/) for their separate purposes.
 
 Release-evaluation command, token, and output profiles constrain assurance trials. They are not universal limits on users’ repositories or coding-agent sessions. See [resource profiles](/docs/compatibility-and-local-tooling/#resource-profiles).
 

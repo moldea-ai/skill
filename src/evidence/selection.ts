@@ -19,12 +19,12 @@ import {
 export const getEvidenceSelectionPath = (repositoryRoot: string): string =>
   resolveContainedPath(repositoryRoot, EVIDENCE_SELECTION_RELATIVE_PATH);
 
-/** Reads and validates the repository's independent evidence selections. */
+/** Reads and validates the repository's evidence selection. */
 export const readEvidenceSelection = async (selectionPath: string): Promise<IEvidenceSelection> =>
   readJsonFile(selectionPath, EvidenceSelectionSchema);
 
 /**
- * Atomically replaces one evidence section selection without changing the other section.
+ * Atomically replaces the selected evidence reference.
  * @param selectionPath Absolute path to the repository selection document.
  * @param kind Evidence section to update.
  * @param reference Exact official release asset to select.
@@ -75,7 +75,6 @@ export const createEmptyEvidenceSelection = async (selectionPath: string): Promi
   }
   await writeJsonFileAtomically(selectionPath, {
     formatVersion: 1,
-    qualification: null,
     semantic: null,
   } satisfies IEvidenceSelection);
 };

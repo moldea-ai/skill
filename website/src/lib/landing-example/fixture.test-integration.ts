@@ -25,7 +25,7 @@ const MAX_PROCESS_OUTPUT_BYTES = 65_536;
 const PROCESS_TIMEOUT_MS = 10_000;
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const websiteRoot = path.join(repositoryRoot, 'website');
-// release qualification can exercise the same example against the complete installed candidate
+// release verification can exercise the same example against the complete installed candidate
 const candidateSkillRoot = process.env['MOLDEA_CANDIDATE_SKILL_ROOT'];
 const releaseRoot =
   candidateSkillRoot === undefined ? repositoryRoot : path.dirname(candidateSkillRoot);

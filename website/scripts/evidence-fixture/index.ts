@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
@@ -12,22 +12,9 @@ import {
 } from '../../../src/evidence/index.ts';
 import {
   calculateSha256,
-  copyDirectory,
-  listDirectoryFiles,
   resolveContainedPath,
   writeBufferFileAtomically,
 } from '../../../src/filesystem/index.ts';
-import {
-  loadQualificationWebsiteModel,
-  parseQualificationWebsiteModel,
-  rewriteQualificationSourceUrls,
-} from '../../../qualification/src/public-evidence/index.ts';
-import { recordQualificationResult } from '../../../qualification/src/result/index.ts';
-import {
-  getFixtureAttemptDirectory,
-  seedPassingQualificationEvidenceFixture,
-} from '../../../qualification/vitest/evidence-fixture.ts';
-import type { IQualificationWebsiteModel } from '../../src/lib/qualification/index.ts';
 import type {
   ISemanticAttemptModel,
   ISemanticAttemptTrialModel,
@@ -329,8 +316,8 @@ const semanticWebsiteModel: ISemanticEvaluationWebsiteModel = {
 };
 
 const createFixtureBundle = (
-  kind: 'qualification' | 'semantic',
-  websiteModel: IQualificationWebsiteModel | ISemanticEvaluationWebsiteModel,
+  kind: 'semantic',
+  websiteModel: ISemanticEvaluationWebsiteModel,
   artifacts: readonly IEvidenceArtifactInput[],
 ): IEvidenceBundle =>
   createEvidenceBundle({
@@ -346,24 +333,6 @@ const createFixtureBundle = (
       version: VERSION,
     },
   });
-
-const getFixtureMediaType = (relativePath: string): string =>
-  relativePath.endsWith('.json') ? 'application/json' : 'text/plain';
-
-const collectFixtureArtifacts = async (
-  sourceDirectory: string,
-  repositoryPrefix: string,
-): Promise<IEvidenceArtifactInput[]> => {
-  const relativePaths = await listDirectoryFiles(sourceDirectory);
-
-  return Promise.all(
-    relativePaths.map(async (relativePath) => ({
-      content: await readFile(resolveContainedPath(sourceDirectory, relativePath)),
-      mediaType: getFixtureMediaType(relativePath),
-      path: path.posix.join(repositoryPrefix, relativePath),
-    })),
-  );
-};
 
 const materializeFixtureArtifacts = async (
   assetsDirectory: string,
@@ -387,71 +356,6 @@ const materializeFixtureArtifacts = async (
   );
 };
 
-type IQualificationProfileFixture = {
-  adapterId: string;
-  packageName: string;
-  title: string;
-};
-
-const QUALIFICATION_PROFILE_FIXTURES: readonly IQualificationProfileFixture[] = [
-  { adapterId: 'openai', packageName: 'openai', title: 'OpenAI fixture' },
-  { adapterId: 'anthropic', packageName: '@anthropic-ai/sdk', title: 'Anthropic fixture' },
-  {
-    adapterId: 'vercel-ai-sdk',
-    packageName: 'ai',
-    title: 'Vercel AI SDK fixture',
-  },
-];
-
-const createQualificationProfileFixture = (
-  sourceProfile: IQualificationWebsiteModel['profiles'][number],
-  fixture: IQualificationProfileFixture,
-): IQualificationWebsiteModel['profiles'][number] => {
-  if (
-    sourceProfile.currentLatest === null ||
-    sourceProfile.currentLastPassing === null ||
-    sourceProfile.currentAssurance === null ||
-    sourceProfile.latest === null
-  ) {
-    throw new Error('Synthetic qualification adapter requires one passing source attempt.');
-  }
-
-  const attemptId = `fixture-${fixture.adapterId}-run`;
-  const directAttempt = {
-    ...structuredClone(sourceProfile.currentLatest),
-    result: {
-      ...structuredClone(sourceProfile.currentLatest.result),
-      attemptId,
-      selection: {
-        adapterId: fixture.adapterId,
-        implementationId: fixture.adapterId,
-      },
-    },
-  };
-
-  return {
-    ...structuredClone(sourceProfile),
-    adapterId: fixture.adapterId,
-    attempts: [directAttempt],
-    boundBaseline: null,
-    currentAssurance: { baselineAttempt: null, directAttempt },
-    currentLastPassing: directAttempt,
-    currentLatest: directAttempt,
-    description: `Synthetic passing evidence for the ${fixture.title}.`,
-    implementationId: fixture.adapterId,
-    latest: {
-      ...sourceProfile.latest,
-      adapterId: fixture.adapterId,
-      implementationId: fixture.adapterId,
-      lastPassingAttemptId: attemptId,
-      latestAttemptId: attemptId,
-    },
-    route: `/evidence/qualification/${fixture.adapterId}/${fixture.adapterId}/`,
-    runtimePackages: [{ name: fixture.packageName, version: VERSION }],
-    title: fixture.title,
-  };
-};
-
 /** Creates deterministic isolated evidence consumed only by development website checks. */
 export const prepareSyntheticWebsiteEvidence = async (
   repositoryRoot: string,
@@ -462,87 +366,8 @@ export const prepareSyntheticWebsiteEvidence = async (
   const snapshotDirectory = path.join(preparedDirectory, snapshotRelativePath);
   const selectionPath = path.join(fixtureRoot, 'selection.json');
   await rm(fixtureRoot, { force: true, recursive: true });
-  await Promise.all([
-    mkdir(path.join(snapshotDirectory, 'assets', 'qualification'), { recursive: true }),
-    mkdir(path.join(snapshotDirectory, 'assets', 'semantic'), { recursive: true }),
-  ]);
+  await mkdir(path.join(snapshotDirectory, 'assets', 'semantic'), { recursive: true });
 
-  const sourceRoot = path.join(fixtureRoot, 'source');
-  const resultsRoot = path.join(sourceRoot, '.evidence', 'qualification', 'results');
-  const recordedProfilesRoot = path.join(sourceRoot, '.evidence', 'qualification', 'profiles');
-  const profilesRoot = path.join(sourceRoot, 'qualification', 'profiles');
-  const artifactDirectory = path.join(sourceRoot, 'artifacts');
-  const attemptId = 'fixture-qualification-run';
-  const caseDirectory = path.join(recordedProfilesRoot, 't1', 'cases', 'c1');
-  await mkdir(path.join(caseDirectory, 'seed'), { recursive: true });
-  await Promise.all([
-    writeFile(
-      path.join(caseDirectory, 'task.md'),
-      '# Release case\n\nInspect the current evidence.\n',
-      'utf8',
-    ),
-    writeFile(
-      path.join(caseDirectory, 'README.md'),
-      '# Release case\n\nThis synthetic fixture exercises complete recorded evidence.\n',
-      'utf8',
-    ),
-  ]);
-  const qualificationResult = await seedPassingQualificationEvidenceFixture({
-    artifactDirectory,
-    attemptId,
-    hasOperationalRetry: true,
-    isRecovered: true,
-    packages: [
-      {
-        name: '@moldea.ai/cli',
-        registryIntegrity: `sha512-${'c'.repeat(86)}`,
-        registryShasum: 'd'.repeat(40),
-        registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-9.0.0.tgz',
-        sha256: SHA256,
-        tarballName: 'cli-9.0.0.tgz',
-        version: '9.0.0',
-      },
-    ],
-    resultsRoot,
-  });
-  await recordQualificationResult(
-    {
-      artifactDirectory,
-      attemptDirectory: getFixtureAttemptDirectory(resultsRoot, attemptId),
-      result: qualificationResult,
-      sanitizationContext: {
-        attemptDirectory: getFixtureAttemptDirectory(resultsRoot, attemptId),
-        skillRepository: '/repositories/skill',
-      },
-    },
-    resultsRoot,
-  );
-  await copyDirectory(recordedProfilesRoot, profilesRoot);
-  const loadedQualificationWebsiteModel = parseQualificationWebsiteModel(
-    rewriteQualificationSourceUrls(
-      loadQualificationWebsiteModel(sourceRoot, { profilesRoot, resultsRoot }),
-    ),
-  );
-  const customProfile = loadedQualificationWebsiteModel.profiles.find(
-    ({ adapterId }) => adapterId === 'custom',
-  );
-  if (customProfile === undefined) {
-    throw new Error('Synthetic qualification evidence has no Custom profile.');
-  }
-  const qualificationWebsiteModel = parseQualificationWebsiteModel({
-    ...loadedQualificationWebsiteModel,
-    profiles: [
-      customProfile,
-      ...QUALIFICATION_PROFILE_FIXTURES.map((fixture) =>
-        createQualificationProfileFixture(customProfile, fixture),
-      ),
-    ],
-  });
-
-  const qualificationArtifacts = [
-    ...(await collectFixtureArtifacts(profilesRoot, 'qualification/profiles')),
-    ...(await collectFixtureArtifacts(resultsRoot, '.evidence/qualification/results')),
-  ];
   const semanticArtifacts: IEvidenceArtifactInput[] = [
     {
       content: Buffer.from(`${JSON.stringify(semanticResult, null, 2)}\n`, 'utf8'),
@@ -565,21 +390,10 @@ export const prepareSyntheticWebsiteEvidence = async (
   ];
 
   const bundles = {
-    qualification: createFixtureBundle(
-      'qualification',
-      qualificationWebsiteModel,
-      qualificationArtifacts,
-    ),
     semantic: createFixtureBundle('semantic', semanticWebsiteModel, semanticArtifacts),
   };
   const preparedSections: IEvidencePreparationManifest = {
     formatVersion: 1,
-    qualification: {
-      assetsPath: path.posix.join(snapshotRelativePath, 'assets', 'qualification'),
-      bundleSha256: calculateSha256('fixture-qualification-bundle'),
-      path: path.posix.join(snapshotRelativePath, 'qualification.json'),
-      preparedSha256: '',
-    },
     selectionSha256: '',
     semantic: {
       assetsPath: path.posix.join(snapshotRelativePath, 'assets', 'semantic'),
@@ -589,7 +403,7 @@ export const prepareSyntheticWebsiteEvidence = async (
     },
   };
 
-  for (const kind of ['semantic', 'qualification'] as const) {
+  for (const kind of ['semantic'] as const) {
     const source = `${JSON.stringify(bundles[kind], null, 2)}\n`;
     preparedSections[kind].preparedSha256 = calculateSha256(source);
     await Promise.all([
@@ -600,13 +414,6 @@ export const prepareSyntheticWebsiteEvidence = async (
 
   const selection: IEvidenceSelection = {
     formatVersion: 1,
-    qualification: {
-      assetName: 'fixture-qualification.json.gz',
-      classification: 'official',
-      repository: 'moldea-ai/skill',
-      sha256: preparedSections.qualification.bundleSha256,
-      tag: 'evidence-fixture',
-    },
     semantic: {
       assetName: 'fixture-semantic.json.gz',
       classification: 'official',

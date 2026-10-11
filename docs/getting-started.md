@@ -36,7 +36,7 @@ This request explicitly authorizes adoption. The coding agent:
 2. Selects the `initialize` operation and confirms that repository and developer authority permit its writes.
 3. Determines whether the evidence establishes a sufficient project foundation or requires one focused clarification.
 4. After the foundation is sufficient, installs a known missing compatible repository-local `@moldea.ai/cli` development dependency with lifecycle scripts disabled. A failed installation stops canonical and README writes and reports any package-manager changes. An existing compatible CLI needs no reinstall or failing availability probe; a global CLI is never a fallback.
-5. Creates canonical state and the explanatory README region, then establishes the managed AGENTS.md bridge when host instructions permit. Otherwise it provides the exact important manual block. Explicit setup checks verify the bridge and smoke-test its command before final validation.
+5. Creates canonical state and the explanatory README region, then establishes the managed AGENTS.md bridge when host instructions permit. Otherwise it provides the exact important manual block. Core validation reports missing or stale integration; explicit setup checks also smoke-test the displayed command.
 6. Runs final structural validation, maps the material sources to the conclusions they established, and reports the files, decisions, verification, and practical next actions.
 
 The minimum canonical foundation is:
@@ -52,7 +52,7 @@ README receives a short introduction with links to `moldea/project.md` and `mold
 
 AGENTS.md receives a separate managed block with the verified local installation path. For ordinary planning, implementation, or review, it runs the relevance gate once the files are known and before acting. Only a relationship hit loads SKILL.md. New independently discovered files get one new-batch check; unchanged results are reused. No repository scan is performed for moldea.
 
-If AGENTS.md cannot be safely edited or host instructions prohibit it, the coding agent gives you the exact block to add. Adding it is important: ordinary work may otherwise miss context maintenance and leave saved knowledge stale. Explicit moldea operations remain available. A missing block produces a setup warning, never canonical invalidity. Updating the installed skill alone does not rewrite project integration; ask for `Fix moldea` to refresh permitted managed regions.
+If AGENTS.md cannot be safely edited or host instructions prohibit it, the coding agent gives you the exact block to add. Adding it is important: ordinary work may otherwise miss context maintenance and leave saved knowledge stale. Explicit moldea operations remain available. A missing block produces an integration warning, never canonical invalidity. Ask to fix it, or explicitly accept the warning with your own reason. The coding agent never chooses acceptance on your behalf. Updating the installed skill alone does not rewrite project integration; ask for `Fix moldea` to refresh permitted managed regions.
 
 Some coding hosts ask for permission to execute commands. If desired, approve a rule for this specific installed gate command using your host’s controls. Do not grant blanket Node execution or weaken repository trust controls. The small instruction block and bounded Node invocation are the cost of an unrelated precheck; the full skill and workflow references are not loaded on a miss. Host compliance is not guaranteed.
 

@@ -157,7 +157,7 @@ jobs:
   quality:
     needs: changes
     if: needs.changes.outputs.full == 'true'
-    name: Repository quality and qualification units
+    name: Repository quality
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -175,20 +175,14 @@ jobs:
       - name: Build isolated runtime helpers
         run: npm run runtime:build
       - name: Typecheck maintained code
-        run: npm run typecheck:root && npm run qualification:typecheck
+        run: npm run typecheck:root
       - name: Typecheck website on tags
         if: github.ref_type == 'tag'
         run: npm --workspace website run typecheck
-      - name: Check reviewed compatibility snapshot
-        run: npm run qualification:compatibility:check
-      - name: Lint root and qualification code
-        run: npm run lint && npm run qualification:lint
-      - name: Check root and qualification formatting
-        run: npm run format:check && npm run qualification:format:check
-      - name: Run qualification unit tests
-        run: npm run qualification:test:unit
-      - name: Audit qualification partition coverage
-        run: node src/ci/coverage.ts
+      - name: Lint root code
+        run: npm run lint
+      - name: Check root formatting
+        run: npm run format:check
 
   windows-portability:
     needs: changes
@@ -238,11 +232,6 @@ jobs:
               throw 'Isolated runtime helpers could not be built in the deep clone.'
             }
 
-            npm run qualification:compatibility:check
-            if ($LASTEXITCODE -ne 0) {
-              throw 'The reviewed compatibility snapshot failed in the deep clone.'
-            }
-
             npm run portable:check
             if ($LASTEXITCODE -ne 0) {
               throw 'Portable generated artifacts are stale in the deep clone.'
@@ -257,11 +246,6 @@ jobs:
             npm exec -- vitest run --config vitest/test-integration.config.ts src/portable/runtime-generation.test-integration.ts
             if ($LASTEXITCODE -ne 0) {
               throw 'Generated runtime helpers failed on Windows.'
-            }
-
-            npm --workspace qualification run test:integration -- src/pnpm-installation
-            if ($LASTEXITCODE -ne 0) {
-              throw 'Pinned qualification pnpm failed on Windows.'
             }
 
             $skillsHome = Join-Path $deepRoot 'developer-home'
@@ -287,48 +271,10 @@ jobs:
             Pop-Location
           }
 
-  qualification:
-    name: Qualification integration / ${{ matrix.partition }}
-    needs: changes
-    if: needs.changes.outputs.full == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        partition:
-          - remaining
-          - ci-executor-1
-          - ci-executor-2
-          - ci-executor-3
-          - ci-executor-4
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Setup development Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.DEVELOPMENT_NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - name: Install workspace dependencies without lifecycle scripts
-        run: npm ci --ignore-scripts
-      - name: Build isolated runtime helpers
-        run: npm run runtime:build
-      - name: Run non-executor integration tests
-        if: matrix.partition == 'remaining'
-        run: npm --workspace qualification run test:integration -- --exclude src/execution/executor.test-integration.ts
-      - name: Run executor partition
-        if: matrix.partition != 'remaining'
-        env:
-          PARTITION: ${{ matrix.partition }}
-        run: npm --workspace qualification run test:integration -- src/execution/executor.test-integration.ts --tagsFilter="$PARTITION"
-
   result:
     name: Conformance result
     if: always()
-    needs: [changes, correctness, portable, quality, windows-portability, qualification]
+    needs: [changes, correctness, portable, quality, windows-portability]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -340,7 +286,6 @@ jobs:
           PORTABLE: ${{ needs.portable.result }}
           QUALITY: ${{ needs.quality.result }}
           WINDOWS: ${{ needs.windows-portability.result }}
-          QUALIFICATION: ${{ needs.qualification.result }}
         run: |
           test "$CLASSIFICATION" = success
           if [ "$FULL" = true ]; then
@@ -350,6 +295,6 @@ jobs:
           else
             exit 1
           fi
-          for result in "$CORRECTNESS" "$PORTABLE" "$QUALITY" "$WINDOWS" "$QUALIFICATION"; do
+          for result in "$CORRECTNESS" "$PORTABLE" "$QUALITY" "$WINDOWS"; do
             test "$result" = "$expected" || exit 1
           done

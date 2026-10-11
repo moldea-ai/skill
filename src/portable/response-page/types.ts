@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// release metadata: schema 6; payload interpretation remains owned by the CLI
+// release metadata: schema 7; payload interpretation remains owned by the CLI
 const responseIdentity = {
   schemaVersion: z.literal(7),
   cliVersion: z.string(),

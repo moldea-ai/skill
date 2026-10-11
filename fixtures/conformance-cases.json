@@ -4,8 +4,8 @@
       "id": "inspect-valid",
       "input": {
         "output": {
-          "cliVersion": "10.0.0",
-          "schemaVersion": 6,
+          "cliVersion": "11.0.0",
+          "schemaVersion": 7,
           "command": "inspect",
           "status": "valid",
           "result": {
@@ -23,8 +23,8 @@
       "id": "scope-valid",
       "input": {
         "output": {
-          "cliVersion": "10.0.0",
-          "schemaVersion": 6,
+          "cliVersion": "11.0.0",
+          "schemaVersion": 7,
           "command": "scope",
           "status": "valid",
           "result": {
@@ -43,8 +43,8 @@
       "id": "content-valid",
       "input": {
         "output": {
-          "cliVersion": "10.0.0",
-          "schemaVersion": 6,
+          "cliVersion": "11.0.0",
+          "schemaVersion": 7,
           "command": "content",
           "status": "valid",
           "result": {
@@ -61,7 +61,7 @@
       "id": "schema-mismatch",
       "input": {
         "output": {
-          "cliVersion": "10.0.0",
+          "cliVersion": "11.0.0",
           "schemaVersion": 1,
           "command": "inspect",
           "status": "valid",
@@ -76,23 +76,23 @@
       "id": "version-mismatch",
       "input": {
         "output": {
-          "cliVersion": "11.0.0",
-          "schemaVersion": 6,
+          "cliVersion": "12.0.0",
+          "schemaVersion": 7,
           "command": "inspect",
           "status": "valid",
           "result": {},
           "error": null
         }
       },
-      "scenario": "The machine envelope reports unsupported CLI 11.0.0 while the declared and installed root package is 10.0.0.",
+      "scenario": "The machine envelope reports unsupported CLI 12.0.0 while the declared and installed root package is 11.0.0.",
       "expected": "reject-envelope"
     },
     {
       "id": "command-mismatch",
       "input": {
         "output": {
-          "cliVersion": "10.0.0",
-          "schemaVersion": 6,
+          "cliVersion": "11.0.0",
+          "schemaVersion": 7,
           "command": "validate",
           "status": "valid",
           "result": {},
@@ -105,8 +105,8 @@
       "id": "status-exit-mismatch",
       "input": {
         "output": {
-          "cliVersion": "10.0.0",
-          "schemaVersion": 6,
+          "cliVersion": "11.0.0",
+          "schemaVersion": 7,
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -119,8 +119,8 @@
       "id": "inspect-content-leak",
       "input": {
         "output": {
-          "cliVersion": "10.0.0",
-          "schemaVersion": 6,
+          "cliVersion": "11.0.0",
+          "schemaVersion": 7,
           "command": "inspect",
           "status": "valid",
           "result": {

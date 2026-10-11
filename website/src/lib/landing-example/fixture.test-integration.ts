@@ -18,6 +18,7 @@ import {
   LANDING_EXAMPLE_DISCONNECTED_FILES,
   LANDING_EXAMPLE_INITIAL_FILES,
   LANDING_EXAMPLE_MAINTAINED_FILES,
+  LANDING_EXAMPLE_MISSING_EXPORT_FILES,
   type ILandingExampleFiles,
 } from './index.ts';
 
@@ -29,27 +30,43 @@ const websiteRoot = path.join(repositoryRoot, 'website');
 const candidateSkillRoot = process.env['MOLDEA_CANDIDATE_SKILL_ROOT'];
 const releaseRoot =
   candidateSkillRoot === undefined ? repositoryRoot : path.dirname(candidateSkillRoot);
+const portableSkillRoot = candidateSkillRoot ?? path.join(repositoryRoot, 'moldea');
 const releaseIdentity = assertReleaseIdentity(releaseRoot);
 const cliPath = path.join(releaseRoot, 'node_modules', '@moldea.ai', 'cli', 'dist', 'moldea.js');
 
-const CliRecordSchema = z.object({
-  code: z.string().optional(),
-  evidenceKind: z.string().optional(),
-  severity: z.enum(['error', 'warning']).optional(),
-  details: z.object({ relationship: z.string(), reason: z.string() }).optional(),
-  kind: z.enum(['agent', 'diagnostic', 'evidence', 'match', 'metadata']),
-  match: z
-    .object({ owner: z.object({ agentId: z.string().nullable(), id: z.string() }) })
-    .optional(),
-});
+const CliRecordSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('coverage'),
+    relationship: z.string(),
+    path: z.string(),
+    symbol: z.string().nullable(),
+    fileCheck: z.literal('passed'),
+    exportCheck: z.enum(['passed', 'failed', 'not-checked']),
+  }),
+  z.object({ kind: z.literal('diagnostic'), code: z.string() }),
+  z.object({
+    kind: z.literal('match'),
+    match: z.object({ owner: z.object({ agentId: z.string().nullable(), id: z.string() }) }),
+  }),
+  z.object({ kind: z.enum(['agent', 'metadata']) }),
+]);
 const CliEnvelopeSchema = z.object({
   command: z.enum(['inspect', 'scope', 'validate']),
   error: z.unknown().nullable(),
   result: z.object({
     page: z.object({ records: z.array(CliRecordSchema) }),
+    coverageCounts: z
+      .object({
+        bindings: z.number(),
+        exportsPassed: z.number(),
+        exportsFailed: z.number(),
+        exportsNotChecked: z.number(),
+      })
+      .optional(),
     relevant: z.boolean().optional(),
     snapshotDigest: z.string(),
     valid: z.boolean(),
+    warningCount: z.number().optional(),
   }),
   schemaVersion: z.literal(releaseIdentity.cliJsonSchemaVersion),
   status: z.enum(['invalid', 'valid']),
@@ -159,6 +176,20 @@ const withFixture = async (
   const root = await mkdtemp(path.join(tmpdir(), 'moldea-landing-'));
   try {
     await writeFixture(root, files);
+    const skillPath = '.agents/skills/moldea';
+    const managedAgentsTemplate = await readFile(
+      path.join(portableSkillRoot, 'assets', 'managed-agents-block.md'),
+      'utf8',
+    );
+    await writeFixture(root, {
+      [`/${skillPath}/SKILL.md`]: await readFile(path.join(portableSkillRoot, 'SKILL.md'), 'utf8'),
+      [`/${skillPath}/scripts/relevance-gate.mjs`]: await readFile(
+        path.join(portableSkillRoot, 'scripts', 'relevance-gate.mjs'),
+        'utf8',
+      ),
+      [`/${skillPath}/assets/managed-agents-block.md`]: managedAgentsTemplate,
+      '/AGENTS.md': managedAgentsTemplate.replaceAll('{{skill-path}}', skillPath),
+    });
     const gitResult = await executeProcess('git', ['init', '--quiet'], root);
     expect(gitResult.exitCode, gitResult.stderr).toBe(0);
     await callback(root);
@@ -168,20 +199,23 @@ const withFixture = async (
 };
 
 /** Executes the generated agent with real local modules and a fake OpenAI boundary. */
-const runAgentScript = async (script: string): Promise<IProcessResult> => {
+const runAgentScript = async (
+  script: string,
+  files: ILandingExampleFiles = LANDING_EXAMPLE_INITIAL_FILES,
+): Promise<IProcessResult> => {
   const generatedRoot = path.join(websiteRoot, '.generated');
   await mkdir(generatedRoot, { recursive: true });
   const root = await mkdtemp(path.join(generatedRoot, 'landing-runtime-'));
 
   try {
-    await writeFixture(root, LANDING_EXAMPLE_INITIAL_FILES);
+    await writeFixture(root, files);
     for (const logicalPath of [
       LANDING_EXAMPLE.paths.agent,
       LANDING_EXAMPLE.paths.contracts,
       LANDING_EXAMPLE.paths.instructionLoader,
       LANDING_EXAMPLE.paths.orderLookup,
     ]) {
-      const source = getLandingExampleFile(LANDING_EXAMPLE_INITIAL_FILES, logicalPath);
+      const source = getLandingExampleFile(files, logicalPath);
       const javascript = ts.transpileModule(source, {
         compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
         fileName: logicalPath,
@@ -308,23 +342,64 @@ assert.equal(OpenAI.requests.length, 1);
     }
   });
 
-  test('validates the coherent project and preserves positive source evidence', async () => {
+  test('validates the coherent project and reports only the completed file and export checks', async () => {
     await withFixture(LANDING_EXAMPLE_MAINTAINED_FILES, async (root) => {
       const before = await readFixture(root, LANDING_EXAMPLE_MAINTAINED_FILES);
       const firstInspection = await runCli(root, ['inspect']);
       const secondInspection = await runCli(root, ['inspect']);
       const validation = await runCli(root, ['validate']);
-      const evidenceKinds = firstInspection.envelope.result.page.records
-        .filter(({ kind }) => kind === 'evidence')
-        .map(({ evidenceKind }) => evidenceKind);
+      const coverage = firstInspection.envelope.result.page.records
+        .filter((record) => record.kind === 'coverage')
+        .sort((left, right) => left.relationship.localeCompare(right.relationship));
 
       expect(firstInspection.processResult.exitCode).toBe(0);
       expect(firstInspection.envelope.status).toBe('valid');
-      expect(evidenceKinds).toEqual(
-        expect.arrayContaining(['instruction-loader', 'tool-registration']),
-      );
+      expect(coverage).toStrictEqual([
+        {
+          kind: 'coverage',
+          relationship: 'instruction-loader',
+          path: LANDING_EXAMPLE.paths.instructionLoader,
+          symbol: 'loadSupportInstruction',
+          fileCheck: 'passed',
+          exportCheck: 'passed',
+        },
+        {
+          kind: 'coverage',
+          relationship: 'runtime-agent',
+          path: LANDING_EXAMPLE.paths.agent,
+          symbol: 'supportAgent',
+          fileCheck: 'passed',
+          exportCheck: 'passed',
+        },
+        {
+          kind: 'coverage',
+          relationship: 'tool-implementation',
+          path: LANDING_EXAMPLE.paths.orderLookup,
+          symbol: 'lookupOrder',
+          fileCheck: 'passed',
+          exportCheck: 'passed',
+        },
+        {
+          kind: 'coverage',
+          relationship: 'tool-registration',
+          path: LANDING_EXAMPLE.paths.orderLookup,
+          symbol: 'lookupOrderTool',
+          fileCheck: 'passed',
+          exportCheck: 'passed',
+        },
+      ]);
+      expect(firstInspection.envelope.result.coverageCounts).toStrictEqual({
+        bindings: 4,
+        exportsPassed: 4,
+        exportsFailed: 0,
+        exportsNotChecked: 0,
+      });
+      expect(
+        firstInspection.envelope.result.page.records.filter(({ kind }) => kind === 'diagnostic'),
+      ).toStrictEqual([]);
       expect(validation.processResult.exitCode).toBe(0);
       expect(validation.envelope.result.valid).toBe(true);
+      expect(validation.envelope.result.warningCount).toBe(0);
       expect(secondInspection.envelope.result.snapshotDigest).toBe(
         firstInspection.envelope.result.snapshotDigest,
       );
@@ -332,25 +407,43 @@ assert.equal(OpenAI.requests.length, 1);
     });
   });
 
-  test('detects and repairs a disconnected instruction loader', async () => {
-    await withFixture(LANDING_EXAMPLE_DISCONNECTED_FILES, async (root) => {
-      const disconnected = await runCli(root, ['inspect']);
-      const disconnectedRecords = disconnected.envelope.result.page.records;
+  test('detects and repairs a missing declared instruction-loader export', async () => {
+    await withFixture(LANDING_EXAMPLE_MISSING_EXPORT_FILES, async (root) => {
+      const missingExport = await runCli(root, ['inspect']);
+      const missingExportRecords = missingExport.envelope.result.page.records;
 
-      expect(disconnected.processResult.exitCode).toBe(1);
-      expect(disconnected.envelope.status).toBe('invalid');
+      expect(missingExport.processResult.exitCode).toBe(1);
+      expect(missingExport.envelope.status).toBe('invalid');
       expect(
-        disconnectedRecords.filter(({ kind }) => kind === 'diagnostic').map(({ code }) => code),
-      ).toContain(LANDING_EXAMPLE.diagnostic);
+        missingExportRecords
+          .filter((record) => record.kind === 'diagnostic')
+          .map(({ code }) => code),
+      ).toStrictEqual([LANDING_EXAMPLE.diagnostic]);
       expect(
-        disconnectedRecords
-          .filter(({ kind }) => kind === 'evidence')
-          .map(({ evidenceKind }) => evidenceKind),
-      ).toContain('tool-registration');
+        missingExportRecords.find(
+          (record) => record.kind === 'coverage' && record.relationship === 'instruction-loader',
+        ),
+      ).toStrictEqual({
+        kind: 'coverage',
+        relationship: 'instruction-loader',
+        path: LANDING_EXAMPLE.paths.instructionLoader,
+        symbol: 'loadSupportInstruction',
+        fileCheck: 'passed',
+        exportCheck: 'failed',
+      });
+      expect(missingExport.envelope.result.coverageCounts).toStrictEqual({
+        bindings: 4,
+        exportsPassed: 3,
+        exportsFailed: 1,
+        exportsNotChecked: 0,
+      });
 
       await writeFile(
-        path.join(root, 'src', 'agent.ts'),
-        getLandingExampleFile(LANDING_EXAMPLE_MAINTAINED_FILES, LANDING_EXAMPLE.paths.agent),
+        path.join(root, 'src', 'instructions.ts'),
+        getLandingExampleFile(
+          LANDING_EXAMPLE_MAINTAINED_FILES,
+          LANDING_EXAMPLE.paths.instructionLoader,
+        ),
         'utf8',
       );
       const repaired = await runCli(root, ['inspect']);
@@ -358,24 +451,42 @@ assert.equal(OpenAI.requests.length, 1);
 
       expect(repaired.processResult.exitCode).toBe(0);
       const repairedDiagnostics = repairedRecords.filter(({ kind }) => kind === 'diagnostic');
-      expect(repairedDiagnostics.filter(({ severity }) => severity === 'error')).toStrictEqual([]);
-      for (const diagnostic of repairedDiagnostics) {
-        expect({
-          code: diagnostic.code,
-          severity: diagnostic.severity,
-          details: diagnostic.details,
-        }).toStrictEqual({
-          code: 'OPENAI_RUNTIME_RELATIONSHIP_UNVERIFIED',
-          severity: 'warning',
-          details: { relationship: 'tool-implementation', reason: 'unsupported-source-pattern' },
-        });
-      }
-      expect(
-        repairedRecords
-          .filter(({ kind }) => kind === 'evidence')
-          .map(({ evidenceKind }) => evidenceKind),
-      ).toContain('instruction-loader');
+      expect(repairedDiagnostics).toStrictEqual([]);
+      expect(repaired.envelope.result.coverageCounts).toStrictEqual({
+        bindings: 4,
+        exportsPassed: 4,
+        exportsFailed: 0,
+        exportsNotChecked: 0,
+      });
     });
+  });
+
+  test('does not infer runtime instruction wiring from passing file and export checks', async () => {
+    await withFixture(LANDING_EXAMPLE_DISCONNECTED_FILES, async (root) => {
+      const inspection = await runCli(root, ['inspect']);
+      expect(inspection.processResult.exitCode).toBe(0);
+      expect(inspection.envelope.result.coverageCounts).toStrictEqual({
+        bindings: 4,
+        exportsPassed: 4,
+        exportsFailed: 0,
+        exportsNotChecked: 0,
+      });
+      expect(
+        inspection.envelope.result.page.records.filter(({ kind }) => kind === 'diagnostic'),
+      ).toStrictEqual([]);
+    });
+    const runtime = await runAgentScript(
+      `import assert from 'node:assert/strict';
+import OpenAI from 'openai';
+import { supportAgent } from './src/agent.js';
+
+OpenAI.results = [{ id: 'response-1', output: [{ type: 'message' }] }];
+await supportAgent({ message: 'What is your refund window?', orderId: null });
+assert.equal(OpenAI.requests[0].instructions, 'Be helpful.');
+`,
+      LANDING_EXAMPLE_DISCONNECTED_FILES,
+    );
+    expect(runtime.exitCode, runtime.stderr).toBe(0);
   });
 
   test('matches only declared application and policy paths', async () => {
@@ -390,8 +501,8 @@ assert.equal(OpenAI.requests.length, 1);
         expect(envelope.result.relevant).toBe(true);
         expect(
           envelope.result.page.records
-            .filter(({ kind }) => kind === 'match')
-            .map(({ match }) => match?.owner.agentId),
+            .filter((record) => record.kind === 'match')
+            .map(({ match }) => match.owner.agentId),
         ).toContain('support');
       }
 

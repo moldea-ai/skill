@@ -22,6 +22,7 @@ import CapabilitiesOverview from '../capabilities-overview/capabilities-overview
 import CodingAgentCompatibility from '../coding-agent-compatibility/coding-agent-compatibility.astro';
 import GettingStartedSimulation from '../getting-started-simulation/getting-started-simulation.astro';
 import RepositoryFormat from '../repository-format/repository-format.astro';
+import RuntimeGuidance from '../runtime-guidance/runtime-guidance.astro';
 import WhyMoldea from '../why-moldea/why-moldea.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
@@ -160,6 +161,8 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
   <CapabilitiesOverview />
 
   <BehaviorAlignment />
+
+  <RuntimeGuidance />
 
   <RepositoryFormat />
 

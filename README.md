@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The latest release is `7.1.0`. Install the latest version from `main` inside each repository that will use it:
+The latest release is `8.0.0`. Install the latest version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release:
 
 ```bash
-npx skills add "moldea-ai/skill#v7.1.0"
+npx skills add "moldea-ai/skill#v8.0.0"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -72,14 +72,14 @@ Evaluation is read-only. Repair corrects established errors and may recover nece
 
 ## Compatibility
 
-Release `7.1.0` supports exactly:
+Release `8.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- stable `@moldea.ai/core` releases satisfying `^6.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^10.0.0`
+- stable `@moldea.ai/core` releases satisfying `^7.0.0`
+- stable `@moldea.ai/cli` releases satisfying `^11.0.0`
 - repository format version 1
-- CLI JSON schema 6
+- CLI JSON schema 7
 
 The CLI must be a repository-root-local development dependency whose manifest declaration and installed stable version satisfy the supported range. The launcher also checks that installed Core satisfies both the CLI's declared Core range and moldea's supported range. The package manager and repository setup or CI own lockfile consistency; the launcher does not check target-project lockfiles. The skill never falls back to a global installation, another workspace, a package-manager launcher, or a transient download. Tooling establishment belongs only to authorized write-capable work. See [Compatibility and local tooling](docs/compatibility-and-local-tooling.md) for the complete launcher, machine-output, resource, and runtime contracts.
 
@@ -155,7 +155,7 @@ The same release-candidate workflow is reusable by the packages trusted build. I
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
-Both the root tooling and the website consume Website UI `1.13.1` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
+Both the root tooling and the website consume Website UI `1.14.0` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
 
 Run the deterministic boundaries:
 
@@ -175,7 +175,7 @@ npm run website:check
 
 Conformance runs root correctness once on development Node, portable integration on all three supported Node versions, and the Windows deep-path contract. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. PRs and Pages share read-only website verification: two recorded-browser shards each build one isolated fixture, and shard 2 then checks clean development. Pages verification and the official production build run independently after shared configuration preflight; deployment requires both to succeed. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
 
-`npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require both evidence selections to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
+`npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require the semantic evidence selection to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
 
 Specialized workflows have focused operator references:
 

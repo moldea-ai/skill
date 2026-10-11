@@ -527,6 +527,7 @@ test.each([1, 2, 3])('preserves raw diagnostic/error output with exit %d', (exit
             diagnosticCount: 2,
             errorCount: 1,
             warningCount: 1,
+            acceptedWarningCount: 0,
             page: { cursor: null, records: [] },
           }
         : null,
@@ -662,6 +663,7 @@ const runCaptureCancellation = async (
       diagnosticCount: 0,
       errorCount: 0,
       warningCount: 0,
+      acceptedWarningCount: 0,
       page: { cursor: 'old' },
     },
   });

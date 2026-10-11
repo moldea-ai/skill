@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { extname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { RUNTIME_CATALOG } from '@moldea.ai/website-ui/runtime-catalog';
 import { parseSearchDocuments } from '@moldea.ai/website-ui/search';
 import {
   createCanonicalUrl,
@@ -11,13 +12,17 @@ import {
 } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../src/lib/generation/generation.ts';
-import { SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
+import { PACKAGES_WEBSITE_URL, SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
 import { RETIRED_PAGE_REDIRECTS } from '../src/lib/redirects/index.ts';
 import { DEFAULT_SITE_URL } from '../src/lib/site/constants.ts';
 
 import { getLogicalPagePath, verifySeoMetadata } from './build-verification/index.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+// the shared runtime grid uses same-tab links to the fixed packages guidance catalog
+const RUNTIME_GUIDANCE_URLS = new Set(
+  RUNTIME_CATALOG.map(({ id }) => `${PACKAGES_WEBSITE_URL}runtimes/#${id}`),
+);
 
 const getWebsiteDirectory = (): string => resolve(fileURLToPath(new URL('..', import.meta.url)));
 
@@ -95,6 +100,7 @@ const verifyHtmlLinks = (
     }
 
     const rel = /\srel="([^"]+)"/.exec(attributes)?.[1]?.split(/\s+/) ?? [];
+    if (!/\starget=/.test(attributes) && RUNTIME_GUIDANCE_URLS.has(href)) continue;
 
     if (
       !/\starget="_blank"/.test(attributes) ||

@@ -40,3 +40,12 @@ await rm(path.join(repositoryRoot, 'website', 'public', 'evidence-assets'), {
 const semanticCases = await loadSemanticCases(
   path.join(repositoryRoot, 'src', 'semantic', 'cases'),
 );
+
+await writeWebsiteModel(
+  createWebsiteModel({
+    projectRuns,
+    unrecordedEvidence: {
+      semantic: createSemanticCatalogWebsiteModel(semanticCases),
+    },
+  }),
+);

@@ -930,7 +930,7 @@ test('the acceptance fixture exposes the exact warning and confirms only develop
     };
   };
   assert.equal(original.result.errorCount, 0);
-  assert.equal(original.result.warningCount, 1);
+  assert.equal(original.result.warningCount, 1, JSON.stringify(original.result.page.records));
   assert.equal(original.result.acceptedWarningCount, 0);
   const warning = original.result.page.records.find(
     ({ code }) => code === 'MOLDEA_IMPACT_PATTERN_UNMATCHED',

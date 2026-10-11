@@ -150,26 +150,6 @@ var assertManagedBlock = (block, description = "README", requiresBlankLine = tru
     );
   }
 };
-var hasManagedBlock = (documentBytes, block, fileName = "README.md") => {
-  try {
-    assertManagedBlock(
-      block,
-      fileName === "README.md" ? "README" : fileName,
-      fileName === "README.md"
-    );
-    const region = parseManagedRegion(documentBytes, fileName);
-    if (region === void 0) {
-      return false;
-    }
-    const expectedBytes = renderBlock(block, region.lineEnding);
-    return isEqualBytes(
-      documentBytes.subarray(region.regionStart, region.regionEnd),
-      expectedBytes
-    );
-  } catch {
-    return false;
-  }
-};
 var createManagedBlockBytes = (documentBytes, block, fileName = "README.md") => {
   assertManagedBlock(
     block,
@@ -321,28 +301,15 @@ var renderManagedAgentsBlock = async (repositoryRoot) => {
   assertManagedBlock(block, "AGENTS.md", false);
   return block;
 };
-var checkManagedAgents = async (repositoryRoot, block) => {
-  try {
-    const { bytes } = await readManagedFile(join2(repositoryRoot, "AGENTS.md"));
-    return hasManagedBlock(bytes, block, "AGENTS.md") ? "ready" : "warning: AGENTS.md moldea block is missing or differs from this installation";
-  } catch (error) {
-    if (isMissingFile(error)) return "warning: AGENTS.md is missing";
-    if (error instanceof Error && !("code" in error)) return `warning: ${error.message}`;
-    throw error;
-  }
-};
 var isDirectExecution = process.argv[1] !== void 0 && await realpath(resolve2(process.argv[1])) === fileURLToPath(import.meta.url);
 if (isDirectExecution) {
   try {
     const arguments_ = process.argv.slice(2);
-    if (arguments_[0] !== "--repository" || arguments_[1] === void 0 || !isAbsolute2(arguments_[1]) || arguments_.length < 2 || arguments_.length > 3 || arguments_.length === 3 && arguments_[2] !== "--print" && arguments_[2] !== "--check")
-      throw new Error("Usage: managed-agents.mjs --repository <absolute-root> [--print | --check]");
+    if (arguments_[0] !== "--repository" || arguments_[1] === void 0 || !isAbsolute2(arguments_[1]) || arguments_.length < 2 || arguments_.length > 3 || arguments_.length === 3 && arguments_[2] !== "--print")
+      throw new Error("Usage: managed-agents.mjs --repository <absolute-root> [--print]");
     const repositoryRoot = await realpath(arguments_[1]);
     const block = await renderManagedAgentsBlock(repositoryRoot);
     if (arguments_[2] === "--print") process.stdout.write(block);
-    else if (arguments_[2] === "--check")
-      process.stdout.write(`${await checkManagedAgents(repositoryRoot, block)}
-`);
     else process.stdout.write(`${await updateManagedFile(repositoryRoot, block, "AGENTS.md")}
 `);
   } catch (error) {
@@ -354,6 +321,5 @@ if (isDirectExecution) {
   }
 }
 export {
-  checkManagedAgents,
   renderManagedAgentsBlock
 };

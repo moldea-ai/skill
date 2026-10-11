@@ -2304,6 +2304,15 @@ export const createActorRepository = async (
   const gitCommands: string[][] = [
     ['init', '--quiet', '--initial-branch=main'],
     ['add', '--all'],
+    // CLI inspection sees Git-visible files, including the three installation contract files.
+    [
+      'add',
+      '--force',
+      '--',
+      '.agents/skills/moldea/SKILL.md',
+      '.agents/skills/moldea/scripts/relevance-gate.mjs',
+      '.agents/skills/moldea/assets/managed-agents-block.md',
+    ],
     [
       '-c',
       'gc.auto=0',

@@ -8,16 +8,16 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `7.1.0` supports exactly:
+Release `8.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- stable `@moldea.ai/core` releases satisfying `^6.0.0`
-- stable `@moldea.ai/cli` releases satisfying `^10.0.0`
+- stable `@moldea.ai/core` releases satisfying `^7.0.0`
+- stable `@moldea.ai/cli` releases satisfying `^11.0.0`
 - repository format version 1
-- CLI JSON schema 6
+- CLI JSON schema 7
 
-The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^10.0.0`; compatible CLI 10 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and moldea's supported `^6.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
+The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^11.0.0`; compatible CLI 11 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and moldea's supported `^7.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
 ## Tooling ownership
 
@@ -35,7 +35,7 @@ The pre-activation gate instead uses the Core matcher bundled with the installed
 
 ## Machine output
 
-Compatible stable CLI 10 releases emit schema 6 JSON. Paged commands use `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary. The envelope contains `schemaVersion`, the exact installed `cliVersion`, `command`, `status`, `result`, and `error`.
+Compatible stable CLI 11 releases emit schema 7 JSON. Paged commands use `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary. The envelope contains `schemaVersion`, the exact installed `cliVersion`, `command`, `status`, `result`, and `error`.
 
 Exit codes are:
 
@@ -52,7 +52,7 @@ Command boundaries stay explicit:
 - `scope` accepts one `--path` or one NUL-delimited UTF-8 path set of at most 2 MiB and returns relationship matches after the two-byte gate establishes relevance.
 - `content` returns chunks only for one explicit canonical `/moldea/**` path. CLI/Core still reject noncanonical targets.
 
-Release `7.1.0` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
+Release `8.0.0` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
 
 On POSIX, contained absolute paths take precedence; other leading-slash paths retain their repository-logical meaning. On Windows, only contained drive-absolute paths are converted. Traversal, internal dot segments, repeated separators, repository-root-only selections, drive-relative paths, UNC/device forms, and relative backslash paths remain errors. Normalization does not replace canonical filesystem checks.
 

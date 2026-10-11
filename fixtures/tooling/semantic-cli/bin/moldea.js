@@ -52,6 +52,7 @@ if (command === '--version') {
   const project = readAsset('/moldea/project.md');
   const manifestAsset = readAsset('/moldea/moldea.yaml');
   const common = {
+    coverageCounts: { bindings: 0, exportsPassed: 0, exportsFailed: 0, exportsNotChecked: 0 },
     formatVersion: 1,
     snapshotDigest: digest(manifestAsset.content + project.content),
     source: { kind: 'git-working-tree' },
@@ -60,6 +61,7 @@ if (command === '--version') {
   if (command === 'validate') {
     writeEnvelope({
       ...common,
+      acceptedWarningCount: 0,
       diagnosticCount: 0,
       errorCount: 0,
       page: { cursor: null, records: [] },
@@ -81,12 +83,13 @@ if (command === '--version') {
     writeEnvelope({
       ...common,
       counts: {
+        acceptedWarnings: 0,
         agents: 0,
         context: 0,
         decisions: 0,
         diagnostics: 0,
         errors: 0,
-        evidence: 0,
+        coverage: 0,
         metadata: 2,
         mirrors: 0,
         runtimes: 0,

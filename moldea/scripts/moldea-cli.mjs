@@ -13806,7 +13806,7 @@ import { isPathWithin, readRepositoryFile } from "./repository-files.mjs";
 
 // src/portable/response-page/types.ts
 var responseIdentity = {
-  schemaVersion: external_exports.literal(6),
+  schemaVersion: external_exports.literal(7),
   cliVersion: external_exports.string(),
   command: external_exports.enum(["composition", "content", "inspect", "scope", "validate"])
 };
@@ -13828,14 +13828,16 @@ var ValidationResultSchema = external_exports.object({
   valid: external_exports.boolean(),
   diagnosticCount: external_exports.int().nonnegative(),
   errorCount: external_exports.int().nonnegative(),
-  warningCount: external_exports.int().nonnegative()
+  warningCount: external_exports.int().nonnegative(),
+  acceptedWarningCount: external_exports.int().nonnegative()
 });
 var InspectionResultSchema = external_exports.object({
   valid: external_exports.boolean(),
   counts: external_exports.object({
     diagnostics: external_exports.int().nonnegative(),
     errors: external_exports.int().nonnegative(),
-    warnings: external_exports.int().nonnegative()
+    warnings: external_exports.int().nonnegative(),
+    acceptedWarnings: external_exports.int().nonnegative()
   })
 });
 
@@ -13876,7 +13878,8 @@ var parseResponse = (bytes, identity) => {
         valid: result.data.valid,
         diagnosticCount: result.data.counts.diagnostics,
         errorCount: result.data.counts.errors,
-        warningCount: result.data.counts.warnings
+        warningCount: result.data.counts.warnings,
+        acceptedWarningCount: result.data.counts.acceptedWarnings
       },
       page.status
     );
@@ -13884,7 +13887,7 @@ var parseResponse = (bytes, identity) => {
   return page;
 };
 var verifyDiagnosticTotals = (result, status) => {
-  if (result.diagnosticCount !== result.errorCount + result.warningCount || result.valid !== (result.errorCount === 0) || result.valid !== (status === "valid")) {
+  if (result.diagnosticCount !== result.errorCount + result.warningCount + result.acceptedWarningCount || result.valid !== (result.errorCount === 0) || result.valid !== (status === "valid")) {
     throw new Error("Moldea response diagnostic totals contradict its validity or status.");
   }
 };

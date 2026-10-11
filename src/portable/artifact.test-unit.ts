@@ -112,7 +112,7 @@ test('runtime guidance covers every Core runtime label exactly once', () => {
     resolve(import.meta.dirname, '../../moldea/references/runtime-guidance.md'),
     'utf8',
   );
-  const ids = [...guidance.matchAll(/^\| `([a-z0-9-]+)` \|/gmu)].map((match) => match[1]);
+  const ids = [...guidance.matchAll(/^\|[ \t]+`([a-z0-9-]+)`[ \t]+\|/gmu)].map((match) => match[1]);
   assert.deepEqual(ids.toSorted(), [...RECOGNIZED_RUNTIME_IDS].toSorted());
 });
 

@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { RUNTIME_CATALOG } from '@moldea.ai/website-ui/runtime-catalog';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
@@ -189,7 +190,7 @@ for (const width of HEADING_ROLE_WIDTHS) {
           'why-moldea-title',
           'capabilities-overview-title',
           'behavior-alignment-title',
-          'open-source-system-title',
+          'runtime-guidance-title',
           'repository-format-title',
           'getting-started-title',
           'coding-agent-compatibility-title',
@@ -215,6 +216,57 @@ for (const width of HEADING_ROLE_WIDTHS) {
         'section',
         width,
       );
+    });
+  }
+}
+
+for (const width of [320, 1440]) {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    test(`renders runtime guidance at ${width}px in ${colorScheme}`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await page.goto(toPublicPath('/'));
+      const section = page.getByRole('region', { name: 'Guidance for the runtime you use.' });
+      const grid = section.getByRole('list', { name: 'Runtime guidance' });
+      const links = grid.getByRole('link');
+      await expect(links).toHaveCount(RUNTIME_CATALOG.length);
+      for (const { displayName, id } of RUNTIME_CATALOG) {
+        await expect(grid.getByRole('link', { name: displayName, exact: true })).toHaveAttribute(
+          'href',
+          `${PACKAGES_WEBSITE_URL}runtimes/#${id}`,
+        );
+      }
+      for (const logo of await grid.locator('img').all()) {
+        await expect(logo).toHaveAttribute('alt', '');
+        await expect(logo).toHaveAttribute('loading', 'lazy');
+        await expect(logo).toHaveAttribute('decoding', 'async');
+        await expect(logo).toHaveAttribute('width', '104');
+        await expect(logo).toHaveAttribute('height', '32');
+      }
+      await links.first().scrollIntoViewIfNeeded();
+      await expect
+        .poll(() =>
+          grid
+            .locator('img:visible')
+            .first()
+            .evaluate((image) => (image as HTMLImageElement).naturalWidth),
+        )
+        .toBeGreaterThan(0);
+      await links.first().focus();
+      await page.keyboard.press('Tab');
+      await expect(links.nth(1)).toBeFocused();
+      const focus = await links.nth(1).evaluate((link) => ({
+        outlineWidth: Number.parseFloat(getComputedStyle(link).outlineWidth),
+        boxShadow: getComputedStyle(link).boxShadow,
+      }));
+      expect(focus.outlineWidth > 0 || focus.boxShadow !== 'none').toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+        width,
+      );
+      const accessibility = await new AxeBuilder({ page })
+        .include('[data-runtime-guidance]')
+        .analyze();
+      expect(accessibility.violations).toStrictEqual([]);
     });
   }
 }
@@ -316,6 +368,7 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     },
     { level: 2, name: 'One skill for the complete moldea workflow.' },
     { level: 2, name: 'Change one rule. See everything it affects.' },
+    { level: 2, name: 'Guidance for the runtime you use.' },
     { level: 2, name: 'Project context lives beside the code.' },
     { level: 2, name: 'See what was tested.' },
     { level: 2, name: 'One install. One ordinary request.' },
@@ -344,12 +397,12 @@ test('presents the product story before proof and adoption', async ({ page }) =>
 
   const productStoryBackgrounds = await page
     .locator(
-      '[data-home-hero], [data-why-moldea], [data-capabilities-overview], [data-behavior-alignment], [data-repository-format], [data-home-evidence], [data-adoption]',
+      '[data-home-hero], [data-why-moldea], [data-capabilities-overview], [data-behavior-alignment], [data-runtime-guidance], [data-repository-format], [data-home-evidence], [data-adoption]',
     )
     .evaluateAll((sections) =>
       sections.map((section) => getComputedStyle(section).backgroundColor),
     );
-  expect(productStoryBackgrounds).toHaveLength(7);
+  expect(productStoryBackgrounds).toHaveLength(8);
   expect(new Set(productStoryBackgrounds).size).toBeGreaterThan(1);
 
   const capabilityCardBackgrounds = await page
@@ -538,11 +591,11 @@ test('keeps selection visible on primary surfaces in light and dark themes', asy
       expect(selection.difference, `${colorScheme}: ${selection.label}`).toBeGreaterThan(40);
     }
 
-    const repeatableSelectionContrast = await page
-      .locator('[data-deterministic-result]')
+    const decisionSelectionContrast = await page
+      .locator('[data-home-evidence-card="decision"]')
       .evaluate((surface) => {
         const text = surface.querySelector('h3');
-        if (text === null) throw new Error('Repeatable evidence heading is missing.');
+        if (text === null) throw new Error('Decision evidence heading is missing.');
         const selectionStyle = getComputedStyle(text, '::selection');
         const canvas = document.createElement('canvas');
         canvas.width = 1;
@@ -573,8 +626,8 @@ test('keeps selection visible on primary surfaces in light and dark themes', asy
         return (lightest + 0.05) / (darkest + 0.05);
       });
     expect(
-      repeatableSelectionContrast,
-      `${colorScheme}: repeatable evidence selection`,
+      decisionSelectionContrast,
+      `${colorScheme}: decision evidence selection`,
     ).toBeGreaterThan(4.5);
     await context.close();
   }

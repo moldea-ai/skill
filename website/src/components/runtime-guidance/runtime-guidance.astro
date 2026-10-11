@@ -1,0 +1,49 @@
+---
+import { ArrowRight } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import RuntimeGrid from '@moldea.ai/website-ui/runtime-grid';
+
+import { PACKAGES_WEBSITE_URL } from '../../lib/model/constants.ts';
+---
+
+<section
+  class="border-b border-border bg-background py-12 sm:py-16"
+  aria-labelledby="runtime-guidance-title"
+  data-runtime-guidance
+>
+  <div class="page-shell">
+    <header class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_30rem] lg:items-end">
+      <div>
+        <p class="eyebrow mb-4">Runtime guidance</p>
+        <h2
+          id="runtime-guidance-title"
+          class="section-title max-w-4xl"
+        >
+          Guidance for the runtime you use.
+        </h2>
+      </div>
+      <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+        <InlineBrandText
+          text="Runtime labels point your coding agent to the relevant guidance. moldea checks declared files and exports; connection tests check the outgoing request."
+        />
+      </p>
+    </header>
+    <div class="mt-8">
+      <RuntimeGrid ariaLabel="Runtime guidance" />
+    </div>
+    <ActionLink
+      class="mt-8 font-bold"
+      href={`${PACKAGES_WEBSITE_URL}runtimes/`}
+      variant="outline"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Browse runtime guidance
+      <ArrowRight
+        class="size-4"
+        aria-hidden="true"
+      />
+    </ActionLink>
+  </div>
+</section>

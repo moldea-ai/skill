@@ -63,27 +63,6 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
     ],
   },
   {
-    id: 'adapter-ownership',
-    description:
-      'Universal skill behavior is evaluated once through Custom and every published adapter keeps only its adapter-specific probes and repair cases.',
-    sourcePaths: [
-      'moldea/references/runtime-compatibility.md#keep-the-evidence-boundaries-separate',
-      'moldea/references/agent-design.md#select-the-runtime-honestly',
-    ],
-    rationale:
-      'Shared semantic work is not multiplied across adapter profiles, while each current runtime target retains dedicated compatibility evidence.',
-    fixedEvidence: [
-      {
-        kind: 'qualification-profile',
-        id: 'custom-custom',
-      },
-      {
-        kind: 'qualification-profile',
-        id: 'published-adapter-targets',
-      },
-    ],
-  },
-  {
     id: 'restored-activation-regressions',
     description:
       'Former over-activation paths retain silent abstention without established direct relevance or a declared relationship.',
@@ -163,13 +142,13 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'runtime-compatibility-and-selection',
     description:
-      'Runtime selection separates local availability, repository evidence, installed adapter package eligibility, recognized source patterns, and scoped readiness.',
+      'Runtime labels follow the defining SDK while repository evidence establishes connections and explicit coverage states only completed file/export checks.',
     sourcePaths: [
       'moldea/references/agent-design.md#select-the-runtime-honestly',
-      'moldea/references/runtime-compatibility.md',
+      'moldea/references/runtime-guidance.md',
     ],
     rationale:
-      'Later eligible Eve versions remain inspectable offline. Malformed local metadata, version mismatches, opaque source, absent adapters, and external evidence retain precise boundaries without remote lookup or custom fallback.',
+      'A guidance label or passed export check never proves runtime consumption. Related-repository evidence retains read-only boundaries without fabricated cross-repository bindings or custom fallback.',
     fixedEvidence: [],
   },
   {

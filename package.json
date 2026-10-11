@@ -1,8 +1,8 @@
 {
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@moldea.ai/cli": "10.0.0",
-    "@moldea.ai/website-ui": "1.13.1",
+    "@moldea.ai/cli": "11.0.0",
+    "@moldea.ai/website-ui": "1.14.0",
     "@types/node": "22.20.1",
     "@types/semver": "7.8.0",
     "esbuild": "0.28.2",
@@ -19,16 +19,15 @@
     "zod": "4.3.6"
   },
   "moldeaRelease": {
-    "cliJsonSchemaVersion": 6,
-    "coreVersionRange": "^6.0.0"
+    "cliJsonSchemaVersion": 7,
+    "coreVersionRange": "^7.0.0"
   },
-  "version": "7.1.0",
+  "version": "8.0.0",
   "name": "@moldea.ai/skill-conformance",
   "private": true,
   "description": "Development-only conformance checks for the moldea Agent Skill.",
   "type": "module",
   "workspaces": [
-    "qualification",
     "website"
   ],
   "engines": {
@@ -55,20 +54,6 @@
     "managed-readme:generate": "npm run portable:generate",
     "matcher:check": "npm run portable:check",
     "matcher:generate": "npm run portable:generate",
-    "qualification": "npm --workspace qualification run qualification --",
-    "qualification:dry-run": "npm --workspace qualification run qualification -- run --adapter custom --implementation custom --dry-run --json",
-    "qualification:compatibility:check": "npm --workspace qualification run qualification -- compatibility-check",
-    "qualification:compatibility:update": "npm --workspace qualification run qualification -- compatibility-update",
-    "qualification:compose": "node qualification/src/cli/compose.ts",
-    "qualification:dry-run:all": "npm run qualification:dry-run && npm --workspace qualification run qualification -- run-batch --all --dry-run --workers 4 --json",
-    "qualification:format:check": "npm --workspace qualification run format:check",
-    "qualification:lint": "npm --workspace qualification run lint",
-    "qualification:list": "npm --workspace qualification run qualification -- list",
-    "qualification:test": "npm --workspace qualification test",
-    "qualification:test:integration": "npm --workspace qualification run test:integration",
-    "qualification:test:unit": "npm --workspace qualification run test:unit",
-    "qualification:typecheck": "npm --workspace qualification run typecheck",
-    "qualification:verify": "npm --workspace qualification run qualification -- verify",
     "path:check": "node src/paths/check.ts",
     "portable:check": "node src/portable/generate.ts --check",
     "portable:generate": "node src/portable/generate.ts",
@@ -83,7 +68,8 @@
     "test:e2e": "npm --workspace website run test:e2e",
     "test:unit": "vitest run --config vitest/test-unit.config.ts",
     "test:integration": "vitest run --config vitest/test-integration.config.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit && npm run qualification:typecheck && npm --workspace website run typecheck",
+    "typecheck:root": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "npm run typecheck:root && npm --workspace website run typecheck",
     "website:build": "npm --workspace website run build",
     "website:check": "npm --workspace website run check",
     "website:dev": "npm --workspace website run dev"

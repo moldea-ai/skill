@@ -70,6 +70,8 @@ export type ISemanticCaseSetupContext = {
 };
 
 export type ISemanticCaseSetupResult = {
+  // fixtures normally include the installed bridge; integration-warning cases may opt out
+  seedManagedAgentsBlock?: boolean;
   afterBaseline?: () => Promise<void>;
   readOnlyToolMounts?: Array<{ source: string; target: string }>;
 };

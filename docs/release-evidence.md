@@ -1,29 +1,23 @@
 ---
 title: Release evidence
 navigationTitle: Release evidence
-description: How maintainers publish and independently select semantic and qualification evidence bundles.
+description: How maintainers publish and select an exact semantic evidence bundle.
 section: reference
 order: 178
 ---
 
 # Release evidence
 
-Semantic evaluation and adapter qualification produce independent format-version 1 gzip JSON bundles. Completed runs remain local below `.evidence/` until a maintainer explicitly packs and publishes them as GitHub Release assets. Git stores only `evidence/selection.json`, which identifies the exact semantic and qualification assets shown on the website.
+Semantic evaluation produces format-version 1 gzip JSON bundles. Completed runs remain local below `.evidence/` until a maintainer explicitly packs and publishes them as GitHub Release assets. Git stores `evidence/selection.json`, which identifies the exact semantic asset shown on the website. Independently recorded project runs have their own website selection.
 
-The website has no evidence selector and does not compare a selected snapshot with today's cases. Each selected bundle supplies its own definitions, counts, results, replays, projects, downloads, technical details, version, date, and provenance.
+The website renders the selected bundle's definitions, counts, results, replays, downloads, version, date, and provenance. It does not rerun evaluation or compare that snapshot with today's cases. A historical presentation-only bundle retains its original versions, dates, and sources and provides no current-release assurance. New or materially revised cases require a fresh semantic run before they can support a behavioral claim.
 
 ## Pack a completed run
 
-Semantic packing requires an explicit local run ID:
+Packing requires an explicit local run ID:
 
 ```bash
 npm run evidence:pack -- --scope semantic --run <attempt-id>
-```
-
-Pack the most recently completed qualification bundle:
-
-```bash
-npm run evidence:pack -- --scope qualification
 ```
 
 Bundles are written below `.evidence/bundles/`. Packing validates the public contract, artifact references, digests, portable paths, decoded byte limits, and executable-content restrictions. Exact artifact bytes are stored once even when several paths reference them.
@@ -36,38 +30,31 @@ Publish one packed bundle to a dedicated evidence prerelease tag:
 npm run evidence:publish -- --bundle .evidence/bundles/<bundle>.json.gz --tag evidence-<name>
 ```
 
-Publication requires an official bundle and GitHub CLI credentials. It creates or reuses the draft release, rejects conflicting assets, uploads without clobbering, and publishes the evidence release only after the asset is present. A retry may reuse an identical existing asset.
-
-Publishing evidence does not select it and does not deploy the website.
+Publication requires an official bundle and GitHub CLI credentials. It creates or reuses the draft release, rejects conflicting assets, uploads without clobbering, and publishes the evidence release only after the asset is present. A retry may reuse an identical existing asset. Publishing evidence does not select it or deploy the website.
 
 ## Select what the website shows
 
-Select each domain independently by exact release tag and asset name:
+Select the exact release tag and asset name:
 
 ```bash
 npm run release:evidence:pin -- --scope semantic --release evidence-<name> --asset <semantic-asset>.json.gz
-npm run release:evidence:pin -- --scope qualification --release evidence-<name> --asset <qualification-asset>.json.gz
 ```
 
-The command resolves the immutable asset, validates its bundle kind and official classification, records its SHA-256 digest, and atomically updates only the requested section of `evidence/selection.json`. Selecting an older bundle is supported. It does not require historical evaluator code, current fixtures, a compatibility explanation, or matching current case inventory.
-
-An official failed bundle may be selected so the website accurately presents the recorded failure. It remains ineligible for passing release assurance.
+The command resolves the immutable asset, validates its kind and official classification, records its SHA-256 digest, and atomically updates the selection. Selecting an older bundle is supported without historical evaluator code or matching current cases. An official failed bundle may be selected to show the recorded failure; it is ineligible for a passing release check.
 
 ## Prepare the static website input
 
-Download and prepare both exact selections with:
+Download and prepare the exact selection:
 
 ```bash
 npm run evidence:prepare
 ```
 
-Preparation rejects an unselected domain, a digest mismatch, a wrong bundle kind, fixture evidence, malformed metadata, unsafe paths, oversized content, and incomplete artifact references. It writes both sections into a new snapshot before atomically exposing the manifest. The replaceable cache retains only the two selected compressed bundles.
+Preparation rejects a missing selection, digest mismatch, wrong bundle kind, fixture evidence, malformed metadata, unsafe paths, oversized content, and incomplete artifact references. It materializes a new snapshot before atomically exposing its manifest. The replaceable cache retains the selected compressed bundle only. Public release assets are downloaded over bounded HTTPS without GitHub CLI authentication.
 
-Preparation downloads public release assets over bounded HTTPS and does not require GitHub CLI authentication. GitHub credentials remain limited to explicit publication.
+Development checks exercise the current semantic catalog without recorded results and isolated synthetic evidence. Production `website:build` and Pages deployment require a prepared official selection. Pages skips deployment when the semantic selection is null. After selection and Pages configuration succeed, synthetic and clean-development verification runs alongside the official build using identical site settings. Deployment requires both verification and the production build to succeed; fixture output is never uploaded.
 
-Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence. Production `website:build`, Pages deployment, and complete evidence-backed release assurance require prepared official selections. The Pages workflow skips deployment when both selections are null and rejects a partial selection.
-
-During continued prelaunch testing, skill tags require deterministic conformance, synchronized release identity, and installation checks. Tagged CI does not prepare selected evidence or run evidence-backed assurance, and there are no version-specific exceptions. A passing tag does not establish semantic evaluation or adapter qualification. Release `7.1.0` selects the existing recorded semantic and adapter qualification evidence. Evidence-backed assurance remains a separate explicit operation below, and production website requirements are unchanged.
+Skill tags require deterministic conformance, synchronized release identity, and installation checks. Tagged CI does not prepare selected evidence or run a model. A passing tag does not establish semantic behavior. The selected historical semantic snapshot remains presentation-only until fresh evaluation establishes current behavior.
 
 ## Check a release
 
@@ -75,17 +62,14 @@ During continued prelaunch testing, skill tags require deterministic conformance
 npm run release:check
 ```
 
-The check is read-only with respect to evidence. It validates release identity and requires both prepared selections to match `evidence/selection.json`. Each selected bundle must be official and passing. The check does not rerun an evaluator, reinterpret old results with current tests, fetch a latest asset, or silently replace a selection.
+The check validates release identity and requires the prepared selection to match `evidence/selection.json`, with an official passing bundle. It is read-only with respect to evidence. It does not rerun an evaluator, reinterpret old results with current tests, fetch a latest asset, or replace the selection. Passing this mechanical check does not turn historical presentation-only evidence into current-release assurance.
 
-After fresh semantic evaluation and qualification records exist, the operator handoff is:
+After a fresh semantic record exists, the operator handoff is:
 
 ```bash
 npm run evidence:pack -- --scope semantic --run <attempt-id>
-npm run evidence:pack -- --scope qualification
 npm run evidence:publish -- --bundle .evidence/bundles/<semantic-bundle>.json.gz --tag evidence-<semantic-name>
-npm run evidence:publish -- --bundle .evidence/bundles/<qualification-bundle>.json.gz --tag evidence-<qualification-name>
 npm run release:evidence:pin -- --scope semantic --release evidence-<semantic-name> --asset <semantic-asset>.json.gz
-npm run release:evidence:pin -- --scope qualification --release evidence-<qualification-name> --asset <qualification-asset>.json.gz
 npm run evidence:prepare
 npm run website:check
 npm run website:build

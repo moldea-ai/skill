@@ -3,7 +3,6 @@ export const CLI_PACKAGE_NAME = '@moldea.ai/cli';
 
 // protocol versions recorded by the current evaluators
 export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 26;
-export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 12;
 
 // portable release files that carry the supported CLI major range
 export const CLI_VERSION_RANGE_TEXT_PATHS = [
@@ -12,7 +11,6 @@ export const CLI_VERSION_RANGE_TEXT_PATHS = [
   'moldea/SKILL.md',
   'moldea/references/local-tooling.md',
   'src/portable/repository-package.ts',
-  'qualification/README.md',
 ] as const;
 
 // portable release files that carry the minimum supported Core range
@@ -30,7 +28,6 @@ export const CLI_JSON_SCHEMA_VERSION_TEXT_PATHS = [
   'docs/compatibility-and-local-tooling.md',
   'moldea/SKILL.md',
   'moldea/references/local-tooling.md',
-  'qualification/README.md',
   'src/portable/response-page/types.ts',
 ] as const;
 
@@ -41,7 +38,6 @@ export const RELEASE_PATHS = {
   gettingStarted: 'docs/getting-started.md',
   packageLock: 'package-lock.json',
   packageManifest: 'package.json',
-  qualificationReadme: 'qualification/README.md',
   readme: 'README.md',
   semanticCliManifest: 'fixtures/tooling/semantic-cli/package.json',
   skill: 'moldea/SKILL.md',

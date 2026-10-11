@@ -32,7 +32,7 @@ Preserve valid behavior during refinement. Prefer local edits while organization
 
 Every registered agent has one lowercase ASCII kebab-case ID, one `/moldea/agents/{agent-id}/` directory, mandatory `description.md` and `instruction.md`, and optional `handoff-description.md`. After an optional Markdown heading, the first nonblank instruction line must contain the exact backtick-wrapped identity token `` `{agent-id}` ``. A heading that merely names the agent does not satisfy the identity contract.
 
-Classify the consumer from runtime documentation, compatibility, adapter evidence, guidance, implementation, and developer direction before reading meaning into its property name. A runtime property literally named `description` can still be routing-facing; its name supplies no classification evidence. Routing-facing metadata uses the target handoff description when present and valid, otherwise the agent description. General-only metadata uses the agent description. Preserve an established shared-property contract and do not create a handoff description merely because such a property exists.
+Classify the consumer from installed SDK types, source-owned documentation, runtime guidance, implementation, and developer direction before reading meaning into its property name. A runtime property literally named `description` can still be routing-facing; its name supplies no classification evidence. Routing-facing metadata uses the target handoff description when present and valid, otherwise the agent description. General-only metadata uses the agent description. Preserve an established shared-property contract and do not create a handoff description merely because such a property exists.
 
 Before changing a mapping, establish:
 
@@ -46,24 +46,11 @@ Always state the consumer-purpose classification, including when dynamic wiring 
 
 ## Select the runtime honestly
 
-Every registered agent declares one `runtime.id`. Use `composition --json` when installed adapter inventory matters; this command does not accept `--max-output-bytes`. Load `runtime-compatibility.md` when local adapter eligibility or source-pattern compatibility matters. Complete this gate before editing runtime state:
+Every registered agent declares one `runtime.id`. Load `runtime-guidance.md` for connection work. IDs select guidance, not compatibility, certification, installed adapter availability, or vendor endorsement. Use the ID of the SDK the code calls directly; a framework's provider packages keep the framework ID, and OpenAI-compatible providers called through `openai` keep `openai`. When one SDK defines the agent and another transports its requests, select the defining SDK. Use `custom` only for an evidenced project-specific runtime, never to hide missing evidence.
 
-1. Establish authorized repository scope and state. Inspect identified related repositories as read-only evidence.
-2. Identify the primary model-invocation boundary and applicable instruction loading, capabilities, schemas, routing, and variables.
-3. Inventory external capabilities and classify them as model-visible, integration-only, or qualifying local implementation.
-4. Select the highest-level locally available official adapter whose local contract and inspected source match the repository. Use a provider ID only when its SDK is primary, and `custom` only when independent layers govern without an official match. Clarify an unknown runtime.
-5. Map model-visible behavior to canonical instructions, project-specific integration behavior to runtime guidance, and only qualifying local implementation to the manifest. Provider hosting or correct runtime identity never replaces model-visible semantics.
-6. Without behavioral evidence, preserve the runtime and map every material unknown invocation, instruction-loading, capability, schema, routing, or variable fact to its smallest reliable resolving artifact, established owner, and required proof. Never invent a path, identity, or owner.
-7. Reconcile runtime identity and semantic surfaces together. Update every affected surface as one coherent change. A `runtime.id`-only edit is incomplete when reliable evidence establishes model-visible or project-specific integration behavior.
-8. Report evidence paths, repository states, canonical inspection limits, and remaining unknowns.
+Before a runtime write, establish the authorized repository scope and primary model-invocation boundary, instruction loading, capabilities, schemas, routing, and variables. Follow only the touched agent's call path, stopping at dynamic boundaries. Consult the installed SDK's types with one targeted search per field; do not read entire declaration files. Preserve every evidenced model-visible capability in canonical instructions or project-specific runtime guidance. Map unknown behavior to its smallest reliable resolver, such as closed wiring or a focused integration test. Never invent paths, owners, API fields, or runtime behavior.
 
-For a runtime-alignment review, report the declared runtime ID, the exact runtime-guidance path and its role, and the bound implementation path and symbol whenever those facts are established.
-
-Before a runtime write, retain a checklist of every externally evidenced model-visible capability. Do not validate or claim completion until each capability remains represented in canonical instruction or runtime guidance.
-
-If the required adapter is absent from this release, report a tooling prerequisite and stop without selecting another CLI version or replacement runtime. Composition establishes availability, not integration identity, target support, package eligibility, or repository fit.
-
-Create runtime guidance only for material project-specific behavior or limitations. Optional manifest syntax is not a Core error. Do not infer compatibility from package names, composition, or general knowledge, dynamically install adapters, or claim behavioral support without local adapter and repository evidence. Source-owned target documentation, closed wiring, provider configuration, or integration tests may resolve an evidence gap; evaluation remains incomplete without a resolver.
+Reconcile runtime identity and semantic surfaces together. An ID-only edit is incomplete when evidence establishes affected behavior. Report the declared ID, exact guidance path and role, and bound implementation path and symbol when established, plus material evidence limits. Create runtime guidance only for project-specific behavior or limitations. A missing online reference does not establish a broken connection or justify changing an existing ID.
 
 ## Register real relationships
 
@@ -103,7 +90,7 @@ agents:
         category: tool-registration
         effect: warning
         description: The final tool registry cannot be proven from static repository evidence.
-        resolution: Establish the runtime registration through explicit source or supported adapter evidence.
+        resolution: Establish runtime registration through explicit source or a focused connection test.
         related:
           - path: /src/dynamic-tools.ts
 ```
@@ -130,7 +117,7 @@ For every in-scope agent, establish how canonical `instruction.md` reaches each 
 
 The active instruction derives from canonical content, not an independently maintained policy source. Field names do not alter provenance: turn-specific `instructions`, inputs, continuation prompts, messages, or tool payloads may transport current input but cannot own reusable policy.
 
-Use an exact declared mirror only when the runtime requires another tracked path, and verify consumption. Register `instructionLoader` when a material repository-local loader path and symbol exist and cannot be derived. Adapter or other reliable evidence may make that binding unnecessary.
+Use an exact declared mirror only when the runtime requires another tracked path, and verify consumption. Register `instructionLoader` when a material repository-local loader path and symbol exist and cannot be derived. Reliable implementation evidence may make that binding unnecessary.
 
 Trace every material path. Within scope, remove superseded independent durable instructions from every material field and verify provenance near the runtime boundary, including build or deployment inclusion when required. Deterministic relationships and mirror checks do not prove runtime consumption.
 
@@ -176,8 +163,8 @@ Requirements are not a roadmap. Do not create one to avoid an answerable questio
 
 After all canonical, runtime, test, and relationship file writes, run the focused project-native tests that exercise every changed material invocation and canonical-loading path, correct any implementation or test defect, and only then run launcher-backed `validate` as the final moldea command. For repairable structural defects, follow the entrypoint's supported recovery rule: correct the complete affected contract, rerun native checks affected by the repair, and validate after the last write. Report the final status and material diagnostics, including their absence. A passing generic check or actor report is not a substitute for runner-owned focused test evidence. Review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state without loading unrelated canonical bodies.
 
-A statically unverified instruction, tool registration, schema, provider export, mutation, or handoff may be a valid application design. Preserve it as a scoped warning and identify the evidence needed; do not force a particular coding pattern to make inspection pass.
+Core checks declared files and explicit TypeScript/JavaScript ESM exports. Binding coverage states exactly what passed, failed, or could not be checked; it never proves instruction consumption, runtime wiring, schema attachment, tool registration, or behavior. Preserve valid dynamic designs and report the smallest missing evidence. Recommend a connection test asserting that the outgoing request carries the canonical instruction and schema; add it only within developer-authorized implementation.
 
-If a version-dependent warning names a required agent relationship, preserve its declaration and report that relationship as unverified until local version and source evidence resolve it. A warning does not establish broken wiring and does not excuse a separate confirmed error. Complete narrower authorized maintenance when that uncertainty does not affect the requested change.
+Warnings do not invalidate the project or excuse confirmed errors. Apply `continuous-maintenance.md` → “Warnings and acceptance” when reporting them; accepting a warning never turns an unchecked relationship into a passed check.
 
 Do not claim production readiness when behavior lacks support, a material contract is hidden or contradictory, affected validation fails, or a blocking requirement remains.

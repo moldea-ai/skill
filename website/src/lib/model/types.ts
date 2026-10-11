@@ -1,5 +1,4 @@
 import type { IProjectRunModel } from '../project-runs/index.ts';
-import type { IQualificationWebsiteModel } from '../qualification/index.ts';
 import type { IReleaseEvidenceModel } from '../release-evidence/index.ts';
 import type {
   ISemanticAttemptModel,
@@ -53,7 +52,6 @@ export interface IWebsiteModel {
   generatedNotice: string;
   llmsText: string;
   navigation: INavigationGroup[];
-  qualification: IQualificationWebsiteModel;
   releaseEvidence: IReleaseEvidenceModel;
   routes: string[];
   searchRecords: ISearchRecord[];

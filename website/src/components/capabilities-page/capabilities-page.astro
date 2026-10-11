@@ -407,10 +407,10 @@ const capabilityLinks = [
           </ActionLink>
           <ActionLink
             class="font-bold"
-            href={withBase('/evidence/qualification/', basePath)}
+            href={withBase('/docs/designing-agents/#select-the-runtime-honestly', basePath)}
             variant="link"
           >
-            Check runtime qualifications
+            Read runtime guidance
             <ArrowRight
               class="size-4"
               aria-hidden="true"
@@ -907,6 +907,19 @@ const capabilityLinks = [
           ))
         }
       </div>
+
+      <p class="mt-6 max-w-3xl text-base leading-7 text-muted-foreground">
+        Validation checks declared files and explicit TypeScript or JavaScript ESM exports. Coverage
+        names each completed check; it does not establish runtime wiring. Warnings can leave a
+        structurally valid project. Ask the coding agent to fix them, or explicitly accept a
+        supported warning with your own reason. The agent does not choose acceptance for you.
+      </p>
+      <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">
+        The integration check also reports missing or stale project guidance and installed skill
+        assets. Ask to fix the integration or explicitly accept the warning. When your coding
+        instructions protect AGENTS.md, the agent provides the exact block for a separate
+        instruction update.
+      </p>
 
       <div
         class="mt-6"

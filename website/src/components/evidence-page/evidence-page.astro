@@ -1,23 +1,17 @@
 ---
-import { ArrowRight, Cable, FolderGit2, ListChecks } from '@lucide/astro';
+import { ArrowRight, FolderGit2, ListChecks } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
-import AdapterCompanyLogo from '../adapter-company-logo/adapter-company-logo.astro';
 import RecordedAgent from '../recorded-agent/recorded-agent.astro';
 import RecordedChange from '../recorded-change/recorded-change.astro';
-import RecordedConnection from '../recorded-connection/recorded-connection.astro';
 import RecordedProject from '../recorded-project/recorded-project.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
-import { createQualificationJourneyCollection } from '../../lib/qualification/index.ts';
 import { PROJECT_RUN_ROUTE } from '../../lib/project-runs/index.ts';
-import {
-  getQualificationReleaseEvidenceSummary,
-  getSemanticReleaseEvidenceSummary,
-} from '../../lib/release-evidence/index.ts';
+import { getSemanticReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
 
 import { getSemanticPreviewCase } from './presentation.ts';
 
@@ -32,26 +26,6 @@ const agentCase = getSemanticPreviewCase(
   'agent-adoption-inline-runtime-instruction',
 );
 const changeCase = getSemanticPreviewCase(model.semanticEvaluation, 'bound-context-maintenance');
-const openaiProfile = model.qualification.profiles.find(({ adapterId }) => adapterId === 'openai');
-const repairJourney =
-  openaiProfile === undefined
-    ? null
-    : (createQualificationJourneyCollection(openaiProfile).journeys.find(
-        ({ profileCase }) => profileCase.id === 'repair-openai-tool-registration',
-      ) ?? null);
-const qualificationSummaries = model.qualification.profiles.map(
-  getQualificationReleaseEvidenceSummary,
-);
-const recordedProfileCount = qualificationSummaries.filter(
-  ({ kind }) => kind === 'recorded',
-).length;
-const passedProfileCount = qualificationSummaries.filter(
-  ({ status }) => status === 'passed',
-).length;
-const adapterIds = new Set(model.qualification.profiles.map(({ adapterId }) => adapterId));
-const adapterPreview = ['openai', 'anthropic', 'google-genai', 'langgraph', 'vercel-ai-sdk'].filter(
-  (id) => adapterIds.has(id),
-);
 const projectAttempts = model.projectRuns?.pages.flatMap(({ attempts }) => attempts) ?? [];
 const projectPreview = projectAttempts[0];
 const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
@@ -99,7 +73,7 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
       <RecordedAgent evaluationCase={agentCase} />
     </div>
     <nav
-      class="page-shell grid gap-3 pb-8 sm:grid-cols-3 sm:pb-12"
+      class="page-shell grid gap-3 pb-8 sm:grid-cols-2 sm:pb-12"
       aria-label="Evidence sections"
     >
       <a
@@ -117,25 +91,6 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
               semanticSummary.result === null
                 ? 'Explore the test scenarios'
                 : `${semanticSummary.result.totalCaseCount} recorded tests`
-            }</span
-          ></span
-        >
-      </a>
-      <a
-        href="#integrations"
-        class="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-4 link-feedback"
-      >
-        <Cable
-          class="size-5 shrink-0 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <span
-          ><span class="block text-sm font-semibold">Project connections</span><span
-            class="mt-1 block text-xs text-muted-foreground"
-            >{
-              recordedProfileCount === 0
-                ? 'Explore the supported setups'
-                : `${passedProfileCount}/${model.qualification.profiles.length} setups passed`
             }</span
           ></span
         >
@@ -226,89 +181,6 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
     </div>
   </section>
 
-  <section
-    id="integrations"
-    class:list={[
-      'scroll-mt-24 bg-background py-12 sm:py-16',
-      model.projectRuns !== null && 'border-b border-border',
-    ]}
-    aria-labelledby="integrations-title"
-    data-evidence-path
-  >
-    <div
-      class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-14"
-    >
-      <div class="order-2 min-w-0 lg:order-1">
-        <RecordedConnection journey={repairJourney} />
-        {
-          repairJourney !== null && openaiProfile !== undefined && (
-            <div class="mt-3">
-              <ActionLink
-                href={withBase(
-                  `${openaiProfile.route}#qualification-${repairJourney.profileCase.id}`,
-                  basePath,
-                )}
-                variant="link"
-              >
-                Open this repair's files and checks
-                <ArrowRight
-                  class="size-4"
-                  aria-hidden="true"
-                />
-              </ActionLink>
-            </div>
-          )
-        }
-      </div>
-      <div class="order-1 min-w-0 lg:order-2">
-        <p class="eyebrow mb-3">02 Check the connections</p>
-        <h2
-          id="integrations-title"
-          class="section-title"
-        >
-          Can it find the instructions and tools?
-        </h2>
-        <p class="mt-4 text-base leading-7 text-muted-foreground">
-          A declared tool can point to the wrong name in code. We give the agent a broken
-          connection, check its repair, and verify that the working files stay intact.
-        </p>
-        <div
-          class="mt-5 flex items-center justify-center gap-5 sm:gap-6"
-          aria-label="Example supported providers"
-          data-adapter-logos
-        >
-          {
-            adapterPreview.map((id) => (
-              <span class="inline-flex [&_img]:size-7 [&>span]:size-9 [&>span]:border-0 [&>span]:bg-transparent">
-                <AdapterCompanyLogo
-                  adapterId={id}
-                  size="sm"
-                />
-              </span>
-            ))
-          }
-        </div>
-        <div
-          class="mt-6 grid gap-3"
-          data-evidence-path-action
-        >
-          <ActionLink
-            href={withBase(model.qualification.route, basePath)}
-            variant="primary"
-            class="w-full font-bold"
-            >Browse connection tests<ArrowRight
-              class="size-4"
-              aria-hidden="true"
-            /></ActionLink
-          >
-        </div>
-        <p class="mt-3 text-xs leading-5 text-muted-foreground">
-          See all providers and tested project setups.
-        </p>
-      </div>
-    </div>
-  </section>
-
   {
     model.projectRuns !== null && (
       <section
@@ -319,7 +191,7 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
       >
         <div class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-14">
           <div class="min-w-0">
-            <p class="eyebrow mb-3">03 Watch the work</p>
+            <p class="eyebrow mb-3">02 Watch the work</p>
             <h2
               id="projects-title"
               class="section-title"

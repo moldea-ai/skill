@@ -32,14 +32,13 @@ const UPDATE_PATHS = [
     'docs/compatibility-and-local-tooling.md',
     'moldea/assets/managed-readme-block.md',
     'moldea/assets/managed-agents-block.md',
-    'qualification/package.json',
     'website/package.json',
     SEMANTIC_CLI_EXECUTABLE_PATH,
   ]),
 ];
 const CompositionEnvelopeSchema = z.object({
   cliVersion: z.string(),
-  result: z.object({ adapters: z.array(z.object({ id: z.string() })) }),
+  result: z.object({ packages: z.array(z.object({ name: z.string() })) }),
   schemaVersion: z.number().int().positive(),
 });
 
@@ -196,7 +195,7 @@ test('updateCliRelease synchronizes a complete copied release tree', async () =>
         : versionRange.replace(/^\^?\d+/u, (major) => `^${Number(major.replace('^', '')) + 1}`),
     ]),
   );
-  nextCliDependencies['@moldea.ai/adapter-future'] = '^1.0.0';
+  nextCliDependencies['@moldea.ai/extension-future'] = '^1.0.0';
 
   try {
     const identity = await updateCliRelease({
@@ -278,8 +277,10 @@ test('updateCliRelease synchronizes a complete copied release tree', async () =>
     assert.equal(composition.status, 0, composition.stderr);
     assert.equal(compositionEnvelope.schemaVersion, nextCliJsonSchemaVersion);
     assert.ok(
-      compositionEnvelope.result.adapters.some(({ id }) => id === 'future'),
-      'The synthetic CLI must derive newly published adapters from its dependency inventory.',
+      compositionEnvelope.result.packages.some(
+        ({ name }) => name === '@moldea.ai/extension-future',
+      ),
+      'The synthetic CLI must derive newly published packages from its dependency inventory.',
     );
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });

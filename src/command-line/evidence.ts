@@ -7,7 +7,6 @@ import {
   EVIDENCE_SELECTION_RELATIVE_PATH,
   decodeEvidenceBundle,
   packCompletedEvidenceRun,
-  packLatestCompletedEvidenceRun,
   prepareSelectedEvidence,
   verifyPreparedReleaseEvidence,
 } from '../evidence/index.ts';
@@ -28,19 +27,12 @@ const runEvidenceCommand = async (): Promise<void> => {
 
   if (command.kind === 'pack') {
     const outputDirectory = path.join(REPOSITORY_ROOT, '.evidence', 'bundles');
-    const result =
-      command.runId === undefined
-        ? await packLatestCompletedEvidenceRun(
-            REPOSITORY_ROOT,
-            command.evidenceKind,
-            outputDirectory,
-          )
-        : await packCompletedEvidenceRun(
-            REPOSITORY_ROOT,
-            command.evidenceKind,
-            command.runId,
-            path.join(outputDirectory, `${command.evidenceKind}-${command.runId}.json.gz`),
-          );
+    const result = await packCompletedEvidenceRun(
+      REPOSITORY_ROOT,
+      command.evidenceKind,
+      command.runId,
+      path.join(outputDirectory, `${command.evidenceKind}-${command.runId}.json.gz`),
+    );
     process.stdout.write(`${JSON.stringify(result)}\n`);
     return;
   }

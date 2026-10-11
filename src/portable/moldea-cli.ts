@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process';
-import { isAbsolute } from 'node:path';
+import { isAbsolute, resolve } from 'node:path';
 
 import { prepareResponseFiles, verifyAndSaveResponse } from './response-page/index.ts';
 import { resolveRepositoryCli } from './repository-package.ts';
@@ -109,12 +109,7 @@ const parseArguments = (): IParsedArguments => {
       if (optionValue === undefined || optionValue === '' || optionValue.startsWith('--')) {
         throw new Error(`Launcher option ${argument} requires one value.`);
       }
-      const normalizedValue =
-        (command === 'scope' || command === 'content') && argument === '--path'
-          ? normalizeScopePath(optionValue)
-          : optionValue;
-      values.set(argument, normalizedValue);
-      commandArguments[index + 1] = normalizedValue;
+      values.set(argument, optionValue);
       index += 1;
       continue;
     }
@@ -155,20 +150,13 @@ const parseArguments = (): IParsedArguments => {
     throw new Error('The launcher cursor exceeds its byte limit.');
   }
 
-  const logicalPath = values.get('--path');
-  if (
-    logicalPath !== undefined &&
-    (!logicalPath.startsWith('/') || logicalPath.includes('\\') || logicalPath.includes('\0'))
-  ) {
-    throw new Error('The launcher requires one canonical repository-logical path.');
-  }
-
-  if (command === 'content' && logicalPath === undefined) {
+  const selectedPath = values.get('--path');
+  if (command === 'content' && selectedPath === undefined) {
     throw new Error('The content command requires --path.');
   }
   if (
     command === 'scope' &&
-    Number(flags.has('--paths-stdin')) + Number(logicalPath !== undefined) !== 1
+    Number(flags.has('--paths-stdin')) + Number(selectedPath !== undefined) !== 1
   ) {
     throw new Error('The scope command requires exactly one of --path or --paths-stdin.');
   }
@@ -191,11 +179,22 @@ const parseArguments = (): IParsedArguments => {
 /** Runs the validated repository-local CLI while retaining only bounded output. */
 const runCli = async (): Promise<void> => {
   const parsed = parseArguments();
+  const resolvedCli = await resolveRepositoryCli(parsed.repositoryRoot);
+  const context = {
+    repositoryRoot: resolve(parsed.repositoryRoot),
+    resolvedRepositoryRoot: resolvedCli.repositoryRoot,
+  };
+  const pathIndex = parsed.commandArguments.indexOf('--path');
+  if (pathIndex !== -1) {
+    parsed.commandArguments[pathIndex + 1] = normalizeScopePath(
+      parsed.commandArguments[pathIndex + 1]!,
+      context,
+    );
+  }
   const scopeInput =
     parsed.command === 'scope' && parsed.commandArguments.includes('--paths-stdin')
-      ? Buffer.from(`${(await readScopePathInput(process.stdin)).join('\0')}\0`, 'utf8')
+      ? Buffer.from(`${(await readScopePathInput(process.stdin, context)).join('\0')}\0`, 'utf8')
       : undefined;
-  const resolvedCli = await resolveRepositoryCli(parsed.repositoryRoot);
   const responseFiles =
     parsed.command === 'composition'
       ? {}

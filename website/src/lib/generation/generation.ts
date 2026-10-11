@@ -8,7 +8,6 @@ import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
 import type { IProjectRunModel } from '../project-runs/index.ts';
-import type { IQualificationWebsiteModel } from '../qualification/index.ts';
 import type { ISemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
 import {
   DOCUMENT_SECTION_LABELS,
@@ -28,7 +27,6 @@ import type {
   IWebsiteModel,
 } from '../model/types.ts';
 import {
-  getQualificationReleaseEvidenceSummary,
   getSemanticReleaseEvidenceSummary,
   loadReleaseEvidenceWebsiteState,
   type IReleaseEvidenceWebsiteState,
@@ -38,7 +36,7 @@ import { DEFAULT_SITE_URL } from '../site/constants.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const GENERATED_NOTICE =
-  'Generated from repository-owned documentation, semantic evaluation, qualification evidence, project runs, and moldea/SKILL.md metadata. Do not edit generated output.';
+  'Generated from repository-owned documentation, semantic evaluation, project runs, and moldea/SKILL.md metadata. Do not edit generated output.';
 let cachedWebsiteModel: {
   model: IWebsiteModel;
   modifiedTime: bigint;
@@ -237,53 +235,6 @@ export const createProductPageSearchRecords = (): ISearchRecord[] => {
   }));
 };
 
-/** Creates bounded search records for qualification profiles without indexing transcripts. */
-export const createQualificationSearchRecords = (
-  qualification: IQualificationWebsiteModel,
-): ISearchRecord[] => {
-  const verifiedSourceAttemptCount = qualification.profiles.filter(
-    (profile) => getQualificationReleaseEvidenceSummary(profile).kind === 'recorded',
-  ).length;
-  const landingRecord: ISearchRecord = {
-    description: `See how saved project fixtures check the files used by ${qualification.profiles.length} AI service integrations${verifiedSourceAttemptCount === 0 ? '.' : `, including ${verifiedSourceAttemptCount} results backed by authenticated release sources.`}`,
-    route: qualification.route,
-    searchText: normalizeSearchText(
-      'Adapter qualification support gate methodology profiles projects attempts evidence results',
-    ),
-    title: 'Adapter qualification',
-  };
-  const profileRecords = qualification.profiles.map((profile): ISearchRecord => {
-    return {
-      description: profile.description,
-      route: profile.route,
-      searchText: normalizeSearchText(
-        [
-          profile.title,
-          profile.adapterId,
-          profile.implementationId,
-          profile.description,
-          ...profile.cases.flatMap((profileCase) => [
-            profileCase.title,
-            profileCase.catalogDescription,
-            profileCase.catalogChallenge,
-            profileCase.purpose,
-          ]),
-          ...profile.probes.flatMap(({ description, matrixPath }) => [description, matrixPath]),
-          ...profile.runtimePackages.flatMap(({ name, version }) => [name, version]),
-          ...profile.attempts.flatMap(({ result }) => [
-            result.attemptId,
-            result.createdAt,
-            ...result.provenance.packages.flatMap(({ name, version }) => [name, version]),
-          ]),
-        ].join(' '),
-      ),
-      title: profile.title,
-    };
-  });
-
-  return [landingRecord, ...profileRecords];
-};
-
 /** Creates concise semantic evidence search records without indexing actor transcripts. */
 export const createSemanticEvaluationSearchRecords = (
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
@@ -353,7 +304,6 @@ const createSemanticReleaseEvidenceLine = (summary: ISemanticReleaseEvidenceSumm
 export const createLlmsText = (
   documents: IWebsiteDocument[],
   skill: ISkillMetadata,
-  qualification: IQualificationWebsiteModel,
   releaseEvidence: IWebsiteModel['releaseEvidence'],
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
   projectRuns: IProjectRunModel | null = null,
@@ -362,21 +312,12 @@ export const createLlmsText = (
     releaseEvidence,
     semanticEvaluation.currentAssurance,
   );
-  const qualificationReleaseSummaries = qualification.profiles.map(
-    getQualificationReleaseEvidenceSummary,
-  );
-  const releaseQualifiedProfileCount = qualificationReleaseSummaries.filter(
-    ({ status }) => status === 'passed',
-  ).length;
-  const verifiedQualificationSourceCount = qualificationReleaseSummaries.filter(
-    ({ kind }) => kind === 'recorded',
-  ).length;
   const releaseEvidenceLines =
     releaseEvidence.mode === 'not-recorded'
       ? [`Release evidence has not been recorded for ${releaseEvidence.targetVersion}.`]
-      : (['semantic', 'qualification'] as const).map((kind) => {
+      : (['semantic'] as const).map((kind) => {
           const section = releaseEvidence[kind];
-          const label = kind === 'semantic' ? 'Semantic' : 'Qualification';
+          const label = 'Semantic';
           return `${label} evidence uses the selected recorded bundle from [${section.sourceLabel}](${section.sourceUrl}).`;
         });
   const lines = [
@@ -426,21 +367,15 @@ export const createLlmsText = (
     ...releaseEvidenceLines,
     '',
     createSemanticReleaseEvidenceLine(semanticReleaseSummary),
-    `Qualification release evidence: ${releaseQualifiedProfileCount}/${qualification.profiles.length} profiles passing${verifiedQualificationSourceCount === 0 ? '.' : ` across ${verifiedQualificationSourceCount} selected recorded ${verifiedQualificationSourceCount === 1 ? 'profile' : 'profiles'}.`}`,
     '',
     `- [Evidence overview](${EVIDENCE_ROUTE}): Explore the recorded evidence and its source records.`,
     `- [Semantic evaluation](${semanticEvaluation.route}): Follow ${semanticEvaluation.caseCount} difficult coding-agent decisions from request to independent verdict.`,
-    `- [Adapter qualification](${qualification.route}): Follow realistic project journeys that verify the complete skill, tooling, packages, and supported integrations.`,
   );
 
   if (projectRuns !== null) {
     lines.push(
-      `- [Project runs](${projectRuns.pages[0]!.route}): Recorded coding sessions in mock projects. Independent of semantic evaluation and adapter qualification.`,
+      `- [Project runs](${projectRuns.pages[0]!.route}): Recorded coding sessions in mock projects. Independent of semantic evaluation.`,
     );
-  }
-
-  for (const profile of qualification.profiles) {
-    lines.push(`- [${profile.title}](${profile.route}): ${profile.description}`);
   }
 
   lines.push('');
@@ -461,7 +396,6 @@ export const createLlmsText = (
 /** Creates the unique deterministic public route manifest. */
 export const createRouteManifest = (
   documents: IWebsiteDocument[],
-  qualification: IQualificationWebsiteModel,
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
   projectRuns: IProjectRunModel | null = null,
 ): string[] => {
@@ -488,11 +422,6 @@ export const createRouteManifest = (
     routes.add(document.route);
   }
 
-  for (const route of [qualification.route, ...qualification.profiles.map(({ route }) => route)]) {
-    if (routes.has(route)) throw new Error(`Two public items resolve to ${route}.`);
-    routes.add(route);
-  }
-
   return [...routes].sort();
 };
 
@@ -507,8 +436,7 @@ export const createWebsiteModel = (
     allowFixtureEvidence?: boolean | undefined;
     preparedEvidenceDirectory?: string | undefined;
     selectionPath?: string | undefined;
-    unrecordedEvidence?:
-      Pick<IReleaseEvidenceWebsiteState, 'qualification' | 'semantic'> | undefined;
+    unrecordedEvidence?: Pick<IReleaseEvidenceWebsiteState, 'semantic'> | undefined;
   } = {},
 ): IWebsiteModel => {
   const projectRuns = options.projectRuns ?? null;
@@ -527,7 +455,6 @@ export const createWebsiteModel = (
           releaseEvidence: { mode: 'not-recorded', targetVersion: skill.version },
         };
   const { releaseEvidence } = releaseEvidenceState;
-  const qualification = releaseEvidenceState.qualification;
   const semanticEvaluation = releaseEvidenceState.semantic;
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
@@ -548,18 +475,10 @@ export const createWebsiteModel = (
     currentSemanticAssurance: semanticEvaluation.currentAssurance,
     documents,
     generatedNotice: GENERATED_NOTICE,
-    llmsText: createLlmsText(
-      documents,
-      skill,
-      qualification,
-      releaseEvidence,
-      semanticEvaluation,
-      projectRuns,
-    ),
+    llmsText: createLlmsText(documents, skill, releaseEvidence, semanticEvaluation, projectRuns),
     navigation: createNavigation(documents),
-    qualification,
     releaseEvidence,
-    routes: createRouteManifest(documents, qualification, semanticEvaluation, projectRuns),
+    routes: createRouteManifest(documents, semanticEvaluation, projectRuns),
     searchRecords: [
       ...(projectRuns === null
         ? []
@@ -586,12 +505,11 @@ export const createWebsiteModel = (
           'See how moldea keeps saved project rules connected to code and checks them again.',
         route: EVIDENCE_ROUTE,
         searchText: normalizeSearchText(
-          'Evidence testing evaluation semantic behavior qualification adapters projects proof',
+          'Evidence testing evaluation semantic behavior projects proof',
         ),
         title: 'Evidence',
       },
       ...createSemanticEvaluationSearchRecords(semanticEvaluation, releaseEvidence),
-      ...createQualificationSearchRecords(qualification),
     ],
     semanticEvaluation,
     skill,

@@ -21,7 +21,7 @@ Evaluate the support agent's instruction path. Do not change files.
 **Coding agent**
 
 ```text
-For this supported OpenAI source pattern, validation reported OPENAI_INSTRUCTION_LOADER_NOT_WIRED: a runtime request bypasses its declared canonical instruction loader. Evaluation also compared the active instruction with the approved support policy. No material ambiguity changes the correction direction. No repository files were changed.
+Structural validation confirmed the declared file and export. My source review found that a runtime request bypasses the canonical instruction loader. I also compared the active instruction with the approved support policy. No material ambiguity changes the correction direction. No repository files were changed.
 ```
 
 ### Under the hood
@@ -29,8 +29,8 @@ For this supported OpenAI source pattern, validation reported OPENAI_INSTRUCTION
 1. The coding agent selects read-only evaluation.
 2. It confirms adoption and requests the named agent's canonical content through the installed skill's bounded launcher. Metadata inspection is added only when necessary.
 3. It follows the registered runtime-agent relationship into every material invocation path.
-4. It compares canonical instructions, runtime construction, tests, and adapter evidence.
-5. It reports the proven source relationship error separately from semantic findings and states that no files changed. If a custom source pattern cannot be proved, it reports the specific unverified warning instead of assuming the same defect.
+4. It compares canonical instructions, runtime construction, tests, and file/export coverage.
+5. It distinguishes its source-review finding from the deterministic file and export checks and states that no files changed. If runtime behavior cannot be established, it reports that gap and its smallest reliable resolver.
 
 ## Second request: reconcile
 

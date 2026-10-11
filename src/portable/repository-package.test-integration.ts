@@ -6,6 +6,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   renameSync,
   rmSync,
   symlinkSync,
@@ -32,6 +33,8 @@ interface IPackageFixture {
   repositoryRoot: string;
 }
 
+const TEST_NODE_EXECUTABLE = process.env['MOLDEA_TEST_NODE'] ?? process.execPath;
+
 const LAUNCHER_PATH = resolve(
   import.meta.dirname,
   '..',
@@ -41,8 +44,8 @@ const LAUNCHER_PATH = resolve(
   'moldea-cli.mjs',
 );
 const temporaryRoots: string[] = [];
-const compositionOutput = (cliVersion = '10.0.1') =>
-  `${JSON.stringify({ schemaVersion: 6, cliVersion, command: 'composition', status: 'valid', error: null, result: {} })}\n`;
+const compositionOutput = (cliVersion = '11.0.1') =>
+  `${JSON.stringify({ schemaVersion: 7, cliVersion, command: 'composition', status: 'valid', error: null, result: {} })}\n`;
 
 const writeJson = (filePath: string, content: object): void => {
   mkdirSync(dirname(filePath), { recursive: true });
@@ -50,11 +53,11 @@ const writeJson = (filePath: string, content: object): void => {
 };
 
 const createPackageFixture = ({
-  cliDeclaration = '^10.0.0',
-  cliVersion = '10.0.1',
-  coreDeclaration = '^6.0.1',
+  cliDeclaration = '^11.0.0',
+  cliVersion = '11.0.1',
+  coreDeclaration = '^7.0.1',
   coreLocation = 'hoisted',
-  coreVersion = '6.0.2',
+  coreVersion = '7.0.2',
 }: IPackageFixtureOptions = {}): IPackageFixture => {
   const repositoryRoot = mkdtempSync(join(tmpdir(), 'moldea-package-'));
   temporaryRoots.push(repositoryRoot);
@@ -69,7 +72,7 @@ const createPackageFixture = ({
     devDependencies: { '@moldea.ai/cli': cliDeclaration },
   });
   writeJson(join(repositoryRoot, 'package-lock.json'), {
-    packages: { 'node_modules/@moldea.ai/cli': { version: '10.0.0' } },
+    packages: { 'node_modules/@moldea.ai/cli': { version: '11.0.0' } },
   });
   writeJson(join(cliRoot, 'package.json'), {
     bin: { moldea: './dist/moldea.js' },
@@ -80,7 +83,7 @@ const createPackageFixture = ({
   mkdirSync(join(cliRoot, 'dist'), { recursive: true });
   writeFileSync(
     join(cliRoot, 'dist', 'moldea.js'),
-    `require('node:fs').writeFileSync(${JSON.stringify(invocationMarker)}, 'invoked');\nprocess.stdout.write(${JSON.stringify(compositionOutput(cliVersion))});\n`,
+    `require('node:fs').writeFileSync(${JSON.stringify(invocationMarker)}, process.execPath);\nprocess.stdout.write(${JSON.stringify(compositionOutput(cliVersion))});\n`,
   );
   writeJson(join(coreRoot, 'package.json'), { name: '@moldea.ai/core', version: coreVersion });
   mkdirSync(join(coreRoot, 'dist'), { recursive: true });
@@ -96,15 +99,15 @@ afterEach(() => {
 });
 
 test.each([
-  ['^6.0.1', '6.0.2'],
-  ['^6.0.2', '6.0.2'],
-  ['>=6.0.1 <7.0.0', '6.2.0'],
+  ['^7.0.1', '7.0.2'],
+  ['^7.0.2', '7.0.2'],
+  ['>=7.0.1 <8.0.0', '7.2.0'],
 ])('resolves declaration %s with installed Core %s', async (coreDeclaration, coreVersion) => {
   const fixture = createPackageFixture({ coreDeclaration, coreVersion });
 
   const resolved = await resolveRepositoryCli(fixture.repositoryRoot);
 
-  assert.equal(resolved.cliVersion, '10.0.1');
+  assert.equal(resolved.cliVersion, '11.0.1');
   assert.equal(resolved.cliRoot, fixture.cliRoot);
   assert.equal(resolved.repositoryRoot, fixture.repositoryRoot);
   assert.equal(existsSync(fixture.invocationMarker), false);
@@ -112,10 +115,10 @@ test.each([
 
 test('accepts a compatible CLI minor and its nearest nested Core package', async () => {
   const fixture = createPackageFixture({
-    cliVersion: '10.1.0',
-    coreDeclaration: '^6.1.0',
+    cliVersion: '11.1.0',
+    coreDeclaration: '^7.1.0',
     coreLocation: 'nested',
-    coreVersion: '6.1.1',
+    coreVersion: '7.1.1',
   });
   const hoistedCoreRoot = join(fixture.repositoryRoot, 'node_modules', '@moldea.ai', 'core');
   writeJson(join(hoistedCoreRoot, 'package.json'), {
@@ -123,7 +126,7 @@ test('accepts a compatible CLI minor and its nearest nested Core package', async
     version: '3.0.0',
   });
 
-  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '10.1.0');
+  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '11.1.0');
 });
 
 test('launcher ignores a conflicting node_modules/.bin/moldea executable', () => {
@@ -138,7 +141,7 @@ test('launcher ignores a conflicting node_modules/.bin/moldea executable', () =>
   );
 
   const invocation = spawnSync(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [LAUNCHER_PATH, '--repository', fixture.repositoryRoot, '--', 'composition', '--json'],
     { cwd: fixture.repositoryRoot, encoding: 'utf8' },
   );
@@ -165,7 +168,7 @@ test('preserves repository-contained CLI and nested Core directory links', async
 
   assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliRoot, storedCliRoot);
   const invocation = spawnSync(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [LAUNCHER_PATH, '--repository', fixture.repositoryRoot, '--', 'composition', '--json'],
     { cwd: fixture.repositoryRoot, encoding: 'utf8' },
   );
@@ -179,24 +182,24 @@ test('accepts a compatible installed CLI when the target lock selects an older p
   const lock = JSON.parse(readFileSync(lockPath, 'utf8')) as {
     packages: Record<string, { version: string }>;
   };
-  assert.equal(lock.packages['node_modules/@moldea.ai/cli']?.version, '10.0.0');
-  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '10.0.1');
+  assert.equal(lock.packages['node_modules/@moldea.ai/cli']?.version, '11.0.0');
+  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '11.0.1');
 
   writeFileSync(lockPath, '{not valid JSON');
-  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '10.0.1');
+  assert.equal((await resolveRepositoryCli(fixture.repositoryRoot)).cliVersion, '11.0.1');
 });
 
 test.each([
-  [{ coreDeclaration: '^6.1.0' }, /unsupported Core package/u],
+  [{ coreDeclaration: '^7.1.0' }, /unsupported Core package/u],
   [{ coreDeclaration: '^3.0.0' }, /unsupported Core package/u],
   [{ coreDeclaration: 'not-a-range' }, /unsupported CLI package closure/u],
   [{ coreDeclaration: '' }, /unsupported CLI package closure/u],
   [{ coreVersion: '4.0.0' }, /unsupported Core package/u],
-  [{ coreVersion: '6.1.0-beta.1' }, /unsupported Core package/u],
-  [{ coreVersion: '6.0.0' }, /unsupported Core package/u],
-  [{ cliDeclaration: '10.0.0' }, /unsupported CLI package closure/u],
-  [{ cliVersion: '10.1.0-beta.1' }, /unsupported CLI package closure/u],
-  [{ cliVersion: '11.0.0' }, /unsupported CLI package closure/u],
+  [{ coreVersion: '7.1.0-beta.1' }, /unsupported Core package/u],
+  [{ coreVersion: '7.0.0' }, /unsupported Core package/u],
+  [{ cliDeclaration: '11.0.0' }, /unsupported CLI package closure/u],
+  [{ cliVersion: '11.1.0-beta.1' }, /unsupported CLI package closure/u],
+  [{ cliVersion: '12.0.0' }, /unsupported CLI package closure/u],
 ])('rejects an incompatible package closure %o', async (options, expectedError) => {
   const fixture = createPackageFixture(options);
 
@@ -210,7 +213,7 @@ test('rejects missing Core declarations, packages, and executable entries', asyn
     bin: { moldea: './dist/moldea.js' },
     dependencies: {},
     name: '@moldea.ai/cli',
-    version: '10.0.1',
+    version: '11.0.1',
   });
   await assert.rejects(
     resolveRepositoryCli(missingDeclaration.repositoryRoot),
@@ -249,17 +252,18 @@ test('rejects a Core package redirected outside repository dependencies', async 
 test('generated launcher invokes only an eligible repository CLI', () => {
   const eligible = createPackageFixture();
   const invocation = spawnSync(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [LAUNCHER_PATH, '--repository', eligible.repositoryRoot, '--', 'composition', '--json'],
     { cwd: eligible.repositoryRoot, encoding: 'utf8' },
   );
   assert.equal(invocation.status, 0, invocation.stderr);
   assert.equal(invocation.stdout, compositionOutput());
   assert.equal(existsSync(eligible.invocationMarker), true);
+  assert.equal(readFileSync(eligible.invocationMarker, 'utf8'), realpathSync(TEST_NODE_EXECUTABLE));
 
-  const ineligible = createPackageFixture({ coreDeclaration: '^6.1.0' });
+  const ineligible = createPackageFixture({ coreDeclaration: '^7.1.0' });
   const rejection = spawnSync(
-    process.execPath,
+    TEST_NODE_EXECUTABLE,
     [LAUNCHER_PATH, '--repository', ineligible.repositoryRoot, '--', 'composition', '--json'],
     { cwd: ineligible.repositoryRoot, encoding: 'utf8' },
   );

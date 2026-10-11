@@ -3,7 +3,7 @@ export type ILandingExampleFiles = Readonly<Record<string, string>>;
 
 // stable facts shared by the fixture, its checks, and every rendered landing example
 export const LANDING_EXAMPLE = {
-  diagnostic: 'OPENAI_INSTRUCTION_LOADER_NOT_WIRED',
+  diagnostic: 'MOLDEA_REFERENCE_EXPORT_MISSING',
   initialRefundWindowDays: 30,
   maintainedRefundWindowDays: 14,
   maintenanceRequest: "Shorten the application's refund window from 30 days to 14",
@@ -269,13 +269,21 @@ export const LANDING_EXAMPLE_MAINTAINED_FILES = createCommonFiles(
   LANDING_EXAMPLE.maintainedRefundWindowDays,
 );
 
-// supported defect where saved instructions exist but the runtime call bypasses their loader
+// runtime wiring is outside Core's file and export checks
 export const LANDING_EXAMPLE_DISCONNECTED_FILES: ILandingExampleFiles = {
   ...LANDING_EXAMPLE_MAINTAINED_FILES,
   '/src/agent.ts': LANDING_EXAMPLE_MAINTAINED_FILES['/src/agent.ts']!.replaceAll(
     'instructions: loadSupportInstruction()',
     "instructions: 'Be helpful.'",
   ),
+};
+
+// a missing declared export is a structural error that Core can establish
+export const LANDING_EXAMPLE_MISSING_EXPORT_FILES: ILandingExampleFiles = {
+  ...LANDING_EXAMPLE_MAINTAINED_FILES,
+  [LANDING_EXAMPLE.paths.instructionLoader]: LANDING_EXAMPLE_MAINTAINED_FILES[
+    LANDING_EXAMPLE.paths.instructionLoader
+  ]!.replace('export const loadSupportInstruction', 'const loadSupportInstruction'),
 };
 
 /** Returns one required source body from a landing example snapshot. */

@@ -814,104 +814,206 @@ test('large context inventory requires real bounded continuation pages', async (
   assert.ok(records >= 256, 'Every declared context owner should appear in the inventory.');
 });
 
+test.each([undefined, false])(
+  'fixture bridge seeding honors opt-out %s',
+  async (seedManagedAgentsBlock) => {
+    const root = mkdtempSync(join(tmpdir(), 'moldea-seed-'));
+    temporaryRoots.push(root);
+    const hostInstructions = '# Host instructions\n\nPreserve these exact bytes.\n';
+    const caseDefinition: ISemanticCase = {
+      id: 'bridge-seeding-test',
+      scenario: 'A disposable adopted repository controls whether its bridge is seeded.',
+      operation: 'verify-bridge-seeding',
+      hostInstructions,
+      input: { developerDirection: 'Test fixture setup.', repositoryEvidence: [] },
+      resourceBudget: {
+        activation: 'direct',
+        minimumMoldeaCommands: 0,
+        maximumMoldeaCommands: 0,
+        maximumMoldeaOutputBytes: 0,
+      },
+      expected: [{ label: 'preserve-host', criterion: 'Preserve the host instructions.' }],
+      forbidden: [{ label: 'unexpected-write', criterion: 'Do not change other fixture content.' }],
+      coverageClaimIds: ['test-fixture'],
+      setup: async ({ repositoryPath }) => {
+        mkdirSync(join(repositoryPath, 'moldea'));
+        writeFileSync(join(repositoryPath, 'moldea', 'moldea.yaml'), 'version: 1\n');
+        writeFileSync(join(repositoryPath, 'moldea', 'project.md'), '# Project\n');
+        return seedManagedAgentsBlock === undefined ? {} : { seedManagedAgentsBlock };
+      },
+    };
+    const { repositoryPath } = await createActorRepository(
+      root,
+      caseDefinition,
+      join(root, 'home'),
+      join(root, 'tools'),
+    );
+    const actual = readFileSync(join(repositoryPath, 'AGENTS.md'), 'utf8');
+    if (seedManagedAgentsBlock === false) assert.equal(actual, hostInstructions);
+    else {
+      assert.ok(actual.startsWith(hostInstructions));
+      assert.ok(actual.includes('<!-- moldea:start -->'));
+      assert.ok(actual.includes('.agents/skills/moldea/scripts/relevance-gate.mjs'));
+    }
+    assert.equal(readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8'), '# Project\n');
+  },
+);
+
 test.each([
-  'eve-warning-unrelated-change',
-  'eve-warning-output-unverified',
-  'eve-warning-read-only-evaluation',
-])('%s preserves scoped warnings and no errors through the installed CLI', async (caseId) => {
-  const { repositoryPath } = await materializeCase(caseId, true);
-  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
-    status: string;
+  ['create-grounded-agent', true],
+  ['maintain-dirty-project', true],
+  ['reconcile-drift-and-boundaries', false],
+  ['retire-agent-coherently', false],
+  ['resist-untrusted-repository-instructions', true],
+] as const)(
+  'migrated fixture %s retains its intended starting validity %s',
+  async (caseId, valid) => {
+    const { repositoryPath } = await materializeCase(caseId, true);
+    const before = await snapshotSemanticWorkspace(repositoryPath);
+    const result = spawnSync(
+      process.execPath,
+      [
+        LAUNCHER_PATH,
+        '--repository',
+        repositoryPath,
+        '--',
+        'validate',
+        '--json',
+        '--max-output-bytes',
+        '65536',
+      ],
+      { encoding: 'utf8', timeout: 15_000 },
+    );
+    assert.ifError(result.error);
+    assert.equal(result.status, valid ? 0 : 1, result.stderr || result.stdout);
+    const envelope = JSON.parse(result.stdout) as {
+      result: { valid: boolean; page: { records: Array<{ code?: string; subject?: string }> } };
+    };
+    assert.equal(envelope.result.valid, valid);
+    if (!valid)
+      assert.ok(
+        envelope.result.page.records.some(({ code }) => code === 'MOLDEA_REFERENCE_MISSING'),
+      );
+    assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
+    if (caseId === 'maintain-dirty-project') {
+      assert.ok(
+        readFileSync(join(repositoryPath, 'src/operator-notes.ts'), 'utf8').includes(
+          'operator draft',
+        ),
+      );
+      const status = spawnSync('git', ['status', '--porcelain=v1'], {
+        cwd: repositoryPath,
+        encoding: 'utf8',
+      });
+      assert.equal(status.status, 0, status.stderr);
+      assert.ok(status.stdout.includes(' M src/operator-notes.ts'));
+      assert.ok(status.stdout.includes('?? notes/'));
+    }
+  },
+);
+
+test('the acceptance fixture exposes the exact warning and confirms only developer-authorized acceptance', async () => {
+  const { repositoryPath } = await materializeCase('accept-warning-with-reason', true);
+  const original = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
     result: {
-      diagnosticCount: number;
       errorCount: number;
       warningCount: number;
+      acceptedWarningCount: number;
       page: {
-        records: Array<{ kind: string; code?: string; details?: Record<string, unknown> }>;
+        records: Array<{
+          code?: string;
+          subject?: string;
+          qualifier?: string;
+          acceptable?: boolean;
+        }>;
       };
     };
   };
-  assert.equal(validation.status, 'valid');
-  assert.equal(validation.result.diagnosticCount, 2);
-  assert.equal(validation.result.errorCount, 0);
-  assert.equal(validation.result.warningCount, 2);
-  const diagnostics = validation.result.page.records.filter(({ kind }) => kind === 'diagnostic');
-  assert.deepEqual(diagnostics.map(({ details }) => details?.['relationship']).sort(), [
-    'agent-output-schema',
-    'runtime-agent',
-  ]);
-  const warning = diagnostics.find(
-    ({ details }) => details?.['relationship'] === 'agent-output-schema',
+  assert.equal(original.result.errorCount, 0);
+  assert.equal(original.result.warningCount, 1, JSON.stringify(original.result.page.records));
+  assert.equal(original.result.acceptedWarningCount, 0);
+  const warning = original.result.page.records.find(
+    ({ code }) => code === 'MOLDEA_IMPACT_PATTERN_UNMATCHED',
   );
-  assert.equal(warning?.code, 'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED');
-  assert.deepEqual(warning?.details, {
-    boundaryVersion: '0.67.0',
-    declaredRange: '>=0.54.3',
-    packageName: 'eve',
-    reason: 'version-dependent-behavior',
-    relationship: 'agent-output-schema',
-  });
-  const inspection = JSON.parse(launcherOutput(repositoryPath, ['inspect'])) as {
-    result: { counts: { diagnostics: number; errors: number; warnings: number } };
-  };
-  assert.deepEqual(
-    {
-      diagnostics: inspection.result.counts.diagnostics,
-      errors: inspection.result.counts.errors,
-      warnings: inspection.result.counts.warnings,
-    },
-    { diagnostics: 2, errors: 0, warnings: 2 },
+  assert.ok(warning);
+  assert.equal(warning.subject, '/moldea/project.md');
+  assert.equal(warning.qualifier, '/deployment/**');
+  assert.equal(warning.acceptable, true);
+  const manifestPath = join(repositoryPath, 'moldea/moldea.yaml');
+  const originalManifest = readFileSync(manifestPath, 'utf8');
+  const reason = 'The optional deployment files are maintained outside this repository.';
+  writeFileSync(
+    manifestPath,
+    originalManifest +
+      `acceptedWarnings:\n  - code: ${warning.code}\n    subject: ${warning.subject}\n    qualifier: ${warning.qualifier}\n    reason: ${reason}\n`,
   );
-});
-
-test('a confirmed Eve defect remains invalid beside an unrelated version warning', async () => {
-  const { repositoryPath } = await materializeCase('eve-warning-mixed-repair', true);
-  const result = spawnSync(
-    process.execPath,
-    [
-      LAUNCHER_PATH,
-      '--repository',
-      repositoryPath,
-      '--',
-      'validate',
-      '--json',
-      '--max-output-bytes',
-      '65536',
-    ],
-    { encoding: 'utf8' },
-  );
-  if (result.error) throw result.error;
-  assert.equal(result.status, 1, result.stderr || result.stdout);
-  const validation = JSON.parse(result.stdout) as {
-    status: string;
+  const accepted = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
     result: {
-      diagnosticCount: number;
-      errorCount: number;
+      valid: boolean;
       warningCount: number;
-      page: { records: Array<{ kind: string; code?: string; details?: Record<string, unknown> }> };
+      acceptedWarningCount: number;
+      page: { records: Array<{ code?: string; accepted?: boolean; reason?: string }> };
     };
   };
-  assert.equal(validation.status, 'invalid');
-  assert.equal(validation.result.diagnosticCount, 4);
-  assert.equal(validation.result.errorCount, 1);
-  assert.equal(validation.result.warningCount, 3);
-  assert.deepEqual(
-    validation.result.page.records
-      .filter(({ kind }) => kind === 'diagnostic')
-      .map(({ code }) => code)
-      .sort(),
+  assert.equal(accepted.result.valid, true);
+  assert.equal(accepted.result.warningCount, 0);
+  assert.equal(accepted.result.acceptedWarningCount, 1);
+  const record = accepted.result.page.records.find(({ code }) => code === warning.code);
+  assert.equal(record?.accepted, true);
+  assert.equal(record?.reason, reason);
+  assert.ok(readFileSync(manifestPath, 'utf8').startsWith(originalManifest));
+});
+
+test('the missing-bridge fixture stays valid and hands off the exact installed block without writes', async () => {
+  const { caseDefinition, repositoryPath } = await materializeCase(
+    'integration-block-missing-handoff',
+    true,
+  );
+  assert.equal(
+    readFileSync(join(repositoryPath, 'AGENTS.md'), 'utf8'),
+    caseDefinition.hostInstructions,
+  );
+  const before = await snapshotSemanticWorkspace(repositoryPath);
+  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+    result: {
+      valid: boolean;
+      warningCount: number;
+      page: { records: Array<{ code?: string; acceptable?: boolean }> };
+    };
+  };
+  assert.equal(validation.result.valid, true);
+  assert.equal(validation.result.warningCount, 1);
+  assert.ok(
+    validation.result.page.records.some(
+      ({ code, acceptable }) => code === 'MOLDEA_INTEGRATION_BLOCK_MISSING' && acceptable,
+    ),
+  );
+  const printed = spawnSync(
+    process.execPath,
     [
-      'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED',
-      'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED',
-      'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED',
-      'EVE_TOOL_NAME_MISMATCH',
+      join(repositoryPath, '.agents/skills/moldea/scripts/managed-agents.mjs'),
+      '--repository',
+      repositoryPath,
+      '--print',
     ],
+    { encoding: 'utf8', timeout: 15_000 },
   );
-  assert.deepEqual(
-    validation.result.page.records
-      .filter(({ code }) => code === 'EVE_RUNTIME_RELATIONSHIP_UNVERIFIED')
-      .map(({ details }) => details?.['relationship'])
-      .sort(),
-    ['agent-output-schema', 'runtime-agent', 'tool-implementation'],
+  assert.ifError(printed.error);
+  assert.equal(printed.status, 0, printed.stderr);
+  assert.equal(
+    printed.stdout,
+    readFileSync(
+      join(repositoryPath, '.agents/skills/moldea/assets/managed-agents-block.md'),
+      'utf8',
+    ).replaceAll('{{skill-path}}', '.agents/skills/moldea'),
   );
+  const smoke = spawnSync(
+    process.execPath,
+    [GATE_PATH, '--repository', repositoryPath, '--diagnose', '--path', 'README.md'],
+    { encoding: 'utf8', timeout: 15_000 },
+  );
+  assert.ifError(smoke.error);
+  assert.equal(smoke.status, 0, smoke.stderr);
+  assert.equal(smoke.stdout, '0\n');
+  assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
 });

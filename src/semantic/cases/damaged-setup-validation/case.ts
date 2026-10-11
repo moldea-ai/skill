@@ -40,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'diagnose-drift-read-only',
       criterion:
-        'The actor validates the canonical foundation despite README formatting drift, leaves all files unchanged, checks setup integration separately, and distinguishes structural validity from semantic behavior.',
+        'The actor validates the canonical foundation despite README formatting drift, leaves all files unchanged, reports integration warnings from validate and smoke-tests the gate, and distinguishes structural validity from semantic behavior.',
     },
   ],
   forbidden: [

@@ -58,7 +58,7 @@ const parseArguments = (): {
   return {
     isAdoptionOnly,
     repositoryRoot: resolve(arguments_[1]),
-    paths: paths.length === 0 ? undefined : normalizeScopePathArguments(paths),
+    paths: paths.length === 0 ? undefined : paths,
   };
 };
 
@@ -66,6 +66,9 @@ const parseArguments = (): {
 const evaluateGate = async (): Promise<boolean> => {
   const parsed = parseArguments();
   const repositoryRoot = await realpath(parsed.repositoryRoot);
+  const context = { repositoryRoot: parsed.repositoryRoot, resolvedRepositoryRoot: repositoryRoot };
+  const argvPaths =
+    parsed.paths === undefined ? undefined : normalizeScopePathArguments(parsed.paths, context);
   if (!(await hasInitializedProject(repositoryRoot))) return false;
   if (parsed.isAdoptionOnly) return true;
   const [manifest, paths] = await Promise.all([
@@ -75,7 +78,7 @@ const evaluateGate = async (): Promise<boolean> => {
       MAX_FOUNDATION_BYTES,
       'reject',
     ),
-    parsed.paths ?? readScopePathInput(process.stdin),
+    argvPaths ?? readScopePathInput(process.stdin, context),
   ]);
   const result = await matchManifestScope({
     manifest: {

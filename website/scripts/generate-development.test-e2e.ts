@@ -43,17 +43,6 @@ test('renders current coverage without recorded results', async ({ page }) => {
         semanticCase.trials.length === 0,
     ),
   ).toBe(true);
-  expect(model.qualification.profiles.length).toBeGreaterThan(0);
-  expect(
-    model.qualification.profiles.every(
-      (profile) =>
-        profile.attempts.length === 0 &&
-        profile.currentAssurance === null &&
-        profile.currentLatest === null &&
-        profile.currentStatus === 'not-recorded',
-    ),
-  ).toBe(true);
-
   await page.goto(toPublicPath(model.semanticEvaluation.route));
   await expect(page.getByText('No recorded attempt', { exact: true }).first()).toBeVisible();
   await expect(
@@ -75,33 +64,11 @@ test('renders current coverage without recorded results', async ({ page }) => {
       'This scenario remains pending because the recorded run stopped at an earlier failure.',
     ),
   ).toHaveCount(0);
-
-  await page.goto(toPublicPath(model.qualification.route));
-  await expect(page.getByText('No recorded attempt', { exact: true }).first()).toBeVisible();
-  await expect(
-    page.getByRole('link', { name: 'Browse the integrations' }).locator('svg.lucide-arrow-down'),
-  ).toHaveCount(1);
-  await expect(page.getByRole('heading', { name: 'Review the cases' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Await the evidence' })).toBeVisible();
-  await expect(page.getByText(/qualification cases/u).first()).toBeVisible();
-
-  const firstProfile = model.qualification.profiles[0];
-  if (firstProfile === undefined) throw new Error('Expected one qualification profile.');
-  await page.goto(toPublicPath(firstProfile.route));
-  await expect(
-    page.getByText('No qualification attempt has been recorded for this profile.'),
-  ).toBeVisible();
-  await expect(page.getByRole('tab', { name: 'Replay' })).toHaveCount(0);
-  await expect(page.getByRole('tab', { name: 'Project' })).toHaveCount(0);
-  await expect(page.getByRole('tab', { name: 'Evidence' })).toHaveCount(0);
-  await expect(page.getByRole('tab', { name: 'Technical' })).toHaveCount(0);
 });
 
 test('keeps clean evidence pages accessible at 320px in both themes', async ({ browser }) => {
   const model = loadWebsiteModel();
-  const firstProfile = model.qualification.profiles[0];
-  if (firstProfile === undefined) throw new Error('Expected one qualification profile.');
-  const routes = [model.semanticEvaluation.route, model.qualification.route, firstProfile.route];
+  const routes = [model.semanticEvaluation.route];
 
   for (const colorScheme of ['light', 'dark'] as const) {
     const context = await browser.newContext({
@@ -134,18 +101,14 @@ test('unselected project runs are absent from navigation and static routes', asy
   await expect(page.getByRole('link', { name: 'Explore project runs' })).toHaveCount(0);
   await expect(
     page.getByRole('navigation', { name: 'Evidence sections' }).getByRole('link'),
-  ).toHaveCount(2);
+  ).toHaveCount(1);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'We tested the work. You can inspect the results.',
   );
-  await expect(page.getByText('No example result selected', { exact: true })).toHaveCount(3);
+  await expect(page.getByText('No example result selected', { exact: true })).toHaveCount(2);
   await expect(page.locator('[data-agent-result]')).toContainText('No workspace result selected');
   await expect(page.locator('[data-agent-result]')).not.toContainText('0 files changed');
   await expect(page.locator('[data-scheduler-observations]')).toHaveCount(0);
-  await expect(page.locator('[data-recorded-connection]')).not.toContainText('file changed');
-  await expect(
-    page.locator('[data-recorded-connection]').getByText('Not recorded', { exact: true }),
-  ).toHaveCount(2);
   expect(
     existsSync(path.join(getRepositoryRoot(), 'website/dist/evidence/project-runs/index.html')),
   ).toBe(false);

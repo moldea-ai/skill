@@ -16,7 +16,6 @@ const REPRESENTATIVE_PATHS = [
   '/docs/capabilities/',
   '/docs/coding-agent-compatibility/',
   '/docs/how-it-works/',
-  '/docs/adapter-qualification/',
   '/docs/repository-format/',
   '/docs/safety-and-privacy/',
   '/examples/',
@@ -24,8 +23,6 @@ const REPRESENTATIVE_PATHS = [
   '/examples/evaluate-and-reconcile/',
   '/evidence/',
   '/evidence/semantic/',
-  '/evidence/qualification/',
-  '/evidence/qualification/custom/custom/',
   '/search/',
 ] as const;
 const CODING_AGENT_MARKS = [
@@ -238,7 +235,7 @@ test('uses the shared primary action interaction states across public surfaces',
   browser,
 }) => {
   const routesWithExpectedActionCounts = [
-    ['/', 7],
+    ['/', 6],
     ['/404.html', 3],
     ['/search/', 3],
     ['/docs/getting-started/', 3],
@@ -581,7 +578,7 @@ test('marks the most specific current desktop and mobile navigation destinations
     await page.goto(toPublicPath('/docs/coding-agent-compatibility/'));
     await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
 
-    await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
+    await page.goto(toPublicPath('/evidence/semantic/'));
     await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Evidence');
 
     const navigationMarker = await page.evaluate(() => {
@@ -768,10 +765,7 @@ test('distinguishes visual product pages from technical references in search', a
   await expect(referencePage.getByRole('heading')).toHaveText('Capability reference');
 });
 
-test('copies exact code across direct loads and client navigation while excluding project diffs', async ({
-  context,
-  page,
-}) => {
+test('copies exact code across direct loads and client navigation', async ({ context, page }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto(toPublicPath('/docs/repository-format/'));
 
@@ -835,18 +829,6 @@ test('copies exact code across direct loads and client navigation while excludin
   expect(
     normalizeClipboardLineEndings(await page.evaluate(() => navigator.clipboard.readText())),
   ).toBe(normalizeClipboardLineEndings((await installCode.textContent()) ?? ''));
-
-  await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
-  const projectDiffBlocks = page.locator('[data-project-patch] [data-code-diff]');
-
-  expect(await projectDiffBlocks.count()).toBeGreaterThan(0);
-  expect(
-    await projectDiffBlocks.evaluateAll((blocks) =>
-      blocks.every((block) => block.getAttribute('data-code-copy') === 'false'),
-    ),
-  ).toBe(true);
-  await expect(page.locator('[data-project-patch] [data-code-copy-button]')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Copy code', exact: true })).toHaveCount(0);
 });
 
 for (const [clipboardMode, expectedFeedback] of [

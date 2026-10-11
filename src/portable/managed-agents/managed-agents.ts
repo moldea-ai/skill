@@ -4,13 +4,7 @@ import { realpath } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import {
-  assertManagedBlock,
-  hasManagedBlock,
-  isMissingFile,
-  readManagedFile,
-  updateManagedFile,
-} from '../managed-block/index.ts';
+import { assertManagedBlock, updateManagedFile } from '../managed-block/index.ts';
 import { isPathWithin, resolveRepositoryFile } from '../repository-files.ts';
 
 const MANAGED_AGENTS_TEMPLATE = '__MOLDEA_MANAGED_AGENTS_BLOCK_JSON__';
@@ -43,26 +37,6 @@ export const renderManagedAgentsBlock = async (repositoryRoot: string): Promise<
   return block;
 };
 
-/**
- * Checks the safe root integration without writing or changing canonical validity.
- * @returns Ready, or a completed integration warning. Unexpected filesystem failures propagate.
- */
-export const checkManagedAgents = async (
-  repositoryRoot: string,
-  block: string,
-): Promise<string> => {
-  try {
-    const { bytes } = await readManagedFile(join(repositoryRoot, 'AGENTS.md'));
-    return hasManagedBlock(bytes, block, 'AGENTS.md')
-      ? 'ready'
-      : 'warning: AGENTS.md moldea block is missing or differs from this installation';
-  } catch (error) {
-    if (isMissingFile(error)) return 'warning: AGENTS.md is missing';
-    if (error instanceof Error && !('code' in error)) return `warning: ${error.message}`;
-    throw error;
-  }
-};
-
 // Node resolves import.meta.url through installation links but preserves the invoked argv path.
 const isDirectExecution =
   process.argv[1] !== undefined &&
@@ -76,14 +50,12 @@ if (isDirectExecution) {
       !isAbsolute(arguments_[1]) ||
       arguments_.length < 2 ||
       arguments_.length > 3 ||
-      (arguments_.length === 3 && arguments_[2] !== '--print' && arguments_[2] !== '--check')
+      (arguments_.length === 3 && arguments_[2] !== '--print')
     )
-      throw new Error('Usage: managed-agents.mjs --repository <absolute-root> [--print | --check]');
+      throw new Error('Usage: managed-agents.mjs --repository <absolute-root> [--print]');
     const repositoryRoot = await realpath(arguments_[1]);
     const block = await renderManagedAgentsBlock(repositoryRoot);
     if (arguments_[2] === '--print') process.stdout.write(block);
-    else if (arguments_[2] === '--check')
-      process.stdout.write(`${await checkManagedAgents(repositoryRoot, block)}\n`);
     else process.stdout.write(`${await updateManagedFile(repositoryRoot, block, 'AGENTS.md')}\n`);
   } catch (error) {
     process.stderr.write(

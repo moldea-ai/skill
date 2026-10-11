@@ -7,7 +7,7 @@ const manifest = require('../package.json');
 const command = process.argv[2];
 const optionValue = (name) => {
   const index = process.argv.indexOf(name);
-  return index === -1 ? null : process.argv[index + 1] ?? null;
+  return index === -1 ? null : (process.argv[index + 1] ?? null);
 };
 const digest = (content) => `sha256:${createHash('sha256').update(content).digest('hex')}`;
 const readAsset = (logicalPath) => {
@@ -40,11 +40,6 @@ if (command === '--version') {
   process.stdout.write(`${manifest.version}\n`);
 } else if (command === 'composition' && process.argv.includes('--json')) {
   writeEnvelope({
-    adapters: ['custom', ...Object.keys(manifest.dependencies)
-      .filter((name) => name.startsWith('@moldea.ai/adapter-'))
-      .map((name) => name.slice('@moldea.ai/adapter-'.length))]
-      .sort()
-      .map((id) => ({ id, repositoryFormatVersions: [1] })),
     minimumGitVersion: '2.30.0',
     packages: Object.entries(manifest.dependencies)
       .filter(([name]) => name.startsWith('@moldea.ai/'))
@@ -57,6 +52,7 @@ if (command === '--version') {
   const project = readAsset('/moldea/project.md');
   const manifestAsset = readAsset('/moldea/moldea.yaml');
   const common = {
+    coverageCounts: { bindings: 0, exportsPassed: 0, exportsFailed: 0, exportsNotChecked: 0 },
     formatVersion: 1,
     snapshotDigest: digest(manifestAsset.content + project.content),
     source: { kind: 'git-working-tree' },
@@ -65,6 +61,7 @@ if (command === '--version') {
   if (command === 'validate') {
     writeEnvelope({
       ...common,
+      acceptedWarningCount: 0,
       diagnosticCount: 0,
       errorCount: 0,
       page: { cursor: null, records: [] },
@@ -86,12 +83,13 @@ if (command === '--version') {
     writeEnvelope({
       ...common,
       counts: {
+        acceptedWarnings: 0,
         agents: 0,
         context: 0,
         decisions: 0,
         diagnostics: 0,
         errors: 0,
-        evidence: 0,
+        coverage: 0,
         metadata: 2,
         mirrors: 0,
         runtimes: 0,
@@ -101,8 +99,16 @@ if (command === '--version') {
       page: {
         cursor: null,
         records: [
-          metadataRecord(manifestAsset, 'manifest', '["000000","metadata","/moldea/moldea.yaml","manifest",null]'),
-          metadataRecord(project, 'project', '["000001","metadata","/moldea/project.md","project",null]'),
+          metadataRecord(
+            manifestAsset,
+            'manifest',
+            '["000000","metadata","/moldea/moldea.yaml","manifest",null]',
+          ),
+          metadataRecord(
+            project,
+            'project',
+            '["000001","metadata","/moldea/project.md","project",null]',
+          ),
         ],
       },
       project: {
@@ -129,7 +135,14 @@ if (command === '--version') {
   const logicalPath = optionValue('--path');
   const relevant = logicalPath === '/src/project-state.js';
   writeEnvelope({
-    counts: { declarations: 1, diagnostics: 0, inputPaths: 1, matchedOwners: relevant ? 1 : 0, matchedPaths: relevant ? 1 : 0, matches: relevant ? 1 : 0 },
+    counts: {
+      declarations: 1,
+      diagnostics: 0,
+      inputPaths: 1,
+      matchedOwners: relevant ? 1 : 0,
+      matchedPaths: relevant ? 1 : 0,
+      matches: relevant ? 1 : 0,
+    },
     inputDigest: digest(logicalPath ?? ''),
     manifestDigest: digest(readFileSync('./moldea/moldea.yaml', 'utf8')),
     page: { cursor: null, records: relevant ? [{ kind: 'match', path: logicalPath }] : [] },

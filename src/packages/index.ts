@@ -14,12 +14,9 @@ export type {
   ICliClosureIdentity,
   ICliClosurePackage,
   ICandidateRegistry,
-  IFetchResource,
   IPackageCandidateArtifact,
   IPackageCandidateManifest,
   IPackSourceWorkspaceCandidateOptions,
-  IPublishedCandidatePackage,
-  IPublishedPackageManifest,
   ISourceCandidatePlan,
   ISourcePackageManifest,
   IValidatedPackageCandidate,
@@ -36,13 +33,3 @@ export {
   resolveBuildPackageClosure,
   resolveRuntimePackageClosure,
 } from './workspace.ts';
-
-// published registry closure
-export {
-  downloadPublishedPackageArtifact,
-  downloadPublishedPackageClosure,
-  resolvePublishedPackageClosure,
-  resolvePublishedPackageManifest,
-  selectPublishedPackageClosure,
-  verifyPublishedPackageArchive,
-} from './published.ts';

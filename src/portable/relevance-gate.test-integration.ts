@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
+  copyFileSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -83,6 +85,53 @@ test('adoption and exact relationship checks return only two bytes', () => {
   assertGateResult(root, Buffer.alloc(0), '0\n');
 });
 
+test.each(['argv', 'stdin'])(
+  'normalizes all supported path spellings in %s mode from a nested cwd',
+  (mode) => {
+    const root = createAdoptedRepository();
+    const cwd = join(root, 'nested');
+    mkdirSync(cwd);
+    for (const path of [
+      'src/refund.js',
+      '/src/refund.js',
+      './src/refund.js',
+      join(root, 'src/refund.js'),
+    ]) {
+      const result = spawnSync(
+        TEST_NODE_EXECUTABLE,
+        [GATE_PATH, '--repository', root, ...(mode === 'argv' ? ['--path', path] : [])],
+        {
+          cwd,
+          encoding: 'utf8',
+          ...(mode === 'stdin' ? { input: Buffer.from(`${path}\0`) } : {}),
+          timeout: 5_000,
+        },
+      );
+      assert.ifError(result.error);
+      assert.deepEqual(
+        { status: result.status, stdout: result.stdout, stderr: result.stderr },
+        { status: 0, stdout: '1\n', stderr: '' },
+      );
+    }
+    const outsideSpelling = join(`${root}-other`, 'src/refund.js');
+    const miss = spawnSync(
+      TEST_NODE_EXECUTABLE,
+      [GATE_PATH, '--repository', root, '--diagnose', '--path', outsideSpelling],
+      { cwd, encoding: 'utf8', timeout: 5_000 },
+    );
+    assert.ifError(miss.error);
+    if (process.platform === 'win32') {
+      assert.equal(miss.status, 1);
+      assert.equal(miss.stdout, '');
+      assert.notEqual(miss.stderr, '');
+    } else {
+      assert.equal(miss.status, 0);
+      assert.equal(miss.stdout, '0\n');
+      assert.equal(miss.stderr, '');
+    }
+  },
+);
+
 test.each(['absent', 'drift', 'markers', 'linked'])(
   'README %s does not control canonical adoption or relationship matching',
   (condition) => {
@@ -145,6 +194,18 @@ test('accepts a repository root reached through a directory link', () => {
 
   assertGateResult(linkedRoot, [], '1\n', true);
   assertGateResult(linkedRoot, ['/src/refund.js'], '1\n');
+  for (const path of [join(root, 'src/refund.js'), join(linkedRoot, 'src/refund.js')]) {
+    assertGateResult(linkedRoot, [path], '1\n');
+    const result = spawnSync(
+      TEST_NODE_EXECUTABLE,
+      [GATE_PATH, '--repository', linkedRoot, '--path', path],
+      { encoding: 'utf8', timeout: 5_000 },
+    );
+    assert.ifError(result.error);
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, '1\n');
+    assert.equal(result.stderr, '');
+  }
 });
 
 test('malformed, unsafe, and oversized inputs fail closed', () => {
@@ -226,6 +287,8 @@ test.each([
   ['--path', 'C:refund.js'],
   ['--path', '//host/share'],
   ['--path', 'src/../refund.js'],
+  ['--path', 'src/./refund.js'],
+  ['--path', './'],
   ['--adoption-only', '--path', 'src/refund.js'],
   ['--unknown'],
   ['--diagnose', '--diagnose'],
@@ -268,4 +331,46 @@ test('diagnostic misses complete successfully, while unsafe foundation or invali
   assert.equal(run().stdout, '0\n');
   mkdirSync(join(root, 'moldea', 'project.md'));
   assert.equal(run().status, 1);
+});
+
+test('the generated gate and bundled scope work without TypeScript or the CLI installed', () => {
+  const root = createAdoptedRepository();
+  const scripts = join(root, '.agents', 'skills', 'moldea', 'scripts');
+  mkdirSync(scripts, { recursive: true });
+  for (const name of ['relevance-gate.mjs', 'repository-files.mjs', 'manifest-scope.cjs']) {
+    copyFileSync(join(resolve(GATE_PATH, '..'), name), join(scripts, name));
+  }
+  assert.equal(existsSync(join(root, 'node_modules')), false);
+  const gate = spawnSync(
+    TEST_NODE_EXECUTABLE,
+    [join(scripts, 'relevance-gate.mjs'), '--repository', root, '--path', 'src/refund.js'],
+    { cwd: root, encoding: 'utf8', timeout: 15_000 },
+  );
+  assert.ifError(gate.error);
+  assert.deepEqual(
+    { status: gate.status, stdout: gate.stdout, stderr: gate.stderr },
+    { status: 0, stdout: '1\n', stderr: '' },
+  );
+  const scope = spawnSync(
+    TEST_NODE_EXECUTABLE,
+    [
+      '--input-type=commonjs',
+      '-e',
+      `
+    const { readFileSync } = require('node:fs');
+    const { join } = require('node:path');
+    const { matchManifestScope } = require(process.argv[1]);
+    matchManifestScope({ manifest: { path: '/moldea/moldea.yaml', content: readFileSync(join(process.argv[2], 'moldea', 'moldea.yaml'), 'utf8') }, paths: ['/src/refund.js'] }).then((result) => process.stdout.write(JSON.stringify(result)));
+  `,
+      join(scripts, 'manifest-scope.cjs'),
+      root,
+    ],
+    { cwd: root, encoding: 'utf8', timeout: 15_000 },
+  );
+  assert.ifError(scope.error);
+  assert.equal(scope.status, 0, scope.stderr || scope.stdout);
+  assert.equal(scope.stderr, '');
+  const result = JSON.parse(scope.stdout) as { relevant: boolean };
+  assert.equal(result.relevant, true);
+  assert.equal(existsSync(join(root, 'node_modules')), false);
 });

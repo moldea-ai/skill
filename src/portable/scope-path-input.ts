@@ -1,32 +1,69 @@
+import { posix, win32 } from 'node:path';
+
 const MAXIMUM_PATH_INPUT_BYTES = 2_097_152;
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
 
+// verified native repository roots, including a caller's directory-link spelling
+export interface IScopePathContext {
+  repositoryRoot: string;
+  resolvedRepositoryRoot: string;
+}
+
 /**
- * Adds the repository-logical prefix without interpreting filesystem paths or changing segments.
+ * Converts supported task-path spellings using verified roots without reading target files.
  * @throws
  * - Invalid scope path input.
  */
-export const normalizeScopePath = (path: string): string => {
+export const normalizeScopePath = (path: string, context: IScopePathContext): string => {
+  const isDriveAbsolute = /^[A-Za-z]:[\\/]/u.test(path);
+  const normalizedPath = path.replace(/^(?:\.\/)+/u, '');
+  const segments = normalizedPath.split(isDriveAbsolute ? /[\\/]/u : '/');
   if (
-    path.length === 0 ||
+    normalizedPath.length === 0 ||
     path.includes('\0') ||
-    /^[A-Za-z]:/u.test(path) ||
-    path.startsWith('\\\\')
+    (path.startsWith('./') && normalizedPath.startsWith('/')) ||
+    normalizedPath.startsWith('//') ||
+    (!isDriveAbsolute && (normalizedPath.includes('\\') || /^[A-Za-z]:/u.test(normalizedPath))) ||
+    segments.some(
+      (segment, index) =>
+        segment === '.' ||
+        segment === '..' ||
+        (segment === '' && !(index === 0 && normalizedPath.startsWith('/'))),
+    )
   ) {
     throw new Error('Invalid scope path input.');
   }
-  return path.startsWith('/') ? path : `/${path}`;
+
+  const usesWindowsPaths = /^[A-Za-z]:[\\/]|^\\\\/u.test(context.resolvedRepositoryRoot);
+  if (isDriveAbsolute && !usesWindowsPaths) throw new Error('Invalid scope path input.');
+  const pathApi = usesWindowsPaths ? win32 : posix;
+  if (isDriveAbsolute || (!usesWindowsPaths && normalizedPath.startsWith('/'))) {
+    for (const root of [context.repositoryRoot, context.resolvedRepositoryRoot]) {
+      const relativePath = pathApi.relative(root, normalizedPath);
+      if (relativePath === '') throw new Error('Invalid scope path input.');
+      if (
+        !pathApi.isAbsolute(relativePath) &&
+        relativePath !== '..' &&
+        !relativePath.startsWith(`..${pathApi.sep}`)
+      ) {
+        return `/${relativePath.split(pathApi.sep).join('/')}`;
+      }
+    }
+    if (isDriveAbsolute) throw new Error('Invalid scope path input.');
+  }
+  return normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
 };
 
 /**
  * Reads and normalizes one bounded NUL-delimited UTF-8 batch for the gate or launcher.
- * @returns The paths in their original order, with repository-logical prefixes.
+ * @returns Repository-logical paths in their original order, including duplicates.
  * @throws
  * - Invalid scope path input.
  * - Scope path input exceeds its byte limit.
  */
 export const readScopePathInput = async (
   inputStream: AsyncIterable<Buffer | string>,
+  context: IScopePathContext,
 ): Promise<string[]> => {
   const chunks: Buffer[] = [];
   let byteLength = 0;
@@ -50,7 +87,7 @@ export const readScopePathInput = async (
     throw new Error('Invalid scope path input.', { cause: error });
   }
 
-  return text.split('\0').map(normalizeScopePath);
+  return text.split('\0').map((path) => normalizeScopePath(path, context));
 };
 
 /**
@@ -59,13 +96,16 @@ export const readScopePathInput = async (
  * - Invalid scope path input.
  * - Scope path input exceeds its byte limit.
  */
-export const normalizeScopePathArguments = (paths: string[]): string[] => {
+export const normalizeScopePathArguments = (
+  paths: string[],
+  context: IScopePathContext,
+): string[] => {
   if (paths.length === 0) throw new Error('Invalid scope path input.');
   let byteLength = 0;
   return paths.map((path) => {
     byteLength += Buffer.byteLength(path, 'utf8') + 1;
     if (byteLength > MAXIMUM_PATH_INPUT_BYTES)
       throw new Error('Scope path input exceeds its byte limit.');
-    return normalizeScopePath(path);
+    return normalizeScopePath(path, context);
   });
 };

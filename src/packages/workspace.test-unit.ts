@@ -1,8 +1,8 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, join, resolve } from 'node:path';
+import { basename, join } from 'node:path';
 import { test } from 'vitest';
 
 import {
@@ -28,17 +28,17 @@ const createWorkspace = (): string => {
   const workspaceRoot = mkdtempSync(join(tmpdir(), 'moldea-source-candidate-test-'));
   writeManifest(workspaceRoot, 'projects/cli', {
     dependencies: {
-      '@moldea.ai/adapter-next': 'workspace:^1.0.0',
+      '@moldea.ai/extension-next': 'workspace:^1.0.0',
       '@moldea.ai/core': 'workspace:^2.0.0',
       '@moldea.ai/repository': 'workspace:^1.0.0',
     },
     name: '@moldea.ai/cli',
     version: '3.2.0',
   });
-  writeManifest(workspaceRoot, 'projects/adapter-next', {
+  writeManifest(workspaceRoot, 'projects/extension-next', {
     dependencies: { '@moldea.ai/core': 'workspace:^2.0.0' },
-    devDependencies: { '@moldea.ai/adapter-static-analysis': 'workspace:*' },
-    name: '@moldea.ai/adapter-next',
+    devDependencies: { '@moldea.ai/build-analysis': 'workspace:*' },
+    name: '@moldea.ai/extension-next',
     version: '1.0.0',
   });
   writeManifest(workspaceRoot, 'projects/core', {
@@ -50,8 +50,8 @@ const createWorkspace = (): string => {
     name: '@moldea.ai/repository',
     version: '1.0.0',
   });
-  writeManifest(workspaceRoot, 'packages/adapter-static-analysis', {
-    name: '@moldea.ai/adapter-static-analysis',
+  writeManifest(workspaceRoot, 'packages/build-analysis', {
+    name: '@moldea.ai/build-analysis',
     version: '0.0.0',
   });
   return workspaceRoot;
@@ -66,15 +66,15 @@ test('discovers projects and resolves dependency-first runtime and build closure
     assert.equal(manifests.size, 5);
     assert.deepEqual(
       runtimeClosure.map(({ name }) => name),
-      ['@moldea.ai/repository', '@moldea.ai/core', '@moldea.ai/adapter-next', '@moldea.ai/cli'],
+      ['@moldea.ai/repository', '@moldea.ai/core', '@moldea.ai/extension-next', '@moldea.ai/cli'],
     );
     assert.deepEqual(
       buildClosure.map(({ name }) => name),
       [
         '@moldea.ai/repository',
         '@moldea.ai/core',
-        '@moldea.ai/adapter-static-analysis',
-        '@moldea.ai/adapter-next',
+        '@moldea.ai/build-analysis',
+        '@moldea.ai/extension-next',
         '@moldea.ai/cli',
       ],
     );
@@ -87,13 +87,13 @@ test('adds selected package roots outside the CLI runtime closure', () => {
   const workspaceRoot = createWorkspace();
 
   try {
-    writeManifest(workspaceRoot, 'projects/adapter-selected', {
+    writeManifest(workspaceRoot, 'projects/extension-selected', {
       dependencies: { '@moldea.ai/core': 'workspace:^2.0.0' },
-      name: '@moldea.ai/adapter-selected',
+      name: '@moldea.ai/extension-selected',
       version: '1.0.0',
     });
     const { runtimeClosure } = createSourceCandidatePlan(workspaceRoot, [
-      '@moldea.ai/adapter-selected',
+      '@moldea.ai/extension-selected',
     ]);
 
     assert.deepEqual(
@@ -101,9 +101,9 @@ test('adds selected package roots outside the CLI runtime closure', () => {
       [
         '@moldea.ai/repository',
         '@moldea.ai/core',
-        '@moldea.ai/adapter-selected',
-        '@moldea.ai/adapter-next',
+        '@moldea.ai/extension-next',
         '@moldea.ai/cli',
+        '@moldea.ai/extension-selected',
       ],
     );
   } finally {
@@ -127,7 +127,7 @@ test('rejects duplicate identities and non-compatible source dependencies', () =
 
     writeManifest(rangedWorkspaceRoot, 'projects/cli', {
       dependencies: {
-        '@moldea.ai/adapter-next': 'workspace:^1.0.0',
+        '@moldea.ai/extension-next': 'workspace:^1.0.0',
         '@moldea.ai/core': 'workspace:2.0.0',
         '@moldea.ai/repository': 'workspace:^1.0.0',
       },
@@ -157,7 +157,7 @@ test('accepts later compatible source patches and rejects breaking-major ranges'
     assert.doesNotThrow(() => createSourceCandidatePlan(compatibleWorkspaceRoot));
     writeManifest(compatibleWorkspaceRoot, 'projects/cli', {
       dependencies: {
-        '@moldea.ai/adapter-next': 'workspace:^1.0.0',
+        '@moldea.ai/extension-next': 'workspace:^1.0.0',
         '@moldea.ai/core': 'workspace:^2.9.7',
         '@moldea.ai/repository': 'workspace:^1.0.0',
       },
@@ -168,7 +168,7 @@ test('accepts later compatible source patches and rejects breaking-major ranges'
 
     writeManifest(breakingWorkspaceRoot, 'projects/cli', {
       dependencies: {
-        '@moldea.ai/adapter-next': 'workspace:^1.0.0',
+        '@moldea.ai/extension-next': 'workspace:^1.0.0',
         '@moldea.ai/core': 'workspace:^3.0.0',
         '@moldea.ai/repository': 'workspace:^1.0.0',
       },
@@ -188,14 +188,6 @@ test('accepts later compatible source patches and rejects breaking-major ranges'
 test('builds and packs only the resolved dynamic closure', () => {
   const workspaceRoot = createWorkspace();
   const artifactDirectory = join(workspaceRoot, 'artifacts');
-  const runtimeCompatibilityPublicationPath = resolve(
-    import.meta.dirname,
-    '..',
-    '..',
-    'fixtures',
-    'tooling',
-    'runtime-compatibility-publication.json',
-  );
   const commands: Array<{ args: string[]; cwd: string }> = [];
 
   try {
@@ -212,31 +204,22 @@ test('builds and packs only the resolved dynamic closure', () => {
           readdirSync(directory)
             .filter((name) => name.endsWith('.tgz'))
             .sort(),
-          ['adapter-next.tgz', 'cli.tgz', 'core.tgz', 'repository.tgz'],
+          ['cli.tgz', 'core.tgz', 'extension-next.tgz', 'repository.tgz'],
         );
         return { artifacts: new Map(), cliVersion: '3.2.0' };
       },
-      runtimeCompatibilityPublicationPath,
       workspaceRoot,
     });
 
     assert.deepEqual(result.runtimePackageNames, [
       '@moldea.ai/repository',
       '@moldea.ai/core',
-      '@moldea.ai/adapter-next',
+      '@moldea.ai/extension-next',
       '@moldea.ai/cli',
     ]);
     assert.equal(commands.filter(({ args }) => args[0] === '--filter').length, 5);
     assert.equal(commands.filter(({ args }) => args[0] === 'pack').length, 4);
     assert.deepEqual(commands[0]?.args, ['--filter', '@moldea.ai/repository', 'build']);
-    assert.equal(
-      result.runtimeCompatibilityPublicationArtifact,
-      'runtime-compatibility-publication.json',
-    );
-    assert.equal(
-      readFileSync(join(artifactDirectory, result.runtimeCompatibilityPublicationArtifact), 'utf8'),
-      readFileSync(runtimeCompatibilityPublicationPath, 'utf8'),
-    );
   } finally {
     rmSync(workspaceRoot, { force: true, recursive: true });
   }

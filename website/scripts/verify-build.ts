@@ -2,20 +2,27 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { extname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { RUNTIME_CATALOG } from '@moldea.ai/website-ui/runtime-catalog';
 import { parseSearchDocuments } from '@moldea.ai/website-ui/search';
 import {
   createCanonicalUrl,
   DEFAULT_BASE_PATH,
   normalizeBasePath,
+  withBase,
 } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../src/lib/generation/generation.ts';
-import { SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
+import { PACKAGES_WEBSITE_URL, SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
+import { RETIRED_PAGE_REDIRECTS } from '../src/lib/redirects/index.ts';
 import { DEFAULT_SITE_URL } from '../src/lib/site/constants.ts';
 
 import { getLogicalPagePath, verifySeoMetadata } from './build-verification/index.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+// the shared runtime grid uses same-tab links to the fixed packages guidance catalog
+const RUNTIME_GUIDANCE_URLS = new Set(
+  RUNTIME_CATALOG.map(({ id }) => `${PACKAGES_WEBSITE_URL}runtimes/#${id}`),
+);
 
 const getWebsiteDirectory = (): string => resolve(fileURLToPath(new URL('..', import.meta.url)));
 
@@ -93,6 +100,7 @@ const verifyHtmlLinks = (
     }
 
     const rel = /\srel="([^"]+)"/.exec(attributes)?.[1]?.split(/\s+/) ?? [];
+    if (!/\starget=/.test(attributes) && RUNTIME_GUIDANCE_URLS.has(href)) continue;
 
     if (
       !/\starget="_blank"/.test(attributes) ||
@@ -217,6 +225,22 @@ export const verifyProductionBuild = (): void => {
     }
   }
 
+  for (const [route, target] of Object.entries(RETIRED_PAGE_REDIRECTS)) {
+    const redirectPath = routeToArtifactPath(distDirectory, route);
+    if (!existsSync(redirectPath)) throw new Error(`Retired route ${route} has no redirect.`);
+    const html = readFileSync(redirectPath, 'utf8');
+    const targetPath = withBase(target, basePath);
+    if (
+      !html.includes(`content="0;url=${targetPath}"`) ||
+      !html.includes(`href="${createCanonicalUrl(target, siteUrl, basePath)}"`) ||
+      !html.includes(`href="${targetPath}"`) ||
+      model.routes.includes(route) ||
+      model.searchRecords.some((record) => record.route === route)
+    ) {
+      throw new Error(`Retired route ${route} has an incorrect redirect or remains indexed.`);
+    }
+  }
+
   const files = listFiles(distDirectory);
   const htmlPaths = files.filter((path) => path.endsWith('.html'));
 
@@ -281,14 +305,6 @@ export const verifyProductionBuild = (): void => {
     }
     if (!searchDocuments.some(({ url }) => url.endsWith(document.route))) {
       throw new Error(`The search index omits ${document.route}.`);
-    }
-  }
-
-  for (const profile of model.qualification.profiles) {
-    const expectedLlmsLine = `- [${profile.title}](${createCanonicalUrl(profile.route, siteUrl, basePath)}): ${profile.description}`;
-
-    if (!llmsText.split('\n').includes(expectedLlmsLine)) {
-      throw new Error(`llms.txt omits qualification profile ${profile.adapterId}.`);
     }
   }
 };

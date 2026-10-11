@@ -24,7 +24,7 @@ export const PRODUCT_PAGE_METADATA = {
       'Follow a booking-agent change from relevant project context through connected code, deterministic checks, and saved knowledge for the next coding session.',
     route: '/how-it-works/',
     searchText:
-      'how it works project context connections changes deterministic checks semantic assessment adapters next coding agent session',
+      'how it works project context connections changes deterministic checks semantic assessment export coverage next coding agent session',
     title: 'How moldea works',
   },
 } as const;
@@ -47,7 +47,6 @@ export const REQUIRED_DOCUMENT_ROUTES = [
   '/docs/how-it-works/',
   '/docs/limitations/',
   '/docs/semantic-evaluation/',
-  '/docs/adapter-qualification/',
   '/docs/repository-format/',
   '/docs/project-state/',
   '/docs/planning-agent-systems/',

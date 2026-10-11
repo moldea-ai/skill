@@ -745,7 +745,7 @@ export const isMoldeaManagedReadmeWriterCommand = (command: unknown): boolean =>
 };
 
 /** Recognizes only the installed AGENTS helper and its closed operation modes. */
-const getManagedAgentsMode = (words: readonly string[]): 'write' | 'print' | 'check' | null => {
+const getManagedAgentsMode = (words: readonly string[]): 'write' | 'print' | null => {
   if (
     !isTrustedLocalExecutable(words[0], 'node') ||
     !SAFE_MANAGED_README_PATHS.has(
@@ -758,14 +758,11 @@ const getManagedAgentsMode = (words: readonly string[]): 'write' | 'print' | 'ch
     return null;
   if (words.length === 4) return 'write';
   if (words.length === 5 && words[4] === '--print') return 'print';
-  if (words.length === 5 && words[4] === '--check') return 'check';
   return null;
 };
 
 /** Returns the exact helper mode without retaining raw command text. */
-export const identifyMoldeaManagedAgentsMode = (
-  command: unknown,
-): 'write' | 'print' | 'check' | null => {
+export const identifyMoldeaManagedAgentsMode = (command: unknown): 'write' | 'print' | null => {
   const words = getStandaloneCommandWords(command);
   return words === null ? null : getManagedAgentsMode(words);
 };

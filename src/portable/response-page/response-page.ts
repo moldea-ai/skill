@@ -56,6 +56,7 @@ const parseResponse = (bytes: Uint8Array, identity: IResponseIdentity): IRespons
         diagnosticCount: result.data.counts.diagnostics,
         errorCount: result.data.counts.errors,
         warningCount: result.data.counts.warnings,
+        acceptedWarningCount: result.data.counts.acceptedWarnings,
       },
       page.status,
     );
@@ -68,7 +69,8 @@ const verifyDiagnosticTotals = (
   status: 'valid' | 'invalid',
 ): void => {
   if (
-    result.diagnosticCount !== result.errorCount + result.warningCount ||
+    result.diagnosticCount !==
+      result.errorCount + result.warningCount + result.acceptedWarningCount ||
     result.valid !== (result.errorCount === 0) ||
     result.valid !== (status === 'valid')
   ) {

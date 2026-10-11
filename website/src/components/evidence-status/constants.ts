@@ -9,10 +9,6 @@ export const EVIDENCE_STATUS_PRESENTATION: Record<
     label: 'Reused',
     tone: 'neutral',
   },
-  errored: {
-    label: 'Execution error',
-    tone: 'danger',
-  },
   failed: {
     label: 'Failed',
     tone: 'danger',

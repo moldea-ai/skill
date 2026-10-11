@@ -63,7 +63,7 @@ const EvidenceRunSchema = z.looseObject({
   provenance: z.record(z.string(), z.string()).default({}),
 });
 
-/** Public evidence bundle contract shared by both producers and the website. */
+/** Public evidence bundle contract shared by the semantic producer and website. */
 export const EvidenceBundleSchema = z.strictObject({
   formatVersion: z.literal(EVIDENCE_FORMAT_VERSION),
   kind: z.enum(EVIDENCE_KINDS),
@@ -84,10 +84,9 @@ export const EvidenceSelectionReferenceSchema = z.strictObject({
   tag: z.string().regex(/^evidence-[a-z0-9][a-z0-9._-]{0,119}$/u),
 });
 
-/** Independently selected semantic and qualification evidence bundles. */
+/** Selected semantic evidence bundle. */
 export const EvidenceSelectionSchema = z.strictObject({
   formatVersion: z.literal(EVIDENCE_FORMAT_VERSION),
-  qualification: EvidenceSelectionReferenceSchema.nullable(),
   semantic: EvidenceSelectionReferenceSchema.nullable(),
 });
 
@@ -118,10 +117,9 @@ const PreparedEvidenceSectionSchema = z.strictObject({
   preparedSha256: Sha256Schema,
 });
 
-/** Atomic manifest for the two exact bundles prepared for website generation. */
+/** Atomic manifest for the exact bundle prepared for website generation. */
 export const EvidencePreparationManifestSchema = z.strictObject({
   formatVersion: z.literal(EVIDENCE_FORMAT_VERSION),
-  qualification: PreparedEvidenceSectionSchema,
   selectionSha256: Sha256Schema,
   semantic: PreparedEvidenceSectionSchema,
 });

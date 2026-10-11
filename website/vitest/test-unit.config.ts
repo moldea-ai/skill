@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     exclude: [...configDefaults.exclude, '**/{_archive,_archives,_backup,_backups}/**'],
-    include: ['src/**/*.test-unit.ts'],
+    include: ['scripts/**/*.test-unit.ts', 'src/**/*.test-unit.ts'],
     testTimeout: 20_000,
   },
 });

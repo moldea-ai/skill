@@ -107,15 +107,14 @@ describe('selected evidence preparation', () => {
     }
   });
 
-  test('prepares independent exact selections, reuses cache, and removes stale bundles', async () => {
+  test('prepares an exact selection, reuses cache, and removes stale bundles', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-preparation-'));
     temporaryRoots.push(root);
     const assetsDirectory = path.join(root, 'assets');
     const selectionPath = path.join(root, 'selection.json');
     const semanticA = createAsset('semantic', 'a');
     const semanticB = createAsset('semantic', 'b');
-    const qualificationA = createAsset('qualification', 'a');
-    for (const asset of [semanticA, semanticB, qualificationA]) {
+    for (const asset of [semanticA, semanticB]) {
       await writeBufferFileAtomically(
         path.join(assetsDirectory, asset.reference.assetName),
         asset.encoded,
@@ -123,7 +122,6 @@ describe('selected evidence preparation', () => {
     }
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
-      qualification: qualificationA.reference,
       semantic: semanticA.reference,
     } satisfies IEvidenceSelection);
     let downloadCount = 0;
@@ -140,7 +138,7 @@ describe('selected evidence preparation', () => {
 
     await prepareSelectedEvidence(options);
     const firstManifest = await prepareSelectedEvidence(options);
-    expect(downloadCount).toBe(2);
+    expect(downloadCount).toBe(1);
     expect(
       JSON.parse(await readFile(path.join(root, 'prepared', firstManifest.semantic.path), 'utf8')),
     ).toMatchObject({ payload: { cases: [{ id: 'semantic-a' }] } });
@@ -159,14 +157,12 @@ describe('selected evidence preparation', () => {
 
     await updateEvidenceSelection(selectionPath, 'semantic', semanticB.reference);
     const secondManifest = await prepareSelectedEvidence(options);
-    expect(downloadCount).toBe(3);
+    expect(downloadCount).toBe(2);
     expect(
       JSON.parse(await readFile(path.join(root, 'prepared', secondManifest.semantic.path), 'utf8')),
     ).toMatchObject({ payload: { cases: [{ id: 'semantic-b' }] } });
     expect((await readdir(path.join(root, 'cache'))).sort()).toStrictEqual(
-      [qualificationA.reference.sha256, semanticB.reference.sha256]
-        .map((sha256) => `${sha256}.json.gz`)
-        .sort(),
+      [semanticB.reference.sha256].map((sha256) => `${sha256}.json.gz`).sort(),
     );
   });
 
@@ -176,15 +172,12 @@ describe('selected evidence preparation', () => {
     const selectionPath = path.join(root, 'selection.json');
     const semanticA = createAsset('semantic', 'a');
     const semanticB = createAsset('semantic', 'b');
-    const qualification = createAsset('qualification', 'a');
     const assetByName = new Map([
       [semanticA.reference.assetName, semanticA.encoded],
       [semanticB.reference.assetName, semanticB.encoded],
-      [qualification.reference.assetName, qualification.encoded],
     ]);
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
-      qualification: qualification.reference,
       semantic: semanticA.reference,
     } satisfies IEvidenceSelection);
     const options = {
@@ -230,10 +223,8 @@ describe('selected evidence preparation', () => {
     temporaryRoots.push(root);
     const selectionPath = path.join(root, 'selection.json');
     const semantic = createAsset('semantic', 'a');
-    const qualification = createAsset('qualification', 'a');
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
-      qualification: qualification.reference,
       semantic: semantic.reference,
     } satisfies IEvidenceSelection);
 
@@ -257,16 +248,11 @@ describe('selected evidence preparation', () => {
     temporaryRoots.push(root);
     const selectionPath = path.join(root, 'selection.json');
     const semanticFixture = createAsset('semantic', 'fixture', 'fixture');
-    const qualification = createAsset('qualification', 'a');
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
-      qualification: qualification.reference,
       semantic: semanticFixture.reference,
     } satisfies IEvidenceSelection);
-    const assetByName = new Map([
-      [semanticFixture.reference.assetName, semanticFixture.encoded],
-      [qualification.reference.assetName, qualification.encoded],
-    ]);
+    const assetByName = new Map([[semanticFixture.reference.assetName, semanticFixture.encoded]]);
 
     await expect(
       prepareSelectedEvidence({

@@ -6,11 +6,6 @@ import { pathToFileURL } from 'node:url';
 
 import { z } from 'zod';
 
-import {
-  parseRuntimeCompatibilityPublication,
-  RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
-} from '../compatibility/index.ts';
-
 import { loadCandidateArtifacts, validateCandidateArtifacts } from './artifacts.ts';
 
 // trusted builds record the exact source commit beside their checksummed package set
@@ -26,7 +21,7 @@ const isOutside = (root: string, candidate: string): boolean => {
 /**
  * Copies the verified CLI closure from a trusted public-package build without repacking it.
  * Both directories must exist, and the separate output directory must be empty.
- * @throws If source identity, checksums, package closure, publication, or output isolation fails.
+ * @throws If source identity, checksums, package closure or output isolation fails.
  */
 export const prepareTrustedCandidate = (options: {
   artifactDirectory: string;
@@ -60,8 +55,6 @@ export const prepareTrustedCandidate = (options: {
     `${orderedChecksums.join('\n')}\n`,
     'Trusted package checksums do not match.',
   );
-  const publication = readFileSync(join(input, RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME));
-  parseRuntimeCompatibilityPublication(publication.toString('utf8'));
   const candidate = loadCandidateArtifacts(input, ['@moldea.ai/website-ui']);
   candidate.artifacts.delete('@moldea.ai/website-ui');
   validateCandidateArtifacts(candidate.artifacts);
@@ -72,7 +65,6 @@ export const prepareTrustedCandidate = (options: {
   for (const artifact of candidate.artifacts.values()) {
     copyFileSync(join(input, artifact.archiveName), join(output, artifact.archiveName));
   }
-  writeFileSync(join(output, RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME), publication);
   writeFileSync(join(output, COMMIT_FILE_NAME), `${packagesCommit}\n`);
   writeFileSync(
     join(output, CHECKSUM_FILE_NAME),

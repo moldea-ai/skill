@@ -1,6 +1,6 @@
 import type { Server } from 'node:http';
 
-// package manifests used by packed and published candidate closures
+// package manifests used by packed candidate closures
 export interface IPackageCandidateManifest {
   name: string;
   version: string;
@@ -18,27 +18,6 @@ export interface IPackageCandidateArtifact {
 export interface IValidatedPackageCandidate {
   artifacts: Map<string, IPackageCandidateArtifact>;
   cliVersion: string;
-}
-
-export interface IPublishedPackageManifest extends IPackageCandidateManifest {
-  dependencies: Record<string, string>;
-  optionalDependencies: Record<string, string>;
-  dist: {
-    integrity: string;
-    shasum: string;
-    tarball: string;
-  };
-}
-
-export interface IPublishedCandidatePackage {
-  name: string;
-  version: string;
-  registryIntegrity: string;
-  registryShasum: string;
-  registryTarballUrl: string;
-  sha256: string;
-  tarballName: string;
-  tarballPath: string;
 }
 
 export interface ISourcePackageManifest {
@@ -61,8 +40,6 @@ export interface ICandidateRegistry {
   server: Server;
 }
 
-export type IFetchResource = typeof fetch;
-
 export type IPackSourceWorkspaceCandidateOptions = {
   artifactDirectory: string;
   executeCommand?: (options: { args: string[]; cwd: string }) => void;
@@ -70,7 +47,6 @@ export type IPackSourceWorkspaceCandidateOptions = {
     artifactDirectory: string,
     selectedRootPackageNames?: string[],
   ) => IValidatedPackageCandidate;
-  runtimeCompatibilityPublicationPath?: string;
   selectedRootPackageNames?: string[];
   workspaceRoot: string;
 };

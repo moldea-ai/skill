@@ -7,10 +7,6 @@ import { pathToFileURL } from 'node:url';
 import { z } from 'zod';
 import { parseAllDocuments } from 'yaml';
 
-import {
-  parseRuntimeCompatibilityPublication,
-  RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
-} from '../compatibility/index.ts';
 import { executeProcess } from '../process/index.ts';
 import { assertReleaseIdentity } from '../release/index.ts';
 import { createCandidateRegistry, loadCandidateArtifacts } from './artifacts.ts';
@@ -509,12 +505,6 @@ export const verifyPackageManagerCandidate = async (
   const environment = EnvironmentSchema.parse(input);
   const skillIdentity = assertReleaseIdentity(path.dirname(path.resolve(environment.skillRoot)));
   const artifactDirectory = path.resolve(environment.artifactDirectory);
-  parseRuntimeCompatibilityPublication(
-    await readFile(
-      path.join(artifactDirectory, RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME),
-      'utf8',
-    ),
-  );
   const candidate = loadCandidateArtifacts(artifactDirectory);
   assert.equal(skillIdentity.cliVersion, candidate.cliVersion);
   const clientDirectory = await mkdtemp(

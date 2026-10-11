@@ -97,6 +97,11 @@ const buildSource = async (
 };
 
 const assertBuiltinRuntimeImports = (metafile: Metafile): void => {
+  if (
+    Object.keys(metafile.inputs).some((input) => /(?:^|\/)node_modules\/typescript\//u.test(input))
+  ) {
+    throw new Error('Portable output must not bundle typescript.');
+  }
   const imports = Object.values(metafile.outputs).flatMap((output) => output.imports);
   const unsupportedImport = imports.find(
     (entry) => !entry.external || (!entry.path.startsWith('node:') && !entry.path.startsWith('./')),

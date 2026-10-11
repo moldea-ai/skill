@@ -48,7 +48,6 @@ export {
 export {
   getCompletedEvidenceRunPath,
   packCompletedEvidenceRun,
-  packLatestCompletedEvidenceRun,
   readCompletedEvidenceRun,
   storeCompletedEvidenceRun,
 } from './storage.ts';

@@ -8,7 +8,7 @@ var __export = (target, all) => {
 
 // src/portable/moldea-cli.ts
 import { spawn } from "node:child_process";
-import { isAbsolute as isAbsolute2 } from "node:path";
+import { isAbsolute as isAbsolute2, resolve as resolve2 } from "node:path";
 
 // src/portable/response-page/response-page.ts
 import { lstat, realpath } from "node:fs/promises";
@@ -13806,7 +13806,7 @@ import { isPathWithin, readRepositoryFile } from "./repository-files.mjs";
 
 // src/portable/response-page/types.ts
 var responseIdentity = {
-  schemaVersion: external_exports.literal(6),
+  schemaVersion: external_exports.literal(7),
   cliVersion: external_exports.string(),
   command: external_exports.enum(["composition", "content", "inspect", "scope", "validate"])
 };
@@ -13828,14 +13828,16 @@ var ValidationResultSchema = external_exports.object({
   valid: external_exports.boolean(),
   diagnosticCount: external_exports.int().nonnegative(),
   errorCount: external_exports.int().nonnegative(),
-  warningCount: external_exports.int().nonnegative()
+  warningCount: external_exports.int().nonnegative(),
+  acceptedWarningCount: external_exports.int().nonnegative()
 });
 var InspectionResultSchema = external_exports.object({
   valid: external_exports.boolean(),
   counts: external_exports.object({
     diagnostics: external_exports.int().nonnegative(),
     errors: external_exports.int().nonnegative(),
-    warnings: external_exports.int().nonnegative()
+    warnings: external_exports.int().nonnegative(),
+    acceptedWarnings: external_exports.int().nonnegative()
   })
 });
 
@@ -13876,7 +13878,8 @@ var parseResponse = (bytes, identity) => {
         valid: result.data.valid,
         diagnosticCount: result.data.counts.diagnostics,
         errorCount: result.data.counts.errors,
-        warningCount: result.data.counts.warnings
+        warningCount: result.data.counts.warnings,
+        acceptedWarningCount: result.data.counts.acceptedWarnings
       },
       page.status
     );
@@ -13884,7 +13887,7 @@ var parseResponse = (bytes, identity) => {
   return page;
 };
 var verifyDiagnosticTotals = (result, status) => {
-  if (result.diagnosticCount !== result.errorCount + result.warningCount || result.valid !== (result.errorCount === 0) || result.valid !== (status === "valid")) {
+  if (result.diagnosticCount !== result.errorCount + result.warningCount + result.acceptedWarningCount || result.valid !== (result.errorCount === 0) || result.valid !== (status === "valid")) {
     throw new Error("Moldea response diagnostic totals contradict its validity or status.");
   }
 };
@@ -13991,15 +13994,34 @@ var readOptionalFileStat = async (filePath) => lstat(filePath).catch((error48) =
 import { resolveRepositoryCli } from "./repository-package.mjs";
 
 // src/portable/scope-path-input.ts
+import { posix, win32 } from "node:path";
 var MAXIMUM_PATH_INPUT_BYTES = 2097152;
 var utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-var normalizeScopePath = (path2) => {
-  if (path2.length === 0 || path2.includes("\0") || /^[A-Za-z]:/u.test(path2) || path2.startsWith("\\\\")) {
+var normalizeScopePath = (path2, context) => {
+  const isDriveAbsolute = /^[A-Za-z]:[\\/]/u.test(path2);
+  const normalizedPath = path2.replace(/^(?:\.\/)+/u, "");
+  const segments = normalizedPath.split(isDriveAbsolute ? /[\\/]/u : "/");
+  if (normalizedPath.length === 0 || path2.includes("\0") || path2.startsWith("./") && normalizedPath.startsWith("/") || normalizedPath.startsWith("//") || !isDriveAbsolute && (normalizedPath.includes("\\") || /^[A-Za-z]:/u.test(normalizedPath)) || segments.some(
+    (segment, index) => segment === "." || segment === ".." || segment === "" && !(index === 0 && normalizedPath.startsWith("/"))
+  )) {
     throw new Error("Invalid scope path input.");
   }
-  return path2.startsWith("/") ? path2 : `/${path2}`;
+  const usesWindowsPaths = /^[A-Za-z]:[\\/]|^\\\\/u.test(context.resolvedRepositoryRoot);
+  if (isDriveAbsolute && !usesWindowsPaths) throw new Error("Invalid scope path input.");
+  const pathApi = usesWindowsPaths ? win32 : posix;
+  if (isDriveAbsolute || !usesWindowsPaths && normalizedPath.startsWith("/")) {
+    for (const root of [context.repositoryRoot, context.resolvedRepositoryRoot]) {
+      const relativePath = pathApi.relative(root, normalizedPath);
+      if (relativePath === "") throw new Error("Invalid scope path input.");
+      if (!pathApi.isAbsolute(relativePath) && relativePath !== ".." && !relativePath.startsWith(`..${pathApi.sep}`)) {
+        return `/${relativePath.split(pathApi.sep).join("/")}`;
+      }
+    }
+    if (isDriveAbsolute) throw new Error("Invalid scope path input.");
+  }
+  return normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`;
 };
-var readScopePathInput = async (inputStream) => {
+var readScopePathInput = async (inputStream, context) => {
   const chunks = [];
   let byteLength = 0;
   for await (const chunk of inputStream) {
@@ -14020,7 +14042,7 @@ var readScopePathInput = async (inputStream) => {
   } catch (error48) {
     throw new Error("Invalid scope path input.", { cause: error48 });
   }
-  return text.split("\0").map(normalizeScopePath);
+  return text.split("\0").map((path2) => normalizeScopePath(path2, context));
 };
 
 // src/portable/moldea-cli.ts
@@ -14099,9 +14121,7 @@ var parseArguments = () => {
       if (optionValue === void 0 || optionValue === "" || optionValue.startsWith("--")) {
         throw new Error(`Launcher option ${argument} requires one value.`);
       }
-      const normalizedValue = (command === "scope" || command === "content") && argument === "--path" ? normalizeScopePath(optionValue) : optionValue;
-      values.set(argument, normalizedValue);
-      commandArguments[index + 1] = normalizedValue;
+      values.set(argument, optionValue);
       index += 1;
       continue;
     }
@@ -14127,14 +14147,11 @@ var parseArguments = () => {
   if (cursor !== void 0 && Buffer.byteLength(cursor, "utf8") > MAXIMUM_CURSOR_BYTES2) {
     throw new Error("The launcher cursor exceeds its byte limit.");
   }
-  const logicalPath = values.get("--path");
-  if (logicalPath !== void 0 && (!logicalPath.startsWith("/") || logicalPath.includes("\\") || logicalPath.includes("\0"))) {
-    throw new Error("The launcher requires one canonical repository-logical path.");
-  }
-  if (command === "content" && logicalPath === void 0) {
+  const selectedPath = values.get("--path");
+  if (command === "content" && selectedPath === void 0) {
     throw new Error("The content command requires --path.");
   }
-  if (command === "scope" && Number(flags.has("--paths-stdin")) + Number(logicalPath !== void 0) !== 1) {
+  if (command === "scope" && Number(flags.has("--paths-stdin")) + Number(selectedPath !== void 0) !== 1) {
     throw new Error("The scope command requires exactly one of --path or --paths-stdin.");
   }
   const forwardedArguments = commandArguments.filter(
@@ -14151,8 +14168,19 @@ var parseArguments = () => {
 };
 var runCli = async () => {
   const parsed = parseArguments();
-  const scopeInput = parsed.command === "scope" && parsed.commandArguments.includes("--paths-stdin") ? Buffer.from(`${(await readScopePathInput(process.stdin)).join("\0")}\0`, "utf8") : void 0;
   const resolvedCli = await resolveRepositoryCli(parsed.repositoryRoot);
+  const context = {
+    repositoryRoot: resolve2(parsed.repositoryRoot),
+    resolvedRepositoryRoot: resolvedCli.repositoryRoot
+  };
+  const pathIndex = parsed.commandArguments.indexOf("--path");
+  if (pathIndex !== -1) {
+    parsed.commandArguments[pathIndex + 1] = normalizeScopePath(
+      parsed.commandArguments[pathIndex + 1],
+      context
+    );
+  }
+  const scopeInput = parsed.command === "scope" && parsed.commandArguments.includes("--paths-stdin") ? Buffer.from(`${(await readScopePathInput(process.stdin, context)).join("\0")}\0`, "utf8") : void 0;
   const responseFiles = parsed.command === "composition" ? {} : await prepareResponseFiles(
     resolvedCli.repositoryRoot,
     { command: parsed.command, cliVersion: resolvedCli.cliVersion },

@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { RUNTIME_CATALOG } from '@moldea.ai/website-ui/runtime-catalog';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
@@ -9,10 +10,7 @@ import {
   PACKAGES_WEBSITE_URL,
   SKILLS_DIRECTORY_URL,
 } from '../../lib/model/constants.ts';
-import {
-  getQualificationReleaseEvidenceSummary,
-  getSemanticReleaseEvidenceSummary,
-} from '../../lib/release-evidence/index.ts';
+import { getSemanticReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -192,7 +190,7 @@ for (const width of HEADING_ROLE_WIDTHS) {
           'why-moldea-title',
           'capabilities-overview-title',
           'behavior-alignment-title',
-          'open-source-system-title',
+          'runtime-guidance-title',
           'repository-format-title',
           'getting-started-title',
           'coding-agent-compatibility-title',
@@ -218,6 +216,57 @@ for (const width of HEADING_ROLE_WIDTHS) {
         'section',
         width,
       );
+    });
+  }
+}
+
+for (const width of [320, 1440]) {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    test(`renders runtime guidance at ${width}px in ${colorScheme}`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await page.goto(toPublicPath('/'));
+      const section = page.getByRole('region', { name: 'Guidance for the runtime you use.' });
+      const grid = section.getByRole('list', { name: 'Runtime guidance' });
+      const links = grid.getByRole('link');
+      await expect(links).toHaveCount(RUNTIME_CATALOG.length);
+      for (const { displayName, id } of RUNTIME_CATALOG) {
+        await expect(grid.getByRole('link', { name: displayName, exact: true })).toHaveAttribute(
+          'href',
+          `${PACKAGES_WEBSITE_URL}runtimes/#${id}`,
+        );
+      }
+      for (const logo of await grid.locator('img').all()) {
+        await expect(logo).toHaveAttribute('alt', '');
+        await expect(logo).toHaveAttribute('loading', 'lazy');
+        await expect(logo).toHaveAttribute('decoding', 'async');
+        await expect(logo).toHaveAttribute('width', '104');
+        await expect(logo).toHaveAttribute('height', '32');
+      }
+      await links.first().scrollIntoViewIfNeeded();
+      await expect
+        .poll(() =>
+          grid
+            .locator('img:visible')
+            .first()
+            .evaluate((image) => (image as HTMLImageElement).naturalWidth),
+        )
+        .toBeGreaterThan(0);
+      await links.first().focus();
+      await page.keyboard.press('Tab');
+      await expect(links.nth(1)).toBeFocused();
+      const focus = await links.nth(1).evaluate((link) => ({
+        outlineWidth: Number.parseFloat(getComputedStyle(link).outlineWidth),
+        boxShadow: getComputedStyle(link).boxShadow,
+      }));
+      expect(focus.outlineWidth > 0 || focus.boxShadow !== 'none').toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+        width,
+      );
+      const accessibility = await new AxeBuilder({ page })
+        .include('[data-runtime-guidance]')
+        .analyze();
+      expect(accessibility.violations).toStrictEqual([]);
     });
   }
 }
@@ -305,10 +354,7 @@ test('leads with project context while retaining the connected-agent example and
 
 test('presents the product story before proof and adoption', async ({ page }) => {
   const model = loadWebsiteModel();
-  const { currentSemanticAssurance, qualification, releaseEvidence, semanticEvaluation } = model;
-  const qualifiedProfileCount = qualification.profiles
-    .map(getQualificationReleaseEvidenceSummary)
-    .filter(({ status }) => status === 'passed').length;
+  const { currentSemanticAssurance, releaseEvidence, semanticEvaluation } = model;
   const semanticReleaseSummary = getSemanticReleaseEvidenceSummary(
     releaseEvidence,
     currentSemanticAssurance,
@@ -322,7 +368,7 @@ test('presents the product story before proof and adoption', async ({ page }) =>
     },
     { level: 2, name: 'One skill for the complete moldea workflow.' },
     { level: 2, name: 'Change one rule. See everything it affects.' },
-    { level: 2, name: 'Same project. Same check. Same result.' },
+    { level: 2, name: 'Guidance for the runtime you use.' },
     { level: 2, name: 'Project context lives beside the code.' },
     { level: 2, name: 'See what was tested.' },
     { level: 2, name: 'One install. One ordinary request.' },
@@ -351,15 +397,13 @@ test('presents the product story before proof and adoption', async ({ page }) =>
 
   const productStoryBackgrounds = await page
     .locator(
-      '[data-home-hero], [data-why-moldea], [data-capabilities-overview], [data-behavior-alignment], [data-open-source-system], [data-repository-format], [data-home-evidence], [data-adoption]',
+      '[data-home-hero], [data-why-moldea], [data-capabilities-overview], [data-behavior-alignment], [data-runtime-guidance], [data-repository-format], [data-home-evidence], [data-adoption]',
     )
     .evaluateAll((sections) =>
       sections.map((section) => getComputedStyle(section).backgroundColor),
     );
   expect(productStoryBackgrounds).toHaveLength(8);
-  productStoryBackgrounds.slice(1).forEach((backgroundColor, index) => {
-    expect(backgroundColor).not.toBe(productStoryBackgrounds[index]);
-  });
+  expect(new Set(productStoryBackgrounds).size).toBeGreaterThan(1);
 
   const capabilityCardBackgrounds = await page
     .locator('[data-capabilities-overview] li > a')
@@ -367,10 +411,6 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   expect(capabilityCardBackgrounds).toHaveLength(6);
   expect(new Set(capabilityCardBackgrounds)).toStrictEqual(new Set(['rgba(0, 0, 0, 0)']));
 
-  await expect(page.getByRole('link', { name: 'Explore adapter packages' })).toHaveAttribute(
-    'href',
-    PACKAGES_WEBSITE_URL,
-  );
   const capabilitiesSection = page.getByRole('region', {
     name: 'One skill for the complete moldea workflow.',
   });
@@ -405,32 +445,17 @@ test('presents the product story before proof and adoption', async ({ page }) =>
   await expect(
     evidenceSection.getByRole('link', { name: 'Inspect the decisions' }),
   ).toHaveAttribute('href', toPublicPath(semanticEvaluation.route));
-  await expect(evidenceSection.getByRole('link', { name: 'Inspect the adapters' })).toHaveAttribute(
-    'href',
-    toPublicPath(qualification.route),
-  );
   await expect(
     evidenceSection.getByText(
       `${(semanticReleaseSummary.result?.passedCaseCount ?? 0) + (semanticReleaseSummary.result?.recoveredCaseCount ?? 0)}/${semanticEvaluation.caseCount}`,
       { exact: true },
     ),
   ).toBeVisible();
-  await expect(
-    evidenceSection.getByText(`${qualifiedProfileCount}/${qualification.profiles.length}`, {
-      exact: true,
-    }),
-  ).toBeVisible();
   await expect(evidenceSection.locator('[data-home-evidence-release-status]')).toHaveCount(0);
-  await expect(evidenceSection.locator('[data-home-evidence-result]')).toHaveCount(2);
+  await expect(evidenceSection.locator('[data-home-evidence-result]')).toHaveCount(1);
   await expect(
     evidenceSection.getByRole('list', { name: 'Verified decision behavior' }).getByRole('listitem'),
   ).toHaveText(['Context choices', 'File changes', 'Project boundaries']);
-  await expect(
-    evidenceSection.getByRole('list', { name: 'Verified adapter behavior' }).getByRole('listitem'),
-  ).toHaveText(['Example project builds', 'Runtime connections', 'Deterministic checks']);
-  await expect(
-    evidenceSection.getByLabel(/runtime adapters represented/u).locator('img'),
-  ).toHaveCount(3);
 
   const evidenceCardBoxes = await evidenceSection
     .locator('[data-home-evidence-card]')
@@ -440,13 +465,9 @@ test('presents the product story before proof and adoption', async ({ page }) =>
         return { x: box.x, y: box.y, width: box.width, height: box.height };
       }),
     );
-  expect(evidenceCardBoxes).toHaveLength(3);
-  expect(
-    Math.abs((evidenceCardBoxes[0]?.height ?? 0) - (evidenceCardBoxes[1]?.height ?? 0)),
-  ).toBeLessThan(2);
-  expect(evidenceCardBoxes[0]?.y).toBe(evidenceCardBoxes[1]?.y);
-  expect(evidenceCardBoxes[2]?.y).toBeGreaterThan(evidenceCardBoxes[0]?.y ?? 0);
-  expect(evidenceCardBoxes[2]?.width).toBeGreaterThan((evidenceCardBoxes[0]?.width ?? 0) * 1.9);
+  expect(evidenceCardBoxes).toHaveLength(2);
+  expect(evidenceCardBoxes[1]?.y).toBeGreaterThan(evidenceCardBoxes[0]?.y ?? 0);
+  expect(evidenceCardBoxes[1]?.width).toBeCloseTo(evidenceCardBoxes[0]?.width ?? 0, 0);
   await expect(evidenceSection.getByRole('link', { name: 'Explore project runs' })).toHaveAttribute(
     'href',
     toPublicPath('/evidence/project-runs/'),
@@ -570,11 +591,11 @@ test('keeps selection visible on primary surfaces in light and dark themes', asy
       expect(selection.difference, `${colorScheme}: ${selection.label}`).toBeGreaterThan(40);
     }
 
-    const repeatableSelectionContrast = await page
-      .locator('[data-deterministic-result]')
+    const decisionSelectionContrast = await page
+      .locator('[data-home-evidence-card="decision"]')
       .evaluate((surface) => {
         const text = surface.querySelector('h3');
-        if (text === null) throw new Error('Repeatable evidence heading is missing.');
+        if (text === null) throw new Error('Decision evidence heading is missing.');
         const selectionStyle = getComputedStyle(text, '::selection');
         const canvas = document.createElement('canvas');
         canvas.width = 1;
@@ -605,8 +626,8 @@ test('keeps selection visible on primary surfaces in light and dark themes', asy
         return (lightest + 0.05) / (darkest + 0.05);
       });
     expect(
-      repeatableSelectionContrast,
-      `${colorScheme}: repeatable evidence selection`,
+      decisionSelectionContrast,
+      `${colorScheme}: decision evidence selection`,
     ).toBeGreaterThan(4.5);
     await context.close();
   }

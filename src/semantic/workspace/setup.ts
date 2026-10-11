@@ -60,6 +60,13 @@ const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
   'initialize-partial-context',
   'initialize-sufficient-context',
 ]);
+const MIGRATED_CASE_IDS = new Set([
+  'create-grounded-agent',
+  'maintain-dirty-project',
+  'reconcile-drift-and-boundaries',
+  'retire-agent-coherently',
+  'resist-untrusted-repository-instructions',
+]);
 const CUSTOM_SETUP_CASE_IDS = new Set([
   'host-plan-command-precedence',
   'plan-uninitialized-zero-agent',
@@ -76,12 +83,6 @@ const UNINITIALIZED_CASE_IDS = new Set([
   'preinit-canonical-looking-review',
   'preinit-explicit-validation',
   'preinit-information',
-]);
-const EVE_VERSION_WARNING_CASE_IDS = new Set([
-  'eve-warning-mixed-repair',
-  'eve-warning-output-unverified',
-  'eve-warning-read-only-evaluation',
-  'eve-warning-unrelated-change',
 ]);
 const EVALUATION_GIT_COMMIT_ENV: NodeJS.ProcessEnv = {
   ...process.env,
@@ -592,127 +593,22 @@ const seedRefundAgent = async (
   }
 };
 
-/** Seeds a provider-named hint without evidence that one official adapter fits the runtime. */
-const seedInventoryOnlyRuntimeEvidence = async (repositoryPath: string): Promise<void> => {
-  await writeScenarioFile(
-    repositoryPath,
-    'src/model-runtime.js',
-    [
-      "export const adapterPackageHint = '@moldea.ai/adapter-openai';",
-      '',
-      'export const createModelRuntime = (modelClient) => ({',
-      '  run: (input) => modelClient.invoke(input),',
-      '});',
-      '',
-    ].join('\n'),
-  );
-  await writeScenarioFile(
-    repositoryPath,
-    'docs/runtime-candidates.md',
-    '# Runtime candidates\n\nDeployment configuration names the OpenAI adapter package as a candidate. This repository does not establish an approved provider integration or adapter contract.\n',
-  );
-};
-
-/** Adds a bounded repository-owned route to the runtime evidence used by planning. */
-const seedRuntimePlanningEvidenceRoute = async (repositoryPath: string): Promise<void> => {
-  await writeScenarioFile(
-    repositoryPath,
-    'README.md',
-    '# Evaluation repository\n\n' +
-      'Ordinary repository guidance lives here.\n\n' +
-      'For runtime planning, inspect [`src/model-runtime.js`](src/model-runtime.js) and [`docs/runtime-candidates.md`](docs/runtime-candidates.md).\n\n' +
-      MANAGED_README_BLOCK,
-  );
-};
-
-/** Seeds real local Eve package, binding, and source evidence without network access. */
-const seedEveRuntimeEvidence = async (repositoryPath: string, caseId: string): Promise<void> => {
-  await seedRefundAgent(repositoryPath, 'Assess refund requests using the declared Eve runtime.', {
-    runtimeId: 'eve',
-    withMirrors: false,
-  });
-  const manifestPath = join(repositoryPath, 'moldea', 'moldea.yaml');
-  const manifest = await readFile(manifestPath, 'utf8');
-  const hasVersionWarning = EVE_VERSION_WARNING_CASE_IDS.has(caseId);
-  await writeScenarioFile(
-    repositoryPath,
-    'moldea/moldea.yaml',
-    manifest +
-      '    bindings:\n      runtimeAgent:\n        path: /src/agent/agent.ts\n        symbol: default\n' +
-      (hasVersionWarning
-        ? '      outputSchema:\n        path: /src/agent/contracts.ts\n        symbol: RefundOutputSchema\n'
-        : ''),
-  );
-  const version =
-    caseId === 'runtime-package-version-mismatch'
-      ? '0.38.0'
-      : hasVersionWarning
-        ? '>=0.54.3'
-        : '0.54.3';
-  await writeScenarioFile(
-    repositoryPath,
-    'src/package.json',
-    caseId === 'eve-invalid-package-metadata'
-      ? '{"dependencies":'
-      : JSON.stringify({ private: true, dependencies: { eve: version } }) + '\n',
-  );
-  const model =
-    caseId === 'eve-source-pattern-unresolved' ? 'process.env.AGENT_MODEL' : "'provider/model'";
-  await writeScenarioFile(
-    repositoryPath,
-    'src/agent/agent.ts',
-    "import { defineAgent } from 'eve';\nexport default defineAgent({ model: " + model + ' });\n',
-  );
-  if (hasVersionWarning) {
-    await writeScenarioFile(
-      repositoryPath,
-      'src/agent/contracts.ts',
-      "export const RefundOutputSchema = { type: 'object' };\n",
-    );
-  }
-  if (caseId === 'eve-warning-mixed-repair') {
-    const triageFixtureRoot = join(
-      REPOSITORY_ROOT,
-      'qualification',
-      'profiles',
-      't6',
-      'cases',
-      'c9',
-      'seed',
-    );
-    await cp(join(triageFixtureRoot, 'agent'), join(repositoryPath, 'triage'), {
-      recursive: true,
-    });
-    await writeScenarioFile(
-      repositoryPath,
-      'triage/package.json',
-      `${JSON.stringify({ private: true, dependencies: { eve: '0.67.0' } })}\n`,
-    );
-    const triageInstruction =
-      '# Triage agent\n\nYou are the `triage` agent. Handle support requests.\n';
-    await writeScenarioFile(repositoryPath, 'triage/instructions.md', triageInstruction);
-    await writeScenarioFile(
-      repositoryPath,
-      'moldea/agents/triage/instruction.md',
-      triageInstruction,
-    );
-    await writeScenarioFile(
-      repositoryPath,
-      'moldea/agents/triage/description.md',
-      'Handles support triage.\n',
-    );
-    const triageManifest = await readFile(join(triageFixtureRoot, 'moldea', 'moldea.yaml'), 'utf8');
-    const triageDefinition = triageManifest.split('  support:\n')[1];
-    if (triageDefinition === undefined) {
-      throw new Error('The Eve triage fixture has no support agent definition.');
-    }
-    await writeScenarioFile(
-      repositoryPath,
-      'moldea/moldea.yaml',
-      (await readFile(manifestPath, 'utf8')) +
-        '  triage:\n' +
-        triageDefinition.replaceAll('/agent/', '/triage/'),
-    );
+/** Copies the bounded, case-owned fixture without depending on retired qualification files. */
+const copyMigratedCaseFiles = async (
+  repositoryPath: string,
+  caseId: string,
+  phase: 'seed' | 'overlay',
+): Promise<void> => {
+  if (!MIGRATED_CASE_IDS.has(caseId)) throw new Error(`Unknown migrated fixture: ${caseId}`);
+  const fixtureRoot = join(REPOSITORY_ROOT, 'src', 'semantic', 'cases', caseId, phase);
+  for (const directory of ['src', 'moldea', 'docs', 'notes']) {
+    const source = join(fixtureRoot, directory);
+    if (existsSync(source))
+      await cp(source, join(repositoryPath, directory), {
+        recursive: true,
+        filter: (entry) =>
+          !entry.split(path.sep).some((name) => EXCLUDED_CONTEXT_DIRECTORY_NAMES.has(name)),
+      });
   }
 };
 
@@ -1492,8 +1388,28 @@ const seedScenarioRepository = async (
   }
 
   await seedAdoptedProject(repositoryPath, caseDefinition);
+  if (MIGRATED_CASE_IDS.has(caseDefinition.id)) {
+    await copyMigratedCaseFiles(repositoryPath, caseDefinition.id, 'seed');
+    if (caseDefinition.id === 'reconcile-drift-and-boundaries') {
+      await copyMigratedCaseFiles(repositoryPath, caseDefinition.id, 'overlay');
+      await unlink(join(repositoryPath, 'src', 'support-agent.ts'));
+    } else if (caseDefinition.id === 'retire-agent-coherently') {
+      await unlink(join(repositoryPath, 'src', 'support-agent.ts'));
+    }
+    return;
+  }
 
   switch (caseDefinition.id) {
+    case 'accept-warning-with-reason':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /deployment/**\n',
+      );
+      break;
+    case 'integration-block-missing-handoff':
+      await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', 'version: 1\n');
+      break;
     case 'evaluate-brief-project-request':
       await writeScenarioFile(
         repositoryPath,
@@ -1509,24 +1425,6 @@ const seedScenarioRepository = async (
     case 'model-workflow-routing':
     case 'unrelated-sdk-maintenance':
       await seedModelWorkflow(repositoryPath);
-      break;
-    case 'available-runtime-insufficient-behavioral-evidence':
-      await seedRefundAgent(
-        repositoryPath,
-        'Use the configured model runtime to assess refund requests.',
-        { runtimeId: 'custom', withMirrors: false },
-      );
-      await seedInventoryOnlyRuntimeEvidence(repositoryPath);
-      break;
-    case 'runtime-package-version-mismatch':
-    case 'eve-source-pattern-unresolved':
-    case 'eve-invalid-package-metadata':
-    case 'eve-later-stable-local-eligibility':
-    case 'eve-warning-mixed-repair':
-    case 'eve-warning-output-unverified':
-    case 'eve-warning-read-only-evaluation':
-    case 'eve-warning-unrelated-change':
-      await seedEveRuntimeEvidence(repositoryPath, caseDefinition.id);
       break;
     case 'adopted-relevance-no-change':
       await writeScenarioFile(
@@ -1766,22 +1664,6 @@ const seedScenarioRepository = async (
         '{"providerHostedCapabilities":{"webSearch":true}}\n',
       );
       break;
-    case 'runtime-adapter-not-installed':
-      await seedRefundAgent(
-        repositoryPath,
-        'Use the project-specific runtime until an established official runtime is executable.',
-        { runtimeId: 'custom', withMirrors: false },
-      );
-      await writeScenarioFile(
-        repositoryPath,
-        'docs/future-runtime.md',
-        '# Future runtime candidate\n\nThe team is evaluating `future-runtime`, but it is not installed or wired in this repository.\n',
-      );
-      break;
-    case 'plan-runtime-inventory-insufficient-evidence':
-      await seedInventoryOnlyRuntimeEvidence(repositoryPath);
-      await seedRuntimePlanningEvidenceRoute(repositoryPath);
-      break;
     case 'plan-existing-project-one-agent':
       await writeScenarioFile(
         repositoryPath,
@@ -1970,12 +1852,6 @@ const seedScenarioRepository = async (
         { runtimeId: 'custom', withMirrors: false },
       );
       break;
-    case 'unavailable-runtime-selection':
-      await seedRefundAgent(repositoryPath, 'Use the declared runtime to assess refund requests.', {
-        runtimeId: 'unavailable-runtime',
-        withMirrors: false,
-      });
-      break;
     case 'read-only-git-helper-suppression':
       await writeScenarioFile(
         repositoryPath,
@@ -2070,13 +1946,15 @@ const seedScenarioRepository = async (
   }
 };
 
-/** Applies the post-commit mutations required by dirty-tree scenarios. */
-
 /** Applies the post-commit mutations required by current review and relevance cases. */
 const applyScenarioWorkingTree = async (
   repositoryPath: string,
   caseDefinition: ISemanticCaseIdentity,
 ): Promise<void> => {
+  if (caseDefinition.id === 'maintain-dirty-project') {
+    await copyMigratedCaseFiles(repositoryPath, caseDefinition.id, 'overlay');
+    return;
+  }
   if (caseDefinition.id === 'read-only-git-helper-suppression') {
     await writeScenarioFile(
       repositoryPath,
@@ -2354,6 +2232,7 @@ export const createSemanticCaseSetup = (caseId: string): ISemanticCaseSetup => {
     }
 
     return {
+      ...(caseId === 'integration-block-missing-handoff' ? { seedManagedAgentsBlock: false } : {}),
       afterBaseline: async () => {
         await applyScenarioWorkingTree(repositoryPath, caseIdentity);
         if (caseId === 'read-only-git-helper-suppression') {

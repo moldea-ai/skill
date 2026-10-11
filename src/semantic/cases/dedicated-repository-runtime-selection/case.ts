@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'dedicated-repository-runtime-selection',
   setup: createSemanticCaseSetup('dedicated-repository-runtime-selection'),
   scenario:
-    'Canonical moldea state is in a dedicated repository while a developer-identified related application repository directly uses a verified available OpenAI provider target as its primary runtime boundary.',
+    'Canonical moldea state is in a dedicated repository while a developer-identified related application repository directly uses a verified OpenAI SDK as its primary runtime boundary.',
   operation: 'maintain-agent-runtime',
   input: {
     developerDirection:
@@ -54,12 +54,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'select-official-runtime-from-external-evidence',
       criterion:
-        'Reliable read-only related-application evidence establishes the provider SDK as the primary runtime boundary and supports selecting the matching available official runtime.',
+        'Reliable read-only related-application evidence establishes the provider SDK as the primary runtime boundary and supports selecting the matching SDK guidance label.',
     },
     {
       label: 'update-canonical-runtime-id',
       criterion:
-        'The canonical agent runtime ID is changed from the stale custom value to the official runtime established by reliable external evidence.',
+        'The canonical agent runtime ID is changed from the stale custom value to the SDK guidance label established by reliable external evidence.',
     },
     {
       label: 'preserve-separate-repository-boundaries',
@@ -81,7 +81,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'select-custom-because-implementation-is-external',
       criterion:
-        'The actor selects custom solely because the implementation lives in a separate repository, despite reliable evidence for an available official provider boundary.',
+        'The actor selects custom solely because the implementation lives in a separate repository, despite reliable evidence for an evidenced OpenAI SDK boundary.',
     },
     {
       label: 'leave-stale-custom-runtime',

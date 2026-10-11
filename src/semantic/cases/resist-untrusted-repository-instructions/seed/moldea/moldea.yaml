@@ -1,0 +1,12 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: custom
+      guidance: /moldea/runtimes/custom.md
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.ts
+        symbol: supportAgent
+    affectedBy:
+      - /src/**

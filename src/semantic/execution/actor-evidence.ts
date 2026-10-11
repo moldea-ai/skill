@@ -148,7 +148,8 @@ const readDiagnosticTotals = (
   result: unknown,
   operation: IMoldeaCliOperation,
   status: IMoldeaStatus,
-): { errorCount: number; warningCount: number } | null => {
+  jsonSchemaVersion: number,
+): { errorCount: number; warningCount: number; acceptedWarningCount: number } | null => {
   if (!isPlainRecord(result) || typeof result['valid'] !== 'boolean') return null;
   const totals = operation === 'inspect' ? result['counts'] : result;
   if (!isPlainRecord(totals)) return null;
@@ -156,17 +157,24 @@ const readDiagnosticTotals = (
     operation === 'inspect' ? totals['diagnostics'] : totals['diagnosticCount'];
   const errorCount = operation === 'inspect' ? totals['errors'] : totals['errorCount'];
   const warningCount = operation === 'inspect' ? totals['warnings'] : totals['warningCount'];
+  const acceptedWarningCount =
+    jsonSchemaVersion < 7
+      ? 0
+      : operation === 'inspect'
+        ? totals['acceptedWarnings']
+        : totals['acceptedWarningCount'];
   if (
     !isNonnegativeSafeInteger(diagnosticCount) ||
     !isNonnegativeSafeInteger(errorCount) ||
     !isNonnegativeSafeInteger(warningCount) ||
-    errorCount + warningCount !== diagnosticCount ||
+    !isNonnegativeSafeInteger(acceptedWarningCount) ||
+    errorCount + warningCount + acceptedWarningCount !== diagnosticCount ||
     result['valid'] !== (errorCount === 0) ||
     status !== (result['valid'] ? 'valid' : 'invalid')
   ) {
     return null;
   }
-  return { errorCount, warningCount };
+  return { errorCount, warningCount, acceptedWarningCount };
 };
 
 const hasConsistentMoldeaEnvelope = (
@@ -220,10 +228,13 @@ const projectMoldeaEnvelope = (
   const hasDiagnosticTotals = operation === 'validate' || operation === 'inspect';
   const diagnosticTotals =
     hasDiagnosticTotals && status !== 'error'
-      ? readDiagnosticTotals(result, operation, status)
+      ? readDiagnosticTotals(result, operation, status, options.jsonSchemaVersion)
       : null;
   if (hasDiagnosticTotals && status !== 'error' && diagnosticTotals === null) return null;
   return {
+    ...(options.jsonSchemaVersion >= 7
+      ? { acceptedWarningCount: diagnosticTotals?.acceptedWarningCount ?? null }
+      : {}),
     cliVersion: options.cliVersion,
     command: operation,
     containsContent: result !== null && containsContentField(result),
@@ -255,6 +266,7 @@ const hasValidMoldeaFact = (
   if (
     !isPlainRecord(fact) ||
     !hasExactKeys(fact, [
+      ...(options.jsonSchemaVersion >= 7 ? ['acceptedWarningCount'] : []),
       'cliVersion',
       'command',
       'containsContent',
@@ -324,11 +336,16 @@ const hasValidMoldeaFact = (
       typeof warningCount !== 'number' ||
       !Number.isSafeInteger(warningCount) ||
       warningCount < 0 ||
-      status !== (errorCount === 0 ? 'valid' : 'invalid')
+      status !== (errorCount === 0 ? 'valid' : 'invalid') ||
+      (options.jsonSchemaVersion >= 7 && !isNonnegativeSafeInteger(fact['acceptedWarningCount']))
     ) {
       return false;
     }
-  } else if (errorCount !== null || warningCount !== null) {
+  } else if (
+    errorCount !== null ||
+    warningCount !== null ||
+    (options.jsonSchemaVersion >= 7 && fact['acceptedWarningCount'] !== null)
+  ) {
     return false;
   }
   return (

@@ -13,6 +13,8 @@ export interface ISemanticActorExecutionEvidenceOptions {
 export type ISemanticActorExecutionOutputFact =
   | {
       kind: 'moldea-cli-envelope';
+      // schema 7 records acceptance separately; historical schemas retain their original shape
+      acceptedWarningCount?: number | null;
       cliVersion: string;
       command: IMoldeaCliOperation;
       containsContent: boolean;

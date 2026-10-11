@@ -40,9 +40,8 @@ const withInstallation = async (
   }
 };
 
-test('print, write and check agree and preserve unrelated instruction bytes', async () => {
+test('print and write agree and preserve unrelated instruction bytes', async () => {
   await withInstallation(async (root, run) => {
-    expect(run(['--check']).stdout).toMatch(/^warning: AGENTS.md is missing/u);
     const printed = run(['--print']);
     expect(printed.status).toBe(0);
     expect(printed.stdout).toContain(
@@ -53,7 +52,6 @@ test('print, write and check agree and preserve unrelated instruction bytes', as
     await expect(lstat(target)).rejects.toThrow();
     expect(run().stdout).toBe('created\n');
     expect(await readFile(target, 'utf8')).toBe(printed.stdout);
-    expect(run(['--check']).stdout).toBe('ready\n');
     expect(run().stdout).toBe('unchanged\n');
     const prefix = '\uFEFF# Host instructions\r\n\r\n';
     const suffix = '\r\nKeep these rules.\r\n';
@@ -61,13 +59,11 @@ test('print, write and check agree and preserve unrelated instruction bytes', as
       target,
       `${prefix}<!-- moldea:start -->\r\nOld\r\n<!-- moldea:end -->\r\n${suffix}`,
     );
-    expect(run(['--check']).stdout).toMatch(/^warning:/u);
     expect(run().stdout).toBe('updated\n');
     expect(await readFile(target, 'utf8')).toBe(
       prefix + printed.stdout.replaceAll('\n', '\r\n') + suffix,
     );
     const before = await readFile(target);
-    expect(run(['--check']).stdout).toBe('ready\n');
     expect(run(['--print']).stdout).toBe(printed.stdout);
     expect(await readFile(target)).toStrictEqual(before);
     expect((await readdir(root)).some((name) => name.endsWith('.tmp'))).toBe(false);
@@ -75,7 +71,7 @@ test('print, write and check agree and preserve unrelated instruction bytes', as
 });
 
 test.each(['link', 'directory', 'ambiguous', 'invalid-utf8', 'oversized'])(
-  'unsafe AGENTS target %s warns read-only and refuses writes',
+  'unsafe AGENTS target %s refuses writes',
   async (condition) => {
     await withInstallation(async (root, run) => {
       const target = join(root, 'AGENTS.md');
@@ -86,7 +82,6 @@ test.each(['link', 'directory', 'ambiguous', 'invalid-utf8', 'oversized'])(
       if (condition === 'invalid-utf8') await writeFile(target, Buffer.from([0xff]));
       if (condition === 'oversized') await writeFile(target, Buffer.alloc(2_097_153, 0x61));
       const before = await lstat(target);
-      expect(run(['--check']).stdout).toMatch(/^warning:/u);
       expect(run().status).toBe(1);
       expect((await lstat(target)).ino).toBe(before.ino);
       expect((await readdir(root)).some((name) => name.endsWith('.tmp'))).toBe(false);
@@ -117,14 +112,12 @@ test('rendering follows a moved installation and rejects use for another reposit
   });
 });
 
-test.each([
-  ['--print', '--check'],
-  ['--target', 'other.md'],
-  ['--skill-path', 'guess'],
-  ['--unknown'],
-])('rejects unsupported helper arguments %o', async (...flags) => {
-  await withInstallation(async (_root, run) => expect(run(flags).status).toBe(1));
-});
+test.each([['--target', 'other.md'], ['--skill-path', 'guess'], ['--unknown']])(
+  'rejects unsupported helper arguments %o',
+  async (...flags) => {
+    await withInstallation(async (_root, run) => expect(run(flags).status).toBe(1));
+  },
+);
 
 test('contained installation links work while unsafe command path text is rejected', async () => {
   await withInstallation(async (root) => {
@@ -184,18 +177,18 @@ test('the rendered command gates from nested cwd and remains valid after a repos
     const moved = `${root}-moved`;
     await rename(root, moved);
     try {
-      const check = spawnSync(
+      const render = spawnSync(
         TEST_NODE_EXECUTABLE,
         [
           join(moved, '.agents', 'skills', 'moldea', 'scripts', 'managed-agents.mjs'),
           '--repository',
           moved,
-          '--check',
+          '--print',
         ],
         { encoding: 'utf8' },
       );
-      expect(check.status).toBe(0);
-      expect(check.stdout).toBe('ready\n');
+      expect(render.status).toBe(0);
+      expect(render.stdout).toBe(printed);
       expect(await readFile(join(moved, 'AGENTS.md'), 'utf8')).toBe(printed);
     } finally {
       await rename(moved, root);

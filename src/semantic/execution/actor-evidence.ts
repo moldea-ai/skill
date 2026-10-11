@@ -497,7 +497,7 @@ const hasValidManagedReadmeFact = (fact: unknown, byteCount: number, exitCode: n
 
 const projectManagedAgentsResult = (
   source: string,
-  mode: 'write' | 'print' | 'check' | null,
+  mode: 'write' | 'print' | null,
   exitCode: number,
 ): ISemanticActorExecutionOutputFact | null => {
   if (exitCode !== 0) return null;
@@ -505,10 +505,6 @@ const projectManagedAgentsResult = (
     for (const status of ['created', 'updated', 'unchanged'] as const)
       if (source === `${status}\n`) return { kind: 'managed-agents-result', status };
   }
-  if (mode === 'check' && source === 'ready\n')
-    return { kind: 'managed-agents-result', status: 'ready' };
-  if (mode === 'check' && /^warning: [^\r\n]+\n$/u.test(source))
-    return { kind: 'managed-agents-result', status: 'warning' };
   return null;
 };
 
@@ -521,11 +517,11 @@ const hasValidManagedAgentsFact = (fact: unknown, byteCount: number, exitCode: n
   )
     return false;
   const status = fact['status'];
-  return status === 'warning'
-    ? byteCount > 'warning: \n'.length && byteCount <= MAX_OTHER_OUTPUT_BYTES
-    : typeof status === 'string' &&
-        ['created', 'updated', 'unchanged', 'ready'].includes(status) &&
-        byteCount === status.length + 1;
+  return (
+    typeof status === 'string' &&
+    ['created', 'updated', 'unchanged'].includes(status) &&
+    byteCount === status.length + 1
+  );
 };
 
 const createOutputEvidence = (
@@ -533,7 +529,7 @@ const createOutputEvidence = (
   operation: IMoldeaCliOperation | null,
   gateMode: 'adoption-only' | 'relationship' | null,
   isManagedReadmeWriter: boolean,
-  agentsMode: 'write' | 'print' | 'check' | null,
+  agentsMode: 'write' | 'print' | null,
   exitCode: number,
   options: ISemanticActorExecutionEvidenceOptions,
   testKind: IRepositoryTestCommandKind | null,

@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-// schema 6 identity; payload interpretation remains owned by the CLI
+// release metadata: schema 6; payload interpretation remains owned by the CLI
 const responseIdentity = {
-  schemaVersion: z.literal(6),
+  schemaVersion: z.literal(7),
   cliVersion: z.string(),
   command: z.enum(['composition', 'content', 'inspect', 'scope', 'validate']),
 };
@@ -29,6 +29,7 @@ export const ValidationResultSchema = z.object({
   diagnosticCount: z.int().nonnegative(),
   errorCount: z.int().nonnegative(),
   warningCount: z.int().nonnegative(),
+  acceptedWarningCount: z.int().nonnegative(),
 });
 
 export const InspectionResultSchema = z.object({
@@ -37,6 +38,7 @@ export const InspectionResultSchema = z.object({
     diagnostics: z.int().nonnegative(),
     errors: z.int().nonnegative(),
     warnings: z.int().nonnegative(),
+    acceptedWarnings: z.int().nonnegative(),
   }),
 });
 

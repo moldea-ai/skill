@@ -1,8 +1,9 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { parseIntegrationBlock, RECOGNIZED_RUNTIME_IDS } from '@moldea.ai/core';
 import { afterEach, test } from 'vitest';
 
 import {
@@ -104,4 +105,26 @@ test('rejects missing, duplicate, malformed, and disagreeing release versions', 
     () => createPortableSkillBehaviorDigest(createRepository({ localToolingVersion: '5.0.1' })),
     /does not match metadata.version/u,
   );
+});
+
+test('runtime guidance covers every Core runtime label exactly once', () => {
+  const guidance = readFileSync(
+    resolve(import.meta.dirname, '../../moldea/references/runtime-guidance.md'),
+    'utf8',
+  );
+  const ids = [...guidance.matchAll(/^\| `([a-z0-9-]+)` \|/gmu)].map((match) => match[1]);
+  assert.deepEqual(ids.toSorted(), [...RECOGNIZED_RUNTIME_IDS].toSorted());
+});
+
+test('the integration asset parses to its installed path and names existing contract files', () => {
+  const skillRoot = resolve(import.meta.dirname, '../../moldea');
+  const skillPath = '.agents/skills/moldea';
+  const block = readFileSync(join(skillRoot, 'assets/managed-agents-block.md'), 'utf8').replaceAll(
+    '{{skill-path}}',
+    skillPath,
+  );
+  assert.deepEqual(parseIntegrationBlock(block), { kind: 'found', skillPath });
+  for (const file of ['SKILL.md', 'scripts/relevance-gate.mjs', 'assets/managed-agents-block.md']) {
+    assert.equal(statSync(join(skillRoot, file)).isFile(), true, file);
+  }
 });

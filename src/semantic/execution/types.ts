@@ -38,7 +38,7 @@ export type ISemanticActorExecutionOutputFact =
     }
   | {
       kind: 'managed-agents-result';
-      status: 'created' | 'updated' | 'unchanged' | 'ready' | 'warning';
+      status: 'created' | 'updated' | 'unchanged';
     }
   | {
       cancelledCount: 0;

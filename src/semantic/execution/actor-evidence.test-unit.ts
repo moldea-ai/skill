@@ -890,12 +890,12 @@ test('enforces activation-specific moldea operation ordering', () => {
   );
 });
 
-test('projects only completed AGENTS write/check facts and no diagnostic failure hit', () => {
+test('projects only completed AGENTS write facts and no diagnostic failure hit', () => {
   const helper = 'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt';
   for (const [suffix, output, status] of [
     ['', 'created\n', 'created'],
-    [' --check', 'ready\n', 'ready'],
-    [' --check', 'warning: AGENTS.md is missing\n', 'warning'],
+    ['', 'updated\n', 'updated'],
+    ['', 'unchanged\n', 'unchanged'],
   ]) {
     const result = projectActorExecutionEvidenceEvent(
       createEvent(helper + suffix, output!),
@@ -907,7 +907,9 @@ test('projects only completed AGENTS write/check facts and no diagnostic failure
   }
   for (const [command, output, exitCode] of [
     [helper + ' --print', 'created\n', 0],
-    [helper + ' --check', 'ready\n', 1],
+    [helper, 'created\n', 1],
+    [helper, 'ready\n', 0],
+    [helper, 'warning: AGENTS.md is missing\n', 0],
     [GATE_COMMAND + ' --diagnose --path README.md', '1\n', 1],
   ] as const) {
     const result = projectActorExecutionEvidenceEvent(

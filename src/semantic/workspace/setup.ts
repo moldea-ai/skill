@@ -2410,6 +2410,7 @@ export const createActorRepository = async (
     })());
 
   if (
+    setupResult.seedManagedAgentsBlock !== false &&
     existsSync(join(repositoryPath, 'moldea', 'moldea.yaml')) &&
     existsSync(join(repositoryPath, 'moldea', 'project.md'))
   ) {

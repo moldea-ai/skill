@@ -915,3 +915,48 @@ test('a confirmed Eve defect remains invalid beside an unrelated version warning
     ['agent-output-schema', 'runtime-agent', 'tool-implementation'],
   );
 });
+
+test.each([undefined, false])(
+  'fixture bridge seeding honors opt-out %s',
+  async (seedManagedAgentsBlock) => {
+    const root = mkdtempSync(join(tmpdir(), 'moldea-seed-'));
+    temporaryRoots.push(root);
+    const hostInstructions = '# Host instructions\n\nPreserve these exact bytes.\n';
+    const caseDefinition: ISemanticCase = {
+      id: 'bridge-seeding-test',
+      scenario: 'A disposable adopted repository controls whether its bridge is seeded.',
+      operation: 'verify-bridge-seeding',
+      hostInstructions,
+      input: { developerDirection: 'Test fixture setup.', repositoryEvidence: [] },
+      resourceBudget: {
+        activation: 'direct',
+        minimumMoldeaCommands: 0,
+        maximumMoldeaCommands: 0,
+        maximumMoldeaOutputBytes: 0,
+      },
+      expected: [{ label: 'preserve-host', criterion: 'Preserve the host instructions.' }],
+      forbidden: [{ label: 'unexpected-write', criterion: 'Do not change other fixture content.' }],
+      coverageClaimIds: ['test-fixture'],
+      setup: async ({ repositoryPath }) => {
+        mkdirSync(join(repositoryPath, 'moldea'));
+        writeFileSync(join(repositoryPath, 'moldea', 'moldea.yaml'), 'version: 1\n');
+        writeFileSync(join(repositoryPath, 'moldea', 'project.md'), '# Project\n');
+        return seedManagedAgentsBlock === undefined ? {} : { seedManagedAgentsBlock };
+      },
+    };
+    const { repositoryPath } = await createActorRepository(
+      root,
+      caseDefinition,
+      join(root, 'home'),
+      join(root, 'tools'),
+    );
+    const actual = readFileSync(join(repositoryPath, 'AGENTS.md'), 'utf8');
+    if (seedManagedAgentsBlock === false) assert.equal(actual, hostInstructions);
+    else {
+      assert.ok(actual.startsWith(hostInstructions));
+      assert.ok(actual.includes('<!-- moldea:start -->'));
+      assert.ok(actual.includes('.agents/skills/moldea/scripts/relevance-gate.mjs'));
+    }
+    assert.equal(readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8'), '# Project\n');
+  },
+);

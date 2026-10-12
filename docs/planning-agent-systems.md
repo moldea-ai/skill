@@ -8,13 +8,13 @@ order: 50
 
 # Plan from the objective, not from an agent count
 
-After initialization, describe the agent system you want to build. Your coding agent uses moldea to help divide responsibilities among agents, reusable Agent Skills, ordinary software, services, and human control. No special terminology or existing agent setup is required.
+After initialization, describe the agent system you want to build. Your coding agent uses `moldea` to help divide responsibilities among agents, reusable Agent Skills, ordinary software, services, and human control. No special terminology or existing agent setup is required.
 
 > **You**
 >
 > Plan an agent system for personalized ecommerce promotions. Decide which responsibilities should remain deterministic.
 
-Initialize moldea in the repository before requesting repository-dependent agent-system planning. The operation is read-only and does not initialize moldea, install tooling, create a canonical plan file, or begin implementation. Before adoption, the repository-bound skill abstains while the coding host remains free to perform its own generic planning workflow.
+`Initialize moldea` in the repository before requesting repository-dependent agent-system planning. The operation is read-only and does not initialize `moldea`, install tooling, create a canonical plan file, or begin implementation. Before adoption, the repository-bound skill abstains while the coding host remains free to perform its own generic planning workflow.
 
 Runtime selection remains optional unless requested or material to the recommendation. Runtime IDs label the SDK guidance to use, not compatibility or certification. Composition lists the available labels and installed CLI/Core versions. Establish the actual integration from repository evidence; resolve SDK questions through bounded queries of its installed type definitions and focused source-owned documentation. Stop at unresolved dynamic boundaries and name the smallest reliable resolver. Website access is not a prerequisite.
 

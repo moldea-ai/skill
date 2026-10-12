@@ -104,7 +104,9 @@ const { scenarioId, trials } = Astro.props;
               </dd>
             </div>
             <div>
-              <dt class="text-muted-foreground">moldea CLI use</dt>
+              <dt class="text-muted-foreground">
+                <code class="inline-code">moldea CLI</code> use
+              </dt>
               <dd class="mt-1">
                 {trial.actorResourceEvidence.commandCount} commands,{' '}
                 {trial.actorResourceEvidence.stdoutByteCount} stdout bytes,{' '}
@@ -112,7 +114,9 @@ const { scenarioId, trials } = Astro.props;
               </dd>
             </div>
             <div>
-              <dt class="text-muted-foreground">Largest moldea response</dt>
+              <dt class="text-muted-foreground">
+                Largest <code class="inline-code">moldea</code> response
+              </dt>
               <dd class="mt-1 font-mono text-xs break-all">
                 {trial.actorResourceEvidence.maximumInvocationByteCount} bytes
               </dd>

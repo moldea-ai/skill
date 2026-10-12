@@ -10,7 +10,7 @@ order: 20
 
 Start with the [visual Capabilities page](/capabilities/) for six visual journeys through project knowledge, agent design, maintenance, and repair. This reference explains the exact behavior and boundaries.
 
-moldea keeps durable project knowledge in Git and brings relevant context into coding-agent planning and development. You can ask to use saved rules when planning an ordinary API change, maintain approved project facts, or organize accumulated context without creating a runtime agent.
+`moldea` keeps durable project knowledge in Git and brings relevant context into coding-agent planning and development. You can ask to use saved rules when planning an ordinary API change, maintain approved project facts, or organize accumulated context without creating a runtime agent.
 
 The same foundation supports the agent and skill capabilities below. Direct context requests and declared implementation relationships determine which knowledge is relevant; the skill does not load all project context for every task.
 
@@ -33,7 +33,7 @@ Focused context, decisions, runtime guidance, agents, or unresolved requirements
 
 ## Create and refine agents
 
-moldea can help a coding agent establish:
+`moldea` can help a coding agent establish:
 
 - one clear agent responsibility
 - concise descriptions and complete model-facing instructions
@@ -49,7 +49,7 @@ The skill checks that declared behavior is supported by implementation and does 
 
 ## Create and refine Agent Skills
 
-moldea can help a coding agent understand, create, and maintain repository-local Agent Skills as complete reusable artifacts:
+`moldea` can help a coding agent understand, create, and maintain repository-local Agent Skills as complete reusable artifacts:
 
 - a precise activation description and valid portable frontmatter
 - a concise universal `SKILL.md` workflow
@@ -66,7 +66,7 @@ After adoption, a small managed AGENTS.md block checks host-known ordinary paths
 
 The coding agent classifies supplied knowledge by meaning rather than format, traces affected context and behavior, and updates only representations whose truth actually changed. Clear current truth and explicit corrections can be maintained. Proposed, transient, speculative, secret, or materially ambiguous information is omitted or clarified first. Each affected fact stays with its established authoritative owner, so ordinary maintenance does not create parallel current truth. A correct outcome can be no `/moldea/**` edit.
 
-The canonical foundation files establish adoption independently of README or AGENTS.md. Explicit setup checks diagnose missing foundation evidence and warn about missing integration without writes or invented policy. Missing integration does not invalidate the project or block explicit moldea work.
+The canonical foundation files establish adoption independently of README or AGENTS.md. Explicit setup checks diagnose missing foundation evidence and warn about missing integration without writes or invented policy. Missing integration does not invalidate the project or block explicit `moldea` work.
 
 ## Compress accumulated project context
 
@@ -100,13 +100,13 @@ Warnings offer two paths: ask the coding agent to fix the cause, or explicitly a
 
 ## Repair a project
 
-When an initialized project has broken, missing, stale, or incomplete moldea state, ask the coding agent to `Fix moldea`. The coding agent establishes the current failure from project evidence, repairs the smallest coherent surface, and verifies the result before reporting completion.
+When an initialized project has broken, missing, stale, or incomplete `moldea` state, ask the coding agent to `Fix moldea`. The coding agent establishes the current failure from project evidence, repairs the smallest coherent surface, and verifies the result before reporting completion.
 
 Repair may recover necessary repository-local CLI tooling to the installed skill’s exact validated repair target, using the established package manager with scripts disabled. It preserves host restrictions, unrelated dependency locks, and healthy newer compatible tooling. Downgrades and explicit version-policy conflicts need direction. Repair does not silently initialize an unadopted project, invent policy, broadly upgrade dependencies, or hide unresolved ambiguity. See [the evaluation and repair workflow](/docs/evaluate-reconcile-validate/#repair-a-project) for the complete contract.
 
 ## Work across dedicated repositories
 
-When canonical moldea state and application implementation live in different repositories, the coding agent can inspect both when the developer identifies and authorizes them. Each repository remains independently owned and verified; moldea never invents cross-repository bindings or atomicity.
+When canonical `moldea` state and application implementation live in different repositories, the coding agent can inspect both when the developer identifies and authorizes them. Each repository remains independently owned and verified; `moldea` never invents cross-repository bindings or atomicity.
 
 ## Preserve authority and privacy
 
@@ -116,7 +116,7 @@ The skill respects the developer's scope, protected coding instructions, unrelat
 
 See [Limitations](/docs/limitations/) for practical handling of warnings, unfinished checks, large inputs, and repair boundaries.
 
-moldea does not:
+`moldea` does not:
 
 - initialize an unrelated project without explicit adoption intent
 - create agents merely because an AI-enabled idea was mentioned
@@ -124,4 +124,4 @@ moldea does not:
 - invent tools, schemas, permissions, runtime support, or failure behavior
 - treat validation as proof of semantic correctness
 - require hidden semantic state, background services, or internal sub-agents
-- send repository content to moldea Cloud without explicit authorization
+- send repository content to `moldea Cloud` without explicit authorization

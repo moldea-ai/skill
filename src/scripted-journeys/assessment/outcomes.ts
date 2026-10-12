@@ -5,14 +5,14 @@ export const deriveStepOutcome = (
   checks: IJourneyCheckResult[],
   dependencies: IJourneyOutcome[],
 ): IJourneyOutcome => {
+  if (checks.some((check) => check.status === 'failed')) return 'failed';
   if (
+    checks.length === 0 ||
     dependencies.some((status) => status !== 'passed') ||
     checks.some((check) => check.status === 'blocked')
   )
     return 'blocked';
-  return checks.length > 0 && checks.every((check) => check.status === 'passed')
-    ? 'passed'
-    : 'failed';
+  return 'passed';
 };
 
 /** Requires every step to pass before a journey passes. */

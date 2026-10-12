@@ -6,11 +6,102 @@ import { expect, test } from 'vitest';
 
 import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { createArchive } from '../bundle/index.ts';
-import { copyTree, readJson, treeHashes } from '../harness/index.ts';
+import {
+  copyTree,
+  exportWorkspace,
+  nextRequest,
+  readJson,
+  recordStep,
+  setupWorkspace,
+  treeHashes,
+} from '../harness/index.ts';
+import { loadScriptedJourneys } from '../journeys/index.ts';
 import { createHarnessFixture, recordFixturePlatform } from '../testing/index.ts';
 import { JourneysExportSchema } from '../index.ts';
 
 import { assessJourneys } from './assess.ts';
+
+test('a missing initialization lockfile fails its criterion without suppressing blocked validation', async () => {
+  const scratch = await mkdtemp(path.join(os.tmpdir(), 'journeys-lockfile-'));
+  try {
+    const definition = (
+      await loadScriptedJourneys(path.join(process.cwd(), 'src/scripted-journeys/journeys'))
+    ).find((journey) => journey.id === 'new-project')!;
+    const fixture = await createHarnessFixture(scratch, process.cwd(), [definition]);
+    const workspace = path.join(scratch, 'workspace');
+    await setupWorkspace(workspace, {
+      runId: '20261012-abcdef',
+      sha256: fixture.hash,
+      platform: 'chatgpt',
+      bundleZip: fixture.bundleZip,
+      bundleDirectory: fixture.bundleDirectory,
+      homeDirectory: path.join(scratch, 'home'),
+    });
+    const repository = path.join(workspace, 'work/new-project');
+    for (const step of definition.steps) {
+      await nextRequest(workspace);
+      if (step.id === 'initialize') {
+        await mkdir(path.join(repository, 'moldea'));
+        await writeFile(path.join(repository, 'moldea/moldea.yaml'), 'formatVersion: 1\n');
+        await writeFile(path.join(repository, 'moldea/project.md'), '# Parcel desk\n');
+        await writeFile(path.join(repository, 'README.md'), '<!-- moldea:start -->\n');
+        await writeFile(path.join(repository, 'AGENTS.md'), '<!-- moldea:start -->\n');
+        await writeJsonFileAtomically(path.join(repository, 'package.json'), {
+          devDependencies: { '@moldea.ai/cli': '11.0.0' },
+        });
+      }
+      const capture = path.join(workspace, 'capture/new-project', step.id);
+      await writeFile(path.join(capture, 'reply.md'), 'Check the pickup code.');
+      await writeJsonFileAtomically(path.join(capture, 'activity.json'), {
+        commands: [],
+        reads: [],
+        writes: [],
+        notes: [],
+      });
+      await recordStep(
+        workspace,
+        path.join(capture, 'reply.md'),
+        path.join(capture, 'activity.json'),
+      );
+    }
+    const exported = await exportWorkspace(workspace, true);
+    const archive = path.join(scratch, 'export.zip');
+    await createArchive(exported, archive);
+    const closure = path.join(scratch, 'closure');
+    await mkdir(closure);
+    const assessment = await assessJourneys({
+      repositoryRoot: process.cwd(),
+      bundlePath: fixture.bundleZip,
+      sha256: fixture.hash,
+      exportPaths: [archive],
+      installedClosure: closure,
+      definitions: [definition],
+      persist: false,
+    });
+    const journey = assessment.platforms[0]!.journeys[0]!;
+    const initialization = journey.steps.find((step) => step.id === 'initialize')!;
+    expect(initialization.checks.map((check) => check.status)).toStrictEqual([
+      'passed',
+      'passed',
+      'passed',
+      'passed',
+      'passed',
+      'failed',
+      'blocked',
+    ]);
+    expect(initialization.status).toBe('failed');
+    expect(journey.status).toBe('failed');
+    expect(
+      journey.steps.slice(2).map((step) => ({ status: step.status, checks: step.checks })),
+    ).toStrictEqual([
+      { status: 'blocked', checks: [] },
+      { status: 'blocked', checks: [] },
+      { status: 'blocked', checks: [] },
+    ]);
+  } finally {
+    await rm(scratch, { recursive: true, force: true });
+  }
+});
 
 test('assessment reconstructs real harness exports, carries provenance, and rejects tampering and unsafe intermediate patches', async () => {
   const scratch = await mkdtemp(path.join(os.tmpdir(), 'journeys-assessment-'));

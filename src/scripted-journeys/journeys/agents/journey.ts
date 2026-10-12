@@ -1,5 +1,11 @@
 import { defineScriptedJourney } from '../index.ts';
 
+// reject stale references to the retired implementation or its focused test
+const RETIRED_FILE_REFERENCE_PATTERN = '^(?![\\s\\S]*triage-agent(?:\\.test-unit)?\\.js)[\\s\\S]*$';
+// historical retirement notes may name removed files without claiming they still exist
+const RETIRED_README_CLAIM_PATTERN =
+  '^(?![\\s\\S]*(?:src/triage-agent\\.js\\s+contains\\b|The existing focused test checks the invocation contract))[\\s\\S]*$';
+
 // exercise one evidenced custom invocation through planning, registration, maintenance, and retirement
 export const scriptedJourney = defineScriptedJourney({
   id: 'agents',
@@ -67,6 +73,17 @@ export const scriptedJourney = defineScriptedJourney({
       checks: [
         { kind: 'path-absent', path: 'moldea/agents/parcel-triage' },
         { kind: 'path-absent', path: 'src/triage-agent.js' },
+        { kind: 'path-absent', path: 'src/triage-agent.test-unit.js' },
+        {
+          kind: 'content-matches',
+          path: 'package.json',
+          pattern: RETIRED_FILE_REFERENCE_PATTERN,
+        },
+        {
+          kind: 'content-matches',
+          path: 'README.md',
+          pattern: RETIRED_README_CLAIM_PATTERN,
+        },
         { kind: 'path-exists', path: 'moldea/context/triage.md' },
         { kind: 'validate', result: 'valid' },
       ],

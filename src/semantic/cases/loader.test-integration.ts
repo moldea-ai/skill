@@ -102,6 +102,13 @@ describe('semantic case discovery', () => {
       'repair-readme-drift',
       'repair-ambiguous-foundation',
       'repair-healthy-project',
+      'repair-connection-drift',
+      'repair-continuation-after-change',
+      'repair-continuation-manifest-change',
+      'maintain-bound-connection',
+      'maintain-relationship-after-move',
+      'maintain-tool-registration',
+      'maintain-shared-module-boundary',
     ]) {
       const caseDefinition = cases.find(({ id }) => id === caseId);
       expect(caseDefinition, caseId).toBeDefined();

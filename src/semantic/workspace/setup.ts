@@ -62,7 +62,9 @@ const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
 ]);
 const MIGRATED_CASE_IDS = new Set([
   'create-grounded-agent',
+  'maintain-bound-connection',
   'maintain-dirty-project',
+  'maintain-tool-registration',
   'reconcile-drift-and-boundaries',
   'retire-agent-coherently',
   'resist-untrusted-repository-instructions',
@@ -419,6 +421,80 @@ const seedAdoptedProject = async (
 ): Promise<void> => {
   await seedSemanticTooling(repositoryPath, caseDefinition);
   await seedAdoptedProjectState(repositoryPath);
+};
+
+/** Gives a scenario's real local connection test an executable package script. */
+const seedScenarioTestScript = async (repositoryPath: string, script: string): Promise<void> => {
+  const packagePath = join(repositoryPath, 'package.json');
+  const packageManifest = JSON.parse(await readFile(packagePath, 'utf8')) as Record<
+    string,
+    unknown
+  >;
+  await writeScenarioFile(
+    repositoryPath,
+    'package.json',
+    `${JSON.stringify({ ...packageManifest, scripts: { test: script }, type: 'module' }, null, 2)}\n`,
+  );
+};
+
+/** Seeds five small owners for a repair continuation checkpoint. */
+const seedContinuationOwners = async (
+  repositoryPath: string,
+  ownerIds: readonly string[],
+): Promise<void> => {
+  const declarations: string[] = [];
+  for (const ownerId of ownerIds) {
+    declarations.push(
+      `  /moldea/context/${ownerId}.md:\n    affectedBy:\n      - /src/owner-${ownerId}.js`,
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      `moldea/context/${ownerId}.md`,
+      `# Owner ${ownerId.toUpperCase()}\n\nThe ${ownerId.toUpperCase()} source remains at baseline.\n`,
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      `src/owner-${ownerId}.js`,
+      "export const state = 'baseline';\n",
+    );
+  }
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/moldea.yaml',
+    `version: 1\ncontext:\n${declarations.join('\n')}\n`,
+  );
+};
+
+/** Runs a deterministic Git operation inside one disposable semantic fixture. */
+const runScenarioGit = (
+  repositoryPath: string,
+  argumentsList: string[],
+  acceptedStatuses: readonly number[] = [0],
+): void => {
+  const result = spawnSync('git', argumentsList, {
+    cwd: repositoryPath,
+    encoding: 'utf8',
+    env: EVALUATION_GIT_COMMIT_ENV,
+  });
+  if (result.error) throw result.error;
+  if (!acceptedStatuses.includes(result.status ?? -1)) {
+    throw new Error(`Unable to prepare semantic Git history: ${result.stderr.trim()}`);
+  }
+};
+
+/** Commits only the named fixture paths without touching evaluator-owned files. */
+const commitScenarioPaths = (repositoryPath: string, message: string, paths: string[]): void => {
+  runScenarioGit(repositoryPath, ['add', '--', ...paths]);
+  runScenarioGit(repositoryPath, [
+    '-c',
+    'user.name=moldea Evaluation',
+    '-c',
+    'user.email=evaluation@invalid.example',
+    'commit',
+    '--quiet',
+    '-m',
+    message,
+  ]);
 };
 
 /** Seeds executable refund behavior and small tests for normal implementation tasks. */
@@ -1390,10 +1466,27 @@ const seedScenarioRepository = async (
   await seedAdoptedProject(repositoryPath, caseDefinition);
   if (MIGRATED_CASE_IDS.has(caseDefinition.id)) {
     await copyMigratedCaseFiles(repositoryPath, caseDefinition.id, 'seed');
+    if (
+      caseDefinition.id === 'maintain-bound-connection' ||
+      caseDefinition.id === 'maintain-tool-registration'
+    ) {
+      await seedScenarioTestScript(repositoryPath, 'node --test src/support-agent.test.mjs');
+    }
     if (caseDefinition.id === 'reconcile-drift-and-boundaries') {
       await copyMigratedCaseFiles(repositoryPath, caseDefinition.id, 'overlay');
       await unlink(join(repositoryPath, 'src', 'support-agent.ts'));
     } else if (caseDefinition.id === 'retire-agent-coherently') {
+      await seedScenarioTestScript(repositoryPath, 'node --test src/support-agent.test.mjs');
+      await writeScenarioFile(
+        repositoryPath,
+        'README.md',
+        `# Evaluation repository\n\nThe retired support agent handles email requests.\n\n${MANAGED_README_BLOCK}`,
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/support-agent.test.mjs',
+        "import assert from 'node:assert/strict';\nimport test from 'node:test';\nimport { supportAgent } from './support-agent.js';\n\ntest('support agent uses email', () => { assert.equal(supportAgent.channel, 'email'); });\n",
+      );
       await unlink(join(repositoryPath, 'src', 'support-agent.ts'));
     }
     return;
@@ -1453,6 +1546,90 @@ const seedScenarioRepository = async (
         'src/invoice.js',
         'export const extractInvoice = ({ number, total }) => ({ number, total });\nexport const isInvoiceValid = ({ number, total }) => typeof number === "string" && typeof total === "number";\n',
       );
+      break;
+    case 'repair-connection-drift':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\nagents:\n  support-agent:\n    runtime:\n      id: custom\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.js\n        symbol: createSupportAgent\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/agents/support-agent/description.md',
+        'Answers support requests using the current project policy.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/agents/support-agent/instruction.md',
+        '# Support agent\n\nYou are the `support-agent` agent. Answer support requests using the current project policy.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/support-agent.js',
+        "import { readFileSync } from 'node:fs';\n\nexport const createSupportAgent = (runtime) => runtime.createAgent({ instruction: readFileSync(new URL('../moldea/agents/support-agent/instructions.md', import.meta.url), 'utf8') });\n",
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/support-agent.test.mjs',
+        "import assert from 'node:assert/strict';\nimport test from 'node:test';\nimport { readFileSync } from 'node:fs';\nimport { createSupportAgent } from './support-agent.js';\n\ntest('support agent consumes canonical instruction', () => {\n  const canonical = readFileSync(new URL('../moldea/agents/support-agent/instruction.md', import.meta.url), 'utf8');\n  assert.equal(createSupportAgent({ createAgent: (configuration) => configuration }).instruction, canonical);\n});\n",
+      );
+      await seedScenarioTestScript(repositoryPath, 'node --test src/support-agent.test.mjs');
+      break;
+    case 'repair-continuation-after-change':
+      await seedContinuationOwners(repositoryPath, ['a', 'b', 'e', 'd', 'next']);
+      break;
+    case 'repair-continuation-manifest-change':
+      await seedContinuationOwners(repositoryPath, ['c', 'f', 'g', 'h', 'next']);
+      await writeScenarioFile(
+        repositoryPath,
+        'src/owner-f-policy.js',
+        "export const state = 'baseline';\n",
+      );
+      break;
+    case 'maintain-relationship-after-move':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/invoice.md:\n    affectedBy:\n      - /src/invoice.js\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/context/invoice.md',
+        '# Invoice extraction\n\nThe invoice module extracts verified invoice identifiers for accounting.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/invoice.js',
+        'export const extractInvoiceId = ({ id }) => id;\n',
+      );
+      break;
+    case 'maintain-shared-module-boundary':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/moldea.yaml',
+        'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/tracking.md:\n    affectedBy:\n      - /src/orders/tracking.js\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/context/tracking.md',
+        '# Order tracking\n\nTracking permits transitions from delivered back to in-transit. The shared tab component in src/ui/tabs hosts this screen but owns only layout.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/orders/tracking.js',
+        'export const canChangeStatus = (current, next) => current !== next;\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/ui/tabs/tabs.js',
+        "export const tabClass = 'tabs';\n",
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/orders/tracking.test.mjs',
+        "import assert from 'node:assert/strict';\nimport test from 'node:test';\nimport { canChangeStatus } from './tracking.js';\n\ntest('delivered orders cannot return to in-transit', () => { assert.equal(canChangeStatus('delivered', 'in-transit'), false); });\n",
+      );
+      await seedScenarioTestScript(repositoryPath, 'node --test src/orders/tracking.test.mjs');
       break;
     case 'adopted-explicit-context-correction':
     case 'readonly-context-correction':
@@ -1946,11 +2123,75 @@ const seedScenarioRepository = async (
   }
 };
 
+/** Leaves a merge-resolution change and a reverted checkpoint edit in one repair fixture. */
+const applySourceContinuationHistory = async (repositoryPath: string): Promise<void> => {
+  runScenarioGit(repositoryPath, ['tag', 'repair-checkpoint']);
+  await writeScenarioFile(repositoryPath, 'src/owner-b.js', "export const state = 'draft';\n");
+  await writeScenarioFile(repositoryPath, 'src/owner-b.js', "export const state = 'baseline';\n");
+  await writeScenarioFile(repositoryPath, 'src/owner-a.js', "export const state = 'drifted';\n");
+  commitScenarioPaths(repositoryPath, 'test: change owner a', ['src/owner-a.js']);
+
+  runScenarioGit(repositoryPath, ['switch', '--quiet', '-c', 'repair-feature']);
+  await writeScenarioFile(repositoryPath, 'src/owner-e.js', "export const state = 'feature';\n");
+  commitScenarioPaths(repositoryPath, 'test: change owner e on feature', ['src/owner-e.js']);
+  runScenarioGit(repositoryPath, ['switch', '--quiet', 'main']);
+  await writeScenarioFile(repositoryPath, 'src/owner-e.js', "export const state = 'main';\n");
+  commitScenarioPaths(repositoryPath, 'test: change owner e on main', ['src/owner-e.js']);
+  runScenarioGit(repositoryPath, ['merge', '--no-ff', '--no-commit', 'repair-feature'], [1]);
+  await writeScenarioFile(
+    repositoryPath,
+    'src/owner-e.js',
+    "export const state = 'merge-resolved';\n",
+  );
+  commitScenarioPaths(repositoryPath, 'test: resolve owner e in merge', ['src/owner-e.js']);
+};
+
+/** Leaves committed owner-definition changes and a reverted manifest edit. */
+const applyManifestContinuationHistory = async (repositoryPath: string): Promise<void> => {
+  runScenarioGit(repositoryPath, ['tag', 'repair-checkpoint']);
+  const originalManifest = await readFile(join(repositoryPath, 'moldea/moldea.yaml'), 'utf8');
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/moldea.yaml',
+    originalManifest.replace('/src/owner-g.js', '/src/owner-f-policy.js'),
+  );
+  await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', originalManifest);
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/context/c.md',
+    '# Owner C\n\nThe C source must remain at baseline.\n',
+  );
+  commitScenarioPaths(repositoryPath, 'test: change owner c document', ['moldea/context/c.md']);
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/moldea.yaml',
+    originalManifest.replace('/src/owner-f.js', '/src/owner-f-policy.js'),
+  );
+  commitScenarioPaths(repositoryPath, 'test: change owner f declaration', ['moldea/moldea.yaml']);
+};
+
 /** Applies the post-commit mutations required by current review and relevance cases. */
 const applyScenarioWorkingTree = async (
   repositoryPath: string,
   caseDefinition: ISemanticCaseIdentity,
 ): Promise<void> => {
+  if (caseDefinition.id === 'repair-continuation-after-change') {
+    await applySourceContinuationHistory(repositoryPath);
+    return;
+  }
+  if (caseDefinition.id === 'repair-continuation-manifest-change') {
+    await applyManifestContinuationHistory(repositoryPath);
+    return;
+  }
+  if (caseDefinition.id === 'maintain-bound-connection') {
+    await copyMigratedCaseFiles(repositoryPath, caseDefinition.id, 'overlay');
+    await unlink(join(repositoryPath, 'src', 'support', 'instruction-loader.js'));
+    return;
+  }
+  if (caseDefinition.id === 'maintain-tool-registration') {
+    await copyMigratedCaseFiles(repositoryPath, caseDefinition.id, 'overlay');
+    return;
+  }
   if (caseDefinition.id === 'maintain-dirty-project') {
     await copyMigratedCaseFiles(repositoryPath, caseDefinition.id, 'overlay');
     return;

@@ -41,6 +41,47 @@ const resourceEvidence = {
 };
 
 describe('semantic result dimensions', () => {
+  test('selects the large-traversal host-output limit for explicit repair cases', () => {
+    const actorCommandPolicy = {
+      ...commandPolicy,
+      completedCommandCount: 8,
+      maximumCommandOutputByteCount: 200_000,
+      modelVisibleToolOutputByteCount: 2_000_000,
+    };
+    const options = {
+      actorCommandPolicy,
+      actorResourceEvidence: resourceEvidence,
+      isMountIntegrityPassing: true,
+      isRepositoryControlPassing: true,
+      isSemanticPassing: true,
+      judgeCommandPolicy: commandPolicy,
+    };
+    expect(createSemanticResultDimensions({ ...options, caseDefinition }).resource).toBe(false);
+    const repairCase = defineSemanticCase({
+      ...caseDefinition,
+      resourceBudget: {
+        activation: 'direct',
+        maximumMoldeaCommands: 16,
+        maximumMoldeaOutputBytes: 1_048_576,
+        minimumMoldeaCommands: 0,
+        profile: 'largeTraversal',
+      },
+    } as const);
+    expect(
+      createSemanticResultDimensions({ ...options, caseDefinition: repairCase }).resource,
+    ).toBe(true);
+    expect(
+      createSemanticResultDimensions({
+        ...options,
+        actorCommandPolicy: {
+          ...actorCommandPolicy,
+          modelVisibleToolOutputByteCount: 4_194_305,
+        },
+        caseDefinition: repairCase,
+      }).resource,
+    ).toBe(false);
+  });
+
   test('keeps semantic uncertainty eligible only when deterministic dimensions pass', () => {
     const dimensions = createSemanticResultDimensions({
       actorCommandPolicy: commandPolicy,

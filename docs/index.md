@@ -14,13 +14,19 @@ Explore [Capabilities](/capabilities/) for the complete visual overview, or foll
 
 You do not need to learn another daily workflow. Install the skill, then ask your coding agent for outcomes in ordinary language:
 
+To create an agent from the project policy:
+
 > **You**
 >
 > Create a customer-support agent grounded in this repository.
 
+To keep it aligned while changing code:
+
 > **You**
 >
 > Update the refund flow and keep the support agent aligned.
+
+To check the current context without editing it:
 
 > **You**
 >

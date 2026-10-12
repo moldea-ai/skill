@@ -94,6 +94,13 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
     sourcePaths: [
       'moldea/references/continuous-maintenance.md#maintain-owned-truth',
       'moldea/references/context-compression.md',
+      'moldea/references/relationships.md#bindings-establish-relevance',
+      'moldea/references/relationships.md#impact-paths',
+      'moldea/references/relationships.md#material-facts-only',
+      'moldea/references/relationships.md#shared-infrastructure',
+      'moldea/references/relationships.md#granularity',
+      'moldea/references/relationships.md#lifecycle',
+      'moldea/references/relationships.md#report-uncertainty',
     ],
     rationale:
       'Relationship reconsideration, direct and multi-owner maintenance, compression, unresolved requirements, and mirror synchronization remain independently exercised.',
@@ -125,6 +132,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'moldea/references/project-repair.md#diagnose-blocked-adoption-without-writes',
       'moldea/references/project-repair.md#establish-recovery-authority',
       'moldea/references/project-repair.md#correct-and-verify',
+      'moldea/references/project-repair.md#check-progressively',
     ],
     rationale:
       'Repair cases require evidence for authority and final state, preserving current bytes when a safe correction or verification is unavailable.',
@@ -140,12 +148,12 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
     fixedEvidence: [],
   },
   {
-    id: 'runtime-compatibility-and-selection',
+    id: 'runtime-selection',
     description:
       'Runtime labels follow the defining SDK while repository evidence establishes connections and explicit coverage states only completed file/export checks.',
     sourcePaths: [
       'moldea/references/agent-design.md#select-the-runtime-honestly',
-      'moldea/references/runtime-guidance.md',
+      'moldea/references/runtime-guidance.md#check-one-connection',
     ],
     rationale:
       'A guidance label or passed export check never proves runtime consumption. Related-repository evidence retains read-only boundaries without fabricated cross-repository bindings or custom fallback.',

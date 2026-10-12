@@ -58,11 +58,11 @@ When the existing setup appears wrong, ask:
 >
 > Fix moldea.
 
-No special syntax is required. The coding agent checks the project setup, relationships, instructions, mirrors, runtime integration, and unresolved items. It corrects errors whose intended result is established, runs the relevant checks, and leaves healthy state unchanged.
+No special syntax is required. The coding agent inventories every owner, checks its material facts and declared relationships, and traces each agent's canonical instruction and schema to its runtime call. Presentation details and shared infrastructure used by a feature do not create feature relationships. It corrects errors whose intended result is established, runs the relevant checks, and leaves healthy state unchanged.
 
 Repair can correct an established damaged foundation or managed document with the required authority. It preserves unrelated bytes and never initializes a new project implicitly. AGENTS.md is changed only when host instructions permit; otherwise the developer receives the exact block and an explanation that adding it matters for ordinary context maintenance. Existing tooling recovery and unresolved-policy safeguards still apply.
 
-The result separates **Checked**, **Fixed**, **Verified**, **Needs input**, and **Not checked**. Large projects are checked progressively with bounded output. If a limit or missing evidence prevents complete coverage, the report names what remains. A resource failure preserves earlier corrections as unverified. Pagination does not split source parsing, and repair does not automatically rewrite or split healthy source to clear a limit. Deterministic tooling trials verify installation and launcher mechanics; this expanded instruction-led repair behavior has not had fresh model trials.
+The result separates **Checked**, **Fixed**, **Verified**, **Needs input**, and **Not checked**. Large projects are checked progressively with bounded output. At a limit, the report gives the number of owners checked, source commit, next owner, uncommitted paths, and uncommitted manifest owner entries. A later repair reinspects changed owners before continuing; it carries forward only unaffected assessments and names their source commit. If a limit or missing evidence prevents complete coverage, the report names what remains and never calls the project healthy. A resource failure preserves earlier corrections as unverified. Pagination does not split source parsing, and repair does not automatically rewrite or split healthy source to clear a limit. Deterministic tooling trials verify installation and launcher mechanics; this expanded instruction-led repair behavior has not had fresh model trials.
 
 Structural validity is not proof that every runtime behavior works.
 
@@ -73,4 +73,4 @@ Structural validity is not proof that every runtime behavior works.
 | Check repository-format structure               | Validate  | No     | No                   |
 | Investigate structural and behavioral alignment | Evaluate  | No     | Yes                  |
 | Correct established drift                       | Reconcile | Yes    | Yes                  |
-| Check and repair the existing project setup     | Repair    | Yes    | Within checked scope |
+| Check and repair the existing project setup     | Repair    | Yes    | Every completed owner and agent connection; incomplete scope reported |

@@ -5,6 +5,24 @@ import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 
+test('shows the overview prompts as three separate conversations', async ({ page }) => {
+  await page.goto(withBase('/docs/', basePath));
+  const conversations = page.locator('main [data-conversation]');
+  await expect(conversations).toHaveCount(3);
+  await expect(conversations.nth(0)).toContainText(
+    'Create a customer-support agent grounded in this repository.',
+  );
+  await expect(conversations.nth(1)).toContainText(
+    'Update the refund flow and keep the support agent aligned.',
+  );
+  await expect(conversations.nth(2)).toContainText(
+    'Evaluate the current project context without changing files.',
+  );
+  for (const conversation of await conversations.all()) {
+    await expect(conversation.locator('[data-conversation-message]')).toHaveCount(1);
+  }
+});
+
 test('renders authored turns in order while preserving document navigation and technical tokens', async ({
   page,
   request,

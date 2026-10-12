@@ -74,8 +74,11 @@ export const prepareSkillCandidate = async (options: {
   );
   const npmCliPath = process.env['npm_execpath'];
   assert.ok(npmCliPath, 'Run candidate preparation through npm run candidate:prepare.');
-  const candidate = loadCandidateArtifacts(options.artifactDirectory);
+  const candidate = loadCandidateArtifacts(options.artifactDirectory, ['@moldea.ai/website-ui']);
   const cli = CandidateCliSchema.parse(candidate.artifacts.get('@moldea.ai/cli')?.manifest);
+  const websiteUi = candidate.artifacts.get('@moldea.ai/website-ui');
+  assert.ok(websiteUi, 'The skill candidate requires a packed Website UI.');
+  const websiteUiVersion = parseStableVersion(websiteUi.manifest.version);
   const releaseVersion = parseStableVersion(
     options.releaseVersion ?? currentIdentity.releaseVersion,
   );
@@ -115,9 +118,19 @@ export const prepareSkillCandidate = async (options: {
     );
   }
   const manifestPath = join(options.outputDirectory, 'package.json');
-  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { version: string };
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+    devDependencies: Record<string, string>;
+    version: string;
+  };
   manifest.version = releaseVersion;
+  manifest.devDependencies['@moldea.ai/website-ui'] = websiteUiVersion;
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  const websiteManifestPath = join(options.outputDirectory, 'website/package.json');
+  const websiteManifest = JSON.parse(readFileSync(websiteManifestPath, 'utf8')) as {
+    dependencies: Record<string, string>;
+  };
+  websiteManifest.dependencies['@moldea.ai/website-ui'] = websiteUiVersion;
+  writeFileSync(websiteManifestPath, `${JSON.stringify(websiteManifest, null, 2)}\n`);
   const lockPath = join(options.outputDirectory, 'package-lock.json');
   const lock = JSON.parse(readFileSync(lockPath, 'utf8')) as {
     version: string;

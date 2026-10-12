@@ -2,6 +2,7 @@ import {
   hasPassingCodexEvaluationCommandPolicy,
   type ICodexEvaluationCommandPolicyEvidence,
 } from '../../execution/host/index.ts';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 import type { ISemanticCase } from '../cases/index.ts';
 import {
   hasPassingMoldeaActivation,
@@ -23,6 +24,19 @@ export type ISemanticResultDimensions = Record<
   boolean
 >;
 
+const hasPassingHostResourceProfile = (
+  commandPolicy: ICodexEvaluationCommandPolicyEvidence,
+  caseDefinition: ISemanticCase,
+): boolean => {
+  const profile =
+    MOLDEA_SKILL_RESOURCE_PROFILES[caseDefinition.resourceBudget.profile ?? 'ordinary'];
+  return (
+    commandPolicy.completedCommandCount <= profile.maxCompletedCommandCount &&
+    commandPolicy.maximumCommandOutputByteCount <= profile.maxCommandOutputBytes &&
+    commandPolicy.modelVisibleToolOutputByteCount <= profile.maxModelVisibleToolOutputBytes
+  );
+};
+
 /** Creates independently attributable outcome dimensions for one completed trial. */
 export const createSemanticResultDimensions = (options: {
   actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
@@ -39,10 +53,11 @@ export const createSemanticResultDimensions = (options: {
       options.actorResourceEvidence,
       options.caseDefinition.resourceBudget,
     ),
-  resource: hasPassingMoldeaResourceContainment(
-    options.actorResourceEvidence,
-    options.caseDefinition.resourceBudget,
-  ),
+  resource:
+    hasPassingMoldeaResourceContainment(
+      options.actorResourceEvidence,
+      options.caseDefinition.resourceBudget,
+    ) && hasPassingHostResourceProfile(options.actorCommandPolicy, options.caseDefinition),
   commandPolicy:
     hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy) &&
     hasPassingCodexEvaluationCommandPolicy(options.judgeCommandPolicy),

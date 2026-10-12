@@ -146,10 +146,14 @@ describe('verifyProductionBuild', () => {
     expect(html).toContain('https://github.com/moldea-ai/skill/blob/main/docs/limitations.md');
     expect(html).toContain(`<link rel="canonical" href="${canonicalUrl}">`);
     expect(html).toContain(`<meta property="og:url" content="${canonicalUrl}">`);
-    for (const id of ['result-completed', 'result-error', 'result-unfinished']) {
+    for (const id of [
+      'result-completed',
+      'result-error',
+      'result-not-checked',
+      'result-unfinished',
+    ]) {
       expect(html).toContain(`data-markdown-badge="${id}"`);
     }
-    expect(html).toContain('<strong>Not checked</strong>');
     for (const name of ['llms.txt', 'sitemap-0.xml']) {
       expect(readFileSync(getDistPath(name), 'utf8')).toContain(canonicalUrl);
     }

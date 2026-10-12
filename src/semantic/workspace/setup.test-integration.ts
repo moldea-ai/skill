@@ -812,6 +812,114 @@ test('repair conflict, missing tooling, and healthy state retain distinct outcom
   assert.equal(validation.status, 'valid');
 });
 
+test.each([
+  ['repair-connection-drift', '/src/support-agent.js'],
+  ['maintain-bound-connection', '/src/support/loaders/instruction-loader.js'],
+  ['maintain-tool-registration', '/src/support/tools/registry.js'],
+] as const)(
+  '%s has valid declarations but a failing runtime connection',
+  async (caseId, sourcePath) => {
+    const { repositoryPath } = await materializeCase(caseId, true);
+    const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+      status: string;
+    };
+    assert.equal(validation.status, 'valid');
+    assert.equal(gateResult(repositoryPath, [sourcePath]), '1\n');
+    const connectionTest = spawnSync(process.execPath, ['--test', 'src/support-agent.test.mjs'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    assert.ifError(connectionTest.error);
+    assert.notEqual(connectionTest.status, 0);
+    if (caseId === 'maintain-tool-registration') {
+      const manifest = readFileSync(join(repositoryPath, 'moldea/moldea.yaml'), 'utf8');
+      assert.match(manifest, /lookup-order:/u);
+      const agentManifest = manifest.split('agents:\n')[1];
+      assert.ok(agentManifest);
+      assert.doesNotMatch(agentManifest, /^ {4}affectedBy:/mu);
+    }
+  },
+);
+
+test('relationship fixtures distinguish an exact moved source from shared UI infrastructure', async () => {
+  const moved = await materializeCase('maintain-relationship-after-move', true);
+  const shared = await materializeCase('maintain-shared-module-boundary', true);
+  assert.equal(gateResult(moved.repositoryPath, ['/src/invoice.js']), '1\n');
+  assert.equal(gateResult(shared.repositoryPath, ['/src/orders/tracking.js']), '1\n');
+  assert.equal(gateResult(shared.repositoryPath, ['/src/ui/tabs/tabs.js']), '0\n');
+  assert.match(
+    readFileSync(join(shared.repositoryPath, 'moldea/context/tracking.md'), 'utf8'),
+    /shared tab component/u,
+  );
+  const trackingTest = spawnSync(process.execPath, ['--test', 'src/orders/tracking.test.mjs'], {
+    cwd: shared.repositoryPath,
+    encoding: 'utf8',
+  });
+  assert.ifError(trackingTest.error);
+  assert.notEqual(trackingTest.status, 0);
+});
+
+test('source continuation includes a merge-resolution path and a reverted checkpoint path', async () => {
+  const { repositoryPath } = await materializeCase('repair-continuation-after-change', true);
+  const inventory = JSON.parse(launcherOutput(repositoryPath, ['inspect'])) as {
+    result: { page: { records: Array<{ path: string }> } };
+  };
+  assert.deepEqual(
+    inventory.result.page.records.map(({ path }) => path),
+    [
+      '/moldea/context/a.md',
+      '/moldea/context/b.md',
+      '/moldea/context/d.md',
+      '/moldea/context/e.md',
+      '/moldea/context/next.md',
+      '/moldea/moldea.yaml',
+      '/moldea/project.md',
+    ],
+  );
+  const diff = spawnSync('git', ['diff', '--name-only', 'repair-checkpoint', '--', '.'], {
+    cwd: repositoryPath,
+    encoding: 'utf8',
+  });
+  assert.equal(diff.status, 0, diff.stderr);
+  assert.deepEqual(diff.stdout.trim().split('\n'), ['src/owner-a.js', 'src/owner-e.js']);
+  const parents = spawnSync('git', ['rev-list', '--parents', '-n', '1', 'HEAD'], {
+    cwd: repositoryPath,
+    encoding: 'utf8',
+  });
+  assert.equal(parents.status, 0, parents.stderr);
+  assert.equal(parents.stdout.trim().split(' ').length, 3);
+  assert.match(readFileSync(join(repositoryPath, 'src/owner-e.js'), 'utf8'), /merge-resolved/u);
+  assert.match(readFileSync(join(repositoryPath, 'src/owner-b.js'), 'utf8'), /baseline/u);
+});
+
+test('manifest continuation distinguishes changed and checkpoint-only owner entries', async () => {
+  const { repositoryPath } = await materializeCase('repair-continuation-manifest-change', true);
+  const diff = spawnSync('git', ['diff', '--name-only', 'repair-checkpoint', '--', '.'], {
+    cwd: repositoryPath,
+    encoding: 'utf8',
+  });
+  assert.equal(diff.status, 0, diff.stderr);
+  assert.deepEqual(diff.stdout.trim().split('\n'), ['moldea/context/c.md', 'moldea/moldea.yaml']);
+  const manifest = readFileSync(join(repositoryPath, 'moldea/moldea.yaml'), 'utf8');
+  assert.match(manifest, /\/src\/owner-f-policy\.js/u);
+  assert.match(manifest, /\/src\/owner-g\.js/u);
+  assert.equal(gateResult(repositoryPath, ['/src/owner-f-policy.js']), '1\n');
+});
+
+test('agent retirement fixture retains exclusively dependent prose, test, and script', async () => {
+  const { repositoryPath } = await materializeCase('retire-agent-coherently', true);
+  assert.match(readFileSync(join(repositoryPath, 'README.md'), 'utf8'), /retired support agent/u);
+  assert.equal(existsSync(join(repositoryPath, 'src/support-agent.test.mjs')), true);
+  const packageManifest = JSON.parse(
+    readFileSync(join(repositoryPath, 'package.json'), 'utf8'),
+  ) as {
+    scripts: { test: string };
+  };
+  assert.equal(packageManifest.scripts.test, 'node --test src/support-agent.test.mjs');
+  assert.equal(existsSync(join(repositoryPath, 'src/support-agent.ts')), false);
+  assert.equal(existsSync(join(repositoryPath, 'src/project-state.ts')), true);
+});
+
 test('large context inventory requires real bounded continuation pages', async () => {
   const { repositoryPath } = await materializeCase('large-context-bounded-evaluation', true);
   let cursor: string | null = null;

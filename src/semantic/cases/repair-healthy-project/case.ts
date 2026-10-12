@@ -29,14 +29,15 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 8,
-    maximumMoldeaOutputBytes: 262144,
+    maximumMoldeaCommands: 16,
+    maximumMoldeaOutputBytes: 1_048_576,
+    profile: 'largeTraversal',
   },
   expected: [
     {
       label: 'validate-healthy-no-op',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, the actor reports no established defect and no file changes, and it separates structural validity from untested semantic or runtime behavior.',
+        'Runner-owned evidence records successful launcher-backed validation, the actor reports no established defect and no file changes, names /moldea/project.md and its /src/project-state.js relationship under Checked, and separates structural validity from untested semantic or runtime behavior.',
     },
   ],
   forbidden: [

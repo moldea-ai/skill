@@ -1,0 +1,9 @@
+{
+  "name": "parcel-boundaries",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@moldea.ai/cli": "11.0.0"
+  }
+}

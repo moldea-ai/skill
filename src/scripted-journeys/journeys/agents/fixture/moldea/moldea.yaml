@@ -1,0 +1,5 @@
+version: 1
+context:
+  /moldea/context/triage.md:
+    affectedBy:
+      - /src/triage-agent.js

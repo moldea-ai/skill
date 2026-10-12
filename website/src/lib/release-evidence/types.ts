@@ -1,3 +1,4 @@
+import type { IScriptedJourneysWebsiteModel } from '../scripted-journeys/index.ts';
 import type {
   ISemanticAttemptModel,
   ISemanticEvaluationWebsiteModel,
@@ -39,6 +40,7 @@ export type IReleaseEvidenceModel =
 
 // complete selected models loaded from prepared evidence bundles
 export interface IReleaseEvidenceWebsiteState {
+  scriptedJourneys: IScriptedJourneysWebsiteModel | null;
   releaseEvidence: IReleaseEvidenceModel;
   semantic: ISemanticEvaluationWebsiteModel;
 }

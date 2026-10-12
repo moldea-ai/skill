@@ -21,10 +21,11 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
       (count, { attempts }) => count + attempts.length,
       0,
     ) ?? 0;
+  const hasJourneys = loadWebsiteModel().scriptedJourneys !== null;
   const sections = page.locator('[data-evidence-path]');
-  await expect(sections).toHaveCount(2);
+  await expect(sections).toHaveCount(hasJourneys ? 3 : 2);
   const navigation = page.getByRole('navigation', { name: 'Evidence sections' });
-  await expect(navigation.getByRole('link')).toHaveCount(2);
+  await expect(navigation.getByRole('link')).toHaveCount(hasJourneys ? 3 : 2);
   await expect(navigation.getByRole('link', { name: /Agent decisions/u })).toHaveAttribute(
     'href',
     '#decisions',
@@ -35,6 +36,7 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
   await expect(sections.locator('[data-evidence-path-action]').getByRole('link')).toHaveText([
     'Explore decisions',
     'Explore project runs',
+    ...(hasJourneys ? ['Explore scripted journeys'] : []),
   ]);
   const boxes = await sections.evaluateAll((elements) =>
     elements.map((element) => {
@@ -43,16 +45,16 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
     }),
   );
   expect(boxes[0]!.y).toBeLessThan(boxes[1]!.y);
-  await expect(sections.last().locator('[data-evidence-status]')).toHaveCount(0);
-  await expect(sections.last().locator('[data-recorded-project]')).toHaveCount(1);
+  await expect(sections.nth(1).locator('[data-evidence-status]')).toHaveCount(0);
+  await expect(sections.nth(1).locator('[data-recorded-project]')).toHaveCount(1);
   await expect(
-    sections.last().getByRole('link', { name: /View .* more project runs/u }),
+    sections.nth(1).getByRole('link', { name: /View .* more project runs/u }),
   ).toHaveCount(0);
   const projectPreview = loadWebsiteModel().projectRuns!.pages[0]!.attempts[0]!;
   await expect(
-    sections.last().getByRole('link', { name: 'Open the recorded session' }),
+    sections.nth(1).getByRole('link', { name: 'Open the recorded session' }),
   ).toHaveAttribute('href', toPublicPath(projectPreview.route));
-  const projectCopy = sections.last().getByRole('heading', { level: 2 }).locator('..');
+  const projectCopy = sections.nth(1).getByRole('heading', { level: 2 }).locator('..');
   expect(await projectCopy.evaluate((element) => getComputedStyle(element).position)).toBe(
     'static',
   );
@@ -143,7 +145,9 @@ test('keeps evidence paths readable at 320px in both themes', async ({ browser }
     try {
       const page = await context.newPage();
       await page.goto(toPublicPath('/evidence/'));
-      await expect(page.locator('[data-evidence-path]')).toHaveCount(2);
+      await expect(page.locator('[data-evidence-path]')).toHaveCount(
+        loadWebsiteModel().scriptedJourneys === null ? 2 : 3,
+      );
       const recordedFiles = page.locator('[data-recorded-file-path]');
       expect(
         await recordedFiles.evaluateAll((files) =>

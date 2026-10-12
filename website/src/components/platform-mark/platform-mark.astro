@@ -1,0 +1,54 @@
+---
+import openaiLogo from '@moldea.ai/website-ui/runtime-logos/openai.svg?url';
+import openaiDarkLogo from '@moldea.ai/website-ui/runtime-logos/openai-dark.svg?url';
+import claudeLogo from '@moldea.ai/website-ui/runtime-logos/claude.svg?url';
+
+import { JOURNEY_PLATFORM_LABELS } from '../../lib/scripted-journeys/index.ts';
+
+interface Props {
+  platform: keyof typeof JOURNEY_PLATFORM_LABELS;
+}
+const { platform } = Astro.props;
+---
+
+<span
+  class="inline-flex min-w-0 items-center gap-2.5 font-semibold"
+  data-platform-mark={platform}
+>
+  <span
+    class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-card"
+  >
+    {
+      platform === 'chatgpt' ? (
+        <>
+          <img
+            src={openaiLogo}
+            alt=""
+            width="20"
+            height="20"
+            class="size-5 dark:hidden"
+          />
+          <img
+            src={openaiDarkLogo}
+            alt=""
+            width="20"
+            height="20"
+            class="hidden size-5 dark:block"
+          />
+        </>
+      ) : (
+        // the public Claude wordmark includes its orange symbol in the first square of the SVG
+        <span class="block size-5 overflow-hidden">
+          <img
+            src={claudeLogo}
+            alt=""
+            width="92"
+            height="20"
+            class="h-5 w-auto max-w-none"
+          />
+        </span>
+      )
+    }
+  </span>
+  {JOURNEY_PLATFORM_LABELS[platform]}
+</span>

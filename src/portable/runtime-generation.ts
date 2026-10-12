@@ -13,6 +13,10 @@ const DEFAULT_RUNTIME_OUTPUT_DIRECTORY = 'dist/runtime';
 const RUNTIME_ENTRY_OUTPUTS = {
   'src/execution/host/git-command-policy-boundary.ts': 'git-command-policy-boundary.mjs',
   'src/execution/host/proxy.ts': 'codex-evaluation-proxy.mjs',
+  'src/scripted-journeys/harness/setup.ts': 'journeys/setup.mjs',
+  'src/scripted-journeys/harness/next.ts': 'journeys/next.mjs',
+  'src/scripted-journeys/harness/record.ts': 'journeys/record.mjs',
+  'src/scripted-journeys/harness/export.ts': 'journeys/export.mjs',
 } as const;
 
 /** Builds one standalone Node runtime helper and returns its inspectable output. */
@@ -24,6 +28,13 @@ const buildRuntimeSource = async (
     absWorkingDir: rootDirectory,
     alias: { buffer: 'node:buffer', process: 'node:process' },
     bundle: true,
+    ...(entryPath.startsWith('src/scripted-journeys/')
+      ? {
+          banner: {
+            js: "import { createRequire as createNodeRequire } from 'node:module'; const require = createNodeRequire(import.meta.url);",
+          },
+        }
+      : {}),
     entryPoints: [entryPath],
     format: 'esm',
     legalComments: 'none',

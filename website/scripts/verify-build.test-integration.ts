@@ -408,3 +408,44 @@ test('redirects every retired route immediately and excludes it from discovery',
     expect(llms).not.toContain(route);
   }
 });
+
+test('publishes bounded journey overviews, four-row previews, and every source download', () => {
+  const model = loadWebsiteModel().scriptedJourneys!;
+  expect(model).not.toBeNull();
+  for (const page of [1, 2]) {
+    const html = readFileSync(
+      getDistPath(`evidence/journeys/${page === 1 ? '' : `page/${page}/`}index.html`),
+      'utf8',
+    );
+    expect([...html.matchAll(/data-journey-outcome=/gu)]).toHaveLength(page === 1 ? 32 : 4);
+  }
+  const html = readFileSync(getDistPath('evidence/index.html'), 'utf8');
+  const preview = html.split('data-recorded-journeys')[1]!.split('</ul>')[0]!;
+  expect([...preview.matchAll(/<li>/gu)]).toHaveLength(4);
+  for (const source of model.sources) {
+    const urls =
+      source.kind === 'campaign'
+        ? [source.assessmentUrl, source.definitionsUrl]
+        : [source.model.assessmentUrl, source.model.definitionsUrl];
+    for (const url of urls)
+      expect(readFileSync(getDistPath(url.slice(1))).byteLength).toBeGreaterThan(0);
+  }
+  expect(model.journeys).toHaveLength(18);
+  expect(loadWebsiteModel().routes).not.toContain('/evidence/journeys/page/3/');
+  expect(() => readFileSync(getDistPath('evidence/journeys/page/3/index.html'))).toThrow();
+  const recovered = readFileSync(getDistPath('evidence/journeys/recovered/index.html'), 'utf8');
+  expect(recovered).toContain('Initial observation');
+  expect(recovered).toContain('Confirmation 2');
+  expect(recovered).toContain('data-evidence-status="failed"');
+  const revisions = readFileSync(getDistPath('evidence/journeys/additional-1/index.html'), 'utf8');
+  expect(revisions).toContain('Read the revised policy and preserve all saved project knowledge.');
+  expect(revisions).toContain('Earlier test revision');
+  const historical = readFileSync(getDistPath('evidence/journeys/additional-3/index.html'), 'utf8');
+  expect(historical).toContain('fixture identity unavailable');
+  const overview = readFileSync(getDistPath('evidence/journeys/index.html'), 'utf8');
+  expect(overview).toContain('Multiple skill versions are present.');
+  expect(overview).toContain('Multiple evaluation methods are present.');
+  expect(readFileSync(getDistPath('evidence/journeys/page/2/index.html'), 'utf8')).toContain(
+    'Earlier catalog',
+  );
+});

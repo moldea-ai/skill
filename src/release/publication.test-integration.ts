@@ -9,6 +9,7 @@ import {
   createEvidenceBundle,
   EVIDENCE_RELEASE_REPOSITORY,
   type IEvidenceSelection,
+  type IEvidenceKind,
   type IEvidenceSelectionReference,
 } from '../evidence/index.ts';
 import { pinEvidenceReleaseAsset } from './pinning.ts';
@@ -74,10 +75,10 @@ class FakeGitHubReleaseClient implements IGitHubReleaseClient {
 
 const temporaryRoots: string[] = [];
 
-const createOfficialBundle = () =>
+const createOfficialBundle = (kind: IEvidenceKind = 'semantic') =>
   createEvidenceBundle({
     classification: 'official',
-    kind: 'semantic',
+    kind,
     payload: { cases: [{ id: 'semantic-one' }] },
     run: {
       attemptId: 'attempt-1',
@@ -187,41 +188,46 @@ describe('GitHub evidence release assets', () => {
     ).resolves.toMatchObject({ kind: 'semantic' });
   });
 
-  test('pins the validated semantic bundle', async () => {
-    const root = await mkdtemp(path.join(tmpdir(), 'moldea-release-evidence-'));
-    temporaryRoots.push(root);
-    const client = new FakeGitHubReleaseClient();
-    const published = await publishEvidenceBundle({
-      bundle: createOfficialBundle(),
-      client,
-      repository: 'moldea-ai/skill',
-      tag: 'evidence-semantic-attempt-1',
-      temporaryDirectory: root,
-    });
-    const selectionPath = path.join(root, 'selection.json');
-    await writeJsonFileAtomically(selectionPath, {
-      formatVersion: 1,
-      semantic: null,
-    } satisfies IEvidenceSelection);
-    const semanticReference: IEvidenceSelectionReference = {
-      assetName: published.assetName,
-      classification: 'official',
-      repository: EVIDENCE_RELEASE_REPOSITORY,
-      sha256: published.sha256,
-      tag: published.tag,
-    };
+  test.each(['semantic', 'journeys'] as const)(
+    'publishes and pins the validated %s bundle',
+    async (kind) => {
+      const root = await mkdtemp(path.join(tmpdir(), 'moldea-release-evidence-'));
+      temporaryRoots.push(root);
+      const client = new FakeGitHubReleaseClient();
+      const published = await publishEvidenceBundle({
+        bundle: createOfficialBundle(kind),
+        client,
+        repository: 'moldea-ai/skill',
+        tag: `evidence-${kind}-attempt-1`,
+        temporaryDirectory: root,
+      });
+      const selectionPath = path.join(root, 'selection.json');
+      await writeJsonFileAtomically(selectionPath, {
+        formatVersion: 1,
+        journeys: null,
+        semantic: null,
+      } satisfies IEvidenceSelection);
+      const semanticReference: IEvidenceSelectionReference = {
+        assetName: published.assetName,
+        classification: 'official',
+        repository: EVIDENCE_RELEASE_REPOSITORY,
+        sha256: published.sha256,
+        tag: published.tag,
+      };
 
-    const selection = await pinEvidenceReleaseAsset({
-      assetName: semanticReference.assetName,
-      client,
-      kind: 'semantic',
-      release: semanticReference.tag,
-      selectionPath,
-    });
+      const selection = await pinEvidenceReleaseAsset({
+        assetName: semanticReference.assetName,
+        client,
+        kind,
+        release: semanticReference.tag,
+        selectionPath,
+      });
 
-    expect(selection.semantic).toStrictEqual(semanticReference);
-    expect(published.repository).toBe(EVIDENCE_RELEASE_REPOSITORY);
-  });
+      expect(selection[kind]).toStrictEqual(semanticReference);
+      expect(selection[kind === 'semantic' ? 'journeys' : 'semantic']).toBeNull();
+      expect(published.repository).toBe(EVIDENCE_RELEASE_REPOSITORY);
+    },
+  );
 
   test('rejects an asset while its evidence release is still a draft', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'moldea-release-evidence-'));
@@ -235,6 +241,7 @@ describe('GitHub evidence release assets', () => {
     const selectionPath = path.join(root, 'selection.json');
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
+      journeys: null,
       semantic: null,
     } satisfies IEvidenceSelection);
 
@@ -266,6 +273,7 @@ describe('GitHub evidence release assets', () => {
     const selectionPath = path.join(root, 'selection.json');
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
+      journeys: null,
       semantic: null,
     } satisfies IEvidenceSelection);
 

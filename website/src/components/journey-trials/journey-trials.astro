@@ -1,0 +1,45 @@
+---
+import Accordion from '@moldea.ai/website-ui/accordion';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import JourneyResult from '../journey-result/journey-result.astro';
+import type { IJourneyRenderResult } from '../../lib/scripted-journeys/index.ts';
+
+interface Props {
+  results: IJourneyRenderResult[];
+  id: string;
+}
+const { results, id } = Astro.props;
+---
+
+<div
+  class="min-w-0 space-y-4"
+  data-journey-trials
+>
+  {
+    results.map((result, index) => (
+      <div data-initial-trial={index === 0 ? '' : undefined}>
+        <Accordion
+          id={`${id}-${result.trialId}`}
+          title={result.label}
+          description={result.provenance}
+          isOpen={index === 0}
+        >
+          <span slot="status">
+            <EvidenceStatus status={result.status} />
+          </span>
+          <JourneyResult
+            result={result}
+            id={`${id}-${result.trialId}`}
+          />
+        </Accordion>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  /* Initial evidence is immediately readable; only newly opened confirmations fade. */
+  [data-initial-trial] :global([data-accordion-panel]) {
+    animation: none !important;
+  }
+</style>

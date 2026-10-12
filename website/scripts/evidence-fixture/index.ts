@@ -22,6 +22,8 @@ import type {
   ISemanticEvaluationWebsiteModel,
 } from '../../src/lib/semantic-evaluation/index.ts';
 
+import { createSyntheticJourneySnapshot } from './journeys.ts';
+
 const SHA256 = 'a'.repeat(64);
 const EVALUATED_AT = '2026-01-01T00:00:00.000Z';
 const VERSION = '0.0.0-fixture';
@@ -391,10 +393,17 @@ export const prepareSyntheticWebsiteEvidence = async (
 
   const bundles = {
     semantic: createFixtureBundle('semantic', semanticWebsiteModel, semanticArtifacts),
+    journeys: createSyntheticJourneySnapshot(),
   };
   const preparedSections: IEvidencePreparationManifest = {
     formatVersion: 1,
     selectionSha256: '',
+    journeys: {
+      assetsPath: path.posix.join(snapshotRelativePath, 'assets', 'journeys'),
+      bundleSha256: calculateSha256('fixture-journeys-bundle'),
+      path: path.posix.join(snapshotRelativePath, 'journeys.json'),
+      preparedSha256: '',
+    },
     semantic: {
       assetsPath: path.posix.join(snapshotRelativePath, 'assets', 'semantic'),
       bundleSha256: calculateSha256('fixture-semantic-bundle'),
@@ -403,9 +412,9 @@ export const prepareSyntheticWebsiteEvidence = async (
     },
   };
 
-  for (const kind of ['semantic'] as const) {
+  for (const kind of ['semantic', 'journeys'] as const) {
     const source = `${JSON.stringify(bundles[kind], null, 2)}\n`;
-    preparedSections[kind].preparedSha256 = calculateSha256(source);
+    preparedSections[kind]!.preparedSha256 = calculateSha256(source);
     await Promise.all([
       writeFile(path.join(snapshotDirectory, `${kind}.json`), source, 'utf8'),
       materializeFixtureArtifacts(path.join(snapshotDirectory, 'assets', kind), bundles[kind]),
@@ -419,6 +428,13 @@ export const prepareSyntheticWebsiteEvidence = async (
       classification: 'official',
       repository: 'moldea-ai/skill',
       sha256: preparedSections.semantic.bundleSha256,
+      tag: 'evidence-fixture',
+    },
+    journeys: {
+      assetName: 'fixture-journeys.json.gz',
+      classification: 'official',
+      repository: 'moldea-ai/skill',
+      sha256: preparedSections.journeys!.bundleSha256,
       tag: 'evidence-fixture',
     },
   };

@@ -3,6 +3,8 @@ import type { ISemanticEvaluationWebsiteModel } from '../../lib/semantic-evaluat
 // result and stage states presented by evidence pages
 export type IEvidenceDisplayStatus =
   | ISemanticEvaluationWebsiteModel['status']
+  | 'blocked'
+  | 'unverified'
   | 'reused'
   | 'not-recorded'
   | 'pending'

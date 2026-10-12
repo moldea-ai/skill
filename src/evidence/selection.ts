@@ -76,5 +76,6 @@ export const createEmptyEvidenceSelection = async (selectionPath: string): Promi
   await writeJsonFileAtomically(selectionPath, {
     formatVersion: 1,
     semantic: null,
+    journeys: null,
   } satisfies IEvidenceSelection);
 };

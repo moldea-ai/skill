@@ -41,6 +41,7 @@
     "evidence:pack": "node src/command-line/evidence.ts pack",
     "evidence:prepare": "node src/command-line/evidence.ts prepare",
     "evidence:publish": "node src/command-line/evidence.ts publish",
+    "eval:journeys": "node src/scripted-journeys/command-line/runner.ts",
     "eval:semantic": "node src/semantic/command-line/runner.ts",
     "eval:semantic:diagnose": "node src/semantic/command-line/runner.ts --diagnose-batch",
     "eval:semantic:compose": "node src/semantic/command-line/compose.ts",

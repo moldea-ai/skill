@@ -40,8 +40,9 @@ After adoption, the coding agent uses moldea for agent work, established project
 - [Limitations](/docs/limitations/): understand warnings, unfinished checks, large inputs, and practical next steps.
 - [Repository format](/docs/repository-format/): see how a two-file foundation grows into focused, explicit project organization.
 - [Continuous maintenance](/docs/continuous-maintenance/): keep affected truth aligned and explicitly compress accumulated context without losing unique meaning.
-- [Evidence](/evidence/): inspect recorded semantic evaluation and independently recorded project runs, including failures and provenance.
+- [Evidence](/evidence/): inspect recorded semantic evaluation, independently recorded project runs, and selected scripted journeys, including failures and provenance.
 - [Semantic evaluation](/docs/semantic-evaluation/): inspect actor blindness, sourced scenarios, protected repository controls, coverage, and release evidence.
+- [Scripted journeys](/docs/scripted-journeys/): run 21 requests in ChatGPT and Claude projects and assess exported outcomes locally.
 - [Examples](/examples/): follow complete developer, coding-agent, and skill interactions.
 
 ## What stays yours

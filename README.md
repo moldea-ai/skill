@@ -67,6 +67,7 @@ Evaluation is read-only. Repair corrects established errors and may recover nece
 | Inspect compatibility, local tooling, and resource limits          | [Compatibility and local tooling](docs/compatibility-and-local-tooling.md)                    |
 | Review instruction-loading behavior                                | [Reference-reading checks](docs/reference-reading.md)                                         |
 | Run semantic evaluation                                            | [Semantic evaluation](docs/semantic-evaluation.md)                                            |
+| Run subscription-based ChatGPT and Claude journeys                 | [Scripted journeys](docs/scripted-journeys.md)                                                |
 | Select fresh or pinned release evidence                            | [Release evidence](docs/release-evidence.md)                                                  |
 | Browse all public documentation                                    | [Documentation index](docs/index.md)                                                          |
 
@@ -109,21 +110,25 @@ Tooling establishment occurs only during authorized write-capable work and only 
 
 ## Project blueprint
 
-moldea is a portable Agent Skill with deterministic conformance, semantic evaluation, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.
+moldea is a portable Agent Skill with deterministic conformance, semantic evaluation, scripted journeys, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.
 
-| Area                                      | Responsibility                                                                                                                                         |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `moldea/`                                 | Complete distributed Agent Skill: entrypoint, focused references, host metadata, managed document assets, and bounded generated scripts.               |
-| `src/`                                    | Maintained TypeScript for portable generation, isolated execution, semantic evaluation, evidence assets, release checks, and shared developer tooling. |
-| `evidence/selection.json`                 | Exact maintainer selection for the semantic evidence bundle shown on the website.                                                                      |
-| `website/`                                | Static documentation and evidence presentation, including independently selected mock-project runs, sanitized session replays, and source links.       |
-| `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation attempts are not committed.                                                 |
-| `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                               |
-| `project-specification`                   | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                             |
-| `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, quality, and portable/Windows contracts.                                                                  |
-| `.github/workflows/website-checks.yml`    | Shared read-only website quality, artifact, and two-shard browser verification.                                                                        |
-| `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                         |
-| `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                |
+Scripted journeys cover six journeys and 21 requests in ordinary ChatGPT and Claude projects. Either provider can run selected whole journeys from an immutable commit-pinned bundle. Trusted checks run locally; initial failures use the shared two-of-three confirmation quorum with fresh-chat operator observations. Campaign scope and provider coverage remain separate. The optional third evidence section shows requests, changes, replies, checks, and provenance. Procedural adherence, actual instruction consumption, and complete consumer cleanup remain explicitly unverified where the suite does not establish them. The website preserves initial failures, every admitted confirmation, partial coverage and historical provenance. These selected observations do not estimate platform-wide reliability.
+
+| Area                                      | Responsibility                                                                                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `moldea/`                                 | Complete distributed Agent Skill: entrypoint, focused references, host metadata, managed document assets, and bounded generated scripts.                                  |
+| `src/`                                    | Maintained TypeScript for portable generation, isolated execution, semantic evaluation, scripted journeys, evidence assets, release checks, and shared developer tooling. |
+| `evidence/selection.json`                 | Exact maintainer selections for semantic evidence and optional scripted journeys.                                                                                         |
+| `website/`                                | Static documentation and evidence presentation, including independently selected mock-project runs, sanitized session replays, and source links.                          |
+| `fixtures/`                               | Deterministic source fixtures and calibration records. Recorded evaluation attempts are not committed.                                                                    |
+| `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                                                  |
+| `project-specification`                   | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                                                |
+| `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, quality, and portable/Windows contracts.                                                                                     |
+| `.github/workflows/website-checks.yml`    | Shared read-only website quality, artifact, and two-shard browser verification.                                                                                           |
+| `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                                            |
+| `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                                   |
+
+Scripted-journey composition assembles one website snapshot from explicit local records. Whole provider/journey groups can update independently; retained results keep their original requests, versions, methods, dates and raw artifacts. New tests may have evidence from only one provider. Partial or mixed snapshots can display but do not satisfy current release assurance.
 
 The distributed artifact is exactly `moldea/`; development-only tooling is not installed with the skill. Portable builds use fixed compiler settings in checkouts and temporary release directories. Run `npm run matcher:generate` after changing the relevance gate's locked inputs and `npm run matcher:check` to verify the committed artifact.
 
@@ -183,6 +188,7 @@ Specialized workflows have focused operator references:
 | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
 | Resource profiles and calibration                          | [Compatibility and local tooling](docs/compatibility-and-local-tooling.md) |
 | Semantic preflight, diagnosis, recording, and verification | [Semantic evaluation](docs/semantic-evaluation.md)                         |
+| Scripted journeys in ChatGPT and Claude projects           | [Scripted journeys](docs/scripted-journeys.md)                             |
 | Fresh or explicitly pinned release evidence                | [Release evidence](docs/release-evidence.md)                               |
 
 ## Releases

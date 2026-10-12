@@ -17,9 +17,22 @@ test('discovery accepts an additional validated journey without a registry edit'
     expect((await loadScriptedJourneys(scratch)).map((journey) => journey.id)).toStrictEqual([
       'extra',
     ]);
-    const pilots = await loadScriptedJourneys();
-    expect(pilots.map((journey) => journey.id)).toStrictEqual(['adopted-unrelated', 'new-project']);
-    expect(pilots[1]?.steps.map((step) => step.id)).toStrictEqual(['initialize', 'validate']);
+    const journeys = await loadScriptedJourneys();
+    expect(journeys.map((journey) => [journey.id, journey.steps.length])).toStrictEqual([
+      ['adopted-unrelated', 1],
+      ['new-project', 5],
+      ['everyday-work', 3],
+      ['health', 4],
+      ['agents', 4],
+      ['boundaries', 4],
+    ]);
+    expect(journeys[1]?.steps.map((step) => step.id)).toStrictEqual([
+      'read-project',
+      'initialize',
+      'purpose',
+      'greeting',
+      'validate',
+    ]);
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }

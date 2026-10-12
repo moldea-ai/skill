@@ -8,7 +8,18 @@ order: 174
 
 # Scripted journeys
 
-Scripted journeys evaluate the portable skill in ordinary ChatGPT and Claude chat projects using subscription compute. The current pilot covers an unrelated code change in an adopted repository, then initialization and read-only validation in a new project. The suite is independent of semantic evaluation.
+Scripted journeys evaluate the portable skill in ordinary ChatGPT and Claude chat projects using subscription compute. Six journeys contain 21 requests. The suite is independent of semantic evaluation.
+
+| Journey                                | Requests | Outcomes checked                                                                                                         |
+| -------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| An unrelated code change               | 1        | Requested source edit with the adopted foundation preserved                                                              |
+| From first question to adoption        | 5        | Read-only facts, initialization, purpose correction, unrelated work, validation                                          |
+| Keep everyday policy aligned           | 3        | Approved policy changes in code and context, read-only policy answer                                                     |
+| Diagnose and repair integration        | 4        | Read-only evaluation and validation, managed-block repair, repeated repair without changes                               |
+| An agent through its lifecycle         | 4        | Read-only planning, grounded registration, policy maintenance, retirement                                                |
+| Respect authority and read-only limits | 4        | Unresolved contradiction, hostile repository note, unavailable tooling with installation forbidden, read-only correction |
+
+The health fixture has a damaged explanatory README region and a stale AGENTS.md managed block. The CLI reports `MOLDEA_INTEGRATION_BLOCK_STALE` while the project remains valid. README drift is checked by skill-owned repair, not a CLI diagnostic. The boundaries fixture declares the CLI and has a generated lockfile, but setup leaves it uninstalled.
 
 Each platform receives identical bundle bytes. One chat follows requests issued by a local harness, records each response and repository patch, and attaches checkpoints. These are scripted requests within a chat, not separate human turns or a measure of multi-turn reliability. A run describes its recorded models, dates, and settings; it does not establish a general pass rate or vendor endorsement.
 
@@ -50,7 +61,7 @@ Download the final zip from each platform. Use the original bundle and the indep
 npm run eval:journeys -- assess --bundle <bundle.zip> --sha256 <bundle-sha256> --export <chatgpt.zip> --export <claude.zip> --operator-record <operator-record.json>
 ```
 
-Assessment verifies archive paths, sizes, file types, every exported file hash, bundle identity, harness hashes, and current definition digests. It reconstructs each step from the trusted fixture and recorded patches, rejects unsafe paths and non-regular file modes, and compares the reconstructed final tree with the export. Changed-path checks can compare with the preceding step or the original fixture.
+Assessment verifies archive paths, sizes, file types, every exported file hash, bundle identity, harness hashes, and current definition digests. It reconstructs each step from the trusted fixture and recorded patches, rejects unsafe paths and non-regular file modes, and compares the reconstructed final tree with the export. Changed-path checks can compare with the preceding step or the original fixture. Path existence checks include files and directories inferred from recorded descendants; empty directories are not recorded.
 
 Validation executes only a CLI closure installed locally from the original bundle cache and proved through the skill's closed launcher. Exported dependency declarations and lockfiles are inspected as data. They never select executable dependencies. Exported npm configuration is ignored. A missing exact declaration or lockfile blocks validation rather than triggering an install from exported metadata.
 
@@ -60,7 +71,7 @@ A step passes only when its trusted checks pass; failed dependencies or unavaila
 
 ## What the record establishes
 
-Trusted checks establish file outcomes and reply facts against local criteria. Patches, timestamps, environment details, CLI presence, restart counts, and harness self-checks are sandbox-captured facts from a model-controlled workspace. They are not independent proof of process. Replies and activity are agent-reported. Declared procedural expectations remain explicitly unverified.
+Trusted checks establish file outcomes and reply facts against local criteria. Reply checks use explicit patterns for selected facts and result phrases. Patches, timestamps, environment details, CLI presence, restart counts, and harness self-checks are sandbox-captured facts from a model-controlled workspace. They are not independent proof of process. Replies and activity are agent-reported. Declared procedural expectations remain explicitly unverified.
 
 The model can inspect or modify its workspace. Instructions forbid opening the harness or future request files, but this cannot be enforced. File hashes detect inconsistencies against the operator-held bundle; they do not authenticate model behavior. No command monitoring or tool-call timeline is collected.
 

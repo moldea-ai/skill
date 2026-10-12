@@ -6,6 +6,31 @@ import { expect, test } from 'vitest';
 
 import { evaluateJourneyCheck, type ICheckContext } from './checks.ts';
 
+test.each([
+  ['path-exists', 'policy.md', 'passed'],
+  ['path-exists', 'agents/triage', 'passed'],
+  ['path-absent', 'agents/triage', 'failed'],
+  ['path-absent', 'agents/triage/instruction.md', 'failed'],
+  ['path-absent', 'agents/tri', 'passed'],
+  ['path-exists', 'agents/tri', 'failed'],
+  ['path-absent', 'missing', 'passed'],
+] as const)('%s(%s) -> %s', async (kind, candidate, expectedStatus) => {
+  const result = await evaluateJourneyCheck(
+    { kind, path: candidate },
+    {
+      repository: '',
+      stepChanges: [],
+      fixtureChanges: [],
+      files: { 'policy.md': 'hash', 'agents/triage/instruction.md': 'hash' },
+      reply: '',
+      cliVersion: '11.0.0',
+      closure: '',
+      environment: {},
+    },
+  );
+  expect(result.status).toBe(expectedStatus);
+});
+
 test('trusted checks distinguish step changes, enduring preservation, absent content, and false replies', async () => {
   const repository = await mkdtemp(path.join(os.tmpdir(), 'journeys-checks-'));
   try {

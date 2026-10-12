@@ -39,7 +39,13 @@ test('definition digest is stable and includes private criteria and procedure cl
   ).not.toBe(createJourneyDefinitionDigest(journey));
 });
 
-test('definitions reject unsupported ordering, patterns, and uncited skill behavior', () => {
+test('definitions reject unsupported ordering, patterns, fixture drift, and uncited skill behavior', () => {
+  expect(() =>
+    defineScriptedJourney({
+      ...definition,
+      fixture: { ...definition.fixture, integrationDrift: true },
+    }),
+  ).toThrow(/Integration drift requires an adopted fixture/u);
   expect(() =>
     defineScriptedJourney({
       ...definition,

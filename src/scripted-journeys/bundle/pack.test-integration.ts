@@ -97,6 +97,76 @@ test('pack preserves Git skill bytes, hides criteria, installs offline, and vali
       status: 'valid',
       result: { warningCount: 0 },
     });
+    expect(bundle.journeys.map(({ id, stepCount }) => [id, stepCount])).toStrictEqual([
+      ['adopted-unrelated', 1],
+      ['new-project', 5],
+      ['everyday-work', 3],
+      ['health', 4],
+      ['agents', 4],
+      ['boundaries', 4],
+    ]);
+    for (const journey of bundle.journeys.filter(({ fixture }) => fixture.installCli)) {
+      const repository = path.join(workspace, 'work', journey.id);
+      const result = await runCommand(
+        process.execPath,
+        [
+          path.join(repository, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+          '--repository',
+          repository,
+          '--',
+          'validate',
+          '--json',
+          '--max-output-bytes',
+          '65536',
+        ],
+        repository,
+        environment,
+      );
+      expect(JSON.parse(result.stdout) as unknown).toMatchObject({
+        status: 'valid',
+        result: { warningCount: journey.id === 'health' ? 1 : 0 },
+      });
+      if (journey.id === 'health') {
+        expect(result.stdout).toContain('MOLDEA_INTEGRATION_BLOCK_STALE');
+        expect(result.stdout).not.toContain('README');
+        await runCommand(
+          process.execPath,
+          [
+            path.join(repository, '.agents/skills/moldea/scripts/managed-readme.mjs'),
+            '--repository',
+            repository,
+          ],
+          repository,
+          environment,
+        );
+        const afterReadme = await runCommand(
+          process.execPath,
+          [
+            path.join(repository, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+            '--repository',
+            repository,
+            '--',
+            'validate',
+            '--json',
+            '--max-output-bytes',
+            '65536',
+          ],
+          repository,
+          environment,
+        );
+        expect(JSON.parse(afterReadme.stdout) as unknown).toMatchObject({
+          status: 'valid',
+          result: { warningCount: 1 },
+        });
+        expect(afterReadme.stdout).toContain('MOLDEA_INTEGRATION_BLOCK_STALE');
+        expect(await readFile(path.join(repository, 'README.md'), 'utf8')).toContain(
+          'This project uses [moldea]',
+        );
+      }
+    }
+    const boundaries = path.join(workspace, 'work/boundaries');
+    await expect(lstat(path.join(boundaries, 'node_modules/@moldea.ai/cli'))).rejects.toThrow();
+    expect(await readFile(path.join(boundaries, 'package-lock.json'), 'utf8')).toContain('11.0.0');
     expect(await nextRequest(workspace)).toContain('journey: adopted-unrelated');
     await verifyBundle(root); // setup and subsequent npm operations must preserve the original cache
     const fresh = path.join(scratch, 'fresh-project');
@@ -129,6 +199,31 @@ test('pack preserves Git skill bytes, hides criteria, installs offline, and vali
     expect(await readFile(path.join(closure, '@moldea.ai/cli/package.json'), 'utf8')).toContain(
       '11.0.0',
     );
+    // confirm the uninstalled fixture's expected structural result with the trusted closure
+    await copyTree(closure, path.join(boundaries, 'node_modules'), ['.bin']);
+    try {
+      const boundaryValidation = await runCommand(
+        process.execPath,
+        [
+          path.join(boundaries, '.agents/skills/moldea/scripts/moldea-cli.mjs'),
+          '--repository',
+          boundaries,
+          '--',
+          'validate',
+          '--json',
+          '--max-output-bytes',
+          '65536',
+        ],
+        boundaries,
+        environment,
+      );
+      expect(JSON.parse(boundaryValidation.stdout) as unknown).toMatchObject({
+        status: 'valid',
+        result: { warningCount: 0 },
+      });
+    } finally {
+      await rm(path.join(boundaries, 'node_modules'), { recursive: true, force: true });
+    }
     const reconstructed = path.join(scratch, 'reconstructed');
     await copyTree(adopted, reconstructed, ['.git', 'node_modules', '.agents']);
     await copyTree(

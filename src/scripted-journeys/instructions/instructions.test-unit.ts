@@ -6,7 +6,10 @@ import { readProjectInstructions, renderStartMessage } from './instructions.ts';
 test('project instructions are bounded, generic, and explain both recovery paths', async () => {
   const instructions = await readProjectInstructions();
   expect(instructions.length).toBeLessThanOrEqual(8000);
-  expect(instructions).not.toMatch(/moldea|adopted-unrelated|new-project|expected|criterion/iu);
+  // generic .agents/ and AGENTS.md paths are permitted; journey identifiers in prose are not
+  expect(instructions).not.toMatch(
+    /moldea|adopted-unrelated|new-project|everyday-work|(?<!\.)\bagents\b(?!\.md\b)|\bhealth\b|\bboundaries\b|expected|criterion/iu,
+  );
   expect(instructions).toContain('--resume');
   expect(instructions).toContain('re-issued');
   expect(instructions).toContain('frontmatter description');

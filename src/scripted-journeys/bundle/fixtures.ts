@@ -25,9 +25,13 @@ export const materializeFixture = async (input: {
       ['AGENTS.md', 'managed-agents-block.md'],
     ] as const) {
       const file = path.join(input.destination, name);
-      const block = (
+      const currentBlock = (
         await readFile(path.join(input.skillDirectory, 'assets', asset), 'utf8')
       ).replaceAll('{{skill-path}}', '.agents/skills/moldea');
+      // drift stays safely bounded by valid markers so repair has an unambiguous target
+      const block = input.definition.fixture.integrationDrift
+        ? currentBlock.replace('This project uses', 'This workspace formerly used')
+        : currentBlock;
       let previous = Buffer.alloc(0);
       try {
         previous = await readFile(file);
@@ -43,7 +47,8 @@ export const materializeFixture = async (input: {
       await writeFile(file, createManagedBlockBytes(previous, block, name));
     }
   }
-  if (input.definition.fixture.installCli) {
+  // adopted fixtures carry a real lockfile even when sandbox installation is forbidden
+  if (input.definition.fixture.adopted || input.definition.fixture.installCli) {
     await mkdir(input.home, { recursive: true });
     await installOfflineCli(input.destination, input.cliVersion, input.cache, input.home);
     await rm(path.join(input.destination, 'node_modules'), { recursive: true, force: true });

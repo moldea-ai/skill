@@ -19,6 +19,11 @@ export type ICheckContext = {
 const matchesPath = (candidate: string, pattern: string): boolean =>
   pattern.endsWith('/**') ? candidate.startsWith(pattern.slice(0, -2)) : candidate === pattern;
 
+/** Recognizes files and nonempty directories in the file-only snapshot. */
+const hasTreePath = (files: Record<string, string>, candidate: string): boolean =>
+  Object.hasOwn(files, candidate) ||
+  Object.keys(files).some((name) => name.startsWith(`${candidate}/`));
+
 /** Evaluates one trusted criterion against a reconstructed snapshot or agent-reported reply. */
 export const evaluateJourneyCheck = async (
   check: IJourneyCheck,
@@ -31,9 +36,9 @@ export const evaluateJourneyCheck = async (
   });
   switch (check.kind) {
     case 'path-exists':
-      return result(Object.hasOwn(context.files, check.path), `Required path: ${check.path}`);
+      return result(hasTreePath(context.files, check.path), `Required path: ${check.path}`);
     case 'path-absent':
-      return result(!Object.hasOwn(context.files, check.path), `Absent path: ${check.path}`);
+      return result(!hasTreePath(context.files, check.path), `Absent path: ${check.path}`);
     case 'no-changes':
       return result(
         context.stepChanges.length === 0,

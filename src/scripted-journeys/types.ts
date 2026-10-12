@@ -9,7 +9,15 @@ const IdentifierSchema = z
   .max(48);
 const HashSchema = z.string().regex(/^[a-f0-9]{64}$/u);
 const FileHashesSchema = z.record(z.string(), HashSchema);
-const FixtureSchema = z.strictObject({ adopted: z.boolean(), installCli: z.boolean() });
+const FixtureSchema = z
+  .strictObject({
+    adopted: z.boolean(),
+    installCli: z.boolean(),
+    integrationDrift: z.boolean().optional(),
+  })
+  .refine((fixture) => !fixture.integrationDrift || fixture.adopted, {
+    message: 'Integration drift requires an adopted fixture.',
+  });
 const ReferenceSchema = z.strictObject({ path: z.string(), statement: z.string().min(1) });
 const SinceSchema = z.enum(['step', 'fixture']).default('step');
 

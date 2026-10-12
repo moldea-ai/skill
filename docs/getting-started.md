@@ -8,7 +8,7 @@ order: 10
 
 # Install once, then speak naturally
 
-The primary distribution page is [`moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea). The portable skill works with [compatible coding agents](/docs/coding-agent-compatibility/), including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, and Cline.
+The primary distribution page is [moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea). The portable skill works with [compatible coding agents](/docs/coding-agent-compatibility/), including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, and Cline.
 
 Install the latest version from the repository's `main` branch in your current project:
 
@@ -64,7 +64,7 @@ An adopted project turns the same request into focused foundation maintenance. M
 
 Initialization is conversational when evidence is incomplete:
 
-- If no meaningful project context can be established, the coding agent explains that `moldea` keeps durable repository context and asks one focused question about what the project does and whom or what it serves. A name, generic label, placeholder file, empty export, or brief package metadata cannot establish the foundation alone.
+- If no meaningful project context can be established, the coding agent explains that moldea keeps durable repository context and asks one focused question about what the project does and whom or what it serves. A name, generic label, placeholder file, empty export, or brief package metadata cannot establish the foundation alone.
 - If part of the project is clear but a material purpose, user, goal, authority, or boundary remains uncertain, the coding agent summarizes supported conclusions and asks one question about that boundary. Broad language such as “handles payments” does not establish value movement, authorization, destructive effects, lifecycle changes, or external actions that the evidence does not support.
 - If the foundation is sufficient, initialization completes without a ceremonial question.
 
@@ -90,9 +90,9 @@ To design the system before implementation, ask:
 Use moldea to plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software and what genuinely needs model reasoning.
 ```
 
-Planning is read-only and may recommend no agents. You do not need to mention `moldea` again or create bindings first. The managed AGENTS.md block checks ordinary paths before loading the entrypoint; clear agent work checks adoption, and a follow-up continues only the active task and its authorization. Unrelated work remains unaffected. See the [workflow reference](/docs/how-it-works/) for the complete activation contract.
+Planning is read-only and may recommend no agents. You do not need to mention moldea again or create bindings first. The managed AGENTS.md block checks ordinary paths before loading the entrypoint; clear agent work checks adoption, and a follow-up continues only the active task and its authorization. Unrelated work remains unaffected. See the [workflow reference](/docs/how-it-works/) for the complete activation contract.
 
-You do not need to create `/moldea` directories by hand, invoke the local CLI directly, translate requests into special commands, maintain duplicate instructions, or create a `moldea` Cloud account. The coding agent owns safe interaction with the repository-local skill and tooling.
+You do not need to create `/moldea` directories by hand, invoke the local CLI directly, translate requests into special commands, maintain duplicate instructions, or create a moldea Cloud account. The coding agent owns safe interaction with the repository-local skill and tooling.
 
 ## Update or remove the skill
 

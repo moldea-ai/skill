@@ -68,7 +68,7 @@ Next actions:
 - Optionally plan an agent-enabled workflow or request a specific agent when the project needs one.
 ```
 
-## Coding agent and `moldea` under the hood
+## Coding agent and moldea under the hood
 
 1. The exact `Initialize moldea` request establishes adoption intent.
 2. The coding agent begins with the root README and other high-information project surfaces.

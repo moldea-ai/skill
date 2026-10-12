@@ -14,7 +14,7 @@ The requests and reports below illustrate the workflow. They are not recorded co
 
 **Developer**
 
-> Validate the `moldea` project.
+> Validate the moldea project.
 
 **Coding agent**
 
@@ -22,7 +22,7 @@ The requests and reports below illustrate the workflow. They are not recorded co
 I ran the verified repository-local validation boundary. The project is structurally invalid because one registered mirror differs from its canonical instruction. No repository files were changed. This result does not assess broader semantic alignment.
 ```
 
-## Coding agent and `moldea` under the hood
+## Coding agent and moldea under the hood
 
 1. The coding agent selects read-only validation.
 2. It checks repository-root-local package identity, containment, and supported installed versions through the installed skill’s closed launcher.

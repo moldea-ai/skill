@@ -8,7 +8,7 @@ order: 70
 
 # Keep behavior aligned while you ship
 
-After a repository adopts `moldea`, durable project knowledge can stay current as you plan and develop ordinary software or runtime agents. Direct context requests and declared relationships establish relevance; you should not need to append “and update `moldea`” to those requests.
+After a repository adopts moldea, durable project knowledge can stay current as you plan and develop ordinary software or runtime agents. Direct context requests and declared relationships establish relevance; you should not need to append “and update moldea” to those requests.
 
 ```text
 Add manager approval to refunds over $500.
@@ -74,9 +74,9 @@ Compression is limited to repository-owned context. It does not manage host cont
 
 ## Adoption remains explicit
 
-The README may select the entrypoint before relevance is known. Further moldea work requires direct project or agent relevance, an explicit operation, canonical or managed-README work, or a declared relationship. Selection does not adopt `moldea` or authorize persistence. Initialization requires explicit developer intent, and adoption is established only by the complete canonical contract.
+The README may select the entrypoint before relevance is known. Further moldea work requires direct project or agent relevance, an explicit operation, canonical or managed-README work, or a declared relationship. Selection does not adopt moldea or authorize persistence. Initialization requires explicit developer intent, and adoption is established only by the complete canonical contract.
 
-If the developer prohibits corresponding `moldea` changes, the coding agent respects that scope, completes the authorized implementation, reports likely drift, and does not claim alignment. If an explicit `moldea` request targets an unadopted repository without authorizing initialization, the coding agent does not persist the knowledge and explains that initialization remains a separate explicit operation. Unrelated work receives no adoption recommendation or `moldea` report.
+If the developer prohibits corresponding moldea changes, the coding agent respects that scope, completes the authorized implementation, reports likely drift, and does not claim alignment. If an explicit moldea request targets an unadopted repository without authorizing initialization, the coding agent does not persist the knowledge and explains that initialization remains a separate explicit operation. Unrelated work receives no adoption recommendation or moldea report.
 
 After synchronized writes, each launcher-backed deterministic CLI invocation runs as a separate process from project checks, mirror comparisons, and Git inspection. The completion report names the deterministic operation or proof stage when material, its status, and material diagnostics or mirror findings established by that completed process. It does not need to repeat the literal invocation. A generic success claim, failed aggregate command, or unverified response is not sufficient evidence.
 

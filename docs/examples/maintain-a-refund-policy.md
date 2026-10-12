@@ -16,7 +16,7 @@ order: 130
 Require manager approval for refunds over $500 and update the affected tests.
 ```
 
-The developer does not mention `moldea`.
+The developer does not mention moldea.
 
 **Coding agent**
 
@@ -24,7 +24,7 @@ The developer does not mention `moldea`.
 The repository already uses `moldea`, and this rule affects the refund context and support-agent escalation behavior. I updated the deterministic authorization path, focused tests, the durable refund-policy context, and the support instruction. The existing tool schema and runtime binding remain accurate and were intentionally unchanged.
 ```
 
-## Coding agent and `moldea` under the hood
+## Coding agent and moldea under the hood
 
 1. The coding agent recognizes relevance-triggered maintenance in an adopted project.
 2. It reads continuous-maintenance guidance and runs deterministic inspection through the verified closed launcher.

@@ -1,8 +1,8 @@
 ![moldea](assets/cover.png)
 
-# `moldea` Agent Skill
+# moldea Agent Skill
 
-[Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
+[Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
 The latest release is `8.0.1`. Install the latest version from `main` inside each repository that will use it:
 
@@ -16,11 +16,11 @@ For a reproducible installation, pin the immutable release:
 npx skills add "moldea-ai/skill#v8.0.1"
 ```
 
-Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
+Both commands install the portable skill named moldea. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
 
-## What `moldea` is
+## What moldea is
 
-`moldea` helps developers keep durable project knowledge in Git and bring relevant context into coding-agent planning and development. Start with project purpose, rules, and decisions, even when your application has no runtime agents. The same foundation supports creating and maintaining runtime agents, reusable Agent Skills, and their instructions.
+moldea helps developers keep durable project knowledge in Git and bring relevant context into coding-agent planning and development. Start with project purpose, rules, and decisions, even when your application has no runtime agents. The same foundation supports creating and maintaining runtime agents, reusable Agent Skills, and their instructions.
 
 Adopted projects own a canonical `/moldea/**` tree. Focused context, implementation relationships, runtime guidance, mirrors, and unresolved requirements are added only when current project evidence calls for them.
 
@@ -33,7 +33,7 @@ The skill helps a coding agent:
 - keep affected canonical knowledge aligned with implementation work
 - evaluate, reconcile, repair, and structurally validate established state
 
-After initialization, ask naturally to plan, build, review, or maintain AI agents, including model instructions and responsibilities in one-shot calls and workflows. Established project facts, approved policies, clear corrections, and project-context questions also receive bounded assessment without naming `moldea` or a file. Ordinary implementation requirements still use declared relationships, even when their effects will persist. When ordinary work expands to newly discovered paths, the coding agent checks those paths once at an existing scope checkpoint and preserves earlier matched owners. Only explicit initialization creates a new setup.
+After initialization, ask naturally to plan, build, review, or maintain AI agents, including model instructions and responsibilities in one-shot calls and workflows. Established project facts, approved policies, clear corrections, and project-context questions also receive bounded assessment without naming moldea or a file. Ordinary implementation requirements still use declared relationships, even when their effects will persist. When ordinary work expands to newly discovered paths, the coding agent checks those paths once at an existing scope checkpoint and preserves earlier matched owners. Only explicit initialization creates a new setup.
 
 ### Common requests
 
@@ -87,7 +87,7 @@ The CLI must be a repository-root-local development dependency whose manifest de
 
 Initialization creates `/moldea/moldea.yaml` and `/moldea/project.md`, an explanatory README region, and a small managed AGENTS.md routing block when host instructions permit. For ordinary work, that block runs the two-byte relevance gate over already-known paths before loading SKILL.md. A miss continues silently without loading the entrypoint, workflow references, or CLI. Direct agent and project-context work keeps the skill’s own routing.
 
-After adoption, clear AI-agent work and concrete project-level context use the adoption-only route. Explicit `moldea` operations, canonical paths, and changes inside the managed README block also activate directly. Other known task paths use the AGENTS.md precheck and declared relationship matching. Host planning, review, commit, and publication workflows keep control of their own procedures. Generic terminology, pasted proposals, temporary status, and lasting code changes alone do not establish direct relevance. Irrelevant work receives no moldea announcement or status.
+After adoption, clear AI-agent work and concrete project-level context use the adoption-only route. Explicit moldea operations, canonical paths, and changes inside the managed README block also activate directly. Other known task paths use the AGENTS.md precheck and declared relationship matching. Host planning, review, commit, and publication workflows keep control of their own procedures. Generic terminology, pasted proposals, temporary status, and lasting code changes alone do not establish direct relevance. Irrelevant work receives no moldea announcement or status.
 
 Informational handoffs and read-only questions permit assessment, not automatic writes. A clear correction to established project truth authorizes its minimal canonical update after adoption and ownership checks, unless the request is read-only. Authorized updates preserve unrelated state and end with validation; they do not authorize implementation changes or broad context discovery.
 
@@ -101,7 +101,7 @@ Semantic execution may project one fixed repository-root direct Node correctness
 
 Before adoption, a non-repository informational question is answered without repository inspection. Only explicit initialization creates canonical project state. An explicit setup validation, evaluation, or inspection request can diagnose a failed adoption check with bounded read-only foundation inspection. Repair may recover an established but damaged setup with the required authority; neither route silently initializes an unrelated repository. If no independent host task remains after abstention, the coding agent reports only a neutral repository outcome. A changed topic resets relevance and authorization instead of inheriting them from earlier agent work.
 
-For ordinary repository paths, the AGENTS.md precheck runs before loading SKILL.md. The relevance gate accepts the relative spellings produced by Git, normalizes them to repository-logical paths, and emits only `0` or `1` without executing repository dependencies. The first check covers all host-known paths. A later check covers only materially new paths independently discovered during the host task; unchanged paths reuse their decision. A hit permits one bounded relationship query for its batch; it does not authorize loading every canonical record. The coding agent selects the smallest affected owner set, reads only the content needed for the task, and validates material canonical writes. An unrelated batch miss adds no `moldea` activity and does not erase an earlier matched owner.
+For ordinary repository paths, the AGENTS.md precheck runs before loading SKILL.md. The relevance gate accepts the relative spellings produced by Git, normalizes them to repository-logical paths, and emits only `0` or `1` without executing repository dependencies. The first check covers all host-known paths. A later check covers only materially new paths independently discovered during the host task; unchanged paths reuse their decision. A hit permits one bounded relationship query for its batch; it does not authorize loading every canonical record. The coding agent selects the smallest affected owner set, reads only the content needed for the task, and validates material canonical writes. An unrelated batch miss adds no moldea activity and does not erase an earlier matched owner.
 
 Evaluation is read-only across ordinary repository files, Git state, configuration, submodules, the installed portable skill, and declared related repositories. Structural validation proves repository shape, not behavioral completeness. Claims still require repository evidence, and unresolved developer decisions remain explicit instead of being converted into invented policy.
 
@@ -109,7 +109,7 @@ Tooling establishment occurs only during authorized write-capable work and only 
 
 ## Project blueprint
 
-`moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.
+moldea is a portable Agent Skill with deterministic conformance, semantic evaluation, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.
 
 | Area                                      | Responsibility                                                                                                                                         |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -129,7 +129,7 @@ The distributed artifact is exactly `moldea/`; development-only tooling is not i
 
 ## Authoritative project specifications
 
-The sibling `platform` repository owns the canonical `moldea` product and skill specifications. The root `project-specification` symlink targets `../platform/moldea`. Before work that requires those specifications, read the [project foundation](project-specification/project.md), then only the relevant focused context. Start with the [Agent Skill specification](project-specification/context/agent-skill.md) for skill behavior and follow its references as needed.
+The sibling `platform` repository owns the canonical moldea product and skill specifications. The root `project-specification` symlink targets `../platform/moldea`. Before work that requires those specifications, read the [project foundation](project-specification/project.md), then only the relevant focused context. Start with the [Agent Skill specification](project-specification/context/agent-skill.md) for skill behavior and follow its references as needed.
 
 Specifications define intended product requirements and design constraints. This repository owns the skill implementation, public documentation, compatibility declarations, and release evidence. The `packages` repository owns the [public Repository Format](../packages/specifications/repository-format.md), package implementations, tests, and releases. Specifications alone do not establish shipped behavior or availability. Report conflicts or version drift and establish the affected authority before changing a contract; do not silently regress supported behavior to match an older specification.
 

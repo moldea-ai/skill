@@ -8,7 +8,7 @@ order: 170
 
 # Local-first and developer-controlled
 
-The client repository owns its canonical `moldea` state. Local skill workflows do not send repository content to `moldea` Cloud, and a Cloud account is not required for installation or local operation.
+The client repository owns its canonical moldea state. Local skill workflows do not send repository content to moldea Cloud, and a Cloud account is not required for installation or local operation.
 
 ## Developer authority
 
@@ -18,7 +18,7 @@ The skill does not stage, unstage, commit, reset, switch branches, merge, rebase
 
 ## Protected coding instructions
 
-Repository coding instructions remain outside `moldea`'s ownership. The coding agent reads and respects applicable instruction surfaces but never creates, edits, weakens, deletes, renames, moves, reformats, or circumvents them through the skill.
+Repository coding instructions remain outside moldea's ownership. The coding agent reads and respects applicable instruction surfaces but never creates, edits, weakens, deletes, renames, moves, reformats, or circumvents them through the skill.
 
 ## Untrusted repository content
 
@@ -36,4 +36,4 @@ The blocked result identifies the unavailable compatible local CLI, the exact co
 
 The gate executes only code shipped with the installed skill. The closed launcher checks the repository-local CLI/Core metadata and path containment before executing the installed CLI. These checks do not authenticate executable contents or provide an OS sandbox. The host's existing repository-trust and execution controls remain in force, without a new approval ceremony. The skill never falls back to a global command or transient package download.
 
-Git inspection remains owned by the active host workflow. The `moldea` skill reuses the host's established repository root, exact paths named or targeted by the developer, changed paths, diffs, branch state, and verification evidence. An unchanged named path remains valid relationship-gate input; the skill does not run Git merely to prove that the path changed. Its local-tooling guidance governs only exact repository-local CLI establishment and bounded `moldea` invocation; it does not add Git preflights, temporary indexes, candidate trees, fingerprints, repeated status probes, or publication checks.
+Git inspection remains owned by the active host workflow. The moldea skill reuses the host's established repository root, exact paths named or targeted by the developer, changed paths, diffs, branch state, and verification evidence. An unchanged named path remains valid relationship-gate input; the skill does not run Git merely to prove that the path changed. Its local-tooling guidance governs only exact repository-local CLI establishment and bounded moldea invocation; it does not add Git preflights, temporary indexes, candidate trees, fingerprints, repeated status probes, or publication checks.

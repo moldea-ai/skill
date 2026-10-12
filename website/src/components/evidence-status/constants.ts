@@ -5,6 +5,8 @@ export const EVIDENCE_STATUS_PRESENTATION: Record<
   IEvidenceDisplayStatus,
   { label: string; tone: 'danger' | 'info' | 'neutral' | 'success' | 'warning' }
 > = {
+  blocked: { label: 'Blocked', tone: 'warning' },
+  unverified: { label: 'Unverified', tone: 'neutral' },
   reused: {
     label: 'Reused',
     tone: 'neutral',

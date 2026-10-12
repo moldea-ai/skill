@@ -2,12 +2,9 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import {
-  createEvidenceBundle,
-  storeCompletedEvidenceRun,
-  type IEvidenceArtifactInput,
-} from '../../evidence/index.ts';
+import { storeCompletedEvidenceRun, type IEvidenceArtifactInput } from '../../evidence/index.ts';
 import { extractArchive } from '../bundle/index.ts';
+import { createJourneysEvidenceBundle } from '../public-evidence/index.ts';
 import { MAXIMUM_REPLY_BYTES } from '../index.ts';
 import {
   assertHashes,
@@ -230,27 +227,11 @@ export const assessJourneys = async (input: {
     if (input.persist !== false)
       await storeCompletedEvidenceRun(
         input.repositoryRoot,
-        createEvidenceBundle({
-          classification: 'official',
-          kind: 'journeys',
-          run: {
-            attemptId: bundle.runId,
-            evaluatedAt: assessment.evaluatedAt,
-            status: assessment.status,
-            version: bundle.skill.version,
-            provenance: {
-              skillCommit: bundle.skill.commit,
-              bundleSha256: input.sha256,
-              assessorCommit: assessment.assessor.commit,
-              assessorSourceSha256: assessment.assessor.sourceSha256,
-            },
-          },
-          payload: {
-            assessment,
-            definitions,
-            skill: bundle.skill,
-            instructions: bundle.instructions,
-          },
+        createJourneysEvidenceBundle({
+          assessment,
+          definitions,
+          skill: bundle.skill,
+          instructions: bundle.instructions,
           artifacts,
         }),
       );

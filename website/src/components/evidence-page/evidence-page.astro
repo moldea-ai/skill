@@ -5,6 +5,8 @@ import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
+import RecordedJourneys from '../recorded-journeys/recorded-journeys.astro';
+import { PlatformMark } from '../platform-mark/index.ts';
 import RecordedAgent from '../recorded-agent/recorded-agent.astro';
 import RecordedChange from '../recorded-change/recorded-change.astro';
 import RecordedProject from '../recorded-project/recorded-project.astro';
@@ -73,7 +75,10 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
       <RecordedAgent evaluationCase={agentCase} />
     </div>
     <nav
-      class="page-shell grid gap-3 pb-8 sm:grid-cols-2 sm:pb-12"
+      class:list={[
+        'page-shell grid gap-3 pb-8 sm:grid-cols-2 sm:pb-12',
+        model.scriptedJourneys !== null && 'lg:grid-cols-3',
+      ]}
       aria-label="Evidence sections"
     >
       <a
@@ -113,6 +118,29 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
                 </span>
               </>
             </span>
+          </a>
+        )
+      }
+      {
+        model.scriptedJourneys !== null && (
+          <a
+            href="#journeys"
+            class="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-4 link-feedback"
+          >
+            <>
+              <ListChecks
+                class="size-5 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <span>
+                <>
+                  <span class="block text-sm font-semibold">Scripted journeys</span>
+                  <span class="mt-1 block text-xs text-muted-foreground">
+                    ChatGPT and Claude projects
+                  </span>
+                </>
+              </span>
+            </>
           </a>
         )
       }
@@ -237,6 +265,59 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
               </div>
             )}
           </div>
+        </div>
+      </section>
+    )
+  }
+  {
+    model.scriptedJourneys !== null && (
+      <section
+        id="journeys"
+        class="scroll-mt-24 border-t border-border bg-elevated py-12 sm:py-16"
+        aria-labelledby="journeys-title"
+        data-evidence-path
+      >
+        <div class="page-shell grid items-center gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-14">
+          <>
+            <div class="min-w-0">
+              <>
+                <p class="eyebrow mb-3">03 Follow scripted journeys</p>
+                <h2
+                  id="journeys-title"
+                  class="section-title"
+                >
+                  The same requests, run in ChatGPT and Claude projects
+                </h2>
+                <p class="mt-4 text-base leading-7 text-muted-foreground">
+                  Follow a sequence of project requests on both platforms. Compare the exported
+                  changes and replies with the local assessment at every step.
+                </p>
+                <div class="mt-5 flex flex-wrap gap-5">
+                  <>
+                    <PlatformMark platform="chatgpt" />
+                    <PlatformMark platform="claude" />
+                  </>
+                </div>
+                <div
+                  class="mt-6 grid gap-3"
+                  data-evidence-path-action
+                >
+                  <ActionLink
+                    href={withBase(model.scriptedJourneys.route, basePath)}
+                    variant="primary"
+                    class="w-full font-bold"
+                  >
+                    Explore scripted journeys
+                    <ArrowRight
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  </ActionLink>
+                </div>
+              </>
+            </div>
+            <RecordedJourneys model={model.scriptedJourneys} />
+          </>
         </div>
       </section>
     )

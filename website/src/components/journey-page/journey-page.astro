@@ -1,0 +1,80 @@
+---
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import { JourneyStep } from '../journey-step/index.ts';
+import BaseLayout from '../../layouts/base-layout.astro';
+import type { IScriptedJourneysWebsiteModel } from '../../lib/scripted-journeys/index.ts';
+
+interface Props {
+  model: IScriptedJourneysWebsiteModel;
+  journey: IScriptedJourneysWebsiteModel['journeys'][number];
+}
+const { model, journey } = Astro.props;
+const basePath = import.meta.env.BASE_URL;
+const breadcrumbs = [
+  { href: '/', label: 'Home' },
+  { href: '/evidence/', label: 'Evidence' },
+  { href: model.route, label: 'Scripted journeys' },
+  { label: journey.title },
+];
+---
+
+<BaseLayout
+  title={`${journey.title}: scripted journey`}
+  description={journey.summary}
+  {breadcrumbs}
+>
+  <div class="page-shell pt-7">
+    <Breadcrumbs
+      {basePath}
+      items={breadcrumbs}
+    />
+  </div>
+  <header class="mt-6 border-y border-border bg-elevated">
+    <div class="page-shell py-10 sm:py-14">
+      <p class="eyebrow mb-4">
+        Scripted journey · {journey.steps.length}
+        {journey.steps.length === 1 ? 'request' : 'requests'}
+      </p><h1 class="page-title">
+        <InlineBrandText
+          text={journey.title}
+          variant="compact"
+        />
+      </h1><p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
+        <InlineBrandText
+          text={journey.summary}
+          variant="compact"
+        />
+      </p><div class="mt-6 flex flex-wrap items-center gap-5 text-xs text-muted-foreground">
+        <span class="font-mono">Skill {model.skill.version} · {model.evaluatedAt.slice(0, 10)}</span
+        ><ActionLink
+          href={withBase(model.route, basePath)}
+          variant="link"
+          >All journeys and run configuration</ActionLink
+        >
+      </div>
+    </div>
+  </header>
+  <div class="page-shell py-6 sm:py-8">
+    <p class="max-w-4xl text-sm leading-7 text-muted-foreground">
+      Each platform receives these requests in order. Local checks assess the exported files and
+      reply text. Agent-reported activity and unverified claims appear separately.
+    </p><div class="mt-6">
+      {
+        journey.steps.map((step, index) => (
+          <JourneyStep
+            {step}
+            journeyId={journey.id}
+            number={index + 1}
+          />
+        ))
+      }
+    </div><p class="border-t border-border pt-6 text-xs leading-6 text-muted-foreground">
+      ChatGPT and Claude marks identify the products tested. They do not imply endorsement by OpenAI
+      or Anthropic.
+    </p>
+  </div>
+</BaseLayout>

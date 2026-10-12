@@ -4,10 +4,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, expect, test } from 'vitest';
 
-import {
-  createEvidenceBundle,
-  type IEvidencePreparationManifest,
-  type IEvidenceSelection,
+import type {
+  IEvidencePreparationManifest,
+  IEvidenceSelection,
 } from '../../../../src/evidence/index.ts';
 import { calculateSha256 } from '../../../../src/filesystem/index.ts';
 import { prepareSyntheticWebsiteEvidence } from '../../../scripts/evidence-fixture/index.ts';
@@ -27,51 +26,37 @@ test.each([null, 'journeys', 'semantic'] as const)(
     const root = await mkdtemp(path.join(tmpdir(), 'moldea-website-evidence-'));
     temporaryRoots.push(root);
     const options = await prepareSyntheticWebsiteEvidence(root);
-    if (kind !== null) {
-      const manifestPath = path.join(options.preparedDirectory, 'manifest.json');
-      const manifest = JSON.parse(
-        await readFile(manifestPath, 'utf8'),
-      ) as IEvidencePreparationManifest;
-      const selection = JSON.parse(
-        await readFile(options.selectionPath, 'utf8'),
-      ) as IEvidenceSelection;
-      const bundle = createEvidenceBundle({
-        kind,
-        classification: 'fixture',
-        payload: {},
-        run: {
-          attemptId: 'fixture-journeys',
-          evaluatedAt: '2026-01-01T00:00:00.000Z',
-          status: 'passed',
-          version: 'fixture',
-          provenance: {},
-        },
-      });
-      const source = JSON.stringify(bundle);
-      const digest = calculateSha256(source);
-      manifest.journeys = {
-        path: 'journeys.json',
-        assetsPath: 'assets/journeys',
-        bundleSha256: digest,
-        preparedSha256: digest,
-      };
-      selection.journeys = {
-        assetName: 'fixture-journeys.json.gz',
-        classification: 'official',
-        repository: 'moldea-ai/skill',
-        sha256: digest,
-        tag: 'evidence-fixture-journeys',
-      };
-      manifest.selectionSha256 = calculateSha256(`${JSON.stringify(selection)}\n`);
-      await Promise.all([
-        writeFile(path.join(options.preparedDirectory, 'journeys.json'), source),
-        writeFile(manifestPath, JSON.stringify(manifest)),
-        writeFile(options.selectionPath, JSON.stringify(selection)),
-      ]);
+    const manifestPath = path.join(options.preparedDirectory, 'manifest.json');
+    const manifest = JSON.parse(
+      await readFile(manifestPath, 'utf8'),
+    ) as IEvidencePreparationManifest;
+    const selection = JSON.parse(
+      await readFile(options.selectionPath, 'utf8'),
+    ) as IEvidenceSelection;
+    if (kind === null) {
+      manifest.journeys = null;
+      selection.journeys = null;
+    } else if (kind === 'semantic') {
+      const bundlePath = path.join(options.preparedDirectory, manifest.journeys!.path);
+      const source = (await readFile(bundlePath, 'utf8')).replace(
+        '"kind": "journeys"',
+        '"kind": "semantic"',
+      );
+      await writeFile(bundlePath, source);
+      manifest.journeys!.preparedSha256 = calculateSha256(source);
     }
+    manifest.selectionSha256 = calculateSha256(`${JSON.stringify(selection)}\n`);
+    await Promise.all([
+      writeFile(manifestPath, JSON.stringify(manifest)),
+      writeFile(options.selectionPath, JSON.stringify(selection)),
+    ]);
     const load = () =>
       loadReleaseEvidenceWebsiteState(root, 'fixture', { ...options, allowFixture: true });
     if (kind === 'semantic') expect(load).toThrow('unsupported classification or kind');
-    else expect(load().semantic.latest?.result.attemptId).toBe('fixture-semantic-run');
+    else {
+      const state = load();
+      expect(state.semantic.latest?.result.attemptId).toBe('fixture-semantic-run');
+      expect(state.scriptedJourneys?.journeys.length ?? null).toBe(kind === null ? null : 3);
+    }
   },
 );

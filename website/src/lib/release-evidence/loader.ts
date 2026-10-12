@@ -4,6 +4,10 @@ import path from 'node:path';
 
 import { z } from 'zod';
 
+import {
+  parseScriptedJourneysWebsiteModel,
+  type IScriptedJourneysWebsiteModel,
+} from '../../../../src/scripted-journeys/public-evidence/index.ts';
 import { parseSemanticWebsiteModel } from '../../../../src/semantic/public-evidence/index.ts';
 
 import type { IReleaseEvidenceSectionModel, IReleaseEvidenceWebsiteState } from './types.ts';
@@ -91,8 +95,10 @@ const copyPreparedAssets = (
   rmSync(publicAssetsDirectory, { force: true, recursive: true });
   mkdirSync(publicAssetsDirectory, { recursive: true });
 
-  for (const kind of ['semantic'] as const) {
-    const sourceDirectory = path.resolve(preparedDirectory, manifest[kind].assetsPath);
+  for (const kind of ['semantic', 'journeys'] as const) {
+    const section = manifest[kind];
+    if (section === null) continue;
+    const sourceDirectory = path.resolve(preparedDirectory, section.assetsPath);
     const relativeSourcePath = path.relative(preparedDirectory, sourceDirectory);
     if (relativeSourcePath.startsWith('..') || path.isAbsolute(relativeSourcePath)) {
       throw new Error(`Prepared ${kind} asset path escapes its owned directory.`);
@@ -117,7 +123,7 @@ const createSectionModel = (bundle: IPreparedEvidenceBundle): IReleaseEvidenceSe
   };
 };
 
-/** Loads semantic evidence and validates any optional selected journeys bundle. */
+/** Loads selected semantic and optional scripted-journey presentation models. */
 export const loadReleaseEvidenceWebsiteState = (
   repositoryRoot: string,
   _targetVersion: string,
@@ -155,16 +161,19 @@ export const loadReleaseEvidenceWebsiteState = (
   if ((selection.journeys === null) !== (manifest.journeys === null)) {
     throw new Error('Prepared journeys evidence does not match its selection presence.');
   }
+  let scriptedJourneys: IScriptedJourneysWebsiteModel | null = null;
   if (manifest.journeys !== null) {
     if (manifest.journeys.bundleSha256 !== selection.journeys?.sha256) {
       throw new Error('Prepared journeys evidence does not match its selected bundle digest.');
     }
-    readPreparedBundle(
+    const journeysBundle = readPreparedBundle(
       preparedDirectory,
       'journeys',
       manifest.journeys,
       options.allowFixture === true,
     );
+    const payload = z.object({ websiteModel: z.unknown() }).parse(journeysBundle.payload);
+    scriptedJourneys = parseScriptedJourneysWebsiteModel(payload.websiteModel);
   }
   copyPreparedAssets(repositoryRoot, preparedDirectory, manifest);
   const semanticPayload = z.object({ websiteModel: z.unknown() }).parse(semanticBundle.payload);
@@ -176,6 +185,7 @@ export const loadReleaseEvidenceWebsiteState = (
   }
 
   return {
+    scriptedJourneys,
     semantic,
     releaseEvidence: {
       mode: 'recorded',

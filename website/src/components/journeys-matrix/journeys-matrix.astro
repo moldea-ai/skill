@@ -1,0 +1,94 @@
+---
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { ArrowUpRight, CircleCheck, CircleX, CircleMinus } from '@lucide/astro';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import { PlatformMark } from '../platform-mark/index.ts';
+import {
+  getJourneyPlatformStatus,
+  type IScriptedJourneysWebsiteModel,
+} from '../../lib/scripted-journeys/index.ts';
+
+interface Props {
+  model: IScriptedJourneysWebsiteModel;
+}
+const { model } = Astro.props;
+const platforms = ['chatgpt', 'claude'] as const;
+const basePath = import.meta.env.BASE_URL;
+---
+
+<div data-journeys-matrix>
+  <div
+    class="hidden grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] gap-6 border-b border-border pb-4 sm:grid"
+    aria-hidden="true"
+  >
+    <p class="self-center text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+      Scripted journey
+    </p>
+    {platforms.map((platform) => <PlatformMark {platform} />)}
+  </div>
+  <ul class="divide-y divide-border">
+    {
+      model.journeys.map((journey, index) => (
+        <li class="grid min-w-0 gap-5 py-6 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] sm:items-center sm:gap-6">
+          <a
+            href={withBase(journey.route, basePath)}
+            class="group flex min-w-0 items-start gap-3 rounded-sm link-feedback"
+          >
+            <span class="mt-1 font-mono text-xs text-muted-foreground">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <span class="min-w-0">
+              <>
+                <span class="flex items-center gap-2 font-semibold">
+                  <InlineBrandText
+                    text={journey.title}
+                    variant="compact"
+                  />
+                  <ArrowUpRight
+                    class="size-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                </span>
+                <span class="mt-1.5 block text-sm leading-6 text-muted-foreground">
+                  <InlineBrandText
+                    text={journey.summary}
+                    variant="compact"
+                  />
+                </span>
+                <span class="mt-2 block font-mono text-xs text-muted-foreground">
+                  {journey.steps.length} {journey.steps.length === 1 ? 'request' : 'requests'}
+                </span>
+              </>
+            </span>
+          </a>
+          <div class="grid grid-cols-2 gap-4 sm:contents">
+            {platforms.map((platform) => {
+              const status = getJourneyPlatformStatus(journey, platform);
+              const Icon =
+                status === 'passed' ? CircleCheck : status === 'failed' ? CircleX : CircleMinus;
+              return (
+                <div
+                  role="group"
+                  aria-label={`${journey.title}, ${platform === 'chatgpt' ? 'ChatGPT' : 'Claude'}: ${status.replace('-', ' ')}`}
+                  class="flex min-w-0 flex-wrap items-center gap-2"
+                  data-journey-outcome={status}
+                >
+                  <span class="basis-full text-xs text-muted-foreground sm:sr-only">
+                    {platform === 'chatgpt' ? 'ChatGPT' : 'Claude'}
+                  </span>
+                  <Icon
+                    class="size-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <EvidenceStatus {status} />
+                </div>
+              );
+            })}
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</div>

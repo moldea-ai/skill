@@ -1,0 +1,56 @@
+---
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import { PlatformMark } from '../platform-mark/index.ts';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import type { IScriptedJourneysWebsiteModel } from '../../lib/scripted-journeys/index.ts';
+
+interface Props {
+  model: IScriptedJourneysWebsiteModel;
+}
+const { model } = Astro.props;
+---
+
+<div
+  class="min-w-0 sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-6"
+  data-recorded-journeys
+>
+  <div class="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
+    <div class="flex flex-wrap gap-4">
+      <PlatformMark platform="chatgpt" /><PlatformMark platform="claude" />
+    </div>
+    <EvidenceStatus status={model.status} />
+  </div>
+  <ul class="divide-y divide-border">
+    {
+      model.journeys.map((journey, index) => (
+        <li>
+          <a
+            href={withBase(journey.route, import.meta.env.BASE_URL)}
+            class="flex items-center gap-3 rounded-sm py-3.5 text-sm link-feedback"
+          >
+            <>
+              <span class="font-mono text-xs text-muted-foreground">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <span class="min-w-0 flex-1 font-medium">
+                <InlineBrandText
+                  text={journey.title}
+                  variant="compact"
+                />
+              </span>
+              <span class="shrink-0 text-xs text-muted-foreground">
+                {journey.steps.length} {journey.steps.length === 1 ? 'step' : 'steps'}
+              </span>
+            </>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <p class="mt-4 text-xs leading-5 text-muted-foreground">
+    Skill {model.skill.version} · {model.evaluatedAt.slice(0, 10)}. Scripted requests, locally
+    assessed files and replies.
+  </p>
+</div>

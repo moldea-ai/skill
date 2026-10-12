@@ -6,7 +6,7 @@ This Astro application renders the public documentation and selected release evi
 
 The site also presents one manually prepared mock-project run as an independent evidence source. It does not contribute to semantic scores.
 
-The site consumes Markdown under `../docs/`, the portable skill under `../moldea/`, and the prepared public semantic bundle selected by `../evidence/selection.json`. The producer-owned bundle already contains the semantic definitions, presentation metadata, replays, projects, artifacts, version, date, and technical provenance required by the existing pages.
+The site consumes Markdown under `../docs/`, the portable skill under `../moldea/`, and the prepared public semantic and optional scripted-journey bundles selected by `../evidence/selection.json`. The producer-owned bundle already contains the semantic definitions, presentation metadata, replays, projects, artifacts, version, date, and technical provenance required by the existing pages.
 
 The canonical `docs/limitations.md` guide is published at `/docs/limitations/` with route-local outcome badges and distinct accessible table-region names, ordinary documentation navigation, search, and discovery. Package-owned references supply numeric limits; the guide explains consequences and next actions.
 
@@ -48,6 +48,16 @@ Development browser tests use `--project-runs-selection scripts/project-run-fixt
 For a manual refresh, inspect the requested public run, update the commit and run ID, check the site locally, then follow the requested deployment workflow. There is no separate approval record or automated passing threshold. Set `run` to null or restore an earlier selection to undo the update. The existing semantic production requirements remain unchanged.
 
 The reader accepts additive fields and missing optional evidence. It reads selected attempts sequentially, reuses scenario reads within one generation, and limits each metadata file and compressed or expanded session to 8 MiB with a 120-second HTTP timeout. Explicitly selected missing, malformed, or inconsistent records stop generation with their logical source path; they never silently fall back to another run. No project source trees are downloaded, and no persistent source cache is added.
+
+## Scripted journeys
+
+An optional `journeys` entry in `evidence/selection.json` supplies a producer-owned presentation model through the prepared-evidence loader. With a null entry, no journey pages, landing section, search records, or `llms.txt` links are generated. The two existing evidence sections retain their layout. Synthetic checks include both platforms and passing, failing, blocked, and unverified states; clean development leaves the section absent.
+
+The evidence landing page adds “03 Follow scripted journeys”. `/evidence/journeys/` compares each journey in ChatGPT and Claude projects and records the skill commit, models, settings, dates, assessor identity, instructions, restarts, operator interventions, and raw sources. `/evidence/journeys/<id>/` shows the exact requests, file trees, patches, replies, checks, and activity. A single optional Astro catch-all owns both route forms so an absent selection creates neither. The routes, search index, and `llms.txt` are generated together.
+
+File trees reuse `RecordedFileTree`; patch dialogs use Website UI's `Dialog` and `CodeDiff`, which parses patches through `buildCodePatch`. Platform marks use the package's public runtime-logo exports. The request comparison owns a small responsive tab controller because the shared always-tabbed panels cannot show both platforms side by side on desktop without duplicating content. On mobile it supports arrow keys, Home, End, and selected-panel semantics. Without JavaScript both results remain available. Layouts support 320px widths, both themes, and the shared dialog's reduced-motion behavior.
+
+Trusted local checks, unverified claims, sandbox-captured facts, agent-reported replies, and agent-reported activity have separate labels. Replies pass through the shared sanitized Markdown renderer. Harness observations come from a model-controlled workspace; reported commands and CLI presence do not prove execution. These scripted results describe the selected run and are not a platform success rate or product endorsement. See [Scripted journeys](../docs/scripted-journeys.md) for the method and limits.
 
 ## Product explanation and SEO
 

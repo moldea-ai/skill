@@ -1,0 +1,35 @@
+---
+import JourneyPage from '../../../components/journey-page/journey-page.astro';
+import JourneysPage from '../../../components/journeys-page/journeys-page.astro';
+import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
+import type { IScriptedJourneysWebsiteModel } from '../../../lib/scripted-journeys/index.ts';
+
+interface Props {
+  model: IScriptedJourneysWebsiteModel;
+  journey: IScriptedJourneysWebsiteModel['journeys'][number] | null;
+}
+export const getStaticPaths = () => {
+  const model = loadWebsiteModel().scriptedJourneys;
+  return model === null
+    ? []
+    : [
+        { params: { journeyId: undefined }, props: { model, journey: null } },
+        ...model.journeys.map((journey) => ({
+          params: { journeyId: journey.id },
+          props: { model, journey },
+        })),
+      ];
+};
+const { model, journey } = Astro.props;
+---
+
+{
+  journey === null ? (
+    <JourneysPage {model} />
+  ) : (
+    <JourneyPage
+      {model}
+      {journey}
+    />
+  )
+}

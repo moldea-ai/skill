@@ -1,12 +1,11 @@
 ---
-import { ArrowRight, FolderGit2, ListChecks } from '@lucide/astro';
+import { ArrowDown, ArrowRight, FolderGit2, ListChecks, MessagesSquare } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import RecordedJourneys from '../recorded-journeys/recorded-journeys.astro';
 import { PlatformMark } from '../platform-mark/index.ts';
-import RecordedAgent from '../recorded-agent/recorded-agent.astro';
 import RecordedChange from '../recorded-change/recorded-change.astro';
 import RecordedProject from '../recorded-project/recorded-project.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
@@ -21,10 +20,6 @@ const basePath = import.meta.env.BASE_URL;
 const semanticSummary = getSemanticReleaseEvidenceSummary(
   model.releaseEvidence,
   model.currentSemanticAssurance,
-);
-const agentCase = getSemanticPreviewCase(
-  model.semanticEvaluation,
-  'agent-adoption-inline-runtime-instruction',
 );
 const changeCase = getSemanticPreviewCase(model.semanticEvaluation, 'bound-context-maintenance');
 const projectAttempts = model.projectRuns?.pages.flatMap(({ attempts }) => attempts) ?? [];
@@ -46,104 +41,121 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
       />
     </div>
     <div
-      class="page-shell grid items-center gap-10 py-10 sm:py-16 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-6 lg:py-20"
+      class="page-shell grid items-center gap-8 py-10 sm:py-16 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-10 lg:py-20"
       data-evidence-hero
     >
       <div class="min-w-0">
         <p class="eyebrow mb-4">Evidence</p>
         <h1 class="page-title">We tested the work. You can inspect the results.</h1>
         <p class="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-          We give a coding agent real tasks with moldea, record what it does, and check the result.
-          See it connect a support agent’s instructions to both model calls, preserve the existing
-          flow, and verify the change.
+          See how coding agents use moldea in individual decisions, complete projects, and scripted
+          conversations. Open the requests, changes, and checks behind the available results.
         </p>
         <div class="mt-7">
           <ActionLink
-            href={agentCase === null
-              ? semanticRoute
-              : `${semanticRoute}#semantic-case-${agentCase.id}`}
+            href="#decisions"
             size="lg"
             class="font-bold"
-            >Open the test record<ArrowRight
+          >
+            Explore the evidence<ArrowDown
               class="size-4"
               aria-hidden="true"
-            /></ActionLink
-          >
+            />
+          </ActionLink>
         </div>
       </div>
-      <RecordedAgent evaluationCase={agentCase} />
-    </div>
-    <nav
-      class:list={[
-        'page-shell grid gap-3 pb-8 sm:grid-cols-2 sm:pb-12',
-        model.scriptedJourneys !== null && 'lg:grid-cols-3',
-      ]}
-      aria-label="Evidence sections"
-    >
-      <a
-        href="#decisions"
-        class="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-4 link-feedback"
+      <nav
+        class="grid min-w-0 gap-3"
+        aria-label="Evidence sections"
       >
-        <ListChecks
-          class="size-5 shrink-0 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <span
-          ><span class="block text-sm font-semibold">Agent decisions</span><span
-            class="mt-1 block text-xs text-muted-foreground"
-            >{
-              semanticSummary.result === null
-                ? 'Explore the test scenarios'
-                : `${semanticSummary.result.totalCaseCount} recorded tests`
-            }</span
-          ></span
+        <a
+          href="#decisions"
+          class="flex min-w-0 items-start gap-3 rounded-2xl border border-border bg-card p-4 link-feedback sm:gap-4 sm:p-5"
         >
-      </a>
-      {
-        model.projectRuns !== null && (
-          <a
-            href="#projects"
-            class="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-4 link-feedback"
+          <span
+            class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground"
           >
-            <FolderGit2
-              class="size-5 shrink-0 text-muted-foreground"
+            <ListChecks
+              class="size-5"
               aria-hidden="true"
             />
-            <span>
-              <>
-                <span class="block text-sm font-semibold">Coding projects</span>
-                <span class="mt-1 block text-xs text-muted-foreground">
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="block text-base font-semibold">Agent decisions</span>
+            <span class="mt-1 block text-sm leading-6 text-muted-foreground"
+              >Inspect choices about context, code changes, and task boundaries.</span
+            >
+            <span class="mt-2 block text-xs font-medium text-muted-foreground">
+              {
+                semanticSummary.result === null
+                  ? 'Explore the test scenarios'
+                  : `${semanticSummary.result.totalCaseCount} recorded tests`
+              }
+            </span>
+          </span>
+          <ArrowDown
+            class="mt-1 size-4 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
+        </a>
+        {
+          model.projectRuns !== null && (
+            <a
+              href="#projects"
+              class="flex min-w-0 items-start gap-3 rounded-2xl border border-border bg-card p-4 link-feedback sm:gap-4 sm:p-5"
+            >
+              <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
+                <FolderGit2
+                  class="size-5"
+                  aria-hidden="true"
+                />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block text-base font-semibold">Coding projects</span>
+                <span class="mt-1 block text-sm leading-6 text-muted-foreground">
+                  Follow recorded requests, tool calls, file edits, and corrections.
+                </span>
+                <span class="mt-2 block text-xs font-medium text-muted-foreground">
                   {projectAttempts.length} projects
                 </span>
-              </>
-            </span>
-          </a>
-        )
-      }
-      {
-        model.scriptedJourneys !== null && (
-          <a
-            href="#journeys"
-            class="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-4 link-feedback"
-          >
-            <>
-              <ListChecks
-                class="size-5 shrink-0 text-muted-foreground"
+              </span>
+              <ArrowDown
+                class="mt-1 size-4 shrink-0 text-muted-foreground"
                 aria-hidden="true"
               />
-              <span>
-                <>
-                  <span class="block text-sm font-semibold">Scripted journeys</span>
-                  <span class="mt-1 block text-xs text-muted-foreground">
-                    ChatGPT and Claude projects
-                  </span>
-                </>
+            </a>
+          )
+        }
+        {
+          model.scriptedJourneys !== null && (
+            <a
+              href="#journeys"
+              class="flex min-w-0 items-start gap-3 rounded-2xl border border-border bg-card p-4 link-feedback sm:gap-4 sm:p-5"
+            >
+              <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
+                <MessagesSquare
+                  class="size-5"
+                  aria-hidden="true"
+                />
               </span>
-            </>
-          </a>
-        )
-      }
-    </nav>
+              <span class="min-w-0 flex-1">
+                <span class="block text-base font-semibold">Scripted journeys</span>
+                <span class="mt-1 block text-sm leading-6 text-muted-foreground">
+                  Compare ChatGPT and Claude conversations with locally checked changes.
+                </span>
+                <span class="mt-2 block text-xs font-medium text-muted-foreground">
+                  {model.scriptedJourneys.journeys.length} scripted journeys
+                </span>
+              </span>
+              <ArrowDown
+                class="mt-1 size-4 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
+            </a>
+          )
+        }
+      </nav>
+    </div>
   </header>
 
   <section

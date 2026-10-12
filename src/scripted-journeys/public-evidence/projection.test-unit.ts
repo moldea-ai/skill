@@ -17,6 +17,7 @@ test('projects retained trials, original requests and complete source artifacts 
   expect(source.assessment.definitions[0]!.steps[0]!.request).toBe('Initialize moldea.');
   expect(source.captures['chatgpt/initialize/initial/initialize']!.files).toStrictEqual([
     { path: 'moldea/project.md', status: 'created' },
+    { path: 'moldea/moldea.yaml', status: 'created' },
   ]);
   const recovered = source.assessment.platforms[0]!.resolutions.find(
     (entry) => entry.journeyId === 'recovered',

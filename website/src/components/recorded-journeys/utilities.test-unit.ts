@@ -11,14 +11,17 @@ const createModel = () =>
     (createSyntheticJourneysBundle().payload as { websiteModel: unknown }).websiteModel,
   );
 
-test('the homepage prefers captured agent creation while the evidence overview retains its first excerpt', () => {
+test('homepage prefers agent creation while the evidence overview shows a distinct policy change', () => {
   const model = createModel();
   const preview = getRecordedJourneyPreview(model, true)!;
   expect(preview.step.id).toBe('create');
   expect(preview.step.request).toBe('Create a triage agent.');
   expect(preview.result.platform).toBe('claude');
   expect(preview.result.label).toBe('Initial observation');
-  expect(getRecordedJourneyPreview(model)!.step.id).toBe('initialize');
+  const overview = getRecordedJourneyPreview(model)!;
+  expect(overview.step.id).toBe('identity-option');
+  expect(overview.step.request).toContain('government ID as an alternative');
+  expect(overview.result.platform).toBe('claude');
 });
 
 test('agent creation remains available when only ChatGPT has a captured result', () => {
@@ -48,7 +51,7 @@ test('a catalog without captures has no invented preview', () => {
   expect(getRecordedJourneyPreview(model, true)).toBeNull();
   expect(getRecordedJourneyPreview(model)).toBeNull();
   model.journeys = [];
-  expect(getRecordedJourneyPreview(model, true)).toBeNull();
+  expect(getRecordedJourneyPreview(model)).toBeNull();
 });
 
 test('compact creation files preserve their statuses and leave the complete capture unchanged', () => {
@@ -70,4 +73,10 @@ test('ordinary captured files remain visible when no canonical agent files were 
   expect(getRecordedJourneyPreviewFiles(result, true)).toStrictEqual(result.files);
   result.files = [];
   expect(getRecordedJourneyPreviewFiles(result, true)).toStrictEqual([]);
+});
+
+test('missing policy-change captures fall back to available evidence without invented files', () => {
+  const model = createModel();
+  model.cells = model.cells.filter(({ journeyId }) => journeyId !== 'everyday-work');
+  expect(getRecordedJourneyPreview(model)!.step.id).toBe('initialize');
 });

@@ -169,7 +169,12 @@ test('keeps event numbers aligned within their rows at mobile and desktop widths
 });
 
 test('shows request history honestly when a full session is unavailable', async ({ page }) => {
-  await page.goto(detailPath);
+  await page.goto(
+    withBase(
+      '/evidence/project-runs/projects/project_3/',
+      process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH,
+    ),
+  );
   await expect(page.getByRole('heading', { name: 'Follow the conversation' })).toBeVisible();
   await expect(page.getByText('Conversation not included')).toBeVisible();
   await expect(

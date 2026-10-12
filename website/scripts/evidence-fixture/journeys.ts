@@ -99,6 +99,32 @@ const definitions: IJourneyDefinition[] = [
       },
     ],
   },
+  {
+    id: 'everyday-work',
+    title: 'Keep everyday policy aligned',
+    summary: 'Apply approved pickup rules in code and the saved policy.',
+    order: 4,
+    fixture: { adopted: true, installCli: true },
+    steps: [
+      {
+        id: 'identity-option',
+        request:
+          'Implement this approved pickup rule in src/pickup.js: allowGovernmentId must now be true. Staff may accept a government ID as an alternative to the pickup code. Keep the related canonical policy accurate.',
+        dependsOn: [],
+        checks: [
+          { kind: 'paths-changed', paths: ['moldea/context/pickup.md'] },
+          { kind: 'content-matches', path: 'moldea/context/pickup.md', pattern: 'government ID' },
+          {
+            kind: 'content-matches',
+            path: 'src/pickup.js',
+            pattern: 'allowGovernmentId\\s*=\\s*true',
+          },
+          { kind: 'validate', result: 'valid' },
+        ],
+        unverified: ['Reconsidered the selected owner after the implementation change.'],
+      },
+    ],
+  },
 ];
 
 for (const [index, id] of [
@@ -106,13 +132,15 @@ for (const [index, id] of [
   'confirmed',
   'split',
   'claude-only',
-  ...Array.from({ length: 11 }, (_, index) => `additional-${index + 1}`),
+  ...Array.from({ length: 9 }, (_, index) => `additional-${index + 1}`),
+  // retained for the earlier-catalog scenario in the composed snapshot
+  'additional-11',
 ].entries()) {
   definitions.push({
     id,
     title: id === 'claude-only' ? 'Claude-only observation' : `Confirmation example: ${id}`,
     summary: `Inspect the ${id} conversation and its retained trials.`,
-    order: index + 4,
+    order: index + 5,
     fixture: { adopted: false, installCli: false },
     steps: [
       {
@@ -189,11 +217,18 @@ export const createSyntheticJourneysBundle = (
             facts: { issuedAt: evaluatedAt, recordedAt: evaluatedAt, cliPresent: true },
             reply:
               step.id === 'create'
-                ? 'Triage agent created.\n\nValidation reports **valid**.'
-                : 'Saved the project foundation.\n\nValidation reports **valid**.\n\n<script>alert("unsafe")</script>\n\n[unsafe link](javascript:alert(1))',
+                ? 'Triage agent created.\n\nI registered `parcel-triage`, connected its instructions to `src/triage-agent.js`, and confirmed that project validation passes.'
+                : step.id === 'identity-option'
+                  ? 'Pickup staff can now accept either the pickup code or a government ID. I updated the implementation and saved pickup policy together, and project validation passes.'
+                  : definition.id === 'preserve'
+                    ? 'Reviewed the greeting request.\n\n<script>alert("unsafe")</script>\n\n[unsafe link](javascript:alert(1))'
+                    : 'Saved the project foundation.\n\nValidation reports **valid**.',
             activity: {
               commands: ['node .agents/skills/moldea/scripts/moldea-cli.mjs validate --json'],
-              reads: ['README.md', 'src/greeting.js'],
+              reads:
+                step.id === 'identity-option'
+                  ? ['README.md', 'src/pickup.js', 'moldea/context/pickup.md']
+                  : ['README.md', 'src/greeting.js'],
               writes:
                 step.id === 'initialize'
                   ? ['moldea/project.md', 'moldea/moldea.yaml']
@@ -204,10 +239,12 @@ export const createSyntheticJourneysBundle = (
                         'moldea/moldea.yaml',
                         'src/triage-agent.js',
                       ]
-                    : status === 'failed' &&
-                        step.checks.some((check) => check.kind === 'no-changes')
-                      ? ['moldea/project.md']
-                      : [],
+                    : step.id === 'identity-option'
+                      ? ['src/pickup.js', 'moldea/context/pickup.md']
+                      : status === 'failed' &&
+                          step.checks.some((check) => check.kind === 'no-changes')
+                        ? ['moldea/project.md']
+                        : [],
               notes: ['Agent-reported activity is not an execution trace.'],
             },
           })),
@@ -294,6 +331,7 @@ export const createSyntheticJourneysBundle = (
         journey.steps.flatMap((step) => {
           const hasChange = step.id === 'initialize';
           const hasAgentCreation = journey.id === 'agents' && step.id === 'create';
+          const hasPolicyChange = journey.id === 'everyday-work' && step.id === 'identity-option';
           const hasUnexpectedChange =
             step.status === 'failed' &&
             step.checks.some((check) => check.check.kind === 'no-changes');
@@ -316,9 +354,14 @@ export const createSyntheticJourneysBundle = (
                           { path: 'moldea/moldea.yaml', kind: 'modified' },
                           { path: 'src/triage-agent.js', kind: 'modified' },
                         ]
-                      : hasUnexpectedChange
-                        ? [{ path: 'moldea/project.md', kind: 'modified' }]
-                        : [],
+                      : hasPolicyChange
+                        ? [
+                            { path: 'src/pickup.js', kind: 'modified' },
+                            { path: 'moldea/context/pickup.md', kind: 'modified' },
+                          ]
+                        : hasUnexpectedChange
+                          ? [{ path: 'moldea/project.md', kind: 'modified' }]
+                          : [],
                 ),
               ),
             },
@@ -330,9 +373,11 @@ export const createSyntheticJourneysBundle = (
                   ? 'diff --git a/moldea/project.md b/moldea/project.md\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/project.md\n@@ -0,0 +1,2 @@\n+# Project\n+The greeting service returns a personalized welcome.\ndiff --git a/moldea/moldea.yaml b/moldea/moldea.yaml\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/moldea.yaml\n@@ -0,0 +1 @@\n+version: 1\n'
                   : hasAgentCreation
                     ? 'diff --git a/moldea/agents/parcel-triage/description.md b/moldea/agents/parcel-triage/description.md\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/agents/parcel-triage/description.md\n@@ -0,0 +1 @@\n+Triage delayed parcels using the saved escalation policy.\ndiff --git a/moldea/agents/parcel-triage/instruction.md b/moldea/agents/parcel-triage/instruction.md\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/agents/parcel-triage/instruction.md\n@@ -0,0 +1 @@\n+Use the saved triage policy to decide when a parcel needs escalation.\ndiff --git a/moldea/moldea.yaml b/moldea/moldea.yaml\n--- a/moldea/moldea.yaml\n+++ b/moldea/moldea.yaml\n@@ -1 +1,3 @@\n version: 1\n+agents:\n+  parcel-triage: {}\ndiff --git a/src/triage-agent.js b/src/triage-agent.js\n--- a/src/triage-agent.js\n+++ b/src/triage-agent.js\n@@ -1 +1 @@\n-const instruction = "Triage parcels.";\n+const instruction = readFileSync("moldea/agents/parcel-triage/instruction.md", "utf8");\n'
-                    : hasUnexpectedChange
-                      ? 'diff --git a/moldea/project.md b/moldea/project.md\n--- a/moldea/project.md\n+++ b/moldea/project.md\n@@ -1,2 +1,2 @@\n # Project\n-The greeting service returns a personalized welcome.\n+The saved project knowledge was unexpectedly replaced.\n'
-                      : '',
+                    : hasPolicyChange
+                      ? 'diff --git a/src/pickup.js b/src/pickup.js\n--- a/src/pickup.js\n+++ b/src/pickup.js\n@@ -1 +1 @@\n-export const allowGovernmentId = false;\n+export const allowGovernmentId = true;\ndiff --git a/moldea/context/pickup.md b/moldea/context/pickup.md\n--- a/moldea/context/pickup.md\n+++ b/moldea/context/pickup.md\n@@ -1 +1 @@\n-Staff must verify the pickup code.\n+Staff may verify either the pickup code or a government ID.\n'
+                      : hasUnexpectedChange
+                        ? 'diff --git a/moldea/project.md b/moldea/project.md\n--- a/moldea/project.md\n+++ b/moldea/project.md\n@@ -1,2 +1,2 @@\n # Project\n-The greeting service returns a personalized welcome.\n+The saved project knowledge was unexpectedly replaced.\n'
+                        : '',
               ),
             },
             {

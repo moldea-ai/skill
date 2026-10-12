@@ -40,6 +40,14 @@ test('shows exact requests and replies with file changes and separate local chec
     'href',
     /changes\.patch$/u,
   );
+});
+
+test('sanitizes untrusted replies in the dedicated preserve fixture', async ({ page }) => {
+  await page.goto(toPublicPath('/evidence/journeys/preserve/'));
+  const reply = page.locator(
+    '[data-journey-provider="claude"] [data-conversation-message="assistant"]',
+  );
+  await expect(reply).toContainText('unsafe link');
   await expect(
     page.locator('script:not([src])').filter({ hasText: 'alert("unsafe")' }),
   ).toHaveCount(0);

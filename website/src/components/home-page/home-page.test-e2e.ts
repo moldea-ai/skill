@@ -545,6 +545,18 @@ test('keeps the complete landing page accessible at 320px in both themes', async
     }));
     expect(documentWidths.scroll).toBeLessThanOrEqual(documentWidths.client);
 
+    const evidence = page.locator('[data-home-evidence]');
+    await expect(evidence).toHaveCSS('padding-top', '0px');
+    await expect(evidence).toHaveCSS('padding-bottom', '0px');
+    const surface = evidence.locator(':scope > div > div');
+    const evidenceBounds = (await evidence.boundingBox())!;
+    const surfaceBounds = (await surface.boundingBox())!;
+    expect(surfaceBounds.y).toBeCloseTo(evidenceBounds.y, 0);
+    expect(surfaceBounds.y + surfaceBounds.height).toBeCloseTo(
+      evidenceBounds.y + evidenceBounds.height - 1,
+      0,
+    );
+
     const accessibilityResults = await new AxeBuilder({ page }).analyze();
     expect(
       accessibilityResults.violations.filter(

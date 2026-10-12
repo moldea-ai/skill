@@ -33,9 +33,11 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
 >
   <Conversation ariaLabel="Connected scheduler change test conversation">
     <ConversationMessage role="user">
-      <p class="mb-2 text-xs text-muted-foreground">
-        {messages.request === null ? 'Request summary' : 'Recorded request excerpt'}
-      </p>
+      {
+        messages.request === null && (
+          <p class="mb-2 text-xs text-muted-foreground">Request summary</p>
+        )
+      }
       <p class="line-clamp-3 text-sm leading-7 break-words whitespace-pre-wrap">
         {messages.request ?? 'Run document cleanup more often when the backlog grows.'}
       </p>
@@ -51,7 +53,6 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
             alt=""
             class="dark:invert"
           />
-          <p class="mb-2 text-xs text-muted-foreground">Recorded reply excerpt</p>
           <div
             class="markdown-content line-clamp-4 min-w-0 text-sm leading-7 break-words"
             set:html={replyHtml}

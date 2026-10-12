@@ -5,18 +5,23 @@ import {
   type IJourneyRenderResult,
 } from '../../lib/scripted-journeys/index.ts';
 
-/** Selects an actual captured step, preferring agent creation in the compact homepage preview. */
+/** Selects distinct captured examples for the homepage and evidence overview. */
 export const getRecordedJourneyPreview = (
   model: IScriptedJourneysWebsiteModel,
   isCompact = false,
 ): { step: IJourneyRenderStep; result: IJourneyRenderResult } | null => {
-  const agents = isCompact ? model.journeys.find(({ id }) => id === 'agents') : undefined;
-  const creation = agents
-    ? getJourneyRevisions(model, agents.id)
+  const preferredJourney = model.journeys.find(
+    ({ id }) => id === (isCompact ? 'agents' : 'everyday-work'),
+  );
+  const preferredStep = preferredJourney
+    ? getJourneyRevisions(model, preferredJourney.id)
         .flatMap(({ steps }) => steps)
-        .find(({ id, results }) => id === 'create' && results.length > 0)
+        .find(
+          ({ id, results }) =>
+            id === (isCompact ? 'create' : 'identity-option') && results.length > 0,
+        )
     : undefined;
-  let step = creation;
+  let step = preferredStep;
   if (!step) {
     for (const journey of model.journeys) {
       step = getJourneyRevisions(model, journey.id)

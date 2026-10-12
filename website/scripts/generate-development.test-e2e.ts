@@ -105,7 +105,8 @@ test('unselected project runs are absent from navigation and static routes', asy
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'We tested the work. You can inspect the results.',
   );
-  await expect(page.getByText('No example result selected', { exact: true })).toHaveCount(2);
+  await expect(page.getByText('No example result selected', { exact: true })).toHaveCount(1);
+  await expect(page.locator('[data-evidence-hero] [data-conversation]')).toHaveCount(0);
   await expect(page.locator('[data-recorded-file-tree]')).toHaveCount(0);
   for (const preview of await page.locator('[data-agent-result]').all())
     await expect(preview).not.toContainText('0 files changed');

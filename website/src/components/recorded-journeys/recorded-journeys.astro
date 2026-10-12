@@ -62,7 +62,7 @@ const replyHtml = result
             <p
               class:list={[
                 'text-sm leading-6 break-words whitespace-pre-wrap',
-                isCompact ? 'line-clamp-1' : 'line-clamp-3',
+                isCompact ? 'line-clamp-1' : 'line-clamp-8',
               ]}
             >
               {step.request}
@@ -82,7 +82,7 @@ const replyHtml = result
                 'markdown-content text-sm leading-6 break-words',
                 isCompact
                   ? '[&>:first-child]:line-clamp-1 [&>:not(:first-child)]:hidden'
-                  : 'line-clamp-3',
+                  : 'line-clamp-8',
               ]}
               set:html={replyHtml!}
             />

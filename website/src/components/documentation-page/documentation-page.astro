@@ -1,9 +1,7 @@
 ---
-import { ExternalLink } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import type { IBreadcrumb } from '@moldea.ai/website-ui/breadcrumbs';
 import DocumentationShell from '@moldea.ai/website-ui/documentation-shell';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import type { IRenderedMarkdownHeading } from '@moldea.ai/website-ui/markdown';
 
 import { SKILLS_DIRECTORY_URL, SOURCE_REPOSITORY_URL } from '../../lib/model/constants.ts';
@@ -77,16 +75,10 @@ const navigationGroups = navigation.map((group) => ({
         <span class="text-muted-foreground">Portable Agent Skill</span>
       </div>
       <h1 class="page-title">
-        <InlineBrandText
-          text={currentDocument.title}
-          variant="compact"
-        />
+        {currentDocument.title}
       </h1>
       <p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
-        <InlineBrandText
-          text={currentDocument.description}
-          variant="compact"
-        />
+        {currentDocument.description}
       </p>
       <div class="mt-6 flex flex-wrap gap-3">
         <ActionLink
@@ -98,10 +90,6 @@ const navigationGroups = navigation.map((group) => ({
           data-primary-action
         >
           Get the skill
-          <ExternalLink
-            class="size-3.5"
-            aria-hidden="true"
-          />
         </ActionLink>
         <ActionLink
           class={`font-bold ${SITE_GHOST_LINK_CLASS_NAME}`}
@@ -112,10 +100,6 @@ const navigationGroups = navigation.map((group) => ({
           variant="ghost"
         >
           View source
-          <ExternalLink
-            class="size-3.5"
-            aria-hidden="true"
-          />
         </ActionLink>
       </div>
     </header>

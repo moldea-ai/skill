@@ -1,5 +1,4 @@
 ---
-import { ExternalLink } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import SiteHeaderShell from '@moldea.ai/website-ui/site-header';
 import { isPublicRouteActive, withBase } from '@moldea.ai/website-ui/site';
@@ -47,10 +46,6 @@ const isSearchActive = isPublicRouteActive(currentPathname, '/search/', basePath
     data-primary-action
   >
     Get the skill
-    <ExternalLink
-      class="size-3.5"
-      aria-hidden="true"
-    />
   </ActionLink>
   <ActionLink
     slot="mobile-actions"
@@ -62,9 +57,5 @@ const isSearchActive = isPublicRouteActive(currentPathname, '/search/', basePath
     data-primary-action
   >
     Get the skill on skills.sh
-    <ExternalLink
-      class="size-3.5"
-      aria-hidden="true"
-    />
   </ActionLink>
 </SiteHeaderShell>

@@ -1,16 +1,7 @@
 ---
-import {
-  ArrowRight,
-  Check,
-  ExternalLink,
-  FileText,
-  Link2,
-  ShieldCheck,
-  UserRound,
-} from '@lucide/astro';
+import { ArrowRight, Check, FileText, Link2, ShieldCheck, UserRound } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import { LANDING_EXAMPLE } from '../../lib/landing-example/index.ts';
@@ -48,11 +39,6 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
           data-primary-action
         >
           Get the skill
-          <ExternalLink
-            class="size-3.5"
-            aria-hidden="true"
-            data-external-link-icon
-          />
         </ActionLink>
         <ActionLink
           class="font-bold"
@@ -127,9 +113,7 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
               </span>
               <div class="min-w-0">
                 <p class="mb-1 text-xs font-semibold text-muted-foreground">You</p>
-                <p class="text-sm leading-6 font-medium">
-                  <InlineBrandText text="Initialize moldea" />
-                </p>
+                <p class="text-sm leading-6 font-medium">Initialize moldea</p>
               </div>
             </div>
           </div>

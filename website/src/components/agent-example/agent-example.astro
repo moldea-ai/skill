@@ -1,5 +1,7 @@
 ---
 import { UserRound } from '@lucide/astro';
+import Conversation from '@moldea.ai/website-ui/conversation';
+import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import AgentArtifacts from '../agent-artifacts/agent-artifacts.astro';
@@ -12,73 +14,45 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
   aria-label="Illustrative support agent project"
   data-agent-example
 >
-  <ol
-    class="relative grid gap-4"
-    aria-label="Developer and coding agent conversation"
-    data-agent-conversation
-  >
-    <li
-      class="relative flex max-w-[92%] items-start gap-3 sm:max-w-none"
-      data-user-message
-    >
+  <Conversation ariaLabel="Developer and coding agent conversation">
+    <ConversationMessage role="user">
       <span
-        class="absolute top-9 -bottom-4 left-[1.125rem] w-px bg-border"
+        slot="avatar"
+        class="inline-flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground"
         aria-hidden="true"
-      ></span>
-      <span
-        class="dark-surface-selection relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
-        aria-hidden="true"
+        ><UserRound class="size-4" /></span
       >
-        <UserRound
-          class="size-4"
-          aria-hidden="true"
-        />
-      </span>
+      <p
+        class="text-sm leading-6 font-medium"
+        data-user-request
+      >
+        Create a <code class="inline-code">support</code> agent using our refund policy and existing order
+        lookup.
+      </p>
+    </ConversationMessage>
+    <ConversationMessage role="assistant">
+      <img
+        slot="avatar"
+        src={skillMarkPath}
+        width="207"
+        height="215"
+        alt=""
+        class="dark:invert"
+        data-agent-response-mark
+      />
       <div
-        class="rounded-2xl rounded-tl-sm border border-border bg-background px-4 py-3 shadow-surface"
+        class="min-w-0"
+        data-agent-response
+        data-agent-response-card
       >
-        <p class="mb-1 text-xs font-semibold text-muted-foreground">You</p>
         <p
-          class="text-sm leading-6 font-medium sm:whitespace-nowrap lg:whitespace-normal xl:whitespace-nowrap"
-          data-user-request
+          class="mb-4 text-sm leading-6 font-medium"
+          data-agent-message
         >
-          Create a <code class="inline-code">support</code> agent using our refund policy and existing
-          order lookup.
+          I created the <code class="inline-code">support</code> agent and connected everything it needs.
         </p>
+        <AgentArtifacts />
       </div>
-    </li>
-    <li
-      class="relative flex min-w-0 items-start gap-3"
-      data-agent-response
-    >
-      <span
-        class="relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"
-        aria-hidden="true"
-      >
-        <img
-          src={skillMarkPath}
-          width="207"
-          height="215"
-          alt=""
-          class="h-5 w-auto dark:invert"
-          data-agent-response-mark
-        />
-      </span>
-      <div class="min-w-0 flex-1">
-        <div
-          class="min-w-0 overflow-hidden rounded-2xl rounded-tl-sm border border-border bg-card p-3 shadow-raised sm:p-5"
-          data-agent-response-card
-        >
-          <p class="mb-1 text-xs font-semibold text-muted-foreground">Coding agent</p>
-          <p
-            class="mb-3 text-sm leading-6 font-medium"
-            data-agent-message
-          >
-            I created the <code class="inline-code">support</code> agent and connected everything it needs.
-          </p>
-          <AgentArtifacts />
-        </div>
-      </div>
-    </li>
-  </ol>
+    </ConversationMessage>
+  </Conversation>
 </article>

@@ -2,7 +2,6 @@
 import { ArrowLeft, ArrowRight } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import BaseLayout from '../../layouts/base-layout.astro';
@@ -58,10 +57,10 @@ const featuredAttempt = allAttempts.find(({ initialRequest }) => initialRequest 
           <aside class="min-w-0 rounded-3xl border border-border bg-card p-5 shadow-surface sm:p-7">
             <p class="eyebrow mb-4">Start with a request</p>
             <h2 class="text-xl font-semibold tracking-tight sm:text-2xl">
-              <InlineBrandText text={featuredAttempt.title} />
+              {featuredAttempt.title}
             </h2>
             <p class="mt-4 line-clamp-4 text-sm leading-7 text-muted-foreground sm:text-base">
-              <InlineBrandText text={featuredAttempt.initialRequest!.text} />
+              {featuredAttempt.initialRequest!.text}
             </p>
             <ActionLink
               class={`mt-6 w-full justify-between font-semibold ${SITE_GHOST_LINK_CLASS_NAME}`}
@@ -103,9 +102,7 @@ const featuredAttempt = allAttempts.find(({ initialRequest }) => initialRequest 
         Browse project runs
       </h2>
       <p class="text-sm leading-7 text-muted-foreground sm:justify-self-end">
-        <InlineBrandText
-          text="Open a project to see what was asked, what changed, and where moldea fit into the work."
-        />
+        Open a project to see what was asked, what changed, and where moldea fit into the work.
       </p>
     </div>
     <div class="mt-8 grid gap-5 lg:grid-cols-2 lg:gap-6">

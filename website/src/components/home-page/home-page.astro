@@ -13,7 +13,6 @@ import {
 } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import HeroBackdrop from '@moldea.ai/website-ui/hero-backdrop';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import AgentExample from '../agent-example/agent-example.astro';
@@ -101,9 +100,8 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
           Keep project knowledge with your code.
         </h1>
         <p class="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
-          <InlineBrandText
-            text="Save the decisions behind your project in Git. moldea helps your coding agent use relevant context and update it as the project evolves."
-          />
+          Save the decisions behind your project in Git. moldea helps your coding agent use relevant
+          context and update it as the project evolves.
         </p>
         <p class="mt-4 text-sm font-semibold text-foreground">Versioned in Git. Owned by you.</p>
         <div
@@ -142,7 +140,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
             target="_blank"
             rel="noopener noreferrer"
             >Explore <span class="whitespace-nowrap"
-              ><code class="inline-code">moldea Cloud</code>&nbsp;<ExternalLink
+              >moldea Cloud&nbsp;<ExternalLink
                 class="inline size-3.5"
                 aria-hidden="true"
                 data-external-link-icon
@@ -194,7 +192,12 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
           </p>
         </header>
 
-        <div class="grid gap-3 p-3 pt-0 sm:p-6 sm:pt-0">
+        <div
+          class:list={[
+            'grid gap-3 p-3 pt-0 sm:p-6 sm:pt-0',
+            model.projectRuns !== null && 'md:grid-cols-2',
+          ]}
+        >
           <article
             class="light-surface-selection flex min-w-0 flex-col rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7"
             data-home-evidence-card="decision"
@@ -308,6 +311,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                 href={withBase(model.semanticEvaluation.route, basePath)}
               >
                 Inspect the decisions
+
                 <ArrowRight
                   class="size-4"
                   aria-hidden="true"
@@ -319,7 +323,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
           {
             model.projectRuns !== null && (
               <article
-                class="light-surface-selection grid min-w-0 gap-6 rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7 md:grid-cols-2 md:items-center md:gap-10"
+                class="light-surface-selection flex min-w-0 flex-col gap-6 rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7"
                 data-home-evidence-card="projects"
               >
                 <div class="min-w-0">
@@ -342,7 +346,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                     mock-project work.
                   </p>
                 </div>
-                <div class="min-w-0 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-5">
+                <div class="mt-auto min-w-0 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-5">
                   <div class="grid grid-cols-2 gap-5 border-b border-primary/10 pb-5">
                     <p class="text-sm text-primary/70">
                       <span class="block font-mono text-3xl font-semibold text-primary">

@@ -8,11 +8,11 @@ order: 70
 
 # Keep behavior aligned while you ship
 
-After a repository adopts `moldea`, durable project knowledge can stay current as you plan and develop ordinary software or runtime agents. Direct context requests and declared relationships establish relevance; you should not need to append “and update `moldea`” to those requests.
+After a repository adopts moldea, durable project knowledge can stay current as you plan and develop ordinary software or runtime agents. Direct context requests and declared relationships establish relevance; you should not need to append “and update moldea” to those requests.
 
-```text
-Add manager approval to refunds over $500.
-```
+> **You**
+>
+> Add manager approval to refunds over $500.
 
 The coding agent checks known implementation paths against declared relationships and updates selected owners whose established truth changed. A lasting code change alone does not justify searching unknown context. If implementation later reveals a materially new path, it checks that path at an existing scope checkpoint and carries any newly matched owner into completion. It does not repeatedly check unchanged paths or announce moldea on a miss.
 
@@ -20,9 +20,9 @@ The coding agent checks known implementation paths against declared relationship
 
 Concrete project facts, approved policies, clear corrections, and project-context questions can establish relevance without special wording:
 
-```text
-The current ownership boundary is outdated: Platform owns the application runtime and delivery pipeline. Security approves production access.
-```
+> **You**
+>
+> The current ownership boundary is outdated: Platform owns the application runtime and delivery pipeline. Security approves production access.
 
 The same information can arrive as YAML or JSON, a focused answer, or an accessible project source. Format alone does not establish relevance or write authority. The project-level meaning must already be clear from the conversation; a task-local code requirement, uncertain table, or pasted suggestion is insufficient. The coding agent reuses current adoption evidence or runs the bundled adoption-only gate. A miss does not authorize discovery, initialization, or repair. Explicit setup checks retain their bounded diagnostic route.
 
@@ -64,9 +64,9 @@ Ordinary maintenance keeps each affected fact with its established authoritative
 
 You can authorize broader context compression naturally:
 
-```text
-Consolidate the duplicated project context so each durable fact has one authoritative owner. Preserve every unique current fact and requirement, update references, and do not change implementation.
-```
+> **You**
+>
+> Consolidate the duplicated project context so each durable fact has one authoritative owner. Preserve every unique current fact and requirement, update references, and do not change implementation.
 
 This remains a Maintain operation. It can consolidate proven duplicates, move facts to established owners, split mixed-responsibility documents, remove proven superseded wording, and update manifest paths, references, consumers, and directly affected documentation. It preserves every distinct current fact, accepted rationale, relevant requirement, unresolved boundary, relationship, and consumer. If two sources make consequential conflicting current claims, the coding agent identifies the conflict, asks one focused question, and changes nothing before the answer.
 
@@ -74,9 +74,9 @@ Compression is limited to repository-owned context. It does not manage host cont
 
 ## Adoption remains explicit
 
-The README may select the entrypoint before relevance is known. Further moldea work requires direct project or agent relevance, an explicit operation, canonical or managed-README work, or a declared relationship. Selection does not adopt `moldea` or authorize persistence. Initialization requires explicit developer intent, and adoption is established only by the complete canonical contract.
+The README may select the entrypoint before relevance is known. Further moldea work requires direct project or agent relevance, an explicit operation, canonical or managed-README work, or a declared relationship. Selection does not adopt moldea or authorize persistence. Initialization requires explicit developer intent, and adoption is established only by the complete canonical contract.
 
-If the developer prohibits corresponding `moldea` changes, the coding agent respects that scope, completes the authorized implementation, reports likely drift, and does not claim alignment. If an explicit `moldea` request targets an unadopted repository without authorizing initialization, the coding agent does not persist the knowledge and explains that initialization remains a separate explicit operation. Unrelated work receives no adoption recommendation or `moldea` report.
+If the developer prohibits corresponding moldea changes, the coding agent respects that scope, completes the authorized implementation, reports likely drift, and does not claim alignment. If an explicit moldea request targets an unadopted repository without authorizing initialization, the coding agent does not persist the knowledge and explains that initialization remains a separate explicit operation. Unrelated work receives no adoption recommendation or moldea report.
 
 After synchronized writes, each launcher-backed deterministic CLI invocation runs as a separate process from project checks, mirror comparisons, and Git inspection. The completion report names the deterministic operation or proof stage when material, its status, and material diagnostics or mirror findings established by that completed process. It does not need to repeat the literal invocation. A generic success claim, failed aggregate command, or unverified response is not sufficient evidence.
 

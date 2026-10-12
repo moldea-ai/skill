@@ -8,11 +8,11 @@ order: 65
 
 # Create skills that earn their context
 
-Ask `moldea` to create or refine an Agent Skill when a repeatable coding-agent workflow needs specialized operating guidance, domain knowledge, reusable resources, or focused scripts that should load only when relevant.
+Ask moldea to create or refine an Agent Skill when a repeatable coding-agent workflow needs specialized operating guidance, domain knowledge, reusable resources, or focused scripts that should load only when relevant.
 
-```text
-Create a repository-local release-review skill that uses our existing release policy and verifier.
-```
+> **You**
+>
+> Create a repository-local release-review skill that uses our existing release policy and verifier.
 
 The coding agent first inspects the repository and any existing skill. It does not treat every reusable sentence as a new skill.
 
@@ -27,7 +27,7 @@ Different surfaces own different behavior:
 - ordinary documentation explains concepts for humans
 - Agent Skills package reusable coding-agent knowledge, workflows, and supporting resources
 
-A skill is not an independently executing agent, hidden authority, or substitute for missing implementation. Established artifact-only work stays inside that artifact; a surrounding `moldea` repository does not activate canonical inspection or validation. When the conversation independently establishes project truth or asks whether policy also belongs in project context, the shared direct-context route applies. Keep project policy in its established owner and skill procedure in the skill.
+A skill is not an independently executing agent, hidden authority, or substitute for missing implementation. Established artifact-only work stays inside that artifact; a surrounding moldea repository does not activate canonical inspection or validation. When the conversation independently establishes project truth or asks whether policy also belongs in project context, the shared direct-context route applies. Keep project policy in its established owner and skill procedure in the skill.
 
 The coding agent names the owning surface before creating a skill. Selecting protected coding instructions as the owner never authorizes changing them, and predictable checksum or validation behavior remains in deterministic software.
 

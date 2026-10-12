@@ -1,8 +1,7 @@
 ---
-import { ArrowLeft, ExternalLink, GitCommitHorizontal, MessageSquareText } from '@lucide/astro';
+import { ArrowLeft, GitCommitHorizontal, MessageSquareText } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 import TabbedPanels from '@moldea.ai/website-ui/tabbed-panels';
 
@@ -58,9 +57,9 @@ const tabs = [
   <header class="page-shell border-b border-border pt-8 pb-9 sm:pt-12 sm:pb-12">
     <div class="max-w-4xl">
       <p class="eyebrow mb-4">Recorded project</p>
-      <h1 class="page-title break-words"><InlineBrandText text={attempt.title} /></h1>
+      <h1 class="page-title break-words">{attempt.title}</h1>
       <p class="mt-5 max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg">
-        <InlineBrandText text={attempt.summary} />
+        {attempt.summary}
       </p>
       <div class="mt-7 flex flex-wrap gap-2 text-sm">
         {
@@ -157,10 +156,10 @@ const tabs = [
                           Turn {request.ordinal} · {request.kind}
                         </p>
                         <p class="mt-2 text-sm leading-7 break-words whitespace-pre-wrap">
-                          <InlineBrandText text={request.text} />
+                          {request.text}
                         </p>
                         <p class="mt-3 text-sm leading-7 break-words text-muted-foreground">
-                          <InlineBrandText text={request.observedResult} />
+                          {request.observedResult}
                         </p>
                       </li>
                     ))}
@@ -191,7 +190,7 @@ const tabs = [
               </h4>
             </div>
             <p class="mt-4 text-sm leading-7 break-words whitespace-pre-wrap">
-              <InlineBrandText text={attempt.summary} />
+              {attempt.summary}
             </p>
             {
               attempt.notes.length > 0 && (
@@ -200,9 +199,7 @@ const tabs = [
                     <h5 class="font-semibold">Review notes</h5>
                     <ul class="mt-3 space-y-3 text-sm leading-7 break-words whitespace-pre-wrap text-muted-foreground">
                       {attempt.notes.map((note) => (
-                        <li>
-                          <InlineBrandText text={note} />
-                        </li>
+                        <li>{note}</li>
                       ))}
                     </ul>
                   </>
@@ -255,11 +252,6 @@ const tabs = [
                       rel="noopener noreferrer"
                     >
                       {link.label}
-                      <ExternalLink
-                        class="size-4 shrink-0"
-                        aria-hidden="true"
-                        data-external-link-icon
-                      />
                     </ActionLink>
                   ))}
                 </div>

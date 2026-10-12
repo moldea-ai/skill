@@ -1,7 +1,5 @@
 ---
-import { ArrowRight } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import RuntimeGrid from '@moldea.ai/website-ui/runtime-grid';
 
 import { PACKAGES_WEBSITE_URL } from '../../lib/model/constants.ts';
@@ -24,9 +22,8 @@ import { PACKAGES_WEBSITE_URL } from '../../lib/model/constants.ts';
         </h2>
       </div>
       <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-        <InlineBrandText
-          text="Runtime labels point your coding agent to the relevant guidance. moldea checks declared files and exports; connection tests check the outgoing request."
-        />
+        Runtime labels point your coding agent to the relevant guidance. moldea checks declared
+        files and exports; connection tests check the outgoing request.
       </p>
     </header>
     <div class="mt-8">
@@ -40,10 +37,6 @@ import { PACKAGES_WEBSITE_URL } from '../../lib/model/constants.ts';
       rel="noopener noreferrer"
     >
       Browse runtime guidance
-      <ArrowRight
-        class="size-4"
-        aria-hidden="true"
-      />
     </ActionLink>
   </div>
 </section>

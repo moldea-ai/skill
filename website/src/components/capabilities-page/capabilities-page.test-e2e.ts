@@ -17,7 +17,7 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
   ).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0);
   await expect(page.locator('[data-capability-section]')).toHaveCount(6);
-  await expect(page.locator('[data-capability-conversation]')).toHaveCount(6);
+  await expect(page.locator('[data-conversation]')).toHaveCount(6);
   await expect(page.locator('[data-capability-load]')).toHaveCount(0);
   await expect(page.getByText('Illustrative conversations.', { exact: false })).toBeVisible();
   await expect(page.locator('#evaluate-and-repair [data-repair-visual]')).toBeVisible();
@@ -43,8 +43,9 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
     }),
   ).toBeVisible();
   await expect(page.locator('[data-maintenance-visual] [data-code-copy-button]')).toHaveCount(0);
-  await expect(page.getByText('Fix moldea.', { exact: true }).locator('code')).toHaveText('moldea');
+  await expect(page.getByText('Fix moldea.', { exact: true }).locator('code')).toHaveCount(0);
   await expect(page.getByText('Planning is read-only.', { exact: true })).toBeVisible();
+  await page.getByText('How evaluation, repair, and validation differ', { exact: true }).click();
   await expect(
     page.getByText('Repair uses established project evidence', { exact: false }),
   ).toContainText('reports any checks it could not complete');
@@ -69,8 +70,11 @@ test('presents all six capabilities as distinct visual outcomes', async ({ page 
 
     while (currentNode !== null) {
       if (
-        /\bmoldea\b/iu.test(currentNode.textContent ?? '') &&
-        currentNode.parentElement?.closest('code') === null
+        /^moldea(?: Cloud| Agent Skill| Skill)?$/iu.test(
+          (currentNode.parentElement?.closest('code')?.textContent ?? '').trim(),
+        ) &&
+        currentNode.parentElement?.closest('code') !== null &&
+        currentNode.parentElement?.closest('pre') === null
       ) {
         invalidMentions.push(currentNode.textContent?.trim() ?? '');
       }
@@ -140,7 +144,7 @@ test('keeps all six journeys readable without JavaScript', async ({ browser }) =
   try {
     const page = await context.newPage();
     await page.goto(route);
-    await expect(page.locator('[data-capability-conversation]')).toHaveCount(6);
+    await expect(page.locator('[data-conversation]')).toHaveCount(6);
     await expect(page.locator('[data-repair-visual]')).toContainText(
       'Deterministic validation passed',
     );

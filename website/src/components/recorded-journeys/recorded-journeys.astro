@@ -7,10 +7,9 @@ import { withBase } from '@moldea.ai/website-ui/site';
 import { RecordedFileTree } from '../recorded-file-tree/index.ts';
 import { PlatformMark } from '../platform-mark/index.ts';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
-import {
-  getJourneyRevisions,
-  type IScriptedJourneysWebsiteModel,
-} from '../../lib/scripted-journeys/index.ts';
+import type { IScriptedJourneysWebsiteModel } from '../../lib/scripted-journeys/index.ts';
+
+import { getRecordedJourneyPreview, getRecordedJourneyPreviewFiles } from './utilities.ts';
 
 interface Props {
   model: IScriptedJourneysWebsiteModel;
@@ -18,11 +17,10 @@ interface Props {
 }
 const { model, isCompact = false } = Astro.props;
 const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_URL);
-const journey = model.journeys[0];
-const step = (journey ? getJourneyRevisions(model, journey.id) : [])
-  .flatMap((revision) => revision.steps)
-  .find((step) => step.results.length > 0);
-const result = step?.results.find((result) => result.platform === 'claude') ?? step?.results[0];
+const preview = getRecordedJourneyPreview(model, isCompact);
+const step = preview?.step;
+const result = preview?.result;
+const files = result ? getRecordedJourneyPreviewFiles(result, isCompact) : [];
 const replyHtml = result
   ? await renderMarkdownFragment(result.reply, { localLinks: 'unwrap' })
   : null;
@@ -79,20 +77,21 @@ const replyHtml = result
               alt=""
               class="dark:invert"
             />
-            {(!isCompact || result.files.length === 0) && (
-              <div
-                class:list={[
-                  'markdown-content text-sm leading-6 break-words',
-                  isCompact ? 'line-clamp-1' : 'line-clamp-3',
-                ]}
-                set:html={replyHtml!}
-              />
-            )}
-            {result.files.length > 0 && (
-              <div class={!isCompact ? 'mt-4 border-t border-border pt-3' : undefined}>
+            <div
+              class:list={[
+                'markdown-content text-sm leading-6 break-words',
+                isCompact
+                  ? '[&>:first-child]:line-clamp-1 [&>:not(:first-child)]:hidden'
+                  : 'line-clamp-3',
+              ]}
+              set:html={replyHtml!}
+            />
+            {files.length > 0 && (
+              <div class={isCompact ? 'mt-2' : 'mt-4 border-t border-border pt-3'}>
                 <RecordedFileTree
-                  changes={result.files.slice(0, 4)}
+                  changes={files}
                   label="Recorded journey file changes"
+                  {isCompact}
                 />
               </div>
             )}

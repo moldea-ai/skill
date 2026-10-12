@@ -290,7 +290,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
             {
               hasCompleteSemanticReleaseEvidence && (
                 <ul
-                  class="mt-4 mb-6 grid gap-2"
+                  class="mt-4 mb-6 grid gap-2 md:mt-auto md:pt-4"
                   aria-label="Verified decision behavior"
                 >
                   {decisionEvidenceGroups.map((group) => (
@@ -307,7 +307,12 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                 </ul>
               )
             }
-            <div class="mt-auto border-t border-primary/10 pt-5">
+            <div
+              class:list={[
+                'mt-auto border-t border-primary/10 pt-5',
+                { 'md:mt-0': hasCompleteSemanticReleaseEvidence },
+              ]}
+            >
               <ActionLink
                 class="font-bold"
                 href={withBase(model.semanticEvaluation.route, basePath)}
@@ -342,7 +347,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                 <h3 class="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
                   Can it follow a whole conversation?
                 </h3>
-                <div class="theme-surface-selection my-5 min-w-0 rounded-xl bg-background p-3 text-foreground">
+                <div class="theme-surface-selection my-5 min-w-0 rounded-xl bg-background text-foreground sm:p-3">
                   <RecordedJourneys
                     model={model.scriptedJourneys}
                     isCompact

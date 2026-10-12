@@ -37,7 +37,7 @@ test('preserves all outcomes and distinguishes absent platform results', () => {
     ['Confirmation 2', 'passed'],
   ]);
   expect(getJourneysPage(model, 1)).toHaveLength(16);
-  expect(getJourneysPage(model, 2)).toHaveLength(2);
+  expect(getJourneysPage(model, 2)).toHaveLength(3);
   for (const page of [0, 3, 1.5, NaN]) expect(() => getJourneysPage(model, page)).toThrow();
   model.journeys = model.journeys.slice(0, 16);
   expect(() => getJourneysPage(model, 2)).toThrow();

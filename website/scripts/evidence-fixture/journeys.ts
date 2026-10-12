@@ -79,6 +79,26 @@ const definitions: IJourneyDefinition[] = [
       },
     ],
   },
+  {
+    id: 'agents',
+    title: 'Create a grounded agent',
+    summary: 'Register a parcel-triage agent using saved project policy.',
+    order: 3,
+    fixture: { adopted: true, installCli: true },
+    steps: [
+      {
+        id: 'create',
+        request: 'Create a triage agent.',
+        dependsOn: [],
+        checks: [
+          { kind: 'path-exists', path: 'moldea/agents/parcel-triage/description.md' },
+          { kind: 'path-exists', path: 'moldea/agents/parcel-triage/instruction.md' },
+          { kind: 'validate', result: 'valid' },
+        ],
+        unverified: ['The actual invocation consumes the canonical instruction.'],
+      },
+    ],
+  },
 ];
 
 for (const [index, id] of [
@@ -92,7 +112,7 @@ for (const [index, id] of [
     id,
     title: id === 'claude-only' ? 'Claude-only observation' : `Confirmation example: ${id}`,
     summary: `Inspect the ${id} conversation and its retained trials.`,
-    order: index + 3,
+    order: index + 4,
     fixture: { adopted: false, installCli: false },
     steps: [
       {
@@ -168,16 +188,26 @@ export const createSyntheticJourneysBundle = (
             unverified: step.unverified,
             facts: { issuedAt: evaluatedAt, recordedAt: evaluatedAt, cliPresent: true },
             reply:
-              'Saved the project foundation.\n\nValidation reports **valid**.\n\n<script>alert("unsafe")</script>\n\n[unsafe link](javascript:alert(1))',
+              step.id === 'create'
+                ? 'Triage agent created.\n\nValidation reports **valid**.'
+                : 'Saved the project foundation.\n\nValidation reports **valid**.\n\n<script>alert("unsafe")</script>\n\n[unsafe link](javascript:alert(1))',
             activity: {
               commands: ['node .agents/skills/moldea/scripts/moldea-cli.mjs validate --json'],
               reads: ['README.md', 'src/greeting.js'],
               writes:
                 step.id === 'initialize'
                   ? ['moldea/project.md', 'moldea/moldea.yaml']
-                  : status === 'failed' && step.checks.some((check) => check.kind === 'no-changes')
-                    ? ['moldea/project.md']
-                    : [],
+                  : step.id === 'create'
+                    ? [
+                        'moldea/agents/parcel-triage/description.md',
+                        'moldea/agents/parcel-triage/instruction.md',
+                        'moldea/moldea.yaml',
+                        'src/triage-agent.js',
+                      ]
+                    : status === 'failed' &&
+                        step.checks.some((check) => check.kind === 'no-changes')
+                      ? ['moldea/project.md']
+                      : [],
               notes: ['Agent-reported activity is not an execution trace.'],
             },
           })),
@@ -263,6 +293,7 @@ export const createSyntheticJourneysBundle = (
       trial.journeys.flatMap((journey) =>
         journey.steps.flatMap((step) => {
           const hasChange = step.id === 'initialize';
+          const hasAgentCreation = journey.id === 'agents' && step.id === 'create';
           const hasUnexpectedChange =
             step.status === 'failed' &&
             step.checks.some((check) => check.check.kind === 'no-changes');
@@ -278,9 +309,16 @@ export const createSyntheticJourneysBundle = (
                         { path: 'moldea/project.md', kind: 'added' },
                         { path: 'moldea/moldea.yaml', kind: 'added' },
                       ]
-                    : hasUnexpectedChange
-                      ? [{ path: 'moldea/project.md', kind: 'modified' }]
-                      : [],
+                    : hasAgentCreation
+                      ? [
+                          { path: 'moldea/agents/parcel-triage/description.md', kind: 'added' },
+                          { path: 'moldea/agents/parcel-triage/instruction.md', kind: 'added' },
+                          { path: 'moldea/moldea.yaml', kind: 'modified' },
+                          { path: 'src/triage-agent.js', kind: 'modified' },
+                        ]
+                      : hasUnexpectedChange
+                        ? [{ path: 'moldea/project.md', kind: 'modified' }]
+                        : [],
                 ),
               ),
             },
@@ -290,9 +328,11 @@ export const createSyntheticJourneysBundle = (
               content: Buffer.from(
                 hasChange
                   ? 'diff --git a/moldea/project.md b/moldea/project.md\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/project.md\n@@ -0,0 +1,2 @@\n+# Project\n+The greeting service returns a personalized welcome.\ndiff --git a/moldea/moldea.yaml b/moldea/moldea.yaml\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/moldea.yaml\n@@ -0,0 +1 @@\n+version: 1\n'
-                  : hasUnexpectedChange
-                    ? 'diff --git a/moldea/project.md b/moldea/project.md\n--- a/moldea/project.md\n+++ b/moldea/project.md\n@@ -1,2 +1,2 @@\n # Project\n-The greeting service returns a personalized welcome.\n+The saved project knowledge was unexpectedly replaced.\n'
-                    : '',
+                  : hasAgentCreation
+                    ? 'diff --git a/moldea/agents/parcel-triage/description.md b/moldea/agents/parcel-triage/description.md\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/agents/parcel-triage/description.md\n@@ -0,0 +1 @@\n+Triage delayed parcels using the saved escalation policy.\ndiff --git a/moldea/agents/parcel-triage/instruction.md b/moldea/agents/parcel-triage/instruction.md\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/agents/parcel-triage/instruction.md\n@@ -0,0 +1 @@\n+Use the saved triage policy to decide when a parcel needs escalation.\ndiff --git a/moldea/moldea.yaml b/moldea/moldea.yaml\n--- a/moldea/moldea.yaml\n+++ b/moldea/moldea.yaml\n@@ -1 +1,3 @@\n version: 1\n+agents:\n+  parcel-triage: {}\ndiff --git a/src/triage-agent.js b/src/triage-agent.js\n--- a/src/triage-agent.js\n+++ b/src/triage-agent.js\n@@ -1 +1 @@\n-const instruction = "Triage parcels.";\n+const instruction = readFileSync("moldea/agents/parcel-triage/instruction.md", "utf8");\n'
+                    : hasUnexpectedChange
+                      ? 'diff --git a/moldea/project.md b/moldea/project.md\n--- a/moldea/project.md\n+++ b/moldea/project.md\n@@ -1,2 +1,2 @@\n # Project\n-The greeting service returns a personalized welcome.\n+The saved project knowledge was unexpectedly replaced.\n'
+                      : '',
               ),
             },
             {

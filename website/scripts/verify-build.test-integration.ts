@@ -417,7 +417,7 @@ test('publishes bounded journey overviews, conversation previews, and every sour
       getDistPath(`evidence/journeys/${page === 1 ? '' : `page/${page}/`}index.html`),
       'utf8',
     );
-    expect([...html.matchAll(/data-journey-outcome=/gu)]).toHaveLength(page === 1 ? 32 : 4);
+    expect([...html.matchAll(/data-journey-outcome=/gu)]).toHaveLength(page === 1 ? 32 : 6);
   }
   const html = readFileSync(getDistPath('evidence/index.html'), 'utf8');
   expect(html).toContain('data-recorded-journeys');
@@ -430,7 +430,7 @@ test('publishes bounded journey overviews, conversation previews, and every sour
     for (const url of urls)
       expect(readFileSync(getDistPath(url.slice(1))).byteLength).toBeGreaterThan(0);
   }
-  expect(model.journeys).toHaveLength(18);
+  expect(model.journeys).toHaveLength(19);
   expect(loadWebsiteModel().routes).not.toContain('/evidence/journeys/page/3/');
   expect(() => readFileSync(getDistPath('evidence/journeys/page/3/index.html'))).toThrow();
   const recovered = readFileSync(getDistPath('evidence/journeys/recovered/index.html'), 'utf8');

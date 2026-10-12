@@ -656,7 +656,35 @@ test('balances decisions and platform journeys above full-width project runs', a
   expect(projects!.y).toBeGreaterThan(journeys!.y);
   await expect(cards.nth(1).locator('[data-conversation]')).toHaveCount(1);
   await expect(cards.nth(1)).toContainText('Claude');
-  await expect(cards.nth(1).locator('[data-recorded-file-tree]')).toContainText('moldea.yaml');
+  await expect(cards.nth(1).getByRole('article', { name: 'You message' })).toContainText(
+    'Create a triage agent.',
+  );
+  await expect(cards.nth(1).getByRole('article', { name: 'Coding agent message' })).toContainText(
+    'Triage agent created.',
+  );
+  const request = cards.nth(1).getByText('Create a triage agent.', { exact: true });
+  const reply = cards.nth(1).getByText('Triage agent created.', { exact: true });
+  await expect(cards.nth(1).getByText('Validation reports valid.', { exact: true })).toBeHidden();
+  expect((await request.boundingBox())!.height).toBe(24);
+  expect(await reply.evaluate((element) => element.scrollHeight <= element.clientHeight)).toBe(
+    true,
+  );
+  const changedFiles = cards.nth(1).locator('[data-recorded-file-path]');
+  await expect(changedFiles).toHaveCount(3);
+  expect(
+    await changedFiles.evaluateAll((files) =>
+      files.map((file) => file.getAttribute('data-file-status')),
+    ),
+  ).toStrictEqual(['created', 'created', 'modified']);
+  expect(
+    await changedFiles.evaluateAll((files) =>
+      files.map((file) => file.getAttribute('data-recorded-file-path')),
+    ),
+  ).toStrictEqual([
+    'moldea/agents/parcel-triage/description.md',
+    'moldea/agents/parcel-triage/instruction.md',
+    'moldea/moldea.yaml',
+  ]);
   const decisionSummary = page.locator('[data-home-evidence-result="decision"]');
   const originalSummaryHeight = await decisionSummary.evaluate((element) => {
     const first = element.firstElementChild!.getBoundingClientRect();
@@ -672,6 +700,15 @@ test('balances decisions and platform journeys above full-width project runs', a
     );
   });
   expect((await decisionSummary.boundingBox())!.height).toBeCloseTo(originalSummaryHeight, 0);
+  const decisionChecks = page.getByRole('list', { name: 'Verified decision behavior' });
+  const decisionFooter = cards
+    .nth(0)
+    .getByRole('link', { name: 'Inspect the decisions', exact: true })
+    .locator('..');
+  const checksBounds = (await decisionChecks.boundingBox())!;
+  expect(
+    (await decisionFooter.boundingBox())!.y - checksBounds.y - checksBounds.height,
+  ).toBeCloseTo(24, 0);
   await expect(cards.nth(1)).not.toContainText('Follow successive requests');
   await expect(cards.nth(1).locator('[data-conversation-message="assistant"]')).not.toContainText(
     'Saved the project foundation.',
@@ -696,4 +733,20 @@ test('balances decisions and platform journeys above full-width project runs', a
     elements.map((element) => element.getBoundingClientRect().width),
   );
   expect(new Set(widths).size).toBe(1);
+  const mobileSummary = (await decisionSummary.boundingBox())!;
+  expect(
+    (await decisionChecks.boundingBox())!.y - mobileSummary.y - mobileSummary.height,
+  ).toBeCloseTo(16, 0);
+  expect((await request.boundingBox())!.height).toBe(24);
+  expect(await request.evaluate((element) => element.scrollHeight <= element.clientHeight)).toBe(
+    true,
+  );
+  expect(await reply.evaluate((element) => element.scrollHeight <= element.clientHeight)).toBe(
+    true,
+  );
+  for (const file of await changedFiles.all()) {
+    const name = file.locator('code');
+    await expect(name).toBeVisible();
+    expect(await name.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  }
 });

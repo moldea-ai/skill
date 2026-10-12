@@ -163,7 +163,7 @@ test('paginates without preloading transcripts and initializes after client navi
       .getByRole('navigation', { name: 'Journey overview pages' })
       .getByRole('link', { name: 'Next page', exact: true })
       .click();
-    await expect(page.locator('[data-journeys-matrix] > ul > li')).toHaveCount(2);
+    await expect(page.locator('[data-journeys-matrix] > ul > li')).toHaveCount(3);
     await page
       .getByRole('navigation', { name: 'Journey overview pages' })
       .getByRole('link', { name: 'Previous page', exact: true })
@@ -275,10 +275,10 @@ test('paginates with an explicit current page and responsive previous and next c
     'page',
   );
   await expect(navigation.getByRole('link', { name: 'Previous page', exact: true })).toHaveCount(0);
-  await expect(page.getByText('Journeys 1–16 of 18', { exact: true })).toBeVisible();
+  await expect(page.getByText('Journeys 1–16 of 19', { exact: true })).toBeVisible();
   await page.setViewportSize({ width: 320, height: 1000 });
   await navigation.getByRole('link', { name: 'Next page', exact: true }).click();
-  await expect(page.getByText('Journeys 17–18 of 18', { exact: true })).toBeVisible();
+  await expect(page.getByText('Journeys 17–19 of 19', { exact: true })).toBeVisible();
   await expect(navigation.getByText('Page 2 of 2', { exact: true })).toBeVisible();
   await expect(navigation.getByRole('link', { name: 'Next page', exact: true })).toHaveCount(0);
   await navigation.getByRole('link', { name: 'Previous page', exact: true }).click();

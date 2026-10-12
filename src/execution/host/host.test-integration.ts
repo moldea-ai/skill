@@ -59,15 +59,32 @@ const runSystemGit = (repositoryPath: string, argumentsList: readonly string[]):
   assert.equal(result.status, 0, result.stderr);
 };
 
+const prepareEmptyCodexEvaluationHome = async (
+  sandboxHome: string,
+  evaluationRoot: string,
+): Promise<void> => {
+  const originalCodexHome = process.env['CODEX_HOME'];
+  const sourceCodexHome = join(evaluationRoot, 'source-codex-home');
+  mkdirSync(sourceCodexHome);
+  process.env['CODEX_HOME'] = sourceCodexHome;
+  try {
+    await prepareCodexEvaluationHome(sandboxHome);
+    assert.equal(existsSync(join(sandboxHome, '.codex', 'auth.json')), false);
+  } finally {
+    if (originalCodexHome === undefined) delete process.env['CODEX_HOME'];
+    else process.env['CODEX_HOME'] = originalCodexHome;
+  }
+};
+
 test('sandbox npm probe is immutable, reports the fixture version, and rejects execution', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-npm-probe-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');
   const sandboxHome = join(evaluationRoot, 'home');
-  mkdirSync(repositoryPath);
-  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
-  await prepareCodexEvaluationHome(sandboxHome);
 
   try {
+    mkdirSync(repositoryPath);
+    mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     const result = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
@@ -99,26 +116,25 @@ test('semantic actor PATH enforces the Git boundary over repository helpers', as
   const sandboxHome = join(evaluationRoot, 'home');
   const fsmonitorSentinelPath = join(repositoryPath, 'git-fsmonitor-ran.txt');
   const filterSentinelPath = join(repositoryPath, 'git-filter-ran.txt');
-  mkdirSync(repositoryPath);
-  mkdirSync(join(repositoryPath, 'node_modules'));
-  runSystemGit(repositoryPath, ['init', '--quiet']);
-  writeFileSync(
-    join(repositoryPath, 'git-fsmonitor.sh'),
-    '#!/bin/sh\nprintf "executed\\n" > git-fsmonitor-ran.txt\n',
-    'utf8',
-  );
-  writeFileSync(
-    join(repositoryPath, 'git-filter.sh'),
-    '#!/bin/sh\nprintf "executed\\n" > git-filter-ran.txt\ncat\n',
-    'utf8',
-  );
-  chmodSync(join(repositoryPath, 'git-fsmonitor.sh'), 0o755);
-  chmodSync(join(repositoryPath, 'git-filter.sh'), 0o755);
-  runSystemGit(repositoryPath, ['config', 'core.fsmonitor', './git-fsmonitor.sh']);
-  runSystemGit(repositoryPath, ['config', 'filter.execution-trap.clean', './git-filter.sh']);
-  await prepareCodexEvaluationHome(sandboxHome);
-
   try {
+    mkdirSync(repositoryPath);
+    mkdirSync(join(repositoryPath, 'node_modules'));
+    runSystemGit(repositoryPath, ['init', '--quiet']);
+    writeFileSync(
+      join(repositoryPath, 'git-fsmonitor.sh'),
+      '#!/bin/sh\nprintf "executed\\n" > git-fsmonitor-ran.txt\n',
+      'utf8',
+    );
+    writeFileSync(
+      join(repositoryPath, 'git-filter.sh'),
+      '#!/bin/sh\nprintf "executed\\n" > git-filter-ran.txt\ncat\n',
+      'utf8',
+    );
+    chmodSync(join(repositoryPath, 'git-fsmonitor.sh'), 0o755);
+    chmodSync(join(repositoryPath, 'git-filter.sh'), 0o755);
+    runSystemGit(repositoryPath, ['config', 'core.fsmonitor', './git-fsmonitor.sh']);
+    runSystemGit(repositoryPath, ['config', 'filter.execution-trap.clean', './git-filter.sh']);
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     const approvedResult = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
@@ -163,30 +179,29 @@ test('semantic actor PATH enforces the Git boundary over repository helpers', as
 
 test('shared host aligns the Git traversal budget with its read-only dependency mount', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-dependency-boundary-test-'));
-  const executableDirectory = join(evaluationRoot, 'bin');
-  const repositoryPath = join(evaluationRoot, 'repository');
-  const dependencyDirectoryPath = join(repositoryPath, 'node_modules');
-  const sandboxHome = join(evaluationRoot, 'home');
-  const codexPath = join(executableDirectory, 'codex');
-  const companionPath = join(executableDirectory, 'codex-code-mode-host');
-  mkdirSync(executableDirectory);
-  mkdirSync(dependencyDirectoryPath, { recursive: true });
-  runSystemGit(repositoryPath, ['init', '--quiet']);
-  for (let entryIndex = 0; entryIndex < 4_097; entryIndex += 1) {
-    writeFileSync(join(dependencyDirectoryPath, `entry-${entryIndex}`), '');
-  }
-  writeFileSync(
-    codexPath,
-    `#!/bin/sh\ngit ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')} >/dev/null\nprintf "host success\\n"\n`,
-  );
-  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
-  chmodSync(codexPath, 0o755);
-  chmodSync(companionPath, 0o755);
-  await prepareCodexEvaluationHome(sandboxHome);
   const originalPath = process.env['PATH'];
-  process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
-
   try {
+    const executableDirectory = join(evaluationRoot, 'bin');
+    const repositoryPath = join(evaluationRoot, 'repository');
+    const dependencyDirectoryPath = join(repositoryPath, 'node_modules');
+    const sandboxHome = join(evaluationRoot, 'home');
+    const codexPath = join(executableDirectory, 'codex');
+    const companionPath = join(executableDirectory, 'codex-code-mode-host');
+    mkdirSync(executableDirectory);
+    mkdirSync(dependencyDirectoryPath, { recursive: true });
+    runSystemGit(repositoryPath, ['init', '--quiet']);
+    for (let entryIndex = 0; entryIndex < 4_097; entryIndex += 1) {
+      writeFileSync(join(dependencyDirectoryPath, `entry-${entryIndex}`), '');
+    }
+    writeFileSync(
+      codexPath,
+      `#!/bin/sh\ngit ${CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.join(' ')} >/dev/null\nprintf "host success\\n"\n`,
+    );
+    writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+    chmodSync(codexPath, 0o755);
+    chmodSync(companionPath, 0o755);
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
+    process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
     assert.equal(
       await runCodexEvaluationHost({
         command: HOST_COMMAND,
@@ -207,25 +222,24 @@ test('shared host aligns the Git traversal budget with its read-only dependency 
 
 test('shared host preserves the sandbox PATH in Codex shell commands', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-shell-path-test-'));
-  const executableDirectory = join(evaluationRoot, 'bin');
-  const repositoryPath = join(evaluationRoot, 'repository');
-  const sandboxHome = join(evaluationRoot, 'home');
-  const codexPath = join(executableDirectory, 'codex');
-  const companionPath = join(executableDirectory, 'codex-code-mode-host');
-  mkdirSync(executableDirectory);
-  mkdirSync(join(repositoryPath, 'node_modules'), { recursive: true });
-  writeFileSync(
-    codexPath,
-    '#!/bin/sh\nfor argument do\n  case "$argument" in\n    shell_environment_policy.set.PATH=*) printf "%s\\n" "$argument"; exit 0 ;;\n  esac\ndone\nexit 2\n',
-  );
-  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
-  chmodSync(codexPath, 0o755);
-  chmodSync(companionPath, 0o755);
-  await prepareCodexEvaluationHome(sandboxHome);
   const originalPath = process.env['PATH'];
-  process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
-
   try {
+    const executableDirectory = join(evaluationRoot, 'bin');
+    const repositoryPath = join(evaluationRoot, 'repository');
+    const sandboxHome = join(evaluationRoot, 'home');
+    const codexPath = join(executableDirectory, 'codex');
+    const companionPath = join(executableDirectory, 'codex-code-mode-host');
+    mkdirSync(executableDirectory);
+    mkdirSync(join(repositoryPath, 'node_modules'), { recursive: true });
+    writeFileSync(
+      codexPath,
+      '#!/bin/sh\nfor argument do\n  case "$argument" in\n    shell_environment_policy.set.PATH=*) printf "%s\\n" "$argument"; exit 0 ;;\n  esac\ndone\nexit 2\n',
+    );
+    writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+    chmodSync(codexPath, 0o755);
+    chmodSync(companionPath, 0o755);
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
+    process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
     const actorOutput = await runCodexEvaluationHost({
       command: HOST_COMMAND,
       cwd: repositoryPath,
@@ -259,45 +273,44 @@ test('shared host preserves the sandbox PATH in Codex shell commands', async () 
 
 test('shared host permits the installed release CLI selected scope inventory', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-cli-scope-test-'));
-  const executableDirectory = join(evaluationRoot, 'bin');
-  const repositoryPath = join(evaluationRoot, 'repository');
-  const sandboxHome = join(evaluationRoot, 'home');
-  const codexPath = join(executableDirectory, 'codex');
-  const companionPath = join(executableDirectory, 'codex-code-mode-host');
-  mkdirSync(executableDirectory);
-  mkdirSync(join(repositoryPath, 'moldea'), { recursive: true });
-  mkdirSync(join(repositoryPath, 'src'));
-  writeFileSync(join(repositoryPath, 'README.md'), '# Evaluation repository\n');
-  writeFileSync(
-    join(repositoryPath, 'moldea', 'moldea.yaml'),
-    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
-  );
-  writeFileSync(join(repositoryPath, 'moldea', 'project.md'), '# Evaluation project\n');
-  writeFileSync(join(repositoryPath, 'src', 'project-state.js'), 'export const state = true;\n');
-  runSystemGit(repositoryPath, ['init', '--quiet']);
-  runSystemGit(repositoryPath, ['add', '--all']);
-  runSystemGit(repositoryPath, [
-    '-c',
-    'user.name=moldea evaluation',
-    '-c',
-    'user.email=evaluation@invalid.example',
-    'commit',
-    '--quiet',
-    '-m',
-    'test: initialize selected scope fixture',
-  ]);
-  writeFileSync(
-    codexPath,
-    '#!/bin/sh\nprintf "/src/project-state.js\\0" | /dependencies/node_modules/.bin/moldea scope --paths-stdin --json --max-output-bytes 65536\n',
-  );
-  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
-  chmodSync(codexPath, 0o755);
-  chmodSync(companionPath, 0o755);
-  await prepareCodexEvaluationHome(sandboxHome);
   const originalPath = process.env['PATH'];
-  process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
-
   try {
+    const executableDirectory = join(evaluationRoot, 'bin');
+    const repositoryPath = join(evaluationRoot, 'repository');
+    const sandboxHome = join(evaluationRoot, 'home');
+    const codexPath = join(executableDirectory, 'codex');
+    const companionPath = join(executableDirectory, 'codex-code-mode-host');
+    mkdirSync(executableDirectory);
+    mkdirSync(join(repositoryPath, 'moldea'), { recursive: true });
+    mkdirSync(join(repositoryPath, 'src'));
+    writeFileSync(join(repositoryPath, 'README.md'), '# Evaluation repository\n');
+    writeFileSync(
+      join(repositoryPath, 'moldea', 'moldea.yaml'),
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
+    );
+    writeFileSync(join(repositoryPath, 'moldea', 'project.md'), '# Evaluation project\n');
+    writeFileSync(join(repositoryPath, 'src', 'project-state.js'), 'export const state = true;\n');
+    runSystemGit(repositoryPath, ['init', '--quiet']);
+    runSystemGit(repositoryPath, ['add', '--all']);
+    runSystemGit(repositoryPath, [
+      '-c',
+      'user.name=moldea evaluation',
+      '-c',
+      'user.email=evaluation@invalid.example',
+      'commit',
+      '--quiet',
+      '-m',
+      'test: initialize selected scope fixture',
+    ]);
+    writeFileSync(
+      codexPath,
+      '#!/bin/sh\nprintf "/src/project-state.js\\0" | /dependencies/node_modules/.bin/moldea scope --paths-stdin --json --max-output-bytes 65536\n',
+    );
+    writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+    chmodSync(codexPath, 0o755);
+    chmodSync(companionPath, 0o755);
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
+    process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
     const output = await runCodexEvaluationHost({
       command: HOST_COMMAND,
       cwd: repositoryPath,
@@ -608,21 +621,20 @@ test('Bubblewrap can mount the primary evaluation workspace read-only for judges
 
 test('shared host closes its relay after successful and failed executions', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-completion-test-'));
-  const executableDirectory = join(evaluationRoot, 'bin');
-  const repositoryPath = join(evaluationRoot, 'repository');
-  const sandboxHome = join(evaluationRoot, 'home');
-  const codexPath = join(executableDirectory, 'codex');
-  const companionPath = join(executableDirectory, 'codex-code-mode-host');
-  mkdirSync(executableDirectory);
-  mkdirSync(repositoryPath);
-  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
-  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
-  chmodSync(companionPath, 0o755);
-  await prepareCodexEvaluationHome(sandboxHome);
   const originalPath = process.env['PATH'];
-  process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
-
   try {
+    const executableDirectory = join(evaluationRoot, 'bin');
+    const repositoryPath = join(evaluationRoot, 'repository');
+    const sandboxHome = join(evaluationRoot, 'home');
+    const codexPath = join(executableDirectory, 'codex');
+    const companionPath = join(executableDirectory, 'codex-code-mode-host');
+    mkdirSync(executableDirectory);
+    mkdirSync(repositoryPath);
+    mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+    writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+    chmodSync(companionPath, 0o755);
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
+    process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
     writeFileSync(codexPath, '#!/bin/sh\nprintf "host success\\n"\n');
     chmodSync(codexPath, 0o755);
     assert.equal(
@@ -659,25 +671,25 @@ test('shared host closes its relay after successful and failed executions', asyn
 
 test('shared host cancellation stops the outer Bubblewrap execution', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-cancellation-test-'));
-  const executableDirectory = join(evaluationRoot, 'bin');
-  const repositoryPath = join(evaluationRoot, 'repository');
-  const sandboxHome = join(evaluationRoot, 'home');
-  const codexPath = join(executableDirectory, 'codex');
-  const companionPath = join(executableDirectory, 'codex-code-mode-host');
-  mkdirSync(executableDirectory);
-  mkdirSync(repositoryPath);
-  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
-  writeFileSync(codexPath, '#!/bin/sh\nsleep 10\n');
-  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
-  chmodSync(codexPath, 0o755);
-  chmodSync(companionPath, 0o755);
-  await prepareCodexEvaluationHome(sandboxHome);
   const originalPath = process.env['PATH'];
-  process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
-  const abortController = new AbortController();
-  const abortTimeout = setTimeout(() => abortController.abort(), 50);
-
+  let abortTimeout: ReturnType<typeof setTimeout> | undefined;
   try {
+    const executableDirectory = join(evaluationRoot, 'bin');
+    const repositoryPath = join(evaluationRoot, 'repository');
+    const sandboxHome = join(evaluationRoot, 'home');
+    const codexPath = join(executableDirectory, 'codex');
+    const companionPath = join(executableDirectory, 'codex-code-mode-host');
+    mkdirSync(executableDirectory);
+    mkdirSync(repositoryPath);
+    mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+    writeFileSync(codexPath, '#!/bin/sh\nsleep 10\n');
+    writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+    chmodSync(codexPath, 0o755);
+    chmodSync(companionPath, 0o755);
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
+    process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
+    const abortController = new AbortController();
+    abortTimeout = setTimeout(() => abortController.abort(), 50);
     await assert.rejects(
       runCodexEvaluationHost({
         command: HOST_COMMAND,
@@ -693,7 +705,7 @@ test('shared host cancellation stops the outer Bubblewrap execution', async () =
         /execution was aborted/.test(error.message),
     );
   } finally {
-    clearTimeout(abortTimeout);
+    if (abortTimeout !== undefined) clearTimeout(abortTimeout);
     if (originalPath === undefined) delete process.env['PATH'];
     else process.env['PATH'] = originalPath;
     rmSync(evaluationRoot, { force: true, recursive: true });
@@ -702,23 +714,22 @@ test('shared host cancellation stops the outer Bubblewrap execution', async () =
 
 test('shared host enforces a workflow-owned default timeout', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-timeout-test-'));
-  const executableDirectory = join(evaluationRoot, 'bin');
-  const repositoryPath = join(evaluationRoot, 'repository');
-  const sandboxHome = join(evaluationRoot, 'home');
-  const codexPath = join(executableDirectory, 'codex');
-  const companionPath = join(executableDirectory, 'codex-code-mode-host');
-  mkdirSync(executableDirectory);
-  mkdirSync(repositoryPath);
-  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
-  writeFileSync(codexPath, '#!/bin/sh\nsleep 10\n');
-  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
-  chmodSync(codexPath, 0o755);
-  chmodSync(companionPath, 0o755);
-  await prepareCodexEvaluationHome(sandboxHome);
   const originalPath = process.env['PATH'];
-  process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
-
   try {
+    const executableDirectory = join(evaluationRoot, 'bin');
+    const repositoryPath = join(evaluationRoot, 'repository');
+    const sandboxHome = join(evaluationRoot, 'home');
+    const codexPath = join(executableDirectory, 'codex');
+    const companionPath = join(executableDirectory, 'codex-code-mode-host');
+    mkdirSync(executableDirectory);
+    mkdirSync(repositoryPath);
+    mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
+    writeFileSync(codexPath, '#!/bin/sh\nsleep 10\n');
+    writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+    chmodSync(codexPath, 0o755);
+    chmodSync(companionPath, 0o755);
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
+    process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
     await assert.rejects(
       runCodexEvaluationHost({
         command: HOST_COMMAND,

@@ -1,59 +1,70 @@
 import { z } from 'zod';
 
-import { JOURNEY_PLATFORMS } from '../constants.ts';
-import {
-  JourneyActivitySchema,
-  JourneyAssessmentSchema,
-  JourneyCheckResultSchema,
-  JourneyFactsSchema,
-  JourneyOutcomeSchema,
-  JourneysBundleSchema,
-} from '../types.ts';
+import { JourneyCampaignSchema, HashSchema, JOURNEY_PLATFORMS } from '../index.ts';
 
-// additive presentation contracts retain the origin of every displayed observation
-const PlatformSchema = JourneyAssessmentSchema.shape.platforms.element.omit({ journeys: true });
-const ResultSchema = z.object({
-  platform: z.enum(JOURNEY_PLATFORMS),
-  status: JourneyOutcomeSchema,
-  checks: z.array(JourneyCheckResultSchema),
-  unverified: z.array(z.string()),
-  facts: JourneyFactsSchema.nullable(),
-  reply: z.string(),
-  activity: JourneyActivitySchema.nullable(),
+import { LegacyWebsiteModelSchema, type IJourneyWebsiteResult as ILegacyResult } from './legacy.ts';
+
+// one producer-owned source inventory supports both direct and composed presentation
+const CaptureSchema = z.object({
+  patch: z.string(),
   files: z.array(
     z.object({ path: z.string(), status: z.enum(['created', 'modified', 'deleted']) }),
   ),
-  patch: z.string(),
-  patchUrl: z.string().nullable(),
-  replyUrl: z.string().nullable(),
-  activityUrl: z.string().nullable(),
 });
-
-export const ScriptedJourneysWebsiteModelSchema = JourneyAssessmentSchema.omit({
-  platforms: true,
-}).extend({
-  route: z.literal('/evidence/journeys/'),
-  skill: JourneysBundleSchema.shape.skill,
-  instructions: JourneysBundleSchema.shape.instructions,
+export const CampaignSourceSchema = z.object({
+  id: HashSchema,
+  kind: z.literal('campaign'),
+  assessment: JourneyCampaignSchema,
   assessmentUrl: z.string(),
   definitionsUrl: z.string(),
-  platforms: z.array(PlatformSchema),
+  artifactRoot: z.string(),
+  captures: z.record(z.string(), CaptureSchema),
+});
+const LegacySourceSchema = z.object({
+  id: z.string(),
+  kind: z.literal('legacy'),
+  model: LegacyWebsiteModelSchema,
+});
+export const JourneySourceSchema = z.discriminatedUnion('kind', [
+  CampaignSourceSchema,
+  LegacySourceSchema,
+]);
+export const JourneyCellSchema = z.object({
+  platform: z.enum(JOURNEY_PLATFORMS),
+  journeyId: z.string(),
+  sourceId: z.string(),
+});
+export const ScriptedJourneysWebsiteModelSchema = z.object({
+  presentationVersion: z.literal(2),
+  route: z.literal('/evidence/journeys/'),
+  runId: z.string(),
+  evaluatedAt: z.string(),
+  status: z.enum(['passed', 'failed', 'incomplete']),
+  currentSourceId: z.string(),
+  sources: z.array(JourneySourceSchema).min(1),
+  cells: z.array(JourneyCellSchema),
   journeys: z.array(
     z.object({
       id: z.string(),
       title: z.string(),
       summary: z.string(),
       route: z.string(),
-      steps: z.array(
-        z.object({
-          id: z.string(),
-          request: z.string(),
-          results: z.array(ResultSchema),
-        }),
-      ),
+      current: z.boolean(),
+    }),
+  ),
+  coverage: z.array(
+    z.object({
+      platform: z.enum(JOURNEY_PLATFORMS),
+      recorded: z.number().int().nonnegative(),
+      current: z.number().int().nonnegative(),
+      total: z.number().int().nonnegative(),
+      recovered: z.number().int().nonnegative(),
+      pending: z.number().int().nonnegative(),
     }),
   ),
 });
-
+// transient render results preserve the established captured-evidence content contract
+export type IJourneyWebsiteResult = ILegacyResult;
 export type IScriptedJourneysWebsiteModel = z.infer<typeof ScriptedJourneysWebsiteModelSchema>;
-export type IJourneyWebsiteResult = z.infer<typeof ResultSchema>;
+export type IJourneyEvidenceSource = z.infer<typeof JourneySourceSchema>;
+export type IJourneyEvidenceCell = z.infer<typeof JourneyCellSchema>;

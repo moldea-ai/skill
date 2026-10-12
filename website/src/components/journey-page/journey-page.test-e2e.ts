@@ -143,3 +143,49 @@ test('initializes comparisons and dialogs after repeated client navigation', asy
     );
   }
 });
+
+test('retains initial failure after recovery and exposes ordered confirmations with native keyboard disclosures', async ({
+  page,
+}) => {
+  await page.goto(
+    withBase('/evidence/journeys/recovered/', process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH),
+  );
+  const trials = page.locator('[data-journey-trials]').first();
+  const initial = trials.locator('details[data-accordion-item]').first();
+  await expect(initial).toHaveAttribute('open', '');
+  await expect(initial.locator('[data-evidence-status="failed"]')).toHaveCount(3);
+  const second = trials.locator('details[data-accordion-item]').nth(1);
+  await second.locator(':scope > summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(second).toHaveAttribute('open', '');
+  await second.getByText('Agent-reported reply', { exact: true }).click();
+  await expect(second.getByRole('link', { name: 'Raw reply' })).toHaveAttribute(
+    'href',
+    /c1\/read\/reply.md$/u,
+  );
+  expect(
+    await page
+      .locator('[id]')
+      .evaluateAll((elements) =>
+        elements.map((element) => element.id).filter((id, index, ids) => ids.indexOf(id) !== index),
+      ),
+  ).toStrictEqual([]);
+});
+
+test('defaults mobile to the available provider and keeps Not run discoverable', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 1000 });
+  await page.goto(
+    withBase('/evidence/journeys/claude-only/', process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH),
+  );
+  await expect(page.getByRole('tab', { name: 'Claude', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(page.locator('[data-journey-result="claude"]')).toBeVisible();
+  await page.getByRole('tab', { name: 'ChatGPT', exact: true }).click();
+  await expect(
+    page.getByText('Not run in ChatGPT for this revision.', { exact: true }),
+  ).toBeVisible();
+});

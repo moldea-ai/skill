@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { EVALUATION_CONFIRMATION_POLICY } from '../execution/confirmation/index.ts';
+
 import { JOURNEY_PLATFORMS, JOURNEYS_FORMAT_VERSION, RUN_ID_PATTERN } from './constants.ts';
 
 // closed exchange contracts reject unsupported harness state and grading inputs
@@ -7,7 +9,7 @@ const IdentifierSchema = z
   .string()
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)
   .max(48);
-const HashSchema = z.string().regex(/^[a-f0-9]{64}$/u);
+export const HashSchema = z.string().regex(/^[a-f0-9]{64}$/u);
 const FileHashesSchema = z.record(z.string(), HashSchema);
 const FixtureSchema = z
   .strictObject({
@@ -117,7 +119,18 @@ export const JourneysBundleSchema = z.strictObject({
     cliRepairVersion: z.string(),
     treeSha256: HashSchema,
   }),
-  instructions: z.strictObject({ version: z.literal(1), sha256: HashSchema }),
+  instructions: z.strictObject({ version: z.literal(2), sha256: HashSchema }),
+  assessorSourceSha256: HashSchema,
+  policy: z.strictObject({
+    version: z.literal(EVALUATION_CONFIRMATION_POLICY.version),
+    requiredPassingConfirmations: z.literal(
+      EVALUATION_CONFIRMATION_POLICY.requiredPassingConfirmations,
+    ),
+    requiredFailingConfirmations: z.literal(
+      EVALUATION_CONFIRMATION_POLICY.requiredFailingConfirmations,
+    ),
+    maximumConfirmations: z.literal(EVALUATION_CONFIRMATION_POLICY.maximumConfirmations),
+  }),
   files: FileHashesSchema,
   npmCache: z.strictObject({ sha256: HashSchema, packages: z.array(z.string()) }),
   journeys: z
@@ -127,6 +140,7 @@ export const JourneysBundleSchema = z.strictObject({
         title: z.string(),
         stepCount: z.number().int().positive(),
         definitionDigest: HashSchema,
+        fixtureSha256: HashSchema,
         fixture: FixtureSchema,
       }),
     )
@@ -151,6 +165,10 @@ export const JourneyStepRecordSchema = z.strictObject({
 });
 export const JourneysExportSchema = z.strictObject({
   exportFormatVersion: z.literal(JOURNEYS_FORMAT_VERSION),
+  trialId: z.string().regex(/^[a-f0-9]{32}$/u),
+  kind: z.enum(['initial', 'confirmation']),
+  selectedJourneys: z.array(IdentifierSchema).min(1),
+  confirmationIndex: z.number().int().min(1).max(3).nullable(),
   runId: z.string().regex(RUN_ID_PATTERN),
   platform: z.enum(JOURNEY_PLATFORMS),
   skillTreeSha256: HashSchema,
@@ -177,44 +195,105 @@ export const JourneyConfigurationSchema = z.strictObject({
   settings: z.record(z.string(), z.string()),
   interventions: z.array(z.string()),
 });
+// digest-keyed observations are immutable admission evidence, not sandbox claims
+export const JourneyObservationSchema = z.strictObject({
+  configuration: JourneyConfigurationSchema,
+  observedAt: z.iso.datetime().nullable(),
+  freshChat: z.literal(true),
+});
 export const JourneyOperatorRecordSchema = z.strictObject({
+  trials: z.record(HashSchema, JourneyObservationSchema).optional(),
   chatgpt: JourneyConfigurationSchema.optional(),
   claude: JourneyConfigurationSchema.optional(),
 });
-
-// website payloads permit additive presentation fields without changing the exchange format
-export const JourneyAssessmentSchema = z.object({
+export const JourneyAssessedStepSchema = z.object({
+  id: IdentifierSchema,
+  status: JourneyOutcomeSchema,
+  checks: z.array(
+    JourneyCheckResultSchema.extend({
+      criterion: z.union([z.number().int().nonnegative(), z.literal('nonempty-reply')]),
+    }),
+  ),
+  unverified: z.array(z.string()),
+  facts: JourneyFactsSchema.nullable(),
+  reply: z.string(),
+  activity: JourneyActivitySchema.nullable(),
+});
+export const JourneyTrialSchema = z.object({
+  trialId: JourneysExportSchema.shape.trialId,
+  archiveSha256: HashSchema,
+  kind: JourneysExportSchema.shape.kind,
+  selectedJourneys: JourneysExportSchema.shape.selectedJourneys,
+  confirmationIndex: JourneysExportSchema.shape.confirmationIndex,
+  observation: JourneyObservationSchema.nullable(),
+  diagnosticConfiguration: JourneyConfigurationSchema.nullable(),
+  environment: z.record(z.string(), z.string()),
+  restartCounts: z.record(z.string(), z.number().int().nonnegative()),
+  journeys: z.array(
+    z.object({
+      id: IdentifierSchema,
+      status: JourneyOutcomeSchema,
+      steps: z.array(JourneyAssessedStepSchema),
+    }),
+  ),
+});
+export const JourneyResolutionSchema = z.object({
+  journeyId: IdentifierSchema,
+  initialTrialId: JourneysExportSchema.shape.trialId,
+  confirmationTrialIds: z.array(JourneysExportSchema.shape.trialId).max(3),
+  status: z.enum([
+    'passed-initially',
+    'awaiting-confirmation',
+    'recovered',
+    'confirmed-failure',
+    'blocked',
+  ]),
+  failedChecks: z.array(
+    z.object({
+      trialId: z.string(),
+      stepId: IdentifierSchema,
+      criterion: z.union([z.number().int().nonnegative(), z.literal('nonempty-reply')]),
+    }),
+  ),
+});
+const AssessmentBaseSchema = z.object({
+  assessmentFormatVersion: z.literal(2),
   runId: z.string().regex(RUN_ID_PATTERN),
   status: z.enum(['passed', 'failed', 'incomplete']),
   evaluatedAt: z.iso.datetime(),
   assessor: z.object({ commit: z.string(), sourceSha256: HashSchema }),
   bundleSha256: HashSchema,
-  platforms: z.array(
-    z.object({
-      platform: z.enum(JOURNEY_PLATFORMS),
-      configuration: JourneyConfigurationSchema,
-      environment: z.record(z.string(), z.string()),
-      restartCounts: z.record(z.string(), z.number()),
-      journeys: z.array(
-        z.object({
-          id: IdentifierSchema,
-          status: JourneyOutcomeSchema,
-          steps: z.array(
-            z.object({
-              id: IdentifierSchema,
-              status: JourneyOutcomeSchema,
-              checks: z.array(JourneyCheckResultSchema),
-              unverified: z.array(z.string()),
-              facts: JourneyFactsSchema.nullable(),
-              reply: z.string(),
-              activity: JourneyActivitySchema.nullable(),
-            }),
-          ),
-        }),
-      ),
-    }),
-  ),
+  bundle: JourneysBundleSchema,
+  definitions: z.array(JourneyDefinitionSchema).min(1),
 });
+const PlatformTrialsSchema = z.object({
+  platform: z.enum(JOURNEY_PLATFORMS),
+  trials: z.array(JourneyTrialSchema).min(1),
+});
+export const JourneyCampaignSchema = AssessmentBaseSchema.extend({
+  mode: z.literal('campaign'),
+  platforms: z.array(
+    PlatformTrialsSchema.extend({ resolutions: z.array(JourneyResolutionSchema) }),
+  ),
+}).superRefine((assessment, context) => {
+  if (
+    assessment.platforms.some((platform) =>
+      platform.trials.some(
+        (trial) => trial.observation === null || trial.diagnosticConfiguration !== null,
+      ),
+    )
+  )
+    context.addIssue({ code: 'custom', message: 'Campaign trials require admitted observations.' });
+});
+export const JourneyDiagnosticSchema = AssessmentBaseSchema.extend({
+  mode: z.literal('diagnostic'),
+  platforms: z.array(PlatformTrialsSchema),
+  missingObservations: z.array(HashSchema),
+});
+export const JourneyAssessmentSchema = z.discriminatedUnion('mode', [
+  JourneyCampaignSchema,
+  JourneyDiagnosticSchema,
+]);
 
 export type IJourneyDefinition = z.infer<typeof JourneyDefinitionSchema>;
 export type IJourneyCheck = z.infer<typeof JourneyCheckSchema>;
@@ -228,3 +307,9 @@ export type IJourneyAssessment = z.infer<typeof JourneyAssessmentSchema>;
 export type IJourneyPlatform = (typeof JOURNEY_PLATFORMS)[number];
 
 export type IJourneyOperatorRecord = z.infer<typeof JourneyOperatorRecordSchema>;
+
+export type IJourneyTrial = z.infer<typeof JourneyTrialSchema>;
+export type IJourneyCampaign = z.infer<typeof JourneyCampaignSchema>;
+export type IJourneyDiagnostic = z.infer<typeof JourneyDiagnosticSchema>;
+export type IJourneyResolution = z.infer<typeof JourneyResolutionSchema>;
+export type IJourneyObservation = z.infer<typeof JourneyObservationSchema>;

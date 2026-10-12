@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { mkdir, readFile, readdir } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -8,6 +9,7 @@ import { JourneyStepsSchema, type IJourneyPlatform } from '../index.ts';
 
 import {
   assertCheckpointIdentity,
+  selectJourneys,
   copyTree,
   isolatedEnvironment,
   parseFlags,
@@ -28,6 +30,8 @@ export type ISetupOptions = {
   bundleZip: string;
   bundleDirectory: string;
   resume?: string;
+  journeys?: string[];
+  confirmationIndex?: number;
   homeDirectory?: string;
 };
 
@@ -40,6 +44,11 @@ export const setupWorkspace = async (workspace: string, options: ISetupOptions):
     throw new Error('Bundle zip SHA-256 mismatch.');
   const bundle = await verifyBundle(options.bundleDirectory);
   if (bundle.runId !== options.runId) throw new Error('Bundle run id mismatch.');
+  const confirmationIndex = options.confirmationIndex ?? null;
+  const selectedJourneys = selectJourneys(bundle.journeys, options.journeys, confirmationIndex);
+  const selectedDefinitions = bundle.journeys.filter((journey) =>
+    selectedJourneys.includes(journey.id),
+  );
   const home = options.homeDirectory ?? os.homedir();
   const npmCache = path.join(workspace, '.npm-cache');
   await copyTree(path.join(options.bundleDirectory, 'npm-cache'), npmCache, [], true);
@@ -67,6 +76,10 @@ export const setupWorkspace = async (workspace: string, options: ISetupOptions):
     bundleZip: options.bundleZip,
     bundleSha256: options.sha256,
     platform: options.platform,
+    trialId: randomBytes(16).toString('hex'),
+    kind: confirmationIndex === null ? 'initial' : 'confirmation',
+    selectedJourneys,
+    confirmationIndex,
     environment: {
       os: `${os.platform()} ${os.release()}`,
       node: process.version,
@@ -78,14 +91,14 @@ export const setupWorkspace = async (workspace: string, options: ISetupOptions):
     records: [],
     completedJourneys: [],
     checkpointedJourneys: [],
-    restartCounts: Object.fromEntries(bundle.journeys.map((journey) => [journey.id, 0])),
+    restartCounts: Object.fromEntries(selectedDefinitions.map((journey) => [journey.id, 0])),
     checkpoint: 0,
     pending: null,
   };
   if (options.resume) {
     const checkpoint = await verifyExport(options.resume);
     const definitions = [];
-    for (const journey of bundle.journeys)
+    for (const journey of selectedDefinitions)
       definitions.push({
         id: journey.id,
         steps: JourneyStepsSchema.parse(
@@ -93,6 +106,12 @@ export const setupWorkspace = async (workspace: string, options: ISetupOptions):
         ),
       });
     assertCheckpointIdentity(bundle, checkpoint, definitions);
+    if (
+      JSON.stringify(checkpoint.selectedJourneys) !== JSON.stringify(selectedJourneys) ||
+      checkpoint.confirmationIndex !== confirmationIndex
+    )
+      throw new Error('Resume selection mismatch.');
+    state.trialId = checkpoint.trialId;
     if (checkpoint.platform !== options.platform) throw new Error('Resume platform mismatch.');
     state.records = checkpoint.steps.filter((record) =>
       checkpoint.completedJourneys.includes(record.journeyId),
@@ -110,12 +129,12 @@ export const setupWorkspace = async (workspace: string, options: ISetupOptions):
         path.join(workspace, 'work', id),
       );
     }
-    const restarted = bundle.journeys.find(
+    const restarted = selectedDefinitions.find(
       (journey) => !state.completedJourneys.includes(journey.id),
     );
     if (restarted) state.restartCounts[restarted.id] = (state.restartCounts[restarted.id] ?? 0) + 1;
   }
-  for (const journey of bundle.journeys) {
+  for (const journey of selectedDefinitions) {
     JourneyStepsSchema.parse(
       await readJson(path.join(options.bundleDirectory, 'journeys', journey.id, 'steps.json')),
     );
@@ -165,14 +184,27 @@ export const setupWorkspace = async (workspace: string, options: ISetupOptions):
 };
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const flags = parseFlags(process.argv.slice(2), [
+  const args = process.argv.slice(2);
+  const journeys: string[] = [];
+  const remaining: string[] = [];
+  for (let index = 0; index < args.length; index++) {
+    if (args[index] === '--journey') {
+      const id = args[++index];
+      if (!id || id.startsWith('--')) throw new Error('Missing --journey value.');
+      journeys.push(id);
+    } else remaining.push(args[index]!);
+  }
+  const flags = parseFlags(remaining, [
     '--run',
     '--sha256',
     '--platform',
     '--bundle-zip',
     '--bundle-dir',
     '--resume',
+    '--confirmation',
   ]);
+  if (flags['--confirmation'] && !/^[123]$/u.test(flags['--confirmation']))
+    throw new Error('Invalid confirmation index.');
   const platform = flags['--platform'];
   if (platform !== 'chatgpt' && platform !== 'claude')
     throw new Error('Platform must be chatgpt or claude.');
@@ -182,6 +214,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     runId: flags['--run']!,
     sha256: flags['--sha256']!,
     platform,
+    ...(journeys.length ? { journeys } : {}),
+    ...(flags['--confirmation'] ? { confirmationIndex: Number(flags['--confirmation']) } : {}),
     bundleZip: path.resolve(flags['--bundle-zip']!),
     bundleDirectory: path.resolve(flags['--bundle-dir']!),
     ...(flags['--resume'] ? { resume: path.resolve(flags['--resume']) } : {}),

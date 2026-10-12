@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import { assessJourneys } from '../assessment/index.ts';
 import { extractArchive, packJourneys, publishJourneyBundle } from '../bundle/index.ts';
+import { getCompletedEvidenceRunPath } from '../../evidence/index.ts';
 import { sha256, verifyBundle, readJson } from '../harness/index.ts';
 import { JourneyOperatorRecordSchema } from '../index.ts';
 import { renderStartMessage } from '../instructions/index.ts';
@@ -63,6 +64,25 @@ if (input.command === 'pack') {
     sha256: input.sha256,
     exportPaths: input.exports.map((exportPath) => path.resolve(exportPath)),
     operatorRecord,
+    persist: !input.diagnostic,
   });
   process.stdout.write(`${JSON.stringify(assessment, null, 2)}\n`);
+  if (assessment.mode === 'diagnostic')
+    process.stdout.write('Non-admitting diagnostic. No campaign record changed.\n');
+  else {
+    process.stdout.write(
+      `Record: ${getCompletedEvidenceRunPath(repositoryRoot, 'journeys', assessment.runId)}\nScoped status: ${assessment.status}\n`,
+    );
+    for (const platform of assessment.platforms) {
+      process.stdout.write(
+        `${platform.platform}: ${platform.resolutions.length}/${assessment.definitions.length} journeys recorded\n`,
+      );
+      for (const resolution of platform.resolutions.filter(
+        (resolution) => resolution.status === 'awaiting-confirmation',
+      ))
+        process.stdout.write(
+          `\n${await renderStartMessage({ runId: assessment.runId, platform: platform.platform, sha256: assessment.bundleSha256, url: `https://github.com/moldea-ai/skill/releases/download/journeys-${assessment.runId}/journeys-bundle-${assessment.runId}.zip`, journeys: [resolution.journeyId], confirmationIndex: resolution.confirmationTrialIds.length + 1 })}\n`,
+        );
+    }
+  }
 }

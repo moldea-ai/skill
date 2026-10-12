@@ -56,7 +56,7 @@ test.each([null, 'journeys', 'semantic'] as const)(
     else {
       const state = load();
       expect(state.semantic.latest?.result.attemptId).toBe('fixture-semantic-run');
-      expect(state.scriptedJourneys?.journeys.length ?? null).toBe(kind === null ? null : 3);
+      expect(state.scriptedJourneys?.journeys.length ?? null).toBe(kind === null ? null : 18);
     }
   },
 );

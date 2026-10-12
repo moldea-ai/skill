@@ -14,21 +14,36 @@ test('links every journey with accessible outcomes, provenance and raw sources',
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'Follow the skill across a conversation.',
   );
-  await expect(page.locator('[data-journeys-matrix] li')).toHaveCount(model.journeys.length);
+  await expect(page.locator('[data-journeys-matrix] li')).toHaveCount(
+    Math.min(16, model.journeys.length),
+  );
   await expect(
-    page.getByRole('group', { name: 'Preserve project knowledge, Claude: failed', exact: true }),
+    page.getByRole('group', {
+      name: 'Preserve project knowledge, Claude: Awaiting confirmation',
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
-    page.getByRole('group', { name: 'Repair a damaged foundation, ChatGPT: blocked', exact: true }),
+    page.getByRole('group', {
+      name: 'Repair a damaged foundation, ChatGPT: Blocked evidence',
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Raw assessment JSON' })).toHaveAttribute(
     'href',
     /assessment\.json$/u,
   );
-  await expect(page.getByText('chatgpt fixture model', { exact: true })).toBeVisible();
-  await expect(page.getByText('claude fixture model', { exact: true })).toBeVisible();
+  await expect(page.getByText('chatgpt fixture model', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('claude fixture model', { exact: true }).first()).toBeVisible();
   await page.getByText('Assessor identity and source hashes', { exact: true }).click();
-  await expect(page.getByText(model.assessor.sourceSha256, { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(
+      model.sources[0]!.kind === 'campaign'
+        ? model.sources[0]!.assessment.assessor.sourceSha256
+        : model.sources[0]!.model.assessor.sourceSha256,
+      { exact: true },
+    ),
+  ).toBeVisible();
   const search = await (
     await page.request.get(
       withBase('/search-index.json', process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH),
@@ -66,4 +81,24 @@ test('keeps the matrix accessible at 320px and desktop in both themes', async ({
       await context.close();
     }
   }
+});
+
+test('paginates the growing catalog and limits the compact preview to four journeys', async ({
+  page,
+}) => {
+  await page.goto(route);
+  const navigation = page.getByRole('navigation', { name: 'Journey overview pages' });
+  await navigation.getByRole('link', { name: '2', exact: true }).click();
+  await expect(page.locator('[data-journeys-matrix] > ul > li')).toHaveCount(2);
+  await expect(page.getByText('18 journeys · Page 2 of 2', { exact: true })).toBeVisible();
+  await page
+    .getByRole('navigation', { name: 'Journey overview pages' })
+    .getByRole('link', { name: '1', exact: true })
+    .click();
+  await expect(page.locator('[data-journeys-matrix] > ul > li')).toHaveCount(16);
+  await page.goto(withBase('/evidence/', process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH));
+  await expect(page.locator('[data-recorded-journeys] li')).toHaveCount(4);
+  const invalid = await page.request.get(`${route}page/3/`);
+  // Vite preview falls back to the home page for unknown static paths.
+  expect(await invalid.text()).not.toContain('data-journeys-matrix');
 });

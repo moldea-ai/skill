@@ -10,6 +10,13 @@ import {
   writeBufferFileAtomically,
   writeJsonFileAtomically,
 } from '../filesystem/index.ts';
+import { createSyntheticJourneysBundle } from '../../website/scripts/evidence-fixture/journeys.ts';
+import { createJourneysEvidenceBundle } from '../scripted-journeys/public-evidence/index.ts';
+import {
+  deriveCampaignStatus,
+  resolveJourneyTrials,
+} from '../scripted-journeys/confirmation/index.ts';
+import type { IJourneyCampaign } from '../scripted-journeys/index.ts';
 import { createEvidenceBundle, encodeEvidenceBundle } from './bundle.ts';
 import {
   downloadHttpEvidenceAsset,
@@ -72,6 +79,80 @@ afterEach(async () => {
 });
 
 describe('selected evidence preparation', () => {
+  test.each(['partial', 'pending', 'full'] as const)(
+    'prepares a projected %s campaign and preserves the release-assurance boundary',
+    async (scope) => {
+      const root = await mkdtemp(path.join(tmpdir(), 'moldea-campaign-assurance-'));
+      temporaryRoots.push(root);
+      const synthetic = createSyntheticJourneysBundle();
+      const assessment = (
+        synthetic.payload as { websiteModel: { sources: { assessment: IJourneyCampaign }[] } }
+      ).websiteModel.sources[0]!.assessment;
+      const journeyId = scope === 'pending' ? 'recovered' : 'initialize';
+      assessment.definitions = assessment.definitions.filter(({ id }) => id === journeyId);
+      assessment.bundle.journeys = assessment.bundle.journeys.filter(({ id }) => id === journeyId);
+      if (scope !== 'full') assessment.platforms = assessment.platforms.slice(0, 1);
+      for (const provider of assessment.platforms) {
+        provider.trials = provider.trials.filter((trial) => trial.kind === 'initial');
+        for (const trial of provider.trials) {
+          trial.selectedJourneys = [journeyId];
+          trial.journeys = trial.journeys.filter(({ id }) => id === journeyId);
+          trial.restartCounts = { [journeyId]: 0 };
+        }
+        provider.resolutions = resolveJourneyTrials(provider.trials);
+      }
+      assessment.status = deriveCampaignStatus(assessment.platforms.flatMap((p) => p.resolutions));
+      const projected = createJourneysEvidenceBundle({
+        assessment,
+        definitions: assessment.definitions,
+        skill: assessment.bundle.skill,
+        instructions: assessment.bundle.instructions,
+        artifacts: synthetic.artifacts.files
+          .filter(({ path: artifactPath }) => artifactPath.split('/')[1] === journeyId)
+          .map((artifact) => ({
+            path: artifact.path,
+            mediaType: artifact.mediaType,
+            content: Buffer.from(
+              synthetic.artifacts.blobs.find((blob) => blob.sha256 === artifact.sha256)!
+                .contentBase64,
+              'base64',
+            ),
+          })),
+      });
+      expect(projected.run.status).toBe(scope === 'full' ? 'passed' : 'incomplete');
+      const encoded = encodeEvidenceBundle(projected);
+      const journeys = createAsset('journeys', 'campaign');
+      journeys.encoded = encoded;
+      journeys.reference.sha256 = calculateSha256(encoded);
+      const semantic = createAsset('semantic', 'campaign');
+      const selectionPath = path.join(root, 'selection.json');
+      await writeJsonFileAtomically(selectionPath, {
+        formatVersion: 1,
+        semantic: semantic.reference,
+        journeys: journeys.reference,
+      } satisfies IEvidenceSelection);
+      const options = {
+        selectionPath,
+        cacheDirectory: path.join(root, 'cache'),
+        preparedDirectory: path.join(root, 'prepared'),
+        downloadAsset: async (reference: IEvidenceSelectionReference, destination: string) => {
+          await writeBufferFileAtomically(
+            destination,
+            reference.assetName === semantic.reference.assetName ? semantic.encoded : encoded,
+          );
+        },
+      };
+      const prepared = await prepareSelectedEvidence(options);
+      expect(prepared.journeys?.bundleSha256).toBe(journeys.reference.sha256);
+      if (scope === 'full')
+        await expect(verifyPreparedReleaseEvidence(options)).resolves.toStrictEqual(prepared);
+      else
+        await expect(verifyPreparedReleaseEvidence(options)).rejects.toThrow(
+          'Release assurance requires passing official journeys evidence.',
+        );
+    },
+  );
+
   test.each(['passed', 'failed', 'incomplete'] as const)(
     'verifies selected journeys with outcome %s',
     async (status) => {

@@ -1,5 +1,5 @@
 // versioned, bounded exchange format shared by the sandbox and local assessor
-export const JOURNEYS_FORMAT_VERSION = 1 as const;
+export const JOURNEYS_FORMAT_VERSION = 2 as const;
 export const JOURNEY_PLATFORMS = ['chatgpt', 'claude'] as const;
 export const RUN_ID_PATTERN = /^\d{8}-[a-f0-9]{6}$/u;
 export const MAXIMUM_REPLY_BYTES = 65_536;

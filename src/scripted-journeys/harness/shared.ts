@@ -26,6 +26,10 @@ export const HarnessStateSchema = z.strictObject({
   bundleZip: z.string(),
   bundleSha256: z.string(),
   platform: z.enum(['chatgpt', 'claude']),
+  trialId: JourneysExportSchema.shape.trialId,
+  kind: JourneysExportSchema.shape.kind,
+  selectedJourneys: JourneysExportSchema.shape.selectedJourneys,
+  confirmationIndex: JourneysExportSchema.shape.confirmationIndex,
   environment: z.record(z.string(), z.string()),
   records: z.array(JourneyStepRecordSchema),
   completedJourneys: z.array(z.string()),
@@ -223,7 +227,27 @@ export const verifyExport = async (
     files,
     'Export',
   );
-  return JourneysExportSchema.parse(await readJson(path.join(directory, 'manifest.json')));
+  const manifest = JourneysExportSchema.parse(
+    await readJson(path.join(directory, 'manifest.json')),
+  );
+  const captures = new Set(
+    manifest.steps.flatMap((step) =>
+      ['changes.patch', 'reply.md', 'activity.json', 'changes.json'].map(
+        (name) => `steps/${step.journeyId}/${step.stepId}/${name}`,
+      ),
+    ),
+  );
+  if (
+    Object.keys(all).some(
+      (name) =>
+        name !== 'manifest.json' &&
+        name !== 'files.json' &&
+        !captures.has(name) &&
+        !manifest.completedJourneys.some((id) => name.startsWith(`journeys/${id}/final/`)),
+    )
+  )
+    throw new Error('Unexpected export entry outside selected captures.');
+  return manifest;
 };
 
 /** Validates checkpoint identity and exact ordered step coverage before reconstruction. */
@@ -245,6 +269,17 @@ export const assertCheckpointIdentity = (
     ),
     'Export harness',
   );
+  const selected = selectJourneys(
+    bundle.journeys,
+    exported.selectedJourneys,
+    exported.confirmationIndex,
+  );
+  if (
+    JSON.stringify(selected) !== JSON.stringify(exported.selectedJourneys) ||
+    (exported.kind === 'initial') !== (exported.confirmationIndex === null)
+  )
+    throw new Error('Export trial selection or kind mismatch.');
+  definitions = definitions.filter((journey) => selected.includes(journey.id));
   const expected = definitions.flatMap((journey) =>
     journey.steps.map((step) => `${journey.id}/${step.id}`),
   );
@@ -272,6 +307,30 @@ export const assertCheckpointIdentity = (
         .join()
   )
     throw new Error('Export completion or restart-count inventory mismatch.');
+};
+
+/** Validates whole-journey selection and returns canonical bundle order. */
+export const selectJourneys = (
+  inventory: { id: string }[],
+  requested?: string[],
+  confirmationIndex: number | null = null,
+): string[] => {
+  const ids = requested ?? inventory.map((journey) => journey.id);
+  if (
+    !ids.length ||
+    new Set(ids).size !== ids.length ||
+    ids.some((id) => !inventory.some((journey) => journey.id === id))
+  )
+    throw new Error('Journey selection must contain unique known IDs.');
+  if (
+    confirmationIndex !== null &&
+    (!Number.isInteger(confirmationIndex) ||
+      confirmationIndex < 1 ||
+      confirmationIndex > 3 ||
+      ids.length !== 1)
+  )
+    throw new Error('Confirmation requires index 1, 2, or 3 and exactly one journey.');
+  return inventory.filter((journey) => ids.includes(journey.id)).map((journey) => journey.id);
 };
 
 /** Parses strict name/value flags, rejecting duplicates and unknown inputs. */

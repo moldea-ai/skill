@@ -4,10 +4,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { expect, test } from 'vitest';
 
+import { getCompletedEvidenceRunPath, readCompletedEvidenceRun } from '../../evidence/index.ts';
 import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { createArchive } from '../bundle/index.ts';
 import {
   copyTree,
+  runCommand,
+  sha256,
   exportWorkspace,
   nextRequest,
   readJson,
@@ -16,7 +19,7 @@ import {
   treeHashes,
 } from '../harness/index.ts';
 import { loadScriptedJourneys } from '../journeys/index.ts';
-import { createHarnessFixture, recordFixturePlatform } from '../testing/index.ts';
+import { TEST_JOURNEYS, createHarnessFixture, recordFixturePlatform } from '../testing/index.ts';
 import { JourneysExportSchema } from '../index.ts';
 
 import { assessJourneys } from './assess.ts';
@@ -78,7 +81,7 @@ test('a missing initialization lockfile fails its criterion without suppressing 
       definitions: [definition],
       persist: false,
     });
-    const journey = assessment.platforms[0]!.journeys[0]!;
+    const journey = assessment.platforms[0]!.trials[0]!.journeys[0]!;
     const initialization = journey.steps.find((step) => step.id === 'initialize')!;
     expect(initialization.checks.map((check) => check.status)).toStrictEqual([
       'passed',
@@ -134,23 +137,25 @@ test('assessment reconstructs real harness exports, carries provenance, and reje
         },
       },
     });
-    expect(diagnostic.platforms[0]?.configuration).toStrictEqual({
+    expect(diagnostic.platforms[0]?.trials[0]?.diagnosticConfiguration).toStrictEqual({
       model: 'Observed model',
       settings: { memory: 'default' },
       interventions: ['continue'],
     });
     expect(diagnostic.status).toBe('incomplete');
-    expect(diagnostic.platforms[0]?.journeys[0]?.steps[0]?.unverified).toStrictEqual([
+    expect(diagnostic.platforms[0]?.trials[0]?.journeys[0]?.steps[0]?.unverified).toStrictEqual([
       'The policy was read before writing.',
     ]);
-    expect(diagnostic.platforms[0]?.journeys[0]?.steps[0]?.facts?.cliPresent).toBe(false);
+    expect(diagnostic.platforms[0]?.trials[0]?.journeys[0]?.steps[0]?.facts?.cliPresent).toBe(
+      false,
+    );
     const complete = await assessJourneys({ ...input, exportPaths: [chatgptZip, claudeZip] });
-    expect(complete.status).toBe('failed');
-    expect(complete.platforms[1]?.journeys[0]?.steps[1]?.status).toBe('failed');
+    expect(complete.status).toBe('incomplete');
+    expect(complete.platforms[1]?.trials[0]?.journeys[0]?.steps[1]?.status).toBe('failed');
     await expect(assessJourneys({ ...input, sha256: '0'.repeat(64) })).rejects.toThrow(/SHA-256/u);
     await expect(
       assessJourneys({ ...input, exportPaths: [chatgptZip, chatgptZip] }),
-    ).rejects.toThrow(/Duplicate platform/u);
+    ).rejects.toThrow(/Duplicate export archive/u);
     const changedDefinitions = structuredClone(fixture.definitions);
     changedDefinitions[0]!.steps[0]!.checks = [{ kind: 'path-exists', path: 'invented.md' }];
     await expect(assessJourneys({ ...input, definitions: changedDefinitions })).rejects.toThrow(
@@ -203,7 +208,9 @@ test('assessment reconstructs real harness exports, carries provenance, and reje
       await createArchive(directory, archive);
       const operation = assessJourneys({ ...input, exportPaths: [archive] });
       if (mutation === 'empty-reply' || mutation === 'wrong-policy' || mutation === 'mode-change')
-        expect((await operation).platforms[0]?.journeys[0]?.steps[1]?.status).toBe('failed');
+        expect((await operation).platforms[0]?.trials[0]?.journeys[0]?.steps[1]?.status).toBe(
+          'failed',
+        );
       else await expect(operation).rejects.toThrow(/hash mismatch|patch mode/u);
     }
     const secondPassing = path.join(scratch, 'second-passing', path.basename(chatgpt));
@@ -212,6 +219,7 @@ test('assessment reconstructs real harness exports, carries provenance, and reje
       await readJson(path.join(secondPassing, 'manifest.json')),
     );
     passingManifest.platform = 'claude';
+    passingManifest.trialId = 'd'.repeat(32);
     await writeJsonFileAtomically(path.join(secondPassing, 'manifest.json'), passingManifest);
     await writeJsonFileAtomically(
       path.join(secondPassing, 'files.json'),
@@ -221,7 +229,7 @@ test('assessment reconstructs real harness exports, carries provenance, and reje
     await createArchive(secondPassing, secondPassingZip);
     expect(
       (await assessJourneys({ ...input, exportPaths: [chatgptZip, secondPassingZip] })).status,
-    ).toBe('passed');
+    ).toBe('incomplete');
     expect(
       (await readFile(path.join(chatgpt, 'steps/first/change/changes.patch'), 'utf8')).length,
     ).toBeGreaterThan(0);
@@ -260,7 +268,12 @@ test('assessment blocks failed prerequisites and rejects a contradictory validat
             request: 'Report the validation result.',
             dependsOn: [],
             checks: [
-              { kind: 'reply-matches' as const, pattern: '\\bvalid\\b', absent: '\\binvalid\\b' },
+              {
+                kind: 'reply-matches' as const,
+                pattern: '\\bvalid\\b',
+                absent: '\\binvalid\\b',
+                skillBehavior: false,
+              },
             ],
             unverified: [],
           },
@@ -290,12 +303,184 @@ test('assessment blocks failed prerequisites and rejects a contradictory validat
       definitions: fixture.definitions,
       persist: false,
     });
-    expect(assessment.platforms[0]?.journeys[0]?.steps.map((step) => step.status)).toStrictEqual([
-      'blocked',
-      'blocked',
-      'failed',
-    ]);
+    expect(
+      assessment.platforms[0]?.trials[0]?.journeys[0]?.steps.map((step) => step.status),
+    ).toStrictEqual(['blocked', 'blocked', 'failed']);
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }
 });
+
+test.each([
+  ['recovered', false, false],
+  ['confirmed-failure', true, false],
+  ['blocked', false, true],
+] as const)(
+  'selective admission resolves %s independently and preserves rejected batches',
+  async (expected, failedConfirmation, blockedConfirmation) => {
+    const scratch = await mkdtemp(path.join(os.tmpdir(), 'journeys-admission-'));
+    try {
+      const repositoryRoot = path.join(scratch, 'repository');
+      for (const name of ['src/scripted-journeys', 'src/execution/confirmation'])
+        await copyTree(path.join(process.cwd(), name), path.join(repositoryRoot, name), [
+          '_archive',
+          '_archives',
+          '_backup',
+          '_backups',
+        ]);
+      await runCommand('git', ['init', '--initial-branch=main'], repositoryRoot);
+      await runCommand(
+        'git',
+        [
+          '-c',
+          'user.name=Fixture',
+          '-c',
+          'user.email=fixture@example.invalid',
+          '-c',
+          'commit.gpgsign=false',
+          'commit',
+          '--allow-empty',
+          '-m',
+          'fixture',
+        ],
+        repositoryRoot,
+      );
+      const definitions = structuredClone(TEST_JOURNEYS);
+      if (blockedConfirmation)
+        definitions[0]!.steps[1]!.checks.push({ kind: 'validate', result: 'valid' });
+      const fixture = await createHarnessFixture(scratch, process.cwd(), definitions);
+      const closure = path.join(scratch, 'closure');
+      await mkdir(closure);
+      const input = {
+        repositoryRoot,
+        bundlePath: fixture.bundleZip,
+        sha256: fixture.hash,
+        installedClosure: closure,
+        definitions: fixture.definitions,
+      };
+      const archive = async (
+        name: string,
+        failed: boolean,
+        journeys: string[],
+        confirmationIndex?: number,
+      ) => {
+        const exported = await recordFixturePlatform(scratch, fixture, 'chatgpt', failed, {
+          journeys,
+          name,
+          ...(confirmationIndex ? { confirmationIndex } : {}),
+        });
+        const archivePath = path.join(scratch, `${name}.zip`);
+        await createArchive(exported, archivePath);
+        return { archivePath, digest: sha256(await readFile(archivePath)) };
+      };
+      const baseline = await archive('baseline', true, ['first']);
+      const recordPath = getCompletedEvidenceRunPath(repositoryRoot, 'journeys', '20261012-abcdef');
+      await expect(
+        assessJourneys({ ...input, exportPaths: [baseline.archivePath] }),
+      ).rejects.toThrow(baseline.digest);
+      await expect(readFile(recordPath)).rejects.toThrow();
+      const diagnostic = await assessJourneys({
+        ...input,
+        exportPaths: [baseline.archivePath],
+        persist: false,
+      });
+      expect(diagnostic.mode).toBe('diagnostic');
+      expect(diagnostic).not.toHaveProperty('platforms.0.resolutions');
+      await expect(readFile(recordPath)).rejects.toThrow();
+      const observation = {
+        configuration: { model: null, settings: { mode: 'Chat' }, interventions: [] },
+        observedAt: null,
+        freshChat: true as const,
+      };
+      const trials = { [baseline.digest]: observation };
+      const first = await assessJourneys({
+        ...input,
+        exportPaths: [baseline.archivePath],
+        operatorRecord: { trials },
+      });
+      expect(first.mode).toBe('campaign');
+      if (first.mode !== 'campaign') throw new Error('Expected campaign.');
+      expect(first.platforms[0]!.resolutions.map((entry) => entry.status)).toStrictEqual([
+        'awaiting-confirmation',
+      ]);
+      const original = await readFile(recordPath);
+      const extra = await archive('extra', false, ['second']);
+      const firstConfirmation = await archive('confirmation-1', failedConfirmation, ['first'], 1);
+      const secondConfirmation = blockedConfirmation
+        ? null
+        : await archive('confirmation-2', failedConfirmation, ['first'], 2);
+      Object.assign(trials, {
+        [extra.digest]: observation,
+        [firstConfirmation.digest]: observation,
+        ...(secondConfirmation ? { [secondConfirmation.digest]: observation } : {}),
+      });
+      const exportPaths = [
+        baseline.archivePath,
+        extra.archivePath,
+        firstConfirmation.archivePath,
+        ...(secondConfirmation ? [secondConfirmation.archivePath] : []),
+      ];
+      const complete = await assessJourneys({ ...input, exportPaths, operatorRecord: { trials } });
+      expect(complete.status).toBe(
+        expected === 'recovered'
+          ? 'passed'
+          : expected === 'confirmed-failure'
+            ? 'failed'
+            : 'incomplete',
+      );
+      if (complete.mode !== 'campaign') throw new Error('Expected campaign.');
+      expect(complete.platforms).toHaveLength(1);
+      expect(complete.platforms[0]!.resolutions.map((entry) => entry.status)).toStrictEqual([
+        expected,
+        'passed-initially',
+      ]);
+      expect(complete.platforms[0]!.trials[0]).toStrictEqual(first.platforms[0]!.trials[0]);
+      const stored = await readCompletedEvidenceRun(repositoryRoot, 'journeys', complete.runId);
+      expect(stored.run.status).toBe(expected === 'confirmed-failure' ? 'failed' : 'incomplete');
+      expect(await readFile(recordPath)).not.toStrictEqual(original);
+      const frozen = await readFile(recordPath);
+      for (const rejected of [
+        { exportPaths: exportPaths.slice(1), operatorRecord: { trials } },
+        {
+          exportPaths,
+          operatorRecord: {
+            trials: {
+              ...trials,
+              [baseline.digest]: { ...observation, observedAt: '2026-01-01T00:00:00.000Z' },
+            },
+          },
+        },
+        { exportPaths: [...exportPaths, baseline.archivePath], operatorRecord: { trials } },
+        {
+          exportPaths,
+          operatorRecord: {
+            trials: {
+              ...trials,
+              [firstConfirmation.digest]: {
+                ...observation,
+                configuration: { ...observation.configuration, model: 'Changed' },
+              },
+            },
+          },
+        },
+      ]) {
+        await expect(assessJourneys({ ...input, ...rejected })).rejects.toThrow();
+        expect(await readFile(recordPath)).toStrictEqual(frozen);
+      }
+      await expect(
+        assessJourneys({ ...input, exportPaths: [firstConfirmation.archivePath], persist: false }),
+      ).rejects.toThrow('initial exports only');
+      const overlap = await archive('overlap', false, ['first']);
+      await expect(
+        assessJourneys({
+          ...input,
+          exportPaths: [...exportPaths, overlap.archivePath],
+          operatorRecord: { trials: { ...trials, [overlap.digest]: observation } },
+        }),
+      ).rejects.toThrow('Overlapping');
+      expect(await readFile(recordPath)).toStrictEqual(frozen);
+    } finally {
+      await rm(scratch, { recursive: true, force: true });
+    }
+  },
+);

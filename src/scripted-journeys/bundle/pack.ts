@@ -5,6 +5,8 @@ import path from 'node:path';
 
 import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { generateRuntimeArtifacts } from '../../portable/index.ts';
+import { EVALUATION_CONFIRMATION_POLICY } from '../../execution/confirmation/index.ts';
+import { createAssessorFingerprint, createFixtureFingerprint } from '../identity/index.ts';
 import { RUN_ID_PATTERN } from '../index.ts';
 import {
   copyTree,
@@ -107,7 +109,9 @@ export const packJourneys = async (input: {
     await writeJsonFileAtomically(
       path.join(root, 'manifest.json'),
       JourneysBundleSchema.parse({
-        bundleFormatVersion: 1,
+        bundleFormatVersion: 2,
+        assessorSourceSha256: await createAssessorFingerprint(input.repositoryRoot),
+        policy: EVALUATION_CONFIRMATION_POLICY,
         runId,
         createdAt: new Date().toISOString(),
         skill: {
@@ -116,7 +120,7 @@ export const packJourneys = async (input: {
           cliRepairVersion: cliVersion,
           treeSha256: await treeDigest(skillDirectory),
         },
-        instructions: { version: 1, sha256: sha256(instructions) },
+        instructions: { version: 2, sha256: sha256(instructions) },
         files,
         npmCache,
         journeys: definitions.map((definition) => ({
@@ -124,6 +128,7 @@ export const packJourneys = async (input: {
           title: definition.title,
           stepCount: definition.steps.length,
           definitionDigest: createJourneyDefinitionDigest(definition),
+          fixtureSha256: createFixtureFingerprint(files, definition.id),
           fixture: definition.fixture,
         })),
       }),

@@ -1,5 +1,6 @@
 // secure exchange and process operations
 export {
+  selectJourneys,
   assertSafePath,
   containedPath,
   sha256,

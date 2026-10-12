@@ -1,6 +1,6 @@
 ---
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import ActionLink from '@moldea.ai/website-ui/action-link';
+import Accordion from '@moldea.ai/website-ui/accordion';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import { withBase } from '@moldea.ai/website-ui/site';
 
@@ -8,12 +8,26 @@ import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import { JourneysMatrix } from '../journeys-matrix/index.ts';
 import { PlatformMark } from '../platform-mark/index.ts';
 import BaseLayout from '../../layouts/base-layout.astro';
-import type { IScriptedJourneysWebsiteModel } from '../../lib/scripted-journeys/index.ts';
+import {
+  getJourneysPage,
+  JOURNEYS_PAGE_SIZE,
+  type IScriptedJourneysWebsiteModel,
+} from '../../lib/scripted-journeys/index.ts';
 
 interface Props {
   model: IScriptedJourneysWebsiteModel;
+  page?: number;
 }
-const { model } = Astro.props;
+const { model, page = 1 } = Astro.props;
+const journeys = getJourneysPage(model, page);
+const visibleSourceIds = new Set(
+  model.cells
+    .filter((cell) => journeys.some((journey) => journey.id === cell.journeyId))
+    .map((cell) => cell.sourceId),
+);
+visibleSourceIds.add(model.currentSourceId);
+const visibleSources = model.sources.filter((source) => visibleSourceIds.has(source.id));
+const pages = Math.ceil(model.journeys.length / JOURNEYS_PAGE_SIZE);
 const basePath = import.meta.env.BASE_URL;
 const breadcrumbs = [
   { href: '/', label: 'Home' },
@@ -23,8 +37,8 @@ const breadcrumbs = [
 ---
 
 <BaseLayout
-  title="Scripted journeys in ChatGPT and Claude"
-  description="Follow the same project requests in ChatGPT and Claude, with recorded changes and local assessments."
+  title={page === 1 ? 'Scripted journeys in ChatGPT and Claude' : `Scripted journeys: page ${page}`}
+  description={`Recorded requests, initial outcomes and confirmations from ChatGPT and Claude projects.${page === 1 ? '' : ` Overview page ${page}.`}`}
   {breadcrumbs}
 >
   <div class="page-shell pt-7">
@@ -34,34 +48,45 @@ const breadcrumbs = [
     />
   </div>
   <header class="mt-6 border-y border-border bg-elevated">
-    <div
-      class="page-shell grid gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-end"
-    >
-      <div class="min-w-0">
-        <div class="mb-6 flex flex-wrap items-center gap-3">
-          <EvidenceStatus status={model.status} /><span
-            class="font-mono text-xs text-muted-foreground"
-            >Skill {model.skill.version} · {model.evaluatedAt.slice(0, 10)}</span
-          >
-        </div><p class="eyebrow mb-4">Same requests. Two projects.</p><h1 class="page-title">
-          Follow the skill across a conversation.
-        </h1><p class="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-          The same requests, run in ChatGPT and Claude projects. Open a journey to compare the
-          changes, replies, and local checks at each step.
-        </p>
-      </div>
-      <div class="border-t border-border pt-6 lg:border-t-0 lg:border-l lg:pl-8">
-        <div class="flex flex-wrap gap-6">
-          <PlatformMark platform="chatgpt" /><PlatformMark platform="claude" />
-        </div><p class="mt-5 text-sm leading-7 text-muted-foreground">
-          A harness issues one request at a time in a single chat per platform. Each journey has a
-          fresh fixture. The exported changes are reconstructed and checked locally.
-        </p><ActionLink
-          href={withBase('/docs/scripted-journeys/', basePath)}
-          variant="link"
-          class="mt-4"
-          >Read the method and limits</ActionLink
+    <div class="page-shell py-12 sm:py-16">
+      <div class="mb-6 flex flex-wrap items-center gap-3">
+        <EvidenceStatus status={model.status} /><span
+          class="font-mono text-xs text-muted-foreground"
+          >Snapshot {model.evaluatedAt.slice(0, 10)}</span
         >
+      </div>
+      <p class="eyebrow mb-4">Requests, outcomes, confirmations</p>
+      <h1 class="page-title">Follow the skill across a conversation.</h1>
+      <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+        Explore the recorded changes, replies and local checks. Initial failures stay visible beside
+        fresh confirmations. Each result keeps its own requests and configuration.
+      </p>
+      <ActionLink
+        href={withBase('/docs/scripted-journeys/', basePath)}
+        variant="link"
+        class="mt-5"
+        >Read the method and limits</ActionLink
+      >
+      <div
+        class="mt-9 grid gap-6 border-t border-border pt-6 sm:grid-cols-2"
+        data-journey-coverage
+      >
+        {
+          model.coverage.map((entry) => (
+            <div class="min-w-0">
+              <>
+                <PlatformMark platform={entry.platform} />
+                <p class="mt-3 text-sm text-muted-foreground">
+                  <strong class="text-foreground">{entry.recorded} recorded</strong> ·{' '}
+                  {entry.current} of {entry.total} current catalog journeys
+                </p>
+                <p class="mt-1 text-xs text-muted-foreground">
+                  {entry.recovered} recovered after failure · {entry.pending} awaiting confirmation
+                </p>
+              </>
+            </div>
+          ))
+        }
       </div>
     </div>
   </header>
@@ -70,19 +95,41 @@ const breadcrumbs = [
     aria-labelledby="journeys-heading"
   >
     <div class="mb-8 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p class="eyebrow mb-2">Request by request</p><h2
-          id="journeys-heading"
-          class="section-title"
-        >
-          Explore the journeys
-        </h2>
-      </div><p class="text-sm text-muted-foreground">
-        {model.journeys.length} journeys · {
-          model.journeys.reduce((count, journey) => count + journey.steps.length, 0)
-        } requests per platform
+      <h2
+        id="journeys-heading"
+        class="section-title"
+      >
+        Explore the journeys
+      </h2><p class="text-sm text-muted-foreground">
+        {model.journeys.length} journeys · Page {page} of {Math.max(1, pages)}
       </p>
-    </div><JourneysMatrix {model} />
+    </div>
+    <JourneysMatrix
+      {model}
+      {journeys}
+      offset={(page - 1) * JOURNEYS_PAGE_SIZE}
+    />
+    {
+      pages > 1 && (
+        <nav
+          aria-label="Journey overview pages"
+          class="mt-8 flex flex-wrap gap-3"
+        >
+          {Array.from({ length: pages }, (_, index) => index + 1).map((number) => (
+            <a
+              href={withBase(
+                number === 1 ? model.route : `${model.route}page/${number}/`,
+                basePath,
+              )}
+              aria-current={number === page ? 'page' : undefined}
+              class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border px-3 text-sm link-feedback aria-[current=page]:bg-secondary"
+            >
+              {number}
+            </a>
+          ))}
+        </nav>
+      )
+    }
   </section>
   <section
     class="border-t border-border bg-elevated"
@@ -91,118 +138,164 @@ const breadcrumbs = [
     <div class="page-shell py-10 sm:py-14">
       <h2
         id="provenance-heading"
-        class="text-2xl font-semibold tracking-tight"
+        class="section-title"
       >
         The recorded configuration
-      </h2><p class="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
-        These results describe this run and its recorded configuration. They are diagnostic evidence
-        from scripted sessions, rather than a general platform success rate.
+      </h2>
+      <p class="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
+        Failure-only confirmations describe these selected observations. They do not estimate
+        platform reliability. {
+          model.sources.length > 1
+            ? 'Multiple evidence sources retain their original versions, methods and dates.'
+            : 'One evidence source is selected.'
+        }
       </p>
-      <dl class="mt-7 grid min-w-0 gap-6 text-sm sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <dt class="text-muted-foreground">Run</dt><dd class="mt-2 font-mono text-xs break-all">
-            {model.runId}
-          </dd>
-        </div><div>
-          <dt class="text-muted-foreground">Skill commit</dt><dd
-            class="mt-2 font-mono text-xs break-all"
-          >
-            {model.skill.commit}
-          </dd>
-        </div><div>
-          <dt class="text-muted-foreground">Instructions</dt><dd class="mt-2">
-            Version {model.instructions.version}
-          </dd>
-        </div><div>
-          <dt class="text-muted-foreground">Local assessment date</dt><dd class="mt-2">
-            {model.evaluatedAt.slice(0, 10)}
-          </dd>
-        </div>
-      </dl>
-      <div class="mt-8 grid gap-7 sm:grid-cols-2">
+      <p class="mt-4 font-mono text-xs break-all text-muted-foreground">{model.runId}</p>
+      <div class="mt-7 space-y-5">
         {
-          model.platforms.map((platform) => (
-            <article class="min-w-0 border-t border-border pt-5">
-              <h3>
-                <PlatformMark platform={platform.platform} />
-              </h3>
-              <p class="mt-4 font-semibold">
-                {platform.configuration.model ?? 'Model not recorded'}
-              </p>
-              <dl class="mt-3 space-y-2 text-sm text-muted-foreground">
-                {Object.entries(platform.configuration.settings).map(([key, value]) => (
-                  <div class="flex flex-wrap justify-between gap-2">
-                    <dt>{key}</dt>
-                    <dd class="break-words">{value}</dd>
-                  </div>
-                ))}
-                <div class="flex justify-between gap-2">
-                  <>
-                    <dt>Journey restarts</dt>
-                    <dd>
-                      {Object.values(platform.restartCounts).reduce((sum, count) => sum + count, 0)}
-                    </dd>
-                  </>
-                </div>
-              </dl>
-              {platform.configuration.interventions.length > 0 && (
-                <details class="mt-4 text-sm">
-                  <summary class="cursor-pointer font-medium">
-                    Operator interventions ({platform.configuration.interventions.length})
-                  </summary>
-                  <ul class="mt-3 list-disc space-y-2 pl-5 leading-6 text-muted-foreground">
-                    {platform.configuration.interventions.map((note) => (
-                      <li>
-                        <InlineBrandText
-                          text={note}
-                          variant="compact"
-                        />
-                      </li>
+          visibleSources.map((source, index) => {
+            const metadata = source.kind === 'campaign' ? source.assessment.bundle : source.model;
+            const assessment = source.kind === 'campaign' ? source.assessment : source.model;
+            const configurations =
+              source.kind === 'campaign'
+                ? source.assessment.platforms.flatMap((provider) =>
+                    provider.trials
+                      .filter((trial) =>
+                        trial.selectedJourneys.some((id) =>
+                          journeys.some((journey) => journey.id === id),
+                        ),
+                      )
+                      .map((trial) => ({
+                        platform: provider.platform,
+                        configuration: trial.observation!.configuration,
+                        observedAt: trial.observation!.observedAt,
+                        label:
+                          trial.kind === 'initial'
+                            ? `Initial observation · ${trial.selectedJourneys.join(', ')}`
+                            : `Confirmation ${trial.confirmationIndex} · ${trial.selectedJourneys.join(', ')}`,
+                        restarts: trial.restartCounts,
+                      })),
+                  )
+                : source.model.platforms.map((provider) => ({
+                    platform: provider.platform,
+                    configuration: provider.configuration,
+                    observedAt: null,
+                    label: 'Historical observation',
+                    restarts: provider.restartCounts,
+                  }));
+            return (
+              <div data-initial-source={index === 0 ? '' : undefined}>
+                <Accordion
+                  id={`journey-source-${index}`}
+                  title={`Skill ${metadata.skill.version} · ${assessment.evaluatedAt.slice(0, 10)}`}
+                  description={
+                    source.kind === 'legacy'
+                      ? 'Historical evidence · confirmation policy unavailable'
+                      : `${source.assessment.runId} · scoped result: ${source.assessment.status}`
+                  }
+                  isOpen={index === 0}
+                >
+                  <div class="grid gap-6 sm:grid-cols-2">
+                    {configurations.map((entry) => (
+                      <article class="min-w-0 border-t border-border pt-4">
+                        <h3 class="text-sm font-semibold">
+                          {entry.platform === 'chatgpt' ? 'ChatGPT' : 'Claude'} · {entry.label}
+                        </h3>
+                        <p class="mt-2 text-sm">
+                          {entry.configuration.model ?? 'Model not recorded'}
+                        </p>
+                        <p class="mt-1 text-xs text-muted-foreground">
+                          Observed: {entry.observedAt ?? 'Unknown'} ·{' '}
+                          {Object.values(entry.restarts).reduce((sum, count) => sum + count, 0)}{' '}
+                          restarts
+                        </p>
+                        <dl class="mt-3 space-y-2 text-xs text-muted-foreground">
+                          {Object.entries(entry.configuration.settings).map(([key, value]) => (
+                            <div class="flex flex-wrap justify-between gap-2">
+                              <dt>{key}</dt>
+                              <dd class="break-words">{value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                        {entry.configuration.interventions.length > 0 && (
+                          <details class="mt-3 text-xs">
+                            <summary class="cursor-pointer font-semibold">
+                              Operator interventions
+                            </summary>
+                            <ul class="mt-2 list-disc space-y-2 pl-4">
+                              {entry.configuration.interventions.map((note) => (
+                                <li>{note}</li>
+                              ))}
+                            </ul>
+                          </details>
+                        )}
+                      </article>
                     ))}
-                  </ul>
-                </details>
-              )}
-            </article>
-          ))
+                  </div>
+                  <details class="mt-6 border-t border-border pt-4 text-sm">
+                    <>
+                      <summary class="cursor-pointer font-medium">
+                        Assessor identity and source hashes
+                      </summary>
+                      <dl class="mt-4 space-y-3 font-mono text-xs break-all">
+                        {Object.entries({
+                          'Skill commit': metadata.skill.commit,
+                          'Assessor commit': assessment.assessor.commit,
+                          'Assessor source SHA-256': assessment.assessor.sourceSha256,
+                          'Input bundle SHA-256': assessment.bundleSha256,
+                          'Instructions SHA-256': metadata.instructions.sha256,
+                        }).map(([label, value]) => (
+                          <div>
+                            <dt class="text-muted-foreground">{label}</dt>
+                            <dd class="mt-1">{value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </>
+                  </details>
+                  <div class="mt-5 flex flex-wrap gap-5">
+                    <>
+                      <ActionLink
+                        href={withBase(
+                          source.kind === 'campaign'
+                            ? source.assessmentUrl
+                            : source.model.assessmentUrl,
+                          basePath,
+                        )}
+                        variant="link"
+                      >
+                        Raw assessment JSON
+                      </ActionLink>
+                      <ActionLink
+                        href={withBase(
+                          source.kind === 'campaign'
+                            ? source.definitionsUrl
+                            : source.model.definitionsUrl,
+                          basePath,
+                        )}
+                        variant="link"
+                      >
+                        Exact journey definitions
+                      </ActionLink>
+                    </>
+                  </div>
+                </Accordion>
+              </div>
+            );
+          })
         }
       </div>
-      <details class="mt-8 border-t border-border pt-5 text-sm">
-        <summary class="cursor-pointer font-medium">Assessor identity and source hashes</summary><dl
-          class="mt-4 grid gap-4 font-mono text-xs break-all"
-        >
-          <div>
-            <dt class="text-muted-foreground">Assessor commit</dt><dd class="mt-1">
-              {model.assessor.commit}
-            </dd>
-          </div><div>
-            <dt class="text-muted-foreground">Assessor source SHA-256</dt><dd class="mt-1">
-              {model.assessor.sourceSha256}
-            </dd>
-          </div><div>
-            <dt class="text-muted-foreground">Input bundle SHA-256</dt><dd class="mt-1">
-              {model.bundleSha256}
-            </dd>
-          </div><div>
-            <dt class="text-muted-foreground">Instructions SHA-256</dt><dd class="mt-1">
-              {model.instructions.sha256}
-            </dd>
-          </div>
-        </dl>
-      </details>
-      <div class="mt-6 flex flex-wrap gap-5">
-        <ActionLink
-          href={withBase(model.assessmentUrl, basePath)}
-          variant="link"
-          >Raw assessment JSON</ActionLink
-        ><ActionLink
-          href={withBase(model.definitionsUrl, basePath)}
-          variant="link"
-          >Exact journey definitions</ActionLink
-        >
-      </div><p class="mt-7 text-xs leading-6 text-muted-foreground">
+      <p class="mt-7 text-xs leading-6 text-muted-foreground">
         ChatGPT and Claude marks identify the products tested. They do not imply endorsement by
         OpenAI or Anthropic.
       </p>
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  /* The initially visible provenance does not fade through low-contrast intermediate states. */
+  [data-initial-source] :global([data-accordion-panel]) {
+    animation: none !important;
+  }
+</style>

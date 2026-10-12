@@ -9,6 +9,7 @@ export type IJourneysCommand =
       bundle: string;
       sha256: string;
       exports: string[];
+      diagnostic: boolean;
       models: Partial<Record<IJourneyPlatform, string>>;
       operatorRecord?: string;
     };
@@ -30,12 +31,17 @@ export const parseJourneysCommand = (argv: string[]): IJourneysCommand => {
             '--chatgpt-model',
             '--claude-model',
             '--operator-record',
+            '--diagnostic',
           ];
   const flags: Record<string, string> = {};
   const exports: string[] = [];
-  for (let index = 0; index < args.length; index += 2) {
+  for (let index = 0; index < args.length; index++) {
     const flag = args[index];
-    const argument = args[index + 1];
+    if (flag === '--diagnostic' && command === 'assess' && !flags[flag]) {
+      flags[flag] = 'true';
+      continue;
+    }
+    const argument = args[++index];
     if (
       !flag ||
       !allowed.includes(flag) ||
@@ -57,13 +63,18 @@ export const parseJourneysCommand = (argv: string[]): IJourneysCommand => {
     if (!flags['--run']) throw new Error('publish-bundle requires --run.');
     return { command, bundle: flags['--bundle'], sha256: flags['--sha256'], runId: flags['--run'] };
   }
-  if (!exports.length || exports.length > 2)
-    throw new Error('assess requires one or two --export paths.');
+  if (!exports.length) throw new Error('assess requires final --export paths.');
+  const diagnostic = flags['--diagnostic'] === 'true';
+  if (!diagnostic && (flags['--chatgpt-model'] || flags['--claude-model']))
+    throw new Error(
+      'Legacy model flags require --diagnostic; use digest-keyed trial observations for admission.',
+    );
   return {
     command: 'assess',
     bundle: flags['--bundle'],
     sha256: flags['--sha256'],
     exports,
+    diagnostic,
     ...(flags['--operator-record'] ? { operatorRecord: flags['--operator-record'] } : {}),
     models: {
       ...(flags['--chatgpt-model'] ? { chatgpt: flags['--chatgpt-model'] } : {}),

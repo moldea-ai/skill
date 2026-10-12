@@ -21,7 +21,7 @@ Scripted journeys evaluate the portable skill in ordinary ChatGPT and Claude cha
 
 The health fixture has a damaged explanatory README region and a stale AGENTS.md managed block. The CLI reports `MOLDEA_INTEGRATION_BLOCK_STALE` while the project remains valid. README drift is checked by skill-owned repair, not a CLI diagnostic. The boundaries fixture declares the CLI and has a generated lockfile, but setup leaves it uninstalled.
 
-Each platform receives identical bundle bytes. One chat follows requests issued by a local harness, records each response and repository patch, and attaches checkpoints. These are scripted requests within a chat, not separate human turns or a measure of multi-turn reliability. A run describes its recorded models, dates, and settings; it does not establish a general pass rate or vendor endorsement.
+Either platform can run selected whole journeys from the same immutable full bundle. One fresh chat follows requests issued by a local harness, records each response and repository patch, and attaches checkpoints. These are scripted requests within a chat, not separate human turns or a measure of multi-turn reliability. A run describes its recorded models, dates, and settings; it does not establish a general pass rate or vendor endorsement.
 
 ## Prepare a run
 
@@ -43,11 +43,11 @@ npm run eval:journeys -- publish-bundle --run 20261012-abcdef --bundle .evidence
 
 The command refuses an existing release rather than replacing its bytes. This publishes input material, not evaluated results.
 
-## Configure both projects
+## Configure the selected projects
 
 Create or select an ordinary project on each platform. Install the complete contents of `src/scripted-journeys/instructions/project-instructions.md` as its custom instructions. Keep unrelated project files and instructions out of the evaluation project. Record the displayed model, date, enabled tools, memory and personalization settings, and any interventions with the run. Do not infer a model from its reply.
 
-Attach the zip to the ChatGPT chat. In Claude, supply the printed release download URL through its start message. Use one clean chat per platform and send the corresponding start message once. Do not edit that start or regenerate completed steps. The project instructions authorize the agent to apply installed skills and to treat each request printed by `next` as a developer request.
+Attach the zip to the ChatGPT chat. In Claude, supply the printed release download URL through its start message. Use one clean chat per trial and send the corresponding start message once. Do not edit that start or regenerate completed steps. The project instructions authorize the agent to apply installed skills and to treat each request printed by `next` as a developer request.
 
 The agent extracts the bundle, creates an empty workspace, runs `setup`, then repeats `next`, task work, `record`, and each requested `export`. After each journey it zips and attaches the checkpoint before advancing. At completion it attaches a final export. Requests, replies, and activity files are small; replies are limited to 65,536 bytes. Archives allow at most 8,192 entries, 16 MiB per file, and 64 MiB expanded in total.
 
@@ -67,9 +67,37 @@ Assessment verifies archive paths, sizes, file types, every exported file hash, 
 
 Validation executes only a CLI closure installed locally from the original bundle cache and proved through the skill's closed launcher. Exported dependency declarations and lockfiles are inspected as data. They never select executable dependencies. Exported npm configuration is ignored. A missing exact declaration or lockfile blocks validation rather than triggering an install from exported metadata.
 
-The optional operator record contains `chatgpt` and/or `claude` entries, each with `model` (the displayed name, or `null`), `settings` (a string-to-string map), and `interventions` (an array of strings). Record dates, settings, resets, and operator messages here. These fields enter public evidence, so omit private chat URLs and inspect the record, replies, patches, and activity for sensitive content before publication. The optional `--chatgpt-model` and `--claude-model` flags override the corresponding model name. Missing observations remain empty or null rather than being inferred.
+Persistent admission requires an operator record with a `trials` map keyed by each export archive's SHA-256. Each entry records the displayed model or explicit `null`, string settings, interventions, an ISO observation time or explicit `null`, and `freshChat: true`. These fields enter public evidence: omit private chat URLs and account information. Never infer a model from its reply.
 
-A trusted failed criterion makes a step fail even when another check is blocked. For example, a missing required lockfile fails its path check while validation remains blocked. Otherwise failed dependencies, unavailable checks, or missing check evidence block the step. A step passes only when its required checks and prerequisites pass; dependent criteria are evaluated only after their prerequisites pass. A journey passes only when every step passes. A run passes only when both platforms are present and every journey passes on both. Two-platform failures are `failed`; one-platform diagnostic runs are `incomplete`. The assessed record, artifacts, and assessor identity are stored under `.evidence/runs/journeys/<run-id>.json`.
+```json
+{
+  "trials": {
+    "<export-archive-sha256>": {
+      "configuration": { "model": null, "settings": { "mode": "Chat" }, "interventions": [] },
+      "observedAt": null,
+      "freshChat": true
+    }
+  }
+}
+```
+
+Missing observations reject admission before reconstruction and print the archive digests. Complete the record and admit the same archive bytes without repeating the chat. `assess --diagnostic` (or programmatic `persist:false`) inspects initial exports without writing a campaign, admitting observations, resolving confirmations, or requesting more trials. Only diagnostics accept the legacy provider-level operator fields and `--chatgpt-model`/`--claude-model` flags. Unknown observations stay explicit. Diagnostic status is always incomplete; inspect each trial's raw outcomes.
+
+A trusted failed criterion makes a step fail even when another check is blocked. For example, a missing required lockfile fails its path check while validation remains blocked. Otherwise failed dependencies, unavailable checks, or missing check evidence block the step. A step passes only when its required checks and prerequisites pass; dependent criteria are evaluated only after their prerequisites pass. A journey passes only when every step passes.
+
+The assessed record is stored under `.evidence/runs/journeys/<run-id>.json`. Reassessment must include every admitted export and its unchanged observations. One operator assesses a campaign at a time. Invalid batches replace nothing. The admitted-scope status is separate from catalog coverage: unresolved or blocked groups are incomplete, resolved groups with a confirmed failure are failed, and all passing or recovered groups are passed. Public evidence remains incomplete when either provider lacks current-catalog coverage.
+
+## Select journeys and confirm failures
+
+Append repeated `--journey <id>` arguments to the start message's existing setup command to select a nonempty initial subset. Omission runs the full catalog. Selection follows bundle order, executes every request in each selected journey, and prepares only those fixtures. Final exports are complete relative to that selection. Separate initial exports on one provider must cover disjoint journeys. Unselected cells are Not run.
+
+A trusted initial failure is eligible for fresh confirmations immediately, independently of the other provider. Assessment prints a complete next start message with the original immutable URL/SHA, exactly one `--journey <id>`, and `--confirmation 1`, `2`, or `3`. Each confirmation uses a fresh chat and original fixture, replays the whole journey, and keeps the same displayed model/settings. On reset, preserve those selection arguments and use the latest checkpoint. Restart events are not votes.
+
+The initial failure does not vote. Stop after two passing confirmations (Recovered after failure) or two failing confirmations (Confirmed failure), with at most three confirmations. A blocked-only confirmation stops resolution without a vote or replacement attempt. Initially passing journeys require no confirmations. Gaps, duplicate slots, post-quorum trials and changed settings are rejected. Preserve every initial and confirmation export; provide them together on reassessment. With N catalog journeys, at most 8N exports can enter a campaign.
+
+Failure quorum applies to the whole journey. Exact failed step/check identities remain recorded; different failing criteria do not prove one reproduced defect or an instruction-level cause. Failure-only confirmations are not a reliability estimate. Selected trials also omit the preceding conversation context of unselected journeys.
+
+Version 2 binds source, policy, harness, definition and per-journey fixture identities. Changed evaluator inputs require a new campaign. Historical version 1 public records remain readable with their original sources and single-observation meaning; old raw exports cannot join a version 2 campaign. Historical records gain no fabricated fresh-chat attestations or confirmation history.
 
 ## What the record establishes
 
@@ -79,11 +107,11 @@ The model can inspect or modify its workspace. Instructions forbid opening the h
 
 The model knows it is being tested, and the future-step file exists in its workspace. A passing check does not verify every requested behavior: actual canonical-instruction consumption and removal of every superseded consumer remain unverified in the agent journey. Preserve reported procedural deviations and observed defects alongside passing outcomes; do not describe a passing run as proof that every instruction was followed.
 
-Diagnose harness, fixture, or assessment defects and rerun after correction. Changed criteria require fresh exports from both platforms against the corrected bundle. An integrity failure invalidates that platform export and requires a fresh whole-platform attempt. Report defects in the distributed skill separately; this suite does not modify it to make a run pass. Observed model behavior alone does not establish a defect in the skill instructions. Keep failed diagnostic records for investigation. Evidence selection and website presentation are separate publication steps.
+Diagnose harness, fixture, or assessment defects and rerun after correction. Changed criteria require fresh exports for the affected selected journeys against a new bundle. An integrity failure invalidates that platform export and requires a fresh whole-platform attempt. Report defects in the distributed skill separately; this suite does not modify it to make a run pass. Observed model behavior alone does not establish a defect in the skill instructions. Keep failed diagnostic records for investigation. Evidence selection and website presentation are separate publication steps.
 
 ## Publish assessed evidence
 
-After a complete passing run on both platforms, use the shared evidence pipeline:
+Use the shared evidence pipeline to publish an explicitly chosen admitted record. Partial, pending and failed evidence can be displayed; release assurance still requires a complete passing public envelope:
 
 ```bash
 npm run evidence:pack -- --scope journeys --run <run-id>
@@ -93,3 +121,5 @@ npm run evidence:prepare
 ```
 
 This release contains assessed output, separate from the input bundle release. The optional `journeys` selection can remain null while semantic evidence is selected. Release verification requires selected journeys evidence to be official and passing. See [Release evidence](../release-evidence/) for download integrity, preparation, and selection rules.
+
+The website preserves initial failures, ordered confirmations, blocked-check details and source-specific raw downloads. Coverage and recovered/pending counts stay separate. Overviews contain at most 16 journey rows per static page; the compact evidence preview shows four. Missing provider evidence is labeled Not run, including on mobile and without JavaScript.

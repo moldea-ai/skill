@@ -1,38 +1,52 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { z } from 'zod';
 
-import { storeCompletedEvidenceRun, type IEvidenceArtifactInput } from '../../evidence/index.ts';
-import { extractArchive } from '../bundle/index.ts';
-import { createJourneysEvidenceBundle } from '../public-evidence/index.ts';
-import { MAXIMUM_REPLY_BYTES } from '../index.ts';
 import {
-  assertHashes,
+  getCompletedEvidenceRunPath,
+  readCompletedEvidenceRun,
+  storeCompletedEvidenceRun,
+  MAXIMUM_EVIDENCE_BUNDLE_BYTES,
+  type IEvidenceArtifactInput,
+} from '../../evidence/index.ts';
+import { extractArchive } from '../bundle/index.ts';
+import {
+  assertRetainedTrials,
+  deriveCampaignStatus,
+  resolveJourneyTrials,
+} from '../confirmation/index.ts';
+import { createAssessorFingerprint, createFixtureFingerprint } from '../identity/index.ts';
+import {
   assertCheckpointIdentity,
-  copyTree,
-  isolatedEnvironment,
-  readJson,
   runCommand,
   sha256,
-  treeHashes,
   verifyBundle,
   verifyExport,
 } from '../harness/index.ts';
 import { createJourneyDefinitionDigest, loadScriptedJourneys } from '../journeys/index.ts';
 import {
-  JourneyActivitySchema,
+  createJourneysEvidenceBundle,
+  parseScriptedJourneysWebsiteModel,
+} from '../public-evidence/index.ts';
+import {
   JourneyAssessmentSchema,
+  JourneyCampaignSchema,
+  JourneyOperatorRecordSchema,
+  MAXIMUM_ARCHIVE_BYTES,
   type IJourneyAssessment,
   type IJourneyDefinition,
   type IJourneyOperatorRecord,
+  type IJourneyTrial,
+  type IJourneyPlatform,
 } from '../index.ts';
 
-import { evaluateJourneyCheck } from './checks.ts';
 import { prepareAssessmentClosure } from './closure.ts';
-import { deriveJourneyOutcome, deriveRunOutcome, deriveStepOutcome } from './outcomes.ts';
-import { applyRecordedPatch, changedPaths, snapshotTree } from './reconstruction.ts';
+import { reconstructJourneyTrial } from './trial.ts';
 
-/** Reconstructs and assesses a bounded export without executing any exported dependency closure. */
+/** Reconstructs selected final exports and admits only observation-complete immutable trials.
+ * @throws When exchange integrity, identities, observations, sequencing, or resource limits are invalid.
+ */
 export const assessJourneys = async (input: {
   repositoryRoot: string;
   bundlePath: string;
@@ -43,14 +57,25 @@ export const assessJourneys = async (input: {
   persist?: boolean;
   operatorRecord?: IJourneyOperatorRecord;
 }): Promise<IJourneyAssessment> => {
-  if (sha256(await readFile(input.bundlePath)) !== input.sha256)
-    throw new Error('Bundle zip SHA-256 mismatch.');
-  if (!input.exportPaths.length || input.exportPaths.length > 2)
-    throw new Error('Assessment requires one or two platform exports.');
+  const diagnostic = input.persist === false;
+  const observations = JourneyOperatorRecordSchema.parse(input.operatorRecord ?? {});
+  if (!diagnostic && (observations.chatgpt || observations.claude))
+    throw new Error(
+      'Persistent admission requires digest-keyed trials; legacy model flags require --diagnostic.',
+    );
+  if (
+    (await stat(input.bundlePath)).size > MAXIMUM_ARCHIVE_BYTES ||
+    sha256(await readFile(input.bundlePath)) !== input.sha256
+  )
+    throw new Error('Bundle zip SHA-256 mismatch or size limit exceeded.');
+  if (!input.exportPaths.length) throw new Error('Assessment requires at least one final export.');
   const scratch = await mkdtemp(path.join(os.tmpdir(), 'journeys-assess-'));
   try {
     const root = await extractArchive(input.bundlePath, path.join(scratch, 'bundle'), true);
     const bundle = await verifyBundle(root);
+    const sourceSha256 = await createAssessorFingerprint(input.repositoryRoot);
+    if (bundle.assessorSourceSha256 !== sourceSha256)
+      throw new Error('Assessor source identity changed; use a new campaign bundle.');
     const definitions =
       input.definitions ??
       (await loadScriptedJourneys(
@@ -58,13 +83,31 @@ export const assessJourneys = async (input: {
       ));
     if (bundle.journeys.length !== definitions.length)
       throw new Error('Journey definition inventory mismatch.');
-    for (const [index, definition] of definitions.entries())
+    for (const [index, definition] of definitions.entries()) {
+      const identity = bundle.journeys[index];
       if (
-        bundle.journeys[index]?.id !== definition.id ||
-        bundle.journeys[index]?.definitionDigest !== createJourneyDefinitionDigest(definition) ||
-        bundle.journeys[index]?.stepCount !== definition.steps.length
+        identity?.id !== definition.id ||
+        identity.definitionDigest !== createJourneyDefinitionDigest(definition) ||
+        identity.stepCount !== definition.steps.length ||
+        identity.fixtureSha256 !== createFixtureFingerprint(bundle.files, definition.id)
       )
-        throw new Error(`Journey definition digest mismatch: ${definition.id}`);
+        throw new Error(`Journey definition digest or fixture identity mismatch: ${definition.id}`);
+    }
+    if (input.exportPaths.length > bundle.journeys.length * 8)
+      throw new Error('Assessment exceeds the 8N export bound.');
+    const digests: string[] = [];
+    for (const file of input.exportPaths) {
+      if ((await stat(file)).size > MAXIMUM_ARCHIVE_BYTES)
+        throw new Error('Export archive exceeds limit.');
+      digests.push(sha256(await readFile(file)));
+    }
+    if (new Set(digests).size !== digests.length)
+      throw new Error('Duplicate export archive bytes.');
+    const missingObservations = digests.filter((digest) => !observations.trials?.[digest]);
+    if (!diagnostic && missingObservations.length)
+      throw new Error(
+        `No record changed. Missing trial observations for ${missingObservations.join(', ')}. Complete --operator-record with configuration, observedAt (or null), and freshChat: true; or use --diagnostic.`,
+      );
     const closure = await prepareAssessmentClosure({
       directory: path.join(scratch, 'closure'),
       skillDirectory: path.join(root, 'skill/moldea'),
@@ -72,169 +115,120 @@ export const assessJourneys = async (input: {
       cliVersion: bundle.skill.cliRepairVersion,
       ...(input.installedClosure ? { installedClosure: input.installedClosure } : {}),
     });
-    const platforms: IJourneyAssessment['platforms'] = [];
+    const byPlatform = new Map<IJourneyPlatform, IJourneyTrial[]>();
     const artifacts: IEvidenceArtifactInput[] = [];
-    for (const [platformIndex, exportPath] of input.exportPaths.entries()) {
-      const exportDirectory = await extractArchive(
-        exportPath,
-        path.join(scratch, `export-${platformIndex}`),
-      );
-      const exported = await verifyExport(exportDirectory);
-      assertCheckpointIdentity(bundle, exported, definitions);
-      if (platforms.some((platform) => platform.platform === exported.platform))
-        throw new Error(`Duplicate platform export: ${exported.platform}`);
-      const platform: IJourneyAssessment['platforms'][number] = {
-        platform: exported.platform,
-        configuration: input.operatorRecord?.[exported.platform] ?? {
-          model: null,
-          settings: {},
-          interventions: [],
-        },
-        environment: exported.environment,
-        restartCounts: exported.restartCounts,
-        journeys: [],
-      };
-      for (const definition of definitions) {
-        const repository = path.join(scratch, exported.platform, definition.id);
-        await copyTree(path.join(root, 'journeys', definition.id, 'fixture'), repository);
-        await copyTree(
-          path.join(root, 'skill/moldea'),
-          path.join(repository, '.agents/skills/moldea'),
-        );
-        const environment = await isolatedEnvironment(
-          path.join(scratch, 'validation-home'),
-          path.join(root, 'npm-cache'),
-        );
-        await runCommand('git', ['init', '--initial-branch=main'], repository, environment);
-        await runCommand(
-          'git',
-          [
-            'add',
-            '--force',
-            '--',
-            '.agents/skills/moldea/SKILL.md',
-            '.agents/skills/moldea/scripts/relevance-gate.mjs',
-            '.agents/skills/moldea/assets/managed-agents-block.md',
-          ],
-          repository,
-          environment,
-        );
-        const fixture = await snapshotTree(repository);
-        let previous = fixture;
-        const steps: IJourneyAssessment['platforms'][number]['journeys'][number]['steps'] = [];
-        for (const step of definition.steps) {
-          const recorded = exported.steps.find(
-            (record) => record.journeyId === definition.id && record.stepId === step.id,
-          );
-          if (!recorded) {
-            steps.push({
-              id: step.id,
-              status: 'blocked',
-              checks: [],
-              unverified: step.unverified,
-              facts: null,
-              reply: '',
-              activity: null,
-            });
-            continue;
-          }
-          const directory = path.join(exportDirectory, 'steps', definition.id, step.id);
-          const replyBytes = await readFile(path.join(directory, 'reply.md'));
-          if (replyBytes.length > MAXIMUM_REPLY_BYTES)
-            throw new Error('Export reply exceeds limit.');
-          const reply = replyBytes.toString('utf8');
-          const activity = JourneyActivitySchema.parse(
-            await readJson(path.join(directory, 'activity.json')),
-          );
-          const patch = await readFile(path.join(directory, 'changes.patch'), 'utf8');
-          const current = await applyRecordedPatch(repository, patch, environment);
-          const dependencies = step.dependsOn.map(
-            (id) => steps.find((candidate) => candidate.id === id)?.status ?? 'blocked',
-          );
-          const checks = [];
-          if (dependencies.every((status) => status === 'passed'))
-            for (const check of step.checks)
-              checks.push(
-                await evaluateJourneyCheck(check, {
-                  repository,
-                  files: current,
-                  stepChanges: changedPaths(previous, current),
-                  fixtureChanges: changedPaths(fixture, current),
-                  reply,
-                  cliVersion: bundle.skill.cliRepairVersion,
-                  closure,
-                  environment,
-                }),
-              );
-          if (!reply.trim())
-            checks.push({
-              check: { kind: 'reply-matches' as const, pattern: '\\S', skillBehavior: false },
-              status: 'failed' as const,
-              detail: 'Empty agent-reported reply.',
-            });
-          steps.push({
-            id: step.id,
-            status: deriveStepOutcome(checks, dependencies),
-            checks,
-            unverified: step.unverified,
-            facts: recorded.facts,
-            reply,
-            activity,
-          });
-          previous = current;
-          for (const [name, mediaType] of [
-            ['changes.patch', 'application/patch+text'],
-            ['reply.md', 'text/plain'],
-            ['activity.json', 'application/json'],
-            ['changes.json', 'application/json'],
-          ] as const)
-            artifacts.push({
-              path: `${exported.platform}/${definition.id}/${step.id}/${name}`,
-              mediaType,
-              content: await readFile(path.join(directory, name)),
-            });
+    const budget = { count: 0, bytes: 0 };
+    const trialIds = new Set<string>();
+    const slots = new Set<string>();
+    let metadataBytes = 0;
+    for (const [index, exportPath] of input.exportPaths.entries()) {
+      const trialScratch = path.join(scratch, `trial-${index}`);
+      try {
+        const exportDirectory = await extractArchive(exportPath, path.join(trialScratch, 'export'));
+        const exported = await verifyExport(exportDirectory);
+        assertCheckpointIdentity(bundle, exported, definitions);
+        if (!exported.complete)
+          throw new Error('Admission requires a complete final selected export.');
+        if (trialIds.has(exported.trialId)) throw new Error('Duplicate trial ID.');
+        trialIds.add(exported.trialId);
+        for (const id of exported.selectedJourneys) {
+          const slot = `${exported.platform}/${id}/${exported.confirmationIndex ?? 'initial'}`;
+          if (slots.has(slot)) throw new Error('Overlapping trial slot.');
+          slots.add(slot);
         }
-        if (exported.completedJourneys.includes(definition.id))
-          assertHashes(
-            await snapshotTree(path.join(exportDirectory, 'journeys', definition.id, 'final')),
-            previous,
-            'Reconstructed final tree',
-          );
-        platform.journeys.push({
-          id: definition.id,
-          status: deriveJourneyOutcome(steps.map((step) => step.status)),
-          steps,
+        if (diagnostic && exported.kind !== 'initial')
+          throw new Error('Diagnostic mode accepts initial exports only.');
+        metadataBytes += Buffer.byteLength(JSON.stringify(exported));
+        if (metadataBytes > MAXIMUM_EVIDENCE_BUNDLE_BYTES)
+          throw new Error('Aggregate export metadata exceeds limit.');
+        const trial = await reconstructJourneyTrial({
+          root,
+          scratch: trialScratch,
+          exportDirectory,
+          bundle,
+          exported,
+          definitions,
+          closure,
+          archiveSha256: digests[index]!,
+          observation: diagnostic ? null : observations.trials![digests[index]!]!,
+          diagnosticConfiguration: diagnostic
+            ? (observations.trials?.[digests[index]!]?.configuration ??
+              observations[exported.platform] ?? { model: null, settings: {}, interventions: [] })
+            : null,
+          artifacts,
+          budget,
         });
+        const trials = byPlatform.get(exported.platform) ?? [];
+        trials.push(trial);
+        byPlatform.set(exported.platform, trials);
+      } finally {
+        await rm(trialScratch, { recursive: true, force: true });
       }
-      platforms.push(platform);
     }
-    const assessorSources = await treeHashes(
-      path.join(input.repositoryRoot, 'src/scripted-journeys'),
-    );
-    const assessment = JourneyAssessmentSchema.parse({
+    const platforms = [...byPlatform].map(([platform, trials]) => ({ platform, trials }));
+    const base = {
+      assessmentFormatVersion: 2,
       runId: bundle.runId,
-      status: deriveRunOutcome(platforms),
       evaluatedAt: new Date().toISOString(),
       assessor: {
         commit: (
           await runCommand('git', ['rev-parse', 'HEAD'], input.repositoryRoot)
         ).stdout.trim(),
-        sourceSha256: sha256(JSON.stringify(assessorSources)),
+        sourceSha256,
       },
       bundleSha256: input.sha256,
-      platforms,
+      bundle,
+      definitions,
+    };
+    if (diagnostic)
+      return JourneyAssessmentSchema.parse({
+        ...base,
+        mode: 'diagnostic',
+        status: 'incomplete',
+        platforms,
+        missingObservations,
+      });
+    const admitted = platforms.map((platform) => ({
+      ...platform,
+      resolutions: resolveJourneyTrials(platform.trials),
+    }));
+    const assessment = JourneyCampaignSchema.parse({
+      ...base,
+      mode: 'campaign',
+      status: deriveCampaignStatus(admitted.flatMap((platform) => platform.resolutions)),
+      platforms: admitted,
     });
-    if (input.persist !== false)
-      await storeCompletedEvidenceRun(
+    const recordPath = getCompletedEvidenceRunPath(input.repositoryRoot, 'journeys', bundle.runId);
+    let previousExists = false;
+    try {
+      await stat(recordPath);
+      previousExists = true;
+    } catch (error) {
+      if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+    }
+    if (previousExists) {
+      const previous = await readCompletedEvidenceRun(
         input.repositoryRoot,
-        createJourneysEvidenceBundle({
-          assessment,
-          definitions,
-          skill: bundle.skill,
-          instructions: bundle.instructions,
-          artifacts,
-        }),
+        'journeys',
+        bundle.runId,
       );
+      const payload = z.object({ websiteModel: z.unknown() }).parse(previous.payload);
+      const model = parseScriptedJourneysWebsiteModel(payload.websiteModel);
+      const source = model.sources.find((source) => source.id === model.currentSourceId);
+      if (source?.kind !== 'campaign' || model.sources.length !== 1)
+        throw new Error('Existing record is not an admitted campaign.');
+      assertRetainedTrials(source.assessment, assessment);
+    }
+    await storeCompletedEvidenceRun(
+      input.repositoryRoot,
+      createJourneysEvidenceBundle({
+        assessment,
+        definitions,
+        skill: bundle.skill,
+        instructions: bundle.instructions,
+        artifacts,
+      }),
+    );
     return assessment;
   } finally {
     await rm(scratch, { recursive: true, force: true });

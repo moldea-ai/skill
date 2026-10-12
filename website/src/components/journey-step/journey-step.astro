@@ -1,10 +1,10 @@
 ---
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
-import JourneyResult from '../journey-result/journey-result.astro';
-import type { IScriptedJourneysWebsiteModel } from '../../lib/scripted-journeys/index.ts';
+import { JourneyTrials } from '../journey-trials/index.ts';
+import type { IJourneyRenderStep } from '../../lib/scripted-journeys/index.ts';
 
 interface Props {
-  step: IScriptedJourneysWebsiteModel['journeys'][number]['steps'][number];
+  step: IJourneyRenderStep;
   journeyId: string;
   number: number;
 }
@@ -58,21 +58,22 @@ const platforms = ['chatgpt', 'claude'] as const;
     <div class="grid gap-8 sm:grid-cols-2 sm:gap-8 lg:gap-12">
       {
         platforms.map((platform) => {
-          const result = step.results.find((candidate) => candidate.platform === platform);
+          const results = step.results.filter((candidate) => candidate.platform === platform);
           return (
             <div
               id={`${id}-${platform}-panel`}
               class="min-w-0"
               data-platform-panel={platform}
+              data-has-results={results.length > 0}
             >
-              {result ? (
-                <JourneyResult
-                  {result}
+              {results.length > 0 ? (
+                <JourneyTrials
+                  {results}
                   id={`${id}-${platform}`}
                 />
               ) : (
                 <p class="text-sm leading-7 text-muted-foreground">
-                  No {platform === 'chatgpt' ? 'ChatGPT' : 'Claude'} step was recorded.
+                  Not run in {platform === 'chatgpt' ? 'ChatGPT' : 'Claude'} for this revision.
                 </p>
               )}
             </div>
@@ -97,7 +98,10 @@ const platforms = ['chatgpt', 'claude'] as const;
       const panels = [...root.querySelectorAll<HTMLElement>('[data-platform-panel]')];
       if (!controls || tabs.length !== 2 || panels.length !== 2) continue;
       const mobile = window.matchMedia('(max-width: 639px)');
-      let selected = 0;
+      let selected = Math.max(
+        0,
+        panels.findIndex((panel) => panel.dataset['hasResults'] === 'true'),
+      );
       const update = () => {
         controls.hidden = !mobile.matches;
         if (mobile.matches) controls.setAttribute('role', 'tablist');

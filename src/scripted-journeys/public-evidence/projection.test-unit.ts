@@ -2,64 +2,78 @@
 import { expect, test } from 'vitest';
 
 import { createSyntheticJourneysBundle } from '../../../website/scripts/evidence-fixture/journeys.ts';
-import type { IJourneyAssessment, IJourneyDefinition, IJourneysBundle } from '../index.ts';
+import type { IJourneyCampaign } from '../index.ts';
 
 import { createJourneysEvidenceBundle, parseScriptedJourneysWebsiteModel } from './index.ts';
 
-test('projects exact requests, platform outcomes, provenance and recorded artifact sources', () => {
+test('projects retained trials, original requests and complete source artifacts with partial coverage', () => {
   const bundle = createSyntheticJourneysBundle();
-  const payload = bundle.payload as { websiteModel: unknown };
-  const model = parseScriptedJourneysWebsiteModel(payload.websiteModel);
-  expect(model.platforms.map(({ platform }) => platform)).toStrictEqual(['chatgpt', 'claude']);
-  expect(model.journeys[0]?.steps[0]?.request).toBe('Initialize moldea.');
-  const result = model.journeys[0]!.steps[0]!.results[0]!;
-  expect(result.files).toStrictEqual([{ path: 'moldea/project.md', status: 'created' }]);
-  expect(result.patch).toContain('+# Project');
-  expect(result.patchUrl).toBe(
-    '/evidence-assets/journeys/chatgpt/initialize/initialize/changes.patch',
+  const model = parseScriptedJourneysWebsiteModel(
+    (bundle.payload as { websiteModel: unknown }).websiteModel,
   );
-  expect(result.unverified).toStrictEqual(['Validation ran after the final write.']);
+  const source = model.sources[0]!;
+  expect(source.kind).toBe('campaign');
+  if (source.kind !== 'campaign') throw new Error('Expected campaign.');
+  expect(source.assessment.definitions[0]!.steps[0]!.request).toBe('Initialize moldea.');
+  expect(source.captures['chatgpt/initialize/initial/initialize']!.files).toStrictEqual([
+    { path: 'moldea/project.md', status: 'created' },
+  ]);
+  const recovered = source.assessment.platforms[0]!.resolutions.find(
+    (entry) => entry.journeyId === 'recovered',
+  )!;
+  expect(recovered.status).toBe('recovered');
+  expect(recovered.confirmationTrialIds).toHaveLength(2);
+  expect(recovered.failedChecks).toHaveLength(1);
+  expect(
+    source.assessment.platforms[0]!.trials[0]!.journeys.find((entry) => entry.id === 'recovered')!
+      .status,
+  ).toBe('failed');
+  expect(model.coverage[0]!.current).toBe(model.coverage[0]!.total - 1);
+  expect(model.status).toBe('incomplete');
+  expect(bundle.artifacts.files.map(({ path }) => path)).toContain(
+    'chatgpt/recovered/c2/read/reply.md',
+  );
   expect(bundle.artifacts.files.map(({ path }) => path)).toContain('assessment.json');
-  expect(bundle.artifacts.files.map(({ path }) => path)).toContain('definitions.json');
 });
 
-test('refuses to invent missing assessed steps or captured file artifacts', () => {
+test('refuses to fabricate missing captures and incomplete selected steps', () => {
   const bundle = createSyntheticJourneysBundle();
-  const payload = bundle.payload as {
-    assessment: IJourneyAssessment;
-    definitions: IJourneyDefinition[];
-    skill: IJourneysBundle['skill'];
-    instructions: IJourneysBundle['instructions'];
+  const assessment = (
+    bundle.payload as { websiteModel: { sources: { assessment: IJourneyCampaign }[] } }
+  ).websiteModel.sources[0]!.assessment;
+  const input = {
+    assessment,
+    definitions: assessment.definitions,
+    skill: assessment.bundle.skill,
+    instructions: assessment.bundle.instructions,
+    artifacts: [],
   };
-  expect(() => createJourneysEvidenceBundle({ ...payload, artifacts: [] })).toThrow(
+  expect(() => createJourneysEvidenceBundle(input)).toThrow(
     'Missing journey presentation artifact',
   );
-  payload.assessment.platforms[0]!.journeys[0]!.steps = [];
-  expect(() => createJourneysEvidenceBundle({ ...payload, artifacts: [] })).toThrow(
-    'Missing assessed journey step',
+  const model = parseScriptedJourneysWebsiteModel(
+    (bundle.payload as { websiteModel: unknown }).websiteModel,
+  );
+  const source = model.sources[0]!;
+  if (source.kind !== 'campaign') throw new Error('Expected campaign.');
+  source.assessment.platforms[0]!.trials[0]!.journeys[0]!.steps = [];
+  expect(() => parseScriptedJourneysWebsiteModel(model)).toThrow(
+    'Campaign step inventory mismatch',
   );
 });
 
-test('keeps an unrecorded blocked step distinct from an empty captured patch', () => {
-  const payload = createSyntheticJourneysBundle().payload as {
-    assessment: IJourneyAssessment;
-    definitions: IJourneyDefinition[];
-    skill: IJourneysBundle['skill'];
-    instructions: IJourneysBundle['instructions'];
-  };
-  payload.definitions = [payload.definitions[0]!];
-  payload.definitions[0]!.steps = [payload.definitions[0]!.steps[0]!];
-  payload.assessment.platforms = [payload.assessment.platforms[0]!];
-  const step = payload.assessment.platforms[0]!.journeys[0]!.steps[0]!;
-  step.facts = null;
-  step.status = 'blocked';
+test('blocked evidence keeps actual captures without becoming a missing provider', () => {
   const model = parseScriptedJourneysWebsiteModel(
-    (
-      createJourneysEvidenceBundle({ ...payload, artifacts: [] }).payload as {
-        websiteModel: unknown;
-      }
-    ).websiteModel,
+    (createSyntheticJourneysBundle().payload as { websiteModel: unknown }).websiteModel,
   );
-  expect(model.journeys[0]!.steps[0]!.results[0]!.patchUrl).toBeNull();
-  expect(model.journeys[0]!.steps[0]!.results[0]!.files).toStrictEqual([]);
+  const source = model.sources[0]!;
+  if (source.kind !== 'campaign') throw new Error('Expected campaign.');
+  expect(source.captures['chatgpt/repair/initial/repair']!.patch).toBe('');
+  expect(
+    source.assessment.platforms[0]!.resolutions.find((entry) => entry.journeyId === 'repair')!
+      .status,
+  ).toBe('blocked');
+  expect(
+    model.cells.some((cell) => cell.platform === 'chatgpt' && cell.journeyId === 'claude-only'),
+  ).toBe(false);
 });

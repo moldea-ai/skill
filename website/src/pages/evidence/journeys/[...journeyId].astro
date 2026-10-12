@@ -2,30 +2,41 @@
 import JourneyPage from '../../../components/journey-page/journey-page.astro';
 import JourneysPage from '../../../components/journeys-page/journeys-page.astro';
 import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
-import type { IScriptedJourneysWebsiteModel } from '../../../lib/scripted-journeys/index.ts';
+import {
+  JOURNEYS_PAGE_SIZE,
+  type IScriptedJourneysWebsiteModel,
+} from '../../../lib/scripted-journeys/index.ts';
 
 interface Props {
   model: IScriptedJourneysWebsiteModel;
   journey: IScriptedJourneysWebsiteModel['journeys'][number] | null;
+  page?: number;
 }
 export const getStaticPaths = () => {
   const model = loadWebsiteModel().scriptedJourneys;
-  return model === null
-    ? []
-    : [
-        { params: { journeyId: undefined }, props: { model, journey: null } },
-        ...model.journeys.map((journey) => ({
-          params: { journeyId: journey.id },
-          props: { model, journey },
-        })),
-      ];
+  if (model === null) return [];
+  const overviews = Array.from(
+    { length: Math.max(1, Math.ceil(model.journeys.length / JOURNEYS_PAGE_SIZE)) },
+    (_, index) => ({
+      params: { journeyId: index === 0 ? undefined : `page/${index + 1}` },
+      props: { model, journey: null, page: index + 1 },
+    }),
+  );
+  const details = model.journeys.map((journey) => ({
+    params: { journeyId: journey.id },
+    props: { model, journey, page: 1 },
+  }));
+  return [...overviews, ...details];
 };
-const { model, journey } = Astro.props;
+const { model, journey, page = 1 } = Astro.props;
 ---
 
 {
   journey === null ? (
-    <JourneysPage {model} />
+    <JourneysPage
+      {model}
+      {page}
+    />
   ) : (
     <JourneyPage
       {model}

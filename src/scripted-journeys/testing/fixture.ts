@@ -1,6 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { EVALUATION_CONFIRMATION_POLICY } from '../../execution/confirmation/index.ts';
+import { createAssessorFingerprint, createFixtureFingerprint } from '../identity/index.ts';
 import { writeJsonFileAtomically } from '../../filesystem/index.ts';
 import { generateRuntimeArtifacts } from '../../portable/index.ts';
 import { createArchive } from '../bundle/index.ts';
@@ -75,8 +77,11 @@ export const createHarnessFixture = async (
       definition.steps.map(({ id, request, dependsOn }) => ({ id, request, dependsOn })),
     );
   }
+  const files = await treeHashes(bundleDirectory);
   await writeJsonFileAtomically(path.join(bundleDirectory, 'manifest.json'), {
-    bundleFormatVersion: 1,
+    bundleFormatVersion: 2,
+    assessorSourceSha256: await createAssessorFingerprint(repositoryRoot),
+    policy: EVALUATION_CONFIRMATION_POLICY,
     runId: '20261012-abcdef',
     createdAt: '2026-10-12T00:00:00.000Z',
     skill: {
@@ -85,14 +90,15 @@ export const createHarnessFixture = async (
       cliRepairVersion: '11.0.0',
       treeSha256: await treeDigest(skill),
     },
-    instructions: { version: 1, sha256: sha256('fixture instructions') },
-    files: await treeHashes(bundleDirectory),
+    instructions: { version: 2, sha256: sha256('fixture instructions') },
+    files,
     npmCache: { sha256: await treeDigest(path.join(bundleDirectory, 'npm-cache')), packages: [] },
     journeys: definitions.map((definition) => ({
       id: definition.id,
       title: definition.title,
       stepCount: definition.steps.length,
       definitionDigest: createJourneyDefinitionDigest(definition),
+      fixtureSha256: createFixtureFingerprint(files, definition.id),
       fixture: definition.fixture,
     })),
   });
@@ -108,17 +114,25 @@ export const recordFixturePlatform = async (
   fixture: Awaited<ReturnType<typeof createHarnessFixture>>,
   platform: IJourneyPlatform,
   readonlyEdit = false,
+  selection: { journeys?: string[]; confirmationIndex?: number; name?: string } = {},
 ): Promise<string> => {
-  const workspace = path.join(scratch, platform);
+  const workspace = path.join(
+    scratch,
+    selection.name ?? `${platform}-${selection.confirmationIndex ?? 'initial'}`,
+  );
   await setupWorkspace(workspace, {
     runId: '20261012-abcdef',
     sha256: fixture.hash,
     platform,
+    ...(selection.journeys ? { journeys: selection.journeys } : {}),
+    ...(selection.confirmationIndex ? { confirmationIndex: selection.confirmationIndex } : {}),
     bundleZip: fixture.bundleZip,
     bundleDirectory: fixture.bundleDirectory,
     homeDirectory: path.join(scratch, `${platform}-home`),
   });
-  for (const definition of fixture.definitions) {
+  for (const definition of fixture.definitions.filter(
+    (definition) => !selection.journeys || selection.journeys.includes(definition.id),
+  )) {
     for (const step of definition.steps) {
       await nextRequest(workspace);
       const capture = path.join(workspace, 'capture', definition.id, step.id);

@@ -1,8 +1,18 @@
 import { createJourneysEvidenceBundle } from '../../../src/scripted-journeys/public-evidence/index.ts';
 import type {
-  IJourneyAssessment,
+  IJourneyCampaign,
+  IJourneyTrial,
+  IJourneyOutcome,
   IJourneyDefinition,
 } from '../../../src/scripted-journeys/index.ts';
+
+import { EVALUATION_CONFIRMATION_POLICY } from '../../../src/execution/confirmation/index.ts';
+import { createJourneyDefinitionDigest } from '../../../src/scripted-journeys/journeys/index.ts';
+import { createFixtureFingerprint } from '../../../src/scripted-journeys/identity/index.ts';
+import {
+  deriveCampaignStatus,
+  resolveJourneyTrials,
+} from '../../../src/scripted-journeys/confirmation/index.ts';
 
 // deterministic synthetic captures exercise every outcome without implying real platform results
 const definitions: IJourneyDefinition[] = [
@@ -63,54 +73,86 @@ const definitions: IJourneyDefinition[] = [
   },
 ];
 
-/** Creates presentation-only evidence with passing, failing, blocked, and unverified states. */
+for (const [index, id] of [
+  'recovered',
+  'confirmed',
+  'split',
+  'claude-only',
+  ...Array.from({ length: 11 }, (_, index) => `additional-${index + 1}`),
+].entries()) {
+  definitions.push({
+    id,
+    title: id === 'claude-only' ? 'Claude-only observation' : `Confirmation example: ${id}`,
+    summary: `Inspect the ${id} conversation and its retained trials.`,
+    order: index + 3,
+    fixture: { adopted: false, installCli: false },
+    steps: [
+      {
+        id: 'read',
+        request: 'Read the saved project policy without editing files.',
+        dependsOn: [],
+        checks: [{ kind: 'no-changes' }],
+        unverified: [],
+      },
+    ],
+  });
+}
+
+/** Creates deterministic presentation evidence for partial coverage and every resolution state. */
 export const createSyntheticJourneysBundle = () => {
   const evaluatedAt = '2026-01-01T00:00:00.000Z';
-  const assessment: IJourneyAssessment = {
-    runId: '20260101-aabbcc',
-    status: 'failed',
-    evaluatedAt,
-    assessor: { commit: 'a'.repeat(40), sourceSha256: 'b'.repeat(64) },
-    bundleSha256: 'c'.repeat(64),
-    platforms: (['chatgpt', 'claude'] as const).map((platform) => ({
-      platform,
-      configuration: {
-        model: `${platform} fixture model`,
-        settings: { mode: 'Chat', observedDate: '2026-01-01' },
-        interventions: platform === 'chatgpt' ? ['Continued after a truncated response.'] : [],
+  let serial = 0;
+  const makeTrial = (
+    platform: 'chatgpt' | 'claude',
+    selected: IJourneyDefinition[],
+    confirmationIndex: number | null,
+  ): IJourneyTrial => {
+    const trialId = (++serial).toString(16).padStart(32, '0');
+    return {
+      trialId,
+      archiveSha256: serial.toString(16).padStart(64, '0'),
+      kind: confirmationIndex === null ? 'initial' : 'confirmation',
+      selectedJourneys: selected.map((definition) => definition.id),
+      confirmationIndex,
+      observation: {
+        configuration: {
+          model: `${platform} fixture model`,
+          settings: { mode: 'Chat' },
+          interventions: platform === 'chatgpt' ? ['Continued after a truncated response.'] : [],
+        },
+        observedAt: evaluatedAt,
+        freshChat: true,
       },
+      diagnosticConfiguration: null,
       environment: { node: 'v24.15.0', platform: 'linux' },
-      restartCounts: { initialize: platform === 'chatgpt' ? 1 : 0 },
-      journeys: definitions.map((definition) => ({
-        id: definition.id,
-        status:
+      restartCounts: Object.fromEntries(selected.map((definition) => [definition.id, 0])),
+      journeys: selected.map((definition) => {
+        const status: IJourneyOutcome =
           definition.id === 'repair'
             ? 'blocked'
-            : definition.id === 'preserve' && platform === 'claude'
+            : definition.id === 'confirmed' ||
+                (definition.id === 'split' && confirmationIndex !== 2) ||
+                (definition.id === 'recovered' && confirmationIndex === null) ||
+                (definition.id === 'preserve' && platform === 'claude')
               ? 'failed'
-              : 'passed',
-        steps: definition.steps.map((step) => {
-          const status =
-            definition.id === 'repair'
-              ? 'blocked'
-              : definition.id === 'preserve' && platform === 'claude'
-                ? 'failed'
-                : 'passed';
-          return {
+              : 'passed';
+        return {
+          id: definition.id,
+          status,
+          steps: definition.steps.map((step) => ({
             id: step.id,
             status,
-            checks: [
-              {
-                check: step.checks[0]!,
-                status,
-                detail:
-                  status === 'passed'
-                    ? 'Criterion satisfied by the reconstructed files.'
-                    : status === 'failed'
-                      ? 'Unexpected change to project knowledge.'
-                      : 'Prerequisite was not satisfied.',
-              },
-            ],
+            checks: step.checks.map((check, criterion) => ({
+              check,
+              criterion,
+              status,
+              detail:
+                status === 'passed'
+                  ? 'Criterion satisfied by the reconstructed files.'
+                  : status === 'failed'
+                    ? 'Unexpected change to project knowledge.'
+                    : 'Required CLI evidence is unavailable.',
+            })),
             unverified: step.unverified,
             facts: { issuedAt: evaluatedAt, recordedAt: evaluatedAt, cliPresent: true },
             reply:
@@ -121,41 +163,105 @@ export const createSyntheticJourneysBundle = () => {
               writes: step.id === 'initialize' ? ['moldea/project.md'] : [],
               notes: ['Agent-reported activity is not an execution trace.'],
             },
-          };
-        }),
-      })),
-    })),
-  };
-  const artifacts = assessment.platforms.flatMap((platform) =>
-    platform.journeys.flatMap((journey) =>
-      journey.steps.flatMap((step) => {
-        const hasChange = step.id === 'initialize';
-        const prefix = `${platform.platform}/${journey.id}/${step.id}/`;
-        return [
-          {
-            path: `${prefix}changes.json`,
-            mediaType: 'application/json',
-            content: Buffer.from(
-              JSON.stringify(hasChange ? [{ path: 'moldea/project.md', kind: 'added' }] : []),
-            ),
-          },
-          {
-            path: `${prefix}changes.patch`,
-            mediaType: 'application/patch+text',
-            content: Buffer.from(
-              hasChange
-                ? 'diff --git a/moldea/project.md b/moldea/project.md\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/project.md\n@@ -0,0 +1,2 @@\n+# Project\n+The greeting service returns a personalized welcome.\n'
-                : '',
-            ),
-          },
-          { path: `${prefix}reply.md`, mediaType: 'text/plain', content: Buffer.from(step.reply) },
-          {
-            path: `${prefix}activity.json`,
-            mediaType: 'application/json',
-            content: Buffer.from(JSON.stringify(step.activity)),
-          },
-        ];
+          })),
+        };
       }),
+    };
+  };
+  const platforms = (['chatgpt', 'claude'] as const).map((platform) => {
+    const trials = [
+      makeTrial(
+        platform,
+        definitions.filter(
+          (definition) => platform === 'claude' || definition.id !== 'claude-only',
+        ),
+        null,
+      ),
+    ];
+    for (const id of ['recovered', 'confirmed', 'split'])
+      for (const index of [1, 2])
+        trials.push(
+          makeTrial(platform, [definitions.find((definition) => definition.id === id)!], index),
+        );
+    return { platform, trials, resolutions: resolveJourneyTrials(trials) };
+  });
+  const files = Object.fromEntries(
+    definitions.map((definition) => [
+      `journeys/${definition.id}/fixture/policy.md`,
+      'e'.repeat(64),
+    ]),
+  );
+  const assessment: IJourneyCampaign = {
+    assessmentFormatVersion: 2,
+    mode: 'campaign',
+    runId: '20260101-aabbcc',
+    evaluatedAt,
+    status: deriveCampaignStatus(platforms.flatMap((platform) => platform.resolutions)),
+    assessor: { commit: 'a'.repeat(40), sourceSha256: 'b'.repeat(64) },
+    bundleSha256: 'c'.repeat(64),
+    definitions,
+    platforms,
+    bundle: {
+      bundleFormatVersion: 2,
+      runId: '20260101-aabbcc',
+      createdAt: evaluatedAt,
+      skill: {
+        commit: 'd'.repeat(40),
+        version: '0.0.0-fixture',
+        cliRepairVersion: '11.0.0',
+        treeSha256: 'e'.repeat(64),
+      },
+      instructions: { version: 2, sha256: 'f'.repeat(64) },
+      assessorSourceSha256: 'b'.repeat(64),
+      policy: EVALUATION_CONFIRMATION_POLICY,
+      files,
+      npmCache: { sha256: 'a'.repeat(64), packages: [] },
+      journeys: definitions.map((definition) => ({
+        id: definition.id,
+        title: definition.title,
+        stepCount: definition.steps.length,
+        definitionDigest: createJourneyDefinitionDigest(definition),
+        fixtureSha256: createFixtureFingerprint(files, definition.id),
+        fixture: definition.fixture,
+      })),
+    },
+  };
+  const artifacts = platforms.flatMap((platform) =>
+    platform.trials.flatMap((trial) =>
+      trial.journeys.flatMap((journey) =>
+        journey.steps.flatMap((step) => {
+          const hasChange = step.id === 'initialize';
+          const prefix = `${platform.platform}/${journey.id}/${trial.confirmationIndex === null ? 'initial' : `c${trial.confirmationIndex}`}/${step.id}/`;
+          return [
+            {
+              path: `${prefix}changes.json`,
+              mediaType: 'application/json',
+              content: Buffer.from(
+                JSON.stringify(hasChange ? [{ path: 'moldea/project.md', kind: 'added' }] : []),
+              ),
+            },
+            {
+              path: `${prefix}changes.patch`,
+              mediaType: 'application/patch+text',
+              content: Buffer.from(
+                hasChange
+                  ? 'diff --git a/moldea/project.md b/moldea/project.md\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/project.md\n@@ -0,0 +1,2 @@\n+# Project\n+The greeting service returns a personalized welcome.\n'
+                  : '',
+              ),
+            },
+            {
+              path: `${prefix}reply.md`,
+              mediaType: 'text/plain',
+              content: Buffer.from(step.reply),
+            },
+            {
+              path: `${prefix}activity.json`,
+              mediaType: 'application/json',
+              content: Buffer.from(JSON.stringify(step.activity)),
+            },
+          ];
+        }),
+      ),
     ),
   );
   return createJourneysEvidenceBundle({
@@ -163,12 +269,7 @@ export const createSyntheticJourneysBundle = () => {
     definitions,
     artifacts,
     classification: 'fixture',
-    skill: {
-      commit: 'd'.repeat(40),
-      version: '0.0.0-fixture',
-      cliRepairVersion: '11.0.0',
-      treeSha256: 'e'.repeat(64),
-    },
-    instructions: { version: 1, sha256: 'f'.repeat(64) },
+    skill: assessment.bundle.skill,
+    instructions: assessment.bundle.instructions,
   });
 };

@@ -1,113 +1,151 @@
 import { z } from 'zod';
+import { isEqual } from 'web-utils-kit';
 
 import {
   createEvidenceBundle,
+  encodeEvidenceBundle,
   type IEvidenceArtifactInput,
   type IEvidenceBundle,
   type IEvidenceClassification,
 } from '../../evidence/index.ts';
-import type { IJourneyAssessment, IJourneyDefinition, IJourneysBundle } from '../types.ts';
+import { sha256 } from '../harness/index.ts';
+import {
+  JourneyActivitySchema,
+  type IJourneyCampaign,
+  type IJourneyDefinition,
+  type IJourneysBundle,
+} from '../index.ts';
 
-import { parseScriptedJourneysWebsiteModel } from './validation.ts';
+import {
+  deriveJourneyCoverage,
+  deriveJourneyPublicStatus,
+  parseScriptedJourneysWebsiteModel,
+} from './validation.ts';
+import type { IScriptedJourneysWebsiteModel } from './types.ts';
 
 const ChangesSchema = z.array(
   z.object({ path: z.string(), kind: z.enum(['added', 'modified', 'deleted']) }),
 );
 const ASSET_ROOT = '/evidence-assets/journeys/';
 
-/**
- * Projects one immutable assessment with its exact requests and recorded artifact sources.
- * @throws When an assessed step or required captured artifact is missing or malformed.
+/** Projects one admitted campaign using its original catalog, retained trials, and complete captures.
+ * @throws When definitions, source associations, or required captured artifacts are inconsistent.
  */
 export const createJourneysEvidenceBundle = (input: {
-  assessment: IJourneyAssessment;
+  assessment: IJourneyCampaign;
   definitions: IJourneyDefinition[];
   skill: IJourneysBundle['skill'];
   instructions: IJourneysBundle['instructions'];
   artifacts: IEvidenceArtifactInput[];
   classification?: IEvidenceClassification;
 }): IEvidenceBundle => {
-  const { assessment, definitions, skill, instructions } = input;
+  const { assessment } = input;
+  if (
+    !isEqual(input.definitions, assessment.definitions) ||
+    !isEqual(input.skill, assessment.bundle.skill) ||
+    !isEqual(input.instructions, assessment.bundle.instructions)
+  )
+    throw new Error('Campaign presentation identity mismatch.');
   const artifacts = new Map(input.artifacts.map((artifact) => [artifact.path, artifact]));
-  const readArtifact = (artifactPath: string): string => {
-    const artifact = artifacts.get(artifactPath);
-    if (!artifact) throw new Error(`Missing journey presentation artifact: ${artifactPath}`);
+  if (artifacts.size !== input.artifacts.length)
+    throw new Error('Duplicate journey artifact path.');
+  const read = (name: string): string => {
+    const artifact = artifacts.get(name);
+    if (!artifact) throw new Error(`Missing journey presentation artifact: ${name}`);
     return Buffer.from(artifact.content).toString('utf8');
   };
-  const websiteModel = parseScriptedJourneysWebsiteModel({
-    ...assessment,
-    skill,
-    instructions,
-    route: '/evidence/journeys/',
-    assessmentUrl: `${ASSET_ROOT}assessment.json`,
-    definitionsUrl: `${ASSET_ROOT}definitions.json`,
-    platforms: assessment.platforms.map((platform) => ({
-      platform: platform.platform,
-      configuration: platform.configuration,
-      environment: platform.environment,
-      restartCounts: platform.restartCounts,
-    })),
-    journeys: definitions.map((definition) => ({
+  const assessmentBytes = Buffer.from(`${JSON.stringify(assessment, null, 2)}\n`);
+  const sourceId = sha256(assessmentBytes);
+  const captures: Extract<
+    IScriptedJourneysWebsiteModel['sources'][number],
+    { kind: 'campaign' }
+  >['captures'] = {};
+  for (const platform of assessment.platforms)
+    for (const trial of platform.trials)
+      for (const journey of trial.journeys)
+        for (const step of journey.steps) {
+          const prefix = `${platform.platform}/${journey.id}/${trial.confirmationIndex === null ? 'initial' : `c${trial.confirmationIndex}`}/${step.id}`;
+          if (
+            read(`${prefix}/reply.md`) !== step.reply ||
+            !step.activity ||
+            !isEqual(
+              JourneyActivitySchema.parse(JSON.parse(read(`${prefix}/activity.json`))),
+              step.activity,
+            )
+          )
+            throw new Error('Captured reply/activity differs from the assessed trial.');
+          captures[prefix] = {
+            patch: read(`${prefix}/changes.patch`),
+            files: ChangesSchema.parse(JSON.parse(read(`${prefix}/changes.json`))).map(
+              ({ path, kind }) => ({ path, status: kind === 'added' ? 'created' : kind }),
+            ),
+          };
+        }
+  const sources: IScriptedJourneysWebsiteModel['sources'] = [
+    {
+      id: sourceId,
+      kind: 'campaign',
+      assessment,
+      assessmentUrl: `${ASSET_ROOT}assessment.json`,
+      definitionsUrl: `${ASSET_ROOT}definitions.json`,
+      artifactRoot: ASSET_ROOT,
+      captures,
+    },
+  ];
+  const base = {
+    presentationVersion: 2 as const,
+    route: '/evidence/journeys/' as const,
+    runId: assessment.runId,
+    evaluatedAt: assessment.evaluatedAt,
+    currentSourceId: sourceId,
+    sources,
+    cells: assessment.platforms.flatMap((platform) =>
+      platform.resolutions.map((resolution) => ({
+        platform: platform.platform,
+        journeyId: resolution.journeyId,
+        sourceId,
+      })),
+    ),
+    journeys: assessment.definitions.map((definition) => ({
       id: definition.id,
       title: definition.title,
       summary: definition.summary,
       route: `/evidence/journeys/${definition.id}/`,
-      steps: definition.steps.map((step) => ({
-        id: step.id,
-        request: step.request,
-        results: assessment.platforms.map((platform) => {
-          const recorded = platform.journeys
-            .find(({ id }) => id === definition.id)
-            ?.steps.find(({ id }) => id === step.id);
-          if (!recorded)
-            throw new Error(
-              `Missing assessed journey step: ${platform.platform}/${definition.id}/${step.id}`,
-            );
-          const prefix = `${platform.platform}/${definition.id}/${step.id}/`;
-          const hasCapture = recorded.facts !== null;
-          const changes = hasCapture
-            ? ChangesSchema.parse(JSON.parse(readArtifact(`${prefix}changes.json`)))
-            : [];
-          return {
-            ...recorded,
-            platform: platform.platform,
-            files: changes.map(({ path, kind }) => ({
-              path,
-              status: kind === 'added' ? 'created' : kind,
-            })),
-            patch: hasCapture ? readArtifact(`${prefix}changes.patch`) : '',
-            patchUrl: hasCapture ? `${ASSET_ROOT}${prefix}changes.patch` : null,
-            replyUrl: hasCapture ? `${ASSET_ROOT}${prefix}reply.md` : null,
-            activityUrl: hasCapture ? `${ASSET_ROOT}${prefix}activity.json` : null,
-          };
-        }),
-      })),
+      current: true,
     })),
+  };
+  const websiteModel = parseScriptedJourneysWebsiteModel({
+    ...base,
+    coverage: deriveJourneyCoverage(base),
+    status: deriveJourneyPublicStatus(base),
   });
-  const rawArtifacts = [
-    { path: 'assessment.json', content: assessment },
-    { path: 'definitions.json', content: definitions },
-  ].map(({ path, content }) => ({
-    path,
-    content: Buffer.from(`${JSON.stringify(content, null, 2)}\n`),
-    mediaType: 'application/json',
-  }));
-  return createEvidenceBundle({
+  const evidenceBundle = createEvidenceBundle({
     classification: input.classification ?? 'official',
     kind: 'journeys',
     run: {
       attemptId: assessment.runId,
       evaluatedAt: assessment.evaluatedAt,
-      status: assessment.status,
-      version: skill.version,
+      status: websiteModel.status,
+      version: assessment.bundle.skill.version,
       provenance: {
-        skillCommit: skill.commit,
+        skillCommit: assessment.bundle.skill.commit,
         bundleSha256: assessment.bundleSha256,
         assessorCommit: assessment.assessor.commit,
         assessorSourceSha256: assessment.assessor.sourceSha256,
       },
     },
-    payload: { assessment, definitions, skill, instructions, websiteModel },
-    artifacts: [...input.artifacts, ...rawArtifacts],
+    payload: { websiteModel },
+    artifacts: [
+      ...input.artifacts,
+      { path: 'assessment.json', mediaType: 'application/json', content: assessmentBytes },
+      {
+        path: 'definitions.json',
+        mediaType: 'application/json',
+        content: Buffer.from(`${JSON.stringify(assessment.definitions, null, 2)}\n`),
+      },
+    ],
   });
+  // enforce expanded and compressed public limits before local record persistence
+  encodeEvidenceBundle(evidenceBundle);
+  return evidenceBundle;
 };

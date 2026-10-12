@@ -14,7 +14,7 @@ export const exportWorkspace = async (workspace: string, final = false): Promise
   const bundle = await verifyBundle(state.bundleDirectory);
   if (state.records.some((record) => !state.completedJourneys.includes(record.journeyId)))
     throw new Error('Export requires a completed journey boundary.');
-  const complete = state.completedJourneys.length === bundle.journeys.length;
+  const complete = state.completedJourneys.length === state.selectedJourneys.length;
   if (final && !complete) throw new Error('Final export requires all journeys.');
   const checkpoint = state.checkpoint + 1;
   const name = `journeys-${state.platform}-${bundle.runId}-${checkpoint}`;
@@ -30,7 +30,11 @@ export const exportWorkspace = async (workspace: string, final = false): Promise
     );
   const hashes = await treeHashes(path.join(state.bundleDirectory, 'harness'));
   const manifest = JourneysExportSchema.parse({
-    exportFormatVersion: 1,
+    exportFormatVersion: 2,
+    trialId: state.trialId,
+    kind: state.kind,
+    selectedJourneys: state.selectedJourneys,
+    confirmationIndex: state.confirmationIndex,
     runId: bundle.runId,
     platform: state.platform,
     skillTreeSha256: bundle.skill.treeSha256,

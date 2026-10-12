@@ -19,6 +19,8 @@ import {
   verifyBundle,
 } from '../harness/index.ts';
 import { setupWorkspace, nextRequest } from '../harness/index.ts';
+import { EVALUATION_CONFIRMATION_POLICY } from '../../execution/confirmation/index.ts';
+import { createAssessorFingerprint, createFixtureFingerprint } from '../identity/index.ts';
 import { JourneyStepsSchema } from '../index.ts';
 
 import { extractArchive } from './archive.ts';
@@ -58,7 +60,11 @@ test('pack preserves Git skill bytes, hides criteria, installs offline, and vali
       await treeHashes(path.join(process.cwd(), 'moldea')),
       'Git skill bytes',
     );
+    expect(bundle.bundleFormatVersion).toBe(2);
+    expect(bundle.policy).toStrictEqual(EVALUATION_CONFIRMATION_POLICY);
+    expect(bundle.assessorSourceSha256).toBe(await createAssessorFingerprint(process.cwd()));
     for (const journey of bundle.journeys) {
+      expect(journey.fixtureSha256).toBe(createFixtureFingerprint(bundle.files, journey.id));
       const steps = JourneyStepsSchema.parse(
         await readJson(path.join(root, 'journeys', journey.id, 'steps.json')),
       );
@@ -248,10 +254,10 @@ test('pack preserves Git skill bytes, hides criteria, installs offline, and vali
     const project = JSON.parse(
       await readFile(path.join(reconstructed, 'package.json'), 'utf8'),
     ) as Record<string, unknown>;
-    project.scripts = {
+    project['scripts'] = {
       preinstall: 'node -e "require(\\"fs\\").writeFileSync(\\"executed.txt\\", \\"unsafe\\")"',
     };
-    project.dependencies = { 'untrusted-export': 'https://unreachable.invalid/package.tgz' };
+    project['dependencies'] = { 'untrusted-export': 'https://unreachable.invalid/package.tgz' };
     await writeFile(path.join(reconstructed, 'package.json'), JSON.stringify(project));
     const checkContext = {
       repository: reconstructed,

@@ -1,5 +1,11 @@
 // closed exchange contracts and additive assessment payloads
 export {
+  HashSchema,
+  JourneyObservationSchema,
+  JourneyTrialSchema,
+  JourneyResolutionSchema,
+  JourneyCampaignSchema,
+  JourneyDiagnosticSchema,
   JourneyCheckSchema,
   JourneyDefinitionSchema,
   JourneyStepsSchema,
@@ -16,6 +22,11 @@ export {
   JourneyOperatorRecordSchema,
 } from './types.ts';
 export type {
+  IJourneyTrial,
+  IJourneyCampaign,
+  IJourneyDiagnostic,
+  IJourneyResolution,
+  IJourneyObservation,
   IJourneyDefinition,
   IJourneyCheck,
   IJourneysBundle,

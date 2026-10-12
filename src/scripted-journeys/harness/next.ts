@@ -16,13 +16,18 @@ export const nextRequest = async (workspace: string): Promise<string> => {
     return `CHECKPOINT REQUIRED\n${exportCommand}\n`;
   if (
     state.records.length ===
-    bundle.journeys.reduce((count, journey) => count + journey.stepCount, 0)
+    bundle.journeys
+      .filter((journey) => state.selectedJourneys.includes(journey.id))
+      .reduce((count, journey) => count + journey.stepCount, 0)
   )
     return `ALL STEPS COMPLETE\n${exportCommand} --final\n`;
-  const journey = bundle.journeys.find(
-    (candidate) =>
-      state.pending?.journeyId === candidate.id || !state.completedJourneys.includes(candidate.id),
-  );
+  const journey = bundle.journeys
+    .filter((candidate) => state.selectedJourneys.includes(candidate.id))
+    .find(
+      (candidate) =>
+        state.pending?.journeyId === candidate.id ||
+        !state.completedJourneys.includes(candidate.id),
+    );
   if (!journey) throw new Error('No pending journey.');
   const steps = JourneyStepsSchema.parse(
     await readJson(path.join(state.bundleDirectory, 'journeys', journey.id, 'steps.json')),

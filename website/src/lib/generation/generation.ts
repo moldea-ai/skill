@@ -7,7 +7,11 @@ import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
-import type { IScriptedJourneysWebsiteModel } from '../scripted-journeys/index.ts';
+import {
+  getJourneyRevisions,
+  JOURNEYS_PAGE_SIZE,
+  type IScriptedJourneysWebsiteModel,
+} from '../scripted-journeys/index.ts';
 import type { IProjectRunModel } from '../project-runs/index.ts';
 import type { ISemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
 import {
@@ -421,7 +425,19 @@ export const createRouteManifest = (
     ...Object.values(PRODUCT_PAGE_METADATA).map(({ route }) => route),
     ...(scriptedJourneys === null
       ? []
-      : [scriptedJourneys.route, ...scriptedJourneys.journeys.map(({ route }) => route)]),
+      : [
+          scriptedJourneys.route,
+          ...Array.from(
+            {
+              length: Math.max(
+                0,
+                Math.ceil(scriptedJourneys.journeys.length / JOURNEYS_PAGE_SIZE) - 1,
+              ),
+            },
+            (_, index) => `${scriptedJourneys.route}page/${index + 2}/`,
+          ),
+          ...scriptedJourneys.journeys.map(({ route }) => route),
+        ]),
     semanticEvaluation.route,
     ...semanticEvaluation.attempts.map(({ route }) => route),
     ...(projectRuns?.pages.flatMap((page) => [
@@ -516,7 +532,12 @@ export const createWebsiteModel = (
               title: journey.title,
               route: journey.route,
               description: journey.summary,
-              searchText: `${journey.title} ${journey.summary} ${journey.steps.map(({ request }) => request).join(' ')}`,
+              searchText: `${journey.title} ${journey.summary} ${getJourneyRevisions(
+                scriptedJourneys,
+                journey.id,
+              )
+                .flatMap((revision) => revision.steps.map(({ request }) => request))
+                .join(' ')}`,
             })),
           ]),
       ...(projectRuns === null

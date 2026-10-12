@@ -20,6 +20,15 @@ The requests and reports below illustrate the workflow. They are not recorded co
 >
 > I ran the verified repository-local validation boundary. The project is structurally invalid because one registered mirror differs from its canonical instruction. No repository files were changed. This result does not assess broader semantic alignment.
 
+### Compared content in this illustration
+
+| Source                                             | Instruction excerpt                               |
+| -------------------------------------------------- | ------------------------------------------------- |
+| `moldea/agents/support/instruction.md` (canonical) | Explain that returns are accepted within 30 days. |
+| `instructions/support.md` (declared mirror)        | Explain that returns are accepted within 60 days. |
+
+The mirror must match the canonical instruction after text normalization. These excerpts differ, so validation reports the mismatch without choosing a business policy or editing either file.
+
 ## Coding agent and moldea under the hood
 
 1. The coding agent selects read-only validation.

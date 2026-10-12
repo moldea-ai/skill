@@ -1,6 +1,7 @@
 ---
 import Conversation from '@moldea.ai/website-ui/conversation';
 import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
+import { withBase } from '@moldea.ai/website-ui/site';
 import type { IRenderedMarkdownBlock } from '@moldea.ai/website-ui/markdown';
 
 // ordered, sanitized documentation blocks; recorded evidence uses its own renderer
@@ -9,6 +10,7 @@ export interface Props {
   class?: string;
 }
 const { blocks, class: className } = Astro.props;
+const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_URL);
 ---
 
 <div class:list={['grid min-w-0 gap-8', className]}>
@@ -26,6 +28,16 @@ const { blocks, class: className } = Astro.props;
         <Conversation>
           {block.messages.map((message) => (
             <ConversationMessage role={message.role}>
+              {message.role === 'assistant' && (
+                <img
+                  slot="avatar"
+                  src={skillMarkPath}
+                  width="207"
+                  height="215"
+                  alt=""
+                  class="dark:invert"
+                />
+              )}
               <div
                 class="prose-moldea prose-moldea-wrap-code"
                 set:html={message.html}

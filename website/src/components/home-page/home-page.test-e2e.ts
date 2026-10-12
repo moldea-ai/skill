@@ -223,18 +223,25 @@ for (const width of [320, 1440]) {
       const section = page.getByRole('region', { name: 'Guidance for the runtime you use.' });
       const grid = section.getByRole('list', { name: 'Runtime guidance' });
       const links = grid.getByRole('link');
+      await expect(links).toHaveCount(width === 320 ? 3 : 9);
+      const loadMore = section.getByRole('button', { name: 'Load more runtimes' });
+      await loadMore.focus();
+      await page.keyboard.press('Enter');
       await expect(links).toHaveCount(RUNTIME_CATALOG.length);
-      for (const { displayName, id } of RUNTIME_CATALOG) {
+      await expect(links.nth(width === 320 ? 3 : 9)).toBeFocused();
+      await expect(loadMore).toBeHidden();
+      await expect(links).toHaveCount(RUNTIME_CATALOG.length);
+      for (const { displayName, id, websiteUrl } of RUNTIME_CATALOG) {
         await expect(
           grid.getByRole('link', { name: `${displayName} ${id}`, exact: false }),
-        ).toHaveAttribute('href', `${PACKAGES_WEBSITE_URL}runtimes/#${id}`);
+        ).toHaveAttribute('href', websiteUrl);
       }
       for (const logo of await grid.locator('img').all()) {
         await expect(logo).toHaveAttribute('alt', '');
         await expect(logo).toHaveAttribute('loading', 'lazy');
         await expect(logo).toHaveAttribute('decoding', 'async');
-        await expect(logo).toHaveAttribute('width', '96');
-        await expect(logo).toHaveAttribute('height', '48');
+        await expect(logo).toHaveAttribute('width', '56');
+        await expect(logo).toHaveAttribute('height', '56');
       }
       await links.first().scrollIntoViewIfNeeded();
       await expect

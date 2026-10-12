@@ -28,6 +28,7 @@ test('opens one conversation on demand without navigating and restores focus on 
   await expect(
     dialog.locator('[data-journey-provider="claude"] [data-journey-request]').first(),
   ).toHaveText('Initialize moldea.');
+  await expect(dialog.getByText(/^Request \d+$/u)).toHaveCount(0);
   await expect(page).toHaveURL(route);
   await expect(
     dialog.locator('[data-journey-provider="claude"] [data-recorded-file-tree]').first(),

@@ -81,7 +81,7 @@ const runLabel = (label: string) =>
         <Conversation
           ariaLabel={`${platform === 'chatgpt' ? 'ChatGPT' : 'Claude'} ${runLabel(run.label)} conversation`}
         >
-          {revision.steps.map((step, index) => {
+          {revision.steps.map((step) => {
             const result = step.results.find(
               (result) => result.platform === platform && result.trialId === run.trialId,
             );
@@ -91,7 +91,6 @@ const runLabel = (label: string) =>
                   request={step.request}
                   {result}
                   id={`${id}-${run.trialId}-${step.id}`}
-                  number={index + 1}
                 />
               )
             );

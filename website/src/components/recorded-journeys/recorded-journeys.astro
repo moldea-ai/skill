@@ -35,7 +35,12 @@ const replyHtml = result
   {
     step && result ? (
       <>
-        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div
+          class:list={[
+            'flex flex-wrap items-center justify-between gap-3',
+            isCompact ? 'mb-3' : 'mb-4',
+          ]}
+        >
           <>
             <PlatformMark platform={result.platform} />
             {isCompact ? (
@@ -47,7 +52,14 @@ const replyHtml = result
             )}
           </>
         </div>
-        <Conversation ariaLabel="Recorded journey excerpt">
+        <Conversation
+          ariaLabel="Recorded journey excerpt"
+          class={
+            isCompact
+              ? 'gap-3 [&>li>article]:px-3 [&>li>article]:py-2 [&>li>article>p:first-child]:sr-only'
+              : ''
+          }
+        >
           <ConversationMessage role="user">
             <p
               class:list={[
@@ -67,15 +79,17 @@ const replyHtml = result
               alt=""
               class="dark:invert"
             />
-            <div
-              class:list={[
-                'markdown-content text-sm leading-6 break-words',
-                isCompact ? 'line-clamp-1' : 'line-clamp-3',
-              ]}
-              set:html={replyHtml!}
-            />
+            {(!isCompact || result.files.length === 0) && (
+              <div
+                class:list={[
+                  'markdown-content text-sm leading-6 break-words',
+                  isCompact ? 'line-clamp-1' : 'line-clamp-3',
+                ]}
+                set:html={replyHtml!}
+              />
+            )}
             {result.files.length > 0 && (
-              <div class="mt-4 border-t border-border pt-3">
+              <div class={!isCompact ? 'mt-4 border-t border-border pt-3' : undefined}>
                 <RecordedFileTree
                   changes={result.files.slice(0, 4)}
                   label="Recorded journey file changes"

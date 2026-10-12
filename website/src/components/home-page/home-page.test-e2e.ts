@@ -657,6 +657,25 @@ test('balances decisions and platform journeys above full-width project runs', a
   await expect(cards.nth(1).locator('[data-conversation]')).toHaveCount(1);
   await expect(cards.nth(1)).toContainText('Claude');
   await expect(cards.nth(1).locator('[data-recorded-file-tree]')).toContainText('moldea.yaml');
+  const decisionSummary = page.locator('[data-home-evidence-result="decision"]');
+  const originalSummaryHeight = await decisionSummary.evaluate((element) => {
+    const first = element.firstElementChild!.getBoundingClientRect();
+    const last = element.lastElementChild!.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return (
+      last.bottom -
+      first.top +
+      parseFloat(style.paddingTop) +
+      parseFloat(style.paddingBottom) +
+      parseFloat(style.borderTopWidth) +
+      parseFloat(style.borderBottomWidth)
+    );
+  });
+  expect((await decisionSummary.boundingBox())!.height).toBeCloseTo(originalSummaryHeight, 0);
+  await expect(cards.nth(1)).not.toContainText('Follow successive requests');
+  await expect(cards.nth(1).locator('[data-conversation-message="assistant"]')).not.toContainText(
+    'Saved the project foundation.',
+  );
   const decisionAction = await cards
     .nth(0)
     .getByRole('link', { name: 'Inspect the decisions', exact: true })

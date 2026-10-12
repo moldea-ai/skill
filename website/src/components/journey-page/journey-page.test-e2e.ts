@@ -12,6 +12,7 @@ test('shows exact requests and replies with file changes and separate local chec
   await page.goto(route);
   const provider = page.locator('[data-journey-provider="claude"]');
   await expect(provider.locator('[data-journey-request]').first()).toHaveText('Initialize moldea.');
+  await expect(provider.getByText(/^Request \d+$/u)).toHaveCount(0);
   await expect(provider.locator('[data-conversation-message="assistant"]').first()).toContainText(
     'Validation reports valid.',
   );

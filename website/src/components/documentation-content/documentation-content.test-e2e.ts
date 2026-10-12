@@ -53,6 +53,7 @@ for (const width of [320, 768, 1440]) {
         await page.goto(withBase('/examples/create-a-support-agent/', basePath));
         await expect(page.getByRole('list', { name: 'Illustrative conversation' })).toBeVisible();
         await expect(page.getByRole('article', { name: 'You message' })).toBeVisible();
+        await expect(page.locator('[data-conversation-message="user"] svg')).toBeVisible();
         await expect(page.getByRole('article', { name: 'Coding agent message' })).toBeVisible();
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
           width,

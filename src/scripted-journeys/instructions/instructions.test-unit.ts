@@ -1,0 +1,25 @@
+// @vitest-environment node
+import { expect, test } from 'vitest';
+
+import { readProjectInstructions, renderStartMessage } from './instructions.ts';
+
+test('project instructions are bounded, generic, and explain both recovery paths', async () => {
+  const instructions = await readProjectInstructions();
+  expect(instructions.length).toBeLessThanOrEqual(8000);
+  expect(instructions).not.toMatch(/moldea|adopted-unrelated|new-project|expected|criterion/iu);
+  expect(instructions).toContain('--resume');
+  expect(instructions).toContain('re-issued');
+  expect(instructions).toContain('frontmatter description');
+});
+
+test('start message binds the platform, run, and independently held zip digest', async () => {
+  const message = await renderStartMessage({
+    runId: '20261012-abcdef',
+    platform: 'claude',
+    sha256: 'a'.repeat(64),
+    url: 'https://example.com/bundle.zip',
+  });
+  expect(message).toContain('--platform claude');
+  expect(message).toContain(`--sha256 ${'a'.repeat(64)}`);
+  expect(message).not.toContain('{{');
+});

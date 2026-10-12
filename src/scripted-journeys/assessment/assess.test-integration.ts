@@ -1,0 +1,210 @@
+// @vitest-environment node
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { expect, test } from 'vitest';
+
+import { writeJsonFileAtomically } from '../../filesystem/index.ts';
+import { createArchive } from '../bundle/index.ts';
+import { copyTree, readJson, treeHashes } from '../harness/index.ts';
+import { createHarnessFixture, recordFixturePlatform } from '../testing/index.ts';
+import { JourneysExportSchema } from '../index.ts';
+
+import { assessJourneys } from './assess.ts';
+
+test('assessment reconstructs real harness exports, carries provenance, and rejects tampering and unsafe intermediate patches', async () => {
+  const scratch = await mkdtemp(path.join(os.tmpdir(), 'journeys-assessment-'));
+  try {
+    const fixture = await createHarnessFixture(scratch, process.cwd());
+    const chatgpt = await recordFixturePlatform(scratch, fixture, 'chatgpt');
+    const claude = await recordFixturePlatform(scratch, fixture, 'claude', true);
+    const closure = path.join(scratch, 'installed-closure');
+    await mkdir(closure);
+    const chatgptZip = path.join(scratch, 'chatgpt.zip');
+    const claudeZip = path.join(scratch, 'claude.zip');
+    await createArchive(chatgpt, chatgptZip);
+    await createArchive(claude, claudeZip);
+    const input = {
+      repositoryRoot: process.cwd(),
+      bundlePath: fixture.bundleZip,
+      sha256: fixture.hash,
+      exportPaths: [chatgptZip],
+      installedClosure: closure,
+      definitions: fixture.definitions,
+      persist: false,
+    };
+    const diagnostic = await assessJourneys({
+      ...input,
+      operatorRecord: {
+        chatgpt: {
+          model: 'Observed model',
+          settings: { memory: 'default' },
+          interventions: ['continue'],
+        },
+      },
+    });
+    expect(diagnostic.platforms[0]?.configuration).toStrictEqual({
+      model: 'Observed model',
+      settings: { memory: 'default' },
+      interventions: ['continue'],
+    });
+    expect(diagnostic.status).toBe('incomplete');
+    expect(diagnostic.platforms[0]?.journeys[0]?.steps[0]?.unverified).toStrictEqual([
+      'The policy was read before writing.',
+    ]);
+    expect(diagnostic.platforms[0]?.journeys[0]?.steps[0]?.facts?.cliPresent).toBe(false);
+    const complete = await assessJourneys({ ...input, exportPaths: [chatgptZip, claudeZip] });
+    expect(complete.status).toBe('failed');
+    expect(complete.platforms[1]?.journeys[0]?.steps[1]?.status).toBe('failed');
+    await expect(assessJourneys({ ...input, sha256: '0'.repeat(64) })).rejects.toThrow(/SHA-256/u);
+    await expect(
+      assessJourneys({ ...input, exportPaths: [chatgptZip, chatgptZip] }),
+    ).rejects.toThrow(/Duplicate platform/u);
+    const changedDefinitions = structuredClone(fixture.definitions);
+    changedDefinitions[0]!.steps[0]!.checks = [{ kind: 'path-exists', path: 'invented.md' }];
+    await expect(assessJourneys({ ...input, definitions: changedDefinitions })).rejects.toThrow(
+      /definition digest/u,
+    );
+    for (const mutation of [
+      'empty-reply',
+      'wrong-policy',
+      'mode-change',
+      'hash-list',
+      'harness',
+      'transient-symlink',
+    ] as const) {
+      const directory = path.join(scratch, mutation, 'checkpoint');
+      await copyTree(chatgpt, directory);
+      const manifestPath = path.join(directory, 'manifest.json');
+      if (mutation === 'empty-reply' || mutation === 'wrong-policy')
+        await writeFile(
+          path.join(directory, 'steps/first/read/reply.md'),
+          mutation === 'empty-reply' ? '' : 'Retention is 60 days.',
+        );
+      if (mutation === 'mode-change') {
+        await writeFile(
+          path.join(directory, 'steps/first/read/changes.patch'),
+          'diff --git a/policy.md b/policy.md\nold mode 100644\nnew mode 100755\n',
+        );
+        await chmod(path.join(directory, 'journeys/first/final/policy.md'), 0o755);
+      }
+      if (mutation === 'harness') {
+        const manifest = JourneysExportSchema.parse(await readJson(manifestPath));
+        manifest.harnessHashes['harness/next.mjs'] = '0'.repeat(64);
+        await writeJsonFileAtomically(manifestPath, manifest);
+      }
+      if (mutation === 'transient-symlink')
+        await writeFile(
+          path.join(directory, 'steps/first/change/changes.patch'),
+          'diff --git a/link b/link\nnew file mode 120000\n--- /dev/null\n+++ b/link\n@@ -0,0 +1 @@\n+outside\n',
+        );
+      if (mutation !== 'hash-list')
+        await writeJsonFileAtomically(
+          path.join(directory, 'files.json'),
+          await treeHashes(directory, ['files.json']),
+        );
+      else
+        await writeFile(
+          path.join(directory, 'steps/first/read/reply.md'),
+          'changed without updating hashes',
+        );
+      const archive = path.join(scratch, `${mutation}.zip`);
+      await createArchive(directory, archive);
+      const operation = assessJourneys({ ...input, exportPaths: [archive] });
+      if (mutation === 'empty-reply' || mutation === 'wrong-policy' || mutation === 'mode-change')
+        expect((await operation).platforms[0]?.journeys[0]?.steps[1]?.status).toBe('failed');
+      else await expect(operation).rejects.toThrow(/hash mismatch|patch mode/u);
+    }
+    const secondPassing = path.join(scratch, 'second-passing', path.basename(chatgpt));
+    await copyTree(chatgpt, secondPassing);
+    const passingManifest = JourneysExportSchema.parse(
+      await readJson(path.join(secondPassing, 'manifest.json')),
+    );
+    passingManifest.platform = 'claude';
+    await writeJsonFileAtomically(path.join(secondPassing, 'manifest.json'), passingManifest);
+    await writeJsonFileAtomically(
+      path.join(secondPassing, 'files.json'),
+      await treeHashes(secondPassing, ['files.json']),
+    );
+    const secondPassingZip = path.join(scratch, 'second-passing.zip');
+    await createArchive(secondPassing, secondPassingZip);
+    expect(
+      (await assessJourneys({ ...input, exportPaths: [chatgptZip, secondPassingZip] })).status,
+    ).toBe('passed');
+    expect(
+      (await readFile(path.join(chatgpt, 'steps/first/change/changes.patch'), 'utf8')).length,
+    ).toBeGreaterThan(0);
+  } finally {
+    await rm(scratch, { recursive: true, force: true });
+  }
+});
+
+test('assessment blocks failed prerequisites and rejects a contradictory validation reply', async () => {
+  const scratch = await mkdtemp(path.join(os.tmpdir(), 'journeys-blocked-'));
+  try {
+    const definitions = [
+      {
+        id: 'first',
+        title: 'Blocked validation',
+        summary: 'Negative controls',
+        order: 0,
+        fixture: { adopted: false, installCli: false },
+        steps: [
+          {
+            id: 'change',
+            request: 'Validate the project.',
+            dependsOn: [],
+            checks: [{ kind: 'validate' as const, result: 'valid' as const }],
+            unverified: [],
+          },
+          {
+            id: 'read',
+            request: 'Continue after validation.',
+            dependsOn: ['change'],
+            checks: [{ kind: 'no-changes' as const }],
+            unverified: [],
+          },
+          {
+            id: 'report',
+            request: 'Report the validation result.',
+            dependsOn: [],
+            checks: [
+              { kind: 'reply-matches' as const, pattern: '\\bvalid\\b', absent: '\\binvalid\\b' },
+            ],
+            unverified: [],
+          },
+        ],
+      },
+    ];
+    const fixture = await createHarnessFixture(scratch, process.cwd(), definitions);
+    const exported = await recordFixturePlatform(scratch, fixture, 'chatgpt');
+    await writeFile(
+      path.join(exported, 'steps/first/report/reply.md'),
+      'The result is valid and invalid.',
+    );
+    await writeJsonFileAtomically(
+      path.join(exported, 'files.json'),
+      await treeHashes(exported, ['files.json']),
+    );
+    const archive = path.join(scratch, 'export.zip');
+    await createArchive(exported, archive);
+    const closure = path.join(scratch, 'closure');
+    await mkdir(closure);
+    const assessment = await assessJourneys({
+      repositoryRoot: process.cwd(),
+      bundlePath: fixture.bundleZip,
+      sha256: fixture.hash,
+      exportPaths: [archive],
+      installedClosure: closure,
+      definitions: fixture.definitions,
+      persist: false,
+    });
+    expect(assessment.platforms[0]?.journeys[0]?.steps.map((step) => step.status)).toStrictEqual([
+      'blocked',
+      'blocked',
+      'failed',
+    ]);
+  } finally {
+    await rm(scratch, { recursive: true, force: true });
+  }
+});

@@ -33,6 +33,8 @@ npm run eval:journeys -- pack --commit HEAD
 
 Packing reads the skill from the specified Git commit, builds a minimal offline npm cache for its exact CLI repair version, prepares fixtures and lockfiles, and bundles four standalone scripts. Criteria remain local; only requests and definition hashes enter the bundle. The command prints the bundle path, SHA-256, and start messages. Keep the printed SHA-256 separately as the assessment trust anchor. The bundle is stored under ignored `.evidence/journeys/`.
 
+For candidate testing, substitute the full committed candidate SHA for `HEAD`. The skill need not be tagged, but its exact CLI repair version must be available from npm for cache preparation. Packing does not include uncommitted skill edits.
+
 The cache is prepared with lifecycle scripts disabled. Adopted fixtures receive a generated lockfile; fixtures that enable CLI setup also receive an offline install. The boundaries fixture deliberately leaves the CLI uninstalled. The sandbox uses a writable copy of the cache, preserving the original bundle. npm's hash-addressed `_cacache/content-v2/sha512/` paths have a narrow filename-length exception; other exchanged paths retain the normal portable limits.
 
 Publish the new bundle to a dedicated release for Claude to download:
@@ -45,7 +47,26 @@ The command refuses an existing release rather than replacing its bytes. This pu
 
 ## Configure the selected projects
 
-Create or select an ordinary project on each platform. Install the complete contents of `src/scripted-journeys/instructions/project-instructions.md` as its custom instructions. Keep unrelated project files and instructions out of the evaluation project. Record the displayed model, date, enabled tools, memory and personalization settings, and any interventions with the run. Do not infer a model from its reply.
+Use the dedicated ordinary project named `moldea scripted journeys` on both ChatGPT and Claude. The name matches this workflow, `src/scripted-journeys/`, and `eval:journeys`. These projects were previously named `moldea smoke test`. Find them through the platform's project list and verify the project heading before changing settings or starting a chat. Local operators may keep their project IDs and setup observations in ignored `.evidence/journeys/operator-projects.md`; do not publish private project or chat links in documentation or evidence. If the name is ambiguous, use the locally recorded identity rather than selecting a similarly named project or creating a replacement.
+
+Install the complete contents of `src/scripted-journeys/instructions/project-instructions.md` as custom instructions on each selected project. Save, reopen, and compare the complete text before every new campaign. Keep unrelated project files and instructions out of the evaluation project. Attach the current bundle to its trial chat rather than adding it as a shared project source. Preserve prior chats and exports; a project rename or instructions update does not upgrade their evidence.
+
+Record the displayed model, date, enabled tools, memory and personalization settings, and any interventions with each trial. Do not infer a model from its reply. A fresh chat establishes a new conversation, not memory isolation. ChatGPT projects retain shared context across chats ([OpenAI project guidance](https://learn.chatgpt.com/docs/projects)); observe the actual memory and context controls and retain any limitations in the record. Recheck settings when starting confirmations. Do not silently change account-wide settings to obtain isolation.
+
+### Autonomous operator checklist
+
+Browser operation carries out the same operator protocol; it does not replace local assessment. Before running, establish the exact committed skill candidate, selected providers, and whole-journey scope. Use the requested candidate SHA rather than a moving branch tip, and wait when the candidate is still being built.
+
+1. Check the selected project identities, saved instructions, shared sources, displayed model, tools, and memory/personalization controls. Report unavailable observations explicitly. Do not use earlier trial settings as current observations.
+2. Pack the exact candidate, preserve the printed bundle SHA-256 separately, and publish the immutable input bundle when Claude needs the download URL. Keep evaluator inputs unchanged throughout the campaign. Changed evaluator inputs require a new campaign.
+3. Create a campaign-specific local operator record containing `{"trials": {}}`. The prepared `.evidence/journeys/operator-record.json` is an empty starter, not an attestation. Never overwrite observations from an earlier campaign.
+4. Start one fresh chat per trial in the selected project. Send the generated start message once, preserving all selection and confirmation arguments. Use the current bundle attachment for ChatGPT and its immutable download URL for Claude. Observe completion before any `continue` or recovery action.
+5. Save each checkpoint and final export without replacing earlier attempts. Hash the downloaded final archive locally. Add its observations under that exact digest only after observing the fresh chat and actual configuration. Keep private navigation details outside the public operator record.
+6. Assess the accumulated exports locally. Run only the fresh confirmations requested by assessment, using the same bundle and model/settings for that provider/journey group. Stop confirming that group at quorum or a blocked-only confirmation and retain every admitted export. Other selected groups can proceed independently.
+7. Compose only the requested provider/journey groups. Leave other providers' selected results intact, and preserve explicit Not run cells for new tests without observations.
+8. Publish and pin only the evidence selected for publication, using the commands below and the current authorization. Prepare the website evidence and run its required verification before reporting publication complete. Report the candidate, scope, trial resolutions, retained limitations, and any remaining publication or deployment work.
+
+### Run each trial
 
 Attach the zip to the ChatGPT chat. In Claude, supply the printed release download URL through its start message. Use one clean chat per trial and send the corresponding start message once. Do not edit that start or regenerate completed steps. The project instructions authorize the agent to apply installed skills and to treat each request printed by `next` as a developer request.
 

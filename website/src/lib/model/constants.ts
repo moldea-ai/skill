@@ -47,6 +47,7 @@ export const REQUIRED_DOCUMENT_ROUTES = [
   '/docs/how-it-works/',
   '/docs/limitations/',
   '/docs/semantic-evaluation/',
+  '/docs/scripted-journeys/',
   '/docs/repository-format/',
   '/docs/project-state/',
   '/docs/planning-agent-systems/',

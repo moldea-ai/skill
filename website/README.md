@@ -6,13 +6,13 @@ This Astro application renders the public documentation and selected release evi
 
 The site also presents one manually prepared mock-project run as an independent evidence source. It does not contribute to semantic scores.
 
-The site consumes Markdown under `../docs/`, the portable skill under `../moldea/`, and the prepared public semantic and optional scripted-journey bundles selected by `../evidence/selection.json`. The producer-owned bundle already contains the semantic definitions, presentation metadata, replays, projects, artifacts, version, date, and technical provenance required by the existing pages.
+The site consumes Markdown under `../docs/`, the portable skill under `../moldea/`, and the prepared public semantic and optional scripted-journey bundles selected by `../evidence/selection.json`. Each producer-owned bundle contains its definitions, presentation metadata, recorded outcomes, artifacts, version, date, and technical provenance required by its pages.
 
 The canonical `docs/limitations.md` guide is published at `/docs/limitations/` with route-local outcome badges and distinct accessible table-region names, ordinary documentation navigation, search, and discovery. Package-owned references supply numeric limits; the guide explains consequences and next actions.
 
 Generation is fail-closed. Missing selections, malformed bundles, wrong digests, unsafe artifacts, or a prepared manifest that does not match the selection fail the production build. The website does not import evaluator modules, inspect Git history, calculate compatibility, or compare selected evidence with current cases.
 
-Public replay is bounded and privacy-safe. It may contain developer direction, actor response, deterministic facts, the maximum output byte count from one completed command, aggregate byte counts, token usage, durations, judge rationale, and verdicts. It never includes raw command text, raw command output, hidden reasoning, credentials, or arbitrary workspace contents.
+Public semantic replay is bounded and privacy-safe. It may contain developer direction, actor response, deterministic facts, the maximum output byte count from one completed command, aggregate byte counts, token usage, durations, judge rationale, and verdicts. It never includes raw command text, raw command output, hidden reasoning, credentials, or arbitrary workspace contents.
 
 The shared layout adds copy controls to useful code blocks after each direct load or client navigation. Illustrative and incomplete excerpts opt out at their owning component, remain selectable, and reserve no toolbar space. Clipboard failures keep the source readable and explain how to copy it manually.
 
@@ -58,6 +58,8 @@ The evidence landing page adds “03 Follow scripted journeys”. `/evidence/jou
 File trees reuse `RecordedFileTree`; patch dialogs use Website UI's `Dialog` and `CodeDiff`, which parses patches through `buildCodePatch`. Platform marks use the package's public runtime-logo exports. The request comparison owns a small responsive tab controller because the shared always-tabbed panels cannot show both platforms side by side on desktop without duplicating content. On mobile it supports arrow keys, Home, End, and selected-panel semantics. Without JavaScript both results remain available. Layouts support 320px widths, both themes, and the shared dialog's reduced-motion behavior.
 
 Trusted local checks, unverified claims, sandbox-captured facts, agent-reported replies, and agent-reported activity have separate labels. Replies pass through the shared sanitized Markdown renderer. Harness observations come from a model-controlled workspace; reported commands and CLI presence do not prove execution. These scripted results describe the selected run and are not a platform success rate or product endorsement. See [Scripted journeys](../docs/scripted-journeys.md) for the method and limits.
+
+The complete suite contains six journeys and 21 requests per platform. Models know they are being tested, future requests exist in the workspace, and actual instruction consumption and complete consumer cleanup remain unverified where declared. Reported procedural deviations stay in the evidence even when the trusted checks pass. Replies, activity, patches, and operator notes require publication inspection; private chat URLs do not belong in the public operator record. Packing and assessment require a Linux or macOS maintainer host; ChatGPT sandbox resets may restart the unfinished journey and are shown through recorded restart counts.
 
 ## Product explanation and SEO
 

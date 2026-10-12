@@ -67,6 +67,7 @@ Evaluation is read-only. Repair corrects established errors and may recover nece
 | Inspect compatibility, local tooling, and resource limits          | [Compatibility and local tooling](docs/compatibility-and-local-tooling.md)                    |
 | Review instruction-loading behavior                                | [Reference-reading checks](docs/reference-reading.md)                                         |
 | Run semantic evaluation                                            | [Semantic evaluation](docs/semantic-evaluation.md)                                            |
+| Run subscription-based ChatGPT and Claude journeys                 | [Scripted journeys](docs/scripted-journeys.md)                                                |
 | Select fresh or pinned release evidence                            | [Release evidence](docs/release-evidence.md)                                                  |
 | Browse all public documentation                                    | [Documentation index](docs/index.md)                                                          |
 
@@ -110,6 +111,8 @@ Tooling establishment occurs only during authorized write-capable work and only 
 ## Project blueprint
 
 `moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, scripted journeys, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.
+
+Scripted journeys cover six journeys and 21 requests in ordinary ChatGPT and Claude projects. Both platforms receive the same commit-pinned skill bundle; trusted checks run locally against exported outcomes. The optional third evidence section shows requests, changes, replies, checks, and provenance. Procedural adherence, actual instruction consumption, and complete consumer cleanup remain explicitly unverified where the suite does not establish them. These results describe one selected run, not platform-wide reliability.
 
 | Area                                      | Responsibility                                                                                                                                                            |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

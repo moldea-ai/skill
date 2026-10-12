@@ -33,7 +33,7 @@ npm run eval:journeys -- pack --commit HEAD
 
 Packing reads the skill from the specified Git commit, builds a minimal offline npm cache for its exact CLI repair version, prepares fixtures and lockfiles, and bundles four standalone scripts. Criteria remain local; only requests and definition hashes enter the bundle. The command prints the bundle path, SHA-256, and start messages. Keep the printed SHA-256 separately as the assessment trust anchor. The bundle is stored under ignored `.evidence/journeys/`.
 
-The cache is prepared with lifecycle scripts disabled. Adopted fixtures receive an offline install and a generated lockfile. The sandbox uses a writable copy of the cache, preserving the original bundle. npm's hash-addressed `_cacache/content-v2/sha512/` paths have a narrow filename-length exception; other exchanged paths retain the normal portable limits.
+The cache is prepared with lifecycle scripts disabled. Adopted fixtures receive a generated lockfile; fixtures that enable CLI setup also receive an offline install. The boundaries fixture deliberately leaves the CLI uninstalled. The sandbox uses a writable copy of the cache, preserving the original bundle. npm's hash-addressed `_cacache/content-v2/sha512/` paths have a narrow filename-length exception; other exchanged paths retain the normal portable limits.
 
 Publish the new bundle to a dedicated release for Claude to download:
 
@@ -47,11 +47,13 @@ The command refuses an existing release rather than replacing its bytes. This pu
 
 Create or select an ordinary project on each platform. Install the complete contents of `src/scripted-journeys/instructions/project-instructions.md` as its custom instructions. Keep unrelated project files and instructions out of the evaluation project. Record the displayed model, date, enabled tools, memory and personalization settings, and any interventions with the run. Do not infer a model from its reply.
 
-Attach the zip to the ChatGPT chat. In Claude, supply the printed release download URL through its start message. Send the corresponding start message once. The project instructions authorize the agent to apply installed skills and to treat each request printed by `next` as a developer request.
+Attach the zip to the ChatGPT chat. In Claude, supply the printed release download URL through its start message. Use one clean chat per platform and send the corresponding start message once. Do not edit that start or regenerate completed steps. The project instructions authorize the agent to apply installed skills and to treat each request printed by `next` as a developer request.
 
 The agent extracts the bundle, creates an empty workspace, runs `setup`, then repeats `next`, task work, `record`, and each requested `export`. After each journey it zips and attaches the checkpoint before advancing. At completion it attaches a final export. Requests, replies, and activity files are small; replies are limited to 65,536 bytes. Archives allow at most 8,192 entries, 16 MiB per file, and 64 MiB expanded in total.
 
-If a turn truncates, send `continue`. A surviving workspace reissues the pending request without dropping edits. After a sandbox reset, the agent extracts the original bundle and latest checkpoint, runs setup with `--resume`, and restarts the first unfinished journey from its fixture. Restart counts survive in the export. Setup refuses to overwrite live state. With no checkpoint, a reset requires restarting the run and recording that intervention.
+Send `continue` only after the response has visibly finished at a tool limit or truncation. A missing Stop control alone does not establish completion. While the platform says it is checking for a response, wait or recover the view without submitting another message. Retrying an unresolved turn can create overlapping histories that share one workspace. If that occurs, reject the attempt and start the whole platform run in a fresh chat with the same bundle; never combine step captures from different attempts.
+
+A surviving workspace reissues the pending request without dropping edits. After a sandbox reset, including a ChatGPT reset, the agent extracts the original bundle and latest checkpoint, runs setup with `--resume`, and restarts the first unfinished journey from its fixture. Restart counts survive in the export. Setup refuses to overwrite live state. With no checkpoint, a reset requires restarting the run and recording that intervention. Keep each replacement attempt and its interventions distinguishable from the rejected attempt.
 
 ## Assess exports
 
@@ -65,7 +67,7 @@ Assessment verifies archive paths, sizes, file types, every exported file hash, 
 
 Validation executes only a CLI closure installed locally from the original bundle cache and proved through the skill's closed launcher. Exported dependency declarations and lockfiles are inspected as data. They never select executable dependencies. Exported npm configuration is ignored. A missing exact declaration or lockfile blocks validation rather than triggering an install from exported metadata.
 
-The optional operator record contains `chatgpt` and/or `claude` entries, each with `model` (the displayed name, or `null`), `settings` (a string-to-string map), and `interventions` (an array of strings). Record dates, settings, resets, and operator messages here. The optional `--chatgpt-model` and `--claude-model` flags override the corresponding model name. Missing observations remain empty or null rather than being inferred.
+The optional operator record contains `chatgpt` and/or `claude` entries, each with `model` (the displayed name, or `null`), `settings` (a string-to-string map), and `interventions` (an array of strings). Record dates, settings, resets, and operator messages here. These fields enter public evidence, so omit private chat URLs and inspect the record, replies, patches, and activity for sensitive content before publication. The optional `--chatgpt-model` and `--claude-model` flags override the corresponding model name. Missing observations remain empty or null rather than being inferred.
 
 A step passes only when its trusted checks pass; failed dependencies or unavailable validation evidence block dependent work. A journey passes only when every step passes. A run passes only when both platforms are present and every journey passes on both. Two-platform failures are `failed`; one-platform diagnostic runs are `incomplete`. The assessed record, artifacts, and assessor identity are stored under `.evidence/runs/journeys/<run-id>.json`.
 
@@ -75,7 +77,9 @@ Trusted checks establish file outcomes and reply facts against local criteria. R
 
 The model can inspect or modify its workspace. Instructions forbid opening the harness or future request files, but this cannot be enforced. File hashes detect inconsistencies against the operator-held bundle; they do not authenticate model behavior. No command monitoring or tool-call timeline is collected.
 
-Diagnose harness, fixture, or assessment defects and rerun after correction. Report defects in the distributed skill separately; this suite does not modify it to make a run pass. Keep failed diagnostic records for investigation. Evidence selection and website presentation are separate publication steps.
+The model knows it is being tested, and the future-step file exists in its workspace. A passing check does not verify every requested behavior: actual canonical-instruction consumption and removal of every superseded consumer remain unverified in the agent journey. Preserve reported procedural deviations and observed defects alongside passing outcomes; do not describe a passing run as proof that every instruction was followed.
+
+Diagnose harness, fixture, or assessment defects and rerun after correction. Changed criteria require fresh exports from both platforms against the corrected bundle. An integrity failure invalidates that platform export and requires a fresh whole-platform attempt. Report defects in the distributed skill separately; this suite does not modify it to make a run pass. Observed model behavior alone does not establish a defect in the skill instructions. Keep failed diagnostic records for investigation. Evidence selection and website presentation are separate publication steps.
 
 ## Publish assessed evidence
 

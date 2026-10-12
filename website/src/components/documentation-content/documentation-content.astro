@@ -1,4 +1,5 @@
 ---
+import { UserRound } from '@lucide/astro';
 import Conversation from '@moldea.ai/website-ui/conversation';
 import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
 import { withBase } from '@moldea.ai/website-ui/site';
@@ -28,16 +29,19 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
         <Conversation>
           {block.messages.map((message) => (
             <ConversationMessage role={message.role}>
-              {message.role === 'assistant' && (
-                <img
-                  slot="avatar"
-                  src={skillMarkPath}
-                  width="207"
-                  height="215"
-                  alt=""
-                  class="dark:invert"
-                />
-              )}
+              <Fragment slot="avatar">
+                {message.role === 'assistant' ? (
+                  <img
+                    src={skillMarkPath}
+                    width="207"
+                    height="215"
+                    alt=""
+                    class="dark:invert"
+                  />
+                ) : (
+                  <UserRound class="size-4" />
+                )}
+              </Fragment>
               <div
                 class="prose-moldea prose-moldea-wrap-code"
                 set:html={message.html}

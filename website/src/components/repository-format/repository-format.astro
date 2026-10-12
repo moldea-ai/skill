@@ -1,7 +1,6 @@
 ---
 import { ArrowRight, FileText, FolderTree, GitBranch, Link2, ShieldCheck } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import { REPOSITORY_FORMAT_EXAMPLE } from './constants.ts';
@@ -51,9 +50,8 @@ const getTreeConnector = (index: number, length: number): string =>
         </h2>
       </div>
       <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-        <InlineBrandText
-          text="moldea starts with two files, then adds focused context and agent behavior only when the project needs them."
-        />
+        moldea starts with two files, then adds focused context and agent behavior only when the
+        project needs them.
       </p>
     </header>
 

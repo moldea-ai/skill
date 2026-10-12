@@ -169,21 +169,15 @@ for (const width of HEADING_ROLE_WIDTHS) {
       if (width >= 768) {
         const projectCard = page.locator('[data-home-evidence-card="projects"]');
         await expect(projectCard).toBeVisible();
-        const contentCenter = await projectCard
-          .locator(':scope > div')
-          .first()
-          .evaluate((element) => {
-            const bounds = element.getBoundingClientRect();
-            return bounds.top + bounds.height / 2;
-          });
-        const summaryCenter = await projectCard
-          .locator(':scope > div')
-          .last()
-          .evaluate((element) => {
-            const bounds = element.getBoundingClientRect();
-            return bounds.top + bounds.height / 2;
-          });
-        expect(contentCenter).toBeCloseTo(summaryCenter, 0);
+        const projectBounds = await projectCard.boundingBox();
+        const decisionBounds = await page
+          .locator('[data-home-evidence-card="decision"]')
+          .boundingBox();
+        expect(projectBounds).not.toBeNull();
+        expect(decisionBounds).not.toBeNull();
+        expect(projectBounds!.y).toBeCloseTo(decisionBounds!.y, 0);
+        expect(projectBounds!.width).toBeCloseTo(decisionBounds!.width, 0);
+        expect(projectBounds!.x).toBeGreaterThan(decisionBounds!.x);
       }
       if (width >= 1024) {
         for (const titleId of [
@@ -231,17 +225,16 @@ for (const width of [320, 1440]) {
       const links = grid.getByRole('link');
       await expect(links).toHaveCount(RUNTIME_CATALOG.length);
       for (const { displayName, id } of RUNTIME_CATALOG) {
-        await expect(grid.getByRole('link', { name: displayName, exact: true })).toHaveAttribute(
-          'href',
-          `${PACKAGES_WEBSITE_URL}runtimes/#${id}`,
-        );
+        await expect(
+          grid.getByRole('link', { name: `${displayName} ${id}`, exact: false }),
+        ).toHaveAttribute('href', `${PACKAGES_WEBSITE_URL}runtimes/#${id}`);
       }
       for (const logo of await grid.locator('img').all()) {
         await expect(logo).toHaveAttribute('alt', '');
         await expect(logo).toHaveAttribute('loading', 'lazy');
         await expect(logo).toHaveAttribute('decoding', 'async');
-        await expect(logo).toHaveAttribute('width', '104');
-        await expect(logo).toHaveAttribute('height', '32');
+        await expect(logo).toHaveAttribute('width', '96');
+        await expect(logo).toHaveAttribute('height', '48');
       }
       await links.first().scrollIntoViewIfNeeded();
       await expect
@@ -322,7 +315,8 @@ test('leads with project context while retaining the connected-agent example and
   await expect(cloudLink).toHaveAttribute('href', CLOUD_WEBSITE_URL);
   await expect(cloudLink).toHaveAttribute('target', '_blank');
   await expect(cloudLink).toHaveAttribute('rel', 'noopener noreferrer');
-  await expect(cloudLink.locator('code')).toHaveText('moldea Cloud');
+  await expect(cloudLink).toContainText('moldea Cloud');
+  await expect(cloudLink.locator('code')).toHaveCount(0);
   await cloudLink.focus();
   await expect(cloudLink).toBeFocused();
 
@@ -466,7 +460,8 @@ test('presents the product story before proof and adoption', async ({ page }) =>
       }),
     );
   expect(evidenceCardBoxes).toHaveLength(2);
-  expect(evidenceCardBoxes[1]?.y).toBeGreaterThan(evidenceCardBoxes[0]?.y ?? 0);
+  expect(evidenceCardBoxes[1]?.y).toBeCloseTo(evidenceCardBoxes[0]?.y ?? 0, 0);
+  expect(evidenceCardBoxes[1]?.x).toBeGreaterThan(evidenceCardBoxes[0]?.x ?? 0);
   expect(evidenceCardBoxes[1]?.width).toBeCloseTo(evidenceCardBoxes[0]?.width ?? 0, 0);
   await expect(evidenceSection.getByRole('link', { name: 'Explore project runs' })).toHaveAttribute(
     'href',
@@ -562,30 +557,33 @@ test('keeps selection visible on primary surfaces in light and dark themes', asy
     const context = await browser.newContext({ colorScheme });
     const page = await context.newPage();
     await page.goto(toPublicPath('/'));
-    const selections = await page.locator('main .bg-primary').evaluateAll((surfaces) => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 1;
-      canvas.height = 1;
-      const painter = canvas.getContext('2d');
-      if (painter === null) throw new Error('Selection color sampling is unavailable.');
-      return surfaces.map((surface) => {
-        const background = getComputedStyle(surface).backgroundColor;
-        const text = surface.querySelector('p, code') ?? surface;
-        painter.clearRect(0, 0, 1, 1);
-        painter.fillStyle = background;
-        painter.fillRect(0, 0, 1, 1);
-        const before = [...painter.getImageData(0, 0, 1, 1).data].slice(0, 3);
-        painter.fillStyle = getComputedStyle(text, '::selection').backgroundColor;
-        painter.fillRect(0, 0, 1, 1);
-        const selected = [...painter.getImageData(0, 0, 1, 1).data].slice(0, 3);
-        return {
-          label: text.textContent?.trim(),
-          difference: Math.max(
-            ...selected.map((channel, index) => Math.abs(channel - before[index]!)),
-          ),
-        };
+    const selections = await page
+      .locator('main .bg-primary')
+      .filter({ hasText: /\S/u })
+      .evaluateAll((surfaces) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const painter = canvas.getContext('2d');
+        if (painter === null) throw new Error('Selection color sampling is unavailable.');
+        return surfaces.map((surface) => {
+          const background = getComputedStyle(surface).backgroundColor;
+          const text = surface.querySelector('p, code') ?? surface;
+          painter.clearRect(0, 0, 1, 1);
+          painter.fillStyle = background;
+          painter.fillRect(0, 0, 1, 1);
+          const before = [...painter.getImageData(0, 0, 1, 1).data].slice(0, 3);
+          painter.fillStyle = getComputedStyle(text, '::selection').backgroundColor;
+          painter.fillRect(0, 0, 1, 1);
+          const selected = [...painter.getImageData(0, 0, 1, 1).data].slice(0, 3);
+          return {
+            label: text.textContent?.trim(),
+            difference: Math.max(
+              ...selected.map((channel, index) => Math.abs(channel - before[index]!)),
+            ),
+          };
+        });
       });
-    });
     expect(selections.length).toBeGreaterThan(0);
     for (const selection of selections) {
       expect(selection.difference, `${colorScheme}: ${selection.label}`).toBeGreaterThan(40);

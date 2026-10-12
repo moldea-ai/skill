@@ -1,6 +1,5 @@
 ---
 import { FolderGit2, UserRound } from '@lucide/astro';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 
 import type { IProjectAttempt } from '../../lib/project-runs/index.ts';
 import { getProjectPatchPaths } from '../evidence-page/index.ts';
@@ -30,7 +29,7 @@ const paths = getProjectPatchPaths(attempt).map(({ path, action }) => ({
       <p class="text-xs text-muted-foreground">Recorded project</p><h3
         class="text-lg font-semibold"
       >
-        <InlineBrandText text={attempt.title} />
+        {attempt.title}
       </h3>
     </div>
   </div>
@@ -45,9 +44,7 @@ const paths = getProjectPatchPaths(attempt).map(({ path, action }) => ({
           <div class="min-w-0">
             <>
               <p class="text-xs font-semibold text-muted-foreground">Request excerpt</p>
-              <p class="mt-1 line-clamp-3 text-sm leading-6">
-                <InlineBrandText text={attempt.initialRequest.text} />
-              </p>
+              <p class="mt-1 line-clamp-3 text-sm leading-6">{attempt.initialRequest.text}</p>
             </>
           </div>
         </>
@@ -70,6 +67,6 @@ const paths = getProjectPatchPaths(attempt).map(({ path, action }) => ({
     )
   }
   <p class="mt-4 text-sm leading-6 text-muted-foreground">
-    <InlineBrandText text={attempt.excerpt} />
+    {attempt.excerpt}
   </p>
 </article>

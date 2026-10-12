@@ -8,7 +8,7 @@ order: 32
 
 # Limitations and how they’re handled
 
-`moldea` reports what it can establish from the available project evidence. Start with the result, then check any remaining warnings or unfinished work.
+moldea reports what it can establish from the available project evidence. Start with the result, then check any remaining warnings or unfinished work.
 
 ## Read the result
 

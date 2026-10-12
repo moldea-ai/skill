@@ -8,7 +8,7 @@ order: 30
 
 # Natural on the surface, rigorous underneath
 
-Start with [How `moldea` works](/how-it-works/) for a visual booking-agent walkthrough. The same project-context foundation also supports ordinary software planning and development, without a runtime agent. This reference explains when relevant context is selected and which operations can change it.
+Start with [How moldea works](/how-it-works/) for a visual booking-agent walkthrough. The same project-context foundation also supports ordinary software planning and development, without a runtime agent. This reference explains when relevant context is selected and which operations can change it.
 
 The normal experience has three steps:
 
@@ -16,20 +16,20 @@ The normal experience has three steps:
 2. A small managed AGENTS.md block checks already-known ordinary paths before loading the installed skill. Agent work and concrete project-level context keep the skill’s adoption route. README provides an introduction and canonical navigation.
 3. The coding agent returns the implementation, analysis, or plan with an evidence-based report.
 
-There is no separate `moldea` chat surface to operate.
+There is no separate moldea chat surface to operate.
 
 ## Activation
 
 The coding agent can activate the skill in four ways:
 
-- **Direct activation:** after initialization, you ask to plan, build, review, or maintain AI agents, including model instructions and responsibilities in one-shot calls and workflows; establish a project fact or policy; supply a clear correction; ask about project-context ownership; or request a specific `moldea` operation. The project-level meaning must be evident from the conversation independently of any code edit. Initialization itself requires an explicit request.
+- **Direct activation:** after initialization, you ask to plan, build, review, or maintain AI agents, including model instructions and responsibilities in one-shot calls and workflows; establish a project fact or policy; supply a clear correction; ask about project-context ownership; or request a specific moldea operation. The project-level meaning must be evident from the conversation independently of any code edit. Initialization itself requires an explicit request.
 - **Canonical activation:** the task changes a path under `/moldea/**`.
-- **Managed README activation:** a changed README hunk intersects the content between the full-line `moldea` markers.
+- **Managed README activation:** a changed README hunk intersects the content between the full-line moldea markers.
 - **Declared-relationship activation:** in an adopted repository, a known task path exactly matches a binding or `affectedBy` declaration. The initial check combines exact repository paths explicitly named or targeted by the developer, whether changed or unchanged, with changed paths already established by the host. At an existing scope checkpoint, a materially new path independently discovered during the task gets one new-batch check; unchanged paths reuse the earlier decision. A new-batch miss leaves earlier matched owners in place.
 
-You do not need special commands or `moldea` terminology. A follow-up continues the active task within its existing authorization; it does not activate from a particular phrase. Changing the subject resets that relevance. Unclear intent does not grant permission to write.
+You do not need special commands or moldea terminology. A follow-up continues the active task within its existing authorization; it does not activate from a particular phrase. Changing the subject resets that relevance. Unclear intent does not grant permission to write.
 
-Generic terminology, SDK installation, incidental agent or host command names, pasted proposals, and temporary status do not establish direct relevance. A lasting code requirement such as changing a scheduler interval still uses relationship matching. A change to what an in-app model decides or says is direct agent work even when its instructions are inline and no relationship exists. A generic project evaluation remains host work; independently discovered related paths may add moldea owners through the relationship gate. A miss cannot be bypassed because unknown context might be affected. AGENTS.md owns the ordinary precheck; SKILL.md reuses its successful result and selects owners without repeating the gate. Direct work checks canonical adoption. Preliminary gating is silent. The coding agent defers `moldea` announcements until relevance is established; a non-match continues without workflow references, CLI calls, or `moldea` reporting. Explicit initialization creates the foundation. An explicit setup check can diagnose a failed adoption gate with bounded read-only foundation inspection. An explicit [project-repair request](/docs/evaluate-reconcile-validate/#repair-a-project) may restore established prior state but cannot silently initialize. Other repository-dependent operations require the complete foundation and owned README block.
+Generic terminology, SDK installation, incidental agent or host command names, pasted proposals, and temporary status do not establish direct relevance. A lasting code requirement such as changing a scheduler interval still uses relationship matching. A change to what an in-app model decides or says is direct agent work even when its instructions are inline and no relationship exists. A generic project evaluation remains host work; independently discovered related paths may add moldea owners through the relationship gate. A miss cannot be bypassed because unknown context might be affected. AGENTS.md owns the ordinary precheck; SKILL.md reuses its successful result and selects owners without repeating the gate. Direct work checks canonical adoption. Preliminary gating is silent. The coding agent defers moldea announcements until relevance is established; a non-match continues without workflow references, CLI calls, or moldea reporting. Explicit initialization creates the foundation. An explicit setup check can diagnose a failed adoption gate with bounded read-only foundation inspection. An explicit [project-repair request](/docs/evaluate-reconcile-validate/#repair-a-project) may restore established prior state but cannot silently initialize. Other repository-dependent operations require the complete foundation and owned README block.
 
 Relevant informational handoffs, feedback reviews, and read-only planning remain read-only. A conflicting raw handoff without correction semantics does not authorize a write. An unambiguous correction to established project truth authorizes its minimal canonical update after adoption and ownership checks, without another request naming moldea. Explicit read-only constraints still apply. Proposals and intended policies are not represented as already implemented behavior.
 

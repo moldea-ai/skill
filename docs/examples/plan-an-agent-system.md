@@ -10,21 +10,17 @@ order: 100
 
 ## Developer and coding agent
 
-**Developer**
+> **You**
+>
+> Plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software, and do not implement it yet.
 
-```text
-Plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software, and do not implement it yet.
-```
+> **Coding agent**
+>
+> I recommend one promotion-copy agent, not a multi-agent hierarchy. Eligibility, discount calculation, inventory checks, budget enforcement, delivery, and experiment assignment remain deterministic. The agent receives an approved offer envelope and produces channel-specific copy. A human approves high-risk campaigns before delivery.
+>
+> I will detail the contracts, permissions, failure paths, and implementation sequence. Planning changed no repository files.
 
-**Coding agent**
-
-```text
-I recommend one promotion-copy agent, not a multi-agent hierarchy. Eligibility, discount calculation, inventory checks, budget enforcement, delivery, and experiment assignment remain deterministic. The agent receives an approved offer envelope and produces channel-specific copy. A human approves high-risk campaigns before delivery.
-
-I will detail the contracts, permissions, failure paths, and implementation sequence. Planning changed no repository files.
-```
-
-## Coding agent and `moldea` under the hood
+## Coding agent and moldea under the hood
 
 1. In the initialized repository, the coding agent recognizes agent-system planning from the request and uses the adoption-only check, without requiring existing agents or bindings.
 2. The skill directs it to read the planning and context-gathering references.
@@ -32,7 +28,7 @@ I will detail the contracts, permissions, failure paths, and implementation sequ
 4. It decomposes outcome responsibilities before naming agents.
 5. It keeps fixed rules and value-bearing changes deterministic.
 6. It justifies the single model-reasoning boundary and makes the human approval boundary explicit.
-7. It does not initialize `moldea`, install the CLI, create a plan artifact, or begin implementation.
+7. It does not initialize moldea, install the CLI, create a plan artifact, or begin implementation.
 
 ## Result
 

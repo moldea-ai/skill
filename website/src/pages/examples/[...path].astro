@@ -1,6 +1,7 @@
 ---
 import { renderMarkdownDocument } from '@moldea.ai/website-ui/markdown';
 
+import DocumentationContent from '../../components/documentation-content/documentation-content.astro';
 import DocumentationPage from '../../components/documentation-page/documentation-page.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { createDocumentationBreadcrumbs } from '../../lib/documentation-navigation/index.ts';
@@ -26,7 +27,7 @@ const { document } = Astro.props;
 const model = loadWebsiteModel();
 const rendered = await renderMarkdownDocument(document.markdown, {
   basePath: import.meta.env.BASE_URL,
-  productNameTreatment: 'code',
+  conversations: true,
 });
 const breadcrumbs = createDocumentationBreadcrumbs(document);
 ---
@@ -44,9 +45,6 @@ const breadcrumbs = createDocumentationBreadcrumbs(document);
     orderedDocuments={model.documents}
     skill={model.skill}
   >
-    <div
-      class="prose-moldea prose-moldea-wrap-code"
-      set:html={rendered.html}
-    />
+    <DocumentationContent blocks={rendered.blocks} />
   </DocumentationPage>
 </BaseLayout>

@@ -10,19 +10,15 @@ order: 160
 
 ## Developer and coding agent
 
-**Developer**
+> **You**
+>
+> The canonical agent repository is open here, and the application implementation is in `../storefront`. Evaluate the checkout agent across both repositories without changing either one.
 
-```text
-The canonical agent repository is open here, and the application implementation is in ../storefront. Evaluate the checkout agent across both repositories without changing either one.
-```
+> **Coding agent**
+>
+> I inspected the canonical repository and the developer-identified storefront repository. Canonical state is structurally valid, and the application loads the canonical instruction through its provisioning step. Local coverage checks only declarations observable in the canonical repository. My separate application review establishes the provisioning behavior; local coverage does not prove cross-repository runtime wiring. No files changed in either repository.
 
-**Coding agent**
-
-```text
-I inspected the canonical repository and the developer-identified storefront repository. Canonical state is structurally valid, and the application loads the canonical instruction through its provisioning step. Local coverage checks only declarations observable in the canonical repository. My separate application review establishes the provisioning behavior; local coverage does not prove cross-repository runtime wiring. No files changed in either repository.
-```
-
-## Coding agent and `moldea` under the hood
+## Coding agent and moldea under the hood
 
 1. The coding agent treats the current repository as the canonical owner and the identified application as separate semantic evidence.
 2. It runs deterministic inspection only against the canonical repository's verified local tooling.

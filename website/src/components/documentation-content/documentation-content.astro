@@ -1,0 +1,39 @@
+---
+import Conversation from '@moldea.ai/website-ui/conversation';
+import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
+import type { IRenderedMarkdownBlock } from '@moldea.ai/website-ui/markdown';
+
+// ordered, sanitized documentation blocks; recorded evidence uses its own renderer
+export interface Props {
+  blocks: readonly IRenderedMarkdownBlock[];
+  class?: string;
+}
+const { blocks, class: className } = Astro.props;
+---
+
+<div class:list={['grid min-w-0 gap-8', className]}>
+  {
+    blocks.map((block, index) =>
+      block.kind === 'html' ? (
+        <div
+          class:list={[
+            'prose-moldea prose-moldea-wrap-code',
+            index > 0 && '[&>h2:first-child]:border-t [&>h2:first-child]:pt-10',
+          ]}
+          set:html={block.html}
+        />
+      ) : (
+        <Conversation>
+          {block.messages.map((message) => (
+            <ConversationMessage role={message.role}>
+              <div
+                class="prose-moldea prose-moldea-wrap-code"
+                set:html={message.html}
+              />
+            </ConversationMessage>
+          ))}
+        </Conversation>
+      ),
+    )
+  }
+</div>

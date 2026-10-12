@@ -8,33 +8,33 @@ order: 0
 
 # The invisible operating layer for your coding agent
 
-`moldea` helps a coding agent understand what a project is, design agent-enabled systems carefully, create grounded agents, and keep their declared behavior aligned with the implementation.
+moldea helps a coding agent understand what a project is, design agent-enabled systems carefully, create grounded agents, and keep their declared behavior aligned with the implementation.
 
-Explore [Capabilities](/capabilities/) for the complete visual overview, or follow [How `moldea` works](/how-it-works/) through one connected project change. The documentation below contains the technical details and complete examples.
+Explore [Capabilities](/capabilities/) for the complete visual overview, or follow [How moldea works](/how-it-works/) through one connected project change. The documentation below contains the technical details and complete examples.
 
 You do not need to learn another daily workflow. Install the skill, then ask your coding agent for outcomes in ordinary language:
 
-```text
-Create a customer-support agent grounded in this repository.
-```
+> **You**
+>
+> Create a customer-support agent grounded in this repository.
 
-```text
-Update the refund flow and keep the support agent aligned.
-```
+> **You**
+>
+> Update the refund flow and keep the support agent aligned.
 
-```text
-Evaluate the current project context without changing files.
-```
+> **You**
+>
+> Evaluate the current project context without changing files.
 
-After adoption, the coding agent uses `moldea` for agent work, established project facts, approved policies, clear corrections, and project-context questions. Explicit operations, canonical changes, and declared relationships also establish relevance. Ordinary code requirements still use the relationship gate. Generic terminology, pasted proposals, and temporary status alone trigger no canonical discovery or moldea reporting. Relevant informational handoffs remain read-only; clear corrections permit minimal updates unless you request read-only work.
+After adoption, the coding agent uses moldea for agent work, established project facts, approved policies, clear corrections, and project-context questions. Explicit operations, canonical changes, and declared relationships also establish relevance. Ordinary code requirements still use the relationship gate. Generic terminology, pasted proposals, and temporary status alone trigger no canonical discovery or moldea reporting. Relevant informational handoffs remain read-only; clear corrections permit minimal updates unless you request read-only work.
 
 ## Start here
 
-- [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea): the primary distribution page.
+- [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea): the primary distribution page.
 - [Getting started](/docs/getting-started/): install once and make the first natural request.
 - [Coding agent compatibility](/docs/coding-agent-compatibility/): use the same portable skill with Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and other compatible hosts.
 - [Capabilities](/capabilities/): see the six product outcomes through visual project examples.
-- [How `moldea` works](/how-it-works/): follow one change through context, connections, updates, and checks.
+- [How moldea works](/how-it-works/): follow one change through context, connections, updates, and checks.
 - [Capability reference](/docs/capabilities/): read the exact capability behavior and boundaries.
 - [Workflow reference](/docs/how-it-works/): inspect activation, operation selection, evidence, and local tooling.
 - [Limitations](/docs/limitations/): understand warnings, unfinished checks, large inputs, and practical next steps.
@@ -46,6 +46,6 @@ After adoption, the coding agent uses `moldea` for agent work, established proje
 
 ## What stays yours
 
-Canonical project and agent state lives in the repository under `/moldea/**`. Local work is filesystem-first and private by default. Installing or using the skill does not require a `moldea` Cloud account, and the skill does not send repository content to `moldea` Cloud.
+Canonical project and agent state lives in the repository under `/moldea/**`. Local work is filesystem-first and private by default. Installing or using the skill does not require a moldea Cloud account, and the skill does not send repository content to moldea Cloud.
 
 The repository remains the source of truth. The skill helps the coding agent understand, maintain, evaluate, and reconcile that truth without creating a hidden semantic database.

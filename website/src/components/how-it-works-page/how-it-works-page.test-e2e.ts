@@ -229,8 +229,11 @@ test('follows one booking request through five connected stages', async ({ page 
 
     while (currentNode !== null) {
       if (
-        /\bmoldea\b/iu.test(currentNode.textContent ?? '') &&
-        currentNode.parentElement?.closest('code') === null
+        /^moldea(?: Cloud| Agent Skill| Skill)?$/iu.test(
+          (currentNode.parentElement?.closest('code')?.textContent ?? '').trim(),
+        ) &&
+        currentNode.parentElement?.closest('code') !== null &&
+        currentNode.parentElement?.closest('pre') === null
       ) {
         invalidMentions.push(currentNode.textContent?.trim() ?? '');
       }

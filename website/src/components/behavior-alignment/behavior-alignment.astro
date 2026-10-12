@@ -3,7 +3,6 @@ import { Check, FileCode, FileText, Link2, UserRound } from '@lucide/astro';
 import CodeDiff from '@moldea.ai/website-ui/code-diff';
 import ConnectionLabel from '@moldea.ai/website-ui/connection-label';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import { LANDING_EXAMPLE, LANDING_EXAMPLE_PREVIEW } from '../../lib/landing-example/index.ts';
@@ -29,9 +28,8 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
         </h2>
       </div>
       <p class="text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-        <InlineBrandText
-          text="moldea records which project files and agent behavior belong together, so the coding agent can review the complete change."
-        />
+        moldea records which project files and agent behavior belong together, so the coding agent
+        can review the complete change.
       </p>
     </header>
 

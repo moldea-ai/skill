@@ -17,7 +17,6 @@ import {
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import BaseLayout from '../../layouts/base-layout.astro';
@@ -73,9 +72,8 @@ const connectionItems = [
         <p class="eyebrow mb-4">How it works</p>
         <h1 class="page-title">From project context to a working agent.</h1>
         <p class="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-          <InlineBrandText
-            text="Start with the project rules your coding agent needs. This booking example shows how moldea uses that foundation when you build and maintain a runtime agent."
-          />
+          Start with the project rules your coding agent needs. This booking example shows how
+          moldea uses that foundation when you build and maintain a runtime agent.
         </p>
         <div class="mt-7 flex flex-wrap gap-3">
           <ActionLink
@@ -96,6 +94,11 @@ const connectionItems = [
             variant="ghost"
           >
             Read the technical guide
+
+            <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            />
           </ActionLink>
         </div>
       </div>

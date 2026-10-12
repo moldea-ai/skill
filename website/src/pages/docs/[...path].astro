@@ -1,6 +1,7 @@
 ---
 import { renderMarkdownDocument } from '@moldea.ai/website-ui/markdown';
 
+import DocumentationContent from '../../components/documentation-content/documentation-content.astro';
 import DocumentationPage from '../../components/documentation-page/documentation-page.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { createDocumentationBreadcrumbs } from '../../lib/documentation-navigation/index.ts';
@@ -26,7 +27,7 @@ const { document } = Astro.props;
 const model = loadWebsiteModel();
 const rendered = await renderMarkdownDocument(document.markdown, {
   basePath: import.meta.env.BASE_URL,
-  productNameTreatment: 'code',
+  conversations: true,
   strongLabelBadges:
     document.route === '/docs/limitations/'
       ? [
@@ -40,14 +41,19 @@ const rendered = await renderMarkdownDocument(document.markdown, {
 // the installed renderer labels table regions generically; distinguish this guide’s three tables
 const tableLabels = ['Result meanings', 'Common situations', 'Resource boundaries'];
 let tableIndex = 0;
-const html =
-  document.route === '/docs/limitations/'
-    ? rendered.html.replaceAll('aria-label="Scrollable table"', () => {
-        const label = tableLabels[tableIndex++];
-        if (label === undefined) throw new Error('The limitations guide has an unlabelled table.');
-        return `aria-label="${label}"`;
-      })
-    : rendered.html;
+const blocks = rendered.blocks.map((block) =>
+  document.route === '/docs/limitations/' && block.kind === 'html'
+    ? {
+        ...block,
+        html: block.html.replaceAll('aria-label="Scrollable table"', () => {
+          const label = tableLabels[tableIndex++];
+          if (label === undefined)
+            throw new Error('The limitations guide has an unlabelled table.');
+          return `aria-label="${label}"`;
+        }),
+      }
+    : block,
+);
 const breadcrumbs = createDocumentationBreadcrumbs(document);
 ---
 
@@ -64,12 +70,9 @@ const breadcrumbs = createDocumentationBreadcrumbs(document);
     orderedDocuments={model.documents}
     skill={model.skill}
   >
-    <div
-      class:list={[
-        'prose-moldea prose-moldea-wrap-code',
-        document.route === '/docs/limitations/' && '[&_table]:min-w-xl',
-      ]}
-      set:html={html}
+    <DocumentationContent
+      class={document.route === '/docs/limitations/' ? '[&_table]:min-w-xl' : ''}
+      {blocks}
     />
   </DocumentationPage>
 </BaseLayout>

@@ -10,35 +10,27 @@ order: 135
 
 ## Proven duplication
 
-**Developer**
+> **You**
+>
+> Consolidate the duplicated project context so each durable fact has one authoritative owner. Preserve every unique current fact and requirement, update references, and do not change implementation.
 
-```text
-Consolidate the duplicated project context so each durable fact has one authoritative owner. Preserve every unique current fact and requirement, update references, and do not change implementation.
-```
-
-**Coding agent**
-
-```text
-I found the same escalation-policy ownership in two canonical context files. The operations context is the established owner. The second file also contains a unique unresolved after-hours ownership boundary, so I will preserve that boundary while consolidating the duplicate wording.
-```
+> **Coding agent**
+>
+> I found the same escalation-policy ownership in two canonical context files. The operations context is the established owner. The second file also contains a unique unresolved after-hours ownership boundary, so I will preserve that boundary while consolidating the duplicate wording.
 
 The coding agent moves the unique boundary to its established owner, removes the proven duplicate file, updates the manifest relationship, unresolved requirement reference, and context index, and leaves implementation unchanged. It then reruns deterministic inspection and reports the owners selected, content retained, paths synchronized, checks, and limitations.
 
 ## Conflicting current claims
 
-**Developer**
+> **You**
+>
+> Consolidate the duplicated project context so each durable fact has one authoritative owner.
 
-```text
-Consolidate the duplicated project context so each durable fact has one authoritative owner.
-```
-
-**Coding agent**
-
-```text
-I found a consequential conflict, not proven duplication. One canonical source says Finance owns escalation approval, while another says Customer Operations owns it. I have not changed repository files.
-
-Which team currently owns escalation approval, or does one claim describe proposed or future state?
-```
+> **Coding agent**
+>
+> I found a consequential conflict, not proven duplication. One canonical source says Finance owns escalation approval, while another says Customer Operations owns it. I have not changed repository files.
+>
+> Which team currently owns escalation approval, or does one claim describe proposed or future state?
 
 Compression stops before any semantic write. The coding agent does not choose a source based on location, recency, or brevity and does not merge contradictory current claims into vague wording.
 

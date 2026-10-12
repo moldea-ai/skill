@@ -2,7 +2,6 @@
 import { Clock3, FilePenLine, SquareTerminal, UserRound } from '@lucide/astro';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
 import Dialog from '@moldea.ai/website-ui/dialog';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
 import { withBase } from '@moldea.ai/website-ui/site';
 
@@ -22,7 +21,6 @@ const messageHtml = await Promise.all(
       ? renderMarkdownFragment(entry.content, {
           basePath: import.meta.env.BASE_URL,
           localLinks: 'unwrap',
-          productNameTreatment: 'code',
         })
       : null,
   ),
@@ -325,14 +323,7 @@ const ordinalClass = 'shrink-0 whitespace-nowrap font-mono text-xs text-muted-fo
                 />
               </span>
               <span class="font-semibold text-foreground">{entry.title}</span>
-              {entry.content && (
-                <span>
-                  <InlineBrandText
-                    text={entry.content}
-                    variant="compact"
-                  />
-                </span>
-              )}
+              {entry.content && <span>{entry.content}</span>}
             </div>
             <span
               class={ordinalClass}

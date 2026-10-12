@@ -108,7 +108,7 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
   await expect(sourceRepositoryLink).toHaveAttribute('href', SOURCE_REPOSITORY_URL);
   await expect(sourceRepositoryLink).toHaveAttribute('target', '_blank');
   await expect(
-    sourceRepositoryLink.locator('svg.lucide-git-branch[data-external-link-icon]'),
+    sourceRepositoryLink.locator('svg.lucide-external-link[data-external-link-icon]'),
   ).toBeVisible();
 
   const heroActionTopOffsets = await page
@@ -317,7 +317,7 @@ test('keeps documentation samples and navigation readable at 320px', async ({ pa
 
   await page.goto(toPublicPath('/examples/create-a-support-agent/'));
 
-  const sample = page.locator('.prose-moldea pre').nth(1);
+  const sample = page.locator('.prose-moldea pre').first();
   const sampleWidths = await sample.evaluate((element) => ({
     client: element.clientWidth,
     scroll: element.scrollWidth,
@@ -694,7 +694,7 @@ test('keeps representative routes free of serious automated accessibility violat
   }
 });
 
-test('renders every reader-facing product mention as inline code', async ({ page }) => {
+test('keeps ordinary product names out of inline code', async ({ page }) => {
   test.slow();
 
   await page.goto(toPublicPath('/'));
@@ -722,9 +722,12 @@ test('renders every reader-facing product mention as inline code', async ({ page
         const text = currentNode.textContent ?? '';
 
         if (
-          /\bmoldea\b/iu.test(text) &&
+          /^moldea(?: Cloud| Agent Skill| Skill)?$/iu.test(
+            (parent?.closest('code')?.textContent ?? '').trim(),
+          ) &&
           parent &&
-          !parent.closest('code, script, style, noscript, [data-brand-plain]')
+          parent.closest('code') &&
+          !parent.closest('pre')
         ) {
           matches.push(text.trim());
         }
@@ -747,8 +750,10 @@ test('formats product mentions in generated search results', async ({ page }) =>
 
   const results = page.locator('[data-search-results]');
   await expect(results.locator('li').first()).toBeVisible();
-  expect(await results.locator('code').count()).toBeGreaterThan(0);
-  await expect(page.locator('[data-search-status] code')).toHaveText('moldea');
+  await expect(results).toContainText('moldea');
+  await expect(results.locator('code')).toHaveCount(0);
+  await expect(page.locator('[data-search-status]')).toContainText('moldea');
+  await expect(page.locator('[data-search-status] code')).toHaveCount(0);
 });
 
 test('distinguishes visual product pages from technical references in search', async ({ page }) => {

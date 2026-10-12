@@ -12,7 +12,7 @@ const SOURCE_REPOSITORY_URL = 'https://github.com/moldea-ai/skill';
 
 const PreparedEvidenceBundleSchema = z.object({
   formatVersion: z.literal(1),
-  kind: z.literal('semantic'),
+  kind: z.enum(['semantic', 'journeys']),
   classification: z.enum(['fixture', 'official']),
   run: z.object({
     attemptId: z.string().min(1),
@@ -21,7 +21,7 @@ const PreparedEvidenceBundleSchema = z.object({
     version: z.string().min(1),
     provenance: z.record(z.string(), z.string()),
   }),
-  payload: z.object({ websiteModel: z.unknown() }),
+  payload: z.unknown(),
 });
 
 const PreparedEvidenceSectionSchema = z.strictObject({
@@ -35,6 +35,7 @@ const PreparedEvidenceManifestSchema = z.strictObject({
   formatVersion: z.literal(1),
   selectionSha256: z.string().regex(/^[a-f0-9]{64}$/u),
   semantic: PreparedEvidenceSectionSchema,
+  journeys: PreparedEvidenceSectionSchema.nullable(),
 });
 
 const EvidenceSelectionReferenceSchema = z.strictObject({
@@ -48,13 +49,14 @@ const EvidenceSelectionReferenceSchema = z.strictObject({
 const EvidenceSelectionSchema = z.strictObject({
   formatVersion: z.literal(1),
   semantic: EvidenceSelectionReferenceSchema.nullable(),
+  journeys: EvidenceSelectionReferenceSchema.nullable(),
 });
 
 type IPreparedEvidenceBundle = z.infer<typeof PreparedEvidenceBundleSchema>;
 
 const readPreparedBundle = (
   preparedDirectory: string,
-  kind: 'semantic',
+  kind: 'semantic' | 'journeys',
   section: z.infer<typeof PreparedEvidenceSectionSchema>,
   allowFixture: boolean,
 ): IPreparedEvidenceBundle => {
@@ -115,7 +117,7 @@ const createSectionModel = (bundle: IPreparedEvidenceBundle): IReleaseEvidenceSe
   };
 };
 
-/** Loads the exact semantic evidence bundle prepared from the maintainer selection. */
+/** Loads semantic evidence and validates any optional selected journeys bundle. */
 export const loadReleaseEvidenceWebsiteState = (
   repositoryRoot: string,
   _targetVersion: string,
@@ -150,8 +152,23 @@ export const loadReleaseEvidenceWebsiteState = (
     manifest.semantic,
     options.allowFixture === true,
   );
+  if ((selection.journeys === null) !== (manifest.journeys === null)) {
+    throw new Error('Prepared journeys evidence does not match its selection presence.');
+  }
+  if (manifest.journeys !== null) {
+    if (manifest.journeys.bundleSha256 !== selection.journeys?.sha256) {
+      throw new Error('Prepared journeys evidence does not match its selected bundle digest.');
+    }
+    readPreparedBundle(
+      preparedDirectory,
+      'journeys',
+      manifest.journeys,
+      options.allowFixture === true,
+    );
+  }
   copyPreparedAssets(repositoryRoot, preparedDirectory, manifest);
-  const semantic = parseSemanticWebsiteModel(semanticBundle.payload.websiteModel);
+  const semanticPayload = z.object({ websiteModel: z.unknown() }).parse(semanticBundle.payload);
+  const semantic = parseSemanticWebsiteModel(semanticPayload.websiteModel);
   const semanticAttempt = semantic.latest ?? semantic.currentAssurance;
 
   if (semanticAttempt === null) {

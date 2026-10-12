@@ -395,6 +395,7 @@ export const prepareSyntheticWebsiteEvidence = async (
   const preparedSections: IEvidencePreparationManifest = {
     formatVersion: 1,
     selectionSha256: '',
+    journeys: null,
     semantic: {
       assetsPath: path.posix.join(snapshotRelativePath, 'assets', 'semantic'),
       bundleSha256: calculateSha256('fixture-semantic-bundle'),
@@ -421,6 +422,7 @@ export const prepareSyntheticWebsiteEvidence = async (
       sha256: preparedSections.semantic.bundleSha256,
       tag: 'evidence-fixture',
     },
+    journeys: null,
   };
   const selectionSource = `${JSON.stringify(selection)}\n`;
   preparedSections.selectionSha256 = calculateSha256(selectionSource);

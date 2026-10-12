@@ -65,3 +65,16 @@ Trusted checks establish file outcomes and reply facts against local criteria. P
 The model can inspect or modify its workspace. Instructions forbid opening the harness or future request files, but this cannot be enforced. File hashes detect inconsistencies against the operator-held bundle; they do not authenticate model behavior. No command monitoring or tool-call timeline is collected.
 
 Diagnose harness, fixture, or assessment defects and rerun after correction. Report defects in the distributed skill separately; this suite does not modify it to make a run pass. Keep failed diagnostic records for investigation. Evidence selection and website presentation are separate publication steps.
+
+## Publish assessed evidence
+
+After a complete passing run on both platforms, use the shared evidence pipeline:
+
+```bash
+npm run evidence:pack -- --scope journeys --run <run-id>
+npm run evidence:publish -- --bundle .evidence/bundles/journeys-<run-id>.json.gz --tag evidence-journeys-<run-id>
+npm run release:evidence:pin -- --scope journeys --release evidence-journeys-<run-id> --asset journeys-<run-id>.json.gz
+npm run evidence:prepare
+```
+
+This release contains assessed output, separate from the input bundle release. The optional `journeys` selection can remain null while semantic evidence is selected. Release verification requires selected journeys evidence to be official and passing. See [Release evidence](../release-evidence/) for download integrity, preparation, and selection rules.

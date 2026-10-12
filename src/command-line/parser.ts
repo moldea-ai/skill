@@ -18,8 +18,8 @@ const getOption = (arguments_: readonly string[], name: string): string => {
 
 const getEvidenceKind = (arguments_: readonly string[]): IEvidenceKind => {
   const kind = getOption(arguments_, '--scope');
-  if (kind !== 'semantic') {
-    throw new Error('Evidence kind must be semantic.');
+  if (kind !== 'semantic' && kind !== 'journeys') {
+    throw new Error('Evidence kind must be semantic or journeys.');
   }
   return kind;
 };

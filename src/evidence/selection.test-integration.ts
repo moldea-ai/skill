@@ -30,6 +30,7 @@ test('serializes concurrent selection updates and retains the last completed ref
   const selectionPath = path.join(root, 'selection.json');
   await writeJsonFileAtomically(selectionPath, {
     formatVersion: 1,
+    journeys: null,
     semantic: null,
   } satisfies IEvidenceSelection);
 
@@ -48,6 +49,33 @@ test('serializes concurrent selection updates and retains the last completed ref
 
   expect(await readEvidenceSelection(selectionPath)).toStrictEqual({
     formatVersion: 1,
+    journeys: null,
     semantic: completed.at(-1),
+  });
+});
+
+test('retains both independently selected evidence kinds during concurrent updates', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-selection-'));
+  temporaryRoots.push(root);
+  const selectionPath = path.join(root, 'selection.json');
+  await writeJsonFileAtomically(selectionPath, {
+    formatVersion: 1,
+    semantic: null,
+    journeys: null,
+  });
+  const semantic = createReference('a');
+  const journeys = {
+    ...createReference('b'),
+    assetName: 'journeys-run-b.json.gz',
+    tag: 'evidence-journeys-run-b',
+  };
+  await Promise.all([
+    updateEvidenceSelection(selectionPath, 'semantic', semantic),
+    updateEvidenceSelection(selectionPath, 'journeys', journeys),
+  ]);
+  expect(await readEvidenceSelection(selectionPath)).toStrictEqual({
+    formatVersion: 1,
+    semantic,
+    journeys,
   });
 });

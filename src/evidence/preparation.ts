@@ -11,7 +11,11 @@ import {
   writeJsonFileAtomically,
 } from '../filesystem/index.ts';
 import { decodeEvidenceBundle, validateEvidenceBundle } from './bundle.ts';
-import { EVIDENCE_RELEASE_REPOSITORY, MAXIMUM_EVIDENCE_BUNDLE_BYTES } from './constants.ts';
+import {
+  EVIDENCE_KINDS,
+  EVIDENCE_RELEASE_REPOSITORY,
+  MAXIMUM_EVIDENCE_BUNDLE_BYTES,
+} from './constants.ts';
 import {
   EvidenceSelectionSchema,
   EvidencePreparationManifestSchema,
@@ -146,7 +150,7 @@ const getCachedBundle = async (
 };
 
 /**
- * Resolves the exact selected bundle and exposes an atomic prepared manifest.
+ * Resolves the exact selected bundles and exposes an atomic prepared manifest.
  * @param options Selection, cache, output, download, and cancellation controls.
  * @returns The manifest tied to the exact successfully prepared selection.
  */
@@ -182,10 +186,10 @@ export const prepareSelectedEvidence = async (
   > = {};
   const selectedCachePaths = new Set<string>();
   try {
-    for (const kind of ['semantic'] as const) {
+    for (const kind of EVIDENCE_KINDS) {
       if (options.signal?.aborted === true) throw new Error('Evidence preparation was aborted.');
       const reference = selection[kind];
-      if (reference === null) throw new Error(`Selected ${kind} evidence is missing.`);
+      if (reference === null) continue;
       const { bundle, cachePath } = await getCachedBundle(kind, reference, options);
       selectedCachePaths.add(path.basename(cachePath));
       const preparedSource = `${JSON.stringify(bundle, null, 2)}\n`;
@@ -233,6 +237,7 @@ export const prepareSelectedEvidence = async (
     formatVersion: 1,
     selectionSha256,
     semantic,
+    journeys: prepared.journeys ?? null,
   };
   await writeJsonFileAtomically(path.join(options.preparedDirectory, 'manifest.json'), manifest);
 
@@ -270,10 +275,16 @@ export const verifyPreparedReleaseEvidence = async (options: {
     throw new Error('Prepared evidence does not match the current selection.');
   }
 
-  for (const kind of ['semantic'] as const) {
+  if (selection.semantic === null) {
+    throw new Error('Release evidence has no selected semantic bundle.');
+  }
+  for (const kind of EVIDENCE_KINDS) {
     const reference = selection[kind];
-    if (reference === null) throw new Error(`Release evidence has no selected ${kind} bundle.`);
     const preparedSection = manifest[kind];
+    if (reference === null && preparedSection === null) continue;
+    if (reference === null || preparedSection === null) {
+      throw new Error(`Prepared ${kind} evidence does not match its selection presence.`);
+    }
     if (preparedSection.bundleSha256 !== reference.sha256) {
       throw new Error(`Prepared ${kind} evidence does not match its selected bundle digest.`);
     }

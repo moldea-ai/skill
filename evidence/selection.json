@@ -6,5 +6,6 @@
     "repository": "moldea-ai/skill",
     "sha256": "8bba21fff6192c0744a1096145e2ba8486b24cc9497ec6652d571e8cea323692",
     "tag": "evidence-20261011-adapter-retirement"
-  }
+  },
+  "journeys": null
 }

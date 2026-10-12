@@ -63,7 +63,7 @@ const EvidenceRunSchema = z.looseObject({
   provenance: z.record(z.string(), z.string()).default({}),
 });
 
-/** Public evidence bundle contract shared by the semantic producer and website. */
+/** Public evidence bundle contract shared by evaluation producers and the website. */
 export const EvidenceBundleSchema = z.strictObject({
   formatVersion: z.literal(EVIDENCE_FORMAT_VERSION),
   kind: z.enum(EVIDENCE_KINDS),
@@ -84,10 +84,11 @@ export const EvidenceSelectionReferenceSchema = z.strictObject({
   tag: z.string().regex(/^evidence-[a-z0-9][a-z0-9._-]{0,119}$/u),
 });
 
-/** Selected semantic evidence bundle. */
+/** Required semantic and optional scripted-journey evidence selections. */
 export const EvidenceSelectionSchema = z.strictObject({
   formatVersion: z.literal(EVIDENCE_FORMAT_VERSION),
   semantic: EvidenceSelectionReferenceSchema.nullable(),
+  journeys: EvidenceSelectionReferenceSchema.nullable(),
 });
 
 export type IEvidenceArtifactInput = {
@@ -117,11 +118,12 @@ const PreparedEvidenceSectionSchema = z.strictObject({
   preparedSha256: Sha256Schema,
 });
 
-/** Atomic manifest for the exact bundle prepared for website generation. */
+/** Atomic manifest for the exact bundles prepared for website generation. */
 export const EvidencePreparationManifestSchema = z.strictObject({
   formatVersion: z.literal(EVIDENCE_FORMAT_VERSION),
   selectionSha256: Sha256Schema,
   semantic: PreparedEvidenceSectionSchema,
+  journeys: PreparedEvidenceSectionSchema.nullable(),
 });
 
 export type IEvidencePreparationManifest = z.infer<typeof EvidencePreparationManifestSchema>;

@@ -2,6 +2,7 @@
 import Conversation from '@moldea.ai/website-ui/conversation';
 import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import { withBase } from '@moldea.ai/website-ui/site';
 
 import { RecordedFileTree } from '../recorded-file-tree/index.ts';
 import { PlatformMark } from '../platform-mark/index.ts';
@@ -13,13 +14,15 @@ import {
 
 interface Props {
   model: IScriptedJourneysWebsiteModel;
+  isCompact?: boolean;
 }
-const { model } = Astro.props;
+const { model, isCompact = false } = Astro.props;
+const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_URL);
 const journey = model.journeys[0];
 const step = (journey ? getJourneyRevisions(model, journey.id) : [])
   .flatMap((revision) => revision.steps)
   .find((step) => step.results.length > 0);
-const result = step?.results[0];
+const result = step?.results.find((result) => result.platform === 'claude') ?? step?.results[0];
 const replyHtml = result
   ? await renderMarkdownFragment(result.reply, { localLinks: 'unwrap' })
   : null;
@@ -35,18 +38,40 @@ const replyHtml = result
         <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
           <>
             <PlatformMark platform={result.platform} />
-            <span class="text-xs text-muted-foreground">First run excerpt</span>
+            {isCompact ? (
+              <span class="flex items-center gap-2 text-xs text-muted-foreground">
+                Local checks <EvidenceStatus status={result.status} />
+              </span>
+            ) : (
+              <span class="text-xs text-muted-foreground">First run excerpt</span>
+            )}
           </>
         </div>
         <Conversation ariaLabel="Recorded journey excerpt">
           <ConversationMessage role="user">
-            <p class="line-clamp-3 text-sm leading-7 break-words whitespace-pre-wrap">
+            <p
+              class:list={[
+                'text-sm leading-6 break-words whitespace-pre-wrap',
+                isCompact ? 'line-clamp-1' : 'line-clamp-3',
+              ]}
+            >
               {step.request}
             </p>
           </ConversationMessage>
           <ConversationMessage role="assistant">
+            <img
+              slot="avatar"
+              src={skillMarkPath}
+              width="207"
+              height="215"
+              alt=""
+              class="dark:invert"
+            />
             <div
-              class="markdown-content line-clamp-3 text-sm leading-7 break-words"
+              class:list={[
+                'markdown-content text-sm leading-6 break-words',
+                isCompact ? 'line-clamp-1' : 'line-clamp-3',
+              ]}
               set:html={replyHtml!}
             />
             {result.files.length > 0 && (
@@ -59,12 +84,14 @@ const replyHtml = result
             )}
           </ConversationMessage>
         </Conversation>
-        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-          <>
-            <span class="text-xs font-semibold">Local checks for this request</span>
-            <EvidenceStatus status={result.status} />
-          </>
-        </div>
+        {!isCompact && (
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+            <>
+              <span class="text-xs font-semibold">Local checks for this request</span>
+              <EvidenceStatus status={result.status} />
+            </>
+          </div>
+        )}
       </>
     ) : (
       <p class="py-6 text-sm text-muted-foreground">No conversation has been recorded yet.</p>

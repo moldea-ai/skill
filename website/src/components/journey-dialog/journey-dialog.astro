@@ -1,6 +1,8 @@
 ---
 import Dialog from '@moldea.ai/website-ui/dialog';
 import ActionButton from '@moldea.ai/website-ui/action-button';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import { ArrowRight } from '@lucide/astro';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import { JourneyViewer } from '../journey-viewer/index.ts';
@@ -27,6 +29,7 @@ const url = withBase(journey.route, import.meta.env.BASE_URL);
     triggerSize="lg"
     triggerClass="h-auto w-full justify-start rounded-none px-0 py-6 text-left whitespace-normal hover:bg-secondary/40"
     size="large"
+    isOverlayCloseEnabled
   >
     <span
       slot="trigger"
@@ -45,11 +48,17 @@ const url = withBase(journey.route, import.meta.env.BASE_URL);
         variant="outline"
         >Try again</ActionButton
       >
-      <a
+      <ActionLink
         href={url}
-        class="text-link text-xs"
-        >Open the full page</a
+        variant="link"
+        size="sm"
       >
+        Open the full page
+        <ArrowRight
+          class="size-4"
+          aria-hidden="true"
+        />
+      </ActionLink>
     </div>
   </Dialog>
   <a

@@ -26,24 +26,24 @@ test('opens one conversation on demand without navigating and restores focus on 
   const dialog = page.getByRole('dialog', { name: 'Initialize and validate', exact: true });
   await expect(dialog).toBeVisible();
   await expect(
-    dialog.locator('[data-journey-provider="chatgpt"] [data-journey-request]').first(),
+    dialog.locator('[data-journey-provider="claude"] [data-journey-request]').first(),
   ).toHaveText('Initialize moldea.');
   await expect(page).toHaveURL(route);
   await expect(
-    dialog.locator('[data-journey-provider="chatgpt"] [data-recorded-file-tree]').first(),
+    dialog.locator('[data-journey-provider="claude"] [data-recorded-file-tree]').first(),
   ).toBeVisible();
-  await dialog.getByRole('tab', { name: 'ChatGPT', exact: true }).focus();
+  await dialog.getByRole('tab', { name: 'Claude', exact: true }).focus();
   await page.keyboard.press('ArrowRight');
-  await expect(dialog.getByRole('tab', { name: 'Claude', exact: true })).toBeFocused();
+  await expect(dialog.getByRole('tab', { name: 'ChatGPT', exact: true })).toBeFocused();
   await expect(
-    dialog.locator('[data-journey-provider="claude"] [data-journey-request]').first(),
+    dialog.locator('[data-journey-provider="chatgpt"] [data-journey-request]').first(),
   ).toBeVisible();
   await dialog
-    .locator('[data-journey-provider="claude"] [data-journey-diff] > summary')
+    .locator('[data-journey-provider="chatgpt"] [data-journey-diff] > summary')
     .first()
     .click();
   await expect(
-    dialog.locator('[data-journey-provider="claude"] [data-code-diff]').first(),
+    dialog.locator('[data-journey-provider="chatgpt"] [data-code-diff]').first(),
   ).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
@@ -160,12 +160,12 @@ test('paginates without preloading transcripts and initializes after client navi
   for (let visit = 0; visit < 2; visit += 1) {
     await page
       .getByRole('navigation', { name: 'Journey overview pages' })
-      .getByRole('link', { name: '2', exact: true })
+      .getByRole('link', { name: 'Next page', exact: true })
       .click();
     await expect(page.locator('[data-journeys-matrix] > ul > li')).toHaveCount(2);
     await page
       .getByRole('navigation', { name: 'Journey overview pages' })
-      .getByRole('link', { name: '1', exact: true })
+      .getByRole('link', { name: 'Previous page', exact: true })
       .click();
     await page
       .getByRole('button', { name: 'Open Confirmation example: recovered results', exact: true })
@@ -174,7 +174,7 @@ test('paginates without preloading transcripts and initializes after client navi
       name: 'Confirmation example: recovered',
       exact: true,
     });
-    const provider = dialog.locator('[data-journey-provider="chatgpt"]');
+    const provider = dialog.locator('[data-journey-provider="claude"]');
     await expect(provider.locator('[data-journey-run]').first()).toBeVisible();
     await provider.getByLabel('Show', { exact: true }).selectOption({ label: 'Repeat 2' });
     await expect(provider.locator('[data-journey-run]').nth(2)).toBeVisible();
@@ -243,4 +243,43 @@ test('opens a provider-only journey on its recorded provider', async ({ page }) 
   ).toBeVisible();
   await dialog.getByRole('tab', { name: 'ChatGPT', exact: true }).click();
   await expect(dialog.getByText('Not run in ChatGPT.', { exact: true })).toBeVisible();
+});
+
+test('dismisses informational results from the overlay and restores the trigger focus', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(route);
+  const trigger = page.getByRole('button', {
+    name: 'Open Initialize and validate results',
+    exact: true,
+  });
+  await trigger.click();
+  const dialog = page.getByRole('dialog', { name: 'Initialize and validate', exact: true });
+  await expect(dialog.locator('[data-journey-request]').first()).toBeVisible();
+  await dialog.getByRole('heading', { name: 'Initialize and validate', exact: true }).click();
+  await expect(dialog).toBeVisible();
+  await page.mouse.click(8, 500);
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test('paginates with an explicit current page and responsive previous and next controls', async ({
+  page,
+}) => {
+  await page.goto(route);
+  const navigation = page.getByRole('navigation', { name: 'Journey overview pages' });
+  await expect(navigation.getByRole('link', { name: 'Page 1', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(navigation.getByRole('link', { name: 'Previous page', exact: true })).toHaveCount(0);
+  await expect(page.getByText('Journeys 1–16 of 18', { exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 1000 });
+  await navigation.getByRole('link', { name: 'Next page', exact: true }).click();
+  await expect(page.getByText('Journeys 17–18 of 18', { exact: true })).toBeVisible();
+  await expect(navigation.getByText('Page 2 of 2', { exact: true })).toBeVisible();
+  await expect(navigation.getByRole('link', { name: 'Next page', exact: true })).toHaveCount(0);
+  await navigation.getByRole('link', { name: 'Previous page', exact: true }).click();
+  await expect(page).toHaveURL(route);
 });

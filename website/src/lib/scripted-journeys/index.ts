@@ -15,6 +15,7 @@ export {
   getJourneyCellProvenance,
   getJourneyProvenanceSummary,
   getJourneysPage,
+  getJourneyPagination,
   JOURNEY_RESOLUTION_LABELS,
   JOURNEYS_PAGE_SIZE,
 } from './presentation.ts';

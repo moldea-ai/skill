@@ -2,6 +2,7 @@
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Accordion from '@moldea.ai/website-ui/accordion';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import { ArrowLeft, ArrowRight } from '@lucide/astro';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
@@ -10,6 +11,7 @@ import { PlatformMark } from '../platform-mark/index.ts';
 import BaseLayout from '../../layouts/base-layout.astro';
 import {
   getJourneysPage,
+  getJourneyPagination,
   getJourneyProvenanceSummary,
   JOURNEYS_PAGE_SIZE,
   type IScriptedJourneysWebsiteModel,
@@ -32,6 +34,11 @@ visibleSourceIds.add(model.currentSourceId);
 const visibleSources = model.sources.filter((source) => visibleSourceIds.has(source.id));
 const pages = Math.ceil(model.journeys.length / JOURNEYS_PAGE_SIZE);
 const basePath = import.meta.env.BASE_URL;
+const pageUrl = (number: number) =>
+  withBase(number === 1 ? model.route : `${model.route}page/${number}/`, basePath);
+const coverage = ['claude', 'chatgpt'].flatMap((platform) =>
+  model.coverage.filter((entry) => entry.platform === platform),
+);
 const breadcrumbs = [
   { href: '/', label: 'Home' },
   { href: '/evidence/', label: 'Evidence' },
@@ -75,7 +82,7 @@ const breadcrumbs = [
         data-journey-coverage
       >
         {
-          model.coverage.map((entry) => (
+          coverage.map((entry) => (
             <div class="min-w-0">
               <>
                 <PlatformMark platform={entry.platform} />
@@ -113,23 +120,89 @@ const breadcrumbs = [
     />
     {
       pages > 1 && (
-        <nav
-          aria-label="Journey overview pages"
-          class="mt-8 flex flex-wrap gap-3"
-        >
-          {Array.from({ length: pages }, (_, index) => index + 1).map((number) => (
-            <a
-              href={withBase(
-                number === 1 ? model.route : `${model.route}page/${number}/`,
-                basePath,
+        <div class="mt-8 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <p class="text-xs text-muted-foreground">
+            Journeys {(page - 1) * JOURNEYS_PAGE_SIZE + 1}–
+            {Math.min(page * JOURNEYS_PAGE_SIZE, model.journeys.length)} of {model.journeys.length}
+          </p>
+          <nav
+            aria-label="Journey overview pages"
+            class="flex flex-wrap items-center justify-between gap-2 sm:justify-end"
+          >
+            {page > 1 ? (
+              <ActionLink
+                href={pageUrl(page - 1)}
+                variant="ghost"
+                size="sm"
+                rel="prev"
+                aria-label="Previous page"
+                class="min-h-11 min-w-11"
+              >
+                <ArrowLeft
+                  class="size-4"
+                  aria-hidden="true"
+                />
+                <span class="hidden sm:inline">Previous</span>
+              </ActionLink>
+            ) : (
+              <span
+                class="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground/40"
+                aria-hidden="true"
+              >
+                <ArrowLeft class="size-4" />
+              </span>
+            )}
+            <p class="text-xs text-muted-foreground sm:hidden">
+              Page {page} of {pages}
+            </p>
+            <div class="hidden items-center gap-1 sm:flex">
+              {getJourneyPagination(page, pages).map((number) =>
+                number === 'ellipsis' ? (
+                  <span
+                    class="px-1 text-xs text-muted-foreground"
+                    aria-hidden="true"
+                  >
+                    …
+                  </span>
+                ) : (
+                  <ActionLink
+                    href={pageUrl(number)}
+                    variant={number === page ? 'primary' : 'ghost'}
+                    size="sm"
+                    aria-current={number === page ? 'page' : undefined}
+                    class="min-h-11 min-w-9 px-2 sm:min-w-11"
+                  >
+                    <span class="sr-only">Page </span>
+                    {number}
+                  </ActionLink>
+                ),
               )}
-              aria-current={number === page ? 'page' : undefined}
-              class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border px-3 text-sm link-feedback aria-[current=page]:bg-secondary"
-            >
-              {number}
-            </a>
-          ))}
-        </nav>
+            </div>
+            {page < pages ? (
+              <ActionLink
+                href={pageUrl(page + 1)}
+                variant="ghost"
+                size="sm"
+                rel="next"
+                aria-label="Next page"
+                class="min-h-11 min-w-11"
+              >
+                <span class="hidden sm:inline">Next</span>
+                <ArrowRight
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </ActionLink>
+            ) : (
+              <span
+                class="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground/40"
+                aria-hidden="true"
+              >
+                <ArrowRight class="size-4" />
+              </span>
+            )}
+          </nav>
+        </div>
       )
     }
   </section>

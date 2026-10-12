@@ -2,8 +2,8 @@
 import CodeDiff from '@moldea.ai/website-ui/code-diff';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
 import { withBase } from '@moldea.ai/website-ui/site';
+import { ChevronDown, CircleCheck, CircleMinus, CircleX } from '@lucide/astro';
 
-import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import { RecordedFileTree } from '../recorded-file-tree/index.ts';
 import {
   describeJourneyCheck,
@@ -15,6 +15,11 @@ interface Props {
   id: string;
 }
 const { result, id } = Astro.props;
+const checkPresentation = {
+  passed: { icon: CircleCheck, label: 'Passed', class: 'text-success' },
+  failed: { icon: CircleX, label: 'Failed', class: 'text-destructive' },
+  blocked: { icon: CircleMinus, label: 'Blocked', class: 'text-muted-foreground' },
+};
 const basePath = import.meta.env.BASE_URL;
 const replyHtml = await renderMarkdownFragment(result.reply, { basePath, localLinks: 'unwrap' });
 const passed = result.checks.filter((check) => check.status === 'passed').length;
@@ -71,36 +76,58 @@ const summary =
     }
   </div>
   <details
-    class="mt-4 border-t border-border pt-4"
+    class="group/checks mt-4 border-t border-border pt-4"
     data-local-checks
   >
     <summary
-      class="flex cursor-pointer flex-wrap items-center justify-between gap-2 text-xs font-semibold"
+      class="flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold marker:content-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
-      <span>Local checks · {summary}</span><EvidenceStatus status={result.status} />
+      <span
+        >Local checks <span class="ml-2 text-xs font-normal text-muted-foreground">{summary}</span
+        ></span
+      >
+      <ChevronDown
+        class="size-4 shrink-0 text-muted-foreground transition-transform group-open/checks:rotate-180 motion-reduce:transition-none"
+        aria-hidden="true"
+      />
     </summary>
     <p class="mt-3 text-xs leading-6 text-muted-foreground">
       Checked locally against the exported files and captured reply.
     </p>
-    <ul class="mt-3 space-y-3">
+    <ul
+      class="mt-3 divide-y divide-border"
+      aria-label="Local check results"
+    >
       {
-        result.checks.map((check) => (
-          <li class="text-xs leading-6">
-            <div class="flex flex-wrap items-start gap-2">
-              <>
-                <EvidenceStatus status={check.status} />
-                <span class="min-w-0 flex-1 break-words">{describeJourneyCheck(check.check)}</span>
-              </>
-            </div>
-            <p class="mt-1 text-muted-foreground">{check.detail}</p>
-            {check.check.kind === 'reply-matches' && check.check.reference && (
-              <p class="mt-1 text-muted-foreground">
-                Skill reference: <code>{check.check.reference.path}</code>.{' '}
-                {check.check.reference.statement}
-              </p>
-            )}
-          </li>
-        ))
+        result.checks.map((check) => {
+          const { icon: Icon, label, class: iconClass } = checkPresentation[check.status];
+          return (
+            <li
+              class="flex items-start gap-3 py-4 text-sm leading-6"
+              data-journey-check={check.status}
+            >
+              <Icon
+                class:list={['mt-0.5 size-5 shrink-0', iconClass]}
+                aria-hidden="true"
+              />
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <p class="min-w-0 font-medium break-words">{describeJourneyCheck(check.check)}</p>
+                  <span class:list={['text-xs font-semibold', iconClass]}>{label}</span>
+                </div>
+                <p class="mt-1 text-xs leading-6 break-words text-muted-foreground">
+                  {check.detail}
+                </p>
+                {check.check.kind === 'reply-matches' && check.check.reference && (
+                  <p class="mt-1 text-xs leading-6 text-muted-foreground">
+                    Skill reference: <code>{check.check.reference.path}</code>.{' '}
+                    {check.check.reference.statement}
+                  </p>
+                )}
+              </div>
+            </li>
+          );
+        })
       }
     </ul>
     {

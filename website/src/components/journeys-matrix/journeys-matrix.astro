@@ -15,7 +15,7 @@ interface Props {
   offset?: number;
 }
 const { model, journeys = model.journeys, offset = 0 } = Astro.props;
-const platforms = ['chatgpt', 'claude'] as const;
+const platforms = ['claude', 'chatgpt'] as const;
 ---
 
 <div data-journeys-matrix>

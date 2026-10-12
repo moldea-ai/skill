@@ -17,8 +17,8 @@ const snapshot = JSON.stringify({
   cells: model.cells.filter((cell) => cell.journeyId === journey.id),
 });
 const tabs = [
-  { id: 'chatgpt', label: 'ChatGPT', slotName: 'chatgpt' },
   { id: 'claude', label: 'Claude', slotName: 'claude' },
+  { id: 'chatgpt', label: 'ChatGPT', slotName: 'chatgpt' },
 ];
 ---
 
@@ -33,18 +33,18 @@ const tabs = [
     items={tabs}
   >
     <JourneyProvider
-      slot="chatgpt"
-      {model}
-      {journey}
-      {lazy}
-      platform="chatgpt"
-    />
-    <JourneyProvider
       slot="claude"
       {model}
       {journey}
       {lazy}
       platform="claude"
+    />
+    <JourneyProvider
+      slot="chatgpt"
+      {model}
+      {journey}
+      {lazy}
+      platform="chatgpt"
     />
   </TabbedPanels>
 </div>

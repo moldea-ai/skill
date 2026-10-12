@@ -197,7 +197,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
         <div
           class:list={[
             'grid gap-3 p-3 pt-0 sm:p-6 sm:pt-0',
-            model.projectRuns !== null && 'md:grid-cols-2',
+            (model.scriptedJourneys !== null || model.projectRuns !== null) && 'md:grid-cols-2',
           ]}
         >
           <article
@@ -245,7 +245,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
             {
               hasCompleteSemanticReleaseEvidence ? (
                 <div
-                  class="mt-5 rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4"
+                  class="mt-5 flex flex-1 flex-col justify-center rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-5"
                   data-home-evidence-result="decision"
                 >
                   <div class="flex items-center justify-between gap-4">
@@ -253,7 +253,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                       class="text-sm font-semibold"
                       data-semantic-release-count
                     >
-                      <span class="block font-mono text-3xl tracking-tight">
+                      <span class="block font-mono text-5xl tracking-tight">
                         {successfulSemanticCaseCount}/{model.semanticEvaluation.caseCount}
                       </span>
                       decisions verified
@@ -290,7 +290,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
             {
               hasCompleteSemanticReleaseEvidence && (
                 <ul
-                  class="mt-4 grid gap-2"
+                  class="mt-5 mb-6 grid gap-3"
                   aria-label="Verified decision behavior"
                 >
                   {decisionEvidenceGroups.map((group) => (
@@ -307,7 +307,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                 </ul>
               )
             }
-            <div class="mt-auto border-t border-primary/10 pt-5 sm:mt-6">
+            <div class="mt-auto border-t border-primary/10 pt-5">
               <ActionLink
                 class="font-bold"
                 href={withBase(model.semanticEvaluation.route, basePath)}
@@ -323,9 +323,57 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
           </article>
 
           {
+            model.scriptedJourneys !== null && (
+              <article
+                class="light-surface-selection flex min-w-0 flex-col rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7"
+                data-home-evidence-card="journeys"
+              >
+                <div class="flex items-center gap-3">
+                  <span class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--website-ui-light-secondary)]">
+                    <MessagesSquare
+                      class="size-5"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
+                    Claude and ChatGPT
+                  </p>
+                </div>
+                <h3 class="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
+                  Can it follow a whole conversation?
+                </h3>
+                <p class="mt-3 max-w-xl text-sm leading-6 text-primary/70 sm:text-base sm:leading-7">
+                  Follow successive requests, inspect the file changes, and see which results passed
+                  local checks.
+                </p>
+                <div class="theme-surface-selection my-5 min-w-0 rounded-xl bg-background p-3 text-foreground">
+                  <RecordedJourneys
+                    model={model.scriptedJourneys}
+                    isCompact
+                  />
+                </div>
+                <div class="mt-auto border-t border-primary/10 pt-5">
+                  <ActionLink
+                    class="font-bold"
+                    href={withBase(model.scriptedJourneys.route, basePath)}
+                  >
+                    Explore scripted journeys
+                    <ArrowRight
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  </ActionLink>
+                </div>
+              </article>
+            )
+          }
+          {
             model.projectRuns !== null && (
               <article
-                class="light-surface-selection flex min-w-0 flex-col gap-6 rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7"
+                class:list={[
+                  'light-surface-selection grid min-w-0 gap-6 rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7 lg:grid-cols-2 lg:items-center lg:gap-10',
+                  { 'md:col-span-2': model.scriptedJourneys !== null },
+                ]}
                 data-home-evidence-card="projects"
               >
                 <div class="min-w-0">
@@ -348,7 +396,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                     mock-project work.
                   </p>
                 </div>
-                <div class="mt-auto min-w-0 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-5">
+                <div class="min-w-0 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-5">
                   <div class="grid grid-cols-2 gap-5 border-b border-primary/10 pb-5">
                     <p class="text-sm text-primary/70">
                       <span class="block font-mono text-3xl font-semibold text-primary">
@@ -373,53 +421,6 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                       aria-hidden="true"
                     />
                   </ActionLink>
-                </div>
-              </article>
-            )
-          }
-          {
-            model.scriptedJourneys !== null && (
-              <article
-                class:list={[
-                  'light-surface-selection grid min-w-0 gap-7 rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7 lg:grid-cols-2 lg:items-center lg:gap-10',
-                  { 'md:col-span-2': model.projectRuns !== null },
-                ]}
-                data-home-evidence-card="journeys"
-              >
-                <div class="min-w-0">
-                  <div class="flex items-center gap-3">
-                    <>
-                      <span class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--website-ui-light-secondary)]">
-                        <MessagesSquare
-                          class="size-5"
-                          aria-hidden="true"
-                        />
-                      </span>
-                      <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
-                        ChatGPT and Claude
-                      </p>
-                    </>
-                  </div>
-                  <h3 class="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
-                    Can it follow a whole conversation?
-                  </h3>
-                  <p class="mt-3 max-w-xl text-sm leading-7 text-primary/70">
-                    Follow successive requests, inspect the file changes, and see which results
-                    passed local checks.
-                  </p>
-                  <ActionLink
-                    class="mt-6 font-bold"
-                    href={withBase(model.scriptedJourneys.route, basePath)}
-                  >
-                    Explore scripted journeys
-                    <ArrowRight
-                      class="size-4"
-                      aria-hidden="true"
-                    />
-                  </ActionLink>
-                </div>
-                <div class="min-w-0 rounded-xl bg-background p-4 text-foreground">
-                  <RecordedJourneys model={model.scriptedJourneys} />
                 </div>
               </article>
             )

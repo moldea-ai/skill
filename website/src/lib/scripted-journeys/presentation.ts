@@ -219,6 +219,21 @@ export const getJourneysPage = (model: IScriptedJourneysWebsiteModel, page: numb
   return model.journeys.slice((page - 1) * JOURNEYS_PAGE_SIZE, page * JOURNEYS_PAGE_SIZE);
 };
 
+/** Keeps first, last and neighboring pages available without a growing row of links. */
+export const getJourneyPagination = (page: number, pages: number): (number | 'ellipsis')[] => {
+  const selected = [...new Set([1, page - 1, page, page + 1, pages])]
+    .filter((number) => number >= 1 && number <= pages)
+    .sort((left, right) => left - right);
+  const items: (number | 'ellipsis')[] = [];
+  for (const [index, number] of selected.entries()) {
+    const previous = selected[index - 1];
+    if (previous !== undefined && number - previous === 2) items.push(previous + 1);
+    else if (previous !== undefined && number - previous > 2) items.push('ellipsis');
+    items.push(number);
+  }
+  return items;
+};
+
 /** Describes the exact local criterion without implying that agent activity was observed. */
 export const describeJourneyCheck = (check: IJourneyCheck): string => {
   switch (check.kind) {
@@ -227,7 +242,7 @@ export const describeJourneyCheck = (check: IJourneyCheck): string => {
     case 'path-absent':
       return `File absent: ${check.path}`;
     case 'no-changes':
-      return 'No file changes in this step';
+      return 'Expected no file changes';
     case 'paths-changed':
       return `Changed paths: ${check.paths.join(', ')}`;
     case 'paths-unchanged':

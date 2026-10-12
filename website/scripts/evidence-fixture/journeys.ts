@@ -32,7 +32,10 @@ const definitions: IJourneyDefinition[] = [
         id: 'initialize',
         request: 'Initialize moldea.',
         dependsOn: [],
-        checks: [{ kind: 'path-exists', path: 'moldea/project.md' }],
+        checks: [
+          { kind: 'path-exists', path: 'moldea/project.md' },
+          { kind: 'path-exists', path: 'moldea/moldea.yaml' },
+        ],
         unverified: ['Validation ran after the final write.'],
       },
       {
@@ -169,7 +172,12 @@ export const createSyntheticJourneysBundle = (
             activity: {
               commands: ['node .agents/skills/moldea/scripts/moldea-cli.mjs validate --json'],
               reads: ['README.md', 'src/greeting.js'],
-              writes: step.id === 'initialize' ? ['moldea/project.md'] : [],
+              writes:
+                step.id === 'initialize'
+                  ? ['moldea/project.md', 'moldea/moldea.yaml']
+                  : status === 'failed' && step.checks.some((check) => check.kind === 'no-changes')
+                    ? ['moldea/project.md']
+                    : [],
               notes: ['Agent-reported activity is not an execution trace.'],
             },
           })),
@@ -255,13 +263,25 @@ export const createSyntheticJourneysBundle = (
       trial.journeys.flatMap((journey) =>
         journey.steps.flatMap((step) => {
           const hasChange = step.id === 'initialize';
+          const hasUnexpectedChange =
+            step.status === 'failed' &&
+            step.checks.some((check) => check.check.kind === 'no-changes');
           const prefix = `${platform.platform}/${journey.id}/${trial.confirmationIndex === null ? 'initial' : `c${trial.confirmationIndex}`}/${step.id}/`;
           return [
             {
               path: `${prefix}changes.json`,
               mediaType: 'application/json',
               content: Buffer.from(
-                JSON.stringify(hasChange ? [{ path: 'moldea/project.md', kind: 'added' }] : []),
+                JSON.stringify(
+                  hasChange
+                    ? [
+                        { path: 'moldea/project.md', kind: 'added' },
+                        { path: 'moldea/moldea.yaml', kind: 'added' },
+                      ]
+                    : hasUnexpectedChange
+                      ? [{ path: 'moldea/project.md', kind: 'modified' }]
+                      : [],
+                ),
               ),
             },
             {
@@ -269,8 +289,10 @@ export const createSyntheticJourneysBundle = (
               mediaType: 'application/patch+text',
               content: Buffer.from(
                 hasChange
-                  ? 'diff --git a/moldea/project.md b/moldea/project.md\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/project.md\n@@ -0,0 +1,2 @@\n+# Project\n+The greeting service returns a personalized welcome.\n'
-                  : '',
+                  ? 'diff --git a/moldea/project.md b/moldea/project.md\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/project.md\n@@ -0,0 +1,2 @@\n+# Project\n+The greeting service returns a personalized welcome.\ndiff --git a/moldea/moldea.yaml b/moldea/moldea.yaml\nnew file mode 100644\n--- /dev/null\n+++ b/moldea/moldea.yaml\n@@ -0,0 +1 @@\n+version: 1\n'
+                  : hasUnexpectedChange
+                    ? 'diff --git a/moldea/project.md b/moldea/project.md\n--- a/moldea/project.md\n+++ b/moldea/project.md\n@@ -1,2 +1,2 @@\n # Project\n-The greeting service returns a personalized welcome.\n+The saved project knowledge was unexpectedly replaced.\n'
+                    : '',
               ),
             },
             {

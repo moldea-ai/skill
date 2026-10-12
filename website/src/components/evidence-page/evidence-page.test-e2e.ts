@@ -68,6 +68,17 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
   const decisionCopy = sections.first().getByRole('heading', { level: 2 }).locator('..');
   await expect(decisionCopy.locator('[data-evidence-status]')).toHaveCount(0);
   await expect(page.locator('[data-recorded-agent] [data-conversation]')).toHaveCount(1);
+  const assistantMessages = page.locator('[data-conversation-message="assistant"]');
+  await expect(assistantMessages.locator('.lucide-bot')).toHaveCount(0);
+  for (const message of await assistantMessages.all())
+    await expect(message.locator('img').first()).toHaveAttribute(
+      'src',
+      toPublicPath('/logo/icon-xs-light.png'),
+    );
+  const journeyPreview = page.locator('[data-recorded-journeys]');
+  await expect(journeyPreview).toContainText('Claude');
+  await expect(journeyPreview.locator('[data-recorded-file-tree]')).toContainText('moldea.yaml');
+  await expect(journeyPreview.locator('[data-recorded-file-tree]')).toContainText('project.md');
   expect(
     await sections.last().evaluate((element) => getComputedStyle(element).borderBottomWidth),
   ).toBe('0px');

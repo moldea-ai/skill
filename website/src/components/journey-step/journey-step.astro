@@ -1,5 +1,6 @@
 ---
 import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
+import { withBase } from '@moldea.ai/website-ui/site';
 
 import JourneyResult from '../journey-result/journey-result.astro';
 import type { IJourneyRenderResult } from '../../lib/scripted-journeys/index.ts';
@@ -11,6 +12,7 @@ interface Props {
   number: number;
 }
 const { request, result, id, number } = Astro.props;
+const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_URL);
 ---
 
 <ConversationMessage role="user">
@@ -23,6 +25,14 @@ const { request, result, id, number } = Astro.props;
   </p>
 </ConversationMessage>
 <ConversationMessage role="assistant">
+  <img
+    slot="avatar"
+    src={skillMarkPath}
+    width="207"
+    height="215"
+    alt=""
+    class="dark:invert"
+  />
   <JourneyResult
     {result}
     {id}

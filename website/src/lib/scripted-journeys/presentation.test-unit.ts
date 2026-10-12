@@ -12,6 +12,7 @@ import {
   getJourneyPlatformStatus,
   getJourneyRevisions,
   getJourneysPage,
+  getJourneyPagination,
   getJourneyCellProvenance,
   getJourneyProvenanceSummary,
 } from './index.ts';
@@ -69,6 +70,7 @@ test('keeps mixed revisions, historical requests, earlier-only rows and single-p
 });
 
 test('labels local checks without treating a reply match as observed execution', () => {
+  expect(describeJourneyCheck({ kind: 'no-changes' })).toBe('Expected no file changes');
   expect(
     describeJourneyCheck({
       kind: 'reply-matches',
@@ -80,4 +82,15 @@ test('labels local checks without treating a reply match as observed execution',
   expect(
     describeJourneyCheck({ kind: 'paths-unchanged', paths: ['moldea/**'], since: 'fixture' }),
   ).toBe('Preserved paths since fixture: moldea/**');
+});
+
+test.each([
+  [1, 1, [1]],
+  [1, 2, [1, 2]],
+  [2, 4, [1, 2, 3, 4]],
+  [1, 512, [1, 2, 'ellipsis', 512]],
+  [256, 512, [1, 'ellipsis', 255, 256, 257, 'ellipsis', 512]],
+  [512, 512, [1, 'ellipsis', 511, 512]],
+])('getJourneyPagination(%d, %d) -> %o', (page, pages, expected) => {
+  expect(getJourneyPagination(page, pages)).toStrictEqual(expected);
 });

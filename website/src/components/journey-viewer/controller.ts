@@ -18,12 +18,11 @@ export const initializeJourneyViewers = (document: Document, signal: AbortSignal
   };
   const selectAvailableProvider = (viewer: HTMLElement) => {
     if (
-      viewer
-        .querySelector('[data-journey-provider="chatgpt"]')
-        ?.getAttribute('data-has-results') === 'false'
+      viewer.querySelector('[data-journey-provider="claude"]')?.getAttribute('data-has-results') ===
+      'false'
     )
       viewer
-        .querySelector<HTMLAnchorElement>('[data-panel-id$="-claude-panel"][role="tab"]')
+        .querySelector<HTMLAnchorElement>('[data-panel-id$="-chatgpt-panel"][role="tab"]')
         ?.click();
   };
   initializeRuns(document);

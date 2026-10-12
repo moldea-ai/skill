@@ -17,7 +17,7 @@ Release `8.0.1` supports exactly:
 - repository format version 1
 - CLI JSON schema 7
 
-The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^11.0.0`; compatible CLI 11 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and moldea's supported `^7.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
+The CLI is a repository-root-local development dependency. Its declaration and installed stable version must satisfy `^11.0.0`; compatible CLI 11 patches and minors do not require a skill release. Installed Core must satisfy both the CLI's declared Core range and `moldea`'s supported `^7.0.0` range. Other CLI majors, prereleases, malformed declarations, incompatible installed versions, and incompatible Core versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
 ## Tooling ownership
 
@@ -25,7 +25,7 @@ This page owns CLI invocation and machine-evidence contracts. The tooling-instal
 
 Explicit repair reads its exact CLI recovery target from the selected installed skill's `metadata.cliRepairVersion`, maintained from the locked development CLI. This target is distinct from the supported range. Updating the skill alone changes no project. Healthy aligned tooling is a no-op; healthy newer compatible versions are preserved after composition checks. Downgrades, newer unsupported majors, and explicit pin conflicts need direction.
 
-A write-capable moldea operation may establish the compatible dependency through the repository's package manager with lifecycle scripts disabled. Read-only work reports missing or mismatched tooling without changing dependencies, lockfiles, or configuration. Executable package-manager extensions stop automatic setup; the skill reports the obstacle and defers to the repository's trusted workflow instead of weakening host controls.
+A write-capable `moldea` operation may establish the compatible dependency through the repository's package manager with lifecycle scripts disabled. Read-only work reports missing or mismatched tooling without changing dependencies, lockfiles, or configuration. Executable package-manager extensions stop automatic setup; the skill reports the obstacle and defers to the repository's trusted workflow instead of weakening host controls.
 
 During initialization, sufficient project context comes before dependency changes. A known missing CLI is installed before canonical or managed README writes and before validation, without a deliberate failing probe. Installation failure stops those writes and validation while preserving and reporting any package-manager changes. An existing compatible CLI needs no reinstall or extra availability check.
 
@@ -62,7 +62,7 @@ Cancellation before atomic rename submission preserves the prior checkpoint. A r
 
 ## Resource profiles
 
-Ordinary work uses 65,536-byte pages and stops when the relevant record or diagnostic is available. Aggregate moldea output should remain at or below 262,144 bytes. Large repositories use deterministic metadata pagination; an explicitly required large traversal may use more pages, but each CLI invocation remains at or below 1 MiB and stays task-scoped. Page limits bound encoded responses, not source parsing. The isolated Node inspection has fixed memory and elapsed-time safeguards. Verified heap exhaustion (`RESOURCE_LIMIT_EXCEEDED`) and elapsed timeout (`INSPECTION_TIMEOUT`) leave verification incomplete; neither establishes faulty application code. Capacity contention (`INSPECTION_BUSY`) and process failure (`INSPECTION_PROCESS_FAILED`) also provide no inspection conclusion. Preserve earlier changes and report remaining checks; do not retry unchanged failures repeatedly or split healthy source automatically.
+Ordinary work uses 65,536-byte pages and stops when the relevant record or diagnostic is available. Aggregate `moldea` output should remain at or below 262,144 bytes. Large repositories use deterministic metadata pagination; an explicitly required large traversal may use more pages, but each CLI invocation remains at or below 1 MiB and stays task-scoped. Page limits bound encoded responses, not source parsing. The isolated Node inspection has fixed memory and elapsed-time safeguards. Verified heap exhaustion (`RESOURCE_LIMIT_EXCEEDED`) and elapsed timeout (`INSPECTION_TIMEOUT`) leave verification incomplete; neither establishes faulty application code. Capacity contention (`INSPECTION_BUSY`) and process failure (`INSPECTION_PROCESS_FAILED`) also provide no inspection conclusion. Preserve earlier changes and report remaining checks; do not retry unchanged failures repeatedly or split healthy source automatically.
 
 For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
 
@@ -72,12 +72,12 @@ The following profiles constrain release-assurance trials, not users’ reposito
 | ------------------------- | ---------: | ---------------: |
 | One completed command     |    256 KiB |          256 KiB |
 | Completed commands        |         64 |               64 |
-| moldea calls              |         16 |               16 |
-| moldea output             |    256 KiB |            1 MiB |
+| `moldea` calls            |         16 |               16 |
+| `moldea` output           |    256 KiB |            1 MiB |
 | Model-visible tool output |      1 MiB |            4 MiB |
 | Input plus output tokens  |  1,625,000 |        1,625,000 |
 
-The isolated model-stage runner retains absolute ceilings of 128 completed commands, 32 moldea calls, 8 MiB of moldea output, 16 MiB of complete-stage model-visible tool output, 32 KiB of raw command text, and 2,097,152 tokens. These are failure containment, not operating targets. The 256 KiB peak applies to one completed command and is distinct from the 32 KiB raw-command ceiling.
+The isolated model-stage runner retains absolute ceilings of 128 completed commands, 32 `moldea` calls, 8 MiB of `moldea` output, 16 MiB of complete-stage model-visible tool output, 32 KiB of raw command text, and 2,097,152 tokens. These are failure containment, not operating targets. The 256 KiB peak applies to one completed command and is distinct from the 32 KiB raw-command ceiling.
 
 Crossing an operating dimension fails with its profile, dimension, observed value, and limit. A safe cumulative command, moldea-call, or token overage may still reach semantic judging for calibration, but the trial remains failed. Missing token usage and output-volume, deterministic, workspace, runner-owned, or command-policy failures skip judging. Duration and peak memory are diagnostics rather than brittle pass/fail thresholds.
 

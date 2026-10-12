@@ -8,7 +8,7 @@ order: 32
 
 # Limitations and how they’re handled
 
-moldea reports what it can establish from the available project evidence. Start with the result, then check any remaining warnings or unfinished work.
+`moldea` reports what it can establish from the available project evidence. Start with the result, then check any remaining warnings or unfinished work.
 
 ## Read the result
 
@@ -19,7 +19,7 @@ moldea reports what it can establish from the available project evidence. Start 
 | **Not checked** | A declared file or export check was unsupported or inconclusive. This alone is not a warning or error. | Inspect the named check and establish any required behavior separately.       |
 | **Unfinished**  | A limit, cancellation, or operational failure prevented a conclusion.                                  | Preserve work and resolve the reported obstacle before relying on that check. |
 
-`valid: true` means **zero errors**. Warnings and not-checked binding relationships can remain. Accepted warnings retain their identity and the developer’s reason in a separate count. Unresolved requirements describe missing project decisions separately. None of these fields certifies business readiness or production correctness.
+`valid: true` means **zero errors**. Warnings and not-checked binding checks can remain. Accepted warnings retain their identity and the developer’s reason in a separate count. Unresolved requirements describe missing project decisions separately. None of these fields certifies business readiness or production correctness.
 
 Ask the coding agent to fix a warning, or explicitly accept a supported warning with your own reason. Acceptance does not fix its cause or change errors. Remove an obsolete acceptance after its warning disappears, then validate again. Integration warnings identify a missing or stale AGENTS.md block or installed skill assets. If your instructions protect AGENTS.md, repair supplies the exact block for you to add.
 

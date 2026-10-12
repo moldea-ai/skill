@@ -16,9 +16,9 @@ order: 110
 
 > **Coding agent**
 >
-> I found the existing order lookup service, refund policy, support queue, and runtime construction. I will establish the minimum moldea foundation, define one support-agent responsibility, bind the existing order tool and runtime agent, connect the canonical instruction to the runtime, add focused tests, and preserve refund approval as deterministic application behavior.
+> I found the existing order lookup service, refund policy, support queue, and runtime construction. I will establish the minimum `moldea` foundation, define one support-agent responsibility, bind the existing order tool and runtime agent, connect the canonical instruction to the runtime, add focused tests, and preserve refund approval as deterministic application behavior.
 
-## Coding agent and moldea under the hood
+## Coding agent and `moldea` under the hood
 
 1. The coding agent selects a write-capable agent-creation workflow and confirms that the request authorizes adoption.
 2. It reads the agent-design guidance for the selected operation and follows only the additional boundary reference that the implementation actually reaches.

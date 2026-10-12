@@ -16,7 +16,7 @@ order: 120
 
 > **Coding agent**
 >
-> moldea keeps durable project context in the repository so coding agents can understand the project consistently over time. The README and source do not establish what this project is for, so I haven’t initialized it yet.
+> `moldea` keeps durable project context in the repository so coding agents can understand the project consistently over time. The README and source do not establish what this project is for, so I haven’t initialized it yet.
 >
 > What does the project do, and who or what does it serve?
 
@@ -58,7 +58,7 @@ The developer request establishes how the brief should inform the work; the file
 > - Continue normal development.
 > - Optionally plan an agent-enabled workflow or request a specific agent when the project needs one.
 
-## Coding agent and moldea under the hood
+## Coding agent and `moldea` under the hood
 
 1. The exact `Initialize moldea` request establishes adoption intent.
 2. The coding agent begins with the root README and other high-information project surfaces.

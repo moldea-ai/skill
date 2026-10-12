@@ -20,6 +20,16 @@ The requests and reports below illustrate the workflow. They are not recorded co
 >
 > Structural validation confirmed the declared file and export. My source review found that a runtime request bypasses the canonical instruction loader. I also compared the active instruction with the approved support policy. No material ambiguity changes the correction direction. No repository files were changed.
 
+### Evidence in this illustration
+
+| Source                                 | Relevant content                                                                                   |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `moldea/project.md`                    | Support explains policy and looks up orders. The application owns refund eligibility and approval. |
+| `moldea/agents/support/instruction.md` | Explain the policy. Do not approve refunds or change orders.                                       |
+| `src/support.ts`                       | The request uses an inline instruction instead of calling the canonical instruction loader.        |
+
+The declared loader exists, but this request does not use it. File and export checks cannot detect that bypass.
+
 ### Under the hood
 
 1. The coding agent selects read-only evaluation.

@@ -14,12 +14,10 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
 
 <Conversation {ariaLabel}>
   <ConversationMessage role="user">
-    <span
+    <UserRound
       slot="avatar"
-      class="inline-flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground"
-      aria-hidden="true"
-      ><UserRound class="size-4" /></span
-    >
+      class="size-4"
+    />
     <div class="text-sm leading-6 font-medium sm:text-base"><slot name="request" /></div>
   </ConversationMessage>
   <ConversationMessage role="assistant">

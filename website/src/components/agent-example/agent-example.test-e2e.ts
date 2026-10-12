@@ -230,8 +230,11 @@ for (const colorScheme of ['light', 'dark'] as const) {
     const page = await context.newPage();
     await page.goto(toPublicPath('/'));
     const example = page.getByRole('article', { name: 'Illustrative support agent project' });
-    const responseCard = example.locator('[data-agent-response-card]');
-    const userBubble = example.locator('[data-conversation-message="user"] article > div');
+    const responseCard = example.getByRole('article', {
+      name: 'Coding agent message',
+      exact: true,
+    });
+    const userBubble = example.getByRole('article', { name: 'You message', exact: true });
     const cardAppearance = await userBubble.evaluate((element) => {
       const styles = getComputedStyle(element);
       return {
@@ -241,7 +244,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       };
     });
     expect(cardAppearance.background).not.toBe('rgba(0, 0, 0, 0)');
-    expect(parseFloat(cardAppearance.borderWidth)).toBe(0);
+    expect(parseFloat(cardAppearance.borderWidth)).toBe(1);
     expect(parseFloat(cardAppearance.radius)).toBeGreaterThan(0);
     const cardBounds = await responseCard.boundingBox();
     const artifactBounds = await example.locator('[data-agent-artifacts]').boundingBox();

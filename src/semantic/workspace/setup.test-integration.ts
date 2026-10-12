@@ -55,30 +55,45 @@ afterEach(() => {
   for (const root of temporaryRoots.splice(0)) rmSync(root, { force: true, recursive: true });
 });
 
+const withEmptyCodexHome = async <T>(root: string, operation: () => Promise<T>): Promise<T> => {
+  const originalCodexHome = process.env['CODEX_HOME'];
+  const sourceCodexHome = join(root, 'source-codex-home');
+  mkdirSync(sourceCodexHome);
+  process.env['CODEX_HOME'] = sourceCodexHome;
+  try {
+    return await operation();
+  } finally {
+    if (originalCodexHome === undefined) delete process.env['CODEX_HOME'];
+    else process.env['CODEX_HOME'] = originalCodexHome;
+  }
+};
+
 const materializeCase = async (caseId: string, withGitBaseline = false) => {
   const caseDefinition = cases.find(({ id }) => id === caseId);
   assert.ok(caseDefinition, `Missing semantic case ${caseId}.`);
   const root = mkdtempSync(join(tmpdir(), 'moldea-setup-'));
   temporaryRoots.push(root);
-  if (withGitBaseline) {
-    const { repositoryPath } = await createActorRepository(
-      root,
-      caseDefinition,
-      join(root, 'sandbox-home'),
-      join(root, 'actor-tools'),
-    );
+  return withEmptyCodexHome(root, async () => {
+    if (withGitBaseline) {
+      const { repositoryPath } = await createActorRepository(
+        root,
+        caseDefinition,
+        join(root, 'sandbox-home'),
+        join(root, 'actor-tools'),
+      );
+      return { caseDefinition, repositoryPath };
+    }
+    const repositoryPath = join(root, 'actor');
+    mkdirSync(repositoryPath);
+    const setupResult = await caseDefinition.setup?.({
+      actorToolDirectory: join(root, 'actor-tools'),
+      repositoryPath,
+      sandboxHome: join(root, 'sandbox-home'),
+    });
+    assert.ok(setupResult);
+    await setupResult.afterBaseline?.();
     return { caseDefinition, repositoryPath };
-  }
-  const repositoryPath = join(root, 'actor');
-  mkdirSync(repositoryPath);
-  const setupResult = await caseDefinition.setup?.({
-    actorToolDirectory: join(root, 'actor-tools'),
-    repositoryPath,
-    sandboxHome: join(root, 'sandbox-home'),
   });
-  assert.ok(setupResult);
-  await setupResult.afterBaseline?.();
-  return { caseDefinition, repositoryPath };
 };
 
 const gateResult = (repositoryPath: string, paths: string[], isAdoptionOnly = false): string => {
@@ -128,11 +143,13 @@ test('every semantic case materializes a snapshot-ready actor repository', async
   for (const caseDefinition of cases) {
     const root = mkdtempSync(join(tmpdir(), 'moldea-setup-'));
     try {
-      const { hasWorkspaceBinaryDirectory, repositoryPath } = await createActorRepository(
-        root,
-        caseDefinition,
-        join(root, 'sandbox-home'),
-        join(root, 'actor-tools'),
+      const { hasWorkspaceBinaryDirectory, repositoryPath } = await withEmptyCodexHome(root, () =>
+        createActorRepository(
+          root,
+          caseDefinition,
+          join(root, 'sandbox-home'),
+          join(root, 'actor-tools'),
+        ),
       );
       if (caseDefinition.id === 'host-plan-command-precedence') {
         assert.equal(hasWorkspaceBinaryDirectory, false);
@@ -542,11 +559,13 @@ test('actor repository creation accepts a case setup callback and applies post-b
   const root = mkdtempSync(join(tmpdir(), 'moldea-actor-'));
   temporaryRoots.push(root);
 
-  const { repositoryPath } = await createActorRepository(
-    root,
-    caseDefinition,
-    join(root, 'sandbox-home'),
-    join(root, 'actor-tools'),
+  const { repositoryPath } = await withEmptyCodexHome(root, () =>
+    createActorRepository(
+      root,
+      caseDefinition,
+      join(root, 'sandbox-home'),
+      join(root, 'actor-tools'),
+    ),
   );
   const baseline = spawnSync('git', ['show', 'HEAD:README.md'], {
     cwd: repositoryPath,
@@ -842,11 +861,8 @@ test.each([undefined, false])(
         return seedManagedAgentsBlock === undefined ? {} : { seedManagedAgentsBlock };
       },
     };
-    const { repositoryPath } = await createActorRepository(
-      root,
-      caseDefinition,
-      join(root, 'home'),
-      join(root, 'tools'),
+    const { repositoryPath } = await withEmptyCodexHome(root, () =>
+      createActorRepository(root, caseDefinition, join(root, 'home'), join(root, 'tools')),
     );
     const actual = readFileSync(join(repositoryPath, 'AGENTS.md'), 'utf8');
     if (seedManagedAgentsBlock === false) assert.equal(actual, hostInstructions);

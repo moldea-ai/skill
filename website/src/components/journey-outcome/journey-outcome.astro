@@ -1,0 +1,28 @@
+---
+import StatusBadge from '@moldea.ai/website-ui/status-badge';
+
+import {
+  getJourneyPlatformStatus,
+  JOURNEY_RESOLUTION_LABELS,
+} from '../../lib/scripted-journeys/index.ts';
+
+interface Props {
+  status: ReturnType<typeof getJourneyPlatformStatus>;
+}
+const { status } = Astro.props;
+const tone = ['confirmed-failure', 'legacy-failed'].includes(status)
+  ? 'danger'
+  : ['awaiting-confirmation', 'blocked', 'legacy-blocked'].includes(status)
+    ? 'warning'
+    : status === 'not-run'
+      ? 'neutral'
+      : 'success';
+---
+
+<span data-journey-outcome={status}>
+  <StatusBadge
+    label={JOURNEY_RESOLUTION_LABELS[status]}
+    {tone}
+    size="sm"
+  />
+</span>

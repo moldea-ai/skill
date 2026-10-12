@@ -7,26 +7,25 @@ import type { IScriptedJourneysWebsiteModel, IJourneyRenderRevision } from './ty
 export const JOURNEY_PLATFORM_LABELS = { chatgpt: 'ChatGPT', claude: 'Claude' } as const;
 
 // labels describe stored producer resolutions, never a new website vote
-export const JOURNEY_RESOLUTION_LABELS: Record<string, string> = {
-  'passed-initially': 'Passed initially',
-  'awaiting-confirmation': 'Awaiting confirmation',
-  recovered: 'Recovered after failure',
-  'confirmed-failure': 'Confirmed failure',
-  blocked: 'Blocked evidence',
+export const JOURNEY_RESOLUTION_LABELS = {
+  'passed-initially': 'Passed',
+  'awaiting-confirmation': 'Needs another run',
+  recovered: 'Passed on repeat',
+  'confirmed-failure': 'Failed on repeat',
+  blocked: 'Blocked',
   'not-run': 'Not run',
   'legacy-passed': 'Passed (historical)',
   'legacy-failed': 'Failed (historical)',
   'legacy-blocked': 'Blocked (historical)',
-};
+} as const;
 export const JOURNEYS_PAGE_SIZE = 16;
-export const JOURNEYS_PREVIEW_SIZE = 4;
 
 /** Reads the selected group's stored resolution, preserving historical single-trial meaning. */
 export const getJourneyPlatformStatus = (
   model: IScriptedJourneysWebsiteModel,
   journeyId: string,
   platform: keyof typeof JOURNEY_PLATFORM_LABELS,
-): string => {
+): keyof typeof JOURNEY_RESOLUTION_LABELS => {
   const cell = model.cells.find(
     (cell) => cell.journeyId === journeyId && cell.platform === platform,
   );

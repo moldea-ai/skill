@@ -106,8 +106,9 @@ test('unselected project runs are absent from navigation and static routes', asy
     'We tested the work. You can inspect the results.',
   );
   await expect(page.getByText('No example result selected', { exact: true })).toHaveCount(2);
-  await expect(page.locator('[data-agent-result]')).toContainText('No workspace result selected');
-  await expect(page.locator('[data-agent-result]')).not.toContainText('0 files changed');
+  await expect(page.locator('[data-recorded-file-tree]')).toHaveCount(0);
+  for (const preview of await page.locator('[data-agent-result]').all())
+    await expect(preview).not.toContainText('0 files changed');
   await expect(page.locator('[data-scheduler-observations]')).toHaveCount(0);
   expect(
     existsSync(path.join(getRepositoryRoot(), 'website/dist/evidence/project-runs/index.html')),
@@ -135,7 +136,8 @@ test('keeps evidence selection readable on neutral badges and themed cards', asy
         return { background: style.backgroundColor, foreground: style.color };
       });
     const cardSelection = await page
-      .getByText('Code, tests, and project notes', { exact: true })
+      .locator('[data-recorded-change]')
+      .getByText('What this tests', { exact: true })
       .evaluate((element) => {
         const selection = window.getSelection();
         const range = document.createRange();

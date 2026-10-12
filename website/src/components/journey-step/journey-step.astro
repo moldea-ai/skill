@@ -1,151 +1,30 @@
 ---
-import { JourneyTrials } from '../journey-trials/index.ts';
-import type { IJourneyRenderStep } from '../../lib/scripted-journeys/index.ts';
+import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
+
+import JourneyResult from '../journey-result/journey-result.astro';
+import type { IJourneyRenderResult } from '../../lib/scripted-journeys/index.ts';
 
 interface Props {
-  step: IJourneyRenderStep;
-  journeyId: string;
+  request: string;
+  result: IJourneyRenderResult;
+  id: string;
   number: number;
 }
-const { step, journeyId, number } = Astro.props;
-const id = `journey-${journeyId}-${step.id}`;
-const platforms = ['chatgpt', 'claude'] as const;
+const { request, result, id, number } = Astro.props;
 ---
 
-<article
-  class="min-w-0 border-t border-border py-9 sm:py-12"
-  aria-labelledby={`${id}-request`}
-  data-journey-step
->
-  <div class="mb-7 flex min-w-0 items-start gap-3 sm:gap-4">
-    <span
-      class="flex size-8 shrink-0 items-center justify-center rounded-full border border-border font-mono text-xs text-muted-foreground"
-      >{String(number).padStart(2, '0')}</span
-    ><div class="min-w-0">
-      <p class="eyebrow mb-2">Exact request</p><h2
-        id={`${id}-request`}
-        class="text-xl leading-8 font-semibold tracking-tight break-words sm:text-2xl"
-      >
-        {step.request}
-      </h2>
-    </div>
-  </div>
-  <div data-journey-platforms>
-    <div
-      class="mb-6 grid grid-cols-2 gap-2 rounded-lg border border-border bg-elevated p-1 [hidden]:hidden"
-      data-platform-controls
-      hidden
-      aria-label={`Platform results for request ${number}`}
-    >
-      {
-        platforms.map((platform) => (
-          <button
-            type="button"
-            id={`${id}-${platform}-tab`}
-            aria-controls={`${id}-${platform}-panel`}
-            class="min-h-10 rounded-md px-3 text-sm font-semibold text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring aria-selected:bg-card aria-selected:text-foreground aria-selected:shadow-sm"
-            data-platform-tab={platform}
-          >
-            {platform === 'chatgpt' ? 'ChatGPT' : 'Claude'}
-          </button>
-        ))
-      }
-    </div>
-    <div class="grid gap-8 sm:grid-cols-2 sm:gap-8 lg:gap-12">
-      {
-        platforms.map((platform) => {
-          const results = step.results.filter((candidate) => candidate.platform === platform);
-          return (
-            <div
-              id={`${id}-${platform}-panel`}
-              class="min-w-0"
-              data-platform-panel={platform}
-              data-has-results={results.length > 0}
-            >
-              {results.length > 0 ? (
-                <JourneyTrials
-                  {results}
-                  id={`${id}-${platform}`}
-                />
-              ) : (
-                <p class="text-sm leading-7 text-muted-foreground">
-                  Not run in {platform === 'chatgpt' ? 'ChatGPT' : 'Claude'} for this revision.
-                </p>
-              )}
-            </div>
-          );
-        })
-      }
-    </div>
-  </div>
-</article>
-
-<script>
-  // this domain-specific comparison shows both platforms on desktop and one keyboard tab on mobile
-  // Website UI's always-tabbed panels cannot express that responsive behavior without duplicate content
-  let comparisons: AbortController | null = null;
-  const initializeJourneyComparisons = () => {
-    comparisons?.abort();
-    comparisons = new AbortController();
-    const { signal } = comparisons;
-    for (const root of document.querySelectorAll<HTMLElement>('[data-journey-platforms]')) {
-      const controls = root.querySelector<HTMLElement>('[data-platform-controls]');
-      const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-platform-tab]')];
-      const panels = [...root.querySelectorAll<HTMLElement>('[data-platform-panel]')];
-      if (!controls || tabs.length !== 2 || panels.length !== 2) continue;
-      const mobile = window.matchMedia('(max-width: 639px)');
-      let selected = Math.max(
-        0,
-        panels.findIndex((panel) => panel.dataset['hasResults'] === 'true'),
-      );
-      const update = () => {
-        controls.hidden = !mobile.matches;
-        if (mobile.matches) controls.setAttribute('role', 'tablist');
-        else controls.removeAttribute('role');
-        tabs.forEach((tab, index) => {
-          tab.setAttribute('role', 'tab');
-          tab.setAttribute('aria-selected', String(index === selected));
-          tab.tabIndex = index === selected ? 0 : -1;
-        });
-        panels.forEach((panel, index) => {
-          panel.hidden = mobile.matches && index !== selected;
-          if (mobile.matches) {
-            panel.setAttribute('role', 'tabpanel');
-            panel.setAttribute('aria-labelledby', tabs[index]!.id);
-            panel.tabIndex = 0;
-          } else {
-            panel.removeAttribute('role');
-            panel.removeAttribute('aria-labelledby');
-            panel.removeAttribute('tabindex');
-          }
-        });
-      };
-      tabs.forEach((tab, index) => {
-        tab.addEventListener(
-          'click',
-          () => {
-            selected = index;
-            update();
-          },
-          { signal },
-        );
-        tab.addEventListener(
-          'keydown',
-          (event) => {
-            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-            event.preventDefault();
-            selected = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : 1 - selected;
-            update();
-            tabs[selected]!.focus();
-          },
-          { signal },
-        );
-      });
-      mobile.addEventListener('change', update, { signal });
-      update();
-    }
-  };
-  document.addEventListener('astro:page-load', initializeJourneyComparisons);
-  document.addEventListener('astro:before-swap', () => comparisons?.abort());
-  initializeJourneyComparisons();
-</script>
+<ConversationMessage role="user">
+  <p class="mb-2 text-xs text-muted-foreground">Request {number}</p>
+  <p
+    class="text-sm leading-7 break-words whitespace-pre-wrap"
+    data-journey-request
+  >
+    {request}
+  </p>
+</ConversationMessage>
+<ConversationMessage role="assistant">
+  <JourneyResult
+    {result}
+    {id}
+  />
+</ConversationMessage>

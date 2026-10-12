@@ -409,7 +409,7 @@ test('redirects every retired route immediately and excludes it from discovery',
   }
 });
 
-test('publishes bounded journey overviews, four-row previews, and every source download', () => {
+test('publishes bounded journey overviews, conversation previews, and every source download', () => {
   const model = loadWebsiteModel().scriptedJourneys!;
   expect(model).not.toBeNull();
   for (const page of [1, 2]) {
@@ -420,8 +420,8 @@ test('publishes bounded journey overviews, four-row previews, and every source d
     expect([...html.matchAll(/data-journey-outcome=/gu)]).toHaveLength(page === 1 ? 32 : 4);
   }
   const html = readFileSync(getDistPath('evidence/index.html'), 'utf8');
-  const preview = html.split('data-recorded-journeys')[1]!.split('</ul>')[0]!;
-  expect([...preview.matchAll(/<li>/gu)]).toHaveLength(4);
+  expect(html).toContain('data-recorded-journeys');
+  expect(html).toContain('Recorded journey excerpt');
   for (const source of model.sources) {
     const urls =
       source.kind === 'campaign'
@@ -434,8 +434,8 @@ test('publishes bounded journey overviews, four-row previews, and every source d
   expect(loadWebsiteModel().routes).not.toContain('/evidence/journeys/page/3/');
   expect(() => readFileSync(getDistPath('evidence/journeys/page/3/index.html'))).toThrow();
   const recovered = readFileSync(getDistPath('evidence/journeys/recovered/index.html'), 'utf8');
-  expect(recovered).toContain('Initial observation');
-  expect(recovered).toContain('Confirmation 2');
+  expect(recovered).toContain('First run');
+  expect(recovered).toContain('Repeat 2');
   expect(recovered).toContain('data-evidence-status="failed"');
   const revisions = readFileSync(getDistPath('evidence/journeys/additional-1/index.html'), 'utf8');
   expect(revisions).toContain('Read the revised policy and preserve all saved project knowledge.');
@@ -446,6 +446,6 @@ test('publishes bounded journey overviews, four-row previews, and every source d
   expect(overview).toContain('Multiple skill versions are present.');
   expect(overview).toContain('Multiple evaluation methods are present.');
   expect(readFileSync(getDistPath('evidence/journeys/page/2/index.html'), 'utf8')).toContain(
-    'Earlier catalog',
+    'additional-11',
   );
 });

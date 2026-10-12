@@ -17,5 +17,4 @@ export {
   getJourneysPage,
   JOURNEY_RESOLUTION_LABELS,
   JOURNEYS_PAGE_SIZE,
-  JOURNEYS_PREVIEW_SIZE,
 } from './presentation.ts';

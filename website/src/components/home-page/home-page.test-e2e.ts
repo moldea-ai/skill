@@ -466,7 +466,7 @@ test('presents the product story before proof and adoption', async ({ page }) =>
         return { x: box.x, y: box.y, width: box.width, height: box.height };
       }),
     );
-  expect(evidenceCardBoxes).toHaveLength(2);
+  expect(evidenceCardBoxes).toHaveLength(model.scriptedJourneys === null ? 2 : 3);
   expect(evidenceCardBoxes[1]?.y).toBeCloseTo(evidenceCardBoxes[0]?.y ?? 0, 0);
   expect(evidenceCardBoxes[1]?.x).toBeGreaterThan(evidenceCardBoxes[0]?.x ?? 0);
   expect(evidenceCardBoxes[1]?.width).toBeCloseTo(evidenceCardBoxes[0]?.width ?? 0, 0);
@@ -636,4 +636,31 @@ test('keeps selection visible on primary surfaces in light and dark themes', asy
     ).toBeGreaterThan(4.5);
     await context.close();
   }
+});
+
+test('balances two evidence columns above a full-width conversation preview', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(toPublicPath('/'));
+  const cards = page.locator('[data-home-evidence-card]');
+  await expect(cards).toHaveCount(3);
+  const [decision, projects, journeys] = await cards.evaluateAll((elements) =>
+    elements.map((element) => {
+      const rect = element.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, right: rect.right, width: rect.width };
+    }),
+  );
+  expect(decision!.y).toBeCloseTo(projects!.y, 0);
+  expect(decision!.width).toBeCloseTo(projects!.width, 0);
+  expect(journeys!.x).toBeCloseTo(decision!.x, 0);
+  expect(journeys!.right).toBeCloseTo(projects!.right, 0);
+  expect(journeys!.y).toBeGreaterThan(projects!.y);
+  await expect(cards.nth(2).locator('[data-conversation]')).toHaveCount(1);
+  await expect(
+    cards.nth(2).getByRole('link', { name: 'Explore scripted journeys', exact: true }),
+  ).toHaveAttribute('href', toPublicPath('/evidence/journeys/'));
+  await page.setViewportSize({ width: 320, height: 1000 });
+  const widths = await cards.evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect().width),
+  );
+  expect(new Set(widths).size).toBe(1);
 });

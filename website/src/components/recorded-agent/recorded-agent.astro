@@ -1,11 +1,13 @@
 ---
-import { FileCheck, UserRound } from '@lucide/astro';
-import { withBase } from '@moldea.ai/website-ui/site';
+import Conversation from '@moldea.ai/website-ui/conversation';
+import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
 import StatusBadge from '@moldea.ai/website-ui/status-badge';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import { withBase } from '@moldea.ai/website-ui/site';
 
 import type { ISemanticEvaluationCaseModel } from '../../lib/semantic-evaluation/index.ts';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
-import { getRecordedWorkspace } from '../evidence-page/index.ts';
+import { getRecordedWorkspace, getRecordedMessages } from '../evidence-page/index.ts';
 import { RecordedFileTree } from '../recorded-file-tree/index.ts';
 
 interface Props {
@@ -17,9 +19,14 @@ const workspace = getRecordedWorkspace(
   (path) =>
     path.startsWith('src/') || path.endsWith('/instruction.md') || path === 'moldea/moldea.yaml',
 );
-const changedPaths = workspace?.paths ?? [];
-const hasSuccessfulChange =
-  evaluationCase?.status === 'passed' || evaluationCase?.status === 'recovered';
+const messages = getRecordedMessages(evaluationCase?.replay ?? null);
+const replyHtml =
+  messages.reply === null
+    ? null
+    : await renderMarkdownFragment(messages.reply, {
+        basePath: import.meta.env.BASE_URL,
+        localLinks: 'unwrap',
+      });
 const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_URL);
 ---
 
@@ -28,95 +35,76 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
   aria-label="Support agent instruction test"
   data-recorded-agent
 >
-  <ol
-    class="grid gap-4"
-    aria-label="Support agent test conversation"
+  <Conversation ariaLabel="Support agent instruction test conversation">
+    <ConversationMessage role="user">
+      <p class="mb-2 text-xs text-muted-foreground">
+        {messages.request === null ? 'Request summary' : 'Recorded request excerpt'}
+      </p>
+      <p class="line-clamp-3 text-sm leading-7 break-words whitespace-pre-wrap">
+        {
+          messages.request ??
+            'Finish the support agent. Connect its maintained instructions to both model calls and verify the existing flow.'
+        }
+      </p>
+    </ConversationMessage>
+    {
+      replyHtml !== null && (
+        <ConversationMessage role="assistant">
+          <img
+            slot="avatar"
+            src={skillMarkPath}
+            width="207"
+            height="215"
+            alt=""
+            class="dark:invert"
+          />
+          <p class="mb-2 text-xs text-muted-foreground">Recorded reply excerpt</p>
+          <div
+            class="markdown-content line-clamp-4 min-w-0 text-sm leading-7 break-words"
+            set:html={replyHtml}
+          />
+          {workspace !== null && workspace.paths.length > 0 && (
+            <div class="mt-4 border-t border-border pt-4">
+              <p class="mb-2 text-xs font-semibold text-muted-foreground">File changes</p>
+              <RecordedFileTree
+                changes={workspace.paths}
+                label="Recorded test files"
+              />
+            </div>
+          )}
+        </ConversationMessage>
+      )
+    }
+  </Conversation>
+  <div
+    class="mt-5 border-t border-border pt-4"
+    data-agent-result
   >
-    <li class="relative flex items-start gap-3">
-      <span
-        class="absolute top-9 -bottom-4 left-[1.125rem] w-px bg-border"
-        aria-hidden="true"
-      ></span>
-      <span
-        class="dark-surface-selection relative z-10 flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
-        aria-hidden="true"
-        ><UserRound class="size-4" /></span
-      >
-      <div class="rounded-2xl rounded-tl-sm border border-border bg-card px-4 py-3 shadow-surface">
-        <p class="text-xs font-semibold text-muted-foreground">Test request, shortened</p>
-        <p class="mt-1 text-sm leading-6 font-medium sm:text-base">
-          Finish the support agent. Connect its maintained instructions to both model calls and
-          verify the existing flow.
-        </p>
-      </div>
-    </li>
-    <li class="flex min-w-0 items-start gap-3">
-      <span
-        class="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"
-        aria-hidden="true"
-      >
-        <img
-          src={skillMarkPath}
-          width="207"
-          height="215"
-          alt=""
-          class="h-5 w-auto dark:invert"
-        />
-      </span>
-      <div
-        class="min-w-0 flex-1 overflow-hidden rounded-2xl rounded-tl-sm border border-border bg-card shadow-raised"
-      >
-        <div class="p-4 sm:p-5">
-          <p class="text-xs font-semibold text-muted-foreground">
-            {hasSuccessfulChange ? 'Recorded result, shortened' : 'What we check'}
-          </p>
-          <p class="mt-1 text-sm leading-6 font-medium sm:text-base">
-            {
-              hasSuccessfulChange
-                ? 'Both model calls use the maintained instructions. The integration test passes.'
-                : 'Both model calls should use the maintained instructions, with integration tests protecting the existing flow.'
-            }
-          </p>
-          {
-            changedPaths.length > 0 && (
-              <div class="mt-4">
-                <RecordedFileTree
-                  changes={changedPaths}
-                  label="Recorded support agent files"
-                />
-              </div>
-            )
-          }
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="text-xs font-semibold">What this tests</p>{
+        evaluationCase === null ? (
+          <StatusBadge
+            label="No example result selected"
+            tone="neutral"
+          />
+        ) : (
+          <EvidenceStatus status={evaluationCase.status} />
+        )
+      }
+    </div>
+    <p class="mt-2 text-sm leading-7 text-muted-foreground">
+      Both model calls should use the maintained instructions, while the existing support flow keeps
+      working.
+    </p>
+    {
+      replyHtml === null && workspace !== null && workspace.paths.length > 0 && (
+        <div class="mt-3">
+          <RecordedFileTree
+            changes={workspace.paths}
+            label="Recorded test files"
+          />
         </div>
-        <div
-          class="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-secondary/50 px-4 py-3 sm:px-5"
-          data-agent-result
-        >
-          <p class="flex items-center gap-2 text-xs font-semibold">
-            <FileCheck
-              class="size-4 shrink-0"
-              aria-hidden="true"
-            />
-            {
-              workspace === null
-                ? 'No workspace result selected'
-                : `${workspace.changeCount} files changed`
-            }
-          </p>
-          {
-            evaluationCase === null ? (
-              <StatusBadge
-                label="No example result selected"
-                tone="neutral"
-              />
-            ) : (
-              <EvidenceStatus
-                status={evaluationCase.status === 'recovered' ? 'passed' : evaluationCase.status}
-              />
-            )
-          }
-        </div>
-      </div>
-    </li>
-  </ol>
+      )
+    }
+  </div>
 </article>

@@ -67,9 +67,7 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
   ).toHaveCount(changeCase === null ? 0 : 1);
   const decisionCopy = sections.first().getByRole('heading', { level: 2 }).locator('..');
   await expect(decisionCopy.locator('[data-evidence-status]')).toHaveCount(0);
-  await expect(
-    page.locator('[data-recorded-agent] [data-evidence-status="recovered"]'),
-  ).toHaveCount(0);
+  await expect(page.locator('[data-recorded-agent] [data-conversation]')).toHaveCount(1);
   expect(
     await sections.last().evaluate((element) => getComputedStyle(element).borderBottomWidth),
   ).toBe('0px');
@@ -148,7 +146,9 @@ test('keeps evidence paths readable at 320px in both themes', async ({ browser }
       await expect(page.locator('[data-evidence-path]')).toHaveCount(
         loadWebsiteModel().scriptedJourneys === null ? 2 : 3,
       );
-      const recordedFiles = page.locator('[data-recorded-file-path]');
+      const recordedFiles = page.locator(
+        '[data-recorded-agent] [data-recorded-file-path], [data-recorded-change] [data-recorded-file-path], [data-recorded-project] [data-recorded-file-path]',
+      );
       expect(
         await recordedFiles.evaluateAll((files) =>
           files.map((file) => file.getAttribute('data-recorded-file-path')).sort(),
@@ -194,12 +194,8 @@ test('keeps the test examples and project links readable without JavaScript', as
   try {
     const page = await context.newPage();
     await page.goto(toPublicPath('/evidence/'));
-    await expect(page.locator('[data-recorded-agent]')).toContainText(
-      'Finish the support agent. Connect its maintained instructions to both model calls',
-    );
-    await expect(page.locator('[data-recorded-change]')).toContainText(
-      'Run document cleanup more often when the backlog grows.',
-    );
+    await expect(page.locator('[data-recorded-agent]')).toContainText('What this tests');
+    await expect(page.locator('[data-recorded-change]')).toContainText('What this tests');
     await expect(page.locator('[data-recorded-project]')).toHaveCount(1);
     await expect(
       page.getByRole('link', { name: 'Open the recorded session', exact: true }),

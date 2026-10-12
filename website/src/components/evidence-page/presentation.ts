@@ -48,3 +48,18 @@ export const getProjectPatchPaths = (attempt: Pick<IProjectAttempt, 'session'>) 
   }
   return [...paths].map(([path, action]) => ({ path, action }));
 };
+
+/** Returns original message text from the same final trial as the workspace preview. */
+export const getRecordedMessages = (replay: IEvaluationReplayModel | null) => {
+  const steps = replay?.trials.at(-1)?.steps ?? [];
+  const request = steps.find(
+    (step) => step.kind === 'message' && step.role === 'developer' && step.source === 'recorded',
+  );
+  const reply = steps.findLast(
+    (step) => step.kind === 'message' && step.role === 'coding-agent' && step.source === 'recorded',
+  );
+  return {
+    request: request?.kind === 'message' ? request.content : null,
+    reply: reply?.kind === 'message' ? reply.content : null,
+  };
+};

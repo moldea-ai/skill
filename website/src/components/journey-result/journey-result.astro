@@ -1,11 +1,9 @@
 ---
 import CodeDiff from '@moldea.ai/website-ui/code-diff';
-import Dialog from '@moldea.ai/website-ui/dialog';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
-import { PlatformMark } from '../platform-mark/index.ts';
 import { RecordedFileTree } from '../recorded-file-tree/index.ts';
 import {
   describeJourneyCheck,
@@ -18,97 +16,85 @@ interface Props {
 }
 const { result, id } = Astro.props;
 const basePath = import.meta.env.BASE_URL;
-const replyHtml = await renderMarkdownFragment(result.reply, {
-  basePath,
-  localLinks: 'unwrap',
-});
+const replyHtml = await renderMarkdownFragment(result.reply, { basePath, localLinks: 'unwrap' });
+const passed = result.checks.filter((check) => check.status === 'passed').length;
+const failed = result.checks.filter((check) => check.status === 'failed').length;
+const summary =
+  failed > 0
+    ? `${failed} ${failed === 1 ? 'check failed' : 'checks failed'}`
+    : passed === result.checks.length && passed > 0
+      ? `${passed} ${passed === 1 ? 'check passed' : 'checks passed'}`
+      : 'Checks incomplete';
 ---
 
 <div
+  id={id}
   class="min-w-0"
   data-journey-result={result.platform}
 >
-  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-    <h3 class="text-base"><PlatformMark platform={result.platform} /></h3><EvidenceStatus
-      status={result.status}
-    />
-  </div>
-  <section class="mt-5">
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <h4
-        id={`${id}-files`}
-        class="text-sm font-semibold"
-      >
-        Recorded file changes
-      </h4>{
-        result.patch.trim() && (
-          <Dialog
-            id={`${id}-diff`}
-            title="Recorded file changes"
-            triggerLabel="Inspect diff"
-            triggerAriaLabel={`Inspect ${result.platform === 'chatgpt' ? 'ChatGPT' : 'Claude'} diff`}
-            size="large"
-          >
-            <CodeDiff
-              patch={result.patch}
-              view="split"
-              ariaLabel="Recorded journey patch"
-            />
-          </Dialog>
-        )
-      }
-    </div>
-    <div
-      class="mt-3"
-      data-brand-plain
-    >
-      {
-        result.files.length > 0 ? (
-          <RecordedFileTree
-            changes={result.files}
-            label="Changed files in this step"
-          />
-        ) : (
-          <p class="text-sm leading-6 text-muted-foreground">
-            {result.facts === null
-              ? 'No step capture is available.'
-              : 'No files changed in this step.'}
-          </p>
-        )
-      }
-    </div>
+  <div
+    class="markdown-content min-w-0 text-sm leading-7 break-words"
+    set:html={replyHtml || '<p>No reply was captured.</p>'}
+  />
+  <div class="mt-5 border-t border-border pt-4">
+    <p class="mb-3 text-xs font-semibold text-muted-foreground">File changes</p>
     {
-      result.patchUrl && (
-        <a
-          href={withBase(result.patchUrl, basePath)}
-          class="mt-3 inline-block text-xs font-medium text-muted-foreground underline underline-offset-4 link-feedback"
-        >
-          Raw patch
-        </a>
+      result.files.length > 0 ? (
+        <RecordedFileTree
+          changes={result.files}
+          label="Changed files in this request"
+        />
+      ) : (
+        <p class="text-sm text-muted-foreground">
+          {result.facts === null ? 'No file capture is available.' : 'No files changed.'}
+        </p>
       )
     }
-  </section>
-  <section class="mt-6 border-t border-border pt-5">
-    <h4
-      id={`${id}-checks`}
-      class="text-sm font-semibold"
+    {
+      result.patch.trim() && (
+        <details
+          class="mt-3"
+          data-journey-diff
+        >
+          <summary class="cursor-pointer text-xs font-semibold text-foreground">
+            View file changes
+          </summary>
+          <div class="mt-3">
+            <CodeDiff
+              patch={result.patch}
+              view="unified"
+              ariaLabel="Recorded journey patch"
+            />
+          </div>
+        </details>
+      )
+    }
+  </div>
+  <details
+    class="mt-4 border-t border-border pt-4"
+    data-local-checks
+  >
+    <summary
+      class="flex cursor-pointer flex-wrap items-center justify-between gap-2 text-xs font-semibold"
     >
-      Trusted local checks
-    </h4><p class="mt-1 text-xs leading-5 text-muted-foreground">
-      Applied locally to reconstructed files and the captured reply.
-    </p><ul class="mt-3 space-y-3">
+      <span>Local checks · {summary}</span><EvidenceStatus status={result.status} />
+    </summary>
+    <p class="mt-3 text-xs leading-6 text-muted-foreground">
+      Checked locally against the exported files and captured reply.
+    </p>
+    <ul class="mt-3 space-y-3">
       {
         result.checks.map((check) => (
-          <li class="min-w-0">
+          <li class="text-xs leading-6">
             <div class="flex flex-wrap items-start gap-2">
-              <EvidenceStatus status={check.status} />
-              <span class="min-w-0 flex-1 text-xs leading-5 break-words">
-                {describeJourneyCheck(check.check)}
-              </span>
+              <>
+                <EvidenceStatus status={check.status} />
+                <span class="min-w-0 flex-1 break-words">{describeJourneyCheck(check.check)}</span>
+              </>
             </div>
-            <p class="mt-1 text-xs leading-5 text-muted-foreground">{check.detail}</p>
+            <p class="mt-1 text-muted-foreground">{check.detail}</p>
             {check.check.kind === 'reply-matches' && check.check.reference && (
-              <p class="mt-1 text-xs leading-5 text-muted-foreground">
+              <p class="mt-1 text-muted-foreground">
                 Skill reference: <code>{check.check.reference.path}</code>.{' '}
                 {check.check.reference.statement}
               </p>
@@ -116,124 +102,119 @@ const replyHtml = await renderMarkdownFragment(result.reply, {
           </li>
         ))
       }
-    </ul>{
+    </ul>
+    {
       result.checks.length === 0 && (
-        <p class="mt-3 text-sm text-muted-foreground">No checks ran for this blocked step.</p>
-      )
-    }
-  </section>
-  {
-    result.unverified.length > 0 && (
-      <section class="mt-6 border-t border-border pt-5">
-        <>
-          <div class="flex flex-wrap items-center gap-2">
-            <>
-              <h4
-                id={`${id}-unverified`}
-                class="text-sm font-semibold"
-              >
-                Claims beyond these checks
-              </h4>
-              <EvidenceStatus status="unverified" />
-            </>
-          </div>
-          <ul class="mt-3 list-disc space-y-2 pl-4 text-xs leading-6 text-muted-foreground">
-            {result.unverified.map((claim) => (
-              <li>{claim}</li>
-            ))}
-          </ul>
-        </>
-      </section>
-    )
-  }
-  <details class="mt-6 border-t border-border pt-5">
-    <summary class="cursor-pointer text-sm font-semibold">Agent-reported reply</summary><p
-      class="mt-2 text-xs leading-5 text-muted-foreground"
-    >
-      Captured by the harness from text the agent supplied. It is not an independent execution
-      trace.
-    </p><div
-      class="markdown-content mt-4 min-w-0 text-sm break-words"
-      set:html={replyHtml}
-    />{
-      result.replyUrl && (
-        <a
-          href={withBase(result.replyUrl, basePath)}
-          class="mt-3 inline-block text-xs underline underline-offset-4 link-feedback"
-        >
-          Raw reply
-        </a>
+        <p class="mt-3 text-xs text-muted-foreground">No checks ran for this request.</p>
       )
     }
   </details>
-  <details class="mt-5 border-t border-border pt-5">
-    <summary class="cursor-pointer text-sm font-semibold">Sandbox-captured facts</summary>{
-      result.facts ? (
-        <dl class="mt-3 space-y-2 text-xs leading-6 text-muted-foreground">
+  <details
+    class="mt-4 border-t border-border pt-4 text-xs leading-6 text-muted-foreground"
+    data-capture-details
+  >
+    <summary class="cursor-pointer font-semibold text-foreground">Capture details</summary>
+    {
+      result.unverified.length > 0 && (
+        <div class="mt-3">
+          <>
+            <p class="font-medium text-foreground">Not verified by these checks</p>
+            <ul class="mt-2 list-disc space-y-1 pl-4">
+              {result.unverified.map((claim) => (
+                <li>{claim}</li>
+              ))}
+            </ul>
+          </>
+        </div>
+      )
+    }
+    {
+      result.facts && (
+        <dl class="mt-3 space-y-1">
           <>
             <div>
               <>
-                <dt>Issued at</dt>
-                <dd class="font-mono break-all">{result.facts.issuedAt}</dd>
+                <dt class="inline font-medium">Captured: </dt>
+                <dd class="inline break-all">{result.facts.recordedAt}</dd>
               </>
             </div>
             <div>
               <>
-                <dt>Recorded at</dt>
-                <dd class="font-mono break-all">{result.facts.recordedAt}</dd>
+                <dt class="inline font-medium">Request issued: </dt>
+                <dd class="inline break-all">{result.facts.issuedAt}</dd>
               </>
             </div>
             <div>
               <>
-                <dt>Local CLI present when recorded</dt>
-                <dd>{result.facts.cliPresent ? 'Yes' : 'No'}</dd>
+                <dt class="inline font-medium">CLI present: </dt>
+                <dd class="inline">
+                  {result.facts.cliPresent ? 'Yes' : 'No'}. Presence does not prove execution.
+                </dd>
               </>
             </div>
           </>
         </dl>
-      ) : (
-        <p class="mt-3 text-sm text-muted-foreground">No facts were captured.</p>
-      )
-    }<p class="mt-3 text-xs leading-5 text-muted-foreground">
-      These are harness observations inside a model-controlled workspace. CLI presence does not
-      establish that the agent ran it.
-    </p>
-  </details>
-  <details class="mt-5 border-t border-border pt-5">
-    <summary class="cursor-pointer text-sm font-semibold">Agent-reported activity</summary>{
-      result.activity ? (
-        <dl class="mt-3 space-y-4 text-xs leading-6 text-muted-foreground">
-          {Object.entries(result.activity).map(([category, entries]) => (
-            <div>
-              <dt class="font-semibold text-foreground capitalize">{category}</dt>
-              <dd>
-                {entries.length > 0 ? (
-                  <ul class="mt-1 space-y-1">
-                    {entries.map((entry) => (
-                      <li class="break-words">
-                        {category === 'notes' ? entry : <code>{entry}</code>}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  'None reported'
-                )}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      ) : (
-        <p class="mt-3 text-sm text-muted-foreground">No activity was reported.</p>
-      )
-    }{
-      result.activityUrl && (
-        <a
-          href={withBase(result.activityUrl, basePath)}
-          class="mt-3 inline-block text-xs underline underline-offset-4 link-feedback"
-        >
-          Raw activity JSON
-        </a>
       )
     }
+    {
+      result.activity && (
+        <div class="mt-4">
+          <>
+            <p class="font-medium text-foreground">Agent-reported activity</p>
+            <p>These reported reads, writes and commands are not an execution trace.</p>
+            <dl class="mt-2 space-y-2">
+              {Object.entries(result.activity).map(([category, entries]) => (
+                <div>
+                  <dt class="font-medium capitalize">{category}</dt>
+                  <dd>
+                    {entries.length > 0 ? (
+                      <ul>
+                        {entries.map((entry) => (
+                          <li class="break-words">{entry}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      'None reported'
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </>
+        </div>
+      )
+    }
+    <div class="mt-4 flex flex-wrap gap-4">
+      {
+        result.patchUrl && (
+          <a
+            href={withBase(result.patchUrl, basePath)}
+            class="text-link"
+          >
+            Raw patch
+          </a>
+        )
+      }
+      {
+        result.replyUrl && (
+          <a
+            href={withBase(result.replyUrl, basePath)}
+            class="text-link"
+          >
+            Raw reply
+          </a>
+        )
+      }
+      {
+        result.activityUrl && (
+          <a
+            href={withBase(result.activityUrl, basePath)}
+            class="text-link"
+          >
+            Raw activity
+          </a>
+        )
+      }
+    </div>
   </details>
 </div>

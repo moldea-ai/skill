@@ -1,11 +1,13 @@
 ---
-import { withBase } from '@moldea.ai/website-ui/site';
+import Conversation from '@moldea.ai/website-ui/conversation';
+import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
 
+import { RecordedFileTree } from '../recorded-file-tree/index.ts';
 import { PlatformMark } from '../platform-mark/index.ts';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import {
   getJourneyRevisions,
-  JOURNEYS_PREVIEW_SIZE,
   type IScriptedJourneysWebsiteModel,
 } from '../../lib/scripted-journeys/index.ts';
 
@@ -13,54 +15,59 @@ interface Props {
   model: IScriptedJourneysWebsiteModel;
 }
 const { model } = Astro.props;
+const journey = model.journeys[0];
+const step = (journey ? getJourneyRevisions(model, journey.id) : [])
+  .flatMap((revision) => revision.steps)
+  .find((step) => step.results.length > 0);
+const result = step?.results[0];
+const replyHtml = result
+  ? await renderMarkdownFragment(result.reply, { localLinks: 'unwrap' })
+  : null;
 ---
 
 <div
-  class="min-w-0 sm:rounded-2xl sm:border sm:border-border sm:bg-card sm:p-6"
+  class="min-w-0 text-foreground"
   data-recorded-journeys
 >
-  <div class="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
-    <div class="flex flex-wrap gap-4">
-      <PlatformMark platform="chatgpt" /><PlatformMark platform="claude" />
-    </div>
-    <EvidenceStatus status={model.status} />
-  </div>
-  <ul class="divide-y divide-border">
-    {
-      model.journeys.slice(0, JOURNEYS_PREVIEW_SIZE).map((journey, index) => (
-        <li>
-          <a
-            href={withBase(journey.route, import.meta.env.BASE_URL)}
-            class="flex items-center gap-3 rounded-sm py-3.5 text-sm link-feedback"
-          >
-            <>
-              <span class="font-mono text-xs text-muted-foreground">
-                {String(index + 1).padStart(2, '0')}
-              </span>
-              <span class="min-w-0 flex-1 font-medium">{journey.title}</span>
-              <span class="shrink-0 text-xs text-muted-foreground">
-                {getJourneyRevisions(model, journey.id)[0]!.steps.length}{' '}
-                {getJourneyRevisions(model, journey.id)[0]!.steps.length === 1 ? 'step' : 'steps'}
-              </span>
-            </>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
-  <p class="mt-4 text-xs leading-5 text-muted-foreground">
-    {model.journeys.length} journeys. {
-      model.coverage
-        .map(
-          (entry) =>
-            `${entry.platform === 'chatgpt' ? 'ChatGPT' : 'Claude'}: ${entry.recorded} recorded, ${entry.recovered} recovered, ${entry.pending} pending`,
-        )
-        .join(' · ')
-    }.
-    <a
-      href={withBase(model.route, import.meta.env.BASE_URL)}
-      class="mt-3 block underline underline-offset-4 link-feedback"
-      >Explore all journeys</a
-    >
-  </p>
+  {
+    step && result ? (
+      <>
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <>
+            <PlatformMark platform={result.platform} />
+            <span class="text-xs text-muted-foreground">First run excerpt</span>
+          </>
+        </div>
+        <Conversation ariaLabel="Recorded journey excerpt">
+          <ConversationMessage role="user">
+            <p class="line-clamp-3 text-sm leading-7 break-words whitespace-pre-wrap">
+              {step.request}
+            </p>
+          </ConversationMessage>
+          <ConversationMessage role="assistant">
+            <div
+              class="markdown-content line-clamp-3 text-sm leading-7 break-words"
+              set:html={replyHtml!}
+            />
+            {result.files.length > 0 && (
+              <div class="mt-4 border-t border-border pt-3">
+                <RecordedFileTree
+                  changes={result.files.slice(0, 4)}
+                  label="Recorded journey file changes"
+                />
+              </div>
+            )}
+          </ConversationMessage>
+        </Conversation>
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+          <>
+            <span class="text-xs font-semibold">Local checks for this request</span>
+            <EvidenceStatus status={result.status} />
+          </>
+        </div>
+      </>
+    ) : (
+      <p class="py-6 text-sm text-muted-foreground">No conversation has been recorded yet.</p>
+    )
+  }
 </div>

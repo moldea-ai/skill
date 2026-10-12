@@ -12,6 +12,8 @@ export {
   getJourneyPlatformStatus,
   describeJourneyCheck,
   getJourneyRevisions,
+  getJourneyCellProvenance,
+  getJourneyProvenanceSummary,
   getJourneysPage,
   JOURNEY_RESOLUTION_LABELS,
   JOURNEYS_PAGE_SIZE,

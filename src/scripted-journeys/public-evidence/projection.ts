@@ -28,6 +28,41 @@ const ChangesSchema = z.array(
 );
 const ASSET_ROOT = '/evidence-assets/journeys/';
 
+/** Reads the exact captured files associated with an admitted campaign.
+ * @throws When a required capture is missing or differs from its assessed reply/activity.
+ */
+export const createCampaignCaptures = (
+  assessment: IJourneyCampaign,
+  read: (name: string) => string,
+): Extract<IScriptedJourneysWebsiteModel['sources'][number], { kind: 'campaign' }>['captures'] => {
+  const captures: Extract<
+    IScriptedJourneysWebsiteModel['sources'][number],
+    { kind: 'campaign' }
+  >['captures'] = {};
+  for (const platform of assessment.platforms)
+    for (const trial of platform.trials)
+      for (const journey of trial.journeys)
+        for (const step of journey.steps) {
+          const prefix = `${platform.platform}/${journey.id}/${trial.confirmationIndex === null ? 'initial' : `c${trial.confirmationIndex}`}/${step.id}`;
+          if (
+            read(`${prefix}/reply.md`) !== step.reply ||
+            !step.activity ||
+            !isEqual(
+              JourneyActivitySchema.parse(JSON.parse(read(`${prefix}/activity.json`))),
+              step.activity,
+            )
+          )
+            throw new Error('Captured reply/activity differs from the assessed trial.');
+          captures[prefix] = {
+            patch: read(`${prefix}/changes.patch`),
+            files: ChangesSchema.parse(JSON.parse(read(`${prefix}/changes.json`))).map(
+              ({ path, kind }) => ({ path, status: kind === 'added' ? 'created' : kind }),
+            ),
+          };
+        }
+  return captures;
+};
+
 /** Projects one admitted campaign using its original catalog, retained trials, and complete captures.
  * @throws When definitions, source associations, or required captured artifacts are inconsistent.
  */
@@ -56,31 +91,7 @@ export const createJourneysEvidenceBundle = (input: {
   };
   const assessmentBytes = Buffer.from(`${JSON.stringify(assessment, null, 2)}\n`);
   const sourceId = sha256(assessmentBytes);
-  const captures: Extract<
-    IScriptedJourneysWebsiteModel['sources'][number],
-    { kind: 'campaign' }
-  >['captures'] = {};
-  for (const platform of assessment.platforms)
-    for (const trial of platform.trials)
-      for (const journey of trial.journeys)
-        for (const step of journey.steps) {
-          const prefix = `${platform.platform}/${journey.id}/${trial.confirmationIndex === null ? 'initial' : `c${trial.confirmationIndex}`}/${step.id}`;
-          if (
-            read(`${prefix}/reply.md`) !== step.reply ||
-            !step.activity ||
-            !isEqual(
-              JourneyActivitySchema.parse(JSON.parse(read(`${prefix}/activity.json`))),
-              step.activity,
-            )
-          )
-            throw new Error('Captured reply/activity differs from the assessed trial.');
-          captures[prefix] = {
-            patch: read(`${prefix}/changes.patch`),
-            files: ChangesSchema.parse(JSON.parse(read(`${prefix}/changes.json`))).map(
-              ({ path, kind }) => ({ path, status: kind === 'added' ? 'created' : kind }),
-            ),
-          };
-        }
+  const captures = createCampaignCaptures(assessment, read);
   const sources: IScriptedJourneysWebsiteModel['sources'] = [
     {
       id: sourceId,

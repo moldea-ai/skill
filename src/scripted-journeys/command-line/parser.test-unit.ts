@@ -34,6 +34,44 @@ test.each([
 ])('parser rejects incomplete or ambiguous arguments %o', (argv) => {
   expect(() => parseJourneysCommand(argv)).toThrow();
 });
+
+test('compose selects explicit records and whole provider/journey groups', () => {
+  expect(
+    parseJourneysCommand([
+      'compose',
+      '--run',
+      'incoming',
+      '--from',
+      'base',
+      '--platform',
+      'chatgpt',
+      '--journey',
+      'first',
+      '--journey',
+      'second',
+    ]),
+  ).toStrictEqual({
+    command: 'compose',
+    runId: 'incoming',
+    from: 'base',
+    platform: 'chatgpt',
+    journeys: ['first', 'second'],
+  });
+  expect(parseJourneysCommand(['compose', '--run', 'incoming'])).toStrictEqual({
+    command: 'compose',
+    runId: 'incoming',
+  });
+});
+test.each([
+  [['compose']],
+  [['compose', '--run', 'incoming', '--platform', 'unknown']],
+  [['compose', '--run', 'incoming', '--journey', 'first', '--journey', 'first']],
+  [['compose', '--run', 'incoming', '--diagnostic']],
+  [['compose', '--run', 'incoming', '--from', 'base', '--from', 'other']],
+  [['compose', '--run', 'incoming', '--sha256', 'a'.repeat(64)]],
+])('rejects invalid compose selectors %o', (argv) => {
+  expect(() => parseJourneysCommand(argv)).toThrow();
+});
 const assessArgs = [
   'assess',
   '--bundle',

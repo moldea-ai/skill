@@ -8,6 +8,7 @@ import { PlatformMark } from '../platform-mark/index.ts';
 import {
   getJourneyPlatformStatus,
   getJourneyRevisions,
+  getJourneyCellProvenance,
   JOURNEY_RESOLUTION_LABELS,
   type IScriptedJourneysWebsiteModel,
 } from '../../lib/scripted-journeys/index.ts';
@@ -76,6 +77,7 @@ const basePath = import.meta.env.BASE_URL;
             <div class="grid grid-cols-2 gap-4 sm:contents">
               {platforms.map((platform) => {
                 const status = getJourneyPlatformStatus(model, journey.id, platform);
+                const provenance = getJourneyCellProvenance(model, journey.id, platform);
                 const Icon = ['passed-initially', 'recovered', 'legacy-passed'].includes(status)
                   ? CircleCheck
                   : ['confirmed-failure', 'legacy-failed'].includes(status)
@@ -130,6 +132,11 @@ const basePath = import.meta.env.BASE_URL;
                           </span>
                         ))}
                     </span>
+                    {provenance && (
+                      <span class="basis-full text-xs leading-5 text-muted-foreground">
+                        {provenance}
+                      </span>
+                    )}
                   </div>
                 );
               })}

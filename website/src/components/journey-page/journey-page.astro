@@ -10,6 +10,7 @@ import BaseLayout from '../../layouts/base-layout.astro';
 import {
   getJourneyRevisions,
   getJourneyPlatformStatus,
+  getJourneyCellProvenance,
   JOURNEY_RESOLUTION_LABELS,
   type IScriptedJourneysWebsiteModel,
 } from '../../lib/scripted-journeys/index.ts';
@@ -70,6 +71,7 @@ const breadcrumbs = [
         {
           (['chatgpt', 'claude'] as const).map((platform) => {
             const status = getJourneyPlatformStatus(model, journey.id, platform);
+            const provenance = getJourneyCellProvenance(model, journey.id, platform);
             return (
               <div class="min-w-0">
                 <>
@@ -90,6 +92,9 @@ const breadcrumbs = [
                       }
                     />
                   </dd>
+                  {provenance && (
+                    <dd class="mt-2 text-xs leading-5 text-muted-foreground">{provenance}</dd>
+                  )}
                 </>
               </div>
             );

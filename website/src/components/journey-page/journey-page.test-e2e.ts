@@ -189,3 +189,94 @@ test('defaults mobile to the available provider and keeps Not run discoverable',
     page.getByText('Not run in ChatGPT for this revision.', { exact: true }),
   ).toBeVisible();
 });
+
+test('keeps changed requests with their original provider, version and raw downloads', async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 1000 });
+  await page.goto(
+    withBase('/evidence/journeys/additional-1/', process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH),
+  );
+  const revisions = page.locator('[data-journey-revision]');
+  await expect(revisions).toHaveCount(2);
+  await expect(
+    revisions
+      .nth(0)
+      .getByText('Read the revised policy and preserve all saved project knowledge.', {
+        exact: true,
+      }),
+  ).toBeVisible();
+  await expect(
+    revisions
+      .nth(1)
+      .getByText('Read the saved project policy without editing files.', { exact: true }),
+  ).toBeVisible();
+  await expect(revisions.nth(0).locator('[data-journey-result="chatgpt"]')).toBeVisible();
+  await expect(revisions.nth(0).locator('[data-journey-result="claude"]')).toHaveCount(0);
+  await expect(revisions.nth(1).locator('[data-journey-result="claude"]')).toBeVisible();
+  await expect(revisions.nth(1).locator('[data-journey-result="chatgpt"]')).toHaveCount(0);
+  const links = [
+    revisions.nth(0).getByRole('link', { name: 'Raw patch', exact: true }),
+    revisions.nth(1).getByRole('link', { name: 'Raw patch', exact: true }),
+  ];
+  const urls = await Promise.all(links.map((link) => link.getAttribute('href')));
+  expect(urls[0]).toMatch(
+    /sources\/[a-f0-9]{16}\/chatgpt\/additional-1\/initial\/read\/changes.patch$/u,
+  );
+  expect(urls[1]).toMatch(
+    /sources\/[a-f0-9]{16}\/claude\/additional-1\/initial\/read\/changes.patch$/u,
+  );
+  for (const url of urls) expect((await page.request.get(url!)).status()).toBe(200);
+  expect(
+    await page
+      .locator('[id]')
+      .evaluateAll((elements) =>
+        elements.map(({ id }) => id).filter((id, index, ids) => ids.indexOf(id) !== index),
+      ),
+  ).toStrictEqual([]);
+  for (const colorScheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+    for (const width of [320, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.screenshot({
+        path: testInfo.outputPath(`revisions-${colorScheme}-${width}.png`),
+        fullPage: true,
+      });
+    }
+  }
+});
+
+test('shows new ChatGPT-only tests and historical evidence without JavaScript', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 320, height: 1000 },
+    colorScheme: 'dark',
+    reducedMotion: 'reduce',
+  });
+  try {
+    const page = await context.newPage();
+    await page.goto(
+      withBase('/evidence/journeys/additional-2/', process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH),
+    );
+    await expect(page.locator('[data-journey-result="chatgpt"]')).toBeVisible();
+    await expect(
+      page.getByText('Not run in Claude for this revision.', { exact: true }),
+    ).toBeVisible();
+    await page.goto(
+      withBase('/evidence/journeys/additional-3/', process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH),
+    );
+    await expect(
+      page.getByText('Historical requests · fixture identity unavailable', { exact: true }),
+    ).toBeVisible();
+    await expect(page.locator('[data-journey-result="claude"]')).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
+  } finally {
+    await context.close();
+  }
+});

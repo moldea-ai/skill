@@ -117,8 +117,7 @@ export const deriveJourneyPublicStatus = (
     )
   )
     return 'incomplete';
-  if (statuses.some((status) => ['confirmed-failure', 'legacy-failed'].includes(status)))
-    return 'failed';
+  if (statuses.includes('confirmed-failure')) return 'failed';
   const coverage = deriveJourneyCoverage(model);
   return coverage.every((entry) => entry.total > 0 && entry.current === entry.total) &&
     model.cells.every((cell) => isCurrentJourneyCell(model, cell, true))
@@ -143,6 +142,7 @@ export const validateJourneyCampaign = (assessment: IJourneyCampaign): void => {
   for (const [index, definition] of assessment.definitions.entries())
     if (
       assessment.bundle.journeys[index]?.id !== definition.id ||
+      assessment.bundle.journeys[index]?.title !== definition.title ||
       assessment.bundle.journeys[index]?.definitionDigest !==
         createJourneyDefinitionDigest(definition) ||
       assessment.bundle.journeys[index]?.stepCount !== definition.steps.length ||
@@ -154,6 +154,11 @@ export const validateJourneyCampaign = (assessment: IJourneyCampaign): void => {
   const seen = new Set<string>();
   const archives = new Set<string>();
   const providers = new Set<string>();
+  if (
+    assessment.platforms.reduce((count, provider) => count + provider.trials.length, 0) >
+    assessment.definitions.length * 8
+  )
+    throw new Error('Campaign exceeds the 8N trial bound.');
   for (const platform of assessment.platforms) {
     if (providers.has(platform.platform)) throw new Error('Duplicate campaign provider.');
     providers.add(platform.platform);
@@ -181,6 +186,8 @@ export const validateJourneyCampaign = (assessment: IJourneyCampaign): void => {
         )
       )
         throw new Error('Campaign trial journey inventory mismatch.');
+      if (!isEqual(Object.keys(trial.restartCounts).sort(), [...trial.selectedJourneys].sort()))
+        throw new Error('Campaign restart-count inventory mismatch.');
       for (const journey of trial.journeys) {
         const definition = assessment.definitions.find(
           (definition) => definition.id === journey.id,
@@ -273,7 +280,7 @@ export const parseScriptedJourneysWebsiteModel = (
         current: false,
       })),
     };
-    return ScriptedJourneysWebsiteModelSchema.parse({
+    return parseScriptedJourneysWebsiteModel({
       ...base,
       coverage: deriveJourneyCoverage(base),
     });
@@ -319,13 +326,27 @@ export const parseScriptedJourneysWebsiteModel = (
     )
   )
     throw new Error('Current catalog coverage inventory mismatch.');
-  for (const journey of model.journeys)
+  for (const journey of model.journeys) {
+    journey.catalogSourceId ??= model.currentSourceId;
+    const catalog = model.sources.find((source) => source.id === journey.catalogSourceId);
+    const definition =
+      catalog?.kind === 'campaign'
+        ? catalog.assessment.definitions.find(({ id }) => id === journey.id)
+        : catalog?.model.journeys.find(({ id }) => id === journey.id);
+    if (
+      !definition ||
+      journey.title !== definition.title ||
+      journey.summary !== definition.summary ||
+      (journey.current && journey.catalogSourceId !== model.currentSourceId)
+    )
+      throw new Error('Journey row/catalog source association mismatch.');
     if (
       !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(journey.id) ||
       journey.id.length > 48 ||
       journey.route !== `/evidence/journeys/${journey.id}/`
     )
       throw new Error('Invalid journey route.');
+  }
   const slots = new Set<string>();
   for (const cell of model.cells) {
     const key = `${cell.platform}/${cell.journeyId}`;

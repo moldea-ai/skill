@@ -109,9 +109,29 @@ The model knows it is being tested, and the future-step file exists in its works
 
 Diagnose harness, fixture, or assessment defects and rerun after correction. Changed criteria require fresh exports for the affected selected journeys against a new bundle. An integrity failure invalidates that platform export and requires a fresh whole-platform attempt. Report defects in the distributed skill separately; this suite does not modify it to make a run pass. Observed model behavior alone does not establish a defect in the skill instructions. Keep failed diagnostic records for investigation. Evidence selection and website presentation are separate publication steps.
 
+## Update one combined snapshot
+
+Compose explicitly named local records after assessment. Start a snapshot from one campaign, then replace only selected whole provider/journey groups:
+
+```bash
+npm run eval:journeys -- compose --run <assessed-run-id>
+npm run eval:journeys -- compose --from <snapshot-id> --run <assessed-run-id> --platform chatgpt
+npm run eval:journeys -- compose --from <snapshot-id> --run <assessed-run-id> --platform chatgpt --journey <journey-id>
+```
+
+Omitted filters select precisely the incoming campaign's recorded cells. Repeat `--journey` for several whole journeys. Unknown, duplicate or absent selections are rejected. The incoming record must be an admitted version 2 campaign. The optional base may be a snapshot or supported historical assessed record. Composition reads only those IDs; it never searches history or consults the production selection.
+
+A selected group replaces its baseline, all confirmations, resolution and observations together. Votes never cross campaigns or providers. Unselected groups keep their original evidence. Every composition creates a new `journey-snapshot-<timestamp>-<token>` record and refuses an existing destination. Source assessments and earlier snapshots remain unchanged. Use one local operator at a time.
+
+The incoming full catalog becomes the current target. New tests can be recorded in ChatGPT alone, with Claude explicitly Not run. Earlier-only rows retain their original catalog and requests. Changed definition or fixture identities receive separate request sequences; earlier skill versions and evaluation methods remain visible. Historical fixture identity and confirmation policy stay unavailable.
+
+Sources are identified by their exact raw assessment SHA-256. Artifacts retain their bytes and hashes under `sources/<16-character-digest-token>/`; prefix collisions are rejected. Only projected links change. Referenced sources are stored once, and only unreferenced sources are omitted from the new snapshot. Existing limits remain 8,192 artifacts, 64 MiB of unique decoded artifact bytes and 128 MiB expanded/compressed bundles. Composition uses Node filesystem APIs and does not require `zip` or `unzip`.
+
+Public status is incomplete for unresolved groups, partial coverage or mixed target inputs. Terminal confirmed failures remain failed. Passing requires both providers to cover the complete current catalog with terminal passing resolutions and matching skill, test and method identities. Provider models and observation dates remain separate provenance. Historical observations cannot earn version 2 confirmation assurance.
+
 ## Publish assessed evidence
 
-Use the shared evidence pipeline to publish an explicitly chosen admitted record. Partial, pending and failed evidence can be displayed; release assurance still requires a complete passing public envelope:
+Use the shared evidence pipeline to publish an explicitly chosen admitted campaign or composed snapshot. Substitute its exact ID below. Partial, pending, mixed and failed evidence can be displayed; release assurance still requires a complete passing public envelope:
 
 ```bash
 npm run evidence:pack -- --scope journeys --run <run-id>

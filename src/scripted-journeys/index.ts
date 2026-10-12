@@ -42,6 +42,7 @@ export type {
 // bounded protocol constants
 export {
   JOURNEYS_FORMAT_VERSION,
+  JOURNEY_SNAPSHOT_ID_PATTERN,
   JOURNEY_PLATFORMS,
   RUN_ID_PATTERN,
   MAXIMUM_REPLY_BYTES,

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import type { IEvidenceBundle } from '../../evidence/index.ts';
+
 import { JourneyCampaignSchema, HashSchema, JOURNEY_PLATFORMS } from '../index.ts';
 
 import { LegacyWebsiteModelSchema, type IJourneyWebsiteResult as ILegacyResult } from './legacy.ts';
@@ -50,6 +52,7 @@ export const ScriptedJourneysWebsiteModelSchema = z.object({
       summary: z.string(),
       route: z.string(),
       current: z.boolean(),
+      catalogSourceId: z.string().optional(),
     }),
   ),
   coverage: z.array(
@@ -68,3 +71,9 @@ export type IJourneyWebsiteResult = ILegacyResult;
 export type IScriptedJourneysWebsiteModel = z.infer<typeof ScriptedJourneysWebsiteModelSchema>;
 export type IJourneyEvidenceSource = z.infer<typeof JourneySourceSchema>;
 export type IJourneyEvidenceCell = z.infer<typeof JourneyCellSchema>;
+
+// validated local input retains artifact bytes separately from the source-aware projection
+export type IParsedJourneysEvidenceRecord = {
+  bundle: IEvidenceBundle;
+  model: IScriptedJourneysWebsiteModel;
+};

@@ -1,4 +1,5 @@
 import type { IJourneyCheck } from '../../../../src/scripted-journeys/index.ts';
+import { isCurrentJourneyCell } from '../../../../src/scripted-journeys/public-evidence/index.ts';
 
 import type { IScriptedJourneysWebsiteModel, IJourneyRenderRevision } from './types.ts';
 
@@ -52,6 +53,10 @@ export const getJourneyRevisions = (
 ): IJourneyRenderRevision[] => {
   const groups = new Map<string, IJourneyRenderRevision>();
   const target = model.sources.find((source) => source.id === model.currentSourceId)!;
+  const row = model.journeys.find(({ id }) => id === journeyId)!;
+  const catalog = model.sources.find(
+    ({ id }) => id === (row.catalogSourceId ?? model.currentSourceId),
+  )!;
   const keyFor = (source: IScriptedJourneysWebsiteModel['sources'][number]) => {
     if (source.kind === 'legacy') return `legacy-${source.id}`;
     const identity = source.assessment.bundle.journeys.find((entry) => entry.id === journeyId)!;
@@ -69,9 +74,11 @@ export const getJourneyRevisions = (
         label:
           source.kind === 'legacy'
             ? 'Historical requests · fixture identity unavailable'
-            : source.id === target.id
-              ? 'Current catalog requests'
-              : 'Earlier test revision',
+            : !row.current && source.id === catalog.id
+              ? 'Earlier catalog requests'
+              : source.id === target.id
+                ? 'Current catalog requests'
+                : 'Earlier test revision',
         steps: definition.steps.map((step) => ({
           id: step.id,
           request: step.request,
@@ -82,11 +89,11 @@ export const getJourneyRevisions = (
     return groups.get(key)!;
   };
   if (
-    (target.kind === 'campaign' ? target.assessment.definitions : target.model.journeys).some(
+    (catalog.kind === 'campaign' ? catalog.assessment.definitions : catalog.model.journeys).some(
       (entry) => entry.id === journeyId,
     )
   )
-    add(target);
+    add(catalog);
   for (const cell of model.cells.filter((cell) => cell.journeyId === journeyId)) {
     const source = model.sources.find((source) => source.id === cell.sourceId)!;
     const group = add(source);
@@ -148,6 +155,58 @@ export const getJourneyRevisions = (
     }
   }
   return [...groups.values()];
+};
+
+/** Describes selected provenance without interpreting checks or merging confirmation votes. */
+export const getJourneyCellProvenance = (
+  model: IScriptedJourneysWebsiteModel,
+  journeyId: string,
+  platform: keyof typeof JOURNEY_PLATFORM_LABELS,
+): string | null => {
+  const cell = model.cells.find(
+    (cell) => cell.platform === platform && cell.journeyId === journeyId,
+  );
+  if (!cell) return null;
+  const source = model.sources.find(({ id }) => id === cell.sourceId)!;
+  const metadata = source.kind === 'campaign' ? source.assessment.bundle : source.model;
+  const date =
+    source.kind === 'campaign' ? source.assessment.evaluatedAt : source.model.evaluatedAt;
+  const relation =
+    source.kind === 'legacy'
+      ? 'Historical policy unavailable'
+      : !isCurrentJourneyCell(model, cell)
+        ? 'Earlier skill or test revision'
+        : !isCurrentJourneyCell(model, cell, true)
+          ? 'Different evaluation method'
+          : 'Current target';
+  return `Skill ${metadata.skill.version} · ${date.slice(0, 10)} · ${relation}`;
+};
+
+/** Labels mixed recorded identities while keeping their complete details with each source. */
+export const getJourneyProvenanceSummary = (model: IScriptedJourneysWebsiteModel): string => {
+  const skills = new Set(
+    model.sources.map((source) => {
+      const metadata = source.kind === 'campaign' ? source.assessment.bundle : source.model;
+      return `${metadata.skill.version}/${metadata.skill.commit}/${metadata.skill.treeSha256}`;
+    }),
+  );
+  const methods = new Set(
+    model.sources.map((source) =>
+      source.kind === 'legacy'
+        ? 'historical-policy-unavailable'
+        : `${source.assessment.assessor.sourceSha256}/${source.assessment.bundle.instructions.sha256}/${JSON.stringify(source.assessment.bundle.policy)}/${JSON.stringify(
+            Object.entries(source.assessment.bundle.files)
+              .filter(([name]) => name.startsWith('harness/'))
+              .sort(),
+          )}`,
+    ),
+  );
+  return [
+    skills.size > 1 ? 'Multiple skill versions are present.' : 'One skill version is represented.',
+    methods.size > 1
+      ? 'Multiple evaluation methods are present.'
+      : 'One evaluation method is represented.',
+  ].join(' ');
 };
 
 /** Returns immutable numbered overview slices; invalid pages are not generated. */

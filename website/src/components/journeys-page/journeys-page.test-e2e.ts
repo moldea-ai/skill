@@ -29,13 +29,17 @@ test('links every journey with accessible outcomes, provenance and raw sources',
       exact: true,
     }),
   ).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Raw assessment JSON' })).toHaveAttribute(
+  const sources = page.locator('details[data-accordion-item]');
+  for (const source of await sources.all())
+    if ((await source.getAttribute('open')) === null)
+      await source.locator(':scope > summary').click();
+  await expect(page.getByRole('link', { name: 'Raw assessment JSON' }).first()).toHaveAttribute(
     'href',
     /assessment\.json$/u,
   );
   await expect(page.getByText('chatgpt fixture model', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('claude fixture model', { exact: true }).first()).toBeVisible();
-  await page.getByText('Assessor identity and source hashes', { exact: true }).click();
+  await page.getByText('Assessor identity and source hashes', { exact: true }).first().click();
   await expect(
     page.getByText(
       model.sources[0]!.kind === 'campaign'

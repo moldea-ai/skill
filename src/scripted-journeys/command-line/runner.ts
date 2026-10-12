@@ -8,17 +8,23 @@ import { getCompletedEvidenceRunPath } from '../../evidence/index.ts';
 import { sha256, verifyBundle, readJson } from '../harness/index.ts';
 import { JourneyOperatorRecordSchema } from '../index.ts';
 import { renderStartMessage } from '../instructions/index.ts';
+import { composeJourneySnapshot } from '../snapshot/index.ts';
 
 import { parseJourneysCommand } from './parser.ts';
 
-if (!['linux', 'darwin'].includes(process.platform))
+const repositoryRoot = path.resolve(import.meta.dirname, '../../..');
+const input = parseJourneysCommand(process.argv.slice(2));
+if (input.command !== 'compose' && !['linux', 'darwin'].includes(process.platform))
   throw new Error(
     'Scripted journeys packing and assessment require Linux or macOS with zip and unzip.',
   );
 
-const repositoryRoot = path.resolve(import.meta.dirname, '../../..');
-const input = parseJourneysCommand(process.argv.slice(2));
-if (input.command === 'pack') {
+if (input.command === 'compose') {
+  const result = await composeJourneySnapshot({ repositoryRoot, ...input });
+  process.stdout.write(
+    `Snapshot: ${result.runId}\nRecord: ${result.recordPath}\nPublic status: ${result.status}\n`,
+  );
+} else if (input.command === 'pack') {
   const result = await packJourneys({
     repositoryRoot,
     commit: input.commit,

@@ -439,4 +439,15 @@ test('publishes bounded journey overviews, four-row previews, and every source d
   expect(recovered).toContain('Initial observation');
   expect(recovered).toContain('Confirmation 2');
   expect(recovered).toContain('data-evidence-status="failed"');
+  const revisions = readFileSync(getDistPath('evidence/journeys/additional-1/index.html'), 'utf8');
+  expect(revisions).toContain('Read the revised policy and preserve all saved project knowledge.');
+  expect(revisions).toContain('Earlier test revision');
+  const historical = readFileSync(getDistPath('evidence/journeys/additional-3/index.html'), 'utf8');
+  expect(historical).toContain('fixture identity unavailable');
+  const overview = readFileSync(getDistPath('evidence/journeys/index.html'), 'utf8');
+  expect(overview).toContain('Multiple skill versions are present.');
+  expect(overview).toContain('Multiple evaluation methods are present.');
+  expect(readFileSync(getDistPath('evidence/journeys/page/2/index.html'), 'utf8')).toContain(
+    'Earlier catalog',
+  );
 });

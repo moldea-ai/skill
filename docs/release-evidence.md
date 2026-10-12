@@ -24,6 +24,8 @@ Use `--scope journeys --run <run-id>` to pack a locally assessed scripted-journe
 
 A journeys public envelope stays incomplete for partial coverage, pending confirmations or blocked evidence. Scoped campaign success alone cannot satisfy release assurance. Historical records retain their original single-observation meaning without a fabricated confirmation quorum.
 
+To update one provider or selected whole journeys, first use `eval:journeys -- compose` with explicit incoming and optional base record IDs. Pack the newly generated snapshot ID through the same single journeys asset pipeline. Retained cells preserve their original requests, skill/test/method identities, observations and source downloads. Mixed or historical coverage cannot become a passing current-target claim. Composition changes no production selection and publishes nothing by itself.
+
 A journeys input release contains the portable skill, fixtures, and harness for cloud execution. The assessed output bundle is a separate release asset. Preserve its recorded models, settings, interventions, unverified expectations, and diagnostic findings when deciding what to publish. Trusted-check success does not certify procedural adherence or every requested behavior.
 
 Bundles are written below `.evidence/bundles/`. Packing validates the public contract, artifact references, digests, portable paths, decoded byte limits, and executable-content restrictions. Exact artifact bytes are stored once even when several paths reference them.

@@ -22,7 +22,7 @@ import type {
   ISemanticEvaluationWebsiteModel,
 } from '../../src/lib/semantic-evaluation/index.ts';
 
-import { createSyntheticJourneysBundle } from './journeys.ts';
+import { createSyntheticJourneySnapshot } from './journeys.ts';
 
 const SHA256 = 'a'.repeat(64);
 const EVALUATED_AT = '2026-01-01T00:00:00.000Z';
@@ -393,7 +393,7 @@ export const prepareSyntheticWebsiteEvidence = async (
 
   const bundles = {
     semantic: createFixtureBundle('semantic', semanticWebsiteModel, semanticArtifacts),
-    journeys: createSyntheticJourneysBundle(),
+    journeys: createSyntheticJourneySnapshot(),
   };
   const preparedSections: IEvidencePreparationManifest = {
     formatVersion: 1,

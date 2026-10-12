@@ -1,4 +1,9 @@
-import { createJourneysEvidenceBundle } from '../../../src/scripted-journeys/public-evidence/index.ts';
+import {
+  createJourneysEvidenceBundle,
+  createJourneySnapshotEvidenceBundle,
+  parseJourneysEvidenceRecord,
+} from '../../../src/scripted-journeys/public-evidence/index.ts';
+import { createEvidenceBundle } from '../../../src/evidence/index.ts';
 import type {
   IJourneyCampaign,
   IJourneyTrial,
@@ -99,7 +104,11 @@ for (const [index, id] of [
 }
 
 /** Creates deterministic presentation evidence for partial coverage and every resolution state. */
-export const createSyntheticJourneysBundle = () => {
+export const createSyntheticJourneysBundle = (
+  input: {
+    transform?: (assessment: IJourneyCampaign) => void;
+  } = {},
+) => {
   const evaluatedAt = '2026-01-01T00:00:00.000Z';
   let serial = 0;
   const makeTrial = (
@@ -191,7 +200,7 @@ export const createSyntheticJourneysBundle = () => {
       'e'.repeat(64),
     ]),
   );
-  const assessment: IJourneyCampaign = {
+  const original: IJourneyCampaign = {
     assessmentFormatVersion: 2,
     mode: 'campaign',
     runId: '20260101-aabbcc',
@@ -226,7 +235,22 @@ export const createSyntheticJourneysBundle = () => {
       })),
     },
   };
-  const artifacts = platforms.flatMap((platform) =>
+  const assessment = structuredClone(original);
+  input.transform?.(assessment);
+  assessment.bundle.journeys = assessment.definitions.map((definition) => ({
+    id: definition.id,
+    title: definition.title,
+    stepCount: definition.steps.length,
+    definitionDigest: createJourneyDefinitionDigest(definition),
+    fixtureSha256: createFixtureFingerprint(assessment.bundle.files, definition.id),
+    fixture: definition.fixture,
+  }));
+  for (const provider of assessment.platforms)
+    provider.resolutions = resolveJourneyTrials(provider.trials);
+  assessment.status = deriveCampaignStatus(
+    assessment.platforms.flatMap((provider) => provider.resolutions),
+  );
+  const artifacts = assessment.platforms.flatMap((platform) =>
     platform.trials.flatMap((trial) =>
       trial.journeys.flatMap((journey) =>
         journey.steps.flatMap((step) => {
@@ -266,10 +290,169 @@ export const createSyntheticJourneysBundle = () => {
   );
   return createJourneysEvidenceBundle({
     assessment,
-    definitions,
+    definitions: assessment.definitions,
     artifacts,
     classification: 'fixture',
     skill: assessment.bundle.skill,
     instructions: assessment.bundle.instructions,
+  });
+};
+
+/** Builds a historical single-observation record with its unchanged raw artifacts. */
+export const createSyntheticLegacyJourneysBundle = (
+  input: Parameters<typeof createSyntheticJourneysBundle>[0] = {},
+) => {
+  const current = createSyntheticJourneysBundle(input);
+  const source = parseJourneysEvidenceRecord(current).model.sources[0]!;
+  if (source.kind !== 'campaign') throw new Error('Expected fixture campaign.');
+  const campaign = source.assessment;
+  const assessment = {
+    runId: campaign.runId,
+    evaluatedAt: campaign.evaluatedAt,
+    status: 'failed' as const,
+    assessor: campaign.assessor,
+    bundleSha256: campaign.bundleSha256,
+    platforms: campaign.platforms.map((provider) => ({
+      platform: provider.platform,
+      configuration: provider.trials[0]!.observation!.configuration,
+      environment: provider.trials[0]!.environment,
+      restartCounts: provider.trials[0]!.restartCounts,
+      journeys: provider.trials[0]!.journeys.map((journey) => ({
+        ...journey,
+        steps: journey.steps.map((step) => ({
+          ...step,
+          checks: step.checks.map(({ criterion: _criterion, ...check }) => check),
+        })),
+      })),
+    })),
+  };
+  const websiteModel = {
+    ...assessment,
+    route: '/evidence/journeys/',
+    skill: campaign.bundle.skill,
+    instructions: { ...campaign.bundle.instructions, version: 1 },
+    assessmentUrl: '/evidence-assets/journeys/assessment.json',
+    definitionsUrl: '/evidence-assets/journeys/definitions.json',
+    platforms: assessment.platforms.map(({ journeys: _journeys, ...provider }) => provider),
+    journeys: campaign.definitions.map((definition) => ({
+      id: definition.id,
+      title: definition.title,
+      summary: definition.summary,
+      route: `/evidence/journeys/${definition.id}/`,
+      steps: definition.steps.map((step) => ({
+        id: step.id,
+        request: step.request,
+        results: assessment.platforms.flatMap((provider) => {
+          const recorded = provider.journeys
+            .find(({ id }) => id === definition.id)
+            ?.steps.find(({ id }) => id === step.id);
+          if (!recorded) return [];
+          const prefix = `${provider.platform}/${definition.id}/${step.id}`;
+          return [
+            {
+              ...recorded,
+              platform: provider.platform,
+              ...source.captures[`${provider.platform}/${definition.id}/initial/${step.id}`]!,
+              patchUrl: `/evidence-assets/journeys/${prefix}/changes.patch`,
+              replyUrl: `/evidence-assets/journeys/${prefix}/reply.md`,
+              activityUrl: `/evidence-assets/journeys/${prefix}/activity.json`,
+            },
+          ];
+        }),
+      })),
+    })),
+  };
+  return createEvidenceBundle({
+    classification: 'fixture',
+    kind: 'journeys',
+    payload: {
+      assessment,
+      definitions: campaign.definitions,
+      skill: websiteModel.skill,
+      instructions: websiteModel.instructions,
+      websiteModel,
+    },
+    run: { ...current.run, status: assessment.status },
+    artifacts: [
+      ...current.artifacts.files
+        .filter(({ path }) => path.includes('/initial/'))
+        .map((file) => ({
+          path: file.path.replace('/initial/', '/'),
+          mediaType: file.mediaType,
+          content: Buffer.from(
+            current.artifacts.blobs.find(({ sha256 }) => sha256 === file.sha256)!.contentBase64,
+            'base64',
+          ),
+        })),
+      {
+        path: 'assessment.json',
+        mediaType: 'application/json',
+        content: Buffer.from(`${JSON.stringify(assessment, null, 2)}\n`),
+      },
+      {
+        path: 'definitions.json',
+        mediaType: 'application/json',
+        content: Buffer.from(`${JSON.stringify(campaign.definitions, null, 2)}\n`),
+      },
+    ],
+  });
+};
+
+/** Exercises independent updates, a new single-provider test, historical requests and earlier-only rows. */
+export const createSyntheticJourneySnapshot = () => {
+  const filterTrials = (assessment: IJourneyCampaign, selected: string[]) => {
+    for (const provider of assessment.platforms) {
+      for (const trial of provider.trials) {
+        trial.selectedJourneys = trial.selectedJourneys.filter((id) => selected.includes(id));
+        trial.journeys = trial.journeys.filter(({ id }) => selected.includes(id));
+        trial.restartCounts = Object.fromEntries(trial.selectedJourneys.map((id) => [id, 0]));
+      }
+      provider.trials = provider.trials.filter((trial) => trial.selectedJourneys.length > 0);
+    }
+  };
+  const baseline = createSyntheticJourneysBundle({
+    transform: (assessment) => {
+      assessment.definitions = assessment.definitions.filter(({ id }) => id !== 'additional-2');
+      filterTrials(
+        assessment,
+        assessment.definitions.map(({ id }) => id).filter((id) => id !== 'additional-3'),
+      );
+    },
+  });
+  const earlier = createJourneySnapshotEvidenceBundle({
+    incoming: baseline,
+    previous: createSyntheticLegacyJourneysBundle({
+      transform: (assessment) => {
+        assessment.definitions = assessment.definitions.filter(({ id }) => id !== 'additional-2');
+        filterTrials(
+          assessment,
+          assessment.definitions.map(({ id }) => id),
+        );
+      },
+    }),
+    runId: 'journey-snapshot-1767225600000-abcdef01',
+    evaluatedAt: '2026-01-01T00:00:00.000Z',
+  });
+  const update = createSyntheticJourneysBundle({
+    transform: (assessment) => {
+      assessment.runId = '20260102-aabbcc';
+      assessment.bundle.runId = assessment.runId;
+      assessment.evaluatedAt = '2026-01-02T00:00:00.000Z';
+      assessment.bundle.skill.version = '0.0.1-fixture';
+      assessment.assessor.sourceSha256 = '1'.repeat(64);
+      assessment.bundle.assessorSourceSha256 = assessment.assessor.sourceSha256;
+      assessment.definitions = assessment.definitions.filter(({ id }) => id !== 'additional-11');
+      assessment.definitions.find(({ id }) => id === 'additional-1')!.steps[0]!.request =
+        'Read the revised policy and preserve all saved project knowledge.';
+      assessment.platforms = assessment.platforms.filter(({ platform }) => platform === 'chatgpt');
+      filterTrials(assessment, ['additional-1', 'additional-2']);
+    },
+  });
+  return createJourneySnapshotEvidenceBundle({
+    incoming: update,
+    previous: earlier,
+    platform: 'chatgpt',
+    runId: 'journey-snapshot-1767312000000-abcdef02',
+    evaluatedAt: '2026-01-02T00:00:00.000Z',
   });
 };

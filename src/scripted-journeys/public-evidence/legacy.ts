@@ -15,7 +15,7 @@ const IdentifierSchema = z
   .string()
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)
   .max(48);
-const LegacyAssessmentSchema = z.object({
+export const LegacyAssessmentSchema = z.object({
   runId: z.string().regex(RUN_ID_PATTERN),
   status: z.enum(['passed', 'failed', 'incomplete']),
   evaluatedAt: z.iso.datetime(),

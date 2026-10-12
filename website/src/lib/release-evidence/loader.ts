@@ -5,7 +5,7 @@ import path from 'node:path';
 import { z } from 'zod';
 
 import {
-  parseScriptedJourneysWebsiteModel,
+  parseJourneysEvidenceRecord,
   type IScriptedJourneysWebsiteModel,
 } from '../../../../src/scripted-journeys/public-evidence/index.ts';
 import { parseSemanticWebsiteModel } from '../../../../src/semantic/public-evidence/index.ts';
@@ -26,6 +26,7 @@ const PreparedEvidenceBundleSchema = z.object({
     provenance: z.record(z.string(), z.string()),
   }),
   payload: z.unknown(),
+  artifacts: z.unknown().optional(),
 });
 
 const PreparedEvidenceSectionSchema = z.strictObject({
@@ -172,8 +173,7 @@ export const loadReleaseEvidenceWebsiteState = (
       manifest.journeys,
       options.allowFixture === true,
     );
-    const payload = z.object({ websiteModel: z.unknown() }).parse(journeysBundle.payload);
-    scriptedJourneys = parseScriptedJourneysWebsiteModel(payload.websiteModel);
+    scriptedJourneys = parseJourneysEvidenceRecord(journeysBundle).model;
   }
   copyPreparedAssets(repositoryRoot, preparedDirectory, manifest);
   const semanticPayload = z.object({ websiteModel: z.unknown() }).parse(semanticBundle.payload);

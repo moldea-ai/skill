@@ -479,6 +479,24 @@ test.each([
         }),
       ).rejects.toThrow('Overlapping');
       expect(await readFile(recordPath)).toStrictEqual(frozen);
+      if (expected === 'recovered') {
+        const inconsistent = await readCompletedEvidenceRun(
+          repositoryRoot,
+          'journeys',
+          complete.runId,
+        );
+        const payload = inconsistent.payload as {
+          websiteModel: { sources: { captures: Record<string, { patch: string }> }[] };
+        };
+        Object.values(payload.websiteModel.sources[0]!.captures)[0]!.patch =
+          'forged local presentation';
+        await writeJsonFileAtomically(recordPath, inconsistent);
+        const inconsistentBytes = await readFile(recordPath);
+        await expect(
+          assessJourneys({ ...input, exportPaths, operatorRecord: { trials } }),
+        ).rejects.toThrow('raw source association mismatch');
+        expect(await readFile(recordPath)).toStrictEqual(inconsistentBytes);
+      }
     } finally {
       await rm(scratch, { recursive: true, force: true });
     }

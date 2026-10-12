@@ -1,7 +1,6 @@
 import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { z } from 'zod';
 
 import {
   getCompletedEvidenceRunPath,
@@ -27,7 +26,7 @@ import {
 import { createJourneyDefinitionDigest, loadScriptedJourneys } from '../journeys/index.ts';
 import {
   createJourneysEvidenceBundle,
-  parseScriptedJourneysWebsiteModel,
+  parseJourneysEvidenceRecord,
 } from '../public-evidence/index.ts';
 import {
   JourneyAssessmentSchema,
@@ -212,8 +211,7 @@ export const assessJourneys = async (input: {
         'journeys',
         bundle.runId,
       );
-      const payload = z.object({ websiteModel: z.unknown() }).parse(previous.payload);
-      const model = parseScriptedJourneysWebsiteModel(payload.websiteModel);
+      const { model } = parseJourneysEvidenceRecord(previous);
       const source = model.sources.find((source) => source.id === model.currentSourceId);
       if (source?.kind !== 'campaign' || model.sources.length !== 1)
         throw new Error('Existing record is not an admitted campaign.');

@@ -28,7 +28,7 @@ Repository installation is required because the selected skill version must trav
 
 Open the repository in a compatible coding agent and ask:
 
-> `Initialize moldea`
+> Initialize moldea
 
 This request explicitly authorizes adoption. The coding agent:
 
@@ -74,21 +74,21 @@ You may supply context directly or point to an accessible source. The coding age
 
 After initialization, start with a project-context request for ordinary software work:
 
-```text
-Use the saved project context to plan the next API change. Identify the relevant rules before proposing the implementation.
-```
+> **You**
+>
+> Use the saved project context to plan the next API change. Identify the relevant rules before proposing the implementation.
 
 When your application needs a runtime agent, describe that outcome naturally:
 
-```text
-Create a support agent for this application.
-```
+> **You**
+>
+> Create a support agent for this application.
 
 To design the system before implementation, ask:
 
-```text
-Use moldea to plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software and what genuinely needs model reasoning.
-```
+> **You**
+>
+> Use moldea to plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software and what genuinely needs model reasoning.
 
 Planning is read-only and may recommend no agents. You do not need to mention moldea again or create bindings first. The managed AGENTS.md block checks ordinary paths before loading the entrypoint; clear agent work checks adoption, and a follow-up continues only the active task and its authorization. Unrelated work remains unaffected. See the [workflow reference](/docs/how-it-works/) for the complete activation contract.
 

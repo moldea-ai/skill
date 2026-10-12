@@ -2,7 +2,6 @@
 import { ArrowRight, FolderGit2, ListChecks } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import RecordedAgent from '../recorded-agent/recorded-agent.astro';
@@ -52,9 +51,9 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
         <p class="eyebrow mb-4">Evidence</p>
         <h1 class="page-title">We tested the work. You can inspect the results.</h1>
         <p class="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-          <InlineBrandText
-            text="We give a coding agent real tasks with moldea, record what it does, and check the result. See it connect a support agent’s instructions to both model calls, preserve the existing flow, and verify the change."
-          />
+          We give a coding agent real tasks with moldea, record what it does, and check the result.
+          See it connect a support agent’s instructions to both model calls, preserve the existing
+          flow, and verify the change.
         </p>
         <div class="mt-7">
           <ActionLink

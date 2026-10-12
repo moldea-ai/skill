@@ -14,17 +14,17 @@ Explore [Capabilities](/capabilities/) for the complete visual overview, or foll
 
 You do not need to learn another daily workflow. Install the skill, then ask your coding agent for outcomes in ordinary language:
 
-```text
-Create a customer-support agent grounded in this repository.
-```
+> **You**
+>
+> Create a customer-support agent grounded in this repository.
 
-```text
-Update the refund flow and keep the support agent aligned.
-```
+> **You**
+>
+> Update the refund flow and keep the support agent aligned.
 
-```text
-Evaluate the current project context without changing files.
-```
+> **You**
+>
+> Evaluate the current project context without changing files.
 
 After adoption, the coding agent uses moldea for agent work, established project facts, approved policies, clear corrections, and project-context questions. Explicit operations, canonical changes, and declared relationships also establish relevance. Ordinary code requirements still use the relationship gate. Generic terminology, pasted proposals, and temporary status alone trigger no canonical discovery or moldea reporting. Relevant informational handoffs remain read-only; clear corrections permit minimal updates unless you request read-only work.
 

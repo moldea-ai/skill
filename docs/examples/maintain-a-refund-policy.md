@@ -10,19 +10,15 @@ order: 130
 
 ## Developer and coding agent
 
-**Developer**
-
-```text
-Require manager approval for refunds over $500 and update the affected tests.
-```
+> **You**
+>
+> Require manager approval for refunds over $500 and update the affected tests.
 
 The developer does not mention moldea.
 
-**Coding agent**
-
-```text
-The repository already uses `moldea`, and this rule affects the refund context and support-agent escalation behavior. I updated the deterministic authorization path, focused tests, the durable refund-policy context, and the support instruction. The existing tool schema and runtime binding remain accurate and were intentionally unchanged.
-```
+> **Coding agent**
+>
+> The repository already uses moldea, and this rule affects the refund context and support-agent escalation behavior. I updated the deterministic authorization path, focused tests, the durable refund-policy context, and the support instruction. The existing tool schema and runtime binding remain accurate and were intentionally unchanged.
 
 ## Coding agent and moldea under the hood
 

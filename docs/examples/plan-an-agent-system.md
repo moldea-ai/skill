@@ -10,19 +10,15 @@ order: 100
 
 ## Developer and coding agent
 
-**Developer**
+> **You**
+>
+> Plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software, and do not implement it yet.
 
-```text
-Plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software, and do not implement it yet.
-```
-
-**Coding agent**
-
-```text
-I recommend one promotion-copy agent, not a multi-agent hierarchy. Eligibility, discount calculation, inventory checks, budget enforcement, delivery, and experiment assignment remain deterministic. The agent receives an approved offer envelope and produces channel-specific copy. A human approves high-risk campaigns before delivery.
-
-I will detail the contracts, permissions, failure paths, and implementation sequence. Planning changed no repository files.
-```
+> **Coding agent**
+>
+> I recommend one promotion-copy agent, not a multi-agent hierarchy. Eligibility, discount calculation, inventory checks, budget enforcement, delivery, and experiment assignment remain deterministic. The agent receives an approved offer envelope and produces channel-specific copy. A human approves high-risk campaigns before delivery.
+>
+> I will detail the contracts, permissions, failure paths, and implementation sequence. Planning changed no repository files.
 
 ## Coding agent and moldea under the hood
 

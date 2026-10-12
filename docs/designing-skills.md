@@ -10,9 +10,9 @@ order: 65
 
 Ask moldea to create or refine an Agent Skill when a repeatable coding-agent workflow needs specialized operating guidance, domain knowledge, reusable resources, or focused scripts that should load only when relevant.
 
-```text
-Create a repository-local release-review skill that uses our existing release policy and verifier.
-```
+> **You**
+>
+> Create a repository-local release-review skill that uses our existing release policy and verifier.
 
 The coding agent first inspects the repository and any existing skill. It does not treat every reusable sentence as a new skill.
 

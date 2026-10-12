@@ -19,7 +19,7 @@ import {
   Wrench,
 } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import Accordion from '@moldea.ai/website-ui/accordion';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import BaseLayout from '../../layouts/base-layout.astro';
@@ -48,9 +48,9 @@ const capabilityLinks = [
         <p class="eyebrow mb-4">Capabilities</p>
         <h1 class="page-title">Project context first. Agent capabilities when you need them.</h1>
         <p class="mt-5 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-          <InlineBrandText
-            text="moldea keeps project knowledge available to your coding agent during planning and development. That foundation also supports runtime agents, reusable skills, and their instructions."
-          />
+          moldea keeps project knowledge available to your coding agent during planning and
+          development. That foundation also supports runtime agents, reusable skills, and their
+          instructions.
         </p>
         <p class="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
           Illustrative conversations. Results depend on project evidence and the checks completed.
@@ -107,17 +107,16 @@ const capabilityLinks = [
           Give every session the same starting point.
         </h2>
         <p class="mt-4 text-base leading-7 text-muted-foreground">
-          <InlineBrandText
-            text="moldea saves project purpose, rules, responsibilities, and decisions for future coding sessions. You can start with ordinary software and no runtime agents."
-          />
+          moldea saves project purpose, rules, responsibilities, and decisions for future coding
+          sessions. You can start with ordinary software and no runtime agents.
         </p>
         <p class="mt-3 text-sm leading-6 text-muted-foreground">
           Ask your coding agent to use the saved refund policy when planning an API change. Declared
           relationships select affected context during related development.
         </p>
         <p class="mt-3 text-sm leading-6 text-muted-foreground">
-          Start once with <InlineBrandText text="Initialize moldea" />. Initialization creates the
-          smallest useful foundation and does not create an agent automatically.
+          Start once with Initialize moldea. Initialization creates the smallest useful foundation
+          and does not create an agent automatically.
         </p>
         <div class="mt-6 flex flex-wrap gap-x-5 gap-y-3">
           <ActionLink
@@ -869,64 +868,17 @@ const capabilityLinks = [
           Inspect first. Repair only when asked.
         </h2>
         <p class="mt-4 text-base leading-7 text-muted-foreground">
-          Evaluation reports what is wrong without writing files. Reconciliation corrects drift.
-          Validation checks the repository structure. Each operation keeps a distinct promise.
+          Evaluation reports findings without changing files. Repair requires your request.
+          Validation checks declared structure.
         </p>
       </header>
-
-      <div
-        class="mt-8 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3"
-        data-evaluation-visual
-      >
-        {
-          [
-            {
-              description: 'Read-only findings about alignment and evidence.',
-              icon: Search,
-              title: 'Evaluate',
-            },
-            {
-              description: 'The smallest authorized correction to intended state.',
-              icon: Wrench,
-              title: 'Reconcile',
-            },
-            {
-              description: 'Deterministic format and relationship checks.',
-              icon: FileCheck,
-              title: 'Validate',
-            },
-          ].map(({ description, icon: OperationIcon, title }) => (
-            <article class="bg-card p-5 sm:p-6">
-              <OperationIcon
-                class="size-5 text-muted-foreground"
-                aria-hidden="true"
-              />
-              <h3 class="mt-4 text-lg font-semibold">{title}</h3>
-              <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
-            </article>
-          ))
-        }
-      </div>
-
-      <p class="mt-6 max-w-3xl text-base leading-7 text-muted-foreground">
-        Validation checks declared files and explicit TypeScript or JavaScript ESM exports. Coverage
-        names each completed check; it does not establish runtime wiring. Warnings can leave a
-        structurally valid project. Ask the coding agent to fix them, or explicitly accept a
-        supported warning with your own reason. The agent does not choose acceptance for you.
-      </p>
-      <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">
-        The integration check also reports missing or stale project guidance and installed skill
-        assets. Ask to fix the integration or explicitly accept the warning. When your coding
-        instructions protect AGENTS.md, the agent provides the exact block for a separate
-        instruction update.
-      </p>
 
       <div
         class="mt-6"
         data-repair-visual
       >
         <CapabilityConversation ariaLabel="Developer and coding agent repair conversation">
-          <p slot="request">Fix <InlineBrandText text="moldea" />.</p>
+          <p slot="request">Fix moldea.</p>
           <p slot="response">
             I found the broken instruction link, repaired it, and ran the deterministic check again.
           </p>
@@ -980,11 +932,73 @@ const capabilityLinks = [
           </div>
         </CapabilityConversation>
       </div>
-      <p class="mt-5 max-w-4xl text-sm leading-6 text-muted-foreground">
-        Repair uses established project evidence and may recover local CLI tooling to the installed
-        skill’s validated target. It preserves healthy newer compatible tooling, does not silently
-        initialize a project or invent policy, and reports any checks it could not complete.
+      <p class="mt-6 max-w-3xl text-sm leading-7 text-muted-foreground">
+        Structural validation checks declared files and explicit exports. It does not establish
+        runtime wiring or semantic alignment.
       </p>
+      <div class="mt-6">
+        <Accordion
+          id="evaluation-and-repair-details"
+          title="How evaluation, repair, and validation differ"
+        >
+          <div>
+            <div
+              class="mt-3 grid gap-px overflow-hidden rounded-xl border border-border bg-border md:grid-cols-3"
+              data-evaluation-visual
+            >
+              {
+                [
+                  {
+                    description: 'Read-only findings about alignment and evidence.',
+                    icon: Search,
+                    title: 'Evaluate',
+                  },
+                  {
+                    description: 'The smallest authorized correction to intended state.',
+                    icon: Wrench,
+                    title: 'Reconcile',
+                  },
+                  {
+                    description: 'Deterministic format and relationship checks.',
+                    icon: FileCheck,
+                    title: 'Validate',
+                  },
+                ].map(({ description, icon: OperationIcon, title }) => (
+                  <article class="bg-card p-5 sm:p-6">
+                    <OperationIcon
+                      class="size-5 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                    <h3 class="mt-4 text-lg font-semibold">{title}</h3>
+                    <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+                  </article>
+                ))
+              }
+            </div>
+
+            <p class="mt-6 max-w-3xl text-base leading-7 text-muted-foreground">
+              Validation checks declared files and explicit TypeScript or JavaScript ESM exports.
+              Coverage names each completed check; it does not establish runtime wiring. Warnings
+              can leave a structurally valid project. Ask the coding agent to fix them, or
+              explicitly accept a supported warning with your own reason. The agent does not choose
+              acceptance for you.
+            </p>
+            <p class="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">
+              The integration check also reports missing or stale project guidance and installed
+              skill assets. Ask to fix the integration or explicitly accept the warning. When your
+              coding instructions protect AGENTS.md, the agent provides the exact block for a
+              separate instruction update.
+            </p>
+
+            <p class="mt-5 max-w-4xl text-sm leading-6 text-muted-foreground">
+              Repair uses established project evidence and may recover local CLI tooling to the
+              installed skill’s validated target. It preserves healthy newer compatible tooling,
+              does not silently initialize a project or invent policy, and reports any checks it
+              could not complete.
+            </p>
+          </div>
+        </Accordion>
+      </div>
       <div class="mt-5 flex flex-wrap gap-x-5 gap-y-3">
         <ActionLink
           class="font-bold"

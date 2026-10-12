@@ -12,9 +12,9 @@ order: 80
 
 Use evaluation when you want a read-only assessment of project, Agent Skill, and agent alignment:
 
-```text
-Evaluate the refund agent and do not change repository files.
-```
+> **You**
+>
+> Evaluate the refund agent and do not change repository files.
 
 The coding agent uses deterministic metadata or structural inspection only when it can change the conclusion, verifies every machine envelope it does use, and directly reads only relevant canonical state, Agent Skill sources, host metadata, consumers, implementation, contracts, tests, runtime wiring, file and export coverage, developer intent, and unresolved state. For a direct named reconciliation conflict, it compares supplied or focused implementation evidence with at most one canonical instruction body. It may then read one independent governing source already identified by the task or earlier evidence, within the existing output budget, when that source could settle the exact conflict. Otherwise it asks one focused authority question before further inspection, validation, canonical reads, or any write. Discovery alone does not justify an absence claim or a request to paste an accessible file.
 
@@ -28,9 +28,9 @@ The report first identifies the project as adopted or unadopted. Concrete diagno
 
 Use reconciliation when you want confirmed drift corrected:
 
-```text
-Reconcile the refund agent with the current implementation.
-```
+> **You**
+>
+> Reconcile the refund agent with the current implementation.
 
 Reconciliation begins with the same evidence model, then completes an intended-state gate before editing. Permission to reconcile does not authorize choosing between unresolved policies. Code proves implementation and instructions declare model-facing behavior, but neither selects intended policy. For a consequential same-scope conflict, the coding agent names the exact claims and the evidence role of each. An accepted decision record or identified canonical owner can resolve them only when its governing role is established and its content explicitly settles the dispute. Location, recency, tests, mirror agreement, and repeated claims are insufficient. The coding agent searches for no new resolver after the conflict and changes nothing when the identified source is missing or inconclusive; it asks one focused question instead.
 
@@ -54,9 +54,9 @@ Ask to fix the cause, or explicitly accept a supported warning with your own rea
 
 When the existing setup appears wrong, ask:
 
-```text
-Fix moldea.
-```
+> **You**
+>
+> Fix moldea.
 
 No special syntax is required. The coding agent checks the project setup, relationships, instructions, mirrors, runtime integration, and unresolved items. It corrects errors whose intended result is established, runs the relevant checks, and leaves healthy state unchanged.
 

@@ -1,6 +1,5 @@
 ---
 import { ExternalLink } from '@lucide/astro';
-import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import SiteFooterShell from '@moldea.ai/website-ui/site-footer';
 import { withBase } from '@moldea.ai/website-ui/site';
 
@@ -66,7 +65,7 @@ const basePath = import.meta.env.BASE_URL;
     class="grid content-start gap-3 text-sm"
     aria-label="Project links"
   >
-    <p class="font-bold"><InlineBrandText text="Get moldea" /></p>
+    <p class="font-bold">Get moldea</p>
     <a
       class="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
       href={SKILLS_DIRECTORY_URL}

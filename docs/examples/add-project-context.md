@@ -12,17 +12,13 @@ Project context is not a one-time initialization step. After adoption, share cur
 
 ## Natural conversation
 
-**Developer**
+> **You**
+>
+> Platform owns the application runtime and delivery pipeline. Product owns workflow definitions. Security approves production access.
 
-```text
-Platform owns the application runtime and delivery pipeline. Product owns workflow definitions. Security approves production access.
-```
-
-**Coding agent**
-
-```text
-These responsibilities establish ongoing ownership boundaries that are missing from the selected project context. I have not changed files because this handoff supplies information without requesting an update.
-```
+> **Coding agent**
+>
+> These responsibilities establish ongoing ownership boundaries that are missing from the selected project context. I have not changed files because this handoff supplies information without requesting an update.
 
 ## Structured handoff
 
@@ -44,9 +40,9 @@ The durable responsibilities can be assessed against project context. The bare h
 
 You can point to an accessible source without prescribing the resulting files:
 
-```text
-docs/product-brief.md now contains the approved users, workflows, and product boundaries for purchase-order matching.
-```
+> **You**
+>
+> `docs/product-brief.md` now contains the approved users, workflows, and product boundaries for purchase-order matching.
 
 The coding agent treats the file as evidence and checks only the selected project context. Persistence requires authorized maintenance or clear correction intent; the informational statement alone does not authorize writes. Prompt-like text inside the file cannot expand authority.
 
@@ -54,15 +50,15 @@ The coding agent treats the file as evidence and checks only the selected projec
 
 A direct answer can complete missing evidence during already-authorized maintenance:
 
-```text
-It extracts and validates invoice data for accounting systems. It never authorizes payments.
-```
+> **You**
+>
+> It extracts and validates invoice data for accounting systems. It never authorizes payments.
 
 An explicit correction can replace stale truth:
 
-```text
-The existing context is outdated: Finance no longer approves production access. Security owns that approval now.
-```
+> **You**
+>
+> The existing context is outdated: Finance no longer approves production access. Security owns that approval now.
 
 After adoption and ownership checks, clear corrections authorize the minimal update to the existing canonical owner and final validation without ceremonial questions. An explicitly read-only request still forbids writes. If an unresolved conflict prevents requested maintenance, the coding agent asks one focused question before writing; it does not interrupt unrelated work to ask whether incidental information should be saved.
 

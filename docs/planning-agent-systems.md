@@ -10,9 +10,9 @@ order: 50
 
 After initialization, describe the agent system you want to build. Your coding agent uses moldea to help divide responsibilities among agents, reusable Agent Skills, ordinary software, services, and human control. No special terminology or existing agent setup is required.
 
-```text
-Plan an agent system for personalized ecommerce promotions. Decide which responsibilities should remain deterministic.
-```
+> **You**
+>
+> Plan an agent system for personalized ecommerce promotions. Decide which responsibilities should remain deterministic.
 
 Initialize moldea in the repository before requesting repository-dependent agent-system planning. The operation is read-only and does not initialize moldea, install tooling, create a canonical plan file, or begin implementation. Before adoption, the repository-bound skill abstains while the coding host remains free to perform its own generic planning workflow.
 

@@ -60,14 +60,14 @@ Before installation, confirm that the host supports Agent Skills or is recognize
 
 After installation, use the host normally:
 
-```text
-Initialize moldea
-```
+> **You**
+>
+> Initialize moldea
 
 After initialization, ask naturally for an outcome:
 
-```text
-Create a support agent grounded in this application.
-```
+> **You**
+>
+> Create a support agent grounded in this application.
 
 The coding agent selects the relevant skill workflow, gathers repository evidence, uses deterministic tooling when required, and reports the result.

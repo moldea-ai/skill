@@ -43,10 +43,6 @@ let cachedWebsiteModel: {
   size: bigint;
 } | null = null;
 
-/** Formats the product name as semantic inline code in generated Markdown prose. */
-const formatProductNameAsMarkdownCode = (value: string): string =>
-  value.replaceAll(/\bmoldea\b/giu, '`moldea`');
-
 interface IGeneratedWebsiteModelEnvelope {
   formatVersion: 1;
   model: IWebsiteModel;
@@ -321,13 +317,13 @@ export const createLlmsText = (
           return `${label} evidence uses the selected recorded bundle from [${section.sourceLabel}](${section.sourceUrl}).`;
         });
   const lines = [
-    '# `moldea` Agent Skill',
+    '# moldea Agent Skill',
     '',
     '> Keep durable project knowledge in Git and bring relevant context into coding-agent planning and development. The same foundation supports runtime agents, reusable Agent Skills, and their instructions.',
     '',
     `Current skill release: ${skill.version}.`,
     '',
-    `Primary distribution: [\`moldea\` on skills.sh](${SKILLS_DIRECTORY_URL})`,
+    `Primary distribution: [moldea on skills.sh](${SKILLS_DIRECTORY_URL})`,
     '',
     '```bash',
     INSTALL_COMMAND,
@@ -341,8 +337,7 @@ export const createLlmsText = (
     '## Explore',
     '',
     ...Object.values(PRODUCT_PAGE_METADATA).map(
-      (page) =>
-        `- [${formatProductNameAsMarkdownCode(page.title)}](${page.route}): ${formatProductNameAsMarkdownCode(page.description)}`,
+      (page) => `- [${page.title}](${page.route}): ${page.description}`,
     ),
     '',
   );

@@ -12,15 +12,13 @@ The requests and reports below illustrate the workflow. They are not recorded co
 
 ## Developer and coding agent
 
-**Developer**
-
+> **You**
+>
 > Validate the moldea project.
 
-**Coding agent**
-
-```text
-I ran the verified repository-local validation boundary. The project is structurally invalid because one registered mirror differs from its canonical instruction. No repository files were changed. This result does not assess broader semantic alignment.
-```
+> **Coding agent**
+>
+> I ran the verified repository-local validation boundary. The project is structurally invalid because one registered mirror differs from its canonical instruction. No repository files were changed. This result does not assess broader semantic alignment.
 
 ## Coding agent and moldea under the hood
 

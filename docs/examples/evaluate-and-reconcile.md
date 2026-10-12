@@ -12,17 +12,13 @@ The requests and reports below illustrate the workflow. They are not recorded co
 
 ## First request: evaluate
 
-**Developer**
+> **You**
+>
+> Evaluate the support agent's instruction path. Do not change files.
 
-```text
-Evaluate the support agent's instruction path. Do not change files.
-```
-
-**Coding agent**
-
-```text
-Structural validation confirmed the declared file and export. My source review found that a runtime request bypasses the canonical instruction loader. I also compared the active instruction with the approved support policy. No material ambiguity changes the correction direction. No repository files were changed.
-```
+> **Coding agent**
+>
+> Structural validation confirmed the declared file and export. My source review found that a runtime request bypasses the canonical instruction loader. I also compared the active instruction with the approved support policy. No material ambiguity changes the correction direction. No repository files were changed.
 
 ### Under the hood
 
@@ -34,17 +30,13 @@ Structural validation confirmed the declared file and export. My source review f
 
 ## Second request: reconcile
 
-**Developer**
+> **You**
+>
+> Reconcile that instruction drift.
 
-```text
-Reconcile that instruction drift.
-```
-
-**Coding agent**
-
-```text
-I changed the runtime loader to derive the active instruction from the canonical file, removed the superseded inline source, updated focused tests, and ran project verification followed by final structural validation.
-```
+> **Coding agent**
+>
+> I changed the runtime loader to derive the active instruction from the canonical file, removed the superseded inline source, updated focused tests, and ran project verification followed by final structural validation.
 
 ### Under the hood
 

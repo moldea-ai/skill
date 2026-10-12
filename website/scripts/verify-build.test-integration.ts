@@ -90,7 +90,7 @@ describe('verifyProductionBuild', () => {
       process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH,
     );
 
-    expect(llmsText).toContain('# `moldea` Agent Skill');
+    expect(llmsText).toContain('# moldea Agent Skill');
     expect(llmsText).toContain(SKILLS_DIRECTORY_URL);
     expect(llmsText).toContain(gettingStartedUrl);
   });
@@ -119,15 +119,13 @@ describe('verifyProductionBuild', () => {
           url: withBase(page.route, basePath),
         },
       );
-      expect(llmsText).toContain(
-        `- [${page.title.replaceAll(/\bmoldea\b/giu, '`moldea`')}](${canonicalUrl}): ${page.description.replaceAll(/\bmoldea\b/giu, '`moldea`')}`,
-      );
+      expect(llmsText).toContain(`- [${page.title}](${canonicalUrl}): ${page.description}`);
     }
 
     const exploreSection = llmsText.split('## Explore\n\n')[1]?.split('\n\n## Start')[0];
     const exploreCopy = exploreSection?.replaceAll(/\]\([^)]+\)/gu, ']');
-    expect(exploreSection).toContain('`moldea`');
-    expect(exploreCopy?.replaceAll('`moldea`', '')).not.toMatch(/\bmoldea\b/iu);
+    expect(exploreCopy).toMatch(/\bmoldea\b/iu);
+    expect(exploreCopy).not.toContain('`moldea`');
   });
 
   test('publishes the limitations guide with outcome labels and complete discovery', () => {

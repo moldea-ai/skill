@@ -10,17 +10,13 @@ order: 110
 
 ## Developer and coding agent
 
-**Developer**
+> **You**
+>
+> Create a customer-support agent for this application. It should answer order questions and escalate refund requests it cannot safely resolve.
 
-```text
-Create a customer-support agent for this application. It should answer order questions and escalate refund requests it cannot safely resolve.
-```
-
-**Coding agent**
-
-```text
-I found the existing order lookup service, refund policy, support queue, and runtime construction. I will establish the minimum `moldea` foundation, define one support-agent responsibility, bind the existing order tool and runtime agent, connect the canonical instruction to the runtime, add focused tests, and preserve refund approval as deterministic application behavior.
-```
+> **Coding agent**
+>
+> I found the existing order lookup service, refund policy, support queue, and runtime construction. I will establish the minimum moldea foundation, define one support-agent responsibility, bind the existing order tool and runtime agent, connect the canonical instruction to the runtime, add focused tests, and preserve refund approval as deterministic application behavior.
 
 ## Coding agent and moldea under the hood
 

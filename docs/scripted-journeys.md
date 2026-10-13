@@ -35,6 +35,8 @@ Packing reads the skill from the specified Git commit, builds a minimal offline 
 
 For candidate testing, substitute the full committed candidate SHA for `HEAD`. The skill need not be tagged, but its exact CLI repair version must be available from npm for cache preparation. Packing does not include uncommitted skill edits.
 
+Initialization checks require an exact stable CLI declaration and a lockfile. Local validation binds that declaration to the bundled skill's exact CLI repair version; the journey does not hard-code one release's version.
+
 The cache is prepared with lifecycle scripts disabled. Adopted fixtures receive a generated lockfile; fixtures that enable CLI setup also receive an offline install. The boundaries fixture deliberately leaves the CLI uninstalled. The sandbox uses a writable copy of the cache, preserving the original bundle. npm's hash-addressed `_cacache/content-v2/sha512/` paths have a narrow filename-length exception; other exchanged paths retain the normal portable limits.
 
 Publish the new bundle to a dedicated release for Claude to download:

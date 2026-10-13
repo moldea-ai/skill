@@ -319,6 +319,17 @@ export const prepareProjectRunFixture = async (
           content: 'The saved policy requires the customer timezone.',
           isRedacted: false,
         },
+        {
+          ordinal: 12,
+          lastOrdinal: 12,
+          timestamp,
+          kind: 'tool',
+          title: 'web.search',
+          content: '{"query":"Runtime documentation"}',
+          output: '[{"title":"Runtime docs","url":"https://example.test/runtime"}]',
+          status: 'completed',
+          isRedacted: false,
+        },
       ];
     }
     return model;

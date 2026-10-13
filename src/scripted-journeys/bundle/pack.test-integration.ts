@@ -172,7 +172,9 @@ test('pack preserves Git skill bytes, hides criteria, installs offline, and vali
     }
     const boundaries = path.join(workspace, 'work/boundaries');
     await expect(lstat(path.join(boundaries, 'node_modules/@moldea.ai/cli'))).rejects.toThrow();
-    expect(await readFile(path.join(boundaries, 'package-lock.json'), 'utf8')).toContain('11.0.0');
+    expect(await readFile(path.join(boundaries, 'package-lock.json'), 'utf8')).toContain(
+      bundle.skill.cliRepairVersion,
+    );
     expect(await nextRequest(workspace)).toContain('journey: adopted-unrelated');
     await verifyBundle(root); // setup and subsequent npm operations must preserve the original cache
     const fresh = path.join(scratch, 'fresh-project');
@@ -203,7 +205,7 @@ test('pack preserves Git skill bytes, hides criteria, installs offline, and vali
       cliVersion: bundle.skill.cliRepairVersion,
     });
     expect(await readFile(path.join(closure, '@moldea.ai/cli/package.json'), 'utf8')).toContain(
-      '11.0.0',
+      bundle.skill.cliRepairVersion,
     );
     // confirm the uninstalled fixture's expected structural result with the trusted closure
     await copyTree(closure, path.join(boundaries, 'node_modules'), ['.bin']);

@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The latest release is `8.0.1`. Install the latest version from `main` inside each repository that will use it:
+The latest release is `8.1.0`. Install the latest version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release:
 
 ```bash
-npx skills add "moldea-ai/skill#v8.0.1"
+npx skills add "moldea-ai/skill#v8.1.0"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -73,7 +73,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `8.0.1` supports exactly:
+Release `8.1.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -160,7 +160,7 @@ The same release-candidate workflow is reusable by the packages trusted build. I
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
-Both the root tooling and the website consume Website UI `3.0.1` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
+Both the root tooling and the website consume Website UI `3.1.0` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
 
 Run the deterministic boundaries:
 

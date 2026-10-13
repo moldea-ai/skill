@@ -74,13 +74,15 @@ Attach the zip to the ChatGPT chat. In Claude, supply the printed release downlo
 
 The agent extracts the bundle, creates an empty workspace, runs `setup`, then repeats `next`, task work, `record`, and each requested `export`. After each journey it zips and attaches the checkpoint before advancing. At completion it attaches a final export. Requests, replies, and activity files are small; replies are limited to 65,536 bytes. Archives allow at most 8,192 entries, 16 MiB per file, and 64 MiB expanded in total.
 
+ChatGPT checkpoint links may remain unavailable while its response is active. Download them after the response finishes; do not interrupt execution merely to recover a link.
+
 Send `continue` only after the response has visibly finished at a tool limit or truncation. A missing Stop control alone does not establish completion. While the platform says it is checking for a response, wait or recover the view without submitting another message. Retrying an unresolved turn can create overlapping histories that share one workspace. If that occurs, reject the attempt and start the whole platform run in a fresh chat with the same bundle; never combine step captures from different attempts.
 
 A surviving workspace reissues the pending request without dropping edits. After a sandbox reset, including a ChatGPT reset, the agent extracts the original bundle and latest checkpoint, runs setup with `--resume`, and restarts the first unfinished journey from its fixture. Restart counts survive in the export. Setup refuses to overwrite live state. With no checkpoint, a reset requires restarting the run and recording that intervention. Keep each replacement attempt and its interventions distinguishable from the rejected attempt.
 
 ## Assess exports
 
-Download the final zip from each platform. Use the original bundle and the independently saved SHA-256:
+Download a complete export from each platform, preferably the final zip. A checkpoint is also admissible when local verification confirms `complete: true` and every selected journey and request is present. Never edit archive metadata to mark it complete. Use the original bundle and the independently saved SHA-256:
 
 ```bash
 npm run eval:journeys -- assess --bundle <bundle.zip> --sha256 <bundle-sha256> --export <chatgpt.zip> --export <claude.zip> --operator-record <operator-record.json>
@@ -124,7 +126,7 @@ Version 2 binds source, policy, harness, definition and per-journey fixture iden
 
 ## What the record establishes
 
-Trusted checks establish file outcomes and reply facts against local criteria. Reply checks use explicit patterns for selected facts and result phrases. Patches, timestamps, environment details, CLI presence, restart counts, and harness self-checks are sandbox-captured facts from a model-controlled workspace. They are not independent proof of process. Replies and activity are agent-reported. Declared procedural expectations remain explicitly unverified.
+Trusted checks establish file outcomes and reply facts against local criteria. Reply checks use explicit patterns for selected facts and result phrases. Validation replies accept `valid` or explicit `validation passed` wording, including inline emphasis; direct claims that the project is invalid or validation failed remain contradictory. Patches, timestamps, environment details, CLI presence, restart counts, and harness self-checks are sandbox-captured facts from a model-controlled workspace. They are not independent proof of process. Replies and activity are agent-reported. Declared procedural expectations remain explicitly unverified.
 
 The model can inspect or modify its workspace. Instructions forbid opening the harness or future request files, but this cannot be enforced. File hashes detect inconsistencies against the operator-held bundle; they do not authenticate model behavior. No command monitoring or tool-call timeline is collected.
 

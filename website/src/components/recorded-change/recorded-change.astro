@@ -1,12 +1,10 @@
 ---
 import Conversation from '@moldea.ai/website-ui/conversation';
 import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
-import StatusBadge from '@moldea.ai/website-ui/status-badge';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import type { ISemanticEvaluationCaseModel } from '../../lib/semantic-evaluation/index.ts';
-import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import { getRecordedWorkspace, getRecordedMessages } from '../evidence-page/index.ts';
 import { RecordedFileTree } from '../recorded-file-tree/index.ts';
 
@@ -70,35 +68,14 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
       )
     }
   </Conversation>
-  <div
-    class="mt-5 border-t border-border pt-4"
-    data-agent-result
-  >
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <p class="text-xs font-semibold">What this tests</p>{
-        evaluationCase === null ? (
-          <StatusBadge
-            label="No example result selected"
-            tone="neutral"
-          />
-        ) : (
-          <EvidenceStatus status={evaluationCase.status} />
-        )
-      }
-    </div>
-    <p class="mt-2 text-sm leading-7 text-muted-foreground">
-      The scheduler, its tests, and saved project knowledge should agree on the new cleanup
-      schedule.
-    </p>
-    {
-      replyHtml === null && workspace !== null && workspace.paths.length > 0 && (
-        <div class="mt-3">
-          <RecordedFileTree
-            changes={workspace.paths}
-            label="Recorded test files"
-          />
-        </div>
-      )
-    }
-  </div>
+  {
+    replyHtml === null && workspace !== null && workspace.paths.length > 0 && (
+      <div class="mt-4">
+        <RecordedFileTree
+          changes={workspace.paths}
+          label="Recorded test files"
+        />
+      </div>
+    )
+  }
 </article>

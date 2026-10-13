@@ -105,11 +105,10 @@ test('unselected project runs are absent from navigation and static routes', asy
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'We tested the work. You can inspect the results.',
   );
-  await expect(page.getByText('No example result selected', { exact: true })).toHaveCount(1);
+  await expect(page.getByText('No example result selected', { exact: true })).toHaveCount(0);
   await expect(page.locator('[data-evidence-hero] [data-conversation]')).toHaveCount(0);
   await expect(page.locator('[data-recorded-file-tree]')).toHaveCount(0);
-  for (const preview of await page.locator('[data-agent-result]').all())
-    await expect(preview).not.toContainText('0 files changed');
+  await expect(page.locator('[data-agent-result]')).toHaveCount(0);
   await expect(page.locator('[data-scheduler-observations]')).toHaveCount(0);
   expect(
     existsSync(path.join(getRepositoryRoot(), 'website/dist/evidence/project-runs/index.html')),
@@ -119,14 +118,15 @@ test('unselected project runs are absent from navigation and static routes', asy
 test('keeps evidence selection readable on neutral badges and themed cards', async ({ page }) => {
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });
-    await page.goto(toPublicPath('/evidence/'));
+    await page.goto(toPublicPath('/'));
 
     const expectedSelection = await page.locator('body').evaluate((element) => {
       const style = getComputedStyle(element, '::selection');
       return { background: style.backgroundColor, foreground: style.color };
     });
     const badgeSelection = await page
-      .locator('#decisions [data-recorded-change] [data-status-badge="neutral"]')
+      .getByRole('list', { name: 'Skill foundations' })
+      .getByText('Git-owned context', { exact: true })
       .evaluate((element) => {
         const selection = window.getSelection();
         const range = document.createRange();
@@ -136,9 +136,10 @@ test('keeps evidence selection readable on neutral badges and themed cards', asy
         const style = getComputedStyle(element, '::selection');
         return { background: style.backgroundColor, foreground: style.color };
       });
+    await page.goto(toPublicPath('/evidence/'));
     const cardSelection = await page
       .locator('[data-recorded-change]')
-      .getByText('What this tests', { exact: true })
+      .getByText('Run document cleanup more often when the backlog grows.', { exact: true })
       .evaluate((element) => {
         const selection = window.getSelection();
         const range = document.createRange();

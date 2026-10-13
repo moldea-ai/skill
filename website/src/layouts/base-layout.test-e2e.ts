@@ -108,7 +108,7 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
   await expect(sourceRepositoryLink).toHaveAttribute('href', SOURCE_REPOSITORY_URL);
   await expect(sourceRepositoryLink).toHaveAttribute('target', '_blank');
   await expect(
-    sourceRepositoryLink.locator('svg.lucide-external-link[data-external-link-icon]'),
+    sourceRepositoryLink.locator('svg.lucide-git-branch[data-external-link-icon]'),
   ).toBeVisible();
 
   const heroActionTopOffsets = await page

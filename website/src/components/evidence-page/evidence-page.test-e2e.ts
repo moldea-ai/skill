@@ -93,13 +93,9 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
   expect(await projectCopy.evaluate((element) => getComputedStyle(element).position)).toBe(
     'static',
   );
-  const changeCase = getSemanticPreviewCase(
-    loadWebsiteModel().semanticEvaluation,
-    'bound-context-maintenance',
-  );
   await expect(
     sections.first().locator('[data-recorded-change] [data-evidence-status]'),
-  ).toHaveCount(changeCase === null ? 0 : 1);
+  ).toHaveCount(0);
   const decisionCopy = sections.first().getByRole('heading', { level: 2 }).locator('..');
   await expect(decisionCopy.locator('[data-evidence-status]')).toHaveCount(0);
   await expect(page.locator('[data-evidence-hero] [data-conversation]')).toHaveCount(0);
@@ -242,7 +238,10 @@ test('keeps the test examples and project links readable without JavaScript', as
     await expect(
       page.getByRole('navigation', { name: 'Evidence sections' }).getByRole('link'),
     ).toHaveCount(3);
-    await expect(page.locator('[data-recorded-change]')).toContainText('What this tests');
+    await expect(page.locator('[data-recorded-change] [data-conversation]')).toBeVisible();
+    await expect(page.getByText('What this tests', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('What this recording shows', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Local checks for this request', { exact: true })).toHaveCount(0);
     await expect(page.locator('[data-recorded-project]')).toHaveCount(1);
     await expect(
       page.getByRole('link', { name: 'Open the recorded session', exact: true }),

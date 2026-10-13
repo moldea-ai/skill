@@ -74,20 +74,14 @@ const replyHtml = reply
       )
     }
   </Conversation>
-  <div class="mt-5 border-t border-border pt-4">
-    <p class="text-xs font-semibold">What this recording shows</p><p
-      class="mt-2 text-sm leading-7 text-muted-foreground"
-    >
-      {attempt.excerpt}
-    </p>{
-      replyHtml === null && paths.length > 0 && (
-        <div class="mt-3">
-          <RecordedFileTree
-            changes={paths}
-            label="Recorded project patch paths"
-          />
-        </div>
-      )
-    }
-  </div>
+  {
+    replyHtml === null && paths.length > 0 && (
+      <div class="mt-4">
+        <RecordedFileTree
+          changes={paths}
+          label="Recorded project patch paths"
+        />
+      </div>
+    )
+  }
 </article>

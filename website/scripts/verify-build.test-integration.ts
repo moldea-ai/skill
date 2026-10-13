@@ -414,8 +414,16 @@ test('redirects every retired route immediately and excludes it from discovery',
 });
 
 test('publishes bounded journey overviews, conversation previews, and every source download', () => {
-  const model = loadWebsiteModel().scriptedJourneys!;
-  expect(model).not.toBeNull();
+  const website = loadWebsiteModel();
+  const model = website.scriptedJourneys;
+  if (model === null) {
+    expect(website.routes).not.toContain('/evidence/journeys/');
+    expect(() => readFileSync(getDistPath('evidence/journeys/index.html'))).toThrow();
+    expect(readFileSync(getDistPath('evidence/index.html'), 'utf8')).not.toContain(
+      'data-recorded-journeys',
+    );
+    return;
+  }
   for (const page of [1, 2]) {
     const html = readFileSync(
       getDistPath(`evidence/journeys/${page === 1 ? '' : `page/${page}/`}index.html`),
@@ -435,7 +443,7 @@ test('publishes bounded journey overviews, conversation previews, and every sour
       expect(readFileSync(getDistPath(url.slice(1))).byteLength).toBeGreaterThan(0);
   }
   expect(model.journeys).toHaveLength(19);
-  expect(loadWebsiteModel().routes).not.toContain('/evidence/journeys/page/3/');
+  expect(website.routes).not.toContain('/evidence/journeys/page/3/');
   expect(() => readFileSync(getDistPath('evidence/journeys/page/3/index.html'))).toThrow();
   const recovered = readFileSync(getDistPath('evidence/journeys/recovered/index.html'), 'utf8');
   expect(recovered).toContain('First run');

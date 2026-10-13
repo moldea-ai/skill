@@ -55,6 +55,7 @@ const EventSchema = z.discriminatedUnion('kind', [
       callId: z.string(),
       input: z.string(),
       status: z.string(),
+      output: z.array(TextPartSchema).optional(),
     }),
     redactionIds: z.array(z.string()).default([]),
   }),
@@ -102,7 +103,14 @@ const extractPatchTargets = (input: string): NonNullable<IProjectSessionEntry['p
     path: match[2]!.trim(),
   }));
 
-/** Converts each recorded event into a readable sequence, joining only adjacent tool pairs. */
+/**
+ * Converts recorded events into a readable sequence, pairing tools by their call identity.
+ * @throws
+ * - Session event ordinals must increase.
+ * - Session tool result has no matching call.
+ * - Session tool call ID is already awaiting a result.
+ * - Session tool call has no recorded result.
+ */
 export const parseProjectSession = (compressed: Uint8Array): IProjectSessionEntry[] => {
   const text = gunzipSync(compressed, { maxOutputLength: PROJECT_RUN_MAX_FILE_BYTES }).toString(
     'utf8',
@@ -112,26 +120,24 @@ export const parseProjectSession = (compressed: Uint8Array): IProjectSessionEntr
     .split('\n')
     .map((line) => EventSchema.parse(JSON.parse(line)));
   const entries: IProjectSessionEntry[] = [];
+  const pendingCalls = new Map<string, IProjectSessionEntry>();
   let previousOrdinal = -1;
-  for (const [index, event] of events.entries()) {
+  for (const event of events) {
     if (event.ordinal <= previousOrdinal) throw new Error('Session event ordinals must increase.');
     previousOrdinal = event.ordinal;
     if (event.kind === 'tool-result') {
-      const prior = events[index - 1];
-      const entry = entries.at(-1);
-      if (
-        prior?.kind !== 'tool-call' ||
-        prior.payload.callId !== event.payload.callId ||
-        entry?.kind !== 'tool'
-      )
-        throw new Error('Session tool result has no adjacent matching call.');
+      const entry = pendingCalls.get(event.payload.callId);
+      if (!entry) throw new Error('Session tool result has no matching call.');
+      pendingCalls.delete(event.payload.callId);
       entry.lastOrdinal = event.ordinal;
       entry.output = joinText(event.payload.output);
       entry.isRedacted ||= event.redactionIds.length > 0;
       continue;
     }
     if (event.kind === 'tool-call') {
-      entries.push({
+      if (pendingCalls.has(event.payload.callId))
+        throw new Error('Session tool call ID is already awaiting a result.');
+      const entry: IProjectSessionEntry = {
         ordinal: event.ordinal,
         lastOrdinal: event.ordinal,
         timestamp: event.timestamp,
@@ -139,9 +145,12 @@ export const parseProjectSession = (compressed: Uint8Array): IProjectSessionEntr
         title: event.payload.name,
         content: event.payload.input,
         status: event.payload.status,
+        ...(event.payload.output === undefined ? {} : { output: joinText(event.payload.output) }),
         patchTargets: extractPatchTargets(event.payload.input),
         isRedacted: event.redactionIds.length > 0,
-      });
+      };
+      entries.push(entry);
+      if (event.payload.output === undefined) pendingCalls.set(event.payload.callId, entry);
       continue;
     }
     if (event.kind === 'message') {
@@ -215,7 +224,22 @@ export const parseProjectSession = (compressed: Uint8Array): IProjectSessionEntr
   return entries;
 };
 
-/** Reads a digest-checked published session asset for static generation. */
+/**
+ * Reads a digest-checked published session asset for static generation.
+ * @throws
+ * - Expected one session asset per project attempt.
+ * - Session asset has an unsupported media type.
+ * - Session asset exceeds the project-run size limit.
+ * - Session asset returned HTTP ${response.status}.
+ * - Session asset exceeds its recorded size.
+ * - Session asset size differs from its record.
+ * - Session asset digest differs from its record.
+ * - Session asset identity differs from its record.
+ * - Session event ordinals must increase.
+ * - Session tool result has no matching call.
+ * - Session tool call ID is already awaiting a result.
+ * - Session tool call has no recorded result.
+ */
 export const loadProjectSession = async (
   assets: IProjectAttemptRecord['assets'],
 ): Promise<IProjectSessionEntry[] | null> => {
@@ -248,7 +272,9 @@ export const loadProjectSession = async (
   if (
     (asset.sessionId != null && entries[0]?.sessionId !== asset.sessionId) ||
     (asset.firstEventOrdinal != null && entries[0]?.ordinal !== asset.firstEventOrdinal) ||
-    (asset.lastEventOrdinal != null && entries.at(-1)?.lastOrdinal !== asset.lastEventOrdinal)
+    (asset.lastEventOrdinal != null &&
+      entries.reduce((last, entry) => Math.max(last, entry.lastOrdinal), -1) !==
+        asset.lastEventOrdinal)
   )
     throw new Error('Session asset identity differs from its record.');
   return entries;

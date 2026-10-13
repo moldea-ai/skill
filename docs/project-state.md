@@ -55,7 +55,7 @@ The description explains what the agent does. The optional handoff description e
 
 ## Relationships and capabilities
 
-The manifest can register real repository-local relationships for runtime agents, schemas, instruction loaders, variable providers, tools, skills, mirrors, focused context, decisions, and broader impact paths. A relationship is added only when a real current artifact exists and the active format supports it. Reliable evidence may also establish provider-hosted or externally implemented model-visible behavior that has no repository-local binding. Preserve that behavior in the canonical instruction or project-local runtime guidance without fabricating a manifest relationship.
+The manifest can register real repository-local relationships for runtime agents, schemas, instruction loaders, variable providers, tools, skills, mirrors, focused context, decisions, and broader impact paths. A binding establishes relevance by itself. An impact path belongs only where its change can alter the owner's material facts or behavior; layout and shared infrastructure merely used by a feature do not create feature relationships. Use an exact file or a coherent subsystem glob, never a catch-all. A relationship is added only when a real current artifact exists and the active format supports it. Reliable evidence may also establish provider-hosted or externally implemented model-visible behavior that has no repository-local binding. Preserve that behavior in the canonical instruction or project-local runtime guidance without fabricating a manifest relationship.
 
 ## Repository-local Agent Skills
 

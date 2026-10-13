@@ -4,7 +4,7 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The latest release is `8.0.1`. Install the latest version from `main` inside each repository that will use it:
+The latest release is `8.1.0`. Install the latest version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release:
 
 ```bash
-npx skills add "moldea-ai/skill#v8.0.1"
+npx skills add "moldea-ai/skill#v8.1.0"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -49,7 +49,7 @@ After initialization, ask naturally to plan, build, review, or maintain AI agent
 | Repair           | `Fix moldea.`                                                    |
 | Validate         | `Validate moldea.`                                               |
 
-Evaluation is read-only. Repair corrects established errors and may recover necessary local CLI tooling to the exact target recorded by the installed skill. It preserves host restrictions, healthy newer compatible tooling, and unresolved policy. Validation checks declared files and explicit TypeScript or JavaScript ESM exports. Coverage names what was checked and does not prove runtime wiring. Warnings do not invalidate a project: ask to fix them or explicitly accept a supported warning with your own reason. The coding agent never chooses acceptance on your behalf.
+Evaluation is read-only. Repair checks every owner, its material implementation relationships, and each agent's instruction connection. It corrects established errors and may recover necessary local CLI tooling to the exact target recorded by the installed skill. A large repair continues by owner from a reported checkpoint; an incomplete pass is never called healthy. Repair preserves host restrictions, healthy newer compatible tooling, and unresolved policy. Validation checks declared files and explicit TypeScript or JavaScript ESM exports. Coverage names what was checked and does not prove runtime wiring. Warnings do not invalidate a project: ask to fix them or explicitly accept a supported warning with your own reason. The coding agent never chooses acceptance on your behalf.
 
 ## Documentation
 
@@ -73,7 +73,7 @@ Evaluation is read-only. Repair corrects established errors and may recover nece
 
 ## Compatibility
 
-Release `8.0.1` supports exactly:
+Release `8.1.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -94,7 +94,7 @@ Informational handoffs and read-only questions permit assessment, not automatic 
 
 The entrypoint keeps routing and essential boundaries compact. It loads only the operation-specific references needed for the selected work. Complete unchanged instructions may be reused while available; missing instructions after compaction must be read again, and summaries never replace instructions, repository evidence, or authorization. See the [workflow reference](docs/how-it-works.md) and [reference-reading checks](docs/reference-reading.md).
 
-Mechanical repository evidence uses the installed skill's closed launcher. It exposes bounded `inspect`, `scope`, `content`, `validate`, and `composition` operations without making canonical document bodies part of ordinary metadata output. It normalizes repository-relative content paths and verifies response identity, status, and inspection/validation diagnostic totals before forwarding unchanged output. Detailed invocation, pagination, failure, and runtime-compatibility behavior belongs to [Compatibility and local tooling](docs/compatibility-and-local-tooling.md).
+Mechanical repository evidence uses the installed skill's closed launcher. It exposes bounded `inspect`, `scope`, `content`, `validate`, and `composition` operations without making canonical document bodies part of ordinary metadata output. It normalizes repository-relative content paths and verifies response identity, status, and inspection/validation diagnostic totals before forwarding unchanged output. Detailed invocation, pagination, failure, and runtime guidance belongs to [Compatibility and local tooling](docs/compatibility-and-local-tooling.md).
 
 Semantic execution may project one fixed repository-root direct Node correctness-test invocation into aggregate pass/fail facts. Package-manager commands cannot contribute correctness evidence, and the projection never retains test names, assertions, paths, durations, or output bodies.
 
@@ -156,11 +156,11 @@ To prepare an exact published CLI release, run `npm run release:update-cli -- <v
 
 Before publication, `npm run candidate:prepare -- --artifacts <packed-closure-directory> --output <empty-directory-outside-this-repository>` prepares a complete isolated skill through the same updater against the candidate registry. An optional `--release-version <version>` selects the isolated skill version. The release-candidate workflow uses this full distribution for real manager and closed-launcher checks. Candidate registry URLs stay in the disposable output; they must not enter the official release lockfile. These checks establish tooling mechanics, not coding-agent repair effectiveness.
 
-The same release-candidate workflow is reusable by the packages trusted build. Its caller pins the skill workflow and tooling to the same immutable commit and supplies that run's public-package artifact and exact packages commit. `src/packages/trusted-candidate.ts` verifies the recorded source identity, complete checksum manifest and package graph before copying the CLI closure. Website UI is verified in the public set but remains outside the CLI consumer closure. The manager matrix consumes those unchanged tarballs rather than repacking source; it requires only read access and cannot publish packages.
+The same release-candidate workflow is reusable by the packages trusted build. Its caller pins the skill workflow and tooling to the same immutable commit and supplies that run's public-package artifact and exact packages commit. `src/packages/trusted-candidate.ts` verifies the recorded source identity, complete checksum manifest and package graph before copying the CLI closure. The full verified public set, including Website UI, prepares the isolated skill; the manager matrix then consumes the unchanged CLI closure tarballs. The workflow requires only read access and cannot publish packages.
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
-Both the root tooling and the website consume Website UI `3.0.1` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
+Both the root tooling and the website consume Website UI `3.1.0` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
 
 Run the deterministic boundaries:
 

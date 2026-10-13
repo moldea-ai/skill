@@ -195,10 +195,15 @@ jobs:
 
       - name: Prepare complete skill candidate with development npm
         env:
+          MOLDEA_CANDIDATE_ARTIFACT_NAME: ${{ inputs.artifact_name }}
           MOLDEA_CANDIDATE_SKILL_VERSION: ${{ inputs.skill_version }}
         run: |
+          candidate_artifacts="${{ runner.temp }}/cli-candidate-packages"
+          if [ -n "$MOLDEA_CANDIDATE_ARTIFACT_NAME" ]; then
+            candidate_artifacts="${{ runner.temp }}/downloaded-package-artifacts"
+          fi
           candidate_arguments=(
-            --artifacts "${{ runner.temp }}/cli-candidate-packages"
+            --artifacts "$candidate_artifacts"
             --output "${{ runner.temp }}/skill-candidate"
           )
           if [ -n "$MOLDEA_CANDIDATE_SKILL_VERSION" ]; then

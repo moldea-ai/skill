@@ -14,22 +14,23 @@ order: 32
 
 | Result          | What it means                                                                                          | Next step                                                                     |
 | --------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| **Completed**   | The operation finished. It can still contain errors or unverified relationships.                       | Read validity, diagnostic totals, and binding coverage separately.            |
+| **Completed**   | The operation finished. It can still contain errors, warnings, or not-checked bindings.                | Read validity, diagnostic totals, and binding coverage separately.            |
 | **Error**       | A check established a broken rule or relationship.                                                     | Correct the identified problem using intended project behavior.               |
 | **Not checked** | A declared file or export check was unsupported or inconclusive. This alone is not a warning or error. | Inspect the named check and establish any required behavior separately.       |
 | **Unfinished**  | A limit, cancellation, or operational failure prevented a conclusion.                                  | Preserve work and resolve the reported obstacle before relying on that check. |
 
-`valid: true` means **zero errors**. Warnings and not-checked binding relationships can remain. Accepted warnings retain their identity and the developer’s reason in a separate count. Unresolved requirements describe missing project decisions separately. None of these fields certifies business readiness or production correctness.
+`valid: true` means **zero errors**. Warnings and not-checked binding checks can remain. Accepted warnings retain their identity and the developer’s reason in a separate count. Unresolved requirements describe missing project decisions separately. None of these fields certifies business readiness or production correctness.
 
-Ask the coding agent to fix a warning, or explicitly accept a supported warning with your own reason. Acceptance does not fix its cause or change errors. Remove an obsolete acceptance after its warning disappears, then validate again. Integration warnings identify a missing or stale AGENTS.md block or installed skill assets. If your instructions protect AGENTS.md, repair supplies the exact block for a separate model to apply.
+Ask the coding agent to fix a warning, or explicitly accept a supported warning with your own reason. Acceptance does not fix its cause or change errors. Remove an obsolete acceptance after its warning disappears, then validate again. Integration warnings identify a missing or stale AGENTS.md block or installed skill assets. If your instructions protect AGENTS.md, repair supplies the exact block for you to add.
 
 ## Common situations
 
 | What happened                                  | How it is handled                                                                | Next step                                                                                                                       |
 | ---------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Runtime wiring needs separate evidence         | Core checks declared files and explicit TypeScript or JavaScript ESM exports.    | Review the relationship. Keep healthy custom code; a warning alone does not justify rewriting it.                               |
+| Runtime wiring needs separate evidence         | Core checks declared files and explicit TypeScript or JavaScript ESM exports.    | Review the relationship and test the actual instruction connection. Keep healthy custom code.                                   |
 | A changed file received no maintenance         | Ordinary work uses declared relationships; the host must also select the skill.  | Check the relevant owner’s declarations and [host activation](/docs/how-it-works/#activation).                                  |
-| A file or traversal exceeds a budget           | The operation refuses explicitly instead of returning a fabricated clean result. | Ask the coding agent to identify the named limit and required scope using the [resource references](#large-projects-and-files). |
+| A bound source is too large for export analysis | Its export check is not checked, with `resource-limit` as the reason.             | Read the coverage record and establish the export by another focused check if needed.                                          |
+| Another input or traversal exceeds a budget    | The operation reports the limit instead of returning a fabricated clean result. | Ask the coding agent to identify the named limit and required scope using the [resource references](#large-projects-and-files). |
 | Analysis runs out of memory or time            | Fixed worker safeguards end the attempt without declaring the project invalid.   | Review the input shape and failure evidence. Do not repeatedly retry unchanged input or split healthy source automatically.     |
 | Capacity is busy                               | Another inspection holds the same installed Core owner.                          | Let that inspection finish, then retry.                                                                                         |
 | Work is cancelled or the worker fails          | No successful inspection is inferred.                                            | Resume deliberately after cancellation; investigate a process failure before retrying.                                          |
@@ -55,7 +56,7 @@ Users do not need to configure packages for ordinary work. Ask the coding agent 
 
 Static checks establish structure and the file or export checks named in coverage. Meaning, policy, and arbitrary application behavior require the coding agent’s assessment and relevant tests.
 
-`Fix moldea` uses established intended behavior, respects host permissions, and reports checks it could not complete. It cannot invent missing policy, guarantee every repair, or silently initialize an unrelated project. Its validated CLI recovery target belongs to the installed skill; healthy newer compatible tooling is preserved. See [repair](/docs/evaluate-reconcile-validate/#repair-a-project) and [local tooling](/docs/compatibility-and-local-tooling/).
+`Fix moldea` uses established intended behavior, respects host permissions, and reports checks it could not complete. It checks material facts and declared relationships for each owner, then traces each agent's instruction and schema to its runtime call. Presentation details and shared infrastructure used by a feature do not create feature relationships. A large repair can continue by owner from a reported commit and changed-path checkpoint. It cannot invent missing policy, guarantee every repair, or silently initialize an unrelated project. Its validated CLI recovery target belongs to the installed skill; healthy newer compatible tooling is preserved. See [repair](/docs/evaluate-reconcile-validate/#repair-a-project) and [local tooling](/docs/compatibility-and-local-tooling/).
 
 ## Compatibility and evidence
 

@@ -24,7 +24,7 @@ The developer does not mention `moldea`.
 
 1. The coding agent recognizes relevance-triggered maintenance in an adopted project.
 2. It reads continuous-maintenance guidance and runs deterministic inspection through the verified closed launcher.
-3. It traces the implementation change through `affectedBy` paths, refund context, agent instruction, capability use conditions, schemas, routing, and tests.
+3. It traces the implementation change through the refund context's material impact paths, agent instruction, capability use conditions, schemas, routing, and tests. The runtime binding already establishes relevance; shared UI and presentation code do not become refund-policy relationships.
 4. It confirms that approval remains deterministic and the support agent only escalates.
 5. It edits only the representations whose truth changed.
 6. It reruns project-native tests and deterministic inspection.

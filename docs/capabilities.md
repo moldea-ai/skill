@@ -100,7 +100,7 @@ Warnings offer two paths: ask the coding agent to fix the cause, or explicitly a
 
 ## Repair a project
 
-When an initialized project has broken, missing, stale, or incomplete `moldea` state, ask the coding agent to `Fix moldea`. The coding agent establishes the current failure from project evidence, repairs the smallest coherent surface, and verifies the result before reporting completion.
+When an initialized project has broken, missing, stale, or incomplete `moldea` state, ask the coding agent to `Fix moldea`. It inventories every owner, checks material facts and relationships, and traces each agent's instruction and schema to its runtime call. Shared presentation code does not become a feature relationship simply because a feature uses it. The coding agent repairs established defects and verifies the result. A large repair continues by owner from a reported checkpoint; incomplete or unchecked work is named, never called healthy.
 
 Repair may recover necessary repository-local CLI tooling to the installed skill’s exact validated repair target, using the established package manager with scripts disabled. It preserves host restrictions, unrelated dependency locks, and healthy newer compatible tooling. Downgrades and explicit version-policy conflicts need direction. Repair does not silently initialize an unadopted project, invent policy, broadly upgrade dependencies, or hide unresolved ambiguity. See [the evaluation and repair workflow](/docs/evaluate-reconcile-validate/#repair-a-project) for the complete contract.
 

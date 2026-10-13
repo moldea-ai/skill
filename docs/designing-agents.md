@@ -54,13 +54,15 @@ In a dedicated repository, the coding agent directly inspects the developer-iden
 
 ## Keep impact relationships meaningful
 
-`affectedBy` tells the coding agent which changes may affect an agent's behavior. It is not a list of everything needed to build the project. Prefer the sources that define tools, policy, schemas, routing, instruction loading, and runtime integration, plus focused tests for those behaviors.
+`affectedBy` tells the coding agent which changes may affect an agent's behavior. It is not a list of everything needed to build the project. Prefer the sources that define tools, policy, schemas, routing, instruction loading, and runtime integration, plus focused tests for those behaviors. Apply the [relationship guidance](/docs/repository-format/#example-connect-focused-context-to-the-code) to every owner kind: include material facts and behavior, not presentation mechanics or shared infrastructure merely used by a feature.
 
 Package manifests and lockfiles belong when relevant dependencies materially affect that agent. Compiler configuration and type declarations need a demonstrated behavioral role. Do not add them to every agent by default, or exclude them solely because of their filenames. Exact bindings already establish relevance and do not need mechanical duplication.
 
 An exact `affectedBy` path must name a regular file, such as `/src/support-agent.js`. Use a supported glob such as `/src/support-policy/**` for a coherent behavioral subtree. Neither `/src/support-policy` nor `/src/support-policy/` expresses subtree impact; removing the trailing slash alone does not fix a directory reference. Choose the narrowest relationship supported by the implementation. Binding and mirror paths retain their own exact-path contracts.
 
 A matching path starts a check of the actual change. It does not force an instruction edit when behavior remains the same.
+
+When retiring an agent, remove its declarations, canonical assets, exclusive runtime wiring, and tests that exercise only the retired behavior. Preserve shared policy and other owners' relationships. An explicit project repair also reviews each relationship and the agent's instruction connection; large repairs can continue by owner after a recorded checkpoint.
 
 ## Prove instruction provenance
 

@@ -3,8 +3,8 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
-  cliRepairVersion: '11.0.0'
-  version: '8.0.1'
+  cliRepairVersion: '11.0.2'
+  version: '8.1.0'
   cliVersionRange: '^11.0.0'
   coreVersionRange: '^7.0.0'
   cliJsonSchemaVersion: '7'
@@ -62,6 +62,7 @@ Accept only exit 0, CLI 11, JSON schema 7, exact installed stable version, `comm
 After relevance, read references.
 
 - Scoped owners and content: `references/context-gathering.md`.
+- Declared relationships: `references/relationships.md`.
 - Context and requirements: `references/continuous-maintenance.md`.
 - Read-only agent-system planning: `references/agent-system-planning.md`.
 - Agent or runtime writes: `references/agent-design.md`.
@@ -71,7 +72,7 @@ After relevance, read references.
 - Warnings and acceptance: `references/continuous-maintenance.md`.
 - CLI proof or machine contracts: `references/local-tooling.md`. Only authorized installation uses `references/tooling-installation.md`.
 
-Aim for four ordinary CLI calls, including scope and final validation. Keep 65,536-byte raw pages and 262,144-byte cumulative output. Never reset budgets or reconstruct a project dump.
+Aim for four ordinary CLI calls, including scope and final validation. Explicit repair uses `references/local-tooling.md`'s large-traversal profile and may exceed four calls. Keep 65,536-byte raw pages and 262,144-byte cumulative output for ordinary work. Never reset budgets or reconstruct a project dump.
 
 After authorized canonical writes and native checks, run final launcher-backed validation. On failure, follow `references/local-tooling.md`'s bounded recovery procedure. Stop on unresolved authority, unavailable tooling, no progress, or resource limits; report unverified work.
 

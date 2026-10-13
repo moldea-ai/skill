@@ -56,10 +56,27 @@ describe('discovered semantic coverage', () => {
         'repair-conflicting-policy',
         'repair-missing-tooling',
         'repair-healthy-project',
+        'repair-connection-drift',
+        'repair-continuation-after-change',
+        'repair-continuation-manifest-change',
       ]),
     );
     expect(evidenceFor('bounded-relevance')).toEqual(
-      expect.arrayContaining(['scope-expansion-second-owner', 'context-instruction-injection']),
+      expect.arrayContaining([
+        'scope-expansion-second-owner',
+        'context-instruction-injection',
+        'maintain-bound-connection',
+        'maintain-relationship-after-move',
+        'maintain-tool-registration',
+        'maintain-shared-module-boundary',
+      ]),
+    );
+    expect(evidenceFor('runtime-selection')).toEqual(
+      expect.arrayContaining([
+        'repair-connection-drift',
+        'maintain-bound-connection',
+        'maintain-tool-registration',
+      ]),
     );
     expect(evidenceFor('activation-abstention')).toContain('scope-expansion-unbound-only');
   });

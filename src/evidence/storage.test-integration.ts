@@ -49,3 +49,30 @@ describe('completed evidence storage', () => {
     );
   });
 });
+
+test('stores and packs the journeys evidence kind', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'moldea-journeys-storage-'));
+  temporaryRoots.push(root);
+  await storeCompletedEvidenceRun(
+    root,
+    createEvidenceBundle({
+      classification: 'official',
+      kind: 'journeys',
+      payload: { platforms: ['chatgpt', 'claude'] },
+      run: {
+        attemptId: '20261012-abcdef',
+        evaluatedAt: '2026-10-12T00:00:00.000Z',
+        provenance: {},
+        status: 'passed',
+        version: '8.0.1',
+      },
+    }),
+  );
+  const packed = await packCompletedEvidenceRun(
+    root,
+    'journeys',
+    '20261012-abcdef',
+    path.join(root, 'bundle.json.gz'),
+  );
+  expect(decodeEvidenceBundle(await readFile(packed.outputPath)).kind).toBe('journeys');
+});

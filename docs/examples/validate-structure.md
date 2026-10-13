@@ -29,7 +29,7 @@ The requests and reports below illustrate the workflow. They are not recorded co
 
 The mirror must match the canonical instruction after text normalization. These excerpts differ, so validation reports the mismatch without choosing a business policy or editing either file.
 
-## Coding agent and moldea under the hood
+## Coding agent and `moldea` under the hood
 
 1. The coding agent selects read-only validation.
 2. It checks repository-root-local package identity, containment, and supported installed versions through the installed skill’s closed launcher.

@@ -55,6 +55,7 @@ export const SemanticCaseDefinitionSchema = z
       maximumMoldeaCommands: z.number().int().nonnegative(),
       maximumMoldeaOutputBytes: z.number().int().nonnegative(),
       minimumMoldeaCommands: z.number().int().nonnegative(),
+      profile: z.literal('largeTraversal').optional(),
     }),
     scenario: z.string().trim().min(1),
     skillEvidence: z

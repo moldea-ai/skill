@@ -13,6 +13,41 @@ import {
 const toPublicPath = (route: string): string =>
   withBase(route, process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH);
 
+test('fixture previews include the conversations and files described by each example', async ({
+  page,
+}) => {
+  await page.goto(toPublicPath('/evidence/'));
+  for (const [selector, paths] of [
+    [
+      '[data-recorded-change]',
+      [
+        'moldea/context/cleanup-policy.md',
+        'moldea/moldea.yaml',
+        'src/cleanup-scheduler.js',
+        'src/cleanup-scheduler.test-unit.js',
+      ],
+    ],
+    [
+      '[data-recorded-project]',
+      ['moldea/project.md', 'src/reminders.js', 'src/reminders.test-unit.js'],
+    ],
+  ] as const) {
+    const preview = page.locator(selector);
+    await expect(preview.locator('[data-conversation-message="user"]')).toHaveCount(1);
+    await expect(preview.locator('[data-conversation-message="assistant"]')).toHaveCount(1);
+    await expect(preview.locator('[data-conversation-message="assistant"]')).not.toBeEmpty();
+    expect(
+      await preview
+        .locator('[data-recorded-file-path]')
+        .evaluateAll((files) => files.map((file) => file.getAttribute('data-recorded-file-path'))),
+    ).toStrictEqual(paths);
+    await expect(preview).not.toContainText('No example result selected');
+  }
+  await expect(page.locator('[data-recorded-journeys]')).not.toContainText('unsafe link');
+  await expect(page.getByText('Recorded request excerpt', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Recorded reply excerpt', { exact: true })).toHaveCount(0);
+});
+
 test('presents each evidence source as a navigable section', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(toPublicPath('/evidence/'));
@@ -21,10 +56,11 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
       (count, { attempts }) => count + attempts.length,
       0,
     ) ?? 0;
+  const hasJourneys = loadWebsiteModel().scriptedJourneys !== null;
   const sections = page.locator('[data-evidence-path]');
-  await expect(sections).toHaveCount(2);
+  await expect(sections).toHaveCount(hasJourneys ? 3 : 2);
   const navigation = page.getByRole('navigation', { name: 'Evidence sections' });
-  await expect(navigation.getByRole('link')).toHaveCount(2);
+  await expect(navigation.getByRole('link')).toHaveCount(hasJourneys ? 3 : 2);
   await expect(navigation.getByRole('link', { name: /Agent decisions/u })).toHaveAttribute(
     'href',
     '#decisions',
@@ -35,6 +71,7 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
   await expect(sections.locator('[data-evidence-path-action]').getByRole('link')).toHaveText([
     'Explore decisions',
     'Explore project runs',
+    ...(hasJourneys ? ['Explore scripted journeys'] : []),
   ]);
   const boxes = await sections.evaluateAll((elements) =>
     elements.map((element) => {
@@ -43,16 +80,16 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
     }),
   );
   expect(boxes[0]!.y).toBeLessThan(boxes[1]!.y);
-  await expect(sections.last().locator('[data-evidence-status]')).toHaveCount(0);
-  await expect(sections.last().locator('[data-recorded-project]')).toHaveCount(1);
+  await expect(sections.nth(1).locator('[data-evidence-status]')).toHaveCount(0);
+  await expect(sections.nth(1).locator('[data-recorded-project]')).toHaveCount(1);
   await expect(
-    sections.last().getByRole('link', { name: /View .* more project runs/u }),
+    sections.nth(1).getByRole('link', { name: /View .* more project runs/u }),
   ).toHaveCount(0);
   const projectPreview = loadWebsiteModel().projectRuns!.pages[0]!.attempts[0]!;
   await expect(
-    sections.last().getByRole('link', { name: 'Open the recorded session' }),
+    sections.nth(1).getByRole('link', { name: 'Open the recorded session' }),
   ).toHaveAttribute('href', toPublicPath(projectPreview.route));
-  const projectCopy = sections.last().getByRole('heading', { level: 2 }).locator('..');
+  const projectCopy = sections.nth(1).getByRole('heading', { level: 2 }).locator('..');
   expect(await projectCopy.evaluate((element) => getComputedStyle(element).position)).toBe(
     'static',
   );
@@ -65,9 +102,22 @@ test('presents each evidence source as a navigable section', async ({ page }) =>
   ).toHaveCount(changeCase === null ? 0 : 1);
   const decisionCopy = sections.first().getByRole('heading', { level: 2 }).locator('..');
   await expect(decisionCopy.locator('[data-evidence-status]')).toHaveCount(0);
-  await expect(
-    page.locator('[data-recorded-agent] [data-evidence-status="recovered"]'),
-  ).toHaveCount(0);
+  await expect(page.locator('[data-evidence-hero] [data-conversation]')).toHaveCount(0);
+  await expect(page.locator('[data-evidence-hero]')).not.toContainText('What this tests');
+  const assistantMessages = page.locator('[data-conversation-message="assistant"]');
+  await expect(assistantMessages.locator('.lucide-bot')).toHaveCount(0);
+  for (const message of await assistantMessages.all())
+    await expect(message.locator('img').first()).toHaveAttribute(
+      'src',
+      toPublicPath('/logo/icon-xs-light.png'),
+    );
+  const journeyPreview = page.locator('[data-recorded-journeys]');
+  await expect(journeyPreview).toContainText('Claude');
+  await expect(journeyPreview.locator('[data-recorded-file-tree]')).toContainText('pickup.md');
+  await expect(journeyPreview.locator('[data-recorded-file-tree]')).toContainText('pickup.js');
+  await expect(journeyPreview).toContainText('government ID as an alternative to the pickup code');
+  await expect(journeyPreview).toContainText('implementation and saved pickup policy together');
+  await expect(journeyPreview).not.toContainText('triage');
   expect(
     await sections.last().evaluate((element) => getComputedStyle(element).borderBottomWidth),
   ).toBe('0px');
@@ -99,7 +149,7 @@ test('matches the other hero proportions and keeps the primary CTA keyboard acce
   const hero = page.locator('[data-evidence-hero]');
   const [copyBounds, exampleBounds] = await Promise.all([
     hero.locator(':scope > div').boundingBox(),
-    hero.locator('[data-recorded-agent]').boundingBox(),
+    hero.getByRole('navigation', { name: 'Evidence sections' }).boundingBox(),
   ]);
   expect(copyBounds).not.toBeNull();
   expect(exampleBounds).not.toBeNull();
@@ -119,19 +169,8 @@ test('matches the other hero proportions and keeps the primary CTA keyboard acce
 
 test('keeps evidence paths readable at 320px in both themes', async ({ browser }) => {
   const model = loadWebsiteModel();
-  const agentCase = getSemanticPreviewCase(
-    model.semanticEvaluation,
-    'agent-adoption-inline-runtime-instruction',
-  );
   const changeCase = getSemanticPreviewCase(model.semanticEvaluation, 'bound-context-maintenance');
   const expectedPaths = [
-    ...(getRecordedWorkspace(
-      agentCase?.replay ?? null,
-      (path) =>
-        path.startsWith('src/') ||
-        path.endsWith('/instruction.md') ||
-        path === 'moldea/moldea.yaml',
-    )?.paths ?? []),
     ...(getRecordedWorkspace(changeCase?.replay ?? null)?.paths ?? []),
     ...getProjectPatchPaths(model.projectRuns!.pages[0]!.attempts[0]!),
   ].map(({ path }) => path);
@@ -143,8 +182,18 @@ test('keeps evidence paths readable at 320px in both themes', async ({ browser }
     try {
       const page = await context.newPage();
       await page.goto(toPublicPath('/evidence/'));
-      await expect(page.locator('[data-evidence-path]')).toHaveCount(2);
-      const recordedFiles = page.locator('[data-recorded-file-path]');
+      await expect(page.locator('[data-evidence-path]')).toHaveCount(
+        loadWebsiteModel().scriptedJourneys === null ? 2 : 3,
+      );
+      const journeyRequest = page
+        .locator('[data-recorded-journeys] [data-conversation-message="user"]')
+        .getByText(/Implement this approved pickup rule/u);
+      expect(
+        await journeyRequest.evaluate((element) => element.scrollHeight <= element.clientHeight),
+      ).toBe(true);
+      const recordedFiles = page.locator(
+        '[data-recorded-change] [data-recorded-file-path], [data-recorded-project] [data-recorded-file-path]',
+      );
       expect(
         await recordedFiles.evaluateAll((files) =>
           files.map((file) => file.getAttribute('data-recorded-file-path')).sort(),
@@ -190,12 +239,10 @@ test('keeps the test examples and project links readable without JavaScript', as
   try {
     const page = await context.newPage();
     await page.goto(toPublicPath('/evidence/'));
-    await expect(page.locator('[data-recorded-agent]')).toContainText(
-      'Finish the support agent. Connect its maintained instructions to both model calls',
-    );
-    await expect(page.locator('[data-recorded-change]')).toContainText(
-      'Run document cleanup more often when the backlog grows.',
-    );
+    await expect(
+      page.getByRole('navigation', { name: 'Evidence sections' }).getByRole('link'),
+    ).toHaveCount(3);
+    await expect(page.locator('[data-recorded-change]')).toContainText('What this tests');
     await expect(page.locator('[data-recorded-project]')).toHaveCount(1);
     await expect(
       page.getByRole('link', { name: 'Open the recorded session', exact: true }),

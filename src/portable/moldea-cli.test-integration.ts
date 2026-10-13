@@ -832,7 +832,7 @@ test('accepted warnings do not prevent gate matching or launcher scope', () => {
   writeFileSync(
     manifestPath,
     readFileSync(manifestPath, 'utf8') +
-      'acceptedWarnings:\n  - code: MOLDEA_INTEGRATION_BLOCK_MISSING\n    subject: /AGENTS.md\n    qualifier: block-missing\n    reason: This fixture tests scope independently of host integration.\n',
+      'acceptedWarnings:\n  - code: MOLDEA_INTEGRATION_BLOCK_MISSING\n    subject: /AGENTS.md\n    qualifier: null\n    reason: This fixture tests scope independently of host integration.\n',
   );
   const gate = spawnSync(
     TEST_NODE_EXECUTABLE,

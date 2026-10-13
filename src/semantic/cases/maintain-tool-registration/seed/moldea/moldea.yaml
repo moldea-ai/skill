@@ -1,0 +1,22 @@
+version: 1
+context:
+  /moldea/project.md:
+    affectedBy:
+      - /src/project-state.js
+agents:
+  support-agent:
+    runtime:
+      id: custom
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.js
+        symbol: createSupportAgent
+    tools:
+      lookup-order:
+        name: lookup_order
+        description: Finds an order by its verified identifier.
+        implementation:
+          path: /src/support/tools/lookup-order.js
+          symbol: lookupOrder
+        affectedBy:
+          - /src/support/tools/**

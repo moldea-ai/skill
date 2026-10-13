@@ -10,10 +10,18 @@ import {
   writeBufferFileAtomically,
   writeJsonFileAtomically,
 } from '../filesystem/index.ts';
+import { createSyntheticJourneysBundle } from '../../website/scripts/evidence-fixture/journeys.ts';
+import { createJourneysEvidenceBundle } from '../scripted-journeys/public-evidence/index.ts';
+import {
+  deriveCampaignStatus,
+  resolveJourneyTrials,
+} from '../scripted-journeys/confirmation/index.ts';
+import type { IJourneyCampaign } from '../scripted-journeys/index.ts';
 import { createEvidenceBundle, encodeEvidenceBundle } from './bundle.ts';
 import {
   downloadHttpEvidenceAsset,
   prepareSelectedEvidence,
+  verifyPreparedReleaseEvidence,
   type IDownloadEvidenceAsset,
 } from './preparation.ts';
 import { updateEvidenceSelection } from './selection.ts';
@@ -30,6 +38,7 @@ const createAsset = (
   kind: IEvidenceKind,
   suffix: string,
   classification: IEvidenceClassification = 'official',
+  status: 'passed' | 'failed' | 'incomplete' = 'passed',
 ) => {
   const encoded = encodeEvidenceBundle(
     createEvidenceBundle({
@@ -47,7 +56,7 @@ const createAsset = (
         attemptId: `${kind}-${suffix}`,
         evaluatedAt: '2026-09-19T12:00:00.000Z',
         provenance: {},
-        status: 'passed',
+        status,
         version: suffix,
       },
     }),
@@ -70,6 +79,167 @@ afterEach(async () => {
 });
 
 describe('selected evidence preparation', () => {
+  test.each(['partial', 'pending', 'full'] as const)(
+    'prepares a projected %s campaign and preserves the release-assurance boundary',
+    async (scope) => {
+      const root = await mkdtemp(path.join(tmpdir(), 'moldea-campaign-assurance-'));
+      temporaryRoots.push(root);
+      const synthetic = createSyntheticJourneysBundle();
+      const assessment = (
+        synthetic.payload as { websiteModel: { sources: { assessment: IJourneyCampaign }[] } }
+      ).websiteModel.sources[0]!.assessment;
+      const journeyId = scope === 'pending' ? 'recovered' : 'initialize';
+      assessment.definitions = assessment.definitions.filter(({ id }) => id === journeyId);
+      assessment.bundle.journeys = assessment.bundle.journeys.filter(({ id }) => id === journeyId);
+      if (scope !== 'full') assessment.platforms = assessment.platforms.slice(0, 1);
+      for (const provider of assessment.platforms) {
+        provider.trials = provider.trials.filter((trial) => trial.kind === 'initial');
+        for (const trial of provider.trials) {
+          trial.selectedJourneys = [journeyId];
+          trial.journeys = trial.journeys.filter(({ id }) => id === journeyId);
+          trial.restartCounts = { [journeyId]: 0 };
+        }
+        provider.resolutions = resolveJourneyTrials(provider.trials);
+      }
+      assessment.status = deriveCampaignStatus(assessment.platforms.flatMap((p) => p.resolutions));
+      const projected = createJourneysEvidenceBundle({
+        assessment,
+        definitions: assessment.definitions,
+        skill: assessment.bundle.skill,
+        instructions: assessment.bundle.instructions,
+        artifacts: synthetic.artifacts.files
+          .filter(({ path: artifactPath }) => artifactPath.split('/')[1] === journeyId)
+          .map((artifact) => ({
+            path: artifact.path,
+            mediaType: artifact.mediaType,
+            content: Buffer.from(
+              synthetic.artifacts.blobs.find((blob) => blob.sha256 === artifact.sha256)!
+                .contentBase64,
+              'base64',
+            ),
+          })),
+      });
+      expect(projected.run.status).toBe(scope === 'full' ? 'passed' : 'incomplete');
+      const encoded = encodeEvidenceBundle(projected);
+      const journeys = createAsset('journeys', 'campaign');
+      journeys.encoded = encoded;
+      journeys.reference.sha256 = calculateSha256(encoded);
+      const semantic = createAsset('semantic', 'campaign');
+      const selectionPath = path.join(root, 'selection.json');
+      await writeJsonFileAtomically(selectionPath, {
+        formatVersion: 1,
+        semantic: semantic.reference,
+        journeys: journeys.reference,
+      } satisfies IEvidenceSelection);
+      const options = {
+        selectionPath,
+        cacheDirectory: path.join(root, 'cache'),
+        preparedDirectory: path.join(root, 'prepared'),
+        downloadAsset: async (reference: IEvidenceSelectionReference, destination: string) => {
+          await writeBufferFileAtomically(
+            destination,
+            reference.assetName === semantic.reference.assetName ? semantic.encoded : encoded,
+          );
+        },
+      };
+      const prepared = await prepareSelectedEvidence(options);
+      expect(prepared.journeys?.bundleSha256).toBe(journeys.reference.sha256);
+      if (scope === 'full')
+        await expect(verifyPreparedReleaseEvidence(options)).resolves.toStrictEqual(prepared);
+      else
+        await expect(verifyPreparedReleaseEvidence(options)).rejects.toThrow(
+          'Release assurance requires passing official journeys evidence.',
+        );
+    },
+  );
+
+  test.each(['passed', 'failed', 'incomplete'] as const)(
+    'verifies selected journeys with outcome %s',
+    async (status) => {
+      const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-journeys-'));
+      temporaryRoots.push(root);
+      const semantic = createAsset('semantic', 'a');
+      const journeys = createAsset('journeys', 'a', 'official', status);
+      const selectionPath = path.join(root, 'selection.json');
+      await writeJsonFileAtomically(selectionPath, {
+        formatVersion: 1,
+        semantic: semantic.reference,
+        journeys: journeys.reference,
+      } satisfies IEvidenceSelection);
+      const assets = new Map(
+        [semantic, journeys].map((asset) => [asset.reference.assetName, asset.encoded]),
+      );
+      const options = {
+        selectionPath,
+        cacheDirectory: path.join(root, 'cache'),
+        preparedDirectory: path.join(root, 'prepared'),
+        downloadAsset: async (reference: IEvidenceSelectionReference, destination: string) => {
+          const bytes = assets.get(reference.assetName);
+          if (!bytes) throw new Error('Missing test asset.');
+          await writeBufferFileAtomically(destination, bytes);
+        },
+      };
+      const manifest = await prepareSelectedEvidence(options);
+      expect(manifest.journeys?.bundleSha256).toBe(journeys.reference.sha256);
+      if (status === 'passed') {
+        await expect(verifyPreparedReleaseEvidence(options)).resolves.toStrictEqual(manifest);
+        await writeJsonFileAtomically(path.join(options.preparedDirectory, 'manifest.json'), {
+          ...manifest,
+          journeys: null,
+        });
+        await expect(verifyPreparedReleaseEvidence(options)).rejects.toThrow('selection presence');
+        await writeJsonFileAtomically(
+          path.join(options.preparedDirectory, 'manifest.json'),
+          manifest,
+        );
+        if (!manifest.journeys) throw new Error('Missing journeys section.');
+        await expect(
+          readFile(
+            path.join(
+              options.preparedDirectory,
+              manifest.journeys.assetsPath,
+              'projects/journeys-a.txt',
+            ),
+            'utf8',
+          ),
+        ).resolves.toBe('journeys-a\n');
+        await writeJsonFileAtomically(selectionPath, {
+          formatVersion: 1,
+          semantic: semantic.reference,
+          journeys: null,
+        });
+        const semanticOnly = await prepareSelectedEvidence(options);
+        expect(semanticOnly.journeys).toBeNull();
+        await expect(verifyPreparedReleaseEvidence(options)).resolves.toStrictEqual(semanticOnly);
+        expect(await readdir(options.cacheDirectory)).toStrictEqual([
+          `${semantic.reference.sha256}.json.gz`,
+        ]);
+      } else {
+        await expect(verifyPreparedReleaseEvidence(options)).rejects.toThrow(
+          'Release assurance requires passing official journeys evidence.',
+        );
+      }
+    },
+  );
+
+  test('requires semantic evidence even when journeys are selected', async () => {
+    const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-journeys-'));
+    temporaryRoots.push(root);
+    const selectionPath = path.join(root, 'selection.json');
+    await writeJsonFileAtomically(selectionPath, {
+      formatVersion: 1,
+      semantic: null,
+      journeys: createAsset('journeys', 'a').reference,
+    });
+    await expect(
+      prepareSelectedEvidence({
+        selectionPath,
+        cacheDirectory: path.join(root, 'cache'),
+        preparedDirectory: path.join(root, 'prepared'),
+      }),
+    ).rejects.toThrow('Select a semantic bundle first.');
+  });
+
   test('downloads a public asset through bounded HTTP without GitHub credentials', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-http-'));
     temporaryRoots.push(root);
@@ -122,6 +292,7 @@ describe('selected evidence preparation', () => {
     }
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
+      journeys: null,
       semantic: semanticA.reference,
     } satisfies IEvidenceSelection);
     let downloadCount = 0;
@@ -138,6 +309,8 @@ describe('selected evidence preparation', () => {
 
     await prepareSelectedEvidence(options);
     const firstManifest = await prepareSelectedEvidence(options);
+    expect(firstManifest.journeys).toBeNull();
+    await expect(verifyPreparedReleaseEvidence(options)).resolves.toStrictEqual(firstManifest);
     expect(downloadCount).toBe(1);
     expect(
       JSON.parse(await readFile(path.join(root, 'prepared', firstManifest.semantic.path), 'utf8')),
@@ -178,6 +351,7 @@ describe('selected evidence preparation', () => {
     ]);
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
+      journeys: null,
       semantic: semanticA.reference,
     } satisfies IEvidenceSelection);
     const options = {
@@ -225,6 +399,7 @@ describe('selected evidence preparation', () => {
     const semantic = createAsset('semantic', 'a');
     await writeJsonFileAtomically(selectionPath, {
       formatVersion: 1,
+      journeys: null,
       semantic: semantic.reference,
     } satisfies IEvidenceSelection);
 
@@ -243,28 +418,35 @@ describe('selected evidence preparation', () => {
     });
   });
 
-  test('rejects fixture bundles in production preparation', async () => {
-    const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-preparation-'));
-    temporaryRoots.push(root);
-    const selectionPath = path.join(root, 'selection.json');
-    const semanticFixture = createAsset('semantic', 'fixture', 'fixture');
-    await writeJsonFileAtomically(selectionPath, {
-      formatVersion: 1,
-      semantic: semanticFixture.reference,
-    } satisfies IEvidenceSelection);
-    const assetByName = new Map([[semanticFixture.reference.assetName, semanticFixture.encoded]]);
+  test.each(['semantic', 'journeys'] as const)(
+    'rejects %s fixture bundles in production preparation',
+    async (kind) => {
+      const root = await mkdtemp(path.join(tmpdir(), 'moldea-evidence-preparation-'));
+      temporaryRoots.push(root);
+      const selectionPath = path.join(root, 'selection.json');
+      const semanticFixture = createAsset(kind, 'fixture', 'fixture');
+      const semantic = createAsset('semantic', 'a');
+      await writeJsonFileAtomically(selectionPath, {
+        formatVersion: 1,
+        journeys: kind === 'journeys' ? semanticFixture.reference : null,
+        semantic: kind === 'semantic' ? semanticFixture.reference : semantic.reference,
+      } satisfies IEvidenceSelection);
+      const assetByName = new Map(
+        [semanticFixture, semantic].map((asset) => [asset.reference.assetName, asset.encoded]),
+      );
 
-    await expect(
-      prepareSelectedEvidence({
-        cacheDirectory: path.join(root, 'cache'),
-        downloadAsset: async (reference, destinationPath) => {
-          const content = assetByName.get(reference.assetName);
-          if (content === undefined) throw new Error('Missing test asset.');
-          await writeBufferFileAtomically(destinationPath, content);
-        },
-        preparedDirectory: path.join(root, 'prepared'),
-        selectionPath,
-      }),
-    ).rejects.toThrow(/not an official semantic bundle/u);
-  });
+      await expect(
+        prepareSelectedEvidence({
+          cacheDirectory: path.join(root, 'cache'),
+          downloadAsset: async (reference, destinationPath) => {
+            const content = assetByName.get(reference.assetName);
+            if (content === undefined) throw new Error('Missing test asset.');
+            await writeBufferFileAtomically(destinationPath, content);
+          },
+          preparedDirectory: path.join(root, 'prepared'),
+          selectionPath,
+        }),
+      ).rejects.toThrow(`not an official ${kind} bundle`);
+    },
+  );
 });

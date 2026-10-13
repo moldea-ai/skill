@@ -110,5 +110,5 @@ export const semanticCase = defineSemanticCase({
     maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
-  coverageClaimIds: ['runtime-compatibility-and-selection'],
+  coverageClaimIds: ['runtime-selection'],
 });

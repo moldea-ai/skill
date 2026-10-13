@@ -235,7 +235,7 @@ test('uses the shared primary action interaction states across public surfaces',
   browser,
 }) => {
   const routesWithExpectedActionCounts = [
-    ['/', 6],
+    ['/', 7],
     ['/404.html', 3],
     ['/search/', 3],
     ['/docs/getting-started/', 3],
@@ -694,53 +694,72 @@ test('keeps representative routes free of serious automated accessibility violat
   }
 });
 
-test('keeps ordinary product names out of inline code', async ({ page }) => {
+test('keeps complete product names and technical tokens together', async ({ page }) => {
   test.slow();
 
-  await page.goto(toPublicPath('/'));
-  const searchIndex: unknown = await page.evaluate(async (url) => {
-    const response = await fetch(url);
-
-    return (await response.json()) as unknown;
-  }, toPublicPath('/search-index.json'));
-  const productPresentationPaths = [
-    toPublicPath('/'),
-    toPublicPath('/404.html'),
-    toPublicPath('/search/'),
-    ...parseSearchDocuments(searchIndex).map(({ url }) => url),
-  ];
-
-  for (const path of new Set(productPresentationPaths)) {
+  for (const path of await getPublicContentPaths(page)) {
     await page.goto(path);
-    const unstyledMentions = await page.locator('body').evaluate((body) => {
-      const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
-      const matches: string[] = [];
-      let currentNode = walker.nextNode();
+    await expect(page.locator('h1 code')).toHaveCount(0);
 
-      while (currentNode) {
-        const parent = currentNode.parentElement;
-        const text = currentNode.textContent ?? '';
+    const splitMentions = await page.locator('main code:not(pre code)').evaluateAll((elements) =>
+      elements.flatMap((element) => {
+        const text = (element.textContent ?? '').trim();
 
-        if (
-          /^moldea(?: Cloud| Agent Skill| Skill)?$/iu.test(
-            (parent?.closest('code')?.textContent ?? '').trim(),
-          ) &&
-          parent &&
-          parent.closest('code') &&
-          !parent.closest('pre')
-        ) {
-          matches.push(text.trim());
+        if (!/^moldea(?: Agent Skill| Skill| Cloud| Admin| CLI| Core| UI)?$/u.test(text)) {
+          return [];
         }
 
-        currentNode = walker.nextNode();
-      }
+        const before = element.previousSibling?.textContent ?? '';
+        const after = element.nextSibling?.textContent ?? '';
+        const splitsToken = /[/@]$/u.test(before) || /^[/@]/u.test(after);
+        const splitsName =
+          text === 'moldea' && /^ (?:Agent Skill|Skill|Cloud|Admin|CLI|Core|UI)\b/u.test(after);
 
-      return matches;
-    });
+        return splitsToken || splitsName ? [element.parentElement?.textContent ?? text] : [];
+      }),
+    );
 
-    expect(unstyledMentions, `${path} has unstyled product mentions`).toStrictEqual([]);
+    expect(splitMentions, `${path} splits a complete name or token`).toStrictEqual([]);
   }
 });
+
+for (const colorScheme of ['light', 'dark'] as const) {
+  for (const width of [320, 768, 1440]) {
+    test(`renders complete inline names at ${width}px in ${colorScheme} mode`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme });
+      await page.setViewportSize({ height: 900, width });
+      await page.goto(toPublicPath('/'));
+
+      const hero = page.locator('[data-home-hero]');
+      await expect(hero.locator('p code').filter({ hasText: /^moldea$/u })).toHaveText('moldea');
+      await expect(hero.getByRole('heading', { level: 1 }).locator('code')).toHaveCount(0);
+
+      const cloudAction = hero.getByRole('link', { name: 'Explore moldea Cloud', exact: true });
+      await expect(cloudAction).toBeVisible();
+      await expect(cloudAction.locator('code')).toHaveCount(0);
+      await cloudAction.focus();
+      await expect(cloudAction).toBeFocused();
+
+      await page.goto(toPublicPath('/docs/getting-started/'));
+      await expect(page.locator('main code').filter({ hasText: /^moldea Cloud$/u })).toHaveText(
+        'moldea Cloud',
+      );
+      await expect(page.locator('main code').filter({ hasText: /^\/moldea$/u })).toHaveText(
+        '/moldea',
+      );
+
+      await page.goto(toPublicPath('/docs/project-state/'));
+      await expect(
+        page.locator('main code').filter({ hasText: /^\/moldea\/project\.md$/u }),
+      ).toHaveText('/moldea/project.md');
+      const widths = await page.evaluate(() => ({
+        client: document.documentElement.clientWidth,
+        scroll: document.documentElement.scrollWidth,
+      }));
+      expect(widths.scroll).toBeLessThanOrEqual(widths.client);
+    });
+  }
+}
 
 test('formats product mentions in generated search results', async ({ page }) => {
   await page.goto(toPublicPath('/search/'));

@@ -1,0 +1,114 @@
+---
+import Conversation from '@moldea.ai/website-ui/conversation';
+
+import { JourneyStep } from '../journey-step/index.ts';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import type { IJourneyRenderRevision } from '../../lib/scripted-journeys/index.ts';
+
+interface Props {
+  revision: IJourneyRenderRevision;
+  platform: 'chatgpt' | 'claude';
+  id: string;
+}
+const { revision, platform, id } = Astro.props;
+const runs = [
+  ...new Map(
+    revision.steps
+      .flatMap((step) => step.results)
+      .filter((result) => result.platform === platform)
+      .map((result) => [result.trialId, result]),
+  ).values(),
+];
+const runLabel = (label: string) =>
+  label === 'Initial observation' ? 'First run' : label.replace('Confirmation', 'Repeat');
+---
+
+<div
+  class="min-w-0"
+  data-journey-trials
+>
+  <div
+    class:list={[
+      'mb-5 flex flex-wrap items-center justify-between gap-3',
+      { hidden: runs.length === 1 },
+    ]}
+  >
+    <div
+      class="flex flex-wrap gap-2"
+      aria-label="Run history"
+    >
+      {
+        runs.map((run) => (
+          <span class="inline-flex items-center gap-2 rounded-md border border-border px-2.5 py-1.5 text-xs">
+            {runLabel(run.label)} <EvidenceStatus status={run.journeyStatus} />
+          </span>
+        ))
+      }
+    </div>
+    {
+      runs.length > 1 && (
+        <div class="flex items-center gap-2">
+          <label
+            for={`${id}-run`}
+            class="text-xs font-medium"
+            data-run-select-label
+            hidden
+          >
+            Show
+          </label>
+          <select
+            id={`${id}-run`}
+            class="min-h-10 max-w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            data-journey-run-select
+            hidden
+          >
+            {runs.map((run) => (
+              <option value={run.trialId}>{runLabel(run.label)}</option>
+            ))}
+          </select>
+        </div>
+      )
+    }
+  </div>
+  {
+    runs.map((run) => (
+      <section
+        data-journey-run={run.trialId}
+        aria-label={runLabel(run.label)}
+        class="min-w-0"
+      >
+        <h3 class="sr-only">{runLabel(run.label)}</h3>
+        <Conversation
+          ariaLabel={`${platform === 'chatgpt' ? 'ChatGPT' : 'Claude'} ${runLabel(run.label)} conversation`}
+        >
+          {revision.steps.map((step) => {
+            const result = step.results.find(
+              (result) => result.platform === platform && result.trialId === run.trialId,
+            );
+            return (
+              result && (
+                <JourneyStep
+                  request={step.request}
+                  {result}
+                  id={`${id}-${run.trialId}-${step.id}`}
+                />
+              )
+            );
+          })}
+        </Conversation>
+        <details
+          class="mt-6 border-t border-border pt-4 text-xs leading-6 text-muted-foreground"
+          data-run-details
+        >
+          <summary class="cursor-pointer font-semibold text-foreground">Run details</summary>
+          <p class="mt-3">{run.provenance}</p>
+          <p>{revision.label}</p>
+          <p>
+            Replies and activity are agent-reported. Local checks assess the exported files and
+            reply text.
+          </p>
+        </details>
+      </section>
+    ))
+  }
+</div>

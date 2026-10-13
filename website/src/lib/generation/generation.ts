@@ -7,6 +7,11 @@ import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
+import {
+  getJourneyRevisions,
+  JOURNEYS_PAGE_SIZE,
+  type IScriptedJourneysWebsiteModel,
+} from '../scripted-journeys/index.ts';
 import type { IProjectRunModel } from '../project-runs/index.ts';
 import type { ISemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
 import {
@@ -36,7 +41,7 @@ import { DEFAULT_SITE_URL } from '../site/constants.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const GENERATED_NOTICE =
-  'Generated from repository-owned documentation, semantic evaluation, project runs, and moldea/SKILL.md metadata. Do not edit generated output.';
+  'Generated from repository-owned documentation, semantic evaluation, scripted journeys, project runs, and moldea/SKILL.md metadata. Do not edit generated output.';
 let cachedWebsiteModel: {
   model: IWebsiteModel;
   modifiedTime: bigint;
@@ -303,6 +308,7 @@ export const createLlmsText = (
   releaseEvidence: IWebsiteModel['releaseEvidence'],
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
   projectRuns: IProjectRunModel | null = null,
+  scriptedJourneys: IScriptedJourneysWebsiteModel | null = null,
 ): string => {
   const semanticReleaseSummary = getSemanticReleaseEvidenceSummary(
     releaseEvidence,
@@ -373,6 +379,14 @@ export const createLlmsText = (
     );
   }
 
+  if (scriptedJourneys !== null) {
+    lines.push(
+      `- [Scripted journeys](${scriptedJourneys.route}): The same requests in ChatGPT and Claude projects, with local assessments.`,
+      ...scriptedJourneys.journeys.map(
+        (journey) => `- [${journey.title}](${journey.route}): ${journey.summary}`,
+      ),
+    );
+  }
   lines.push('');
 
   lines.push(
@@ -393,6 +407,7 @@ export const createRouteManifest = (
   documents: IWebsiteDocument[],
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
   projectRuns: IProjectRunModel | null = null,
+  scriptedJourneys: IScriptedJourneysWebsiteModel | null = null,
 ): string[] => {
   const routes = new Set([
     '/',
@@ -403,6 +418,21 @@ export const createRouteManifest = (
     '/search-index.json',
     EVIDENCE_ROUTE,
     ...Object.values(PRODUCT_PAGE_METADATA).map(({ route }) => route),
+    ...(scriptedJourneys === null
+      ? []
+      : [
+          scriptedJourneys.route,
+          ...Array.from(
+            {
+              length: Math.max(
+                0,
+                Math.ceil(scriptedJourneys.journeys.length / JOURNEYS_PAGE_SIZE) - 1,
+              ),
+            },
+            (_, index) => `${scriptedJourneys.route}page/${index + 2}/`,
+          ),
+          ...scriptedJourneys.journeys.map(({ route }) => route),
+        ]),
     semanticEvaluation.route,
     ...semanticEvaluation.attempts.map(({ route }) => route),
     ...(projectRuns?.pages.flatMap((page) => [
@@ -447,9 +477,10 @@ export const createWebsiteModel = (
         })
       : {
           ...options.unrecordedEvidence,
+          scriptedJourneys: null,
           releaseEvidence: { mode: 'not-recorded', targetVersion: skill.version },
         };
-  const { releaseEvidence } = releaseEvidenceState;
+  const { releaseEvidence, scriptedJourneys } = releaseEvidenceState;
   const semanticEvaluation = releaseEvidenceState.semantic;
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
@@ -467,14 +498,43 @@ export const createWebsiteModel = (
 
   return {
     projectRuns,
+    scriptedJourneys: releaseEvidenceState.scriptedJourneys,
     currentSemanticAssurance: semanticEvaluation.currentAssurance,
     documents,
     generatedNotice: GENERATED_NOTICE,
-    llmsText: createLlmsText(documents, skill, releaseEvidence, semanticEvaluation, projectRuns),
+    llmsText: createLlmsText(
+      documents,
+      skill,
+      releaseEvidence,
+      semanticEvaluation,
+      projectRuns,
+      scriptedJourneys,
+    ),
     navigation: createNavigation(documents),
     releaseEvidence,
-    routes: createRouteManifest(documents, semanticEvaluation, projectRuns),
+    routes: createRouteManifest(documents, semanticEvaluation, projectRuns, scriptedJourneys),
     searchRecords: [
+      ...(scriptedJourneys === null
+        ? []
+        : [
+            {
+              title: 'Scripted journeys in ChatGPT and Claude',
+              route: scriptedJourneys.route,
+              description: 'The same project requests in ChatGPT and Claude, locally assessed.',
+              searchText: 'scripted journeys ChatGPT Claude platform evaluation',
+            },
+            ...scriptedJourneys.journeys.map((journey) => ({
+              title: journey.title,
+              route: journey.route,
+              description: journey.summary,
+              searchText: `${journey.title} ${journey.summary} ${getJourneyRevisions(
+                scriptedJourneys,
+                journey.id,
+              )
+                .flatMap((revision) => revision.steps.map(({ request }) => request))
+                .join(' ')}`,
+            })),
+          ]),
       ...(projectRuns === null
         ? []
         : [

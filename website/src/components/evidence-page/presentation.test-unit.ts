@@ -7,6 +7,7 @@ import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import {
   getProjectPatchPaths,
   getRecordedWorkspace,
+  getRecordedMessages,
   getSemanticPreviewCase,
 } from './presentation.ts';
 
@@ -167,4 +168,65 @@ test('project previews retain distinct recorded paths and do not invent missing 
   expect(getProjectPatchPaths({ session })).toStrictEqual(
     Array.from({ length: 4 }, (_, index) => ({ path: `src/file-${index}.ts`, action: 'Update' })),
   );
+});
+
+test('conversation previews select only original messages from the displayed trial', () => {
+  const trial = {
+    id: 'initial',
+    title: 'Initial',
+    kind: 'initial' as const,
+    confirmationIndex: null,
+    evaluatedAt: '',
+    steps: [
+      {
+        kind: 'message' as const,
+        role: 'developer' as const,
+        source: 'recorded' as const,
+        content: 'Original request',
+      },
+      {
+        kind: 'message' as const,
+        role: 'coding-agent' as const,
+        source: 'recorded' as const,
+        content: 'Original reply',
+      },
+      {
+        kind: 'message' as const,
+        role: 'coding-agent' as const,
+        source: 'derived' as const,
+        content: 'Authored summary',
+      },
+    ],
+  };
+  expect(getRecordedMessages({ trials: [trial] })).toStrictEqual({
+    request: 'Original request',
+    reply: 'Original reply',
+  });
+  expect(
+    getRecordedMessages({
+      trials: [
+        trial,
+        {
+          ...trial,
+          id: 'repeat',
+          steps: [
+            { kind: 'message', role: 'developer', source: 'recorded', content: 'Repeat request' },
+          ],
+        },
+      ],
+    }),
+  ).toStrictEqual({ request: 'Repeat request', reply: null });
+  expect(getRecordedMessages(null)).toStrictEqual({ request: null, reply: null });
+  expect(
+    getRecordedMessages({
+      trials: [
+        {
+          ...trial,
+          steps: [
+            { kind: 'message', role: 'coding-agent', source: 'derived', content: 'Summary only' },
+          ],
+        },
+      ],
+    }),
+  ).toStrictEqual({ request: null, reply: null });
 });

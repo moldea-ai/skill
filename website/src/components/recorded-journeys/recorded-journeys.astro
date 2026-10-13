@@ -1,0 +1,113 @@
+---
+import Conversation from '@moldea.ai/website-ui/conversation';
+import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import { RecordedFileTree } from '../recorded-file-tree/index.ts';
+import { PlatformMark } from '../platform-mark/index.ts';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import type { IScriptedJourneysWebsiteModel } from '../../lib/scripted-journeys/index.ts';
+
+import { getRecordedJourneyPreview, getRecordedJourneyPreviewFiles } from './utilities.ts';
+
+interface Props {
+  model: IScriptedJourneysWebsiteModel;
+  isCompact?: boolean;
+}
+const { model, isCompact = false } = Astro.props;
+const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_URL);
+const preview = getRecordedJourneyPreview(model, isCompact);
+const step = preview?.step;
+const result = preview?.result;
+const files = result ? getRecordedJourneyPreviewFiles(result, isCompact) : [];
+const replyHtml = result
+  ? await renderMarkdownFragment(result.reply, { localLinks: 'unwrap' })
+  : null;
+---
+
+<div
+  class="min-w-0 text-foreground"
+  data-recorded-journeys
+>
+  {
+    step && result ? (
+      <>
+        <div
+          class:list={[
+            'flex flex-wrap items-center justify-between gap-3',
+            isCompact ? 'mb-3' : 'mb-4',
+          ]}
+        >
+          <>
+            <PlatformMark platform={result.platform} />
+            {isCompact ? (
+              <span class="flex items-center gap-2 text-xs text-muted-foreground">
+                Local checks <EvidenceStatus status={result.status} />
+              </span>
+            ) : (
+              <span class="text-xs text-muted-foreground">First run excerpt</span>
+            )}
+          </>
+        </div>
+        <Conversation
+          ariaLabel="Recorded journey excerpt"
+          class={
+            isCompact
+              ? 'gap-3 [&>li>article]:px-3 [&>li>article]:py-2 [&>li>article>p:first-child]:sr-only'
+              : ''
+          }
+        >
+          <ConversationMessage role="user">
+            <p
+              class:list={[
+                'text-sm leading-6 break-words whitespace-pre-wrap',
+                isCompact ? 'line-clamp-1' : 'line-clamp-8',
+              ]}
+            >
+              {step.request}
+            </p>
+          </ConversationMessage>
+          <ConversationMessage role="assistant">
+            <img
+              slot="avatar"
+              src={skillMarkPath}
+              width="207"
+              height="215"
+              alt=""
+              class="dark:invert"
+            />
+            <div
+              class:list={[
+                'markdown-content text-sm leading-6 break-words',
+                isCompact
+                  ? '[&>:first-child]:line-clamp-1 [&>:not(:first-child)]:hidden'
+                  : 'line-clamp-8',
+              ]}
+              set:html={replyHtml!}
+            />
+            {files.length > 0 && (
+              <div class={isCompact ? 'mt-2' : 'mt-4 border-t border-border pt-3'}>
+                <RecordedFileTree
+                  changes={files}
+                  label="Recorded journey file changes"
+                  {isCompact}
+                />
+              </div>
+            )}
+          </ConversationMessage>
+        </Conversation>
+        {!isCompact && (
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+            <>
+              <span class="text-xs font-semibold">Local checks for this request</span>
+              <EvidenceStatus status={result.status} />
+            </>
+          </div>
+        )}
+      </>
+    ) : (
+      <p class="py-6 text-sm text-muted-foreground">No conversation has been recorded yet.</p>
+    )
+  }
+</div>

@@ -110,9 +110,111 @@ export const prepareProjectRunFixture = async (
       runId: PROJECT_RUN_FIXTURE_ID,
       commit: PROJECT_RUN_FIXTURE_COMMIT,
     });
+    const timestamp = '2026-09-27T12:00:00.000Z';
+    const preview = model.pages[0]?.attempts[0];
+    if (preview !== undefined && preview.initialRequest !== null) {
+      preview.session = [
+        {
+          ordinal: 0,
+          lastOrdinal: 0,
+          timestamp,
+          kind: 'message',
+          role: 'user',
+          title: 'Developer',
+          content: preview.initialRequest.text,
+          isRedacted: false,
+        },
+        {
+          ordinal: 1,
+          lastOrdinal: 2,
+          timestamp,
+          kind: 'tool',
+          title: 'apply_patch',
+          content:
+            '*** Begin Patch\n*** Add File: src/reminders.js\n+export const reminderTimezone = "UTC";\n*** Add File: src/reminders.test-unit.js\n+// Initial reminder checks.\n*** Update File: moldea/project.md\n@@\n-Visits have no reminders.\n+Visits receive scheduled reminders.\n*** End Patch',
+          output: 'Patch applied.',
+          status: 'completed',
+          patchTargets: [
+            { action: 'Add', path: 'src/reminders.js' },
+            { action: 'Add', path: 'src/reminders.test-unit.js' },
+            { action: 'Update', path: 'moldea/project.md' },
+          ],
+          isRedacted: false,
+        },
+        {
+          ordinal: 3,
+          lastOrdinal: 3,
+          timestamp,
+          kind: 'message',
+          role: 'assistant',
+          title: 'Coding agent',
+          content:
+            'Added visit reminders and connected the saved scheduling policy. The first version uses UTC.',
+          isRedacted: false,
+        },
+        {
+          ordinal: 4,
+          lastOrdinal: 4,
+          timestamp,
+          kind: 'message',
+          role: 'user',
+          title: 'Developer',
+          content: preview.followUps[0]!.text,
+          isRedacted: false,
+        },
+        {
+          ordinal: 5,
+          lastOrdinal: 5,
+          timestamp,
+          kind: 'message',
+          role: 'assistant',
+          title: 'Coding agent',
+          content:
+            'The saved policy requires each customer’s timezone. The implementation still assumes UTC.',
+          isRedacted: false,
+        },
+        {
+          ordinal: 6,
+          lastOrdinal: 6,
+          timestamp,
+          kind: 'message',
+          role: 'user',
+          title: 'Developer',
+          content: preview.followUps[1]!.text,
+          isRedacted: false,
+        },
+        {
+          ordinal: 7,
+          lastOrdinal: 8,
+          timestamp,
+          kind: 'tool',
+          title: 'apply_patch',
+          content:
+            '*** Begin Patch\n*** Update File: src/reminders.js\n@@\n-export const reminderTimezone = "UTC";\n+export const getReminderTimezone = (customer) => customer.timezone;\n*** Update File: src/reminders.test-unit.js\n@@\n-// Initial reminder checks.\n+// Customer timezone and daylight saving checks.\n*** Update File: moldea/project.md\n@@\n-Visits receive scheduled reminders.\n+Visit reminders follow each customer’s timezone, including daylight saving changes.\n*** End Patch',
+          output: 'Patch applied.',
+          status: 'completed',
+          patchTargets: [
+            { action: 'Update', path: 'src/reminders.js' },
+            { action: 'Update', path: 'src/reminders.test-unit.js' },
+            { action: 'Update', path: 'moldea/project.md' },
+          ],
+          isRedacted: false,
+        },
+        {
+          ordinal: 9,
+          lastOrdinal: 9,
+          timestamp,
+          kind: 'message',
+          role: 'assistant',
+          title: 'Coding agent',
+          content:
+            'Reminders now use each customer’s timezone. I updated the daylight saving checks and saved scheduling policy.',
+          isRedacted: false,
+        },
+      ];
+    }
     const example = model.pages[0]?.attempts[1];
     if (example !== undefined && example.initialRequest !== null) {
-      const timestamp = '2026-09-27T12:00:00.000Z';
       example.session = [
         {
           ordinal: 0,

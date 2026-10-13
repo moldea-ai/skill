@@ -1,0 +1,73 @@
+---
+import { JourneyTrials } from '../journey-trials/index.ts';
+import { JourneyOutcome } from '../journey-outcome/index.ts';
+import {
+  getJourneyRevisions,
+  getJourneyPlatformStatus,
+  getJourneyCellProvenance,
+  type IScriptedJourneysWebsiteModel,
+} from '../../lib/scripted-journeys/index.ts';
+
+interface Props {
+  model: IScriptedJourneysWebsiteModel;
+  journey: IScriptedJourneysWebsiteModel['journeys'][number];
+  platform: 'chatgpt' | 'claude';
+  lazy?: boolean;
+}
+const { model, journey, platform, lazy = false } = Astro.props;
+const status = getJourneyPlatformStatus(model, journey.id, platform);
+const recorded = lazy
+  ? []
+  : getJourneyRevisions(model, journey.id).filter((revision) =>
+      revision.steps.some((step) => step.results.some((result) => result.platform === platform)),
+    );
+---
+
+<div
+  data-journey-provider={platform}
+  data-has-results={status !== 'not-run'}
+>
+  {
+    lazy ? (
+      <p
+        role="status"
+        class="py-8 text-sm text-muted-foreground"
+      >
+        Loading conversation…
+      </p>
+    ) : (
+      <>
+        <div class="mb-6 flex flex-wrap items-center gap-3">
+          <JourneyOutcome {status} />
+          {recorded.length > 0 && (
+            <span class="text-xs text-muted-foreground">Recorded replies and file changes</span>
+          )}
+        </div>
+        {recorded.length === 0 ? (
+          <p class="py-6 text-sm leading-7 text-muted-foreground">
+            Not run in {platform === 'chatgpt' ? 'ChatGPT' : 'Claude'}.
+          </p>
+        ) : (
+          recorded.map((revision) => (
+            <section
+              data-journey-revision
+              aria-label={revision.label}
+            >
+              <JourneyTrials
+                revision={revision}
+                {platform}
+                id={`journey-${journey.id}-${platform}-${revision.id}`}
+              />
+            </section>
+          ))
+        )}
+        {recorded.length > 0 && (
+          <details class="mt-5 text-xs text-muted-foreground">
+            <summary class="cursor-pointer">Test version</summary>
+            <p class="mt-2 leading-6">{getJourneyCellProvenance(model, journey.id, platform)}</p>
+          </details>
+        )}
+      </>
+    )
+  }
+</div>

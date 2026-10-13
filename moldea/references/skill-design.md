@@ -37,7 +37,7 @@ A linked repository script remains subject to host execution controls. State whi
 
 Portable identity and activation live in `SKILL.md`. Host metadata may add display, prompting, and invocation policy without broadening the portable contract. Keep `agents/openai.yaml` aligned and preserve intentional `policy.allow_implicit_invocation` behavior.
 
-Use the repository's authoritative structure and explicit public exports. Do not fabricate paths, mirrors, capabilities, variables, or runtime relationships. Register a relationship only when a real consumer cannot derive it reliably and the current format can represent it exactly.
+Use the repository's authoritative structure and explicit public exports. Apply `relationships.md` to bindings and impact paths. Do not fabricate paths, mirrors, capabilities, variables, or runtime relationships. Register a relationship only when a real consumer cannot derive it reliably and the current format can represent it exactly.
 
 ## Test behavior, not prose
 

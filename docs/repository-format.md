@@ -83,7 +83,7 @@ context:
 
 In `affectedBy`, an exact path names a regular file and a glob such as `/src/support/**` expresses subtree impact. A bare directory path, with or without a trailing slash, is not a substitute for that glob. Use exact files or coherent subtrees based on behavioral ownership.
 
-These relationships make future maintenance focused. They identify where relevant evidence may live without claiming that every matching code change must rewrite the context.
+These relationships make future maintenance focused. They identify where relevant evidence may live without claiming that every matching code change must rewrite the context. Bindings already establish relevance, so an exact `affectedBy` entry need not repeat a bound file. Relate only paths that can change the owner's material facts or behavior; presentation mechanics and shared infrastructure used by a feature do not create feature relationships. Explicit repair checks each entry against that evidence and can continue by owner when the project exceeds one pass.
 
 ## Example: grow into a grounded agent
 

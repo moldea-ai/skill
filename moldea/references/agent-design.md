@@ -48,7 +48,7 @@ Always state the consumer-purpose classification, including when dynamic wiring 
 
 Every registered agent declares one `runtime.id`. Load `runtime-guidance.md` for connection work. IDs select guidance, not compatibility, certification, or vendor endorsement. Use the ID of the SDK the code calls directly; a framework's provider packages keep the framework ID, and OpenAI-compatible providers called through `openai` keep `openai`. When one SDK defines the agent and another transports its requests, select the defining SDK. Use `custom` only for an evidenced project-specific runtime, never to hide missing evidence.
 
-Before a runtime write, establish the authorized repository scope and primary model-invocation boundary, instruction loading, capabilities, schemas, routing, and variables. Follow only the touched agent's call path, stopping at dynamic boundaries. Consult the installed SDK's types with one targeted search per field; do not read entire declaration files. Preserve every evidenced model-visible capability in canonical instructions or project-specific runtime guidance. Map unknown behavior to its smallest reliable resolver, such as closed wiring or a focused integration test. Never invent paths, owners, API fields, or runtime behavior.
+Before a runtime write, establish the authorized repository scope and primary model-invocation boundary, instruction loading, capabilities, schemas, routing, and variables. Follow only the selected agent's call path, stopping at dynamic boundaries. Consult the installed SDK's types with one targeted search per field; do not read entire declaration files. Preserve every evidenced model-visible capability in canonical instructions or project-specific runtime guidance. Map unknown behavior to its smallest reliable resolver, such as closed wiring or a focused integration test. Never invent paths, owners, API fields, or runtime behavior.
 
 Reconcile runtime identity and semantic surfaces together. An ID-only edit is incomplete when evidence establishes affected behavior. Report the declared ID, exact guidance path and role, and bound implementation path and symbol when established, plus material evidence limits. Create runtime guidance only for project-specific behavior or limitations. A missing online reference does not establish a broken connection or justify changing an existing ID.
 
@@ -70,7 +70,6 @@ agents:
         path: /src/order-triage-agent.ts
         symbol: createOrderTriageAgent
     affectedBy:
-      - /src/order-triage-agent.ts
       - /src/order-triage-policy/**
 ```
 
@@ -95,17 +94,11 @@ agents:
           - path: /src/dynamic-tools.ts
 ```
 
-Register repository-root-absolute logical paths and symbols only for material implementation relationships that cannot be derived reliably, including runtime agents, executable schemas, instruction loaders, variable providers, capability implementation or registration, context, decisions, runtime guidance, and broader `affectedBy` paths.
-
-`affectedBy` is a behavioral impact map, not a build dependency graph. Include a path when its changes can materially alter the owner's policy, capabilities, executable contracts, routing, instruction loading, or runtime integration. Prefer exact paths or coherent behavioral subtrees. Exact bindings already establish relevance; do not repeat their paths mechanically unless a broader file-level effect needs coverage.
+Apply `relationships.md` to every owner kind. Register only evidenced material paths and symbols that the current format represents; bindings establish relevance without a duplicate exact `affectedBy` entry.
 
 An exact `affectedBy` path must resolve to a regular file, such as `/src/order-triage-agent.ts`. Express a coherent subtree with a supported glob, such as `/src/order-triage-policy/**`. Neither `/src/order-triage-policy` nor `/src/order-triage-policy/` expresses subtree impact: removing a trailing slash does not turn a directory into a file. Choose exact files or a subtree from the inspected behavioral ownership; do not broaden everything to `/src/**`. Binding paths, mirrors, and `related` path records keep their exact-path contracts.
 
 When a relationship diagnostic appears, establish the field's full syntax and target-type requirements before repairing all equivalent defects in the affected change set. Preserve material relationships and unrelated declarations; never fabricate files or remove relationships merely to pass validation. Follow the entrypoint's supported recovery rule when validation reveals another defect.
-
-Package manifests and lockfiles can matter when they select dependencies or runtime settings that materially affect that owner; do not attach them to every agent by default. Compiler configuration and type-only declarations require an evidenced behavioral effect, not compilation participation alone. Scope tests to the behavior they protect rather than automatically declaring every test. These are selection criteria, not filename bans: preserve a justified configuration or shared dependency relationship and inspect its role before narrowing an existing declaration.
-
-When a declared path matches, inspect the actual change before additional canonical reads. Reconsider the owner, but leave it unchanged when the diff does not affect its behavior or contract. Matching identifies potential relevance, not a mandatory edit.
 
 Never create fake paths, symbols, selectors, future files, cross-repository references, or prose substitutes. If a material relationship cannot be expressed under the established format, report the blocker.
 
@@ -113,7 +106,7 @@ Routing and handoffs remain runtime-native in version `1`. Maintain routing impl
 
 ## Establish canonical instruction provenance
 
-For every in-scope agent, establish how canonical `instruction.md` reaches each material invocation or provider-side configuration. Application code, adapters, runtime libraries, builds, provisioning, mirrors, or another evidenced runtime path may provide it; do not prescribe one mechanism.
+For every in-scope agent, establish how canonical `instruction.md` reaches each material invocation or provider-side configuration. Application code, runtime libraries, builds, provisioning, mirrors, or another evidenced runtime path may provide it; do not prescribe one mechanism.
 
 The active instruction derives from canonical content, not an independently maintained policy source. Field names do not alter provenance: turn-specific `instructions`, inputs, continuation prompts, messages, or tool payloads may transport current input but cannot own reusable policy.
 
@@ -159,11 +152,15 @@ Use `blocking` for unsafe or materially incomplete behavior, `warning` for a gap
 
 Requirements are not a roadmap. Do not create one to avoid an answerable question or remove one because a related file changed; establish every criterion first.
 
+## Retire an agent
+
+When the developer intentionally retires an agent, remove only its exclusively dependent implementation, tests, scripts, manifest declarations, canonical assets, sole-use runtime guidance, and contradicted current-state documentation. Verify each dependency before deletion. Preserve shared policy, project foundation, unrelated content, and other developer work. README's managed-block boundary limits moldea-specific maintenance, not an independently authorized documentation correction. Validate after the complete coherent removal.
+
 ## Verify agent readiness
 
-After all canonical, runtime, test, and relationship file writes, run the focused project-native tests that exercise every changed material invocation and canonical-loading path, correct any implementation or test defect, and only then run launcher-backed `validate` as the final moldea command. For repairable structural defects, follow the entrypoint's supported recovery rule: correct the complete affected contract, rerun native checks affected by the repair, and validate after the last write. Report the final status and material diagnostics, including their absence. A passing generic check or actor report is not a substitute for runner-owned focused test evidence. Review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state without loading unrelated canonical bodies.
+After all canonical, runtime, test, and relationship file writes, run the focused project-native tests that exercise every changed material invocation and canonical-loading path, including an existing focused connection test, correct any implementation or test defect, and only then run launcher-backed `validate` as the final moldea command. For repairable structural defects, follow the entrypoint's supported recovery rule: correct the complete affected contract, rerun native checks affected by the repair, and validate after the last write. Report the final status and material diagnostics, including their absence. A passing generic check or actor report is not a substitute for runner-owned focused test evidence. Review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state without loading unrelated canonical bodies.
 
-Core checks declared files and explicit TypeScript/JavaScript ESM exports. Binding coverage states exactly what passed, failed, or could not be checked; it never proves instruction consumption, runtime wiring, schema attachment, tool registration, or behavior. Preserve valid dynamic designs and report the smallest missing evidence. Recommend a connection test asserting that the outgoing request carries the canonical instruction and schema; add it only within developer-authorized implementation.
+Core checks declared files and explicit TypeScript/JavaScript ESM exports. Binding coverage states exactly what passed, failed, or could not be checked; it never proves instruction consumption, runtime wiring, schema attachment, tool registration, or behavior. Preserve valid dynamic designs and report the smallest missing evidence. At agent creation, recommend a connection test asserting that the outgoing request carries the canonical instruction and schema; add it only within developer-authorized implementation.
 
 Warnings do not invalidate the project or excuse confirmed errors. Apply `continuous-maintenance.md` → “Warnings and acceptance” when reporting them; accepting a warning never turns an unchecked relationship into a passed check.
 

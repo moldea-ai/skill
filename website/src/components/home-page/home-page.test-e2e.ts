@@ -167,7 +167,7 @@ for (const width of HEADING_ROLE_WIDTHS) {
       expect(eyebrowBounds.y - badgeBounds.y - badgeBounds.height).toBeCloseTo(28, 0);
       expect(titleBounds.y - eyebrowBounds.y - eyebrowBounds.height).toBeCloseTo(16, 0);
       if (width >= 768) {
-        const projectCard = page.locator('[data-home-evidence-card="projects"]');
+        const projectCard = page.locator('[data-home-evidence-card="journeys"]');
         await expect(projectCard).toBeVisible();
         const projectBounds = await projectCard.boundingBox();
         const decisionBounds = await page
@@ -466,7 +466,7 @@ test('presents the product story before proof and adoption', async ({ page }) =>
         return { x: box.x, y: box.y, width: box.width, height: box.height };
       }),
     );
-  expect(evidenceCardBoxes).toHaveLength(2);
+  expect(evidenceCardBoxes).toHaveLength(model.scriptedJourneys === null ? 2 : 3);
   expect(evidenceCardBoxes[1]?.y).toBeCloseTo(evidenceCardBoxes[0]?.y ?? 0, 0);
   expect(evidenceCardBoxes[1]?.x).toBeGreaterThan(evidenceCardBoxes[0]?.x ?? 0);
   expect(evidenceCardBoxes[1]?.width).toBeCloseTo(evidenceCardBoxes[0]?.width ?? 0, 0);
@@ -544,6 +544,18 @@ test('keeps the complete landing page accessible at 320px in both themes', async
       scroll: document.documentElement.scrollWidth,
     }));
     expect(documentWidths.scroll).toBeLessThanOrEqual(documentWidths.client);
+
+    const evidence = page.locator('[data-home-evidence]');
+    await expect(evidence).toHaveCSS('padding-top', '0px');
+    await expect(evidence).toHaveCSS('padding-bottom', '0px');
+    const surface = evidence.locator(':scope > div > div');
+    const evidenceBounds = (await evidence.boundingBox())!;
+    const surfaceBounds = (await surface.boundingBox())!;
+    expect(surfaceBounds.y).toBeCloseTo(evidenceBounds.y, 0);
+    expect(surfaceBounds.y + surfaceBounds.height).toBeCloseTo(
+      evidenceBounds.y + evidenceBounds.height - 1,
+      0,
+    );
 
     const accessibilityResults = await new AxeBuilder({ page }).analyze();
     expect(
@@ -635,5 +647,118 @@ test('keeps selection visible on primary surfaces in light and dark themes', asy
       `${colorScheme}: decision evidence selection`,
     ).toBeGreaterThan(4.5);
     await context.close();
+  }
+});
+
+test('balances decisions and platform journeys above full-width project runs', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(toPublicPath('/'));
+  const cards = page.locator('[data-home-evidence-card]');
+  await expect(cards).toHaveCount(3);
+  const [decision, journeys, projects] = await cards.evaluateAll((elements) =>
+    elements.map((element) => {
+      const rect = element.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, right: rect.right, width: rect.width };
+    }),
+  );
+  expect(decision!.y).toBeCloseTo(journeys!.y, 0);
+  expect(decision!.width).toBeCloseTo(journeys!.width, 0);
+  expect(projects!.x).toBeCloseTo(decision!.x, 0);
+  expect(projects!.right).toBeCloseTo(journeys!.right, 0);
+  expect(projects!.y).toBeGreaterThan(journeys!.y);
+  await expect(cards.nth(1).locator('[data-conversation]')).toHaveCount(1);
+  await expect(cards.nth(1)).toContainText('Claude');
+  await expect(cards.nth(1).getByRole('article', { name: 'You message' })).toContainText(
+    'Create a triage agent.',
+  );
+  await expect(cards.nth(1).getByRole('article', { name: 'Coding agent message' })).toContainText(
+    'Triage agent created.',
+  );
+  const request = cards.nth(1).getByText('Create a triage agent.', { exact: true });
+  const reply = cards.nth(1).getByText('Triage agent created.', { exact: true });
+  await expect(cards.nth(1).getByText('Validation reports valid.', { exact: true })).toBeHidden();
+  expect((await request.boundingBox())!.height).toBe(24);
+  expect(await reply.evaluate((element) => element.scrollHeight <= element.clientHeight)).toBe(
+    true,
+  );
+  const changedFiles = cards.nth(1).locator('[data-recorded-file-path]');
+  await expect(changedFiles).toHaveCount(3);
+  expect(
+    await changedFiles.evaluateAll((files) =>
+      files.map((file) => file.getAttribute('data-file-status')),
+    ),
+  ).toStrictEqual(['created', 'created', 'modified']);
+  expect(
+    await changedFiles.evaluateAll((files) =>
+      files.map((file) => file.getAttribute('data-recorded-file-path')),
+    ),
+  ).toStrictEqual([
+    'moldea/agents/parcel-triage/description.md',
+    'moldea/agents/parcel-triage/instruction.md',
+    'moldea/moldea.yaml',
+  ]);
+  const decisionSummary = page.locator('[data-home-evidence-result="decision"]');
+  const originalSummaryHeight = await decisionSummary.evaluate((element) => {
+    const first = element.firstElementChild!.getBoundingClientRect();
+    const last = element.lastElementChild!.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return (
+      last.bottom -
+      first.top +
+      parseFloat(style.paddingTop) +
+      parseFloat(style.paddingBottom) +
+      parseFloat(style.borderTopWidth) +
+      parseFloat(style.borderBottomWidth)
+    );
+  });
+  expect((await decisionSummary.boundingBox())!.height).toBeCloseTo(originalSummaryHeight, 0);
+  const decisionChecks = page.getByRole('list', { name: 'Verified decision behavior' });
+  const decisionFooter = cards
+    .nth(0)
+    .getByRole('link', { name: 'Inspect the decisions', exact: true })
+    .locator('..');
+  const checksBounds = (await decisionChecks.boundingBox())!;
+  expect(
+    (await decisionFooter.boundingBox())!.y - checksBounds.y - checksBounds.height,
+  ).toBeCloseTo(24, 0);
+  await expect(cards.nth(1)).not.toContainText('Follow successive requests');
+  await expect(cards.nth(1).locator('[data-conversation-message="assistant"]')).not.toContainText(
+    'Saved the project foundation.',
+  );
+  const decisionAction = await cards
+    .nth(0)
+    .getByRole('link', { name: 'Inspect the decisions', exact: true })
+    .boundingBox();
+  const journeyAction = await cards
+    .nth(1)
+    .getByRole('link', { name: 'Explore scripted journeys', exact: true })
+    .boundingBox();
+  expect(decisionAction!.y + decisionAction!.height).toBeCloseTo(
+    journeyAction!.y + journeyAction!.height,
+    0,
+  );
+  await expect(
+    cards.nth(1).getByRole('link', { name: 'Explore scripted journeys', exact: true }),
+  ).toHaveAttribute('href', toPublicPath('/evidence/journeys/'));
+  await page.setViewportSize({ width: 320, height: 1000 });
+  const widths = await cards.evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect().width),
+  );
+  expect(new Set(widths).size).toBe(1);
+  const mobileSummary = (await decisionSummary.boundingBox())!;
+  expect(
+    (await decisionChecks.boundingBox())!.y - mobileSummary.y - mobileSummary.height,
+  ).toBeCloseTo(16, 0);
+  expect((await request.boundingBox())!.height).toBe(24);
+  expect(await request.evaluate((element) => element.scrollHeight <= element.clientHeight)).toBe(
+    true,
+  );
+  expect(await reply.evaluate((element) => element.scrollHeight <= element.clientHeight)).toBe(
+    true,
+  );
+  for (const file of await changedFiles.all()) {
+    const name = file.locator('code');
+    await expect(name).toBeVisible();
+    expect(await name.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   }
 });

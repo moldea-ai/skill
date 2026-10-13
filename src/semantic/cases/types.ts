@@ -40,6 +40,7 @@ export type IMoldeaResourceBudget = {
   maximumMoldeaCommands: number;
   maximumMoldeaOutputBytes: number;
   minimumMoldeaCommands: number;
+  profile?: 'largeTraversal';
 };
 
 export type ISemanticCaseDefinition = {

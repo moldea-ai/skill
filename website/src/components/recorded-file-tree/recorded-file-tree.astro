@@ -9,9 +9,10 @@ import { buildRecordedFileTreeRows } from './utilities.ts';
 interface Props {
   changes: IRecordedFileChange[];
   label: string;
+  isCompact?: boolean;
 }
 
-const { changes, label } = Astro.props;
+const { changes, label, isCompact = false } = Astro.props;
 const rows = buildRecordedFileTreeRows(changes);
 const statusLabels = { created: 'Added', modified: 'Modified', deleted: 'Deleted' } as const;
 ---
@@ -24,8 +25,15 @@ const statusLabels = { created: 'Added', modified: 'Modified', deleted: 'Deleted
   {
     rows.map((row) => (
       <li
-        class:list={['min-w-0', row.depth > 0 && 'border-l border-border pl-2']}
-        style={row.depth > 0 ? `margin-inline-start: ${row.depth * 0.75}rem` : undefined}
+        class:list={[
+          'min-w-0 border-border',
+          isCompact && row.kind === 'folder' && 'hidden sm:list-item',
+          row.depth > 0 &&
+            (isCompact
+              ? 'sm:ms-[var(--recorded-file-indent)] sm:border-l sm:pl-2'
+              : 'ms-[var(--recorded-file-indent)] border-l pl-2'),
+        ]}
+        style={row.depth > 0 ? `--recorded-file-indent: ${row.depth * 0.75}rem` : undefined}
       >
         {row.kind === 'folder' ? (
           <div class="flex h-7 min-w-0 items-center gap-1.5 px-1 text-muted-foreground">

@@ -1,0 +1,64 @@
+---
+import TabbedPanels from '@moldea.ai/website-ui/tabbed-panels';
+
+import { JourneyProvider } from '../journey-provider/index.ts';
+import type { IScriptedJourneysWebsiteModel } from '../../lib/scripted-journeys/index.ts';
+
+interface Props {
+  model: IScriptedJourneysWebsiteModel;
+  journey: IScriptedJourneysWebsiteModel['journeys'][number];
+  lazy?: boolean;
+}
+const { model, journey, lazy = false } = Astro.props;
+// source digests distinguish updates that retain the same operator-chosen run name
+const snapshot = JSON.stringify({
+  current: model.currentSourceId,
+  catalog: journey.catalogSourceId ?? model.currentSourceId,
+  cells: model.cells.filter((cell) => cell.journeyId === journey.id),
+});
+const tabs = [
+  { id: 'claude', label: 'Claude', slotName: 'claude' },
+  { id: 'chatgpt', label: 'ChatGPT', slotName: 'chatgpt' },
+];
+---
+
+<div
+  data-journey-viewer
+  data-journey-id={journey.id}
+  data-journey-snapshot={snapshot}
+>
+  <TabbedPanels
+    id={`journey-${journey.id}`}
+    ariaLabel="Platform conversations"
+    items={tabs}
+  >
+    <JourneyProvider
+      slot="claude"
+      {model}
+      {journey}
+      {lazy}
+      platform="claude"
+    />
+    <JourneyProvider
+      slot="chatgpt"
+      {model}
+      {journey}
+      {lazy}
+      platform="chatgpt"
+    />
+  </TabbedPanels>
+</div>
+
+<script>
+  import { initializeJourneyViewers } from './controller.ts';
+
+  let lifecycle: AbortController | undefined;
+  const initialize = () => {
+    lifecycle?.abort();
+    lifecycle = new AbortController();
+    initializeJourneyViewers(document, lifecycle.signal);
+  };
+  document.addEventListener('astro:page-load', initialize);
+  document.addEventListener('astro:before-swap', () => lifecycle?.abort());
+  initialize();
+</script>

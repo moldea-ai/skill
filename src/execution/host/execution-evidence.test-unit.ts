@@ -301,8 +301,8 @@ test('execution evidence preserves quoted patterns and static shell predicates',
   });
 });
 
-test('compatibility retrieval receives no network-policy exemption', () => {
-  const publicationUrl = 'https://packages.moldea.ai/compatibility/runtimes.json';
+test('external retrieval receives no network-policy exemption', () => {
+  const publicationUrl = 'https://example.com/catalog.json';
   for (const command of [
     `curl ${publicationUrl}`,
     `/home/evaluator/bin/curl -fsSL -- ${publicationUrl}`,

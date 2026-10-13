@@ -8,6 +8,7 @@ import {
   FolderGit2,
   GitBranch,
   LaptopMinimal,
+  MessagesSquare,
   ShieldCheck,
   Sparkles,
 } from '@lucide/astro';
@@ -21,6 +22,7 @@ import CapabilitiesOverview from '../capabilities-overview/capabilities-overview
 import CodingAgentCompatibility from '../coding-agent-compatibility/coding-agent-compatibility.astro';
 import GettingStartedSimulation from '../getting-started-simulation/getting-started-simulation.astro';
 import RepositoryFormat from '../repository-format/repository-format.astro';
+import RecordedJourneys from '../recorded-journeys/recorded-journeys.astro';
 import RuntimeGuidance from '../runtime-guidance/runtime-guidance.astro';
 import WhyMoldea from '../why-moldea/why-moldea.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
@@ -100,8 +102,8 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
           Keep project knowledge with your code.
         </h1>
         <p class="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
-          Save the decisions behind your project in Git. moldea helps your coding agent use relevant
-          context and update it as the project evolves.
+          Save the decisions behind your project in Git. <code class="inline-code">moldea</code> helps
+          your coding agent use relevant context and update it as the project evolves.
         </p>
         <p class="mt-4 text-sm font-semibold text-foreground">Versioned in Git. Owned by you.</p>
         <div
@@ -165,7 +167,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
   <RepositoryFormat />
 
   <section
-    class="relative overflow-hidden border-b border-border bg-background py-12 sm:py-16"
+    class="relative overflow-hidden border-b border-border bg-background sm:py-16"
     aria-labelledby="home-evidence-title"
     data-home-evidence
   >
@@ -195,7 +197,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
         <div
           class:list={[
             'grid gap-3 p-3 pt-0 sm:p-6 sm:pt-0',
-            model.projectRuns !== null && 'md:grid-cols-2',
+            (model.scriptedJourneys !== null || model.projectRuns !== null) && 'md:grid-cols-2',
           ]}
         >
           <article
@@ -288,7 +290,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
             {
               hasCompleteSemanticReleaseEvidence && (
                 <ul
-                  class="mt-4 grid gap-2"
+                  class="mt-4 mb-6 grid gap-2 md:mt-auto md:pt-4"
                   aria-label="Verified decision behavior"
                 >
                   {decisionEvidenceGroups.map((group) => (
@@ -305,7 +307,12 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                 </ul>
               )
             }
-            <div class="mt-auto border-t border-primary/10 pt-5 sm:mt-6">
+            <div
+              class:list={[
+                'mt-auto border-t border-primary/10 pt-5',
+                { 'md:mt-0': hasCompleteSemanticReleaseEvidence },
+              ]}
+            >
               <ActionLink
                 class="font-bold"
                 href={withBase(model.semanticEvaluation.route, basePath)}
@@ -321,9 +328,53 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
           </article>
 
           {
+            model.scriptedJourneys !== null && (
+              <article
+                class="light-surface-selection flex min-w-0 flex-col rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7"
+                data-home-evidence-card="journeys"
+              >
+                <div class="flex items-center gap-3">
+                  <span class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--website-ui-light-secondary)]">
+                    <MessagesSquare
+                      class="size-5"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <p class="text-xs font-semibold tracking-[0.12em] text-primary/60 uppercase">
+                    Claude and ChatGPT
+                  </p>
+                </div>
+                <h3 class="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">
+                  Can it follow a whole conversation?
+                </h3>
+                <div class="theme-surface-selection my-5 min-w-0 rounded-xl bg-background text-foreground sm:p-3">
+                  <RecordedJourneys
+                    model={model.scriptedJourneys}
+                    isCompact
+                  />
+                </div>
+                <div class="mt-auto border-t border-primary/10 pt-5">
+                  <ActionLink
+                    class="font-bold"
+                    href={withBase(model.scriptedJourneys.route, basePath)}
+                  >
+                    Explore scripted journeys
+                    <ArrowRight
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  </ActionLink>
+                </div>
+              </article>
+            )
+          }
+          {
             model.projectRuns !== null && (
               <article
-                class="light-surface-selection flex min-w-0 flex-col gap-6 rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7"
+                class:list={[
+                  'light-surface-selection grid min-w-0 gap-6 rounded-2xl bg-primary-foreground p-5 text-primary sm:p-7 lg:grid-cols-2 lg:items-center lg:gap-10',
+                  { 'md:col-span-2': model.scriptedJourneys !== null },
+                ]}
                 data-home-evidence-card="projects"
               >
                 <div class="min-w-0">
@@ -346,7 +397,7 @@ const recordedSessionCount = projectAttempts.filter(({ session }) => session !==
                     mock-project work.
                   </p>
                 </div>
-                <div class="mt-auto min-w-0 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-5">
+                <div class="min-w-0 rounded-xl border border-primary/10 bg-[var(--website-ui-light-secondary)] p-5">
                   <div class="grid grid-cols-2 gap-5 border-b border-primary/10 pb-5">
                     <p class="text-sm text-primary/70">
                       <span class="block font-mono text-3xl font-semibold text-primary">

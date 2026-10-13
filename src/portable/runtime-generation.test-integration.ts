@@ -33,8 +33,20 @@ test('runtime generation emits standalone helpers for isolated execution', async
     [
       path.relative(process.cwd(), path.join(outputDirectory, 'git-command-policy-boundary.mjs')),
       path.relative(process.cwd(), path.join(outputDirectory, 'codex-evaluation-proxy.mjs')),
+      ...['setup', 'next', 'record', 'export'].map((entry) =>
+        path.relative(process.cwd(), path.join(outputDirectory, 'journeys', `${entry}.mjs`)),
+      ),
     ].map((artifactPath) => artifactPath.split(path.sep).join('/')),
   );
+
+  for (const entry of ['setup', 'next', 'record', 'export']) {
+    const helperUrl = pathToFileURL(path.join(outputDirectory, 'journeys', `${entry}.mjs`)).href;
+    await executeProcess({
+      command: TEST_NODE_EXECUTABLE,
+      args: ['--input-type=module', '-e', 'await import(process.argv[1])', helperUrl],
+      cwd: temporaryDirectory,
+    });
+  }
 
   const gitBoundaryPath = path.join(outputDirectory, 'git-command-policy-boundary.mjs');
   const gitBoundaryModule = (await import(pathToFileURL(gitBoundaryPath).href)) as {

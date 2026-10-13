@@ -19,7 +19,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v8.0.1"
+npx skills add "moldea-ai/skill#v8.1.0"
 ```
 
 Repository installation is required because the selected skill version must travel with the project. A global installation does not establish adoption and is not a supported path.
@@ -28,7 +28,7 @@ Repository installation is required because the selected skill version must trav
 
 Open the repository in a compatible coding agent and ask:
 
-> Initialize moldea
+> `Initialize moldea`
 
 This request explicitly authorizes adoption. The coding agent:
 
@@ -50,9 +50,9 @@ The minimum canonical foundation is:
 
 README receives a short introduction with links to `moldea/project.md` and `moldea/moldea.yaml`. Its deterministic writer preserves outside bytes and rejects ambiguous or unsafe input.
 
-AGENTS.md receives a separate managed block with the verified local installation path. For ordinary planning, implementation, or review, it runs the relevance gate once the files are known and before acting. Only a relationship hit loads SKILL.md. New independently discovered files get one new-batch check; unchanged results are reused. No repository scan is performed for moldea.
+AGENTS.md receives a separate managed block with the verified local installation path. For ordinary planning, implementation, or review, it runs the relevance gate once the files are known and before acting. Only a relationship hit loads SKILL.md. New independently discovered files get one new-batch check; unchanged results are reused. No repository scan is performed for `moldea`.
 
-If AGENTS.md cannot be safely edited or host instructions prohibit it, the coding agent gives you the exact block to add. Adding it is important: ordinary work may otherwise miss context maintenance and leave saved knowledge stale. Explicit moldea operations remain available. A missing block produces an integration warning, never canonical invalidity. Ask to fix it, or explicitly accept the warning with your own reason. The coding agent never chooses acceptance on your behalf. Updating the installed skill alone does not rewrite project integration; ask for `Fix moldea` to refresh permitted managed regions.
+If AGENTS.md cannot be safely edited or host instructions prohibit it, the coding agent gives you the exact block to add. Adding it is important: ordinary work may otherwise miss context maintenance and leave saved knowledge stale. Explicit `moldea` operations remain available. A missing block produces an integration warning, never canonical invalidity. Ask to fix it, or explicitly accept the warning with your own reason. The coding agent never chooses acceptance on your behalf. Updating the installed skill alone does not rewrite project integration; ask for `Fix moldea` to refresh permitted managed regions.
 
 Some coding hosts ask for permission to execute commands. If desired, approve a rule for this specific installed gate command using your host’s controls. Do not grant blanket Node execution or weaken repository trust controls. The small instruction block and bounded Node invocation are the cost of an unrelated precheck; the full skill and workflow references are not loaded on a miss. Host compliance is not guaranteed.
 
@@ -64,7 +64,7 @@ An adopted project turns the same request into focused foundation maintenance. M
 
 Initialization is conversational when evidence is incomplete:
 
-- If no meaningful project context can be established, the coding agent explains that moldea keeps durable repository context and asks one focused question about what the project does and whom or what it serves. A name, generic label, placeholder file, empty export, or brief package metadata cannot establish the foundation alone.
+- If no meaningful project context can be established, the coding agent explains that `moldea` keeps durable repository context and asks one focused question about what the project does and whom or what it serves. A name, generic label, placeholder file, empty export, or brief package metadata cannot establish the foundation alone.
 - If part of the project is clear but a material purpose, user, goal, authority, or boundary remains uncertain, the coding agent summarizes supported conclusions and asks one question about that boundary. Broad language such as “handles payments” does not establish value movement, authorization, destructive effects, lifecycle changes, or external actions that the evidence does not support.
 - If the foundation is sufficient, initialization completes without a ceremonial question.
 
@@ -90,9 +90,9 @@ To design the system before implementation, ask:
 >
 > Use moldea to plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software and what genuinely needs model reasoning.
 
-Planning is read-only and may recommend no agents. You do not need to mention moldea again or create bindings first. The managed AGENTS.md block checks ordinary paths before loading the entrypoint; clear agent work checks adoption, and a follow-up continues only the active task and its authorization. Unrelated work remains unaffected. See the [workflow reference](/docs/how-it-works/) for the complete activation contract.
+Planning is read-only and may recommend no agents. You do not need to mention `moldea` again or create bindings first. The managed AGENTS.md block checks ordinary paths before loading the entrypoint; clear agent work checks adoption, and a follow-up continues only the active task and its authorization. Unrelated work remains unaffected. See the [workflow reference](/docs/how-it-works/) for the complete activation contract.
 
-You do not need to create `/moldea` directories by hand, invoke the local CLI directly, translate requests into special commands, maintain duplicate instructions, or create a moldea Cloud account. The coding agent owns safe interaction with the repository-local skill and tooling.
+You do not need to create `/moldea` directories by hand, invoke the local CLI directly, translate requests into special commands, maintain duplicate instructions, or create a `moldea Cloud` account. The coding agent owns safe interaction with the repository-local skill and tooling.
 
 ## Update or remove the skill
 

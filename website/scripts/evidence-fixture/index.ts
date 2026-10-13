@@ -22,6 +22,8 @@ import type {
   ISemanticEvaluationWebsiteModel,
 } from '../../src/lib/semantic-evaluation/index.ts';
 
+import { createSyntheticJourneySnapshot } from './journeys.ts';
+
 const SHA256 = 'a'.repeat(64);
 const EVALUATED_AT = '2026-01-01T00:00:00.000Z';
 const VERSION = '0.0.0-fixture';
@@ -101,7 +103,13 @@ const semanticTrial: ISemanticAttemptTrialModel = {
   stageReuse: null,
 };
 
-const semanticReplay: IEvaluationReplayModel = {
+/** Builds a synthetic conversation and matching workspace tree for the evidence previews. */
+const createSemanticReplay = (
+  request: string,
+  reply: string,
+  groups: { status: 'created' | 'modified' | 'deleted'; paths: string[] }[],
+  rationale: string,
+): IEvaluationReplayModel => ({
   trials: [
     {
       confirmationIndex: null,
@@ -109,50 +117,34 @@ const semanticReplay: IEvaluationReplayModel = {
       id: 'initial',
       kind: 'initial',
       steps: [
-        {
-          content: 'Explain the recorded project context without changing files.',
-          kind: 'message',
-          role: 'developer',
-          source: 'recorded',
-        },
+        { content: request, kind: 'message', role: 'developer', source: 'recorded' },
         {
           commandCount: 1,
-          exitCode: null,
+          exitCode: 0,
           isAggregate: true,
           kind: 'command',
-          operation: 'Inspect the recorded project context',
-          results: ['The synthetic fixture retained bounded command evidence.'],
+          operation: 'Check the affected implementation and project state',
+          results: ['The synthetic fixture reports passing correctness checks and validation.'],
           status: 'passed',
         },
         {
-          groups: [
-            { changes: [], status: 'created', tree: [] },
-            {
-              changes: [{ path: 'moldea/context.md', type: 'file' }],
-              status: 'modified',
-              tree: [
-                {
-                  changeCount: 1,
-                  children: [],
-                  kind: 'file',
-                  name: 'context.md',
-                  path: 'moldea/context.md',
-                },
-              ],
-            },
-            { changes: [], status: 'deleted', tree: [] },
-          ],
+          groups: groups.map(({ status, paths }) => ({
+            status,
+            changes: paths.map((filePath) => ({ path: filePath, type: 'file' as const })),
+            tree: paths.map((filePath) => ({
+              changeCount: 1,
+              children: [],
+              kind: 'file' as const,
+              name: path.posix.basename(filePath),
+              path: filePath,
+            })),
+          })),
           kind: 'workspace',
         },
-        {
-          content: 'The saved project context identifies the relevant decision boundary.',
-          kind: 'message',
-          role: 'coding-agent',
-          source: 'recorded',
-        },
+        { content: reply, kind: 'message', role: 'coding-agent', source: 'recorded' },
         {
           kind: 'verdict',
-          rationale: 'The answer remained grounded in the supplied evidence.',
+          rationale,
           role: 'independent-judge',
           source: 'recorded',
           status: 'passed',
@@ -161,38 +153,106 @@ const semanticReplay: IEvaluationReplayModel = {
       title: 'Initial trial',
     },
   ],
-};
+});
 
+const agentRequest =
+  'Connect the support agent’s maintained instructions to both model calls and verify the existing flow.';
+const agentRationale =
+  'Both model calls load the maintained instructions, and integration checks preserve the support flow.';
 const semanticCase: ISemanticEvaluationCaseModel = {
   confirmationStatus: 'not-required',
-  developerDirection: 'Explain the recorded project context without changing files.',
+  developerDirection: agentRequest,
   evaluatedAt: EVALUATED_AT,
-  expectedCriteria: [{ criterion: 'Returns a concise grounded answer.', label: 'grounded-answer' }],
-  forbiddenCriteria: [{ criterion: 'Does not invent project facts.', label: 'invented-facts' }],
+  expectedCriteria: [
+    {
+      criterion: 'Both model calls load the maintained instructions.',
+      label: 'instruction-wiring',
+    },
+  ],
+  forbiddenCriteria: [
+    { criterion: 'Does not change the existing support flow.', label: 'unrelated-flow-change' },
+  ],
   groupId: 'fixture-behavior',
   hasCurrentCaseDefinition: true,
-  id: 'fixture-grounded-answer',
-  presentation: { summary: 'Checks a grounded informational response.', title: 'Grounded answer' },
-  rationale: 'The recorded response stayed within the supplied project evidence.',
-  replay: semanticReplay,
-  scenario: 'A developer asks for an explanation of recorded project context.',
+  id: 'agent-adoption-inline-runtime-instruction',
+  presentation: {
+    summary: 'Connect maintained instructions to both support-agent model calls.',
+    title: 'Support agent instructions',
+  },
+  rationale: agentRationale,
+  replay: createSemanticReplay(
+    agentRequest,
+    'Both model calls now load the support agent’s maintained instructions. The integration checks pass.',
+    [
+      {
+        status: 'created',
+        paths: ['moldea/agents/support/description.md', 'moldea/agents/support/instruction.md'],
+      },
+      {
+        status: 'modified',
+        paths: [
+          'moldea/moldea.yaml',
+          'src/support-agent.js',
+          'src/support-agent.test-integration.js',
+        ],
+      },
+      { status: 'deleted', paths: [] },
+    ],
+    agentRationale,
+  ),
+  scenario: 'A support agent has two model calls with inline instructions.',
   status: 'passed',
-  summary: 'Checks a grounded informational response.',
-  title: 'Grounded answer',
-  trials: [semanticTrial],
+  summary: 'Connect maintained instructions to both support-agent model calls.',
+  title: 'Support agent instructions',
+  trials: [{ ...semanticTrial, observed: ['instruction-wiring'], rationale: agentRationale }],
 };
 
+const changeRequest = 'Run document cleanup more often when the backlog grows.';
+const changeRationale =
+  'The scheduler, its tests, and the saved cleanup policy agree on the backlog-based schedule.';
 const semanticBoundaryCase: ISemanticEvaluationCaseModel = {
   ...semanticCase,
-  developerDirection: 'Identify the recorded project boundary before proposing a change.',
-  id: 'fixture-project-boundary',
+  developerDirection: changeRequest,
+  expectedCriteria: [
+    {
+      criterion: 'Updates the scheduler, its tests, and the saved cleanup policy together.',
+      label: 'policy-aligned-schedule',
+    },
+  ],
+  forbiddenCriteria: [
+    {
+      criterion: 'Does not change unrelated scheduling behavior.',
+      label: 'unrelated-schedule-change',
+    },
+  ],
+  id: 'bound-context-maintenance',
   presentation: {
-    summary: 'Checks that a recorded project boundary remains visible.',
-    title: 'Project boundary',
+    summary: 'Keep the cleanup schedule and saved policy aligned.',
+    title: 'Cleanup schedule and project context',
   },
-  scenario: 'A developer asks which recorded project boundary governs a proposed change.',
-  summary: 'Checks that a recorded project boundary remains visible.',
-  title: 'Project boundary',
+  rationale: changeRationale,
+  replay: createSemanticReplay(
+    changeRequest,
+    'The cleanup schedule now responds to the backlog. I updated the scheduler, its tests, and the saved cleanup policy. Checks pass.',
+    [
+      { status: 'created', paths: [] },
+      {
+        status: 'modified',
+        paths: [
+          'src/cleanup-scheduler.js',
+          'src/cleanup-scheduler.test-unit.js',
+          'moldea/context/cleanup-policy.md',
+          'moldea/moldea.yaml',
+        ],
+      },
+      { status: 'deleted', paths: [] },
+    ],
+    changeRationale,
+  ),
+  scenario: 'A developer changes a cleanup schedule governed by saved project policy.',
+  summary: 'Keep the cleanup schedule and saved policy aligned.',
+  title: 'Cleanup schedule and project context',
+  trials: [{ ...semanticTrial, observed: ['policy-aligned-schedule'], rationale: changeRationale }],
 };
 
 const semanticResult: ISemanticAttemptModel['result'] = {
@@ -203,13 +263,13 @@ const semanticResult: ISemanticAttemptModel['result'] = {
       confirmationStatus: 'not-required',
       id: semanticCase.id,
       status: 'passed',
-      trials: [semanticTrial],
+      trials: semanticCase.trials,
     },
     {
       confirmationStatus: 'not-required',
       id: semanticBoundaryCase.id,
       status: 'passed',
-      trials: [semanticTrial],
+      trials: semanticBoundaryCase.trials,
     },
   ],
   caseSuiteDigest: SHA256,
@@ -391,10 +451,17 @@ export const prepareSyntheticWebsiteEvidence = async (
 
   const bundles = {
     semantic: createFixtureBundle('semantic', semanticWebsiteModel, semanticArtifacts),
+    journeys: createSyntheticJourneySnapshot(),
   };
   const preparedSections: IEvidencePreparationManifest = {
     formatVersion: 1,
     selectionSha256: '',
+    journeys: {
+      assetsPath: path.posix.join(snapshotRelativePath, 'assets', 'journeys'),
+      bundleSha256: calculateSha256('fixture-journeys-bundle'),
+      path: path.posix.join(snapshotRelativePath, 'journeys.json'),
+      preparedSha256: '',
+    },
     semantic: {
       assetsPath: path.posix.join(snapshotRelativePath, 'assets', 'semantic'),
       bundleSha256: calculateSha256('fixture-semantic-bundle'),
@@ -403,9 +470,9 @@ export const prepareSyntheticWebsiteEvidence = async (
     },
   };
 
-  for (const kind of ['semantic'] as const) {
+  for (const kind of ['semantic', 'journeys'] as const) {
     const source = `${JSON.stringify(bundles[kind], null, 2)}\n`;
-    preparedSections[kind].preparedSha256 = calculateSha256(source);
+    preparedSections[kind]!.preparedSha256 = calculateSha256(source);
     await Promise.all([
       writeFile(path.join(snapshotDirectory, `${kind}.json`), source, 'utf8'),
       materializeFixtureArtifacts(path.join(snapshotDirectory, 'assets', kind), bundles[kind]),
@@ -419,6 +486,13 @@ export const prepareSyntheticWebsiteEvidence = async (
       classification: 'official',
       repository: 'moldea-ai/skill',
       sha256: preparedSections.semantic.bundleSha256,
+      tag: 'evidence-fixture',
+    },
+    journeys: {
+      assetName: 'fixture-journeys.json.gz',
+      classification: 'official',
+      repository: 'moldea-ai/skill',
+      sha256: preparedSections.journeys!.bundleSha256,
       tag: 'evidence-fixture',
     },
   };

@@ -1,5 +1,5 @@
 export const EVIDENCE_FORMAT_VERSION = 1 as const;
-export const EVIDENCE_KINDS = ['semantic'] as const;
+export const EVIDENCE_KINDS = ['semantic', 'journeys'] as const;
 export const EVIDENCE_CLASSIFICATIONS = ['fixture', 'official'] as const;
 
 // fixed public repository that owns evidence release assets

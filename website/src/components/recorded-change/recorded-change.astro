@@ -1,11 +1,13 @@
 ---
-import { FileCheck, UserRound } from '@lucide/astro';
-import { withBase } from '@moldea.ai/website-ui/site';
+import Conversation from '@moldea.ai/website-ui/conversation';
+import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
 import StatusBadge from '@moldea.ai/website-ui/status-badge';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import { withBase } from '@moldea.ai/website-ui/site';
 
 import type { ISemanticEvaluationCaseModel } from '../../lib/semantic-evaluation/index.ts';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
-import { getRecordedWorkspace } from '../evidence-page/index.ts';
+import { getRecordedWorkspace, getRecordedMessages } from '../evidence-page/index.ts';
 import { RecordedFileTree } from '../recorded-file-tree/index.ts';
 
 interface Props {
@@ -13,103 +15,89 @@ interface Props {
 }
 const { evaluationCase } = Astro.props;
 const workspace = getRecordedWorkspace(evaluationCase?.replay ?? null);
-const hasRecordedSchedule =
-  evaluationCase?.replay?.trials
-    .at(-1)
-    ?.steps.some(
-      (step) =>
-        step.kind === 'message' &&
-        step.role === 'coding-agent' &&
-        step.content.includes('60 minutes when empty, 30 minutes at 100 pending documents'),
-    ) ?? false;
+const messages = getRecordedMessages(evaluationCase?.replay ?? null);
+const replyHtml =
+  messages.reply === null
+    ? null
+    : await renderMarkdownFragment(messages.reply, {
+        basePath: import.meta.env.BASE_URL,
+        localLinks: 'unwrap',
+      });
 const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_URL);
 ---
 
 <article
-  class="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-raised sm:p-5"
+  class="min-w-0"
   aria-label="Connected scheduler change test"
   data-recorded-change
 >
-  <div class="flex items-start gap-3">
-    <UserRound
-      class="mt-1 size-4 shrink-0 text-muted-foreground"
-      aria-hidden="true"
-    />
-    <div>
-      <p class="text-xs font-semibold text-muted-foreground">Test request, shortened</p><p
-        class="mt-1 text-sm leading-6 font-medium"
-      >
-        Run document cleanup more often when the backlog grows.
+  <Conversation ariaLabel="Connected scheduler change test conversation">
+    <ConversationMessage role="user">
+      {
+        messages.request === null && (
+          <p class="mb-2 text-xs text-muted-foreground">Request summary</p>
+        )
+      }
+      <p class="line-clamp-3 text-sm leading-7 break-words whitespace-pre-wrap">
+        {messages.request ?? 'Run document cleanup more often when the backlog grows.'}
       </p>
-    </div>
-  </div>
-  <div class="mt-4 border-t border-border pt-4">
-    <div class="mb-3 flex items-center gap-3">
-      <img
-        src={skillMarkPath}
-        width="207"
-        height="215"
-        alt=""
-        class="h-5 w-auto dark:invert"
-      /><p class="text-xs font-semibold text-muted-foreground">
-        {evaluationCase === null ? 'What we check' : 'Files in the recorded change'}
-      </p>
-    </div>
+    </ConversationMessage>
     {
-      workspace === null ? (
-        <p class="text-sm leading-6 text-muted-foreground">
-          Check the scheduler, its tests, and the project notes together.
-        </p>
-      ) : (
-        <RecordedFileTree
-          changes={workspace.paths}
-          label="Recorded scheduler files"
-        />
+      replyHtml !== null && (
+        <ConversationMessage role="assistant">
+          <img
+            slot="avatar"
+            src={skillMarkPath}
+            width="207"
+            height="215"
+            alt=""
+            class="dark:invert"
+          />
+          <div
+            class="markdown-content line-clamp-4 min-w-0 text-sm leading-7 break-words"
+            set:html={replyHtml}
+          />
+          {workspace !== null && workspace.paths.length > 0 && (
+            <div class="mt-4 border-t border-border pt-4">
+              <p class="mb-2 text-xs font-semibold text-muted-foreground">File changes</p>
+              <RecordedFileTree
+                changes={workspace.paths}
+                label="Recorded test files"
+              />
+            </div>
+          )}
+        </ConversationMessage>
       )
     }
-    {
-      hasRecordedSchedule && (
-        <div
-          class="mt-3 grid grid-cols-2 gap-3"
-          data-scheduler-observations
-        >
-          <div class="rounded-xl bg-secondary p-3">
-            <>
-              <p class="text-xs text-muted-foreground">Empty backlog</p>
-              <p class="mt-1 text-lg font-semibold">
-                60 <span class="text-sm">min</span>
-              </p>
-            </>
-          </div>
-          <div class="rounded-xl bg-secondary p-3">
-            <>
-              <p class="text-xs text-muted-foreground">100 documents waiting</p>
-              <p class="mt-1 text-lg font-semibold">
-                30 <span class="text-sm">min</span>
-              </p>
-            </>
-          </div>
-        </div>
-      )
-    }
-  </div>
-  <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
-    <p class="flex items-center gap-2 text-xs font-semibold">
-      <FileCheck
-        class="size-4"
-        aria-hidden="true"
-      />Code, tests, and project notes
+  </Conversation>
+  <div
+    class="mt-5 border-t border-border pt-4"
+    data-agent-result
+  >
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="text-xs font-semibold">What this tests</p>{
+        evaluationCase === null ? (
+          <StatusBadge
+            label="No example result selected"
+            tone="neutral"
+          />
+        ) : (
+          <EvidenceStatus status={evaluationCase.status} />
+        )
+      }
+    </div>
+    <p class="mt-2 text-sm leading-7 text-muted-foreground">
+      The scheduler, its tests, and saved project knowledge should agree on the new cleanup
+      schedule.
     </p>
     {
-      evaluationCase === null ? (
-        <StatusBadge
-          label="No example result selected"
-          tone="neutral"
-        />
-      ) : (
-        <EvidenceStatus
-          status={evaluationCase.status === 'recovered' ? 'passed' : evaluationCase.status}
-        />
+      replyHtml === null && workspace !== null && workspace.paths.length > 0 && (
+        <div class="mt-3">
+          <RecordedFileTree
+            changes={workspace.paths}
+            label="Recorded test files"
+          />
+        </div>
       )
     }
   </div>

@@ -1,5 +1,8 @@
 ---
-import { FolderGit2, UserRound } from '@lucide/astro';
+import Conversation from '@moldea.ai/website-ui/conversation';
+import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import { withBase } from '@moldea.ai/website-ui/site';
 
 import type { IProjectAttempt } from '../../lib/project-runs/index.ts';
 import { getProjectPatchPaths } from '../evidence-page/index.ts';
@@ -9,64 +12,82 @@ interface Props {
   attempt: IProjectAttempt;
 }
 const { attempt } = Astro.props;
+const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_URL);
 const actionStatuses = { Add: 'created', Update: 'modified', Delete: 'deleted' } as const;
 const paths = getProjectPatchPaths(attempt).map(({ path, action }) => ({
   path,
   status: actionStatuses[action],
 }));
+const reply = attempt.session?.find(
+  (entry) => entry.kind === 'message' && entry.role === 'assistant',
+);
+const replyHtml = reply
+  ? await renderMarkdownFragment(reply.content, { localLinks: 'unwrap' })
+  : null;
 ---
 
 <article
-  class="min-w-0 rounded-2xl border border-border bg-card p-4 shadow-raised sm:p-6"
+  class="min-w-0"
   aria-label={`${attempt.title} project recording`}
   data-recorded-project
 >
-  <div class="mb-5 flex items-center gap-3">
-    <FolderGit2
-      class="size-5 shrink-0 text-muted-foreground"
-      aria-hidden="true"
-    /><div>
-      <p class="text-xs text-muted-foreground">Recorded project</p><h3
-        class="text-lg font-semibold"
-      >
-        {attempt.title}
-      </h3>
-    </div>
-  </div>
-  {
-    attempt.initialRequest !== null && (
-      <div class="mb-4 flex items-start gap-3 rounded-xl bg-secondary p-3">
-        <>
-          <UserRound
-            class="mt-1 size-4 shrink-0"
-            aria-hidden="true"
+  <p class="mb-4 text-xs font-semibold text-muted-foreground">Recorded project · {attempt.title}</p>
+  <Conversation ariaLabel={`${attempt.title} recorded conversation`}>
+    {
+      attempt.initialRequest !== null && (
+        <ConversationMessage role="user">
+          <>
+            <p class="line-clamp-3 text-sm leading-7 break-words whitespace-pre-wrap">
+              {attempt.initialRequest.text}
+            </p>
+          </>
+        </ConversationMessage>
+      )
+    }
+    {
+      replyHtml !== null && (
+        <ConversationMessage role="assistant">
+          <img
+            slot="avatar"
+            src={skillMarkPath}
+            width="207"
+            height="215"
+            alt=""
+            class="dark:invert"
           />
-          <div class="min-w-0">
-            <>
-              <p class="text-xs font-semibold text-muted-foreground">Request excerpt</p>
-              <p class="mt-1 line-clamp-3 text-sm leading-6">{attempt.initialRequest.text}</p>
-            </>
-          </div>
-        </>
-      </div>
-    )
-  }
-  {
-    paths.length > 0 && (
-      <div>
-        <>
-          <p class="mb-3 text-xs font-semibold text-muted-foreground">
-            Some files in the recorded patches
-          </p>
+          <div
+            class="markdown-content line-clamp-4 min-w-0 text-sm leading-7 break-words"
+            set:html={replyHtml}
+          />
+          {paths.length > 0 && (
+            <div class="mt-4 border-t border-border pt-4">
+              <p class="mb-2 text-xs font-semibold text-muted-foreground">
+                Files in recorded patches
+              </p>
+              <RecordedFileTree
+                changes={paths}
+                label="Recorded project patch paths"
+              />
+            </div>
+          )}
+        </ConversationMessage>
+      )
+    }
+  </Conversation>
+  <div class="mt-5 border-t border-border pt-4">
+    <p class="text-xs font-semibold">What this recording shows</p><p
+      class="mt-2 text-sm leading-7 text-muted-foreground"
+    >
+      {attempt.excerpt}
+    </p>{
+      replyHtml === null && paths.length > 0 && (
+        <div class="mt-3">
           <RecordedFileTree
             changes={paths}
             label="Recorded project patch paths"
           />
-        </>
-      </div>
-    )
-  }
-  <p class="mt-4 text-sm leading-6 text-muted-foreground">
-    {attempt.excerpt}
-  </p>
+        </div>
+      )
+    }
+  </div>
 </article>

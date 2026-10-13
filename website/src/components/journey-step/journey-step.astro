@@ -1,0 +1,38 @@
+---
+import ConversationMessage from '@moldea.ai/website-ui/conversation-message';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import JourneyResult from '../journey-result/journey-result.astro';
+import type { IJourneyRenderResult } from '../../lib/scripted-journeys/index.ts';
+
+interface Props {
+  request: string;
+  result: IJourneyRenderResult;
+  id: string;
+}
+const { request, result, id } = Astro.props;
+const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_URL);
+---
+
+<ConversationMessage role="user">
+  <p
+    class="text-sm leading-7 break-words whitespace-pre-wrap"
+    data-journey-request
+  >
+    {request}
+  </p>
+</ConversationMessage>
+<ConversationMessage role="assistant">
+  <img
+    slot="avatar"
+    src={skillMarkPath}
+    width="207"
+    height="215"
+    alt=""
+    class="dark:invert"
+  />
+  <JourneyResult
+    {result}
+    {id}
+  />
+</ConversationMessage>

@@ -222,27 +222,10 @@ test('follows one booking request through five connected stages', async ({ page 
   ).toContainText('Coding agent');
   await expect(page.locator('[data-code-copy-button]')).toHaveCount(0);
 
-  const plainBrandMentions = await page.locator('body').evaluate((body) => {
-    const iterator = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
-    const invalidMentions: string[] = [];
-    let currentNode = iterator.nextNode();
-
-    while (currentNode !== null) {
-      if (
-        /^moldea(?: Cloud| Agent Skill| Skill)?$/iu.test(
-          (currentNode.parentElement?.closest('code')?.textContent ?? '').trim(),
-        ) &&
-        currentNode.parentElement?.closest('code') !== null &&
-        currentNode.parentElement?.closest('pre') === null
-      ) {
-        invalidMentions.push(currentNode.textContent?.trim() ?? '');
-      }
-      currentNode = iterator.nextNode();
-    }
-
-    return invalidMentions;
-  });
-  expect(plainBrandMentions).toStrictEqual([]);
+  await expect(page.locator('h1 code')).toHaveCount(0);
+  await expect(
+    page.locator('[data-workflow-hero-copy] p code').filter({ hasText: /^moldea$/u }),
+  ).toHaveText('moldea');
 
   const accessibilityResults = await new AxeBuilder({ page }).analyze();
   expect(accessibilityResults.violations).toStrictEqual([]);

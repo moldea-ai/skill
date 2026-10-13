@@ -7,5 +7,11 @@
     "sha256": "8bba21fff6192c0744a1096145e2ba8486b24cc9497ec6652d571e8cea323692",
     "tag": "evidence-20261011-adapter-retirement"
   },
-  "journeys": null
+  "journeys": {
+    "assetName": "journeys-20261013-da9709.json.gz",
+    "classification": "official",
+    "repository": "moldea-ai/skill",
+    "sha256": "96de16e7646e54a17958040125b1b8da225298e28fc4f54e7865c0ede3d9f8d5",
+    "tag": "evidence-journeys-20261013-da9709"
+  }
 }

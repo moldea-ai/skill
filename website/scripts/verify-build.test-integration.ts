@@ -12,6 +12,11 @@ import { RETIRED_PAGE_REDIRECTS } from '../src/lib/redirects/index.ts';
 import { PROJECT_RUN_PAGE_SIZE } from '../src/lib/project-runs/index.ts';
 import { getSemanticReleaseEvidenceSummary } from '../src/lib/release-evidence/index.ts';
 import {
+  getJourneysPage,
+  JOURNEYS_PAGE_SIZE,
+  JOURNEY_PLATFORM_LABELS,
+} from '../src/lib/scripted-journeys/index.ts';
+import {
   DEFAULT_SITE_URL,
   SITE_ALTERNATE_NAMES,
   SITE_NAME,
@@ -424,13 +429,23 @@ test('publishes bounded journey overviews, conversation previews, and every sour
     );
     return;
   }
-  for (const page of [1, 2]) {
+  const pageCount = Math.max(1, Math.ceil(model.journeys.length / JOURNEYS_PAGE_SIZE));
+  for (let page = 1; page <= pageCount; page++) {
     const html = readFileSync(
       getDistPath(`evidence/journeys/${page === 1 ? '' : `page/${page}/`}index.html`),
       'utf8',
     );
-    expect([...html.matchAll(/data-journey-outcome=/gu)]).toHaveLength(page === 1 ? 32 : 6);
+    expect([...html.matchAll(/data-journey-outcome=/gu)]).toHaveLength(
+      getJourneysPage(model, page).length * Object.keys(JOURNEY_PLATFORM_LABELS).length,
+    );
   }
+  const nextPageRoute = `/evidence/journeys/page/${pageCount + 1}/`;
+  expect(website.routes).not.toContain(nextPageRoute);
+  expect(() => readFileSync(getDistPath(`${nextPageRoute.slice(1)}index.html`))).toThrow();
+  for (const journey of model.journeys)
+    expect(readFileSync(getDistPath(`${journey.route.slice(1)}index.html`), 'utf8')).toContain(
+      'data-journey-viewer',
+    );
   const html = readFileSync(getDistPath('evidence/index.html'), 'utf8');
   expect(html).toContain('data-recorded-journeys');
   expect(html).toContain('Recorded journey excerpt');
@@ -442,6 +457,23 @@ test('publishes bounded journey overviews, conversation previews, and every sour
     for (const url of urls)
       expect(readFileSync(getDistPath(url.slice(1))).byteLength).toBeGreaterThan(0);
   }
+});
+
+test('preserves synthetic confirmation history, partial coverage, and test revisions', ({
+  skip,
+}) => {
+  const website = loadWebsiteModel();
+  const model = website.scriptedJourneys;
+  if (
+    model === null ||
+    !model.sources.some((source) =>
+      (source.kind === 'campaign'
+        ? source.assessment.bundle.skill.version
+        : source.model.skill.version
+      ).endsWith('-fixture'),
+    )
+  )
+    return skip();
   expect(model.journeys).toHaveLength(19);
   expect(website.routes).not.toContain('/evidence/journeys/page/3/');
   expect(() => readFileSync(getDistPath('evidence/journeys/page/3/index.html'))).toThrow();

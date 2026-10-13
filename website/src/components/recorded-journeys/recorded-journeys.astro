@@ -97,14 +97,6 @@ const replyHtml = result
             )}
           </ConversationMessage>
         </Conversation>
-        {!isCompact && (
-          <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-            <>
-              <span class="text-xs font-semibold">Local checks for this request</span>
-              <EvidenceStatus status={result.status} />
-            </>
-          </div>
-        )}
       </>
     ) : (
       <p class="py-6 text-sm text-muted-foreground">No conversation has been recorded yet.</p>

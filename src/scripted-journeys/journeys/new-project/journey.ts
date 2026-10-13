@@ -33,7 +33,7 @@ export const scriptedJourney = defineScriptedJourney({
         {
           kind: 'content-matches',
           path: 'package.json',
-          pattern: '"@moldea.ai/cli"\\s*:\\s*"11\\.0\\.0"',
+          pattern: '"@moldea.ai/cli"\\s*:\\s*"\\d+\\.\\d+\\.\\d+"',
         },
         { kind: 'path-exists', path: 'package-lock.json' },
         { kind: 'validate', result: 'valid' },

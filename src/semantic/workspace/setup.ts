@@ -88,7 +88,11 @@ const UNINITIALIZED_CASE_IDS = new Set([
 ]);
 const EVALUATION_GIT_COMMIT_ENV: NodeJS.ProcessEnv = {
   ...process.env,
+  GIT_AUTHOR_NAME: 'moldea Evaluation',
+  GIT_AUTHOR_EMAIL: 'evaluation@invalid.example',
   GIT_AUTHOR_DATE: '2000-01-01T00:00:00+00:00',
+  GIT_COMMITTER_NAME: 'moldea Evaluation',
+  GIT_COMMITTER_EMAIL: 'evaluation@invalid.example',
   GIT_COMMITTER_DATE: '2000-01-01T00:00:00+00:00',
 };
 

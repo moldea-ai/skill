@@ -30,6 +30,9 @@ export {
 // repository filesystem
 export { isPathWithin, readRepositoryFile, resolveRepositoryFile } from './repository-files.ts';
 
+// repository-logical task paths
+export { normalizeScopePath } from './scope-path-input.ts';
+
 // repository package
 export type { IResolvedRepositoryCli } from './repository-package.ts';
 export {

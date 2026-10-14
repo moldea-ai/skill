@@ -805,6 +805,12 @@ test('does not project a passing summary from a prohibited package-manager comma
 test('withholds a test-result fact unless the command and complete passing summary agree', () => {
   const passingOutput = createNodeTestOutput();
   const rejected = [
+    createEvent('node --test src/support-agent.test-integration.js | tail -n 8', passingOutput),
+    createEvent(
+      'set -o pipefail; node --test src/support-agent.test-integration.js | tail -n 8',
+      passingOutput,
+      { exitCode: 1, status: 'failed' },
+    ),
     createEvent('git status --short', passingOutput),
     createEvent(
       'node --test src/support-agent.test-integration.js',
@@ -827,6 +833,18 @@ test('withholds a test-result fact unless the command and complete passing summa
     assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
     assert.deepEqual(evidence.item.outputEvidence.facts, []);
   }
+});
+
+test.each([
+  'node --test --test-reporter=spec src/support-agent.test-integration.js 2>&1',
+  'set -o pipefail; node --test src/support-agent.test-integration.js 2>&1 | tail -n 8',
+])('projects a complete passing summary with reliable exit status: %s', (command) => {
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent(command, createNodeTestOutput()),
+    OPTIONS,
+  );
+  assert.equal(evidence.item.outputEvidence.disposition, 'projected');
+  assert.equal(evidence.item.outputEvidence.facts[0]?.kind, 'node-test-summary');
 });
 
 test('accepts the native TAP summary form and bounds recognized test output', () => {
@@ -910,6 +928,7 @@ test('rejects obsolete and malformed launcher command forms', () => {
     'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs validate --repository /mnt -- --json --max-output-bytes 65536',
     createLauncherCommand(
       'scope',
+      '--paths-stdin',
       '--path',
       '/src/example.ts',
       '--json',

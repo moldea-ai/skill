@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'reconcile-routing-description',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Reconcile the routing-description mapping with the canonical target metadata.',
+      'Use moldea to complete this repository task. Use the canonical target handoff description for routing-facing metadata; that is the governing decision for this task. Reconcile the runtime mapping and focused test with that decision while preserving the general agent description.',
     repositoryEvidence: [
       {
         claim: 'Runtime guidance requires routing-facing metadata.',

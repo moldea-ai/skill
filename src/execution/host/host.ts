@@ -46,7 +46,9 @@ const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
   'read-only repositories explicitly named by the current task. Required dependencies and fixtures ' +
   'are already present. Host-injected system-skill paths are unavailable; if an exact lookup fails, ' +
   'do not search evaluator home for a substitute. Use only local workspace files and direct local executables. ' +
-  'When repository tests are needed, invoke Node directly with explicit repository-relative test paths.';
+  'When repository tests are needed, invoke Node directly with explicit repository-relative test paths. ' +
+  "Keep the complete aggregate test summary and preserve Node's exit status. If piping through tail, " +
+  'enable pipefail first with `set -o pipefail;`.';
 const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG = JSON.stringify(
   CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS,
 );

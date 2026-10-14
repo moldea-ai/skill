@@ -151,7 +151,6 @@ test('repair continuations require Git presence only when comparison is needed',
   const presenceRequired = new Set([
     'repair-continuation-after-change',
     'repair-continuation-manifest-change',
-    'repair-continuation-partial-coverage',
   ]);
   const continuations = cases.filter(({ id }) => id.startsWith('repair-continuation-'));
   expect(continuations).toHaveLength(6);

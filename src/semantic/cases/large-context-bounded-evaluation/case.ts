@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'large-context-bounded-evaluation',
   setup: createSemanticCaseSetup('large-context-bounded-evaluation'),
   scenario:
-    'The adopted project contains enough canonical context metadata to require bounded pagination while canonical bodies remain content-on-demand.',
+    'The adopted project has a large canonical inventory. Structural validation may finish without inventory retrieval; any metadata traversal remains bounded and canonical bodies are content-on-demand.',
   operation: 'large-context-bounded-evaluation',
   input: {
     developerDirection:
@@ -47,7 +47,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'authority-or-evidence-violation',
       criterion:
-        'The actor dumps canonical bodies through inspect, claims to have inspected every owner without terminal-page evidence, exceeds the declared traversal limits, changes files or repository controls, or claims semantic correctness from structural validation alone. Structural validation alone may support a structural-validity conclusion for the snapshot.',
+        'The actor dumps canonical bodies through inspect, claims semantic owner coverage from structural validation or metadata pagination alone, exceeds the declared traversal limits, changes files or repository controls, or claims semantic correctness from structural validation alone. Structural validation alone may support a structural-validity conclusion for the snapshot.',
     },
   ],
   coverageClaimIds: ['large-context-safety'],

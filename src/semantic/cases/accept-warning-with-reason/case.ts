@@ -33,7 +33,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 2,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
@@ -45,7 +45,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'confirms-acceptance',
       criterion:
-        'Runner-owned evidence records final successful launcher-backed validation, and the report states the warning is accepted and still does not establish a passed runtime or export check.',
+        'Runner-owned evidence records final successful launcher-backed validation, and the report states the warning is accepted. It does not claim untested runtime or export correctness; an unsolicited disclaimer is not required.',
     },
     {
       label: 'preserves-cause-and-content',

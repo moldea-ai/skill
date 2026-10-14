@@ -1216,8 +1216,18 @@ const seedContextMaintenanceScenario = async (
   if (caseId === 'maintain-context-without-duplication') {
     await writeScenarioFile(
       repositoryPath,
+      'docs/operations-policy.md',
+      '# Operations policy\n\nSupport owns escalation. Legal approves retention exceptions.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'docs/architecture.md',
+      '# Architecture\n\nThe application uses a modular monolith and PostgreSQL.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
       'moldea/moldea.yaml',
-      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations.md: {}\n  /moldea/context/architecture.md: {}\n',
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations.md:\n    affectedBy:\n      - /docs/operations-policy.md\n  /moldea/context/architecture.md:\n    affectedBy:\n      - /docs/architecture.md\n',
     );
     await writeScenarioFile(
       repositoryPath,
@@ -1235,8 +1245,13 @@ const seedContextMaintenanceScenario = async (
   if (caseId === 'compress-project-context') {
     await writeScenarioFile(
       repositoryPath,
+      'docs/operations-policy.md',
+      '# Operations policy\n\nCustomer Operations owns escalation. Legal approves retention exceptions. The after-hours owner remains unresolved.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
       'moldea/moldea.yaml',
-      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations.md: {}\n  /moldea/context/escalations.md: {}\n\nunresolved:\n  after-hours-escalation:\n    category: behavior\n    effect: warning\n    description: The current after-hours escalation owner is not established.\n    resolution: Establish the current after-hours escalation owner.\n    related:\n      - path: /moldea/context/escalations.md\n',
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/operations.md:\n    affectedBy:\n      - /docs/operations-policy.md\n  /moldea/context/escalations.md:\n    affectedBy:\n      - /docs/operations-policy.md\n\nunresolved:\n  after-hours-escalation:\n    category: behavior\n    effect: warning\n    description: The current after-hours escalation owner is not established.\n    resolution: Establish the current after-hours escalation owner.\n    related:\n      - path: /moldea/context/escalations.md\n',
     );
     await writeScenarioFile(
       repositoryPath,
@@ -1259,8 +1274,18 @@ const seedContextMaintenanceScenario = async (
   if (caseId === 'compress-conflicting-project-context') {
     await writeScenarioFile(
       repositoryPath,
+      'docs/finance-policy.md',
+      '# Finance policy\n\nFinance owns escalation approval.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'docs/customer-policy.md',
+      '# Customer policy\n\nCustomer Operations owns escalation approval.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
       'moldea/moldea.yaml',
-      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/finance-operations.md: {}\n  /moldea/context/customer-operations.md: {}\n',
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n  /moldea/context/finance-operations.md:\n    affectedBy:\n      - /docs/finance-policy.md\n  /moldea/context/customer-operations.md:\n    affectedBy:\n      - /docs/customer-policy.md\n',
     );
     await writeScenarioFile(
       repositoryPath,
@@ -1428,7 +1453,9 @@ const seedScenarioRepository = async (
     await writeScenarioFile(
       repositoryPath,
       'README.md',
-      '# Evaluation service\n\nThis small TypeScript service returns the fixed `available` status.\n',
+      caseDefinition.id === 'explicit-initialization'
+        ? '# Evaluation service\n\nThis small TypeScript service gives operators the fixed `available` status. It does not monitor external systems or manage incidents.\n'
+        : '# Evaluation service\n\nThis small TypeScript service returns the fixed `available` status.\n',
     );
     await writeScenarioFile(
       repositoryPath,
@@ -1565,11 +1592,7 @@ const seedScenarioRepository = async (
       await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', 'version: 1\n');
       break;
     case 'evaluate-brief-project-request':
-      await writeScenarioFile(
-        repositoryPath,
-        'moldea/moldea.yaml',
-        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy: []\n',
-      );
+      await writeScenarioFile(repositoryPath, 'moldea/moldea.yaml', 'version: 1\n');
       await writeScenarioFile(
         repositoryPath,
         'moldea/project.md',

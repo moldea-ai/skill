@@ -828,6 +828,9 @@ test('repository test identification accepts only static bounded correctness com
   for (const command of [
     'node --test src/support-agent.test-integration.js',
     'node --test ./src/a.test-unit.mjs src/b.test-e2e.cjs',
+    'node --test --test-reporter=spec src/a.test-unit.js 2>&1',
+    'node --test --test-reporter tap src/a.test-unit.js',
+    'set -o pipefail; node --test src/a.test-unit.js 2>&1 | tail -n 8',
     "/bin/bash -lc 'node --test src/support-agent.test-integration.js'",
   ]) {
     assert.equal(isRepositoryTestCommand(command), true, command);
@@ -855,10 +858,85 @@ test('repository test identification accepts only static bounded correctness com
     'pnpm test',
     'node --test src/a.test-unit.js && node --test src/b.test-unit.js',
     'node --test src/a.test-unit.js > result.txt',
+    'node --test src/a.test-unit.js | tail -n 8',
+    'set -o pipefail; node --test src/a.test-unit.js && tail -n 8',
+    'node --test --test-reporter=./reporter.js src/a.test-unit.js',
+    'node --test --import ./hook.js src/a.test-unit.js',
+    'set -o pipefail; node --test src/a.test-unit.js | tail -n 8 || true',
   ]) {
     assert.equal(isRepositoryTestCommand(command), false, command);
     assert.equal(identifyRepositoryTestCommandKind(command), null, command);
   }
+});
+
+test.each([
+  'moldea/project.md',
+  './moldea/project.md',
+  '/moldea/project.md',
+  '/mnt/moldea/project.md',
+])('recognizes normalized canonical content path %s through every evidence boundary', (path) => {
+  const command = `node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt/ -- content --json --max-output-bytes 65536 --path ${path}`;
+  assert.equal(identifyMoldeaCliLauncherOperation(command), 'content');
+  assert.deepEqual(projectRepairGitCommandEvidence(command), {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+  });
+  assert.equal(
+    hasPassingCodexEvaluationCommandPolicy(
+      projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy,
+    ),
+    true,
+  );
+  assert.equal(
+    identifyMoldeaRelevanceGateMode(
+      `node .agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt/ --path ${path}`,
+    ),
+    'relationship',
+  );
+});
+
+test.each([
+  './moldea/../project.md',
+  '/mnt/../moldea/project.md',
+  '//moldea/project.md',
+  'C:/moldea/project.md',
+  './moldea//project.md',
+])('does not recognize an invalid canonical path %s', (path) => {
+  const command = `node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- content --json --max-output-bytes 65536 --path ${path}`;
+  assert.equal(identifyMoldeaCliLauncherOperation(command), null);
+  assert.equal(projectRepairGitCommandEvidence(command).unverifiedCount, 1);
+});
+
+test('recognizes a supported single-path scope invocation', () => {
+  assert.equal(
+    identifyMoldeaCliLauncherOperation(
+      'node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt/ -- scope --json --max-output-bytes 65536 --path ./src/invoice.js',
+    ),
+    'scope',
+  );
+  assert.equal(
+    identifyMoldeaCliLauncherOperation(
+      'node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- scope --json --max-output-bytes 65536 --paths-stdin --path src/invoice.js',
+    ),
+    null,
+  );
+});
+
+test.each([
+  'node --test src/a.test-unit.js',
+  'node --test --test-reporter=spec src/a.test-unit.js 2>&1',
+  'node --test src/a.test-unit.js | tail -n 8',
+  'set -o pipefail; node --test src/a.test-unit.js | tail -n 8',
+])('permits host-directed Node correctness command syntax: %s', (command) => {
+  assert.equal(
+    hasPassingCodexEvaluationCommandPolicy(
+      projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy,
+    ),
+    true,
+  );
+  // a test script is still opaque for the separate repair Git audit
+  assert.equal(projectRepairGitCommandEvidence(command).unverifiedCount > 0, true);
 });
 
 test('execution evidence rejects more than 32 moldea commands with actionable counts', () => {

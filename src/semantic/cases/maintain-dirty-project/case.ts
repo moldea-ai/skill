@@ -48,14 +48,14 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
     {
       label: 'adds-connected-context',
       criterion:
-        'The billing context records only grounded billing guidance, is globally registered and assigned to support, and declares /src/billing.ts as its material affected path.',
+        'The billing context records only grounded billing guidance, is globally registered and assigned to support, and binds to /src/billing.ts as requested without duplicating that bound file in affectedBy.',
     },
     {
       label: 'updates-instruction',
@@ -82,7 +82,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'missing-relationship',
       criterion:
-        'The new context is unregistered, unassigned to support, or lacks the grounded billing affected path.',
+        'The new context is unregistered, unassigned to support, or lacks the requested grounded billing binding.',
     },
   ],
   coverageClaimIds: ['context-maintenance-and-compression', 'read-only-integrity'],

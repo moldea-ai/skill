@@ -15,7 +15,9 @@ import { join, resolve } from 'node:path';
 import type { IManifestScopeMatch } from '@moldea.ai/core';
 import { afterEach, beforeAll, test } from 'vitest';
 
+import { projectCodexEvaluationExecutionEvidence } from '../../execution/host/index.ts';
 import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
+import { projectActorExecutionEvidenceEvent } from '../execution/index.ts';
 
 import { createActorRepository, snapshotSemanticWorkspace } from './setup.ts';
 
@@ -146,6 +148,70 @@ const runFixtureTests = (repositoryPath: string, testPaths: string[]): void => {
   if (result.error) throw result.error;
   assert.equal(result.status, 0, result.stderr || result.stdout);
 };
+
+test.each([
+  'maintain-context-without-duplication',
+  'compress-project-context',
+  'compress-conflicting-project-context',
+  'evaluate-brief-project-request',
+])('%s starts structurally valid through the installed CLI', async (caseId) => {
+  const { repositoryPath } = await materializeCase(caseId, true);
+  const envelope = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+    status: string;
+    result: { valid: boolean; errorCount: number };
+  };
+  assert.equal(envelope.status, 'valid');
+  assert.equal(envelope.result.valid, true);
+  assert.equal(envelope.result.errorCount, 0);
+  if (caseId === 'evaluate-brief-project-request') {
+    assert.equal(gateResult(repositoryPath, ['src/project-state.js']), '0\n');
+  }
+});
+
+test.each([true, false])(
+  'projects real spec-reporter test evidence when passing=%s',
+  async (passing) => {
+    const { repositoryPath } = await materializeCase('repair-healthy-project');
+    const testPath = 'src/evidence.test-unit.js';
+    writeFileSync(
+      join(repositoryPath, testPath),
+      `import assert from 'node:assert/strict';\nimport test from 'node:test';\ntest('result', () => assert.equal(${passing}, true));\n`,
+    );
+    const command = `node --test --test-reporter=spec ${testPath} 2>&1`;
+    const result = spawnSync(process.execPath, ['--test', '--test-reporter=spec', testPath], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+      maxBuffer: 65536,
+    });
+    if (result.error) throw result.error;
+    assert.equal(result.status, passing ? 0 : 1);
+    const event = {
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command,
+        aggregated_output: result.stdout + result.stderr,
+        exit_code: result.status,
+        status: passing ? 'completed' : 'failed',
+      },
+    };
+    const cliPackage = JSON.parse(
+      readFileSync(join(repositoryPath, 'node_modules/@moldea.ai/cli/package.json'), 'utf8'),
+    ) as { version: string };
+    const evidence = projectActorExecutionEvidenceEvent(event, {
+      cliVersion: cliPackage.version,
+      jsonSchemaVersion: 7,
+    });
+    assert.ok(evidence);
+    assert.equal(
+      evidence.item.outputEvidence.facts.some((fact) => fact.kind === 'node-test-summary'),
+      passing,
+    );
+    const policy = projectCodexEvaluationExecutionEvidence(JSON.stringify(event)).commandPolicy;
+    assert.equal(policy.networkAccess.status, 'not-observed');
+    assert.equal(policy.sensitiveAccess.status, 'not-observed');
+  },
+);
 
 test('every semantic case materializes a snapshot-ready actor repository', async () => {
   for (const caseDefinition of cases) {

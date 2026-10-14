@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'create-agent',
   input: {
     developerDirection:
-      'Earlier in this task I asked you to finish the customer-support agent. We agreed to preserve its existing behavior, connect its maintained instructions to both model calls, keep the integration tests, and verify the result. Please carry out that agreed work now.',
+      'Create and register the existing customer-support runtime agent in moldea. Preserve its existing behavior, connect its canonical maintained instructions to both model calls, keep the integration tests, and verify the result.',
     repositoryEvidence: [
       {
         claim:

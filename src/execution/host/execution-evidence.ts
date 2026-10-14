@@ -1,5 +1,6 @@
 import { posix } from 'node:path';
 
+import { normalizeScopePath } from '../../portable/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
 import { isApprovedRepairGitArguments } from './git-command-policy-boundary.ts';
@@ -711,13 +712,29 @@ const isTrustedLocalExecutable = (word: string | undefined, executable: string):
   );
 };
 
+const isSandboxRepositoryRoot = (candidate: string | undefined): boolean =>
+  candidate === '/mnt' || candidate === '/mnt/';
+
+/** Applies the launcher's path normalization without accessing repository files. */
+const normalizeSandboxTaskPath = (candidate: string | undefined): string | null => {
+  if (candidate === undefined || candidate.startsWith('--')) return null;
+  try {
+    return normalizeScopePath(candidate, {
+      repositoryRoot: '/mnt',
+      resolvedRepositoryRoot: '/mnt',
+    });
+  } catch {
+    return null;
+  }
+};
+
 /** Checks the fixed cross-platform Node invocation for the repository relevance gate. */
 const isSafeRelevanceGateCommand = (words: readonly string[]): boolean => {
   if (
     !isTrustedLocalExecutable(words[0], 'node') ||
     !SAFE_RELEVANCE_GATE_PATHS.has(words[1] ?? '') ||
     words[2] !== '--repository' ||
-    words[3] !== '/mnt'
+    !isSandboxRepositoryRoot(words[3])
   )
     return false;
   const flags = new Set<string>();
@@ -727,19 +744,7 @@ const isSafeRelevanceGateCommand = (words: readonly string[]): boolean => {
     if ((option === '--adoption-only' || option === '--diagnose') && !flags.has(option))
       flags.add(option);
     else if (option === '--path') {
-      const path = words[++index];
-      if (
-        path === undefined ||
-        path === '' ||
-        path.startsWith('--') ||
-        path.includes('\\') ||
-        path.includes('\0') ||
-        /^[A-Za-z]:/u.test(path) ||
-        path.startsWith('//') ||
-        posix.normalize(path) !== path ||
-        path.split('/').includes('..')
-      )
-        return false;
+      if (normalizeSandboxTaskPath(words[++index]) === null) return false;
       pathCount++;
     } else return false;
   }
@@ -777,7 +782,7 @@ const isSafeManagedReadmeCommand = (words: readonly string[]): boolean =>
   words.length === 4 &&
   SAFE_MANAGED_README_PATHS.has(words[1] ?? '') &&
   words[2] === '--repository' &&
-  words[3] === '/mnt';
+  isSandboxRepositoryRoot(words[3]);
 
 /**
  * Identifies one exact bundled README-writer invocation without retaining its command.
@@ -798,7 +803,7 @@ const getManagedAgentsMode = (words: readonly string[]): 'write' | 'print' | nul
     ) ||
     !words[1]?.endsWith('/managed-agents.mjs') ||
     words[2] !== '--repository' ||
-    words[3] !== '/mnt'
+    !isSandboxRepositoryRoot(words[3])
   )
     return null;
   if (words.length === 4) return 'write';
@@ -861,24 +866,20 @@ const parseMoldeaCliOperationArguments = (
   }
   const cursor = values.get('--cursor');
   if (cursor !== undefined && Buffer.byteLength(cursor, 'utf8') > 8_192) return null;
-  const logicalPath = values.get('--path');
+  const pathInput = values.get('--path');
+  const logicalPath = normalizeSandboxTaskPath(pathInput);
   if (operation === 'content') {
-    if (
-      flags.size !== 1 ||
-      logicalPath === undefined ||
-      !logicalPath.startsWith('/moldea/') ||
-      logicalPath.includes('\\') ||
-      logicalPath.includes('\0') ||
-      posix.normalize(logicalPath) !== logicalPath
-    ) {
+    if (flags.size !== 1 || logicalPath === null || !logicalPath.startsWith('/moldea/')) {
       return null;
     }
   } else if (operation === 'scope') {
-    if (flags.size !== 2 || !flags.has('--paths-stdin') || logicalPath !== undefined) return null;
-  } else if (flags.size !== 1 || logicalPath !== undefined) return null;
+    const hasStdinPaths = flags.size === 2 && flags.has('--paths-stdin') && pathInput === undefined;
+    const hasSinglePath = flags.size === 1 && logicalPath !== null;
+    if (!hasStdinPaths && !hasSinglePath) return null;
+  } else if (flags.size !== 1 || pathInput !== undefined) return null;
 
   const allowedValues =
-    operation === 'content'
+    operation === 'content' || operation === 'scope'
       ? new Set([
           '--cursor',
           '--max-output-bytes',
@@ -902,7 +903,7 @@ const identifyMoldeaCliLauncherOperationFromWords = (
     !isTrustedLocalExecutable(words[0], 'node') ||
     !SAFE_MOLDEA_CLI_LAUNCHER_PATHS.has(words[1] ?? '') ||
     words[2] !== '--repository' ||
-    words[3] !== '/mnt' ||
+    !isSandboxRepositoryRoot(words[3]) ||
     words[4] !== '--' ||
     words.slice(5).includes('--') ||
     !isMoldeaCliOperation(operation)
@@ -959,16 +960,28 @@ const isRepositoryTestPath = (candidate: string): boolean => {
 const identifyRepositoryTestCommandKindFromWords = (
   words: readonly string[],
 ): IRepositoryTestCommandKind | null => {
-  if (
-    !isTrustedLocalExecutable(words[0], 'node') ||
-    words[1] !== '--test' ||
-    words.length < 3 ||
-    !words.slice(2).every(isRepositoryTestPath)
-  ) {
-    return null;
+  if (!isTrustedLocalExecutable(words[0], 'node') || words[1] !== '--test') return null;
+  const paths: string[] = [];
+  let hasReporter = false;
+  for (let index = 2; index < words.length; index++) {
+    const word = words[index]!;
+    if (paths.length === 0 && !hasReporter && word.startsWith('--test-reporter')) {
+      const reporter =
+        word === '--test-reporter' ? words[++index] : word.slice('--test-reporter='.length);
+      if (
+        !['--test-reporter', '--test-reporter=spec', '--test-reporter=tap'].includes(word) ||
+        (reporter !== 'spec' && reporter !== 'tap')
+      )
+        return null;
+      hasReporter = true;
+    } else {
+      if (!isRepositoryTestPath(word)) return null;
+      paths.push(word);
+    }
   }
+  if (paths.length === 0) return null;
   const testKinds = new Set<'e2e' | 'integration' | 'unit'>();
-  for (const path of words.slice(2)) {
+  for (const path of paths) {
     const testKind = /\.test-(e2e|integration|unit)\./u.exec(path)?.[1];
     if (testKind === 'e2e' || testKind === 'integration' || testKind === 'unit') {
       testKinds.add(testKind);
@@ -989,9 +1002,27 @@ export const identifyRepositoryTestCommandKind = (
     return null;
   }
   const directCommand = unwrapCodexShellCommand(command);
-  const commands =
-    directCommand === null ? null : (parseStaticShellList(directCommand)?.commands ?? null);
-  return commands?.length === 1 ? identifyRepositoryTestCommandKindFromWords(commands[0]!) : null;
+  if (directCommand === null) return null;
+  const hasPipefail = directCommand.startsWith('set -o pipefail;');
+  const testCommand = hasPipefail
+    ? directCommand.slice('set -o pipefail;'.length).trim()
+    : directCommand;
+  const commands = parseStaticShellList(stripSafeShellRedirections(testCommand))?.commands;
+  if (commands?.length === 1) return identifyRepositoryTestCommandKindFromWords(commands[0]!);
+  // a tail pipeline preserves Node's exit status only when pipefail is explicit
+  if (hasPipefail && commands?.length === 2 && testCommand.split('|').length === 2) {
+    const tail = commands[1]!;
+    if (
+      isTrustedLocalExecutable(tail[0], 'tail') &&
+      tail.length === 3 &&
+      tail[1] === '-n' &&
+      /^[1-9][0-9]{0,3}$/u.test(tail[2] ?? '') &&
+      /\|\s*(?:\/(?:usr\/)?bin\/)?tail\s+-n\s+[1-9][0-9]{0,3}\s*$/u.test(testCommand)
+    ) {
+      return identifyRepositoryTestCommandKindFromWords(commands[0]!);
+    }
+  }
+  return null;
 };
 
 /** Checks whether one command is an allowed repository correctness-test invocation. */
@@ -1082,10 +1113,13 @@ const classifyNetworkCommand = (
       ? 'not-observed'
       : 'observed';
   if (NETWORK_EXECUTABLES.has(executable)) return 'observed';
+  if (words.length === 3 && words[0] === 'set' && words[1] === '-o' && words[2] === 'pipefail')
+    return assignmentPrefixes.length === 0 ? 'not-observed' : 'indeterminate';
   if (
     executable === 'node' &&
     assignmentPrefixes.length === 0 &&
     (isSafeNodeVersionCommand(words) ||
+      identifyRepositoryTestCommandKindFromWords(words) !== null ||
       isSafeMoldeaCliLauncherCommand(words) ||
       (canUseLocalSkillOperation &&
         (isSafeManagedReadmeCommand(words) || getManagedAgentsMode(words) !== null)))

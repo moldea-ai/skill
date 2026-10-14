@@ -736,7 +736,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
 
       const cloudAction = hero.getByRole('link', { name: 'Explore moldea Cloud', exact: true });
       await expect(cloudAction).toBeVisible();
-      await expect(cloudAction.locator('code')).toHaveCount(0);
+      await expect(cloudAction.locator('code')).toHaveText('moldea Cloud');
       await cloudAction.focus();
       await expect(cloudAction).toBeFocused();
 

@@ -79,6 +79,71 @@ test('preserves messages and joins each adjacent tool call with its complete res
   });
 });
 
+test('pairs a shell result across a completed web search and an intervening message', () => {
+  const records = [
+    events[0],
+    events[2],
+    {
+      ...events[2],
+      ordinal: 6,
+      payload: {
+        name: 'web.search',
+        callId: 'search-1',
+        status: 'completed',
+        input: JSON.stringify({ action: { type: 'search', queries: ['SDK docs'] } }),
+        output: [{ type: 'input_text', text: '[]' }],
+      },
+    },
+    { ...events[4], ordinal: 7 },
+    { ...events[3], ordinal: 8 },
+  ];
+  const entries = parseProjectSession(
+    gzipSync(records.map((event) => JSON.stringify(event)).join('\n')),
+  );
+  expect(entries.map(({ ordinal }) => ordinal)).toStrictEqual([0, 5, 6, 7]);
+  expect(entries[1]).toMatchObject({
+    lastOrdinal: 8,
+    output: 'Project policy\n\n[redacted]',
+    isRedacted: true,
+  });
+  expect(entries[2]).toMatchObject({ title: 'web.search', lastOrdinal: 6 });
+  expect(entries[2]?.output).toBe('[]');
+});
+
+test('pairs concurrent calls with results arriving in reverse order', () => {
+  const records = [
+    events[2],
+    {
+      ...events[2],
+      ordinal: 6,
+      payload: { ...events[2].payload, callId: 'call-2', input: 'read README.md' },
+    },
+    {
+      ...events[3],
+      ordinal: 7,
+      payload: { callId: 'call-2', output: [{ type: 'input_text', text: 'README content' }] },
+      redactionIds: [],
+    },
+    { ...events[3], ordinal: 8 },
+  ];
+  const entries = parseProjectSession(
+    gzipSync(records.map((event) => JSON.stringify(event)).join('\n')),
+  );
+  expect(entries).toHaveLength(2);
+  expect(entries[0]).toMatchObject({
+    ordinal: 5,
+    lastOrdinal: 8,
+    output: 'Project policy\n\n[redacted]',
+    isRedacted: true,
+  });
+  expect(entries[1]).toMatchObject({
+    ordinal: 6,
+    lastOrdinal: 7,
+    output: 'README content',
+    isRedacted: false,
+  });
+});
+
 test('preserves compaction context without claiming the encrypted summary was captured', () => {
   const entries = parseProjectSession(
     gzipSync(
@@ -216,7 +281,13 @@ test('rejects out-of-order events and tool results without their call', () => {
   expect(() => parseProjectSession(encode([events[1], events[0]]))).toThrow(
     'ordinals must increase',
   );
-  expect(() => parseProjectSession(encode([events[3]]))).toThrow('no adjacent matching call');
+  expect(() => parseProjectSession(encode([events[3]]))).toThrow('no matching call');
+  expect(() =>
+    parseProjectSession(encode([events[2], events[3], { ...events[3], ordinal: 8 }])),
+  ).toThrow('no matching call');
+  expect(() => parseProjectSession(encode([events[2], { ...events[2], ordinal: 6 }]))).toThrow(
+    'already awaiting a result',
+  );
 });
 
 test('loads only the fixed release URL and verifies byte size and digest', async () => {
@@ -242,6 +313,30 @@ test('loads only the fixed release URL and verifies byte size and digest', async
   await expect(loadProjectSession([{ ...asset, lastEventOrdinal: 10 }])).rejects.toThrow(
     'identity differs',
   );
+});
+
+test('verifies asset coverage when its final result completes an earlier call', async () => {
+  const records = [events[0], events[2], { ...events[4], ordinal: 6 }, events[3]];
+  const bytes = gzipSync(records.map((event) => JSON.stringify(event)).join('\n'));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => Promise.resolve(new Response(bytes))),
+  );
+  const entries = await loadProjectSession([
+    {
+      ...asset,
+      sizeBytes: bytes.byteLength,
+      sha256: createHash('sha256').update(bytes).digest('hex'),
+      lastEventOrdinal: 7,
+    },
+  ]);
+  expect(entries).toHaveLength(3);
+  expect(entries?.[1]).toMatchObject({
+    ordinal: 5,
+    lastOrdinal: 7,
+    output: 'Project policy\n\n[redacted]',
+  });
+  expect(entries?.[2]).toMatchObject({ ordinal: 6, lastOrdinal: 6 });
 });
 
 test('keeps optional historical sessions without integrity metadata unavailable', async () => {

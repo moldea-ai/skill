@@ -32,7 +32,11 @@ const turnCount =
   Number(attempt.initialRequest !== null) + attempt.followUps.length;
 const toolCount = attempt.session?.filter((entry) => entry.kind === 'tool').length ?? 0;
 const eventCount =
-  attempt.session?.reduce((count, entry) => count + (entry.kind === 'tool' ? 2 : 1), 0) ?? 0;
+  attempt.session?.reduce(
+    (count, entry) =>
+      count + (entry.kind === 'tool' && entry.lastOrdinal !== entry.ordinal ? 2 : 1),
+    0,
+  ) ?? 0;
 const requests = [
   ...(attempt.initialRequest === null ? [] : [attempt.initialRequest]),
   ...attempt.followUps,

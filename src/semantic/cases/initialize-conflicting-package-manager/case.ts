@@ -5,12 +5,21 @@ import { defineSemanticCase } from '../define.ts';
 export const semanticCase = defineSemanticCase({
   id: 'initialize-conflicting-package-manager',
   setup: createSemanticCaseSetup('initialize-conflicting-package-manager'),
-  scenario: 'README npm guidance conflicts with the packageManager pnpm declaration.',
+  scenario:
+    'Required CLI tooling is missing and README npm guidance conflicts with the packageManager pnpm declaration.',
   operation: 'initialize',
   input: {
     developerDirection:
       'Initialize moldea for this invoice-intake service using current repository evidence.',
     repositoryEvidence: [
+      {
+        claim: 'CLI installation is required; the declared root dependency is not installed.',
+        source: {
+          kind: 'workspace-path',
+          path: 'node_modules/@moldea.ai/cli/package.json',
+          expectedType: 'missing',
+        },
+      },
       {
         claim: 'README.md directs npm setup, conflicting with the pnpm packageManager declaration.',
         source: {
@@ -31,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'ask-manager-direction',
       criterion:
-        'The actor reports the conflict between README npm guidance and packageManager pnpm and asks one focused manager question before initialization. No repository or Git state changes occur.',
+        'The actor reports the conflict between README npm guidance and packageManager pnpm and asks one focused manager question before initialization. No package-manager execution, repository changes or Git state changes occur.',
     },
   ],
   forbidden: [

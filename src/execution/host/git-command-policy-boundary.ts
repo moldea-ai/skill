@@ -86,9 +86,10 @@ export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): 
     remainder.length === 3 &&
     commit !== undefined &&
     commit.length > 0 &&
-    !commit.startsWith('-') &&
+    !/^[-^]/u.test(commit) &&
     !/[\s\0]/u.test(commit) &&
     !commit.includes('..') &&
+    !/\^[!@-]/u.test(commit) &&
     separator === '--' &&
     path === (isChangedPaths ? '.' : 'moldea/moldea.yaml')
   );

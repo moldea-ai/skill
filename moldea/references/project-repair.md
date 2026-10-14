@@ -63,7 +63,7 @@ Run the affected project-native checks after correction, then launcher-backed `v
 
 When a limit is near, stop after a complete owner. Report `N of M owners checked at <commit>; continue from <owner>` with the commit and next owner identity. At that moment, record two lists in the report, not a checkpoint file: every path still uncommitted in the working tree, including this repair's corrections; and every owner whose `moldea/moldea.yaml` entry is uncommitted. Obtain the second list from one bounded diff of `moldea/moldea.yaml` against `HEAD`. If that diff cannot establish the entries, state that limitation. A CLI cursor is never a continuation point.
 
-For every Git read in this procedure, use the repository-configured-helper-disabled command boundary from `evaluate-and-reconcile.md`. Precede `--no-pager` with the approved `-c` settings: `core.attributesFile=/dev/null`, `core.fsmonitor=false`, `core.pager=cat`, `filter.lfs.clean=`, `filter.lfs.process=`, `filter.lfs.required=false`, and `filter.lfs.smudge=`. Add `-c diff.external=` for each diff. After that prefix, use only these relevant argument shapes, with an explicit pathspec for every diff:
+For every Git read in this procedure, use this boundary to disable repository-configured helpers. Precede `--no-pager` with the approved `-c` settings: `core.attributesFile=/dev/null`, `core.fsmonitor=false`, `core.pager=cat`, `filter.lfs.clean=`, `filter.lfs.process=`, `filter.lfs.required=false`, and `filter.lfs.smudge=`. Add `-c diff.external=` for each diff. After that prefix, use only these relevant argument shapes, with an explicit pathspec for every diff:
 
 ```text
 diff --no-ext-diff --no-textconv --ignore-submodules=all --name-only --no-renames <commit> -- .

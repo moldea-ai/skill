@@ -13,8 +13,7 @@ export const semanticCase = defineSemanticCase({
       'Use moldea to complete this repository task. Consolidate the duplicated project context so each durable fact has one authoritative owner. Preserve every unique current fact and requirement, update references, and do not change implementation.',
     repositoryEvidence: [
       {
-        claim:
-          'The manifest registers both overlapping context files and their impact relationships.',
+        claim: 'The manifest registers both overlapping context files.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/moldea.yaml',

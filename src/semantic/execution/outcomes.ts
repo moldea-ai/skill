@@ -63,9 +63,13 @@ export const createSemanticResultDimensions = (options: {
   commandPolicy:
     hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy) &&
     hasPassingCodexEvaluationCommandPolicy(options.judgeCommandPolicy) &&
-    (!options.caseDefinition.expected.some(({ label }) => label === 'approved-repair-git') ||
+    (!options.caseDefinition.expected.some(({ label }) =>
+      ['approved-repair-git', 'repair-git-compliance'].includes(label),
+    ) ||
       (options.actorExecutionEvidence.length === options.actorCommandPolicy.completedCommandCount &&
-        hasPassingRepairGitEvidence(options.actorExecutionEvidence))),
+        hasPassingRepairGitEvidence(options.actorExecutionEvidence) &&
+        (!options.caseDefinition.expected.some(({ label }) => label === 'approved-repair-git') ||
+          options.actorExecutionEvidence.some(({ item }) => item.repairGit.compliantCount > 0)))),
   repositoryControl: options.isRepositoryControlPassing,
   mountIntegrity: options.isMountIntegrityPassing,
   operational: true,

@@ -162,6 +162,18 @@ const SAFE_LOCAL_EXECUTABLES = new Set([
   'uniq',
   'wc',
 ]);
+// passive repair reads cannot delegate execution through options or repository scripts
+const REPAIR_PASSIVE_EXECUTABLES = new Set([
+  ...[...SAFE_LOCAL_EXECUTABLES].filter(
+    (executable) =>
+      !['file', 'find', 'sort', 'tsc', 'moldea-cli.mjs', 'relevance-gate.mjs'].includes(executable),
+  ),
+  'nl',
+]);
+// rg globs could expand to an execution-capable --pre option
+const REPAIR_GLOB_READ_EXECUTABLES = new Set(
+  [...REPAIR_PASSIVE_EXECUTABLES].filter((executable) => executable !== 'rg'),
+);
 const SAFE_WORKSPACE_EXECUTABLE_PATHS = new Map([
   [
     'moldea-cli.mjs',
@@ -349,6 +361,7 @@ const stripSafeShellRedirections = (command: string): string =>
 /** Splits a static shell list while rejecting syntax that can conceal execution. */
 const parseStaticShellList = (
   command: string,
+  allowPassiveReadGlobs = false,
 ): { commands: string[][]; hasConditionalExecution: boolean } | null => {
   const commands: string[][] = [[]];
   let hasConditionalExecution = false;
@@ -412,7 +425,13 @@ const parseStaticShellList = (
       index += 1;
       continue;
     }
-    if (character === '*' || character === '?') return null;
+    const executableWord = commands.at(-1)![0];
+    const readExecutable = getExecutableName(executableWord ?? '');
+    const canUseReadGlob =
+      allowPassiveReadGlobs &&
+      REPAIR_GLOB_READ_EXECUTABLES.has(readExecutable) &&
+      isTrustedLocalExecutable(executableWord, readExecutable);
+    if ((character === '*' || character === '?') && !canUseReadGlob) return null;
     if (character === '[') {
       const isSingleBracketCommand =
         !hasCurrentWord &&
@@ -423,7 +442,12 @@ const parseStaticShellList = (
         commands.at(-1)!.length === 0 &&
         nextCharacter === '[' &&
         (command[index + 2] === undefined || /\s/u.test(command[index + 2]!));
-      if (!isSingleBracketCommand && !isDoubleBracketCommand) return null;
+      if (!isSingleBracketCommand && !isDoubleBracketCommand && !canUseReadGlob) return null;
+      if (canUseReadGlob) {
+        currentWord += character;
+        hasCurrentWord = true;
+        continue;
+      }
       currentWord += isDoubleBracketCommand ? '[[' : '[';
       hasCurrentWord = true;
       if (isDoubleBracketCommand) index += 1;
@@ -436,7 +460,12 @@ const parseStaticShellList = (
         !hasCurrentWord &&
         nextCharacter === ']' &&
         (command[index + 2] === undefined || /\s/u.test(command[index + 2]!));
-      if (!isSingleBracketTerminator && !isDoubleBracketTerminator) return null;
+      if (!isSingleBracketTerminator && !isDoubleBracketTerminator && !canUseReadGlob) return null;
+      if (canUseReadGlob) {
+        currentWord += character;
+        hasCurrentWord = true;
+        continue;
+      }
       currentWord += isDoubleBracketTerminator ? ']]' : ']';
       hasCurrentWord = true;
       if (isDoubleBracketTerminator) index += 1;
@@ -1109,23 +1138,29 @@ export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCom
       ? unwrapCodexShellCommand(command)
       : null;
   const parsed =
-    directCommand === null ? null : parseStaticShellList(stripSafeShellRedirections(directCommand));
-  if (parsed === null || parsed.hasConditionalExecution) return { ...evidence, unverifiedCount: 1 };
+    directCommand === null
+      ? null
+      : parseStaticShellList(stripSafeShellRedirections(directCommand), true);
+  if (parsed === null) return { ...evidence, unverifiedCount: 1 };
   for (const originalWords of parsed.commands) {
-    const words = [...originalWords];
-    if (words[0] === '!') words.shift();
-    if (['env', '/bin/env', '/usr/bin/env'].includes(words[0] ?? '')) {
-      words.shift();
-      if (words[0] === '--') words.shift();
-      if (words[0] !== 'GIT_ATTR_NOSYSTEM=1') {
-        evidence.unverifiedCount++;
-        continue;
+    let executableIndex = 0;
+    while (executableIndex < originalWords.length) {
+      const word = originalWords[executableIndex];
+      if (word === '!' || word === 'GIT_ATTR_NOSYSTEM=1') {
+        executableIndex++;
+      } else if (['env', '/bin/env', '/usr/bin/env'].includes(word ?? '')) {
+        executableIndex++;
+        if (originalWords[executableIndex] === '--') executableIndex++;
+        if (originalWords[executableIndex] !== 'GIT_ATTR_NOSYSTEM=1') break;
+      } else {
+        break;
       }
     }
-    if (words[0] === 'GIT_ATTR_NOSYSTEM=1') words.shift();
+    const words = originalWords.slice(executableIndex);
     const executable = getExecutableName(words[0] ?? '');
     if (executable === 'git') {
-      if (!isTrustedGitExecutable(words[0])) evidence.unverifiedCount++;
+      if (parsed.hasConditionalExecution || !isTrustedGitExecutable(words[0]))
+        evidence.unverifiedCount++;
       else if (isApprovedRepairGitArguments(words.slice(1))) evidence.compliantCount++;
       else evidence.noncompliantCount++;
       continue;
@@ -1138,9 +1173,12 @@ export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCom
       isSafeNodeVersionCommand(words) ||
       isSafeNpmProbeCommand(words);
     const canInspectWithoutExecution =
-      !['tsc', 'find', 'sort', 'file', 'moldea-cli.mjs', 'relevance-gate.mjs'].includes(
-        executable,
-      ) && classifyNetworkCommand([...words]) === 'not-observed';
+      (REPAIR_PASSIVE_EXECUTABLES.has(executable) &&
+        isTrustedLocalExecutable(words[0], executable) &&
+        !(executable === 'rg' && words.some((word) => /^--pre(?:=|$)/u.test(word)))) ||
+      (executable === 'sed' &&
+        isTrustedLocalExecutable(words[0], executable) &&
+        isSafeSedInspectionCommand(words));
     if (
       !isInstalledOperation &&
       !canInspectWithoutExecution &&

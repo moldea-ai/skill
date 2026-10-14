@@ -325,40 +325,60 @@ describe('semantic composition', () => {
   });
 });
 
-test('a retained semantic verdict cannot bypass required repair Git evidence', () => {
-  const definition = createCase('repair-case');
-  definition.expected.push({
-    label: 'approved-repair-git',
-    criterion: 'Require observed approved repair Git.',
-  });
-  const source = createSource([definition], [{ passed: true }], 'sem-source');
-  const current = {
-    ...definition,
-    input: { ...definition.input, developerDirection: 'A changed request.' },
-  };
-  const result = composeSemanticRecordedCases({
-    definitions: [current],
-    sources: [source],
-    review: {
-      acceptedCriteria: [],
-      caseSources: [],
-      formatVersion: 1,
-      inputReview: null,
-      reassessments: [],
-    },
-  });
-  expect(result.cases[0]).toMatchObject({
-    status: 'failed',
-    confirmationStatus: 'not-applicable',
-    trials: [
-      {
-        trial: {
-          passed: false,
-          confirmationEligible: false,
-          dimensions: { commandPolicy: false },
-          failureClassifications: ['commandPolicy'],
+test.each(['approved-repair-git', 'repair-git-compliance'])(
+  'a retained semantic verdict cannot bypass %s',
+  (label) => {
+    const definition = createCase('repair-case');
+    definition.expected.push({
+      label,
+      criterion: 'Require complete compliant repair Git evidence.',
+    });
+    const source = createSource([definition], [{ passed: true }], 'sem-source');
+    if (label === 'repair-git-compliance') {
+      const recorded = source.cases.get(definition.id)!.trials[0]!;
+      recorded.trial.actorCommandPolicyEvidence = { ...COMMAND_POLICY, completedCommandCount: 1 };
+      recorded.actorExecutionEvidence = [
+        {
+          eventType: 'item.completed',
+          item: {
+            commandKind: 'other',
+            exitCode: 0,
+            outputEvidence: { byteCount: 0, disposition: 'empty', facts: [] },
+            repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 1 },
+            status: 'completed',
+            type: 'command_execution',
+          },
         },
+      ];
+    }
+    const current = {
+      ...definition,
+      input: { ...definition.input, developerDirection: 'A changed request.' },
+    };
+    const result = composeSemanticRecordedCases({
+      definitions: [current],
+      sources: [source],
+      review: {
+        acceptedCriteria: [],
+        caseSources: [],
+        formatVersion: 1,
+        inputReview: null,
+        reassessments: [],
       },
-    ],
-  });
-});
+    });
+    expect(result.cases[0]).toMatchObject({
+      status: 'failed',
+      confirmationStatus: 'not-applicable',
+      trials: [
+        {
+          trial: {
+            passed: false,
+            confirmationEligible: false,
+            dimensions: { commandPolicy: false },
+            failureClassifications: ['commandPolicy'],
+          },
+        },
+      ],
+    });
+  },
+);

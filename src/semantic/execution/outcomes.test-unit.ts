@@ -181,6 +181,48 @@ test('requires an observed Git command even when every other dimension passes', 
   expect(getSemanticFailureClassifications(dimensions)).toStrictEqual(['commandPolicy']);
 });
 
+test.each([
+  [0, [], true],
+  [1, [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0 }], true],
+  [1, [{ compliantCount: 0, noncompliantCount: 1, unverifiedCount: 0 }], false],
+  [1, [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 1 }], false],
+  [2, [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0 }], false],
+])(
+  'enforces fallback repair compliance with %d completed commands and %o -> %s',
+  (completedCommandCount, observations, passing) => {
+    const dimensions = createSemanticResultDimensions({
+      actorCommandPolicy: { ...commandPolicy, completedCommandCount },
+      actorExecutionEvidence: observations.map((repairGit) => ({
+        eventType: 'item.completed',
+        item: {
+          commandKind: 'other',
+          exitCode: 0,
+          outputEvidence: { byteCount: 0, disposition: 'empty', facts: [] },
+          repairGit,
+          status: 'completed',
+          type: 'command_execution',
+        },
+      })),
+      actorResourceEvidence: resourceEvidence,
+      caseDefinition: {
+        ...caseDefinition,
+        expected: [
+          {
+            label: 'repair-git-compliance',
+            criterion: 'Require complete compliant capture; Git may be unnecessary.',
+          },
+        ],
+      },
+      isMountIntegrityPassing: true,
+      isRepositoryControlPassing: true,
+      isSemanticPassing: true,
+      judgeCommandPolicy: commandPolicy,
+    });
+    expect(dimensions.commandPolicy).toBe(passing);
+    expect(hasPassingSemanticResultDimensions(dimensions)).toBe(passing);
+  },
+);
+
 test('does not pass repair Git evidence when captured items omit a completed command', () => {
   const dimensions = createSemanticResultDimensions({
     actorCommandPolicy: { ...commandPolicy, completedCommandCount: 2 },

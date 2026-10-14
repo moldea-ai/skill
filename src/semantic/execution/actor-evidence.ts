@@ -634,7 +634,7 @@ const hasValidRepairGitEvidence = (evidence: unknown): boolean => {
   );
 };
 
-/** Requires positive, complete repair Git observations for cases that declare the machine criterion. */
+/** Rejects invalid, noncompliant or unverified repair Git observations. */
 export const hasPassingRepairGitEvidence = (
   executionEvidence: ISemanticActorExecutionEvidence[],
 ): boolean =>
@@ -643,7 +643,7 @@ export const hasPassingRepairGitEvidence = (
       hasValidRepairGitEvidence(item.repairGit) &&
       item.repairGit.noncompliantCount === 0 &&
       item.repairGit.unverifiedCount === 0,
-  ) && executionEvidence.some(({ item }) => item.repairGit.compliantCount > 0);
+  );
 
 const hasValidEntry = (
   entry: unknown,

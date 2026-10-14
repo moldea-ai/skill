@@ -1232,6 +1232,7 @@ test('manager guidance cases isolate explicit, conflicting and missing evidence'
     const { repositoryPath } = await materializeCase(caseId);
     const manifest = JSON.parse(readFileSync(join(repositoryPath, 'package.json'), 'utf8')) as {
       packageManager?: string;
+      devDependencies: Record<string, string>;
     };
     const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
     assert.equal(existsSync(join(repositoryPath, 'package-lock.json')), false);
@@ -1243,8 +1244,9 @@ test('manager guidance cases isolate explicit, conflicting and missing evidence'
     );
     assert.equal(
       existsSync(join(repositoryPath, 'node_modules', '@moldea.ai', 'cli', 'package.json')),
-      true,
+      caseId === 'initialize-readme-package-manager',
     );
+    assert.ok(manifest.devDependencies['@moldea.ai/cli']);
   }
 });
 
@@ -1267,8 +1269,11 @@ test('conservative continuation fixtures retain a real baseline and independentl
       cwd: repositoryPath,
       encoding: 'utf8',
     });
-    assert.equal(ref.status, 0, ref.stderr);
-    assert.match(ref.stdout.trim(), /^[a-f0-9]{40,64}$/u);
+    if (caseId === 'repair-continuation-unavailable-commit') assert.notEqual(ref.status, 0);
+    else {
+      assert.equal(ref.status, 0, ref.stderr);
+      assert.match(ref.stdout.trim(), /^[a-f0-9]{40,64}$/u);
+    }
     const result = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
       result: { valid: boolean };
     };
@@ -1284,6 +1289,26 @@ test('partial repair has independent owner bodies and materiality repair keeps g
   assert.equal(existsSync(join(partial.repositoryPath, 'moldea/context/64.md')), true);
   const relationships = await materializeCase('repair-relationship-materiality');
   const fixture = readFileSync(join(relationships.repositoryPath, 'moldea/moldea.yaml'), 'utf8');
+  const lock = JSON.parse(
+    readFileSync(join(relationships.repositoryPath, 'package-lock.json'), 'utf8'),
+  ) as {
+    packages: Record<
+      string,
+      {
+        version?: string;
+        devDependencies?: Record<string, string>;
+        dependencies?: Record<string, string>;
+      }
+    >;
+  };
+  const cliVersion = lock.packages['']!.devDependencies!['@moldea.ai/cli'];
+  assert.equal(lock.packages['node_modules/@moldea.ai/cli']!.version, cliVersion);
+  assert.ok(lock.packages['node_modules/@moldea.ai/core']?.version);
+  for (const entry of Object.values(lock.packages)) {
+    for (const dependency of Object.keys(entry.dependencies ?? {}))
+      assert.ok(lock.packages[`node_modules/${dependency}`], dependency);
+  }
+
   assert.equal(gateResult(relationships.repositoryPath, ['/src/project-state.js']), '1\n');
   for (const source of [
     '/src/refund-policy.js',

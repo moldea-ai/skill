@@ -146,15 +146,23 @@ describe('semantic case discovery', () => {
   });
 });
 
-test('every repair continuation declares the machine-owned Git obligation', async () => {
+test('repair continuations require Git presence only when comparison is needed', async () => {
   const cases = await loadSemanticCases(import.meta.dirname);
+  const presenceRequired = new Set([
+    'repair-continuation-after-change',
+    'repair-continuation-manifest-change',
+    'repair-continuation-partial-coverage',
+  ]);
   const continuations = cases.filter(({ id }) => id.startsWith('repair-continuation-'));
-  expect(continuations.length).toBeGreaterThan(2);
+  expect(continuations).toHaveLength(6);
   for (const definition of continuations) {
+    const label = presenceRequired.has(definition.id)
+      ? 'approved-repair-git'
+      : 'repair-git-compliance';
     expect(
-      definition.expected.some(({ label }) => label === 'approved-repair-git'),
+      definition.expected.some((criterion) => criterion.label === label),
       definition.id,
     ).toBe(true);
-    expect(buildSemanticActorPrompt(definition)).not.toContain('approved-repair-git');
+    expect(buildSemanticActorPrompt(definition)).not.toContain(label);
   }
 });

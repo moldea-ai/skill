@@ -394,7 +394,12 @@ export const seedSemanticTooling = async (
     )}\n`,
   );
 
-  await seedPublishedCli(repositoryPath);
+  if (
+    !['initialize-conflicting-package-manager', 'initialize-missing-package-manager'].includes(
+      caseDefinition.id,
+    )
+  )
+    await seedPublishedCli(repositoryPath);
 };
 
 /** Seeds the minimum adopted project state independently from its tooling layout. */
@@ -1645,7 +1650,7 @@ const seedScenarioRepository = async (
         Array.from({ length: 64 }, (_, index) => String(index + 1).padStart(2, '0')),
       );
       break;
-    case 'repair-relationship-materiality':
+    case 'repair-relationship-materiality': {
       await writeScenarioFile(
         repositoryPath,
         'moldea/moldea.yaml',
@@ -1671,12 +1676,31 @@ const seedScenarioRepository = async (
         'src/ui/navigation.js',
         "export const selectedClass = 'active';\n",
       );
+      const sourceLock = z
+        .object({ packages: z.record(z.string(), z.unknown()) })
+        .parse(
+          JSON.parse(await readFile(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8')) as unknown,
+        );
+      const packages: Record<string, unknown> = {
+        '': {
+          name: 'moldea-semantic-fixture',
+          version: '0.0.0',
+          devDependencies: { '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version },
+        },
+      };
+      for (const packageRoot of collectProductionPackageRoots(PUBLISHED_CLI_ROOT)) {
+        const lockPath = `node_modules/${relative(ROOT_NODE_MODULES, packageRoot).split(path.sep).join('/')}`;
+        if (!Object.hasOwn(sourceLock.packages, lockPath))
+          throw new Error(`Missing fixture dependency lock entry: ${lockPath}`);
+        packages[lockPath] = sourceLock.packages[lockPath];
+      }
       await writeScenarioFile(
         repositoryPath,
         'package-lock.json',
-        '{"lockfileVersion":3,"packages":{}}\n',
+        `${JSON.stringify({ name: 'moldea-semantic-fixture', version: '0.0.0', lockfileVersion: 3, packages }, null, 2)}\n`,
       );
       break;
+    }
     case 'repair-continuation-after-change':
       await seedContinuationOwners(repositoryPath, ['a', 'b', 'e', 'd', 'next']);
       break;
@@ -2284,7 +2308,8 @@ const applyScenarioWorkingTree = async (
       'repair-continuation-missing-owner-list',
     ].includes(caseDefinition.id)
   ) {
-    runScenarioGit(repositoryPath, ['tag', 'repair-checkpoint']);
+    if (caseDefinition.id !== 'repair-continuation-unavailable-commit')
+      runScenarioGit(repositoryPath, ['tag', 'repair-checkpoint']);
     await writeScenarioFile(repositoryPath, 'src/owner-b.js', "export const state = 'drifted';\n");
     return;
   }

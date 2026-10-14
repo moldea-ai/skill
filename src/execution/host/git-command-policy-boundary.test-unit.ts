@@ -37,7 +37,12 @@ test.each([
   [...status.slice(2)],
   [...diff, '--name-only', '--no-renames', 'HEAD', '--', 'src'],
   [...diff, '--name-only', 'HEAD', '--', '.'],
-  [...diff, 'HEAD..main', '--', 'moldea/moldea.yaml'],
+  ...['HEAD..main', 'HEAD^!', 'HEAD^-', 'HEAD^-2', 'HEAD^@', '^HEAD'].map((commit) => [
+    ...diff,
+    commit,
+    '--',
+    'moldea/moldea.yaml',
+  ]),
   [...diff, '--cached', '--', 'moldea/moldea.yaml'],
   [...diff, 'HEAD', '--', 'moldea/moldea.yaml', 'src/a.js'],
   [...diff, 'HEAD', 'moldea/moldea.yaml'],

@@ -1021,8 +1021,57 @@ test.each([
   'sort --compress-prog=git README.md',
   'file -z data.gz',
   'tsc --noEmit',
+  'env PATH=/mnt/bin git status --short',
+  '! ! node inspect.js',
+  'cat $(git log -p)',
+  'rg --pre=git pattern moldea/project.md',
+  'rg pattern *',
+  'sed -n "1e git log -p" README.md',
+  './cat README.md',
+  'g* log -p',
 ])('does not infer repair Git compliance from opaque execution %s', (command) => {
   assert.ok(projectRepairGitCommandEvidence(command).unverifiedCount > 0);
+});
+
+test.each([
+  'nl -ba moldea/project.md',
+  'cat moldea/context/*.md',
+  'cat moldea/context/[ab]?.md',
+  '/usr/bin/cat moldea/context/*.md',
+  'wc -l moldea/context/*.md',
+  'ls moldea && cat moldea/moldea.yaml',
+  'test -f moldea/project.md || nl -ba moldea/project.md',
+  'sed -n "1,80p" moldea/project.md',
+])('does not require Git evidence for passive inspection %s', (command) => {
+  assert.deepEqual(projectRepairGitCommandEvidence(command), {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+  });
+});
+
+test.each([
+  '! ! ',
+  'env GIT_ATTR_NOSYSTEM=1 env GIT_ATTR_NOSYSTEM=1 ',
+  'GIT_ATTR_NOSYSTEM=1 GIT_ATTR_NOSYSTEM=1 ',
+  '! /usr/bin/env -- GIT_ATTR_NOSYSTEM=1 /bin/env GIT_ATTR_NOSYSTEM=1 ',
+])('classifies Git through repeated static wrappers %s', (prefix) => {
+  const status = [
+    'git',
+    ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+    '--untracked-files=all',
+    '--branch',
+  ].join(' ');
+  assert.deepEqual(projectRepairGitCommandEvidence(`${prefix}${status}`), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`${prefix}git log -p`), {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+  });
 });
 
 test('excludes only exact installed helpers from actor-issued repair Git', () => {

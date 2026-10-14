@@ -92,7 +92,7 @@ export const scriptedJourney = defineScriptedJourney({
         {
           kind: 'content-matches',
           path: 'AGENTS.md',
-          pattern: 'This project uses moldea for project context\\.',
+          pattern: 'When installed in this repository, moldea provides project context\\.',
         },
         {
           kind: 'content-matches',

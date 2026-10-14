@@ -6,7 +6,7 @@ export const semanticCase = defineSemanticCase({
   id: 'initialize-readme-package-manager',
   setup: createSemanticCaseSetup('initialize-readme-package-manager'),
   scenario:
-    'README npm guidance establishes the manager without a packageManager field or lockfile.',
+    'A repository with healthy CLI tooling and explicit README npm guidance lacks a packageManager field and lockfile.',
   operation: 'initialize',
   input: {
     developerDirection:
@@ -30,9 +30,9 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
-      label: 'use-explicit-readme-manager',
+      label: 'grounded-initialization',
       criterion:
-        'The actor uses the explicit README guidance \u201cUse npm\u201d as manager evidence despite the absent packageManager field and lockfile, creates the minimum grounded foundation without a redundant manager question, and records successful launcher-backed validation.',
+        'The actor creates the minimum grounded foundation without a redundant manager question and records successful launcher-backed validation. A package-manager statement is optional because compatible tooling is already installed.',
     },
   ],
   forbidden: [

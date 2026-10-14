@@ -1,8 +1,13 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
-import { projectCodexEvaluationExecutionEvidence } from '../../execution/host/index.ts';
+import {
+  CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+  projectCodexEvaluationExecutionEvidence,
+} from '../../execution/host/index.ts';
 import { defineSemanticCase } from '../cases/index.ts';
+
+import { projectActorExecutionEvidenceEvent } from './actor-evidence.ts';
 import {
   createSemanticResultDimensions,
   getSemanticFailureClassifications,
@@ -39,6 +44,60 @@ const resourceEvidence = {
   operations: [],
   stdoutByteCount: 0,
 };
+
+test.each([
+  ['&&', 'approved', true],
+  ['||', 'approved', true],
+  ['&&', 'prohibited', false],
+  ['||', 'prohibited', false],
+  ['&&', 'opaque', false],
+  ['||', 'opaque', false],
+] as const)(
+  'grades submitted %s Git syntax with a %s branch -> %s',
+  (separator, branch, passing) => {
+    const status = [
+      'git',
+      ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+      '--untracked-files=all',
+      '--branch',
+    ].join(' ');
+    const secondCommand =
+      branch === 'approved' ? status : branch === 'prohibited' ? 'git log -p' : 'node inspect.js';
+    const event = {
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command: `${status} ${separator} ${secondCommand}`,
+        aggregated_output: '',
+        exit_code: 1,
+        status: 'failed',
+      },
+    };
+    const evidence = projectActorExecutionEvidenceEvent(event, {
+      cliVersion: '11.0.2',
+      jsonSchemaVersion: 7,
+    });
+    if (evidence === null) throw new Error('A completed command must produce actor evidence.');
+    const dimensions = createSemanticResultDimensions({
+      actorCommandPolicy: projectCodexEvaluationExecutionEvidence(JSON.stringify(event))
+        .commandPolicy,
+      actorExecutionEvidence: [evidence],
+      actorResourceEvidence: resourceEvidence,
+      caseDefinition: {
+        ...caseDefinition,
+        expected: [
+          { label: 'approved-repair-git', criterion: 'Require compliant submitted Git syntax.' },
+        ],
+      },
+      isMountIntegrityPassing: true,
+      isRepositoryControlPassing: true,
+      isSemanticPassing: true,
+      judgeCommandPolicy: commandPolicy,
+    });
+    expect(dimensions.commandPolicy).toBe(passing);
+    expect(hasPassingSemanticResultDimensions(dimensions)).toBe(passing);
+  },
+);
 
 describe('semantic result dimensions', () => {
   test('selects the large-traversal host-output limit for explicit repair cases', () => {

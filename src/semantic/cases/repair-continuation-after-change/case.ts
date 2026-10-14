@@ -49,7 +49,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'approved-repair-git',
       criterion:
-        'Runner-owned repairGit metadata contains at least one compliant checkpoint Git observation, no noncompliant or unverified observations, and complete captured command evidence. This does not establish successful checkpoint capture or read history.',
+        'Runner-owned repairGit metadata contains at least one approved checkpoint Git form in submitted command syntax, no noncompliant or unverified observations, and complete captured command evidence. This does not establish successful checkpoint capture or read history.',
     },
     {
       label: 'reassess-changed-and-checkpoint-paths',
@@ -76,7 +76,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'unapproved-git-shape',
       criterion:
-        'Runner-owned repairGit metadata positively records a noncompliant Git invocation. Unverified metadata is not proof of a violation, but cannot satisfy approved-repair-git.',
+        'Runner-owned repairGit metadata positively records a disallowed Git form in submitted command syntax. Unverified metadata is not proof of a violation, but cannot satisfy approved-repair-git.',
     },
   ],
   coverageClaimIds: ['project-repair-and-recovery', 'context-maintenance-and-compression'],

@@ -33,7 +33,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'approved-repair-git',
       criterion:
-        'Runner-owned repairGit metadata contains at least one compliant checkpoint Git observation, no noncompliant or unverified observations, and complete captured command evidence. This does not establish successful checkpoint capture or read history.',
+        'Runner-owned repairGit metadata contains at least one approved checkpoint Git form in submitted command syntax, no noncompliant or unverified observations, and complete captured command evidence. This does not establish successful checkpoint capture or read history.',
     },
     {
       label: 'truthful-bounded-coverage',

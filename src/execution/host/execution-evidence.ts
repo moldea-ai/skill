@@ -362,9 +362,8 @@ const stripSafeShellRedirections = (command: string): string =>
 const parseStaticShellList = (
   command: string,
   allowPassiveReadGlobs = false,
-): { commands: string[][]; hasConditionalExecution: boolean } | null => {
+): { commands: string[][] } | null => {
   const commands: string[][] = [[]];
-  let hasConditionalExecution = false;
   let requiresFollowingCommand = false;
   let currentWord = '';
   let hasCurrentWord = false;
@@ -490,8 +489,6 @@ const parseStaticShellList = (
     }
     if (character === ';' || character === '|' || character === '&') {
       requiresFollowingCommand = character === '|' || (character === '&' && nextCharacter === '&');
-      if (character === '&' || (character === '|' && nextCharacter === '|'))
-        hasConditionalExecution = true;
       if (!pushCommand()) return null;
       if (nextCharacter === character) index += 1;
       continue;
@@ -506,7 +503,7 @@ const parseStaticShellList = (
     if (requiresFollowingCommand) return null;
     commands.pop();
   }
-  return commands.length > 0 ? { commands, hasConditionalExecution } : null;
+  return commands.length > 0 ? { commands } : null;
 };
 
 /** Locates the executable token in a static command and its trusted env wrapper. */
@@ -1160,8 +1157,7 @@ export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCom
     const words = originalWords.slice(executableIndex);
     const executable = getExecutableName(words[0] ?? '');
     if (executable === 'git') {
-      if (parsed.hasConditionalExecution || !isTrustedGitExecutable(words[0]))
-        evidence.unverifiedCount++;
+      if (!isTrustedGitExecutable(words[0])) evidence.unverifiedCount++;
       else if (isApprovedRepairGitArguments(words.slice(1))) evidence.compliantCount++;
       else evidence.noncompliantCount++;
       continue;

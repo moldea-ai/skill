@@ -969,7 +969,7 @@ test('recognizes only closed installed AGENTS helper operations', () => {
   );
 });
 
-test('projects complete repair Git syntax and preserves compound-command uncertainty', () => {
+test('projects complete repair Git syntax and rejects incomplete shell lists', () => {
   const status = [
     'git',
     ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
@@ -1000,14 +1000,54 @@ test('projects complete repair Git syntax and preserves compound-command uncerta
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`false && git status --short`), {
     compliantCount: 0,
-    noncompliantCount: 0,
-    unverifiedCount: 1,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`/bin/bash -lc '${status}'`), {
     compliantCount: 1,
     noncompliantCount: 0,
     unverifiedCount: 0,
   });
+});
+
+test.each(['&&', '||', ';', '|', '&', '\n'])(
+  'classifies each submitted Git form in a static %s list',
+  (separator) => {
+    const status = [
+      'git',
+      ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+      '--untracked-files=all',
+      '--branch',
+    ].join(' ');
+    const diff = [
+      'git',
+      ...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.slice(0, -1),
+      '--name-only',
+      '--no-renames',
+      'HEAD',
+      '--',
+      '.',
+    ].join(' ');
+    assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} ${diff}`), {
+      compliantCount: 2,
+      noncompliantCount: 0,
+      unverifiedCount: 0,
+    });
+    assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} git log -p`), {
+      compliantCount: 1,
+      noncompliantCount: 1,
+      unverifiedCount: 0,
+    });
+    assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} node inspect.js`), {
+      compliantCount: 1,
+      noncompliantCount: 0,
+      unverifiedCount: 1,
+    });
+  },
+);
+
+test.each(['&&', '||', '|'])('does not certify an incomplete %s list', (separator) => {
+  assert.equal(projectRepairGitCommandEvidence(`cat README.md ${separator}`).unverifiedCount, 1);
 });
 
 test.each([

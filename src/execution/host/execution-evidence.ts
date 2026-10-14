@@ -170,7 +170,7 @@ const REPAIR_PASSIVE_EXECUTABLES = new Set([
   ),
   'nl',
 ]);
-// rg globs could expand to an execution-capable --pre option
+// rg globs without a path prefix could expand to an execution-capable --pre option
 const REPAIR_GLOB_READ_EXECUTABLES = new Set(
   [...REPAIR_PASSIVE_EXECUTABLES].filter((executable) => executable !== 'rg'),
 );
@@ -429,7 +429,8 @@ const parseStaticShellList = (
     const readExecutable = getExecutableName(executableWord ?? '');
     const canUseReadGlob =
       allowPassiveReadGlobs &&
-      REPAIR_GLOB_READ_EXECUTABLES.has(readExecutable) &&
+      (REPAIR_GLOB_READ_EXECUTABLES.has(readExecutable) ||
+        (readExecutable === 'rg' && currentWord.includes('/') && !currentWord.startsWith('-'))) &&
       isTrustedLocalExecutable(executableWord, readExecutable);
     if ((character === '*' || character === '?') && !canUseReadGlob) return null;
     if (character === '[') {
@@ -1178,7 +1179,13 @@ export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCom
         !(executable === 'rg' && words.some((word) => /^--pre(?:=|$)/u.test(word)))) ||
       (executable === 'sed' &&
         isTrustedLocalExecutable(words[0], executable) &&
-        isSafeSedInspectionCommand(words));
+        isSafeSedInspectionCommand(words)) ||
+      (executable === 'find' &&
+        isTrustedLocalExecutable(words[0], executable) &&
+        !words.some((word) => /^-(?:exec|execdir|ok|okdir)$/u.test(word))) ||
+      (executable === 'sort' &&
+        isTrustedLocalExecutable(words[0], executable) &&
+        !words.some((word) => word.startsWith('--c')));
     if (
       !isInstalledOperation &&
       !canInspectWithoutExecution &&

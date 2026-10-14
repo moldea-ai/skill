@@ -1029,6 +1029,10 @@ test.each([
   'sed -n "1e git log -p" README.md',
   './cat README.md',
   'g* log -p',
+  'find moldea *',
+  'find moldea -okdir git status --short ;',
+  'sort *',
+  'sort --comp=git moldea/project.md',
 ])('does not infer repair Git compliance from opaque execution %s', (command) => {
   assert.ok(projectRepairGitCommandEvidence(command).unverifiedCount > 0);
 });
@@ -1039,6 +1043,10 @@ test.each([
   'cat moldea/context/[ab]?.md',
   '/usr/bin/cat moldea/context/*.md',
   'wc -l moldea/context/*.md',
+  'find moldea -type f',
+  "find moldea -name '*.md'",
+  'rg --files moldea | sort',
+  'rg -n policy moldea/context/*.md',
   'ls moldea && cat moldea/moldea.yaml',
   'test -f moldea/project.md || nl -ba moldea/project.md',
   'sed -n "1,80p" moldea/project.md',

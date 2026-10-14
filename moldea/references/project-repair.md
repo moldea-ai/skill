@@ -69,8 +69,10 @@ For every Git read in this procedure, use the repository-configured-helper-disab
 diff --no-ext-diff --no-textconv --ignore-submodules=all --name-only --no-renames <commit> -- .
 diff --no-ext-diff --no-textconv --ignore-submodules=all HEAD -- moldea/moldea.yaml
 diff --no-ext-diff --no-textconv --ignore-submodules=all <commit> -- moldea/moldea.yaml
-status --porcelain=v2 -z --ignore-submodules=all --untracked-files=all
+status --porcelain=v2 -z --ignore-submodules=all --untracked-files=all --branch
 ```
+
+Capture the full checkpoint commit from the successful status result's `branch.oid` header, keeping branch headers separate from its NUL-delimited path records. A missing or unusable header, `(initial)` in a repository without an initial commit, or failed or incomplete output means the commit is unavailable; report that limitation instead of inventing an identity. The conservative continuation rule below still applies.
 
 A later `Fix moldea` that names the continuation point runs a fresh `inspect`. Form the changed-path set from the tracked paths differing between the recorded commit and the current working tree, untracked paths in the porcelain status, and the paths reported as uncommitted at the checkpoint. `--no-renames` includes both names of a rename; comparing the commit with the working tree includes merge-resolution changes and excludes changes later undone. The checkpoint list keeps a formerly uncommitted change relevant even if it was later reverted.
 

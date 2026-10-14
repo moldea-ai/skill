@@ -1,7 +1,15 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'vitest';
@@ -39,6 +47,81 @@ const runWrappedGit = (
     encoding: 'utf8',
     env: { ...process.env, GIT_ATTR_NOSYSTEM: '1' },
   });
+
+test.each(['unborn', 'committed', 'detached'] as const)(
+  'checkpoint status captures %s identity and NUL-delimited paths without mutation',
+  async (state) => {
+    const testRoot = mkdtempSync(join(tmpdir(), 'moldea-git-checkpoint-'));
+    const repositoryPath = join(testRoot, 'repository');
+
+    try {
+      mkdirSync(repositoryPath);
+      runSystemGit(repositoryPath, ['init', '--quiet', '--initial-branch=main']);
+      const sourcePath = join(repositoryPath, 'project-state.js');
+      writeFileSync(sourcePath, 'export const state = "clean";\n');
+      let expectedOid = '(initial)';
+      if (state !== 'unborn') {
+        runSystemGit(repositoryPath, ['add', '--', 'project-state.js']);
+        runSystemGit(repositoryPath, [
+          '-c',
+          'user.name=moldea evaluation',
+          '-c',
+          'user.email=evaluation@invalid.example',
+          'commit',
+          '--quiet',
+          '-m',
+          'test: initialize checkpoint fixture',
+        ]);
+        const identity = spawnSync('/usr/bin/git', ['rev-parse', 'HEAD'], {
+          cwd: repositoryPath,
+          encoding: 'utf8',
+        });
+        assert.equal(identity.status, 0, identity.stderr);
+        expectedOid = identity.stdout.trim();
+        if (state === 'detached')
+          runSystemGit(repositoryPath, ['checkout', '--quiet', '--detach', expectedOid]);
+      }
+      const untrackedPath = join(repositoryPath, 'untracked-file.js');
+      writeFileSync(untrackedPath, 'export const untracked = true;\n');
+      const monitorPath = join(repositoryPath, 'git-fsmonitor.sh');
+      const monitorSentinelPath = join(repositoryPath, 'git-fsmonitor-ran.txt');
+      writeFileSync(monitorPath, '#!/bin/sh\nprintf executed > git-fsmonitor-ran.txt\n');
+      chmodSync(monitorPath, 0o755);
+      runSystemGit(repositoryPath, ['config', 'core.fsmonitor', './git-fsmonitor.sh']);
+      const preservedPaths = [
+        sourcePath,
+        untrackedPath,
+        monitorPath,
+        join(repositoryPath, '.git', 'HEAD'),
+        join(repositoryPath, '.git', 'config'),
+        join(repositoryPath, '.git', 'index'),
+      ];
+      const before = preservedPaths.map((path) => (existsSync(path) ? readFileSync(path) : null));
+      const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'));
+      const result = runWrappedGit(wrapperPath, repositoryPath, [
+        ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+        '--untracked-files=all',
+        '--branch',
+      ]);
+
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(result.stderr, '');
+      const records = result.stdout.split('\0');
+      assert.ok(records.includes(`# branch.oid ${expectedOid}`));
+      assert.ok(records.includes(`# branch.head ${state === 'detached' ? '(detached)' : 'main'}`));
+      assert.ok(records.includes('? untracked-file.js'));
+      assert.equal(records.at(-1), '');
+      assert.equal(existsSync(monitorSentinelPath), false);
+      assert.deepEqual(
+        preservedPaths.map((path) => (existsSync(path) ? readFileSync(path) : null)),
+        before,
+      );
+      assert.equal(existsSync(join(repositoryPath, '.git', 'index.lock')), false);
+    } finally {
+      rmSync(testRoot, { force: true, recursive: true });
+    }
+  },
+);
 
 test('Git command-policy boundary suppresses helpers and refuses filter attributes', async () => {
   const testRoot = mkdtempSync(join(tmpdir(), 'moldea-git-command-policy-test-'));
@@ -185,6 +268,15 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
     writeFileSync(attributesPath, '*.js filter=execution-trap\n', 'utf8');
     runSystemGit(repositoryPath, ['config', 'filter.execution-trap.clean', './git-filter.sh']);
     writeFileSync(join(repositoryPath, 'project-state.js'), 'export const state = "changed";\n');
+
+    const checkpointResult = runWrappedGit(wrapperPath, repositoryPath, [
+      ...statusArguments,
+      '--untracked-files=all',
+      '--branch',
+    ]);
+    assert.equal(checkpointResult.status, 2);
+    assert.match(checkpointResult.stderr, /repository attribute safety was not established/u);
+    assert.equal(existsSync(sentinelPath), false);
 
     const diffArguments = [...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX, 'project-state.js'];
     const blockedResult = runWrappedGit(wrapperPath, repositoryPath, diffArguments);

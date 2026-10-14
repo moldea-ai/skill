@@ -135,7 +135,6 @@ agents:
         path: /src/agents/support-agent.ts
         symbol: createSupportAgent
     affectedBy:
-      - /src/agents/support-agent.ts
       - /src/agents/support-agent.test-integration.ts
 ```
 

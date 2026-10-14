@@ -1141,3 +1141,72 @@ test('the missing-bridge fixture stays valid and hands off the exact installed b
   assert.equal(smoke.stdout, '0\n');
   assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
 });
+
+test.each([
+  ['lf', '\n'],
+  ['crlf', '\r\n'],
+])(
+  'stale bridge upgrade preserves canonical validity and outside bytes with %s',
+  async (_name, eol) => {
+    const { repositoryPath } = await materializeCase('integration-block-missing-handoff', true);
+    const installation = join(repositoryPath, '.agents', 'skills', 'moldea');
+    const helperPath = join(installation, 'scripts', 'managed-agents.mjs');
+    const currentBlock = readFileSync(
+      join(installation, 'assets', 'managed-agents-block.md'),
+      'utf8',
+    ).replaceAll('{{skill-path}}', '.agents/skills/moldea');
+    const prefix = `\uFEFF# Host instructions${eol}${eol}`;
+    const suffix = `${eol}Preserve these instructions.${eol}`;
+    const staleBlock = currentBlock.replace(
+      '<!-- moldea:end -->',
+      'Legacy routing instructions.\n<!-- moldea:end -->',
+    );
+    const agentsPath = join(repositoryPath, 'AGENTS.md');
+    writeFileSync(agentsPath, prefix + staleBlock.replaceAll('\n', eol) + suffix);
+    const before = await snapshotSemanticWorkspace(repositoryPath);
+    const staleValidation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+      result: {
+        valid: boolean;
+        warningCount: number;
+        page: { records: Array<{ code?: string; acceptable?: boolean }> };
+      };
+    };
+    assert.equal(staleValidation.result.valid, true);
+    assert.equal(staleValidation.result.warningCount, 1);
+    assert.ok(
+      staleValidation.result.page.records.some(
+        ({ code, acceptable }) => code === 'MOLDEA_INTEGRATION_BLOCK_STALE' && acceptable,
+      ),
+    );
+    const printed = spawnSync(
+      process.execPath,
+      [helperPath, '--repository', repositoryPath, '--print'],
+      { encoding: 'utf8', timeout: 15_000 },
+    );
+    assert.ifError(printed.error);
+    assert.equal(printed.status, 0, printed.stderr);
+    assert.equal(printed.stdout, currentBlock);
+    assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
+
+    const updated = spawnSync(process.execPath, [helperPath, '--repository', repositoryPath], {
+      encoding: 'utf8',
+      timeout: 15_000,
+    });
+    assert.ifError(updated.error);
+    assert.equal(updated.status, 0, updated.stderr);
+    assert.equal(updated.stdout, 'updated\n');
+    assert.equal(
+      readFileSync(agentsPath, 'utf8'),
+      prefix + currentBlock.replaceAll('\n', eol) + suffix,
+    );
+    const expected = new Map(before);
+    const after = await snapshotSemanticWorkspace(repositoryPath);
+    expected.set('AGENTS.md', after.get('AGENTS.md')!);
+    assert.deepEqual(after, expected);
+    const currentValidation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+      result: { valid: boolean; warningCount: number };
+    };
+    assert.equal(currentValidation.result.valid, true);
+    assert.equal(currentValidation.result.warningCount, 0);
+  },
+);

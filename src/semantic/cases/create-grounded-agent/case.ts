@@ -45,7 +45,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'binds-implementation',
       criterion:
-        'The order-triage manifest entry binds /src/order-triage-agent.ts at createOrderTriageAgent and declares that material affected path.',
+        'The order-triage manifest entry binds /src/order-triage-agent.ts at createOrderTriageAgent without duplicating that bound file as an exact affectedBy entry for the same agent.',
     },
     {
       label: 'defines-runtime-guidance',

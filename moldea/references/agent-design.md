@@ -58,6 +58,8 @@ Use only properties supported by repository format version `1` under the active 
 
 Use the established version `1` shapes directly instead of guessing alternate nesting or logical paths. Runtime guidance is a root-owned Markdown asset under `/moldea/runtimes/`; an agent references it from `runtime.guidance`, binds the real invocation from `bindings.runtimeAgent`, and declares material source impact through `affectedBy`. The example uses `custom` only for an integration already established as Custom; complete runtime selection before applying it.
 
+This example assumes an inspected instruction loader, input/output schemas, and an order-lookup tool with real implementation and registration exports. Omit optional entries that the target implementation does not establish; never create bindings or capabilities merely to match the example. Registration alone does not prove runtime consumption, schema attachment, or tool availability.
+
 ```yaml
 version: 1
 agents:
@@ -69,6 +71,28 @@ agents:
       runtimeAgent:
         path: /src/order-triage-agent.ts
         symbol: createOrderTriageAgent
+      instructionLoader:
+        path: /src/order-triage-instructions.ts
+        symbol: loadOrderTriageInstruction
+      inputSchema:
+        path: /src/order-contracts.ts
+        symbol: OrderTriageInputSchema
+      outputSchema:
+        path: /src/order-contracts.ts
+        symbol: OrderTriageOutputSchema
+    tools:
+      lookup-order:
+        name: lookup_order
+        description: Looks up an order for human-review classification.
+        implementation:
+          path: /src/order-lookup.ts
+          symbol: lookupOrder
+        registration:
+          path: /src/order-lookup.ts
+          symbol: lookupOrderTool
+        inputSchema:
+          path: /src/order-contracts.ts
+          symbol: OrderLookupInputSchema
     affectedBy:
       - /src/order-triage-policy/**
 ```
@@ -96,7 +120,7 @@ agents:
 
 Apply `relationships.md` to every owner kind. Register only evidenced material paths and symbols that the current format represents; bindings establish relevance without a duplicate exact `affectedBy` entry.
 
-An exact `affectedBy` path must resolve to a regular file, such as `/src/order-triage-agent.ts`. Express a coherent subtree with a supported glob, such as `/src/order-triage-policy/**`. Neither `/src/order-triage-policy` nor `/src/order-triage-policy/` expresses subtree impact: removing a trailing slash does not turn a directory into a file. Choose exact files or a subtree from the inspected behavioral ownership; do not broaden everything to `/src/**`. Binding paths, mirrors, and `related` path records keep their exact-path contracts.
+An exact `affectedBy` path must resolve to a regular file, such as `/src/order-triage-policy/rules.ts`. Express a coherent subtree with a supported glob, such as `/src/order-triage-policy/**`. Neither `/src/order-triage-policy` nor `/src/order-triage-policy/` expresses subtree impact: removing a trailing slash does not turn a directory into a file. Choose exact files or a subtree from the inspected behavioral ownership; do not broaden everything to `/src/**`. Binding paths, mirrors, and `related` path records keep their exact-path contracts.
 
 When a relationship diagnostic appears, establish the field's full syntax and target-type requirements before repairing all equivalent defects in the affected change set. Preserve material relationships and unrelated declarations; never fabricate files or remove relationships merely to pass validation. Follow the entrypoint's supported recovery rule when validation reveals another defect.
 

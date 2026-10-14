@@ -6,7 +6,7 @@ node "<repo-root>/{{skill-path}}/scripts/relevance-gate.mjs" --repository "<repo
 
 <repo-root> is the absolute repository root. Pass file paths relative to that root, even from a subdirectory. Use only already-known paths; do not scan or run Git for this. With no known paths, skip this precheck.
 
-- Output 1: read <repo-root>/{{skill-path}}/SKILL.md; retain the checked paths and result.
+- Output 1: read <repo-root>/{{skill-path}}/SKILL.md unless its complete unchanged instructions are already available; retain the checked paths and result.
 - Output 0 or an error: continue without moldea and do not mention it.
 
 If the task involves new files later, check only that new batch once before acting. Reuse unchanged results.

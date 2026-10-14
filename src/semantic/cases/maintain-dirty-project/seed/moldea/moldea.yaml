@@ -8,5 +8,3 @@ agents:
       runtimeAgent:
         path: /src/support-agent.ts
         symbol: supportAgent
-    affectedBy:
-      - /src/**

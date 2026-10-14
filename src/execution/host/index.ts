@@ -20,6 +20,7 @@ export type {
   ICodexEvaluationWorkspaceAccess,
   IMoldeaCliOperation,
   IRepositoryTestCommandKind,
+  IRepairGitCommandEvidence,
 } from './types.ts';
 
 // constants
@@ -69,6 +70,7 @@ export {
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
+  projectRepairGitCommandEvidence,
 } from './execution-evidence.ts';
 
 // Git command-policy boundary
@@ -76,6 +78,7 @@ export {
   CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
   CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
   prepareGitCommandPolicyBoundary,
+  isApprovedRepairGitArguments,
 } from './git-command-policy-boundary.ts';
 
 // restricted proxy

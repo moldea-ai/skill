@@ -537,6 +537,7 @@ const runSemanticTrial = async (options: {
       const assessment = assessSemanticJudgeOutput(options.caseDefinition, judgeEvidence.response);
       const dimensions = createSemanticResultDimensions({
         actorCommandPolicy: actorEvidence.commandPolicyEvidence,
+        actorExecutionEvidence: actorEvidence.actorExecutionEvidence,
         actorResourceEvidence: actorEvidence.actorResourceEvidence,
         caseDefinition: options.caseDefinition,
         isMountIntegrityPassing: actorEvidence.isMountIntegrityPassing,
@@ -563,7 +564,9 @@ const runSemanticTrial = async (options: {
         kind: options.confirmationIndex === null ? 'initial' : 'confirmation',
         observed: assessment.observed,
         passed: hasPassingSemanticResultDimensions(dimensions),
-        rationale: assessment.rationale,
+        rationale: dimensions.commandPolicy
+          ? assessment.rationale
+          : `${assessment.rationale} Deterministic command-policy evidence did not pass; repair Git requires complete compliant observations when applicable.`,
         stageReuse: null,
       };
       const recordedTrial: ISemanticRecordedTrial = {

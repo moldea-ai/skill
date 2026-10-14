@@ -12,6 +12,7 @@ import {
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
+  projectRepairGitCommandEvidence,
 } from './execution-evidence.ts';
 import {
   CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
@@ -965,5 +966,78 @@ test('recognizes only closed installed AGENTS helper operations', () => {
   assert.equal(
     identifyMoldeaManagedAgentsMode(helper.replace('/mnt/.agents', '/other/.agents')),
     null,
+  );
+});
+
+test('projects complete repair Git syntax and preserves compound-command uncertainty', () => {
+  const status = [
+    'git',
+    ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+    '--untracked-files=all',
+    '--branch',
+  ].join(' ');
+  assert.deepEqual(projectRepairGitCommandEvidence(status), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+  });
+  assert.equal(projectRepairGitCommandEvidence(`${status} |`).unverifiedCount, 1);
+  assert.equal(projectRepairGitCommandEvidence(`${status} # note`).unverifiedCount, 1);
+  assert.deepEqual(projectRepairGitCommandEvidence(status.replaceAll(' ', ' \\\n')), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`${status}; git status --short`), {
+    compliantCount: 1,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`cat README.md; ${status}`), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`false && git status --short`), {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 1,
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`/bin/bash -lc '${status}'`), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+  });
+});
+
+test.each([
+  "node -e \"require('node:child_process').execSync('git status')\"",
+  'node --test src/connection.test-integration.js',
+  'python3 inspect.py',
+  '/usr/bin/git status --short',
+  'git status "$OPTIONS"',
+  'find . -exec git status --short ;',
+  'sort --compress-program=git README.md',
+  'sort --compress-prog=git README.md',
+  'file -z data.gz',
+  'tsc --noEmit',
+])('does not infer repair Git compliance from opaque execution %s', (command) => {
+  assert.ok(projectRepairGitCommandEvidence(command).unverifiedCount > 0);
+});
+
+test('excludes only exact installed helpers from actor-issued repair Git', () => {
+  for (const command of [
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536',
+    'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt',
+    'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt --print',
+  ])
+    assert.deepEqual(projectRepairGitCommandEvidence(command), {
+      compliantCount: 0,
+      noncompliantCount: 0,
+      unverifiedCount: 0,
+    });
+  assert.equal(
+    projectRepairGitCommandEvidence('node src/moldea-cli.mjs -- inspect').unverifiedCount,
+    1,
   );
 });

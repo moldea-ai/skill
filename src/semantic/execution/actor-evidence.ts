@@ -4,6 +4,7 @@ import {
   identifyMoldeaManagedAgentsMode,
   identifyRepositoryTestCommandKind,
   isMoldeaManagedReadmeWriterCommand,
+  projectRepairGitCommandEvidence,
 } from '../../execution/host/index.ts';
 import type {
   IMoldeaCliOperation,
@@ -619,6 +620,31 @@ const hasValidOutputEvidence = (
   );
 };
 
+const hasValidRepairGitEvidence = (evidence: unknown): boolean => {
+  if (
+    !isPlainRecord(evidence) ||
+    !hasExactKeys(evidence, ['compliantCount', 'noncompliantCount', 'unverifiedCount'])
+  )
+    return false;
+  const counts = Object.values(evidence);
+  if (!counts.every(isNonnegativeSafeInteger)) return false;
+  return (
+    counts.reduce((total, count) => total + count, 0) <=
+    MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCommandTextBytes
+  );
+};
+
+/** Requires positive, complete repair Git observations for cases that declare the machine criterion. */
+export const hasPassingRepairGitEvidence = (
+  executionEvidence: ISemanticActorExecutionEvidence[],
+): boolean =>
+  executionEvidence.every(
+    ({ item }) =>
+      hasValidRepairGitEvidence(item.repairGit) &&
+      item.repairGit.noncompliantCount === 0 &&
+      item.repairGit.unverifiedCount === 0,
+  ) && executionEvidence.some(({ item }) => item.repairGit.compliantCount > 0);
+
 const hasValidEntry = (
   entry: unknown,
   options: ISemanticActorExecutionEvidenceOptions,
@@ -628,12 +654,20 @@ const hasValidEntry = (
     !hasExactKeys(entry, ['eventType', 'item']) ||
     entry['eventType'] !== 'item.completed' ||
     !isPlainRecord(entry['item']) ||
-    !hasExactKeys(entry['item'], ['commandKind', 'exitCode', 'outputEvidence', 'status', 'type'])
+    !hasExactKeys(entry['item'], [
+      'commandKind',
+      'exitCode',
+      'outputEvidence',
+      'repairGit',
+      'status',
+      'type',
+    ])
   ) {
     return false;
   }
-  const { commandKind, exitCode, outputEvidence, status, type } = entry['item'];
+  const { commandKind, exitCode, outputEvidence, repairGit, status, type } = entry['item'];
   return (
+    hasValidRepairGitEvidence(repairGit) &&
     isCommandKind(commandKind) &&
     isCommandCompletedStatus(status) &&
     typeof exitCode === 'number' &&
@@ -689,6 +723,7 @@ export const projectActorExecutionEvidenceEvent = (
     item: {
       commandKind: operation === null ? 'other' : 'moldea',
       exitCode,
+      repairGit: projectRepairGitCommandEvidence(command),
       outputEvidence: createOutputEvidence(
         aggregatedOutput,
         operation,

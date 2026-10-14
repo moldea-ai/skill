@@ -149,3 +149,10 @@ export interface ICodexEvaluationOperationalStageOptions<T> {
   signal?: AbortSignal;
   wait?: (delayMs: number, signal?: AbortSignal) => Promise<void>;
 }
+
+// bounded repair Git observations from one captured command, without its text
+export interface IRepairGitCommandEvidence {
+  compliantCount: number;
+  noncompliantCount: number;
+  unverifiedCount: number;
+}

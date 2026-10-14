@@ -40,6 +40,60 @@ export const CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX = Object.freeze([
   '--',
 ]);
 
+/** Checks the complete hardened argument contract for a repair checkpoint Git read. */
+export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): boolean => {
+  const configurations = new Set<string>();
+  let index = 0;
+  while (argumentsList[index] === '-c') {
+    const configuration = argumentsList[index + 1];
+    if (configuration === undefined || configurations.has(configuration)) return false;
+    configurations.add(configuration);
+    index += 2;
+  }
+  if (argumentsList[index++] !== '--no-pager') return false;
+  const command = argumentsList[index];
+  const expectedConfigurations =
+    command === 'diff'
+      ? [...HARDENED_GIT_COMMON_CONFIGURATIONS, HARDENED_GIT_DIFF_CONFIGURATION]
+      : HARDENED_GIT_COMMON_CONFIGURATIONS;
+  if (
+    configurations.size !== expectedConfigurations.length ||
+    !expectedConfigurations.every((configuration) => configurations.has(configuration))
+  )
+    return false;
+  const shape = argumentsList.slice(index);
+  if (command === 'status') {
+    const expected = [
+      'status',
+      '--porcelain=v2',
+      '-z',
+      '--ignore-submodules=all',
+      '--untracked-files=all',
+      '--branch',
+    ];
+    return (
+      shape.length === expected.length &&
+      shape.every((argument, position) => argument === expected[position])
+    );
+  }
+  const prefix = ['diff', '--no-ext-diff', '--no-textconv', '--ignore-submodules=all'];
+  if (!prefix.every((argument, position) => shape[position] === argument)) return false;
+  const tail = shape.slice(prefix.length);
+  const isChangedPaths = tail[0] === '--name-only' && tail[1] === '--no-renames';
+  const remainder = isChangedPaths ? tail.slice(2) : tail;
+  const [commit, separator, path] = remainder;
+  return (
+    remainder.length === 3 &&
+    commit !== undefined &&
+    commit.length > 0 &&
+    !commit.startsWith('-') &&
+    !/[\s\0]/u.test(commit) &&
+    !commit.includes('..') &&
+    separator === '--' &&
+    path === (isChangedPaths ? '.' : 'moldea/moldea.yaml')
+  );
+};
+
 /**
  * Validates evaluator-owned workspace paths that the sandbox mounts read-only.
  * @param workspacePaths The relative paths that cannot contain actor-authored attributes.

@@ -61,7 +61,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'removes-orphaned-assets',
       criterion:
-        'The obsolete support description, instruction, sole /moldea/runtimes/custom.md, src/support-agent.test.mjs, and the package.json test script targeting that test are removed together; obsolete README prose is removed, while the removed source is not recreated.',
+        'The obsolete support description, instruction, sole /moldea/runtimes/custom.md, src/support-agent.test-integration.ts, and the package.json test script targeting that test are removed together; obsolete README prose is removed, while the removed source is not recreated.',
     },
     {
       label: 'preserves-surviving-context',

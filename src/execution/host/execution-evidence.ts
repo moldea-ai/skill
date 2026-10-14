@@ -2,6 +2,8 @@ import { posix } from 'node:path';
 
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
+import { isApprovedRepairGitArguments } from './git-command-policy-boundary.ts';
+
 import type {
   ICodexEvaluationCommandPolicyEvidence,
   ICodexEvaluationCommandPolicyReason,
@@ -10,6 +12,7 @@ import type {
   ICodexEvaluationExecutionEvidence,
   IMoldeaCliOperation,
   IRepositoryTestCommandKind,
+  IRepairGitCommandEvidence,
 } from './types.ts';
 
 type IPlainRecord = Record<string, unknown>;
@@ -344,8 +347,12 @@ const stripSafeShellRedirections = (command: string): string =>
   command.replace(/(^|\s)(?:[012]?>\/dev\/null|[12]>&[12])(?=$|\s)/gu, '$1');
 
 /** Splits a static shell list while rejecting syntax that can conceal execution. */
-const tokenizeStaticShellList = (command: string): string[][] | null => {
+const parseStaticShellList = (
+  command: string,
+): { commands: string[][]; hasConditionalExecution: boolean } | null => {
   const commands: string[][] = [[]];
+  let hasConditionalExecution = false;
+  let requiresFollowingCommand = false;
   let currentWord = '';
   let hasCurrentWord = false;
   let quote: "'" | '"' | null = null;
@@ -396,6 +403,10 @@ const tokenizeStaticShellList = (command: string): string[][] | null => {
     }
     if (character === '\\') {
       if (nextCharacter === undefined) return null;
+      if (nextCharacter === '\n') {
+        index += 1;
+        continue;
+      }
       currentWord += nextCharacter;
       hasCurrentWord = true;
       index += 1;
@@ -440,6 +451,7 @@ const tokenizeStaticShellList = (command: string): string[][] | null => {
     ) {
       return null;
     }
+    if (character === '#' && !hasCurrentWord) return null;
     if (/\s/u.test(character)) {
       if (character === '\n' && (hasCurrentWord || commands.at(-1)!.length > 0)) {
         if (!pushCommand()) return null;
@@ -447,6 +459,9 @@ const tokenizeStaticShellList = (command: string): string[][] | null => {
       continue;
     }
     if (character === ';' || character === '|' || character === '&') {
+      requiresFollowingCommand = character === '|' || (character === '&' && nextCharacter === '&');
+      if (character === '&' || (character === '|' && nextCharacter === '|'))
+        hasConditionalExecution = true;
       if (!pushCommand()) return null;
       if (nextCharacter === character) index += 1;
       continue;
@@ -457,8 +472,11 @@ const tokenizeStaticShellList = (command: string): string[][] | null => {
 
   if (quote !== null) return null;
   pushWord();
-  if (commands.at(-1)!.length === 0) commands.pop();
-  return commands.length > 0 ? commands : null;
+  if (commands.at(-1)!.length === 0) {
+    if (requiresFollowingCommand) return null;
+    commands.pop();
+  }
+  return commands.length > 0 ? { commands, hasConditionalExecution } : null;
 };
 
 /** Locates the executable token in a static command and its trusted env wrapper. */
@@ -709,7 +727,7 @@ const getStandaloneCommandWords = (command: unknown): readonly string[] | null =
   const commands =
     directCommand === null
       ? null
-      : tokenizeStaticShellList(stripSafeShellRedirections(directCommand));
+      : (parseStaticShellList(stripSafeShellRedirections(directCommand))?.commands ?? null);
   return commands?.length === 1 ? commands[0]! : null;
 };
 
@@ -883,7 +901,7 @@ export const identifyMoldeaCliLauncherOperation = (
   const commands =
     directCommand === null
       ? null
-      : tokenizeStaticShellList(stripSafeShellRedirections(directCommand));
+      : (parseStaticShellList(stripSafeShellRedirections(directCommand))?.commands ?? null);
   if (commands === null) return null;
   const operations = commands
     .map(identifyMoldeaCliLauncherOperationFromWords)
@@ -944,7 +962,8 @@ export const identifyRepositoryTestCommandKind = (
     return null;
   }
   const directCommand = unwrapCodexShellCommand(command);
-  const commands = directCommand === null ? null : tokenizeStaticShellList(directCommand);
+  const commands =
+    directCommand === null ? null : (parseStaticShellList(directCommand)?.commands ?? null);
   return commands?.length === 1 ? identifyRepositoryTestCommandKindFromWords(commands[0]!) : null;
 };
 
@@ -1082,6 +1101,56 @@ const classifyNetworkCommand = (
     : 'indeterminate';
 };
 
+/** Projects repair Git compliance without preserving command text or trusting opaque execution. */
+export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCommandEvidence => {
+  const evidence = { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0 };
+  const directCommand =
+    typeof command === 'string' && Buffer.byteLength(command, 'utf8') <= MAX_COMMAND_BYTES
+      ? unwrapCodexShellCommand(command)
+      : null;
+  const parsed =
+    directCommand === null ? null : parseStaticShellList(stripSafeShellRedirections(directCommand));
+  if (parsed === null || parsed.hasConditionalExecution) return { ...evidence, unverifiedCount: 1 };
+  for (const originalWords of parsed.commands) {
+    const words = [...originalWords];
+    if (words[0] === '!') words.shift();
+    if (['env', '/bin/env', '/usr/bin/env'].includes(words[0] ?? '')) {
+      words.shift();
+      if (words[0] === '--') words.shift();
+      if (words[0] !== 'GIT_ATTR_NOSYSTEM=1') {
+        evidence.unverifiedCount++;
+        continue;
+      }
+    }
+    if (words[0] === 'GIT_ATTR_NOSYSTEM=1') words.shift();
+    const executable = getExecutableName(words[0] ?? '');
+    if (executable === 'git') {
+      if (!isTrustedGitExecutable(words[0])) evidence.unverifiedCount++;
+      else if (isApprovedRepairGitArguments(words.slice(1))) evidence.compliantCount++;
+      else evidence.noncompliantCount++;
+      continue;
+    }
+    const isInstalledOperation =
+      isSafeMoldeaCliLauncherCommand(words) ||
+      isSafeRelevanceGateCommand(words) ||
+      isSafeManagedReadmeCommand(words) ||
+      getManagedAgentsMode(words) !== null ||
+      isSafeNodeVersionCommand(words) ||
+      isSafeNpmProbeCommand(words);
+    const canInspectWithoutExecution =
+      !['tsc', 'find', 'sort', 'file', 'moldea-cli.mjs', 'relevance-gate.mjs'].includes(
+        executable,
+      ) && classifyNetworkCommand([...words]) === 'not-observed';
+    if (
+      !isInstalledOperation &&
+      !canInspectWithoutExecution &&
+      !(words.length === 2 && words[0] === 'cd' && words[1] === '/mnt')
+    )
+      evidence.unverifiedCount++;
+  }
+  return evidence;
+};
+
 /** Maps one non-safe network classification to a privacy-safe diagnostic reason. */
 const identifyNetworkReasonCode = (
   words: readonly string[],
@@ -1169,7 +1238,7 @@ const classifyCommand = (command: string): ICommandClassification => {
   const commands =
     commandWithoutSafeRedirections === null
       ? null
-      : tokenizeStaticShellList(commandWithoutSafeRedirections);
+      : (parseStaticShellList(commandWithoutSafeRedirections)?.commands ?? null);
   if (commands === null) {
     const sensitiveClassification = classifyUntokenizedSensitiveAccess(directCommand ?? command);
     return {

@@ -96,7 +96,7 @@ The entrypoint keeps routing and essential boundaries compact. It loads only the
 
 Mechanical repository evidence uses the installed skill's closed launcher. It exposes bounded `inspect`, `scope`, `content`, `validate`, and `composition` operations without making canonical document bodies part of ordinary metadata output. It normalizes repository-relative content paths and verifies response identity, status, and inspection/validation diagnostic totals before forwarding unchanged output. Detailed invocation, pagination, failure, and runtime guidance belongs to [Compatibility and local tooling](docs/compatibility-and-local-tooling.md).
 
-Semantic execution may project one fixed repository-root direct Node correctness-test invocation into aggregate pass/fail facts. Package-manager commands cannot contribute correctness evidence, and the projection never retains test names, assertions, paths, durations, or output bodies.
+Repair continuation cases require bounded automatic evidence that captured actor Git commands match the hardened repair shapes; unknown execution cannot pass that check. Semantic execution may project one fixed repository-root direct Node correctness-test invocation into aggregate pass/fail facts. Package-manager commands cannot contribute correctness evidence, and the projection never retains test names, assertions, paths, durations, or output bodies.
 
 ### Safety and authority boundaries
 

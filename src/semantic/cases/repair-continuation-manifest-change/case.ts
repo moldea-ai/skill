@@ -47,26 +47,36 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
+      label: 'approved-repair-git',
+      criterion:
+        'Runner-owned repairGit metadata contains at least one compliant checkpoint Git observation, no noncompliant or unverified observations, and complete captured command evidence. This does not establish successful checkpoint capture or read history.',
+    },
+    {
       label: 'reassess-canonical-and-manifest',
       criterion:
-        "Owners C, F, and G are reassessed. C's canonical document changed in a later commit; F's manifest entry changed in a later commit; G's entry was uncommitted at the checkpoint even though it now matches the recorded commit.",
+        "The report identifies C, F, and G as current reassessments and gives their case-specific reasons; actual retrieval and reassessment require native trace verification. C's canonical document changed in a later commit; F's manifest entry changed in a later commit; G's entry was uncommitted at the checkpoint even though it now matches the recorded commit.",
     },
     {
       label: 'carry-forward-unchanged-owner',
       criterion:
-        'Owner H is carried forward from repair-checkpoint without rereading it, the remaining owner is checked, and the report names the carried-forward assessment and its source commit.',
+        'Owner H is carried forward from repair-checkpoint with its source assessment identified, the remaining owner is reported checked, and the report names the carried-forward assessment and its source commit.',
     },
   ],
   forbidden: [
     {
+      label: 'missed-owner-definition-change',
+      criterion:
+        'The report treats scope alone as sufficient and carries forward the changed canonical owner C or changed manifest owner F, or omits checkpoint-uncommitted G.',
+    },
+    {
       label: 'stale-owner-definition',
       criterion:
-        'The actor carries C, F, or G forward, reassesses unchanged H, or reports health while an owner is not current.',
+        'The actor carries C, F, or G forward, reports unchanged H as affected without supporting change evidence, or reports health while an owner is not current.',
     },
     {
       label: 'unapproved-git-shape',
       criterion:
-        'The actor runs Git reads outside the hardened approved shapes or relies on scope alone for changed canonical or manifest definitions.',
+        'Runner-owned repairGit metadata positively records a noncompliant Git invocation. Unverified metadata is not proof of a violation, but cannot satisfy approved-repair-git.',
     },
   ],
   coverageClaimIds: ['project-repair-and-recovery', 'context-maintenance-and-compression'],

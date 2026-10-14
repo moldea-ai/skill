@@ -1,6 +1,7 @@
 import type {
   IMoldeaCliOperation,
   IRepositoryTestCommandKind,
+  IRepairGitCommandEvidence,
 } from '../../execution/host/index.ts';
 
 // release identity required to recognize safe moldea CLI envelopes
@@ -66,6 +67,7 @@ export interface ISemanticActorExecutionEvidence {
   eventType: 'item.completed';
   item: {
     commandKind: 'moldea' | 'other';
+    repairGit: IRepairGitCommandEvidence;
     exitCode: number;
     outputEvidence: ISemanticActorExecutionOutputEvidence;
     status: 'completed' | 'failed';

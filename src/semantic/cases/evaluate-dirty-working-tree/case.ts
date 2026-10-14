@@ -136,7 +136,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'expand-semantically',
       criterion:
-        'The actor follows the independently evidenced `/src/**` canonical relationship, assesses the relevant project context, and does not invent unrelated semantic expansion.',
+        'The actor follows the independently evidenced exact source-path relationships, assesses the relevant project context, and does not invent unrelated semantic expansion.',
     },
     {
       label: 'report-no-writes',

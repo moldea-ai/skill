@@ -145,3 +145,16 @@ describe('semantic case discovery', () => {
     await expect(loadSemanticCases(mismatchRoot)).rejects.toThrow(/does not match id/u);
   });
 });
+
+test('every repair continuation declares the machine-owned Git obligation', async () => {
+  const cases = await loadSemanticCases(import.meta.dirname);
+  const continuations = cases.filter(({ id }) => id.startsWith('repair-continuation-'));
+  expect(continuations.length).toBeGreaterThan(2);
+  for (const definition of continuations) {
+    expect(
+      definition.expected.some(({ label }) => label === 'approved-repair-git'),
+      definition.id,
+    ).toBe(true);
+    expect(buildSemanticActorPrompt(definition)).not.toContain('approved-repair-git');
+  }
+});

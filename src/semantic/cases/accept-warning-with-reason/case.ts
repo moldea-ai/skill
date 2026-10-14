@@ -40,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'accepts-exact-warning',
       criterion:
-        'The actor reads the reported warning identity and adds exactly one acceptedWarnings entry with code MOLDEA_IMPACT_PATTERN_UNMATCHED, subject /moldea/project.md, qualifier /deployment/**, and the exact developer reason: The optional deployment files are maintained outside this repository.',
+        'The actor uses the reported warning identity and adds exactly one acceptedWarnings entry with code MOLDEA_IMPACT_PATTERN_UNMATCHED, subject /moldea/project.md, qualifier /deployment/**, and the exact developer reason: The optional deployment files are maintained outside this repository.',
     },
     {
       label: 'confirms-acceptance',

@@ -6,9 +6,10 @@ import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 import type { ISemanticCase } from '../cases/index.ts';
 import {
   hasPassingMoldeaActivation,
+  hasPassingRepairGitEvidence,
   hasPassingMoldeaResourceContainment,
 } from './actor-evidence.ts';
-import type { IMoldeaResourceEvidence } from './types.ts';
+import type { IMoldeaResourceEvidence, ISemanticActorExecutionEvidence } from './types.ts';
 
 export const SEMANTIC_RESULT_DIMENSION_NAMES = [
   'semantic',
@@ -40,6 +41,7 @@ const hasPassingHostResourceProfile = (
 /** Creates independently attributable outcome dimensions for one completed trial. */
 export const createSemanticResultDimensions = (options: {
   actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
+  actorExecutionEvidence: ISemanticActorExecutionEvidence[];
   actorResourceEvidence: IMoldeaResourceEvidence;
   caseDefinition: ISemanticCase;
   isMountIntegrityPassing: boolean;
@@ -60,7 +62,10 @@ export const createSemanticResultDimensions = (options: {
     ) && hasPassingHostResourceProfile(options.actorCommandPolicy, options.caseDefinition),
   commandPolicy:
     hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy) &&
-    hasPassingCodexEvaluationCommandPolicy(options.judgeCommandPolicy),
+    hasPassingCodexEvaluationCommandPolicy(options.judgeCommandPolicy) &&
+    (!options.caseDefinition.expected.some(({ label }) => label === 'approved-repair-git') ||
+      (options.actorExecutionEvidence.length === options.actorCommandPolicy.completedCommandCount &&
+        hasPassingRepairGitEvidence(options.actorExecutionEvidence))),
   repositoryControl: options.isRepositoryControlPassing,
   mountIntegrity: options.isMountIntegrityPassing,
   operational: true,

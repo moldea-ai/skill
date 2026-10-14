@@ -49,7 +49,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-runtime-consumption',
       criterion:
-        'The actor checks every owner and the connection under Checked, corrects src/support-agent.js to read the canonical instruction.md, runs the existing connection test, and verifies final structural validity.',
+        'The report names every owner and the connection under Checked, workspace evidence corrects src/support-agent.js to read the canonical instruction.md, runner-owned passing Node test evidence records the connection test, and successful launcher-backed validation establishes final structural validity. Actual owner retrieval and assessment require native trace verification.',
     },
     {
       label: 'separate-assurances',

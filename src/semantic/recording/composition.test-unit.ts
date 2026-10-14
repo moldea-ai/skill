@@ -324,3 +324,41 @@ describe('semantic composition', () => {
     });
   });
 });
+
+test('a retained semantic verdict cannot bypass required repair Git evidence', () => {
+  const definition = createCase('repair-case');
+  definition.expected.push({
+    label: 'approved-repair-git',
+    criterion: 'Require observed approved repair Git.',
+  });
+  const source = createSource([definition], [{ passed: true }], 'sem-source');
+  const current = {
+    ...definition,
+    input: { ...definition.input, developerDirection: 'A changed request.' },
+  };
+  const result = composeSemanticRecordedCases({
+    definitions: [current],
+    sources: [source],
+    review: {
+      acceptedCriteria: [],
+      caseSources: [],
+      formatVersion: 1,
+      inputReview: null,
+      reassessments: [],
+    },
+  });
+  expect(result.cases[0]).toMatchObject({
+    status: 'failed',
+    confirmationStatus: 'not-applicable',
+    trials: [
+      {
+        trial: {
+          passed: false,
+          confirmationEligible: false,
+          dimensions: { commandPolicy: false },
+          failureClassifications: ['commandPolicy'],
+        },
+      },
+    ],
+  });
+});

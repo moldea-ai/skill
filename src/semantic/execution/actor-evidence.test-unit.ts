@@ -757,6 +757,7 @@ test('projects only the passing totals from a recognized repository test', () =>
     eventType: 'item.completed',
     item: {
       commandKind: 'other',
+      repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 1 },
       exitCode: 0,
       outputEvidence: {
         byteCount: Buffer.byteLength(output),
@@ -878,6 +879,7 @@ test('preserves a source-recorded too-large classification after the operating p
     eventType: 'item.completed',
     item: {
       commandKind: 'other',
+      repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 1 },
       exitCode: 0,
       outputEvidence: {
         byteCount: 65_537,
@@ -1047,5 +1049,34 @@ test('projects only completed AGENTS write facts and no diagnostic failure hit',
       OPTIONS,
     );
     assert.deepEqual(result.item.outputEvidence.facts, []);
+  }
+});
+
+test('records failed Git attempts independently of empty output and rejects missing metadata', () => {
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent('git status --short', '', { exitCode: 128, status: 'failed' }),
+    OPTIONS,
+  );
+  assert.deepEqual(evidence.item.repairGit, {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+  });
+  assert.equal(evidence.item.outputEvidence.disposition, 'empty');
+  const { repairGit, ...item } = evidence.item;
+  assert.equal(hasValidActorExecutionEvidence([{ ...evidence, item }], OPTIONS), false);
+  for (const invalid of [
+    { ...repairGit, unverifiedCount: -1 },
+    { ...repairGit, compliantCount: 1.5 },
+    { ...repairGit, extra: true },
+    { ...repairGit, compliantCount: Number.MAX_SAFE_INTEGER },
+  ]) {
+    assert.equal(
+      hasValidActorExecutionEvidence(
+        [{ ...evidence, item: { ...evidence.item, repairGit: invalid } }],
+        OPTIONS,
+      ),
+      false,
+    );
   }
 });

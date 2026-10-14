@@ -5,6 +5,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
 import { writeJsonFileAtomically } from '../../filesystem/index.ts';
+import { parseSemanticEvaluationHostOutput } from '../execution/index.ts';
 import {
   getSemanticCheckpointPath,
   readSemanticCheckpoint,
@@ -113,4 +114,82 @@ describe('semantic checkpoint storage', () => {
 
     await expect(readSemanticCheckpoint(root)).resolves.toStrictEqual(checkpoint);
   });
+});
+
+test('round trips projected Git evidence and rejects a checkpoint without required metadata', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'moldea-semantic-checkpoint-'));
+  temporaryRoots.push(root);
+  const checkpoint = createCheckpoint();
+  const output = [
+    JSON.stringify({
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command: 'git status --short',
+        aggregated_output: '',
+        exit_code: 128,
+        status: 'failed',
+      },
+    }),
+    JSON.stringify({
+      type: 'item.completed',
+      item: { type: 'agent_message', text: 'Git evidence unavailable.' },
+    }),
+  ].join('\n');
+  const evidence = parseSemanticEvaluationHostOutput(output, {
+    cliVersion: checkpoint.cli.version,
+    jsonSchemaVersion: checkpoint.cli.jsonSchemaVersion,
+  });
+  checkpoint.caseCheckpoints['case-one'] = {
+    activeTrial: {
+      actorEvidence: {
+        ...evidence,
+        actorStageIdentitySha256: SHA256,
+        isMountIntegrityPassing: true,
+        isRepositoryControlPassing: true,
+        workspaceChanges: { created: [], deleted: [], modified: [] },
+      },
+      confirmationIndex: null,
+      operationalRetries: { actorFailureCount: 0, judgeFailureCount: 0, lastFailure: null },
+      phase: 'judge-pending',
+      recordedTrial: null,
+      startedAt: checkpoint.createdAt,
+      updatedAt: checkpoint.updatedAt,
+    },
+    caseDefinitionDigest: SHA256,
+    caseId: 'case-one',
+    completedCase: null,
+    trials: [],
+  };
+  await writeSemanticCheckpoint(root, checkpoint);
+  expect(await readSemanticCheckpoint(root)).toStrictEqual(checkpoint);
+  const [entry] = evidence.actorExecutionEvidence;
+  expect(entry?.item.repairGit).toStrictEqual({
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+  });
+  if (entry === undefined) throw new Error('Expected captured command.');
+  const item: Record<string, unknown> = { ...entry.item };
+  delete item['repairGit'];
+  await writeJsonFileAtomically(getSemanticCheckpointPath(root), {
+    ...checkpoint,
+    caseCheckpoints: {
+      'case-one': {
+        ...checkpoint.caseCheckpoints['case-one'],
+        activeTrial: {
+          ...checkpoint.caseCheckpoints['case-one'].activeTrial,
+          actorEvidence: {
+            ...evidence,
+            actorStageIdentitySha256: SHA256,
+            isMountIntegrityPassing: true,
+            isRepositoryControlPassing: true,
+            workspaceChanges: { created: [], deleted: [], modified: [] },
+            actorExecutionEvidence: [{ ...entry, item }],
+          },
+        },
+      },
+    },
+  });
+  await expect(readSemanticCheckpoint(root)).rejects.toThrow('invalid actor execution evidence');
 });

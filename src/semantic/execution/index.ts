@@ -11,6 +11,7 @@ export type {
 export {
   createMoldeaResourceEvidence,
   hasPassingMoldeaActivation,
+  hasPassingRepairGitEvidence,
   hasPassingMoldeaResourceBudget,
   hasPassingMoldeaResourceContainment,
   hasValidActorExecutionEvidence,

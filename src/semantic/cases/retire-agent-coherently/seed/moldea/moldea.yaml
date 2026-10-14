@@ -2,7 +2,7 @@ version: 1
 context:
   /moldea/project.md:
     affectedBy:
-      - /src/**
+      - /src/project-state.ts
 agents:
   support:
     runtime:
@@ -12,5 +12,3 @@ agents:
       runtimeAgent:
         path: /src/support-agent.ts
         symbol: supportAgent
-    affectedBy:
-      - /src/**

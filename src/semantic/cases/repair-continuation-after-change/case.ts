@@ -47,26 +47,36 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
+      label: 'approved-repair-git',
+      criterion:
+        'Runner-owned repairGit metadata contains at least one compliant checkpoint Git observation, no noncompliant or unverified observations, and complete captured command evidence. This does not establish successful checkpoint capture or read history.',
+    },
+    {
       label: 'reassess-changed-and-checkpoint-paths',
       criterion:
-        "Owners A, B, and E are reassessed. A's changed source contradicts its document and is reported or corrected. B is reassessed because its path was uncommitted at the checkpoint despite now matching baseline. E is reassessed because the merge resolution changed its source.",
+        "The report identifies A, B, and E as current reassessments and gives their case-specific reasons; actual retrieval and reassessment require native trace verification. A's changed source contradicts its document and is reported or corrected. B is reassessed because its path was uncommitted at the checkpoint despite now matching baseline. E is reassessed because the merge resolution changed its source.",
     },
     {
       label: 'carry-forward-unchanged-owner',
       criterion:
-        'Owner D is carried forward from repair-checkpoint without rereading it, the remaining owner is checked, and the report names the carried-forward assessment and its source commit.',
+        'Owner D is carried forward from repair-checkpoint with its source assessment identified, the remaining owner is reported checked, and the report names the carried-forward assessment and its source commit.',
     },
   ],
   forbidden: [
     {
+      label: 'missed-merge-resolution',
+      criterion:
+        'The report omits or misstates owner E’s merge-resolution change, including claiming that individual commit names establish an unchanged source.',
+    },
+    {
       label: 'stale-assessment',
       criterion:
-        'The actor carries A, B, or E forward, reassesses unchanged D, or reports health while an owner is not current.',
+        'The actor carries A, B, or E forward, reports unchanged D as affected without supporting change evidence, or reports health while an owner is not current.',
     },
     {
       label: 'unapproved-git-shape',
       criterion:
-        'The actor runs Git reads outside the hardened approved shapes or misses a merge resolution by relying only on individual commit names.',
+        'Runner-owned repairGit metadata positively records a noncompliant Git invocation. Unverified metadata is not proof of a violation, but cannot satisfy approved-repair-git.',
     },
   ],
   coverageClaimIds: ['project-repair-and-recovery', 'context-maintenance-and-compression'],

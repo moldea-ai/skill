@@ -13,6 +13,7 @@ import {
   getJourneysPage,
   getJourneyPagination,
   getJourneyProvenanceSummary,
+  getJourneyCatalogCounts,
   JOURNEYS_PAGE_SIZE,
   type IScriptedJourneysWebsiteModel,
 } from '../../lib/scripted-journeys/index.ts';
@@ -23,6 +24,7 @@ interface Props {
 }
 const { model, page = 1 } = Astro.props;
 const journeys = getJourneysPage(model, page);
+const catalogCounts = getJourneyCatalogCounts(model);
 const visibleSourceIds = new Set(
   model.cells
     .filter((cell) => journeys.some((journey) => journey.id === cell.journeyId))
@@ -109,8 +111,11 @@ const breadcrumbs = [
         class="section-title"
       >
         Explore the journeys
-      </h2><p class="text-sm text-muted-foreground">
-        {model.journeys.length} journeys · Page {page} of {Math.max(1, pages)}
+      </h2><p
+        class="text-sm text-muted-foreground"
+        data-journey-catalog-counts
+      >
+        Catalog: {catalogCounts.journeyCount} journeys · {catalogCounts.requestCount} requests
       </p>
     </div>
     <JourneysMatrix

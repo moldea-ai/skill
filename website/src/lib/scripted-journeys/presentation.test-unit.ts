@@ -4,6 +4,7 @@ import { expect, test } from 'vitest';
 import {
   createSyntheticJourneysBundle,
   createSyntheticJourneySnapshot,
+  createSyntheticLegacyJourneysBundle,
 } from '../../../scripts/evidence-fixture/journeys.ts';
 import { parseScriptedJourneysWebsiteModel } from '../../../../src/scripted-journeys/public-evidence/index.ts';
 
@@ -15,7 +16,50 @@ import {
   getJourneyPagination,
   getJourneyCellProvenance,
   getJourneyProvenanceSummary,
+  getJourneyRequestCount,
+  getJourneyCatalogCounts,
 } from './index.ts';
+
+test('counts the selected historical catalog without multiplying provider observations', () => {
+  const model = parseScriptedJourneysWebsiteModel(
+    (createSyntheticLegacyJourneysBundle().payload as { websiteModel: unknown }).websiteModel,
+  );
+  expect(getJourneyCatalogCounts(model)).toStrictEqual({ journeyCount: 19, requestCount: 20 });
+  expect(getJourneyRequestCount(model, 'initialize')).toBe(2);
+});
+
+test('counts catalog requests without multiplying providers, confirmations or retained rows', () => {
+  const model = parseScriptedJourneysWebsiteModel(
+    (createSyntheticJourneySnapshot().payload as { websiteModel: unknown }).websiteModel,
+  );
+  expect(model.journeys).toHaveLength(19);
+  expect(getJourneyCatalogCounts(model)).toStrictEqual({ journeyCount: 18, requestCount: 19 });
+  expect(getJourneyRequestCount(model, 'initialize')).toBe(2);
+  expect(getJourneyRequestCount(model, 'recovered')).toBe(1);
+  expect(getJourneyRequestCount(model, 'additional-2')).toBe(1);
+  expect(getJourneyRequestCount(model, 'additional-11')).toBe(1);
+
+  model.cells = [];
+  expect(getJourneyCatalogCounts(model)).toStrictEqual({ journeyCount: 18, requestCount: 19 });
+  expect(getJourneyRequestCount(model, 'initialize')).toBe(2);
+});
+
+test('uses the row catalog before current or provider-specific historical definitions', () => {
+  const model = parseScriptedJourneysWebsiteModel(
+    (createSyntheticJourneySnapshot().payload as { websiteModel: unknown }).websiteModel,
+  );
+  const row = model.journeys.find(({ id }) => id === 'additional-11')!;
+  const earlier = model.sources.find(({ id }) => id === row.catalogSourceId)!;
+  if (earlier.kind !== 'campaign') throw new Error('Expected the earlier campaign catalog.');
+  const definition = earlier.assessment.definitions.find(({ id }) => id === row.id)!;
+  definition.steps.push({ ...definition.steps[0]!, id: 'earlier-follow-up' });
+  expect(getJourneyRequestCount(model, row.id)).toBe(2);
+  expect(getJourneyCatalogCounts(model)).toStrictEqual({ journeyCount: 18, requestCount: 19 });
+
+  const initial = model.journeys.find(({ id }) => id === 'initialize')!;
+  delete initial.catalogSourceId;
+  expect(getJourneyRequestCount(model, initial.id)).toBe(2);
+});
 
 test('preserves all outcomes and distinguishes absent platform results', () => {
   const model = parseScriptedJourneysWebsiteModel(

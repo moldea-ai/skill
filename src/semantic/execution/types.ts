@@ -44,6 +44,10 @@ export type ISemanticActorExecutionOutputFact =
       status: 'created' | 'updated' | 'unchanged';
     }
   | {
+      kind: 'managed-agents-print-result';
+      blockSha256: string;
+    }
+  | {
       cancelledCount: 0;
       failedCount: 0;
       kind: 'node-test-summary';

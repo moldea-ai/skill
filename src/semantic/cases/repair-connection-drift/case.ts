@@ -29,6 +29,15 @@ export const semanticCase = defineSemanticCase({
         },
       },
       {
+        claim:
+          'The existing integration test compares the real support-agent invocation with the canonical instruction bytes.',
+        source: {
+          kind: 'workspace-path',
+          path: 'src/support-agent.test-integration.js',
+          expectedType: 'file',
+        },
+      },
+      {
         claim: 'The runtime implementation exists.',
         source: {
           kind: 'workspace-path',
@@ -49,7 +58,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-runtime-consumption',
       criterion:
-        'The report names every owner and the connection under Checked, workspace evidence corrects src/support-agent.js to read the canonical instruction.md, runner-owned passing Node test evidence records the connection test, and successful launcher-backed validation establishes final structural validity. Actual owner retrieval and assessment require native trace verification.',
+        'The report names every owner and the connection under Checked, workspace evidence corrects src/support-agent.js to read the canonical instruction.md, runner-owned evidence contains a passing integration-test summary, and successful launcher-backed validation establishes final structural validity. The report identifies the connection test as passed. Actual owner retrieval, assessment and exact test selection require native verification, not this semantic label; aggregate test evidence does not identify a test path.',
     },
     {
       label: 'separate-assurances',

@@ -12,10 +12,11 @@ export const semanticCase = defineSemanticCase({
       'Use moldea to plan a focused change that adds cache invalidation to src/cache.js. Do not implement it.',
     repositoryEvidence: [
       {
-        claim: 'The repository has ordinary source code.',
+        claim:
+          'The requested cache file already exports invalidateCacheEntry(cache, key), which calls cache.delete(key) for single-entry invalidation.',
         source: {
           kind: 'workspace-path',
-          path: 'src/http-client.js',
+          path: 'src/cache.js',
           expectedType: 'file',
         },
       },

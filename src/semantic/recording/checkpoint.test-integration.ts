@@ -116,7 +116,7 @@ describe('semantic checkpoint storage', () => {
   });
 });
 
-test('round trips projected Git evidence and rejects a checkpoint without required metadata', async () => {
+test('round trips projected Git and print evidence and rejects malformed command metadata', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'moldea-semantic-checkpoint-'));
   temporaryRoots.push(root);
   const checkpoint = createCheckpoint();
@@ -129,6 +129,17 @@ test('round trips projected Git evidence and rejects a checkpoint without requir
         aggregated_output: '',
         exit_code: 128,
         status: 'failed',
+      },
+    }),
+    JSON.stringify({
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command:
+          'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt --print',
+        aggregated_output: '<!-- moldea:start -->\n\nUse this skill.\n<!-- moldea:end -->\n',
+        exit_code: 0,
+        status: 'completed',
       },
     }),
     JSON.stringify({
@@ -163,7 +174,12 @@ test('round trips projected Git evidence and rejects a checkpoint without requir
   };
   await writeSemanticCheckpoint(root, checkpoint);
   expect(await readSemanticCheckpoint(root)).toStrictEqual(checkpoint);
-  const [entry] = evidence.actorExecutionEvidence;
+  const [entry, printed] = evidence.actorExecutionEvidence;
+  const printFact = printed?.item.outputEvidence.facts[0];
+  expect(printFact?.kind).toBe('managed-agents-print-result');
+  expect(
+    printFact?.kind === 'managed-agents-print-result' ? printFact.blockSha256 : undefined,
+  ).toMatch(/^[a-f0-9]{64}$/u);
   expect(entry?.item.repairGit).toStrictEqual({
     compliantCount: 0,
     noncompliantCount: 1,

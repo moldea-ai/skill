@@ -76,6 +76,7 @@ describe('semantic case discovery', () => {
     const judgePrompt = buildSemanticJudgePrompt({
       actorCommandPolicyEvidence: projectCodexEvaluationExecutionEvidence('').commandPolicy,
       actorExecutionEvidence: [],
+      isRepositoryControlPassing: true,
       actorResourceEvidence: {
         commandCount: 0,
         maximumInvocationByteCount: 0,

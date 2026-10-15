@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import {
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
@@ -74,6 +76,27 @@ const NODE_TEST_SUMMARY_LINE_PATTERN =
 const NODE_TEST_DURATION_LINE_PATTERN = /^(?:#|ℹ) duration_ms \d+(?:\.\d+)?$/u;
 const MANAGED_README_MARKER_PAIR_ERROR =
   'managed README update failed: README.md must contain exactly one moldea marker pair\n';
+const MANAGED_BLOCK_START = '<!-- moldea:start -->';
+const MANAGED_BLOCK_END = '<!-- moldea:end -->';
+
+/** Extracts one unambiguous block, allowing Markdown fences and either line-ending style. */
+const extractManagedBlock = (source: string): string | null => {
+  const normalized = source.replaceAll('\r\n', '\n');
+  const starts = normalized.matchAll(/^<!-- moldea:start -->$/gmu);
+  const ends = normalized.matchAll(/^<!-- moldea:end -->$/gmu);
+  const start = starts.next().value;
+  const end = ends.next().value;
+  if (
+    start === undefined ||
+    end === undefined ||
+    end.index <= start.index ||
+    !starts.next().done ||
+    !ends.next().done
+  ) {
+    return null;
+  }
+  return normalized.slice(start.index, end.index + MANAGED_BLOCK_END.length);
+};
 
 const isPlainRecord = (input: unknown): input is Record<string, unknown> =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
@@ -523,22 +546,58 @@ const projectManagedAgentsResult = (
     for (const status of ['created', 'updated', 'unchanged'] as const)
       if (source === `${status}\n`) return { kind: 'managed-agents-result', status };
   }
+  if (mode === 'print') {
+    const block = extractManagedBlock(source);
+    if (block !== null && source.replaceAll('\r\n', '\n') === `${block}\n`) {
+      return {
+        kind: 'managed-agents-print-result',
+        blockSha256: createHash('sha256').update(block).digest('hex'),
+      };
+    }
+  }
   return null;
 };
 
 const hasValidManagedAgentsFact = (fact: unknown, byteCount: number, exitCode: number): boolean => {
-  if (
-    exitCode !== 0 ||
-    !isPlainRecord(fact) ||
-    !hasExactKeys(fact, ['kind', 'status']) ||
-    fact['kind'] !== 'managed-agents-result'
-  )
+  if (exitCode !== 0 || !isPlainRecord(fact)) return false;
+  if (fact['kind'] === 'managed-agents-print-result') {
+    return (
+      hasExactKeys(fact, ['kind', 'blockSha256']) &&
+      typeof fact['blockSha256'] === 'string' &&
+      /^[a-f0-9]{64}$/u.test(fact['blockSha256']) &&
+      byteCount >= MANAGED_BLOCK_START.length + MANAGED_BLOCK_END.length + 1
+    );
+  }
+  if (!hasExactKeys(fact, ['kind', 'status']) || fact['kind'] !== 'managed-agents-result') {
     return false;
+  }
   const status = fact['status'];
   return (
     typeof status === 'string' &&
     ['created', 'updated', 'unchanged'].includes(status) &&
     byteCount === status.length + 1
+  );
+};
+
+/**
+ * Checks the pasted block against a successful installed-helper print without retaining output.
+ * @param executionEvidence Validated bounded actor command records.
+ * @param actorResponse The recorded handoff response.
+ * @returns Whether its single block matches a recorded print, disregarding CRLF versus LF.
+ */
+export const hasVerifiedManagedAgentsHandoff = (
+  executionEvidence: readonly ISemanticActorExecutionEvidence[],
+  actorResponse: string,
+): boolean => {
+  const block = extractManagedBlock(actorResponse);
+  if (block === null) return false;
+  const blockSha256 = createHash('sha256').update(block).digest('hex');
+  return executionEvidence.some(
+    ({ item }) =>
+      item.exitCode === 0 &&
+      item.outputEvidence.facts.some(
+        (fact) => fact.kind === 'managed-agents-print-result' && fact.blockSha256 === blockSha256,
+      ),
   );
 };
 

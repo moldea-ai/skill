@@ -1331,6 +1331,10 @@ test('conservative continuation fixtures retain a real baseline and independentl
       readFileSync(join(repositoryPath, 'src/owner-b.js'), 'utf8'),
       "export const state = 'drifted';\n",
     );
+    assert.equal(
+      readFileSync(join(repositoryPath, 'moldea/context/b.md'), 'utf8'),
+      '# Owner B\n\nThe B source remains at baseline.\n',
+    );
     const ref = spawnSync('git', ['rev-parse', 'repair-checkpoint'], {
       cwd: repositoryPath,
       encoding: 'utf8',

@@ -37,7 +37,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-healthy-no-op',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, the actor reports no established defect and no file changes, names /moldea/project.md and its /src/project-state.js relationship under Checked, and separates structural validity from untested semantic or runtime behavior.',
+        'Runner-owned evidence records successful launcher-backed validation, the actor reports no established defect and no file changes, identifies the project foundation and its material source relationship under Checked, allowing unambiguous equivalent names rather than requiring literal paths, and separates structural validity from untested semantic or runtime behavior.',
     },
   ],
   forbidden: [

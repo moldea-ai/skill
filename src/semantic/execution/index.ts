@@ -16,6 +16,7 @@ export {
   hasPassingMoldeaResourceContainment,
   hasValidActorExecutionEvidence,
   hasValidMoldeaResourceEvidence,
+  hasVerifiedManagedAgentsHandoff,
   projectActorExecutionEvidenceEvent,
 } from './actor-evidence.ts';
 

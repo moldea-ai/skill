@@ -1,5 +1,6 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { test } from 'vitest';
 
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
@@ -12,6 +13,7 @@ import {
   hasPassingMoldeaResourceContainment,
   hasValidActorExecutionEvidence,
   hasValidMoldeaResourceEvidence,
+  hasVerifiedManagedAgentsHandoff,
   projectActorExecutionEvidenceEvent as projectActorExecutionEvidenceEventRaw,
 } from './actor-evidence.ts';
 import type {
@@ -1069,6 +1071,115 @@ test('projects only completed AGENTS write facts and no diagnostic failure hit',
     );
     assert.deepEqual(result.item.outputEvidence.facts, []);
   }
+});
+
+test('projects a bounded print hash and verifies only the matching single handoff block', () => {
+  const block = '<!-- moldea:start -->\n\nUse the installed skill.\n<!-- moldea:end -->';
+  const command =
+    'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt --print';
+  const evidence = projectActorExecutionEvidenceEvent(createEvent(command, `${block}\n`), OPTIONS);
+  assert.deepEqual(evidence.item.outputEvidence.facts, [
+    {
+      kind: 'managed-agents-print-result',
+      blockSha256: createHash('sha256').update(block).digest('hex'),
+    },
+  ]);
+  assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
+  assert.equal(JSON.stringify(evidence).includes('Use the installed skill.'), false);
+  assert.deepEqual(createMoldeaResourceEvidence([evidence], OPTIONS).operations, []);
+  for (const response of [
+    block,
+    ['Handoff:', '', '```markdown', block, '```'].join('\n'),
+    block.replaceAll('\n', '\r\n'),
+    'Use the <!-- moldea:start --> and <!-- moldea:end --> markers.\n\n' + block,
+  ]) {
+    assert.equal(hasVerifiedManagedAgentsHandoff([evidence], response), true);
+  }
+  for (const response of ['', block.replace('installed', 'other'), `${block}\n${block}`]) {
+    assert.equal(hasVerifiedManagedAgentsHandoff([evidence], response), false);
+  }
+  assert.equal(hasVerifiedManagedAgentsHandoff([], block), false);
+  const writeEvidence = projectActorExecutionEvidenceEvent(
+    createEvent(command.replace(' --print', ''), 'unchanged\n'),
+    OPTIONS,
+  );
+  assert.equal(hasVerifiedManagedAgentsHandoff([writeEvidence], block), false);
+});
+
+test('rejects failed, opaque, oversized and malformed helper print observations', () => {
+  const block = '<!-- moldea:start -->\n\nUse the installed skill.\n<!-- moldea:end -->\n';
+  const command =
+    'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt --print';
+  for (const [actualCommand, output, exitCode] of [
+    [command, block, 1],
+    [command.replace('managed-agents.mjs', 'other.mjs'), block, 0],
+    [command, `unexpected\n${block}`, 0],
+    [command, `${block}unexpected\n`, 0],
+    [command, `${block}${block}`, 0],
+    [command, block.replace('<!-- moldea:end -->', ''), 0],
+    [
+      command,
+      block.replace(
+        'Use the installed skill.',
+        'x'.repeat(MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes),
+      ),
+      0,
+    ],
+  ] as const) {
+    const evidence = projectActorExecutionEvidenceEvent(
+      createEvent(actualCommand, output, { exitCode }),
+      OPTIONS,
+    );
+    assert.deepEqual(evidence.item.outputEvidence.facts, []);
+    assert.equal(hasVerifiedManagedAgentsHandoff([evidence], block), false);
+    if (Buffer.byteLength(output) > MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes) {
+      assert.equal(evidence.item.outputEvidence.disposition, 'too-large');
+    }
+  }
+  const evidence = projectActorExecutionEvidenceEvent(createEvent(command, block), OPTIONS);
+  for (const fact of [
+    { kind: 'managed-agents-print-result', blockSha256: 'invalid' },
+    { kind: 'managed-agents-print-result' },
+    { kind: 'managed-agents-print-result', blockSha256: 'a'.repeat(64), extra: true },
+  ]) {
+    assert.equal(
+      hasValidActorExecutionEvidence(
+        [
+          {
+            ...evidence,
+            item: {
+              ...evidence.item,
+              outputEvidence: { ...evidence.item.outputEvidence, facts: [fact] },
+            },
+          },
+        ],
+        OPTIONS,
+      ),
+      false,
+    );
+  }
+  assert.equal(
+    hasValidActorExecutionEvidence(
+      [
+        {
+          ...evidence,
+          item: {
+            ...evidence.item,
+            outputEvidence: { ...evidence.item.outputEvidence, byteCount: 1 },
+          },
+        },
+      ],
+      OPTIONS,
+    ),
+    false,
+  );
+  assert.equal(
+    hasValidActorExecutionEvidence(
+      [{ ...evidence, item: { ...evidence.item, exitCode: 1 } }],
+      OPTIONS,
+    ),
+    false,
+  );
 });
 
 test('records failed Git attempts independently of empty output and rejects missing metadata', () => {

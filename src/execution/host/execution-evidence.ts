@@ -283,6 +283,9 @@ const FILE_INSPECTION_EXECUTABLES = new Set([
   'wc',
 ]);
 
+// Bash word separators exclude the other characters JavaScript treats as whitespace
+const BASH_WHITESPACE_PATTERN = /[ \t\n]/u;
+
 const isPlainRecord = (input: unknown): input is IPlainRecord =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
 
@@ -333,14 +336,18 @@ const decodeFixedShellWord = (input: string): string | null => {
     }
     if (character === '\\') {
       if (nextCharacter === undefined) return null;
+      if (nextCharacter === '\n') {
+        index += 1;
+        continue;
+      }
       output += nextCharacter;
       hasWord = true;
       index += 1;
       continue;
     }
     if (character === '$' || character === '`') return null;
-    if (/\s/u.test(character)) {
-      return hasWord && input.slice(index).trim() === '' ? output : null;
+    if (BASH_WHITESPACE_PATTERN.test(character)) {
+      return hasWord && /^[ \t\n]*$/u.test(input.slice(index)) ? output : null;
     }
     if (';&|<>(){}'.includes(character)) return null;
     output += character;
@@ -373,10 +380,12 @@ const parseStaticShellList = (
   let currentWord = '';
   let hasCurrentWord = false;
   let quote: "'" | '"' | null = null;
+  let hasComment = false;
 
   const pushWord = () => {
     if (!hasCurrentWord) return;
     commands.at(-1)!.push(currentWord);
+    requiresFollowingCommand = false;
     currentWord = '';
     hasCurrentWord = false;
   };
@@ -441,12 +450,12 @@ const parseStaticShellList = (
       const isSingleBracketCommand =
         !hasCurrentWord &&
         commands.at(-1)!.length === 0 &&
-        (nextCharacter === undefined || /\s/u.test(nextCharacter));
+        (nextCharacter === undefined || BASH_WHITESPACE_PATTERN.test(nextCharacter));
       const isDoubleBracketCommand =
         !hasCurrentWord &&
         commands.at(-1)!.length === 0 &&
         nextCharacter === '[' &&
-        (command[index + 2] === undefined || /\s/u.test(command[index + 2]!));
+        (command[index + 2] === undefined || BASH_WHITESPACE_PATTERN.test(command[index + 2]!));
       if (!isSingleBracketCommand && !isDoubleBracketCommand && !canUseReadGlob) return null;
       if (canUseReadGlob) {
         currentWord += character;
@@ -460,11 +469,12 @@ const parseStaticShellList = (
     }
     if (character === ']') {
       const isSingleBracketTerminator =
-        !hasCurrentWord && (nextCharacter === undefined || /\s/u.test(nextCharacter));
+        !hasCurrentWord &&
+        (nextCharacter === undefined || BASH_WHITESPACE_PATTERN.test(nextCharacter));
       const isDoubleBracketTerminator =
         !hasCurrentWord &&
         nextCharacter === ']' &&
-        (command[index + 2] === undefined || /\s/u.test(command[index + 2]!));
+        (command[index + 2] === undefined || BASH_WHITESPACE_PATTERN.test(command[index + 2]!));
       if (!isSingleBracketTerminator && !isDoubleBracketTerminator && !canUseReadGlob) return null;
       if (canUseReadGlob) {
         currentWord += character;
@@ -485,16 +495,22 @@ const parseStaticShellList = (
     ) {
       return null;
     }
-    if (character === '#' && !hasCurrentWord) return null;
-    if (/\s/u.test(character)) {
+    if (character === '#' && !hasCurrentWord) {
+      hasComment = true;
+      const newlineIndex = command.indexOf('\n', index);
+      if (newlineIndex === -1) break;
+      index = newlineIndex - 1;
+      continue;
+    }
+    if (BASH_WHITESPACE_PATTERN.test(character)) {
       if (character === '\n' && (hasCurrentWord || commands.at(-1)!.length > 0)) {
         if (!pushCommand()) return null;
       } else pushWord();
       continue;
     }
     if (character === ';' || character === '|' || character === '&') {
-      requiresFollowingCommand = character === '|' || (character === '&' && nextCharacter === '&');
       if (!pushCommand()) return null;
+      requiresFollowingCommand = character === '|' || (character === '&' && nextCharacter === '&');
       if (nextCharacter === character) index += 1;
       continue;
     }
@@ -508,7 +524,7 @@ const parseStaticShellList = (
     if (requiresFollowingCommand) return null;
     commands.pop();
   }
-  return commands.length > 0 ? { commands } : null;
+  return commands.length > 0 || hasComment ? { commands } : null;
 };
 
 /** Locates the executable token in a static command and its trusted env wrapper. */

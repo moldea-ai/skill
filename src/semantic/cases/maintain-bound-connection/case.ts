@@ -53,7 +53,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'reconsider-without-churn',
       criterion:
-        'The actor reports support-agent as reconsidered and leaves accurate canonical assets and relationships unchanged.',
+        'The report identifies support-agent as the reconsidered canonical owner, states that behavior or contracts remain unchanged, and concludes that the owner remains accurate without an edit. Its canonical assets and relationships remain byte-identical.',
     },
   ],
   forbidden: [

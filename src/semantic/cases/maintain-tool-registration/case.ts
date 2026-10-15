@@ -53,7 +53,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'preserve-canonical-tool',
       criterion:
-        'The actor reports support-agent as reconsidered without changing its accurate canonical instruction or manifest tool.',
+        'The report identifies support-agent as the reconsidered canonical owner, states that behavior or contracts remain unchanged, and concludes that the owner remains accurate without an edit. Its canonical instruction and manifest tool remain byte-identical.',
     },
   ],
   forbidden: [

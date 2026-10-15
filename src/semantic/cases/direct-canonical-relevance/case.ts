@@ -15,7 +15,7 @@ export const semanticCase = defineSemanticCase({
     repositoryEvidence: [
       {
         claim:
-          'The uncommitted project.md edit removes its sentence naming /src/project-state.js and clarifies that the synthetic project exercises bounded local moldea validation after a canonical documentation clarification. The edit alone establishes no implementation behavior change.',
+          'The uncommitted project.md edit removes its sentence naming /src/project-state.js and clarifies that the synthetic project exercises bounded local moldea validation after a canonical documentation clarification. The manifest still declares /src/project-state.js as affecting /moldea/project.md, but the edited text states no material fact that path governs. The edit alone establishes no implementation behavior change.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/project.md',
@@ -58,7 +58,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'authority-or-evidence-violation',
       criterion:
-        'The actor treats the direct canonical path as requiring a whole-project inventory or relationship scope, emits canonical bodies through inspect, changes repository files or controls, or claims that structural validation proves semantic alignment.',
+        'The actor treats the direct canonical path as requiring a whole-project inventory or a `scope` relationship query before assessing that owner, emits canonical bodies through inspect, changes repository files or controls, or claims that structural validation proves semantic alignment.',
     },
   ],
   coverageClaimIds: ['bounded-relevance'],

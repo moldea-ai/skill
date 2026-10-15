@@ -54,7 +54,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'reassess-changed-and-checkpoint-paths',
       criterion:
-        "The report identifies A, B, and E as current reassessments and gives their case-specific reasons; actual retrieval and reassessment require native trace verification. A's changed source contradicts its document and is reported or corrected. B is reassessed because its path was uncommitted at the checkpoint despite now matching baseline. E is reassessed because the merge resolution changed its source.",
+        "The report identifies A, B, and E as current reassessments and gives their case-specific reasons; actual retrieval and reassessment require native trace verification. A's changed source contradicts its document and is reported or corrected. B is reassessed because its path was uncommitted at the checkpoint despite now matching baseline. E is reassessed because its source differs from the checkpoint commit. The report need not identify a merge as the historical cause; the approved comparison does not establish that history.",
     },
     {
       label: 'carry-forward-unchanged-owner',
@@ -66,7 +66,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'missed-merge-resolution',
       criterion:
-        'The report omits or misstates owner E’s merge-resolution change, including claiming that individual commit names establish an unchanged source.',
+        'The report omits or misstates owner E’s changed source, including claiming that individual commit names establish an unchanged source. Naming a merge is not required.',
     },
     {
       label: 'stale-assessment',

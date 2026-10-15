@@ -202,7 +202,15 @@ const SAFE_WORKSPACE_EXECUTABLE_PATHS = new Map([
   ],
 ]);
 const TRUSTED_SYSTEM_EXECUTABLE_DIRECTORIES = ['/bin', '/usr/bin'];
-const SAFE_GIT_SUBCOMMANDS = new Set(['diff', 'log', 'rev-parse', 'show', 'status', 'version']);
+const SAFE_GIT_SUBCOMMANDS = new Set([
+  'diff',
+  'log',
+  'ls-files',
+  'rev-parse',
+  'show',
+  'status',
+  'version',
+]);
 const SAFE_GIT_CONFIG_ASSIGNMENTS = new Set([
   'core.attributesFile=/dev/null',
   'core.fsmonitor=false',
@@ -796,6 +804,63 @@ export const identifyMoldeaRelevanceGateMode = (
   return words.includes('--adoption-only') ? 'adoption-only' : 'relationship';
 };
 
+/** Recognizes only the installed repair evidence helper and its fixed read modes. */
+const getRepairGitMode = (
+  words: readonly string[],
+): 'checkpoint' | 'continue' | 'review' | null => {
+  if (
+    !isTrustedLocalExecutable(words[0], 'node') ||
+    !SAFE_MANAGED_README_PATHS.has(
+      (words[1] ?? '').replace(/repair-git\.mjs$/u, 'managed-readme.mjs'),
+    ) ||
+    !words[1]?.endsWith('/repair-git.mjs') ||
+    words[2] !== '--repository' ||
+    !isSandboxRepositoryRoot(words[3]) ||
+    words[4] !== '--'
+  )
+    return null;
+  const mode = words[5];
+  if (mode === 'checkpoint' && words.length === 6) return mode;
+  if (
+    mode === 'continue' &&
+    words.length === 8 &&
+    words[6] === '--checkpoint' &&
+    /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u.test(words[7] ?? '')
+  )
+    return mode;
+  if (mode === 'review' && words.length >= 8 && words.length % 2 === 0) {
+    for (let index = 6; index < words.length; index += 2) {
+      const path = words[index + 1] ?? '';
+      if (
+        words[index] !== '--path' ||
+        path.startsWith('/') ||
+        /^[a-z]:/iu.test(path) ||
+        /[\\\p{Cc}]/u.test(path) ||
+        path
+          .split('/')
+          .some(
+            (part) =>
+              !part ||
+              part === '.' ||
+              part === '..' ||
+              ['_archive', '_archives', '_backup', '_backups'].includes(part),
+          )
+      )
+        return null;
+    }
+    return mode;
+  }
+  return null;
+};
+
+/** Identifies the exact installed repair helper without retaining its arguments. */
+export const identifyMoldeaRepairGitMode = (
+  command: unknown,
+): 'checkpoint' | 'continue' | 'review' | null => {
+  const words = getStandaloneCommandWords(command);
+  return words === null ? null : getRepairGitMode(words);
+};
+
 /** Checks the exact standalone Node invocation for the bundled README writer. */
 const isSafeManagedReadmeCommand = (words: readonly string[]): boolean =>
   isTrustedLocalExecutable(words[0], 'node') &&
@@ -1140,7 +1205,8 @@ const classifyNetworkCommand = (
   if (
     executable === 'node' &&
     assignmentPrefixes.length === 0 &&
-    (isSafeNodeVersionCommand(words) ||
+    (getRepairGitMode(words) !== null ||
+      isSafeNodeVersionCommand(words) ||
       identifyRepositoryTestCommandKindsFromWords(words) !== null ||
       isSafeMoldeaCliLauncherCommand(words) ||
       (canUseLocalSkillOperation &&
@@ -1162,6 +1228,8 @@ const classifyNetworkCommand = (
     ) {
       return 'not-observed';
     }
+    if (subcommand === 'config' && isApprovedRepairGitArguments(words.slice(1)))
+      return 'not-observed';
     if (NETWORK_GIT_SUBCOMMANDS.has(subcommand)) return 'observed';
     return SAFE_GIT_SUBCOMMANDS.has(subcommand) ? 'not-observed' : 'indeterminate';
   }
@@ -1306,9 +1374,15 @@ export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCom
     const words = originalWords.slice(executableIndex);
     const executable = getExecutableName(words[0] ?? '');
     if (executable === 'git') {
+      if (isTrustedGitExecutable(words[0]) && words.length === 2 && words[1] === '--version')
+        continue;
       if (!isTrustedGitExecutable(words[0])) recordReason('untrusted-git');
       else if (isApprovedRepairGitArguments(words.slice(1))) evidence.compliantCount++;
       else recordReason(getRejectedRepairGitReason(words));
+      continue;
+    }
+    if (getRepairGitMode(words) !== null) {
+      evidence.compliantCount++;
       continue;
     }
     const isInstalledOperation =

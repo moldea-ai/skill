@@ -12,6 +12,9 @@ const diff = CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.slice(0, -1);
 
 test.each([
   status,
+  [...status.slice(0, status.indexOf('status')), 'config', '--null', '--get', 'attr.tree'],
+  [...status.slice(0, status.indexOf('status')), 'ls-files', '-z', '--', '.'],
+  [...diff, '--name-only', '--no-renames', '-z', 'a'.repeat(40), '--', '.'],
   [...diff, '--name-only', '--no-renames', 'a'.repeat(40), '--', '.'],
   [...diff, 'HEAD', '--', 'moldea/moldea.yaml'],
   [...diff, 'repair-checkpoint', '--', 'moldea/moldea.yaml'],

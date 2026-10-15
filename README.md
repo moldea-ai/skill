@@ -4,16 +4,16 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The latest release is `8.1.0`. Install the latest version from `main` inside each repository that will use it:
+This checkout targets release `8.2.0`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
 ```
 
-For a reproducible installation, pin the immutable release:
+For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v8.1.0"
+npx skills add "moldea-ai/skill#v8.2.0"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -73,7 +73,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `8.1.0` supports exactly:
+Release `8.2.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
@@ -96,7 +96,7 @@ The entrypoint keeps routing and essential boundaries compact. It loads only the
 
 Mechanical repository evidence uses the installed skill's closed launcher. It exposes bounded `inspect`, `scope`, `content`, `validate`, and `composition` operations without making canonical document bodies part of ordinary metadata output. It normalizes repository-relative content paths and verifies response identity, status, and inspection/validation diagnostic totals before forwarding unchanged output. Detailed invocation, pagination, failure, and runtime guidance belongs to [Compatibility and local tooling](docs/compatibility-and-local-tooling.md).
 
-Repair continuation cases require bounded automatic evidence that captured actor Git commands match the hardened repair shapes; unknown execution cannot pass that check. Semantic execution may project one fixed repository-root direct Node correctness-test invocation into aggregate pass/fail facts. Package-manager commands cannot contribute correctness evidence, and the projection never retains test names, assertions, paths, durations, or output bodies.
+Repair uses a bundled helper for bounded checkpoint, continuation and written-file Git evidence. It refuses executable repository filters before status or diff. Repair continuation cases require bounded automatic evidence that captured actor commands match the helper or hardened repair shapes; unknown execution cannot pass that check. Semantic execution may project one fixed repository-root direct Node correctness-test invocation into aggregate pass/fail facts. Package-manager commands cannot contribute correctness evidence, and the projection never retains test names, assertions, paths, durations, or output bodies.
 
 ### Safety and authority boundaries
 

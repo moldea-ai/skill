@@ -166,3 +166,10 @@ test('repair continuations require Git presence only when comparison is needed',
     expect(buildSemanticActorPrompt(definition)).not.toContain(label);
   }
 });
+
+test('private manifest continuation remains available for diagnostic selection', async () => {
+  const cases = await loadSemanticCases(import.meta.dirname);
+  const definition = cases.find(({ id }) => id === 'repair-continuation-manifest-change');
+  expect(definition?.publication).toBe('private');
+  expect(typeof definition?.setup).toBe('function');
+});

@@ -1747,7 +1747,7 @@ const seedScenarioRepository = async (
       await writeScenarioFile(
         repositoryPath,
         'moldea/context/invoice.md',
-        '# Invoice extraction\n\nThe invoice module extracts verified invoice identifiers for accounting.\n',
+        '# Invoice extraction\n\nThe invoice module extracts an invoice object’s id value for accounting.\n',
       );
       await writeScenarioFile(
         repositoryPath,

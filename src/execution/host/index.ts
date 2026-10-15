@@ -67,6 +67,7 @@ export {
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
+  identifyMoldeaRepairGitMode,
   identifyRepositoryTestCommandKinds,
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,

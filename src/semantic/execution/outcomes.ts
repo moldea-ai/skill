@@ -54,7 +54,20 @@ export const createSemanticResultDimensions = (options: {
     hasPassingMoldeaActivation(
       options.actorResourceEvidence,
       options.caseDefinition.resourceBudget,
-    ),
+    ) &&
+    (options.caseDefinition.resourceBudget.activation !== 'relationship' ||
+      options.actorExecutionEvidence.some(
+        ({ item }) =>
+          item.exitCode === 0 &&
+          item.outputEvidence.facts.some(
+            (fact) =>
+              fact.kind === 'moldea-cli-envelope' &&
+              fact.command === 'scope' &&
+              fact.status === 'valid' &&
+              fact.errorPresent === false &&
+              fact.relevant === true,
+          ),
+      )),
   resource:
     hasPassingMoldeaResourceContainment(
       options.actorResourceEvidence,
@@ -80,12 +93,12 @@ export const hasPassingSemanticResultDimensions = (
   dimensions: ISemanticResultDimensions,
 ): boolean => SEMANTIC_RESULT_DIMENSION_NAMES.every((dimension) => dimensions[dimension]);
 
-/** Limits confirmations to semantic uncertainty when every deterministic dimension passed. */
+/** Confirms semantic or resource failures while preserving safety and integrity hard stops. */
 export const isSemanticConfirmationEligible = (dimensions: ISemanticResultDimensions): boolean =>
-  !dimensions.semantic &&
-  SEMANTIC_RESULT_DIMENSION_NAMES.filter((dimension) => dimension !== 'semantic').every(
-    (dimension) => dimensions[dimension],
-  );
+  (!dimensions.semantic || !dimensions.resource) &&
+  SEMANTIC_RESULT_DIMENSION_NAMES.filter(
+    (dimension) => dimension !== 'semantic' && dimension !== 'resource',
+  ).every((dimension) => dimensions[dimension]);
 
 /** Returns stable identifiers for every failing dimension. */
 export const getSemanticFailureClassifications = (

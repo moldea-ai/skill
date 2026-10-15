@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-continuation-manifest-change',
+  publication: 'private',
   setup: createSemanticCaseSetup('repair-continuation-manifest-change'),
   scenario:
     'A previous repair checkpoint has four checked owners; later canonical and manifest changes require selective reassessment.',

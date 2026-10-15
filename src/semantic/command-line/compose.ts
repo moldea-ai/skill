@@ -88,7 +88,9 @@ const run = async (): Promise<void> => {
           resolveContainedPath(REPOSITORY_ROOT, arguments_.reviewPath),
           SemanticCompositionReviewSchema,
         );
-  const catalog = await loadSemanticCases(CASES_ROOT);
+  const catalog = (await loadSemanticCases(CASES_ROOT)).filter(
+    ({ publication }) => publication !== 'private',
+  );
   const definitions =
     arguments_.caseIds === null
       ? catalog

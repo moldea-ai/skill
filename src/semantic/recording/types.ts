@@ -61,6 +61,7 @@ export interface ISemanticRecordedTrial {
 
 export interface ISemanticReusableTrial {
   caseId: string;
+  sourceCaseStatus: 'failed' | 'passed' | 'recovered';
   recordedTrial: ISemanticRecordedTrial;
   sourceAttemptId: string;
   sourceEvidenceSha256: string;

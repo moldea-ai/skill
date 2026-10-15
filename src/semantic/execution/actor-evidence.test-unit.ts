@@ -380,7 +380,11 @@ test('classifies activation and upper resource containment independently', () =>
     stdoutByteCount,
   });
   const wrongOrderEvidence = createResourceEvidence(['content', 'scope']);
-  assert.equal(hasPassingMoldeaActivation(wrongOrderEvidence, relationshipBudget), false);
+  assert.equal(hasPassingMoldeaActivation(wrongOrderEvidence, relationshipBudget), true);
+  assert.equal(
+    hasPassingMoldeaActivation(createResourceEvidence(['inspect', 'content']), relationshipBudget),
+    false,
+  );
   assert.equal(hasPassingMoldeaResourceContainment(wrongOrderEvidence, relationshipBudget), true);
 
   const blockedBudget: IMoldeaResourceBudget = {
@@ -1019,7 +1023,7 @@ test('rejects obsolete and malformed launcher command forms', () => {
   }
 });
 
-test('enforces activation-specific moldea operation ordering', () => {
+test('requires relevant scope without enforcing incidental operation order', () => {
   const empty = createMoldeaResourceEvidence([], OPTIONS);
   assert.equal(
     hasPassingMoldeaResourceBudget(empty, {
@@ -1052,7 +1056,7 @@ test('enforces activation-specific moldea operation ordering', () => {
         maximumMoldeaOutputBytes: 262_144,
       },
     ),
-    false,
+    true,
   );
   assert.equal(
     hasPassingMoldeaResourceBudget(
@@ -1267,4 +1271,72 @@ test('records failed Git attempts independently of empty output and rejects miss
       false,
     );
   }
+});
+
+test('projects bounded repair helper results without paths, diffs or commit values', () => {
+  const command =
+    'node /mnt/.agents/skills/moldea/scripts/repair-git.mjs --repository /mnt -- checkpoint';
+  const output = {
+    kind: 'moldea-repair-git',
+    mode: 'checkpoint',
+    status: 'available',
+    commit: 'a'.repeat(40),
+    uncommittedPaths: ['private.js'],
+    changedPaths: ['private.js'],
+    manifestDiff: '',
+    uncommittedManifestDiff: 'private body',
+    writtenDiff: '',
+  };
+  const result = projectActorExecutionEvidenceEvent(
+    createEvent(command, JSON.stringify(output)),
+    OPTIONS,
+  );
+  assert.deepEqual(result.item.outputEvidence.facts, [
+    {
+      kind: 'repair-git-result',
+      mode: 'checkpoint',
+      status: 'available',
+      commitAvailable: true,
+      reasonCode: null,
+    },
+  ]);
+  assert.equal(hasValidActorExecutionEvidence([result], OPTIONS), true);
+  assert.equal(JSON.stringify(result).includes('private'), false);
+  for (const invalid of [
+    { ...output, commit: 'HEAD' },
+    { ...output, changedPaths: null },
+    { ...output, unexpected: true },
+  ]) {
+    assert.deepEqual(
+      projectActorExecutionEvidenceEvent(createEvent(command, JSON.stringify(invalid)), OPTIONS)
+        .item.outputEvidence.facts,
+      [],
+    );
+  }
+  const unavailable = {
+    kind: 'moldea-repair-git',
+    mode: 'checkpoint',
+    status: 'unavailable',
+    reasonCode: 'commit-unavailable',
+    reason: 'No commit.',
+  };
+  const failure = projectActorExecutionEvidenceEvent(
+    createEvent(command, JSON.stringify(unavailable), { exitCode: 1, status: 'failed' }),
+    OPTIONS,
+  );
+  assert.deepEqual(failure.item.outputEvidence.facts, [
+    {
+      kind: 'repair-git-result',
+      mode: 'checkpoint',
+      status: 'unavailable',
+      commitAvailable: false,
+      reasonCode: 'commit-unavailable',
+    },
+  ]);
+  assert.equal(hasValidActorExecutionEvidence([failure], OPTIONS), true);
+  assert.deepEqual(
+    projectActorExecutionEvidenceEvent(createEvent(command, JSON.stringify(unavailable)), OPTIONS)
+      .item.outputEvidence.facts,
+    [],
+  );
 });

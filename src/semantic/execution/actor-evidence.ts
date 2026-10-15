@@ -5,6 +5,7 @@ import {
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
+  identifyMoldeaRepairGitMode,
   identifyRepositoryTestCommandKinds,
   isMoldeaManagedReadmeWriterCommand,
   projectRepairGitCommandEvidence,
@@ -611,12 +612,90 @@ export const hasVerifiedManagedAgentsHandoff = (
   );
 };
 
+const hasValidRepairGitResultFact = (fact: unknown, exitCode: number): boolean =>
+  isPlainRecord(fact) &&
+  hasExactKeys(fact, ['kind', 'mode', 'status', 'commitAvailable', 'reasonCode']) &&
+  fact['kind'] === 'repair-git-result' &&
+  typeof fact['mode'] === 'string' &&
+  ['checkpoint', 'continue', 'review'].includes(fact['mode']) &&
+  ((exitCode === 0 &&
+    fact['status'] === 'available' &&
+    fact['commitAvailable'] === true &&
+    fact['reasonCode'] === null) ||
+    (exitCode === 1 &&
+      fact['status'] === 'unavailable' &&
+      fact['commitAvailable'] === false &&
+      typeof fact['reasonCode'] === 'string' &&
+      ['arguments', 'attribute-safety', 'git-read', 'commit-unavailable', 'output-limit'].includes(
+        fact['reasonCode'],
+      )));
+
+/** Projects only fixed helper outcome metadata; paths, diffs and commit values stay private. */
+const projectRepairGitResult = (
+  source: string,
+  mode: 'checkpoint' | 'continue' | 'review',
+  exitCode: number,
+): ISemanticActorExecutionOutputFact | null => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(source);
+  } catch {
+    return null;
+  }
+  if (!isPlainRecord(parsed) || parsed['kind'] !== 'moldea-repair-git' || parsed['mode'] !== mode)
+    return null;
+  if (
+    parsed['status'] === 'available' &&
+    (!hasExactKeys(parsed, [
+      'kind',
+      'mode',
+      'status',
+      'commit',
+      'uncommittedPaths',
+      'changedPaths',
+      'manifestDiff',
+      'uncommittedManifestDiff',
+      'writtenDiff',
+    ]) ||
+      typeof parsed['commit'] !== 'string' ||
+      !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u.test(parsed['commit']) ||
+      !['uncommittedPaths', 'changedPaths'].every(
+        (key) =>
+          Array.isArray(parsed[key]) &&
+          parsed[key].every((path: unknown) => typeof path === 'string'),
+      ) ||
+      !['manifestDiff', 'uncommittedManifestDiff', 'writtenDiff'].every(
+        (key) => typeof parsed[key] === 'string',
+      ))
+  )
+    return null;
+  if (
+    parsed['status'] === 'unavailable' &&
+    (!hasExactKeys(parsed, ['kind', 'mode', 'status', 'reasonCode', 'reason']) ||
+      typeof parsed['reason'] !== 'string' ||
+      parsed['reason'].length > 512)
+  )
+    return null;
+  const fact: Extract<ISemanticActorExecutionOutputFact, { kind: 'repair-git-result' }> = {
+    kind: 'repair-git-result',
+    mode,
+    status: parsed['status'] as 'available' | 'unavailable',
+    commitAvailable: parsed['status'] === 'available',
+    reasonCode: (parsed['status'] === 'available' ? null : parsed['reasonCode']) as Extract<
+      ISemanticActorExecutionOutputFact,
+      { kind: 'repair-git-result' }
+    >['reasonCode'],
+  };
+  return hasValidRepairGitResultFact(fact, exitCode) ? fact : null;
+};
+
 const createOutputEvidence = (
   source: string,
   operation: IMoldeaCliOperation | null,
   gateMode: 'adoption-only' | 'relationship' | null,
   isManagedReadmeWriter: boolean,
   agentsMode: 'write' | 'print' | null,
+  repairMode: 'checkpoint' | 'continue' | 'review' | null,
   exitCode: number,
   options: ISemanticActorExecutionEvidenceOptions,
   testKinds: IRepositoryTestCommandKind[] | null,
@@ -634,9 +713,11 @@ const createOutputEvidence = (
           ? projectManagedReadmeResult(source, exitCode)
           : agentsMode !== null
             ? projectManagedAgentsResult(source, agentsMode, exitCode)
-            : testKinds !== null
-              ? projectNodeTestSummary(source, exitCode, testKinds)
-              : null
+            : repairMode !== null
+              ? projectRepairGitResult(source, repairMode, exitCode)
+              : testKinds !== null
+                ? projectNodeTestSummary(source, exitCode, testKinds)
+                : null
       : projectMoldeaEnvelope(source, operation, exitCode, options);
   return fact === null
     ? { byteCount, disposition: 'unrecognized', facts: [] }
@@ -685,7 +766,8 @@ const hasValidOutputEvidence = (
       : hasValidRelevanceGateFact(facts[0], byteCount, exitCode) ||
         hasValidManagedReadmeFact(facts[0], byteCount, exitCode) ||
         hasValidManagedAgentsFact(facts[0], byteCount, exitCode) ||
-        hasValidNodeTestFact(facts[0], exitCode))
+        hasValidNodeTestFact(facts[0], exitCode) ||
+        hasValidRepairGitResultFact(facts[0], exitCode))
   );
 };
 
@@ -785,6 +867,7 @@ export const projectActorExecutionEvidenceEvent = (
         gateMode,
         isManagedReadmeWriter,
         agentsMode,
+        identifyMoldeaRepairGitMode(command),
         exitCode,
         options,
         testKinds,
@@ -901,7 +984,7 @@ export const hasPassingMoldeaActivation = (
   if (budget.activation === 'direct') return true;
   if (evidence.commandCount < budget.minimumMoldeaCommands) return false;
   if (budget.activation === 'relationship') {
-    return evidence.operations[0] === 'scope' && !evidence.operations.includes('inspect');
+    return evidence.operations.includes('scope');
   }
   return evidence.operations[0] !== 'scope';
 };

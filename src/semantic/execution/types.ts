@@ -13,6 +13,19 @@ export interface ISemanticActorExecutionEvidenceOptions {
 // evaluator-owned facts derived from recognized command output
 export type ISemanticActorExecutionOutputFact =
   | {
+      kind: 'repair-git-result';
+      mode: 'checkpoint' | 'continue' | 'review';
+      status: 'available' | 'unavailable';
+      commitAvailable: boolean;
+      reasonCode:
+        | 'arguments'
+        | 'attribute-safety'
+        | 'git-read'
+        | 'commit-unavailable'
+        | 'output-limit'
+        | null;
+    }
+  | {
       kind: 'moldea-cli-envelope';
       // schema 7 records acceptance separately; historical schemas retain their original shape
       acceptedWarningCount?: number | null;

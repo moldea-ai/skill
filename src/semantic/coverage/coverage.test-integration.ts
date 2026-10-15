@@ -40,6 +40,14 @@ describe('discovered semantic coverage', () => {
   test('new repair, expansion, and injection evidence is derived from discovered cases', async () => {
     const cases = await loadSemanticCases(path.resolve(import.meta.dirname, '../cases'));
     const coverage = createSemanticCoverage(cases);
+    const published = createSemanticCoverage(
+      cases.filter(({ publication }) => publication !== 'private'),
+    );
+    for (const definition of cases.filter(({ publication }) => publication === 'private')) {
+      expect(
+        published.claims.flatMap(({ evidence }) => evidence).some(({ id }) => id === definition.id),
+      ).toBe(false);
+    }
     const evidenceFor = (claimId: string): string[] =>
       coverage.claims
         .find(({ id }) => id === claimId)

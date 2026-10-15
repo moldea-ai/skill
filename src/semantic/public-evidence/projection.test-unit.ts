@@ -198,3 +198,20 @@ describe('selected semantic cases', () => {
     expect(historyModel.latest?.cases[0]?.trials).toHaveLength(2);
   });
 });
+
+test('private cases stay out of the public catalog and cannot enter evidence bundles', () => {
+  const definitions = SEMANTIC_COVERAGE_CLAIMS.map(({ id }) => createCase(id));
+  const publicCase = definitions[0]!;
+  const privateCase = { ...publicCase, id: 'private-frontier', publication: 'private' as const };
+  const model = createSemanticCatalogWebsiteModel([...definitions, privateCase]);
+  expect(model.caseCount).toBe(definitions.length);
+  expect(JSON.stringify(model)).not.toContain('private-frontier');
+  expect(() =>
+    createSemanticEvidenceBundle({
+      classification: 'official',
+      definitions: [privateCase],
+      result: {} as ISemanticAttemptRecord,
+      version: '8.2.0',
+    }),
+  ).toThrow('Private semantic cases cannot enter a public evidence bundle.');
+});

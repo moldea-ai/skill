@@ -9,6 +9,7 @@ import {
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
+  identifyMoldeaRepairGitMode,
   identifyRepositoryTestCommandKinds,
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
@@ -1570,4 +1571,71 @@ test('excludes only exact installed helpers from actor-issued repair Git', () =>
     projectRepairGitCommandEvidence('node src/moldea-cli.mjs -- inspect').unverifiedCount,
     1,
   );
+});
+
+test.each([
+  ['checkpoint', 'checkpoint'],
+  ['continue --checkpoint ' + 'a'.repeat(40), 'continue'],
+  ['review --path moldea/project.md', 'review'],
+  ['review --path "app/[slug]/page.tsx"', 'review'],
+  ['continue --checkpoint HEAD', null],
+  ['review --path ../outside', null],
+  ["review --path '..\\outside'", null],
+  ['checkpoint --extra', null],
+] as const)('recognizes fixed repair helper mode %s -> %s', (arguments_, mode) => {
+  const command =
+    'node /mnt/.agents/skills/moldea/scripts/repair-git.mjs --repository /mnt -- ' + arguments_;
+  assert.equal(identifyMoldeaRepairGitMode(command), mode);
+  const evidence = projectRepairGitCommandEvidence(command);
+  assert.equal(evidence.compliantCount, mode === null ? 0 : 1);
+  assert.equal(evidence.unverifiedCount, mode === null ? 1 : 0);
+  if (mode !== null)
+    assert.equal(
+      hasPassingCodexEvaluationCommandPolicy(
+        projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy,
+      ),
+      true,
+    );
+});
+
+test('untrusted repair helper copies and hidden shell branches cannot acquire compliant evidence', () => {
+  for (const command of [
+    'node /mnt/copied/repair-git.mjs --repository /mnt -- checkpoint',
+    'node /mnt/.agents/skills/moldea/scripts/repair-git.mjs --repository /mnt -- checkpoint && git log -p',
+  ]) {
+    const evidence = projectRepairGitCommandEvidence(command);
+    assert.equal(evidence.noncompliantCount + evidence.unverifiedCount > 0, true);
+  }
+});
+
+test('only the exact hardened attribute-source configuration query is a passive Git read', () => {
+  const prefix = CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.slice(
+    0,
+    CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.indexOf('status'),
+  );
+  const command = ['git', ...prefix, 'config', '--null', '--get', 'attr.tree'].join(' ');
+  assert.equal(projectRepairGitCommandEvidence(command).compliantCount, 1);
+  assert.equal(
+    projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy.networkAccess
+      .status,
+    'not-observed',
+  );
+  const unsupported = ['git', ...prefix, 'config', '--edit'].join(' ');
+  assert.equal(projectRepairGitCommandEvidence(unsupported).noncompliantCount, 1);
+  assert.equal(
+    projectCodexEvaluationExecutionEvidence(createCommandEvent(unsupported)).commandPolicy
+      .networkAccess.status,
+    'indeterminate',
+  );
+});
+
+test('a trusted Git version probe is passive and cannot supply checkpoint evidence', () => {
+  assert.deepEqual(projectRepairGitCommandEvidence('git --version'), {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+  assert.equal(projectRepairGitCommandEvidence('/usr/bin/git --version').unverifiedCount, 1);
+  assert.equal(projectRepairGitCommandEvidence('git --version && git log -p').noncompliantCount, 1);
 });

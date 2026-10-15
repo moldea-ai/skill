@@ -4,23 +4,29 @@ Use for an explicit request to validate, evaluate, inspect, or repair this repos
 
 ## Git read boundary
 
-During explicit repair, this boundary governs Git reads, including preliminary repository checks and review of its writes; Git writes and publication remain host-owned. Apply it before the first Git read. The hardened status supplies the current commit; a supplied full checkpoint commit needs no ref-resolution command. Disable repository-configured helpers as follows. Precede `--no-pager` with the approved `-c` settings: `core.attributesFile=/dev/null`, `core.fsmonitor=false`, `core.pager=cat`, `filter.lfs.clean=`, `filter.lfs.process=`, `filter.lfs.required=false`, and `filter.lfs.smudge=`. For each diff, put `-c diff.external=` before `--no-pager` too. After that prefix, use only these relevant argument shapes, with an explicit pathspec for every diff:
+During explicit repair, use only the installed bundled helper for Git evidence, including preliminary repository checks and review of this repair's writes. Git writes and publication remain host-owned. Before any repair CLI or Git-dependent operation, run:
 
 ```text
-diff --no-ext-diff --no-textconv --ignore-submodules=all --name-only --no-renames <commit> -- .
-diff --no-ext-diff --no-textconv --ignore-submodules=all HEAD -- moldea/moldea.yaml
-diff --no-ext-diff --no-textconv --ignore-submodules=all <commit> -- moldea/moldea.yaml
-diff --no-ext-diff --no-textconv --ignore-submodules=all -- <written-path> [<written-path> ...]
-status --porcelain=v2 -z --ignore-submodules=all --untracked-files=all --branch
+node <installed-skill-root>/scripts/repair-git.mjs --repository <absolute-repository-root> -- checkpoint
 ```
 
-The last diff reviews only exact repository-relative files changed by this repair; no directories, wildcards, traversal, or Git pathspec magic. Read newly created files directly because this diff omits untracked content. For a written-file review, the complete command is:
+The helper inspects bounded repository attributes before status or diff, refuses executable clean/process filters and unverified attribute fallbacks, disables configured helpers, and captures the full commit and NUL-delimited path evidence without Git writes. It uses the host's Git executable boundary. An `attribute-safety` or `arguments` limitation stops Git-dependent repair; report it and use only the bounded inert foundation diagnosis below. Never bypass the helper or retry unchanged failure.
+
+For continuation with a supplied full checkpoint commit, use:
 
 ```text
-git -c core.attributesFile=/dev/null -c core.fsmonitor=false -c core.pager=cat -c filter.lfs.clean= -c filter.lfs.process= -c filter.lfs.required=false -c filter.lfs.smudge= -c diff.external= --no-pager diff --no-ext-diff --no-textconv --ignore-submodules=all -- <written-path>
+node <installed-skill-root>/scripts/repair-git.mjs --repository <absolute-repository-root> -- continue --checkpoint <full-commit>
 ```
 
-Capture the full checkpoint commit from the successful status result's `branch.oid` header, keeping branch headers separate from its NUL-delimited path records. A missing or unusable header, `(initial)` in a repository without an initial commit, or failed or incomplete output means the commit is unavailable; report that limitation instead of inventing an identity. The conservative continuation rule below still applies.
+Use its `changedPaths`, `manifestDiff`, and `uncommittedPaths` with the checkpoint's reported lists. For a new checkpoint, use `commit`, `uncommittedPaths`, and `uncommittedManifestDiff`. Unborn repositories, unavailable commits, failed reads, and oversized evidence return an explicit limitation; preserve the conservative reassessment rule below instead of inventing an identity or resolving a ref yourself.
+
+Review only exact repository-relative files changed by this repair:
+
+```text
+node <installed-skill-root>/scripts/repair-git.mjs --repository <absolute-repository-root> -- review --path <written-file> [--path <written-file> ...]
+```
+
+No directories, wildcards, traversal, or pathspec magic. Read newly created files directly because the diff omits untracked content. The helper supplies mechanical evidence, not owner assessment, permission to change files, or proof that a repair is complete.
 
 ## Diagnose blocked adoption without writes
 
@@ -81,9 +87,9 @@ Run the affected project-native checks after correction, then launcher-backed `v
 
 ## Continue an incomplete repair
 
-When a limit is near, stop after a complete owner. Report `N of M owners checked at <commit>; continue from <owner>` with the commit and next owner identity. At that moment, record two lists in the report, not a checkpoint file: every path still uncommitted in the working tree, including this repair's corrections; and every owner whose `moldea/moldea.yaml` entry is uncommitted. Obtain the second list from one bounded diff of `moldea/moldea.yaml` against `HEAD`. If that diff cannot establish the entries, state that limitation. A CLI cursor is never a continuation point.
+When a limit is near, stop after a complete owner. Report `N of M owners checked at <commit>; continue from <owner>` with the commit and next owner identity. At that moment, record two lists in the report, not a checkpoint file: every path still uncommitted in the working tree, including this repair's corrections; and every owner whose `moldea/moldea.yaml` entry is uncommitted. Obtain the second list from the helper's bounded `uncommittedManifestDiff` against the captured commit. If that diff cannot establish the entries, state that limitation. A CLI cursor is never a continuation point.
 
-A later `Fix moldea` that names the continuation point runs a fresh `inspect`. Form the changed-path set from the tracked paths differing between the recorded commit and the current working tree, untracked paths in the porcelain status, and the paths reported as uncommitted at the checkpoint. `--no-renames` includes both names of a rename; comparing the commit with the working tree includes merge-resolution changes and excludes changes later undone. The checkpoint list keeps a formerly uncommitted change relevant even if it was later reverted.
+A later `Fix moldea` that names the continuation point runs a fresh `inspect`. Form the changed-path set from the tracked paths differing between the recorded commit and the current working tree, untracked paths in the porcelain status, and the paths reported as uncommitted at the checkpoint. The helper includes both names of a rename; comparing the commit with the working tree includes merge-resolution changes and excludes changes later undone. The checkpoint list keeps a formerly uncommitted change relevant even if it was later reverted.
 
 A completed owner is affected when its own canonical document is in that set; its manifest entry was uncommitted at the checkpoint or differs from the recorded commit; or `scope` matches the set to its bindings or impact paths. `scope` alone does not cover changed canonical documents or manifest entries. Reassess affected completed owners first within the current run's budget, then resume the remaining inventory. Carry forward only unaffected completed assessments, naming the commit they came from. Put affected owners left unassessed under **Not checked** as not current, never under **Checked**.
 

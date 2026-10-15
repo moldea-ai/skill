@@ -1,16 +1,14 @@
 import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import {
+  REPAIR_GIT_COMMON_CONFIGURATIONS,
+  REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS,
+  REPAIR_GIT_INDEX_ARGUMENTS,
+} from '../../portable/repair-git/index.ts';
+
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
-const HARDENED_GIT_COMMON_CONFIGURATIONS = [
-  'core.attributesFile=/dev/null',
-  'core.fsmonitor=false',
-  'core.pager=cat',
-  'filter.lfs.clean=',
-  'filter.lfs.process=',
-  'filter.lfs.required=false',
-  'filter.lfs.smudge=',
-];
+const HARDENED_GIT_COMMON_CONFIGURATIONS = REPAIR_GIT_COMMON_CONFIGURATIONS;
 const HARDENED_GIT_DIFF_CONFIGURATION = 'diff.external=';
 
 const createGitConfigurationArguments = (configurations: readonly string[]): string[] =>
@@ -62,6 +60,19 @@ export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): 
   )
     return false;
   const shape = argumentsList.slice(index);
+  if (command === 'config')
+    return (
+      shape.length === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS.length &&
+      shape.every(
+        (argument, position) => argument === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS[position],
+      )
+    );
+  if (command === 'ls-files') {
+    return (
+      shape.length === REPAIR_GIT_INDEX_ARGUMENTS.length &&
+      shape.every((argument, position) => argument === REPAIR_GIT_INDEX_ARGUMENTS[position])
+    );
+  }
   if (command === 'status') {
     const expected = [
       'status',
@@ -101,7 +112,7 @@ export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): 
     );
   }
   const isChangedPaths = tail[0] === '--name-only' && tail[1] === '--no-renames';
-  const remainder = isChangedPaths ? tail.slice(2) : tail;
+  const remainder = isChangedPaths ? tail.slice(tail[2] === '-z' ? 3 : 2) : tail;
   const [commit, separator, path] = remainder;
   return (
     remainder.length === 3 &&
@@ -311,6 +322,11 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   "    encoding: 'buffer',",
   '    env: {',
   '      ...process.env,',
+  '      GIT_LITERAL_PATHSPECS: undefined,',
+  '      GIT_GLOB_PATHSPECS: undefined,',
+  '      GIT_NOGLOB_PATHSPECS: undefined,',
+  '      GIT_ICASE_PATHSPECS: undefined,',
+  '      GIT_WORK_TREE: repositoryRoot,',
   "      GIT_ATTR_NOSYSTEM: '1',",
   "      GIT_CONFIG_GLOBAL: '/dev/null',",
   "      GIT_CONFIG_NOSYSTEM: '1',",
@@ -341,6 +357,13 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '};',
   '',
   'const assertGitAttributesAreSafe = (repositoryRoot) => {',
+  "  const attributeSource = spawnSync('/usr/bin/git', ['-c', 'core.fsmonitor=false', '--no-pager', 'config', '--null', '--get', 'attr.tree'], {",
+  '    cwd: repositoryRoot,',
+  '    encoding: "buffer",',
+  '    env: { ...process.env, GIT_WORK_TREE: repositoryRoot, GIT_ATTR_SOURCE: undefined, GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1" },',
+  '    maxBuffer: MAX_GIT_INSPECTION_BYTES,',
+  '  });',
+  '  if (attributeSource.error || attributeSource.status !== 1) throw new Error("Stored Git attribute sources are unverified.");',
   '  assertWorkingTreeAttributesAreSafe(repositoryRoot);',
   '  assertIndexAttributeFallbacksAreSafe(repositoryRoot);',
   '  const gitDirectory = resolveGitDirectory(repositoryRoot);',
@@ -473,6 +496,11 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '    return false;',
   '  }',
   '',
+  "  if (subcommand === 'config') return hasExactArguments(subcommandArguments, ['--null', '--get', 'attr.tree']);",
+  "  if (subcommand === 'ls-files') {",
+  "    return hasExactArguments(subcommandArguments, ['-z', '--', '.']);",
+  '  }',
+  '',
   "  if (subcommand === 'status') {",
   '    return (',
   "      subcommandArguments.includes('--porcelain=v2') &&",
@@ -562,6 +590,8 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   "  const result = spawnSync('/usr/bin/git', [...SAFE_GIT_ARGUMENTS, ...argumentsList], {",
   '    env: {',
   '      ...process.env,',
+  '      GIT_WORK_TREE: repositoryRoot ?? undefined,',
+  '      GIT_ATTR_SOURCE: undefined,',
   "      GIT_CONFIG_GLOBAL: '/dev/null',",
   "      GIT_CONFIG_NOSYSTEM: '1',",
   "      GIT_OPTIONAL_LOCKS: '0',",

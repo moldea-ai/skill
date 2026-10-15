@@ -114,16 +114,17 @@ const createGroups = (
 export const createSemanticCatalogWebsiteModel = (
   definitions: readonly ISemanticCase[],
 ): ISemanticEvaluationWebsiteModel => {
-  const cases = [...definitions]
+  const publicDefinitions = definitions.filter(({ publication }) => publication !== 'private');
+  const cases = [...publicDefinitions]
     .sort(({ id: left }, { id: right }) => left.localeCompare(right, 'en'))
     .map(createPendingCaseModel);
-  const coverage = createSemanticCoverage(definitions);
+  const coverage = createSemanticCoverage(publicDefinitions);
 
   return {
     artifactDigest: null,
     attempts: [],
     caseCount: cases.length,
-    caseSuiteDigest: createSemanticCaseSuiteDigest(definitions),
+    caseSuiteDigest: createSemanticCaseSuiteDigest(publicDefinitions),
     cli: null,
     coverageDigest: createSemanticCoverageDigest(coverage),
     coverageUrl: null,
@@ -161,6 +162,9 @@ export const createSemanticEvidenceBundle = (options: {
   result: ISemanticAttemptModel['result'];
   version: string;
 }): IEvidenceBundle => {
+  if (options.definitions.some(({ publication }) => publication === 'private')) {
+    throw new Error('Private semantic cases cannot enter a public evidence bundle.');
+  }
   const definitionsById = new Map(
     options.definitions.map((definition) => [definition.id, definition]),
   );

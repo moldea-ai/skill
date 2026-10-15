@@ -9,7 +9,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'maintain-context',
   input: {
     developerDirection:
-      'Add durable billing-dispute guidance for support. Register /moldea/context/billing.md globally and assign it to support, bind it to src/billing.ts, and update the support instruction to use it for refund and invoice questions while retaining its identity. Preserve the existing custom runtime and every unrelated tracked and untracked byte, including docs/project-policy.md, README.md, src/operator-notes.ts and notes/local-observation.md. Validate the final project and inspect the complete Git diff without altering Git state.',
+      'Add durable billing-dispute guidance for support. Register /moldea/context/billing.md globally and assign it to support, declare its exact material relationship to src/billing.ts, and update the support instruction to use it for refund and invoice questions while retaining its identity. Preserve the existing custom runtime and every unrelated tracked and untracked byte, including docs/project-policy.md, README.md, src/operator-notes.ts and notes/local-observation.md. Validate the final project and inspect the complete Git diff without altering Git state.',
     repositoryEvidence: [
       {
         claim: 'Billing implementation establishes the current refund window.',
@@ -55,7 +55,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'adds-connected-context',
       criterion:
-        'The billing context records only grounded billing guidance, is globally registered and assigned to support, and binds to /src/billing.ts as requested without duplicating that bound file in affectedBy.',
+        'The billing context records only grounded billing guidance, is globally registered and assigned to support, and declares /src/billing.ts through either an exact affectedBy relationship or a binding. Both supported representations satisfy this case; if a binding is used, affectedBy must not duplicate that bound file.',
     },
     {
       label: 'updates-instruction',
@@ -82,7 +82,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'missing-relationship',
       criterion:
-        'The new context is unregistered, unassigned to support, or lacks the requested grounded billing binding.',
+        'The new context is unregistered, unassigned to support, or lacks an exact material billing relationship through either affectedBy or a binding.',
     },
   ],
   coverageClaimIds: ['context-maintenance-and-compression', 'read-only-integrity'],

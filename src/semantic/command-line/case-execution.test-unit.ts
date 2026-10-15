@@ -7,7 +7,10 @@ import {
   type ISemanticCaseCheckpoint,
   type ISemanticRecordedCase,
   type ISemanticRecordedTrial,
+  selectSemanticReusableTrial,
+  type ISemanticReusableTrial,
 } from '../recording/index.ts';
+import { createSemanticActorStageIdentity } from '../stages/index.ts';
 
 import { runSemanticCaseExecution } from './case-execution.ts';
 
@@ -506,4 +509,90 @@ describe('semantic case execution', () => {
     ).rejects.toThrow('Initial execution stopped.');
     expect(confirmationStarts).toStrictEqual([]);
   });
+});
+
+test('a case-only correction reruns that case and reuses unchanged passing and recovered quorums', async () => {
+  const sourceCases = ['passing-case', 'recovered-case', 'changed-case'].map(createCase);
+  const identity = (definition: ISemanticCase, confirmationIndex: 1 | 2 | 3 | null) =>
+    createSemanticActorStageIdentity({
+      actorCommand: ['synthetic-host'],
+      actorHost: createRecordedTrial({
+        caseDefinition: definition,
+        confirmationEligible: true,
+        confirmationIndex,
+        passed: true,
+      }).trial.actorHost,
+      actorPrompt: definition.input.developerDirection,
+      artifactDigest: SHA256,
+      cli: { version: '11.0.4' },
+      caseDefinitionDigest: createSemanticCaseDefinitionDigest(definition),
+      confirmationIndex,
+      evaluationProtocolVersion: 38,
+      readOnlyMountFixtures: [],
+      repositoryFixture: [],
+      resourceProfiles: {},
+    }).sha256;
+  const candidates: ISemanticReusableTrial[] = sourceCases.flatMap((definition) => {
+    const recovered = definition.id === 'recovered-case';
+    return (recovered ? ([null, 1, 2] as const) : ([null] as const)).map((confirmationIndex) => {
+      const recordedTrial = createRecordedTrial({
+        caseDefinition: definition,
+        confirmationEligible: true,
+        confirmationIndex,
+        passed: !recovered || confirmationIndex !== null,
+      });
+      recordedTrial.stageIdentities.actorSha256 = identity(definition, confirmationIndex);
+      return {
+        caseId: definition.id,
+        sourceCaseStatus: recovered ? ('recovered' as const) : ('passed' as const),
+        recordedTrial,
+        sourceAttemptId: 'sem-source',
+        sourceEvidenceSha256: SHA256,
+      };
+    });
+  });
+  const cases = sourceCases.map((definition) =>
+    definition.id === 'changed-case'
+      ? {
+          ...definition,
+          expected: [
+            { ...definition.expected[0]!, criterion: 'Corrected observable requirement.' },
+          ],
+        }
+      : definition,
+  );
+  const store = createCheckpointStore();
+  const calls: string[] = [];
+  const results = await runSemanticCaseExecution({
+    ...store,
+    cases,
+    workerCount: 2,
+    commitCase: async () => {},
+    executeTrial: async ({ caseDefinition, confirmationIndex }) => {
+      const selected = selectSemanticReusableTrial({
+        activeTrial: null,
+        actorIdentitySha256: identity(caseDefinition, confirmationIndex),
+        candidates,
+        caseId: caseDefinition.id,
+        confirmationIndex,
+        judgeIdentitySha256: () => 'b'.repeat(64),
+      });
+      if (selected !== null) return structuredClone(selected.recordedTrial);
+      calls.push(caseDefinition.id);
+      return createRecordedTrial({
+        caseDefinition,
+        confirmationEligible: true,
+        confirmationIndex,
+        passed: true,
+      });
+    },
+  });
+  expect(calls).toStrictEqual(['changed-case']);
+  expect(
+    results.map(({ id, status, trials }) => [id, status, trials.map(({ trial }) => trial.passed)]),
+  ).toStrictEqual([
+    ['passing-case', 'passed', [true]],
+    ['recovered-case', 'recovered', [false, true, true]],
+    ['changed-case', 'passed', [true]],
+  ]);
 });

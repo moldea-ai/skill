@@ -354,3 +354,85 @@ test('does not pass repair Git evidence when captured items omit a completed com
   expect(dimensions.commandPolicy).toBe(false);
   expect(hasPassingSemanticResultDimensions(dimensions)).toBe(false);
 });
+
+test.each([
+  [true, false, true],
+  [false, false, true],
+  [false, true, true],
+  [true, true, false],
+])('confirms semantic=%s resource=%s -> %s', (semantic, resource, expected) => {
+  const dimensions = {
+    semantic,
+    resource,
+    commandPolicy: true,
+    repositoryControl: true,
+    mountIntegrity: true,
+    operational: true,
+  };
+  expect(isSemanticConfirmationEligible(dimensions)).toBe(expected);
+  for (const dimension of [
+    'commandPolicy',
+    'repositoryControl',
+    'mountIntegrity',
+    'operational',
+  ] as const) {
+    expect(isSemanticConfirmationEligible({ ...dimensions, [dimension]: false })).toBe(false);
+  }
+});
+
+test.each([
+  ['hit', true],
+  ['miss', false],
+  ['failed', false],
+  ['no-envelope', false],
+] as const)(
+  'relationship activation requires actual successful scope relevance: %s',
+  (outcome, expected) => {
+    const command =
+      'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- scope --path src/a.js --json --max-output-bytes 65536';
+    const output =
+      outcome === 'no-envelope'
+        ? ''
+        : JSON.stringify({
+            schemaVersion: 7,
+            cliVersion: '11.0.4',
+            command: 'scope',
+            status: 'valid',
+            error: null,
+            result: { relevant: outcome === 'hit' },
+          });
+    const evidence = projectActorExecutionEvidenceEvent(
+      {
+        type: 'item.completed',
+        item: {
+          type: 'command_execution',
+          command,
+          exit_code: outcome === 'failed' ? 1 : 0,
+          aggregated_output: output,
+          status: outcome === 'failed' ? 'failed' : 'completed',
+        },
+      },
+      { cliVersion: '11.0.4', jsonSchemaVersion: 7 },
+    );
+    if (evidence === null) throw new Error('Expected completed command evidence.');
+    const dimensions = createSemanticResultDimensions({
+      actorCommandPolicy: commandPolicy,
+      actorExecutionEvidence: [evidence],
+      actorResourceEvidence: { ...resourceEvidence, commandCount: 1, operations: ['scope'] },
+      caseDefinition: {
+        ...caseDefinition,
+        resourceBudget: {
+          activation: 'relationship',
+          minimumMoldeaCommands: 1,
+          maximumMoldeaCommands: 8,
+          maximumMoldeaOutputBytes: 262144,
+        },
+      },
+      isMountIntegrityPassing: true,
+      isRepositoryControlPassing: true,
+      isSemanticPassing: true,
+      judgeCommandPolicy: commandPolicy,
+    });
+    expect(dimensions.semantic).toBe(expected);
+  },
+);

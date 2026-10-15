@@ -4,13 +4,20 @@ Use for an explicit request to validate, evaluate, inspect, or repair this repos
 
 ## Git read boundary
 
-For an explicit repair, apply this boundary before the first Git read, including preliminary repository checks. The hardened status supplies the current commit; a supplied full checkpoint commit needs no ref-resolution command. Disable repository-configured helpers as follows. Precede `--no-pager` with the approved `-c` settings: `core.attributesFile=/dev/null`, `core.fsmonitor=false`, `core.pager=cat`, `filter.lfs.clean=`, `filter.lfs.process=`, `filter.lfs.required=false`, and `filter.lfs.smudge=`. Add `-c diff.external=` for each diff. After that prefix, use only these relevant argument shapes, with an explicit pathspec for every diff:
+During explicit repair, this boundary governs Git reads, including preliminary repository checks and review of its writes; Git writes and publication remain host-owned. Apply it before the first Git read. The hardened status supplies the current commit; a supplied full checkpoint commit needs no ref-resolution command. Disable repository-configured helpers as follows. Precede `--no-pager` with the approved `-c` settings: `core.attributesFile=/dev/null`, `core.fsmonitor=false`, `core.pager=cat`, `filter.lfs.clean=`, `filter.lfs.process=`, `filter.lfs.required=false`, and `filter.lfs.smudge=`. For each diff, put `-c diff.external=` before `--no-pager` too. After that prefix, use only these relevant argument shapes, with an explicit pathspec for every diff:
 
 ```text
 diff --no-ext-diff --no-textconv --ignore-submodules=all --name-only --no-renames <commit> -- .
 diff --no-ext-diff --no-textconv --ignore-submodules=all HEAD -- moldea/moldea.yaml
 diff --no-ext-diff --no-textconv --ignore-submodules=all <commit> -- moldea/moldea.yaml
+diff --no-ext-diff --no-textconv --ignore-submodules=all -- <written-path> [<written-path> ...]
 status --porcelain=v2 -z --ignore-submodules=all --untracked-files=all --branch
+```
+
+The last diff reviews only exact repository-relative files changed by this repair; no directories, wildcards, traversal, or Git pathspec magic. Read newly created files directly because this diff omits untracked content. For a written-file review, the complete command is:
+
+```text
+git -c core.attributesFile=/dev/null -c core.fsmonitor=false -c core.pager=cat -c filter.lfs.clean= -c filter.lfs.process= -c filter.lfs.required=false -c filter.lfs.smudge= -c diff.external= --no-pager diff --no-ext-diff --no-textconv --ignore-submodules=all -- <written-path>
 ```
 
 Capture the full checkpoint commit from the successful status result's `branch.oid` header, keeping branch headers separate from its NUL-delimited path records. A missing or unusable header, `(initial)` in a repository without an initial commit, or failed or incomplete output means the commit is unavailable; report that limitation instead of inventing an identity. The conservative continuation rule below still applies.
@@ -90,4 +97,4 @@ A fixed heap exhaustion means inspection could not finish within its memory allo
 
 After writes invalidate a snapshot, discard its cursors. Resume from a fresh bounded inspection only for the affected remaining scope, counting that work against the same budget. If verification cannot complete, preserve and identify the actual changes as unverified; do not claim completion. A resource or tooling limit cannot become a semantic pass. Report audit coverage limits without persisting them as project requirements; only established material project gaps belong in canonical unresolved state.
 
-Report concisely: **Checked**, **Fixed**, **Verified**, **Needs input**, and **Not checked**. Name actual files changed, unresolved diagnostics, unchecked connections with their reasons, assessments carried forward with their source commit, and continuation scope where applicable. Use `none` when appropriate. Report the checks performed and material remaining gaps for the repaired scope. Distinguish structural checks from static alignment within the assessed scope. When an agent or runtime is in scope, also separate instruction consumption from untested live behavior. A setup without agents or runtimes, or a documentation-format repair, needs its scoped checks and result without an unrelated live-behavior disclaimer. Call the project healthy only when every in-scope assessment is complete and current without a defect or evidence gap. A passing `validate` alone cannot establish health.
+Report concisely: **Checked**, **Fixed**, **Verified**, **Needs input**, and **Not checked**. Name actual files changed, unresolved diagnostics, unchecked connections with their reasons, assessments carried forward with their source commit, and continuation scope where applicable. For continuation, name each reassessed owner and the change or missing evidence that required it. Use `none` when appropriate. Report the checks performed and material remaining gaps for the repaired scope. Distinguish structural checks from static alignment within the assessed scope. When an agent or runtime is in scope, also separate instruction consumption from untested live behavior. A setup without agents or runtimes, or a documentation-format repair, needs its scoped checks and result without an unrelated live-behavior disclaimer. Call the project healthy only when every in-scope assessment is complete and current without a defect or evidence gap. A passing `validate` alone cannot establish health.

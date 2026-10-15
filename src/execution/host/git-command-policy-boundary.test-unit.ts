@@ -17,6 +17,9 @@ test.each([
   [...diff, 'repair-checkpoint', '--', 'moldea/moldea.yaml'],
   [...diff, 'HEAD~1', '--', 'moldea/moldea.yaml'],
   [...diff, 'refs/tags/release@2^{commit}', '--', 'moldea/moldea.yaml'],
+  [...diff, '--', 'moldea/context/a.md'],
+  [...diff, '--', 'README.md', 'src/owner-a.js'],
+  [...diff, '--', 'src/file with spaces.js'],
 ])('accepts a complete approved repair shape %o', (...argumentsList) => {
   expect(isApprovedRepairGitArguments(argumentsList)).toBe(true);
 });
@@ -46,6 +49,26 @@ test.each([
   [...diff, '--cached', '--', 'moldea/moldea.yaml'],
   [...diff, 'HEAD', '--', 'moldea/moldea.yaml', 'src/a.js'],
   [...diff, 'HEAD', 'moldea/moldea.yaml'],
+  [...diff, '--'],
+  ...[
+    '.',
+    './README.md',
+    '../README.md',
+    '/mnt/README.md',
+    'src//a.js',
+    'src/../a.js',
+    'src\\a.js',
+    ':(top)README.md',
+    'moldea/**',
+    'src/[ab].js',
+    'src/{a,b}.js',
+    '~/README.md',
+    '-p',
+    'src/a\n.js',
+    'src/a\u0085.js',
+    ...['_archive', '_archives', '_backup', '_backups'].map((directory) => `src/${directory}/a.js`),
+  ].map((path) => [...diff, '--', path]),
+  [...diff, '--cached', '--', 'README.md'],
   [...status.slice(0, status.indexOf('status')), 'rev-parse', 'HEAD'],
 ])('rejects a nonapproved repair shape %o', (...argumentsList) => {
   expect(isApprovedRepairGitArguments(argumentsList)).toBe(false);

@@ -79,6 +79,27 @@ export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): 
   const prefix = ['diff', '--no-ext-diff', '--no-textconv', '--ignore-submodules=all'];
   if (!prefix.every((argument, position) => shape[position] === argument)) return false;
   const tail = shape.slice(prefix.length);
+  if (tail[0] === '--') {
+    return (
+      tail.length > 1 &&
+      tail
+        .slice(1)
+        .every(
+          (path) =>
+            !/^[-~]/u.test(path) &&
+            !/[:\\*?[\]{}\p{Cc}]/u.test(path) &&
+            path
+              .split('/')
+              .every(
+                (segment) =>
+                  segment !== '' &&
+                  segment !== '.' &&
+                  segment !== '..' &&
+                  !EXCLUDED_DIRECTORY_NAMES.has(segment),
+              ),
+        )
+    );
+  }
   const isChangedPaths = tail[0] === '--name-only' && tail[1] === '--no-renames';
   const remainder = isChangedPaths ? tail.slice(2) : tail;
   const [commit, separator, path] = remainder;

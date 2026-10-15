@@ -144,8 +144,10 @@ const SAFE_LOCAL_EXECUTABLES = new Set([
   'find',
   'grep',
   'head',
+  'hexdump',
   'jq',
   'ls',
+  'od',
   'moldea-cli.mjs',
   'printf',
   'pwd',
@@ -163,6 +165,7 @@ const SAFE_LOCAL_EXECUTABLES = new Set([
   'tsc',
   'uniq',
   'wc',
+  'xxd',
 ]);
 // passive repair reads cannot delegate execution through options or repository scripts
 const REPAIR_PASSIVE_EXECUTABLES = new Set([

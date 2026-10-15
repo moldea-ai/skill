@@ -17,6 +17,7 @@ import { test } from 'vitest';
 import {
   CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
   CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+  isApprovedRepairGitArguments,
   prepareGitCommandPolicyBoundary,
 } from './git-command-policy-boundary.ts';
 const RELEASE_CLI_GIT_OPTIONS = [
@@ -150,6 +151,13 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
 
     assert.equal(safeResult.status, 0, safeResult.stderr);
     assert.equal(safeResult.stdout, '');
+
+    writeFileSync(join(repositoryPath, 'project-state.js'), 'export const state = "changed";\n');
+    const reviewArguments = [...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX, 'project-state.js'];
+    assert.equal(isApprovedRepairGitArguments(reviewArguments), true);
+    const reviewResult = runWrappedGit(wrapperPath, repositoryPath, reviewArguments);
+    assert.equal(reviewResult.status, 0, reviewResult.stderr);
+    assert.match(reviewResult.stdout, /state = "changed"/u);
 
     const releaseCliResult = runWrappedGit(wrapperPath, repositoryPath, [
       ...RELEASE_CLI_GIT_OPTIONS,

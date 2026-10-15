@@ -1288,9 +1288,10 @@ test.each([
     const prefix = `\uFEFF# Host instructions${eol}${eol}`;
     const suffix = `${eol}Preserve these instructions.${eol}`;
     const staleBlock = currentBlock.replace(
-      'direct agent, model workflow, skill, or project-context work',
-      'direct agent, skill, or project-context work',
+      'changes to what an in-app model decides or says (including inline calls), ',
+      '',
     );
+    assert.notEqual(staleBlock, currentBlock);
     const agentsPath = join(repositoryPath, 'AGENTS.md');
     writeFileSync(agentsPath, prefix + staleBlock.replaceAll('\n', eol) + suffix);
     const before = await snapshotSemanticWorkspace(repositoryPath);

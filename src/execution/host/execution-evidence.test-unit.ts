@@ -1223,6 +1223,9 @@ test.each([
 
 test.each([
   'nl -ba moldea/project.md',
+  'od -An -c status.bin',
+  'xxd -g 1 status.bin',
+  'hexdump -C status.bin',
   'cat moldea/context/*.md',
   'cat moldea/context/[ab]?.md',
   '/usr/bin/cat moldea/context/*.md',
@@ -1241,6 +1244,19 @@ test.each([
     unverifiedCount: 0,
     reasons: [],
   });
+});
+
+test('classifies hardened repair review diffs without admitting unbounded pathspecs', () => {
+  const prefix = CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.join(' ');
+  assert.deepEqual(projectRepairGitCommandEvidence(`git ${prefix} moldea/context/a.md README.md`), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+  const evidence = projectRepairGitCommandEvidence(`git ${prefix} .`);
+  assert.equal(evidence.noncompliantCount, 1);
+  assert.equal(evidence.unverifiedCount, 0);
 });
 
 test.each([

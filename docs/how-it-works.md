@@ -13,7 +13,7 @@ Start with [How moldea works](/how-it-works/) for a visual booking-agent walkthr
 The normal experience has three steps:
 
 1. You describe the outcome to your coding agent.
-2. A small managed AGENTS.md block checks already-known ordinary paths before loading the installed skill. It silently skips the precheck when either the exact repository-local entrypoint or gate script is missing, without searching for or installing another copy. Agent work and concrete project-level context keep the skill’s adoption route. README provides an introduction and canonical navigation.
+2. A small managed AGENTS.md block checks already-known ordinary paths before loading the installed skill. It silently skips the precheck when either the exact repository-local entrypoint or gate script is missing, without searching for or installing another copy. Explicit moldea work, agent or skill work, changes to what an in-app model decides or says (including inline calls), and concrete project-level context read or reuse the complete entrypoint before repository checks and follow its routing. README provides an introduction and canonical navigation.
 3. The coding agent returns the implementation, analysis, or plan with an evidence-based report.
 
 There is no separate `moldea` chat surface to operate.

@@ -47,7 +47,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'conservative-current-coverage',
       criterion:
-        'The report treats both earlier owners A and B as affected because the checkpoint evidence is incomplete, identifies their current reassessment or lists them as not current under Not checked, and does not carry an unchecked assessment forward. Owner B\u2019s source now says drifted and must be accurately reported or its stale context corrected.',
+        'The report treats both earlier owners A and B as affected because the checkpoint evidence is incomplete, identifies their current reassessment or lists them as not current under Not checked, and does not carry an unchecked assessment forward. Actual owner retrieval and comparison require native traces and are not established by this report criterion. Owner B\u2019s source now says drifted and must be accurately reported or its stale context corrected.',
     },
     {
       label: 'truthful-verification',

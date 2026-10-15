@@ -16,7 +16,7 @@ A declaration, lockfile entry, package name, reported version, Plug'n'Play packa
 
 For every direct request to prove or safely invoke local CLI availability, invoke the installed skill launcher once with `composition --json` after adoption is established. This attempted launcher proof is required even when repository metadata already suggests that the closure is unavailable or a package-manager provider conflicts. Do not stop at package declarations or manually execute a package-manager shim. If the launcher cannot resolve a Plug'n'Play-only package location into its required repository-contained `node_modules` closure, report that the declared compatible dependency exists but the launcher-verifiable package and executable provenance is unavailable in that layout. If the launcher verifies its package-owned executable while supplied Yarn evidence identifies another `node_modules/.bin/moldea` provider, report both facts separately: the conflicting symlink is not authority for the supported launcher path, and neither Yarn nor that provider was invoked. The launcher owns executable provenance; when the direct task explicitly asks to compare an already identified conflicting provider, one inert exact-path symlink-target read may establish that separate Yarn-provider fact without invoking it.
 
-These rules govern only moldea invocation. They never govern host-owned package-manager, planning, review, Git, commit, or publication commands.
+These rules govern only moldea invocation, not host-owned package-manager, planning, review, Git write, commit, or publication procedures. Git reads during explicit repair follow `project-repair.md`.
 
 ## Machine commands
 

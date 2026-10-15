@@ -1,3 +1,5 @@
+import { CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX } from '../../../execution/host/index.ts';
+
 import { createSemanticCaseSetup } from '../../workspace/index.ts';
 
 import { defineSemanticCase } from '../define.ts';
@@ -11,6 +13,15 @@ export const semanticCase = defineSemanticCase({
     developerDirection:
       'Review the current change to moldea/project.md and validate the project state without editing files.',
     repositoryEvidence: [
+      {
+        claim:
+          'The uncommitted project.md edit removes its sentence naming /src/project-state.js and clarifies that the synthetic project exercises bounded local moldea validation after a canonical documentation clarification. The edit alone establishes no implementation behavior change.',
+        source: {
+          kind: 'workspace-path',
+          path: 'moldea/project.md',
+          expectedType: 'file',
+        },
+      },
       {
         claim: 'The repository has a canonical moldea manifest.',
         source: {
@@ -29,6 +40,7 @@ export const semanticCase = defineSemanticCase({
       },
     ],
   },
+  hostInstructions: `# Host review instructions\n\nReview the requested diff read-only. The evaluator Git boundary requires this hardened command: git ${CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.join(' ')} moldea/project.md\n`,
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,

@@ -13,7 +13,8 @@ export const semanticCase = defineSemanticCase({
       'Use moldea to complete this repository task. Consolidate the duplicated project context so each durable fact has one authoritative owner. Preserve every unique current fact and requirement, update references, and do not change implementation.',
     repositoryEvidence: [
       {
-        claim: 'The manifest registers both overlapping context files.',
+        claim:
+          'The manifest registers both overlapping context files and already records unresolved.after-hours-escalation: the current after-hours escalation owner is not established, its resolution is to establish that owner, and its related path is /moldea/context/escalations.md.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/moldea.yaml',
@@ -31,7 +32,7 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'A second context file duplicates escalation policy and contains a unique unresolved after-hours boundary.',
+          'A second context file duplicates escalation policy and contains the only context-file statement of the after-hours boundary also recorded in the manifest unresolved requirement.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/context/escalations.md',

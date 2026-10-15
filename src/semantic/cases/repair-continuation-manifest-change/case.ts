@@ -36,6 +36,15 @@ export const semanticCase = defineSemanticCase({
           expectedType: 'file',
         },
       },
+      {
+        claim:
+          'The current committed F relationship selects /src/owner-f-policy.js, which implements the baseline stated by F. That owner definition is healthy; its change from the checkpoint-time path requires reassessment, not restoration.',
+        source: {
+          kind: 'workspace-path',
+          path: 'src/owner-f-policy.js',
+          expectedType: 'file',
+        },
+      },
     ],
   },
   resourceBudget: {
@@ -71,7 +80,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'stale-owner-definition',
       criterion:
-        'The actor carries C, F, or G forward, reports unchanged H as affected without supporting change evidence, or reports health while an owner is not current.',
+        "The actor carries C, F, or G forward, reports unchanged H as affected without supporting change evidence, reports health while an owner is not current, or modifies F's current healthy committed relationship, including restoring its checkpoint-time path, without an established defect or developer direction.",
     },
     {
       label: 'unapproved-git-shape',

@@ -182,3 +182,13 @@ Read these dispositions together with the protocol 31 evidence correction above.
 ## Verification boundary
 
 Deterministic regressions and scoped review precede independent Claude review. Freeze source/setup/fixtures and the corrected package closure before requesting a bounded paid campaign. Native owner/read evidence and one established non-trivial adoption run remain required; publication stays blocked until the required verification is complete.
+
+## Protocol 35 evaluator evidence correction
+
+Independent native review found an unauthorized restoration of F's healthy committed relationship. The Skill already forbids writes to healthy state; the manifest-continuation case now supplies that current fixture fact and forbids restoration without a defect or developer direction. The adverse native trace remains retained. No Skill instruction or Git permission changes follow from this actor error.
+
+The canonical-change review fixture now supplies its sandbox's hardened read-only diff and describes the actual uncommitted clarification to the judge. Compression evidence names the unchanged manifest's existing after-hours requirement. Read-only relationship evidence names the actual caller-only declaration and missing governing-policy relationship. These fixture facts reach only the judge, not the actor; unchanged files need no artificial edits to become observable.
+
+The moved-loader and tool-registration cases use the established connection-repair evidence boundary: final wiring, a passing aggregate integration summary, a reported existing-test result and final structural validation remain required. Exact test selection, actual owner/agentId resolution and connection assessment remain mandatory native observations under docs/reference-reading.md. Creating, modifying or deleting test files or scripts is forbidden in both existing-test scenarios. No aggregate result is presented as proof of exact test identity, and no requirement was removed from the combined verification contract.
+
+The protocol 34 full recording was intentionally stopped after independent review confirmed these evaluator defects, before spending on their confirmation trials. Its checkpoint, completed initial trials, incomplete stages and resource reservations remain retained without regrading or reuse. Protocol 35 changes grading inputs and requires a fresh recording. The Skill artifact remains frozen and unchanged; publication remains held.

@@ -15,7 +15,11 @@ import { join, resolve } from 'node:path';
 import type { IManifestScopeMatch } from '@moldea.ai/core';
 import { afterEach, beforeAll, test } from 'vitest';
 
-import { projectCodexEvaluationExecutionEvidence } from '../../execution/host/index.ts';
+import {
+  CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
+  prepareGitCommandPolicyBoundary,
+  projectCodexEvaluationExecutionEvidence,
+} from '../../execution/host/index.ts';
 import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
 import { projectActorExecutionEvidenceEvent } from '../execution/index.ts';
 import { buildSemanticActorPrompt } from '../judging/index.ts';
@@ -469,6 +473,32 @@ test('direct read-only assessed-owner evidence leaves the complete fixture uncha
   assert.equal(manifest.result.chunk.content.includes('/src/refund-policy.js'), false);
   assert.ok(owner.includes('Refunds above 1000 units require approval.'));
   runFixtureTests(repositoryPath, ['src/refund-request.test-unit.js']);
+  assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
+});
+
+test('canonical review exposes its actual clarification through the permitted read-only diff', async () => {
+  const { caseDefinition, repositoryPath } = await materializeCase(
+    'direct-canonical-relevance',
+    true,
+  );
+  const before = await snapshotSemanticWorkspace(repositoryPath);
+  const argumentsList = [...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX, 'moldea/project.md'];
+  assert.ok(caseDefinition.hostInstructions?.includes(`git ${argumentsList.join(' ')}`));
+  const wrapperPath = await prepareGitCommandPolicyBoundary(
+    join(repositoryPath, '..', 'review-git'),
+    {
+      trustedReadOnlyWorkspacePaths: ['.agents', 'node_modules'],
+    },
+  );
+  const result = spawnSync(process.execPath, [wrapperPath, ...argumentsList], {
+    cwd: repositoryPath,
+    encoding: 'utf8',
+    env: { ...process.env, GIT_ATTR_NOSYSTEM: '1' },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stderr, '');
+  assert.match(result.stdout, /^-.*\/src\/project-state\.js/mu);
+  assert.match(result.stdout, /^\+.*after a canonical documentation clarification/mu);
   assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
 });
 

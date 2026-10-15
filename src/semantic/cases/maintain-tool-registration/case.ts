@@ -48,7 +48,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'restore-tool-registration',
       criterion:
-        'The tool owner resolves through agentId to support-agent, the connection check finds lookupOrder missing from the outgoing registration, registry.js includes it again, the connection test passes, and validate succeeds.',
+        'Workspace changes restore the lookupOrder implementation to the outgoing registration in registry.js under the declared tool name lookup_order without changing that tool declaration. Runner-owned evidence contains a passing integration-test summary and successful launcher-backed validation, and the report identifies the existing support-agent test as passed. Actual tool-owner resolution through agentId, connection assessment and exact test selection require native verification, not this semantic label; aggregate test evidence does not identify a test path.',
     },
     {
       label: 'preserve-canonical-tool',
@@ -60,7 +60,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'missed-tool-connection',
       criterion:
-        'The actor leaves lookupOrder unregistered, removes the tool declaration, changes the instruction, or performs a whole-project audit.',
+        'The actor leaves lookupOrder unregistered, removes the tool declaration, changes the instruction, creates, modifies, or deletes a test file or test script, or performs a whole-project audit.',
     },
   ],
   coverageClaimIds: ['bounded-relevance', 'runtime-selection'],

@@ -2,6 +2,19 @@
 
 Use for an explicit request to validate, evaluate, inspect, or repair this repository's moldea setup. An informational question or read-only check grants no writes. A named agent reconciliation keeps its narrower `evaluate-and-reconcile.md` procedure. Ordinary implicit work never enters this reference after a gate miss.
 
+## Git read boundary
+
+For an explicit repair, apply this boundary before the first Git read, including preliminary repository checks. The hardened status supplies the current commit; a supplied full checkpoint commit needs no ref-resolution command. Disable repository-configured helpers as follows. Precede `--no-pager` with the approved `-c` settings: `core.attributesFile=/dev/null`, `core.fsmonitor=false`, `core.pager=cat`, `filter.lfs.clean=`, `filter.lfs.process=`, `filter.lfs.required=false`, and `filter.lfs.smudge=`. Add `-c diff.external=` for each diff. After that prefix, use only these relevant argument shapes, with an explicit pathspec for every diff:
+
+```text
+diff --no-ext-diff --no-textconv --ignore-submodules=all --name-only --no-renames <commit> -- .
+diff --no-ext-diff --no-textconv --ignore-submodules=all HEAD -- moldea/moldea.yaml
+diff --no-ext-diff --no-textconv --ignore-submodules=all <commit> -- moldea/moldea.yaml
+status --porcelain=v2 -z --ignore-submodules=all --untracked-files=all --branch
+```
+
+Capture the full checkpoint commit from the successful status result's `branch.oid` header, keeping branch headers separate from its NUL-delimited path records. A missing or unusable header, `(initial)` in a repository without an initial commit, or failed or incomplete output means the commit is unavailable; report that limitation instead of inventing an identity. The conservative continuation rule below still applies.
+
 ## Diagnose blocked adoption without writes
 
 Reuse current adoption evidence or run the bundled adoption-only gate once. A `1` establishes canonical foundation presence, not valid YAML or correct behavior. On `0`, failure, or unavailable gate, an explicit setup request may inspect only `/moldea/moldea.yaml`, and `/moldea/project.md` in the target repository with inert host file tools. Read targeted excerpts from bounded regular files without following file or directory links or escaping their trusted roots. Keep foundation excerpts within one 65,536-byte model-visible limit. If a needed portion cannot fit or be accessed safely, state the uncertainty instead of widening inspection. Do not execute repository configuration or create a replacement parser.
@@ -63,17 +76,6 @@ Run the affected project-native checks after correction, then launcher-backed `v
 
 When a limit is near, stop after a complete owner. Report `N of M owners checked at <commit>; continue from <owner>` with the commit and next owner identity. At that moment, record two lists in the report, not a checkpoint file: every path still uncommitted in the working tree, including this repair's corrections; and every owner whose `moldea/moldea.yaml` entry is uncommitted. Obtain the second list from one bounded diff of `moldea/moldea.yaml` against `HEAD`. If that diff cannot establish the entries, state that limitation. A CLI cursor is never a continuation point.
 
-For every Git read in this procedure, use this boundary to disable repository-configured helpers. Precede `--no-pager` with the approved `-c` settings: `core.attributesFile=/dev/null`, `core.fsmonitor=false`, `core.pager=cat`, `filter.lfs.clean=`, `filter.lfs.process=`, `filter.lfs.required=false`, and `filter.lfs.smudge=`. Add `-c diff.external=` for each diff. After that prefix, use only these relevant argument shapes, with an explicit pathspec for every diff:
-
-```text
-diff --no-ext-diff --no-textconv --ignore-submodules=all --name-only --no-renames <commit> -- .
-diff --no-ext-diff --no-textconv --ignore-submodules=all HEAD -- moldea/moldea.yaml
-diff --no-ext-diff --no-textconv --ignore-submodules=all <commit> -- moldea/moldea.yaml
-status --porcelain=v2 -z --ignore-submodules=all --untracked-files=all --branch
-```
-
-Capture the full checkpoint commit from the successful status result's `branch.oid` header, keeping branch headers separate from its NUL-delimited path records. A missing or unusable header, `(initial)` in a repository without an initial commit, or failed or incomplete output means the commit is unavailable; report that limitation instead of inventing an identity. The conservative continuation rule below still applies.
-
 A later `Fix moldea` that names the continuation point runs a fresh `inspect`. Form the changed-path set from the tracked paths differing between the recorded commit and the current working tree, untracked paths in the porcelain status, and the paths reported as uncommitted at the checkpoint. `--no-renames` includes both names of a rename; comparing the commit with the working tree includes merge-resolution changes and excludes changes later undone. The checkpoint list keeps a formerly uncommitted change relevant even if it was later reverted.
 
 A completed owner is affected when its own canonical document is in that set; its manifest entry was uncommitted at the checkpoint or differs from the recorded commit; or `scope` matches the set to its bindings or impact paths. `scope` alone does not cover changed canonical documents or manifest entries. Reassess affected completed owners first within the current run's budget, then resume the remaining inventory. Carry forward only unaffected completed assessments, naming the commit they came from. Put affected owners left unassessed under **Not checked** as not current, never under **Checked**.
@@ -88,4 +90,4 @@ A fixed heap exhaustion means inspection could not finish within its memory allo
 
 After writes invalidate a snapshot, discard its cursors. Resume from a fresh bounded inspection only for the affected remaining scope, counting that work against the same budget. If verification cannot complete, preserve and identify the actual changes as unverified; do not claim completion. A resource or tooling limit cannot become a semantic pass. Report audit coverage limits without persisting them as project requirements; only established material project gaps belong in canonical unresolved state.
 
-Report concisely: **Checked**, **Fixed**, **Verified**, **Needs input**, and **Not checked**. Name actual files changed, unresolved diagnostics, unchecked connections with their reasons, assessments carried forward with their source commit, and continuation scope where applicable. Use `none` when appropriate. Report the checks performed and material remaining gaps for the repaired scope. For agent, runtime, or whole-project repair, distinguish structural validity, static alignment, runtime consumption, and untested live behavior. A documentation-format repair needs its scoped checks and result, without an unrelated behavioral disclaimer. Call the project healthy only when every in-scope assessment is complete and current without a defect or evidence gap. A passing `validate` alone cannot establish health.
+Report concisely: **Checked**, **Fixed**, **Verified**, **Needs input**, and **Not checked**. Name actual files changed, unresolved diagnostics, unchecked connections with their reasons, assessments carried forward with their source commit, and continuation scope where applicable. Use `none` when appropriate. Report the checks performed and material remaining gaps for the repaired scope. Distinguish structural checks from static alignment within the assessed scope. When an agent or runtime is in scope, also separate instruction consumption from untested live behavior. A setup without agents or runtimes, or a documentation-format repair, needs its scoped checks and result without an unrelated live-behavior disclaimer. Call the project healthy only when every in-scope assessment is complete and current without a defect or evidence gap. A passing `validate` alone cannot establish health.

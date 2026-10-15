@@ -37,7 +37,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-healthy-no-op',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, the actor reports no established defect and no file changes, identifies the project foundation and its material source relationship under Checked, allowing unambiguous equivalent names rather than requiring literal paths, and separates structural validity from untested semantic or runtime behavior.',
+        'Runner-owned evidence records successful launcher-backed validation, the actor reports no established defect and no file changes, and identifies the project foundation and its material source relationship anywhere in the response. In this single-foundation setup, project overview or project document and its declared source relationship are unambiguous equivalent names; literal paths or placement under a particular heading are not required. The report distinguishes source alignment from structural checks. No agent or runtime is declared, so an unrelated live-behavior disclaimer is not required. Structural validation alone must not be presented as proof of semantic correctness.',
     },
   ],
   forbidden: [

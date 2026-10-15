@@ -9,7 +9,7 @@ import {
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
-  identifyRepositoryTestCommandKind,
+  identifyRepositoryTestCommandKinds,
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
@@ -837,14 +837,26 @@ test('repository test identification accepts only static bounded correctness com
     assert.equal(isRepositoryTestCommand(command), true, command);
   }
 
-  assert.equal(
-    identifyRepositoryTestCommandKind('node --test src/support-agent.test-integration.js'),
-    'integration',
+  assert.deepEqual(
+    identifyRepositoryTestCommandKinds('node --test src/support-agent.test-integration.js'),
+    ['integration'],
   );
-  assert.equal(identifyRepositoryTestCommandKind('node --test src/example.test-unit.mjs'), 'unit');
-  assert.equal(
-    identifyRepositoryTestCommandKind('node --test src/example.test-unit.mjs src/ui.test-e2e.js'),
-    'correctness',
+  assert.deepEqual(identifyRepositoryTestCommandKinds('node --test src/example.test-unit.mjs'), [
+    'unit',
+  ]);
+  assert.deepEqual(
+    identifyRepositoryTestCommandKinds('node --test src/example.test-unit.mjs src/ui.test-e2e.js'),
+    ['e2e', 'unit'],
+  );
+  assert.deepEqual(
+    identifyRepositoryTestCommandKinds(
+      'node --test src/sdk-usage.test-unit.js src/incident-workflow.test-integration.js src/other.test-unit.js',
+    ),
+    ['integration', 'unit'],
+  );
+  assert.deepEqual(
+    identifyRepositoryTestCommandKinds('node --test src/example.test-unit.test-integration.js'),
+    ['integration'],
   );
   for (const command of [
     'node --test',
@@ -866,7 +878,7 @@ test('repository test identification accepts only static bounded correctness com
     'set -o pipefail; node --test src/a.test-unit.js | tail -n 8 || true',
   ]) {
     assert.equal(isRepositoryTestCommand(command), false, command);
-    assert.equal(identifyRepositoryTestCommandKind(command), null, command);
+    assert.equal(identifyRepositoryTestCommandKinds(command), null, command);
   }
 });
 

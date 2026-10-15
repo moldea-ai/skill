@@ -778,7 +778,7 @@ test('projects only the passing totals from a recognized repository test', () =>
             skippedCount: 0,
             status: 'passed',
             testCount: 4,
-            testKind: 'integration',
+            testKinds: ['integration'],
             todoCount: 0,
           },
         ],
@@ -807,6 +807,51 @@ test('does not project a passing summary from a prohibited package-manager comma
   assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
   assert.deepEqual(evidence.item.outputEvidence.facts, []);
   assert.equal(JSON.stringify(evidence).includes('fixture@1.0.0'), false);
+});
+
+test.each([
+  ['node --test src/sdk-usage.test-unit.js src/incident-workflow.test-integration.js'],
+  [
+    'set -o pipefail; node --test --test-reporter=spec src/sdk-usage.test-unit.js src/incident-workflow.test-integration.js src/other.test-unit.js 2>&1 | tail -n 8',
+  ],
+])('retains mixed test levels without exposing test paths: %s', (command) => {
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent(command, createNodeTestOutput({ passed: 2, tests: 2 })),
+    OPTIONS,
+  );
+  assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
+  const fact = evidence.item.outputEvidence.facts[0];
+  assert.ok(fact?.kind === 'node-test-summary');
+  assert.deepEqual(fact.testKinds, ['integration', 'unit']);
+  assert.equal(fact.testCount, 2);
+  assert.equal(JSON.stringify(evidence).includes('incident-workflow'), false);
+  assert.equal(JSON.stringify(evidence).includes('sdk-usage'), false);
+});
+
+test.each([
+  [[]],
+  [['integration', 'integration']],
+  [['unit', 'integration']],
+  [['unknown']],
+  [['correctness']],
+  [['correctness', 'e2e', 'integration', 'unit', 'unit']],
+  ['integration'],
+  [null],
+])('rejects invalid projected test levels %s', (testKinds) => {
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent('node --test src/support-agent.test-integration.js', createNodeTestOutput()),
+    OPTIONS,
+  );
+  const fact = evidence.item.outputEvidence.facts[0];
+  assert.ok(fact?.kind === 'node-test-summary');
+  const forged = {
+    ...evidence,
+    item: {
+      ...evidence.item,
+      outputEvidence: { ...evidence.item.outputEvidence, facts: [{ ...fact, testKinds }] },
+    },
+  };
+  assert.equal(hasValidActorExecutionEvidence([forged], OPTIONS), false);
 });
 
 test('withholds a test-result fact unless the command and complete passing summary agree', () => {

@@ -5,7 +5,7 @@ import {
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
-  identifyRepositoryTestCommandKind,
+  identifyRepositoryTestCommandKinds,
   isMoldeaManagedReadmeWriterCommand,
   projectRepairGitCommandEvidence,
 } from '../../execution/host/index.ts';
@@ -396,7 +396,7 @@ const hasValidMoldeaFact = (
 const projectNodeTestSummary = (
   source: string,
   exitCode: number,
-  testKind: IRepositoryTestCommandKind,
+  testKinds: IRepositoryTestCommandKind[],
 ): ISemanticActorExecutionOutputFact | null => {
   if (exitCode !== 0) return null;
   const summary = new Map<INodeTestSummaryField, number>();
@@ -431,7 +431,7 @@ const projectNodeTestSummary = (
     skippedCount: 0,
     status: 'passed',
     testCount: summary.get('tests') ?? 0,
-    testKind,
+    testKinds,
     todoCount: 0,
   };
 };
@@ -450,7 +450,7 @@ const hasValidNodeTestFact = (
       'skippedCount',
       'status',
       'testCount',
-      'testKind',
+      'testKinds',
       'todoCount',
     ])
   ) {
@@ -464,7 +464,7 @@ const hasValidNodeTestFact = (
     skippedCount,
     status,
     testCount,
-    testKind,
+    testKinds,
     todoCount,
   } = fact;
   return (
@@ -474,8 +474,17 @@ const hasValidNodeTestFact = (
     typeof testCount === 'number' &&
     Number.isSafeInteger(testCount) &&
     testCount > 0 &&
-    typeof testKind === 'string' &&
-    ['correctness', 'e2e', 'integration', 'unit'].includes(testKind) &&
+    Array.isArray(testKinds) &&
+    testKinds.length > 0 &&
+    testKinds.length <= 3 &&
+    testKinds.every((testKind: unknown, index) => {
+      const previous: unknown = testKinds[index - 1];
+      return (
+        typeof testKind === 'string' &&
+        ['e2e', 'integration', 'unit'].includes(testKind) &&
+        (index === 0 || (typeof previous === 'string' && previous < testKind))
+      );
+    }) &&
     typeof passedCount === 'number' &&
     Number.isSafeInteger(passedCount) &&
     passedCount === testCount &&
@@ -610,7 +619,7 @@ const createOutputEvidence = (
   agentsMode: 'write' | 'print' | null,
   exitCode: number,
   options: ISemanticActorExecutionEvidenceOptions,
-  testKind: IRepositoryTestCommandKind | null,
+  testKinds: IRepositoryTestCommandKind[] | null,
 ): ISemanticActorExecutionOutputEvidence => {
   const byteCount = Buffer.byteLength(source, 'utf8');
   const maximumBytes = operation === null ? MAX_OTHER_OUTPUT_BYTES : MAX_MOLDEA_OUTPUT_BYTES;
@@ -625,8 +634,8 @@ const createOutputEvidence = (
           ? projectManagedReadmeResult(source, exitCode)
           : agentsMode !== null
             ? projectManagedAgentsResult(source, agentsMode, exitCode)
-            : testKind !== null
-              ? projectNodeTestSummary(source, exitCode, testKind)
+            : testKinds !== null
+              ? projectNodeTestSummary(source, exitCode, testKinds)
               : null
       : projectMoldeaEnvelope(source, operation, exitCode, options);
   return fact === null
@@ -760,9 +769,9 @@ export const projectActorExecutionEvidenceEvent = (
     operation === null && gateMode === null && !isManagedReadmeWriter
       ? identifyMoldeaManagedAgentsMode(command)
       : null;
-  const testKind =
+  const testKinds =
     operation === null && gateMode === null && !isManagedReadmeWriter
-      ? identifyRepositoryTestCommandKind(command)
+      ? identifyRepositoryTestCommandKinds(command)
       : null;
   const entry: ISemanticActorExecutionEvidence = {
     eventType: 'item.completed',
@@ -778,7 +787,7 @@ export const projectActorExecutionEvidenceEvent = (
         agentsMode,
         exitCode,
         options,
-        testKind,
+        testKinds,
       ),
       status,
       type: 'command_execution',

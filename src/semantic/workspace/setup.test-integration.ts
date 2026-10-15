@@ -147,13 +147,14 @@ const launcherOutput = (repositoryPath: string, operation: string[], input?: str
   return result.stdout;
 };
 
-const runFixtureTests = (repositoryPath: string, testPaths: string[]): void => {
+const runFixtureTests = (repositoryPath: string, testPaths: string[]) => {
   const result = spawnSync(process.execPath, ['--test', ...testPaths], {
     cwd: repositoryPath,
     encoding: 'utf8',
   });
   if (result.error) throw result.error;
   assert.equal(result.status, 0, result.stderr || result.stdout);
+  return result;
 };
 
 test.each([
@@ -312,10 +313,29 @@ test.each(['model-workflow-routing', 'unrelated-sdk-maintenance'])(
       gateResult(repositoryPath, ['/src/incident-workflow.js', '/src/sdk-usage.js']),
       '0\n',
     );
-    runFixtureTests(repositoryPath, [
-      'src/sdk-usage.test-unit.js',
-      'src/incident-workflow.test-integration.js',
-    ]);
+    const testPaths = ['src/sdk-usage.test-unit.js', 'src/incident-workflow.test-integration.js'];
+    const passing = runFixtureTests(repositoryPath, testPaths);
+    const cliPackage = JSON.parse(
+      readFileSync(join(repositoryPath, 'node_modules/@moldea.ai/cli/package.json'), 'utf8'),
+    ) as { version: string };
+    const projected = projectActorExecutionEvidenceEvent(
+      {
+        type: 'item.completed',
+        item: {
+          type: 'command_execution',
+          command: `node --test ${testPaths.join(' ')}`,
+          aggregated_output: passing.stdout + passing.stderr,
+          exit_code: passing.status,
+          status: 'completed',
+        },
+      },
+      { cliVersion: cliPackage.version, jsonSchemaVersion: 7 },
+    );
+    assert.ok(projected);
+    const summary = projected.item.outputEvidence.facts[0];
+    assert.ok(summary?.kind === 'node-test-summary');
+    assert.deepEqual(summary.testKinds, ['integration', 'unit']);
+    assert.equal(summary.testCount, 2);
     for (const { source } of caseDefinition.input.repositoryEvidence) {
       if (source.kind === 'workspace-path') {
         assert.equal(existsSync(join(repositoryPath, source.path)), true, source.path);
@@ -945,7 +965,11 @@ test('relationship fixtures distinguish an exact moved source from shared UI inf
 });
 
 test('source continuation includes a merge-resolution path and a reverted checkpoint path', async () => {
-  const { repositoryPath } = await materializeCase('repair-continuation-after-change', true);
+  const { caseDefinition, repositoryPath } = await materializeCase(
+    'repair-continuation-after-change',
+    true,
+  );
+  assert.match(caseDefinition.input.developerDirection, /current source behavior is intended/u);
   const inventory = JSON.parse(launcherOutput(repositoryPath, ['inspect'])) as {
     result: { page: { records: Array<{ path: string }> } };
   };
@@ -975,6 +999,27 @@ test('source continuation includes a merge-resolution path and a reverted checkp
   assert.equal(parents.stdout.trim().split(' ').length, 3);
   assert.match(readFileSync(join(repositoryPath, 'src/owner-e.js'), 'utf8'), /merge-resolved/u);
   assert.match(readFileSync(join(repositoryPath, 'src/owner-b.js'), 'utf8'), /baseline/u);
+
+  // the governing decision permits the intended context repair without changing source behavior
+  const sources = ['a', 'b', 'e', 'd', 'next'].map((id) =>
+    readFileSync(join(repositoryPath, `src/owner-${id}.js`)),
+  );
+  writeFileSync(
+    join(repositoryPath, 'moldea/context/a.md'),
+    '# Owner A\n\nThe A source is drifted.\n',
+  );
+  writeFileSync(
+    join(repositoryPath, 'moldea/context/e.md'),
+    '# Owner E\n\nThe E source is merge-resolved.\n',
+  );
+  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as { status: string };
+  assert.equal(validation.status, 'valid');
+  assert.deepEqual(
+    ['a', 'b', 'e', 'd', 'next'].map((id) =>
+      readFileSync(join(repositoryPath, `src/owner-${id}.js`)),
+    ),
+    sources,
+  );
 });
 
 test('manifest continuation distinguishes changed and checkpoint-only owner entries', async () => {

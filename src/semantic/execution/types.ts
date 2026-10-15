@@ -55,7 +55,7 @@ export type ISemanticActorExecutionOutputFact =
       skippedCount: 0;
       status: 'passed';
       testCount: number;
-      testKind: IRepositoryTestCommandKind;
+      testKinds: IRepositoryTestCommandKind[];
       todoCount: 0;
     };
 

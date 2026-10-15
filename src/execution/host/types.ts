@@ -81,7 +81,7 @@ export interface ICodexEvaluationExecutionEvidence {
 }
 
 export type IMoldeaCliOperation = 'composition' | 'content' | 'inspect' | 'scope' | 'validate';
-export type IRepositoryTestCommandKind = 'correctness' | 'e2e' | 'integration' | 'unit';
+export type IRepositoryTestCommandKind = 'e2e' | 'integration' | 'unit';
 
 export interface ICodexEvaluationHostConfiguration {
   allowedEgressHosts: string[];

@@ -958,9 +958,9 @@ const isRepositoryTestPath = (candidate: string): boolean => {
 };
 
 /** Identifies one exact repository-root correctness-test command word sequence. */
-const identifyRepositoryTestCommandKindFromWords = (
+const identifyRepositoryTestCommandKindsFromWords = (
   words: readonly string[],
-): IRepositoryTestCommandKind | null => {
+): IRepositoryTestCommandKind[] | null => {
   if (!isTrustedLocalExecutable(words[0], 'node') || words[1] !== '--test') return null;
   const paths: string[] = [];
   let hasReporter = false;
@@ -981,24 +981,26 @@ const identifyRepositoryTestCommandKindFromWords = (
     }
   }
   if (paths.length === 0) return null;
-  const testKinds = new Set<'e2e' | 'integration' | 'unit'>();
+  const testKinds = new Set<IRepositoryTestCommandKind>();
   for (const path of paths) {
-    const testKind = /\.test-(e2e|integration|unit)\./u.exec(path)?.[1];
+    const testKind = /\.test-(e2e|integration|unit)\.(?:c|m)?js$/u.exec(path)?.[1];
     if (testKind === 'e2e' || testKind === 'integration' || testKind === 'unit') {
       testKinds.add(testKind);
+    } else {
+      return null;
     }
   }
-  return testKinds.size === 1 ? [...testKinds][0]! : 'correctness';
+  return [...testKinds].sort();
 };
 
 /**
- * Identifies one static repository-root correctness-test command's level.
+ * Identifies every test level named by one static repository-root correctness command.
  * @param command The completed Codex command text.
- * @returns The test level, or `null` when the command is not an allowed invocation.
+ * @returns The sorted unique test levels, or `null` when the command is not an allowed invocation.
  */
-export const identifyRepositoryTestCommandKind = (
+export const identifyRepositoryTestCommandKinds = (
   command: unknown,
-): IRepositoryTestCommandKind | null => {
+): IRepositoryTestCommandKind[] | null => {
   if (typeof command !== 'string' || Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
     return null;
   }
@@ -1009,7 +1011,7 @@ export const identifyRepositoryTestCommandKind = (
     ? directCommand.slice('set -o pipefail;'.length).trim()
     : directCommand;
   const commands = parseStaticShellList(stripSafeShellRedirections(testCommand))?.commands;
-  if (commands?.length === 1) return identifyRepositoryTestCommandKindFromWords(commands[0]!);
+  if (commands?.length === 1) return identifyRepositoryTestCommandKindsFromWords(commands[0]!);
   // a tail pipeline preserves Node's exit status only when pipefail is explicit
   if (hasPipefail && commands?.length === 2 && testCommand.split('|').length === 2) {
     const tail = commands[1]!;
@@ -1020,7 +1022,7 @@ export const identifyRepositoryTestCommandKind = (
       /^[1-9][0-9]{0,3}$/u.test(tail[2] ?? '') &&
       /\|\s*(?:\/(?:usr\/)?bin\/)?tail\s+-n\s+[1-9][0-9]{0,3}\s*$/u.test(testCommand)
     ) {
-      return identifyRepositoryTestCommandKindFromWords(commands[0]!);
+      return identifyRepositoryTestCommandKindsFromWords(commands[0]!);
     }
   }
   return null;
@@ -1028,7 +1030,7 @@ export const identifyRepositoryTestCommandKind = (
 
 /** Checks whether one command is an allowed repository correctness-test invocation. */
 export const isRepositoryTestCommand = (command: unknown): boolean =>
-  identifyRepositoryTestCommandKind(command) !== null;
+  identifyRepositoryTestCommandKinds(command) !== null;
 
 /** Checks the fixed Node invocation for the bundled repository-local CLI launcher. */
 const isSafeMoldeaCliLauncherCommand = (words: readonly string[]): boolean =>
@@ -1120,7 +1122,7 @@ const classifyNetworkCommand = (
     executable === 'node' &&
     assignmentPrefixes.length === 0 &&
     (isSafeNodeVersionCommand(words) ||
-      identifyRepositoryTestCommandKindFromWords(words) !== null ||
+      identifyRepositoryTestCommandKindsFromWords(words) !== null ||
       isSafeMoldeaCliLauncherCommand(words) ||
       (canUseLocalSkillOperation &&
         (isSafeManagedReadmeCommand(words) || getManagedAgentsMode(words) !== null)))

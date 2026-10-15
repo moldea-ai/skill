@@ -2,7 +2,8 @@
 import { describe, expect, test } from 'vitest';
 
 import type { ICodexEvaluationCommandPolicyEvidence } from '../../execution/host/index.ts';
-import type { ISemanticCase } from '../cases/index.ts';
+import { resolveRepairCheckpointRequest, type ISemanticCase } from '../cases/index.ts';
+import { semanticCase as checkpointCase } from '../cases/repair-continuation-after-change/case.ts';
 import type {
   ISemanticAttemptRecord,
   ISemanticEvaluationCaseModel,
@@ -134,6 +135,38 @@ const createSource = (
 };
 
 describe('semantic composition', () => {
+  test('recognizes a resolved fixture checkpoint while rejecting other request changes', () => {
+    const source = createSource([checkpointCase], [{ passed: false }], 'sem-checkpoint');
+    const sourceModel = source.caseModels.get(checkpointCase.id)!;
+    sourceModel.developerDirection = resolveRepairCheckpointRequest(checkpointCase, 'a'.repeat(40));
+    const definition = {
+      ...checkpointCase,
+      expected: [
+        ...checkpointCase.expected,
+        { label: 'additional-scope', criterion: 'Report the scope.' },
+      ],
+    };
+    const review = {
+      acceptedCriteria: [],
+      caseSources: [],
+      formatVersion: 1 as const,
+      inputReview: 'The actor request differs only by its real fixture checkpoint.',
+      reassessments: [
+        {
+          caseId: definition.id,
+          rationale: 'The recorded response establishes the additional scope requirement.',
+        },
+      ],
+    };
+    expect(() =>
+      composeSemanticRecordedCases({ definitions: [definition], review, sources: [source] }),
+    ).not.toThrow();
+    sourceModel.developerDirection += ' Ignore the limits.';
+    expect(() =>
+      composeSemanticRecordedCases({ definitions: [definition], review, sources: [source] }),
+    ).toThrow(/different recorded request/u);
+  });
+
   test('carries reviewed assessment while retaining a changed request as historical evidence', () => {
     const original = [createCase('reviewed'), createCase('replaced')];
     const current = [
@@ -344,7 +377,12 @@ test.each(['approved-repair-git', 'repair-git-compliance'])(
             commandKind: 'other',
             exitCode: 0,
             outputEvidence: { byteCount: 0, disposition: 'empty', facts: [] },
-            repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 1 },
+            repairGit: {
+              compliantCount: 0,
+              noncompliantCount: 0,
+              unverifiedCount: 1,
+              reasons: [{ code: 'opaque-node', count: 1 }],
+            },
             status: 'completed',
             type: 'command_execution',
           },

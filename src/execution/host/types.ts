@@ -150,9 +150,24 @@ export interface ICodexEvaluationOperationalStageOptions<T> {
   wait?: (delayMs: number, signal?: AbortSignal) => Promise<void>;
 }
 
+// finite diagnostics disclose command categories, never arguments, refs or paths
+export type IRepairGitReasonCode =
+  | 'git-rev-parse'
+  | 'git-log'
+  | 'git-show'
+  | 'git-status-arguments'
+  | 'git-diff-arguments'
+  | 'git-other'
+  | 'untrusted-git'
+  | 'unparsed-shell'
+  | 'opaque-node'
+  | 'opaque-shell'
+  | 'opaque-command';
+
 // bounded repair Git observations from one captured command, without its text
 export interface IRepairGitCommandEvidence {
   compliantCount: number;
   noncompliantCount: number;
   unverifiedCount: number;
+  reasons: Array<{ code: IRepairGitReasonCode; count: number }>;
 }

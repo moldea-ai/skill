@@ -1,6 +1,6 @@
 <!-- moldea:start -->
 
-When installed in this repository, moldea provides project context. Explicit moldea operations and direct agent, skill, or project-context work follow the skill's own routing. For other repository planning, implementation, or review, once you know the involved files, check only the exact files <repo-root>/{{skill-path}}/SKILL.md and <repo-root>/{{skill-path}}/scripts/relevance-gate.mjs. If either is missing, skip this section silently without searching for another copy, installing, or initializing moldea. Otherwise, before editing or giving conclusions, run:
+When installed in this repository, moldea provides project context. Explicit moldea operations and direct agent, model workflow, skill, or project-context work follow the skill's own routing. For other repository planning, implementation, or review, once you know the involved files, check only the exact files <repo-root>/{{skill-path}}/SKILL.md and <repo-root>/{{skill-path}}/scripts/relevance-gate.mjs. If either is missing, skip this section silently without searching for another copy, installing, or initializing moldea. Otherwise, before editing or giving conclusions, run:
 
 node "<repo-root>/{{skill-path}}/scripts/relevance-gate.mjs" --repository "<repo-root>" --path "<file>" [--path "<file>" ...]
 

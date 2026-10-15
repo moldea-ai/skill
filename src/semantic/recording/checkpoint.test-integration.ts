@@ -184,6 +184,7 @@ test('round trips projected Git and print evidence and rejects malformed command
     compliantCount: 0,
     noncompliantCount: 1,
     unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
   if (entry === undefined) throw new Error('Expected captured command.');
   const item: Record<string, unknown> = { ...entry.item };

@@ -30,6 +30,8 @@ import {
   type ISemanticCaseSetup,
   type ISemanticCaseSetupResult,
   defineSemanticCase,
+  hasRepairCheckpointRequest,
+  resolveRepairCheckpointRequest,
 } from '../cases/index.ts';
 
 const REPOSITORY_ROOT = path.resolve(import.meta.dirname, '../../..');
@@ -482,7 +484,7 @@ const runScenarioGit = (
   repositoryPath: string,
   argumentsList: string[],
   acceptedStatuses: readonly number[] = [0],
-): void => {
+): string => {
   const result = spawnSync('git', argumentsList, {
     cwd: repositoryPath,
     encoding: 'utf8',
@@ -492,6 +494,7 @@ const runScenarioGit = (
   if (!acceptedStatuses.includes(result.status ?? -1)) {
     throw new Error(`Unable to prepare semantic Git history: ${result.stderr.trim()}`);
   }
+  return result.stdout.trim();
 };
 
 /** Commits only the named fixture paths without touching evaluator-owned files. */
@@ -2660,6 +2663,7 @@ export const createActorRepository = async (
   sandboxHome: string,
   actorToolDirectory: string,
 ): Promise<{
+  developerDirection: string;
   hasWorkspaceBinaryDirectory: boolean;
   readOnlyMounts: Array<{ source: string; target: string }>;
   repositoryPath: string;
@@ -2746,6 +2750,12 @@ export const createActorRepository = async (
   await setupResult.afterBaseline?.();
 
   return {
+    developerDirection: hasRepairCheckpointRequest(caseDefinition)
+      ? resolveRepairCheckpointRequest(
+          caseDefinition,
+          runScenarioGit(repositoryPath, ['rev-parse', '--verify', 'repair-checkpoint^{commit}']),
+        )
+      : caseDefinition.input.developerDirection,
     hasWorkspaceBinaryDirectory: existsSync(join(repositoryPath, 'node_modules')),
     readOnlyMounts: setupResult.readOnlyToolMounts ?? [],
     repositoryPath,

@@ -14,6 +14,7 @@ import type {
   IMoldeaCliOperation,
   IRepositoryTestCommandKind,
   IRepairGitCommandEvidence,
+  IRepairGitReasonCode,
 } from './types.ts';
 
 type IPlainRecord = Record<string, unknown>;
@@ -1162,9 +1163,101 @@ const classifyNetworkCommand = (
     : 'indeterminate';
 };
 
+// disjoint reason sets keep diagnostic totals tied to the strict compliance counts
+const REPAIR_GIT_NONCOMPLIANT_REASONS = new Set<IRepairGitReasonCode>([
+  'git-rev-parse',
+  'git-log',
+  'git-show',
+  'git-status-arguments',
+  'git-diff-arguments',
+  'git-other',
+]);
+const REPAIR_GIT_UNVERIFIED_REASONS = new Set<IRepairGitReasonCode>([
+  'untrusted-git',
+  'unparsed-shell',
+  'opaque-node',
+  'opaque-shell',
+  'opaque-command',
+]);
+
+/** Validates bounded diagnostic codes and their exact noncompliant/unverified totals. */
+export const hasValidRepairGitCommandEvidence = (
+  input: unknown,
+): input is IRepairGitCommandEvidence => {
+  if (!hasExactKeys(input, ['compliantCount', 'noncompliantCount', 'unverifiedCount', 'reasons']))
+    return false;
+  const counts = [input['compliantCount'], input['noncompliantCount'], input['unverifiedCount']];
+  if (
+    !counts.every(
+      (count): count is number =>
+        typeof count === 'number' && Number.isSafeInteger(count) && count >= 0,
+    )
+  )
+    return false;
+  if (
+    counts.reduce((sum, count) => sum + count, 0) > MAX_COMMAND_BYTES ||
+    !Array.isArray(input['reasons'])
+  )
+    return false;
+  let noncompliantCount = 0;
+  let unverifiedCount = 0;
+  let previousCode = '';
+  for (const reason of input['reasons'] as unknown[]) {
+    if (!hasExactKeys(reason, ['code', 'count'])) return false;
+    const code = reason['code'];
+    const count = reason['count'];
+    if (
+      typeof code !== 'string' ||
+      code <= previousCode ||
+      typeof count !== 'number' ||
+      !Number.isSafeInteger(count) ||
+      count <= 0 ||
+      count > MAX_COMMAND_BYTES
+    )
+      return false;
+    if (REPAIR_GIT_NONCOMPLIANT_REASONS.has(code as IRepairGitReasonCode))
+      noncompliantCount += count;
+    else if (REPAIR_GIT_UNVERIFIED_REASONS.has(code as IRepairGitReasonCode))
+      unverifiedCount += count;
+    else return false;
+    previousCode = code;
+  }
+  return (
+    noncompliantCount === input['noncompliantCount'] && unverifiedCount === input['unverifiedCount']
+  );
+};
+
+const getRejectedRepairGitReason = (words: readonly string[]): IRepairGitReasonCode => {
+  switch (identifyGitSubcommand(words)) {
+    case 'rev-parse':
+      return 'git-rev-parse';
+    case 'log':
+      return 'git-log';
+    case 'show':
+      return 'git-show';
+    case 'status':
+      return 'git-status-arguments';
+    case 'diff':
+      return 'git-diff-arguments';
+    default:
+      return 'git-other';
+  }
+};
+
 /** Projects repair Git compliance without preserving command text or trusting opaque execution. */
 export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCommandEvidence => {
-  const evidence = { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0 };
+  const evidence: IRepairGitCommandEvidence = {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  };
+  const reasonCounts = new Map<IRepairGitReasonCode, number>();
+  const recordReason = (code: IRepairGitReasonCode): void => {
+    reasonCounts.set(code, (reasonCounts.get(code) ?? 0) + 1);
+    if (REPAIR_GIT_NONCOMPLIANT_REASONS.has(code)) evidence.noncompliantCount++;
+    else evidence.unverifiedCount++;
+  };
   const directCommand =
     typeof command === 'string' && Buffer.byteLength(command, 'utf8') <= MAX_COMMAND_BYTES
       ? unwrapCodexShellCommand(command)
@@ -1173,7 +1266,8 @@ export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCom
     directCommand === null
       ? null
       : parseStaticShellList(stripSafeShellRedirections(directCommand), true);
-  if (parsed === null) return { ...evidence, unverifiedCount: 1 };
+  if (parsed === null)
+    return { ...evidence, unverifiedCount: 1, reasons: [{ code: 'unparsed-shell', count: 1 }] };
   for (const originalWords of parsed.commands) {
     let executableIndex = 0;
     while (executableIndex < originalWords.length) {
@@ -1191,9 +1285,9 @@ export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCom
     const words = originalWords.slice(executableIndex);
     const executable = getExecutableName(words[0] ?? '');
     if (executable === 'git') {
-      if (!isTrustedGitExecutable(words[0])) evidence.unverifiedCount++;
+      if (!isTrustedGitExecutable(words[0])) recordReason('untrusted-git');
       else if (isApprovedRepairGitArguments(words.slice(1))) evidence.compliantCount++;
-      else evidence.noncompliantCount++;
+      else recordReason(getRejectedRepairGitReason(words));
       continue;
     }
     const isInstalledOperation =
@@ -1220,9 +1314,19 @@ export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCom
       !isInstalledOperation &&
       !canInspectWithoutExecution &&
       !(words.length === 2 && words[0] === 'cd' && words[1] === '/mnt')
-    )
-      evidence.unverifiedCount++;
+    ) {
+      recordReason(
+        executable === 'node'
+          ? 'opaque-node'
+          : ['sh', 'bash', 'zsh', 'dash'].includes(executable)
+            ? 'opaque-shell'
+            : 'opaque-command',
+      );
+    }
   }
+  evidence.reasons = [...reasonCounts]
+    .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+    .map(([code, count]) => ({ code, count }));
   return evidence;
 };
 

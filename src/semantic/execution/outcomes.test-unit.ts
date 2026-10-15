@@ -180,10 +180,26 @@ describe('semantic result dimensions', () => {
 });
 
 test.each([
-  [{ compliantCount: 1, noncompliantCount: 0, unverifiedCount: 0 }, true],
-  [{ compliantCount: 1, noncompliantCount: 1, unverifiedCount: 0 }, false],
-  [{ compliantCount: 1, noncompliantCount: 0, unverifiedCount: 1 }, false],
-  [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0 }, false],
+  [{ compliantCount: 1, noncompliantCount: 0, unverifiedCount: 0, reasons: [] }, true],
+  [
+    {
+      compliantCount: 1,
+      noncompliantCount: 1,
+      unverifiedCount: 0,
+      reasons: [{ code: 'git-other' as const, count: 1 }],
+    },
+    false,
+  ],
+  [
+    {
+      compliantCount: 1,
+      noncompliantCount: 0,
+      unverifiedCount: 1,
+      reasons: [{ code: 'opaque-node' as const, count: 1 }],
+    },
+    false,
+  ],
+  [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] }, false],
 ])('enforces repair Git observations %o -> %s', (repairGit, passing) => {
   const repairCase = defineSemanticCase({
     ...caseDefinition,
@@ -242,10 +258,32 @@ test('requires an observed Git command even when every other dimension passes', 
 
 test.each([
   [0, [], true],
-  [1, [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0 }], true],
-  [1, [{ compliantCount: 0, noncompliantCount: 1, unverifiedCount: 0 }], false],
-  [1, [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 1 }], false],
-  [2, [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0 }], false],
+  [1, [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] }], true],
+  [
+    1,
+    [
+      {
+        compliantCount: 0,
+        noncompliantCount: 1,
+        unverifiedCount: 0,
+        reasons: [{ code: 'git-other' as const, count: 1 }],
+      },
+    ],
+    false,
+  ],
+  [
+    1,
+    [
+      {
+        compliantCount: 0,
+        noncompliantCount: 0,
+        unverifiedCount: 1,
+        reasons: [{ code: 'opaque-node' as const, count: 1 }],
+      },
+    ],
+    false,
+  ],
+  [2, [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] }], false],
 ])(
   'enforces fallback repair compliance with %d completed commands and %o -> %s',
   (completedCommandCount, observations, passing) => {
@@ -292,7 +330,7 @@ test('does not pass repair Git evidence when captured items omit a completed com
           commandKind: 'other',
           exitCode: 0,
           outputEvidence: { byteCount: 0, disposition: 'empty', facts: [] },
-          repairGit: { compliantCount: 1, noncompliantCount: 0, unverifiedCount: 0 },
+          repairGit: { compliantCount: 1, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
           status: 'completed',
           type: 'command_execution',
         },

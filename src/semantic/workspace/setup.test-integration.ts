@@ -18,6 +18,7 @@ import { afterEach, beforeAll, test } from 'vitest';
 import { projectCodexEvaluationExecutionEvidence } from '../../execution/host/index.ts';
 import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
 import { projectActorExecutionEvidenceEvent } from '../execution/index.ts';
+import { buildSemanticActorPrompt } from '../judging/index.ts';
 
 import { createActorRepository, snapshotSemanticWorkspace } from './setup.ts';
 
@@ -85,13 +86,19 @@ const materializeCase = async (caseId: string, withGitBaseline = false) => {
   temporaryRoots.push(root);
   return withEmptyCodexHome(root, async () => {
     if (withGitBaseline) {
-      const { repositoryPath } = await createActorRepository(
+      const { developerDirection, repositoryPath } = await createActorRepository(
         root,
         caseDefinition,
         join(root, 'sandbox-home'),
         join(root, 'actor-tools'),
       );
-      return { caseDefinition, repositoryPath };
+      return {
+        caseDefinition: {
+          ...caseDefinition,
+          input: { ...caseDefinition.input, developerDirection },
+        },
+        repositoryPath,
+      };
     }
     const repositoryPath = join(root, 'actor');
     mkdirSync(repositoryPath);
@@ -1236,8 +1243,8 @@ test.each([
     const prefix = `\uFEFF# Host instructions${eol}${eol}`;
     const suffix = `${eol}Preserve these instructions.${eol}`;
     const staleBlock = currentBlock.replace(
-      '<!-- moldea:end -->',
-      'Legacy routing instructions.\n<!-- moldea:end -->',
+      'direct agent, model workflow, skill, or project-context work',
+      'direct agent, skill, or project-context work',
     );
     const agentsPath = join(repositoryPath, 'AGENTS.md');
     writeFileSync(agentsPath, prefix + staleBlock.replaceAll('\n', eol) + suffix);
@@ -1349,6 +1356,31 @@ test('conservative continuation fixtures retain a real baseline and independentl
     };
     assert.equal(result.result.valid, true);
   }
+});
+
+test.each([
+  'repair-continuation-after-change',
+  'repair-continuation-manifest-change',
+  'repair-continuation-incomplete-checkpoint',
+  'repair-continuation-missing-owner-list',
+])('supplies the real checkpoint hash to %s without mutating its definition', async (caseId) => {
+  const authored = cases.find(({ id }) => id === caseId)!;
+  const template = authored.input.developerDirection;
+  const { repositoryPath, caseDefinition } = await materializeCase(caseId, true);
+  const result = spawnSync('git', ['rev-parse', '--verify', 'repair-checkpoint^{commit}'], {
+    cwd: repositoryPath,
+    encoding: 'utf8',
+  });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr);
+  const checkpoint = result.stdout.trim();
+  assert.match(checkpoint, /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u);
+  assert.equal(
+    buildSemanticActorPrompt(caseDefinition),
+    template.replace('repair-checkpoint', checkpoint),
+  );
+  assert.equal(caseDefinition.input.developerDirection.includes('repair-checkpoint'), false);
+  assert.equal(authored.input.developerDirection, template);
 });
 
 test('partial repair has independent owner bodies and materiality repair keeps genuine settings', async () => {

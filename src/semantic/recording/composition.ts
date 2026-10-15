@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import { readCompletedEvidenceRun, type IEvidenceBundle } from '../../evidence/index.ts';
 import { getEvaluationConfirmationResolution } from '../../execution/confirmation/index.ts';
-import type { ISemanticCase } from '../cases/index.ts';
+import { hasMatchingSemanticRequest, type ISemanticCase } from '../cases/index.ts';
 import {
   createSemanticResultDimensions,
   getSemanticFailureClassifications,
@@ -293,7 +293,8 @@ export const composeSemanticRecordedCases = (options: {
       continue;
     }
     const hasChangedRequest =
-      sourceModel.developerDirection !== definition.input.developerDirection;
+      sourceModel.developerDirection === null ||
+      !hasMatchingSemanticRequest(definition, sourceModel.developerDirection);
     const hasChangedCriteria =
       JSON.stringify(sourceModel.expectedCriteria) !== JSON.stringify(definition.expected) ||
       JSON.stringify(sourceModel.forbiddenCriteria) !== JSON.stringify(definition.forbidden);

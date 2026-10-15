@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'repair',
   input: {
     developerDirection:
-      'Continue Fix moldea from this previous report: the project foundation and 4 of 5 focused context owners were checked at commit `repair-checkpoint`; continue from `/moldea/context/next.md`. Paths uncommitted at that checkpoint: `moldea/moldea.yaml`. Uncommitted manifest owner entries: `/moldea/context/g.md`. Reassess only earlier owners affected since that checkpoint, then finish the inventory and report the source commit of any carried-forward assessment. The checkpoint is a Git commit ref in this fixture.',
+      'Continue Fix moldea from this previous report: the project foundation and 4 of 5 focused context owners were checked at commit `repair-checkpoint`; continue from `/moldea/context/next.md`. Paths uncommitted at that checkpoint: `moldea/moldea.yaml`. Uncommitted manifest owner entries: `/moldea/context/g.md`. Reassess only earlier owners affected since that checkpoint, then finish the inventory and report the source commit of any carried-forward assessment.',
     repositoryEvidence: [
       {
         claim: 'The current owner declarations exist.',
@@ -59,7 +59,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'carry-forward-unchanged-owner',
       criterion:
-        'Owner H is carried forward from repair-checkpoint with its source assessment identified, the remaining owner is reported checked, and the report names the carried-forward assessment and its source commit.',
+        'Owner H is carried forward from the supplied checkpoint commit with its source assessment identified, the remaining owner is reported checked, and the report names the carried-forward assessment and its source commit.',
     },
   ],
   forbidden: [

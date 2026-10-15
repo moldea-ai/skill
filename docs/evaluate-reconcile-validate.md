@@ -74,3 +74,5 @@ Structural validity is not proof that every runtime behavior works.
 | Investigate structural and behavioral alignment | Evaluate  | No     | Yes                  |
 | Correct established drift                       | Reconcile | Yes    | Yes                  |
 | Check and repair the existing project setup     | Repair    | Yes    | Every completed owner and agent connection; incomplete scope reported |
+
+Repair reports name the actual checks and material gaps for their scope. Agent, runtime and whole-project repairs distinguish structural validity, static alignment, instruction consumption and untested live behavior. A documentation-format repair can report its scoped validation result without an unrelated behavioral disclaimer; structural validation alone never establishes project health.

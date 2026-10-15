@@ -759,7 +759,12 @@ test('projects only the passing totals from a recognized repository test', () =>
     eventType: 'item.completed',
     item: {
       commandKind: 'other',
-      repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 1 },
+      repairGit: {
+        compliantCount: 0,
+        noncompliantCount: 0,
+        unverifiedCount: 1,
+        reasons: [{ code: 'opaque-node', count: 1 }],
+      },
       exitCode: 0,
       outputEvidence: {
         byteCount: Buffer.byteLength(output),
@@ -899,7 +904,12 @@ test('preserves a source-recorded too-large classification after the operating p
     eventType: 'item.completed',
     item: {
       commandKind: 'other',
-      repairGit: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 1 },
+      repairGit: {
+        compliantCount: 0,
+        noncompliantCount: 0,
+        unverifiedCount: 1,
+        reasons: [{ code: 'opaque-node', count: 1 }],
+      },
       exitCode: 0,
       outputEvidence: {
         byteCount: 65_537,
@@ -1191,6 +1201,7 @@ test('records failed Git attempts independently of empty output and rejects miss
     compliantCount: 0,
     noncompliantCount: 1,
     unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
   assert.equal(evidence.item.outputEvidence.disposition, 'empty');
   const { repairGit, ...item } = evidence.item;
@@ -1199,6 +1210,8 @@ test('records failed Git attempts independently of empty output and rejects miss
     { ...repairGit, unverifiedCount: -1 },
     { ...repairGit, compliantCount: 1.5 },
     { ...repairGit, extra: true },
+    { ...repairGit, reasons: [] },
+    { ...repairGit, reasons: [{ code: 'unknown', count: 1 }] },
     { ...repairGit, compliantCount: Number.MAX_SAFE_INTEGER },
   ]) {
     assert.equal(

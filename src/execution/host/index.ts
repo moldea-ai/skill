@@ -21,6 +21,7 @@ export type {
   IMoldeaCliOperation,
   IRepositoryTestCommandKind,
   IRepairGitCommandEvidence,
+  IRepairGitReasonCode,
 } from './types.ts';
 
 // constants
@@ -69,6 +70,7 @@ export {
   identifyRepositoryTestCommandKind,
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
+  hasValidRepairGitCommandEvidence,
   projectCodexEvaluationExecutionEvidence,
   projectRepairGitCommandEvidence,
 } from './execution-evidence.ts';

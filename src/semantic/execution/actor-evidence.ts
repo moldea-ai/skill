@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import {
+  hasValidRepairGitCommandEvidence,
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
@@ -679,27 +680,13 @@ const hasValidOutputEvidence = (
   );
 };
 
-const hasValidRepairGitEvidence = (evidence: unknown): boolean => {
-  if (
-    !isPlainRecord(evidence) ||
-    !hasExactKeys(evidence, ['compliantCount', 'noncompliantCount', 'unverifiedCount'])
-  )
-    return false;
-  const counts = Object.values(evidence);
-  if (!counts.every(isNonnegativeSafeInteger)) return false;
-  return (
-    counts.reduce((total, count) => total + count, 0) <=
-    MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCommandTextBytes
-  );
-};
-
 /** Rejects invalid, noncompliant or unverified repair Git observations. */
 export const hasPassingRepairGitEvidence = (
   executionEvidence: ISemanticActorExecutionEvidence[],
 ): boolean =>
   executionEvidence.every(
     ({ item }) =>
-      hasValidRepairGitEvidence(item.repairGit) &&
+      hasValidRepairGitCommandEvidence(item.repairGit) &&
       item.repairGit.noncompliantCount === 0 &&
       item.repairGit.unverifiedCount === 0,
   );
@@ -726,7 +713,7 @@ const hasValidEntry = (
   }
   const { commandKind, exitCode, outputEvidence, repairGit, status, type } = entry['item'];
   return (
-    hasValidRepairGitEvidence(repairGit) &&
+    hasValidRepairGitCommandEvidence(repairGit) &&
     isCommandKind(commandKind) &&
     isCommandCompletedStatus(status) &&
     typeof exitCode === 'number' &&

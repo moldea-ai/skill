@@ -32,6 +32,14 @@ The installed managed helper’s print mode now projects a bounded block hash, a
 
 Fallback continuation accepts a genuine unresolved-authority stop with pending validation and remaining owners; it still requires final validation when no conflict blocks completion. Healthy-repair scope can use equivalent names, and retirement need not recite the supplied developer authorization. Manager and hostile-note expected labels no longer demand proof of unobservable negative actions. Meaningful forbidden checks, deterministic Git guards, coverage and verification requirements remain. Model-workflow activation misses, hard Git observations and report omissions are retained for investigation, with no Skill edits or retroactive verdict changes.
 
+## Protocol 32 targeted correction
+
+The managed block now names model workflows explicitly, matching the entrypoint's direct routing. The three recorded workflow misses justify this narrow discovery correction. Agent/runtime/whole-project repair still separates assurance types; documentation-format repair instead requires accurate scoped checks without an unrelated behavioral disclaimer. The README criterion follows that proportional Skill rule. Yarn's actionable configuration/plugin requirement remains unchanged.
+
+Four available-checkpoint fixtures supply the actual full setup commit rather than requiring the actor to resolve a symbolic ref. Prompts, private records, public case/replay requests and execution identities bind that concrete value; template comparison permits only this substitution. The unavailable and no-prior-checkpoint scenarios keep their distinct contracts. Required bounded Git reason codes now distinguish rejected forms and opaque execution, while all permissions, failure treatment and unknown-command guards remain strict. The five protocol 30 hard failures remain recorded; their exact causes are not inferred from aggregate counts.
+
+The next diagnostic proposal selects 17 cases: six continuation, model workflow, README repair, Yarn plugin, and eight cases affected by protocol 31 criteria/evidence. It requires separate paid permission after a fresh reviewed freeze. The full 114-case recording and native evidence remain separate release gates. Independent-terminal launch and a nonpaid detachment check address command-session lifetime without claiming that the original SIGTERM cause is known.
+
 ## Case dispositions
 
 Read these dispositions together with the protocol 31 evidence correction above. “Retain” means no contract contradiction requiring an edit was found in that audit; it does not mean the actor passed a behavioral run. Shared setup corrections are called out even when the case criteria remain unchanged. Retrieval/order obligations remain unverified by semantic evidence in every row where applicable.

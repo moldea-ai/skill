@@ -5,6 +5,7 @@ import { test } from 'vitest';
 import {
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
+  hasValidRepairGitCommandEvidence,
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
@@ -881,6 +882,7 @@ test.each([
     compliantCount: 0,
     noncompliantCount: 0,
     unverifiedCount: 0,
+    reasons: [],
   });
   assert.equal(
     hasPassingCodexEvaluationCommandPolicy(
@@ -1058,6 +1060,7 @@ test('projects complete repair Git syntax and rejects incomplete shell lists', (
     compliantCount: 1,
     noncompliantCount: 0,
     unverifiedCount: 0,
+    reasons: [],
   });
   assert.equal(projectRepairGitCommandEvidence(`${status} |`).unverifiedCount, 1);
   assert.equal(projectRepairGitCommandEvidence(`${status} # note`).unverifiedCount, 1);
@@ -1065,27 +1068,75 @@ test('projects complete repair Git syntax and rejects incomplete shell lists', (
     compliantCount: 1,
     noncompliantCount: 0,
     unverifiedCount: 0,
+    reasons: [],
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`${status}; git status --short`), {
     compliantCount: 1,
     noncompliantCount: 1,
     unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`cat README.md; ${status}`), {
     compliantCount: 1,
     noncompliantCount: 0,
     unverifiedCount: 0,
+    reasons: [],
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`false && git status --short`), {
     compliantCount: 0,
     noncompliantCount: 1,
     unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`/bin/bash -lc '${status}'`), {
     compliantCount: 1,
     noncompliantCount: 0,
     unverifiedCount: 0,
+    reasons: [],
   });
+});
+
+test.each([
+  ['git rev-parse repair-checkpoint', 'git-rev-parse'],
+  ['git log -1', 'git-log'],
+  ['git show HEAD:private-file', 'git-show'],
+  ['git status --short', 'git-status-arguments'],
+  ['git diff HEAD -- private-file', 'git-diff-arguments'],
+  ['git config --get private-setting', 'git-other'],
+  ['/tmp/git status', 'untrusted-git'],
+  ['cat private-file |', 'unparsed-shell'],
+  ['node --test src/check.test-integration.js', 'opaque-node'],
+  ['sh private-script.sh', 'opaque-shell'],
+  ['python3 private-script.py', 'opaque-command'],
+])('diagnoses %s as %s without retaining its arguments', (command, code) => {
+  const evidence = projectRepairGitCommandEvidence(command);
+  assert.deepEqual(evidence.reasons, [{ code, count: 1 }]);
+  assert.equal(hasValidRepairGitCommandEvidence(evidence), true);
+  assert.equal(JSON.stringify(evidence).includes('private-'), false);
+  assert.equal(evidence.noncompliantCount + evidence.unverifiedCount, 1);
+});
+
+test('aggregates ordered diagnostics and rejects missing, duplicate or inconsistent reasons', () => {
+  const evidence = projectRepairGitCommandEvidence('git show HEAD; node inspect.js; git show HEAD');
+  assert.deepEqual(evidence.reasons, [
+    { code: 'git-show', count: 2 },
+    { code: 'opaque-node', count: 1 },
+  ]);
+  assert.equal(evidence.noncompliantCount, 2);
+  assert.equal(evidence.unverifiedCount, 1);
+  for (const invalid of [
+    { ...evidence, reasons: undefined },
+    { ...evidence, reasons: [] },
+    { ...evidence, reasons: [...evidence.reasons, evidence.reasons[0]] },
+    { ...evidence, reasons: [...evidence.reasons].reverse() },
+    { ...evidence, reasons: [{ code: 'unknown', count: 3 }] },
+    { ...evidence, reasons: [{ code: 'git-show', count: 3 }] },
+    { ...evidence, reasons: [{ code: 'git-show', count: 0 }] },
+    { ...evidence, reasons: [{ code: 'git-show', count: 0.5 }] },
+    { ...evidence, reasons: [{ code: 'git-show', count: Number.MAX_SAFE_INTEGER }] },
+    { ...evidence, extra: true },
+  ])
+    assert.equal(hasValidRepairGitCommandEvidence(invalid), false);
 });
 
 test.each(['&&', '||', ';', '|', '&', '\n'])(
@@ -1110,16 +1161,19 @@ test.each(['&&', '||', ';', '|', '&', '\n'])(
       compliantCount: 2,
       noncompliantCount: 0,
       unverifiedCount: 0,
+      reasons: [],
     });
     assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} git log -p`), {
       compliantCount: 1,
       noncompliantCount: 1,
       unverifiedCount: 0,
+      reasons: [{ code: 'git-log', count: 1 }],
     });
     assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} node inspect.js`), {
       compliantCount: 1,
       noncompliantCount: 0,
       unverifiedCount: 1,
+      reasons: [{ code: 'opaque-node', count: 1 }],
     });
   },
 );
@@ -1173,6 +1227,7 @@ test.each([
     compliantCount: 0,
     noncompliantCount: 0,
     unverifiedCount: 0,
+    reasons: [],
   });
 });
 
@@ -1192,11 +1247,13 @@ test.each([
     compliantCount: 1,
     noncompliantCount: 0,
     unverifiedCount: 0,
+    reasons: [],
   });
   assert.deepEqual(projectRepairGitCommandEvidence(`${prefix}git log -p`), {
     compliantCount: 0,
     noncompliantCount: 1,
     unverifiedCount: 0,
+    reasons: [{ code: 'git-log', count: 1 }],
   });
 });
 
@@ -1210,6 +1267,7 @@ test('excludes only exact installed helpers from actor-issued repair Git', () =>
       compliantCount: 0,
       noncompliantCount: 0,
       unverifiedCount: 0,
+      reasons: [],
     });
   assert.equal(
     projectRepairGitCommandEvidence('node src/moldea-cli.mjs -- inspect').unverifiedCount,

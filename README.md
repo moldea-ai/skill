@@ -76,7 +76,7 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 Release `8.2.0` supports exactly:
 
 - Git `>=2.30.0`
-- Node.js `>=22.11.0`
+- Node.js `>=22.17.0`
 - stable `@moldea.ai/core` releases satisfying `^7.0.0`
 - stable `@moldea.ai/cli` releases satisfying `^11.0.0`
 - repository format version 1
@@ -144,7 +144,7 @@ The reference is for repository development only. Builds, tests, CI, and install
 
 ## Development
 
-Repository development requires Node.js `^24.15.0` and npm `>=10.9.0`. The distributed `moldea/` artifact keeps its documented Node.js `>=22.11.0` runtime contract.
+Repository development requires Node.js `^24.15.0` and npm `>=10.9.0`. The distributed `moldea/` artifact keeps its documented Node.js `>=22.17.0` runtime contract.
 
 Install every workspace dependency from the repository root without lifecycle scripts:
 
@@ -160,7 +160,7 @@ The same release-candidate workflow is reusable by the packages trusted build. I
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
-Both the root tooling and the website consume Website UI `3.3.1` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
+Both the root tooling and the website consume Website UI `4.0.0` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
 
 Run the deterministic boundaries:
 
@@ -178,7 +178,7 @@ npm run docs:check
 npm run website:check
 ```
 
-Conformance runs root correctness once on development Node, portable integration on all three supported Node versions, and the Windows deep-path contract. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. PRs and Pages share read-only website verification: two recorded-browser shards each build one isolated fixture, and shard 2 then checks clean development. Pages verification and the official production build run independently after shared configuration preflight; deployment requires both to succeed. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
+Conformance runs root correctness once on development Node, portable integration on all three supported Node versions, and the Windows deep-path contract. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. PRs and Pages share read-only website quality and artifact verification. Recorded-browser and clean-development browser suites run locally before merging. Pages verification and the official production build run independently after shared configuration preflight; deployment requires both to succeed. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
 
 `npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require the semantic evidence selection to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
 

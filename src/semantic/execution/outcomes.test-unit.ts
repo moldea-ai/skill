@@ -94,8 +94,10 @@ test.each([
       isSemanticPassing: true,
       judgeCommandPolicy: commandPolicy,
     });
-    expect(dimensions.commandPolicy).toBe(passing);
+    expect(dimensions.commandPolicy).toBe(true);
+    expect(dimensions.semantic).toBe(passing);
     expect(hasPassingSemanticResultDimensions(dimensions)).toBe(passing);
+    expect(isSemanticConfirmationEligible(dimensions)).toBe(!passing);
   },
 );
 
@@ -226,11 +228,12 @@ test.each([
     caseDefinition: repairCase,
     isMountIntegrityPassing: true,
     isRepositoryControlPassing: true,
-    isSemanticPassing: false,
+    isSemanticPassing: true,
     judgeCommandPolicy: commandPolicy,
   });
-  expect(dimensions.commandPolicy).toBe(passing);
-  expect(isSemanticConfirmationEligible(dimensions)).toBe(passing);
+  expect(dimensions.commandPolicy).toBe(true);
+  expect(dimensions.semantic).toBe(passing);
+  expect(isSemanticConfirmationEligible(dimensions)).toBe(!passing);
 });
 
 test('requires an observed Git command even when every other dimension passes', () => {
@@ -253,7 +256,7 @@ test('requires an observed Git command even when every other dimension passes', 
     judgeCommandPolicy: commandPolicy,
   });
   expect(hasPassingSemanticResultDimensions(dimensions)).toBe(false);
-  expect(getSemanticFailureClassifications(dimensions)).toStrictEqual(['commandPolicy']);
+  expect(getSemanticFailureClassifications(dimensions)).toStrictEqual(['semantic']);
 });
 
 test.each([
@@ -315,8 +318,10 @@ test.each([
       isSemanticPassing: true,
       judgeCommandPolicy: commandPolicy,
     });
-    expect(dimensions.commandPolicy).toBe(passing);
+    expect(dimensions.commandPolicy).toBe(true);
+    expect(dimensions.semantic).toBe(passing);
     expect(hasPassingSemanticResultDimensions(dimensions)).toBe(passing);
+    expect(isSemanticConfirmationEligible(dimensions)).toBe(!passing);
   },
 );
 
@@ -351,9 +356,44 @@ test('does not pass repair Git evidence when captured items omit a completed com
     isSemanticPassing: true,
     judgeCommandPolicy: commandPolicy,
   });
-  expect(dimensions.commandPolicy).toBe(false);
+  expect(dimensions.commandPolicy).toBe(true);
+  expect(dimensions.semantic).toBe(false);
   expect(hasPassingSemanticResultDimensions(dimensions)).toBe(false);
+  expect(isSemanticConfirmationEligible(dimensions)).toBe(true);
 });
+
+test.each(['actor', 'judge'] as const)(
+  'repair Git confirmations cannot override an observed %s security violation',
+  (role) => {
+    const violatedPolicy = {
+      ...commandPolicy,
+      networkAccess: {
+        indeterminateCount: 0,
+        observedCount: 1,
+        reasons: [{ code: 'network-client' as const, count: 1 }],
+        status: 'observed' as const,
+      },
+    };
+    const dimensions = createSemanticResultDimensions({
+      actorCommandPolicy: role === 'actor' ? violatedPolicy : commandPolicy,
+      actorExecutionEvidence: [],
+      actorResourceEvidence: resourceEvidence,
+      caseDefinition: {
+        ...caseDefinition,
+        expected: [{ label: 'approved-repair-git', criterion: 'Require approved Git evidence.' }],
+      },
+      isMountIntegrityPassing: true,
+      isRepositoryControlPassing: true,
+      isSemanticPassing: true,
+      judgeCommandPolicy: role === 'judge' ? violatedPolicy : commandPolicy,
+    });
+    expect(getSemanticFailureClassifications(dimensions)).toStrictEqual([
+      'semantic',
+      'commandPolicy',
+    ]);
+    expect(isSemanticConfirmationEligible(dimensions)).toBe(false);
+  },
+);
 
 test.each([
   [true, false, true],

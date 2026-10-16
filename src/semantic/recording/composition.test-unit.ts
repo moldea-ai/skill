@@ -358,15 +358,30 @@ describe('semantic composition', () => {
   });
 });
 
-test.each(['approved-repair-git', 'repair-git-compliance'])(
-  'a retained semantic verdict cannot bypass %s',
-  (label) => {
+test.each([
+  ['approved-repair-git', true],
+  ['repair-git-compliance', true],
+  ['approved-repair-git', false],
+  ['repair-git-compliance', false],
+] as const)(
+  'a retained semantic verdict cannot bypass %s with recorded pass %s',
+  (label, recordedPass) => {
     const definition = createCase('repair-case');
     definition.expected.push({
       label,
       criterion: 'Require complete compliant repair Git evidence.',
     });
     const source = createSource([definition], [{ passed: true }], 'sem-source');
+    if (!recordedPass) {
+      const recordedCase = source.cases.get(definition.id)!;
+      const trial = recordedCase.trials[0]!.trial;
+      trial.passed = false;
+      trial.dimensions.commandPolicy = false;
+      trial.failureClassifications = ['commandPolicy'];
+      trial.confirmationEligible = false;
+      recordedCase.status = 'failed';
+      recordedCase.confirmationStatus = 'not-applicable';
+    }
     if (label === 'repair-git-compliance') {
       const recorded = source.cases.get(definition.id)!.trials[0]!;
       recorded.trial.actorCommandPolicyEvidence = { ...COMMAND_POLICY, completedCommandCount: 1 };
@@ -406,14 +421,14 @@ test.each(['approved-repair-git', 'repair-git-compliance'])(
     });
     expect(result.cases[0]).toMatchObject({
       status: 'failed',
-      confirmationStatus: 'not-applicable',
+      confirmationStatus: recordedPass ? 'rejected' : 'not-applicable',
       trials: [
         {
           trial: {
             passed: false,
-            confirmationEligible: false,
-            dimensions: { commandPolicy: false },
-            failureClassifications: ['commandPolicy'],
+            confirmationEligible: true,
+            dimensions: { commandPolicy: true, semantic: false },
+            failureClassifications: ['semantic'],
           },
         },
       ],

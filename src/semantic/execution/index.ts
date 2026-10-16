@@ -27,6 +27,7 @@ export { parseSemanticEvaluationHostOutput, type ISemanticHostOutput } from './h
 export {
   createSemanticResultDimensions,
   getSemanticFailureClassifications,
+  hasPassingCaseRepairGitEvidence,
   hasPassingSemanticResultDimensions,
   isSemanticConfirmationEligible,
   SEMANTIC_RESULT_DIMENSION_NAMES,

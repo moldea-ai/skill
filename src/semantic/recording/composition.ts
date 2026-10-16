@@ -8,6 +8,7 @@ import { hasMatchingSemanticRequest, type ISemanticCase } from '../cases/index.t
 import {
   createSemanticResultDimensions,
   getSemanticFailureClassifications,
+  hasPassingCaseRepairGitEvidence,
   hasPassingSemanticResultDimensions,
   isSemanticConfirmationEligible,
 } from '../execution/index.ts';
@@ -139,7 +140,17 @@ const carryTrial = (options: {
     judgeCommandPolicy: sourceTrial.judgeCommandPolicyEvidence,
   });
   const dimensions = options.preserveVerdict
-    ? { ...sourceTrial.dimensions, commandPolicy: computedDimensions.commandPolicy }
+    ? {
+        ...sourceTrial.dimensions,
+        commandPolicy: computedDimensions.commandPolicy,
+        semantic:
+          sourceTrial.dimensions.semantic &&
+          hasPassingCaseRepairGitEvidence({
+            actorCommandPolicy: sourceTrial.actorCommandPolicyEvidence,
+            actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
+            caseDefinition,
+          }),
+      }
     : computedDimensions;
   const hasChangedVerdict =
     reviewRationale !== null ||
@@ -149,7 +160,7 @@ const carryTrial = (options: {
   const reassessment =
     reviewRationale ??
     (hasChangedVerdict
-      ? 'Deterministic command-policy and resource checks were recomputed; the recorded semantic judgment was retained.'
+      ? 'Deterministic host-policy, repair-Git and resource checks were recomputed; the recorded judge verdict was retained.'
       : null);
   const recordedSource = sourceTrial.carriedFrom;
   const recordedVerdict =

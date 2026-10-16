@@ -38,6 +38,20 @@ const hasPassingHostResourceProfile = (
   );
 };
 
+/** Enforces the case's complete repair-Git observations independently of the judge verdict. */
+export const hasPassingCaseRepairGitEvidence = (options: {
+  actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
+  actorExecutionEvidence: ISemanticActorExecutionEvidence[];
+  caseDefinition: ISemanticCase;
+}): boolean =>
+  !options.caseDefinition.expected.some(({ label }) =>
+    ['approved-repair-git', 'repair-git-compliance'].includes(label),
+  ) ||
+  (options.actorExecutionEvidence.length === options.actorCommandPolicy.completedCommandCount &&
+    hasPassingRepairGitEvidence(options.actorExecutionEvidence) &&
+    (!options.caseDefinition.expected.some(({ label }) => label === 'approved-repair-git') ||
+      options.actorExecutionEvidence.some(({ item }) => item.repairGit.compliantCount > 0)));
+
 /** Creates independently attributable outcome dimensions for one completed trial. */
 export const createSemanticResultDimensions = (options: {
   actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
@@ -51,6 +65,7 @@ export const createSemanticResultDimensions = (options: {
 }): ISemanticResultDimensions => ({
   semantic:
     options.isSemanticPassing &&
+    hasPassingCaseRepairGitEvidence(options) &&
     hasPassingMoldeaActivation(
       options.actorResourceEvidence,
       options.caseDefinition.resourceBudget,
@@ -75,14 +90,7 @@ export const createSemanticResultDimensions = (options: {
     ) && hasPassingHostResourceProfile(options.actorCommandPolicy, options.caseDefinition),
   commandPolicy:
     hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy) &&
-    hasPassingCodexEvaluationCommandPolicy(options.judgeCommandPolicy) &&
-    (!options.caseDefinition.expected.some(({ label }) =>
-      ['approved-repair-git', 'repair-git-compliance'].includes(label),
-    ) ||
-      (options.actorExecutionEvidence.length === options.actorCommandPolicy.completedCommandCount &&
-        hasPassingRepairGitEvidence(options.actorExecutionEvidence) &&
-        (!options.caseDefinition.expected.some(({ label }) => label === 'approved-repair-git') ||
-          options.actorExecutionEvidence.some(({ item }) => item.repairGit.compliantCount > 0)))),
+    hasPassingCodexEvaluationCommandPolicy(options.judgeCommandPolicy),
   repositoryControl: options.isRepositoryControlPassing,
   mountIntegrity: options.isMountIntegrityPassing,
   operational: true,

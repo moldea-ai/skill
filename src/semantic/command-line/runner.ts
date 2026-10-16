@@ -48,6 +48,7 @@ import {
 import {
   createSemanticResultDimensions,
   getSemanticFailureClassifications,
+  hasPassingCaseRepairGitEvidence,
   hasPassingSemanticResultDimensions,
   isSemanticConfirmationEligible,
   parseSemanticEvaluationHostOutput,
@@ -575,9 +576,21 @@ const runSemanticTrial = async (options: {
         kind: options.confirmationIndex === null ? 'initial' : 'confirmation',
         observed: assessment.observed,
         passed: hasPassingSemanticResultDimensions(dimensions),
-        rationale: dimensions.commandPolicy
-          ? assessment.rationale
-          : `${assessment.rationale} Deterministic command-policy evidence did not pass; repair Git requires complete compliant observations when applicable.`,
+        rationale: [
+          assessment.rationale,
+          ...(dimensions.commandPolicy
+            ? []
+            : ['Deterministic host security-policy evidence did not pass.']),
+          ...(hasPassingCaseRepairGitEvidence({
+            actorCommandPolicy: actorEvidence.commandPolicyEvidence,
+            actorExecutionEvidence: actorEvidence.actorExecutionEvidence,
+            caseDefinition: options.caseDefinition,
+          })
+            ? []
+            : [
+                'Deterministic repair-Git evidence did not pass; complete compliant observations are required.',
+              ]),
+        ].join(' '),
         stageReuse: null,
       };
       const recordedTrial: ISemanticRecordedTrial = {

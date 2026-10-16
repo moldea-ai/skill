@@ -31,6 +31,15 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
+          'docs/operations-policy.md is an existing policy authority stating Support owns escalation and Legal approves retention exceptions. The registered operations context declares this exact implementation relationship. The correction may update that authority and link to it from the registered context instead of duplicating its policy.',
+        source: {
+          kind: 'workspace-path',
+          path: 'docs/operations-policy.md',
+          expectedType: 'file',
+        },
+      },
+      {
+        claim:
           'Unrelated architecture context has its own established owner and remains outside the correction.',
         source: {
           kind: 'workspace-path',
@@ -51,12 +60,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'update-established-context-owner',
       criterion:
-        'The workspace changes update the existing operations context so Customer Operations owns the escalation policy and Legal continues to approve retention exceptions.',
+        'The registered operations context either states that Customer Operations owns escalation policy and Legal continues to approve retention exceptions, or links to the existing docs/operations-policy.md authority containing those corrected facts. Both representations satisfy this criterion.',
     },
     {
       label: 'avoid-duplicate-current-truth',
       criterion:
-        'The resulting workspace keeps those responsibilities in their established authoritative context instead of creating a second canonical file or parallel current wording.',
+        'The resulting workspace keeps one authoritative statement of those responsibilities. The registered operations context and existing policy document may link to each other in either direction; independently maintained duplicate policy wording or another responsibility owner does not satisfy this criterion.',
     },
     {
       label: 'preserve-unrelated-context',

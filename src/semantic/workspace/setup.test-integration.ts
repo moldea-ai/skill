@@ -22,7 +22,7 @@ import {
 } from '../../execution/host/index.ts';
 import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
 import { projectActorExecutionEvidenceEvent } from '../execution/index.ts';
-import { buildSemanticActorPrompt } from '../judging/index.ts';
+import { buildSemanticActorPrompt, buildSemanticJudgePrompt } from '../judging/index.ts';
 
 import { createActorRepository, snapshotSemanticWorkspace } from './setup.ts';
 
@@ -177,6 +177,44 @@ test.each([
   assert.equal(envelope.result.errorCount, 0);
   if (caseId === 'evaluate-brief-project-request') {
     assert.equal(gateResult(repositoryPath, ['src/project-state.js']), '0\n');
+  }
+});
+
+test.each([
+  ['maintain-dirty-project', 'src/billing.ts', /refundWindowDays = (\d+)/u],
+  [
+    'maintain-context-without-duplication',
+    'docs/operations-policy.md',
+    /Support owns escalation\. Legal approves retention exceptions\./u,
+  ],
+] as const)('%s exposes its policy authority to the judge', async (caseId, sourcePath, pattern) => {
+  const { caseDefinition, repositoryPath } = await materializeCase(caseId);
+  const source = readFileSync(join(repositoryPath, sourcePath), 'utf8');
+  const match = source.match(pattern);
+  assert.ok(match, 'The fixture must supply the starting policy fact.');
+  const declaration = caseDefinition.input.repositoryEvidence.find(
+    ({ source }) => source.kind === 'workspace-path' && source.path === sourcePath,
+  );
+  assert.ok(declaration, 'The judge must receive the existing policy authority.');
+  const prompt = buildSemanticJudgePrompt({
+    actorCommandPolicyEvidence: projectCodexEvaluationExecutionEvidence('').commandPolicy,
+    actorExecutionEvidence: [],
+    actorResourceEvidence: {
+      commandCount: 0,
+      maximumInvocationByteCount: 0,
+      modelVisibleToolOutputByteCount: 0,
+      operations: [],
+      stdoutByteCount: 0,
+    },
+    actorResponse: '',
+    caseDefinition,
+    repositoryEvidence: caseDefinition.input.repositoryEvidence,
+    isRepositoryControlPassing: true,
+    workspaceChanges: { created: [], deleted: [], modified: [] },
+  });
+  assert.ok(prompt.includes(declaration.claim));
+  if (caseId === 'maintain-dirty-project') {
+    assert.ok(declaration.claim.includes(`refundWindowDays = ${match[1]}`));
   }
 });
 

@@ -167,9 +167,12 @@ test('repair continuations require Git presence only when comparison is needed',
   }
 });
 
-test('private manifest continuation remains available for diagnostic selection', async () => {
-  const cases = await loadSemanticCases(import.meta.dirname);
-  const definition = cases.find(({ id }) => id === 'repair-continuation-manifest-change');
-  expect(definition?.publication).toBe('private');
-  expect(typeof definition?.setup).toBe('function');
-});
+test.each(['repair-continuation-manifest-change', 'model-workflow-routing'])(
+  'private %s remains available for diagnostic selection',
+  async (caseId) => {
+    const cases = await loadSemanticCases(import.meta.dirname);
+    const definition = cases.find(({ id }) => id === caseId);
+    expect(definition?.publication).toBe('private');
+    expect(typeof definition?.setup).toBe('function');
+  },
+);

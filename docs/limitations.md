@@ -69,3 +69,7 @@ Release-evaluation command, token, and output profiles constrain assurance trial
 Local deterministic checks call no model or provider and require no Moldea Cloud account. The skill itself does not upload repository content to Moldea Cloud. Your coding-agent host’s provider, permissions, and privacy settings still apply.
 
 The CLI selects Git paths; a raw filesystem reader can expose ignored files and dependencies. Path/link checks require a tree trusted against hostile concurrent replacement. Unsupported Git content transforms are refused, and continuation stays within one snapshot. Use the [reader trust contract](https://packages.moldea.ai/packages/repository-fs/security-and-limits/), [snapshot contract](https://packages.moldea.ai/packages/repository/reader-contract/#snapshot-consistency), and [privacy guide](/docs/safety-and-privacy/) before choosing another data source.
+
+## Unbound model workflows
+
+Implicit canonical adoption of an unbound one-shot model workflow is outside the current published semantic coverage. The retained private case includes observed inline-only updates that omitted canonical instruction consumption and validation. Use an explicit moldea request for that adoption; the passing explicit-agent cases do not establish reliable implicit workflow routing.

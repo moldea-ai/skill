@@ -8,7 +8,7 @@
   "moldeaRelease": {
     "cliJsonSchemaVersion": 7
   },
-  "version": "11.0.4",
+  "version": "11.0.5",
   "name": "@moldea.ai/cli",
   "private": true,
   "bin": {

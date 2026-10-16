@@ -12,7 +12,8 @@ export const semanticCase = defineSemanticCase({
       'Add durable billing-dispute guidance for support. Register /moldea/context/billing.md globally and assign it to support, declare its exact material relationship to src/billing.ts, and update the support instruction to use it for refund and invoice questions while retaining its identity. Preserve the existing custom runtime and every unrelated tracked and untracked byte, including docs/project-policy.md, README.md, src/operator-notes.ts and notes/local-observation.md. Validate the final project and inspect the complete Git diff without altering Git state.',
     repositoryEvidence: [
       {
-        claim: 'Billing implementation establishes the current refund window.',
+        claim:
+          'src/billing.ts exports refundWindowDays = 30. This establishes the configured 30-day refund window, but does not establish eligibility, the start date, or approval authority.',
         source: {
           kind: 'workspace-path',
           path: 'src/billing.ts',
@@ -70,7 +71,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validates-and-reviews',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, and the response reports the task changes, preservation of unrelated work, and actual validation result without claiming untested runtime behavior.',
+        'Runner-owned evidence records successful launcher-backed validation, and the response reports the task changes and actual validation result without claiming untested runtime behavior. Preservation is assessed from workspace and Git-control evidence, without requiring a separate recital.',
     },
   ],
   forbidden: [

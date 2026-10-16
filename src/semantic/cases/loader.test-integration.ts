@@ -74,6 +74,10 @@ describe('semantic case discovery', () => {
 
     const actorPrompt = buildSemanticActorPrompt(caseDefinition);
     const judgePrompt = buildSemanticJudgePrompt({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicyEvidence: projectCodexEvaluationExecutionEvidence('').commandPolicy,
       actorExecutionEvidence: [],
       isRepositoryControlPassing: true,
@@ -172,12 +176,6 @@ const PRIVATE_CASE_IDS = [
   'maintain-feature-relationship-boundary',
   'model-workflow-routing',
   'pnpm-pnp-local-cli-provider',
-  'repair-continuation-after-change',
-  'repair-continuation-incomplete-checkpoint',
-  'repair-continuation-manifest-change',
-  'repair-continuation-missing-owner-list',
-  'repair-continuation-partial-coverage',
-  'repair-continuation-unavailable-commit',
   'routing-description-fallback',
 ];
 

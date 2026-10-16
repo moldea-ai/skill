@@ -52,6 +52,13 @@ test('real installed helper print survives host projection and verifies the judg
         },
       },
       { type: 'item.completed', item: { type: 'agent_message', text: response } },
+      {
+        type: 'moldea.git-invocations',
+        evidence: {
+          invocationCount: 0,
+          repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+        },
+      },
     ]
       .map((event) => JSON.stringify(event))
       .join('\n');
@@ -67,6 +74,10 @@ test('real installed helper print survives host projection and verifies the judg
     ]);
     expect(projected.actorResourceEvidence.commandCount).toBe(0);
     const prompt = buildSemanticJudgePrompt({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicyEvidence: projected.commandPolicyEvidence,
       actorExecutionEvidence: projected.actorExecutionEvidence,
       actorResourceEvidence: projected.actorResourceEvidence,

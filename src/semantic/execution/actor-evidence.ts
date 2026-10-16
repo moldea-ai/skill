@@ -12,6 +12,7 @@ import {
 } from '../../execution/host/index.ts';
 import type {
   IMoldeaCliOperation,
+  IGitInvocationEvidence,
   IRepositoryTestCommandKind,
 } from '../../execution/host/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
@@ -617,7 +618,7 @@ const hasValidRepairGitResultFact = (fact: unknown, exitCode: number): boolean =
   hasExactKeys(fact, ['kind', 'mode', 'status', 'commitAvailable', 'reasonCode']) &&
   fact['kind'] === 'repair-git-result' &&
   typeof fact['mode'] === 'string' &&
-  ['checkpoint', 'continue', 'review'].includes(fact['mode']) &&
+  ['checkpoint', 'continue', 'review', 'verify'].includes(fact['mode']) &&
   ((exitCode === 0 &&
     fact['status'] === 'available' &&
     fact['commitAvailable'] === true &&
@@ -633,7 +634,7 @@ const hasValidRepairGitResultFact = (fact: unknown, exitCode: number): boolean =
 /** Projects only fixed helper outcome metadata; paths, diffs and commit values stay private. */
 const projectRepairGitResult = (
   source: string,
-  mode: 'checkpoint' | 'continue' | 'review',
+  mode: 'checkpoint' | 'continue' | 'review' | 'verify',
   exitCode: number,
 ): ISemanticActorExecutionOutputFact | null => {
   let parsed: unknown;
@@ -695,7 +696,7 @@ const createOutputEvidence = (
   gateMode: 'adoption-only' | 'relationship' | null,
   isManagedReadmeWriter: boolean,
   agentsMode: 'write' | 'print' | null,
-  repairMode: 'checkpoint' | 'continue' | 'review' | null,
+  repairMode: 'checkpoint' | 'continue' | 'review' | 'verify' | null,
   exitCode: number,
   options: ISemanticActorExecutionEvidenceOptions,
   testKinds: IRepositoryTestCommandKind[] | null,
@@ -771,15 +772,19 @@ const hasValidOutputEvidence = (
   );
 };
 
-/** Rejects invalid, noncompliant or unverified repair Git observations. */
+/** Combines captured Git invocations with known violations in command text. */
 export const hasPassingRepairGitEvidence = (
   executionEvidence: ISemanticActorExecutionEvidence[],
+  gitInvocationEvidence: IGitInvocationEvidence,
 ): boolean =>
+  hasValidRepairGitCommandEvidence(gitInvocationEvidence.repair) &&
+  gitInvocationEvidence.repair.noncompliantCount === 0 &&
+  gitInvocationEvidence.repair.unverifiedCount === 0 &&
   executionEvidence.every(
     ({ item }) =>
       hasValidRepairGitCommandEvidence(item.repairGit) &&
       item.repairGit.noncompliantCount === 0 &&
-      item.repairGit.unverifiedCount === 0,
+      !item.repairGit.reasons.some(({ code }) => code === 'untrusted-git'),
   );
 
 const hasValidEntry = (

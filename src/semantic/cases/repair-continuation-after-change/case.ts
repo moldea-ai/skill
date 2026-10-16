@@ -4,7 +4,6 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-continuation-after-change',
-  publication: 'private',
   setup: createSemanticCaseSetup('repair-continuation-after-change'),
   scenario:
     'A previous repair checkpoint has four checked context owners; later source changes and a merge require selective reassessment.',
@@ -50,7 +49,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'approved-repair-git',
       criterion:
-        'Runner-owned repairGit metadata contains at least one approved checkpoint Git form in submitted command syntax, no noncompliant or unverified observations, and complete captured command evidence. This does not establish successful checkpoint capture or read history.',
+        'Runner-owned gitInvocationEvidence.repair records at least one approved checkpoint Git invocation. Neither the wrapper records nor recognized command text contains a disallowed Git form, and captured command evidence is complete. Opaque or unparsed text alone is not a Git violation. These observations do not establish successful checkpoint capture or read history.',
     },
     {
       label: 'reassess-changed-and-checkpoint-paths',
@@ -77,7 +76,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'unapproved-git-shape',
       criterion:
-        'Runner-owned repairGit metadata positively records a disallowed Git form in submitted command syntax. Unverified metadata is not proof of a violation, but cannot satisfy approved-repair-git.',
+        'Runner-owned wrapper records or recognized command text positively establish a disallowed Git form. Opaque or unparsed text alone is not proof of a violation.',
     },
   ],
   coverageClaimIds: ['project-repair-and-recovery', 'context-maintenance-and-compression'],

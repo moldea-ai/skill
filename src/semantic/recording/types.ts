@@ -1,5 +1,6 @@
 import type {
   ICodexEvaluationHostIdentity,
+  IGitInvocationEvidence,
   ICodexEvaluationOperationalFailureCategory,
 } from '../../execution/host/index.ts';
 import type { ISemanticActorExecutionEvidence, ISemanticHostOutput } from '../execution/index.ts';
@@ -47,6 +48,7 @@ export interface ISemanticCaseCheckpoint {
 }
 
 export interface ISemanticRecordedTrial {
+  gitInvocationEvidence: IGitInvocationEvidence;
   actorExecutionEvidence: ISemanticActorExecutionEvidence[];
   actorResponse: string;
   developerDirection: string;

@@ -66,6 +66,7 @@ import {
   createSemanticActiveTrial,
   createSemanticTokenAdmissionController,
   createSemanticReplay,
+  SEMANTIC_EVIDENCE_SCHEMA_VERSION,
   getSemanticCandidatePaidTokenCount,
   getSemanticCheckpointPath,
   isSemanticActiveTrialStopped,
@@ -117,7 +118,6 @@ const DEFAULT_HOST_COMMAND = [
   '-',
 ] as const;
 const LOCAL_ATTEMPT_SCHEMA_VERSION = 7;
-const LOCAL_EVIDENCE_SCHEMA_VERSION = 11;
 const MAXIMUM_OPERATIONAL_RETRY_COUNT = 1;
 
 const PreparedWebsitePayloadSchema = z.object({
@@ -310,6 +310,7 @@ const runSemanticTrial = async (options: {
       const judgePrompt = buildSemanticJudgePrompt({
         actorCommandPolicyEvidence: recordedTrial.trial.actorCommandPolicyEvidence,
         actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
+        gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
         actorResourceEvidence: recordedTrial.trial.actorResourceEvidence,
         actorResponse: recordedTrial.actorResponse,
         isRepositoryControlPassing: recordedTrial.trial.dimensions.repositoryControl,
@@ -406,6 +407,7 @@ const runSemanticTrial = async (options: {
           activeTrial,
           {
             actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
+            gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
             actorResourceEvidence: recordedTrial.trial.actorResourceEvidence,
             actorStageIdentitySha256: actorStageIdentity.sha256,
             commandPolicyEvidence: recordedTrial.trial.actorCommandPolicyEvidence,
@@ -495,6 +497,7 @@ const runSemanticTrial = async (options: {
     const judgePrompt = buildSemanticJudgePrompt({
       actorCommandPolicyEvidence: actorEvidence.commandPolicyEvidence,
       actorExecutionEvidence: actorEvidence.actorExecutionEvidence,
+      gitInvocationEvidence: actorEvidence.gitInvocationEvidence,
       actorResourceEvidence: actorEvidence.actorResourceEvidence,
       actorResponse: actorEvidence.response,
       isRepositoryControlPassing: actorEvidence.isRepositoryControlPassing,
@@ -550,6 +553,7 @@ const runSemanticTrial = async (options: {
       const dimensions = createSemanticResultDimensions({
         actorCommandPolicy: actorEvidence.commandPolicyEvidence,
         actorExecutionEvidence: actorEvidence.actorExecutionEvidence,
+        gitInvocationEvidence: actorEvidence.gitInvocationEvidence,
         actorResourceEvidence: actorEvidence.actorResourceEvidence,
         caseDefinition: options.caseDefinition,
         isMountIntegrityPassing: actorEvidence.isMountIntegrityPassing,
@@ -584,6 +588,7 @@ const runSemanticTrial = async (options: {
           ...(hasPassingCaseRepairGitEvidence({
             actorCommandPolicy: actorEvidence.commandPolicyEvidence,
             actorExecutionEvidence: actorEvidence.actorExecutionEvidence,
+            gitInvocationEvidence: actorEvidence.gitInvocationEvidence,
             caseDefinition: options.caseDefinition,
           })
             ? []
@@ -595,6 +600,7 @@ const runSemanticTrial = async (options: {
       };
       const recordedTrial: ISemanticRecordedTrial = {
         actorExecutionEvidence: actorEvidence.actorExecutionEvidence,
+        gitInvocationEvidence: actorEvidence.gitInvocationEvidence,
         actorResponse: actorEvidence.response,
         developerDirection: actorPrompt,
         operationalRetries: activeTrial.operationalRetries,
@@ -766,7 +772,7 @@ const createAttemptRecord = (options: {
       evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
       kind: 'candidate',
       path: `.evidence/semantic/results/attempts/${options.attemptId}/evidence.json`,
-      schemaVersion: LOCAL_EVIDENCE_SCHEMA_VERSION,
+      schemaVersion: SEMANTIC_EVIDENCE_SCHEMA_VERSION,
       sha256: options.evidenceSha256,
     },
     executedStageCount: caseResults.reduce(
@@ -829,7 +835,7 @@ const recordSemanticAttempt = async (options: {
   definitions: ISemanticCase[];
   judgeHost: ICodexEvaluationHostIdentity;
 }): Promise<ISemanticAttemptRecord> => {
-  const evidenceRecord = { cases: options.cases, schemaVersion: LOCAL_EVIDENCE_SCHEMA_VERSION };
+  const evidenceRecord = { cases: options.cases, schemaVersion: SEMANTIC_EVIDENCE_SCHEMA_VERSION };
   const evidenceSha256 = createJsonSha256(evidenceRecord);
   const result = createAttemptRecord({ ...options, evidenceSha256 });
   const replays = new Map<string, IEvaluationReplayModel>(

@@ -4,6 +4,8 @@ import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CodexEvaluationHostError,
   projectCodexEvaluationExecutionEvidence,
+  GitInvocationEventSchema,
+  type IGitInvocationEvidence,
   type ICodexEvaluationCommandPolicyEvidence,
 } from '../../execution/host/index.ts';
 import {
@@ -18,6 +20,11 @@ import type {
 } from './types.ts';
 
 const HostEventSchema = z.looseObject({ type: z.string() });
+const GitCaptureCommandSchema = z.looseObject({
+  type: z.literal('item.completed'),
+  item: z.looseObject({ type: z.literal('command_execution'), aggregated_output: z.string() }),
+});
+
 const AgentMessageEventSchema = z.looseObject({
   type: z.literal('item.completed'),
   item: z.looseObject({ type: z.literal('agent_message'), text: z.string() }),
@@ -25,6 +32,7 @@ const AgentMessageEventSchema = z.looseObject({
 
 export interface ISemanticHostOutput {
   actorExecutionEvidence: ISemanticActorExecutionEvidence[];
+  gitInvocationEvidence: IGitInvocationEvidence;
   actorResourceEvidence: IMoldeaResourceEvidence;
   commandPolicyEvidence: ICodexEvaluationCommandPolicyEvidence;
   response: string;
@@ -49,6 +57,7 @@ export const parseSemanticEvaluationHostOutput = (
   const actorExecutionEvidence: ISemanticActorExecutionEvidence[] = [];
   let hasOperationalFailureEvent = false;
   let response: string | null = null;
+  let gitInvocationEvidence: IGitInvocationEvidence | null = null;
 
   for (const line of output.split('\n')) {
     if (line.trim() === '') continue;
@@ -61,6 +70,21 @@ export const parseSemanticEvaluationHostOutput = (
       });
     }
     const event = HostEventSchema.parse(parsed);
+    const invocationFailure = GitCaptureCommandSchema.safeParse(parsed);
+    if (
+      invocationFailure.success &&
+      /(?:^|\n)MOLDEA_GIT_CAPTURE_FAILED(?:\r?\n|$)/u.test(
+        invocationFailure.data.item.aggregated_output,
+      )
+    )
+      throw new CodexEvaluationHostError(
+        CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
+        'Git invocation capture failed during actor execution.',
+      );
+    if (event.type === 'moldea.git-invocations') {
+      if (gitInvocationEvidence !== null) throw new Error('Git invocation capture is duplicated.');
+      gitInvocationEvidence = GitInvocationEventSchema.parse(parsed).evidence;
+    }
     if (event.type === 'error' || event.type === 'turn.failed') {
       hasOperationalFailureEvent = true;
     }
@@ -86,8 +110,10 @@ export const parseSemanticEvaluationHostOutput = (
     throw new Error('The Codex evaluation host did not return a final agent message event.');
   }
 
+  if (gitInvocationEvidence === null) throw new Error('Git invocation capture is missing.');
   return {
     actorExecutionEvidence,
+    gitInvocationEvidence,
     actorResourceEvidence: createMoldeaResourceEvidence(actorExecutionEvidence, options),
     commandPolicyEvidence: commandPolicy,
     response,

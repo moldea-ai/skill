@@ -229,10 +229,10 @@ var collectRepairGitEvidence = async (options) => {
       throw new Error("The repository root is excluded from inspection.");
     if (!(await lstat(repositoryRoot2)).isDirectory())
       throw new Error("A repository directory is required.");
-    if (options.mode === "continue" && !OBJECT_ID_PATTERN.test(options.checkpoint ?? "")) {
+    if (["continue", "verify"].includes(options.mode) && !OBJECT_ID_PATTERN.test(options.checkpoint ?? "")) {
       throw new Error("Continuation requires the supplied full checkpoint object ID.");
     }
-    if (!["checkpoint", "continue", "review"].includes(options.mode))
+    if (!["checkpoint", "continue", "review", "verify"].includes(options.mode))
       throw new Error("Unsupported repair Git operation.");
     const paths = (options.paths ?? []).map(validatePath);
     if (options.mode === "review" !== paths.length > 0)
@@ -262,6 +262,22 @@ var collectRepairGitEvidence = async (options) => {
     reasonCode = "attribute-safety";
     await assertAttributeSafety(repositoryRoot2);
     reasonCode = "git-read";
+    if (options.mode === "verify" || options.mode === "continue") {
+      if (readGit(repositoryRoot2, ["cat-file", "-t", options.checkpoint]).toString("utf8").trim() !== "commit")
+        throw new Error("The supplied checkpoint does not name a commit object.");
+      if (options.mode === "verify")
+        return {
+          kind: "moldea-repair-git",
+          mode: "verify",
+          status: "available",
+          commit: options.checkpoint,
+          uncommittedPaths: [],
+          changedPaths: [],
+          manifestDiff: "",
+          uncommittedManifestDiff: "",
+          writtenDiff: ""
+        };
+    }
     const status = readStatus(
       readGit(repositoryRoot2, [
         "status",
@@ -335,16 +351,16 @@ var collectRepairGitEvidence = async (options) => {
 // src/portable/repair-git/entry.ts
 var arguments_ = process.argv.slice(2);
 var [repositoryFlag, repositoryRoot, separator, mode, ...remaining] = arguments_;
-if (repositoryFlag !== "--repository" || !repositoryRoot || separator !== "--" || !["checkpoint", "continue", "review"].includes(mode ?? "") || mode === "checkpoint" && remaining.length !== 0 || mode === "continue" && (remaining.length !== 2 || remaining[0] !== "--checkpoint") || mode === "review" && (remaining.length === 0 || remaining.length % 2 !== 0 || remaining.some((part, index) => index % 2 === 0 && part !== "--path"))) {
+if (repositoryFlag !== "--repository" || !repositoryRoot || separator !== "--" || !["checkpoint", "continue", "review", "verify"].includes(mode ?? "") || mode === "checkpoint" && remaining.length !== 0 || ["continue", "verify"].includes(mode ?? "") && (remaining.length !== 2 || remaining[0] !== "--checkpoint") || mode === "review" && (remaining.length === 0 || remaining.length % 2 !== 0 || remaining.some((part, index) => index % 2 === 0 && part !== "--path"))) {
   process.stderr.write(
-    "Usage: repair-git --repository <absolute-root> -- checkpoint | continue --checkpoint <full-oid> | review --path <written-file> [--path <written-file>]\n"
+    "Usage: repair-git --repository <absolute-root> -- checkpoint | continue --checkpoint <full-oid> | verify --checkpoint <full-oid> | review --path <written-file> [--path <written-file>]\n"
   );
   process.exitCode = 2;
 } else {
   const evidence = await collectRepairGitEvidence({
     repositoryRoot,
     mode,
-    ...mode === "continue" ? { checkpoint: remaining[1] } : {},
+    ...["continue", "verify"].includes(mode ?? "") ? { checkpoint: remaining[1] } : {},
     ...mode === "review" ? { paths: remaining.filter((_, index) => index % 2 === 1) } : {}
   });
   process.stdout.write(`${JSON.stringify(evidence)}

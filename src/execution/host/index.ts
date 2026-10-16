@@ -86,3 +86,7 @@ export {
 
 // restricted proxy
 export { isPublicIpAddress, parseConnectAuthority, runCodexEvaluationProxy } from './proxy.ts';
+
+// cooperative Git invocation capture
+export { GitInvocationEventSchema, GitInvocationEvidenceSchema } from './git-invocations.ts';
+export type { IGitInvocationEvidence } from './git-invocations.ts';

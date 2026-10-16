@@ -56,6 +56,10 @@ describe('semantic active-trial recovery', () => {
 
   test('advances actor and judge boundaries without discarding completed evidence', () => {
     const actorEvidence = {
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorExecutionEvidence: [],
       actorResourceEvidence: {
         commandCount: 0,
@@ -97,6 +101,10 @@ describe('semantic active-trial recovery', () => {
       RETRIED_AT,
     );
     const recordedTrial = {
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorExecutionEvidence: [],
       actorResponse: actorEvidence.response,
       developerDirection: 'Synthetic direction.',

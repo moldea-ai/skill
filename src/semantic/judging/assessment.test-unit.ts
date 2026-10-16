@@ -65,6 +65,10 @@ describe('semantic judging', () => {
   test('keeps criteria out of the actor prompt and supplies them only to the judge', () => {
     const actorPrompt = buildSemanticActorPrompt(caseDefinition);
     const judgePrompt = buildSemanticJudgePrompt({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicyEvidence: commandPolicy,
       actorExecutionEvidence: [],
       isRepositoryControlPassing: true,
@@ -89,6 +93,10 @@ describe('semantic judging', () => {
 
   test.each([true, false])('supplies the actual Git-control snapshot result %s', (unchanged) => {
     const options = {
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicyEvidence: commandPolicy,
       actorExecutionEvidence: [],
       actorResourceEvidence: resourceEvidence,
@@ -127,6 +135,10 @@ describe('semantic judging', () => {
       },
     });
     const judgePrompt = buildSemanticJudgePrompt({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicyEvidence: commandPolicy,
       actorExecutionEvidence: [],
       isRepositoryControlPassing: true,
@@ -236,6 +248,10 @@ describe('semantic judging', () => {
 
   test('keeps unsupported execution and embedded repository instructions out of the rubric', () => {
     const prompt = buildSemanticJudgePrompt({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicyEvidence: commandPolicy,
       actorExecutionEvidence: [],
       isRepositoryControlPassing: true,

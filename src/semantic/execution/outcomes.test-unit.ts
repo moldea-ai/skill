@@ -50,8 +50,8 @@ test.each([
   ['||', 'approved', true],
   ['&&', 'prohibited', false],
   ['||', 'prohibited', false],
-  ['&&', 'opaque', false],
-  ['||', 'opaque', false],
+  ['&&', 'opaque', true],
+  ['||', 'opaque', true],
 ] as const)(
   'grades submitted %s Git syntax with a %s branch -> %s',
   (separator, branch, passing) => {
@@ -79,6 +79,10 @@ test.each([
     });
     if (evidence === null) throw new Error('A completed command must produce actor evidence.');
     const dimensions = createSemanticResultDimensions({
+      gitInvocationEvidence: {
+        invocationCount: 1,
+        repair: { compliantCount: 1, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicy: projectCodexEvaluationExecutionEvidence(JSON.stringify(event))
         .commandPolicy,
       actorExecutionEvidence: [evidence],
@@ -110,6 +114,10 @@ describe('semantic result dimensions', () => {
       modelVisibleToolOutputByteCount: 2_000_000,
     };
     const options = {
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicy,
       actorExecutionEvidence: [],
       actorResourceEvidence: resourceEvidence,
@@ -146,6 +154,10 @@ describe('semantic result dimensions', () => {
 
   test('keeps semantic uncertainty eligible only when deterministic dimensions pass', () => {
     const dimensions = createSemanticResultDimensions({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicy: commandPolicy,
       actorExecutionEvidence: [],
       actorResourceEvidence: resourceEvidence,
@@ -163,6 +175,10 @@ describe('semantic result dimensions', () => {
 
   test('does not use confirmations to conceal deterministic failures', () => {
     const dimensions = createSemanticResultDimensions({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicy: commandPolicy,
       actorExecutionEvidence: [],
       actorResourceEvidence: resourceEvidence,
@@ -199,7 +215,7 @@ test.each([
       unverifiedCount: 1,
       reasons: [{ code: 'opaque-node' as const, count: 1 }],
     },
-    false,
+    true,
   ],
   [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] }, false],
 ])('enforces repair Git observations %o -> %s', (repairGit, passing) => {
@@ -210,6 +226,15 @@ test.each([
     ],
   });
   const dimensions = createSemanticResultDimensions({
+    gitInvocationEvidence: {
+      invocationCount: repairGit.compliantCount,
+      repair: {
+        compliantCount: repairGit.compliantCount,
+        noncompliantCount: 0,
+        unverifiedCount: 0,
+        reasons: [],
+      },
+    },
     actorCommandPolicy: { ...commandPolicy, completedCommandCount: 1 },
     actorExecutionEvidence: [
       {
@@ -238,6 +263,10 @@ test.each([
 
 test('requires an observed Git command even when every other dimension passes', () => {
   const dimensions = createSemanticResultDimensions({
+    gitInvocationEvidence: {
+      invocationCount: 0,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+    },
     actorCommandPolicy: commandPolicy,
     actorExecutionEvidence: [],
     actorResourceEvidence: resourceEvidence,
@@ -284,13 +313,17 @@ test.each([
         reasons: [{ code: 'opaque-node' as const, count: 1 }],
       },
     ],
-    false,
+    true,
   ],
   [2, [{ compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] }], false],
 ])(
   'enforces fallback repair compliance with %d completed commands and %o -> %s',
   (completedCommandCount, observations, passing) => {
     const dimensions = createSemanticResultDimensions({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicy: { ...commandPolicy, completedCommandCount },
       actorExecutionEvidence: observations.map((repairGit) => ({
         eventType: 'item.completed',
@@ -327,6 +360,10 @@ test.each([
 
 test('does not pass repair Git evidence when captured items omit a completed command', () => {
   const dimensions = createSemanticResultDimensions({
+    gitInvocationEvidence: {
+      invocationCount: 0,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+    },
     actorCommandPolicy: { ...commandPolicy, completedCommandCount: 2 },
     actorExecutionEvidence: [
       {
@@ -375,6 +412,10 @@ test.each(['actor', 'judge'] as const)(
       },
     };
     const dimensions = createSemanticResultDimensions({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicy: role === 'actor' ? violatedPolicy : commandPolicy,
       actorExecutionEvidence: [],
       actorResourceEvidence: resourceEvidence,
@@ -456,6 +497,10 @@ test.each([
     );
     if (evidence === null) throw new Error('Expected completed command evidence.');
     const dimensions = createSemanticResultDimensions({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicy: commandPolicy,
       actorExecutionEvidence: [evidence],
       actorResourceEvidence: { ...resourceEvidence, commandCount: 1, operations: ['scope'] },

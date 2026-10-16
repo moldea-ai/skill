@@ -1,6 +1,7 @@
 import {
   hasPassingCodexEvaluationCommandPolicy,
   type ICodexEvaluationCommandPolicyEvidence,
+  type IGitInvocationEvidence,
 } from '../../execution/host/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 import type { ISemanticCase } from '../cases/index.ts';
@@ -41,6 +42,7 @@ const hasPassingHostResourceProfile = (
 /** Enforces the case's complete repair-Git observations independently of the judge verdict. */
 export const hasPassingCaseRepairGitEvidence = (options: {
   actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
+  gitInvocationEvidence: IGitInvocationEvidence;
   actorExecutionEvidence: ISemanticActorExecutionEvidence[];
   caseDefinition: ISemanticCase;
 }): boolean =>
@@ -48,13 +50,14 @@ export const hasPassingCaseRepairGitEvidence = (options: {
     ['approved-repair-git', 'repair-git-compliance'].includes(label),
   ) ||
   (options.actorExecutionEvidence.length === options.actorCommandPolicy.completedCommandCount &&
-    hasPassingRepairGitEvidence(options.actorExecutionEvidence) &&
+    hasPassingRepairGitEvidence(options.actorExecutionEvidence, options.gitInvocationEvidence) &&
     (!options.caseDefinition.expected.some(({ label }) => label === 'approved-repair-git') ||
-      options.actorExecutionEvidence.some(({ item }) => item.repairGit.compliantCount > 0)));
+      options.gitInvocationEvidence.repair.compliantCount > 0));
 
 /** Creates independently attributable outcome dimensions for one completed trial. */
 export const createSemanticResultDimensions = (options: {
   actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
+  gitInvocationEvidence: IGitInvocationEvidence;
   actorExecutionEvidence: ISemanticActorExecutionEvidence[];
   actorResourceEvidence: IMoldeaResourceEvidence;
   caseDefinition: ISemanticCase;

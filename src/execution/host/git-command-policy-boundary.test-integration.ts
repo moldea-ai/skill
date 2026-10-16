@@ -98,7 +98,10 @@ test.each(['unborn', 'committed', 'detached'] as const)(
         join(repositoryPath, '.git', 'index'),
       ];
       const before = preservedPaths.map((path) => (existsSync(path) ? readFileSync(path) : null));
-      const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'));
+      const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'), {
+        realGitExecutable: '/usr/bin/git',
+        invocationLogPath: join(join(testRoot, 'bin'), '..', 'git-invocations.jsonl'),
+      });
       const result = runWrappedGit(wrapperPath, repositoryPath, [
         ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
         '--untracked-files=all',
@@ -145,7 +148,10 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
       'test: initialize command-policy fixture',
     ]);
 
-    const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'));
+    const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'), {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(join(testRoot, 'bin'), '..', 'git-invocations.jsonl'),
+    });
     const statusArguments = [...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS];
     const safeResult = runWrappedGit(wrapperPath, repositoryPath, statusArguments);
 
@@ -331,7 +337,10 @@ test('Git command-policy boundary budgets exact trusted read-only workspace path
       writeFileSync(join(dependencyDirectoryPath, `entry-${entryIndex}`), '');
     }
 
-    const strictWrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'strict-bin'));
+    const strictWrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'strict-bin'), {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(join(testRoot, 'strict-bin'), '..', 'git-invocations.jsonl'),
+    });
     const strictResult = runWrappedGit(strictWrapperPath, repositoryPath, statusArguments);
 
     assert.equal(strictResult.status, 2);
@@ -341,6 +350,8 @@ test('Git command-policy boundary budgets exact trusted read-only workspace path
       join(testRoot, 'trusted-bin'),
       {
         trustedReadOnlyWorkspacePaths: ['.agents/skills/moldea', 'node_modules'],
+        realGitExecutable: '/usr/bin/git',
+        invocationLogPath: join(join(testRoot, 'trusted-bin'), '..', 'git-invocations.jsonl'),
       },
     );
     const trustedResult = runWrappedGit(trustedWrapperPath, repositoryPath, statusArguments);
@@ -391,6 +402,8 @@ test('Git command-policy boundary budgets exact trusted read-only workspace path
     await assert.rejects(
       prepareGitCommandPolicyBoundary(join(testRoot, 'invalid-bin'), {
         trustedReadOnlyWorkspacePaths: ['.agents/_backup/evidence'],
+        realGitExecutable: '/usr/bin/git',
+        invocationLogPath: join(join(testRoot, 'invalid-bin'), '..', 'git-invocations.jsonl'),
       }),
       /Invalid trusted read-only workspace path/u,
     );
@@ -447,7 +460,10 @@ test('Git command-policy boundary refuses linked-worktree common attributes', as
       'export const state = "changed";\n',
     );
 
-    const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'));
+    const wrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'bin'), {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(join(testRoot, 'bin'), '..', 'git-invocations.jsonl'),
+    });
     const blockedResult = runWrappedGit(wrapperPath, linkedWorktreePath, [
       ...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
       'project-state.js',

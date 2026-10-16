@@ -226,7 +226,10 @@ test.skipIf(process.platform !== 'linux')(
     const checkpoint = git(root, 'rev-parse', 'HEAD');
     writeFileSync(join(root, 'source file.js'), 'bravo\n');
     const tools = join(root, 'host-tools');
-    const wrapper = await prepareGitCommandPolicyBoundary(tools);
+    const wrapper = await prepareGitCommandPolicyBoundary(tools, {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(tools, '..', 'git-invocations.jsonl'),
+    });
     const wrapperSource = join(tools, 'git-boundary.cjs');
     renameSync(wrapper, wrapperSource);
     writeFileSync(
@@ -346,7 +349,10 @@ test.skipIf(process.platform !== 'linux')(
     rmSync(join(root, '.gitattributes'));
     rmSync(join(root, 'filter-ran'), { force: true });
     writeFileSync(join(root, 'source file.js'), 'bravo\n');
-    const wrapper = await prepareGitCommandPolicyBoundary(join(root, 'host-tools'));
+    const wrapper = await prepareGitCommandPolicyBoundary(join(root, 'host-tools'), {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(join(root, 'host-tools'), '..', 'git-invocations.jsonl'),
+    });
     const result = spawnSync(
       process.execPath,
       [wrapper, ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS, '--untracked-files=all', '--branch'],
@@ -389,7 +395,10 @@ for (const boundary of ['helper', 'wrapper'] as const) {
               'checkpoint',
             ]
           : [
-              await prepareGitCommandPolicyBoundary(join(root, 'host-tools')),
+              await prepareGitCommandPolicyBoundary(join(root, 'host-tools'), {
+                realGitExecutable: '/usr/bin/git',
+                invocationLogPath: join(join(root, 'host-tools'), '..', 'git-invocations.jsonl'),
+              }),
               ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
               '--untracked-files=all',
               '--branch',
@@ -428,7 +437,10 @@ for (const boundary of ['helper', 'wrapper'] as const) {
         const result = await collectRepairGitEvidence({ repositoryRoot: root, mode: 'checkpoint' });
         expect(result).toMatchObject({ status: 'unavailable', reasonCode: 'attribute-safety' });
       } else {
-        const wrapper = await prepareGitCommandPolicyBoundary(join(root, 'host-tools'));
+        const wrapper = await prepareGitCommandPolicyBoundary(join(root, 'host-tools'), {
+          realGitExecutable: '/usr/bin/git',
+          invocationLogPath: join(join(root, 'host-tools'), '..', 'git-invocations.jsonl'),
+        });
         const result = spawnSync(
           process.execPath,
           [wrapper, ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS, '--untracked-files=all', '--branch'],
@@ -518,3 +530,30 @@ test.skipIf(process.platform !== 'linux')(
     expect(existsSync(sentinel)).toBe(false);
   },
 );
+
+test('verifies full commit objects and rejects missing objects and blobs', async () => {
+  const root = repository();
+  const commit = git(root, 'rev-parse', 'HEAD');
+  const verified = await collectRepairGitEvidence({
+    repositoryRoot: root,
+    mode: 'verify',
+    checkpoint: commit,
+  });
+  expect(verified.status).toBe('available');
+  if (verified.status === 'available') expect(verified.commit).toBe(commit);
+  for (const checkpoint of ['0'.repeat(40), git(root, 'rev-parse', 'HEAD:source file.js')]) {
+    const result = await collectRepairGitEvidence({
+      repositoryRoot: root,
+      mode: 'verify',
+      checkpoint,
+    });
+    expect(result.status).toBe('unavailable');
+    const continuation = await collectRepairGitEvidence({
+      repositoryRoot: root,
+      mode: 'continue',
+      checkpoint,
+    });
+    expect(continuation.status).toBe('unavailable');
+  }
+  expect(runHelper(root, 'verify', '--checkpoint', commit).status).toBe(0);
+});

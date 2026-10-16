@@ -35,6 +35,7 @@ const PackageManifestSchema = z.object({
 const PORTABLE_ENTRY_OUTPUTS = {
   'initialization-inspection/entry.ts': 'moldea/scripts/initialization-inspection.mjs',
   'repair-git/entry.ts': 'moldea/scripts/repair-git.mjs',
+  'response-directory/entry.ts': 'moldea/scripts/response-directory.mjs',
   'managed-agents/managed-agents.ts': 'moldea/scripts/managed-agents.mjs',
   'managed-readme.ts': 'moldea/scripts/managed-readme.mjs',
   'moldea-cli.ts': 'moldea/scripts/moldea-cli.mjs',

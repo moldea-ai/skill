@@ -8,12 +8,13 @@ import { readCompletedEvidenceRun, type IEvidenceBundle } from '../../evidence/i
 import { getEvaluationConfirmationResolution } from '../../execution/confirmation/index.ts';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../../release/index.ts';
 import { parseSemanticRecordedCases } from './checkpoint.ts';
+import { SEMANTIC_EVIDENCE_SCHEMA_VERSION } from './constants.ts';
 import type { ISemanticReusableTrial, ISemanticActiveTrialCheckpoint } from './types.ts';
 
 const MAXIMUM_REUSE_RUN_COUNT = 64;
 const EvidenceRecordSchema = z.strictObject({
   cases: z.unknown(),
-  schemaVersion: z.literal(11),
+  schemaVersion: z.literal(SEMANTIC_EVIDENCE_SCHEMA_VERSION),
 });
 const LocalSemanticPayloadSchema = z.looseObject({
   websiteModel: z.looseObject({

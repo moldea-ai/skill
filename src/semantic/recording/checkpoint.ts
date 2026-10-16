@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import { z } from 'zod';
 
+import { GitInvocationEvidenceSchema } from '../../execution/host/index.ts';
 import { readJsonFile, writeJsonFileAtomically } from '../../filesystem/index.ts';
 import {
   hasValidActorExecutionEvidence,
@@ -89,6 +90,7 @@ const OperationalRetryStateSchema = z.strictObject({
 });
 const RecordedTrialSchema = z.strictObject({
   actorExecutionEvidence: z.array(z.unknown()),
+  gitInvocationEvidence: GitInvocationEvidenceSchema,
   actorResponse: z.string(),
   developerDirection: z.string().trim().min(1),
   operationalRetries: OperationalRetryStateSchema,
@@ -169,6 +171,7 @@ const RecordedCaseSchema = z.strictObject({
 });
 const ActiveTrialActorEvidenceSchema = z.strictObject({
   actorExecutionEvidence: z.array(z.unknown()),
+  gitInvocationEvidence: GitInvocationEvidenceSchema,
   actorResourceEvidence: ResourceEvidenceSchema,
   actorStageIdentitySha256: Sha256Schema,
   commandPolicyEvidence: CommandPolicySchema,

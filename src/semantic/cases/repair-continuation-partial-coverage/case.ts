@@ -4,7 +4,6 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-continuation-partial-coverage',
-  publication: 'private',
   setup: createSemanticCaseSetup('repair-continuation-partial-coverage'),
   scenario:
     'A healthy inventory contains 64 independent focused owners requiring truthful bounded coverage.',
@@ -34,7 +33,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'repair-git-compliance',
       criterion:
-        'Runner-owned repairGit metadata contains no noncompliant or unverified observations and complete captured command evidence. A completed pass need not run Git. These counts establish submitted syntax only, not successful checkpoint capture or read history.',
+        'Runner-owned wrapper capture is complete, with no disallowed Git form in its records or recognized command text. Opaque or unparsed text without a disallowed Git record does not fail. No Git command is required when conservative reassessment makes comparison unnecessary. These observations do not establish successful checkpoint capture or read history.',
     },
     {
       label: 'truthful-bounded-coverage',

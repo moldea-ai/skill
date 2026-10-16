@@ -2,7 +2,7 @@
 export const CLI_PACKAGE_NAME = '@moldea.ai/cli';
 
 // protocol versions recorded by the current evaluators
-export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 40;
+export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 41;
 
 // portable release files that carry the supported CLI major range
 export const CLI_VERSION_RANGE_TEXT_PATHS = [

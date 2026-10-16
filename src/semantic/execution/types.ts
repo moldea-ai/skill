@@ -14,7 +14,7 @@ export interface ISemanticActorExecutionEvidenceOptions {
 export type ISemanticActorExecutionOutputFact =
   | {
       kind: 'repair-git-result';
-      mode: 'checkpoint' | 'continue' | 'review';
+      mode: 'checkpoint' | 'continue' | 'review' | 'verify';
       status: 'available' | 'unavailable';
       commitAvailable: boolean;
       reasonCode:

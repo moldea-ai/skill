@@ -807,7 +807,7 @@ export const identifyMoldeaRelevanceGateMode = (
 /** Recognizes only the installed repair evidence helper and its fixed read modes. */
 const getRepairGitMode = (
   words: readonly string[],
-): 'checkpoint' | 'continue' | 'review' | null => {
+): 'checkpoint' | 'continue' | 'review' | 'verify' | null => {
   if (
     !isTrustedLocalExecutable(words[0], 'node') ||
     !SAFE_MANAGED_README_PATHS.has(
@@ -822,12 +822,12 @@ const getRepairGitMode = (
   const mode = words[5];
   if (mode === 'checkpoint' && words.length === 6) return mode;
   if (
-    mode === 'continue' &&
+    ['continue', 'verify'].includes(mode ?? '') &&
     words.length === 8 &&
     words[6] === '--checkpoint' &&
     /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u.test(words[7] ?? '')
   )
-    return mode;
+    return mode as 'continue' | 'verify';
   if (mode === 'review' && words.length >= 8 && words.length % 2 === 0) {
     for (let index = 6; index < words.length; index += 2) {
       const path = words[index + 1] ?? '';
@@ -856,7 +856,7 @@ const getRepairGitMode = (
 /** Identifies the exact installed repair helper without retaining its arguments. */
 export const identifyMoldeaRepairGitMode = (
   command: unknown,
-): 'checkpoint' | 'continue' | 'review' | null => {
+): 'checkpoint' | 'continue' | 'review' | 'verify' | null => {
   const words = getStandaloneCommandWords(command);
   return words === null ? null : getRepairGitMode(words);
 };
@@ -1173,7 +1173,10 @@ const isSafeSedInspectionCommand = (words: readonly string[]): boolean => {
 
 /** Checks that Git resolves only through the evaluator's trusted executable search path. */
 const isTrustedGitExecutable = (word: string | undefined): boolean =>
-  word !== undefined && ['git', '/home/evaluator/bin/git'].includes(word);
+  word !== undefined &&
+  ['git', '/home/evaluator/bin/git', '/usr/bin/git', '/bin/git', '/usr/lib/git-core/git'].includes(
+    word,
+  );
 
 /** Classifies whether one static command can use a network boundary. */
 const classifyNetworkCommand = (
@@ -1332,6 +1335,19 @@ const getRejectedRepairGitReason = (words: readonly string[]): IRepairGitReasonC
       return 'git-other';
   }
 };
+
+/** Classifies actual wrapper arguments without reconstructing shell text. */
+export const projectRepairGitArgumentsEvidence = (
+  arguments_: readonly string[],
+): IRepairGitCommandEvidence =>
+  isApprovedRepairGitArguments(arguments_)
+    ? { compliantCount: 1, noncompliantCount: 0, unverifiedCount: 0, reasons: [] }
+    : {
+        compliantCount: 0,
+        noncompliantCount: 1,
+        unverifiedCount: 0,
+        reasons: [{ code: getRejectedRepairGitReason(['git', ...arguments_]), count: 1 }],
+      };
 
 /** Projects repair Git compliance without preserving command text or trusting opaque execution. */
 export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCommandEvidence => {

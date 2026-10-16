@@ -46,6 +46,10 @@ const emptyCommandPolicy: ICodexEvaluationCommandPolicyEvidence = {
 const temporaryRoots: string[] = [];
 
 const createRecordedTrial = (passed: boolean): ISemanticRecordedTrial => ({
+  gitInvocationEvidence: {
+    invocationCount: 0,
+    repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+  },
   actorExecutionEvidence: [],
   actorResponse: 'Recorded actor response.',
   developerDirection: 'Inspect the recorded repository.',
@@ -130,7 +134,7 @@ const storeRun = async (
         trials,
       },
     ],
-    schemaVersion: 11,
+    schemaVersion: 12,
   };
   const evidenceSha256 = createHash('sha256')
     .update(`${JSON.stringify(evidenceRecord)}\n`)
@@ -373,6 +377,10 @@ const createIdentities = (definition: ISemanticCase, recorded: ISemanticRecorded
     judgeCommand: ['synthetic-host'],
     judgeHost: recorded.trial.judgeHost,
     judgePrompt: buildSemanticJudgePrompt({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicyEvidence: recorded.trial.actorCommandPolicyEvidence,
       actorExecutionEvidence: recorded.actorExecutionEvidence,
       actorResourceEvidence: recorded.trial.actorResourceEvidence,

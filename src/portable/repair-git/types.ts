@@ -1,5 +1,5 @@
 // the helper exposes only evidence collection and review of task-owned paths
-export type IRepairGitMode = 'checkpoint' | 'continue' | 'review';
+export type IRepairGitMode = 'checkpoint' | 'continue' | 'review' | 'verify';
 
 export type IRepairGitOptions = {
   repositoryRoot: string;

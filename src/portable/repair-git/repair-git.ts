@@ -262,10 +262,13 @@ export const collectRepairGitEvidence = async (
       throw new Error('The repository root is excluded from inspection.');
     if (!(await lstat(repositoryRoot)).isDirectory())
       throw new Error('A repository directory is required.');
-    if (options.mode === 'continue' && !OBJECT_ID_PATTERN.test(options.checkpoint ?? '')) {
+    if (
+      ['continue', 'verify'].includes(options.mode) &&
+      !OBJECT_ID_PATTERN.test(options.checkpoint ?? '')
+    ) {
       throw new Error('Continuation requires the supplied full checkpoint object ID.');
     }
-    if (!['checkpoint', 'continue', 'review'].includes(options.mode))
+    if (!['checkpoint', 'continue', 'review', 'verify'].includes(options.mode))
       throw new Error('Unsupported repair Git operation.');
     const paths = (options.paths ?? []).map(validatePath);
     if ((options.mode === 'review') !== paths.length > 0)
@@ -295,6 +298,25 @@ export const collectRepairGitEvidence = async (
     reasonCode = 'attribute-safety';
     await assertAttributeSafety(repositoryRoot);
     reasonCode = 'git-read';
+    if (options.mode === 'verify' || options.mode === 'continue') {
+      if (
+        readGit(repositoryRoot, ['cat-file', '-t', options.checkpoint!]).toString('utf8').trim() !==
+        'commit'
+      )
+        throw new Error('The supplied checkpoint does not name a commit object.');
+      if (options.mode === 'verify')
+        return {
+          kind: 'moldea-repair-git',
+          mode: 'verify',
+          status: 'available',
+          commit: options.checkpoint!,
+          uncommittedPaths: [],
+          changedPaths: [],
+          manifestDiff: '',
+          uncommittedManifestDiff: '',
+          writtenDiff: '',
+        };
+    }
     const status = readStatus(
       readGit(repositoryRoot, [
         'status',

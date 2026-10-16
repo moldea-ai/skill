@@ -198,6 +198,10 @@ test.each([
   );
   assert.ok(declaration, 'The judge must receive the existing policy authority.');
   const prompt = buildSemanticJudgePrompt({
+    gitInvocationEvidence: {
+      invocationCount: 0,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+    },
     actorCommandPolicyEvidence: projectCodexEvaluationExecutionEvidence('').commandPolicy,
     actorExecutionEvidence: [],
     actorResourceEvidence: {
@@ -526,6 +530,12 @@ test('canonical review exposes its actual clarification through the permitted re
   const wrapperPath = await prepareGitCommandPolicyBoundary(
     join(repositoryPath, '..', 'review-git'),
     {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(
+        join(repositoryPath, '..', 'review-git'),
+        '..',
+        'git-invocations.jsonl',
+      ),
       trustedReadOnlyWorkspacePaths: ['.agents', 'node_modules'],
     },
   );

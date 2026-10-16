@@ -1386,6 +1386,7 @@ test.each([
   ['git diff HEAD -- private-file', 'git-diff-arguments'],
   ['git config --get private-setting', 'git-other'],
   ['/tmp/git status', 'untrusted-git'],
+  ['/opt/moldea-real-git/git log -p', 'untrusted-git'],
   ['cat private-file |', 'unparsed-shell'],
   ['node --test src/check.test-integration.js', 'opaque-node'],
   ['sh private-script.sh', 'opaque-shell'],
@@ -1468,7 +1469,6 @@ test.each([
   "node -e \"require('node:child_process').execSync('git status')\"",
   'node --test src/connection.test-integration.js',
   'python3 inspect.py',
-  '/usr/bin/git status --short',
   'git status "$OPTIONS"',
   'find . -exec git status --short ;',
   'sort --compress-program=git README.md',
@@ -1636,6 +1636,10 @@ test('a trusted Git version probe is passive and cannot supply checkpoint eviden
     unverifiedCount: 0,
     reasons: [],
   });
-  assert.equal(projectRepairGitCommandEvidence('/usr/bin/git --version').unverifiedCount, 1);
+  assert.equal(projectRepairGitCommandEvidence('/usr/bin/git --version').unverifiedCount, 0);
   assert.equal(projectRepairGitCommandEvidence('git --version && git log -p').noncompliantCount, 1);
+});
+
+test('the overlaid absolute Git path still reports disallowed argument forms', () => {
+  assert.equal(projectRepairGitCommandEvidence('/usr/bin/git status --short').noncompliantCount, 1);
 });

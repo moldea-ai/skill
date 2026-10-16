@@ -17,6 +17,7 @@ import { join } from 'node:path';
 import { test } from 'vitest';
 import { z } from 'zod';
 
+import { GitInvocationEventSchema } from './git-invocations.ts';
 import { CODEX_EVALUATION_GIT_STATUS_ARGUMENTS } from './git-command-policy-boundary.ts';
 import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
@@ -74,6 +75,13 @@ const prepareEmptyCodexEvaluationHome = async (
     if (originalCodexHome === undefined) delete process.env['CODEX_HOME'];
     else process.env['CODEX_HOME'] = originalCodexHome;
   }
+};
+
+/** Verifies the required capture frame while testing a fake host's own output. */
+const unwrapHostOutput = (output: string): string => {
+  const lines = output.split('\n');
+  GitInvocationEventSchema.parse(JSON.parse(lines.pop() ?? ''));
+  return lines.join('\n');
 };
 
 test('sandbox npm probe is immutable, reports the fixture version, and rejects execution', async () => {
@@ -203,14 +211,16 @@ test('shared host aligns the Git traversal budget with its read-only dependency 
     await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
     assert.equal(
-      await runCodexEvaluationHost({
-        command: HOST_COMMAND,
-        cwd: repositoryPath,
-        includeWorkspaceBinaryDirectory: true,
-        prompt: 'test dependency boundary',
-        role: 'actor',
-        sandboxHome,
-      }),
+      unwrapHostOutput(
+        await runCodexEvaluationHost({
+          command: HOST_COMMAND,
+          cwd: repositoryPath,
+          includeWorkspaceBinaryDirectory: true,
+          prompt: 'test dependency boundary',
+          role: 'actor',
+          sandboxHome,
+        }),
+      ),
       'host success',
     );
   } finally {
@@ -240,26 +250,30 @@ test('shared host preserves the sandbox PATH in Codex shell commands', async () 
     chmodSync(companionPath, 0o755);
     await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
-    const actorOutput = await runCodexEvaluationHost({
-      command: HOST_COMMAND,
-      cwd: repositoryPath,
-      includeWorkspaceBinaryDirectory: true,
-      prompt: 'test actor shell path',
-      role: 'actor',
-      sandboxHome,
-    });
+    const actorOutput = unwrapHostOutput(
+      await runCodexEvaluationHost({
+        command: HOST_COMMAND,
+        cwd: repositoryPath,
+        includeWorkspaceBinaryDirectory: true,
+        prompt: 'test actor shell path',
+        role: 'actor',
+        sandboxHome,
+      }),
+    );
     assert.equal(
       actorOutput,
       'shell_environment_policy.set.PATH="/home/evaluator/bin:/opt:/usr/bin:/bin:/mnt/node_modules/.bin"',
     );
 
-    const judgeOutput = await runCodexEvaluationHost({
-      command: HOST_COMMAND,
-      cwd: repositoryPath,
-      prompt: 'test judge shell path',
-      role: 'judge',
-      sandboxHome,
-    });
+    const judgeOutput = unwrapHostOutput(
+      await runCodexEvaluationHost({
+        command: HOST_COMMAND,
+        cwd: repositoryPath,
+        prompt: 'test judge shell path',
+        role: 'judge',
+        sandboxHome,
+      }),
+    );
     assert.equal(
       judgeOutput,
       'shell_environment_policy.set.PATH="/home/evaluator/bin:/opt:/usr/bin:/bin"',
@@ -311,19 +325,21 @@ test('shared host permits the installed release CLI selected scope inventory', a
     chmodSync(companionPath, 0o755);
     await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     process.env['PATH'] = `${executableDirectory}:${originalPath ?? ''}`;
-    const output = await runCodexEvaluationHost({
-      command: HOST_COMMAND,
-      cwd: repositoryPath,
-      prompt: 'test installed release CLI scope',
-      readOnlyMounts: [
-        {
-          source: join(process.cwd(), 'node_modules'),
-          target: '/dependencies/node_modules',
-        },
-      ],
-      role: 'actor',
-      sandboxHome,
-    });
+    const output = unwrapHostOutput(
+      await runCodexEvaluationHost({
+        command: HOST_COMMAND,
+        cwd: repositoryPath,
+        prompt: 'test installed release CLI scope',
+        readOnlyMounts: [
+          {
+            source: join(process.cwd(), 'node_modules'),
+            target: '/dependencies/node_modules',
+          },
+        ],
+        role: 'actor',
+        sandboxHome,
+      }),
+    );
     const envelope = ScopeEnvelopeSchema.parse(JSON.parse(output) as unknown);
     const installedCliManifest = PackageManifestSchema.parse(
       JSON.parse(
@@ -346,7 +362,7 @@ test('shared host permits the installed release CLI selected scope inventory', a
   }
 });
 
-test('evaluator and system commands precede immutable workspace binaries on sandbox PATH', () => {
+test('evaluator and system commands precede immutable workspace binaries on sandbox PATH', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-path-precedence-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');
   const workspaceBinDirectory = join(repositoryPath, 'node_modules', '.bin');
@@ -368,6 +384,7 @@ test('evaluator and system commands precede immutable workspace binaries on sand
   chmodSync(workspaceSedPath, 0o755);
 
   try {
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     const result = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
@@ -391,7 +408,7 @@ test('evaluator and system commands precede immutable workspace binaries on sand
   }
 });
 
-test('Bubblewrap exposes the Codex code-mode companion beside the host executable', () => {
+test('Bubblewrap exposes the Codex code-mode companion beside the host executable', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-code-mode-host-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');
   const sandboxHome = join(evaluationRoot, 'home');
@@ -400,6 +417,7 @@ test('Bubblewrap exposes the Codex code-mode companion beside the host executabl
   mkdirSync(join(sandboxHome, 'tmp'));
 
   try {
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     const result = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
@@ -418,7 +436,7 @@ test('Bubblewrap exposes the Codex code-mode companion beside the host executabl
   }
 });
 
-test('Bubblewrap exposes the exact host Node runtime through its isolated PATH', () => {
+test('Bubblewrap exposes the exact host Node runtime through its isolated PATH', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-node-runtime-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');
   const sandboxHome = join(evaluationRoot, 'home');
@@ -437,6 +455,7 @@ test('Bubblewrap exposes the exact host Node runtime through its isolated PATH',
   `;
 
   try {
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     const result = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
@@ -484,6 +503,7 @@ test('Bubblewrap cannot observe host state or connect to host localhost', async 
   `;
 
   try {
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     const result = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
@@ -504,7 +524,7 @@ test('Bubblewrap cannot observe host state or connect to host localhost', async 
   }
 });
 
-test('Bubblewrap exposes related repositories without write authority', () => {
+test('Bubblewrap exposes related repositories without write authority', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-related-repository-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');
   const relatedRepositoryPath = join(evaluationRoot, 'related-application');
@@ -527,6 +547,7 @@ test('Bubblewrap exposes related repositories without write authority', () => {
   `;
 
   try {
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     const result = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
@@ -544,7 +565,7 @@ test('Bubblewrap exposes related repositories without write authority', () => {
   }
 });
 
-test('Bubblewrap keeps the workspace writable except for evaluator-owned control paths', () => {
+test('Bubblewrap keeps the workspace writable except for evaluator-owned control paths', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-control-overlay-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');
   const sandboxHome = join(evaluationRoot, 'home');
@@ -566,6 +587,7 @@ test('Bubblewrap keeps the workspace writable except for evaluator-owned control
   `;
 
   try {
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     const result = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
@@ -584,7 +606,7 @@ test('Bubblewrap keeps the workspace writable except for evaluator-owned control
   }
 });
 
-test('Bubblewrap can mount the primary evaluation workspace read-only for judges', () => {
+test('Bubblewrap can mount the primary evaluation workspace read-only for judges', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-read-only-judge-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');
   const sandboxHome = join(evaluationRoot, 'home');
@@ -601,6 +623,7 @@ test('Bubblewrap can mount the primary evaluation workspace read-only for judges
   `;
 
   try {
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
     const result = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
@@ -638,13 +661,15 @@ test('shared host closes its relay after successful and failed executions', asyn
     writeFileSync(codexPath, '#!/bin/sh\nprintf "host success\\n"\n');
     chmodSync(codexPath, 0o755);
     assert.equal(
-      await runCodexEvaluationHost({
-        command: HOST_COMMAND,
-        cwd: repositoryPath,
-        prompt: 'test success',
-        role: 'actor',
-        sandboxHome,
-      }),
+      unwrapHostOutput(
+        await runCodexEvaluationHost({
+          command: HOST_COMMAND,
+          cwd: repositoryPath,
+          prompt: 'test success',
+          role: 'actor',
+          sandboxHome,
+        }),
+      ),
       'host success',
     );
 

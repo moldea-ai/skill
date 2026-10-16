@@ -147,10 +147,21 @@ test('round trips projected Git and print evidence and rejects malformed command
       item: { type: 'agent_message', text: 'Git evidence unavailable.' },
     }),
   ].join('\n');
-  const evidence = parseSemanticEvaluationHostOutput(output, {
-    cliVersion: checkpoint.cli.version,
-    jsonSchemaVersion: checkpoint.cli.jsonSchemaVersion,
-  });
+  const evidence = parseSemanticEvaluationHostOutput(
+    output +
+      '\n' +
+      JSON.stringify({
+        type: 'moldea.git-invocations',
+        evidence: {
+          invocationCount: 0,
+          repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+        },
+      }),
+    {
+      cliVersion: checkpoint.cli.version,
+      jsonSchemaVersion: checkpoint.cli.jsonSchemaVersion,
+    },
+  );
   checkpoint.caseCheckpoints['case-one'] = {
     activeTrial: {
       actorEvidence: {

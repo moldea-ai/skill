@@ -45,6 +45,10 @@ const createTrial = (
   definition: ISemanticCase,
   options: { commandCount?: number; passed: boolean },
 ): ISemanticRecordedTrial => ({
+  gitInvocationEvidence: {
+    invocationCount: 0,
+    repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+  },
   actorExecutionEvidence: [],
   actorResponse: 'Synthetic actor response.',
   developerDirection: definition.input.developerDirection,
@@ -384,6 +388,15 @@ test.each([
     }
     if (label === 'repair-git-compliance') {
       const recorded = source.cases.get(definition.id)!.trials[0]!;
+      recorded.gitInvocationEvidence = {
+        invocationCount: 1,
+        repair: {
+          compliantCount: 0,
+          noncompliantCount: 1,
+          unverifiedCount: 0,
+          reasons: [{ code: 'git-log', count: 1 }],
+        },
+      };
       recorded.trial.actorCommandPolicyEvidence = { ...COMMAND_POLICY, completedCommandCount: 1 };
       recorded.actorExecutionEvidence = [
         {

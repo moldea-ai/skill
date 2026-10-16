@@ -18,6 +18,7 @@ import {
   type ISemanticEvaluationCaseModel,
 } from '../public-evidence/index.ts';
 import { parseSemanticRecordedCases } from './checkpoint.ts';
+import { SEMANTIC_EVIDENCE_SCHEMA_VERSION } from './constants.ts';
 import type { ISemanticRecordedCase, ISemanticRecordedTrial } from './types.ts';
 
 const CaseReviewSchema = z.strictObject({
@@ -81,7 +82,10 @@ export const loadSemanticSourceRun = async (
   }
   const evidencePath = latest.result.evidence.path;
   const evidenceRecord = z
-    .strictObject({ cases: z.unknown(), schemaVersion: z.literal(11) })
+    .strictObject({
+      cases: z.unknown(),
+      schemaVersion: z.literal(SEMANTIC_EVIDENCE_SCHEMA_VERSION),
+    })
     .parse(readArtifact(bundle, evidencePath));
   const evidenceSha256 = createJsonSha256(evidenceRecord);
   if (latest.result.evidence.sha256 !== evidenceSha256) {
@@ -132,6 +136,7 @@ const carryTrial = (options: {
   const computedDimensions = createSemanticResultDimensions({
     actorCommandPolicy: sourceTrial.actorCommandPolicyEvidence,
     actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
+    gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
     actorResourceEvidence: sourceTrial.actorResourceEvidence,
     caseDefinition,
     isMountIntegrityPassing: sourceTrial.dimensions.mountIntegrity,
@@ -148,6 +153,7 @@ const carryTrial = (options: {
           hasPassingCaseRepairGitEvidence({
             actorCommandPolicy: sourceTrial.actorCommandPolicyEvidence,
             actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
+            gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
             caseDefinition,
           }),
       }

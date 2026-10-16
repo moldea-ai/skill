@@ -85,6 +85,8 @@ Bind the smallest coherent repair set before writing. Correct established defect
 
 Run the affected project-native checks after correction, then launcher-backed `validate` as the final moldea command. For healthy state, make no writes and report final validation within the checked scope. For validation failures, follow the entrypoint's supported recovery rule within the remaining budget; never claim a repair verified by validation that preceded its writes. A repeated repair of unchanged healthy state is a no-op.
 
+During repair, never run Git directly; use the bundled repair-Git helper, including `-- verify --checkpoint <full-oid>` when commit verification is needed.
+
 ## Continue an incomplete repair
 
 When a limit is near, stop after a complete owner. Report `N of M owners checked at <commit>; continue from <owner>` with the commit and next owner identity. At that moment, record two lists in the report, not a checkpoint file: every path still uncommitted in the working tree, including this repair's corrections; and every owner whose `moldea/moldea.yaml` entry is uncommitted. Obtain the second list from the helper's bounded `uncommittedManifestDiff` against the captured commit. If that diff cannot establish the entries, state that limitation. A CLI cursor is never a continuation point.

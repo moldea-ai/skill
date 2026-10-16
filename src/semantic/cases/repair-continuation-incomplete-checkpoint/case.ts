@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-continuation-incomplete-checkpoint',
+  publication: 'private',
   setup: createSemanticCaseSetup('repair-continuation-incomplete-checkpoint'),
   scenario: 'A repair continuation has a usable commit but lacks its checkpoint path list.',
   operation: 'repair',

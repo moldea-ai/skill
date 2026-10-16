@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-continuation-partial-coverage',
+  publication: 'private',
   setup: createSemanticCaseSetup('repair-continuation-partial-coverage'),
   scenario:
     'A healthy inventory contains 64 independent focused owners requiring truthful bounded coverage.',

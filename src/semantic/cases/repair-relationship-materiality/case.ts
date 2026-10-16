@@ -1,10 +1,28 @@
+import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+
 import { createSemanticCaseSetup } from '../../workspace/index.ts';
 
 import { defineSemanticCase } from '../define.ts';
+import type { ISemanticCaseSetup } from '../index.ts';
+
+/**
+ * Keeps foundation materiality and navigation healthy outside the intended refund drift.
+ * @returns The base fixture's tools, mounts and post-baseline hook.
+ */
+const prepareMaterialityRepair: ISemanticCaseSetup = async (context) => {
+  const result = await createSemanticCaseSetup('repair-relationship-materiality')(context);
+  await writeFile(
+    join(context.repositoryPath, 'moldea/project.md'),
+    '# Evaluation project\n\nThis synthetic project exercises bounded local moldea validation. Its project-wide state contract is the public `projectState` export in `/src/project-state.js`, whose value is the string `"active"`. See [Refund policy](context/refunds.md) for approval rules and the configured threshold.\n',
+    'utf8',
+  );
+  return result;
+};
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-relationship-materiality',
-  setup: createSemanticCaseSetup('repair-relationship-materiality'),
+  setup: prepareMaterialityRepair,
   scenario:
     'Refund policy and settings are material; navigation and tooling do not govern this owner.',
   operation: 'repair',

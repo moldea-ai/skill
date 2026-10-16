@@ -71,7 +71,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'moldea/SKILL.md#reuse-gate-evidence',
     ],
     rationale:
-      'These cases retain negative controls for unrelated host work; concrete conversational context is assessed separately under bounded relevance.',
+      'Published cases retain negative controls for unadopted handoffs, implementation and planning. Silent abstention on a brief whole-project evaluation is not yet included in passing coverage; its unchanged case and failures remain private. Concrete conversational context is assessed separately under bounded relevance.',
     fixedEvidence: [],
   },
   {

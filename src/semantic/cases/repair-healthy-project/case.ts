@@ -1,10 +1,28 @@
+import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+
 import { createSemanticCaseSetup } from '../../workspace/index.ts';
 
 import { defineSemanticCase } from '../define.ts';
+import type { ISemanticCaseSetup } from '../index.ts';
+
+/**
+ * Grounds the healthy owner's relationship in an actual public export contract.
+ * @returns The base fixture's tools, mounts and post-baseline hook.
+ */
+const prepareHealthyProject: ISemanticCaseSetup = async (context) => {
+  const result = await createSemanticCaseSetup('repair-healthy-project')(context);
+  await writeFile(
+    join(context.repositoryPath, 'moldea/project.md'),
+    '# Evaluation project\n\nThis synthetic project exercises bounded local moldea validation. Its project-wide state contract is the public `projectState` export in `/src/project-state.js`, whose value is the string `"active"`.\n',
+    'utf8',
+  );
+  return result;
+};
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-healthy-project',
-  setup: createSemanticCaseSetup('repair-healthy-project'),
+  setup: prepareHealthyProject,
   scenario:
     'A small adopted project has aligned foundation, implementation, and local tooling when repair is requested.',
   operation: 'repair-healthy-setup',

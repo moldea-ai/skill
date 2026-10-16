@@ -4,7 +4,6 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'maintain-known-context-owners',
-  publication: 'private',
   setup: createSemanticCaseSetup('maintain-known-context-owners'),
   scenario:
     'An adopted invoice service has two known stale context owners and an exact implementation path without declared relationships.',

@@ -166,6 +166,7 @@ test.each([
   'compress-project-context',
   'compress-conflicting-project-context',
   'evaluate-brief-project-request',
+  'repair-relationship-materiality',
 ])('%s starts structurally valid through the installed CLI', async (caseId) => {
   const { repositoryPath } = await materializeCase(caseId, true);
   const envelope = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {

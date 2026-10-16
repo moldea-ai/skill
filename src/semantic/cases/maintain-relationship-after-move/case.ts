@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'maintain-relevant-change',
   input: {
     developerDirection:
-      'Move src/invoice.js to src/invoices/invoice.js, keep the invoice context current, and verify the project. Keep the relationship exact.',
+      'Move src/invoice.js to src/invoices/invoice.js, update any imports, and run the relevant checks.',
     repositoryEvidence: [
       {
         claim: 'The invoice context declares its original implementation path.',

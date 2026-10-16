@@ -168,8 +168,8 @@ test('repair continuations require Git presence only when comparison is needed',
 });
 
 const PRIVATE_CASE_IDS = [
-  'assessed-owner-relationships',
-  'maintain-known-context-owners',
+  'evaluate-brief-project-request',
+  'maintain-feature-relationship-boundary',
   'model-workflow-routing',
   'pnpm-pnp-local-cli-provider',
   'repair-continuation-after-change',

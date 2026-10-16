@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'routing-description-fallback',
+  publication: 'private',
   setup: createSemanticCaseSetup('routing-description-fallback'),
   scenario:
     "An adopted custom-runtime agent has no handoff description because no dedicated routing hint is needed, and its routing-facing metadata consumes a canonical agent description aligned with the agent's responsibility and authorization boundary.",

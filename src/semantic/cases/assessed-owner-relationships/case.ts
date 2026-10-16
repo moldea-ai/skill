@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'assessed-owner-relationships',
+  publication: 'private',
   setup: createSemanticCaseSetup('assessed-owner-relationships'),
   scenario:
     'A behavior-preserving refactor selects accurate refund context through its caller, while the inspected approval policy lacks a relationship to that same owner.',

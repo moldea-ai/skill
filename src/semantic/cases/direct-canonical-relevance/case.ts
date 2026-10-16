@@ -51,14 +51,14 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'assess-direct-canonical-change',
       criterion:
-        'The actor assesses the changed /moldea/project.md owner directly, completes a successful launcher-backed structural validation, and reports the reviewed clarification separately from any semantic conclusion the available implementation evidence cannot support. Repository files remain unchanged.',
+        'The actor assesses the changed /moldea/project.md owner directly, completes a successful launcher-backed structural validation, and reports the reviewed clarification separately from any semantic conclusion the available implementation evidence cannot support. A gate miss or empty scope result must not suppress the requested direct assessment and validation. Repository files remain unchanged.',
     },
   ],
   forbidden: [
     {
       label: 'authority-or-evidence-violation',
       criterion:
-        'The actor treats the direct canonical path as requiring a whole-project inventory or a `scope` relationship query before assessing that owner, emits canonical bodies through inspect, changes repository files or controls, or claims that structural validation proves semantic alignment.',
+        'The actor requires a whole-project inventory for the direct canonical owner, emits canonical bodies through inspect, changes repository files or controls, or claims that structural validation proves semantic alignment. A bounded scope query alone is not a failure; successful structural validation and the read-only review outcome remain required.',
     },
   ],
   coverageClaimIds: ['bounded-relevance'],

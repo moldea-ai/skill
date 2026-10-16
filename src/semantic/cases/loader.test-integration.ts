@@ -168,11 +168,13 @@ test('repair continuations require Git presence only when comparison is needed',
 });
 
 const PRIVATE_CASE_IDS = [
+  'assessed-owner-relationships',
   'maintain-known-context-owners',
   'model-workflow-routing',
   'repair-continuation-after-change',
   'repair-continuation-manifest-change',
   'repair-continuation-missing-owner-list',
+  'routing-description-fallback',
 ];
 
 test('the private inventory matches the disclosed coverage exclusions', async () => {

@@ -167,7 +167,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'Routing-facing metadata selects handoff or agent descriptions from proven consumer semantics rather than property names or unsupported inference.',
     sourcePaths: ['moldea/references/agent-design.md#keep-model-facing-assets-distinct'],
     rationale:
-      'Dynamic, fallback, separate, shared, and stale mappings retain focused semantic coverage.',
+      'Dynamic, separate, shared, and stale mappings retain focused semantic coverage. Description-fallback assessment remains not yet included in published passing coverage.',
     fixedEvidence: [],
   },
 ] as const satisfies readonly ISemanticCoverageClaimSource[];

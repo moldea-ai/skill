@@ -232,6 +232,7 @@ jobs:
         if: ${{ inputs.registry_snapshot != '' }}
         env:
           REGISTRY_SNAPSHOT: ${{ inputs.registry_snapshot }}
+          TESTED_MANAGER: ${{ matrix.manager }}@${{ matrix.version }}
         run: |
           # pnpm and Yarn express the instant as a release age in whole minutes, rounded up
           minutes=$(node -e '
@@ -242,7 +243,10 @@ jobs:
             console.log(Math.ceil((Date.now() - time) / 60_000));
           ')
           {
-            echo "npm_config_before=$REGISTRY_SNAPSHOT"
+            # npm 9.0.0 accepts `before` only as a flag, failing on it from the environment
+            if [ "$TESTED_MANAGER" != 'npm@9.0.0' ]; then
+              echo "npm_config_before=$REGISTRY_SNAPSHOT"
+            fi
             echo "pnpm_config_minimum_release_age=$minutes"
             echo "YARN_NPM_MINIMAL_AGE_GATE=$minutes"
           } >> "$GITHUB_ENV"

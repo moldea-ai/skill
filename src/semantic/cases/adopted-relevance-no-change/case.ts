@@ -1,10 +1,28 @@
+import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+
 import { createSemanticCaseSetup } from '../../workspace/index.ts';
 
 import { defineSemanticCase } from '../define.ts';
+import type { ISemanticCaseSetup } from '../index.ts';
+
+/**
+ * Grounds this refactor's declared relationship without changing shared fixture setup.
+ * @returns The prepared tools, mounts and baseline hooks for this case.
+ */
+const prepareNoChangeRefactor: ISemanticCaseSetup = async (context) => {
+  const result = await createSemanticCaseSetup('adopted-relevance-no-change')(context);
+  await writeFile(
+    join(context.repositoryPath, 'moldea/project.md'),
+    '# Refund identifiers\n\nThe project normalizes refund identifiers by trimming surrounding whitespace with `normalizeRefundId` in `/src/internal-helper.js`. Its export and trimming behavior are established contracts.\n',
+    'utf8',
+  );
+  return result;
+};
 
 export const semanticCase = defineSemanticCase({
   id: 'adopted-relevance-no-change',
-  setup: createSemanticCaseSetup('adopted-relevance-no-change'),
+  setup: prepareNoChangeRefactor,
   scenario:
     'A refactor touches an affected implementation path but preserves every established behavior and contract.',
   operation: 'maintain-relevant-change',

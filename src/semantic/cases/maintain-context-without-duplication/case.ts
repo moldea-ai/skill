@@ -31,7 +31,7 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'docs/operations-policy.md is an existing policy authority stating Support owns escalation and Legal approves retention exceptions. The registered operations context declares this exact implementation relationship. The correction may update that authority and link to it from the registered context instead of duplicating its policy.',
+          'docs/operations-policy.md is the existing declared policy source for the registered operations context. The fixture already states Support escalation ownership and Legal retention-exception approval in both existing files.',
         source: {
           kind: 'workspace-path',
           path: 'docs/operations-policy.md',
@@ -65,7 +65,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'avoid-duplicate-current-truth',
       criterion:
-        'The resulting workspace keeps one authoritative statement of those responsibilities. The registered operations context and existing policy document may link to each other in either direction; independently maintained duplicate policy wording or another responsibility owner does not satisfy this criterion.',
+        'The registered operations context remains the sole focused canonical owner, and project.md does not repeat the detailed responsibilities; a navigation link is acceptable but not required. Updating the existing canonical owner and its existing declared policy source consistently is permitted controlled repetition; a link to the corrected source is also acceptable. Similar wording in that existing pair alone does not prove duplication. The actor creates no additional responsibility owner or copy in another canonical asset.',
     },
     {
       label: 'preserve-unrelated-context',
@@ -82,7 +82,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'create-parallel-responsibility-context',
       criterion:
-        'The workspace changes create another context file or independently maintained wording for the same current responsibilities.',
+        'The workspace changes create an additional responsibility-context file or copy the policy into another canonical asset outside its established owner. In-place corrections to the existing operations context and its existing declared policy source do not establish this forbidden behavior.',
     },
     {
       label: 'compress-unrelated-context',

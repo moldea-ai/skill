@@ -19,6 +19,11 @@ concurrency:
 
 env:
   DEVELOPMENT_NODE_VERSION: 24.15.0
+  # `npx skills` resolves its dependencies only from versions published before this reviewed
+  # instant; keep it after the pinned skills release
+  SKILLS_REGISTRY_SNAPSHOT: '2026-10-15T21:50:00.000Z'
+  # retry transient registry resets
+  npm_config_fetch_retries: '5'
 
 jobs:
   changes:
@@ -139,6 +144,7 @@ jobs:
       - name: Install and compare the portable artifact
         env:
           SKILLS_TEST_HOME: ${{ runner.temp }}/skills-home
+          npm_config_before: ${{ env.SKILLS_REGISTRY_SNAPSHOT }}
         run: |
           mkdir -p "$SKILLS_TEST_HOME"
           HOME="$SKILLS_TEST_HOME" XDG_CONFIG_HOME="$SKILLS_TEST_HOME/.config" npx --yes skills@1.5.22 add ./moldea -g -a codex -y --copy
@@ -148,6 +154,7 @@ jobs:
         if: github.ref_type == 'tag'
         env:
           SKILLS_TEST_HOME: ${{ runner.temp }}/tagged-skills-home
+          npm_config_before: ${{ env.SKILLS_REGISTRY_SNAPSHOT }}
         run: |
           mkdir -p "$SKILLS_TEST_HOME"
           HOME="$SKILLS_TEST_HOME" XDG_CONFIG_HOME="$SKILLS_TEST_HOME/.config" npx --yes skills@1.5.22 add "https://github.com/moldea-ai/skill/tree/${{ github.ref_name }}/moldea" -g -a codex -y --copy
@@ -201,6 +208,7 @@ jobs:
         shell: pwsh
         env:
           SOURCE_REPOSITORY: ${{ github.workspace }}
+          npm_config_before: ${{ env.SKILLS_REGISTRY_SNAPSHOT }}
         run: |
           $deepRoot = Join-Path $env:RUNNER_TEMP 'users\windows-developer\appdata\local\temp\skills-portability-clone'
           $clonePath = Join-Path $deepRoot 'skill'

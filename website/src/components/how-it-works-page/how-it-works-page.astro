@@ -702,7 +702,10 @@ const connectionItems = [
           <p class="mt-5 text-lg leading-7 font-semibold">
             “Same-day bookings require staff approval.”
           </p>
-          <dl class="mt-5 grid gap-3 border-t border-border pt-4 text-sm">
+          {/* the details divider cancels the card's p-5 sm:p-6 so it reaches the card edges */}
+          <dl
+            class="-mx-5 mt-5 grid gap-3 border-t border-border px-5 pt-4 text-sm sm:-mx-6 sm:px-6"
+          >
             <div class="flex items-center justify-between gap-4">
               <dt class="text-muted-foreground">Owner</dt>
               <dd class="font-semibold">Scheduling service</dd>

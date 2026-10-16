@@ -1,9 +1,9 @@
 ---
 import { Check, FileCode, FileText, Link2, UserRound } from '@lucide/astro';
 import CodeDiff from '@moldea.ai/website-ui/code-diff';
+import { formatRepositoryPath } from '@moldea.ai/website-ui/code-presentation';
 import ConnectionLabel from '@moldea.ai/website-ui/connection-label';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
-import IconTile from '@moldea.ai/website-ui/icon-tile';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import { LANDING_EXAMPLE, LANDING_EXAMPLE_PREVIEW } from '../../lib/landing-example/index.ts';
@@ -99,18 +99,16 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
               data-behavior-alignment-flow
             >
               <section
-                class="flex min-w-0 flex-col sm:rounded-xl sm:border sm:border-border sm:bg-background sm:p-5"
+                class="example-card flex flex-col"
                 aria-labelledby="application-behavior-title"
               >
-                <div class="mb-5 flex items-center gap-3">
-                  <IconTile>
-                    <FileCode />
-                  </IconTile>
-                  <div>
+                <div class="example-card-header">
+                  <FileCode aria-hidden="true" />
+                  <div class="min-w-0">
                     <p class="eyebrow">Application behavior</p>
                     <h3
                       id="application-behavior-title"
-                      class="mt-1 text-xl font-semibold"
+                      class="example-card-title mt-1"
                     >
                       Refund window updated
                     </h3>
@@ -123,7 +121,7 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
                         oldValue={LANDING_EXAMPLE_PREVIEW.policyDiff.oldValue}
                         newValue={LANDING_EXAMPLE_PREVIEW.policyDiff.newValue}
                         language="typescript"
-                        ariaLabel={`${LANDING_EXAMPLE_PREVIEW.policyDiff.path} changes`}
+                        ariaLabel={`${formatRepositoryPath(LANDING_EXAMPLE_PREVIEW.policyDiff.path)} changes`}
                         variant="plain"
                       />
                     </div>
@@ -134,14 +132,14 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
                         oldValue={LANDING_EXAMPLE_PREVIEW.testDiff.oldValue}
                         newValue={LANDING_EXAMPLE_PREVIEW.testDiff.newValue}
                         language="typescript"
-                        ariaLabel={`${LANDING_EXAMPLE_PREVIEW.testDiff.path} changes`}
+                        ariaLabel={`${formatRepositoryPath(LANDING_EXAMPLE_PREVIEW.testDiff.path)} changes`}
                         variant="plain"
                       />
                     </div>
                   </FilePreview>
                 </div>
                 <p
-                  class="mt-4 flex items-start gap-2 text-sm leading-6 font-semibold"
+                  class="example-card-footer flex items-start gap-2 text-sm leading-6 font-semibold"
                   data-behavior-boundary-result
                 >
                   <Check
@@ -165,18 +163,16 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
               </div>
 
               <section
-                class="flex min-w-0 flex-col sm:rounded-xl sm:border sm:border-border sm:bg-background sm:p-5"
+                class="example-card flex flex-col"
                 aria-labelledby="agent-behavior-title"
               >
-                <div class="mb-5 flex items-center gap-3">
-                  <IconTile>
-                    <FileText />
-                  </IconTile>
-                  <div>
+                <div class="example-card-header">
+                  <FileText aria-hidden="true" />
+                  <div class="min-w-0">
                     <p class="eyebrow">Agent behavior</p>
                     <h3
                       id="agent-behavior-title"
-                      class="mt-1 text-xl font-semibold"
+                      class="example-card-title mt-1"
                     >
                       Linked guidance updated
                     </h3>
@@ -189,7 +185,7 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
                         oldValue={LANDING_EXAMPLE_PREVIEW.contextDiff.oldValue}
                         newValue={LANDING_EXAMPLE_PREVIEW.contextDiff.newValue}
                         language="markdown"
-                        ariaLabel={`${LANDING_EXAMPLE_PREVIEW.contextDiff.path} changes`}
+                        ariaLabel={`${formatRepositoryPath(LANDING_EXAMPLE_PREVIEW.contextDiff.path)} changes`}
                         variant="plain"
                       />
                     </div>
@@ -200,15 +196,15 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
                         oldValue={LANDING_EXAMPLE_PREVIEW.instructionDiff.oldValue}
                         newValue={LANDING_EXAMPLE_PREVIEW.instructionDiff.newValue}
                         language="markdown"
-                        ariaLabel={`${LANDING_EXAMPLE_PREVIEW.instructionDiff.path} changes`}
+                        ariaLabel={`${formatRepositoryPath(LANDING_EXAMPLE_PREVIEW.instructionDiff.path)} changes`}
                         variant="plain"
                       />
                     </div>
                   </FilePreview>
                 </div>
-                <p class="mt-4 flex items-center gap-2 text-sm font-semibold">
+                <p class="example-card-footer flex items-center gap-2 text-sm font-semibold">
                   <Check
-                    class="size-4 text-emerald-700 dark:text-emerald-300"
+                    class="size-4 shrink-0 text-emerald-700 dark:text-emerald-300"
                     aria-hidden="true"
                   />
                   Both linked files reviewed with the application change

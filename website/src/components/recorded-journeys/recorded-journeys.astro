@@ -84,10 +84,11 @@ const replyHtml = result
                   ? '[&>:first-child]:line-clamp-1 [&>:not(:first-child)]:hidden'
                   : 'line-clamp-8',
               ]}
+              data-code-copy="false"
               set:html={replyHtml!}
             />
             {files.length > 0 && (
-              <div class={isCompact ? 'mt-2' : 'mt-4 border-t border-border pt-3'}>
+              <div class={isCompact ? 'mt-2' : 'conversation-message-footer'}>
                 <RecordedFileTree
                   changes={files}
                   label="Recorded journey file changes"

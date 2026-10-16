@@ -53,10 +53,11 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
           />
           <div
             class="markdown-content line-clamp-4 min-w-0 text-sm leading-7 break-words"
+            data-code-copy="false"
             set:html={replyHtml}
           />
           {workspace !== null && workspace.paths.length > 0 && (
-            <div class="mt-4 border-t border-border pt-4">
+            <div class="conversation-message-footer">
               <p class="mb-2 text-xs font-semibold text-muted-foreground">File changes</p>
               <RecordedFileTree
                 changes={workspace.paths}

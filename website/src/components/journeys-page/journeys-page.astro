@@ -337,7 +337,8 @@ const breadcrumbs = [
                         </article>
                       ))}
                     </div>
-                    <details class="mt-6 border-t border-border pt-4 text-sm">
+                    {/* the provenance divider cancels the accordion panel's px-3 sm:px-5 */}
+                    <details class="-mx-3 mt-6 border-t border-border px-3 pt-4 text-sm sm:-mx-5 sm:px-5">
                       <>
                         <summary class="cursor-pointer font-medium">
                           Assessor identity and source hashes

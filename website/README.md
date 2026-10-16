@@ -14,7 +14,7 @@ Generation is fail-closed. Missing selections, malformed bundles, wrong digests,
 
 Public semantic replay is bounded and privacy-safe. It may contain developer direction, actor response, deterministic facts, the maximum output byte count from one completed command, aggregate byte counts, token usage, durations, judge rationale, and verdicts. It never includes raw command text, raw command output, hidden reasoning, credentials, or arbitrary workspace contents.
 
-The shared layout adds copy controls to useful code blocks after each direct load or client navigation. Illustrative and incomplete excerpts opt out at their owning component, remain selectable, and reserve no toolbar space. Clipboard failures keep the source readable and explain how to copy it manually.
+The shared layout adds copy controls to useful code blocks after each direct load or client navigation. Illustrative and incomplete excerpts, and recorded agent output, opt out at their owning component, remain selectable, and reserve no toolbar space. Clipboard failures keep the source readable and explain how to copy it manually.
 
 Secondary navigation uses Website UI's ghost `ActionLink`: transparent in light mode, with the existing outline border and translucent surface in dark mode. `src/lib/site` owns the reused dark-theme classes. Primary calls to action, inverted links on dark emphasis sections, and button controls retain their existing variants.
 

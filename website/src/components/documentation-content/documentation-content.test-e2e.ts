@@ -36,7 +36,7 @@ test('renders authored turns in order while preserving document navigation and t
     ),
   ).toStrictEqual(['user', 'assistant', 'assistant', 'user', 'assistant', 'assistant']);
   await expect(messages.nth(3).locator('code')).toHaveText('product-brief.md');
-  await expect(messages.nth(5).getByRole('list')).toContainText('Review the project foundation.');
+  await expect(messages.nth(5).getByRole('list')).toContainText('product-brief.md');
   await expect(
     page.getByRole('heading', { name: 'Some context, but a material gap', exact: true }),
   ).toHaveAttribute('id', 'some-context-but-a-material-gap');

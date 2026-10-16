@@ -52,7 +52,12 @@ The developer request establishes how the brief should inform the work; the file
 >
 > I created the minimum canonical foundation, owned README awareness block and permitted routing integration. Final structural validation passed with no errors or warnings.
 >
-> Inventory: `README.md` and `product-brief.md`; no agents, inline model workflows, separate architecture/policy documents, active decision records or project-owned Agent Skills were found. No agent was created.
+> Inventory:
+>
+> - `README.md`
+> - `product-brief.md`
+>
+> No agents, inline model workflows, separate architecture/policy documents, active decision records or project-owned Agent Skills were found. No agent was created.
 >
 > Next: Continue normal development.
 

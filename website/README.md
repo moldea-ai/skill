@@ -22,6 +22,8 @@ The homepage hero uses Website UI's `py-14 sm:py-18 lg:py-20` insets, matching t
 
 Homepages follow the [shared homepage alignment rules](../../platform/DESIGN.md#layout): side-by-side content columns normally align at their vertical centers. Substantially taller desktop examples align at the top and preserve complete readable rules. Split section headers align at the bottom on desktop; icons, controls, and diagram connectors remain centered. Hero copy includes its badges and actions in the centered block. The rule applies at each composition's column breakpoint; stacked mobile content retains its natural height.
 
+Leading icons follow the [shared leading-icon rules](../../platform/DESIGN.md#leading-icons): icons that introduce text use the website-ui `IconTile` in their own column, and text never wraps under them. Code values such as IDs, digests and paths use the website-ui `CodeText` instead of `break-all`.
+
 Website UI owns the source overflow policy across code blocks, Markdown fences, diffs, and recorded tool dialogs. Markdown and plain text wrap; code, YAML, JSON, and unlabelled source preserve their lines with horizontal scrolling. Mixed recorded patches choose the default per file. Consumers can select `overflow="wrap"` or `"scroll"` on `CodeBlock` and `CodeDiff`, or `codeOverflow` on Markdown renderers, without local wrapping styles. Unified diff gutters follow the displayed line-number width, and changed backgrounds reach the file surface edges.
 
 ## Project runs

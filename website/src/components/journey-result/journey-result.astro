@@ -1,5 +1,7 @@
 ---
 import CodeDiff from '@moldea.ai/website-ui/code-diff';
+import CodeText from '@moldea.ai/website-ui/code-text';
+import IconTile from '@moldea.ai/website-ui/icon-tile';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
 import { withBase } from '@moldea.ai/website-ui/site';
 import { ChevronDown, CircleCheck, CircleMinus, CircleX } from '@lucide/astro';
@@ -16,10 +18,10 @@ interface Props {
 }
 const { result, id } = Astro.props;
 const checkPresentation = {
-  passed: { icon: CircleCheck, label: 'Passed', class: 'text-success' },
-  failed: { icon: CircleX, label: 'Failed', class: 'text-destructive' },
-  blocked: { icon: CircleMinus, label: 'Blocked', class: 'text-muted-foreground' },
-};
+  passed: { icon: CircleCheck, label: 'Passed', class: 'text-success', tone: 'success' },
+  failed: { icon: CircleX, label: 'Failed', class: 'text-destructive', tone: 'danger' },
+  blocked: { icon: CircleMinus, label: 'Blocked', class: 'text-muted-foreground', tone: 'neutral' },
+} as const;
 const basePath = import.meta.env.BASE_URL;
 const replyHtml = await renderMarkdownFragment(result.reply, { basePath, localLinks: 'unwrap' });
 const passed = result.checks.filter((check) => check.status === 'passed').length;
@@ -100,17 +102,19 @@ const summary =
     >
       {
         result.checks.map((check) => {
-          const { icon: Icon, label, class: iconClass } = checkPresentation[check.status];
+          const { icon: Icon, label, class: iconClass, tone } = checkPresentation[check.status];
           return (
             <li
               class="flex items-start gap-3 py-4 text-sm leading-6"
               data-journey-check={check.status}
             >
-              <Icon
-                class:list={['mt-0.5 size-5 shrink-0', iconClass]}
-                aria-hidden="true"
-              />
-              <div class="min-w-0 flex-1">
+              <IconTile
+                size="sm"
+                tone={tone}
+              >
+                <Icon />
+              </IconTile>
+              <div class="min-w-0 flex-1 pt-1">
                 <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <p class="min-w-0 font-medium break-words">{describeJourneyCheck(check.check)}</p>
                   <span class:list={['text-xs font-semibold', iconClass]}>{label}</span>
@@ -162,13 +166,17 @@ const summary =
             <div>
               <>
                 <dt class="inline font-medium">Captured: </dt>
-                <dd class="inline break-all">{result.facts.recordedAt}</dd>
+                <dd class="inline">
+                  <CodeText value={result.facts.recordedAt} />
+                </dd>
               </>
             </div>
             <div>
               <>
                 <dt class="inline font-medium">Request issued: </dt>
-                <dd class="inline break-all">{result.facts.issuedAt}</dd>
+                <dd class="inline">
+                  <CodeText value={result.facts.issuedAt} />
+                </dd>
               </>
             </div>
             <div>

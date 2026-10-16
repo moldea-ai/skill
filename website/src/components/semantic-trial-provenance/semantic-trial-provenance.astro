@@ -1,4 +1,6 @@
 ---
+import CodeText from '@moldea.ai/website-ui/code-text';
+
 import type { ISemanticAttemptTrialModel } from '../../lib/semantic-evaluation/index.ts';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
 
@@ -33,18 +35,22 @@ const { scenarioId, trials } = Astro.props;
             </span>
           </div>
           <p class="mt-3 text-sm leading-6 text-muted-foreground">{trial.rationale}</p>
-          <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+          <dl class="mt-4 grid gap-3 text-sm *:min-w-0 sm:grid-cols-2">
             <div>
               <dt class="text-muted-foreground">Actor host</dt>
-              <dd class="mt-1 font-mono text-xs break-all">{trial.actorHost.version}</dd>
+              <dd class="mt-1 text-xs">
+                <CodeText value={trial.actorHost.version} />
+              </dd>
             </div>
             <div>
               <dt class="text-muted-foreground">Judge host</dt>
-              <dd class="mt-1 font-mono text-xs break-all">{trial.judgeHost.version}</dd>
+              <dd class="mt-1 text-xs">
+                <CodeText value={trial.judgeHost.version} />
+              </dd>
             </div>
             <div>
               <dt class="text-muted-foreground">Execution origin</dt>
-              <dd class="mt-1 font-mono text-xs break-all">
+              <dd class="mt-1">
                 {trial.executionOrigin === 'carried'
                   ? 'Carried from an earlier attempt'
                   : trial.executionOrigin === 'reused'
@@ -55,9 +61,13 @@ const { scenarioId, trials } = Astro.props;
             {trial.carriedFrom !== undefined && (
               <div class="sm:col-span-2">
                 <dt class="text-muted-foreground">Earlier evidence</dt>
-                <dd class="mt-1 grid gap-1 font-mono text-xs break-all">
-                  <span>Attempt: {trial.carriedFrom.attemptId}</span>
-                  <span>Evidence: {trial.carriedFrom.evidenceSha256}</span>
+                <dd class="mt-1 grid gap-1 text-xs *:min-w-0">
+                  <span>
+                    Attempt: <CodeText value={trial.carriedFrom.attemptId} />
+                  </span>
+                  <span>
+                    Evidence: <CodeText value={trial.carriedFrom.evidenceSha256} />
+                  </span>
                   {trial.carriedFrom.reassessment !== null && (
                     <span>Reviewed assessment: {trial.carriedFrom.reassessment}</span>
                   )}
@@ -67,29 +77,33 @@ const { scenarioId, trials } = Astro.props;
             {trial.stageReuse !== null && (
               <div class="sm:col-span-2">
                 <dt class="text-muted-foreground">Reuse source</dt>
-                <dd class="mt-1 grid gap-1 font-mono text-xs break-all">
-                  <span>Attempt: {trial.stageReuse.actor.source.attemptId}</span>
-                  <span>Evidence: {trial.stageReuse.actor.source.evidenceSha256}</span>
-                  <span>Actor identity: {trial.stageReuse.actor.identitySha256}</span>
-                  <span>Judge identity: {trial.stageReuse.judge.identitySha256}</span>
+                <dd class="mt-1 grid gap-1 text-xs *:min-w-0">
+                  <span>
+                    Attempt: <CodeText value={trial.stageReuse.actor.source.attemptId} />
+                  </span>
+                  <span>
+                    Evidence: <CodeText value={trial.stageReuse.actor.source.evidenceSha256} />
+                  </span>
+                  <span>
+                    Actor identity: <CodeText value={trial.stageReuse.actor.identitySha256} />
+                  </span>
+                  <span>
+                    Judge identity: <CodeText value={trial.stageReuse.judge.identitySha256} />
+                  </span>
                 </dd>
               </div>
             )}
             <div>
               <dt class="text-muted-foreground">Actor commands</dt>
-              <dd class="mt-1 font-mono text-xs break-all">
-                {trial.actorCommandPolicyEvidence.completedCommandCount}
-              </dd>
+              <dd class="mt-1">{trial.actorCommandPolicyEvidence.completedCommandCount}</dd>
             </div>
             <div>
               <dt class="text-muted-foreground">Judge commands</dt>
-              <dd class="mt-1 font-mono text-xs break-all">
-                {trial.judgeCommandPolicyEvidence.completedCommandCount}
-              </dd>
+              <dd class="mt-1">{trial.judgeCommandPolicyEvidence.completedCommandCount}</dd>
             </div>
             <div>
               <dt class="text-muted-foreground">Actor tokens</dt>
-              <dd class="mt-1 font-mono text-xs break-all">
+              <dd class="mt-1">
                 {trial.actorUsage === null
                   ? 'Not reported'
                   : `${trial.actorUsage.inputTokens} input, ${trial.actorUsage.cachedInputTokens} cached input, ${trial.actorUsage.outputTokens} output`}
@@ -97,7 +111,7 @@ const { scenarioId, trials } = Astro.props;
             </div>
             <div>
               <dt class="text-muted-foreground">Judge tokens</dt>
-              <dd class="mt-1 font-mono text-xs break-all">
+              <dd class="mt-1">
                 {trial.judgeUsage === null
                   ? 'Not reported'
                   : `${trial.judgeUsage.inputTokens} input, ${trial.judgeUsage.cachedInputTokens} cached input, ${trial.judgeUsage.outputTokens} output`}
@@ -117,9 +131,7 @@ const { scenarioId, trials } = Astro.props;
               <dt class="text-muted-foreground">
                 Largest <code class="inline-code">moldea</code> response
               </dt>
-              <dd class="mt-1 font-mono text-xs break-all">
-                {trial.actorResourceEvidence.maximumInvocationByteCount} bytes
-              </dd>
+              <dd class="mt-1">{trial.actorResourceEvidence.maximumInvocationByteCount} bytes</dd>
             </div>
             <div>
               <dt class="text-muted-foreground">Expected labels observed</dt>
@@ -130,7 +142,10 @@ const { scenarioId, trials } = Astro.props;
                   <ul class="grid gap-1">
                     {trial.observed.map((label) => (
                       <li>
-                        <code class="text-xs break-all">{label}</code>
+                        <CodeText
+                          class="text-xs"
+                          value={label}
+                        />
                       </li>
                     ))}
                   </ul>
@@ -146,7 +161,10 @@ const { scenarioId, trials } = Astro.props;
                   <ul class="grid gap-1">
                     {trial.forbidden.map((label) => (
                       <li>
-                        <code class="text-xs break-all">{label}</code>
+                        <CodeText
+                          class="text-xs"
+                          value={label}
+                        />
                       </li>
                     ))}
                   </ul>

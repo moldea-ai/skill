@@ -2,6 +2,7 @@
 import { ArrowDown, ArrowRight, FolderGit2, ListChecks, MessagesSquare } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import IconTile from '@moldea.ai/website-ui/icon-tile';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import RecordedJourneys from '../recorded-journeys/recorded-journeys.astro';
@@ -73,14 +74,9 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
           href="#decisions"
           class="flex min-w-0 items-start gap-3 rounded-2xl border border-border bg-card p-4 link-feedback sm:gap-4 sm:p-5"
         >
-          <span
-            class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground"
-          >
-            <ListChecks
-              class="size-5"
-              aria-hidden="true"
-            />
-          </span>
+          <IconTile>
+            <ListChecks />
+          </IconTile>
           <span class="min-w-0 flex-1">
             <span class="block text-base font-semibold">Agent decisions</span>
             <span class="mt-1 block text-sm leading-6 text-muted-foreground"
@@ -105,12 +101,9 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
               href="#projects"
               class="flex min-w-0 items-start gap-3 rounded-2xl border border-border bg-card p-4 link-feedback sm:gap-4 sm:p-5"
             >
-              <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
-                <FolderGit2
-                  class="size-5"
-                  aria-hidden="true"
-                />
-              </span>
+              <IconTile>
+                <FolderGit2 />
+              </IconTile>
               <span class="min-w-0 flex-1">
                 <span class="block text-base font-semibold">Coding projects</span>
                 <span class="mt-1 block text-sm leading-6 text-muted-foreground">
@@ -133,12 +126,9 @@ const semanticRoute = withBase(model.semanticEvaluation.route, basePath);
               href="#journeys"
               class="flex min-w-0 items-start gap-3 rounded-2xl border border-border bg-card p-4 link-feedback sm:gap-4 sm:p-5"
             >
-              <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
-                <MessagesSquare
-                  class="size-5"
-                  aria-hidden="true"
-                />
-              </span>
+              <IconTile>
+                <MessagesSquare />
+              </IconTile>
               <span class="min-w-0 flex-1">
                 <span class="block text-base font-semibold">Scripted journeys</span>
                 <span class="mt-1 block text-sm leading-6 text-muted-foreground">

@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Search,
 } from '@lucide/astro';
+import IconTile from '@moldea.ai/website-ui/icon-tile';
 
 const agentStrengths = [
   { icon: Search, title: 'Reads the repository' },
@@ -71,14 +72,9 @@ const durableOutcomes = [
         class="dark-surface-selection flex min-w-0 flex-col bg-primary p-5 text-primary-foreground sm:p-7"
       >
         <div class="flex items-center gap-3">
-          <span
-            class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/10"
-          >
-            <Bot
-              class="size-5"
-              aria-hidden="true"
-            />
-          </span>
+          <IconTile>
+            <Bot />
+          </IconTile>
           <div>
             <p class="text-xs font-semibold tracking-[0.12em] text-primary-foreground/60 uppercase">
               What coding agents already do
@@ -94,12 +90,9 @@ const durableOutcomes = [
           {
             agentStrengths.map(({ icon: StrengthIcon, title }) => (
               <li class="flex items-center gap-3 border-b border-primary-foreground/15 py-4 last:border-b-0">
-                <span class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/10">
-                  <StrengthIcon
-                    class="size-4"
-                    aria-hidden="true"
-                  />
-                </span>
+                <IconTile size="sm">
+                  <StrengthIcon />
+                </IconTile>
                 <span class="text-sm font-semibold">{title}</span>
               </li>
             ))
@@ -132,13 +125,10 @@ const durableOutcomes = [
         >
           {
             durableOutcomes.map(({ description, icon: OutcomeIcon, label, title }) => (
-              <li class="grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 p-5 sm:p-6">
-                <span class="row-span-3 inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-                  <OutcomeIcon
-                    class="size-5"
-                    aria-hidden="true"
-                  />
-                </span>
+              <li class="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] gap-x-4 p-5 sm:p-6">
+                <IconTile class="row-span-3">
+                  <OutcomeIcon />
+                </IconTile>
                 <p class="eyebrow">{label}</p>
                 <h3 class="mt-1 font-semibold">{title}</h3>
                 <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>

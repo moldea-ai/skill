@@ -3,6 +3,7 @@ import { Check, FileCode, FileText, Link2, UserRound } from '@lucide/astro';
 import CodeDiff from '@moldea.ai/website-ui/code-diff';
 import ConnectionLabel from '@moldea.ai/website-ui/connection-label';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
+import IconTile from '@moldea.ai/website-ui/icon-tile';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import { LANDING_EXAMPLE, LANDING_EXAMPLE_PREVIEW } from '../../lib/landing-example/index.ts';
@@ -47,7 +48,7 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
           aria-hidden="true"
         ></span>
         <span
-          class="dark-surface-selection relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+          class="dark-surface-selection relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
           aria-hidden="true"
           data-behavior-user-mark
         >
@@ -71,7 +72,7 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
         data-behavior-agent-response
       >
         <span
-          class="relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary"
+          class="relative z-10 inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary"
         >
           <img
             src={skillMarkPath}
@@ -102,12 +103,9 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
                 aria-labelledby="application-behavior-title"
               >
                 <div class="mb-5 flex items-center gap-3">
-                  <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-                    <FileCode
-                      class="size-5"
-                      aria-hidden="true"
-                    />
-                  </span>
+                  <IconTile>
+                    <FileCode />
+                  </IconTile>
                   <div>
                     <p class="eyebrow">Application behavior</p>
                     <h3
@@ -171,12 +169,9 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
                 aria-labelledby="agent-behavior-title"
               >
                 <div class="mb-5 flex items-center gap-3">
-                  <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
-                    <FileText
-                      class="size-5"
-                      aria-hidden="true"
-                    />
-                  </span>
+                  <IconTile>
+                    <FileText />
+                  </IconTile>
                   <div>
                     <p class="eyebrow">Agent behavior</p>
                     <h3

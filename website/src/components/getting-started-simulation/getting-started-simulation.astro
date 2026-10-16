@@ -2,6 +2,7 @@
 import { ArrowRight, Check, FileText, Link2, ShieldCheck, UserRound } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
+import IconTile from '@moldea.ai/website-ui/icon-tile';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import { LANDING_EXAMPLE } from '../../lib/landing-example/index.ts';
@@ -62,12 +63,12 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
         aria-label="Getting started"
       >
         <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4">
-          <span
-            class="dark-surface-selection inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
-            aria-hidden="true"
+          <IconTile
+            tone="brand"
+            class="dark-surface-selection font-mono font-bold"
           >
             01
-          </span>
+          </IconTile>
           <div class="min-w-0">
             <p class="eyebrow mb-2">Add the skill</p>
             <h3 class="text-xl font-semibold tracking-tight">Install it in this project.</h3>
@@ -91,26 +92,21 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
         </li>
 
         <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4">
-          <span
-            class="dark-surface-selection inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
-            aria-hidden="true"
+          <IconTile
+            tone="brand"
+            class="dark-surface-selection font-mono font-bold"
           >
             02
-          </span>
+          </IconTile>
           <div class="min-w-0">
             <p class="eyebrow mb-2">One-time setup</p>
             <h3 class="text-xl font-semibold tracking-tight">Initialize the project once.</h3>
             <div
               class="mt-4 flex items-start gap-3 rounded-xl border border-border bg-background p-4"
             >
-              <span
-                class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted"
-              >
-                <UserRound
-                  class="size-4"
-                  aria-hidden="true"
-                />
-              </span>
+              <IconTile size="sm">
+                <UserRound />
+              </IconTile>
               <div class="min-w-0">
                 <p class="mb-1 text-xs font-semibold text-muted-foreground">You</p>
                 <p class="text-sm leading-6 font-medium">Initialize moldea</p>
@@ -120,26 +116,21 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
         </li>
 
         <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4">
-          <span
-            class="dark-surface-selection inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
-            aria-hidden="true"
+          <IconTile
+            tone="brand"
+            class="dark-surface-selection font-mono font-bold"
           >
             03
-          </span>
+          </IconTile>
           <div class="min-w-0">
             <p class="eyebrow mb-2">Normal work</p>
             <h3 class="text-xl font-semibold tracking-tight">Describe the outcome naturally.</h3>
             <div
               class="mt-4 flex items-start gap-3 rounded-xl border border-border bg-background p-4"
             >
-              <span
-                class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted"
-              >
-                <UserRound
-                  class="size-4"
-                  aria-hidden="true"
-                />
-              </span>
+              <IconTile size="sm">
+                <UserRound />
+              </IconTile>
               <div class="min-w-0">
                 <p class="mb-1 text-xs font-semibold text-muted-foreground">You</p>
                 <p class="text-sm leading-6 font-medium">{LANDING_EXAMPLE.request}</p>
@@ -154,18 +145,16 @@ const skillMarkPath = withBase('/logo/icon-xs-dark.png', basePath);
         data-getting-started-agent-panel
       >
         <div class="flex items-center gap-3">
-          <span
-            class="inline-flex size-10 items-center justify-center rounded-xl bg-primary-foreground/10"
-          >
+          <IconTile>
             <img
               src={skillMarkPath}
               width="207"
               height="215"
               alt=""
-              class="h-5 w-auto"
+              class="object-contain"
               data-agent-response-mark
             />
-          </span>
+          </IconTile>
           <div>
             <p class="text-xs font-semibold tracking-[0.12em] text-current/60 uppercase">
               Coding agent and skill

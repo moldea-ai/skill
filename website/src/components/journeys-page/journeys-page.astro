@@ -2,6 +2,7 @@
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Accordion from '@moldea.ai/website-ui/accordion';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import CodeText from '@moldea.ai/website-ui/code-text';
 import { ArrowLeft, ArrowRight } from '@lucide/astro';
 import { withBase } from '@moldea.ai/website-ui/site';
 
@@ -236,7 +237,9 @@ const breadcrumbs = [
           }
           {' '}{getJourneyProvenanceSummary(model)}
         </p>
-        <p class="mt-4 font-mono text-xs break-all text-muted-foreground">{model.runId}</p>
+        <p class="mt-4 text-xs text-muted-foreground">
+          <CodeText value={model.runId} />
+        </p>
         <div class="mt-7 space-y-5">
           {
             visibleSources.map((source, index) => {
@@ -339,7 +342,7 @@ const breadcrumbs = [
                         <summary class="cursor-pointer font-medium">
                           Assessor identity and source hashes
                         </summary>
-                        <dl class="mt-4 space-y-3 font-mono text-xs break-all">
+                        <dl class="mt-4 space-y-3 text-xs">
                           {Object.entries({
                             'Skill commit': metadata.skill.commit,
                             'Assessor commit': assessment.assessor.commit,
@@ -349,7 +352,9 @@ const breadcrumbs = [
                           }).map(([label, value]) => (
                             <div>
                               <dt class="text-muted-foreground">{label}</dt>
-                              <dd class="mt-1">{value}</dd>
+                              <dd class="mt-1">
+                                <CodeText value={value} />
+                              </dd>
                             </div>
                           ))}
                         </dl>

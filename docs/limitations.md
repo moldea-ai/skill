@@ -73,3 +73,7 @@ The CLI selects Git paths; a raw filesystem reader can expose ignored files and 
 ## Unbound model workflows
 
 Implicit canonical adoption of an unbound one-shot model workflow is outside the current published semantic coverage. The retained private case includes observed inline-only updates that omitted canonical instruction consumption and validation. Use an explicit moldea request for that adoption; the passing explicit-agent cases do not establish reliable implicit workflow routing.
+
+## Semantic coverage not yet included
+
+The published coverage explicitly lists five retained cases as [not yet included](/docs/semantic-evaluation/#cases-and-coverage). These cover implicit workflow adoption, selective continuation after source or manifest changes, continuation without an uncommitted-owner list, and maintaining known owners with a missing material source relationship. Their core requirements remain intact in private diagnostics, and their failures are retained. Published passing cases do not establish these scenarios or reliable positive repair-Git comparison evidence. Native read history, reloads after compaction and actual reassessment of unchanged owners also require separate evidence.

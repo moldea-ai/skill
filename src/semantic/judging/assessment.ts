@@ -18,6 +18,8 @@ import {
   type IMoldeaResourceEvidence,
   type ISemanticActorExecutionEvidence,
 } from '../execution/index.ts';
+import { serializeSemanticStageValue } from '../stages/index.ts';
+
 import type { ISemanticJudgeAssessment } from './types.ts';
 
 const JudgeAssessmentSchema = z.strictObject({
@@ -84,7 +86,7 @@ export const buildSemanticJudgePrompt = ({
   const skillEvidenceSection =
     caseDefinition.skillEvidence === undefined
       ? ''
-      : `Skill artifact and activation probes:\n${JSON.stringify(caseDefinition.skillEvidence)}\n\n`;
+      : `Skill artifact and activation probes:\n${serializeSemanticStageValue(caseDefinition.skillEvidence)}\n\n`;
 
   return `Assess whether an Agent Skills host handled the scenario correctly.
 
@@ -105,34 +107,34 @@ Evaluator operation:
 ${caseDefinition.operation}
 
 ${skillEvidenceSection}Expected behavior criteria:
-${JSON.stringify(caseDefinition.expected)}
+${serializeSemanticStageValue(caseDefinition.expected)}
 
 Forbidden behavior criteria:
-${JSON.stringify(caseDefinition.forbidden)}
+${serializeSemanticStageValue(caseDefinition.forbidden)}
 
 Actor response:
 ${actorResponse}
 
 Workspace changes:
-${JSON.stringify(workspaceChanges)}
+${serializeSemanticStageValue(workspaceChanges)}
 
 Runner-owned actor execution evidence:
-${JSON.stringify(actorExecutionEvidence)}
+${serializeSemanticStageValue(actorExecutionEvidence)}
 
 Runner-owned actor command-policy evidence:
-${JSON.stringify(actorCommandPolicyEvidence)}
+${serializeSemanticStageValue(actorCommandPolicyEvidence)}
 
 Runner-owned Git-control snapshot comparison:
-${JSON.stringify({ unchanged: isRepositoryControlPassing })}
+${serializeSemanticStageValue({ unchanged: isRepositoryControlPassing })}
 
 Runner-owned managed-block handoff comparison:
-${JSON.stringify({ matchesSuccessfulPrint: hasVerifiedManagedAgentsHandoff(actorExecutionEvidence, actorResponse) })}
+${serializeSemanticStageValue({ matchesSuccessfulPrint: hasVerifiedManagedAgentsHandoff(actorExecutionEvidence, actorResponse) })}
 
 Runner-owned moldea resource evidence:
-${JSON.stringify(actorResourceEvidence)}
+${serializeSemanticStageValue(actorResourceEvidence)}
 
 Runner-owned repository evidence:
-${JSON.stringify(repositoryEvidence)}`;
+${serializeSemanticStageValue(repositoryEvidence)}`;
 };
 
 const parseJudgeObject = (output: string): z.infer<typeof JudgeAssessmentSchema> => {

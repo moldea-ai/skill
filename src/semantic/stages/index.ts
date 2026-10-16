@@ -13,6 +13,7 @@ export {
   createSemanticActorStageIdentity,
   createSemanticJudgeStageIdentity,
   createSemanticStageValueDigest,
+  serializeSemanticStageValue,
 } from './identity.ts';
 
 // reuse

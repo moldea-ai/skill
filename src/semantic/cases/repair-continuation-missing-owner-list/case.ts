@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-continuation-missing-owner-list',
+  publication: 'private',
   setup: createSemanticCaseSetup('repair-continuation-missing-owner-list'),
   scenario:
     'A repair continuation lacks owner-entry evidence for its checkpoint-uncommitted manifest.',

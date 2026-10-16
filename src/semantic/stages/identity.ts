@@ -22,11 +22,13 @@ const canonicalizeJson = (input: unknown): unknown => {
   );
 };
 
+/** Serializes JSON-compatible evidence independently of object key insertion order. */
+export const serializeSemanticStageValue = (value: unknown): string =>
+  JSON.stringify(canonicalizeJson(value));
+
 /** Hashes one JSON-compatible value independently of object key insertion order. */
 export const createSemanticStageValueDigest = (value: unknown): string =>
-  createHash('sha256')
-    .update(JSON.stringify(canonicalizeJson(value)))
-    .digest('hex');
+  createHash('sha256').update(serializeSemanticStageValue(value)).digest('hex');
 
 const requireSha256 = (value: unknown, label: string): string => {
   if (typeof value !== 'string' || !SHA256_PATTERN.test(value)) {

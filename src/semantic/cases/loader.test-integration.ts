@@ -167,7 +167,22 @@ test('repair continuations require Git presence only when comparison is needed',
   }
 });
 
-test.each(['repair-continuation-manifest-change', 'model-workflow-routing'])(
+const PRIVATE_CASE_IDS = [
+  'maintain-known-context-owners',
+  'model-workflow-routing',
+  'repair-continuation-after-change',
+  'repair-continuation-manifest-change',
+  'repair-continuation-missing-owner-list',
+];
+
+test('the private inventory matches the disclosed coverage exclusions', async () => {
+  const cases = await loadSemanticCases(import.meta.dirname);
+  expect(
+    cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
+  ).toStrictEqual(PRIVATE_CASE_IDS);
+});
+
+test.each(PRIVATE_CASE_IDS)(
   'private %s remains available for diagnostic selection',
   async (caseId) => {
     const cases = await loadSemanticCases(import.meta.dirname);

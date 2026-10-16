@@ -124,7 +124,7 @@ Scripted journeys cover six journeys and 21 requests in ordinary ChatGPT and Cla
 | `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                                                  |
 | `project-specification`                   | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                                                |
 | `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, quality, and portable/Windows contracts.                                                                                     |
-| `.github/workflows/website-checks.yml`    | Shared read-only website quality, artifact, and two-shard browser verification.                                                                                           |
+| `.github/workflows/website-checks.yml`    | Shared read-only website quality and artifact verification; browser suites run locally.                                                                                   |
 | `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                                            |
 | `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                                   |
 

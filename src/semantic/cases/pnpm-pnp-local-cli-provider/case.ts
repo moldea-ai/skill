@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'pnpm-pnp-local-cli-provider',
+  publication: 'private',
   setup: createSemanticCaseSetup('pnpm-pnp-local-cli-provider'),
   scenario:
     "A repository has adopted moldea, declares pnpm 11.21.0, and uses the Plug'n'Play linker without the node_modules closure required by the repository-bound launcher.",

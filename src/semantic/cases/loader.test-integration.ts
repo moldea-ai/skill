@@ -171,6 +171,7 @@ const PRIVATE_CASE_IDS = [
   'assessed-owner-relationships',
   'maintain-known-context-owners',
   'model-workflow-routing',
+  'pnpm-pnp-local-cli-provider',
   'repair-continuation-after-change',
   'repair-continuation-manifest-change',
   'repair-continuation-missing-owner-list',

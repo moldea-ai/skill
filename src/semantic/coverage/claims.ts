@@ -77,7 +77,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'initialization-and-tooling-safety',
     description:
-      'Explicit initialization onboards existing agents and workflows with permission, in-place document links, resumable progress and final validation; it also handles sparse evidence and partial adoption, while local CLI establishment handles nonstandard layouts and installation safeguards.',
+      'Explicit initialization onboards existing agents and workflows with permission, in-place document links, resumable progress and final validation; it also handles sparse evidence and partial adoption, while local CLI establishment observes installation safeguards.',
     sourcePaths: [
       'moldea/references/continuous-maintenance.md#adoption',
       'moldea/references/continuous-maintenance.md#complete-existing-project-onboarding',
@@ -86,7 +86,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'moldea/references/tooling-installation.md',
     ],
     rationale:
-      'The cases distinguish confirmation, preauthorized and resumed onboarding, unchanged no-agent foundations, evidence blockers, exact local tooling, nonstandard local layouts, and executable package-manager configuration.',
+      'The cases distinguish confirmation, preauthorized and resumed onboarding, unchanged no-agent foundations, evidence blockers, exact local tooling and executable package-manager configuration. PnP-only launcher proof remains not yet included in published passing coverage.',
     fixedEvidence: [],
   },
   {

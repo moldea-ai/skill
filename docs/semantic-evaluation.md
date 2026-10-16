@@ -22,6 +22,7 @@ The following retained cases are **not yet included** in published passing cover
 | ---------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `assessed-owner-relationships`         | Adding a governing source relationship while accurate context prose needs no rewrite      | All three trials omitted the material refund-policy relationship and the validation required for that write. |
 | `model-workflow-routing`                 | Implicit canonical adoption of an unbound model workflow                                  | Observed inline-only changes omitted canonical instruction consumption and validation.      |
+| `pnpm-pnp-local-cli-provider`          | Observable launcher proof in a Plug'n'Play-only repository                                | Three cleanup trials reported an unavailable CLI but recorded no recognized launcher attempt. |
 | `repair-continuation-manifest-change`    | Selective continuation after canonical or manifest changes                                | The retained failure reverted a healthy relationship.                                       |
 | `maintain-known-context-owners`          | Maintenance of known owners with a missing material source relationship                   | Confirmations omitted the exact material invoice-source relationship.                       |
 | `repair-continuation-after-change`       | Selective continuation after source changes with verified repair-Git compliance           | Confirmations retained unknown execution observations; compliance could not be established. |
@@ -29,6 +30,8 @@ The following retained cases are **not yet included** in published passing cover
 | `routing-description-fallback`         | Assessing routing-description content against the agent role and authorization boundary   | Three of four trials confirmed fallback wiring without assessing content alignment.         |
 
 The assessed-owner relationship case remains a private diagnostic. Its exclusion means the published results do not establish reliable relationship completion during a behavior-preserving refactor when the selected context prose is already accurate. Other passing maintenance cases do not fill that gap. The routing fallback case remains private because correct wiring alone does not establish assessment of the description against its canonical role and authorization boundary.
+
+The PnP case failed confirmations in two recordings. Its launcher-attempt requirement remains intact privately; correct unavailable-CLI reports do not establish an invocation the runner could not recognize. The published cases do not establish this specific provider-layout check.
 
 No published continuation case currently establishes the positive `approved-repair-git` comparison requirement. Other maintenance and continuation cases do not fill these specific gaps.
 

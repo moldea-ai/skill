@@ -37,14 +37,14 @@ Relevant informational handoffs, feedback reviews, and read-only planning remain
 
 After initialization, the skill directs the coding agent to select one operation and honor its authority:
 
-| Operation  | Writes | Purpose                                                                                           |
-| ---------- | ------ | ------------------------------------------------------------------------------------------------- |
-| Plan       | No     | Recommend the smallest robust agent-and-software architecture.                                    |
-| Initialize | Yes    | Establish local tooling and the minimum canonical project foundation.                             |
-| Maintain   | Yes    | Keep affected project and agent representations coherent, including explicit context compression. |
-| Evaluate   | No     | Report deterministic and semantic alignment evidence.                                             |
-| Reconcile  | Yes    | Correct confirmed drift with established intent.                                                  |
-| Validate   | No     | Run deterministic structural validation only.                                                     |
+| Operation  | Writes | Purpose                                                                                                                                                 |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plan       | No     | Recommend the smallest robust agent-and-software architecture.                                                                                          |
+| Initialize | Yes    | Establish local tooling and the grounded foundation, then onboard existing agents/workflows with the required registration/application-code permission. |
+| Maintain   | Yes    | Keep affected project and agent representations coherent, including explicit context compression.                                                       |
+| Evaluate   | No     | Report deterministic and semantic alignment evidence.                                                                                                   |
+| Reconcile  | Yes    | Correct confirmed drift with established intent.                                                                                                        |
+| Validate   | No     | Run deterministic structural validation only.                                                                                                           |
 
 ## Focused guidance
 

@@ -30,6 +30,7 @@ export const semanticCase = defineSemanticCase({
     ],
   },
   resourceBudget: {
+    profile: 'largeTraversal',
     activation: 'direct',
     minimumMoldeaCommands: 1,
     maximumMoldeaCommands: 8,
@@ -39,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'minimal-grounded-initialization',
       criterion:
-        'The actor creates the minimum grounded manifest, project document, and managed README block. Runner-owned evidence records a completed repository-local CLI validation, and the actor reports its result accurately.',
+        'The actor creates the minimum grounded manifest, project document, and managed README block. Runner-owned evidence records a completed repository-local CLI validation, and the actor reports its result accurately. This fixture has no agents or model workflows: preserve application code, create no agent/runtime assets, and finish without an agent-inclusion question.',
     },
   ],
   forbidden: [

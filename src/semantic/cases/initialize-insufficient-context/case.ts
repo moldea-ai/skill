@@ -92,6 +92,7 @@ export const semanticCase = defineSemanticCase({
     },
   ],
   resourceBudget: {
+    profile: 'largeTraversal',
     activation: 'blocked',
     minimumMoldeaCommands: 0,
     maximumMoldeaCommands: 1,

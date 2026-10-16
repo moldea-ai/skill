@@ -14,6 +14,7 @@ test('portable generation reproduces every committed runtime', async () => {
 
   assert.equal(result.status, 'current');
   assert.deepEqual(result.artifacts, [
+    'moldea/scripts/initialization-inspection.mjs',
     'moldea/scripts/repair-git.mjs',
     'moldea/scripts/managed-agents.mjs',
     'moldea/scripts/managed-readme.mjs',

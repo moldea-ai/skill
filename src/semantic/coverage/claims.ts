@@ -77,14 +77,16 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
   {
     id: 'initialization-and-tooling-safety',
     description:
-      'Explicit initialization and local CLI establishment handle sparse evidence, partial adoption, safe package-manager boundaries, and nonstandard local layouts.',
+      'Explicit initialization onboards existing agents and workflows with permission, in-place document links, resumable progress and final validation; it also handles sparse evidence and partial adoption, while local CLI establishment handles nonstandard layouts and installation safeguards.',
     sourcePaths: [
       'moldea/references/continuous-maintenance.md#adoption',
+      'moldea/references/continuous-maintenance.md#complete-existing-project-onboarding',
+      'moldea/references/agent-design.md#initialize-existing-responsibilities',
       'moldea/references/local-tooling.md#supported-contract',
       'moldea/references/tooling-installation.md',
     ],
     rationale:
-      'The cases distinguish valid initialization, evidence blockers, exact local tooling, nonstandard local layouts, and executable package-manager configuration.',
+      'The cases distinguish confirmation, preauthorized and resumed onboarding, unchanged no-agent foundations, evidence blockers, exact local tooling, nonstandard local layouts, and executable package-manager configuration.',
     fixedEvidence: [],
   },
   {

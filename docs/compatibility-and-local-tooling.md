@@ -66,7 +66,7 @@ Ordinary work uses 65,536-byte pages and stops when the relevant record or diagn
 
 For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
 
-The following profiles constrain release-assurance trials, not users’ repositories or coding-agent sessions. Semantic stages select one operating profile:
+The following profiles constrain release-assurance trials, not users’ repositories or coding-agent sessions. Semantic stages select one operating profile; explicit initialization and project repair use `largeTraversal`, without raising its existing limits:
 
 | Limit                     | `ordinary` | `largeTraversal` |
 | ------------------------- | ---------: | ---------------: |
@@ -104,6 +104,13 @@ Complete, unchanged instructions may be reused while available. After compaction
 
 The bundled `managed-agents.mjs --repository <absolute-root>` writer derives its installation from the executing repository-contained copy. `--print` renders the exact block without writing. It preserves outside bytes, rejects linked or ambiguous targets, and respects host restrictions on instruction files. README uses its separate informational writer. Ask for `Fix moldea` to repair permitted integration, or explicitly accept the supported warning with your reason. When AGENTS.md is protected, the coding agent hands off the exact block for a separate instruction update.
 
+## Initialization inspection
+
+Initialization uses the bundled read-only `initialization-inspection.mjs --repository <absolute-root>` helper once for a metadata inventory. It identifies the selected distribution as installed, excludes it from project-owned Skill candidates, and leaves other Skill ownership unverified until project evidence establishes it. Document and decision paths are candidates, not proof of current authority or active status; canonical agent directories do not establish registration or the absence of inline workflows.
+
+Adding repeated `--path <known-relative-file>` arguments selects one source packet instead of repeating inventory traversal. A packet accepts eight paths, reads at most 32 KiB from each bounded regular text file and 64 KiB in total, and reports omissions explicitly. Linked, missing, oversized, non-text and packet-limited sources need existing targeted inspection; they are not checked evidence. The helper rejects escaping and excluded paths, `.env`, `.env.*`, `auth.json`, `credentials.json`, and `.pem`/`.key` selections. Callers select project source, never credentials. Discovery never follows directory links, and the helper writes no repository or Git state.
+
+Inventory stops at 16,384 entries or 64 directory levels and retains at most 128 paths per category. Unreadable directories retain partial inventory. Partial results cannot establish complete discovery or absence. JSON output remains bounded to 262,144 bytes; an output overflow or helper error produces no inspection evidence, so use known indexes or bounded targeted tools and report any remaining limit. Reuse unchanged packets; source mode performs no inventory walk and stores no cache or checkpoint. The existing agent-design procedure still owns semantic discovery, runtime interpretation, registration, connection tests and final validation.
 
 ## Repair Git evidence
 

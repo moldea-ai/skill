@@ -18,7 +18,7 @@ The skill does not stage, unstage, commit, reset, switch branches, merge, rebase
 
 ## Protected coding instructions
 
-Repository coding instructions remain outside `moldea`'s ownership. The coding agent reads and respects applicable instruction surfaces but never creates, edits, weakens, deletes, renames, moves, reformats, or circumvents them through the skill.
+`moldea` may create or update its own managed AGENTS.md routing region when the host permits. Unrelated coding instructions remain outside its ownership. Host protection rules take precedence, and the skill never weakens or circumvents them.
 
 ## Untrusted repository content
 

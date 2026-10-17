@@ -53,6 +53,7 @@ const WorkflowSchema = z.object({
             name: z.string().optional(),
             if: z.string().optional(),
             uses: z.string().optional(),
+            with: z.object({ ref: z.string().optional() }).optional(),
             run: z.string().optional(),
             env: z.record(z.string(), z.string()).optional(),
           }),
@@ -70,7 +71,13 @@ const readWorkflow = (name: string) =>
   );
 
 const conformance = readWorkflow('conformance');
-const selectedJobs = ['correctness', 'portable', 'quality', 'windows-portability'];
+const selectedJobs = [
+  'correctness',
+  'portable',
+  'quality',
+  'windows-portability',
+  'macos-portability',
+];
 
 test('conformance selects all maintained lanes together and retains tag identity checks', () => {
   for (const name of selectedJobs) {
@@ -92,14 +99,82 @@ test('conformance selects all maintained lanes together and retains tag identity
   ).toBe("github.ref_type == 'tag'");
 });
 
+test('Windows and macOS run every portable integration file', () => {
+  const windows = conformance.jobs['windows-portability']?.steps?.find(
+    ({ name }) => name === 'Clone under a realistic deep temporary path',
+  );
+  expect(windows?.run).toContain('npm run test:integration -- src/portable');
+  expect(
+    conformance.jobs['macos-portability']?.steps?.find(
+      ({ name }) => name === 'Run portable integration tests',
+    )?.run,
+  ).toBe('npm run test:integration -- src/portable');
+});
+
+test('conformance checks the exact candidate head and Windows deep-clones that same commit', () => {
+  const candidateRef = '${{ github.event.pull_request.head.sha || github.sha }}';
+  for (const name of ['changes', ...selectedJobs]) {
+    const checkout = conformance.jobs[name]?.steps?.find(({ uses }) =>
+      uses?.startsWith('actions/checkout@'),
+    );
+    expect(checkout?.with?.ref).toBe(candidateRef);
+  }
+  const deepClone = conformance.jobs['windows-portability']?.steps?.find(
+    ({ name }) => name === 'Clone under a realistic deep temporary path',
+  );
+  expect(deepClone?.env?.['CANDIDATE_COMMIT']).toBe(candidateRef);
+  expect(deepClone?.run).toContain('checkout --detach $env:CANDIDATE_COMMIT');
+});
+
 // GitHub's Ubuntu run steps use Bash with errexit; Windows does not execute this gate.
 test.runIf(process.platform !== 'win32').each([
-  ['full success', 'success', 'true', 'success', 'success', 'success', 'success', 0],
-  ['presentation-only skips', 'success', 'false', 'skipped', 'skipped', 'skipped', 'skipped', 0],
-  ['failed correctness', 'success', 'true', 'failure', 'success', 'success', 'success', 1],
-  ['cancelled portable', 'success', 'true', 'success', 'cancelled', 'success', 'success', 1],
-  ['failed quality', 'success', 'true', 'success', 'success', 'failure', 'success', 1],
-  ['unexpected Windows skip', 'success', 'true', 'success', 'success', 'success', 'skipped', 1],
+  ['full success', 'success', 'true', 'success', 'success', 'success', 'success', 'success', 0],
+  [
+    'presentation-only skips',
+    'success',
+    'false',
+    'skipped',
+    'skipped',
+    'skipped',
+    'skipped',
+    'skipped',
+    0,
+  ],
+  [
+    'failed correctness',
+    'success',
+    'true',
+    'failure',
+    'success',
+    'success',
+    'success',
+    'success',
+    1,
+  ],
+  [
+    'cancelled portable',
+    'success',
+    'true',
+    'success',
+    'cancelled',
+    'success',
+    'success',
+    'success',
+    1,
+  ],
+  ['failed quality', 'success', 'true', 'success', 'success', 'failure', 'success', 'success', 1],
+  [
+    'unexpected Windows skip',
+    'success',
+    'true',
+    'success',
+    'success',
+    'success',
+    'skipped',
+    'success',
+    1,
+  ],
+  ['failed macOS', 'success', 'true', 'success', 'success', 'success', 'success', 'failure', 1],
   [
     'unexpected presentation execution',
     'success',
@@ -108,14 +183,45 @@ test.runIf(process.platform !== 'win32').each([
     'skipped',
     'skipped',
     'skipped',
+    'skipped',
     1,
   ],
-  ['failed classification', 'failure', 'true', 'success', 'success', 'success', 'success', 1],
-  ['cancelled classification', 'cancelled', 'false', 'skipped', 'skipped', 'skipped', 'skipped', 1],
-  ['missing selection', 'success', '', 'skipped', 'skipped', 'skipped', 'skipped', 1],
+  [
+    'failed classification',
+    'failure',
+    'true',
+    'success',
+    'success',
+    'success',
+    'success',
+    'success',
+    1,
+  ],
+  [
+    'cancelled classification',
+    'cancelled',
+    'false',
+    'skipped',
+    'skipped',
+    'skipped',
+    'skipped',
+    'skipped',
+    1,
+  ],
+  ['missing selection', 'success', '', 'skipped', 'skipped', 'skipped', 'skipped', 'skipped', 1],
 ])(
   'conformance gate: %s',
-  (_scenario, classification, full, correctness, portable, quality, windows, expectedCode) => {
+  (
+    _scenario,
+    classification,
+    full,
+    correctness,
+    portable,
+    quality,
+    windows,
+    macos,
+    expectedCode,
+  ) => {
     const step = conformance.jobs['result']?.steps?.find(
       ({ name }) => name === 'Require every selected check to succeed',
     );
@@ -126,6 +232,7 @@ test.runIf(process.platform !== 'win32').each([
       PORTABLE: '${{ needs.portable.result }}',
       QUALITY: '${{ needs.quality.result }}',
       WINDOWS: '${{ needs.windows-portability.result }}',
+      MACOS: '${{ needs.macos-portability.result }}',
     });
     if (step?.run === undefined) throw new Error('Conformance result gate is missing.');
     const result = spawnSync('bash', ['-e', '-c', step.run], {
@@ -138,6 +245,7 @@ test.runIf(process.platform !== 'win32').each([
         PORTABLE: portable,
         QUALITY: quality,
         WINDOWS: windows,
+        MACOS: macos,
       },
       encoding: 'utf8',
     });

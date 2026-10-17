@@ -130,21 +130,28 @@ test('protects unrelated existing files and rejects repository, relative, public
   expect(await readFile(path)).toStrictEqual(raw);
 });
 
-test.skipIf(process.platform === 'win32')(
-  'rejects linked directories, file links, and nonprivate scratch',
-  async () => {
-    const { repository, scratch, path } = await fixture();
-    await writeFile(path, raw);
-    await symlink(scratch, join(repository, 'linked'));
-    await symlink(path, join(scratch, 'linked.json'));
-    const publicPath = join(roots.at(-1)!, 'public');
-    await mkdir(publicPath, { mode: 0o755 });
-    for (const target of [
-      join(repository, 'linked', 'page.json'),
-      join(scratch, 'linked.json'),
-      join(publicPath, 'page.json'),
-    ]) {
-      await expect(prepareResponseFiles(repository, identity, target)).rejects.toThrow();
-    }
-  },
-);
+test('rejects linked directories and file links', async () => {
+  const { repository, scratch, path } = await fixture();
+  await writeFile(path, raw);
+  await symlink(
+    scratch,
+    join(repository, 'linked'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
+  await symlink(path, join(scratch, 'linked.json'));
+  for (const target of [join(repository, 'linked', 'page.json'), join(scratch, 'linked.json')]) {
+    await expect(prepareResponseFiles(repository, identity, target)).rejects.toThrow();
+  }
+});
+
+// Windows does not enforce POSIX directory mode bits.
+test.skipIf(process.platform === 'win32')('rejects nonprivate POSIX scratch', async () => {
+  const { repository } = await fixture();
+  const publicPath = join(roots.at(-1)!, 'public');
+  await mkdir(publicPath, { mode: 0o755 });
+  const path = join(publicPath, 'page.json');
+  await writeFile(path, raw);
+  await expect(prepareResponseFiles(repository, identity, path)).rejects.toThrow(
+    'private temporary directory',
+  );
+});

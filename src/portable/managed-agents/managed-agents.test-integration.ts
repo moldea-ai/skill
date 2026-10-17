@@ -70,6 +70,41 @@ test('print and write agree and preserve unrelated instruction bytes', async () 
   });
 });
 
+test.each(['append', 'replace'])(
+  'bundled AGENTS writer preserves CRLF and outside bytes during %s and remains unchanged on repeat',
+  async (operation) => {
+    await withInstallation(async (root, run) => {
+      const block = run(['--print']).stdout.replaceAll('\n', '\r\n');
+      const prefix = '\uFEFF# Host rules\r\n';
+      const suffix = '\r\nKeep these rules.\r\n';
+      const target = join(root, 'AGENTS.md');
+      await writeFile(
+        target,
+        operation === 'append'
+          ? prefix
+          : `${prefix}\r\n<!-- moldea:start -->\r\nStale\r\n<!-- moldea:end -->\r\n${suffix}`,
+      );
+      const updated = run();
+      expect({
+        status: updated.status,
+        stdout: updated.stdout,
+        stderr: updated.stderr,
+      }).toStrictEqual({ status: 0, stdout: 'updated\n', stderr: '' });
+      const expected = Buffer.from(
+        prefix + '\r\n' + block + (operation === 'replace' ? suffix : ''),
+      );
+      expect(await readFile(target)).toStrictEqual(expected);
+      const repeated = run();
+      expect({
+        status: repeated.status,
+        stdout: repeated.stdout,
+        stderr: repeated.stderr,
+      }).toStrictEqual({ status: 0, stdout: 'unchanged\n', stderr: '' });
+      expect(await readFile(target)).toStrictEqual(expected);
+    });
+  },
+);
+
 test.each(['link', 'directory', 'ambiguous', 'invalid-utf8', 'oversized'])(
   'unsafe AGENTS target %s refuses writes',
   async (condition) => {

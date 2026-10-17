@@ -261,7 +261,8 @@ test('refuses revision expressions as a checkpoint', async () => {
   }
 });
 
-test.skipIf(process.platform !== 'linux')(
+// this evaluator-wrapper fixture uses a POSIX executable shim and /usr/bin/git
+test.skipIf(process.platform === 'win32')(
   'bundled continuation works through the real evaluator Git boundary',
   async () => {
     const root = repository();
@@ -377,7 +378,8 @@ test('framework and punctuation filenames remain literal in checkpoint and revie
   expect(review.writtenDiff).not.toContain('+wrong');
 });
 
-test.skipIf(process.platform !== 'linux')(
+// this evaluator-wrapper fixture uses a POSIX executable shim and /usr/bin/git
+test.skipIf(process.platform === 'win32')(
   'literal pathspec environment cannot hide indexed attributes from the evaluator boundary',
   async () => {
     const root = repository();
@@ -412,7 +414,8 @@ test.skipIf(process.platform !== 'linux')(
 );
 
 for (const boundary of ['helper', 'wrapper'] as const) {
-  test.skipIf(boundary === 'wrapper' && process.platform !== 'linux')(
+  // helper behavior runs everywhere; evaluator-wrapper fixtures use POSIX executable paths
+  test.skipIf(boundary === 'wrapper' && process.platform === 'win32')(
     `repository core.worktree cannot redirect attribute-checked repair reads through ${boundary}`,
     async () => {
       const root = repository();
@@ -458,7 +461,8 @@ for (const boundary of ['helper', 'wrapper'] as const) {
     },
   );
 
-  test.skipIf(boundary === 'wrapper' && process.platform !== 'linux')(
+  // helper behavior runs everywhere; evaluator-wrapper fixtures use POSIX executable paths
+  test.skipIf(boundary === 'wrapper' && process.platform === 'win32')(
     `stored attribute trees are refused before a clean filter can run through ${boundary}`,
     async () => {
       const root = repository();
@@ -523,7 +527,8 @@ test('untracked nested repositories yield a literal directory path without faili
   ).toMatchObject({ status: 'available', uncommittedPaths: ['nested'] });
 });
 
-test.skipIf(process.platform !== 'linux')(
+// the executable fake-Git shim uses POSIX sh; macOS supports it, Windows does not
+test.skipIf(process.platform === 'win32')(
   'index capture overflow reports unavailable evidence without a worktree read',
   () => {
     const root = repository();

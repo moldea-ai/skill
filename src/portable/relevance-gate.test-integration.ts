@@ -132,6 +132,65 @@ test.each(['argv', 'stdin'])(
   },
 );
 
+test.each(['argv', 'stdin'])(
+  'backslash paths follow the native Windows-root boundary in %s mode',
+  (mode) => {
+    const root = createAdoptedRepository();
+    const paths = [
+      'src\\refund.js',
+      '.\\src\\refund.js',
+      '..\\src\\refund.js',
+      '\\\\server\\share\\src\\refund.js',
+    ];
+    if (process.platform !== 'win32') paths.push('C:\\outside\\src\\refund.js');
+    else {
+      const native = join(root, 'src', 'refund.js');
+      const hit = spawnSync(
+        TEST_NODE_EXECUTABLE,
+        [
+          GATE_PATH,
+          '--repository',
+          root,
+          '--diagnose',
+          ...(mode === 'argv' ? ['--path', native] : []),
+        ],
+        {
+          encoding: 'utf8',
+          ...(mode === 'stdin' ? { input: Buffer.from(`${native}\0`) } : {}),
+          timeout: 5_000,
+        },
+      );
+      assert.ifError(hit.error);
+      assert.deepEqual(
+        { status: hit.status, stdout: hit.stdout, stderr: hit.stderr },
+        { status: 0, stdout: '1\n', stderr: '' },
+      );
+      paths.push(join(`${root}-outside`, 'src', 'refund.js'));
+    }
+    for (const path of paths) {
+      const rejected = spawnSync(
+        TEST_NODE_EXECUTABLE,
+        [
+          GATE_PATH,
+          '--repository',
+          root,
+          '--diagnose',
+          ...(mode === 'argv' ? ['--path', path] : []),
+        ],
+        {
+          encoding: 'utf8',
+          ...(mode === 'stdin' ? { input: Buffer.from(`${path}\0`) } : {}),
+          timeout: 5_000,
+        },
+      );
+      assert.ifError(rejected.error);
+      assert.equal(rejected.status, 1);
+      assert.equal(rejected.stdout, '');
+      assert.match(rejected.stderr, /moldea gate failed/u);
+    }
+  },
+);
+
 test.each(['absent', 'drift', 'markers', 'linked'])(
   'README %s does not control canonical adoption or relationship matching',
   (condition) => {

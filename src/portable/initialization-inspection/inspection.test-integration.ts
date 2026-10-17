@@ -124,9 +124,11 @@ test('bundled inventory includes archive and backup folders but skips Git and de
 
 test.each([
   'src/file.ts:secret',
-  'src/aux.txt',
   'src/file.ts.',
   'src/file.ts ',
+  '.env:stream',
+  'credentials.json.',
+  'auth.json ',
   '../outside.md',
   '/etc/passwd',
   'C:/outside.md',
@@ -148,6 +150,72 @@ test.each([
     'Inspection requires known repository-relative source paths.',
   );
 });
+
+test.each([
+  'missing/aux.txt',
+  'missing/CON.md',
+  'missing/file<.js',
+  'missing/file>.js',
+  'missing/file".js',
+  'missing/file|.js',
+  'missing/file?.js',
+  'missing/file*.js',
+])('accepts known source selection %s through the API and bundled helper', async (path) => {
+  const options = await fixture();
+  const expected = {
+    mode: 'sources',
+    status: 'partial',
+    sources: [{ path, content: null, omission: 'source-unavailable' }],
+  };
+  await expect(
+    collectInitializationInspection({ ...options, paths: [path] }),
+  ).resolves.toMatchObject(expected);
+  const result = spawnSync(node, [script, '--repository', options.repositoryRoot, '--path', path], {
+    encoding: 'utf8',
+    timeout: 30_000,
+  });
+  expect(result.status, result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout)).toMatchObject(expected);
+});
+
+test.skipIf(process.platform === 'win32')(
+  'reads existing reserved and punctuation filenames through the API and bundled helper',
+  async () => {
+    const options = await fixture();
+    const paths = [
+      'src/aux.txt',
+      'src/COM9.md',
+      'src/file<.js',
+      'src/file>.js',
+      'src/file".js',
+      'src/file|.js',
+      'src/file?.js',
+      'src/file*.js',
+    ];
+    for (const path of paths)
+      await writeFile(join(options.repositoryRoot, path), 'Existing source\n');
+    const expected = {
+      mode: 'sources',
+      status: 'complete',
+      sources: paths.map((path) => ({ path, content: 'Existing source\n', omission: null })),
+    };
+    await expect(collectInitializationInspection({ ...options, paths })).resolves.toMatchObject(
+      expected,
+    );
+    const result = spawnSync(
+      node,
+      [
+        script,
+        '--repository',
+        options.repositoryRoot,
+        ...paths.flatMap((path) => ['--path', path]),
+      ],
+      { encoding: 'utf8', timeout: 30_000 },
+    );
+    expect(result.status, result.stderr).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject(expected);
+  },
+);
 
 test('reports missing, oversized, and non-text sources as partial without leaking content', async () => {
   const options = await fixture();

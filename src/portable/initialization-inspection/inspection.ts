@@ -27,8 +27,8 @@ const validateSourcePath = (path: string): string => {
         !part ||
         part === '.' ||
         part === '..' ||
-        /[<>:"|?*]|[. ]$/u.test(part) ||
-        /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu.test(part) ||
+        // reject Windows stream and name aliases that could bypass the secret-file check.
+        /:|[. ]$/u.test(part) ||
         INSPECTION_EXCLUDED_DIRECTORIES.has(part),
     ) ||
     parts.some((part) => /^\.env(?:\.|$)|^(?:auth|credentials)\.json$|\.(?:pem|key)$/iu.test(part))

@@ -25,7 +25,8 @@ var INSPECTION_EXCLUDED_DIRECTORIES = /* @__PURE__ */ new Set([".git", "node_mod
 var validateSourcePath = (path) => {
   const parts = path.split("/");
   if (!path || isAbsolute(path) || /^[a-z]:/iu.test(path) || /[\\\p{Cc}]/u.test(path) || parts.some(
-    (part) => !part || part === "." || part === ".." || /[<>:"|?*]|[. ]$/u.test(part) || /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu.test(part) || INSPECTION_EXCLUDED_DIRECTORIES.has(part)
+    (part) => !part || part === "." || part === ".." || // reject Windows stream and name aliases that could bypass the secret-file check.
+    /:|[. ]$/u.test(part) || INSPECTION_EXCLUDED_DIRECTORIES.has(part)
   ) || parts.some((part) => /^\.env(?:\.|$)|^(?:auth|credentials)\.json$|\.(?:pem|key)$/iu.test(part))) {
     throw new Error("Inspection requires known repository-relative source paths.");
   }

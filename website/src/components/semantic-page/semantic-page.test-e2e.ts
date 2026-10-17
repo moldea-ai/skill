@@ -7,7 +7,10 @@ import type {
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
-import { getSemanticReleaseEvidenceSummary } from '../../lib/release-evidence/index.ts';
+import {
+  getPublicEvidenceHref,
+  getSemanticReleaseEvidenceSummary,
+} from '../../lib/release-evidence/index.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -53,10 +56,13 @@ test('replays semantic release evidence through keyboard-accessible tabs', async
     toPublicPath('/docs/semantic-evaluation/'),
   );
   if (semanticEvaluation.coverageUrl !== null) {
-    await expect(page.getByRole('link', { name: 'Inspect the coverage map' })).toHaveAttribute(
-      'href',
-      toPublicPath(semanticEvaluation.coverageUrl),
-    );
+    const coverageLink = page.getByRole('link', { name: 'Inspect the coverage map' });
+    const href = getPublicEvidenceHref(semanticEvaluation.coverageUrl, basePath);
+    await expect(coverageLink).toHaveAttribute('href', href);
+    expect(href.split('/').some((component) => component.startsWith('.'))).toBe(false);
+    const response = await page.request.get(href);
+    expect(response.ok()).toBe(true);
+    expect(response.headers()['content-type']).toContain('application/json');
   }
   if (releaseSummary.kind === 'recorded') {
     await expect(

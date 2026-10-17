@@ -7,6 +7,16 @@ import { getPublicEvidenceHref } from './index.ts';
 test.each([
   ['/evidence-assets/semantic/trial.patch', '/', '/evidence-assets/semantic/trial.patch'],
   [
+    '/evidence-assets/semantic/.evidence/semantic/results/coverage.json',
+    '/',
+    '/evidence-assets/semantic/records/semantic/results/coverage.json',
+  ],
+  [
+    '/evidence-assets/semantic/.evidence/semantic/results/attempts/run/attempt.json',
+    '/skill-preview/',
+    '/skill-preview/evidence-assets/semantic/records/semantic/results/attempts/run/attempt.json',
+  ],
+  [
     '/evidence-assets/semantic/trial.patch',
     '/skill-preview/',
     '/skill-preview/evidence-assets/semantic/trial.patch',

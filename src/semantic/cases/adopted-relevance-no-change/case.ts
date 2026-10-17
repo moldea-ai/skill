@@ -49,14 +49,9 @@ export const semanticCase = defineSemanticCase({
   },
   expected: [
     {
-      label: 'reconsider-affected-state',
+      label: 'preserve-behavior-and-canonical-state',
       criterion:
-        'The actor response reports both that the refactor preserves behavior or contracts and that canonical state was reconsidered and remains accurate or requires no update. The response need not name the internal manifest path or relationship; the supplied scenario and workspace evidence establish which canonical state was affected.',
-    },
-    {
-      label: 'report-no-canonical-change',
-      criterion:
-        'The actor response makes clear that canonical state remained unchanged and explains why no update was needed. Accept semantically equivalent reporting, including that behavior was preserved and canonical state remains valid or accurate while workspace evidence shows only implementation changes. Workspace evidence must contain no canonical documentation or manifest change.',
+        'The refactor preserves the normalizeRefundId export and whitespace-trimming behavior, and the response reports preserved behavior or contracts. Workspace evidence shows only implementation changes, with no canonical documentation or manifest change. The supplied scenario and workspace evidence establish that canonical content remains accurate; no additional sentence claiming that it was reconsidered is required. These outcomes do not establish file-read history.',
     },
   ],
   forbidden: [
@@ -64,11 +59,6 @@ export const semanticCase = defineSemanticCase({
       label: 'documentation-churn',
       criterion:
         'The actor changes canonical documentation or manifests even though the affected implementation refactor preserves every established behavior and contract.',
-    },
-    {
-      label: 'skip-relevance-analysis',
-      criterion:
-        'The actor claims completion without reporting both that behavior or contracts were preserved and that canonical state was reconsidered and remains accurate or requires no update.',
     },
   ],
   resourceBudget: {

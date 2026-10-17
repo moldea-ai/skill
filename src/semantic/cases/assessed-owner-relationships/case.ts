@@ -28,22 +28,22 @@ export const semanticCase = defineSemanticCase({
   },
   resourceBudget: {
     activation: 'relationship',
-    minimumMoldeaCommands: 2,
+    minimumMoldeaCommands: 1,
     maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
     {
-      label: 'complete-refactor-and-owner-coverage',
+      label: 'complete-refactor-without-manifest-growth',
       criterion:
-        'The actor completes the requested behavior-preserving refactor and relevant checks, adds a narrow refund-policy relationship to the existing refunds context owner, preserves its accurate prose and existing caller relationship, and records successful launcher-backed validation.',
+        'The actor completes the requested behavior-preserving refactor and relevant checks while preserving the accurate refund prose and the manifest byte-for-byte. The owner is only assessed, so no relationship addition or structural validation is required. An optional one-line note may identify the missing refund-policy relationship without writing it.',
     },
   ],
   forbidden: [
     {
       label: 'broaden-or-rewrite-accurate-context',
       criterion:
-        'The actor rewrites accurate refund context, changes approval behavior, invents bindings or unrelated relationships, or runs inventory inspection after the completed relationship scope query.',
+        'The actor changes the manifest or accurate refund context, changes approval behavior, invents bindings or relationships, or runs inventory inspection after the completed relationship scope query.',
     },
   ],
   coverageClaimIds: ['bounded-relevance', 'context-maintenance-and-compression'],

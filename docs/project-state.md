@@ -20,7 +20,7 @@ Adoption does not describe semantic quality. An adopted project can still have d
 
 ## Minimum foundation
 
-Initialization creates only:
+The minimum foundation, including initialization in a repository without existing agents or inline model workflows, contains:
 
 ```text
 moldea/
@@ -29,6 +29,8 @@ moldea/
 ```
 
 `project.md` captures concise foundational identity, purpose, users, goals, boundaries, and universally important facts. `moldea.yaml` registers versioned relationships and project or agent configuration supported by the repository format.
+
+Initialization inventories existing agents, inline model workflows, documents, active decisions and project-owned Agent Skills. It links existing document authorities in place and registers evidenced model responsibilities in the same operation, after one confirmation before registration or application-code changes unless the request already includes the agents. Correct existing registrations are preserved.
 
 The foundation also provides descriptive links that help readers select relevant focused context. Context is reachable directly or through linked topic indexes, with detailed rules kept in their authoritative owners. Authorized changes that add, move, remove, or change an owner's responsibility update the affected navigation in the same change, using known paths and metadata without reading unrelated context.
 

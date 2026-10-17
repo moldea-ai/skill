@@ -1,6 +1,9 @@
 import { posix } from 'node:path';
 
+import { normalizeScopePath } from '../../portable/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
+
+import { isApprovedRepairGitArguments } from './git-command-policy-boundary.ts';
 
 import type {
   ICodexEvaluationCommandPolicyEvidence,
@@ -10,6 +13,8 @@ import type {
   ICodexEvaluationExecutionEvidence,
   IMoldeaCliOperation,
   IRepositoryTestCommandKind,
+  IRepairGitCommandEvidence,
+  IRepairGitReasonCode,
 } from './types.ts';
 
 type IPlainRecord = Record<string, unknown>;
@@ -139,8 +144,10 @@ const SAFE_LOCAL_EXECUTABLES = new Set([
   'find',
   'grep',
   'head',
+  'hexdump',
   'jq',
   'ls',
+  'od',
   'moldea-cli.mjs',
   'printf',
   'pwd',
@@ -158,7 +165,20 @@ const SAFE_LOCAL_EXECUTABLES = new Set([
   'tsc',
   'uniq',
   'wc',
+  'xxd',
 ]);
+// passive repair reads cannot delegate execution through options or repository scripts
+const REPAIR_PASSIVE_EXECUTABLES = new Set([
+  ...[...SAFE_LOCAL_EXECUTABLES].filter(
+    (executable) =>
+      !['file', 'find', 'sort', 'tsc', 'moldea-cli.mjs', 'relevance-gate.mjs'].includes(executable),
+  ),
+  'nl',
+]);
+// rg globs without a path prefix could expand to an execution-capable --pre option
+const REPAIR_GLOB_READ_EXECUTABLES = new Set(
+  [...REPAIR_PASSIVE_EXECUTABLES].filter((executable) => executable !== 'rg'),
+);
 const SAFE_WORKSPACE_EXECUTABLE_PATHS = new Map([
   [
     'moldea-cli.mjs',
@@ -182,7 +202,15 @@ const SAFE_WORKSPACE_EXECUTABLE_PATHS = new Map([
   ],
 ]);
 const TRUSTED_SYSTEM_EXECUTABLE_DIRECTORIES = ['/bin', '/usr/bin'];
-const SAFE_GIT_SUBCOMMANDS = new Set(['diff', 'log', 'rev-parse', 'show', 'status', 'version']);
+const SAFE_GIT_SUBCOMMANDS = new Set([
+  'diff',
+  'log',
+  'ls-files',
+  'rev-parse',
+  'show',
+  'status',
+  'version',
+]);
 const SAFE_GIT_CONFIG_ASSIGNMENTS = new Set([
   'core.attributesFile=/dev/null',
   'core.fsmonitor=false',
@@ -263,6 +291,9 @@ const FILE_INSPECTION_EXECUTABLES = new Set([
   'wc',
 ]);
 
+// Bash word separators exclude the other characters JavaScript treats as whitespace
+const BASH_WHITESPACE_PATTERN = /[ \t\n]/u;
+
 const isPlainRecord = (input: unknown): input is IPlainRecord =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
 
@@ -313,14 +344,18 @@ const decodeFixedShellWord = (input: string): string | null => {
     }
     if (character === '\\') {
       if (nextCharacter === undefined) return null;
+      if (nextCharacter === '\n') {
+        index += 1;
+        continue;
+      }
       output += nextCharacter;
       hasWord = true;
       index += 1;
       continue;
     }
     if (character === '$' || character === '`') return null;
-    if (/\s/u.test(character)) {
-      return hasWord && input.slice(index).trim() === '' ? output : null;
+    if (BASH_WHITESPACE_PATTERN.test(character)) {
+      return hasWord && /^[ \t\n]*$/u.test(input.slice(index)) ? output : null;
     }
     if (';&|<>(){}'.includes(character)) return null;
     output += character;
@@ -344,15 +379,21 @@ const stripSafeShellRedirections = (command: string): string =>
   command.replace(/(^|\s)(?:[012]?>\/dev\/null|[12]>&[12])(?=$|\s)/gu, '$1');
 
 /** Splits a static shell list while rejecting syntax that can conceal execution. */
-const tokenizeStaticShellList = (command: string): string[][] | null => {
+const parseStaticShellList = (
+  command: string,
+  allowPassiveReadGlobs = false,
+): { commands: string[][] } | null => {
   const commands: string[][] = [[]];
+  let requiresFollowingCommand = false;
   let currentWord = '';
   let hasCurrentWord = false;
   let quote: "'" | '"' | null = null;
+  let hasComment = false;
 
   const pushWord = () => {
     if (!hasCurrentWord) return;
     commands.at(-1)!.push(currentWord);
+    requiresFollowingCommand = false;
     currentWord = '';
     hasCurrentWord = false;
   };
@@ -396,23 +437,39 @@ const tokenizeStaticShellList = (command: string): string[][] | null => {
     }
     if (character === '\\') {
       if (nextCharacter === undefined) return null;
+      if (nextCharacter === '\n') {
+        index += 1;
+        continue;
+      }
       currentWord += nextCharacter;
       hasCurrentWord = true;
       index += 1;
       continue;
     }
-    if (character === '*' || character === '?') return null;
+    const executableWord = commands.at(-1)![0];
+    const readExecutable = getExecutableName(executableWord ?? '');
+    const canUseReadGlob =
+      allowPassiveReadGlobs &&
+      (REPAIR_GLOB_READ_EXECUTABLES.has(readExecutable) ||
+        (readExecutable === 'rg' && currentWord.includes('/') && !currentWord.startsWith('-'))) &&
+      isTrustedLocalExecutable(executableWord, readExecutable);
+    if ((character === '*' || character === '?') && !canUseReadGlob) return null;
     if (character === '[') {
       const isSingleBracketCommand =
         !hasCurrentWord &&
         commands.at(-1)!.length === 0 &&
-        (nextCharacter === undefined || /\s/u.test(nextCharacter));
+        (nextCharacter === undefined || BASH_WHITESPACE_PATTERN.test(nextCharacter));
       const isDoubleBracketCommand =
         !hasCurrentWord &&
         commands.at(-1)!.length === 0 &&
         nextCharacter === '[' &&
-        (command[index + 2] === undefined || /\s/u.test(command[index + 2]!));
-      if (!isSingleBracketCommand && !isDoubleBracketCommand) return null;
+        (command[index + 2] === undefined || BASH_WHITESPACE_PATTERN.test(command[index + 2]!));
+      if (!isSingleBracketCommand && !isDoubleBracketCommand && !canUseReadGlob) return null;
+      if (canUseReadGlob) {
+        currentWord += character;
+        hasCurrentWord = true;
+        continue;
+      }
       currentWord += isDoubleBracketCommand ? '[[' : '[';
       hasCurrentWord = true;
       if (isDoubleBracketCommand) index += 1;
@@ -420,12 +477,18 @@ const tokenizeStaticShellList = (command: string): string[][] | null => {
     }
     if (character === ']') {
       const isSingleBracketTerminator =
-        !hasCurrentWord && (nextCharacter === undefined || /\s/u.test(nextCharacter));
+        !hasCurrentWord &&
+        (nextCharacter === undefined || BASH_WHITESPACE_PATTERN.test(nextCharacter));
       const isDoubleBracketTerminator =
         !hasCurrentWord &&
         nextCharacter === ']' &&
-        (command[index + 2] === undefined || /\s/u.test(command[index + 2]!));
-      if (!isSingleBracketTerminator && !isDoubleBracketTerminator) return null;
+        (command[index + 2] === undefined || BASH_WHITESPACE_PATTERN.test(command[index + 2]!));
+      if (!isSingleBracketTerminator && !isDoubleBracketTerminator && !canUseReadGlob) return null;
+      if (canUseReadGlob) {
+        currentWord += character;
+        hasCurrentWord = true;
+        continue;
+      }
       currentWord += isDoubleBracketTerminator ? ']]' : ']';
       hasCurrentWord = true;
       if (isDoubleBracketTerminator) index += 1;
@@ -440,7 +503,14 @@ const tokenizeStaticShellList = (command: string): string[][] | null => {
     ) {
       return null;
     }
-    if (/\s/u.test(character)) {
+    if (character === '#' && !hasCurrentWord) {
+      hasComment = true;
+      const newlineIndex = command.indexOf('\n', index);
+      if (newlineIndex === -1) break;
+      index = newlineIndex - 1;
+      continue;
+    }
+    if (BASH_WHITESPACE_PATTERN.test(character)) {
       if (character === '\n' && (hasCurrentWord || commands.at(-1)!.length > 0)) {
         if (!pushCommand()) return null;
       } else pushWord();
@@ -448,6 +518,7 @@ const tokenizeStaticShellList = (command: string): string[][] | null => {
     }
     if (character === ';' || character === '|' || character === '&') {
       if (!pushCommand()) return null;
+      requiresFollowingCommand = character === '|' || (character === '&' && nextCharacter === '&');
       if (nextCharacter === character) index += 1;
       continue;
     }
@@ -457,8 +528,11 @@ const tokenizeStaticShellList = (command: string): string[][] | null => {
 
   if (quote !== null) return null;
   pushWord();
-  if (commands.at(-1)!.length === 0) commands.pop();
-  return commands.length > 0 ? commands : null;
+  if (commands.at(-1)!.length === 0) {
+    if (requiresFollowingCommand) return null;
+    commands.pop();
+  }
+  return commands.length > 0 || hasComment ? { commands } : null;
 };
 
 /** Locates the executable token in a static command and its trusted env wrapper. */
@@ -666,13 +740,29 @@ const isTrustedLocalExecutable = (word: string | undefined, executable: string):
   );
 };
 
+const isSandboxRepositoryRoot = (candidate: string | undefined): boolean =>
+  candidate === '/mnt' || candidate === '/mnt/';
+
+/** Applies the launcher's path normalization without accessing repository files. */
+const normalizeSandboxTaskPath = (candidate: string | undefined): string | null => {
+  if (candidate === undefined || candidate.startsWith('--')) return null;
+  try {
+    return normalizeScopePath(candidate, {
+      repositoryRoot: '/mnt',
+      resolvedRepositoryRoot: '/mnt',
+    });
+  } catch {
+    return null;
+  }
+};
+
 /** Checks the fixed cross-platform Node invocation for the repository relevance gate. */
 const isSafeRelevanceGateCommand = (words: readonly string[]): boolean => {
   if (
     !isTrustedLocalExecutable(words[0], 'node') ||
     !SAFE_RELEVANCE_GATE_PATHS.has(words[1] ?? '') ||
     words[2] !== '--repository' ||
-    words[3] !== '/mnt'
+    !isSandboxRepositoryRoot(words[3])
   )
     return false;
   const flags = new Set<string>();
@@ -682,19 +772,7 @@ const isSafeRelevanceGateCommand = (words: readonly string[]): boolean => {
     if ((option === '--adoption-only' || option === '--diagnose') && !flags.has(option))
       flags.add(option);
     else if (option === '--path') {
-      const path = words[++index];
-      if (
-        path === undefined ||
-        path === '' ||
-        path.startsWith('--') ||
-        path.includes('\\') ||
-        path.includes('\0') ||
-        /^[A-Za-z]:/u.test(path) ||
-        path.startsWith('//') ||
-        posix.normalize(path) !== path ||
-        path.split('/').includes('..')
-      )
-        return false;
+      if (normalizeSandboxTaskPath(words[++index]) === null) return false;
       pathCount++;
     } else return false;
   }
@@ -709,7 +787,7 @@ const getStandaloneCommandWords = (command: unknown): readonly string[] | null =
   const commands =
     directCommand === null
       ? null
-      : tokenizeStaticShellList(stripSafeShellRedirections(directCommand));
+      : (parseStaticShellList(stripSafeShellRedirections(directCommand))?.commands ?? null);
   return commands?.length === 1 ? commands[0]! : null;
 };
 
@@ -726,13 +804,70 @@ export const identifyMoldeaRelevanceGateMode = (
   return words.includes('--adoption-only') ? 'adoption-only' : 'relationship';
 };
 
+/** Recognizes only the installed repair evidence helper and its fixed read modes. */
+const getRepairGitMode = (
+  words: readonly string[],
+): 'checkpoint' | 'continue' | 'review' | 'verify' | null => {
+  if (
+    !isTrustedLocalExecutable(words[0], 'node') ||
+    !SAFE_MANAGED_README_PATHS.has(
+      (words[1] ?? '').replace(/repair-git\.mjs$/u, 'managed-readme.mjs'),
+    ) ||
+    !words[1]?.endsWith('/repair-git.mjs') ||
+    words[2] !== '--repository' ||
+    !isSandboxRepositoryRoot(words[3]) ||
+    words[4] !== '--'
+  )
+    return null;
+  const mode = words[5];
+  if (mode === 'checkpoint' && words.length === 6) return mode;
+  if (
+    ['continue', 'verify'].includes(mode ?? '') &&
+    words.length === 8 &&
+    words[6] === '--checkpoint' &&
+    /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u.test(words[7] ?? '')
+  )
+    return mode as 'continue' | 'verify';
+  if (mode === 'review' && words.length >= 8 && words.length % 2 === 0) {
+    for (let index = 6; index < words.length; index += 2) {
+      const path = words[index + 1] ?? '';
+      if (
+        words[index] !== '--path' ||
+        path.startsWith('/') ||
+        /^[a-z]:/iu.test(path) ||
+        /[\\\p{Cc}]/u.test(path) ||
+        path
+          .split('/')
+          .some(
+            (part) =>
+              !part ||
+              part === '.' ||
+              part === '..' ||
+              ['_archive', '_archives', '_backup', '_backups'].includes(part),
+          )
+      )
+        return null;
+    }
+    return mode;
+  }
+  return null;
+};
+
+/** Identifies the exact installed repair helper without retaining its arguments. */
+export const identifyMoldeaRepairGitMode = (
+  command: unknown,
+): 'checkpoint' | 'continue' | 'review' | 'verify' | null => {
+  const words = getStandaloneCommandWords(command);
+  return words === null ? null : getRepairGitMode(words);
+};
+
 /** Checks the exact standalone Node invocation for the bundled README writer. */
 const isSafeManagedReadmeCommand = (words: readonly string[]): boolean =>
   isTrustedLocalExecutable(words[0], 'node') &&
   words.length === 4 &&
   SAFE_MANAGED_README_PATHS.has(words[1] ?? '') &&
   words[2] === '--repository' &&
-  words[3] === '/mnt';
+  isSandboxRepositoryRoot(words[3]);
 
 /**
  * Identifies one exact bundled README-writer invocation without retaining its command.
@@ -753,7 +888,7 @@ const getManagedAgentsMode = (words: readonly string[]): 'write' | 'print' | nul
     ) ||
     !words[1]?.endsWith('/managed-agents.mjs') ||
     words[2] !== '--repository' ||
-    words[3] !== '/mnt'
+    !isSandboxRepositoryRoot(words[3])
   )
     return null;
   if (words.length === 4) return 'write';
@@ -816,24 +951,20 @@ const parseMoldeaCliOperationArguments = (
   }
   const cursor = values.get('--cursor');
   if (cursor !== undefined && Buffer.byteLength(cursor, 'utf8') > 8_192) return null;
-  const logicalPath = values.get('--path');
+  const pathInput = values.get('--path');
+  const logicalPath = normalizeSandboxTaskPath(pathInput);
   if (operation === 'content') {
-    if (
-      flags.size !== 1 ||
-      logicalPath === undefined ||
-      !logicalPath.startsWith('/moldea/') ||
-      logicalPath.includes('\\') ||
-      logicalPath.includes('\0') ||
-      posix.normalize(logicalPath) !== logicalPath
-    ) {
+    if (flags.size !== 1 || logicalPath === null || !logicalPath.startsWith('/moldea/')) {
       return null;
     }
   } else if (operation === 'scope') {
-    if (flags.size !== 2 || !flags.has('--paths-stdin') || logicalPath !== undefined) return null;
-  } else if (flags.size !== 1 || logicalPath !== undefined) return null;
+    const hasStdinPaths = flags.size === 2 && flags.has('--paths-stdin') && pathInput === undefined;
+    const hasSinglePath = flags.size === 1 && logicalPath !== null;
+    if (!hasStdinPaths && !hasSinglePath) return null;
+  } else if (flags.size !== 1 || pathInput !== undefined) return null;
 
   const allowedValues =
-    operation === 'content'
+    operation === 'content' || operation === 'scope'
       ? new Set([
           '--cursor',
           '--max-output-bytes',
@@ -857,7 +988,7 @@ const identifyMoldeaCliLauncherOperationFromWords = (
     !isTrustedLocalExecutable(words[0], 'node') ||
     !SAFE_MOLDEA_CLI_LAUNCHER_PATHS.has(words[1] ?? '') ||
     words[2] !== '--repository' ||
-    words[3] !== '/mnt' ||
+    !isSandboxRepositoryRoot(words[3]) ||
     words[4] !== '--' ||
     words.slice(5).includes('--') ||
     !isMoldeaCliOperation(operation)
@@ -883,7 +1014,7 @@ export const identifyMoldeaCliLauncherOperation = (
   const commands =
     directCommand === null
       ? null
-      : tokenizeStaticShellList(stripSafeShellRedirections(directCommand));
+      : (parseStaticShellList(stripSafeShellRedirections(directCommand))?.commands ?? null);
   if (commands === null) return null;
   const operations = commands
     .map(identifyMoldeaCliLauncherOperationFromWords)
@@ -911,46 +1042,79 @@ const isRepositoryTestPath = (candidate: string): boolean => {
 };
 
 /** Identifies one exact repository-root correctness-test command word sequence. */
-const identifyRepositoryTestCommandKindFromWords = (
+const identifyRepositoryTestCommandKindsFromWords = (
   words: readonly string[],
-): IRepositoryTestCommandKind | null => {
-  if (
-    !isTrustedLocalExecutable(words[0], 'node') ||
-    words[1] !== '--test' ||
-    words.length < 3 ||
-    !words.slice(2).every(isRepositoryTestPath)
-  ) {
-    return null;
-  }
-  const testKinds = new Set<'e2e' | 'integration' | 'unit'>();
-  for (const path of words.slice(2)) {
-    const testKind = /\.test-(e2e|integration|unit)\./u.exec(path)?.[1];
-    if (testKind === 'e2e' || testKind === 'integration' || testKind === 'unit') {
-      testKinds.add(testKind);
+): IRepositoryTestCommandKind[] | null => {
+  if (!isTrustedLocalExecutable(words[0], 'node') || words[1] !== '--test') return null;
+  const paths: string[] = [];
+  let hasReporter = false;
+  for (let index = 2; index < words.length; index++) {
+    const word = words[index]!;
+    if (paths.length === 0 && !hasReporter && word.startsWith('--test-reporter')) {
+      const reporter =
+        word === '--test-reporter' ? words[++index] : word.slice('--test-reporter='.length);
+      if (
+        !['--test-reporter', '--test-reporter=spec', '--test-reporter=tap'].includes(word) ||
+        (reporter !== 'spec' && reporter !== 'tap')
+      )
+        return null;
+      hasReporter = true;
+    } else {
+      if (!isRepositoryTestPath(word)) return null;
+      paths.push(word);
     }
   }
-  return testKinds.size === 1 ? [...testKinds][0]! : 'correctness';
+  if (paths.length === 0) return null;
+  const testKinds = new Set<IRepositoryTestCommandKind>();
+  for (const path of paths) {
+    const testKind = /\.test-(e2e|integration|unit)\.(?:c|m)?js$/u.exec(path)?.[1];
+    if (testKind === 'e2e' || testKind === 'integration' || testKind === 'unit') {
+      testKinds.add(testKind);
+    } else {
+      return null;
+    }
+  }
+  return [...testKinds].sort();
 };
 
 /**
- * Identifies one static repository-root correctness-test command's level.
+ * Identifies every test level named by one static repository-root correctness command.
  * @param command The completed Codex command text.
- * @returns The test level, or `null` when the command is not an allowed invocation.
+ * @returns The sorted unique test levels, or `null` when the command is not an allowed invocation.
  */
-export const identifyRepositoryTestCommandKind = (
+export const identifyRepositoryTestCommandKinds = (
   command: unknown,
-): IRepositoryTestCommandKind | null => {
+): IRepositoryTestCommandKind[] | null => {
   if (typeof command !== 'string' || Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
     return null;
   }
   const directCommand = unwrapCodexShellCommand(command);
-  const commands = directCommand === null ? null : tokenizeStaticShellList(directCommand);
-  return commands?.length === 1 ? identifyRepositoryTestCommandKindFromWords(commands[0]!) : null;
+  if (directCommand === null) return null;
+  const hasPipefail = directCommand.startsWith('set -o pipefail;');
+  const testCommand = hasPipefail
+    ? directCommand.slice('set -o pipefail;'.length).trim()
+    : directCommand;
+  const commands = parseStaticShellList(stripSafeShellRedirections(testCommand))?.commands;
+  if (commands?.length === 1) return identifyRepositoryTestCommandKindsFromWords(commands[0]!);
+  // a tail pipeline preserves Node's exit status only when pipefail is explicit
+  if (hasPipefail && commands?.length === 2 && testCommand.split('|').length === 2) {
+    const tail = commands[1]!;
+    if (
+      isTrustedLocalExecutable(tail[0], 'tail') &&
+      tail.length === 3 &&
+      tail[1] === '-n' &&
+      /^[1-9][0-9]{0,3}$/u.test(tail[2] ?? '') &&
+      /\|\s*(?:\/(?:usr\/)?bin\/)?tail\s+-n\s+[1-9][0-9]{0,3}\s*$/u.test(testCommand)
+    ) {
+      return identifyRepositoryTestCommandKindsFromWords(commands[0]!);
+    }
+  }
+  return null;
 };
 
 /** Checks whether one command is an allowed repository correctness-test invocation. */
 export const isRepositoryTestCommand = (command: unknown): boolean =>
-  identifyRepositoryTestCommandKind(command) !== null;
+  identifyRepositoryTestCommandKinds(command) !== null;
 
 /** Checks the fixed Node invocation for the bundled repository-local CLI launcher. */
 const isSafeMoldeaCliLauncherCommand = (words: readonly string[]): boolean =>
@@ -1009,7 +1173,10 @@ const isSafeSedInspectionCommand = (words: readonly string[]): boolean => {
 
 /** Checks that Git resolves only through the evaluator's trusted executable search path. */
 const isTrustedGitExecutable = (word: string | undefined): boolean =>
-  word !== undefined && ['git', '/home/evaluator/bin/git'].includes(word);
+  word !== undefined &&
+  ['git', '/home/evaluator/bin/git', '/usr/bin/git', '/bin/git', '/usr/lib/git-core/git'].includes(
+    word,
+  );
 
 /** Classifies whether one static command can use a network boundary. */
 const classifyNetworkCommand = (
@@ -1036,10 +1203,14 @@ const classifyNetworkCommand = (
       ? 'not-observed'
       : 'observed';
   if (NETWORK_EXECUTABLES.has(executable)) return 'observed';
+  if (words.length === 3 && words[0] === 'set' && words[1] === '-o' && words[2] === 'pipefail')
+    return assignmentPrefixes.length === 0 ? 'not-observed' : 'indeterminate';
   if (
     executable === 'node' &&
     assignmentPrefixes.length === 0 &&
-    (isSafeNodeVersionCommand(words) ||
+    (getRepairGitMode(words) !== null ||
+      isSafeNodeVersionCommand(words) ||
+      identifyRepositoryTestCommandKindsFromWords(words) !== null ||
       isSafeMoldeaCliLauncherCommand(words) ||
       (canUseLocalSkillOperation &&
         (isSafeManagedReadmeCommand(words) || getManagedAgentsMode(words) !== null)))
@@ -1060,6 +1231,8 @@ const classifyNetworkCommand = (
     ) {
       return 'not-observed';
     }
+    if (subcommand === 'config' && isApprovedRepairGitArguments(words.slice(1)))
+      return 'not-observed';
     if (NETWORK_GIT_SUBCOMMANDS.has(subcommand)) return 'observed';
     return SAFE_GIT_SUBCOMMANDS.has(subcommand) ? 'not-observed' : 'indeterminate';
   }
@@ -1080,6 +1253,192 @@ const classifyNetworkCommand = (
   return SAFE_LOCAL_EXECUTABLES.has(executable) && isTrustedLocalExecutable(words[0], executable)
     ? 'not-observed'
     : 'indeterminate';
+};
+
+// disjoint reason sets keep diagnostic totals tied to the strict compliance counts
+const REPAIR_GIT_NONCOMPLIANT_REASONS = new Set<IRepairGitReasonCode>([
+  'git-rev-parse',
+  'git-log',
+  'git-show',
+  'git-status-arguments',
+  'git-diff-arguments',
+  'git-other',
+]);
+const REPAIR_GIT_UNVERIFIED_REASONS = new Set<IRepairGitReasonCode>([
+  'untrusted-git',
+  'unparsed-shell',
+  'opaque-node',
+  'opaque-shell',
+  'opaque-command',
+]);
+
+/** Validates bounded diagnostic codes and their exact noncompliant/unverified totals. */
+export const hasValidRepairGitCommandEvidence = (
+  input: unknown,
+): input is IRepairGitCommandEvidence => {
+  if (!hasExactKeys(input, ['compliantCount', 'noncompliantCount', 'unverifiedCount', 'reasons']))
+    return false;
+  const counts = [input['compliantCount'], input['noncompliantCount'], input['unverifiedCount']];
+  if (
+    !counts.every(
+      (count): count is number =>
+        typeof count === 'number' && Number.isSafeInteger(count) && count >= 0,
+    )
+  )
+    return false;
+  if (
+    counts.reduce((sum, count) => sum + count, 0) > MAX_COMMAND_BYTES ||
+    !Array.isArray(input['reasons'])
+  )
+    return false;
+  let noncompliantCount = 0;
+  let unverifiedCount = 0;
+  let previousCode = '';
+  for (const reason of input['reasons'] as unknown[]) {
+    if (!hasExactKeys(reason, ['code', 'count'])) return false;
+    const code = reason['code'];
+    const count = reason['count'];
+    if (
+      typeof code !== 'string' ||
+      code <= previousCode ||
+      typeof count !== 'number' ||
+      !Number.isSafeInteger(count) ||
+      count <= 0 ||
+      count > MAX_COMMAND_BYTES
+    )
+      return false;
+    if (REPAIR_GIT_NONCOMPLIANT_REASONS.has(code as IRepairGitReasonCode))
+      noncompliantCount += count;
+    else if (REPAIR_GIT_UNVERIFIED_REASONS.has(code as IRepairGitReasonCode))
+      unverifiedCount += count;
+    else return false;
+    previousCode = code;
+  }
+  return (
+    noncompliantCount === input['noncompliantCount'] && unverifiedCount === input['unverifiedCount']
+  );
+};
+
+const getRejectedRepairGitReason = (words: readonly string[]): IRepairGitReasonCode => {
+  switch (identifyGitSubcommand(words)) {
+    case 'rev-parse':
+      return 'git-rev-parse';
+    case 'log':
+      return 'git-log';
+    case 'show':
+      return 'git-show';
+    case 'status':
+      return 'git-status-arguments';
+    case 'diff':
+      return 'git-diff-arguments';
+    default:
+      return 'git-other';
+  }
+};
+
+/** Classifies actual wrapper arguments without reconstructing shell text. */
+export const projectRepairGitArgumentsEvidence = (
+  arguments_: readonly string[],
+): IRepairGitCommandEvidence =>
+  isApprovedRepairGitArguments(arguments_)
+    ? { compliantCount: 1, noncompliantCount: 0, unverifiedCount: 0, reasons: [] }
+    : {
+        compliantCount: 0,
+        noncompliantCount: 1,
+        unverifiedCount: 0,
+        reasons: [{ code: getRejectedRepairGitReason(['git', ...arguments_]), count: 1 }],
+      };
+
+/** Projects repair Git compliance without preserving command text or trusting opaque execution. */
+export const projectRepairGitCommandEvidence = (command: unknown): IRepairGitCommandEvidence => {
+  const evidence: IRepairGitCommandEvidence = {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  };
+  const reasonCounts = new Map<IRepairGitReasonCode, number>();
+  const recordReason = (code: IRepairGitReasonCode): void => {
+    reasonCounts.set(code, (reasonCounts.get(code) ?? 0) + 1);
+    if (REPAIR_GIT_NONCOMPLIANT_REASONS.has(code)) evidence.noncompliantCount++;
+    else evidence.unverifiedCount++;
+  };
+  const directCommand =
+    typeof command === 'string' && Buffer.byteLength(command, 'utf8') <= MAX_COMMAND_BYTES
+      ? unwrapCodexShellCommand(command)
+      : null;
+  const parsed =
+    directCommand === null
+      ? null
+      : parseStaticShellList(stripSafeShellRedirections(directCommand), true);
+  if (parsed === null)
+    return { ...evidence, unverifiedCount: 1, reasons: [{ code: 'unparsed-shell', count: 1 }] };
+  for (const originalWords of parsed.commands) {
+    let executableIndex = 0;
+    while (executableIndex < originalWords.length) {
+      const word = originalWords[executableIndex];
+      if (word === '!' || word === 'GIT_ATTR_NOSYSTEM=1') {
+        executableIndex++;
+      } else if (['env', '/bin/env', '/usr/bin/env'].includes(word ?? '')) {
+        executableIndex++;
+        if (originalWords[executableIndex] === '--') executableIndex++;
+        if (originalWords[executableIndex] !== 'GIT_ATTR_NOSYSTEM=1') break;
+      } else {
+        break;
+      }
+    }
+    const words = originalWords.slice(executableIndex);
+    const executable = getExecutableName(words[0] ?? '');
+    if (executable === 'git') {
+      if (isTrustedGitExecutable(words[0]) && words.length === 2 && words[1] === '--version')
+        continue;
+      if (!isTrustedGitExecutable(words[0])) recordReason('untrusted-git');
+      else if (isApprovedRepairGitArguments(words.slice(1))) evidence.compliantCount++;
+      else recordReason(getRejectedRepairGitReason(words));
+      continue;
+    }
+    if (getRepairGitMode(words) !== null) {
+      evidence.compliantCount++;
+      continue;
+    }
+    const isInstalledOperation =
+      isSafeMoldeaCliLauncherCommand(words) ||
+      isSafeRelevanceGateCommand(words) ||
+      isSafeManagedReadmeCommand(words) ||
+      getManagedAgentsMode(words) !== null ||
+      isSafeNodeVersionCommand(words) ||
+      isSafeNpmProbeCommand(words);
+    const canInspectWithoutExecution =
+      (REPAIR_PASSIVE_EXECUTABLES.has(executable) &&
+        isTrustedLocalExecutable(words[0], executable) &&
+        !(executable === 'rg' && words.some((word) => /^--pre(?:=|$)/u.test(word)))) ||
+      (executable === 'sed' &&
+        isTrustedLocalExecutable(words[0], executable) &&
+        isSafeSedInspectionCommand(words)) ||
+      (executable === 'find' &&
+        isTrustedLocalExecutable(words[0], executable) &&
+        !words.some((word) => /^-(?:exec|execdir|ok|okdir)$/u.test(word))) ||
+      (executable === 'sort' &&
+        isTrustedLocalExecutable(words[0], executable) &&
+        !words.some((word) => word.startsWith('--c')));
+    if (
+      !isInstalledOperation &&
+      !canInspectWithoutExecution &&
+      !(words.length === 2 && words[0] === 'cd' && words[1] === '/mnt')
+    ) {
+      recordReason(
+        executable === 'node'
+          ? 'opaque-node'
+          : ['sh', 'bash', 'zsh', 'dash'].includes(executable)
+            ? 'opaque-shell'
+            : 'opaque-command',
+      );
+    }
+  }
+  evidence.reasons = [...reasonCounts]
+    .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+    .map(([code, count]) => ({ code, count }));
+  return evidence;
 };
 
 /** Maps one non-safe network classification to a privacy-safe diagnostic reason. */
@@ -1169,7 +1528,7 @@ const classifyCommand = (command: string): ICommandClassification => {
   const commands =
     commandWithoutSafeRedirections === null
       ? null
-      : tokenizeStaticShellList(commandWithoutSafeRedirections);
+      : (parseStaticShellList(commandWithoutSafeRedirections)?.commands ?? null);
   if (commands === null) {
     const sensitiveClassification = classifyUntokenizedSensitiveAccess(directCommand ?? command);
     return {

@@ -112,6 +112,21 @@ test('rendering follows a moved installation and rejects use for another reposit
   });
 });
 
+test.each(['SKILL.md', 'scripts/relevance-gate.mjs'])(
+  'rendering refuses an installation missing %s without writing instructions',
+  async (missingFile) => {
+    await withInstallation(async (root, run) => {
+      await rm(join(root, '.agents', 'skills', 'moldea', missingFile));
+      const result = run(['--print']);
+      expect(result.status).toBe(1);
+      expect(result.stdout).toBe('');
+      expect(result.stderr).toContain('ENOENT');
+      expect(result.stderr).toContain(join(root, '.agents', 'skills', 'moldea', missingFile));
+      await expect(lstat(join(root, 'AGENTS.md'))).rejects.toThrow();
+    });
+  },
+);
+
 test.each([['--target', 'other.md'], ['--skill-path', 'guess'], ['--unknown']])(
   'rejects unsupported helper arguments %o',
   async (...flags) => {

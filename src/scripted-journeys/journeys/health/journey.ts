@@ -83,16 +83,19 @@ export const scriptedJourney = defineScriptedJourney({
         'Fix moldea. This repository was already initialized. You may repair its managed README region and its managed AGENTS.md block; preserve all content outside those regions and preserve canonical project knowledge.',
       dependsOn: [],
       checks: [
+        { kind: 'paths-changed', paths: ['README.md', 'AGENTS.md'] },
         {
           kind: 'content-matches',
           path: 'README.md',
-          pattern: 'This project uses \\[moldea\\]\\(https://skill\\.moldea\\.ai\\)',
+          pattern:
+            '^(?![\\s\\S]*Fixture integration drift\\.)[\\s\\S]*This project uses \\[moldea\\]\\(https://skill\\.moldea\\.ai\\)',
         },
         { kind: 'content-matches', path: 'AGENTS.md', pattern: 'scripts/relevance-gate\\.mjs' },
         {
           kind: 'content-matches',
           path: 'AGENTS.md',
-          pattern: 'This project uses moldea for project context\\.',
+          pattern:
+            '^(?![\\s\\S]*Fixture integration drift\\.)[\\s\\S]*When installed in this repository, moldea provides project context\\.',
         },
         {
           kind: 'content-matches',

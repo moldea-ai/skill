@@ -14,6 +14,7 @@ import {
   createSemanticReplay,
   loadSemanticSourceRun,
   SemanticCompositionReviewSchema,
+  SEMANTIC_EVIDENCE_SCHEMA_VERSION,
 } from '../recording/index.ts';
 
 const REPOSITORY_ROOT = path.resolve(import.meta.dirname, '../../..');
@@ -88,7 +89,9 @@ const run = async (): Promise<void> => {
           resolveContainedPath(REPOSITORY_ROOT, arguments_.reviewPath),
           SemanticCompositionReviewSchema,
         );
-  const catalog = await loadSemanticCases(CASES_ROOT);
+  const catalog = (await loadSemanticCases(CASES_ROOT)).filter(
+    ({ publication }) => publication !== 'private',
+  );
   const definitions =
     arguments_.caseIds === null
       ? catalog
@@ -142,7 +145,7 @@ const run = async (): Promise<void> => {
   }
   const attemptId = createAttemptId();
   const recordedAt = new Date().toISOString();
-  const evidenceRecord = { cases: composed.cases, schemaVersion: 11 };
+  const evidenceRecord = { cases: composed.cases, schemaVersion: SEMANTIC_EVIDENCE_SCHEMA_VERSION };
   const evidenceSha256 = createJsonSha256(evidenceRecord);
   const caseResults = composed.cases.map(({ confirmationStatus, id, status, trials }) => ({
     confirmationStatus,

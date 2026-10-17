@@ -34,7 +34,7 @@ A minimal manifest contains only the version:
 version: 1
 ```
 
-Empty optional mappings are omitted. Initialization does not create placeholder directories, speculative context, or an agent the project has not asked for.
+Empty optional mappings are omitted. Initialization registers evidenced existing agents and inline workflows after the required confirmation before registration or application-code changes, or immediately when the request already includes them. It creates no placeholder directories, speculative context, or invented agent responsibilities. Existing architecture, policy, and decision documents remain at their original paths, linked from `project.md` rather than copied into `/moldea`.
 
 ## Give each concern one clear home
 
@@ -135,7 +135,6 @@ agents:
         path: /src/agents/support-agent.ts
         symbol: createSupportAgent
     affectedBy:
-      - /src/agents/support-agent.ts
       - /src/agents/support-agent.test-integration.ts
 ```
 

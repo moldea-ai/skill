@@ -39,6 +39,8 @@ Ask the coding agent to fix a warning, or explicitly accept a supported warning 
 
 See [deterministic examples](https://packages.moldea.ai/capabilities/) and the [inspection contracts](https://packages.moldea.ai/packages/core/repository-inspection/) for concrete results.
 
+Initialization registers relationships only for source it inspected; in the four-agent Platform run this was narrower than the curated manifest, missing agent-specific context, output and judge paths, so run explicit relationship maintenance after onboarding for complete coverage.
+
 ## Large projects and files
 
 The current Core 7 and CLI 11 defaults allow **8 MiB per file read**, **2 MiB for the manifest**, **100,000 entries**, and **128 MiB of source reads per operation**. These measure different things. An entry can be a directory or a requested path; this is not a universal file-count limit. A large file’s presence alone does not mean an inspection reads it.
@@ -69,3 +71,13 @@ Release-evaluation command, token, and output profiles constrain assurance trial
 Local deterministic checks call no model or provider and require no Moldea Cloud account. The skill itself does not upload repository content to Moldea Cloud. Your coding-agent host’s provider, permissions, and privacy settings still apply.
 
 The CLI selects Git paths; a raw filesystem reader can expose ignored files and dependencies. Path/link checks require a tree trusted against hostile concurrent replacement. Unsupported Git content transforms are refused, and continuation stays within one snapshot. Use the [reader trust contract](https://packages.moldea.ai/packages/repository-fs/security-and-limits/), [snapshot contract](https://packages.moldea.ai/packages/repository/reader-contract/#snapshot-consistency), and [privacy guide](/docs/safety-and-privacy/) before choosing another data source.
+
+## Unbound model workflows
+
+Implicit canonical adoption of an unbound one-shot model workflow is outside the current published semantic coverage. The retained private case includes observed inline-only updates that omitted canonical instruction consumption and validation. Use an explicit moldea request for that adoption; the passing explicit-agent cases do not establish reliable implicit workflow routing.
+
+## Semantic coverage not yet included
+
+The current catalog explicitly lists five retained cases as [not yet included](/docs/semantic-evaluation/#cases-and-coverage): silence on a generic whole-project evaluation, implicit workflow adoption, assessing a routing description beyond its fallback wiring, observable launcher proof in a Plug'n'Play-only repository, and continuation after manifest-owner changes without reverting a healthy relationship. Their failures and criteria are retained. Passing cases do not fill those specific gaps. The separate policy-versus-infrastructure relationship guard retains its strict materiality check without duplicating scope-routing coverage.
+
+The five included continuation cases use actual sandbox Git-wrapper records together with recognized command text and require fresh verification under that grading contract. They measure cooperative compliance. Caller attribution separates direct trusted Codex-host calls from model-controlled commands; host calls supply neither actor violations nor positive repair-read credit. A deliberately evasive actor could locate the wrapper's non-PATH real Git binary or tamper with caller metadata or the temporary invocation log. This is not a tamper-proof audit. The verified 108-case fallback remains unchanged and does not establish continuation coverage. Native read history, reloads after compaction and actual reassessment of unchanged owners also require separate evidence.

@@ -31,6 +31,15 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
+          'docs/operations-policy.md is the existing declared policy source for the registered operations context. The fixture already states Support escalation ownership and Legal retention-exception approval in both existing files.',
+        source: {
+          kind: 'workspace-path',
+          path: 'docs/operations-policy.md',
+          expectedType: 'file',
+        },
+      },
+      {
+        claim:
           'Unrelated architecture context has its own established owner and remains outside the correction.',
         source: {
           kind: 'workspace-path',
@@ -51,12 +60,12 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'update-established-context-owner',
       criterion:
-        'The workspace changes update the existing operations context so Customer Operations owns the escalation policy and Legal continues to approve retention exceptions.',
+        'The registered operations context either states that Customer Operations owns escalation policy and Legal continues to approve retention exceptions, or links to the existing docs/operations-policy.md authority containing those corrected facts. Both representations satisfy this criterion.',
     },
     {
       label: 'avoid-duplicate-current-truth',
       criterion:
-        'The resulting workspace keeps those responsibilities in their established authoritative context instead of creating a second canonical file or parallel current wording.',
+        'The registered operations context remains the sole focused canonical owner, and project.md does not repeat the detailed responsibilities; a navigation link is acceptable but not required. Updating the existing canonical owner and its existing declared policy source consistently is permitted controlled repetition; a link to the corrected source is also acceptable. Similar wording in that existing pair alone does not prove duplication. The actor creates no additional responsibility owner or copy in another canonical asset.',
     },
     {
       label: 'preserve-unrelated-context',
@@ -73,7 +82,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'create-parallel-responsibility-context',
       criterion:
-        'The workspace changes create another context file or independently maintained wording for the same current responsibilities.',
+        'The workspace changes create an additional responsibility-context file or copy the policy into another canonical asset outside its established owner. In-place corrections to the existing operations context and its existing declared policy source do not establish this forbidden behavior.',
     },
     {
       label: 'compress-unrelated-context',

@@ -40,6 +40,7 @@ import {
 import { createSemanticCoverage, createSemanticCoverageDigest } from '../coverage/index.ts';
 import {
   createSemanticCaseSuiteDigest,
+  createRecordedSemanticDefinitions,
   createSemanticCaseDefinitionDigest,
   loadSemanticCases,
   type ISemanticCase,
@@ -47,6 +48,7 @@ import {
 import {
   createSemanticResultDimensions,
   getSemanticFailureClassifications,
+  hasPassingCaseRepairGitEvidence,
   hasPassingSemanticResultDimensions,
   isSemanticConfirmationEligible,
   parseSemanticEvaluationHostOutput,
@@ -64,6 +66,7 @@ import {
   createSemanticActiveTrial,
   createSemanticTokenAdmissionController,
   createSemanticReplay,
+  SEMANTIC_EVIDENCE_SCHEMA_VERSION,
   getSemanticCandidatePaidTokenCount,
   getSemanticCheckpointPath,
   isSemanticActiveTrialStopped,
@@ -115,7 +118,6 @@ const DEFAULT_HOST_COMMAND = [
   '-',
 ] as const;
 const LOCAL_ATTEMPT_SCHEMA_VERSION = 7;
-const LOCAL_EVIDENCE_SCHEMA_VERSION = 11;
 const MAXIMUM_OPERATIONAL_RETRY_COUNT = 1;
 
 const PreparedWebsitePayloadSchema = z.object({
@@ -180,10 +182,10 @@ const serializeWorkspaceSnapshot = (
     .sort(([left], [right]) => left.localeCompare(right, 'en'))
     .map(([snapshotPath, state]) => ({ path: snapshotPath, state }));
 
-const runHostStage = async (options: {
+const runHostStage = async <T>(options: {
   activeTrial: ISemanticActiveTrialCheckpoint;
   isOperationalResumeRequested: boolean;
-  operation: (signal: AbortSignal) => Promise<string>;
+  operation: (signal: AbortSignal) => Promise<T>;
   persistActiveTrial: (activeTrial: ISemanticActiveTrialCheckpoint) => Promise<void>;
   reservationId: string;
   stage: 'actor' | 'judge';
@@ -191,7 +193,7 @@ const runHostStage = async (options: {
   tokenController: ISemanticTokenAdmissionController;
 }): Promise<{
   activeTrial: ISemanticActiveTrialCheckpoint;
-  output: string;
+  output: T;
   releaseReservation: () => Promise<void>;
 }> => {
   let activeTrial = options.activeTrial;
@@ -267,7 +269,7 @@ const runSemanticTrial = async (options: {
   try {
     const actorHome = path.join(evaluationRoot, 'actor-home');
     const actorToolDirectory = path.join(evaluationRoot, 'actor-tools');
-    const { hasWorkspaceBinaryDirectory, readOnlyMounts, repositoryPath } =
+    const { developerDirection, hasWorkspaceBinaryDirectory, readOnlyMounts, repositoryPath } =
       await createActorRepository(
         evaluationRoot,
         options.caseDefinition,
@@ -280,7 +282,11 @@ const runSemanticTrial = async (options: {
     const relatedBefore = await Promise.all(
       relatedMounts.map(async ({ source }) => snapshotSemanticWorkspace(source)),
     );
-    const actorPrompt = buildSemanticActorPrompt(options.caseDefinition);
+    const preparedCase = {
+      ...options.caseDefinition,
+      input: { ...options.caseDefinition.input, developerDirection },
+    };
+    const actorPrompt = buildSemanticActorPrompt(preparedCase);
     const caseDefinitionDigest = createSemanticCaseDefinitionDigest(options.caseDefinition);
     const actorStageIdentity = createSemanticActorStageIdentity({
       actorCommand: options.actorCommand,
@@ -304,9 +310,11 @@ const runSemanticTrial = async (options: {
       const judgePrompt = buildSemanticJudgePrompt({
         actorCommandPolicyEvidence: recordedTrial.trial.actorCommandPolicyEvidence,
         actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
+        gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
         actorResourceEvidence: recordedTrial.trial.actorResourceEvidence,
         actorResponse: recordedTrial.actorResponse,
-        caseDefinition: options.caseDefinition,
+        isRepositoryControlPassing: recordedTrial.trial.dimensions.repositoryControl,
+        caseDefinition: preparedCase,
         repositoryEvidence: options.caseDefinition.input.repositoryEvidence,
         workspaceChanges: recordedTrial.workspaceChanges,
       });
@@ -343,16 +351,15 @@ const runSemanticTrial = async (options: {
       };
     }
 
-    const reusableTrial =
-      options.activeTrial === null
-        ? selectSemanticReusableTrial({
-            actorIdentitySha256: actorStageIdentity.sha256,
-            candidates: options.reusableTrials,
-            caseId: options.caseDefinition.id,
-            confirmationIndex: options.confirmationIndex,
-            judgeIdentitySha256: (candidate) => createJudgeIdentity(candidate.recordedTrial).sha256,
-          })
-        : null;
+    // the unchanged-failure stop also applies to a resumed pending stage
+    const reusableTrial = selectSemanticReusableTrial({
+      activeTrial: options.activeTrial,
+      actorIdentitySha256: actorStageIdentity.sha256,
+      candidates: options.reusableTrials,
+      caseId: options.caseDefinition.id,
+      confirmationIndex: options.confirmationIndex,
+      judgeIdentitySha256: (candidate) => createJudgeIdentity(candidate.recordedTrial).sha256,
+    });
     if (reusableTrial !== null) {
       const judgeStageIdentity = createJudgeIdentity(reusableTrial.recordedTrial);
       const trialIdentity = {
@@ -400,6 +407,7 @@ const runSemanticTrial = async (options: {
           activeTrial,
           {
             actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
+            gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
             actorResourceEvidence: recordedTrial.trial.actorResourceEvidence,
             actorStageIdentitySha256: actorStageIdentity.sha256,
             commandPolicyEvidence: recordedTrial.trial.actorCommandPolicyEvidence,
@@ -489,17 +497,19 @@ const runSemanticTrial = async (options: {
     const judgePrompt = buildSemanticJudgePrompt({
       actorCommandPolicyEvidence: actorEvidence.commandPolicyEvidence,
       actorExecutionEvidence: actorEvidence.actorExecutionEvidence,
+      gitInvocationEvidence: actorEvidence.gitInvocationEvidence,
       actorResourceEvidence: actorEvidence.actorResourceEvidence,
       actorResponse: actorEvidence.response,
-      caseDefinition: options.caseDefinition,
+      isRepositoryControlPassing: actorEvidence.isRepositoryControlPassing,
+      caseDefinition: preparedCase,
       repositoryEvidence: options.caseDefinition.input.repositoryEvidence,
       workspaceChanges: actorEvidence.workspaceChanges,
     });
     const judgeExecution = await runHostStage({
       activeTrial,
       isOperationalResumeRequested: options.isOperationalResumeRequested,
-      operation: (signal) =>
-        runCodexEvaluationHost({
+      operation: async (signal) => {
+        const output = await runCodexEvaluationHost({
           command: options.judgeCommand,
           cwd: repositoryPath,
           prompt: judgePrompt,
@@ -509,7 +519,16 @@ const runSemanticTrial = async (options: {
           sandboxHome: judgeHome,
           signal,
           workspaceAccess: 'read-only',
-        }),
+        });
+        const judgeEvidence = parseSemanticEvaluationHostOutput(output, {
+          cliVersion: options.cli.version,
+          jsonSchemaVersion: options.cli.jsonSchemaVersion,
+        });
+        return {
+          judgeEvidence,
+          assessment: assessSemanticJudgeOutput(options.caseDefinition, judgeEvidence.response),
+        };
+      },
       persistActiveTrial: options.persistActiveTrial,
       reservationId: options.caseDefinition.id,
       stage: 'judge',
@@ -518,10 +537,7 @@ const runSemanticTrial = async (options: {
     });
     activeTrial = judgeExecution.activeTrial;
     try {
-      const judgeEvidence = parseSemanticEvaluationHostOutput(judgeExecution.output, {
-        cliVersion: options.cli.version,
-        jsonSchemaVersion: options.cli.jsonSchemaVersion,
-      });
+      const { judgeEvidence, assessment } = judgeExecution.output;
       const judgeStageIdentity = createSemanticJudgeStageIdentity({
         actorEvidence: {
           actorResponse: actorEvidence.response,
@@ -534,9 +550,10 @@ const runSemanticTrial = async (options: {
         judgeHost: options.judgeHost,
         judgePrompt,
       });
-      const assessment = assessSemanticJudgeOutput(options.caseDefinition, judgeEvidence.response);
       const dimensions = createSemanticResultDimensions({
         actorCommandPolicy: actorEvidence.commandPolicyEvidence,
+        actorExecutionEvidence: actorEvidence.actorExecutionEvidence,
+        gitInvocationEvidence: actorEvidence.gitInvocationEvidence,
         actorResourceEvidence: actorEvidence.actorResourceEvidence,
         caseDefinition: options.caseDefinition,
         isMountIntegrityPassing: actorEvidence.isMountIntegrityPassing,
@@ -563,13 +580,29 @@ const runSemanticTrial = async (options: {
         kind: options.confirmationIndex === null ? 'initial' : 'confirmation',
         observed: assessment.observed,
         passed: hasPassingSemanticResultDimensions(dimensions),
-        rationale: assessment.rationale,
+        rationale: [
+          assessment.rationale,
+          ...(dimensions.commandPolicy
+            ? []
+            : ['Deterministic host security-policy evidence did not pass.']),
+          ...(hasPassingCaseRepairGitEvidence({
+            actorCommandPolicy: actorEvidence.commandPolicyEvidence,
+            actorExecutionEvidence: actorEvidence.actorExecutionEvidence,
+            gitInvocationEvidence: actorEvidence.gitInvocationEvidence,
+            caseDefinition: options.caseDefinition,
+          })
+            ? []
+            : [
+                'Deterministic repair-Git evidence did not pass; complete compliant observations are required.',
+              ]),
+        ].join(' '),
         stageReuse: null,
       };
       const recordedTrial: ISemanticRecordedTrial = {
         actorExecutionEvidence: actorEvidence.actorExecutionEvidence,
+        gitInvocationEvidence: actorEvidence.gitInvocationEvidence,
         actorResponse: actorEvidence.response,
-        developerDirection: options.caseDefinition.input.developerDirection,
+        developerDirection: actorPrompt,
         operationalRetries: activeTrial.operationalRetries,
         stageIdentities: {
           actorSha256: actorStageIdentity.sha256,
@@ -739,7 +772,7 @@ const createAttemptRecord = (options: {
       evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
       kind: 'candidate',
       path: `.evidence/semantic/results/attempts/${options.attemptId}/evidence.json`,
-      schemaVersion: LOCAL_EVIDENCE_SCHEMA_VERSION,
+      schemaVersion: SEMANTIC_EVIDENCE_SCHEMA_VERSION,
       sha256: options.evidenceSha256,
     },
     executedStageCount: caseResults.reduce(
@@ -802,7 +835,7 @@ const recordSemanticAttempt = async (options: {
   definitions: ISemanticCase[];
   judgeHost: ICodexEvaluationHostIdentity;
 }): Promise<ISemanticAttemptRecord> => {
-  const evidenceRecord = { cases: options.cases, schemaVersion: LOCAL_EVIDENCE_SCHEMA_VERSION };
+  const evidenceRecord = { cases: options.cases, schemaVersion: SEMANTIC_EVIDENCE_SCHEMA_VERSION };
   const evidenceSha256 = createJsonSha256(evidenceRecord);
   const result = createAttemptRecord({ ...options, evidenceSha256 });
   const replays = new Map<string, IEvaluationReplayModel>(
@@ -810,6 +843,9 @@ const recordSemanticAttempt = async (options: {
   );
   const attemptPath = `.evidence/semantic/results/attempts/${options.attemptId}/attempt.json`;
   const evidencePath = `.evidence/semantic/results/attempts/${options.attemptId}/evidence.json`;
+  const requestsByCase = new Map(
+    options.cases.map(({ id, trials }) => [id, trials[0]?.developerDirection]),
+  );
   const bundle = createSemanticEvidenceBundle({
     artifacts: [
       {
@@ -829,7 +865,7 @@ const recordSemanticAttempt = async (options: {
       },
     ],
     classification: 'official',
-    definitions: options.definitions,
+    definitions: createRecordedSemanticDefinitions(options.definitions, requestsByCase),
     replays,
     result,
     version: readReleaseIdentity(REPOSITORY_ROOT).releaseVersion,
@@ -853,7 +889,10 @@ const verifyLocalSemanticRuns = async (): Promise<number> => {
 
 const run = async (): Promise<void> => {
   const arguments_ = parseSemanticEvaluationArguments(process.argv.slice(2));
-  const cases = await loadSemanticCases(CASES_ROOT);
+  const catalog = await loadSemanticCases(CASES_ROOT);
+  const cases = arguments_.isRecordRequested
+    ? catalog.filter(({ publication }) => publication !== 'private')
+    : catalog;
   const coverage = createSemanticCoverage(cases);
   const artifactDigest = createPortableSkillArtifactDigest(REPOSITORY_ROOT);
   const caseSuiteDigest = createSemanticCaseSuiteDigest(cases);

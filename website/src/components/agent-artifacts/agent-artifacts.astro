@@ -2,6 +2,7 @@
 import { ChevronDown, FolderOpen } from '@lucide/astro';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
 import CodeDiff from '@moldea.ai/website-ui/code-diff';
+import { formatRepositoryPath } from '@moldea.ai/website-ui/code-presentation';
 import Dialog from '@moldea.ai/website-ui/dialog';
 import FilePreview from '@moldea.ai/website-ui/file-preview';
 import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
@@ -159,7 +160,7 @@ const fileEntries = await Promise.all(
                   id={`landing-agent-${entry.id}`}
                   title={entry.label}
                   triggerLabel={`${entry.label} (${file.status.toLowerCase()})`}
-                  triggerAriaLabel={`Open ${entry.path.slice(1)}, ${file.status.toLowerCase()}`}
+                  triggerAriaLabel={`Open ${formatRepositoryPath(entry.path)}, ${file.status.toLowerCase()}`}
                   triggerVariant="ghost"
                   triggerSize="icon"
                   size="medium"
@@ -173,7 +174,7 @@ const fileEntries = await Promise.all(
                     path={entry.path}
                     status={file.status}
                   />
-                  <FilePreview path={entry.path.slice(1)}>
+                  <FilePreview path={entry.path}>
                     <Fragment slot="status">
                       {file.status !== 'Unchanged' && (
                         <span

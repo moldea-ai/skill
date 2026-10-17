@@ -2,6 +2,32 @@
 
 Use for an explicit request to validate, evaluate, inspect, or repair this repository's moldea setup. An informational question or read-only check grants no writes. A named agent reconciliation keeps its narrower `evaluate-and-reconcile.md` procedure. Ordinary implicit work never enters this reference after a gate miss.
 
+## Git read boundary
+
+During explicit repair, use only the installed bundled helper for Git evidence, including preliminary repository checks and review of this repair's writes. Git writes and publication remain host-owned. Before any repair CLI or Git-dependent operation, run:
+
+```text
+node <installed-skill-root>/scripts/repair-git.mjs --repository <absolute-repository-root> -- checkpoint
+```
+
+The helper inspects bounded repository attributes before status or diff, refuses executable clean/process filters and unverified attribute fallbacks, disables configured helpers, and captures the full commit and NUL-delimited path evidence without Git writes. It uses the host's Git executable boundary. An `attribute-safety` or `arguments` limitation stops Git-dependent repair; report it and use only the bounded inert foundation diagnosis below. Never bypass the helper or retry unchanged failure.
+
+For continuation with a supplied full checkpoint commit, use:
+
+```text
+node <installed-skill-root>/scripts/repair-git.mjs --repository <absolute-repository-root> -- continue --checkpoint <full-commit>
+```
+
+Use its `changedPaths`, `manifestDiff`, and `uncommittedPaths` with the checkpoint's reported lists. For a new checkpoint, use `commit`, `uncommittedPaths`, and `uncommittedManifestDiff`. Unborn repositories, unavailable commits, failed reads, and oversized evidence return an explicit limitation; preserve the conservative reassessment rule below instead of inventing an identity or resolving a ref yourself.
+
+Review only exact repository-relative files changed by this repair:
+
+```text
+node <installed-skill-root>/scripts/repair-git.mjs --repository <absolute-repository-root> -- review --path <written-file> [--path <written-file> ...]
+```
+
+No directories, wildcards, traversal, or pathspec magic. Read newly created files directly because the diff omits untracked content. The helper supplies mechanical evidence, not owner assessment, permission to change files, or proof that a repair is complete.
+
 ## Diagnose blocked adoption without writes
 
 Reuse current adoption evidence or run the bundled adoption-only gate once. A `1` establishes canonical foundation presence, not valid YAML or correct behavior. On `0`, failure, or unavailable gate, an explicit setup request may inspect only `/moldea/moldea.yaml`, and `/moldea/project.md` in the target repository with inert host file tools. Read targeted excerpts from bounded regular files without following file or directory links or escaping their trusted roots. Keep foundation excerpts within one 65,536-byte model-visible limit. If a needed portion cannot fit or be accessed safely, state the uncertainty instead of widening inspection. Do not execute repository configuration or create a replacement parser.
@@ -57,22 +83,15 @@ Judge a relationship from the owner's text and the path first. Read a source fil
 
 Bind the smallest coherent repair set before writing. Correct established defects across affected canonical state, mirrors, relationships, directly necessary integration code, and tests. Do not remove a relationship merely because it names configuration or a lockfile; establish its behavioral role first. Preserve unrelated work and existing valid state. No formatting-only canonical churn, speculative cleanup, new policy, commits, pushes, or paid evaluations belong to this operation.
 
-Run the affected project-native checks after correction, then launcher-backed `validate` as the final moldea command. For healthy state, make no writes and use final validation to report structure separately from semantic coverage. For validation failures, follow the entrypoint's supported recovery rule within the remaining budget; never claim a repair verified by validation that preceded its writes. A repeated repair of unchanged healthy state is a no-op.
+Run the affected project-native checks after correction, then launcher-backed `validate` as the final moldea command. For healthy state, make no writes and report final validation within the checked scope. For validation failures, follow the entrypoint's supported recovery rule within the remaining budget; never claim a repair verified by validation that preceded its writes. A repeated repair of unchanged healthy state is a no-op.
+
+During repair, never run Git directly; use the bundled repair-Git helper, including `-- verify --checkpoint <full-oid>` when commit verification is needed.
 
 ## Continue an incomplete repair
 
-When a limit is near, stop after a complete owner. Report `N of M owners checked at <commit>; continue from <owner>` with the commit and next owner identity. At that moment, record two lists in the report, not a checkpoint file: every path still uncommitted in the working tree, including this repair's corrections; and every owner whose `moldea/moldea.yaml` entry is uncommitted. Obtain the second list from one bounded diff of `moldea/moldea.yaml` against `HEAD`. If that diff cannot establish the entries, state that limitation. A CLI cursor is never a continuation point.
+When a limit is near, stop after a complete owner. Report `N of M owners checked at <commit>; continue from <owner>` with the commit and next owner identity. At that moment, record two lists in the report, not a checkpoint file: every path still uncommitted in the working tree, including this repair's corrections; and every owner whose `moldea/moldea.yaml` entry is uncommitted. Obtain the second list from the helper's bounded `uncommittedManifestDiff` against the captured commit. If that diff cannot establish the entries, state that limitation. A CLI cursor is never a continuation point.
 
-For every Git read in this procedure, use the repository-configured-helper-disabled command boundary from `evaluate-and-reconcile.md`. Precede `--no-pager` with the approved `-c` settings: `core.attributesFile=/dev/null`, `core.fsmonitor=false`, `core.pager=cat`, `filter.lfs.clean=`, `filter.lfs.process=`, `filter.lfs.required=false`, and `filter.lfs.smudge=`. Add `-c diff.external=` for each diff. After that prefix, use only these relevant argument shapes, with an explicit pathspec for every diff:
-
-```text
-diff --no-ext-diff --no-textconv --ignore-submodules=all --name-only --no-renames <commit> -- .
-diff --no-ext-diff --no-textconv --ignore-submodules=all HEAD -- moldea/moldea.yaml
-diff --no-ext-diff --no-textconv --ignore-submodules=all <commit> -- moldea/moldea.yaml
-status --porcelain=v2 -z --ignore-submodules=all --untracked-files=all
-```
-
-A later `Fix moldea` that names the continuation point runs a fresh `inspect`. Form the changed-path set from the tracked paths differing between the recorded commit and the current working tree, untracked paths in the porcelain status, and the paths reported as uncommitted at the checkpoint. `--no-renames` includes both names of a rename; comparing the commit with the working tree includes merge-resolution changes and excludes changes later undone. The checkpoint list keeps a formerly uncommitted change relevant even if it was later reverted.
+A later `Fix moldea` that names the continuation point runs a fresh `inspect`. Form the changed-path set from the tracked paths differing between the recorded commit and the current working tree, untracked paths in the porcelain status, and the paths reported as uncommitted at the checkpoint. The helper includes both names of a rename; comparing the commit with the working tree includes merge-resolution changes and excludes changes later undone. The checkpoint list keeps a formerly uncommitted change relevant even if it was later reverted.
 
 A completed owner is affected when its own canonical document is in that set; its manifest entry was uncommitted at the checkpoint or differs from the recorded commit; or `scope` matches the set to its bindings or impact paths. `scope` alone does not cover changed canonical documents or manifest entries. Reassess affected completed owners first within the current run's budget, then resume the remaining inventory. Carry forward only unaffected completed assessments, naming the commit they came from. Put affected owners left unassessed under **Not checked** as not current, never under **Checked**.
 
@@ -86,4 +105,4 @@ A fixed heap exhaustion means inspection could not finish within its memory allo
 
 After writes invalidate a snapshot, discard its cursors. Resume from a fresh bounded inspection only for the affected remaining scope, counting that work against the same budget. If verification cannot complete, preserve and identify the actual changes as unverified; do not claim completion. A resource or tooling limit cannot become a semantic pass. Report audit coverage limits without persisting them as project requirements; only established material project gaps belong in canonical unresolved state.
 
-Report concisely: **Checked**, **Fixed**, **Verified**, **Needs input**, and **Not checked**. Name actual files changed, unresolved diagnostics, unchecked connections with their reasons, assessments carried forward with their source commit, and continuation scope where applicable. Use `none` when appropriate. Distinguish structural validity, static alignment, runtime consumption, and untested live behavior. Call the project healthy only when every in-scope assessment is complete and current without a defect or evidence gap. A passing `validate` alone cannot establish health.
+Report concisely: **Checked**, **Fixed**, **Verified**, **Needs input**, and **Not checked**. Name actual files changed, unresolved diagnostics, unchecked connections with their reasons, assessments carried forward with their source commit, and continuation scope where applicable. For continuation, name each reassessed owner and the change or missing evidence that required it. Use `none` when appropriate. Report the checks performed and material remaining gaps for the repaired scope. Distinguish structural checks from static alignment within the assessed scope. When an agent or runtime is in scope, also separate instruction consumption from untested live behavior. A setup without agents or runtimes, or a documentation-format repair, needs its scoped checks and result without an unrelated live-behavior disclaimer. Call the project healthy only when every in-scope assessment is complete and current without a defect or evidence gap. A passing `validate` alone cannot establish health.

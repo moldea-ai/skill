@@ -29,7 +29,7 @@ Initialization understands the project and creates the smallest valid foundation
 /moldea/project.md
 ```
 
-Focused context, decisions, runtime guidance, agents, or unresolved requirements are created only when real project evidence justifies them. Initialization does not create an agent automatically.
+Focused context, decisions, runtime guidance, agents, or unresolved requirements are created only when real project evidence justifies them. Initialization also inventories existing agents, inline model workflows, documents, decisions, and project-owned Agent Skills. It registers evidenced agents and workflows in the same operation, asking once before registration or application-code changes unless the request already includes them. It links existing documents in place and invents no new agent responsibility.
 
 ## Create and refine agents
 

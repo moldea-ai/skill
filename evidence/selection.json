@@ -1,11 +1,11 @@
 {
   "formatVersion": 1,
   "semantic": {
-    "assetName": "semantic-sem-20261011082559564-fb5eaf09.json.gz",
+    "assetName": "semantic-sem-20261017033051969-a3d50546.json.gz",
     "classification": "official",
     "repository": "moldea-ai/skill",
-    "sha256": "8bba21fff6192c0744a1096145e2ba8486b24cc9497ec6652d571e8cea323692",
-    "tag": "evidence-20261011-adapter-retirement"
+    "sha256": "fc19b129e8cd42fac1c458014ca1c14670feaca6e5e34b2a176f589bd976e288",
+    "tag": "evidence-8.2.0-20261017"
   },
   "journeys": {
     "assetName": "journeys-20261013-da9709.json.gz",

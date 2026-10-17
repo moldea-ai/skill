@@ -6,6 +6,7 @@ import { JourneyOutcome } from '../journey-outcome/index.ts';
 import { PlatformMark } from '../platform-mark/index.ts';
 import {
   getJourneyPlatformStatus,
+  getJourneyRequestCount,
   type IScriptedJourneysWebsiteModel,
 } from '../../lib/scripted-journeys/index.ts';
 
@@ -30,45 +31,53 @@ const platforms = ['claude', 'chatgpt'] as const;
   </div>
   <ul class="divide-y divide-border">
     {
-      journeys.map((journey, index) => (
-        <li class="min-w-0">
-          <JourneyDialog
-            {model}
-            {journey}
-          >
-            <span class="grid min-w-0 gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] sm:items-center sm:gap-6">
-              <span class="flex min-w-0 items-start gap-3">
-                <span class="mt-1 font-mono text-xs text-muted-foreground">
-                  {String(offset + index + 1).padStart(2, '0')}
-                </span>
-                <span class="min-w-0">
-                  <>
-                    <span class="block font-semibold">{journey.title}</span>
-                    <span class="mt-1.5 block text-sm leading-6 font-normal text-muted-foreground">
-                      {journey.summary}
-                    </span>
-                    <span class="mt-2 flex items-center gap-1.5 text-xs font-normal text-muted-foreground">
-                      <MessageSquare
-                        class="size-3.5"
-                        aria-hidden="true"
-                      />
-                      View conversation
-                    </span>
-                  </>
-                </span>
-              </span>
-              {platforms.map((platform) => (
-                <span class="flex min-w-0 flex-wrap items-center gap-2">
-                  <span class="text-xs font-normal text-muted-foreground sm:sr-only">
-                    {platform === 'chatgpt' ? 'ChatGPT' : 'Claude'}
+      journeys.map((journey, index) => {
+        const requestCount = getJourneyRequestCount(model, journey.id);
+        return (
+          <li class="min-w-0">
+            <JourneyDialog
+              {model}
+              {journey}
+            >
+              <span class="grid min-w-0 gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] sm:items-center sm:gap-6">
+                <span class="flex min-w-0 items-start gap-3">
+                  <span class="mt-1 font-mono text-xs text-muted-foreground">
+                    {String(offset + index + 1).padStart(2, '0')}
                   </span>
-                  <JourneyOutcome status={getJourneyPlatformStatus(model, journey.id, platform)} />
+                  <span class="min-w-0">
+                    <>
+                      <span class="block font-semibold">{journey.title}</span>
+                      <span class="mt-1.5 block text-sm leading-6 font-normal text-muted-foreground">
+                        {journey.summary}
+                      </span>
+                      <span class="mt-2 flex items-center gap-1.5 text-xs font-normal text-muted-foreground">
+                        <MessageSquare
+                          class="size-3.5 shrink-0"
+                          aria-hidden="true"
+                        />
+                        <span>
+                          {requestCount} {requestCount === 1 ? 'request' : 'requests'}
+                          {!journey.current && ' · Earlier catalog'} · View conversation
+                        </span>
+                      </span>
+                    </>
+                  </span>
                 </span>
-              ))}
-            </span>
-          </JourneyDialog>
-        </li>
-      ))
+                {platforms.map((platform) => (
+                  <span class="flex min-w-0 flex-wrap items-center gap-2">
+                    <span class="text-xs font-normal text-muted-foreground sm:sr-only">
+                      {platform === 'chatgpt' ? 'ChatGPT' : 'Claude'}
+                    </span>
+                    <JourneyOutcome
+                      status={getJourneyPlatformStatus(model, journey.id, platform)}
+                    />
+                  </span>
+                ))}
+              </span>
+            </JourneyDialog>
+          </li>
+        );
+      })
     }
   </ul>
 </div>

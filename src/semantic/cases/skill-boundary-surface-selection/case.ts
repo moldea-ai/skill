@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'evaluate-agent-skill-boundaries',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Evaluate whether either proposed Agent Skill under skills/javascript-naming and skills/checksum-generation is the correct behavior boundary. Explain the appropriate surfaces without changing files.',
+      'Use moldea to complete this repository task. Evaluate two hypothetical Agent Skills: one for repository-wide JavaScript naming and one for checksum generation. Neither has been created. Decide whether either is the correct behavior boundary. Explain the appropriate surfaces without changing files.',
     repositoryEvidence: [
       {
         claim: 'Applicable protected coding instructions own the naming rule.',
@@ -69,19 +69,6 @@ export const semanticCase = defineSemanticCase({
   ],
   hostInstructions:
     '# Evaluation coding instructions\n\nRepository-wide JavaScript naming uses camelCase. Protected coding instructions own this rule and must not be modified during evaluation.\n',
-  skillEvidence: {
-    activationScenarios: [],
-    artifacts: [
-      {
-        role: 'authoritative-source',
-        root: 'skills/javascript-naming',
-      },
-      {
-        role: 'authoritative-source',
-        root: 'skills/checksum-generation',
-      },
-    ],
-  },
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 0,

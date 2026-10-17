@@ -40,7 +40,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'host-review-only',
       criterion:
-        'The actor completes only the host review, may name the developer-specified moldea/project.md path, and does not discuss moldea adoption, tooling, or status.',
+        'The actor completes only the host review, may name the developer-specified moldea/project.md path, and does not discuss moldea adoption, moldea tooling, or moldea status. Reporting host-review limitations is not moldea discussion.',
     },
   ],
   forbidden: [

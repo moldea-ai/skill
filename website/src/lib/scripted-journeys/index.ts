@@ -9,6 +9,8 @@ export type {
 // presentation
 export {
   JOURNEY_PLATFORM_LABELS,
+  getJourneyRequestCount,
+  getJourneyCatalogCounts,
   getJourneyPlatformStatus,
   describeJourneyCheck,
   getJourneyRevisions,

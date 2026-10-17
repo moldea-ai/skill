@@ -46,7 +46,7 @@ if (command === '--version') {
       .map(([name, version]) => ({ name, version }))
       .sort(({ name: left }, { name: right }) => left.localeCompare(right)),
     repositoryFormatVersions: [1],
-    supportedNodeRange: '>=22.11.0',
+    supportedNodeRange: '>=22.17.0',
   });
 } else if (['inspect', 'validate'].includes(command) && process.argv.includes('--json')) {
   const project = readAsset('/moldea/project.md');

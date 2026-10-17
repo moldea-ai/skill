@@ -67,6 +67,11 @@ const createRecordedTrial = (options: {
   confirmationIndex: 1 | 2 | 3 | null;
   passed: boolean;
 }): ISemanticRecordedTrial => ({
+  gitInvocationEvidence: {
+    invocationCount: 0,
+    hostInvocationCount: 0,
+    repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+  },
   actorExecutionEvidence: [],
   actorResponse: 'Synthetic actor response.',
   developerDirection: options.caseDefinition.input.developerDirection,

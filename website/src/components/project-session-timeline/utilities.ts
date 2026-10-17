@@ -1,3 +1,24 @@
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+
+/**
+ * Renders recorded message headings below the conversation's section heading.
+ * @returns Sanitized message HTML with its relative heading hierarchy preserved up to level six.
+ */
+export const renderProjectMessage = async (markdown: string, basePath: string): Promise<string> => {
+  const html = await renderMarkdownFragment(markdown, { basePath, localLinks: 'unwrap' });
+  let minimumDepth = 7;
+  for (const match of html.matchAll(/<h([1-6])(?=[\s>])/gu)) {
+    minimumDepth = Math.min(minimumDepth, Number(match[1]));
+  }
+  if (minimumDepth === 7) return html;
+
+  return html.replaceAll(
+    /(<\/?)h([1-6])(?=[\s>])/gu,
+    (_match, prefix: string, depth: string) =>
+      `${prefix}h${Math.min(6, Number(depth) + 3 - minimumDepth)}`,
+  );
+};
+
 /** Unwraps a recorded patch call for display while retaining other tool inputs verbatim. */
 export const formatProjectToolInput = (input: string): { source: string; language: string } => {
   const original = { source: input, language: 'javascript' };

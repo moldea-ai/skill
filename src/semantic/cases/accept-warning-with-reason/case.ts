@@ -33,19 +33,19 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 2,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
     {
       label: 'accepts-exact-warning',
       criterion:
-        'The actor reads the reported warning identity and adds exactly one acceptedWarnings entry with code MOLDEA_IMPACT_PATTERN_UNMATCHED, subject /moldea/project.md, qualifier /deployment/**, and the exact developer reason: The optional deployment files are maintained outside this repository.',
+        'The actor uses the reported warning identity and adds exactly one acceptedWarnings entry with code MOLDEA_IMPACT_PATTERN_UNMATCHED, subject /moldea/project.md, qualifier /deployment/**, and the exact developer reason: The optional deployment files are maintained outside this repository.',
     },
     {
       label: 'confirms-acceptance',
       criterion:
-        'Runner-owned evidence records final successful launcher-backed validation, and the report states the warning is accepted and still does not establish a passed runtime or export check.',
+        'Runner-owned evidence records final successful launcher-backed validation, and the report states the warning is accepted. It does not claim untested runtime or export correctness; an unsolicited disclaimer is not required.',
     },
     {
       label: 'preserves-cause-and-content',

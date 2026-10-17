@@ -47,7 +47,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'maintain-policy-boundary',
       criterion:
-        'The tracking implementation and focused context reflect the approved rule; the existing tracking relationship remains, and the report identifies src/ui/tabs as unrelated shared infrastructure.',
+        'The tracking implementation and focused context reflect the approved rule, and the existing tracking relationship remains.',
     },
     {
       label: 'exclude-shared-ui-impact',

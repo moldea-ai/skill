@@ -189,6 +189,46 @@ test('starts semantic decisions collapsed and keeps them open independently', as
   await expect(secondDecision.getByText('Developer', { exact: true }).first()).toBeVisible();
 });
 
+test('truncates unbreakable digests and wraps attempt IDs after separators at 320px', async ({
+  page,
+}) => {
+  const { semanticEvaluation } = loadWebsiteModel();
+  const latestAttempt = semanticEvaluation.attempts.at(-1);
+  if (latestAttempt === undefined) throw new Error('Expected a recorded semantic attempt.');
+  await page.setViewportSize({ height: 740, width: 320 });
+  await page.goto(toPublicPath('/evidence/semantic/'));
+
+  const attemptId = page
+    .getByRole('link', { name: /Open the results/u })
+    .first()
+    .getByText(latestAttempt.result.attemptId, { exact: true });
+  await expect(attemptId).toBeVisible();
+  expect(await attemptId.evaluate((element) => element.innerHTML)).toBe(
+    latestAttempt.result.attemptId.replaceAll('-', '-<wbr>'),
+  );
+  await expect(attemptId).not.toHaveAttribute('title');
+  await expect(attemptId).not.toHaveAttribute('data-code-text');
+
+  await page
+    .locator('details')
+    .filter({ hasText: 'Technical provenance and raw sources' })
+    .locator('summary')
+    .click();
+  const caseSuiteDigest = page.locator('dt:text-is("Case suite digest") + dd code');
+  await expect(caseSuiteDigest).toHaveText(semanticEvaluation.caseSuiteDigest);
+  await expect(caseSuiteDigest).toHaveAttribute('title', semanticEvaluation.caseSuiteDigest);
+  await expect(caseSuiteDigest).toHaveCSS('white-space', 'nowrap');
+  await expect(caseSuiteDigest).toHaveCSS('text-overflow', 'ellipsis');
+  const digestBox = await caseSuiteDigest.evaluate((element) => ({
+    client: element.clientWidth,
+    height: element.getBoundingClientRect().height,
+    lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight),
+    scroll: element.scrollWidth,
+  }));
+  expect(digestBox.height).toBeLessThanOrEqual(digestBox.lineHeight);
+  expect(digestBox.scroll).toBeGreaterThan(digestBox.client);
+});
+
 test('keeps semantic evidence accessible without JavaScript and at 320px', async ({ browser }) => {
   test.slow();
 

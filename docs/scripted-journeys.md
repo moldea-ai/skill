@@ -25,7 +25,7 @@ Either platform can run selected whole journeys from the same immutable full bun
 
 ## Prepare a run
 
-Maintainer packing and assessment require Linux or macOS, Node.js 24.15, npm, Git, `zip`, and `unzip`. The bundled harness supports Node.js 22.11 or later. No evaluation API credentials are required.
+Maintainer packing and assessment require Linux or macOS, Node.js 24.15, npm, Git, `zip`, and `unzip`. The bundled harness supports Node.js 22.17 or later. No evaluation API credentials are required.
 
 ```bash
 npm run eval:journeys -- pack --commit HEAD

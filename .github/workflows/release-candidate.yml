@@ -19,6 +19,11 @@ on:
         description: Isolated skill release version
         required: false
         type: string
+      registry_snapshot:
+        description: ISO 8601 UTC instant before which consumer dependencies resolve (empty resolves live)
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
     inputs:
       packages_ref:
@@ -29,6 +34,11 @@ on:
         description: Isolated skill release version (empty uses checkout version)
         required: false
         type: string
+      registry_snapshot:
+        description: ISO 8601 UTC instant before which consumer dependencies resolve (empty resolves live)
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -40,6 +50,9 @@ defaults:
 env:
   NODE_VERSION: 24.15.0
   PNPM_VERSION: 11.9.0
+  # retry transient registry resets in setup and consumer installs
+  npm_config_fetch_retries: '5'
+  pnpm_config_fetch_retries: '5'
 
 jobs:
   pack:
@@ -213,6 +226,30 @@ jobs:
 
       - name: Install tested package manager
         run: npm install --global --ignore-scripts "${{ matrix.package }}@${{ matrix.version }}"
+
+      # applies after the tested manager is installed, so only consumer installs are pinned
+      - name: Pin registry snapshot
+        if: ${{ inputs.registry_snapshot != '' }}
+        env:
+          REGISTRY_SNAPSHOT: ${{ inputs.registry_snapshot }}
+          TESTED_MANAGER: ${{ matrix.manager }}@${{ matrix.version }}
+        run: |
+          # pnpm and Yarn express the instant as a release age in whole minutes, rounded up
+          minutes=$(node -e '
+            const snapshot = process.env.REGISTRY_SNAPSHOT;
+            const time = Date.parse(snapshot);
+            if (Number.isNaN(time) || new Date(time).toISOString() !== snapshot)
+              throw new Error("registry_snapshot must be an ISO 8601 UTC instant.");
+            console.log(Math.ceil((Date.now() - time) / 60_000));
+          ')
+          {
+            # npm 9.0.0 accepts `before` only as a flag, failing on it from the environment
+            if [ "$TESTED_MANAGER" != 'npm@9.0.0' ]; then
+              echo "npm_config_before=$REGISTRY_SNAPSHOT"
+            fi
+            echo "pnpm_config_minimum_release_age=$minutes"
+            echo "YARN_NPM_MINIMAL_AGE_GATE=$minutes"
+          } >> "$GITHUB_ENV"
 
       - name: Exercise real candidate conformance
         env:

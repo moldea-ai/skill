@@ -43,6 +43,11 @@ describe('semantic token admission', () => {
     const checkpoint = {
       activeTrial: {
         actorEvidence: {
+          gitInvocationEvidence: {
+            invocationCount: 0,
+            hostInvocationCount: 0,
+            repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+          },
           actorExecutionEvidence: [],
           actorResourceEvidence: {
             commandCount: 0,

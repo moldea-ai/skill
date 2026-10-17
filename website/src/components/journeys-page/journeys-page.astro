@@ -2,6 +2,7 @@
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Accordion from '@moldea.ai/website-ui/accordion';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import CodeText from '@moldea.ai/website-ui/code-text';
 import { ArrowLeft, ArrowRight } from '@lucide/astro';
 import { withBase } from '@moldea.ai/website-ui/site';
 
@@ -13,6 +14,7 @@ import {
   getJourneysPage,
   getJourneyPagination,
   getJourneyProvenanceSummary,
+  getJourneyCatalogCounts,
   JOURNEYS_PAGE_SIZE,
   type IScriptedJourneysWebsiteModel,
 } from '../../lib/scripted-journeys/index.ts';
@@ -23,6 +25,7 @@ interface Props {
 }
 const { model, page = 1 } = Astro.props;
 const journeys = getJourneysPage(model, page);
+const catalogCounts = getJourneyCatalogCounts(model);
 const visibleSourceIds = new Set(
   model.cells
     .filter((cell) => journeys.some((journey) => journey.id === cell.journeyId))
@@ -109,8 +112,11 @@ const breadcrumbs = [
         class="section-title"
       >
         Explore the journeys
-      </h2><p class="text-sm text-muted-foreground">
-        {model.journeys.length} journeys · Page {page} of {Math.max(1, pages)}
+      </h2><p
+        class="text-sm text-muted-foreground"
+        data-journey-catalog-counts
+      >
+        Catalog: {catalogCounts.journeyCount} journeys · {catalogCounts.requestCount} requests
       </p>
     </div>
     <JourneysMatrix
@@ -231,7 +237,9 @@ const breadcrumbs = [
           }
           {' '}{getJourneyProvenanceSummary(model)}
         </p>
-        <p class="mt-4 font-mono text-xs break-all text-muted-foreground">{model.runId}</p>
+        <p class="mt-4 text-xs text-muted-foreground">
+          <CodeText value={model.runId} />
+        </p>
         <div class="mt-7 space-y-5">
           {
             visibleSources.map((source, index) => {
@@ -329,12 +337,13 @@ const breadcrumbs = [
                         </article>
                       ))}
                     </div>
-                    <details class="mt-6 border-t border-border pt-4 text-sm">
+                    {/* the provenance divider cancels the accordion panel's px-3 sm:px-5 */}
+                    <details class="-mx-3 mt-6 border-t border-border px-3 pt-4 text-sm sm:-mx-5 sm:px-5">
                       <>
                         <summary class="cursor-pointer font-medium">
                           Assessor identity and source hashes
                         </summary>
-                        <dl class="mt-4 space-y-3 font-mono text-xs break-all">
+                        <dl class="mt-4 space-y-3 text-xs">
                           {Object.entries({
                             'Skill commit': metadata.skill.commit,
                             'Assessor commit': assessment.assessor.commit,
@@ -344,7 +353,9 @@ const breadcrumbs = [
                           }).map(([label, value]) => (
                             <div>
                               <dt class="text-muted-foreground">{label}</dt>
-                              <dd class="mt-1">{value}</dd>
+                              <dd class="mt-1">
+                                <CodeText value={value} />
+                              </dd>
                             </div>
                           ))}
                         </dl>

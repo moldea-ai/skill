@@ -1,6 +1,8 @@
 ---
 import { ArrowRight, FileText, FolderTree, GitBranch, Link2, ShieldCheck } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
+import CodeText from '@moldea.ai/website-ui/code-text';
+import IconTile from '@moldea.ai/website-ui/icon-tile';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import { REPOSITORY_FORMAT_EXAMPLE } from './constants.ts';
@@ -64,14 +66,9 @@ const getTreeConnector = (index: number, length: number): string =>
           class="flex items-center justify-between gap-3 border-b border-current/15 px-4 py-4 sm:px-6"
         >
           <div class="flex min-w-0 items-center gap-3">
-            <span
-              class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-current/10"
-            >
-              <FolderTree
-                class="size-4"
-                aria-hidden="true"
-              />
-            </span>
+            <IconTile size="sm">
+              <FolderTree />
+            </IconTile>
             <p class="min-w-0 font-mono text-sm font-bold">Project files</p>
           </div>
           <span
@@ -88,7 +85,10 @@ const getTreeConnector = (index: number, length: number): string =>
           >
             <li>
               <div class="flex min-w-0 items-center border-b border-current/10 px-2 pb-3 font-bold">
-                <code class="min-w-0 break-all">{REPOSITORY_FORMAT_EXAMPLE.projectDirectory}</code>
+                <CodeText
+                  class="min-w-0"
+                  value={REPOSITORY_FORMAT_EXAMPLE.projectDirectory}
+                />
                 <span class="ml-auto shrink-0 text-[0.625rem] text-current/60">project root</span>
               </div>
 
@@ -100,7 +100,10 @@ const getTreeConnector = (index: number, length: number): string =>
                       aria-hidden="true"
                       >├──</span
                     >
-                    <code class="min-w-0 break-all">moldea/</code>
+                    <CodeText
+                      class="min-w-0"
+                      value="moldea/"
+                    />
                     <span class="ml-auto shrink-0 text-[0.625rem] text-current/60"
                       >project context</span
                     >
@@ -117,7 +120,10 @@ const getTreeConnector = (index: number, length: number): string =>
                           >
                             ├──
                           </span>
-                          <code class="min-w-0 break-all">{file}</code>
+                          <CodeText
+                            class="min-w-0"
+                            value={file}
+                          />
                         </li>
                       ))
                     }
@@ -128,7 +134,10 @@ const getTreeConnector = (index: number, length: number): string =>
                           aria-hidden="true"
                           >├──</span
                         >
-                        <code class="min-w-0 break-all">context/</code>
+                        <CodeText
+                          class="min-w-0"
+                          value="context/"
+                        />
                       </div>
                       <ul class="ml-3 border-s border-current/15 ps-3">
                         {
@@ -143,7 +152,10 @@ const getTreeConnector = (index: number, length: number): string =>
                                   REPOSITORY_FORMAT_EXAMPLE.contextFiles.length,
                                 )}
                               </span>
-                              <code class="min-w-0 break-all">{file}</code>
+                              <CodeText
+                                class="min-w-0"
+                                value={file}
+                              />
                             </li>
                           ))
                         }
@@ -156,7 +168,10 @@ const getTreeConnector = (index: number, length: number): string =>
                           aria-hidden="true"
                           >└──</span
                         >
-                        <code class="min-w-0 break-all">agents/</code>
+                        <CodeText
+                          class="min-w-0"
+                          value="agents/"
+                        />
                       </div>
                       <ul class="ml-3 border-s border-current/15 ps-3">
                         <li>
@@ -166,9 +181,10 @@ const getTreeConnector = (index: number, length: number): string =>
                               aria-hidden="true"
                               >└──</span
                             >
-                            <code class="min-w-0 break-all"
-                              >{REPOSITORY_FORMAT_EXAMPLE.agent.id}/</code
-                            >
+                            <CodeText
+                              class="min-w-0"
+                              value={`${REPOSITORY_FORMAT_EXAMPLE.agent.id}/`}
+                            />
                           </div>
                           <ul class="ml-3 border-s border-current/15 ps-3 text-current/70">
                             {
@@ -183,7 +199,10 @@ const getTreeConnector = (index: number, length: number): string =>
                                       REPOSITORY_FORMAT_EXAMPLE.agent.behaviorFiles.length,
                                     )}
                                   </span>
-                                  <code class="min-w-0 break-all">{file}</code>
+                                  <CodeText
+                                    class="min-w-0"
+                                    value={file}
+                                  />
                                 </li>
                               ))
                             }
@@ -201,7 +220,10 @@ const getTreeConnector = (index: number, length: number): string =>
                       aria-hidden="true"
                       >└──</span
                     >
-                    <code class="min-w-0 break-all">src/</code>
+                    <CodeText
+                      class="min-w-0"
+                      value="src/"
+                    />
                     <span class="ml-auto shrink-0 text-[0.625rem] text-current/60"
                       >implementation</span
                     >
@@ -218,7 +240,10 @@ const getTreeConnector = (index: number, length: number): string =>
                           >
                             {getTreeConnector(index, REPOSITORY_FORMAT_EXAMPLE.sourceFiles.length)}
                           </span>
-                          <code class="min-w-0 break-all">{file}</code>
+                          <CodeText
+                            class="min-w-0"
+                            value={file}
+                          />
                         </li>
                       ))
                     }
@@ -238,19 +263,17 @@ const getTreeConnector = (index: number, length: number): string =>
         {
           organizationLayers.map(({ description, detail, icon: LayerIcon, label, title }) => (
             <li class="flex h-full min-w-0 flex-col border-b border-border py-5 last:border-b-0 sm:rounded-xl sm:border sm:bg-card sm:p-6 sm:shadow-surface">
-              <div class="flex items-center gap-3">
-                <span class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted">
-                  <LayerIcon
-                    class="size-5"
-                    aria-hidden="true"
-                  />
-                </span>
-                <p class="eyebrow">{label}</p>
-              </div>
-              <h3 class="mt-4 text-xl font-semibold tracking-tight">{title}</h3>
+              <IconTile>
+                <LayerIcon />
+              </IconTile>
+              <p class="eyebrow mt-4">{label}</p>
+              <h3 class="mt-1 text-xl font-semibold tracking-tight">{title}</h3>
               <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
               <p class="mt-auto pt-4">
-                <code class="inline-code break-all">{detail}</code>
+                <CodeText
+                  class="inline-code"
+                  value={detail}
+                />
               </p>
             </li>
           ))

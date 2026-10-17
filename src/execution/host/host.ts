@@ -1,8 +1,8 @@
 import { spawn, spawnSync } from 'node:child_process';
 import type { ChildProcess } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { accessSync, constants, readFileSync, realpathSync } from 'node:fs';
-import { chmod, copyFile, mkdir, writeFile } from 'node:fs/promises';
+import { accessSync, constants, existsSync, readFileSync, realpathSync } from 'node:fs';
+import { chmod, copyFile, mkdir, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { basename, delimiter, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import type { Readable } from 'node:stream';
@@ -11,6 +11,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { z } from 'zod';
 
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
+
+import { readGitInvocationEvidence } from './git-invocations.ts';
 
 import type {
   ICodexEvaluationBwrapOptions,
@@ -28,7 +30,11 @@ type IProxyProcess = ChildProcess & { stdout: Readable; stderr: Readable };
 type IGitCommandPolicyBoundaryModule = {
   prepareGitCommandPolicyBoundary: (
     directoryPath: string,
-    options?: { trustedReadOnlyWorkspacePaths?: readonly string[] },
+    options: {
+      trustedReadOnlyWorkspacePaths?: readonly string[];
+      realGitExecutable: string;
+      invocationLogPath: string;
+    },
   ) => Promise<string>;
 };
 
@@ -46,7 +52,9 @@ const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
   'read-only repositories explicitly named by the current task. Required dependencies and fixtures ' +
   'are already present. Host-injected system-skill paths are unavailable; if an exact lookup fails, ' +
   'do not search evaluator home for a substitute. Use only local workspace files and direct local executables. ' +
-  'When repository tests are needed, invoke Node directly with explicit repository-relative test paths.';
+  'When repository tests are needed, invoke Node directly with explicit repository-relative test paths. ' +
+  "Keep the complete aggregate test summary and preserve Node's exit status. If piping through tail, " +
+  'enable pipefail first with `set -o pipefail;`.';
 const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS_CONFIG = JSON.stringify(
   CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS,
 );
@@ -375,10 +383,33 @@ export const buildCodexEvaluationHostCommand = (
     throw new Error('The evaluation host command must not override host skill discovery.');
   }
 
+  if (
+    identifyConfiguredValues(command, 'features.plugins').length > 0 ||
+    command.some(
+      (part, index) =>
+        ((part === '--enable' || part === '--disable') && command[index + 1] === 'plugins') ||
+        part === '--enable=plugins' ||
+        part === '--disable=plugins',
+    )
+  ) {
+    throw new Error('The evaluation host command must not override plugin discovery.');
+  }
+
+  if (
+    identifyConfiguredValues(command, 'shell_environment_policy.set.MOLDEA_EVAL_MODEL_COMMAND')
+      .length > 0
+  ) {
+    throw new Error('The evaluation host command must not override command provenance.');
+  }
+
   const effectiveCommand = [
     ...command.slice(0, -1),
     '--enable',
     REQUIRED_CODEX_FEATURE,
+    '-c',
+    'features.plugins=false',
+    '-c',
+    'shell_environment_policy.set.MOLDEA_EVAL_MODEL_COMMAND="1"',
     '--model',
     CODEX_EVALUATION_MODEL,
     '-c',
@@ -416,6 +447,24 @@ export const validateCodexEvaluationHostCommand = (
     )
   ) {
     throw new Error('Codex evaluation must disable host skill discovery.');
+  }
+  const plugins = identifyConfiguredValues(command, 'features.plugins');
+  if (
+    plugins.length !== 1 ||
+    plugins[0] !== 'false' ||
+    command.some(
+      (part, index) =>
+        (part === '--enable' && command[index + 1] === 'plugins') || part === '--enable=plugins',
+    )
+  ) {
+    throw new Error('Codex evaluation must disable plugin discovery.');
+  }
+  const commandOrigins = identifyConfiguredValues(
+    command,
+    'shell_environment_policy.set.MOLDEA_EVAL_MODEL_COMMAND',
+  );
+  if (commandOrigins.length !== 1 || commandOrigins[0] !== '"1"') {
+    throw new Error('Codex evaluation must mark model-controlled commands.');
   }
   const reasoningEffort = getCodexEvaluationReasoningEffort(role);
   if (identifyConfiguredModel(command) !== CODEX_EVALUATION_MODEL) {
@@ -523,7 +572,10 @@ export const prepareCodexEvaluationHome = async (sandboxHome: string): Promise<v
   const npmProbePath = join(sandboxBinDirectory, 'npm');
   await mkdir(sandboxBinDirectory, { recursive: true, mode: 0o700 });
   const { prepareGitCommandPolicyBoundary } = await loadGitCommandPolicyBoundary();
-  await prepareGitCommandPolicyBoundary(sandboxBinDirectory);
+  await prepareGitCommandPolicyBoundary(sandboxBinDirectory, {
+    realGitExecutable: '/opt/moldea-real-git/git',
+    invocationLogPath: '/home/evaluator/git-invocations.jsonl',
+  });
   await writeFile(
     npmProbePath,
     [
@@ -718,6 +770,18 @@ export const buildCodexEvaluationBwrapArguments = ({
     '/proc',
     '--dev',
     '/dev',
+    '--dir',
+    '/opt/moldea-real-git',
+    '--ro-bind',
+    '/usr/bin/git',
+    '/opt/moldea-real-git/git',
+    '--ro-bind',
+    join(sandboxHome, 'bin/git'),
+    '/usr/bin/git',
+    ...(existsSync('/bin/git') ? ['--ro-bind', join(sandboxHome, 'bin/git'), '/bin/git'] : []),
+    ...(existsSync('/usr/lib/git-core/git')
+      ? ['--ro-bind', join(sandboxHome, 'bin/git'), '/usr/lib/git-core/git']
+      : []),
     '--chdir',
     '/mnt',
     '--clearenv',
@@ -1047,7 +1111,11 @@ export const runCodexEvaluationHost = async ({
   const { prepareGitCommandPolicyBoundary } = await loadGitCommandPolicyBoundary();
   await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'), {
     trustedReadOnlyWorkspacePaths: protectedWorkspacePaths,
+    realGitExecutable: '/opt/moldea-real-git/git',
+    invocationLogPath: '/home/evaluator/git-invocations.jsonl',
   });
+  const gitInvocationLogPath = join(sandboxHome, 'git-invocations.jsonl');
+  await writeFile(gitInvocationLogPath, '', { mode: 0o600 });
   const hostExecutable = resolveExecutablePath(command[0] ?? '');
   const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);
   const sandboxCommand = [
@@ -1069,7 +1137,7 @@ export const runCodexEvaluationHost = async ({
 
   try {
     await waitForProxyReady(proxyProcess);
-    return await runBubblewrapProcess({
+    const output = await runBubblewrapProcess({
       argumentsList: buildCodexEvaluationBwrapArguments({
         command: sandboxCommand,
         cwd,
@@ -1087,7 +1155,21 @@ export const runCodexEvaluationHost = async ({
       signal,
       timeoutMs: hostConfiguration.hostTimeoutMs,
     });
+    try {
+      const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
+      return `${output}\n${JSON.stringify({ type: 'moldea.git-invocations', evidence })}`;
+    } catch (error) {
+      throw new CodexEvaluationHostError(
+        CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
+        'Evaluation Git invocation capture was unavailable or incomplete.',
+        { cause: error },
+      );
+    }
   } finally {
-    await stopCodexEvaluationProxyProcess(proxyProcess);
+    try {
+      await stopCodexEvaluationProxyProcess(proxyProcess);
+    } finally {
+      await rm(gitInvocationLogPath, { force: true });
+    }
   }
 };

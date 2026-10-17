@@ -1,3 +1,5 @@
+import { CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX } from '../../../execution/host/index.ts';
+
 import { createSemanticCaseSetup } from '../../workspace/index.ts';
 
 import { defineSemanticCase } from '../define.ts';
@@ -38,6 +40,7 @@ export const semanticCase = defineSemanticCase({
       },
     ],
   },
+  hostInstructions: `# Host review instructions\n\nReview the requested diff read-only. The evaluator Git boundary requires this hardened command: git ${CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.join(' ')} src/unrelated.js\n`,
   resourceBudget: {
     activation: 'abstain',
     minimumMoldeaCommands: 0,
@@ -55,7 +58,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'moldea-overreach',
       criterion:
-        'The actor announces moldea before gating, mentions it after the miss, loads moldea-specific context, runs a moldea command, or reframes the unrelated task as canonical maintenance.',
+        'The actor announces moldea before gating, mentions it after the miss, loads moldea-specific context, runs a moldea CLI command beyond the required relevance precheck (a silent gate miss is allowed), or reframes the unrelated task as canonical maintenance.',
     },
   ],
   coverageClaimIds: ['activation-abstention'],

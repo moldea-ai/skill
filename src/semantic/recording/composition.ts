@@ -4,10 +4,11 @@ import { z } from 'zod';
 
 import { readCompletedEvidenceRun, type IEvidenceBundle } from '../../evidence/index.ts';
 import { getEvaluationConfirmationResolution } from '../../execution/confirmation/index.ts';
-import type { ISemanticCase } from '../cases/index.ts';
+import { hasMatchingSemanticRequest, type ISemanticCase } from '../cases/index.ts';
 import {
   createSemanticResultDimensions,
   getSemanticFailureClassifications,
+  hasPassingCaseRepairGitEvidence,
   hasPassingSemanticResultDimensions,
   isSemanticConfirmationEligible,
 } from '../execution/index.ts';
@@ -17,6 +18,7 @@ import {
   type ISemanticEvaluationCaseModel,
 } from '../public-evidence/index.ts';
 import { parseSemanticRecordedCases } from './checkpoint.ts';
+import { SEMANTIC_EVIDENCE_SCHEMA_VERSION } from './constants.ts';
 import type { ISemanticRecordedCase, ISemanticRecordedTrial } from './types.ts';
 
 const CaseReviewSchema = z.strictObject({
@@ -80,7 +82,10 @@ export const loadSemanticSourceRun = async (
   }
   const evidencePath = latest.result.evidence.path;
   const evidenceRecord = z
-    .strictObject({ cases: z.unknown(), schemaVersion: z.literal(11) })
+    .strictObject({
+      cases: z.unknown(),
+      schemaVersion: z.literal(SEMANTIC_EVIDENCE_SCHEMA_VERSION),
+    })
     .parse(readArtifact(bundle, evidencePath));
   const evidenceSha256 = createJsonSha256(evidenceRecord);
   if (latest.result.evidence.sha256 !== evidenceSha256) {
@@ -127,57 +132,68 @@ const carryTrial = (options: {
   source: ISemanticSourceRun;
 }): ISemanticRecordedTrial => {
   const { caseDefinition, recordedTrial, reviewRationale, source } = options;
-  const oldTrial = recordedTrial.trial;
+  const sourceTrial = recordedTrial.trial;
+  const computedDimensions = createSemanticResultDimensions({
+    actorCommandPolicy: sourceTrial.actorCommandPolicyEvidence,
+    actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
+    gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
+    actorResourceEvidence: sourceTrial.actorResourceEvidence,
+    caseDefinition,
+    isMountIntegrityPassing: sourceTrial.dimensions.mountIntegrity,
+    isRepositoryControlPassing: sourceTrial.dimensions.repositoryControl,
+    isSemanticPassing: reviewRationale !== null || sourceTrial.dimensions.semantic,
+    judgeCommandPolicy: sourceTrial.judgeCommandPolicyEvidence,
+  });
   const dimensions = options.preserveVerdict
-    ? oldTrial.dimensions
-    : createSemanticResultDimensions({
-        actorCommandPolicy: oldTrial.actorCommandPolicyEvidence,
-        actorResourceEvidence: oldTrial.actorResourceEvidence,
-        caseDefinition,
-        isMountIntegrityPassing: oldTrial.dimensions.mountIntegrity,
-        isRepositoryControlPassing: oldTrial.dimensions.repositoryControl,
-        isSemanticPassing: reviewRationale !== null || oldTrial.dimensions.semantic,
-        judgeCommandPolicy: oldTrial.judgeCommandPolicyEvidence,
-      });
+    ? {
+        ...sourceTrial.dimensions,
+        commandPolicy: computedDimensions.commandPolicy,
+        semantic:
+          sourceTrial.dimensions.semantic &&
+          hasPassingCaseRepairGitEvidence({
+            actorCommandPolicy: sourceTrial.actorCommandPolicyEvidence,
+            actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
+            gitInvocationEvidence: recordedTrial.gitInvocationEvidence,
+            caseDefinition,
+          }),
+      }
+    : computedDimensions;
   const hasChangedVerdict =
     reviewRationale !== null ||
-    dimensions.resource !== oldTrial.dimensions.resource ||
-    dimensions.semantic !== oldTrial.dimensions.semantic;
+    dimensions.commandPolicy !== sourceTrial.dimensions.commandPolicy ||
+    dimensions.resource !== sourceTrial.dimensions.resource ||
+    dimensions.semantic !== sourceTrial.dimensions.semantic;
   const reassessment =
     reviewRationale ??
     (hasChangedVerdict
-      ? 'Resource containment was recomputed under the current case budget; the recorded semantic judgment was retained.'
+      ? 'Deterministic host-policy, repair-Git and resource checks were recomputed; the recorded judge verdict was retained.'
       : null);
-  const previousSource = oldTrial.carriedFrom;
+  const recordedSource = sourceTrial.carriedFrom;
   const recordedVerdict =
-    previousSource?.recordedVerdict ??
-    (hasChangedVerdict ? { passed: oldTrial.passed, rationale: oldTrial.rationale } : undefined);
+    recordedSource?.recordedVerdict ??
+    (hasChangedVerdict
+      ? { passed: sourceTrial.passed, rationale: sourceTrial.rationale }
+      : undefined);
   return {
     ...recordedTrial,
     trial: {
-      ...oldTrial,
+      ...sourceTrial,
       carriedFrom: {
-        attemptId: previousSource?.attemptId ?? source.attempt.attemptId,
-        artifactDigest: previousSource?.artifactDigest ?? source.attempt.artifactDigest,
-        cliVersion: previousSource?.cliVersion ?? source.attempt.cli.version,
-        evidenceSha256: previousSource?.evidenceSha256 ?? source.evidenceSha256,
-        reassessment: reassessment ?? previousSource?.reassessment ?? null,
+        attemptId: recordedSource?.attemptId ?? source.attempt.attemptId,
+        artifactDigest: recordedSource?.artifactDigest ?? source.attempt.artifactDigest,
+        cliVersion: recordedSource?.cliVersion ?? source.attempt.cli.version,
+        evidenceSha256: recordedSource?.evidenceSha256 ?? source.evidenceSha256,
+        reassessment: reassessment ?? recordedSource?.reassessment ?? null,
         ...(recordedVerdict === undefined ? {} : { recordedVerdict }),
-        version: previousSource?.version ?? source.bundle.run.version,
+        version: recordedSource?.version ?? source.bundle.run.version,
       },
-      confirmationEligible: options.preserveVerdict
-        ? oldTrial.confirmationEligible
-        : isSemanticConfirmationEligible(dimensions),
+      confirmationEligible: isSemanticConfirmationEligible(dimensions),
       dimensions,
       executionOrigin: 'carried',
-      failureClassifications: options.preserveVerdict
-        ? oldTrial.failureClassifications
-        : getSemanticFailureClassifications(dimensions),
-      passed: options.preserveVerdict
-        ? oldTrial.passed
-        : hasPassingSemanticResultDimensions(dimensions),
+      failureClassifications: getSemanticFailureClassifications(dimensions),
+      passed: hasPassingSemanticResultDimensions(dimensions),
       rationale:
-        reassessment === null ? oldTrial.rationale : `Maintainer reassessment: ${reassessment}`,
+        reassessment === null ? sourceTrial.rationale : `Maintainer reassessment: ${reassessment}`,
     },
   };
 };
@@ -198,7 +214,13 @@ const carryCase = (options: {
       source: options.source,
     }),
   );
-  if (options.preserveVerdict) return { ...options.recordedCase, trials };
+  if (
+    options.preserveVerdict &&
+    trials.every(
+      ({ trial }, index) => trial.passed === options.recordedCase.trials[index]?.trial.passed,
+    )
+  )
+    return { ...options.recordedCase, trials };
   const initialTrial = trials[0]?.trial;
   if (initialTrial === undefined) throw new Error('Semantic source case has no initial trial.');
   if (initialTrial.passed) {
@@ -288,7 +310,8 @@ export const composeSemanticRecordedCases = (options: {
       continue;
     }
     const hasChangedRequest =
-      sourceModel.developerDirection !== definition.input.developerDirection;
+      sourceModel.developerDirection === null ||
+      !hasMatchingSemanticRequest(definition, sourceModel.developerDirection);
     const hasChangedCriteria =
       JSON.stringify(sourceModel.expectedCriteria) !== JSON.stringify(definition.expected) ||
       JSON.stringify(sourceModel.forbiddenCriteria) !== JSON.stringify(definition.forbidden);

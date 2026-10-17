@@ -74,8 +74,14 @@ describe('semantic case discovery', () => {
 
     const actorPrompt = buildSemanticActorPrompt(caseDefinition);
     const judgePrompt = buildSemanticJudgePrompt({
+      gitInvocationEvidence: {
+        invocationCount: 0,
+        hostInvocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
       actorCommandPolicyEvidence: projectCodexEvaluationExecutionEvidence('').commandPolicy,
       actorExecutionEvidence: [],
+      isRepositoryControlPassing: true,
       actorResourceEvidence: {
         commandCount: 0,
         maximumInvocationByteCount: 0,
@@ -145,3 +151,48 @@ describe('semantic case discovery', () => {
     await expect(loadSemanticCases(mismatchRoot)).rejects.toThrow(/does not match id/u);
   });
 });
+
+test('repair continuations require Git presence only when comparison is needed', async () => {
+  const cases = await loadSemanticCases(import.meta.dirname);
+  const presenceRequired = new Set([
+    'repair-continuation-after-change',
+    'repair-continuation-manifest-change',
+  ]);
+  const continuations = cases.filter(({ id }) => id.startsWith('repair-continuation-'));
+  expect(continuations).toHaveLength(6);
+  for (const definition of continuations) {
+    const label = presenceRequired.has(definition.id)
+      ? 'approved-repair-git'
+      : 'repair-git-compliance';
+    expect(
+      definition.expected.some((criterion) => criterion.label === label),
+      definition.id,
+    ).toBe(true);
+    expect(buildSemanticActorPrompt(definition)).not.toContain(label);
+  }
+});
+
+const PRIVATE_CASE_IDS = [
+  'evaluate-brief-project-request',
+  'model-workflow-routing',
+  'pnpm-pnp-local-cli-provider',
+  'repair-continuation-manifest-change',
+  'routing-description-fallback',
+];
+
+test('the private inventory matches the disclosed coverage exclusions', async () => {
+  const cases = await loadSemanticCases(import.meta.dirname);
+  expect(
+    cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
+  ).toStrictEqual(PRIVATE_CASE_IDS);
+});
+
+test.each(PRIVATE_CASE_IDS)(
+  'private %s remains available for diagnostic selection',
+  async (caseId) => {
+    const cases = await loadSemanticCases(import.meta.dirname);
+    const definition = cases.find(({ id }) => id === caseId);
+    expect(definition?.publication).toBe('private');
+    expect(typeof definition?.setup).toBe('function');
+  },
+);

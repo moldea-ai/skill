@@ -162,7 +162,7 @@ test('defaults to the available provider and makes missing coverage explicit', a
   );
 });
 
-test('supports light, dark, reduced motion and narrow screens', async ({ browser }, testInfo) => {
+test('supports light, dark, reduced motion and narrow screens', async ({ browser }) => {
   for (const colorScheme of ['light', 'dark'] as const) {
     const context = await browser.newContext({ colorScheme, reducedMotion: 'reduce' });
     try {
@@ -176,10 +176,6 @@ test('supports light, dark, reduced motion and narrow screens', async ({ browser
             () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
           ),
         ).toBe(true);
-        await page.screenshot({
-          path: testInfo.outputPath(`journey-${colorScheme}-${width}.png`),
-          fullPage: true,
-        });
       }
     } finally {
       await context.close();

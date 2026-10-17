@@ -8,6 +8,16 @@ When a direct request says to create, register, and make an existing runtime age
 
 A direct change to a one-shot model's decisions or output is agent-design work even when its policy is inline and no relationship exists. Establish the actual invocation, then give that cohesive responsibility canonical instructions consumed through a real loader or necessary exact mirror. Register only evidenced runtime and impact relationships, preserve the client contract, and test instruction consumption. Do not split one workflow into artificial agents or claim provider behavior from a canned client.
 
+## Initialize existing responsibilities
+
+Explicit initialization uses this procedure to register evidenced existing agents and cohesive inline model workflows, including a one-shot model call with inline policy. Follow `continuous-maintenance.md` for the foundation, inventory, single confirmation before registration or application-code changes, larger traversal profile, and continuation. An explicit request to include the agents already authorizes the necessary canonical instruction wiring; do not require a second request to create each agent.
+
+During initialization, batch already-known project runtime, loader, schema, and focused-test files with `node <installed-skill-root>/scripts/initialization-inspection.mjs --repository <absolute-repository-root> --path <relative-file> [--path <relative-file> ...]`. One packet accepts up to eight paths, reads at most 32 KiB per file and 64 KiB in total, and performs no inventory traversal. Reuse unchanged passages instead of separate repeated reads. Missing, linked, oversized, non-text, or packet-limited sources are explicitly omitted; use existing bounded targeted tools for the necessary passages, never treat an omission as inspected evidence. The helper performs no semantic agent discovery, export certification, registration, or application write; those responsibilities remain here.
+
+For each approved responsibility, use the same grounded behavior, runtime selection, canonical assets, loader or necessary exact mirror, schemas, capabilities, relationships, and focused connection checks required here. Preserve correct existing registrations and application behavior. Complete every material invocation's canonical instruction path; registering unused instructions alone is incomplete. A workflow's steps are not separate agents merely because it calls a model more than once. Inventorying an existing Agent Skill does not authorize copying it into canonical state or assigning it to an agent without an evidenced runtime use.
+
+Treat the agents as one initialization batch. Finish their required native checks and all canonical/runtime writes before the single final initialization validation; do not validate separately after every agent. If the batch reaches a limit, retain the completed work and precise pending responsibility for “continue” under the same initialization and authorization. Keep unresolved behavior or wiring explicit; never invent a connection or weaken a test to finish the batch.
+
 ## Establish behavior before prose
 
 Establish the supported behavioral contract before drafting or broadly rewriting model-facing text. Include only material identity, purpose, responsibility, project context, inputs, outputs, rules, scope, exclusions, capabilities, variables, ambiguity, failure, escalation, routing, and quality expectations.
@@ -58,6 +68,8 @@ Use only properties supported by repository format version `1` under the active 
 
 Use the established version `1` shapes directly instead of guessing alternate nesting or logical paths. Runtime guidance is a root-owned Markdown asset under `/moldea/runtimes/`; an agent references it from `runtime.guidance`, binds the real invocation from `bindings.runtimeAgent`, and declares material source impact through `affectedBy`. The example uses `custom` only for an integration already established as Custom; complete runtime selection before applying it.
 
+This example assumes an inspected instruction loader, input/output schemas, and an order-lookup tool with real implementation and registration exports. Omit optional entries that the target implementation does not establish; never create bindings or capabilities merely to match the example. Registration alone does not prove runtime consumption, schema attachment, or tool availability.
+
 ```yaml
 version: 1
 agents:
@@ -69,6 +81,28 @@ agents:
       runtimeAgent:
         path: /src/order-triage-agent.ts
         symbol: createOrderTriageAgent
+      instructionLoader:
+        path: /src/order-triage-instructions.ts
+        symbol: loadOrderTriageInstruction
+      inputSchema:
+        path: /src/order-contracts.ts
+        symbol: OrderTriageInputSchema
+      outputSchema:
+        path: /src/order-contracts.ts
+        symbol: OrderTriageOutputSchema
+    tools:
+      lookup-order:
+        name: lookup_order
+        description: Looks up an order for human-review classification.
+        implementation:
+          path: /src/order-lookup.ts
+          symbol: lookupOrder
+        registration:
+          path: /src/order-lookup.ts
+          symbol: lookupOrderTool
+        inputSchema:
+          path: /src/order-contracts.ts
+          symbol: OrderLookupInputSchema
     affectedBy:
       - /src/order-triage-policy/**
 ```
@@ -96,7 +130,7 @@ agents:
 
 Apply `relationships.md` to every owner kind. Register only evidenced material paths and symbols that the current format represents; bindings establish relevance without a duplicate exact `affectedBy` entry.
 
-An exact `affectedBy` path must resolve to a regular file, such as `/src/order-triage-agent.ts`. Express a coherent subtree with a supported glob, such as `/src/order-triage-policy/**`. Neither `/src/order-triage-policy` nor `/src/order-triage-policy/` expresses subtree impact: removing a trailing slash does not turn a directory into a file. Choose exact files or a subtree from the inspected behavioral ownership; do not broaden everything to `/src/**`. Binding paths, mirrors, and `related` path records keep their exact-path contracts.
+An exact `affectedBy` path must resolve to a regular file, such as `/src/order-triage-policy/rules.ts`. Express a coherent subtree with a supported glob, such as `/src/order-triage-policy/**`. Neither `/src/order-triage-policy` nor `/src/order-triage-policy/` expresses subtree impact: removing a trailing slash does not turn a directory into a file. Choose exact files or a subtree from the inspected behavioral ownership; do not broaden everything to `/src/**`. Binding paths, mirrors, and `related` path records keep their exact-path contracts.
 
 When a relationship diagnostic appears, establish the field's full syntax and target-type requirements before repairing all equivalent defects in the affected change set. Preserve material relationships and unrelated declarations; never fabricate files or remove relationships merely to pass validation. Follow the entrypoint's supported recovery rule when validation reveals another defect.
 
@@ -158,7 +192,7 @@ When the developer intentionally retires an agent, remove only its exclusively d
 
 ## Verify agent readiness
 
-After all canonical, runtime, test, and relationship file writes, run the focused project-native tests that exercise every changed material invocation and canonical-loading path, including an existing focused connection test, correct any implementation or test defect, and only then run launcher-backed `validate` as the final moldea command. For repairable structural defects, follow the entrypoint's supported recovery rule: correct the complete affected contract, rerun native checks affected by the repair, and validate after the last write. Report the final status and material diagnostics, including their absence. A passing generic check or actor report is not a substitute for runner-owned focused test evidence. Review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state without loading unrelated canonical bodies.
+During initialization, verify the complete agent batch once; do not validate the foundation or individual agents separately. After all canonical, runtime, test, and relationship file writes, run the focused project-native tests that exercise every changed material invocation and canonical-loading path, including an existing focused connection test, correct any implementation or test defect, and only then run launcher-backed `validate` as the final moldea command. For repairable structural defects, follow the entrypoint's supported recovery rule: correct the complete affected contract, rerun native checks affected by the repair, and validate after the last write. Report the final status and material diagnostics, including their absence. A passing generic check or actor report is not a substitute for runner-owned focused test evidence. Review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state without loading unrelated canonical bodies.
 
 Core checks declared files and explicit TypeScript/JavaScript ESM exports. Binding coverage states exactly what passed, failed, or could not be checked; it never proves instruction consumption, runtime wiring, schema attachment, tool registration, or behavior. Preserve valid dynamic designs and report the smallest missing evidence. At agent creation, recommend a connection test asserting that the outgoing request carries the canonical instruction and schema; add it only within developer-authorized implementation.
 

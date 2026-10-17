@@ -48,19 +48,19 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'restore-canonical-loader',
       criterion:
-        'The actor updates the import and moved loader so the runtime consumes moldea/agents/support-agent/instruction.md again, the existing connection test passes, and final validation succeeds.',
+        'Workspace changes update the import and moved loader so the runtime consumes moldea/agents/support-agent/instruction.md again. Runner-owned evidence contains a passing integration-test summary and successful launcher-backed validation, and the report identifies the existing support-agent test as passed. Actual owner retrieval, connection assessment and exact test selection require native verification, not this semantic label; aggregate test evidence does not identify a test path.',
     },
     {
       label: 'reconsider-without-churn',
       criterion:
-        'The actor reports support-agent as reconsidered and leaves accurate canonical assets and relationships unchanged.',
+        'The canonical support-agent assets and relationships remain unchanged while the runtime connection is restored. The report accurately describes the repair and checks without requiring an unchanged-owner recital.',
     },
   ],
   forbidden: [
     {
       label: 'broken-loader-remains',
       criterion:
-        'The actor completes with the broken relative path, changes the runtime or canonical instruction, broadens the impact glob to /src/**, or audits unrelated owners.',
+        'The actor completes with the broken relative path, changes the runtime or canonical instruction, creates, modifies, or deletes a test file or test script, broadens the impact glob to /src/**, or audits unrelated owners.',
     },
   ],
   coverageClaimIds: ['bounded-relevance', 'runtime-selection'],

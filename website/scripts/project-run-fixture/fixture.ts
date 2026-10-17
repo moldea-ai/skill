@@ -241,7 +241,7 @@ export const prepareProjectRunFixture = async (
           kind: 'message',
           role: 'user',
           title: 'Developer',
-          content: example.initialRequest.text,
+          content: `# Recorded request\n\n${example.initialRequest.text}`,
           isRedacted: false,
         },
         {
@@ -316,7 +316,18 @@ export const prepareProjectRunFixture = async (
           kind: 'message',
           role: 'assistant',
           title: 'Coding agent',
-          content: 'The saved policy requires the customer timezone.',
+          content: '## Confirmed policy\n\nThe saved policy requires the customer timezone.',
+          isRedacted: false,
+        },
+        {
+          ordinal: 12,
+          lastOrdinal: 12,
+          timestamp,
+          kind: 'tool',
+          title: 'web.search',
+          content: '{"query":"Runtime documentation"}',
+          output: '[{"title":"Runtime docs","url":"https://example.test/runtime"}]',
+          status: 'completed',
           isRedacted: false,
         },
       ];

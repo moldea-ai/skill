@@ -16,11 +16,15 @@ test('shows attempted patch targets without presenting a failed tool result as s
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(recordedPath);
-  await expect(page.locator('[data-session-entry]')).toHaveCount(9);
+  await expect(page.locator('[data-session-entry]')).toHaveCount(10);
+  await expect(page.getByText('13 recorded events', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+  await expect(page.getByRole('heading', { level: 3, name: 'Recorded request' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 3, name: 'Confirmed policy' })).toBeVisible();
   await expect(page.locator('[data-session-role="user"]')).toContainText('Add visit reminders');
   await expect(page.locator('[data-session-role="assistant"]')).toHaveCount(2);
   const tools = page.locator('[data-session-tool]');
-  await expect(tools).toHaveCount(3);
+  await expect(tools).toHaveCount(4);
   await tools.first().getByRole('button', { name: 'Read exec call 4 and result' }).click();
   const dialog = page.getByRole('dialog', { name: 'exec · event 4' });
   await expect(dialog).toBeVisible();
@@ -40,10 +44,15 @@ test('shows attempted patch targets without presenting a failed tool result as s
   await expect(failedDialog).toContainText('Script failed: apply_patch verification failed');
   await expect(failedDialog).not.toContainText('Result · completed');
   await failedDialog.getByRole('button', { name: 'Close tool call' }).click();
-  await tools.last().getByRole('button', { name: 'Read apply_patch call 8 and result' }).click();
+  await tools.nth(2).getByRole('button', { name: 'Read apply_patch call 8 and result' }).click();
   await expect(page.getByRole('dialog', { name: 'apply_patch · event 8' })).toContainText(
     'Patch applied.',
   );
+  await page.getByRole('dialog').getByRole('button', { name: 'Close tool call' }).click();
+  await tools.last().getByRole('button', { name: 'Read web.search call 12 and result' }).click();
+  const searchDialog = page.getByRole('dialog', { name: 'web.search · event 12' });
+  await expect(searchDialog).toContainText('Runtime documentation');
+  await expect(searchDialog).toContainText('https://example.test/runtime');
 });
 
 test('shows preserved compaction context without adding conversation turns', async ({
@@ -154,7 +163,7 @@ test('keeps event numbers aligned within their rows at mobile and desktop widths
         rowRight: element.parentElement?.getBoundingClientRect().right ?? 0,
       })),
     );
-    expect(ordinals).toHaveLength(9);
+    expect(ordinals).toHaveLength(10);
     expect(
       Math.max(...ordinals.map(({ right }) => right)) -
         Math.min(...ordinals.map(({ right }) => right)),

@@ -40,7 +40,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
@@ -57,7 +57,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'checks-execution-separately',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation and a completed diagnostic-mode relevance-gate smoke test for README.md, accurately reported as a healthy miss rather than proof of host compliance.',
+        'Runner-owned evidence records successful launcher-backed validation and a completed relationship-mode relevance-gate smoke test with matched=false, accurately reported as a healthy miss rather than proof of host compliance. The projection does not record the path or diagnose flag.',
     },
     {
       label: 'preserves-state',

@@ -323,7 +323,7 @@ test('leads with project context while retaining the connected-agent example and
   await expect(cloudLink).toHaveAttribute('target', '_blank');
   await expect(cloudLink).toHaveAttribute('rel', 'noopener noreferrer');
   await expect(cloudLink).toContainText('moldea Cloud');
-  await expect(cloudLink.locator('code')).toHaveCount(0);
+  await expect(cloudLink.locator('code')).toHaveText('moldea Cloud');
   await cloudLink.focus();
   await expect(cloudLink).toBeFocused();
 

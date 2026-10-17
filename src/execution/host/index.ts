@@ -20,6 +20,8 @@ export type {
   ICodexEvaluationWorkspaceAccess,
   IMoldeaCliOperation,
   IRepositoryTestCommandKind,
+  IRepairGitCommandEvidence,
+  IRepairGitReasonCode,
 } from './types.ts';
 
 // constants
@@ -65,10 +67,13 @@ export {
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
-  identifyRepositoryTestCommandKind,
+  identifyMoldeaRepairGitMode,
+  identifyRepositoryTestCommandKinds,
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
+  hasValidRepairGitCommandEvidence,
   projectCodexEvaluationExecutionEvidence,
+  projectRepairGitCommandEvidence,
 } from './execution-evidence.ts';
 
 // Git command-policy boundary
@@ -76,7 +81,12 @@ export {
   CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
   CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
   prepareGitCommandPolicyBoundary,
+  isApprovedRepairGitArguments,
 } from './git-command-policy-boundary.ts';
 
 // restricted proxy
 export { isPublicIpAddress, parseConnectAuthority, runCodexEvaluationProxy } from './proxy.ts';
+
+// cooperative Git invocation capture
+export { GitInvocationEventSchema, GitInvocationEvidenceSchema } from './git-invocations.ts';
+export type { IGitInvocationEvidence } from './git-invocations.ts';

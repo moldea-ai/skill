@@ -47,7 +47,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'ground-exact-relationships',
       criterion:
-        'The manifest records exact affectedBy relationships from /src/invoice.js to both maintained owners because the inspected implementation materially governs their facts. The actor preserves unrelated declarations and adds no broad source glob.',
+        'The manifest records an exact material relationship from /src/invoice.js to the processing owner. The project summary may also declare that relationship when its implementation-dependent facts justify it; a navigation link alone does not require one. The actor preserves unrelated declarations and adds no broad source glob.',
     },
     {
       label: 'validate-final-state',

@@ -30,7 +30,10 @@ export const materializeFixture = async (input: {
       ).replaceAll('{{skill-path}}', '.agents/skills/moldea');
       // drift stays safely bounded by valid markers so repair has an unambiguous target
       const block = input.definition.fixture.integrationDrift
-        ? currentBlock.replace('This project uses', 'This workspace formerly used')
+        ? currentBlock.replace(
+            '<!-- moldea:end -->',
+            'Fixture integration drift.\n<!-- moldea:end -->',
+          )
         : currentBlock;
       let previous = Buffer.alloc(0);
       try {

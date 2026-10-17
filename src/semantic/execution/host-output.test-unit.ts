@@ -26,6 +26,14 @@ describe('semantic host output', () => {
         type: 'turn.completed',
         usage: { input_tokens: 7, cached_input_tokens: 2, output_tokens: 3 },
       }),
+      JSON.stringify({
+        type: 'moldea.git-invocations',
+        evidence: {
+          invocationCount: 0,
+          hostInvocationCount: 0,
+          repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+        },
+      }),
     ].join('\n');
 
     const result = parseSemanticEvaluationHostOutput(output, OPTIONS);
@@ -45,4 +53,86 @@ describe('semantic host output', () => {
       parseSemanticEvaluationHostOutput(JSON.stringify({ type: 'turn.failed' }), OPTIONS),
     ).toThrow(/operational failure/u);
   });
+});
+
+test('requires one complete invocation capture independently of actor claims', () => {
+  const response = JSON.stringify({
+    type: 'item.completed',
+    item: { type: 'agent_message', text: 'Done.' },
+  });
+  const capture = JSON.stringify({
+    type: 'moldea.git-invocations',
+    evidence: {
+      invocationCount: 0,
+      hostInvocationCount: 0,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+    },
+  });
+  expect(() => parseSemanticEvaluationHostOutput(response, OPTIONS)).toThrow('capture is missing');
+  expect(() =>
+    parseSemanticEvaluationHostOutput([response, capture, capture].join('\n'), OPTIONS),
+  ).toThrow('capture is duplicated');
+  const malformed = JSON.stringify({
+    type: 'moldea.git-invocations',
+    evidence: { invocationCount: 0 },
+  });
+  expect(() =>
+    parseSemanticEvaluationHostOutput([response, malformed].join('\n'), OPTIONS),
+  ).toThrow();
+});
+
+test('does not treat a failed wrapper capture as an empty successful log', () => {
+  const stream = [
+    {
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command: 'node task.js',
+        aggregated_output: 'MOLDEA_GIT_CAPTURE_FAILED\n',
+        exit_code: 3,
+        status: 'failed',
+      },
+    },
+    { type: 'item.completed', item: { type: 'agent_message', text: 'Stopped.' } },
+    {
+      type: 'moldea.git-invocations',
+      evidence: {
+        invocationCount: 0,
+        hostInvocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
+    },
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+  expect(() => parseSemanticEvaluationHostOutput(stream, OPTIONS)).toThrow(
+    'capture failed during actor execution',
+  );
+});
+
+test('reading wrapper source does not signal an invocation-capture failure', () => {
+  const stream = [
+    {
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command: 'cat /usr/bin/git',
+        aggregated_output: 'process.stderr.write("MOLDEA_GIT_CAPTURE_FAILED\\n");\n',
+        exit_code: 0,
+        status: 'completed',
+      },
+    },
+    { type: 'item.completed', item: { type: 'agent_message', text: 'Read the wrapper.' } },
+    {
+      type: 'moldea.git-invocations',
+      evidence: {
+        invocationCount: 0,
+        hostInvocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
+    },
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+  expect(parseSemanticEvaluationHostOutput(stream, OPTIONS).response).toBe('Read the wrapper.');
 });

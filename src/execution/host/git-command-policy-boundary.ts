@@ -1,16 +1,14 @@
 import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import {
+  REPAIR_GIT_COMMON_CONFIGURATIONS,
+  REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS,
+  REPAIR_GIT_INDEX_ARGUMENTS,
+} from '../../portable/repair-git/index.ts';
+
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
-const HARDENED_GIT_COMMON_CONFIGURATIONS = [
-  'core.attributesFile=/dev/null',
-  'core.fsmonitor=false',
-  'core.pager=cat',
-  'filter.lfs.clean=',
-  'filter.lfs.process=',
-  'filter.lfs.required=false',
-  'filter.lfs.smudge=',
-];
+const HARDENED_GIT_COMMON_CONFIGURATIONS = REPAIR_GIT_COMMON_CONFIGURATIONS;
 const HARDENED_GIT_DIFF_CONFIGURATION = 'diff.external=';
 
 const createGitConfigurationArguments = (configurations: readonly string[]): string[] =>
@@ -39,6 +37,101 @@ export const CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX = Object.freeze([
   '--ignore-submodules=all',
   '--',
 ]);
+
+/** Checks the complete hardened argument contract for a repair checkpoint Git read. */
+export const isApprovedRepairGitArguments = (argumentsList: readonly string[]): boolean => {
+  const configurations = new Set<string>();
+  let index = 0;
+  while (argumentsList[index] === '-c') {
+    const configuration = argumentsList[index + 1];
+    if (configuration === undefined || configurations.has(configuration)) return false;
+    configurations.add(configuration);
+    index += 2;
+  }
+  if (argumentsList[index++] !== '--no-pager') return false;
+  const command = argumentsList[index];
+  const expectedConfigurations =
+    command === 'diff'
+      ? [...HARDENED_GIT_COMMON_CONFIGURATIONS, HARDENED_GIT_DIFF_CONFIGURATION]
+      : HARDENED_GIT_COMMON_CONFIGURATIONS;
+  if (
+    configurations.size !== expectedConfigurations.length ||
+    !expectedConfigurations.every((configuration) => configurations.has(configuration))
+  )
+    return false;
+  const shape = argumentsList.slice(index);
+  if (command === 'config')
+    return (
+      shape.length === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS.length &&
+      shape.every(
+        (argument, position) => argument === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS[position],
+      )
+    );
+  if (command === 'cat-file')
+    return (
+      shape.length === 3 &&
+      shape[1] === '-t' &&
+      /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u.test(shape[2] ?? '')
+    );
+  if (command === 'ls-files') {
+    return (
+      shape.length === REPAIR_GIT_INDEX_ARGUMENTS.length &&
+      shape.every((argument, position) => argument === REPAIR_GIT_INDEX_ARGUMENTS[position])
+    );
+  }
+  if (command === 'status') {
+    const expected = [
+      'status',
+      '--porcelain=v2',
+      '-z',
+      '--ignore-submodules=all',
+      '--untracked-files=all',
+      '--branch',
+    ];
+    return (
+      shape.length === expected.length &&
+      shape.every((argument, position) => argument === expected[position])
+    );
+  }
+  const prefix = ['diff', '--no-ext-diff', '--no-textconv', '--ignore-submodules=all'];
+  if (!prefix.every((argument, position) => shape[position] === argument)) return false;
+  const tail = shape.slice(prefix.length);
+  if (tail[0] === '--') {
+    return (
+      tail.length > 1 &&
+      tail
+        .slice(1)
+        .every(
+          (path) =>
+            !/^[-~]/u.test(path) &&
+            !/[:\\*?[\]{}\p{Cc}]/u.test(path) &&
+            path
+              .split('/')
+              .every(
+                (segment) =>
+                  segment !== '' &&
+                  segment !== '.' &&
+                  segment !== '..' &&
+                  !EXCLUDED_DIRECTORY_NAMES.has(segment),
+              ),
+        )
+    );
+  }
+  const isChangedPaths = tail[0] === '--name-only' && tail[1] === '--no-renames';
+  const remainder = isChangedPaths ? tail.slice(tail[2] === '-z' ? 3 : 2) : tail;
+  const [commit, separator, path] = remainder;
+  return (
+    remainder.length === 3 &&
+    commit !== undefined &&
+    commit.length > 0 &&
+    !/^[-^]/u.test(commit) &&
+    !/[\s\0]/u.test(commit) &&
+    !commit.includes('..') &&
+    !/\^[!@-]/u.test(commit) &&
+    separator === '--' &&
+    path === (isChangedPaths ? '.' : 'moldea/moldea.yaml')
+  );
+};
 
 /**
  * Validates evaluator-owned workspace paths that the sandbox mounts read-only.
@@ -75,12 +168,14 @@ const TRUSTED_READ_ONLY_WORKSPACE_PATHS_PLACEHOLDER =
 const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '#!/opt/node',
   "const { spawnSync } = require('node:child_process');",
-  "const { closeSync, constants, fstatSync, lstatSync, opendirSync, openSync, readSync } = require('node:fs');",
+  "const { appendFileSync, existsSync, statSync, readlinkSync, closeSync, constants, fstatSync, lstatSync, opendirSync, openSync, readSync } = require('node:fs');",
   "const { dirname, join, resolve, sep } = require('node:path');",
   '',
   "const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);",
   `const TRUSTED_READ_ONLY_WORKSPACE_PATHS = new Set(${TRUSTED_READ_ONLY_WORKSPACE_PATHS_PLACEHOLDER});`,
   "const FILTER_ATTRIBUTE = Buffer.from('filter');",
+  'const REAL_GIT_EXECUTABLE = __REAL_GIT_EXECUTABLE__;',
+  'const INVOCATION_LOG_PATH = __INVOCATION_LOG_PATH__;',
   'const MAX_GIT_ATTRIBUTE_TRAVERSAL_DEPTH = 64;',
   'const MAX_GIT_ATTRIBUTE_TRAVERSAL_ENTRIES = 4_096;',
   'const MAX_GIT_FILE_BYTES = 32_768;',
@@ -222,7 +317,7 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '};',
   '',
   'const listIndexedAttributePaths = (repositoryRoot) => {',
-  "  const result = spawnSync('/usr/bin/git', [",
+  '  const result = spawnSync(REAL_GIT_EXECUTABLE, [',
   "    '-c',",
   "    'core.fsmonitor=false',",
   "    '--no-pager',",
@@ -235,6 +330,11 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   "    encoding: 'buffer',",
   '    env: {',
   '      ...process.env,',
+  '      GIT_LITERAL_PATHSPECS: undefined,',
+  '      GIT_GLOB_PATHSPECS: undefined,',
+  '      GIT_NOGLOB_PATHSPECS: undefined,',
+  '      GIT_ICASE_PATHSPECS: undefined,',
+  '      GIT_WORK_TREE: repositoryRoot,',
   "      GIT_ATTR_NOSYSTEM: '1',",
   "      GIT_CONFIG_GLOBAL: '/dev/null',",
   "      GIT_CONFIG_NOSYSTEM: '1',",
@@ -265,6 +365,13 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '};',
   '',
   'const assertGitAttributesAreSafe = (repositoryRoot) => {',
+  "  const attributeSource = spawnSync(REAL_GIT_EXECUTABLE, ['-c', 'core.fsmonitor=false', '--no-pager', 'config', '--null', '--get', 'attr.tree'], {",
+  '    cwd: repositoryRoot,',
+  '    encoding: "buffer",',
+  '    env: { ...process.env, GIT_WORK_TREE: repositoryRoot, GIT_ATTR_SOURCE: undefined, GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1" },',
+  '    maxBuffer: MAX_GIT_INSPECTION_BYTES,',
+  '  });',
+  '  if (attributeSource.error || attributeSource.status !== 1) throw new Error("Stored Git attribute sources are unverified.");',
   '  assertWorkingTreeAttributesAreSafe(repositoryRoot);',
   '  assertIndexAttributeFallbacksAreSafe(repositoryRoot);',
   '  const gitDirectory = resolveGitDirectory(repositoryRoot);',
@@ -397,6 +504,12 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '    return false;',
   '  }',
   '',
+  "  if (subcommand === 'config') return hasExactArguments(subcommandArguments, ['--null', '--get', 'attr.tree']);",
+  "  if (subcommand === 'cat-file') return subcommandArguments.length === 2 && subcommandArguments[0] === '-t' && GIT_OBJECT_ID_PATTERN.test(subcommandArguments[1]);",
+  "  if (subcommand === 'ls-files') {",
+  "    return hasExactArguments(subcommandArguments, ['-z', '--', '.']);",
+  '  }',
+  '',
   "  if (subcommand === 'status') {",
   '    return (',
   "      subcommandArguments.includes('--porcelain=v2') &&",
@@ -474,18 +587,40 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '  return false;',
   '};',
   '',
+  'const invocationOrigin = () => {',
+  '  if (process.env.MOLDEA_EVAL_MODEL_COMMAND === "1") return "actor";',
+  '  try { return readlinkSync(`/proc/${process.ppid}/exe`) === "/opt/codex" ? "host" : "actor"; }',
+  '  catch { return "actor"; }',
+  '};',
+  '',
   'const main = () => {',
   '  const argumentsList = process.argv.slice(2);',
-  '  if (!isApprovedGitCommand(argumentsList)) {',
+  '  const approved = isApprovedGitCommand(argumentsList);',
+  '  const record = JSON.stringify({ arguments: argumentsList, approved, origin: invocationOrigin(), releaseCli: isApprovedReleaseCliGitCommand(argumentsList) }) + "\\n";',
+  '  try {',
+  '  const size = existsSync(INVOCATION_LOG_PATH) ? statSync(INVOCATION_LOG_PATH).size : 0;',
+  '  if (size + Buffer.byteLength(record) > 1048576) {',
+  '    appendFileSync(INVOCATION_LOG_PATH, "CAPTURE_LIMIT\\n");',
+  '    throw new Error("Git invocation capture exceeded its limit.");',
+  '  }',
+  '  appendFileSync(INVOCATION_LOG_PATH, record);',
+  '  } catch {',
+  '    process.stderr.write("MOLDEA_GIT_CAPTURE_FAILED\\n");',
+  '    process.exitCode = 3;',
+  '    return;',
+  '  }',
+  '  if (!approved) {',
   "    process.stderr.write('Git command blocked: command shape is not evaluator-approved.\\n');",
   '    process.exitCode = 2;',
   '    return;',
   '  }',
   '  const repositoryRoot = findRepositoryRoot();',
   '  if (repositoryRoot !== null) assertGitAttributesAreSafe(repositoryRoot);',
-  "  const result = spawnSync('/usr/bin/git', [...SAFE_GIT_ARGUMENTS, ...argumentsList], {",
+  '  const result = spawnSync(REAL_GIT_EXECUTABLE, [...SAFE_GIT_ARGUMENTS, ...argumentsList], {',
   '    env: {',
   '      ...process.env,',
+  '      GIT_WORK_TREE: repositoryRoot ?? undefined,',
+  '      GIT_ATTR_SOURCE: undefined,',
   "      GIT_CONFIG_GLOBAL: '/dev/null',",
   "      GIT_CONFIG_NOSYSTEM: '1',",
   "      GIT_OPTIONAL_LOCKS: '0',",
@@ -512,11 +647,15 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
  */
 const createGitCommandPolicyWrapperSource = (
   trustedReadOnlyWorkspacePaths: readonly string[],
+  realGitExecutable: string,
+  invocationLogPath: string,
 ): string =>
   GIT_COMMAND_POLICY_WRAPPER_SOURCE.replace(
     TRUSTED_READ_ONLY_WORKSPACE_PATHS_PLACEHOLDER,
     JSON.stringify(trustedReadOnlyWorkspacePaths),
-  );
+  )
+    .replace('__REAL_GIT_EXECUTABLE__', JSON.stringify(realGitExecutable))
+    .replace('__INVOCATION_LOG_PATH__', JSON.stringify(invocationLogPath));
 
 /**
  * Installs the evaluator-owned Git boundary ahead of the system executable.
@@ -530,13 +669,19 @@ export const prepareGitCommandPolicyBoundary = async (
   directoryPath: string,
   {
     trustedReadOnlyWorkspacePaths = [],
+    realGitExecutable,
+    invocationLogPath,
   }: {
     trustedReadOnlyWorkspacePaths?: readonly string[];
-  } = {},
+    realGitExecutable: string;
+    invocationLogPath: string;
+  },
 ): Promise<string> => {
   const wrapperPath = join(directoryPath, 'git');
   const wrapperSource = createGitCommandPolicyWrapperSource(
     normalizeTrustedReadOnlyWorkspacePaths(trustedReadOnlyWorkspacePaths),
+    realGitExecutable,
+    invocationLogPath,
   );
   await mkdir(directoryPath, { recursive: true, mode: 0o700 });
   await writeFile(wrapperPath, wrapperSource, 'utf8');

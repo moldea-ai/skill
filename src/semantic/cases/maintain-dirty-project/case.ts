@@ -9,10 +9,11 @@ export const semanticCase = defineSemanticCase({
   operation: 'maintain-context',
   input: {
     developerDirection:
-      'Add durable billing-dispute guidance for support. Register /moldea/context/billing.md globally and assign it to support, bind it to src/billing.ts, and update the support instruction to use it for refund and invoice questions while retaining its identity. Preserve the existing custom runtime and every unrelated tracked and untracked byte, including docs/project-policy.md, README.md, src/operator-notes.ts and notes/local-observation.md. Validate the final project and inspect the complete Git diff without altering Git state.',
+      'Add durable billing-dispute guidance for support. Register /moldea/context/billing.md globally and assign it to support, declare its exact material relationship to src/billing.ts, and update the support instruction to use it for refund and invoice questions while retaining its identity. Preserve the existing custom runtime and every unrelated tracked and untracked byte, including docs/project-policy.md, README.md, src/operator-notes.ts and notes/local-observation.md. Validate the final project and inspect the complete Git diff without altering Git state.',
     repositoryEvidence: [
       {
-        claim: 'Billing implementation establishes the current refund window.',
+        claim:
+          'src/billing.ts exports refundWindowDays = 30. This establishes the configured 30-day refund window, but does not establish eligibility, the start date, or approval authority.',
         source: {
           kind: 'workspace-path',
           path: 'src/billing.ts',
@@ -48,14 +49,14 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
     {
       label: 'adds-connected-context',
       criterion:
-        'The billing context records only grounded billing guidance, is globally registered and assigned to support, and declares /src/billing.ts as its material affected path.',
+        'The billing context records only grounded billing guidance, is globally registered and assigned to support, and declares /src/billing.ts through either an exact affectedBy relationship or a binding. Both supported representations satisfy this case; if a binding is used, affectedBy must not duplicate that bound file.',
     },
     {
       label: 'updates-instruction',
@@ -70,7 +71,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validates-and-reviews',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, and the response reports the task changes, preservation of unrelated work, and actual validation result without claiming untested runtime behavior.',
+        'Runner-owned evidence records successful launcher-backed validation, and the response reports the task changes and actual validation result without claiming untested runtime behavior. Preservation is assessed from workspace and Git-control evidence, without requiring a separate recital.',
     },
   ],
   forbidden: [
@@ -82,7 +83,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'missing-relationship',
       criterion:
-        'The new context is unregistered, unassigned to support, or lacks the grounded billing affected path.',
+        'The new context is unregistered, unassigned to support, or lacks an exact material billing relationship through either affectedBy or a binding.',
     },
   ],
   coverageClaimIds: ['context-maintenance-and-compression', 'read-only-integrity'],

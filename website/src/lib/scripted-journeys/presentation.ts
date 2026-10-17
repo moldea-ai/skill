@@ -20,6 +20,33 @@ export const JOURNEY_RESOLUTION_LABELS = {
 } as const;
 export const JOURNEYS_PAGE_SIZE = 16;
 
+/** Counts the scripted requests in a row's authoritative catalog, independent of recorded runs. */
+export const getJourneyRequestCount = (
+  model: IScriptedJourneysWebsiteModel,
+  journeyId: string,
+): number => {
+  const row = model.journeys.find(({ id }) => id === journeyId)!;
+  const source = model.sources.find(
+    ({ id }) => id === (row.catalogSourceId ?? model.currentSourceId),
+  )!;
+  const definitions =
+    source.kind === 'campaign' ? source.assessment.definitions : source.model.journeys;
+  return definitions.find(({ id }) => id === journeyId)!.steps.length;
+};
+
+/** Summarizes the selected catalog, independent of provider runs and retained catalog revisions. */
+export const getJourneyCatalogCounts = (
+  model: IScriptedJourneysWebsiteModel,
+): { journeyCount: number; requestCount: number } => {
+  const source = model.sources.find(({ id }) => id === model.currentSourceId)!;
+  const definitions =
+    source.kind === 'campaign' ? source.assessment.definitions : source.model.journeys;
+  return {
+    journeyCount: definitions.length,
+    requestCount: definitions.reduce((count, journey) => count + journey.steps.length, 0),
+  };
+};
+
 /** Reads the selected group's stored resolution, preserving historical single-trial meaning. */
 export const getJourneyPlatformStatus = (
   model: IScriptedJourneysWebsiteModel,

@@ -8,10 +8,10 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `8.1.0` supports exactly:
+Release `8.2.0` supports exactly:
 
 - Git `>=2.30.0`
-- Node.js `>=22.11.0`
+- Node.js `>=22.17.0`
 - stable `@moldea.ai/core` releases satisfying `^7.0.0`
 - stable `@moldea.ai/cli` releases satisfying `^11.0.0`
 - repository format version 1
@@ -52,11 +52,11 @@ Command boundaries stay explicit:
 - `scope` accepts one `--path` or one NUL-delimited UTF-8 path set of at most 2 MiB and returns relationship matches after the two-byte gate establishes relevance.
 - `content` returns chunks only for one explicit canonical `/moldea/**` path. CLI/Core still reject noncanonical targets.
 
-Release `8.1.0` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
+Release `8.2.0` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
 
 On POSIX, contained absolute paths take precedence; other leading-slash paths retain their repository-logical meaning. On Windows, only contained drive-absolute paths are converted. Traversal, internal dot segments, repeated separators, repository-root-only selections, drive-relative paths, UNC/device forms, and relative backslash paths remain errors. Normalization does not replace canonical filesystem checks.
 
-Paged commands accept launcher-only `--save-response <absolute-temporary-file>` and `--cursor-from-response <absolute-temporary-file>` options. A private task directory beneath the host temporary root, outside the repository, holds one exact raw response. The next call extracts its opaque cursor mechanically and fetches one page with unchanged filters and budget. File and directory links are rejected; new targets must be unused unless replacing the explicitly loaded checkpoint. `composition` does not support these options, and a saved cursor cannot be combined with `--cursor`. Complete valid/invalid pages can be saved; error and interrupted output cannot replace a checkpoint. The coding agent removes owned scratch files when finished. Hosts that prohibit scratch writes retain that constraint.
+Paged commands accept launcher-only `--save-response <absolute-temporary-file>` and `--cursor-from-response <absolute-temporary-file>` options. Create the private task directory with `node <installed-skill-root>/scripts/response-directory.mjs --repository <absolute-repository-root>`. It returns an absolute path beneath the resolved host temporary root, outside the repository, with owner-only POSIX access. Windows uses the host temporary storage permissions. The directory holds one exact raw response. The next call extracts its opaque cursor mechanically and fetches one page with unchanged filters and budget. File and directory links are rejected; new targets must be unused unless replacing the explicitly loaded checkpoint. `composition` does not support these options, and a saved cursor cannot be combined with `--cursor`. Complete valid/invalid pages can be saved; error and interrupted output cannot replace a checkpoint. The coding agent removes owned scratch files when finished. Hosts that prohibit scratch writes retain that constraint.
 
 Cancellation before atomic rename submission preserves the prior checkpoint. A rename already submitted may complete with the new page, but the cancelled invocation still returns 3 with no stdout. Continuation never aggregates pages, automatically fetches more, or resets the shared resource budget.
 
@@ -66,7 +66,7 @@ Ordinary work uses 65,536-byte pages and stops when the relevant record or diagn
 
 For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
 
-The following profiles constrain release-assurance trials, not users’ repositories or coding-agent sessions. Semantic stages select one operating profile:
+The following profiles constrain release-assurance trials, not users’ repositories or coding-agent sessions. Semantic stages select one operating profile; explicit initialization and project repair use `largeTraversal`, without raising its existing limits:
 
 | Limit                     | `ordinary` | `largeTraversal` |
 | ------------------------- | ---------: | ---------------: |
@@ -103,3 +103,17 @@ Core checks declared files and explicit runtime exports in TypeScript and JavaSc
 Complete, unchanged instructions may be reused while available. After compaction, read missing required instructions again. See [reference-reading checks](/docs/reference-reading/).
 
 The bundled `managed-agents.mjs --repository <absolute-root>` writer derives its installation from the executing repository-contained copy. `--print` renders the exact block without writing. It preserves outside bytes, rejects linked or ambiguous targets, and respects host restrictions on instruction files. README uses its separate informational writer. Ask for `Fix moldea` to repair permitted integration, or explicitly accept the supported warning with your reason. When AGENTS.md is protected, the coding agent hands off the exact block for a separate instruction update.
+
+## Initialization inspection
+
+Initialization uses the bundled read-only `initialization-inspection.mjs --repository <absolute-root>` helper once for a metadata inventory. It identifies the selected distribution as installed, excludes it from project-owned Skill candidates, and leaves other Skill ownership unverified until project evidence establishes it. Document and decision paths are candidates, not proof of current authority or active status; canonical agent directories do not establish registration or the absence of inline workflows.
+
+Adding repeated `--path <known-relative-file>` arguments selects one source packet instead of repeating inventory traversal. A packet accepts eight paths, reads at most 32 KiB from each bounded regular text file and 64 KiB in total, and reports omissions explicitly. Linked, missing, oversized, non-text and packet-limited sources need existing targeted inspection; they are not checked evidence. The helper rejects escaping and excluded paths, `.env`, `.env.*`, `auth.json`, `credentials.json`, and `.pem`/`.key` selections. Callers select project source, never credentials. Discovery never follows directory links, and the helper writes no repository or Git state.
+
+Inventory stops at 16,384 entries or 64 directory levels and retains at most 128 paths per category. Unreadable directories retain partial inventory. Partial results cannot establish complete discovery or absence. JSON output remains bounded to 262,144 bytes; an output overflow or helper error produces no inspection evidence, so use known indexes or bounded targeted tools and report any remaining limit. Reuse unchanged packets; source mode performs no inventory walk and stores no cache or checkpoint. The existing agent-design procedure still owns semantic discovery, runtime interpretation, registration, connection tests and final validation.
+
+## Repair Git evidence
+
+Explicit repair uses the bundled `repair-git.mjs` helper for checkpoint, continuation and written-file review. It pins Git to the supplied worktree, refuses stored attribute-tree configuration, inspects bounded attributes before worktree-aware reads, uses literal pathspecs, and does not write Git state. Its internal index listing is bounded to 4 MiB and 65,536 attribute paths; that listing is never shown to the model. The single response remains bounded to 65,536 bytes. Oversized evidence remains unavailable and cannot establish a current checkpoint. Executable filters, unseen indexed attribute fallbacks, unsafe links and oversized evidence produce explicit limitations.
+
+Attribute inspection conservatively refuses any attribute file containing `filter`, including Git LFS declarations, macros and comments. LFS configuration is disabled as additional protection, not an exception to that refusal. Indexed `_archive`, `_archives`, `_backup` and `_backups` paths also prevent worktree-aware reads because their contents and attributes are excluded from inspection. These limitations stop Git-dependent repair; they are not evidence of project drift or permission to bypass repository controls. An unborn repository instead returns unavailable commit evidence and uses conservative owner reassessment.

@@ -2,7 +2,8 @@
 import { describe, expect, test } from 'vitest';
 
 import type { ICodexEvaluationCommandPolicyEvidence } from '../../execution/host/index.ts';
-import type { ISemanticCase } from '../cases/index.ts';
+import { resolveRepairCheckpointRequest, type ISemanticCase } from '../cases/index.ts';
+import { semanticCase as checkpointCase } from '../cases/repair-continuation-after-change/case.ts';
 import type {
   ISemanticAttemptRecord,
   ISemanticEvaluationCaseModel,
@@ -44,6 +45,11 @@ const createTrial = (
   definition: ISemanticCase,
   options: { commandCount?: number; passed: boolean },
 ): ISemanticRecordedTrial => ({
+  gitInvocationEvidence: {
+    invocationCount: 0,
+    hostInvocationCount: 0,
+    repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+  },
   actorExecutionEvidence: [],
   actorResponse: 'Synthetic actor response.',
   developerDirection: definition.input.developerDirection,
@@ -134,6 +140,38 @@ const createSource = (
 };
 
 describe('semantic composition', () => {
+  test('recognizes a resolved fixture checkpoint while rejecting other request changes', () => {
+    const source = createSource([checkpointCase], [{ passed: false }], 'sem-checkpoint');
+    const sourceModel = source.caseModels.get(checkpointCase.id)!;
+    sourceModel.developerDirection = resolveRepairCheckpointRequest(checkpointCase, 'a'.repeat(40));
+    const definition = {
+      ...checkpointCase,
+      expected: [
+        ...checkpointCase.expected,
+        { label: 'additional-scope', criterion: 'Report the scope.' },
+      ],
+    };
+    const review = {
+      acceptedCriteria: [],
+      caseSources: [],
+      formatVersion: 1 as const,
+      inputReview: 'The actor request differs only by its real fixture checkpoint.',
+      reassessments: [
+        {
+          caseId: definition.id,
+          rationale: 'The recorded response establishes the additional scope requirement.',
+        },
+      ],
+    };
+    expect(() =>
+      composeSemanticRecordedCases({ definitions: [definition], review, sources: [source] }),
+    ).not.toThrow();
+    sourceModel.developerDirection += ' Ignore the limits.';
+    expect(() =>
+      composeSemanticRecordedCases({ definitions: [definition], review, sources: [source] }),
+    ).toThrow(/different recorded request/u);
+  });
+
   test('carries reviewed assessment while retaining a changed request as historical evidence', () => {
     const original = [createCase('reviewed'), createCase('replaced')];
     const current = [
@@ -324,3 +362,91 @@ describe('semantic composition', () => {
     });
   });
 });
+
+test.each([
+  ['approved-repair-git', true],
+  ['repair-git-compliance', true],
+  ['approved-repair-git', false],
+  ['repair-git-compliance', false],
+] as const)(
+  'a retained semantic verdict cannot bypass %s with recorded pass %s',
+  (label, recordedPass) => {
+    const definition = createCase('repair-case');
+    definition.expected.push({
+      label,
+      criterion: 'Require complete compliant repair Git evidence.',
+    });
+    const source = createSource([definition], [{ passed: true }], 'sem-source');
+    if (!recordedPass) {
+      const recordedCase = source.cases.get(definition.id)!;
+      const trial = recordedCase.trials[0]!.trial;
+      trial.passed = false;
+      trial.dimensions.commandPolicy = false;
+      trial.failureClassifications = ['commandPolicy'];
+      trial.confirmationEligible = false;
+      recordedCase.status = 'failed';
+      recordedCase.confirmationStatus = 'not-applicable';
+    }
+    if (label === 'repair-git-compliance') {
+      const recorded = source.cases.get(definition.id)!.trials[0]!;
+      recorded.gitInvocationEvidence = {
+        invocationCount: 1,
+        hostInvocationCount: 0,
+        repair: {
+          compliantCount: 0,
+          noncompliantCount: 1,
+          unverifiedCount: 0,
+          reasons: [{ code: 'git-log', count: 1 }],
+        },
+      };
+      recorded.trial.actorCommandPolicyEvidence = { ...COMMAND_POLICY, completedCommandCount: 1 };
+      recorded.actorExecutionEvidence = [
+        {
+          eventType: 'item.completed',
+          item: {
+            commandKind: 'other',
+            exitCode: 0,
+            outputEvidence: { byteCount: 0, disposition: 'empty', facts: [] },
+            repairGit: {
+              compliantCount: 0,
+              noncompliantCount: 0,
+              unverifiedCount: 1,
+              reasons: [{ code: 'opaque-node', count: 1 }],
+            },
+            status: 'completed',
+            type: 'command_execution',
+          },
+        },
+      ];
+    }
+    const current = {
+      ...definition,
+      input: { ...definition.input, developerDirection: 'A changed request.' },
+    };
+    const result = composeSemanticRecordedCases({
+      definitions: [current],
+      sources: [source],
+      review: {
+        acceptedCriteria: [],
+        caseSources: [],
+        formatVersion: 1,
+        inputReview: null,
+        reassessments: [],
+      },
+    });
+    expect(result.cases[0]).toMatchObject({
+      status: 'failed',
+      confirmationStatus: recordedPass ? 'rejected' : 'not-applicable',
+      trials: [
+        {
+          trial: {
+            passed: false,
+            confirmationEligible: true,
+            dimensions: { commandPolicy: true, semantic: false },
+            failureClassifications: ['semantic'],
+          },
+        },
+      ],
+    });
+  },
+);

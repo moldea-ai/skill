@@ -1,6 +1,7 @@
 import type {
   IMoldeaCliOperation,
   IRepositoryTestCommandKind,
+  IRepairGitCommandEvidence,
 } from '../../execution/host/index.ts';
 
 // release identity required to recognize safe moldea CLI envelopes
@@ -11,6 +12,19 @@ export interface ISemanticActorExecutionEvidenceOptions {
 
 // evaluator-owned facts derived from recognized command output
 export type ISemanticActorExecutionOutputFact =
+  | {
+      kind: 'repair-git-result';
+      mode: 'checkpoint' | 'continue' | 'review' | 'verify';
+      status: 'available' | 'unavailable';
+      commitAvailable: boolean;
+      reasonCode:
+        | 'arguments'
+        | 'attribute-safety'
+        | 'git-read'
+        | 'commit-unavailable'
+        | 'output-limit'
+        | null;
+    }
   | {
       kind: 'moldea-cli-envelope';
       // schema 7 records acceptance separately; historical schemas retain their original shape
@@ -43,6 +57,10 @@ export type ISemanticActorExecutionOutputFact =
       status: 'created' | 'updated' | 'unchanged';
     }
   | {
+      kind: 'managed-agents-print-result';
+      blockSha256: string;
+    }
+  | {
       cancelledCount: 0;
       failedCount: 0;
       kind: 'node-test-summary';
@@ -50,7 +68,7 @@ export type ISemanticActorExecutionOutputFact =
       skippedCount: 0;
       status: 'passed';
       testCount: number;
-      testKind: IRepositoryTestCommandKind;
+      testKinds: IRepositoryTestCommandKind[];
       todoCount: 0;
     };
 
@@ -66,6 +84,7 @@ export interface ISemanticActorExecutionEvidence {
   eventType: 'item.completed';
   item: {
     commandKind: 'moldea' | 'other';
+    repairGit: IRepairGitCommandEvidence;
     exitCode: number;
     outputEvidence: ISemanticActorExecutionOutputEvidence;
     status: 'completed' | 'failed';

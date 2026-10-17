@@ -1,3 +1,6 @@
+// evidence contract
+export { SEMANTIC_EVIDENCE_SCHEMA_VERSION } from './constants.ts';
+
 // types
 export type {
   ISemanticActiveTrialActorEvidence,

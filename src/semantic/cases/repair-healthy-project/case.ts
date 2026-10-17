@@ -1,10 +1,28 @@
+import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+
 import { createSemanticCaseSetup } from '../../workspace/index.ts';
 
 import { defineSemanticCase } from '../define.ts';
+import type { ISemanticCaseSetup } from '../index.ts';
+
+/**
+ * Grounds the healthy owner's relationship in an actual public export contract.
+ * @returns The base fixture's tools, mounts and post-baseline hook.
+ */
+const prepareHealthyProject: ISemanticCaseSetup = async (context) => {
+  const result = await createSemanticCaseSetup('repair-healthy-project')(context);
+  await writeFile(
+    join(context.repositoryPath, 'moldea/project.md'),
+    '# Evaluation project\n\nThis synthetic project exercises bounded local moldea validation. Its project-wide state contract is the public `projectState` export in `/src/project-state.js`, whose value is the string `"active"`.\n',
+    'utf8',
+  );
+  return result;
+};
 
 export const semanticCase = defineSemanticCase({
   id: 'repair-healthy-project',
-  setup: createSemanticCaseSetup('repair-healthy-project'),
+  setup: prepareHealthyProject,
   scenario:
     'A small adopted project has aligned foundation, implementation, and local tooling when repair is requested.',
   operation: 'repair-healthy-setup',
@@ -37,7 +55,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validate-healthy-no-op',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation, the actor reports no established defect and no file changes, names /moldea/project.md and its /src/project-state.js relationship under Checked, and separates structural validity from untested semantic or runtime behavior.',
+        'Runner-owned evidence records successful launcher-backed validation, the workspace is unchanged, and the actor accurately reports no established defect and no repair. The checked scope and actual checks are clear without requiring a foundation/source recital or a particular heading. Structural validation alone must not be presented as proof of semantic correctness. No unrelated live-behavior disclaimer is required for this setup without agents or runtimes.',
     },
   ],
   forbidden: [

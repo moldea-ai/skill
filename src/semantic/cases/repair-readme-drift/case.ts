@@ -38,7 +38,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'verify-repaired-adoption',
       criterion:
-        'Runner-owned evidence records successful launcher-backed validation of the repaired setup, and the actor reports structural validity separately from unverified semantic behavior.',
+        'Runner-owned evidence records successful final launcher-backed validation of the repaired setup. The response accurately reports the README-only repair and its scoped structural checks, without claiming semantic completeness or behavioral correctness. An unrelated behavioral disclaimer is not required for this documentation-format repair.',
     },
   ],
   forbidden: [

@@ -531,3 +531,57 @@ test('proxy shutdown handles graceful, stubborn, and already-exited children', a
   await stopCodexEvaluationProxyProcess(exitedProcess, 25);
   assert.equal(exitedProcess.exitCode, 0);
 });
+
+test('host startup disables plugin discovery without allowing caller overrides', () => {
+  assert.equal(SAFE_HOST_COMMAND.filter((part) => part === 'features.plugins=false').length, 1);
+  for (const override of [
+    ['-c', 'features.plugins=true'],
+    ['--enable', 'plugins'],
+    ['--disable=plugins'],
+  ]) {
+    assert.throws(
+      () =>
+        buildCodexEvaluationHostCommand(
+          [...BASE_HOST_COMMAND.slice(0, -1), ...override, '-'],
+          'actor',
+        ),
+      /must not override plugin discovery/,
+    );
+  }
+  assert.throws(
+    () =>
+      validateCodexEvaluationHostCommand(
+        SAFE_HOST_COMMAND.filter(
+          (part, index, command) =>
+            part !== 'features.plugins=false' &&
+            !(part === '-c' && command[index + 1] === 'features.plugins=false'),
+        ),
+        'actor',
+      ),
+    /must disable plugin discovery/,
+  );
+});
+
+test('model-controlled commands carry a runner-owned provenance marker', () => {
+  const assignment = 'shell_environment_policy.set.MOLDEA_EVAL_MODEL_COMMAND="1"';
+  assert.equal(SAFE_HOST_COMMAND.filter((part) => part === assignment).length, 1);
+  assert.throws(
+    () =>
+      buildCodexEvaluationHostCommand(
+        [...BASE_HOST_COMMAND.slice(0, -1), '-c', assignment, '-'],
+        'actor',
+      ),
+    /must not override command provenance/,
+  );
+  assert.throws(
+    () =>
+      validateCodexEvaluationHostCommand(
+        SAFE_HOST_COMMAND.filter(
+          (part, index, command) =>
+            part !== assignment && !(part === '-c' && command[index + 1] === assignment),
+        ),
+        'actor',
+      ),
+    /must mark model-controlled commands/,
+  );
+});

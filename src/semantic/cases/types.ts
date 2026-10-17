@@ -53,6 +53,7 @@ export type ISemanticCaseDefinition = {
     repositoryEvidence: ISemanticRepositoryEvidenceDeclaration[];
   };
   operation: string;
+  publication?: 'private';
   resourceBudget: IMoldeaResourceBudget;
   scenario: string;
   skillEvidence?: {

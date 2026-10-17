@@ -1,5 +1,6 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { test } from 'vitest';
 
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
@@ -12,6 +13,7 @@ import {
   hasPassingMoldeaResourceContainment,
   hasValidActorExecutionEvidence,
   hasValidMoldeaResourceEvidence,
+  hasVerifiedManagedAgentsHandoff,
   projectActorExecutionEvidenceEvent as projectActorExecutionEvidenceEventRaw,
 } from './actor-evidence.ts';
 import type {
@@ -378,7 +380,11 @@ test('classifies activation and upper resource containment independently', () =>
     stdoutByteCount,
   });
   const wrongOrderEvidence = createResourceEvidence(['content', 'scope']);
-  assert.equal(hasPassingMoldeaActivation(wrongOrderEvidence, relationshipBudget), false);
+  assert.equal(hasPassingMoldeaActivation(wrongOrderEvidence, relationshipBudget), true);
+  assert.equal(
+    hasPassingMoldeaActivation(createResourceEvidence(['inspect', 'content']), relationshipBudget),
+    false,
+  );
   assert.equal(hasPassingMoldeaResourceContainment(wrongOrderEvidence, relationshipBudget), true);
 
   const blockedBudget: IMoldeaResourceBudget = {
@@ -757,6 +763,12 @@ test('projects only the passing totals from a recognized repository test', () =>
     eventType: 'item.completed',
     item: {
       commandKind: 'other',
+      repairGit: {
+        compliantCount: 0,
+        noncompliantCount: 0,
+        unverifiedCount: 1,
+        reasons: [{ code: 'opaque-node', count: 1 }],
+      },
       exitCode: 0,
       outputEvidence: {
         byteCount: Buffer.byteLength(output),
@@ -770,7 +782,7 @@ test('projects only the passing totals from a recognized repository test', () =>
             skippedCount: 0,
             status: 'passed',
             testCount: 4,
-            testKind: 'integration',
+            testKinds: ['integration'],
             todoCount: 0,
           },
         ],
@@ -801,9 +813,60 @@ test('does not project a passing summary from a prohibited package-manager comma
   assert.equal(JSON.stringify(evidence).includes('fixture@1.0.0'), false);
 });
 
+test.each([
+  ['node --test src/sdk-usage.test-unit.js src/incident-workflow.test-integration.js'],
+  [
+    'set -o pipefail; node --test --test-reporter=spec src/sdk-usage.test-unit.js src/incident-workflow.test-integration.js src/other.test-unit.js 2>&1 | tail -n 8',
+  ],
+])('retains mixed test levels without exposing test paths: %s', (command) => {
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent(command, createNodeTestOutput({ passed: 2, tests: 2 })),
+    OPTIONS,
+  );
+  assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
+  const fact = evidence.item.outputEvidence.facts[0];
+  assert.ok(fact?.kind === 'node-test-summary');
+  assert.deepEqual(fact.testKinds, ['integration', 'unit']);
+  assert.equal(fact.testCount, 2);
+  assert.equal(JSON.stringify(evidence).includes('incident-workflow'), false);
+  assert.equal(JSON.stringify(evidence).includes('sdk-usage'), false);
+});
+
+test.each([
+  [[]],
+  [['integration', 'integration']],
+  [['unit', 'integration']],
+  [['unknown']],
+  [['correctness']],
+  [['correctness', 'e2e', 'integration', 'unit', 'unit']],
+  ['integration'],
+  [null],
+])('rejects invalid projected test levels %s', (testKinds) => {
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent('node --test src/support-agent.test-integration.js', createNodeTestOutput()),
+    OPTIONS,
+  );
+  const fact = evidence.item.outputEvidence.facts[0];
+  assert.ok(fact?.kind === 'node-test-summary');
+  const forged = {
+    ...evidence,
+    item: {
+      ...evidence.item,
+      outputEvidence: { ...evidence.item.outputEvidence, facts: [{ ...fact, testKinds }] },
+    },
+  };
+  assert.equal(hasValidActorExecutionEvidence([forged], OPTIONS), false);
+});
+
 test('withholds a test-result fact unless the command and complete passing summary agree', () => {
   const passingOutput = createNodeTestOutput();
   const rejected = [
+    createEvent('node --test src/support-agent.test-integration.js | tail -n 8', passingOutput),
+    createEvent(
+      'set -o pipefail; node --test src/support-agent.test-integration.js | tail -n 8',
+      passingOutput,
+      { exitCode: 1, status: 'failed' },
+    ),
     createEvent('git status --short', passingOutput),
     createEvent(
       'node --test src/support-agent.test-integration.js',
@@ -826,6 +889,18 @@ test('withholds a test-result fact unless the command and complete passing summa
     assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
     assert.deepEqual(evidence.item.outputEvidence.facts, []);
   }
+});
+
+test.each([
+  'node --test --test-reporter=spec src/support-agent.test-integration.js 2>&1',
+  'set -o pipefail; node --test src/support-agent.test-integration.js 2>&1 | tail -n 8',
+])('projects a complete passing summary with reliable exit status: %s', (command) => {
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent(command, createNodeTestOutput()),
+    OPTIONS,
+  );
+  assert.equal(evidence.item.outputEvidence.disposition, 'projected');
+  assert.equal(evidence.item.outputEvidence.facts[0]?.kind, 'node-test-summary');
 });
 
 test('accepts the native TAP summary form and bounds recognized test output', () => {
@@ -878,6 +953,12 @@ test('preserves a source-recorded too-large classification after the operating p
     eventType: 'item.completed',
     item: {
       commandKind: 'other',
+      repairGit: {
+        compliantCount: 0,
+        noncompliantCount: 0,
+        unverifiedCount: 1,
+        reasons: [{ code: 'opaque-node', count: 1 }],
+      },
       exitCode: 0,
       outputEvidence: {
         byteCount: 65_537,
@@ -908,6 +989,7 @@ test('rejects obsolete and malformed launcher command forms', () => {
     'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs validate --repository /mnt -- --json --max-output-bytes 65536',
     createLauncherCommand(
       'scope',
+      '--paths-stdin',
       '--path',
       '/src/example.ts',
       '--json',
@@ -941,7 +1023,7 @@ test('rejects obsolete and malformed launcher command forms', () => {
   }
 });
 
-test('enforces activation-specific moldea operation ordering', () => {
+test('requires relevant scope without enforcing incidental operation order', () => {
   const empty = createMoldeaResourceEvidence([], OPTIONS);
   assert.equal(
     hasPassingMoldeaResourceBudget(empty, {
@@ -974,7 +1056,7 @@ test('enforces activation-specific moldea operation ordering', () => {
         maximumMoldeaOutputBytes: 262_144,
       },
     ),
-    false,
+    true,
   );
   assert.equal(
     hasPassingMoldeaResourceBudget(
@@ -1048,4 +1130,213 @@ test('projects only completed AGENTS write facts and no diagnostic failure hit',
     );
     assert.deepEqual(result.item.outputEvidence.facts, []);
   }
+});
+
+test('projects a bounded print hash and verifies only the matching single handoff block', () => {
+  const block = '<!-- moldea:start -->\n\nUse the installed skill.\n<!-- moldea:end -->';
+  const command =
+    'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt --print';
+  const evidence = projectActorExecutionEvidenceEvent(createEvent(command, `${block}\n`), OPTIONS);
+  assert.deepEqual(evidence.item.outputEvidence.facts, [
+    {
+      kind: 'managed-agents-print-result',
+      blockSha256: createHash('sha256').update(block).digest('hex'),
+    },
+  ]);
+  assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
+  assert.equal(JSON.stringify(evidence).includes('Use the installed skill.'), false);
+  assert.deepEqual(createMoldeaResourceEvidence([evidence], OPTIONS).operations, []);
+  for (const response of [
+    block,
+    ['Handoff:', '', '```markdown', block, '```'].join('\n'),
+    block.replaceAll('\n', '\r\n'),
+    'Use the <!-- moldea:start --> and <!-- moldea:end --> markers.\n\n' + block,
+  ]) {
+    assert.equal(hasVerifiedManagedAgentsHandoff([evidence], response), true);
+  }
+  for (const response of ['', block.replace('installed', 'other'), `${block}\n${block}`]) {
+    assert.equal(hasVerifiedManagedAgentsHandoff([evidence], response), false);
+  }
+  assert.equal(hasVerifiedManagedAgentsHandoff([], block), false);
+  const writeEvidence = projectActorExecutionEvidenceEvent(
+    createEvent(command.replace(' --print', ''), 'unchanged\n'),
+    OPTIONS,
+  );
+  assert.equal(hasVerifiedManagedAgentsHandoff([writeEvidence], block), false);
+});
+
+test('rejects failed, opaque, oversized and malformed helper print observations', () => {
+  const block = '<!-- moldea:start -->\n\nUse the installed skill.\n<!-- moldea:end -->\n';
+  const command =
+    'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt --print';
+  for (const [actualCommand, output, exitCode] of [
+    [command, block, 1],
+    [command.replace('managed-agents.mjs', 'other.mjs'), block, 0],
+    [command, `unexpected\n${block}`, 0],
+    [command, `${block}unexpected\n`, 0],
+    [command, `${block}${block}`, 0],
+    [command, block.replace('<!-- moldea:end -->', ''), 0],
+    [
+      command,
+      block.replace(
+        'Use the installed skill.',
+        'x'.repeat(MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes),
+      ),
+      0,
+    ],
+  ] as const) {
+    const evidence = projectActorExecutionEvidenceEvent(
+      createEvent(actualCommand, output, { exitCode }),
+      OPTIONS,
+    );
+    assert.deepEqual(evidence.item.outputEvidence.facts, []);
+    assert.equal(hasVerifiedManagedAgentsHandoff([evidence], block), false);
+    if (Buffer.byteLength(output) > MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes) {
+      assert.equal(evidence.item.outputEvidence.disposition, 'too-large');
+    }
+  }
+  const evidence = projectActorExecutionEvidenceEvent(createEvent(command, block), OPTIONS);
+  for (const fact of [
+    { kind: 'managed-agents-print-result', blockSha256: 'invalid' },
+    { kind: 'managed-agents-print-result' },
+    { kind: 'managed-agents-print-result', blockSha256: 'a'.repeat(64), extra: true },
+  ]) {
+    assert.equal(
+      hasValidActorExecutionEvidence(
+        [
+          {
+            ...evidence,
+            item: {
+              ...evidence.item,
+              outputEvidence: { ...evidence.item.outputEvidence, facts: [fact] },
+            },
+          },
+        ],
+        OPTIONS,
+      ),
+      false,
+    );
+  }
+  assert.equal(
+    hasValidActorExecutionEvidence(
+      [
+        {
+          ...evidence,
+          item: {
+            ...evidence.item,
+            outputEvidence: { ...evidence.item.outputEvidence, byteCount: 1 },
+          },
+        },
+      ],
+      OPTIONS,
+    ),
+    false,
+  );
+  assert.equal(
+    hasValidActorExecutionEvidence(
+      [{ ...evidence, item: { ...evidence.item, exitCode: 1 } }],
+      OPTIONS,
+    ),
+    false,
+  );
+});
+
+test('records failed Git attempts independently of empty output and rejects missing metadata', () => {
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent('git status --short', '', { exitCode: 128, status: 'failed' }),
+    OPTIONS,
+  );
+  assert.deepEqual(evidence.item.repairGit, {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
+  });
+  assert.equal(evidence.item.outputEvidence.disposition, 'empty');
+  const { repairGit, ...item } = evidence.item;
+  assert.equal(hasValidActorExecutionEvidence([{ ...evidence, item }], OPTIONS), false);
+  for (const invalid of [
+    { ...repairGit, unverifiedCount: -1 },
+    { ...repairGit, compliantCount: 1.5 },
+    { ...repairGit, extra: true },
+    { ...repairGit, reasons: [] },
+    { ...repairGit, reasons: [{ code: 'unknown', count: 1 }] },
+    { ...repairGit, compliantCount: Number.MAX_SAFE_INTEGER },
+  ]) {
+    assert.equal(
+      hasValidActorExecutionEvidence(
+        [{ ...evidence, item: { ...evidence.item, repairGit: invalid } }],
+        OPTIONS,
+      ),
+      false,
+    );
+  }
+});
+
+test('projects bounded repair helper results without paths, diffs or commit values', () => {
+  const command =
+    'node /mnt/.agents/skills/moldea/scripts/repair-git.mjs --repository /mnt -- checkpoint';
+  const output = {
+    kind: 'moldea-repair-git',
+    mode: 'checkpoint',
+    status: 'available',
+    commit: 'a'.repeat(40),
+    uncommittedPaths: ['private.js'],
+    changedPaths: ['private.js'],
+    manifestDiff: '',
+    uncommittedManifestDiff: 'private body',
+    writtenDiff: '',
+  };
+  const result = projectActorExecutionEvidenceEvent(
+    createEvent(command, JSON.stringify(output)),
+    OPTIONS,
+  );
+  assert.deepEqual(result.item.outputEvidence.facts, [
+    {
+      kind: 'repair-git-result',
+      mode: 'checkpoint',
+      status: 'available',
+      commitAvailable: true,
+      reasonCode: null,
+    },
+  ]);
+  assert.equal(hasValidActorExecutionEvidence([result], OPTIONS), true);
+  assert.equal(JSON.stringify(result).includes('private'), false);
+  for (const invalid of [
+    { ...output, commit: 'HEAD' },
+    { ...output, changedPaths: null },
+    { ...output, unexpected: true },
+  ]) {
+    assert.deepEqual(
+      projectActorExecutionEvidenceEvent(createEvent(command, JSON.stringify(invalid)), OPTIONS)
+        .item.outputEvidence.facts,
+      [],
+    );
+  }
+  const unavailable = {
+    kind: 'moldea-repair-git',
+    mode: 'checkpoint',
+    status: 'unavailable',
+    reasonCode: 'commit-unavailable',
+    reason: 'No commit.',
+  };
+  const failure = projectActorExecutionEvidenceEvent(
+    createEvent(command, JSON.stringify(unavailable), { exitCode: 1, status: 'failed' }),
+    OPTIONS,
+  );
+  assert.deepEqual(failure.item.outputEvidence.facts, [
+    {
+      kind: 'repair-git-result',
+      mode: 'checkpoint',
+      status: 'unavailable',
+      commitAvailable: false,
+      reasonCode: 'commit-unavailable',
+    },
+  ]);
+  assert.equal(hasValidActorExecutionEvidence([failure], OPTIONS), true);
+  assert.deepEqual(
+    projectActorExecutionEvidenceEvent(createEvent(command, JSON.stringify(unavailable)), OPTIONS)
+      .item.outputEvidence.facts,
+    [],
+  );
 });

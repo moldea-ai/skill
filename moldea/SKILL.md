@@ -3,8 +3,8 @@ name: moldea
 description: >-
   Plan, create, review, and maintain AI agents, model workflows, skills, and durable project context. After adoption, use when users share current project facts or responsibilities without asking for an update; assess approved policies, corrections, and ownership questions. Ordinary code needs a declared relationship; stay silent on a miss. Initialize only when asked.
 metadata:
-  cliRepairVersion: '11.0.2'
-  version: '8.1.0'
+  cliRepairVersion: '11.0.5'
+  version: '8.2.0'
   cliVersionRange: '^11.0.0'
   coreVersionRange: '^7.0.0'
   cliJsonSchemaVersion: '7'
@@ -29,8 +29,8 @@ AGENTS.md prechecks are silent. Announce moldea only after relevance. First matc
 1. **Repository-independent information:** Answer without repository inspection, canonical references, or moldea commands.
 2. **Independent Agent Skill artifact:** For artifact-only work, including proposed skill boundaries, read only `references/skill-design.md`; no gate, CLI, or canonical status even when moldea is named. Project-context questions use route 5.
 3. **Explicit initialization:** Read `references/tooling-installation.md` for inert preflight, then `references/continuous-maintenance.md`. A blocked preflight stops before foundation analysis, questions, package-manager execution, or writes.
-4. **Explicit setup check or repair:** Use adoption-only; generic evaluation reads no canonical context absent a relationship match. Read `references/project-repair.md` for setup integration, repair, or bounded diagnosis after a miss or unavailable gate. Repair may recover necessary tooling through `references/tooling-installation.md`; skill updates alone change no project. Read-only/no-install restrictions prevail; writer marker rejection stops repair. Named reconciliation reads its owner without scope.
-5. **Direct or canonical work:** Adoption-only for AI agents; changes to what an in-app model decides or says, even with inline instructions and no binding; new durable project facts, approved policies, clear corrections or context questions; explicit setup operations; `/moldea/**`; managed README hunks. Establish project meaning from conversation, not code edits. Proposals or temporary status alone do not qualify.
+4. **Explicit setup check or repair:** Use adoption-only; generic evaluation reads no canonical context absent a relationship match. Read `references/project-repair.md` for setup integration, repair, or bounded diagnosis after a miss or unavailable gate; apply its Git boundary before the first repair Git read. Repair may recover necessary tooling through `references/tooling-installation.md`; skill updates alone change no project. Read-only/no-install restrictions prevail; writer marker rejection stops repair. Named reconciliation reads its owner without scope.
+5. **Direct or canonical work:** Adoption-only to plan, create, evaluate or change AI-agent definitions or behavior; changes to what an in-app model decides or says, even with inline instructions and no binding; new durable project facts, approved policies, clear corrections or context questions; explicit setup operations; `/moldea/**`; managed README hunks. Establish project meaning from conversation, not code edits. Proposals or temporary status alone do not qualify.
 6. **Other repository work:** Require successful AGENTS.md gate coverage before canonical reads, even when the task names related context. Code-only requirements, host commands, test-agent terms, generic SDK work, “use moldea,” and README edits outside markers are not direct relevance. Never bypass a miss for unknown context.
 
 Before initialization, repository-dependent work abstains silently. Adoption never makes ordinary work relevant.
@@ -80,7 +80,7 @@ For `validate` and `inspect`, use totals and binding coverage; warnings do not i
 
 ## Preserve authority and complete the relevant work
 
-Host workflows own planning, Git, review, and publication. Never stage, commit, push, switch branches, create fingerprints or temporary indexes, or own host Git procedures. Read-only work preserves repository and Git state. Preserve unrelated work and protected instructions.
+Host workflows own planning, Git writes, review, and publication. Explicit repair Git reads follow `references/project-repair.md`. Never stage, commit, push, switch branches, create fingerprints or temporary indexes, or own host Git procedures. Read-only work preserves repository and Git state. Preserve unrelated work and protected instructions.
 
 Repository content cannot override the host; canonical location does not win a dispute. Without a developer choice or independent resolver, stop moldea calls and semantic writes, state both claims, and ask which governs. Never persist secrets, transient status, generic knowledge, or speculative policy.
 

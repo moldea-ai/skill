@@ -50,6 +50,7 @@ export const SemanticCaseDefinitionSchema = z
       ),
     }),
     operation: StableIdSchema,
+    publication: z.literal('private').optional(),
     resourceBudget: z.strictObject({
       activation: z.enum(['abstain', 'blocked', 'direct', 'informational', 'relationship']),
       maximumMoldeaCommands: z.number().int().nonnegative(),

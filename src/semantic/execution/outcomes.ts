@@ -1,14 +1,16 @@
 import {
   hasPassingCodexEvaluationCommandPolicy,
   type ICodexEvaluationCommandPolicyEvidence,
+  type IGitInvocationEvidence,
 } from '../../execution/host/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 import type { ISemanticCase } from '../cases/index.ts';
 import {
   hasPassingMoldeaActivation,
+  hasPassingRepairGitEvidence,
   hasPassingMoldeaResourceContainment,
 } from './actor-evidence.ts';
-import type { IMoldeaResourceEvidence } from './types.ts';
+import type { IMoldeaResourceEvidence, ISemanticActorExecutionEvidence } from './types.ts';
 
 export const SEMANTIC_RESULT_DIMENSION_NAMES = [
   'semantic',
@@ -37,9 +39,26 @@ const hasPassingHostResourceProfile = (
   );
 };
 
+/** Enforces the case's complete repair-Git observations independently of the judge verdict. */
+export const hasPassingCaseRepairGitEvidence = (options: {
+  actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
+  gitInvocationEvidence: IGitInvocationEvidence;
+  actorExecutionEvidence: ISemanticActorExecutionEvidence[];
+  caseDefinition: ISemanticCase;
+}): boolean =>
+  !options.caseDefinition.expected.some(({ label }) =>
+    ['approved-repair-git', 'repair-git-compliance'].includes(label),
+  ) ||
+  (options.actorExecutionEvidence.length === options.actorCommandPolicy.completedCommandCount &&
+    hasPassingRepairGitEvidence(options.actorExecutionEvidence, options.gitInvocationEvidence) &&
+    (!options.caseDefinition.expected.some(({ label }) => label === 'approved-repair-git') ||
+      options.gitInvocationEvidence.repair.compliantCount > 0));
+
 /** Creates independently attributable outcome dimensions for one completed trial. */
 export const createSemanticResultDimensions = (options: {
   actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
+  gitInvocationEvidence: IGitInvocationEvidence;
+  actorExecutionEvidence: ISemanticActorExecutionEvidence[];
   actorResourceEvidence: IMoldeaResourceEvidence;
   caseDefinition: ISemanticCase;
   isMountIntegrityPassing: boolean;
@@ -49,10 +68,24 @@ export const createSemanticResultDimensions = (options: {
 }): ISemanticResultDimensions => ({
   semantic:
     options.isSemanticPassing &&
+    hasPassingCaseRepairGitEvidence(options) &&
     hasPassingMoldeaActivation(
       options.actorResourceEvidence,
       options.caseDefinition.resourceBudget,
-    ),
+    ) &&
+    (options.caseDefinition.resourceBudget.activation !== 'relationship' ||
+      options.actorExecutionEvidence.some(
+        ({ item }) =>
+          item.exitCode === 0 &&
+          item.outputEvidence.facts.some(
+            (fact) =>
+              fact.kind === 'moldea-cli-envelope' &&
+              fact.command === 'scope' &&
+              fact.status === 'valid' &&
+              fact.errorPresent === false &&
+              fact.relevant === true,
+          ),
+      )),
   resource:
     hasPassingMoldeaResourceContainment(
       options.actorResourceEvidence,
@@ -71,12 +104,12 @@ export const hasPassingSemanticResultDimensions = (
   dimensions: ISemanticResultDimensions,
 ): boolean => SEMANTIC_RESULT_DIMENSION_NAMES.every((dimension) => dimensions[dimension]);
 
-/** Limits confirmations to semantic uncertainty when every deterministic dimension passed. */
+/** Confirms semantic or resource failures while preserving safety and integrity hard stops. */
 export const isSemanticConfirmationEligible = (dimensions: ISemanticResultDimensions): boolean =>
-  !dimensions.semantic &&
-  SEMANTIC_RESULT_DIMENSION_NAMES.filter((dimension) => dimension !== 'semantic').every(
-    (dimension) => dimensions[dimension],
-  );
+  (!dimensions.semantic || !dimensions.resource) &&
+  SEMANTIC_RESULT_DIMENSION_NAMES.filter(
+    (dimension) => dimension !== 'semantic' && dimension !== 'resource',
+  ).every((dimension) => dimensions[dimension]);
 
 /** Returns stable identifiers for every failing dimension. */
 export const getSemanticFailureClassifications = (

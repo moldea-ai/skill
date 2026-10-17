@@ -1,13 +1,14 @@
 ---
 import { Clock3, FilePenLine, SquareTerminal, UserRound } from '@lucide/astro';
 import CodeBlock from '@moldea.ai/website-ui/code-block';
+import CodeText from '@moldea.ai/website-ui/code-text';
 import Dialog from '@moldea.ai/website-ui/dialog';
-import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import IconTile from '@moldea.ai/website-ui/icon-tile';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import type { IProjectSessionEntry } from '../../lib/project-runs/types.ts';
 
-import { formatProjectToolInput } from './utilities.ts';
+import { formatProjectToolInput, renderProjectMessage } from './utilities.ts';
 
 interface Props {
   entries: IProjectSessionEntry[];
@@ -18,10 +19,7 @@ const skillMarkPath = withBase('/logo/icon-xs-light.png', import.meta.env.BASE_U
 const messageHtml = await Promise.all(
   entries.map((entry) =>
     entry.kind === 'message' && entry.role !== 'developer'
-      ? renderMarkdownFragment(entry.content, {
-          basePath: import.meta.env.BASE_URL,
-          localLinks: 'unwrap',
-        })
+      ? renderProjectMessage(entry.content, import.meta.env.BASE_URL)
       : null,
   ),
 );
@@ -63,7 +61,7 @@ const ordinalClass = 'shrink-0 whitespace-nowrap font-mono text-xs text-muted-fo
               <div class="flex min-w-0 items-center gap-2">
                 <span
                   class:list={[
-                    'inline-flex size-8 items-center justify-center rounded-lg',
+                    'inline-flex size-8 items-center justify-center rounded-full',
                     entry.role === 'assistant'
                       ? 'bg-secondary text-foreground'
                       : 'bg-foreground text-background',
@@ -99,6 +97,7 @@ const ordinalClass = 'shrink-0 whitespace-nowrap font-mono text-xs text-muted-fo
             </div>
             <div
               class="prose-moldea prose-moldea-wrap-code replay-markdown min-w-0 text-sm leading-7 sm:text-base"
+              data-code-copy="false"
               set:html={messageHtml[index]}
             />
           </article>
@@ -134,7 +133,7 @@ const ordinalClass = 'shrink-0 whitespace-nowrap font-mono text-xs text-muted-fo
                 <ul class="mt-1.5 flex min-w-0 flex-wrap gap-1.5 text-xs">
                   {entry.patchTargets.map(({ action, path }) => (
                     <li class="max-w-full rounded-md bg-secondary px-2 py-1 text-foreground">
-                      {action} <code class="break-all">{path}</code>
+                      {action} <CodeText value={path} />
                     </li>
                   ))}
                 </ul>
@@ -315,13 +314,10 @@ const ordinalClass = 'shrink-0 whitespace-nowrap font-mono text-xs text-muted-fo
           </article>
         ) : (
           <div class="flex min-h-9 items-start gap-3 py-1 pr-4 text-xs text-muted-foreground sm:pr-5">
-            <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
-              <span class="inline-flex size-7 items-center justify-center rounded-full border border-border bg-background">
-                <Clock3
-                  class="size-3.5"
-                  aria-hidden="true"
-                />
-              </span>
+            <IconTile size="sm">
+              <Clock3 />
+            </IconTile>
+            <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 pt-2">
               <span class="font-semibold text-foreground">{entry.title}</span>
               {entry.content && <span>{entry.content}</span>}
             </div>

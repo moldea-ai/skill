@@ -4,16 +4,16 @@
 
 [Get moldea on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or read the complete documentation at [skill.moldea.ai](https://skill.moldea.ai).
 
-The latest release is `8.1.0`. Install the latest version from `main` inside each repository that will use it:
+This checkout targets release `8.2.0`. Install the latest published version from `main` inside each repository that will use it:
 
 ```bash
 npx skills add moldea-ai/skill
 ```
 
-For a reproducible installation, pin the immutable release:
+For a reproducible installation, pin the immutable release after publication:
 
 ```bash
-npx skills add "moldea-ai/skill#v8.1.0"
+npx skills add "moldea-ai/skill#v8.2.0"
 ```
 
 Both commands install the portable skill named `moldea`. They do not install the CLI globally or require a hosted account. See [Getting started](docs/getting-started.md) for initialization, updates, and removal.
@@ -73,10 +73,10 @@ Evaluation is read-only. Repair checks every owner, its material implementation 
 
 ## Compatibility
 
-Release `8.1.0` supports exactly:
+Release `8.2.0` supports exactly:
 
 - Git `>=2.30.0`
-- Node.js `>=22.11.0`
+- Node.js `>=22.17.0`
 - stable `@moldea.ai/core` releases satisfying `^7.0.0`
 - stable `@moldea.ai/cli` releases satisfying `^11.0.0`
 - repository format version 1
@@ -86,7 +86,7 @@ The CLI must be a repository-root-local development dependency whose manifest de
 
 ## How it works
 
-Initialization creates `/moldea/moldea.yaml` and `/moldea/project.md`, an explanatory README region, and a small managed AGENTS.md routing block when host instructions permit. For ordinary work, that block runs the two-byte relevance gate over already-known paths before loading SKILL.md. A miss continues silently without loading the entrypoint, workflow references, or CLI. Direct agent and project-context work keeps the skill’s own routing.
+Initialization creates `/moldea/moldea.yaml` and `/moldea/project.md`, an explanatory README region, and a small managed AGENTS.md routing block when host instructions permit. It inventories existing agents, inline model workflows, documents, decisions, and project-owned Agent Skills, links existing document authorities in place, and registers evidenced agents and workflows in the same operation. Before registration or application-code changes it asks one confirmation unless initialization already includes the agents. A bounded partial pass resumes with `continue`; one final validation and report cover the completed batch. Projects without agents retain the minimal foundation flow. For ordinary work, that block runs the two-byte relevance gate over already-known paths before loading SKILL.md. A miss continues silently without loading the entrypoint, workflow references, or CLI. Direct agent and project-context work keeps the skill’s own routing.
 
 After adoption, clear AI-agent work and concrete project-level context use the adoption-only route. Explicit `moldea` operations, canonical paths, and changes inside the managed README block also activate directly. Other known task paths use the AGENTS.md precheck and declared relationship matching. Host planning, review, commit, and publication workflows keep control of their own procedures. Generic terminology, pasted proposals, temporary status, and lasting code changes alone do not establish direct relevance. Irrelevant work receives no `moldea` announcement or status.
 
@@ -96,7 +96,7 @@ The entrypoint keeps routing and essential boundaries compact. It loads only the
 
 Mechanical repository evidence uses the installed skill's closed launcher. It exposes bounded `inspect`, `scope`, `content`, `validate`, and `composition` operations without making canonical document bodies part of ordinary metadata output. It normalizes repository-relative content paths and verifies response identity, status, and inspection/validation diagnostic totals before forwarding unchanged output. Detailed invocation, pagination, failure, and runtime guidance belongs to [Compatibility and local tooling](docs/compatibility-and-local-tooling.md).
 
-Semantic execution may project one fixed repository-root direct Node correctness-test invocation into aggregate pass/fail facts. Package-manager commands cannot contribute correctness evidence, and the projection never retains test names, assertions, paths, durations, or output bodies.
+Repair uses a bundled helper for bounded checkpoint, continuation and written-file Git evidence. It refuses executable repository filters before status or diff. Repair continuation checks combine actual actor Git-wrapper records with recognized command syntax. Direct trusted-host calls are counted separately and supply neither actor violations nor positive read credit. Disallowed actor forms in either fail; opaque commands without Git calls do not fail merely for being opaque. This measures cooperative compliance, not resistance to deliberate evasion. Published coverage gaps, including changed-manifest continuation, are disclosed in [Semantic evaluation](docs/semantic-evaluation.md#cases-and-coverage). Semantic execution may project one fixed repository-root direct Node correctness-test invocation into aggregate pass/fail facts. Package-manager commands cannot contribute correctness evidence, and the projection never retains test names, assertions, paths, durations, or output bodies.
 
 ### Safety and authority boundaries
 
@@ -124,7 +124,7 @@ Scripted journeys cover six journeys and 21 requests in ordinary ChatGPT and Cla
 | `docs/`                                   | Concise public concepts and durable workflows. API and HTTP endpoint documentation does not belong here.                                                                  |
 | `project-specification`                   | Read-only development reference to the canonical product and skill specifications in `../platform/moldea`.                                                                |
 | `.github/workflows/conformance.yml`       | Conservative PR selection, root correctness, quality, and portable/Windows contracts.                                                                                     |
-| `.github/workflows/website-checks.yml`    | Shared read-only website quality, artifact, and two-shard browser verification.                                                                                           |
+| `.github/workflows/website-checks.yml`    | Shared read-only website quality and artifact verification; browser suites run locally.                                                                                   |
 | `.github/workflows/pages.yml`             | Pages preflight, parallel verification/production build, and gated deployment.                                                                                            |
 | `.github/workflows/release-candidate.yml` | Exact package-candidate validation without publication.                                                                                                                   |
 
@@ -144,7 +144,7 @@ The reference is for repository development only. Builds, tests, CI, and install
 
 ## Development
 
-Repository development requires Node.js `^24.15.0` and npm `>=10.9.0`. The distributed `moldea/` artifact keeps its documented Node.js `>=22.11.0` runtime contract.
+Repository development requires Node.js `^24.15.0` and npm `>=10.9.0`. The distributed `moldea/` artifact keeps its documented Node.js `>=22.17.0` runtime contract.
 
 Install every workspace dependency from the repository root without lifecycle scripts:
 
@@ -156,11 +156,11 @@ To prepare an exact published CLI release, run `npm run release:update-cli -- <v
 
 Before publication, `npm run candidate:prepare -- --artifacts <packed-closure-directory> --output <empty-directory-outside-this-repository>` prepares a complete isolated skill through the same updater against the candidate registry. An optional `--release-version <version>` selects the isolated skill version. The release-candidate workflow uses this full distribution for real manager and closed-launcher checks. Candidate registry URLs stay in the disposable output; they must not enter the official release lockfile. These checks establish tooling mechanics, not coding-agent repair effectiveness.
 
-The same release-candidate workflow is reusable by the packages trusted build. Its caller pins the skill workflow and tooling to the same immutable commit and supplies that run's public-package artifact and exact packages commit. `src/packages/trusted-candidate.ts` verifies the recorded source identity, complete checksum manifest and package graph before copying the CLI closure. The full verified public set, including Website UI, prepares the isolated skill; the manager matrix then consumes the unchanged CLI closure tarballs. The workflow requires only read access and cannot publish packages.
+The same release-candidate workflow is reusable by the packages trusted build. Its caller pins the skill workflow and tooling to the same immutable commit and supplies that run's public-package artifact and exact packages commit. It also passes its reviewed registry snapshot, so manager installs resolve third-party dependencies only from versions published before that instant; an empty snapshot resolves live. `src/packages/trusted-candidate.ts` verifies the recorded source identity, complete checksum manifest and package graph before copying the CLI closure. The full verified public set, including Website UI, prepares the isolated skill; the manager matrix then consumes the unchanged CLI closure tarballs. The workflow requires only read access and cannot publish packages.
 
 Source and packed package candidates accept stable caret dependency minimums, including patch minimums such as `^2.0.3`. Candidate validation checks every resolved internal runtime package against its declared range; exact internal runtime dependency pins and incompatible versions are rejected.
 
-Both the root tooling and the website consume Website UI `3.2.0` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
+Both the root tooling and the website consume Website UI `4.0.0` with its exact Astro `7.2.8` peer. Normal dependency resolution selects that version without an override.
 
 Run the deterministic boundaries:
 
@@ -178,7 +178,7 @@ npm run docs:check
 npm run website:check
 ```
 
-Conformance runs root correctness once on development Node, portable integration on all three supported Node versions, and the Windows deep-path contract. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. PRs and Pages share read-only website verification: two recorded-browser shards each build one isolated fixture, and shard 2 then checks clean development. Pages verification and the official production build run independently after shared configuration preflight; deployment requires both to succeed. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
+Conformance runs root correctness once on development Node, portable integration on all three supported Node versions, and the Windows deep-path contract. Only PR changes entirely within `website/src/components/`, `website/src/layouts/`, `website/src/pages/`, `website/src/styles/`, or `website/public/` skip heavy conformance; the global path check and full website verification still run. Shared, unknown, mixed, and tag changes receive full conformance. `Conformance result` and `Verify Website` report selected-check failures and unexpected skips; configuring them as required checks is a separate repository setting. PR website verification owns website typechecking; tag conformance retains that check. PRs and Pages share read-only website quality and artifact verification. Recorded-browser and clean-development browser suites run locally before merging. Pages verification and the official production build run independently after shared configuration preflight; deployment requires both to succeed. `typecheck:root` checks root tooling, while `typecheck` still checks all workspaces.
 
 `npm test` includes the website browser suite. Production `website:build`, `release:check`, and Pages deployment require the semantic evidence selection to be populated and prepared. Development website checks exercise both the clean current catalogs without recorded results and isolated synthetic evidence.
 

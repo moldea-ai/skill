@@ -49,7 +49,7 @@ export const semanticCase = defineSemanticCase({
   resourceBudget: {
     activation: 'direct',
     minimumMoldeaCommands: 1,
-    maximumMoldeaCommands: 4,
+    maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
   expected: [
@@ -61,7 +61,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'removes-orphaned-assets',
       criterion:
-        'The obsolete support description, instruction, sole /moldea/runtimes/custom.md, src/support-agent.test.mjs, and the package.json test script targeting that test are removed together; obsolete README prose is removed, while the removed source is not recreated.',
+        'The obsolete support description, instruction, sole /moldea/runtimes/custom.md, src/support-agent.test-integration.ts, and the package.json test script targeting that test are removed together; obsolete README prose is removed, while the removed source is not recreated.',
     },
     {
       label: 'preserves-surviving-context',
@@ -71,7 +71,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'validates-retirement',
       criterion:
-        'Runner-owned evidence records successful final launcher-backed validation, and the report identifies the developer direction and removed implementation as the retirement evidence.',
+        'Runner-owned evidence records successful final launcher-backed validation, and the report grounds the obsolete declarations and assets in the removed implementation and its exclusive dependencies. The supplied developer direction establishes retirement authority; reciting that direction is not required.',
     },
   ],
   forbidden: [

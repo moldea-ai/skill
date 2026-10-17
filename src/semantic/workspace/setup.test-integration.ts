@@ -1,13 +1,28 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import type { IManifestScopeMatch } from '@moldea.ai/core';
 import { afterEach, beforeAll, test } from 'vitest';
 
+import {
+  CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
+  prepareGitCommandPolicyBoundary,
+  projectCodexEvaluationExecutionEvidence,
+} from '../../execution/host/index.ts';
 import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
+import { projectActorExecutionEvidenceEvent } from '../execution/index.ts';
+import { buildSemanticActorPrompt, buildSemanticJudgePrompt } from '../judging/index.ts';
 
 import { createActorRepository, snapshotSemanticWorkspace } from './setup.ts';
 
@@ -75,13 +90,19 @@ const materializeCase = async (caseId: string, withGitBaseline = false) => {
   temporaryRoots.push(root);
   return withEmptyCodexHome(root, async () => {
     if (withGitBaseline) {
-      const { repositoryPath } = await createActorRepository(
+      const { developerDirection, repositoryPath } = await createActorRepository(
         root,
         caseDefinition,
         join(root, 'sandbox-home'),
         join(root, 'actor-tools'),
       );
-      return { caseDefinition, repositoryPath };
+      return {
+        caseDefinition: {
+          ...caseDefinition,
+          input: { ...caseDefinition.input, developerDirection },
+        },
+        repositoryPath,
+      };
     }
     const repositoryPath = join(root, 'actor');
     mkdirSync(repositoryPath);
@@ -130,14 +151,123 @@ const launcherOutput = (repositoryPath: string, operation: string[], input?: str
   return result.stdout;
 };
 
-const runFixtureTests = (repositoryPath: string, testPaths: string[]): void => {
+const runFixtureTests = (repositoryPath: string, testPaths: string[]) => {
   const result = spawnSync(process.execPath, ['--test', ...testPaths], {
     cwd: repositoryPath,
     encoding: 'utf8',
   });
   if (result.error) throw result.error;
   assert.equal(result.status, 0, result.stderr || result.stdout);
+  return result;
 };
+
+test.each([
+  'maintain-context-without-duplication',
+  'compress-project-context',
+  'compress-conflicting-project-context',
+  'evaluate-brief-project-request',
+  'repair-relationship-materiality',
+])('%s starts structurally valid through the installed CLI', async (caseId) => {
+  const { repositoryPath } = await materializeCase(caseId, true);
+  const envelope = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+    status: string;
+    result: { valid: boolean; errorCount: number };
+  };
+  assert.equal(envelope.status, 'valid');
+  assert.equal(envelope.result.valid, true);
+  assert.equal(envelope.result.errorCount, 0);
+  if (caseId === 'evaluate-brief-project-request') {
+    assert.equal(gateResult(repositoryPath, ['src/project-state.js']), '0\n');
+  }
+});
+
+test.each([
+  ['maintain-dirty-project', 'src/billing.ts', /refundWindowDays = (\d+)/u],
+  [
+    'maintain-context-without-duplication',
+    'docs/operations-policy.md',
+    /Support owns escalation\. Legal approves retention exceptions\./u,
+  ],
+] as const)('%s exposes its policy authority to the judge', async (caseId, sourcePath, pattern) => {
+  const { caseDefinition, repositoryPath } = await materializeCase(caseId);
+  const source = readFileSync(join(repositoryPath, sourcePath), 'utf8');
+  const match = source.match(pattern);
+  assert.ok(match, 'The fixture must supply the starting policy fact.');
+  const declaration = caseDefinition.input.repositoryEvidence.find(
+    ({ source }) => source.kind === 'workspace-path' && source.path === sourcePath,
+  );
+  assert.ok(declaration, 'The judge must receive the existing policy authority.');
+  const prompt = buildSemanticJudgePrompt({
+    gitInvocationEvidence: {
+      invocationCount: 0,
+      hostInvocationCount: 0,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+    },
+    actorCommandPolicyEvidence: projectCodexEvaluationExecutionEvidence('').commandPolicy,
+    actorExecutionEvidence: [],
+    actorResourceEvidence: {
+      commandCount: 0,
+      maximumInvocationByteCount: 0,
+      modelVisibleToolOutputByteCount: 0,
+      operations: [],
+      stdoutByteCount: 0,
+    },
+    actorResponse: '',
+    caseDefinition,
+    repositoryEvidence: caseDefinition.input.repositoryEvidence,
+    isRepositoryControlPassing: true,
+    workspaceChanges: { created: [], deleted: [], modified: [] },
+  });
+  assert.ok(prompt.includes(declaration.claim));
+  if (caseId === 'maintain-dirty-project') {
+    assert.ok(declaration.claim.includes(`refundWindowDays = ${match[1]}`));
+  }
+});
+
+test.each([true, false])(
+  'projects real spec-reporter test evidence when passing=%s',
+  async (passing) => {
+    const { repositoryPath } = await materializeCase('repair-healthy-project');
+    const testPath = 'src/evidence.test-unit.js';
+    writeFileSync(
+      join(repositoryPath, testPath),
+      `import assert from 'node:assert/strict';\nimport test from 'node:test';\ntest('result', () => assert.equal(${passing}, true));\n`,
+    );
+    const command = `node --test --test-reporter=spec ${testPath} 2>&1`;
+    const result = spawnSync(process.execPath, ['--test', '--test-reporter=spec', testPath], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+      maxBuffer: 65536,
+    });
+    if (result.error) throw result.error;
+    assert.equal(result.status, passing ? 0 : 1);
+    const event = {
+      type: 'item.completed',
+      item: {
+        type: 'command_execution',
+        command,
+        aggregated_output: result.stdout + result.stderr,
+        exit_code: result.status,
+        status: passing ? 'completed' : 'failed',
+      },
+    };
+    const cliPackage = JSON.parse(
+      readFileSync(join(repositoryPath, 'node_modules/@moldea.ai/cli/package.json'), 'utf8'),
+    ) as { version: string };
+    const evidence = projectActorExecutionEvidenceEvent(event, {
+      cliVersion: cliPackage.version,
+      jsonSchemaVersion: 7,
+    });
+    assert.ok(evidence);
+    assert.equal(
+      evidence.item.outputEvidence.facts.some((fact) => fact.kind === 'node-test-summary'),
+      passing,
+    );
+    const policy = projectCodexEvaluationExecutionEvidence(JSON.stringify(event)).commandPolicy;
+    assert.equal(policy.networkAccess.status, 'not-observed');
+    assert.equal(policy.sensitiveAccess.status, 'not-observed');
+  },
+);
 
 test('every semantic case materializes a snapshot-ready actor repository', async () => {
   for (const caseDefinition of cases) {
@@ -231,10 +361,29 @@ test.each(['model-workflow-routing', 'unrelated-sdk-maintenance'])(
       gateResult(repositoryPath, ['/src/incident-workflow.js', '/src/sdk-usage.js']),
       '0\n',
     );
-    runFixtureTests(repositoryPath, [
-      'src/sdk-usage.test-unit.js',
-      'src/incident-workflow.test-integration.js',
-    ]);
+    const testPaths = ['src/sdk-usage.test-unit.js', 'src/incident-workflow.test-integration.js'];
+    const passing = runFixtureTests(repositoryPath, testPaths);
+    const cliPackage = JSON.parse(
+      readFileSync(join(repositoryPath, 'node_modules/@moldea.ai/cli/package.json'), 'utf8'),
+    ) as { version: string };
+    const projected = projectActorExecutionEvidenceEvent(
+      {
+        type: 'item.completed',
+        item: {
+          type: 'command_execution',
+          command: `node --test ${testPaths.join(' ')}`,
+          aggregated_output: passing.stdout + passing.stderr,
+          exit_code: passing.status,
+          status: 'completed',
+        },
+      },
+      { cliVersion: cliPackage.version, jsonSchemaVersion: 7 },
+    );
+    assert.ok(projected);
+    const summary = projected.item.outputEvidence.facts[0];
+    assert.ok(summary?.kind === 'node-test-summary');
+    assert.deepEqual(summary.testKinds, ['integration', 'unit']);
+    assert.equal(summary.testCount, 2);
     for (const { source } of caseDefinition.input.repositoryEvidence) {
       if (source.kind === 'workspace-path') {
         assert.equal(existsSync(join(repositoryPath, source.path)), true, source.path);
@@ -368,6 +517,38 @@ test('direct read-only assessed-owner evidence leaves the complete fixture uncha
   assert.equal(manifest.result.chunk.content.includes('/src/refund-policy.js'), false);
   assert.ok(owner.includes('Refunds above 1000 units require approval.'));
   runFixtureTests(repositoryPath, ['src/refund-request.test-unit.js']);
+  assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
+});
+
+test('canonical review exposes its actual clarification through the permitted read-only diff', async () => {
+  const { caseDefinition, repositoryPath } = await materializeCase(
+    'direct-canonical-relevance',
+    true,
+  );
+  const before = await snapshotSemanticWorkspace(repositoryPath);
+  const argumentsList = [...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX, 'moldea/project.md'];
+  assert.ok(caseDefinition.hostInstructions?.includes(`git ${argumentsList.join(' ')}`));
+  const wrapperPath = await prepareGitCommandPolicyBoundary(
+    join(repositoryPath, '..', 'review-git'),
+    {
+      realGitExecutable: '/usr/bin/git',
+      invocationLogPath: join(
+        join(repositoryPath, '..', 'review-git'),
+        '..',
+        'git-invocations.jsonl',
+      ),
+      trustedReadOnlyWorkspacePaths: ['.agents', 'node_modules'],
+    },
+  );
+  const result = spawnSync(process.execPath, [wrapperPath, ...argumentsList], {
+    cwd: repositoryPath,
+    encoding: 'utf8',
+    env: { ...process.env, GIT_ATTR_NOSYSTEM: '1' },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stderr, '');
+  assert.match(result.stdout, /^-.*\/src\/project-state\.js/mu);
+  assert.match(result.stdout, /^\+.*after a canonical documentation clarification/mu);
   assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
 });
 
@@ -825,10 +1006,14 @@ test.each([
     };
     assert.equal(validation.status, 'valid');
     assert.equal(gateResult(repositoryPath, [sourcePath]), '1\n');
-    const connectionTest = spawnSync(process.execPath, ['--test', 'src/support-agent.test.mjs'], {
-      cwd: repositoryPath,
-      encoding: 'utf8',
-    });
+    const connectionTest = spawnSync(
+      process.execPath,
+      ['--test', 'src/support-agent.test-integration.js'],
+      {
+        cwd: repositoryPath,
+        encoding: 'utf8',
+      },
+    );
     assert.ifError(connectionTest.error);
     assert.notEqual(connectionTest.status, 0);
     if (caseId === 'maintain-tool-registration') {
@@ -851,7 +1036,7 @@ test('relationship fixtures distinguish an exact moved source from shared UI inf
     readFileSync(join(shared.repositoryPath, 'moldea/context/tracking.md'), 'utf8'),
     /shared tab component/u,
   );
-  const trackingTest = spawnSync(process.execPath, ['--test', 'src/orders/tracking.test.mjs'], {
+  const trackingTest = spawnSync(process.execPath, ['--test', 'src/orders/tracking.test-unit.js'], {
     cwd: shared.repositoryPath,
     encoding: 'utf8',
   });
@@ -860,7 +1045,11 @@ test('relationship fixtures distinguish an exact moved source from shared UI inf
 });
 
 test('source continuation includes a merge-resolution path and a reverted checkpoint path', async () => {
-  const { repositoryPath } = await materializeCase('repair-continuation-after-change', true);
+  const { caseDefinition, repositoryPath } = await materializeCase(
+    'repair-continuation-after-change',
+    true,
+  );
+  assert.match(caseDefinition.input.developerDirection, /current source behavior is intended/u);
   const inventory = JSON.parse(launcherOutput(repositoryPath, ['inspect'])) as {
     result: { page: { records: Array<{ path: string }> } };
   };
@@ -890,6 +1079,27 @@ test('source continuation includes a merge-resolution path and a reverted checkp
   assert.equal(parents.stdout.trim().split(' ').length, 3);
   assert.match(readFileSync(join(repositoryPath, 'src/owner-e.js'), 'utf8'), /merge-resolved/u);
   assert.match(readFileSync(join(repositoryPath, 'src/owner-b.js'), 'utf8'), /baseline/u);
+
+  // the governing decision permits the intended context repair without changing source behavior
+  const sources = ['a', 'b', 'e', 'd', 'next'].map((id) =>
+    readFileSync(join(repositoryPath, `src/owner-${id}.js`)),
+  );
+  writeFileSync(
+    join(repositoryPath, 'moldea/context/a.md'),
+    '# Owner A\n\nThe A source is drifted.\n',
+  );
+  writeFileSync(
+    join(repositoryPath, 'moldea/context/e.md'),
+    '# Owner E\n\nThe E source is merge-resolved.\n',
+  );
+  const validation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as { status: string };
+  assert.equal(validation.status, 'valid');
+  assert.deepEqual(
+    ['a', 'b', 'e', 'd', 'next'].map((id) =>
+      readFileSync(join(repositoryPath, `src/owner-${id}.js`)),
+    ),
+    sources,
+  );
 });
 
 test('manifest continuation distinguishes changed and checkpoint-only owner entries', async () => {
@@ -909,13 +1119,13 @@ test('manifest continuation distinguishes changed and checkpoint-only owner entr
 test('agent retirement fixture retains exclusively dependent prose, test, and script', async () => {
   const { repositoryPath } = await materializeCase('retire-agent-coherently', true);
   assert.match(readFileSync(join(repositoryPath, 'README.md'), 'utf8'), /retired support agent/u);
-  assert.equal(existsSync(join(repositoryPath, 'src/support-agent.test.mjs')), true);
+  assert.equal(existsSync(join(repositoryPath, 'src/support-agent.test-integration.ts')), true);
   const packageManifest = JSON.parse(
     readFileSync(join(repositoryPath, 'package.json'), 'utf8'),
   ) as {
     scripts: { test: string };
   };
-  assert.equal(packageManifest.scripts.test, 'node --test src/support-agent.test.mjs');
+  assert.equal(packageManifest.scripts.test, 'node --test src/support-agent.test-integration.ts');
   assert.equal(existsSync(join(repositoryPath, 'src/support-agent.ts')), false);
   assert.equal(existsSync(join(repositoryPath, 'src/project-state.ts')), true);
 });
@@ -1140,4 +1350,250 @@ test('the missing-bridge fixture stays valid and hands off the exact installed b
   assert.equal(smoke.status, 0, smoke.stderr);
   assert.equal(smoke.stdout, '0\n');
   assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
+});
+
+test.each([
+  ['lf', '\n'],
+  ['crlf', '\r\n'],
+])(
+  'stale bridge upgrade preserves canonical validity and outside bytes with %s',
+  async (_name, eol) => {
+    const { repositoryPath } = await materializeCase('integration-block-missing-handoff', true);
+    const installation = join(repositoryPath, '.agents', 'skills', 'moldea');
+    const helperPath = join(installation, 'scripts', 'managed-agents.mjs');
+    const currentBlock = readFileSync(
+      join(installation, 'assets', 'managed-agents-block.md'),
+      'utf8',
+    ).replaceAll('{{skill-path}}', '.agents/skills/moldea');
+    const prefix = `\uFEFF# Host instructions${eol}${eol}`;
+    const suffix = `${eol}Preserve these instructions.${eol}`;
+    const staleBlock = currentBlock.replace(
+      'changes to what an in-app model decides or says (including inline calls), ',
+      '',
+    );
+    assert.notEqual(staleBlock, currentBlock);
+    const agentsPath = join(repositoryPath, 'AGENTS.md');
+    writeFileSync(agentsPath, prefix + staleBlock.replaceAll('\n', eol) + suffix);
+    const before = await snapshotSemanticWorkspace(repositoryPath);
+    const staleValidation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+      result: {
+        valid: boolean;
+        warningCount: number;
+        page: { records: Array<{ code?: string; acceptable?: boolean }> };
+      };
+    };
+    assert.equal(staleValidation.result.valid, true);
+    assert.equal(staleValidation.result.warningCount, 1);
+    assert.ok(
+      staleValidation.result.page.records.some(
+        ({ code, acceptable }) => code === 'MOLDEA_INTEGRATION_BLOCK_STALE' && acceptable,
+      ),
+    );
+    const printed = spawnSync(
+      process.execPath,
+      [helperPath, '--repository', repositoryPath, '--print'],
+      { encoding: 'utf8', timeout: 15_000 },
+    );
+    assert.ifError(printed.error);
+    assert.equal(printed.status, 0, printed.stderr);
+    assert.equal(printed.stdout, currentBlock);
+    assert.deepEqual(await snapshotSemanticWorkspace(repositoryPath), before);
+
+    const updated = spawnSync(process.execPath, [helperPath, '--repository', repositoryPath], {
+      encoding: 'utf8',
+      timeout: 15_000,
+    });
+    assert.ifError(updated.error);
+    assert.equal(updated.status, 0, updated.stderr);
+    assert.equal(updated.stdout, 'updated\n');
+    assert.equal(
+      readFileSync(agentsPath, 'utf8'),
+      prefix + currentBlock.replaceAll('\n', eol) + suffix,
+    );
+    const expected = new Map(before);
+    const after = await snapshotSemanticWorkspace(repositoryPath);
+    expected.set('AGENTS.md', after.get('AGENTS.md')!);
+    assert.deepEqual(after, expected);
+    const currentValidation = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+      result: { valid: boolean; warningCount: number };
+    };
+    assert.equal(currentValidation.result.valid, true);
+    assert.equal(currentValidation.result.warningCount, 0);
+  },
+);
+
+test('manager guidance cases isolate explicit, conflicting and missing evidence', async () => {
+  for (const caseId of [
+    'initialize-readme-package-manager',
+    'initialize-conflicting-package-manager',
+    'initialize-missing-package-manager',
+  ]) {
+    const { repositoryPath } = await materializeCase(caseId);
+    const manifest = JSON.parse(readFileSync(join(repositoryPath, 'package.json'), 'utf8')) as {
+      packageManager?: string;
+      devDependencies: Record<string, string>;
+    };
+    const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
+    assert.equal(existsSync(join(repositoryPath, 'package-lock.json')), false);
+    assert.equal(existsSync(join(repositoryPath, 'moldea', 'moldea.yaml')), false);
+    assert.equal(readme.includes('Use npm'), caseId !== 'initialize-missing-package-manager');
+    assert.equal(
+      manifest.packageManager,
+      caseId === 'initialize-conflicting-package-manager' ? 'pnpm@11.21.0' : undefined,
+    );
+    assert.equal(
+      existsSync(join(repositoryPath, 'node_modules', '@moldea.ai', 'cli', 'package.json')),
+      caseId === 'initialize-readme-package-manager',
+    );
+    assert.ok(manifest.devDependencies['@moldea.ai/cli']);
+  }
+});
+
+test('conservative continuation fixtures retain a real baseline and independently unchanged owner', async () => {
+  for (const caseId of [
+    'repair-continuation-unavailable-commit',
+    'repair-continuation-incomplete-checkpoint',
+    'repair-continuation-missing-owner-list',
+  ]) {
+    const { repositoryPath } = await materializeCase(caseId, true);
+    assert.equal(
+      readFileSync(join(repositoryPath, 'src/owner-a.js'), 'utf8'),
+      "export const state = 'baseline';\n",
+    );
+    assert.equal(
+      readFileSync(join(repositoryPath, 'src/owner-b.js'), 'utf8'),
+      "export const state = 'drifted';\n",
+    );
+    assert.equal(
+      readFileSync(join(repositoryPath, 'moldea/context/b.md'), 'utf8'),
+      '# Owner B\n\nThe B source remains at baseline.\n',
+    );
+    const ref = spawnSync('git', ['rev-parse', 'repair-checkpoint'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    if (caseId === 'repair-continuation-unavailable-commit') assert.notEqual(ref.status, 0);
+    else {
+      assert.equal(ref.status, 0, ref.stderr);
+      assert.match(ref.stdout.trim(), /^[a-f0-9]{40,64}$/u);
+    }
+    const result = JSON.parse(launcherOutput(repositoryPath, ['validate'])) as {
+      result: { valid: boolean };
+    };
+    assert.equal(result.result.valid, true);
+  }
+});
+
+test.each([
+  'repair-continuation-after-change',
+  'repair-continuation-manifest-change',
+  'repair-continuation-incomplete-checkpoint',
+  'repair-continuation-missing-owner-list',
+])('supplies the real checkpoint hash to %s without mutating its definition', async (caseId) => {
+  const authored = cases.find(({ id }) => id === caseId)!;
+  const template = authored.input.developerDirection;
+  const { repositoryPath, caseDefinition } = await materializeCase(caseId, true);
+  const result = spawnSync('git', ['rev-parse', '--verify', 'repair-checkpoint^{commit}'], {
+    cwd: repositoryPath,
+    encoding: 'utf8',
+  });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr);
+  const checkpoint = result.stdout.trim();
+  assert.match(checkpoint, /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u);
+  assert.equal(
+    buildSemanticActorPrompt(caseDefinition),
+    template.replace('repair-checkpoint', checkpoint),
+  );
+  assert.equal(caseDefinition.input.developerDirection.includes('repair-checkpoint'), false);
+  assert.equal(authored.input.developerDirection, template);
+});
+
+test('partial repair has independent owner bodies and materiality repair keeps genuine settings', async () => {
+  const partial = await materializeCase('repair-continuation-partial-coverage');
+  const manifest = readFileSync(join(partial.repositoryPath, 'moldea/moldea.yaml'), 'utf8');
+  assert.equal((manifest.match(/\/moldea\/context\//gu) ?? []).length, 64);
+  assert.equal(existsSync(join(partial.repositoryPath, 'moldea/context/01.md')), true);
+  assert.equal(existsSync(join(partial.repositoryPath, 'moldea/context/64.md')), true);
+  const relationships = await materializeCase('repair-relationship-materiality');
+  const fixture = readFileSync(join(relationships.repositoryPath, 'moldea/moldea.yaml'), 'utf8');
+  const lock = JSON.parse(
+    readFileSync(join(relationships.repositoryPath, 'package-lock.json'), 'utf8'),
+  ) as {
+    packages: Record<
+      string,
+      {
+        version?: string;
+        devDependencies?: Record<string, string>;
+        dependencies?: Record<string, string>;
+      }
+    >;
+  };
+  const cliVersion = lock.packages['']!.devDependencies!['@moldea.ai/cli'];
+  assert.equal(lock.packages['node_modules/@moldea.ai/cli']!.version, cliVersion);
+  assert.ok(lock.packages['node_modules/@moldea.ai/core']?.version);
+  for (const entry of Object.values(lock.packages)) {
+    for (const dependency of Object.keys(entry.dependencies ?? {}))
+      assert.ok(lock.packages[`node_modules/${dependency}`], dependency);
+  }
+
+  assert.equal(gateResult(relationships.repositoryPath, ['/src/project-state.js']), '1\n');
+  for (const source of [
+    '/src/refund-policy.js',
+    '/src/refund-settings.js',
+    '/src/ui/navigation.js',
+    '/package.json',
+    '/package-lock.json',
+  ])
+    assert.ok(fixture.includes(source));
+  assert.match(
+    readFileSync(join(relationships.repositoryPath, 'moldea/context/refunds.md'), 'utf8'),
+    /1000-unit threshold/u,
+  );
+  assert.match(
+    readFileSync(join(relationships.repositoryPath, 'src/refund-settings.js'), 'utf8'),
+    /threshold = 1000/u,
+  );
+});
+
+test.each(
+  (await loadSemanticCases(CASE_DIRECTORY)).map(
+    (definition) => [definition.id, definition] as const,
+  ),
+)('%s materializes its declared starting paths', async (_id, definition) => {
+  const root = mkdtempSync(join(tmpdir(), 'moldea-case-facts-'));
+  temporaryRoots.push(root);
+  await withEmptyCodexHome(root, async () => {
+    const { repositoryPath, readOnlyMounts } = await createActorRepository(
+      root,
+      definition,
+      join(root, 'sandbox-home'),
+      join(root, 'actor-tools'),
+    );
+    for (const { source } of definition.input.repositoryEvidence) {
+      if (source.kind !== 'workspace-path' && source.kind !== 'related-path') continue;
+      const sourceRoot =
+        source.kind === 'workspace-path'
+          ? repositoryPath
+          : readOnlyMounts.find(
+              ({ target }) => target === source.mount || target === `/${source.mount}`,
+            )?.source;
+      assert.ok(sourceRoot, `Missing declared mount for ${definition.id}.`);
+      const filePath = join(sourceRoot, source.path);
+      const stats = lstatSync(filePath, { throwIfNoEntry: false });
+      if (source.expectedType === 'missing') assert.equal(stats, undefined, source.path);
+      else {
+        assert.ok(stats, `${definition.id}: ${source.path}`);
+        assert.equal(
+          source.expectedType === 'file'
+            ? stats.isFile()
+            : source.expectedType === 'directory'
+              ? stats.isDirectory()
+              : stats.isSymbolicLink(),
+          true,
+          source.path,
+        );
+      }
+    }
+  });
 });

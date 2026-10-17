@@ -50,13 +50,16 @@ The developer request establishes how the brief should inform the work; the file
 >
 > Initialization completed. The repository documentation and implementation establish a service that extracts and validates invoice data for accounting systems without authorizing payments.
 >
-> I created the minimum canonical foundation and owned README awareness block, then verified the project through the repository-local CLI launcher. No agent was created.
+> I created the minimum canonical foundation, owned README awareness block and permitted routing integration. Final structural validation passed with no errors or warnings.
 >
-> Next actions:
+> Inventory:
 >
-> - Review the project foundation.
-> - Continue normal development.
-> - Optionally plan an agent-enabled workflow or request a specific agent when the project needs one.
+> - `README.md`
+> - `product-brief.md`
+>
+> No agents, inline model workflows, separate architecture/policy documents, active decision records or project-owned Agent Skills were found. No agent was created.
+>
+> Next: Continue normal development.
 
 ## Coding agent and `moldea` under the hood
 
@@ -65,9 +68,10 @@ The developer request establishes how the brief should inform the work; the file
 3. It distinguishes durable foundational truth from temporary, speculative, or easily rediscovered details and determines whether the foundation is insufficient, partial, or sufficient.
 4. It asks a focused question when missing context or a material gap prevents a useful and truthful foundation.
 5. Once the foundation is sufficient, it safely installs a known missing CLI before foundation writes or validation. Failed installation stops initialization and reports any package-manager changes. Already-present compatible tooling needs no reinstall or availability probe.
-6. It writes the canonical foundation and managed document integration. With no evidenced relationship, `/moldea/moldea.yaml` is exactly `version: 1` plus its final LF; `/moldea/project.md` contains concise grounded context; README receives explanatory navigation, and AGENTS.md receives the routing block where permitted, or an exact manual handoff.
-7. It runs repository-local `validate`. Success ends initialization without `inspect`; a structural failure starts supported recovery within the foundation scope and resource limits. Each repair follows diagnosis of the complete affected contract and is validated afterward. Recovery stops when it cannot make supported progress.
-8. It reports the established understanding, files, evidence, limitations, and practical next actions.
+6. It writes the canonical foundation and managed document integration, linking known architecture, policy and active decision authorities where they live. With no evidenced relationship, `/moldea/moldea.yaml` is exactly `version: 1` plus its final LF; `/moldea/project.md` contains concise grounded context; README receives explanatory navigation, and AGENTS.md receives the routing block where permitted, or an exact manual handoff.
+7. It uses the bundled metadata helper and focused source inspection to inventory existing agents, inline model workflows, documents, active decisions and project-owned Agent Skills. When agents or inline model workflows exist, it asks one confirmation listing them before registration or application-code changes, unless the request already includes them, then connects each responsibility to canonical instructions using the existing agent-design procedure. This no-agent example needs no inclusion question or agent assets.
+8. It uses the larger traversal profile, preserves honest partial progress when blocked, and resumes the same initialization on “continue”. After all authorized registration and focused checks, it runs one final repository-local `validate`. Success ends initialization without `inspect`; structural failure follows bounded supported recovery.
+9. It reports the established understanding, inventory, registrations, files, evidence, limitations and practical next action together.
 
 ## Result
 

@@ -13,6 +13,8 @@ import { PROJECT_RUN_PAGE_SIZE } from '../src/lib/project-runs/index.ts';
 import { getSemanticReleaseEvidenceSummary } from '../src/lib/release-evidence/index.ts';
 import {
   getJourneysPage,
+  getJourneyCatalogCounts,
+  getJourneyRequestCount,
   JOURNEYS_PAGE_SIZE,
   JOURNEY_PLATFORM_LABELS,
 } from '../src/lib/scripted-journeys/index.ts';
@@ -430,6 +432,7 @@ test('publishes bounded journey overviews, conversation previews, and every sour
     return;
   }
   const pageCount = Math.max(1, Math.ceil(model.journeys.length / JOURNEYS_PAGE_SIZE));
+  const catalogCounts = getJourneyCatalogCounts(model);
   for (let page = 1; page <= pageCount; page++) {
     const html = readFileSync(
       getDistPath(`evidence/journeys/${page === 1 ? '' : `page/${page}/`}index.html`),
@@ -438,6 +441,14 @@ test('publishes bounded journey overviews, conversation previews, and every sour
     expect([...html.matchAll(/data-journey-outcome=/gu)]).toHaveLength(
       getJourneysPage(model, page).length * Object.keys(JOURNEY_PLATFORM_LABELS).length,
     );
+    const summary = /<p\b[^>]*data-journey-catalog-counts[^>]*>([\s\S]*?)<\/p>/u.exec(html)?.[1];
+    expect(summary?.trim()).toBe(
+      `Catalog: ${catalogCounts.journeyCount} journeys · ${catalogCounts.requestCount} requests`,
+    );
+    for (const journey of getJourneysPage(model, page)) {
+      const count = getJourneyRequestCount(model, journey.id);
+      expect(html).toContain(`${count} ${count === 1 ? 'request' : 'requests'}`);
+    }
   }
   const nextPageRoute = `/evidence/journeys/page/${pageCount + 1}/`;
   expect(website.routes).not.toContain(nextPageRoute);

@@ -17,7 +17,8 @@ export const semanticCase = defineSemanticCase({
         source: { kind: 'workspace-path', path: 'moldea/context/refunds.md', expectedType: 'file' },
       },
       {
-        claim: 'The manifest declares the current implementation relationships.',
+        claim:
+          'The manifest relates /moldea/context/refunds.md only to /src/refund-request.js and declares no relationship from that owner to /src/refund-policy.js, which governs its approval threshold.',
         source: { kind: 'workspace-path', path: 'moldea/moldea.yaml', expectedType: 'file' },
       },
       {

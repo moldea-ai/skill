@@ -71,20 +71,22 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'moldea/SKILL.md#reuse-gate-evidence',
     ],
     rationale:
-      'These cases retain negative controls for unrelated host work; concrete conversational context is assessed separately under bounded relevance.',
+      'Published cases retain negative controls for unadopted handoffs, implementation and planning. Silent abstention on a brief whole-project evaluation is not yet included in passing coverage; its unchanged case and failures remain private. Concrete conversational context is assessed separately under bounded relevance.',
     fixedEvidence: [],
   },
   {
     id: 'initialization-and-tooling-safety',
     description:
-      'Explicit initialization and local CLI establishment handle sparse evidence, partial adoption, safe package-manager boundaries, and nonstandard local layouts.',
+      'Explicit initialization onboards existing agents and workflows with permission, in-place document links, resumable progress and final validation; it also handles sparse evidence and partial adoption, while local CLI establishment observes installation safeguards.',
     sourcePaths: [
       'moldea/references/continuous-maintenance.md#adoption',
+      'moldea/references/continuous-maintenance.md#complete-existing-project-onboarding',
+      'moldea/references/agent-design.md#initialize-existing-responsibilities',
       'moldea/references/local-tooling.md#supported-contract',
       'moldea/references/tooling-installation.md',
     ],
     rationale:
-      'The cases distinguish valid initialization, evidence blockers, exact local tooling, nonstandard local layouts, and executable package-manager configuration.',
+      'The cases distinguish confirmation, preauthorized and resumed onboarding, unchanged no-agent foundations, evidence blockers, exact local tooling and executable package-manager configuration. PnP-only launcher proof remains not yet included in published passing coverage.',
     fixedEvidence: [],
   },
   {
@@ -165,7 +167,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'Routing-facing metadata selects handoff or agent descriptions from proven consumer semantics rather than property names or unsupported inference.',
     sourcePaths: ['moldea/references/agent-design.md#keep-model-facing-assets-distinct'],
     rationale:
-      'Dynamic, fallback, separate, shared, and stale mappings retain focused semantic coverage.',
+      'Dynamic, separate, shared, and stale mappings retain focused semantic coverage. Description-fallback assessment remains not yet included in published passing coverage.',
     fixedEvidence: [],
   },
 ] as const satisfies readonly ISemanticCoverageClaimSource[];

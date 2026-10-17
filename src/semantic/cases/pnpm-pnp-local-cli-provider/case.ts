@@ -4,6 +4,7 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'pnpm-pnp-local-cli-provider',
+  publication: 'private',
   setup: createSemanticCaseSetup('pnpm-pnp-local-cli-provider'),
   scenario:
     "A repository has adopted moldea, declares pnpm 11.21.0, and uses the Plug'n'Play linker without the node_modules closure required by the repository-bound launcher.",
@@ -42,7 +43,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'report-unavailable-launcher-closure',
       criterion:
-        "The actor attempts the installed skill's repository-bound launcher, reports that its required root node_modules CLI closure is unavailable in this Plug'n'Play-only layout, and distinguishes a declared or nested package from launcher-verified executable provenance. It does not claim successful invocation.",
+        "Runner evidence records an installed-launcher attempt. The actor correctly reports that the required root node_modules CLI closure is unavailable and executable provenance has not been established, so the CLI cannot be relied on for maintenance. It does not present a declared or nested package as verified or invocable and does not claim successful invocation. Naming Plug'n'Play or separately reciting the declared and nested package locations is not required when this outcome is clear.",
     },
   ],
   forbidden: [

@@ -2,6 +2,7 @@
 import { ArrowRight, BookOpen, ExternalLink } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import CodeText from '@moldea.ai/website-ui/code-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
@@ -231,8 +232,8 @@ const semanticReleaseSection =
                       {result.passedCaseCount + result.recoveredCaseCount}/{result.totalCaseCount}{' '}
                       decisions verified
                     </span>
-                    <span class="mt-2 block font-mono text-xs break-all text-muted-foreground">
-                      {result.attemptId}
+                    <span class="mt-2 block text-xs text-muted-foreground">
+                      <CodeText value={result.attemptId} />
                     </span>
                   </span>
                   <span class="inline-flex shrink-0 items-center gap-2 text-link font-semibold">
@@ -274,10 +275,10 @@ const semanticReleaseSection =
               </p>
             )
           }
-          <dl class="grid min-w-0 gap-4 text-sm sm:grid-cols-2">
+          <dl class="grid min-w-0 gap-4 text-sm *:min-w-0 sm:grid-cols-2">
             <div>
               <dt class="text-muted-foreground">Evidence source</dt>
-              <dd class="mt-1 font-mono break-all">
+              <dd class="mt-1">
                 {
                   releaseSummary.kind === 'not-recorded'
                     ? 'Not recorded'
@@ -287,7 +288,7 @@ const semanticReleaseSection =
             </div>
             <div>
               <dt class="text-muted-foreground">Source attempt</dt>
-              <dd class="mt-1 font-mono break-all">
+              <dd class="mt-1">
                 {
                   releaseSummary.kind === 'not-recorded' ? (
                     'Not recorded'
@@ -298,7 +299,10 @@ const semanticReleaseSection =
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {releaseSummary.result.attemptId}
+                      <CodeText
+                        class="text-xs"
+                        value={releaseSummary.result.attemptId}
+                      />
                       <ExternalLink
                         class="ml-1 inline size-3"
                         aria-hidden="true"
@@ -313,22 +317,44 @@ const semanticReleaseSection =
                 <>
                   <div>
                     <dt class="text-muted-foreground">Model configuration</dt>
-                    <dd class="mt-1 font-mono break-all">
-                      {semanticEvaluation.evaluationModel === null
-                        ? 'Not recorded'
-                        : `${semanticEvaluation.evaluationModel}, actor xhigh, judge xhigh`}
+                    <dd class="mt-1">
+                      {semanticEvaluation.evaluationModel === null ? (
+                        'Not recorded'
+                      ) : (
+                        <>
+                          <CodeText
+                            class="text-xs"
+                            value={semanticEvaluation.evaluationModel}
+                          />
+                          , actor xhigh, judge xhigh
+                        </>
+                      )}
                     </dd>
                   </div>
                   <div>
                     <dt class="text-muted-foreground">CLI</dt>
-                    <dd class="mt-1 font-mono break-all">
-                      {semanticEvaluation.cli?.version ?? 'Not recorded'}
+                    <dd class="mt-1">
+                      {semanticEvaluation.cli === null ? (
+                        'Not recorded'
+                      ) : (
+                        <CodeText
+                          class="text-xs"
+                          value={semanticEvaluation.cli.version}
+                        />
+                      )}
                     </dd>
                   </div>
                   <div>
                     <dt class="text-muted-foreground">Evaluated artifact digest</dt>
-                    <dd class="mt-1 font-mono text-xs break-all">
-                      {releaseResult?.artifactDigest ?? 'Not recorded'}
+                    <dd class="mt-1">
+                      {releaseResult === null ? (
+                        'Not recorded'
+                      ) : (
+                        <CodeText
+                          class="text-xs"
+                          value={releaseResult.artifactDigest}
+                        />
+                      )}
                     </dd>
                   </div>
                 </>
@@ -336,8 +362,8 @@ const semanticReleaseSection =
             }
             <div>
               <dt class="text-muted-foreground">Case suite digest</dt>
-              <dd class="mt-1 font-mono text-xs break-all">
-                {semanticEvaluation.caseSuiteDigest}
+              <dd class="mt-1 text-xs">
+                <CodeText value={semanticEvaluation.caseSuiteDigest} />
               </dd>
             </div>
           </dl>

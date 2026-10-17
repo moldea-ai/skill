@@ -81,7 +81,7 @@ export interface ICodexEvaluationExecutionEvidence {
 }
 
 export type IMoldeaCliOperation = 'composition' | 'content' | 'inspect' | 'scope' | 'validate';
-export type IRepositoryTestCommandKind = 'correctness' | 'e2e' | 'integration' | 'unit';
+export type IRepositoryTestCommandKind = 'e2e' | 'integration' | 'unit';
 
 export interface ICodexEvaluationHostConfiguration {
   allowedEgressHosts: string[];
@@ -148,4 +148,26 @@ export interface ICodexEvaluationOperationalStageOptions<T> {
   random?: () => number;
   signal?: AbortSignal;
   wait?: (delayMs: number, signal?: AbortSignal) => Promise<void>;
+}
+
+// finite diagnostics disclose command categories, never arguments, refs or paths
+export type IRepairGitReasonCode =
+  | 'git-rev-parse'
+  | 'git-log'
+  | 'git-show'
+  | 'git-status-arguments'
+  | 'git-diff-arguments'
+  | 'git-other'
+  | 'untrusted-git'
+  | 'unparsed-shell'
+  | 'opaque-node'
+  | 'opaque-shell'
+  | 'opaque-command';
+
+// bounded repair Git observations from one captured command, without its text
+export interface IRepairGitCommandEvidence {
+  compliantCount: number;
+  noncompliantCount: number;
+  unverifiedCount: number;
+  reasons: Array<{ code: IRepairGitReasonCode; count: number }>;
 }

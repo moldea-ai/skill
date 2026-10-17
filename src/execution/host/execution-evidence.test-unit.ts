@@ -5,13 +5,16 @@ import { test } from 'vitest';
 import {
   hasPassingCodexEvaluationCommandPolicy,
   hasValidCodexEvaluationCommandPolicy,
+  hasValidRepairGitCommandEvidence,
   identifyMoldeaCliLauncherOperation,
   identifyMoldeaRelevanceGateMode,
   identifyMoldeaManagedAgentsMode,
-  identifyRepositoryTestCommandKind,
+  identifyMoldeaRepairGitMode,
+  identifyRepositoryTestCommandKinds,
   isMoldeaManagedReadmeWriterCommand,
   isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
+  projectRepairGitCommandEvidence,
 } from './execution-evidence.ts';
 import {
   CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX,
@@ -827,19 +830,34 @@ test('repository test identification accepts only static bounded correctness com
   for (const command of [
     'node --test src/support-agent.test-integration.js',
     'node --test ./src/a.test-unit.mjs src/b.test-e2e.cjs',
+    'node --test --test-reporter=spec src/a.test-unit.js 2>&1',
+    'node --test --test-reporter tap src/a.test-unit.js',
+    'set -o pipefail; node --test src/a.test-unit.js 2>&1 | tail -n 8',
     "/bin/bash -lc 'node --test src/support-agent.test-integration.js'",
   ]) {
     assert.equal(isRepositoryTestCommand(command), true, command);
   }
 
-  assert.equal(
-    identifyRepositoryTestCommandKind('node --test src/support-agent.test-integration.js'),
-    'integration',
+  assert.deepEqual(
+    identifyRepositoryTestCommandKinds('node --test src/support-agent.test-integration.js'),
+    ['integration'],
   );
-  assert.equal(identifyRepositoryTestCommandKind('node --test src/example.test-unit.mjs'), 'unit');
-  assert.equal(
-    identifyRepositoryTestCommandKind('node --test src/example.test-unit.mjs src/ui.test-e2e.js'),
-    'correctness',
+  assert.deepEqual(identifyRepositoryTestCommandKinds('node --test src/example.test-unit.mjs'), [
+    'unit',
+  ]);
+  assert.deepEqual(
+    identifyRepositoryTestCommandKinds('node --test src/example.test-unit.mjs src/ui.test-e2e.js'),
+    ['e2e', 'unit'],
+  );
+  assert.deepEqual(
+    identifyRepositoryTestCommandKinds(
+      'node --test src/sdk-usage.test-unit.js src/incident-workflow.test-integration.js src/other.test-unit.js',
+    ),
+    ['integration', 'unit'],
+  );
+  assert.deepEqual(
+    identifyRepositoryTestCommandKinds('node --test src/example.test-unit.test-integration.js'),
+    ['integration'],
   );
   for (const command of [
     'node --test',
@@ -854,10 +872,86 @@ test('repository test identification accepts only static bounded correctness com
     'pnpm test',
     'node --test src/a.test-unit.js && node --test src/b.test-unit.js',
     'node --test src/a.test-unit.js > result.txt',
+    'node --test src/a.test-unit.js | tail -n 8',
+    'set -o pipefail; node --test src/a.test-unit.js && tail -n 8',
+    'node --test --test-reporter=./reporter.js src/a.test-unit.js',
+    'node --test --import ./hook.js src/a.test-unit.js',
+    'set -o pipefail; node --test src/a.test-unit.js | tail -n 8 || true',
   ]) {
     assert.equal(isRepositoryTestCommand(command), false, command);
-    assert.equal(identifyRepositoryTestCommandKind(command), null, command);
+    assert.equal(identifyRepositoryTestCommandKinds(command), null, command);
   }
+});
+
+test.each([
+  'moldea/project.md',
+  './moldea/project.md',
+  '/moldea/project.md',
+  '/mnt/moldea/project.md',
+])('recognizes normalized canonical content path %s through every evidence boundary', (path) => {
+  const command = `node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt/ -- content --json --max-output-bytes 65536 --path ${path}`;
+  assert.equal(identifyMoldeaCliLauncherOperation(command), 'content');
+  assert.deepEqual(projectRepairGitCommandEvidence(command), {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+  assert.equal(
+    hasPassingCodexEvaluationCommandPolicy(
+      projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy,
+    ),
+    true,
+  );
+  assert.equal(
+    identifyMoldeaRelevanceGateMode(
+      `node .agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt/ --path ${path}`,
+    ),
+    'relationship',
+  );
+});
+
+test.each([
+  './moldea/../project.md',
+  '/mnt/../moldea/project.md',
+  '//moldea/project.md',
+  'C:/moldea/project.md',
+  './moldea//project.md',
+])('does not recognize an invalid canonical path %s', (path) => {
+  const command = `node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- content --json --max-output-bytes 65536 --path ${path}`;
+  assert.equal(identifyMoldeaCliLauncherOperation(command), null);
+  assert.equal(projectRepairGitCommandEvidence(command).unverifiedCount, 1);
+});
+
+test('recognizes a supported single-path scope invocation', () => {
+  assert.equal(
+    identifyMoldeaCliLauncherOperation(
+      'node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt/ -- scope --json --max-output-bytes 65536 --path ./src/invoice.js',
+    ),
+    'scope',
+  );
+  assert.equal(
+    identifyMoldeaCliLauncherOperation(
+      'node .agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- scope --json --max-output-bytes 65536 --paths-stdin --path src/invoice.js',
+    ),
+    null,
+  );
+});
+
+test.each([
+  'node --test src/a.test-unit.js',
+  'node --test --test-reporter=spec src/a.test-unit.js 2>&1',
+  'node --test src/a.test-unit.js | tail -n 8',
+  'set -o pipefail; node --test src/a.test-unit.js | tail -n 8',
+])('permits host-directed Node correctness command syntax: %s', (command) => {
+  assert.equal(
+    hasPassingCodexEvaluationCommandPolicy(
+      projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy,
+    ),
+    true,
+  );
+  // a test script is still opaque for the separate repair Git audit
+  assert.equal(projectRepairGitCommandEvidence(command).unverifiedCount > 0, true);
 });
 
 test('execution evidence rejects more than 32 moldea commands with actionable counts', () => {
@@ -966,4 +1060,586 @@ test('recognizes only closed installed AGENTS helper operations', () => {
     identifyMoldeaManagedAgentsMode(helper.replace('/mnt/.agents', '/other/.agents')),
     null,
   );
+});
+
+test('projects complete repair Git syntax and rejects incomplete shell lists', () => {
+  const status = [
+    'git',
+    ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+    '--untracked-files=all',
+    '--branch',
+  ].join(' ');
+  assert.deepEqual(projectRepairGitCommandEvidence(status), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+  assert.equal(projectRepairGitCommandEvidence(`${status} |`).unverifiedCount, 1);
+  assert.deepEqual(projectRepairGitCommandEvidence(`${status} # note`), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(status.replaceAll(' ', ' \\\n')), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`${status}; git status --short`), {
+    compliantCount: 1,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`cat README.md; ${status}`), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`false && git status --short`), {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-status-arguments', count: 1 }],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`/bin/bash -lc '${status}'`), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+});
+
+test.each([
+  '# Read the selected skill\ncat /mnt/.agents/skills/moldea/SKILL.md',
+  'cat README.md # git log -p\ncat moldea/project.md',
+  '# $(git log -p)\n# `git show HEAD`',
+  'cat "#notes.md"',
+  'cat notes#draft.md',
+  'cat \\#notes.md',
+])('recognizes inert shell comments and literal hashes in repair reads: %s', (command) => {
+  assert.deepEqual(projectRepairGitCommandEvidence(command), {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+});
+
+test.each([
+  '# Read the selected skill\ngit log -p',
+  'cat README.md # ignored\ngit log -p',
+  'cat "#notes.md"; git log -p',
+  '# ignored \\\ngit log -p',
+])('does not hide prohibited Git behind a shell comment: %s', (command) => {
+  assert.deepEqual(projectRepairGitCommandEvidence(command), {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-log', count: 1 }],
+  });
+});
+
+test('retains network and sensitive-access classification after shell comments', () => {
+  const network = projectCodexEvaluationExecutionEvidence(
+    createCommandEvent('# harmless heading\ncurl https://example.test'),
+  );
+  const sensitive = projectCodexEvaluationExecutionEvidence(
+    createCommandEvent('# harmless heading\ncat /home/evaluator/.codex/auth.json'),
+  );
+  assert.equal(network.commandPolicy.networkAccess.status, 'observed');
+  assert.equal(sensitive.commandPolicy.sensitiveAccess.status, 'observed');
+});
+
+test.each([
+  ['# heading\ncat "$PWD/README.md"', 'unparsed-shell'],
+  ['# heading\nsh -c "git log -p"', 'opaque-shell'],
+  ['# heading\ncat README.md && # missing command', 'unparsed-shell'],
+])('retains unverified repair execution after a comment: %s', (command, code) => {
+  assert.deepEqual(projectRepairGitCommandEvidence(command), {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 1,
+    reasons: [{ code, count: 1 }],
+  });
+});
+
+test.each(['&&', '||', '|', ';', '&'])(
+  'recognizes a complete %s list before trailing comments',
+  (operator) => {
+    const status = [
+      'git',
+      ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+      '--untracked-files=all',
+      '--branch',
+    ].join(' ');
+    for (const ending of ['\n', ' # complete\n', '\n# complete']) {
+      assert.deepEqual(
+        projectRepairGitCommandEvidence(`${status} ${operator} ${status}${ending}`),
+        {
+          compliantCount: 2,
+          noncompliantCount: 0,
+          unverifiedCount: 0,
+          reasons: [],
+        },
+      );
+    }
+  },
+);
+
+test.each(['&&', '||', '|'])(
+  'rejects an incomplete %s list before a trailing comment',
+  (operator) => {
+    for (const ending of ['# incomplete', '# incomplete\n']) {
+      assert.deepEqual(projectRepairGitCommandEvidence(`cat README.md ${operator} ${ending}`), {
+        compliantCount: 0,
+        noncompliantCount: 0,
+        unverifiedCount: 1,
+        reasons: [{ code: 'unparsed-shell', count: 1 }],
+      });
+    }
+  },
+);
+
+test.each([';', '&'])('accepts a terminal %s before a comment', (operator) => {
+  for (const ending of ['# complete', '# complete\n']) {
+    assert.deepEqual(projectRepairGitCommandEvidence(`cat README.md ${operator} ${ending}`), {
+      compliantCount: 0,
+      noncompliantCount: 0,
+      unverifiedCount: 0,
+      reasons: [],
+    });
+  }
+});
+
+test.each([
+  ['carriage return', '\r'],
+  ['vertical tab', '\v'],
+  ['form feed', '\f'],
+  ['non-breaking space', '\u00a0'],
+  ['line separator', '\u2028'],
+  ['paragraph separator', '\u2029'],
+  ['byte-order mark', '\ufeff'],
+])('does not hide later commands behind %s and a hash', (_label, separator) => {
+  const lineContinuation = '\\' + '\n';
+  for (const continuation of ['', lineContinuation, lineContinuation.repeat(2)]) {
+    const prefix = `cat README.md${separator}${continuation}# ; `;
+    const command = `${prefix}git log -p`;
+    for (const submitted of [command, `/bin/bash -lc '${command}'`]) {
+      assert.deepEqual(projectRepairGitCommandEvidence(submitted), {
+        compliantCount: 0,
+        noncompliantCount: 1,
+        unverifiedCount: 0,
+        reasons: [{ code: 'git-log', count: 1 }],
+      });
+    }
+    const network = projectCodexEvaluationExecutionEvidence(
+      createCommandEvent(`${prefix}curl https://example.test`),
+    );
+    const sensitive = projectCodexEvaluationExecutionEvidence(
+      createCommandEvent(`${prefix}cat /home/evaluator/.codex/auth.json`),
+    );
+    assert.equal(network.commandPolicy.networkAccess.status, 'observed');
+    assert.equal(sensitive.commandPolicy.sensitiveAccess.status, 'observed');
+  }
+  const wrappedSuffix = `/bin/bash -lc '# heading\ncat README.md\n'${separator}`;
+  assert.deepEqual(projectRepairGitCommandEvidence(wrappedSuffix), {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 1,
+    reasons: [{ code: 'opaque-command', count: 1 }],
+  });
+});
+
+test.each([
+  ['space', ' '],
+  ['tab', '\t'],
+  ['newline', '\n'],
+])('recognizes comments after a continued Bash %s boundary', (_label, separator) => {
+  const command = `cat README.md${separator}\\\n# note`;
+  for (const submitted of [command, `/bin/bash -lc '${command}'`]) {
+    assert.deepEqual(projectRepairGitCommandEvidence(submitted), {
+      compliantCount: 0,
+      noncompliantCount: 0,
+      unverifiedCount: 0,
+      reasons: [],
+    });
+  }
+});
+
+test('joins unquoted wrapper continuations without creating a comment boundary', () => {
+  const continuation = '\\' + '\n';
+  const prefix = `/bin/bash -lc 'cat README.md'${continuation}'# ; `;
+  assert.deepEqual(projectRepairGitCommandEvidence(`${prefix}git log -p'`), {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-log', count: 1 }],
+  });
+  const network = projectCodexEvaluationExecutionEvidence(
+    createCommandEvent(`${prefix}curl https://example.test'`),
+  );
+  const sensitive = projectCodexEvaluationExecutionEvidence(
+    createCommandEvent(`${prefix}cat /home/evaluator/.codex/auth.json'`),
+  );
+  assert.equal(network.commandPolicy.networkAccess.status, 'observed');
+  assert.equal(sensitive.commandPolicy.sensitiveAccess.status, 'observed');
+  const genuineComment = `/bin/bash -lc 'cat README.md '${continuation}'# note'`;
+  assert.deepEqual(projectRepairGitCommandEvidence(genuineComment), {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+});
+
+test('rejects later commands concatenated onto an installed wrapper operation', () => {
+  const continuation = '\\' + '\n';
+  const wrap = (command: string): string =>
+    `/bin/bash -lc '${command}'${continuation}'# ; git log -p'`;
+  const prefix = 'node /mnt/.agents/skills/moldea/scripts/';
+  assert.equal(
+    identifyMoldeaCliLauncherOperation(
+      wrap(`${prefix}moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536`),
+    ),
+    null,
+  );
+  assert.equal(
+    identifyMoldeaRelevanceGateMode(
+      wrap(`${prefix}relevance-gate.mjs --repository /mnt --path README.md`),
+    ),
+    null,
+  );
+  assert.equal(
+    isMoldeaManagedReadmeWriterCommand(wrap(`${prefix}managed-readme.mjs --repository /mnt`)),
+    false,
+  );
+  assert.equal(
+    identifyMoldeaManagedAgentsMode(wrap(`${prefix}managed-agents.mjs --repository /mnt --print`)),
+    null,
+  );
+});
+
+test('projects no executable observations for comment-only commands', () => {
+  const { commandPolicy } = projectCodexEvaluationExecutionEvidence(
+    createCommandEvent('# curl https://example.test\n# cat /home/evaluator/.codex/auth.json'),
+  );
+  assert.equal(commandPolicy.completedCommandCount, 1);
+  assert.equal(commandPolicy.moldeaCommandCount, 0);
+  for (const category of ['networkAccess', 'sensitiveAccess'] as const) {
+    assert.deepEqual(commandPolicy[category], {
+      status: 'not-observed',
+      observedCount: 0,
+      indeterminateCount: 0,
+      reasons: [],
+    });
+  }
+});
+
+test('recognizes closed installed operations and direct tests with shell comments', () => {
+  const prefix = '# known operation\nnode /mnt/.agents/skills/moldea/scripts/';
+  assert.equal(
+    identifyMoldeaCliLauncherOperation(
+      `${prefix}moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536 # inspect\n`,
+    ),
+    'inspect',
+  );
+  assert.equal(
+    identifyMoldeaRelevanceGateMode(
+      `${prefix}relevance-gate.mjs --repository /mnt --path README.md # gate\n`,
+    ),
+    'relationship',
+  );
+  assert.equal(
+    isMoldeaManagedReadmeWriterCommand(`${prefix}managed-readme.mjs --repository /mnt # writer\n`),
+    true,
+  );
+  assert.equal(
+    identifyMoldeaManagedAgentsMode(
+      `${prefix}managed-agents.mjs --repository /mnt --print # print\n`,
+    ),
+    'print',
+  );
+  assert.deepEqual(
+    identifyRepositoryTestCommandKinds(
+      '# test\nnode --test src/a.test-integration.js # existing\n',
+    ),
+    ['integration'],
+  );
+  assert.equal(
+    identifyRepositoryTestCommandKinds(
+      'set -o pipefail; node --test src/a.test-integration.js | tail -n 8 # tail',
+    ),
+    null,
+  );
+});
+
+test.each([
+  ['git rev-parse repair-checkpoint', 'git-rev-parse'],
+  ['git log -1', 'git-log'],
+  ['git show HEAD:private-file', 'git-show'],
+  ['git status --short', 'git-status-arguments'],
+  ['git diff HEAD -- private-file', 'git-diff-arguments'],
+  ['git config --get private-setting', 'git-other'],
+  ['/tmp/git status', 'untrusted-git'],
+  ['/opt/moldea-real-git/git log -p', 'untrusted-git'],
+  ['cat private-file |', 'unparsed-shell'],
+  ['node --test src/check.test-integration.js', 'opaque-node'],
+  ['sh private-script.sh', 'opaque-shell'],
+  ['python3 private-script.py', 'opaque-command'],
+])('diagnoses %s as %s without retaining its arguments', (command, code) => {
+  const evidence = projectRepairGitCommandEvidence(command);
+  assert.deepEqual(evidence.reasons, [{ code, count: 1 }]);
+  assert.equal(hasValidRepairGitCommandEvidence(evidence), true);
+  assert.equal(JSON.stringify(evidence).includes('private-'), false);
+  assert.equal(evidence.noncompliantCount + evidence.unverifiedCount, 1);
+});
+
+test('aggregates ordered diagnostics and rejects missing, duplicate or inconsistent reasons', () => {
+  const evidence = projectRepairGitCommandEvidence('git show HEAD; node inspect.js; git show HEAD');
+  assert.deepEqual(evidence.reasons, [
+    { code: 'git-show', count: 2 },
+    { code: 'opaque-node', count: 1 },
+  ]);
+  assert.equal(evidence.noncompliantCount, 2);
+  assert.equal(evidence.unverifiedCount, 1);
+  for (const invalid of [
+    { ...evidence, reasons: undefined },
+    { ...evidence, reasons: [] },
+    { ...evidence, reasons: [...evidence.reasons, evidence.reasons[0]] },
+    { ...evidence, reasons: [...evidence.reasons].reverse() },
+    { ...evidence, reasons: [{ code: 'unknown', count: 3 }] },
+    { ...evidence, reasons: [{ code: 'git-show', count: 3 }] },
+    { ...evidence, reasons: [{ code: 'git-show', count: 0 }] },
+    { ...evidence, reasons: [{ code: 'git-show', count: 0.5 }] },
+    { ...evidence, reasons: [{ code: 'git-show', count: Number.MAX_SAFE_INTEGER }] },
+    { ...evidence, extra: true },
+  ])
+    assert.equal(hasValidRepairGitCommandEvidence(invalid), false);
+});
+
+test.each(['&&', '||', ';', '|', '&', '\n'])(
+  'classifies each submitted Git form in a static %s list',
+  (separator) => {
+    const status = [
+      'git',
+      ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+      '--untracked-files=all',
+      '--branch',
+    ].join(' ');
+    const diff = [
+      'git',
+      ...CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.slice(0, -1),
+      '--name-only',
+      '--no-renames',
+      'HEAD',
+      '--',
+      '.',
+    ].join(' ');
+    assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} ${diff}`), {
+      compliantCount: 2,
+      noncompliantCount: 0,
+      unverifiedCount: 0,
+      reasons: [],
+    });
+    assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} git log -p`), {
+      compliantCount: 1,
+      noncompliantCount: 1,
+      unverifiedCount: 0,
+      reasons: [{ code: 'git-log', count: 1 }],
+    });
+    assert.deepEqual(projectRepairGitCommandEvidence(`${status} ${separator} node inspect.js`), {
+      compliantCount: 1,
+      noncompliantCount: 0,
+      unverifiedCount: 1,
+      reasons: [{ code: 'opaque-node', count: 1 }],
+    });
+  },
+);
+
+test.each(['&&', '||', '|'])('does not certify an incomplete %s list', (separator) => {
+  assert.equal(projectRepairGitCommandEvidence(`cat README.md ${separator}`).unverifiedCount, 1);
+});
+
+test.each([
+  "node -e \"require('node:child_process').execSync('git status')\"",
+  'node --test src/connection.test-integration.js',
+  'python3 inspect.py',
+  'git status "$OPTIONS"',
+  'find . -exec git status --short ;',
+  'sort --compress-program=git README.md',
+  'sort --compress-prog=git README.md',
+  'file -z data.gz',
+  'tsc --noEmit',
+  'env PATH=/mnt/bin git status --short',
+  '! ! node inspect.js',
+  'cat $(git log -p)',
+  'rg --pre=git pattern moldea/project.md',
+  'rg pattern *',
+  'sed -n "1e git log -p" README.md',
+  './cat README.md',
+  'g* log -p',
+  'find moldea *',
+  'find moldea -okdir git status --short ;',
+  'sort *',
+  'sort --comp=git moldea/project.md',
+])('does not infer repair Git compliance from opaque execution %s', (command) => {
+  assert.ok(projectRepairGitCommandEvidence(command).unverifiedCount > 0);
+});
+
+test.each([
+  'nl -ba moldea/project.md',
+  'od -An -c status.bin',
+  'xxd -g 1 status.bin',
+  'hexdump -C status.bin',
+  'cat moldea/context/*.md',
+  'cat moldea/context/[ab]?.md',
+  '/usr/bin/cat moldea/context/*.md',
+  'wc -l moldea/context/*.md',
+  'find moldea -type f',
+  "find moldea -name '*.md'",
+  'rg --files moldea | sort',
+  'rg -n policy moldea/context/*.md',
+  'ls moldea && cat moldea/moldea.yaml',
+  'test -f moldea/project.md || nl -ba moldea/project.md',
+  'sed -n "1,80p" moldea/project.md',
+])('does not require Git evidence for passive inspection %s', (command) => {
+  assert.deepEqual(projectRepairGitCommandEvidence(command), {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+});
+
+test('classifies hardened repair review diffs without admitting unbounded pathspecs', () => {
+  const prefix = CODEX_EVALUATION_GIT_DIFF_ARGUMENTS_PREFIX.join(' ');
+  assert.deepEqual(projectRepairGitCommandEvidence(`git ${prefix} moldea/context/a.md README.md`), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+  const evidence = projectRepairGitCommandEvidence(`git ${prefix} .`);
+  assert.equal(evidence.noncompliantCount, 1);
+  assert.equal(evidence.unverifiedCount, 0);
+});
+
+test.each([
+  '! ! ',
+  'env GIT_ATTR_NOSYSTEM=1 env GIT_ATTR_NOSYSTEM=1 ',
+  'GIT_ATTR_NOSYSTEM=1 GIT_ATTR_NOSYSTEM=1 ',
+  '! /usr/bin/env -- GIT_ATTR_NOSYSTEM=1 /bin/env GIT_ATTR_NOSYSTEM=1 ',
+])('classifies Git through repeated static wrappers %s', (prefix) => {
+  const status = [
+    'git',
+    ...CODEX_EVALUATION_GIT_STATUS_ARGUMENTS,
+    '--untracked-files=all',
+    '--branch',
+  ].join(' ');
+  assert.deepEqual(projectRepairGitCommandEvidence(`${prefix}${status}`), {
+    compliantCount: 1,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+  assert.deepEqual(projectRepairGitCommandEvidence(`${prefix}git log -p`), {
+    compliantCount: 0,
+    noncompliantCount: 1,
+    unverifiedCount: 0,
+    reasons: [{ code: 'git-log', count: 1 }],
+  });
+});
+
+test('excludes only exact installed helpers from actor-issued repair Git', () => {
+  for (const command of [
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- inspect --json --max-output-bytes 65536',
+    'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt',
+    'node /mnt/.agents/skills/moldea/scripts/managed-agents.mjs --repository /mnt --print',
+  ])
+    assert.deepEqual(projectRepairGitCommandEvidence(command), {
+      compliantCount: 0,
+      noncompliantCount: 0,
+      unverifiedCount: 0,
+      reasons: [],
+    });
+  assert.equal(
+    projectRepairGitCommandEvidence('node src/moldea-cli.mjs -- inspect').unverifiedCount,
+    1,
+  );
+});
+
+test.each([
+  ['checkpoint', 'checkpoint'],
+  ['continue --checkpoint ' + 'a'.repeat(40), 'continue'],
+  ['review --path moldea/project.md', 'review'],
+  ['review --path "app/[slug]/page.tsx"', 'review'],
+  ['continue --checkpoint HEAD', null],
+  ['review --path ../outside', null],
+  ["review --path '..\\outside'", null],
+  ['checkpoint --extra', null],
+] as const)('recognizes fixed repair helper mode %s -> %s', (arguments_, mode) => {
+  const command =
+    'node /mnt/.agents/skills/moldea/scripts/repair-git.mjs --repository /mnt -- ' + arguments_;
+  assert.equal(identifyMoldeaRepairGitMode(command), mode);
+  const evidence = projectRepairGitCommandEvidence(command);
+  assert.equal(evidence.compliantCount, mode === null ? 0 : 1);
+  assert.equal(evidence.unverifiedCount, mode === null ? 1 : 0);
+  if (mode !== null)
+    assert.equal(
+      hasPassingCodexEvaluationCommandPolicy(
+        projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy,
+      ),
+      true,
+    );
+});
+
+test('untrusted repair helper copies and hidden shell branches cannot acquire compliant evidence', () => {
+  for (const command of [
+    'node /mnt/copied/repair-git.mjs --repository /mnt -- checkpoint',
+    'node /mnt/.agents/skills/moldea/scripts/repair-git.mjs --repository /mnt -- checkpoint && git log -p',
+  ]) {
+    const evidence = projectRepairGitCommandEvidence(command);
+    assert.equal(evidence.noncompliantCount + evidence.unverifiedCount > 0, true);
+  }
+});
+
+test('only the exact hardened attribute-source configuration query is a passive Git read', () => {
+  const prefix = CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.slice(
+    0,
+    CODEX_EVALUATION_GIT_STATUS_ARGUMENTS.indexOf('status'),
+  );
+  const command = ['git', ...prefix, 'config', '--null', '--get', 'attr.tree'].join(' ');
+  assert.equal(projectRepairGitCommandEvidence(command).compliantCount, 1);
+  assert.equal(
+    projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy.networkAccess
+      .status,
+    'not-observed',
+  );
+  const unsupported = ['git', ...prefix, 'config', '--edit'].join(' ');
+  assert.equal(projectRepairGitCommandEvidence(unsupported).noncompliantCount, 1);
+  assert.equal(
+    projectCodexEvaluationExecutionEvidence(createCommandEvent(unsupported)).commandPolicy
+      .networkAccess.status,
+    'indeterminate',
+  );
+});
+
+test('a trusted Git version probe is passive and cannot supply checkpoint evidence', () => {
+  assert.deepEqual(projectRepairGitCommandEvidence('git --version'), {
+    compliantCount: 0,
+    noncompliantCount: 0,
+    unverifiedCount: 0,
+    reasons: [],
+  });
+  assert.equal(projectRepairGitCommandEvidence('/usr/bin/git --version').unverifiedCount, 0);
+  assert.equal(projectRepairGitCommandEvidence('git --version && git log -p').noncompliantCount, 1);
+});
+
+test('the overlaid absolute Git path still reports disallowed argument forms', () => {
+  assert.equal(projectRepairGitCommandEvidence('/usr/bin/git status --short').noncompliantCount, 1);
 });

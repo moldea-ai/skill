@@ -97,6 +97,7 @@ export const semanticCase = defineSemanticCase({
     },
   ],
   resourceBudget: {
+    profile: 'largeTraversal',
     activation: 'direct',
     minimumMoldeaCommands: 1,
     maximumMoldeaCommands: 8,

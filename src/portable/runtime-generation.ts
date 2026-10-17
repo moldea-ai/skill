@@ -40,7 +40,7 @@ const buildRuntimeSource = async (
     legalComments: 'none',
     metafile: true,
     platform: 'node',
-    target: 'node22.11',
+    target: 'node22.17',
     write: false,
   };
   const result = await build(buildOptions);

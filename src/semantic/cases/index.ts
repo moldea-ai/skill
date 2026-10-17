@@ -19,6 +19,14 @@ export { SemanticCaseDefinitionSchema } from './schema.ts';
 export { defineSemanticCase } from './define.ts';
 export { loadSemanticCases } from './loader.ts';
 
+// fixture checkpoint requests
+export {
+  createRecordedSemanticDefinitions,
+  hasMatchingSemanticRequest,
+  hasRepairCheckpointRequest,
+  resolveRepairCheckpointRequest,
+} from './requests.ts';
+
 // identity
 export {
   createSemanticCaseDefinitionDigest,

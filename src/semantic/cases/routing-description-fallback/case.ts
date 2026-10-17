@@ -58,7 +58,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'recognize-aligned-routing-metadata',
       criterion:
-        "The actor reports that the routing metadata aligns with the agent's role and permissions without treating the absent optional handoff description as a defect; it need not restate every matching instruction.",
+        'The actor concludes that the routing-facing metadata correctly uses the agent description and needs no change, without treating the absent optional handoff description as a defect; it need not assess or restate the description content.',
     },
     {
       label: 'report-no-writes',

@@ -349,7 +349,10 @@ test('generic project evaluation fixture has no declared path relationship', asy
   const { repositoryPath } = await materializeCase('evaluate-brief-project-request', true);
   assert.equal(gateResult(repositoryPath, [], true), '1\n');
   assert.equal(gateResult(repositoryPath, ['/src/project-state.js']), '0\n');
-  assert.match(readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8'), /no declared/u);
+  assert.equal(
+    readFileSync(join(repositoryPath, 'moldea', 'project.md'), 'utf8'),
+    '# Invoice review service\n\nThis service extracts and validates invoice data for accounting staff. Human reviewers authorize payments.\n',
+  );
 });
 
 test.each(['model-workflow-routing', 'unrelated-sdk-maintenance'])(

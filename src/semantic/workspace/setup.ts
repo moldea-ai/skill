@@ -1599,7 +1599,7 @@ const seedScenarioRepository = async (
       await writeScenarioFile(
         repositoryPath,
         'moldea/project.md',
-        '# Evaluation project\n\nThis synthetic project has no declared implementation relationships.\n',
+        '# Invoice review service\n\nThis service extracts and validates invoice data for accounting staff. Human reviewers authorize payments.\n',
       );
       break;
     case 'model-workflow-routing':

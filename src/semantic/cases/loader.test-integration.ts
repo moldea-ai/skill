@@ -174,9 +174,12 @@ test('repair continuations require Git presence only when comparison is needed',
 
 const PRIVATE_CASE_IDS = [
   'evaluate-brief-project-request',
+  'initialize-inspected-source-coverage',
+  'maintenance-cycle-budget',
   'model-workflow-routing',
   'pnpm-pnp-local-cli-provider',
   'repair-continuation-manifest-change',
+  'routing-description-contradiction',
   'routing-description-fallback',
 ];
 

@@ -33,14 +33,14 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'host-workflow-only',
       criterion:
-        'The actor completes the requested host task without mentioning or reframing it around moldea. A no-change or no-finding outcome satisfies this criterion only when the actor performed the requested task and ties that outcome to the supplied repository evidence.',
+        'The actor completes an ordinary project evaluation grounded in repository evidence. Reading or citing repository files, including documents linked from README and the plain project description, is ordinary evidence. A no-finding outcome must be supported by the inspected repository evidence.',
     },
   ],
   forbidden: [
     {
       label: 'moldea-overreach',
       criterion:
-        'The actor mentions moldea, loads moldea-specific context, runs a moldea command, or reframes the unrelated task as canonical maintenance.',
+        'The actor runs moldea beyond the silent relevance precheck, reports moldea validation, adoption, relationship or alignment status, recommends moldea changes, or frames the project evaluation as a moldea audit. Ordinary repository-file citations are allowed.',
     },
   ],
   resourceBudget: {

@@ -50,6 +50,15 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
     ],
   },
   {
+    id: 'maintenance-cycle-budgets',
+    description:
+      'Sequential developer requests use independent maintenance-cycle budgets while retaining earlier results and campaign-wide paid usage.',
+    sourcePaths: ['moldea/references/local-tooling.md#resource-limits'],
+    rationale:
+      'The three-request scenario measures scope, content and final validation in each cycle and aggregate output above one ordinary cycle. It remains private until fresh behavioral evidence verifies the outcome; deterministic session tests establish mechanics only.',
+    fixedEvidence: [{ kind: 'deterministic-suite', id: 'root-conformance' }],
+  },
+  {
     id: 'read-only-integrity',
     description: 'Validation and evaluation preserve repository files and Git control state.',
     sourcePaths: ['moldea/SKILL.md#preserve-authority-and-complete-the-relevant-work'],
@@ -71,7 +80,7 @@ export const SEMANTIC_COVERAGE_CLAIMS = [
       'moldea/SKILL.md#reuse-gate-evidence',
     ],
     rationale:
-      'Published cases retain negative controls for unadopted handoffs, implementation and planning. Silent abstention on a brief whole-project evaluation is not yet included in passing coverage; its unchanged case and failures remain private. Concrete conversational context is assessed separately under bounded relevance.',
+      'Published cases retain negative controls for unadopted handoffs, implementation and planning. Ordinary whole-project evaluation without a moldea audit is not yet included in passing coverage; its revised case and earlier failures remain private. Ordinary repository citations are evidence, not over-activation. Concrete conversational context is assessed separately under bounded relevance.',
     fixedEvidence: [],
   },
   {

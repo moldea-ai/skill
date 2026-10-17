@@ -1,17 +1,23 @@
 // @vitest-environment node
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import type { ICodexEvaluationCommandPolicyEvidence } from '../../execution/host/index.ts';
+import {
+  buildCodexEvaluationHostCommand,
+  prepareCodexEvaluationHome,
+  type ICodexEvaluationCommandPolicyEvidence,
+} from '../../execution/host/index.ts';
 import { ensureDirectory } from '../../filesystem/index.ts';
 
 import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
 import {
   createSemanticActiveTrial,
+  createSemanticTokenAdmissionController,
+  getSemanticCandidatePaidTokenCount,
   getSemanticCheckpointPath,
   loadSemanticReusableTrials,
   readSemanticCheckpoint,
@@ -23,6 +29,7 @@ import {
 import {
   completeSemanticDiagnostic,
   executeSemanticCases,
+  runSemanticTrial,
   type ISemanticRunnerTrialExecutionOptions,
 } from './runner.ts';
 
@@ -73,71 +80,98 @@ const createRecordedTrial = (options: {
   caseDefinition: ISemanticCase;
   confirmationIndex: 1 | 2 | 3 | null;
   passed: boolean;
-}): ISemanticRecordedTrial => ({
-  gitInvocationEvidence: {
-    invocationCount: 0,
-    hostInvocationCount: 0,
-    repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
-  },
-  actorExecutionEvidence: [],
-  actorResponse: 'Synthetic actor response.',
-  developerDirection: options.caseDefinition.input.developerDirection,
-  operationalRetries: {
-    actorFailureCount: 0,
-    judgeFailureCount: 0,
-    lastFailure: null,
-  },
-  stageIdentities: { actorSha256: SHA256, judgeSha256: 'b'.repeat(64) },
-  trial: {
-    actorCommandPolicyEvidence: EMPTY_COMMAND_POLICY,
-    actorResourceEvidence: {
-      commandCount: 0,
-      maximumInvocationByteCount: 0,
-      modelVisibleToolOutputByteCount: 0,
-      operations: [],
-      stdoutByteCount: 0,
+}): ISemanticRecordedTrial => {
+  const recorded: Omit<ISemanticRecordedTrial, 'cycles' | 'paidInvocations'> = {
+    gitInvocationEvidence: {
+      invocationCount: 0,
+      hostInvocationCount: 0,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
     },
-    actorHost: {
-      developerInstructionsSha256: SHA256,
-      model: 'synthetic-model',
-      name: 'synthetic-host',
-      reasoningEffort: 'high',
-      role: 'actor',
-      version: '1.0.0',
+    actorExecutionEvidence: [],
+    actorResponse: 'Synthetic actor response.',
+    developerDirection: options.caseDefinition.input.developerDirection,
+    operationalRetries: {
+      actorFailureCount: 0,
+      judgeFailureCount: 0,
+      lastFailure: null,
     },
-    actorUsage: { cachedInputTokens: 0, inputTokens: 1, outputTokens: 1 },
-    confirmationEligible: options.confirmationIndex === null && !options.passed,
-    confirmationIndex: options.confirmationIndex,
-    dimensions: {
-      commandPolicy: true,
-      mountIntegrity: true,
-      operational: true,
-      repositoryControl: true,
-      resource: true,
-      semantic: options.passed,
+    stageIdentities: { actorSha256: SHA256, judgeSha256: 'b'.repeat(64) },
+    trial: {
+      actorCommandPolicyEvidence: EMPTY_COMMAND_POLICY,
+      actorResourceEvidence: {
+        commandCount: 0,
+        maximumInvocationByteCount: 0,
+        modelVisibleToolOutputByteCount: 0,
+        operations: [],
+        stdoutByteCount: 0,
+      },
+      actorHost: {
+        developerInstructionsSha256: SHA256,
+        model: 'synthetic-model',
+        name: 'synthetic-host',
+        reasoningEffort: 'high',
+        role: 'actor',
+        version: '1.0.0',
+      },
+      actorUsage: { cachedInputTokens: 0, inputTokens: 1, outputTokens: 1 },
+      confirmationEligible: options.confirmationIndex === null && !options.passed,
+      confirmationIndex: options.confirmationIndex,
+      dimensions: {
+        commandPolicy: true,
+        mountIntegrity: true,
+        operational: true,
+        repositoryControl: true,
+        resource: true,
+        semantic: options.passed,
+      },
+      evaluatedAt: '2026-09-20T00:00:00.000Z',
+      executionOrigin: 'executed',
+      failureClassifications: options.passed ? [] : ['semantic'],
+      forbidden: [],
+      judgeCommandPolicyEvidence: EMPTY_COMMAND_POLICY,
+      judgeHost: {
+        developerInstructionsSha256: SHA256,
+        model: 'synthetic-model',
+        name: 'synthetic-host',
+        reasoningEffort: 'high',
+        role: 'judge',
+        version: '1.0.0',
+      },
+      judgeUsage: { cachedInputTokens: 0, inputTokens: 1, outputTokens: 1 },
+      kind: options.confirmationIndex === null ? 'initial' : 'confirmation',
+      observed: options.passed ? ['expected'] : [],
+      passed: options.passed,
+      rationale: options.passed ? 'Passed.' : 'Failed.',
+      stageReuse: null,
     },
-    evaluatedAt: '2026-09-20T00:00:00.000Z',
-    executionOrigin: 'executed',
-    failureClassifications: options.passed ? [] : ['semantic'],
-    forbidden: [],
-    judgeCommandPolicyEvidence: EMPTY_COMMAND_POLICY,
-    judgeHost: {
-      developerInstructionsSha256: SHA256,
-      model: 'synthetic-model',
-      name: 'synthetic-host',
-      reasoningEffort: 'high',
-      role: 'judge',
-      version: '1.0.0',
+    workspaceChanges: { created: [], deleted: [], modified: [] },
+  };
+  const cycles = [
+    {
+      actorExecutionEvidence: recorded.actorExecutionEvidence,
+      actorResourceEvidence: recorded.trial.actorResourceEvidence,
+      commandPolicyEvidence: recorded.trial.actorCommandPolicyEvidence,
+      gitInvocationEvidence: recorded.gitInvocationEvidence,
+      response: recorded.actorResponse,
+      usage: recorded.trial.actorUsage,
+      developerRequest: recorded.developerDirection,
+      requestIndex: 0,
+      isMountIntegrityPassing: recorded.trial.dimensions.mountIntegrity,
+      isRepositoryControlPassing: recorded.trial.dimensions.repositoryControl,
+      workspaceChanges: recorded.workspaceChanges,
     },
-    judgeUsage: { cachedInputTokens: 0, inputTokens: 1, outputTokens: 1 },
-    kind: options.confirmationIndex === null ? 'initial' : 'confirmation',
-    observed: options.passed ? ['expected'] : [],
-    passed: options.passed,
-    rationale: options.passed ? 'Passed.' : 'Failed.',
-    stageReuse: null,
-  },
-  workspaceChanges: { created: [], deleted: [], modified: [] },
-});
+  ];
+  const paidInvocations = [
+    { stage: 'actor' as const, usage: recorded.trial.actorUsage },
+    { stage: 'judge' as const, usage: recorded.trial.judgeUsage },
+  ];
+  return {
+    ...recorded,
+    cycles,
+    paidInvocations,
+    trial: { ...recorded.trial, cycles, paidInvocations },
+  };
+};
 
 const createCandidateCheckpoint = (cases: ISemanticCase[]): ISemanticCandidateCheckpoint => ({
   actorHost: {
@@ -171,7 +205,7 @@ const createCandidateCheckpoint = (cases: ISemanticCase[]): ISemanticCandidateCh
     version: '1.0.0',
   },
   mode: 'official',
-  schemaVersion: 2,
+  schemaVersion: 3,
   selectedCaseIds: cases.map(({ id }) => id),
   updatedAt: '2026-09-20T00:00:00.000Z',
 });
@@ -417,3 +451,188 @@ describe('semantic runner case orchestration', () => {
     expect(completedCheckpoint.cases.map(({ id }) => id)).toStrictEqual(['case-one', 'case-two']);
   });
 });
+
+test.each([false, true])(
+  'retains interrupted cycle charges and judge policy before retry; prior violation=%s',
+  async (hasPriorJudgeViolation) => {
+    const root = await mkdtemp(path.join(tmpdir(), 'moldea-cycle-recovery-'));
+    temporaryRoots.push(root);
+    const bin = path.join(root, 'bin');
+    const sourceHome = path.join(root, 'source-home');
+    await Promise.all([bin, sourceHome].map((directory) => mkdir(directory)));
+    const writeHost = async (shouldFail: boolean) => {
+      await writeFile(
+        path.join(bin, 'codex'),
+        `#!/opt/node
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const prompt = fs.readFileSync(0, 'utf8');
+let response;
+if (prompt.startsWith('Assess whether')) {
+  const counter = '/home/evaluator/.codex/judge-counter';
+  const count = fs.existsSync(counter) ? Number(fs.readFileSync(counter, 'utf8')) : 0;
+  fs.writeFileSync(counter, String(count + 1));
+  if (${hasPriorJudgeViolation} && count === 0) console.log(JSON.stringify({type:'item.completed',item:{type:'command_execution',command:'curl https://example.com',aggregated_output:'',exit_code:1,status:'failed'}}));
+  response = count === 0 ? 'malformed judge' : JSON.stringify({expected:{expected:true},forbidden:{forbidden:false},rationale:'Both requests completed.'});
+} else {
+  const continuation = prompt === 'continue';
+  assert.equal(fs.existsSync('/mnt/progress.txt'), continuation);
+  if (${shouldFail} && continuation) process.exit(1);
+  fs.writeFileSync('/mnt/progress.txt', continuation ? 'done' : 'partial');
+  console.log(JSON.stringify({type:'thread.started',thread_id:'12345678-abcd-1234-abcd-123456789012'}));
+  response = continuation ? 'Completed.' : 'First request complete.';
+}
+console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:response}}));
+console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100,cached_input_tokens:50,output_tokens:20}}));
+`,
+      );
+      await chmod(path.join(bin, 'codex'), 0o755);
+    };
+    await writeHost(true);
+    await writeFile(path.join(bin, 'codex-code-mode-host'), '#!/bin/sh\nexit 0\n');
+    await chmod(path.join(bin, 'codex-code-mode-host'), 0o755);
+    vi.stubEnv('CODEX_HOME', sourceHome);
+    vi.stubEnv('PATH', `${bin}${path.delimiter}${process.env['PATH'] ?? ''}`);
+    try {
+      const definition = {
+        ...createCase('retained-session'),
+        input: {
+          developerDirection: 'First request',
+          followUpDeveloperRequests: ['continue'],
+          repositoryEvidence: [],
+        },
+        setup: async ({ sandboxHome }: { sandboxHome: string }) => {
+          await prepareCodexEvaluationHome(sandboxHome);
+          return {};
+        },
+      };
+      const checkpoint = createCandidateCheckpoint([definition]);
+      checkpoint.caseCheckpoints[definition.id] = {
+        activeTrial: null,
+        caseDefinitionDigest: SHA256,
+        caseId: definition.id,
+        completedCase: null,
+        trials: [],
+      };
+      const command = buildCodexEvaluationHostCommand(
+        [
+          'codex',
+          'exec',
+          '--ignore-user-config',
+          '--ignore-rules',
+          '--ephemeral',
+          '--skip-git-repo-check',
+          '--dangerously-bypass-approvals-and-sandbox',
+          '-c',
+          'shell_environment_policy.inherit=none',
+          '--json',
+          '-',
+        ],
+        'actor',
+      );
+      const judgeCommand = buildCodexEvaluationHostCommand(
+        [
+          'codex',
+          'exec',
+          '--ignore-user-config',
+          '--ignore-rules',
+          '--ephemeral',
+          '--skip-git-repo-check',
+          '--dangerously-bypass-approvals-and-sandbox',
+          '-c',
+          'shell_environment_policy.inherit=none',
+          '--json',
+          '-',
+        ],
+        'judge',
+      );
+      const tokenController = createSemanticTokenAdmissionController({
+        getConsumedTokenCount: () =>
+          getSemanticCandidatePaidTokenCount([], checkpoint.caseCheckpoints),
+      });
+      const options = {
+        activeTrial: null,
+        actorCommand: command,
+        actorHost: checkpoint.actorHost,
+        artifactDigest: SHA256,
+        caseDefinition: definition,
+        cli: checkpoint.cli,
+        confirmationIndex: null,
+        isOperationalResumeRequested: false,
+        judgeCommand,
+        judgeHost: checkpoint.judgeHost,
+        persistActiveTrial: async (
+          activeTrial: NonNullable<(typeof checkpoint.caseCheckpoints)[string]['activeTrial']>,
+        ) => {
+          checkpoint.caseCheckpoints[definition.id]!.activeTrial = activeTrial;
+          await writeSemanticCheckpoint(root, checkpoint);
+        },
+        reusableTrials: [],
+        tokenController,
+      };
+      await expect(runSemanticTrial(options)).rejects.toThrow();
+      const stopped = (await readSemanticCheckpoint(root)).caseCheckpoints[definition.id]!
+        .activeTrial!;
+      expect(stopped.phase).toBe('actor-pending');
+      expect(stopped.operationalRetries.actorFailureCount).toBe(2);
+      expect(stopped.paidInvocations.map(({ usage }) => usage)).toStrictEqual([
+        { inputTokens: 100, cachedInputTokens: 50, outputTokens: 20 },
+        null,
+        { inputTokens: 100, cachedInputTokens: 50, outputTokens: 20 },
+        null,
+      ]);
+      expect(stopped.paidInvocations.filter(({ cycle }) => cycle !== undefined)).toHaveLength(2);
+      expect(getSemanticCandidatePaidTokenCount([], checkpoint.caseCheckpoints)).toBe(
+        2 * 2_097_152 + 240,
+      );
+      await writeHost(false);
+      const completed = await runSemanticTrial({
+        ...options,
+        activeTrial: stopped,
+        isOperationalResumeRequested: true,
+      });
+      expect(
+        completed.recordedTrial.cycles.map(({ developerRequest }) => developerRequest),
+      ).toStrictEqual(['First request', 'continue']);
+      expect(completed.publicTrial.passed).toBe(!hasPriorJudgeViolation);
+      expect(completed.publicTrial.dimensions.commandPolicy).toBe(!hasPriorJudgeViolation);
+      expect(completed.recordedTrial.operationalRetries).toMatchObject({
+        actorFailureCount: 2,
+        judgeFailureCount: 1,
+      });
+      expect(completed.recordedTrial.paidInvocations).toHaveLength(8);
+      expect(
+        completed.recordedTrial.paidInvocations.filter(
+          ({ stage, usage }) => stage === 'judge' && usage !== null,
+        ),
+      ).toHaveLength(2);
+      expect(getSemanticCandidatePaidTokenCount([], checkpoint.caseCheckpoints)).toBe(
+        2 * 2_097_152 + 720,
+      );
+      if (!hasPriorJudgeViolation) {
+        await writeFile(
+          path.join(bin, 'codex'),
+          '#!/opt/node\nthrow new Error("Unexpected paid execution");\n',
+        );
+        const reused = await runSemanticTrial({
+          ...options,
+          reusableTrials: [
+            {
+              caseId: definition.id,
+              recordedTrial: completed.recordedTrial,
+              sourceCaseStatus: 'passed',
+              sourceAttemptId: 'sem-source',
+              sourceEvidenceSha256: SHA256,
+            },
+          ],
+        });
+        expect(reused.publicTrial.executionOrigin).toBe('reused');
+        expect(reused.recordedTrial.cycles).toStrictEqual(completed.recordedTrial.cycles);
+        expect(getSemanticCandidatePaidTokenCount([], checkpoint.caseCheckpoints)).toBe(0);
+      }
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  },
+  30_000,
+);

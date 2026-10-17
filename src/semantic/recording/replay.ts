@@ -45,33 +45,29 @@ export const createSemanticReplay = (
   trials: recordedCase.trials.map((recordedTrial) => {
     const { trial } = recordedTrial;
     const recordedVerdict = trial.carriedFrom?.recordedVerdict;
-    const commandCount = trial.actorCommandPolicyEvidence.completedCommandCount;
     const steps: IEvaluationReplayStep[] = [
-      {
-        content: recordedTrial.developerDirection,
-        kind: 'message',
-        role: 'developer',
-        source: 'recorded',
-      },
-      {
-        commandCount,
-        exitCode: null,
-        isAggregate: true,
-        kind: 'command',
-        operation:
-          commandCount === 0
-            ? 'No completed commands recorded'
-            : `${commandCount} completed ${commandCount === 1 ? 'command' : 'commands'}`,
-        results: ['Exact command text and raw output were intentionally not retained.'],
-        status: trial.dimensions.commandPolicy ? 'passed' : 'failed',
-      },
+      ...recordedTrial.cycles.flatMap((cycle): IEvaluationReplayStep[] => {
+        const commandCount = cycle.commandPolicyEvidence.completedCommandCount;
+        return [
+          {
+            content: cycle.developerRequest,
+            kind: 'message',
+            role: 'developer',
+            source: 'recorded',
+          },
+          {
+            commandCount,
+            exitCode: null,
+            isAggregate: true,
+            kind: 'command',
+            operation: `${recordedTrial.cycles.length > 1 ? `Request ${cycle.requestIndex + 1}: ` : ''}${commandCount === 0 ? 'No completed commands recorded' : `${commandCount} completed ${commandCount === 1 ? 'command' : 'commands'}`}`,
+            results: ['Exact command text and raw output were intentionally not retained.'],
+            status: trial.dimensions.commandPolicy ? 'passed' : 'failed',
+          },
+          { content: cycle.response, kind: 'message', role: 'coding-agent', source: 'recorded' },
+        ];
+      }),
       createWorkspaceStep(recordedTrial),
-      {
-        content: recordedTrial.actorResponse,
-        kind: 'message',
-        role: 'coding-agent',
-        source: 'recorded',
-      },
       {
         kind: 'verdict',
         rationale: recordedVerdict?.rationale ?? trial.rationale,

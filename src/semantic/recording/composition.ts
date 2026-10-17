@@ -134,6 +134,8 @@ const carryTrial = (options: {
   const { caseDefinition, recordedTrial, reviewRationale, source } = options;
   const sourceTrial = recordedTrial.trial;
   const computedDimensions = createSemanticResultDimensions({
+    cycles: recordedTrial.cycles,
+    paidInvocations: recordedTrial.paidInvocations,
     actorCommandPolicy: sourceTrial.actorCommandPolicyEvidence,
     actorExecutionEvidence: recordedTrial.actorExecutionEvidence,
     gitInvocationEvidence: recordedTrial.gitInvocationEvidence,

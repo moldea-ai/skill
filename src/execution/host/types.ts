@@ -121,6 +121,8 @@ export interface ICodexEvaluationReadOnlyMount {
 export type ICodexEvaluationWorkspaceAccess = 'read-only' | 'read-write';
 
 export interface ICodexEvaluationHostRunOptions {
+  // only authored multi-request actor trials retain a session
+  actorSession?: { kind: 'start' } | { kind: 'resume'; sessionId: string };
   command: readonly string[];
   cwd: string;
   defaultHostTimeoutMs?: number;

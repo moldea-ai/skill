@@ -10,7 +10,12 @@ import {
   hasPassingRepairGitEvidence,
   hasPassingMoldeaResourceContainment,
 } from './actor-evidence.ts';
-import type { IMoldeaResourceEvidence, ISemanticActorExecutionEvidence } from './types.ts';
+import type {
+  IMoldeaResourceEvidence,
+  ISemanticActorExecutionEvidence,
+  ISemanticCycleEvidence,
+  ISemanticPaidInvocation,
+} from './types.ts';
 
 export const SEMANTIC_RESULT_DIMENSION_NAMES = [
   'semantic',
@@ -56,6 +61,8 @@ export const hasPassingCaseRepairGitEvidence = (options: {
 
 /** Creates independently attributable outcome dimensions for one completed trial. */
 export const createSemanticResultDimensions = (options: {
+  cycles?: readonly ISemanticCycleEvidence[];
+  paidInvocations?: readonly ISemanticPaidInvocation[];
   actorCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
   gitInvocationEvidence: IGitInvocationEvidence;
   actorExecutionEvidence: ISemanticActorExecutionEvidence[];
@@ -65,39 +72,72 @@ export const createSemanticResultDimensions = (options: {
   isRepositoryControlPassing: boolean;
   isSemanticPassing: boolean;
   judgeCommandPolicy: ICodexEvaluationCommandPolicyEvidence;
-}): ISemanticResultDimensions => ({
-  semantic:
-    options.isSemanticPassing &&
-    hasPassingCaseRepairGitEvidence(options) &&
-    hasPassingMoldeaActivation(
-      options.actorResourceEvidence,
-      options.caseDefinition.resourceBudget,
-    ) &&
-    (options.caseDefinition.resourceBudget.activation !== 'relationship' ||
-      options.actorExecutionEvidence.some(
-        ({ item }) =>
-          item.exitCode === 0 &&
-          item.outputEvidence.facts.some(
-            (fact) =>
-              fact.kind === 'moldea-cli-envelope' &&
-              fact.command === 'scope' &&
-              fact.status === 'valid' &&
-              fact.errorPresent === false &&
-              fact.relevant === true,
-          ),
-      )),
-  resource:
-    hasPassingMoldeaResourceContainment(
-      options.actorResourceEvidence,
-      options.caseDefinition.resourceBudget,
-    ) && hasPassingHostResourceProfile(options.actorCommandPolicy, options.caseDefinition),
-  commandPolicy:
-    hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy) &&
-    hasPassingCodexEvaluationCommandPolicy(options.judgeCommandPolicy),
-  repositoryControl: options.isRepositoryControlPassing,
-  mountIntegrity: options.isMountIntegrityPassing,
-  operational: true,
-});
+}): ISemanticResultDimensions => {
+  if (options.cycles !== undefined) {
+    if (options.cycles.length === 0)
+      throw new Error('Semantic dimensions require at least one cycle.');
+    const { cycles, ...common } = options;
+    const completedCycles = (options.paidInvocations ?? []).flatMap(({ cycle }) =>
+      cycle === undefined ? [] : [cycle],
+    );
+    const allCycles = [...completedCycles.slice(0, -cycles.length), ...cycles];
+    const results = allCycles.map((cycle) =>
+      createSemanticResultDimensions({
+        ...common,
+        actorCommandPolicy: cycle.commandPolicyEvidence,
+        actorExecutionEvidence: cycle.actorExecutionEvidence,
+        actorResourceEvidence: cycle.actorResourceEvidence,
+        gitInvocationEvidence: cycle.gitInvocationEvidence,
+        isMountIntegrityPassing: cycle.isMountIntegrityPassing,
+        isRepositoryControlPassing: cycle.isRepositoryControlPassing,
+      }),
+    );
+    return Object.fromEntries(
+      SEMANTIC_RESULT_DIMENSION_NAMES.map((name) => [
+        name,
+        results.every((result) => result[name]),
+      ]),
+    ) as ISemanticResultDimensions;
+  }
+  return {
+    semantic:
+      options.isSemanticPassing &&
+      hasPassingCaseRepairGitEvidence(options) &&
+      hasPassingMoldeaActivation(
+        options.actorResourceEvidence,
+        options.caseDefinition.resourceBudget,
+      ) &&
+      (options.caseDefinition.resourceBudget.activation !== 'relationship' ||
+        options.actorExecutionEvidence.some(
+          ({ item }) =>
+            item.exitCode === 0 &&
+            item.outputEvidence.facts.some(
+              (fact) =>
+                fact.kind === 'moldea-cli-envelope' &&
+                fact.command === 'scope' &&
+                fact.status === 'valid' &&
+                fact.errorPresent === false &&
+                fact.relevant === true,
+            ),
+        )),
+    resource:
+      hasPassingMoldeaResourceContainment(
+        options.actorResourceEvidence,
+        options.caseDefinition.resourceBudget,
+      ) && hasPassingHostResourceProfile(options.actorCommandPolicy, options.caseDefinition),
+    commandPolicy:
+      hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy) &&
+      hasPassingCodexEvaluationCommandPolicy(options.judgeCommandPolicy) &&
+      (options.paidInvocations ?? []).every(
+        ({ commandPolicyEvidence }) =>
+          commandPolicyEvidence === undefined ||
+          hasPassingCodexEvaluationCommandPolicy(commandPolicyEvidence),
+      ),
+    repositoryControl: options.isRepositoryControlPassing,
+    mountIntegrity: options.isMountIntegrityPassing,
+    operational: true,
+  };
+};
 
 /** Returns whether all semantic outcome dimensions passed. */
 export const hasPassingSemanticResultDimensions = (

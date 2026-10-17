@@ -2,7 +2,28 @@ import type {
   IMoldeaCliOperation,
   IRepositoryTestCommandKind,
   IRepairGitCommandEvidence,
+  ICodexEvaluationCommandPolicyEvidence,
 } from '../../execution/host/index.ts';
+import type { ISemanticWorkspaceChanges } from '../workspace/index.ts';
+import type { ISemanticHostOutput } from './host-output.ts';
+
+// one runner-authored developer request, with its own unchanged resource allowance
+export interface ISemanticCycleEvidence extends ISemanticHostOutput {
+  developerRequest: string;
+  requestIndex: number;
+  isMountIntegrityPassing: boolean;
+  isRepositoryControlPassing: boolean;
+  workspaceChanges: ISemanticWorkspaceChanges;
+}
+
+// one admitted paid invocation; null usage conservatively charges the absolute host maximum
+export interface ISemanticPaidInvocation {
+  commandPolicyEvidence?: ICodexEvaluationCommandPolicyEvidence;
+  // completed cycles survive a later operational restart of the session
+  cycle?: ISemanticCycleEvidence;
+  stage: 'actor' | 'judge';
+  usage: ISemanticHostOutput['usage'];
+}
 
 // release identity required to recognize safe moldea CLI envelopes
 export interface ISemanticActorExecutionEvidenceOptions {

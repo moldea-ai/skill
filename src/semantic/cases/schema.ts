@@ -45,6 +45,7 @@ export const SemanticCaseDefinitionSchema = z
     id: StableIdSchema,
     input: z.strictObject({
       developerDirection: z.string().trim().min(1),
+      followUpDeveloperRequests: z.array(z.string().trim().min(1)).min(1).optional(),
       repositoryEvidence: z.array(
         z.strictObject({ claim: z.string().trim().min(1), source: SemanticEvidenceSourceSchema }),
       ),

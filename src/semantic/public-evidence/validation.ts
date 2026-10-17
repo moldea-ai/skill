@@ -24,7 +24,19 @@ const HostUsageSchema = z
     outputTokens: z.number().int().nonnegative(),
   })
   .nullable();
+const CyclePresentationSchema = z.looseObject({
+  developerRequest: z.string().min(1),
+  requestIndex: z.number().int().nonnegative(),
+  response: z.string(),
+  commandPolicyEvidence: z.looseObject({ completedCommandCount: z.number().int().nonnegative() }),
+  usage: HostUsageSchema,
+});
 const TrialSchema = z.looseObject({
+  cycles: z
+    .array(CyclePresentationSchema)
+    .min(1)
+    .refine((cycles) => cycles.every((cycle, index) => cycle.requestIndex === index))
+    .optional(),
   actorUsage: HostUsageSchema,
   confirmationIndex: z.union([z.literal(1), z.literal(2), z.literal(3), z.null()]),
   dimensions: z.looseObject({

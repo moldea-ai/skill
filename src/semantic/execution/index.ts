@@ -1,11 +1,16 @@
 // types
 export type {
+  ISemanticCycleEvidence,
+  ISemanticPaidInvocation,
   IMoldeaResourceEvidence,
   ISemanticActorExecutionEvidence,
   ISemanticActorExecutionEvidenceOptions,
   ISemanticActorExecutionOutputEvidence,
   ISemanticActorExecutionOutputFact,
 } from './types.ts';
+
+// request cycles
+export { hasValidSemanticCycles, summarizeSemanticCycles } from './cycles.ts';
 
 // actor evidence
 export {

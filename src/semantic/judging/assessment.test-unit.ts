@@ -2,6 +2,7 @@
 import { describe, expect, test } from 'vitest';
 
 import { projectCodexEvaluationExecutionEvidence } from '../../execution/host/index.ts';
+import { summarizeSemanticCycles } from '../execution/index.ts';
 import { defineSemanticCase } from '../cases/index.ts';
 import {
   assessSemanticJudgeOutput,
@@ -301,4 +302,51 @@ describe('semantic judging', () => {
       ).isPassed,
     ).toBe(true);
   });
+});
+
+test('grades ordered authored cycles without exposing future requests early or repeating responses', () => {
+  const definition = {
+    ...caseDefinition,
+    input: {
+      ...caseDefinition.input,
+      followUpDeveloperRequests: ['continue', 'Check the next owner.'],
+    },
+  };
+  const cycles = [
+    definition.input.developerDirection,
+    ...definition.input.followUpDeveloperRequests,
+  ].map((developerRequest, requestIndex) => ({
+    developerRequest,
+    requestIndex,
+    response: `response-cycle-${requestIndex + 1}`,
+    commandPolicyEvidence: commandPolicy,
+    actorExecutionEvidence: [],
+    actorResourceEvidence: resourceEvidence,
+    gitInvocationEvidence: {
+      invocationCount: 0,
+      hostInvocationCount: 0,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+    },
+    usage: null,
+    isMountIntegrityPassing: true,
+    isRepositoryControlPassing: true,
+    workspaceChanges: { created: [], deleted: [], modified: [] },
+  }));
+  const summary = summarizeSemanticCycles(cycles);
+  const prompt = buildSemanticJudgePrompt({
+    cycles,
+    caseDefinition: definition,
+    actorResponse: summary.response,
+    actorCommandPolicyEvidence: summary.commandPolicyEvidence,
+    actorExecutionEvidence: summary.actorExecutionEvidence,
+    actorResourceEvidence: summary.actorResourceEvidence,
+    gitInvocationEvidence: summary.gitInvocationEvidence,
+    isRepositoryControlPassing: true,
+    workspaceChanges: { created: [], deleted: [], modified: [] },
+  });
+  expect(buildSemanticActorPrompt(definition)).toBe(definition.input.developerDirection);
+  for (const cycle of cycles) expect(prompt.split(cycle.response)).toHaveLength(2);
+  expect(prompt).toContain('independent allowance');
+  expect(prompt).toContain('resource-containment check passed');
+  expect(prompt).toContain('Check the next owner.');
 });

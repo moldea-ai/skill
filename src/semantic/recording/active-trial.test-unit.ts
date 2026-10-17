@@ -56,6 +56,7 @@ describe('semantic active-trial recovery', () => {
 
   test('advances actor and judge boundaries without discarding completed evidence', () => {
     const actorEvidence = {
+      cycles: [],
       gitInvocationEvidence: {
         invocationCount: 0,
         hostInvocationCount: 0,
@@ -103,6 +104,8 @@ describe('semantic active-trial recovery', () => {
       RETRIED_AT,
     );
     const recordedTrial = {
+      cycles: [],
+      paidInvocations: [],
       gitInvocationEvidence: {
         invocationCount: 0,
         hostInvocationCount: 0,

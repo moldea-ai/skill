@@ -232,6 +232,10 @@ const validateBaseHostCommand = (command: readonly string[]): void => {
     throw new Error('Codex evaluation requires a Codex exec host command.');
   }
 
+  if (command.slice(2).some((part) => ['resume', '--last', '--all'].includes(part))) {
+    throw new Error('Evaluation session selection belongs to the runner.');
+  }
+
   for (const requiredFlag of REQUIRED_CODEX_FLAGS) {
     if (!command.includes(requiredFlag)) {
       throw new Error(`The evaluation host command must include ${requiredFlag}.`);
@@ -1085,8 +1089,10 @@ export const stopCodexEvaluationProxyProcess = async (
  * @throws
  * - If defaultHostTimeoutMs is not a positive integer and no environment override is present
  * - If MOLDEA_EVAL_HOST_TIMEOUT_MS is not a positive integer
+ * - If a retained session is requested for a judge or a continuation lacks an exact UUID
  */
 export const runCodexEvaluationHost = async ({
+  actorSession,
   command,
   cwd,
   defaultHostTimeoutMs = CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
@@ -1100,6 +1106,20 @@ export const runCodexEvaluationHost = async ({
   workspaceAccess = 'read-write',
 }: ICodexEvaluationHostRunOptions): Promise<string> => {
   validateCodexEvaluationHostCommand(command, role);
+  if (actorSession !== undefined && role !== 'actor') {
+    throw new Error('Only actor trials may retain a Codex session.');
+  }
+  if (actorSession?.kind === 'resume' && !z.guid().safeParse(actorSession.sessionId).success) {
+    throw new Error('Actor continuation requires an exact host session UUID.');
+  }
+  const invocationCommand =
+    actorSession === undefined
+      ? command
+      : [
+          ...command.slice(0, 2),
+          ...(actorSession.kind === 'resume' ? ['resume', actorSession.sessionId] : []),
+          ...command.slice(2).filter((part) => part !== '--ephemeral'),
+        ];
   if (!['read-only', 'read-write'].includes(workspaceAccess)) {
     throw new Error(`Unsupported evaluation workspace access: ${workspaceAccess}`);
   }
@@ -1119,7 +1139,7 @@ export const runCodexEvaluationHost = async ({
   const hostExecutable = resolveExecutablePath(command[0] ?? '');
   const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);
   const sandboxCommand = [
-    ...command.slice(0, -1),
+    ...invocationCommand.slice(0, -1),
     '-c',
     `shell_environment_policy.set.PATH=${JSON.stringify(getSandboxPath(includeWorkspaceBinaryDirectory))}`,
     '-',

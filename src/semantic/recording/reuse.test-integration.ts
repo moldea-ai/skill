@@ -13,6 +13,7 @@ import {
   defineSemanticCase,
   type ISemanticCase,
 } from '../cases/index.ts';
+import { executeSemanticCases } from '../command-line/runner.ts';
 import { buildSemanticJudgePrompt } from '../judging/index.ts';
 import {
   createSemanticActorStageIdentity,
@@ -46,71 +47,98 @@ const emptyCommandPolicy: ICodexEvaluationCommandPolicyEvidence = {
 };
 const temporaryRoots: string[] = [];
 
-const createRecordedTrial = (passed: boolean): ISemanticRecordedTrial => ({
-  gitInvocationEvidence: {
-    invocationCount: 0,
-    hostInvocationCount: 0,
-    repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
-  },
-  actorExecutionEvidence: [],
-  actorResponse: 'Recorded actor response.',
-  developerDirection: 'Inspect the recorded repository.',
-  operationalRetries: {
-    actorFailureCount: 0,
-    judgeFailureCount: 0,
-    lastFailure: null,
-  },
-  stageIdentities: { actorSha256: SHA256, judgeSha256: 'b'.repeat(64) },
-  trial: {
-    actorCommandPolicyEvidence: emptyCommandPolicy,
-    actorResourceEvidence: {
-      commandCount: 0,
-      maximumInvocationByteCount: 0,
-      modelVisibleToolOutputByteCount: 0,
-      operations: [],
-      stdoutByteCount: 0,
+const createRecordedTrial = (passed: boolean): ISemanticRecordedTrial => {
+  const recorded: Omit<ISemanticRecordedTrial, 'cycles' | 'paidInvocations'> = {
+    gitInvocationEvidence: {
+      invocationCount: 0,
+      hostInvocationCount: 0,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
     },
-    actorHost: {
-      developerInstructionsSha256: SHA256,
-      model: 'synthetic-model',
-      name: 'synthetic-host',
-      reasoningEffort: 'high',
-      role: 'actor',
-      version: '1.0.0',
+    actorExecutionEvidence: [],
+    actorResponse: 'Recorded actor response.',
+    developerDirection: 'Inspect the recorded repository.',
+    operationalRetries: {
+      actorFailureCount: 0,
+      judgeFailureCount: 0,
+      lastFailure: null,
     },
-    actorUsage: { cachedInputTokens: 0, inputTokens: 100, outputTokens: 20 },
-    confirmationEligible: false,
-    confirmationIndex: null,
-    dimensions: {
-      commandPolicy: true,
-      mountIntegrity: true,
-      operational: true,
-      repositoryControl: true,
-      resource: true,
-      semantic: passed,
+    stageIdentities: { actorSha256: SHA256, judgeSha256: 'b'.repeat(64) },
+    trial: {
+      actorCommandPolicyEvidence: emptyCommandPolicy,
+      actorResourceEvidence: {
+        commandCount: 0,
+        maximumInvocationByteCount: 0,
+        modelVisibleToolOutputByteCount: 0,
+        operations: [],
+        stdoutByteCount: 0,
+      },
+      actorHost: {
+        developerInstructionsSha256: SHA256,
+        model: 'synthetic-model',
+        name: 'synthetic-host',
+        reasoningEffort: 'high',
+        role: 'actor',
+        version: '1.0.0',
+      },
+      actorUsage: { cachedInputTokens: 0, inputTokens: 100, outputTokens: 20 },
+      confirmationEligible: false,
+      confirmationIndex: null,
+      dimensions: {
+        commandPolicy: true,
+        mountIntegrity: true,
+        operational: true,
+        repositoryControl: true,
+        resource: true,
+        semantic: passed,
+      },
+      evaluatedAt: '2026-09-20T00:00:00.000Z',
+      executionOrigin: 'executed',
+      failureClassifications: passed ? [] : ['semantic'],
+      forbidden: [],
+      judgeCommandPolicyEvidence: emptyCommandPolicy,
+      judgeHost: {
+        developerInstructionsSha256: SHA256,
+        model: 'synthetic-model',
+        name: 'synthetic-host',
+        reasoningEffort: 'high',
+        role: 'judge',
+        version: '1.0.0',
+      },
+      judgeUsage: { cachedInputTokens: 0, inputTokens: 80, outputTokens: 10 },
+      kind: 'initial',
+      observed: passed ? ['expected'] : [],
+      passed,
+      rationale: passed ? 'Passed.' : 'Failed.',
+      stageReuse: null,
     },
-    evaluatedAt: '2026-09-20T00:00:00.000Z',
-    executionOrigin: 'executed',
-    failureClassifications: passed ? [] : ['semantic'],
-    forbidden: [],
-    judgeCommandPolicyEvidence: emptyCommandPolicy,
-    judgeHost: {
-      developerInstructionsSha256: SHA256,
-      model: 'synthetic-model',
-      name: 'synthetic-host',
-      reasoningEffort: 'high',
-      role: 'judge',
-      version: '1.0.0',
+    workspaceChanges: { created: [], deleted: [], modified: [] },
+  };
+  const cycles = [
+    {
+      actorExecutionEvidence: recorded.actorExecutionEvidence,
+      actorResourceEvidence: recorded.trial.actorResourceEvidence,
+      commandPolicyEvidence: recorded.trial.actorCommandPolicyEvidence,
+      gitInvocationEvidence: recorded.gitInvocationEvidence,
+      response: recorded.actorResponse,
+      usage: recorded.trial.actorUsage,
+      developerRequest: recorded.developerDirection,
+      requestIndex: 0,
+      isMountIntegrityPassing: recorded.trial.dimensions.mountIntegrity,
+      isRepositoryControlPassing: recorded.trial.dimensions.repositoryControl,
+      workspaceChanges: recorded.workspaceChanges,
     },
-    judgeUsage: { cachedInputTokens: 0, inputTokens: 80, outputTokens: 10 },
-    kind: 'initial',
-    observed: passed ? ['expected'] : [],
-    passed,
-    rationale: passed ? 'Passed.' : 'Failed.',
-    stageReuse: null,
-  },
-  workspaceChanges: { created: [], deleted: [], modified: [] },
-});
+  ];
+  const paidInvocations = [
+    { stage: 'actor' as const, usage: recorded.trial.actorUsage },
+    { stage: 'judge' as const, usage: recorded.trial.judgeUsage },
+  ];
+  return {
+    ...recorded,
+    cycles,
+    paidInvocations,
+    trial: { ...recorded.trial, cycles, paidInvocations },
+  };
+};
 
 const storeRun = async (
   repositoryRoot: string,
@@ -136,7 +164,7 @@ const storeRun = async (
         trials,
       },
     ],
-    schemaVersion: 13,
+    schemaVersion: 14,
   };
   const evidenceSha256 = createHash('sha256')
     .update(`${JSON.stringify(evidenceRecord)}\n`)
@@ -482,6 +510,51 @@ test.each(['private', 'fixed'] as const)(
       'recovered-case:2',
     ]);
     expect(needsExecution).toStrictEqual(change === 'fixed' ? ['changed-case'] : []);
+    const modelBoundary: string[] = [];
+    const reusedResults = await executeSemanticCases({
+      cases: changed.filter(({ publication }) => publication !== 'private'),
+      checkpoint: null,
+      repositoryRoot: root,
+      workerCount: 2,
+      executeTrial: async ({ caseDefinition, confirmationIndex }) => {
+        const source = candidates.find(
+          (candidate) =>
+            candidate.caseId === caseDefinition.id &&
+            candidate.recordedTrial.trial.confirmationIndex === confirmationIndex,
+        );
+        if (source === undefined) throw new Error('Unexpected trial requested.');
+        const identities = createIdentities(caseDefinition, source.recordedTrial);
+        const selected = selectSemanticReusableTrial({
+          activeTrial: null,
+          actorIdentitySha256: identities.actorSha256,
+          candidates,
+          caseId: caseDefinition.id,
+          confirmationIndex,
+          judgeIdentitySha256: (candidate) =>
+            createIdentities(caseDefinition, candidate.recordedTrial).judgeSha256,
+        });
+        if (selected === null) {
+          if (change !== 'fixed' || caseDefinition.id !== 'changed-case')
+            throw new Error('Unexpected paid execution at no-model boundary.');
+          modelBoundary.push(caseDefinition.id);
+          return createIdentifiedTrial(caseDefinition, true);
+        }
+        return {
+          ...selected.recordedTrial,
+          trial: { ...selected.recordedTrial.trial, executionOrigin: 'reused' },
+        };
+      },
+    });
+    expect(modelBoundary).toStrictEqual(change === 'fixed' ? ['changed-case'] : []);
+    expect(
+      reusedResults
+        .find(({ id }) => id === 'recovered-case')
+        ?.trials.map(({ trial }) => [trial.confirmationIndex, trial.passed]),
+    ).toStrictEqual([
+      [null, false],
+      [1, true],
+      [2, true],
+    ]);
   },
 );
 

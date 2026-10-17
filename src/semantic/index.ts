@@ -55,6 +55,8 @@ export {
   type ISemanticActorExecutionEvidenceOptions,
   type ISemanticActorExecutionOutputEvidence,
   type ISemanticActorExecutionOutputFact,
+  type ISemanticCycleEvidence,
+  type ISemanticPaidInvocation,
   type ISemanticHostOutput,
   type ISemanticResultDimensions,
 } from './execution/index.ts';

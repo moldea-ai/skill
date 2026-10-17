@@ -20,6 +20,7 @@ import {
   identifyConfiguredReasoningEffort,
   isRetryableCodexEvaluationHostError,
   resolveCodeModeHostPath,
+  runCodexEvaluationHost,
   stopCodexEvaluationProxyProcess,
   validateCodexEvaluationHostCommand,
 } from './host.ts';
@@ -583,5 +584,36 @@ test('model-controlled commands carry a runner-owned provenance marker', () => {
         'actor',
       ),
     /must mark model-controlled commands/,
+  );
+});
+
+test('only runner-selected actor sessions may resume an exact UUID', async () => {
+  for (const selector of ['resume', '--last', '--all']) {
+    assert.throws(
+      () =>
+        validateCodexEvaluationHostCommand(
+          [...SAFE_HOST_COMMAND.slice(0, -1), selector, '-'],
+          'actor',
+        ),
+      /session selection belongs to the runner/u,
+    );
+  }
+  const options = {
+    command: SAFE_HOST_COMMAND,
+    cwd: join(tmpdir(), 'unused-session-test'),
+    prompt: 'unused',
+    sandboxHome: join(tmpdir(), 'unused-session-home'),
+  };
+  await assert.rejects(
+    runCodexEvaluationHost({ ...options, role: 'judge', actorSession: { kind: 'start' } }),
+    /Only actor trials/u,
+  );
+  await assert.rejects(
+    runCodexEvaluationHost({
+      ...options,
+      role: 'actor',
+      actorSession: { kind: 'resume', sessionId: '--last' },
+    }),
+    /exact host session UUID/u,
   );
 });

@@ -7,7 +7,7 @@ import type {
 
 export const SEMANTIC_CANDIDATE_TOKEN_LIMIT = 64_000_000;
 
-type ISemanticChargedTrial = Pick<ISemanticRecordedTrial, 'operationalRetries' | 'trial'>;
+type ISemanticChargedTrial = Pick<ISemanticRecordedTrial, 'paidInvocations' | 'trial'>;
 type ISemanticChargedCase = { trials: readonly ISemanticChargedTrial[] };
 
 export interface ISemanticTokenAdmissionController {
@@ -22,12 +22,9 @@ const getUsageTokenCount = (usage: ISemanticRecordedTrial['trial']['actorUsage']
 
 const getTrialPaidTokenCount = (recordedTrial: ISemanticChargedTrial): number => {
   if (recordedTrial.trial.executionOrigin !== 'executed') return 0;
-  return (
-    getUsageTokenCount(recordedTrial.trial.actorUsage) +
-    getUsageTokenCount(recordedTrial.trial.judgeUsage) +
-    (recordedTrial.operationalRetries.actorFailureCount +
-      recordedTrial.operationalRetries.judgeFailureCount) *
-      MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount
+  return recordedTrial.paidInvocations.reduce(
+    (total, invocation) => total + getUsageTokenCount(invocation.usage),
+    0,
   );
 };
 
@@ -44,15 +41,13 @@ const getPrivateCasePaidTokenCount = (checkpoint: ISemanticCaseCheckpoint): numb
   if (activeTrial.phase === 'trial-complete' && activeTrial.recordedTrial !== null) {
     return completedTokenCount + getTrialPaidTokenCount(activeTrial.recordedTrial);
   }
-  const retryTokenCount =
-    (activeTrial.operationalRetries.actorFailureCount +
-      activeTrial.operationalRetries.judgeFailureCount) *
-    MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
-  const actorTokenCount =
-    activeTrial.phase === 'judge-pending' && activeTrial.actorEvidence !== null
-      ? getUsageTokenCount(activeTrial.actorEvidence.usage)
-      : 0;
-  return completedTokenCount + retryTokenCount + actorTokenCount;
+  return (
+    completedTokenCount +
+    activeTrial.paidInvocations.reduce(
+      (total, invocation) => total + getUsageTokenCount(invocation.usage),
+      0,
+    )
+  );
 };
 
 /** Counts paid semantic tokens retained by committed and private worker checkpoints. */

@@ -3,7 +3,12 @@ import type {
   IGitInvocationEvidence,
   ICodexEvaluationOperationalFailureCategory,
 } from '../../execution/host/index.ts';
-import type { ISemanticActorExecutionEvidence, ISemanticHostOutput } from '../execution/index.ts';
+import type {
+  ISemanticActorExecutionEvidence,
+  ISemanticHostOutput,
+  ISemanticCycleEvidence,
+  ISemanticPaidInvocation,
+} from '../execution/index.ts';
 import type { ISemanticAttemptTrialModel, ISemanticCliIdentity } from '../public-evidence/index.ts';
 import type { ISemanticWorkspaceChanges } from '../workspace/index.ts';
 
@@ -23,6 +28,7 @@ export interface ISemanticOperationalRetryState {
 }
 
 export interface ISemanticActiveTrialActorEvidence extends ISemanticHostOutput {
+  cycles: ISemanticCycleEvidence[];
   actorStageIdentitySha256: string;
   isMountIntegrityPassing: boolean;
   isRepositoryControlPassing: boolean;
@@ -30,6 +36,8 @@ export interface ISemanticActiveTrialActorEvidence extends ISemanticHostOutput {
 }
 
 export interface ISemanticActiveTrialCheckpoint {
+  actorCycles: ISemanticCycleEvidence[];
+  paidInvocations: ISemanticPaidInvocation[];
   actorEvidence: ISemanticActiveTrialActorEvidence | null;
   confirmationIndex: 1 | 2 | 3 | null;
   operationalRetries: ISemanticOperationalRetryState;
@@ -48,6 +56,8 @@ export interface ISemanticCaseCheckpoint {
 }
 
 export interface ISemanticRecordedTrial {
+  cycles: ISemanticCycleEvidence[];
+  paidInvocations: ISemanticPaidInvocation[];
   gitInvocationEvidence: IGitInvocationEvidence;
   actorExecutionEvidence: ISemanticActorExecutionEvidence[];
   actorResponse: string;
@@ -88,7 +98,7 @@ export interface ISemanticCandidateCheckpoint {
   createdAt: string;
   judgeHost: ICodexEvaluationHostIdentity;
   mode: ISemanticEvaluationMode;
-  schemaVersion: 2;
+  schemaVersion: 3;
   selectedCaseIds: string[];
   updatedAt: string;
 }

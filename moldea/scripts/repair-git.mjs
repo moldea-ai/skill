@@ -30,7 +30,6 @@ import { devNull } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { isPathWithin, readRepositoryFile } from "./repository-files.mjs";
 var OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;
-var EXCLUDED_DIRECTORIES = /* @__PURE__ */ new Set(["_archive", "_archives", "_backup", "_backups"]);
 var validateEvidencePath = (path) => {
   if (path.length === 0 || isAbsolute(path) || /^[a-z]:/iu.test(path) || path.includes("\0") || path.split("/").some((part) => !part || part === "." || part === "..")) {
     throw new Error("Git returned unsupported repository path evidence.");
@@ -39,7 +38,7 @@ var validateEvidencePath = (path) => {
 };
 var validatePath = (path) => {
   validateEvidencePath(path);
-  if (/[\\\p{Cc}]/u.test(path) || path.split("/").some((part) => EXCLUDED_DIRECTORIES.has(part)))
+  if (/[\\\p{Cc}]/u.test(path))
     throw new Error("Written-file review path is excluded or unsupported.");
   return path;
 };
@@ -115,7 +114,7 @@ var assertAttributeSafety = async (repositoryRoot2) => {
   } else if (!gitStat.isDirectory()) {
     throw new Error("Git directory safety is unavailable for this repository.");
   }
-  if (gitDirectory.split(/[\\/]/u).some((part) => EXCLUDED_DIRECTORIES.has(part)) || await realpath(gitDirectory) !== gitDirectory)
+  if (await realpath(gitDirectory) !== gitDirectory)
     throw new Error("Git metadata directory safety is unavailable.");
   let commonDirectory = gitDirectory;
   try {
@@ -128,7 +127,7 @@ var assertAttributeSafety = async (repositoryRoot2) => {
     if (!declaration || /[\0\r\n]/u.test(declaration))
       throw new Error("Git common directory evidence is invalid.");
     commonDirectory = resolve(gitDirectory, declaration);
-    if (commonDirectory.split(/[\\/]/u).some((part) => EXCLUDED_DIRECTORIES.has(part)) || await realpath(commonDirectory) !== commonDirectory)
+    if (await realpath(commonDirectory) !== commonDirectory)
       throw new Error("Git common directory safety is unavailable.");
   } catch (error) {
     if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
@@ -138,8 +137,6 @@ var assertAttributeSafety = async (repositoryRoot2) => {
   if (readGit(repositoryRoot2, REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS).length > 0)
     throw new Error("Stored Git attribute sources cannot be verified safely.");
   const paths = readPaths(readGit(repositoryRoot2, REPAIR_GIT_INDEX_ARGUMENTS));
-  if (paths.some((path) => path.split("/").some((part) => EXCLUDED_DIRECTORIES.has(part))))
-    throw new Error("Indexed excluded directories prevent attribute-safe worktree Git reads.");
   const attributes = /* @__PURE__ */ new Set([join(repositoryRoot2, ".gitattributes")]);
   for (const path of paths) {
     if (path.split("/").at(-1) === ".gitattributes") {
@@ -225,8 +222,6 @@ var collectRepairGitEvidence = async (options) => {
     if (!isAbsolute(options.repositoryRoot))
       throw new Error("An absolute repository root is required.");
     const repositoryRoot2 = await realpath(resolve(options.repositoryRoot));
-    if (repositoryRoot2.split(/[\\/]/u).some((part) => EXCLUDED_DIRECTORIES.has(part)))
-      throw new Error("The repository root is excluded from inspection.");
     if (!(await lstat(repositoryRoot2)).isDirectory())
       throw new Error("A repository directory is required.");
     if (["continue", "verify"].includes(options.mode) && !OBJECT_ID_PATTERN.test(options.checkpoint ?? "")) {

@@ -10,11 +10,4 @@ export const INITIALIZATION_INSPECTION_LIMITS = {
 } as const;
 
 // excluded directories are never opened, including for metadata discovery
-export const INSPECTION_EXCLUDED_DIRECTORIES = new Set([
-  '_archive',
-  '_archives',
-  '_backup',
-  '_backups',
-  '.git',
-  'node_modules',
-]);
+export const INSPECTION_EXCLUDED_DIRECTORIES = new Set(['.git', 'node_modules']);

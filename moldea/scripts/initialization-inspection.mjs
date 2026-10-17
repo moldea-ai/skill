@@ -19,14 +19,7 @@ var INITIALIZATION_INSPECTION_LIMITS = {
   sourcePacketBytes: 65536,
   outputBytes: 262144
 };
-var INSPECTION_EXCLUDED_DIRECTORIES = /* @__PURE__ */ new Set([
-  "_archive",
-  "_archives",
-  "_backup",
-  "_backups",
-  ".git",
-  "node_modules"
-]);
+var INSPECTION_EXCLUDED_DIRECTORIES = /* @__PURE__ */ new Set([".git", "node_modules"]);
 
 // src/portable/initialization-inspection/inspection.ts
 var validateSourcePath = (path) => {

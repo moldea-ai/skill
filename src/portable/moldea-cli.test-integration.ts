@@ -202,18 +202,31 @@ test.each(['moldea/project.md', 'moldea/context/Éclair plan.md'])(
   },
 );
 
-test.each([
-  'C:project.md',
-  '\\\\host\\share',
-  'moldea\\project.md',
-  'moldea/../README.md',
-  '//host/share',
-])('rejects unsafe content path %s before repository code', (path) => {
+test.each(['C:project.md', '\\\\host\\share', 'moldea/../README.md', '//host/share'])(
+  'rejects unsafe content path %s before repository code',
+  (path) => {
+    const { root, invokedPath } = createScopeFixture();
+    const result = runPage(root, 'content', ['--path', path]);
+    assert.equal(result.status, 3);
+    assert.equal(result.stdout, '');
+    assert.equal(existsSync(invokedPath), false);
+  },
+);
+
+test('content accepts relative backslashes only for Windows repository roots', () => {
   const { root, invokedPath } = createScopeFixture();
-  const result = runPage(root, 'content', ['--path', path]);
-  assert.equal(result.status, 3);
-  assert.equal(result.stdout, '');
-  assert.equal(existsSync(invokedPath), false);
+  const canonical = runPage(root, 'content', ['--path', 'moldea/project.md']);
+  assert.equal(canonical.status, 0, canonical.stderr || canonical.stdout);
+  rmSync(invokedPath);
+  const result = runPage(root, 'content', ['--path', 'moldea\\project.md']);
+  if (process.platform === 'win32') {
+    assert.deepEqual(result, canonical);
+    assert.equal(existsSync(invokedPath), true);
+  } else {
+    assert.equal(result.status, 3);
+    assert.equal(result.stdout, '');
+    assert.equal(existsSync(invokedPath), false);
+  }
 });
 
 test('retains CLI rejection for noncanonical content', () => {

@@ -48,6 +48,10 @@ const validatePath = (path: string): string => {
  * @throws If Git fails or its output exceeds the bounded capture limit.
  */
 const readGit = (repositoryRoot: string, arguments_: readonly string[]): Buffer => {
+  if (process.platform === 'win32' && repositoryRoot.length >= 260)
+    throw new RepairGitReadError(
+      "The repository path exceeds Windows' 260-character working-directory limit for Git; move or clone it to a shorter path.",
+    );
   // Git for Windows maps /dev/null to NUL but rejects Node's devNull spelling.
   const configurations: string[] = [...REPAIR_GIT_COMMON_CONFIGURATIONS];
   if (arguments_[0] === 'diff') configurations.push('diff.external=');

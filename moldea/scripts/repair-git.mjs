@@ -44,6 +44,10 @@ var validatePath = (path) => {
   return path;
 };
 var readGit = (repositoryRoot2, arguments_2) => {
+  if (process.platform === "win32" && repositoryRoot2.length >= 260)
+    throw new RepairGitReadError(
+      "The repository path exceeds Windows' 260-character working-directory limit for Git; move or clone it to a shorter path."
+    );
   const configurations = [...REPAIR_GIT_COMMON_CONFIGURATIONS];
   if (arguments_2[0] === "diff") configurations.push("diff.external=");
   const environment = { ...process.env };

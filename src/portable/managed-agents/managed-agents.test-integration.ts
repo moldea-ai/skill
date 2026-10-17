@@ -2,6 +2,7 @@
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
 import {
   copyFile,
+  cp,
   lstat,
   mkdir,
   mkdtemp,
@@ -14,8 +15,11 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { expect, test } from 'vitest';
+
+import { readReleaseIdentity } from '../../release/index.ts';
+import { collectProductionPackageRoots } from '../../semantic/workspace/index.ts';
 
 const TEST_NODE_EXECUTABLE = process.env['MOLDEA_TEST_NODE'] ?? process.execPath;
 const SOURCE = resolve(import.meta.dirname, '../../../moldea');
@@ -247,8 +251,28 @@ test('the rendered command gates from nested cwd and remains valid after a repos
   });
 });
 
-test('bundled writers, gate, inspection and repair run from a long repository path', async () => {
+test('bundled helpers handle long paths within native process limits', async () => {
   await withInstallation(async (root) => {
+    const packageRoot = resolve(SOURCE, '../node_modules');
+    const { cliVersion } = readReleaseIdentity(resolve(SOURCE, '..'));
+    for (const source of collectProductionPackageRoots(join(packageRoot, '@moldea.ai/cli'))) {
+      await cp(source, join(root, 'node_modules', relative(packageRoot, source)), {
+        recursive: true,
+        filter: (path) =>
+          !relative(source, path)
+            .split(/[\\/]/u)
+            .some((part) =>
+              ['node_modules', '_archive', '_archives', '_backup', '_backups'].includes(part),
+            ),
+      });
+    }
+    await writeFile(
+      join(root, 'package.json'),
+      JSON.stringify({ devDependencies: { '@moldea.ai/cli': cliVersion } }),
+    );
+    await writeFile(join(root, '.gitignore'), '/node_modules/\n');
+    await mkdir(join(root, 'src'));
+    await writeFile(join(root, 'src/refund.js'), 'export const refund = true;\n');
     await mkdir(join(root, 'moldea'));
     await writeFile(join(root, 'moldea/project.md'), '# Project\n');
     await writeFile(
@@ -261,7 +285,15 @@ test('bundled writers, gate, inspection and repair run from a long repository pa
     };
     git('init', '--quiet');
     git('config', 'core.longpaths', 'true');
-    git('add', '--', 'moldea/project.md', 'moldea/moldea.yaml');
+    git(
+      'add',
+      '--',
+      'moldea/project.md',
+      'moldea/moldea.yaml',
+      'package.json',
+      '.gitignore',
+      'src/refund.js',
+    );
     git(
       '-c',
       'commit.gpgsign=false',
@@ -304,8 +336,29 @@ test('bundled writers, gate, inspection and repair run from a long repository pa
         mode: 'inventory',
       });
       const repair = run('repair-git.mjs', ['--', 'checkpoint']);
-      expect(repair.status, repair.stdout + repair.stderr).toBe(0);
-      expect(JSON.parse(repair.stdout)).toMatchObject({ status: 'available' });
+      if (process.platform === 'win32') {
+        expect(repair.status, repair.stdout + repair.stderr).toBe(1);
+        expect(JSON.parse(repair.stdout)).toMatchObject({
+          status: 'unavailable',
+          reasonCode: 'git-read',
+          reason:
+            "The repository path exceeds Windows' 260-character working-directory limit for Git; move or clone it to a shorter path.",
+        });
+      } else {
+        expect(repair.status, repair.stdout + repair.stderr).toBe(0);
+        expect(JSON.parse(repair.stdout)).toMatchObject({ status: 'available' });
+      }
+      for (const command of ['validate', 'inspect']) {
+        const cli = run('moldea-cli.mjs', ['--', command, '--json', '--max-output-bytes', '65536']);
+        if (process.platform === 'win32') {
+          expect(cli.status, cli.stdout + cli.stderr).toBe(3);
+          expect(cli.stdout).toBe('');
+          expect(cli.stderr).toMatch(/^spawn .+ ENOENT\r?\n$/u);
+        } else {
+          expect(cli.status, cli.stdout + cli.stderr).toBe(0);
+          expect(JSON.parse(cli.stdout)).toMatchObject({ command, status: 'valid' });
+        }
+      }
     } finally {
       if (isMoved) await rename(deep, root);
       await rm(parent, { recursive: true, force: true });

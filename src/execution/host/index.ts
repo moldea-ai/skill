@@ -19,6 +19,8 @@ export type {
   ICodexEvaluationRole,
   ICodexEvaluationWorkspaceAccess,
   IMoldeaCliOperation,
+  IMoldeaCliLauncherMissReason,
+  IMoldeaCliLauncherMissReasonCode,
   IRepositoryTestCommandKind,
   IRepairGitCommandEvidence,
   IRepairGitReasonCode,

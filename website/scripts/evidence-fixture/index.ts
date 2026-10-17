@@ -39,6 +39,7 @@ const EMPTY_COMMAND_POLICY: ISemanticAttemptTrialModel['actorCommandPolicyEviden
   maximumCommandOutputByteCount: 128,
   modelVisibleToolOutputByteCount: 128,
   moldeaCommandCount: 1,
+  moldeaLauncherMissReasons: [],
   moldeaOutputByteCount: 128,
   networkAccess: {
     indeterminateCount: 0,

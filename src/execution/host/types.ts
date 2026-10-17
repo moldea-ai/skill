@@ -45,6 +45,15 @@ export interface ICodexEvaluationCommandPolicyReason {
   count: number;
 }
 
+// content-free diagnostics for commands shaped like the bundled CLI launcher
+export type IMoldeaCliLauncherMissReasonCode =
+  'unrecognized-node-path' | 'unrecognized-launcher-path';
+
+export interface IMoldeaCliLauncherMissReason {
+  code: IMoldeaCliLauncherMissReasonCode;
+  count: number;
+}
+
 export interface ICodexEvaluationCommandPolicyEvidence {
   completedCommandCount: number;
   credentialExposure: {
@@ -55,6 +64,7 @@ export interface ICodexEvaluationCommandPolicyEvidence {
   maximumCommandOutputByteCount: number;
   modelVisibleToolOutputByteCount: number;
   moldeaCommandCount: number;
+  moldeaLauncherMissReasons: IMoldeaCliLauncherMissReason[];
   moldeaOutputByteCount: number;
   networkAccess: {
     status: ICodexEvaluationCommandPolicyStatus;

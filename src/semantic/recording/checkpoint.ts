@@ -3,7 +3,11 @@ import path from 'node:path';
 import { z } from 'zod';
 
 import { GitInvocationEvidenceSchema } from '../../execution/host/index.ts';
-import { readJsonFile, writeJsonFileAtomically } from '../../filesystem/index.ts';
+import {
+  readJsonFile,
+  resolveContainedPath,
+  writeJsonFileAtomically,
+} from '../../filesystem/index.ts';
 import {
   hasValidActorExecutionEvidence,
   type ISemanticActorExecutionEvidenceOptions,
@@ -39,6 +43,15 @@ const CommandPolicySchema = z.strictObject({
   maximumCommandOutputByteCount: z.number().int().nonnegative(),
   modelVisibleToolOutputByteCount: z.number().int().nonnegative(),
   moldeaCommandCount: z.number().int().nonnegative(),
+  moldeaLauncherMissReasons: z
+    .array(
+      z.strictObject({
+        code: z.enum(['unrecognized-node-path', 'unrecognized-launcher-path']),
+        count: z.number().int().positive(),
+      }),
+    )
+    .max(2)
+    .refine((reasons) => new Set(reasons.map(({ code }) => code)).size === reasons.length),
   moldeaOutputByteCount: z.number().int().nonnegative(),
   networkAccess: CommandPolicyObservationSchema,
   sensitiveAccess: CommandPolicyObservationSchema,
@@ -380,6 +393,38 @@ export const writeSemanticCheckpoint = async (
 ): Promise<void> => {
   CandidateCheckpointSchema.parse(checkpoint);
   await writeJsonFileAtomically(getSemanticCheckpointPath(repositoryRoot), checkpoint);
+};
+
+/**
+ * Archives a completed diagnostic while leaving active-checkpoint cleanup to its caller.
+ * @returns The private archive path; these records are never official reusable evidence.
+ * @throws
+ * - Semantic diagnostic attempt identity is not a safe archive component.
+ * - Semantic diagnostic archive requires a complete terminal selection.
+ */
+export const archiveSemanticDiagnosticCheckpoint = async (
+  repositoryRoot: string,
+  checkpoint: ISemanticCandidateCheckpoint,
+): Promise<string> => {
+  CandidateCheckpointSchema.parse(checkpoint);
+  if (
+    !/^sem-[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(checkpoint.attemptId) ||
+    checkpoint.attemptId.length > 64
+  )
+    throw new Error('Semantic diagnostic attempt identity is not a safe archive component.');
+  if (
+    checkpoint.mode !== 'diagnostic' ||
+    checkpoint.cases.length !== checkpoint.selectedCaseIds.length ||
+    Object.keys(checkpoint.caseCheckpoints).length !== 0 ||
+    checkpoint.cases.some(({ status, trials }) => status === 'pending' || trials.length === 0)
+  )
+    throw new Error('Semantic diagnostic archive requires a complete terminal selection.');
+  const archivePath = resolveContainedPath(
+    repositoryRoot,
+    path.join('.evidence', 'semantic', 'diagnostics', checkpoint.attemptId, 'checkpoint.json'),
+  );
+  await writeJsonFileAtomically(archivePath, checkpoint);
+  return archivePath;
 };
 
 /** Reads one semantic checkpoint whose detailed cases are validated during resume. */

@@ -60,6 +60,7 @@ import {
   type ISemanticCliIdentity,
 } from '../public-evidence/index.ts';
 import {
+  archiveSemanticDiagnosticCheckpoint,
   appendSemanticOperationalRetry,
   attachSemanticActorEvidence,
   completeSemanticActiveTrial,
@@ -157,6 +158,22 @@ const createAttemptId = (): string =>
     .toISOString()
     .replaceAll(/[-:.TZ]/gu, '')
     .slice(0, 17)}-${randomUUID().replaceAll('-', '').slice(0, 8)}`;
+
+/**
+ * Retains every completed diagnostic trial before removing its active checkpoint.
+ * @returns The private completed archive path.
+ * @throws
+ * - Semantic diagnostic attempt identity is not a safe archive component.
+ * - Semantic diagnostic archive requires a complete terminal selection.
+ */
+export const completeSemanticDiagnostic = async (
+  repositoryRoot: string,
+  checkpoint: ISemanticCandidateCheckpoint,
+): Promise<string> => {
+  const archivePath = await archiveSemanticDiagnosticCheckpoint(repositoryRoot, checkpoint);
+  await rm(getSemanticCheckpointPath(repositoryRoot), { force: true });
+  return archivePath;
+};
 
 const createJsonSha256 = (input: unknown): string =>
   createHash('sha256')
@@ -1071,7 +1088,8 @@ const run = async (): Promise<void> => {
 
   if (!arguments_.isRecordRequested) {
     if (checkpointMode === 'diagnostic') {
-      await rm(getSemanticCheckpointPath(REPOSITORY_ROOT), { force: true });
+      if (checkpoint === null) throw new Error('Completed semantic diagnostic has no checkpoint.');
+      await completeSemanticDiagnostic(REPOSITORY_ROOT, checkpoint);
     }
     process.stdout.write(
       `${JSON.stringify(recordedCases.map(({ id, status }) => ({ id, status })))}\n`,

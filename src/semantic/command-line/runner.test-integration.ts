@@ -1,24 +1,30 @@
 // @vitest-environment node
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
 import type { ICodexEvaluationCommandPolicyEvidence } from '../../execution/host/index.ts';
+import { ensureDirectory } from '../../filesystem/index.ts';
 
 import { loadSemanticCases, type ISemanticCase } from '../cases/index.ts';
 import {
   createSemanticActiveTrial,
   getSemanticCheckpointPath,
+  loadSemanticReusableTrials,
   readSemanticCheckpoint,
   writeSemanticCheckpoint,
   type ISemanticCandidateCheckpoint,
   type ISemanticRecordedTrial,
 } from '../recording/index.ts';
 
-import { executeSemanticCases, type ISemanticRunnerTrialExecutionOptions } from './runner.ts';
+import {
+  completeSemanticDiagnostic,
+  executeSemanticCases,
+  type ISemanticRunnerTrialExecutionOptions,
+} from './runner.ts';
 
 const SHA256 = 'a'.repeat(64);
 const EMPTY_COMMAND_POLICY: ICodexEvaluationCommandPolicyEvidence = {
@@ -27,6 +33,7 @@ const EMPTY_COMMAND_POLICY: ICodexEvaluationCommandPolicyEvidence = {
   maximumCommandOutputByteCount: 0,
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
+  moldeaLauncherMissReasons: [],
   moldeaOutputByteCount: 0,
   networkAccess: {
     indeterminateCount: 0,
@@ -184,6 +191,81 @@ afterEach(async () => {
 });
 
 describe('semantic runner case orchestration', () => {
+  test.each(['passed', 'recovered', 'failed'] as const)(
+    'archives a completed %s diagnostic with all usage and confirmations before cleanup',
+    async (outcome) => {
+      const repositoryRoot = await mkdtemp(path.join(tmpdir(), 'moldea-semantic-runner-'));
+      temporaryRoots.push(repositoryRoot);
+      const cases = [createCase('case-one')];
+      const checkpoint = createCandidateCheckpoint(cases);
+      checkpoint.attemptId = `sem-${outcome}`;
+      checkpoint.mode = 'diagnostic';
+      await writeSemanticCheckpoint(repositoryRoot, checkpoint);
+      const results = await executeSemanticCases({
+        cases,
+        checkpoint,
+        executeTrial: async ({ caseDefinition, confirmationIndex }) =>
+          createRecordedTrial({
+            caseDefinition,
+            confirmationIndex,
+            passed: outcome === 'passed' || (outcome === 'recovered' && confirmationIndex !== null),
+          }),
+        repositoryRoot,
+        workerCount: 1,
+      });
+      expect(results[0]?.status).toBe(outcome);
+      expect(results[0]?.trials).toHaveLength(outcome === 'passed' ? 1 : 3);
+      const archivePath = await completeSemanticDiagnostic(repositoryRoot, checkpoint);
+      expect(JSON.parse(await readFile(archivePath, 'utf8'))).toStrictEqual(checkpoint);
+      expect(checkpoint.cases).toStrictEqual(results);
+      expect(existsSync(getSemanticCheckpointPath(repositoryRoot))).toBe(false);
+      expect(await loadSemanticReusableTrials(repositoryRoot)).toStrictEqual([]);
+
+      // a cleanup interruption can be finalized again without replaying any paid stage
+      await writeSemanticCheckpoint(repositoryRoot, checkpoint);
+      const resumed = await executeSemanticCases({
+        cases: [],
+        checkpoint,
+        executeTrial: async () => {
+          throw new Error('A completed diagnostic must never call the model.');
+        },
+        repositoryRoot,
+        workerCount: 1,
+      });
+      expect(resumed).toStrictEqual(results);
+      expect(await completeSemanticDiagnostic(repositoryRoot, checkpoint)).toBe(archivePath);
+      expect(JSON.parse(await readFile(archivePath, 'utf8'))).toStrictEqual(checkpoint);
+    },
+  );
+
+  test('preserves the completed active checkpoint when diagnostic archival fails', async () => {
+    const repositoryRoot = await mkdtemp(path.join(tmpdir(), 'moldea-semantic-runner-'));
+    temporaryRoots.push(repositoryRoot);
+    const caseDefinition = createCase('case-one');
+    const checkpoint = createCandidateCheckpoint([caseDefinition]);
+    checkpoint.attemptId = 'sem-write-failure';
+    checkpoint.mode = 'diagnostic';
+    checkpoint.cases = [
+      {
+        confirmationStatus: 'not-required',
+        id: caseDefinition.id,
+        status: 'passed',
+        trials: [createRecordedTrial({ caseDefinition, confirmationIndex: null, passed: true })],
+      },
+    ];
+    await writeSemanticCheckpoint(repositoryRoot, checkpoint);
+    const blockedDirectory = path.join(repositoryRoot, '.evidence', 'semantic', 'diagnostics');
+    await writeFile(blockedDirectory, 'existing non-directory');
+
+    await expect(completeSemanticDiagnostic(repositoryRoot, checkpoint)).rejects.toThrow();
+    expect(await readSemanticCheckpoint(repositoryRoot)).toStrictEqual(checkpoint);
+    await rm(blockedDirectory);
+    await ensureDirectory(blockedDirectory);
+    const archivePath = await completeSemanticDiagnostic(repositoryRoot, checkpoint);
+    expect(JSON.parse(await readFile(archivePath, 'utf8'))).toStrictEqual(checkpoint);
+    expect(existsSync(getSemanticCheckpointPath(repositoryRoot))).toBe(false);
+  });
+
   test('preflight constructs prompts for every discovered case before model execution', async () => {
     const repositoryRoot = path.resolve(import.meta.dirname, '../../..');
     const cases = await loadSemanticCases(path.join(repositoryRoot, 'src', 'semantic', 'cases'));

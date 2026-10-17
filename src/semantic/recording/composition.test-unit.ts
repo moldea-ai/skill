@@ -20,6 +20,7 @@ const COMMAND_POLICY: ICodexEvaluationCommandPolicyEvidence = {
   maximumCommandOutputByteCount: 0,
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
+  moldeaLauncherMissReasons: [],
   moldeaOutputByteCount: 0,
   networkAccess: { indeterminateCount: 0, observedCount: 0, reasons: [], status: 'not-observed' },
   sensitiveAccess: { indeterminateCount: 0, observedCount: 0, reasons: [], status: 'not-observed' },

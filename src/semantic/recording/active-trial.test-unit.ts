@@ -76,6 +76,7 @@ describe('semantic active-trial recovery', () => {
         maximumCommandOutputByteCount: 0,
         modelVisibleToolOutputByteCount: 0,
         moldeaCommandCount: 0,
+        moldeaLauncherMissReasons: [],
         moldeaOutputByteCount: 0,
         networkAccess: {
           indeterminateCount: 0,

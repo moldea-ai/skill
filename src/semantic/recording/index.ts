@@ -35,6 +35,7 @@ export {
 
 // checkpoints
 export {
+  archiveSemanticDiagnosticCheckpoint,
   getSemanticCheckpointPath,
   parseSemanticRecordedCases,
   readSemanticCheckpoint,

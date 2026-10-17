@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
 import { readGitInvocationEvidence } from './git-invocations.ts';
+import { readCliInvocations } from './cli-invocations/index.ts';
 
 import type {
   ICodexEvaluationBwrapOptions,
@@ -85,6 +86,8 @@ const RETRYABLE_CODEX_EVALUATION_HOST_FAILURE_KINDS = new Set<ICodexEvaluationHo
 const RUNTIME_DIRECTORY = fileURLToPath(new URL('../../../dist/runtime/', import.meta.url));
 const EGRESS_PROXY_PATH = join(RUNTIME_DIRECTORY, 'codex-evaluation-proxy.mjs');
 const GIT_COMMAND_POLICY_BOUNDARY_PATH = join(RUNTIME_DIRECTORY, 'git-command-policy-boundary.mjs');
+const CLI_INVOCATION_PRELOAD_PATH = join(RUNTIME_DIRECTORY, 'cli-invocation-preload.mjs');
+const SANDBOX_NODE_OPTIONS = '--import=file:///home/evaluator/bin/cli-invocation-preload.mjs';
 const EGRESS_PROXY_PORT = 3128;
 const EGRESS_PROXY_SHUTDOWN_TIMEOUT_MS = 5_000;
 const MAX_HOST_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostOutputBytes;
@@ -575,6 +578,10 @@ export const prepareCodexEvaluationHome = async (sandboxHome: string): Promise<v
   const sandboxBinDirectory = join(sandboxHome, 'bin');
   const npmProbePath = join(sandboxBinDirectory, 'npm');
   await mkdir(sandboxBinDirectory, { recursive: true, mode: 0o700 });
+  await copyFile(
+    CLI_INVOCATION_PRELOAD_PATH,
+    join(sandboxBinDirectory, 'cli-invocation-preload.mjs'),
+  );
   const { prepareGitCommandPolicyBoundary } = await loadGitCommandPolicyBoundary();
   await prepareGitCommandPolicyBoundary(sandboxBinDirectory, {
     realGitExecutable: '/opt/moldea-real-git/git',
@@ -801,6 +808,9 @@ export const buildCodexEvaluationBwrapArguments = ({
     '--setenv',
     'PATH',
     getSandboxPath(includeWorkspaceBinaryDirectory),
+    '--setenv',
+    'NODE_OPTIONS',
+    SANDBOX_NODE_OPTIONS,
     '--setenv',
     'TMPDIR',
     '/tmp',
@@ -1135,13 +1145,17 @@ export const runCodexEvaluationHost = async ({
     invocationLogPath: '/home/evaluator/git-invocations.jsonl',
   });
   const gitInvocationLogPath = join(sandboxHome, 'git-invocations.jsonl');
+  const cliInvocationLogPath = join(sandboxHome, 'cli-invocations.jsonl');
   await writeFile(gitInvocationLogPath, '', { mode: 0o600 });
+  await writeFile(cliInvocationLogPath, '', { mode: 0o600 });
   const hostExecutable = resolveExecutablePath(command[0] ?? '');
   const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);
   const sandboxCommand = [
     ...invocationCommand.slice(0, -1),
     '-c',
     `shell_environment_policy.set.PATH=${JSON.stringify(getSandboxPath(includeWorkspaceBinaryDirectory))}`,
+    '-c',
+    `shell_environment_policy.set.NODE_OPTIONS=${JSON.stringify(SANDBOX_NODE_OPTIONS)}`,
     '-',
   ];
   const hostConfiguration = identifyCodexEvaluationHostConfiguration({
@@ -1177,11 +1191,12 @@ export const runCodexEvaluationHost = async ({
     });
     try {
       const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
-      return `${output}\n${JSON.stringify({ type: 'moldea.git-invocations', evidence })}`;
+      const invocations = await readCliInvocations(cliInvocationLogPath);
+      return `${output}\n${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', invocations })}`;
     } catch (error) {
       throw new CodexEvaluationHostError(
         CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
-        'Evaluation Git invocation capture was unavailable or incomplete.',
+        'Evaluation invocation capture was unavailable or incomplete.',
         { cause: error },
       );
     }
@@ -1190,6 +1205,7 @@ export const runCodexEvaluationHost = async ({
       await stopCodexEvaluationProxyProcess(proxyProcess);
     } finally {
       await rm(gitInvocationLogPath, { force: true });
+      await rm(cliInvocationLogPath, { force: true });
     }
   }
 };

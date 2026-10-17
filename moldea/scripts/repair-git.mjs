@@ -26,10 +26,11 @@ var REPAIR_GIT_ATTRIBUTE_PATHS = 65536;
 // src/portable/repair-git/repair-git.ts
 import { spawnSync } from "node:child_process";
 import { lstat, realpath } from "node:fs/promises";
-import { devNull } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { isPathWithin, readRepositoryFile } from "./repository-files.mjs";
 var OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;
+var RepairGitReadError = class extends Error {
+};
 var validateEvidencePath = (path) => {
   if (path.length === 0 || isAbsolute(path) || /^[a-z]:/iu.test(path) || path.includes("\0") || path.split("/").some((part) => !part || part === "." || part === "..")) {
     throw new Error("Git returned unsupported repository path evidence.");
@@ -43,9 +44,7 @@ var validatePath = (path) => {
   return path;
 };
 var readGit = (repositoryRoot2, arguments_2) => {
-  const configurations = REPAIR_GIT_COMMON_CONFIGURATIONS.map(
-    (setting) => setting.startsWith("core.attributesFile=") ? `core.attributesFile=${devNull}` : setting
-  );
+  const configurations = [...REPAIR_GIT_COMMON_CONFIGURATIONS];
   if (arguments_2[0] === "diff") configurations.push("diff.external=");
   const environment = { ...process.env };
   for (const name of [
@@ -75,7 +74,7 @@ var readGit = (repositoryRoot2, arguments_2) => {
       env: {
         ...environment,
         GIT_ATTR_NOSYSTEM: "1",
-        GIT_CONFIG_GLOBAL: devNull,
+        GIT_CONFIG_GLOBAL: "/dev/null",
         GIT_CONFIG_NOSYSTEM: "1",
         GIT_OPTIONAL_LOCKS: "0",
         GIT_WORK_TREE: repositoryRoot2,
@@ -86,12 +85,16 @@ var readGit = (repositoryRoot2, arguments_2) => {
       windowsHide: true
     }
   );
-  if (result.status === 1 && arguments_2.length === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS.length && arguments_2.every((argument, index) => argument === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS[index]))
+  if (!result.error && result.status === 1 && arguments_2.length === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS.length && arguments_2.every((argument, index) => argument === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS[index]))
     return Buffer.alloc(0);
   if (result.error && "code" in result.error && result.error.code === "ENOBUFS")
     throw new RangeError("Repair Git output exceeds its bounded capture limit.");
   if (result.error || result.status !== 0) {
-    throw new Error("The bounded repair Git read failed or exceeded its limit.");
+    const firstErrorLine = (result.stderr?.subarray(0, 512).toString("utf8") || result.error?.message || "").split(/[\r\n]/u, 1)[0].replace(/[\p{Cc}]/gu, " ").trim();
+    throw new RepairGitReadError(
+      `The bounded repair Git read failed or exceeded its limit.${firstErrorLine ? ` ${firstErrorLine}` : ""}`,
+      { cause: result.error }
+    );
   }
   return result.stdout;
 };
@@ -332,6 +335,7 @@ var collectRepairGitEvidence = async (options) => {
     return evidence;
   } catch (error) {
     if (error instanceof RangeError) reasonCode = "output-limit";
+    if (error instanceof RepairGitReadError) reasonCode = "git-read";
     const reason = error instanceof Error ? error.message : "Repair Git evidence is unavailable.";
     return {
       kind: "moldea-repair-git",

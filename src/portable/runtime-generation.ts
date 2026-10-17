@@ -11,6 +11,7 @@ const DEFAULT_ROOT_DIRECTORY = path.resolve(PORTABLE_SOURCE_ROOT, '../..');
 const DEFAULT_RUNTIME_OUTPUT_DIRECTORY = 'dist/runtime';
 
 const RUNTIME_ENTRY_OUTPUTS = {
+  'src/execution/host/cli-invocations/preload.ts': 'cli-invocation-preload.mjs',
   'src/execution/host/git-command-policy-boundary.ts': 'git-command-policy-boundary.mjs',
   'src/execution/host/proxy.ts': 'codex-evaluation-proxy.mjs',
   'src/scripted-journeys/harness/setup.ts': 'journeys/setup.mjs',

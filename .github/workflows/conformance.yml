@@ -251,9 +251,9 @@ jobs:
             }
 
             $env:MOLDEA_TEST_NODE = (Get-Command node).Source
-            npm exec -- vitest run --config vitest/test-integration.config.ts src/portable/runtime-generation.test-integration.ts
+            npm exec -- vitest run --config vitest/test-integration.config.ts src/portable/runtime-generation.test-integration.ts src/portable/repair-git/repair-git.test-integration.ts
             if ($LASTEXITCODE -ne 0) {
-              throw 'Generated runtime helpers failed on Windows.'
+              throw 'Generated runtime helpers or repair-Git integration failed on Windows.'
             }
 
             $skillsHome = Join-Path $deepRoot 'developer-home'

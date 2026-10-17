@@ -31,6 +31,7 @@ test('runtime generation emits standalone helpers for isolated execution', async
   assert.deepEqual(
     result.artifacts,
     [
+      path.relative(process.cwd(), path.join(outputDirectory, 'cli-invocation-preload.mjs')),
       path.relative(process.cwd(), path.join(outputDirectory, 'git-command-policy-boundary.mjs')),
       path.relative(process.cwd(), path.join(outputDirectory, 'codex-evaluation-proxy.mjs')),
       ...['setup', 'next', 'record', 'export'].map((entry) =>

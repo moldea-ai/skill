@@ -4,6 +4,7 @@ import { normalizeScopePath } from '../../portable/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
 import { isApprovedRepairGitArguments } from './git-command-policy-boundary.ts';
+import { CliInvocationEventSchema, type ICliInvocation } from './cli-invocations/index.ts';
 
 import type {
   ICodexEvaluationCommandPolicyEvidence,
@@ -987,6 +988,7 @@ const parseMoldeaCliOperationArguments = (
 const isMoldeaCliOperation = (value: string | undefined): value is IMoldeaCliOperation =>
   value !== undefined && MOLDEA_CLI_OPERATIONS.has(value);
 
+/** Returns the supported operation for one exact launcher command word sequence. */
 const identifyMoldeaCliLauncherOperationFromWords = (
   words: readonly string[],
 ): IMoldeaCliOperation | null => {
@@ -1825,9 +1827,7 @@ export const hasValidCodexEvaluationCommandPolicy = (
     !isBoundedNonNegativeInteger(moldeaOutputByteCount, MAX_MOLDEA_OUTPUT_BYTES) ||
     maximumCommandOutputByteCount > modelVisibleToolOutputByteCount ||
     (completedCommandCount === 0 && maximumCommandOutputByteCount !== 0) ||
-    moldeaCommandCount > completedCommandCount ||
-    (moldeaCommandCount === 0 && moldeaOutputByteCount !== 0) ||
-    moldeaOutputByteCount > modelVisibleToolOutputByteCount
+    (moldeaCommandCount === 0 && moldeaOutputByteCount !== 0)
   ) {
     return false;
   }
@@ -1928,6 +1928,7 @@ export const projectCodexEvaluationExecutionEvidence = (
   let moldeaCommandCount = 0;
   let moldeaOutputByteCount = 0;
   let usage: IUsage | null = null;
+  let cliInvocations: ICliInvocation[] | null = null;
 
   for (const eventLine of source.split('\n')) {
     if (eventLine.trim() === '') continue;
@@ -1943,6 +1944,10 @@ export const projectCodexEvaluationExecutionEvidence = (
       throw new Error('Codex execution evidence contains an unsupported event.');
     }
     if (hasCredentialExposureInEvent(event)) credentialExposureCount += 1;
+    if (event['type'] === 'moldea.cli-invocations') {
+      if (cliInvocations !== null) throw new Error('CLI invocation capture is duplicated.');
+      cliInvocations = CliInvocationEventSchema.parse(event).invocations;
+    }
     const eventUsage = extractUsageCandidate(event);
     if (eventUsage !== null) usage = eventUsage;
 
@@ -1984,18 +1989,6 @@ export const projectCodexEvaluationExecutionEvidence = (
       modelVisibleToolOutputByteCount,
       MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES,
     );
-    assertWithinResourceLimit(
-      'moldea command count',
-      'commands',
-      moldeaCommandCount,
-      MAX_MOLDEA_COMMAND_COUNT,
-    );
-    assertWithinResourceLimit(
-      'moldea command output',
-      'bytes',
-      moldeaOutputByteCount,
-      MAX_MOLDEA_OUTPUT_BYTES,
-    );
     classifications.push(classification);
     projectedEvents.push({
       eventType: 'command.completed',
@@ -2006,6 +1999,25 @@ export const projectCodexEvaluationExecutionEvidence = (
     });
   }
 
+  if (cliInvocations !== null) {
+    moldeaCommandCount = cliInvocations.length;
+    moldeaOutputByteCount = cliInvocations.reduce(
+      (total, invocation) => total + invocation.outputByteCount,
+      0,
+    );
+  }
+  assertWithinResourceLimit(
+    'moldea command count',
+    'commands',
+    moldeaCommandCount,
+    MAX_MOLDEA_COMMAND_COUNT,
+  );
+  assertWithinResourceLimit(
+    'moldea command output',
+    'bytes',
+    moldeaOutputByteCount,
+    MAX_MOLDEA_OUTPUT_BYTES,
+  );
   const networkAccess = summarizePolicy(classifications, 'networkAccess');
   const sensitiveAccess = summarizePolicy(classifications, 'sensitiveAccess');
   const commandPolicy: ICodexEvaluationCommandPolicyEvidence = {

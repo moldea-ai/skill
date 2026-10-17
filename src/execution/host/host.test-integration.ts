@@ -18,6 +18,7 @@ import { test } from 'vitest';
 import { z } from 'zod';
 
 import { GitInvocationEventSchema } from './git-invocations.ts';
+import { CliInvocationEventSchema } from './cli-invocations/index.ts';
 import { CODEX_EVALUATION_GIT_STATUS_ARGUMENTS } from './git-command-policy-boundary.ts';
 import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
@@ -80,6 +81,7 @@ const prepareEmptyCodexEvaluationHome = async (
 /** Verifies the required capture frame while testing a fake host's own output. */
 const unwrapHostOutput = (output: string): string => {
   const lines = output.split('\n');
+  CliInvocationEventSchema.parse(JSON.parse(lines.pop() ?? ''));
   GitInvocationEventSchema.parse(JSON.parse(lines.pop() ?? ''));
   return lines.join('\n');
 };

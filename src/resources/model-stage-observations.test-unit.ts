@@ -75,6 +75,18 @@ test('binds model-stage observations to a deterministic digest', async () => {
   );
 });
 
+test('accepts emitted CLI bytes that a wrapper removed from model-visible output', async () => {
+  const artifact = await readArtifact();
+  const stage = getModelStage(artifact);
+  stage.maximumCommandOutputByteCount = 0;
+  stage.modelVisibleToolOutputByteCount = 0;
+  assert.ok(stage.moldeaOutputByteCount > 0);
+  artifact.modelStageObservationsSha256 = calculateModelStageObservationsSha256(
+    artifact.modelStageObservations,
+  );
+  assert.equal(validateModelStageCalibrationArtifact(artifact), artifact);
+});
+
 test('binds command-output observations to a deterministic digest', async () => {
   const artifact = await readArtifact();
   const firstDigest = calculateCommandOutputObservationsSha256(artifact.commandOutputObservations);

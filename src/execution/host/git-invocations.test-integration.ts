@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { spawnSync } from 'node:child_process';
-import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test } from 'vitest';
@@ -58,6 +58,10 @@ test.each([
     try {
       await mkdir(repository);
       await mkdir(join(home, 'bin'), { recursive: true });
+      await copyFile(
+        join(process.cwd(), 'dist/runtime/cli-invocation-preload.mjs'),
+        join(home, 'bin/cli-invocation-preload.mjs'),
+      );
       await mkdir(join(home, 'tmp'));
       const init = spawnSync('/usr/bin/git', ['init', '--quiet'], {
         cwd: repository,
@@ -125,6 +129,10 @@ test.each([
     try {
       await mkdir(repository);
       await mkdir(join(home, 'bin'), { recursive: true });
+      await copyFile(
+        join(process.cwd(), 'dist/runtime/cli-invocation-preload.mjs'),
+        join(home, 'bin/cli-invocation-preload.mjs'),
+      );
       await mkdir(join(home, 'tmp'));
       expect(spawnSync('/usr/bin/git', ['init', '--quiet'], { cwd: repository }).status).toBe(0);
       await prepareGitCommandPolicyBoundary(join(home, 'bin'), {

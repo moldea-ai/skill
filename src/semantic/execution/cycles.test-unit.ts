@@ -14,6 +14,25 @@ const createCycle = (
   ordinaryCommandCount = 0,
 ): ISemanticCycleEvidence => {
   const output = [
+    {
+      type: 'moldea.cli-invocations',
+      invocations: Array.from({ length: callCount }, () => ({
+        arguments: [
+          '--repository',
+          '/mnt',
+          '--',
+          'content',
+          '--path',
+          'moldea/project.md',
+          '--json',
+          '--max-output-bytes',
+          '65536',
+        ],
+        stdout: 'x'.repeat(outputByteCount),
+        outputByteCount,
+        exitCode: 0,
+      })),
+    },
     ...Array.from({ length: ordinaryCommandCount }, () => ({
       type: 'item.completed',
       item: {

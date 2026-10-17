@@ -304,6 +304,7 @@ const createMultipleRequestTrial = (confirmationIndex: 1 | 2 | null): ISemanticR
   const cycles = multipleRequests.map((developerRequest, requestIndex) => ({
     ...parseSemanticEvaluationHostOutput(
       [
+        { type: 'moldea.cli-invocations', invocations: [] },
         {
           type: 'item.completed',
           item: {

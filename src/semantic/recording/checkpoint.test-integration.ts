@@ -67,6 +67,7 @@ describe('semantic checkpoint storage', () => {
     const checkpoint = createCheckpoint();
     const evidence = parseSemanticEvaluationHostOutput(
       [
+        { type: 'moldea.cli-invocations', invocations: [] },
         { type: 'item.completed', item: { type: 'agent_message', text: ' Complete.\n' } },
         {
           type: 'turn.completed',
@@ -281,6 +282,8 @@ test('round trips projected Git and print evidence and rejects malformed command
   ].join('\n');
   const evidence = parseSemanticEvaluationHostOutput(
     output +
+      '\n' +
+      JSON.stringify({ type: 'moldea.cli-invocations', invocations: [] }) +
       '\n' +
       JSON.stringify({
         type: 'moldea.git-invocations',

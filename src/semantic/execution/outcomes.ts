@@ -54,7 +54,8 @@ export const hasPassingCaseRepairGitEvidence = (options: {
   !options.caseDefinition.expected.some(({ label }) =>
     ['approved-repair-git', 'repair-git-compliance'].includes(label),
   ) ||
-  (options.actorExecutionEvidence.length === options.actorCommandPolicy.completedCommandCount &&
+  (options.actorExecutionEvidence.filter(({ item }) => item.commandKind === 'other').length ===
+    options.actorCommandPolicy.completedCommandCount &&
     hasPassingRepairGitEvidence(options.actorExecutionEvidence, options.gitInvocationEvidence) &&
     (!options.caseDefinition.expected.some(({ label }) => label === 'approved-repair-git') ||
       options.gitInvocationEvidence.repair.compliantCount > 0));

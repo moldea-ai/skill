@@ -37,6 +37,7 @@ const state = '/home/evaluator/.codex/retained-session.json';
 const count = fs.existsSync(state) ? JSON.parse(fs.readFileSync(state, 'utf8')).count : 0;
 assert.equal(args.includes('--ephemeral'), false);
 assert.equal(args.includes('--last'), false);
+assert.ok(args.includes('shell_environment_policy.set.NODE_OPTIONS="--import=file:///home/evaluator/bin/cli-invocation-preload.mjs"'));
 for (const flag of ['--ignore-user-config', '--ignore-rules', '--skip-git-repo-check']) assert.ok(args.includes(flag));
 for (const config of ['features.plugins=false', 'shell_environment_policy.set.MOLDEA_EVAL_MODEL_COMMAND="1"']) assert.ok(args.includes(config));
 assert.equal(args.includes('resume'), count > 0);
@@ -144,6 +145,9 @@ if (!(${JSON.stringify(scenario)} === 'missing-initial-usage' && count === 0)) {
         {
           code: 'ENOENT',
         },
+      );
+      await expect(readFile(path.join(sandboxHome, 'cli-invocations.jsonl'))).rejects.toMatchObject(
+        { code: 'ENOENT' },
       );
       const confirmationRoot = path.join(root, 'confirmation');
       const confirmationHome = path.join(root, 'confirmation-home');

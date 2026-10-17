@@ -100,7 +100,7 @@ export interface ISemanticActorExecutionOutputEvidence {
   facts: ISemanticActorExecutionOutputFact[];
 }
 
-// strict persisted completed-command evidence
+// persisted host-command observations and separately captured launcher executions
 export interface ISemanticActorExecutionEvidence {
   eventType: 'item.completed';
   item: {
@@ -113,7 +113,7 @@ export interface ISemanticActorExecutionEvidence {
   };
 }
 
-// content-free aggregate of moldea CLI use by one actor
+// CLI output totals count emitted bytes; command policy records model visibility separately
 export interface IMoldeaResourceEvidence {
   commandCount: number;
   maximumInvocationByteCount: number;

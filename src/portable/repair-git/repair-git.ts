@@ -1,6 +1,5 @@
 import { spawnSync } from 'node:child_process';
 import { lstat, realpath } from 'node:fs/promises';
-import { devNull } from 'node:os';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 
 import { isPathWithin, readRepositoryFile } from '../repository-files.ts';
@@ -18,6 +17,9 @@ import {
 import type { IRepairGitEvidence, IRepairGitOptions } from './types.ts';
 
 const OBJECT_ID_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u;
+
+// distinguish subprocess failures from attribute files that cannot be verified safely
+class RepairGitReadError extends Error {}
 
 /** Validates structural Git output without interpreting filename punctuation as arguments. */
 const validateEvidencePath = (path: string): string => {
@@ -41,11 +43,13 @@ const validatePath = (path: string): string => {
   return path;
 };
 
-/** Captures only a fixed bounded Git read, respecting the host's executable boundary. */
+/**
+ * Captures only a fixed bounded Git read, respecting the host's executable boundary.
+ * @throws If Git fails or its output exceeds the bounded capture limit.
+ */
 const readGit = (repositoryRoot: string, arguments_: readonly string[]): Buffer => {
-  const configurations = REPAIR_GIT_COMMON_CONFIGURATIONS.map((setting) =>
-    setting.startsWith('core.attributesFile=') ? `core.attributesFile=${devNull}` : setting,
-  );
+  // Git for Windows maps /dev/null to NUL but rejects Node's devNull spelling.
+  const configurations: string[] = [...REPAIR_GIT_COMMON_CONFIGURATIONS];
   if (arguments_[0] === 'diff') configurations.push('diff.external=');
   const environment = { ...process.env };
   for (const name of [
@@ -75,7 +79,7 @@ const readGit = (repositoryRoot: string, arguments_: readonly string[]): Buffer 
       env: {
         ...environment,
         GIT_ATTR_NOSYSTEM: '1',
-        GIT_CONFIG_GLOBAL: devNull,
+        GIT_CONFIG_GLOBAL: '/dev/null',
         GIT_CONFIG_NOSYSTEM: '1',
         GIT_OPTIONAL_LOCKS: '0',
         GIT_WORK_TREE: repositoryRoot,
@@ -87,6 +91,7 @@ const readGit = (repositoryRoot: string, arguments_: readonly string[]): Buffer 
     },
   );
   if (
+    !result.error &&
     result.status === 1 &&
     arguments_.length === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS.length &&
     arguments_.every((argument, index) => argument === REPAIR_GIT_ATTRIBUTE_SOURCE_ARGUMENTS[index])
@@ -95,7 +100,18 @@ const readGit = (repositoryRoot: string, arguments_: readonly string[]): Buffer 
   if (result.error && 'code' in result.error && result.error.code === 'ENOBUFS')
     throw new RangeError('Repair Git output exceeds its bounded capture limit.');
   if (result.error || result.status !== 0) {
-    throw new Error('The bounded repair Git read failed or exceeded its limit.');
+    const firstErrorLine = (
+      result.stderr?.subarray(0, 512).toString('utf8') ||
+      result.error?.message ||
+      ''
+    )
+      .split(/[\r\n]/u, 1)[0]!
+      .replace(/[\p{Cc}]/gu, ' ')
+      .trim();
+    throw new RepairGitReadError(
+      `The bounded repair Git read failed or exceeded its limit.${firstErrorLine ? ` ${firstErrorLine}` : ''}`,
+      { cause: result.error },
+    );
   }
   return result.stdout;
 };
@@ -109,7 +125,10 @@ const readPaths = (bytes: Buffer): string[] => {
   return text.split('\0').filter(Boolean).map(validateEvidencePath);
 };
 
-/** Refuses executable attributes and index fallbacks before any worktree-aware Git read. */
+/**
+ * Refuses executable attributes and index fallbacks before any worktree-aware Git read.
+ * @throws If attribute inspection is unsafe, exceeds a limit, or a Git read fails.
+ */
 const assertAttributeSafety = async (repositoryRoot: string): Promise<void> => {
   const gitPath = join(repositoryRoot, '.git');
   const gitStat = await lstat(gitPath);
@@ -378,7 +397,7 @@ export const collectRepairGitEvidence = async (
     return evidence;
   } catch (error) {
     if (error instanceof RangeError) reasonCode = 'output-limit';
-    // all errors here come from fixed local operations; do not expose Git stderr or configuration
+    if (error instanceof RepairGitReadError) reasonCode = 'git-read';
     const reason = error instanceof Error ? error.message : 'Repair Git evidence is unavailable.';
     return {
       kind: 'moldea-repair-git',

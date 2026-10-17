@@ -31,6 +31,17 @@ test('real launcher composition agrees with sandbox Node recognition and resourc
   expect(composition.status, composition.stderr).toBe(0);
   const stream = [
     {
+      type: 'moldea.cli-invocations',
+      invocations: [
+        {
+          arguments: ['--repository', '/mnt', '--', 'composition', '--json'],
+          stdout: composition.stdout,
+          outputByteCount: Buffer.byteLength(composition.stdout),
+          exitCode: composition.status,
+        },
+      ],
+    },
+    {
       type: 'item.completed',
       item: {
         type: 'command_execution',
@@ -98,6 +109,7 @@ test('real installed helper print survives host projection and verifies the judg
       '\n',
     );
     const stream = [
+      { type: 'moldea.cli-invocations', invocations: [] },
       {
         type: 'item.completed',
         item: {

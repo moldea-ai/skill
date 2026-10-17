@@ -702,7 +702,12 @@ test('command-policy validation rejects incomplete and contradictory aggregates'
     hasValidCodexEvaluationCommandPolicy({ ...evidence, completedCommandCount: 129 }),
     false,
   );
-  assert.equal(hasValidCodexEvaluationCommandPolicy({ ...evidence, moldeaCommandCount: 1 }), false);
+  // actual launcher observations are independent of host-command observations
+  assert.equal(hasValidCodexEvaluationCommandPolicy({ ...evidence, moldeaCommandCount: 1 }), true);
+  assert.equal(
+    hasValidCodexEvaluationCommandPolicy({ ...evidence, moldeaCommandCount: 33 }),
+    false,
+  );
   assert.equal(
     hasValidCodexEvaluationCommandPolicy({
       ...evidence,

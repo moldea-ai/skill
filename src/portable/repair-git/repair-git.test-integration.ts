@@ -11,7 +11,7 @@ import {
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
-import { devNull, tmpdir } from 'node:os';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
 
@@ -27,14 +27,14 @@ const roots: string[] = [];
 const git = (root: string, ...arguments_: string[]): string => {
   const result = spawnSync(
     'git',
-    ['-c', 'core.hooksPath=' + devNull, '-c', 'commit.gpgsign=false', ...arguments_],
+    ['-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', ...arguments_],
     {
       cwd: root,
       encoding: 'utf8',
       timeout: 10_000,
       env: {
         ...process.env,
-        GIT_CONFIG_GLOBAL: devNull,
+        GIT_CONFIG_GLOBAL: '/dev/null',
         GIT_CONFIG_NOSYSTEM: '1',
         GIT_AUTHOR_NAME: 'Fixture',
         GIT_AUTHOR_EMAIL: 'fixture@example.com',
@@ -116,6 +116,21 @@ test('unborn repositories explicitly require conservative reassessment', () => {
     status: 'unavailable',
     reasonCode: 'commit-unavailable',
   });
+});
+
+test('bundled helper reports the first Git error during attribute inspection as a Git read failure', () => {
+  const root = repository();
+  writeFileSync(join(root, '.git', 'config'), '[invalid\n');
+  const result = runHelper(root, 'checkpoint');
+  expect(result.status).toBe(1);
+  expect(result.stderr).toBe('');
+  const evidence = JSON.parse(result.stdout) as IRepairGitEvidence;
+  expect(evidence).toMatchObject({
+    status: 'unavailable',
+    reasonCode: 'git-read',
+  });
+  if (evidence.status !== 'unavailable') throw new Error('Expected unavailable Git evidence.');
+  expect(evidence.reason).toContain('fatal: bad config line 1');
 });
 
 test('bundled repair reads tracked backup paths without changing the index', () => {

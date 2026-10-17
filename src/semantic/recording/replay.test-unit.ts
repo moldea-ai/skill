@@ -10,6 +10,7 @@ const createTrial = (confirmationIndex: 1 | null): ISemanticRecordedTrial => {
     (developerRequest, requestIndex) => ({
       ...parseSemanticEvaluationHostOutput(
         [
+          { type: 'moldea.cli-invocations', invocations: [] },
           {
             type: 'item.completed',
             item: {

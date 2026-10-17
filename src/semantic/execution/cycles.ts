@@ -119,7 +119,11 @@ export const hasValidSemanticCycles = (
       hasValidCodexEvaluationCommandPolicy(cycle.commandPolicyEvidence) &&
       hasValidMoldeaResourceEvidence(cycle.actorResourceEvidence) &&
       hasValidActorExecutionEvidence(cycle.actorExecutionEvidence, options) &&
-      cycle.actorExecutionEvidence.length === cycle.commandPolicyEvidence.completedCommandCount &&
+      cycle.actorExecutionEvidence.filter(({ item }) => item.commandKind === 'other').length ===
+        cycle.commandPolicyEvidence.completedCommandCount &&
+      cycle.actorResourceEvidence.commandCount === cycle.commandPolicyEvidence.moldeaCommandCount &&
+      cycle.actorResourceEvidence.stdoutByteCount ===
+        cycle.commandPolicyEvidence.moldeaOutputByteCount &&
       serializeSemanticStageValue(
         createMoldeaResourceEvidence(cycle.actorExecutionEvidence, options),
       ) === serializeSemanticStageValue(cycle.actorResourceEvidence) &&

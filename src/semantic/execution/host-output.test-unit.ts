@@ -5,6 +5,37 @@ import { parseSemanticEvaluationHostOutput } from './host-output.ts';
 
 const OPTIONS = { cliVersion: '9.0.0', jsonSchemaVersion: 5 } as const;
 
+test('host output preserves per-request usage when a session total exceeds the host ceiling', () => {
+  const output = [
+    { type: 'item.completed', item: { type: 'agent_message', text: 'Request complete.' } },
+    {
+      type: 'turn.completed',
+      usage: { input_tokens: 3_000_000, cached_input_tokens: 1_500_000, output_tokens: 600 },
+    },
+    {
+      type: 'moldea.git-invocations',
+      evidence: {
+        invocationCount: 0,
+        hostInvocationCount: 0,
+        repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
+      },
+    },
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+  const result = parseSemanticEvaluationHostOutput(output, OPTIONS, {
+    inputTokens: 2_000_000,
+    cachedInputTokens: 1_000_000,
+    outputTokens: 400,
+  });
+  expect(result.response).toBe('Request complete.');
+  expect(result.usage).toStrictEqual({
+    inputTokens: 1_000_000,
+    cachedInputTokens: 500_000,
+    outputTokens: 200,
+  });
+});
+
 describe('semantic host output', () => {
   test('projects the final response and usage without retaining raw command content', () => {
     const output = [

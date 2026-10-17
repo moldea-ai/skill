@@ -55,7 +55,7 @@ export const readSemanticActorSessionId = (output: string): string => {
 /**
  * Executes authored requests in one workspace and exact session, persisting each cycle before continuing.
  * @returns The ordered completed cycles.
- * @throws If requests are empty, session identity changes or host execution fails.
+ * @throws If requests are empty, session identity or usage is invalid, or host execution fails.
  */
 export const runSemanticActorSession = async (options: {
   host: Omit<ICodexEvaluationHostRunOptions, 'actorSession' | 'prompt' | 'role'>;
@@ -68,6 +68,7 @@ export const runSemanticActorSession = async (options: {
     throw new Error('Actor session requires nonempty authored developer requests.');
   }
   let sessionId: string | null = null;
+  let sessionUsageBeforeRequest: ISemanticHostOutput['usage'] = null;
   const cycles: ISemanticCycleEvidence[] = [];
   const integrityPaths = [
     { source: path.join(options.host.cwd, '.git'), isGit: true },
@@ -76,6 +77,12 @@ export const runSemanticActorSession = async (options: {
       .map(({ source }) => ({ source, isGit: false })),
   ];
   for (const [requestIndex, developerRequest] of options.requests.entries()) {
+    if (requestIndex > 0 && sessionUsageBeforeRequest === null) {
+      throw new CodexEvaluationHostError(
+        CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
+        'Actor continuation requires complete preceding token usage.',
+      );
+    }
     const before = await snapshotSemanticWorkspace(options.host.cwd);
     const integrityBefore = await Promise.all(
       integrityPaths.map(({ source }) => snapshotSemanticWorkspace(source)),
@@ -94,10 +101,6 @@ export const runSemanticActorSession = async (options: {
         prompt: developerRequest,
         role: 'actor',
       });
-      const parsed = parseSemanticEvaluationHostOutput(output, {
-        cliVersion: options.cli.version,
-        jsonSchemaVersion: options.cli.jsonSchemaVersion,
-      });
       if (options.requests.length > 1) {
         const reportedId = readSemanticActorSessionId(output);
         if (sessionId !== null && reportedId !== sessionId)
@@ -107,7 +110,11 @@ export const runSemanticActorSession = async (options: {
           );
         sessionId = reportedId;
       }
-      return parsed;
+      return parseSemanticEvaluationHostOutput(
+        output,
+        { cliVersion: options.cli.version, jsonSchemaVersion: options.cli.jsonSchemaVersion },
+        sessionUsageBeforeRequest,
+      );
     });
     const integrityAfter = await Promise.all(
       integrityPaths.map(({ source }) => snapshotSemanticWorkspace(source)),
@@ -130,6 +137,16 @@ export const runSemanticActorSession = async (options: {
     };
     await options.persistCycle(cycle);
     cycles.push(cycle);
+    if (evidence.usage === null) sessionUsageBeforeRequest = null;
+    else if (sessionUsageBeforeRequest === null) sessionUsageBeforeRequest = evidence.usage;
+    else {
+      sessionUsageBeforeRequest = {
+        inputTokens: sessionUsageBeforeRequest.inputTokens + evidence.usage.inputTokens,
+        cachedInputTokens:
+          sessionUsageBeforeRequest.cachedInputTokens + evidence.usage.cachedInputTokens,
+        outputTokens: sessionUsageBeforeRequest.outputTokens + evidence.usage.outputTokens,
+      };
+    }
   }
   return cycles;
 };

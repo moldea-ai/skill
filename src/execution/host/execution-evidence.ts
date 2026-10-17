@@ -1905,11 +1905,13 @@ export const hasPassingCodexEvaluationCommandPolicy = (evidence: unknown): boole
 /**
  * Projects Codex JSONL into bounded execution facts and discards raw commands and output.
  * @param source The complete successful Codex JSONL stream.
+ * @param sessionUsageBeforeRequest The cumulative counter before this resumed request, or null for a fresh session.
  * @returns Safe projected events, token usage, and command-policy evidence.
- * @throws If the stream or a completed command event has an unsupported shape.
+ * @throws If the stream, command evidence, usage counters or resource consumption is invalid.
  */
 export const projectCodexEvaluationExecutionEvidence = (
   source: unknown,
+  sessionUsageBeforeRequest: IUsage | null = null,
 ): ICodexEvaluationExecutionEvidence => {
   if (typeof source !== 'string') throw new TypeError('Codex execution evidence must be JSONL.');
   const projectedEvents: Array<{
@@ -2037,6 +2039,26 @@ export const projectCodexEvaluationExecutionEvidence = (
     !COMMAND_POLICY_STATUSES.has(sensitiveAccess.status)
   ) {
     throw new Error('Codex execution command policy could not be derived.');
+  }
+  if (sessionUsageBeforeRequest !== null) {
+    if (usage === null) throw new Error('Codex resumed-session token usage is missing.');
+    const fields = ['inputTokens', 'cachedInputTokens', 'outputTokens'] as const;
+    for (const field of fields) {
+      if (
+        !isBoundedNonNegativeInteger(sessionUsageBeforeRequest[field], Number.MAX_SAFE_INTEGER) ||
+        usage[field] < sessionUsageBeforeRequest[field]
+      ) {
+        throw new Error('Codex resumed-session token usage is inconsistent.');
+      }
+    }
+    usage = {
+      inputTokens: usage.inputTokens - sessionUsageBeforeRequest.inputTokens,
+      cachedInputTokens: usage.cachedInputTokens - sessionUsageBeforeRequest.cachedInputTokens,
+      outputTokens: usage.outputTokens - sessionUsageBeforeRequest.outputTokens,
+    };
+    if (usage.cachedInputTokens > usage.inputTokens) {
+      throw new Error('Codex resumed-session token usage is inconsistent.');
+    }
   }
   if (usage !== null) {
     assertWithinResourceLimit(

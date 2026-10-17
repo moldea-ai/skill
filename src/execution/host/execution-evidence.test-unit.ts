@@ -1108,6 +1108,56 @@ test('execution evidence rejects model token usage above the host ceiling', () =
   );
 });
 
+test('execution evidence applies the host ceiling to the resumed request, not its session total', () => {
+  const source = JSON.stringify({
+    type: 'turn.completed',
+    usage: { input_tokens: 3_000_000, cached_input_tokens: 2_000_000, output_tokens: 1_200 },
+  });
+  const result = projectCodexEvaluationExecutionEvidence(source, {
+    inputTokens: 1_900_000,
+    cachedInputTokens: 1_500_000,
+    outputTokens: 1_000,
+  });
+  assert.deepEqual(result.usage, {
+    inputTokens: 1_100_000,
+    cachedInputTokens: 500_000,
+    outputTokens: 200,
+  });
+  assert.throws(() => projectCodexEvaluationExecutionEvidence(source), /total model token usage/u);
+  assert.throws(
+    () =>
+      projectCodexEvaluationExecutionEvidence(source, {
+        inputTokens: 1,
+        cachedInputTokens: 0,
+        outputTokens: 0,
+      }),
+    /total model token usage/u,
+  );
+});
+
+test('execution evidence rejects missing or inconsistent resumed-session counters', () => {
+  const baseline = { inputTokens: 100, cachedInputTokens: 50, outputTokens: 20 };
+  assert.throws(
+    () => projectCodexEvaluationExecutionEvidence('', baseline),
+    /resumed-session token usage is missing/u,
+  );
+  for (const usage of [
+    { input_tokens: 99, cached_input_tokens: 50, output_tokens: 20 },
+    { input_tokens: 100, cached_input_tokens: 49, output_tokens: 20 },
+    { input_tokens: 100, cached_input_tokens: 50, output_tokens: 19 },
+    { input_tokens: 101, cached_input_tokens: 52, output_tokens: 20 },
+  ]) {
+    assert.throws(
+      () =>
+        projectCodexEvaluationExecutionEvidence(
+          JSON.stringify({ type: 'turn.completed', usage }),
+          baseline,
+        ),
+      /resumed-session token usage is inconsistent/u,
+    );
+  }
+});
+
 test('launcher identification counts mechanical continuation and capture as one call', () => {
   const base =
     'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- content --path /moldea/project.md --json --max-output-bytes 65536';

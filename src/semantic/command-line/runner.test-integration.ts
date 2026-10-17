@@ -468,6 +468,7 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const prompt = fs.readFileSync(0, 'utf8');
 let response;
+let usageMultiplier = 1;
 if (prompt.startsWith('Assess whether')) {
   const counter = '/home/evaluator/.codex/judge-counter';
   const count = fs.existsSync(counter) ? Number(fs.readFileSync(counter, 'utf8')) : 0;
@@ -476,6 +477,7 @@ if (prompt.startsWith('Assess whether')) {
   response = count === 0 ? 'malformed judge' : JSON.stringify({expected:{expected:true},forbidden:{forbidden:false},rationale:'Both requests completed.'});
 } else {
   const continuation = prompt === 'continue';
+  usageMultiplier = continuation ? 2 : 1;
   assert.equal(fs.existsSync('/mnt/progress.txt'), continuation);
   if (${shouldFail} && continuation) process.exit(1);
   fs.writeFileSync('/mnt/progress.txt', continuation ? 'done' : 'partial');
@@ -483,7 +485,7 @@ if (prompt.startsWith('Assess whether')) {
   response = continuation ? 'Completed.' : 'First request complete.';
 }
 console.log(JSON.stringify({type:'item.completed',item:{type:'agent_message',text:response}}));
-console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100,cached_input_tokens:50,output_tokens:20}}));
+console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:100*usageMultiplier,cached_input_tokens:50*usageMultiplier,output_tokens:20*usageMultiplier}}));
 `,
       );
       await chmod(path.join(bin, 'codex'), 0o755);

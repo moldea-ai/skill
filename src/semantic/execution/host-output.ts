@@ -47,13 +47,19 @@ export interface ISemanticHostOutput {
  * Parses one successful JSONL host stream into bounded semantic evidence.
  * @param output Complete host output.
  * @param options Exact CLI envelope identity accepted by the evaluator.
+ * @param sessionUsageBeforeRequest The cumulative usage preceding this resumed request.
  * @returns The final response and content-free execution evidence.
+ * @throws If the stream, usage counters, command evidence or resource consumption is invalid.
  */
 export const parseSemanticEvaluationHostOutput = (
   output: string,
   options: ISemanticActorExecutionEvidenceOptions,
+  sessionUsageBeforeRequest: ISemanticHostOutput['usage'] = null,
 ): ISemanticHostOutput => {
-  const { commandPolicy, usage } = projectCodexEvaluationExecutionEvidence(output);
+  const { commandPolicy, usage } = projectCodexEvaluationExecutionEvidence(
+    output,
+    sessionUsageBeforeRequest,
+  );
   const actorExecutionEvidence: ISemanticActorExecutionEvidence[] = [];
   let hasOperationalFailureEvent = false;
   let response: string | null = null;

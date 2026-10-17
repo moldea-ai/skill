@@ -262,15 +262,15 @@ const seedPublishedCli = async (repositoryPath: string): Promise<void> => {
   await linkLocalCliExecutable(repositoryPath, installedCliRoot, PUBLISHED_CLI_MANIFEST);
 };
 
-/** Copies the evaluator-owned base commands into a scenario-specific command mount. */
+/** Copies evaluator-owned commands and Node startup capture into the scenario tool mount. */
 const prepareSemanticActorToolDirectory = async (
   sandboxHome: string,
   actorToolDirectory: string,
 ): Promise<void> => {
   await mkdir(actorToolDirectory, { recursive: true });
   await Promise.all(
-    ['git', 'npm'].map((executableName) =>
-      copyFile(join(sandboxHome, 'bin', executableName), join(actorToolDirectory, executableName)),
+    ['git', 'npm', 'cli-invocation-preload.mjs'].map((filename) =>
+      copyFile(join(sandboxHome, 'bin', filename), join(actorToolDirectory, filename)),
     ),
   );
 };

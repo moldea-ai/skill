@@ -308,3 +308,9 @@ The protocol-41 continuation diagnostic exposed Git metadata calls made directly
 The wrapper now records actor or host origin. A runner-owned marker identifies model-controlled command environments, including shells that replace themselves with Git; absent or unreadable caller evidence is treated as actor activity unless the unmarked immediate caller is the trusted Codex executable. Every invocation stays recorded, and rejected forms remain blocked. Direct host calls have a separate count and supply neither actor violations nor positive repair-read credit. Actor calls and recognized actor command-text violations remain strict. This is cooperative attribution, not protection from deliberate manipulation of the marker or process tree.
 
 Private evidence shape 13 requires the host count without defaults or conversion. No Skill files change. A new reviewed candidate, focused continuation diagnostic and fresh full recording are required before claiming current passing coverage. The 108-case fallback remains unchanged.
+
+## Changed-manifest continuation remains private
+
+All three protocol-42 diagnostic trials passed the strict actor Git check but restored F's healthy current relationship to its checkpoint-time path. The fixture was inspected: both paths exist, current policy source matches the canonical baseline, and no defect or authorization establishes a need to replace that relationship. This is a core repair failure, not a wording or evidence defect.
+
+The case returns to the private frontier with its criteria and failures unchanged. Earlier runs also retained this failure, and the maintainer had previously approved its exclusion. The fresh full recording selects the other 113 cases, avoiding another unchanged failing trial. Public coverage explicitly names the missing guarantee; this exclusion is not a passing result. No Skill, protocol, runtime helper or shared grading code changes.

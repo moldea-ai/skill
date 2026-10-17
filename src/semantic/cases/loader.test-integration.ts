@@ -177,6 +177,7 @@ const PRIVATE_CASE_IDS = [
   'maintain-feature-relationship-boundary',
   'model-workflow-routing',
   'pnpm-pnp-local-cli-provider',
+  'repair-continuation-manifest-change',
   'routing-description-fallback',
 ];
 

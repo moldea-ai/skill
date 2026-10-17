@@ -108,6 +108,10 @@ Evaluation is read-only across ordinary repository files, Git state, configurati
 
 Tooling establishment occurs only during authorized write-capable work and only after sufficient project context exists. Executable package-manager extensions stop automatic setup rather than being bypassed. Package identity and containment checks protect the launcher boundary, but they do not authenticate executable contents or provide an operating-system sandbox; the host's trust and execution controls remain authoritative.
 
+## Report a problem
+
+If `moldea` fails or behaves unexpectedly, email [jesus@moldea.ai](mailto:jesus@moldea.ai). Describe what you asked your coding agent and what happened instead. Include the error message and your skill, CLI, Node.js, Git, and operating system versions. Remove private code, secrets, credentials, and personal data before sending.
+
 ## Project blueprint
 
 `moldea` is a portable Agent Skill with deterministic conformance, semantic evaluation, scripted journeys, evidence publication, and documentation tooling. The website renders selected evidence snapshots and independently recorded mock-project runs. It has no evaluator responsibility.

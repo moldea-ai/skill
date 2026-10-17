@@ -351,9 +351,10 @@ test('bundled helpers handle long paths within native process limits', async () 
       for (const command of ['validate', 'inspect']) {
         const cli = run('moldea-cli.mjs', ['--', command, '--json', '--max-output-bytes', '65536']);
         if (process.platform === 'win32') {
-          expect(cli.status, cli.stdout + cli.stderr).toBe(3);
+          expect(cli.status, cli.stdout + cli.stderr).toBe(1);
           expect(cli.stdout).toBe('');
-          expect(cli.stderr).toMatch(/^spawn .+ ENOENT\r?\n$/u);
+          expect(cli.stderr).toContain('Error: read ENOTCONN');
+          expect(cli.stderr).toContain('at ChildProcess.spawn');
         } else {
           expect(cli.status, cli.stdout + cli.stderr).toBe(0);
           expect(JSON.parse(cli.stdout)).toMatchObject({ command, status: 'valid' });

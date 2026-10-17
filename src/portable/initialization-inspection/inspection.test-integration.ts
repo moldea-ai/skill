@@ -82,6 +82,46 @@ test('source packets batch known files without inventory traversal or repository
   expect(await calculateDirectoryFingerprint(options.repositoryRoot)).toBe(fingerprint);
 });
 
+test('bundled inventory includes archive and backup folders but skips Git and dependencies', async () => {
+  const options = await fixture();
+  const included = ['_archive', '_archives', '_backup', '_backups'];
+  for (const directory of [...included, '.git', 'node_modules']) {
+    await mkdir(join(options.repositoryRoot, directory));
+    await writeFile(join(options.repositoryRoot, directory, 'guide.md'), '# Existing guide\n');
+  }
+  const result = spawnSync(node, [script, '--repository', options.repositoryRoot], {
+    encoding: 'utf8',
+    timeout: 30_000,
+  });
+  expect(result.status).toBe(0);
+  expect(JSON.parse(result.stdout)).toMatchObject({
+    mode: 'inventory',
+    status: 'complete',
+    inventory: {
+      documents: [
+        'README.md',
+        ...included.map((directory) => `${directory}/guide.md`),
+        'docs/architecture.md',
+        'moldea/agents/support/instruction.md',
+      ].sort(),
+    },
+  });
+  expect(
+    await collectInitializationInspection({
+      ...options,
+      paths: included.map((directory) => `${directory}/guide.md`),
+    }),
+  ).toMatchObject({
+    mode: 'sources',
+    status: 'complete',
+    sources: included.map((directory) => ({
+      path: `${directory}/guide.md`,
+      content: '# Existing guide\n',
+      omission: null,
+    })),
+  });
+});
+
 test.each([
   'src/file.ts:secret',
   'src/aux.txt',
@@ -94,10 +134,8 @@ test.each([
   '//server/share.md',
   'src/../README.md',
   'src\\agent.js',
-  '_archive/source.md',
-  '_archives/source.md',
-  '_backup/source.md',
-  '_backups/source.md',
+  '.git/source.md',
+  'node_modules/source.md',
   '.env',
   '.env.local',
   'auth.json',

@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `8.2.0` supports exactly:
+Release `8.2.1` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.17.0`
@@ -52,7 +52,7 @@ Command boundaries stay explicit:
 - `scope` accepts one `--path` or one NUL-delimited UTF-8 path set of at most 2 MiB and returns relationship matches after the two-byte gate establishes relevance.
 - `content` returns chunks only for one explicit canonical `/moldea/**` path. CLI/Core still reject noncanonical targets.
 
-Release `8.2.0` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
+Release `8.2.1` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
 
 On POSIX, contained absolute paths take precedence; other leading-slash paths retain their repository-logical meaning. On Windows, only contained drive-absolute paths are converted. Traversal, internal dot segments, repeated separators, repository-root-only selections, drive-relative paths, UNC/device forms, and relative backslash paths remain errors. Normalization does not replace canonical filesystem checks.
 
@@ -116,4 +116,4 @@ Inventory stops at 16,384 entries or 64 directory levels and retains at most 128
 
 Explicit repair uses the bundled `repair-git.mjs` helper for checkpoint, continuation and written-file review. It pins Git to the supplied worktree, refuses stored attribute-tree configuration, inspects bounded attributes before worktree-aware reads, uses literal pathspecs, and does not write Git state. Its internal index listing is bounded to 4 MiB and 65,536 attribute paths; that listing is never shown to the model. The single response remains bounded to 65,536 bytes. Oversized evidence remains unavailable and cannot establish a current checkpoint. Executable filters, unseen indexed attribute fallbacks, unsafe links and oversized evidence produce explicit limitations.
 
-Attribute inspection conservatively refuses any attribute file containing `filter`, including Git LFS declarations, macros and comments. LFS configuration is disabled as additional protection, not an exception to that refusal. Indexed `_archive`, `_archives`, `_backup` and `_backups` paths also prevent worktree-aware reads because their contents and attributes are excluded from inspection. These limitations stop Git-dependent repair; they are not evidence of project drift or permission to bypass repository controls. An unborn repository instead returns unavailable commit evidence and uses conservative owner reassessment.
+Attribute inspection conservatively refuses any attribute file containing `filter`, including Git LFS declarations, macros and comments. LFS configuration is disabled as additional protection, not an exception to that refusal. These limitations stop Git-dependent repair; they are not evidence of project drift or permission to bypass repository controls. An unborn repository instead returns unavailable commit evidence and uses conservative owner reassessment.

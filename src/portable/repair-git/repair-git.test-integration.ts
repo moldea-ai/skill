@@ -118,6 +118,33 @@ test('unborn repositories explicitly require conservative reassessment', () => {
   });
 });
 
+test('bundled repair reads tracked backup paths without changing the index', () => {
+  const root = repository();
+  mkdirSync(join(root, '_backups'));
+  writeFileSync(join(root, '_backups', 'source.js'), 'alpha\n');
+  git(root, 'add', '--', '_backups/source.js');
+  git(root, 'commit', '-m', 'Tracked backup fixture');
+  const checkpoint = git(root, 'rev-parse', 'HEAD');
+  const index = readFileSync(join(root, '.git', 'index'));
+  writeFileSync(join(root, '_backups', 'source.js'), 'bravo\n');
+
+  const continuation = runHelper(root, 'continue', '--checkpoint', checkpoint);
+  expect(continuation.status).toBe(0);
+  expect(JSON.parse(continuation.stdout)).toMatchObject({
+    status: 'available',
+    commit: checkpoint,
+    changedPaths: ['_backups/source.js'],
+    uncommittedPaths: ['_backups/source.js'],
+  });
+  const review = runHelper(root, 'review', '--path', '_backups/source.js');
+  expect(review.status).toBe(0);
+  const reviewed = JSON.parse(review.stdout) as IRepairGitEvidence;
+  expect(reviewed.status).toBe('available');
+  if (reviewed.status !== 'available') throw new Error('Expected available repair evidence.');
+  expect(reviewed.writtenDiff).toContain('+bravo');
+  expect(readFileSync(join(root, '.git', 'index'))).toStrictEqual(index);
+});
+
 test.each(['worktree', 'index-fallback', 'info', 'nested'] as const)(
   'never executes a same-size clean filter through %s attributes',
   async (location) => {
@@ -177,7 +204,7 @@ test('linked worktrees inspect their common Git attributes before status', async
   ).toMatchObject({ status: 'unavailable', reasonCode: 'attribute-safety' });
 });
 
-test.each(['../outside', '..\\outside', '/absolute', '_archive/source.js', 'source\n.js'])(
+test.each(['../outside', '..\\outside', '/absolute', 'source\n.js'])(
   'rejects unsafe paths or checkpoint identities: %s',
   async (path) => {
     const root = repository();

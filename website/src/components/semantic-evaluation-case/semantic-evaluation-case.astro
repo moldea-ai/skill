@@ -33,6 +33,11 @@ const {
 const codingAgentMarkPath = withBase('/logo/icon-xs-dark.png', import.meta.env.BASE_URL);
 const hasRecordedCriteria =
   evaluationCase.expectedCriteria.length > 0 || evaluationCase.forbiddenCriteria.length > 0;
+const hasMultipleRequests =
+  evaluationCase.replay?.trials.some(
+    (trial) =>
+      trial.steps.filter((step) => step.kind === 'message' && step.role === 'developer').length > 1,
+  ) ?? false;
 const resultHeading =
   evaluationCase.status === 'failed'
     ? 'Why it failed'
@@ -69,6 +74,13 @@ const rationaleHtml =
     data-evaluation-replay
     style={{ '--coding-agent-mark': `url("${codingAgentMarkPath}")` }}
   >
+    {
+      hasMultipleRequests && (
+        <p class="mb-4 text-sm leading-6 text-muted-foreground">
+          Each trial keeps its requests, activity summaries and responses in order.
+        </p>
+      )
+    }
     <TabbedPanels
       ariaLabel="Scenario views"
       id={`semantic-${evaluationCase.id}`}

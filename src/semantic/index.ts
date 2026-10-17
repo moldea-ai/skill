@@ -50,6 +50,7 @@ export {
   isSemanticConfirmationEligible,
   parseSemanticEvaluationHostOutput,
   projectActorExecutionEvidenceEvent,
+  summarizeSemanticCycles,
   type IMoldeaResourceEvidence,
   type ISemanticActorExecutionEvidence,
   type ISemanticActorExecutionEvidenceOptions,

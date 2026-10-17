@@ -59,7 +59,7 @@ const createPackageFixture = ({
   coreLocation = 'hoisted',
   coreVersion = '7.0.2',
 }: IPackageFixtureOptions = {}): IPackageFixture => {
-  const repositoryRoot = realpathSync(mkdtempSync(join(tmpdir(), 'moldea-package-')));
+  const repositoryRoot = realpathSync.native(mkdtempSync(join(tmpdir(), 'moldea-package-')));
   temporaryRoots.push(repositoryRoot);
   const cliRoot = join(repositoryRoot, 'node_modules', '@moldea.ai', 'cli');
   const coreRoot =
@@ -174,6 +174,29 @@ test('preserves repository-contained CLI and nested Core directory links', async
   );
   assert.equal(invocation.status, 0, invocation.stderr);
   assert.equal(invocation.stdout, compositionOutput());
+});
+
+test('resolves a pnpm store with directory junctions and the CLI-local Core link', async () => {
+  const fixture = createPackageFixture();
+  const store = join(fixture.repositoryRoot, 'node_modules', '.pnpm');
+  const cli = join(store, 'cli', 'node_modules', '@moldea.ai', 'cli');
+  const core = join(store, 'core', 'node_modules', '@moldea.ai', 'core');
+  mkdirSync(dirname(cli), { recursive: true });
+  mkdirSync(dirname(core), { recursive: true });
+  renameSync(fixture.cliRoot, cli);
+  renameSync(fixture.coreRoot, core);
+  const type = process.platform === 'win32' ? 'junction' : 'dir';
+  symlinkSync(cli, fixture.cliRoot, type);
+  symlinkSync(core, join(store, 'cli', 'node_modules', '@moldea.ai', 'core'), type);
+  const resolved = await resolveRepositoryCli(fixture.repositoryRoot);
+  assert.equal(resolved.cliRoot, realpathSync.native(cli));
+  const result = spawnSync(
+    TEST_NODE_EXECUTABLE,
+    [LAUNCHER_PATH, '--repository', fixture.repositoryRoot, '--', 'composition', '--json'],
+    { encoding: 'utf8', timeout: 10_000 },
+  );
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, compositionOutput());
 });
 
 test('accepts a compatible installed CLI when the target lock selects an older patch', async () => {

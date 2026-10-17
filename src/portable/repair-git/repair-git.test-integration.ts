@@ -133,6 +133,47 @@ test('bundled helper reports the first Git error during attribute inspection as 
   expect(evidence.reason).toContain('fatal: bad config line 1');
 });
 
+test('Git ownership refusal is reported as git-read with its bounded reason', () => {
+  const root = repository();
+  const result = spawnSync(
+    process.env['MOLDEA_TEST_NODE'] ?? process.execPath,
+    [
+      resolve(import.meta.dirname, '../../../moldea/scripts/repair-git.mjs'),
+      '--repository',
+      root,
+      '--',
+      'checkpoint',
+    ],
+    {
+      encoding: 'utf8',
+      timeout: 30_000,
+      env: { ...process.env, GIT_TEST_ASSUME_DIFFERENT_OWNER: '1' },
+    },
+  );
+  expect(result.status).toBe(1);
+  const evidence = JSON.parse(result.stdout) as IRepairGitEvidence;
+  expect(evidence).toMatchObject({ status: 'unavailable', reasonCode: 'git-read' });
+  if (evidence.status !== 'unavailable') throw new Error('Expected ownership refusal.');
+  expect(evidence.reason).toContain('dubious ownership');
+});
+
+test('a configured failing file monitor is suppressed without executing its hook', () => {
+  const root = repository();
+  const sentinel = join(root, 'monitor-ran');
+  writeFileSync(
+    join(root, 'monitor.cjs'),
+    "require('node:fs').writeFileSync('monitor-ran','x');process.exit(1);\n",
+  );
+  git(root, 'config', 'core.fsmonitor', 'node monitor.cjs');
+  git(root, 'status', '--porcelain');
+  expect(existsSync(sentinel)).toBe(true);
+  rmSync(sentinel);
+  const result = runHelper(root, 'checkpoint');
+  expect(result.status, result.stdout + result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout)).toMatchObject({ status: 'available' });
+  expect(existsSync(sentinel)).toBe(false);
+});
+
 test('bundled repair reads tracked backup paths without changing the index', () => {
   const root = repository();
   mkdirSync(join(root, '_backups'));

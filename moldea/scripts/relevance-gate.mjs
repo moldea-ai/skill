@@ -11,6 +11,8 @@ import { posix, win32 } from "node:path";
 var MAXIMUM_PATH_INPUT_BYTES = 2097152;
 var utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 var normalizeScopePath = (path, context) => {
+  const usesWindowsPaths = /^[A-Za-z]:[\\/]|^\\\\/u.test(context.resolvedRepositoryRoot);
+  if (usesWindowsPaths) path = path.replaceAll("\\", "/");
   const isDriveAbsolute = /^[A-Za-z]:[\\/]/u.test(path);
   const normalizedPath = path.replace(/^(?:\.\/)+/u, "");
   const segments = normalizedPath.split(isDriveAbsolute ? /[\\/]/u : "/");
@@ -19,7 +21,6 @@ var normalizeScopePath = (path, context) => {
   )) {
     throw new Error("Invalid scope path input.");
   }
-  const usesWindowsPaths = /^[A-Za-z]:[\\/]|^\\\\/u.test(context.resolvedRepositoryRoot);
   if (isDriveAbsolute && !usesWindowsPaths) throw new Error("Invalid scope path input.");
   const pathApi = usesWindowsPaths ? win32 : posix;
   if (isDriveAbsolute || !usesWindowsPaths && normalizedPath.startsWith("/")) {

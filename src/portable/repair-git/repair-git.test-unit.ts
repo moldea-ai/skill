@@ -77,3 +77,25 @@ test('long Git error lines cannot exceed the bounded response reason', async () 
   expect(evidence.reason).toContain('fatal: ');
   expect(evidence.reason).not.toContain('second line');
 });
+
+test('Git file-monitor failures retain git-read classification and the first error line', async () => {
+  runGit.mockReturnValue({
+    status: 128,
+    stdout: Buffer.alloc(0),
+    stderr: Buffer.from('fatal: fsmonitor read failed\nprivate detail'),
+  });
+  const result = await collectRepairGitEvidence({
+    repositoryRoot: await repository(),
+    mode: 'checkpoint',
+  });
+  expect(result).toMatchObject({
+    status: 'unavailable',
+    reasonCode: 'git-read',
+    reason:
+      'The bounded repair Git read failed or exceeded its limit. fatal: fsmonitor read failed',
+  });
+  expect(runGit.mock.calls[0]).toHaveProperty(
+    '1',
+    expect.arrayContaining(['core.fsmonitor=false']),
+  );
+});

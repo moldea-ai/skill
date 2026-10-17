@@ -6,6 +6,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  realpath,
   readdir,
   rename,
   rm,
@@ -21,7 +22,7 @@ const SOURCE = resolve(import.meta.dirname, '../../../moldea');
 const withInstallation = async (
   operation: (root: string, run: (flags?: string[]) => SpawnSyncReturns<string>) => Promise<void>,
 ): Promise<void> => {
-  const root = await mkdtemp(join(tmpdir(), 'moldea-agents-'));
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'moldea-agents-')));
   try {
     const skill = join(root, '.agents', 'skills', 'moldea');
     await mkdir(join(skill, 'scripts'), { recursive: true });
@@ -242,6 +243,72 @@ test('the rendered command gates from nested cwd and remains valid after a repos
       expect(await readFile(join(moved, 'AGENTS.md'), 'utf8')).toBe(printed);
     } finally {
       await rename(moved, root);
+    }
+  });
+});
+
+test('bundled writers, gate, inspection and repair run from a long repository path', async () => {
+  await withInstallation(async (root) => {
+    await mkdir(join(root, 'moldea'));
+    await writeFile(join(root, 'moldea/project.md'), '# Project\n');
+    await writeFile(
+      join(root, 'moldea/moldea.yaml'),
+      'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/refund.js\n',
+    );
+    const git = (...args: string[]) => {
+      const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', timeout: 10_000 });
+      expect(result.status, result.stderr).toBe(0);
+    };
+    git('init', '--quiet');
+    git('config', 'core.longpaths', 'true');
+    git('add', '--', 'moldea/project.md', 'moldea/moldea.yaml');
+    git(
+      '-c',
+      'commit.gpgsign=false',
+      '-c',
+      'core.hooksPath=/dev/null',
+      '-c',
+      'user.name=Fixture',
+      '-c',
+      'user.email=fixture@example.com',
+      'commit',
+      '--quiet',
+      '-m',
+      'Long-path fixture',
+    );
+    const parent = await mkdtemp(join(tmpdir(), 'moldea-long-'));
+    const deep = join(
+      parent,
+      ...Array.from({ length: 6 }, (_, index) => `nested-${index}-` + 'directory-'.repeat(3)),
+      'repository',
+    );
+    let isMoved = false;
+    try {
+      await mkdir(join(deep, '..'), { recursive: true });
+      await rename(root, deep);
+      isMoved = true;
+      expect(deep.length).toBeGreaterThan(260);
+      const run = (name: string, flags: string[] = []) =>
+        spawnSync(
+          TEST_NODE_EXECUTABLE,
+          [join(deep, '.agents/skills/moldea/scripts', name), '--repository', deep, ...flags],
+          { encoding: 'utf8', timeout: 30_000 },
+        );
+      expect(run('managed-agents.mjs').stdout).toBe('created\n');
+      expect(run('managed-readme.mjs').stdout).toBe('created\n');
+      expect(run('relevance-gate.mjs', ['--path', 'src/refund.js']).stdout).toBe('1\n');
+      const inspection = run('initialization-inspection.mjs');
+      expect(inspection.status, inspection.stderr).toBe(0);
+      expect(JSON.parse(inspection.stdout)).toMatchObject({
+        status: 'complete',
+        mode: 'inventory',
+      });
+      const repair = run('repair-git.mjs', ['--', 'checkpoint']);
+      expect(repair.status, repair.stdout + repair.stderr).toBe(0);
+      expect(JSON.parse(repair.stdout)).toMatchObject({ status: 'available' });
+    } finally {
+      if (isMoved) await rename(deep, root);
+      await rm(parent, { recursive: true, force: true });
     }
   });
 });

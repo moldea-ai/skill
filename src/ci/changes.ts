@@ -92,7 +92,7 @@ if (process.argv[1] !== undefined && resolve(process.argv[1]) === import.meta.fi
     eventName: process.env['GITHUB_EVENT_NAME'] ?? '',
     refType: process.env['GITHUB_REF_TYPE'] ?? '',
     baseSha: process.env['CI_BASE_SHA'],
-    testedSha: process.env['GITHUB_SHA'],
+    testedSha: process.env['CI_TESTED_SHA'],
   });
   const output = process.env['GITHUB_OUTPUT'];
   if (output === undefined) throw new Error('GITHUB_OUTPUT is required for CI classification.');

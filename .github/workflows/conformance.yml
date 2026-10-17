@@ -51,6 +51,7 @@ jobs:
         id: selection
         env:
           CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CI_TESTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node src/ci/changes.ts
 
   correctness:

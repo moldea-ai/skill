@@ -124,6 +124,10 @@ test('conformance checks the exact candidate head and Windows deep-clones that s
   );
   expect(deepClone?.env?.['CANDIDATE_COMMIT']).toBe(candidateRef);
   expect(deepClone?.run).toContain('checkout --detach $env:CANDIDATE_COMMIT');
+  expect(
+    conformance.jobs['changes']?.steps?.find(({ name }) => name === 'Select conformance checks')
+      ?.env?.['CI_TESTED_SHA'],
+  ).toBe(candidateRef);
 });
 
 // GitHub's Ubuntu run steps use Bash with errexit; Windows does not execute this gate.

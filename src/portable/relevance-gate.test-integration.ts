@@ -7,6 +7,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   renameSync,
   rmSync,
   symlinkSync,
@@ -32,7 +33,7 @@ const MANAGED_BLOCK = readFileSync(
 const temporaryRoots: string[] = [];
 
 const createAdoptedRepository = (): string => {
-  const repositoryRoot = mkdtempSync(join(tmpdir(), 'moldea-gate-'));
+  const repositoryRoot = realpathSync(mkdtempSync(join(tmpdir(), 'moldea-gate-')));
   temporaryRoots.push(repositoryRoot);
   mkdirSync(join(repositoryRoot, 'moldea'));
   writeFileSync(join(repositoryRoot, 'README.md'), `# Project\n\n${MANAGED_BLOCK}`);

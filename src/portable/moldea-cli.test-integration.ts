@@ -6,6 +6,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -31,7 +32,7 @@ const PUBLISHED_CLI_URL = pathToFileURL(
 const scopeFixtureRoots: string[] = [];
 
 const createScopeFixture = () => {
-  const root = mkdtempSync(join(tmpdir(), 'moldea-scope-'));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'moldea-scope-')));
   scopeFixtureRoots.push(root);
   const git = spawnSync('git', ['init', '--quiet', root], { encoding: 'utf8' });
   if (git.error) throw git.error;

@@ -37,10 +37,10 @@ export const renderManagedAgentsBlock = async (repositoryRoot: string): Promise<
   return block;
 };
 
-// Node resolves import.meta.url through installation links but preserves the invoked argv path.
+// canonicalize both spellings because Node and Windows can preserve different path aliases
 const isDirectExecution =
   process.argv[1] !== undefined &&
-  (await realpath(resolve(process.argv[1]))) === fileURLToPath(import.meta.url);
+  (await realpath(resolve(process.argv[1]))) === (await realpath(fileURLToPath(import.meta.url)));
 if (isDirectExecution) {
   try {
     const arguments_ = process.argv.slice(2);

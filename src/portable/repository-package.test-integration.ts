@@ -59,7 +59,7 @@ const createPackageFixture = ({
   coreLocation = 'hoisted',
   coreVersion = '7.0.2',
 }: IPackageFixtureOptions = {}): IPackageFixture => {
-  const repositoryRoot = mkdtempSync(join(tmpdir(), 'moldea-package-'));
+  const repositoryRoot = realpathSync(mkdtempSync(join(tmpdir(), 'moldea-package-')));
   temporaryRoots.push(repositoryRoot);
   const cliRoot = join(repositoryRoot, 'node_modules', '@moldea.ai', 'cli');
   const coreRoot =

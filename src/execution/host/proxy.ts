@@ -1,9 +1,10 @@
 import { lookup } from 'node:dns/promises';
+import { realpath } from 'node:fs/promises';
 import { createServer, type IncomingMessage } from 'node:http';
 import { connect, isIP } from 'node:net';
 import { resolve } from 'node:path';
 import type { Duplex } from 'node:stream';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Returns whether an IP address is globally routable.
@@ -161,7 +162,8 @@ export const runCodexEvaluationProxy = async (): Promise<void> => {
 };
 
 const isDirectExecution =
-  process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url;
+  process.argv[1] !== undefined &&
+  (await realpath(resolve(process.argv[1]))) === (await realpath(fileURLToPath(import.meta.url)));
 if (isDirectExecution) {
   runCodexEvaluationProxy().catch((error) => {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);

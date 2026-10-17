@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { cpSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync } from 'node:fs';
 import path from 'node:path';
 
 import { z } from 'zod';
@@ -109,6 +109,17 @@ const copyPreparedAssets = (
       force: false,
       recursive: true,
     });
+    if (kind === 'semantic') {
+      const internalDirectory = path.join(publicAssetsDirectory, kind, '.evidence');
+      if (existsSync(internalDirectory)) {
+        const recordsDirectory = path.join(publicAssetsDirectory, kind, 'records');
+        if (existsSync(recordsDirectory)) {
+          throw new Error('Prepared semantic assets conflict with the public records directory.');
+        }
+        // Pages omits hidden directories from its uploaded artifact.
+        renameSync(internalDirectory, recordsDirectory);
+      }
+    }
   }
 };
 

@@ -56,6 +56,7 @@ test('real installed helper print survives host projection and verifies the judg
         type: 'moldea.git-invocations',
         evidence: {
           invocationCount: 0,
+          hostInvocationCount: 0,
           repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
         },
       },
@@ -76,6 +77,7 @@ test('real installed helper print survives host projection and verifies the judg
     const prompt = buildSemanticJudgePrompt({
       gitInvocationEvidence: {
         invocationCount: 0,
+        hostInvocationCount: 0,
         repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
       },
       actorCommandPolicyEvidence: projected.commandPolicyEvidence,

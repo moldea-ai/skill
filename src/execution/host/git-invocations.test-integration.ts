@@ -42,6 +42,12 @@ test.each([
   ['non-PATH real binary', 'command -v moldea-real-git', 0, true],
   ['explicit real binary', `/opt/moldea-real-git/git ${safeArguments.join(' ')}`, 0, false],
   ['nested rejected Git', nodeSpawn('git', ['log', '-p']), 1, false],
+  [
+    'Node clears environment',
+    `/opt/node --input-type=module -e 'import {spawnSync} from "node:child_process";spawnSync("/usr/bin/git",["log","-p"],{env:{PATH:"/usr/bin:/bin"},stdio:"inherit"})'`,
+    1,
+    false,
+  ],
   ['unexecuted rejected Git', 'false && git log -p', 0, false],
 ] as const)(
   'sandbox captures %s and grades combined compliance',
@@ -70,7 +76,7 @@ test.each([
           command: [
             'codex',
             '-c',
-            `PATH=/home/evaluator/bin:/opt:/usr/bin:/bin; export PATH; ${command}`,
+            `PATH=/home/evaluator/bin:/opt:/usr/bin:/bin; export PATH; export MOLDEA_EVAL_MODEL_COMMAND=1; ${command}`,
           ],
           cwd: repository,
           hostExecutable: await realpath('/bin/sh'),
@@ -82,6 +88,7 @@ test.each([
       if (result.error) throw result.error;
       const capture = await readGitInvocationEvidence(log);
       expect(capture.invocationCount).toBe(count);
+      expect(capture.hostInvocationCount).toBe(0);
       if (_name === 'non-PATH real binary') expect(result.status).toBe(127);
       const evidence = projectActorExecutionEvidenceEvent(
         {
@@ -100,6 +107,56 @@ test.each([
       expect(hasPassingRepairGitEvidence([evidence], capture)).toBe(passing);
       if (count === 1 && passing) expect(capture.repair.compliantCount).toBe(1);
       if (_name === 'nested rejected Git') expect(capture.repair.noncompliantCount).toBe(1);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  },
+);
+
+test.each([
+  ['host metadata', 'git -c safe.bareRepository=explicit status --porcelain', 0],
+  ['host approved repair form', `git ${safeArguments.join(' ')}`, 0],
+])(
+  'direct trusted %s is recorded without actor credit or violations',
+  async (_name, command, actorReads) => {
+    const root = await mkdtemp(join(tmpdir(), 'moldea-host-git-'));
+    const repository = join(root, 'repository');
+    const home = join(root, 'home');
+    try {
+      await mkdir(repository);
+      await mkdir(join(home, 'bin'), { recursive: true });
+      await mkdir(join(home, 'tmp'));
+      expect(spawnSync('/usr/bin/git', ['init', '--quiet'], { cwd: repository }).status).toBe(0);
+      await prepareGitCommandPolicyBoundary(join(home, 'bin'), {
+        realGitExecutable: '/opt/moldea-real-git/git',
+        invocationLogPath: '/home/evaluator/git-invocations.jsonl',
+      });
+      const log = join(home, 'git-invocations.jsonl');
+      await writeFile(log, '', { mode: 0o600 });
+      const result = spawnSync(
+        'bwrap',
+        buildCodexEvaluationBwrapArguments({
+          command: [
+            'codex',
+            '--input-type=module',
+            '-e',
+            `import {spawnSync} from "node:child_process";spawnSync("/usr/bin/git",${JSON.stringify(command.split(' ').slice(1))},{stdio:"inherit"})`,
+          ],
+          cwd: repository,
+          hostExecutable: process.execPath,
+          nodeExecutable: process.execPath,
+          sandboxHome: home,
+        }),
+        { encoding: 'utf8', timeout: 10_000 },
+      );
+      if (result.error) throw result.error;
+      expect(result.status).toBe(0);
+      const evidence = await readGitInvocationEvidence(log);
+      expect(evidence.invocationCount).toBe(1);
+      expect(evidence.hostInvocationCount).toBe(1);
+      expect(evidence.repair.compliantCount).toBe(actorReads);
+      expect(evidence.repair.noncompliantCount).toBe(0);
+      expect(hasPassingRepairGitEvidence([], evidence)).toBe(true);
     } finally {
       await rm(root, { recursive: true, force: true });
     }

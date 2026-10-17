@@ -30,6 +30,7 @@ describe('semantic host output', () => {
         type: 'moldea.git-invocations',
         evidence: {
           invocationCount: 0,
+          hostInvocationCount: 0,
           repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
         },
       }),
@@ -63,6 +64,7 @@ test('requires one complete invocation capture independently of actor claims', (
     type: 'moldea.git-invocations',
     evidence: {
       invocationCount: 0,
+      hostInvocationCount: 0,
       repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
     },
   });
@@ -96,6 +98,7 @@ test('does not treat a failed wrapper capture as an empty successful log', () =>
       type: 'moldea.git-invocations',
       evidence: {
         invocationCount: 0,
+        hostInvocationCount: 0,
         repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
       },
     },
@@ -124,6 +127,7 @@ test('reading wrapper source does not signal an invocation-capture failure', () 
       type: 'moldea.git-invocations',
       evidence: {
         invocationCount: 0,
+        hostInvocationCount: 0,
         repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
       },
     },

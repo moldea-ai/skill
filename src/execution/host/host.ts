@@ -395,12 +395,21 @@ export const buildCodexEvaluationHostCommand = (
     throw new Error('The evaluation host command must not override plugin discovery.');
   }
 
+  if (
+    identifyConfiguredValues(command, 'shell_environment_policy.set.MOLDEA_EVAL_MODEL_COMMAND')
+      .length > 0
+  ) {
+    throw new Error('The evaluation host command must not override command provenance.');
+  }
+
   const effectiveCommand = [
     ...command.slice(0, -1),
     '--enable',
     REQUIRED_CODEX_FEATURE,
     '-c',
     'features.plugins=false',
+    '-c',
+    'shell_environment_policy.set.MOLDEA_EVAL_MODEL_COMMAND="1"',
     '--model',
     CODEX_EVALUATION_MODEL,
     '-c',
@@ -449,6 +458,13 @@ export const validateCodexEvaluationHostCommand = (
     )
   ) {
     throw new Error('Codex evaluation must disable plugin discovery.');
+  }
+  const commandOrigins = identifyConfiguredValues(
+    command,
+    'shell_environment_policy.set.MOLDEA_EVAL_MODEL_COMMAND',
+  );
+  if (commandOrigins.length !== 1 || commandOrigins[0] !== '"1"') {
+    throw new Error('Codex evaluation must mark model-controlled commands.');
   }
   const reasoningEffort = getCodexEvaluationReasoningEffort(role);
   if (identifyConfiguredModel(command) !== CODEX_EVALUATION_MODEL) {

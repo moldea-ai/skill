@@ -14,18 +14,20 @@ const MAXIMUM_GIT_LOG_BYTES = 1_048_576;
 const GitInvocationSchema = z.strictObject({
   arguments: z.array(z.string().max(65_536)).max(4_096),
   approved: z.boolean(),
+  origin: z.enum(['actor', 'host']),
   releaseCli: z.boolean(),
 });
 
 export const GitInvocationEvidenceSchema = z
   .strictObject({
     invocationCount: z.number().int().min(0).max(65_536),
+    hostInvocationCount: z.number().int().min(0).max(65_536),
     repair: z.custom<IRepairGitCommandEvidence>(hasValidRepairGitCommandEvidence),
   })
   .refine(
-    ({ invocationCount, repair }) =>
+    ({ invocationCount, hostInvocationCount, repair }) =>
       repair.unverifiedCount === 0 &&
-      repair.compliantCount + repair.noncompliantCount <= invocationCount,
+      repair.compliantCount + repair.noncompliantCount + hostInvocationCount <= invocationCount,
     'Git invocation totals do not match their repair observations.',
   );
 export type IGitInvocationEvidence = z.infer<typeof GitInvocationEvidenceSchema>;
@@ -49,9 +51,14 @@ export const projectGitInvocations = (source: string): IGitInvocationEvidence =>
   };
   const reasons = new Map<IRepairGitReasonCode, number>();
   let invocationCount = 0;
+  let hostInvocationCount = 0;
   for (const line of source.split('\n').slice(0, -1)) {
     const record = GitInvocationSchema.parse(JSON.parse(line));
     invocationCount++;
+    if (record.origin === 'host') {
+      hostInvocationCount++;
+      continue;
+    }
     if (
       record.approved &&
       (record.releaseCli || (record.arguments.length === 1 && record.arguments[0] === '--version'))
@@ -71,7 +78,7 @@ export const projectGitInvocations = (source: string): IGitInvocationEvidence =>
   repair.reasons = [...reasons]
     .sort(([a], [b]) => a.localeCompare(b, 'en'))
     .map(([code, count]) => ({ code, count }));
-  return GitInvocationEvidenceSchema.parse({ invocationCount, repair });
+  return GitInvocationEvidenceSchema.parse({ invocationCount, hostInvocationCount, repair });
 };
 
 /** Reads the runner-owned capture after the sandbox exits, retaining no raw arguments. */

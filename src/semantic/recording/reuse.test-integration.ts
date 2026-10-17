@@ -48,6 +48,7 @@ const temporaryRoots: string[] = [];
 const createRecordedTrial = (passed: boolean): ISemanticRecordedTrial => ({
   gitInvocationEvidence: {
     invocationCount: 0,
+    hostInvocationCount: 0,
     repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
   },
   actorExecutionEvidence: [],
@@ -134,7 +135,7 @@ const storeRun = async (
         trials,
       },
     ],
-    schemaVersion: 12,
+    schemaVersion: 13,
   };
   const evidenceSha256 = createHash('sha256')
     .update(`${JSON.stringify(evidenceRecord)}\n`)
@@ -379,6 +380,7 @@ const createIdentities = (definition: ISemanticCase, recorded: ISemanticRecorded
     judgePrompt: buildSemanticJudgePrompt({
       gitInvocationEvidence: {
         invocationCount: 0,
+        hostInvocationCount: 0,
         repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
       },
       actorCommandPolicyEvidence: recorded.trial.actorCommandPolicyEvidence,

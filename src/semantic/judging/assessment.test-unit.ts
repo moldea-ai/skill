@@ -67,6 +67,7 @@ describe('semantic judging', () => {
     const judgePrompt = buildSemanticJudgePrompt({
       gitInvocationEvidence: {
         invocationCount: 0,
+        hostInvocationCount: 0,
         repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
       },
       actorCommandPolicyEvidence: commandPolicy,
@@ -95,6 +96,7 @@ describe('semantic judging', () => {
     const options = {
       gitInvocationEvidence: {
         invocationCount: 0,
+        hostInvocationCount: 0,
         repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
       },
       actorCommandPolicyEvidence: commandPolicy,
@@ -137,6 +139,7 @@ describe('semantic judging', () => {
     const judgePrompt = buildSemanticJudgePrompt({
       gitInvocationEvidence: {
         invocationCount: 0,
+        hostInvocationCount: 0,
         repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
       },
       actorCommandPolicyEvidence: commandPolicy,
@@ -250,6 +253,7 @@ describe('semantic judging', () => {
     const prompt = buildSemanticJudgePrompt({
       gitInvocationEvidence: {
         invocationCount: 0,
+        hostInvocationCount: 0,
         repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
       },
       actorCommandPolicyEvidence: commandPolicy,

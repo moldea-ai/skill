@@ -47,6 +47,7 @@ const createTrial = (
 ): ISemanticRecordedTrial => ({
   gitInvocationEvidence: {
     invocationCount: 0,
+    hostInvocationCount: 0,
     repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
   },
   actorExecutionEvidence: [],
@@ -390,6 +391,7 @@ test.each([
       const recorded = source.cases.get(definition.id)!.trials[0]!;
       recorded.gitInvocationEvidence = {
         invocationCount: 1,
+        hostInvocationCount: 0,
         repair: {
           compliantCount: 0,
           noncompliantCount: 1,

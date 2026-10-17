@@ -154,6 +154,7 @@ test('round trips projected Git and print evidence and rejects malformed command
         type: 'moldea.git-invocations',
         evidence: {
           invocationCount: 0,
+          hostInvocationCount: 0,
           repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
         },
       }),

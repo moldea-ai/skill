@@ -58,6 +58,7 @@ describe('semantic active-trial recovery', () => {
     const actorEvidence = {
       gitInvocationEvidence: {
         invocationCount: 0,
+        hostInvocationCount: 0,
         repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
       },
       actorExecutionEvidence: [],
@@ -103,6 +104,7 @@ describe('semantic active-trial recovery', () => {
     const recordedTrial = {
       gitInvocationEvidence: {
         invocationCount: 0,
+        hostInvocationCount: 0,
         repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
       },
       actorExecutionEvidence: [],

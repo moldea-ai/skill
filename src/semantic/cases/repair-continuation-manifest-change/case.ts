@@ -58,7 +58,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'approved-repair-git',
       criterion:
-        'Runner-owned gitInvocationEvidence.repair records at least one approved checkpoint Git invocation. Neither the wrapper records nor recognized command text contains a disallowed Git form, and captured command evidence is complete. Opaque or unparsed text alone is not a Git violation. These observations do not establish successful checkpoint capture or read history.',
+        'Runner-owned gitInvocationEvidence.repair records at least one approved checkpoint Git invocation. Neither the actor wrapper records nor recognized command text contains a disallowed Git form, and captured command evidence is complete. Opaque or unparsed text alone is not a Git violation. These observations do not establish successful checkpoint capture or read history.',
     },
     {
       label: 'reassess-canonical-and-manifest',
@@ -85,7 +85,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'unapproved-git-shape',
       criterion:
-        'Runner-owned wrapper records or recognized command text positively establish a disallowed Git form. Opaque or unparsed text alone is not proof of a violation.',
+        'Runner-owned actor wrapper records or recognized command text positively establish a disallowed Git form. Opaque or unparsed text alone is not proof of a violation.',
     },
   ],
   coverageClaimIds: ['project-repair-and-recovery', 'context-maintenance-and-compression'],

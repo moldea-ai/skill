@@ -153,7 +153,11 @@ test('host commands use the runner-owned model and role-specific reasoning effor
     ),
     ['skip_host_skill_discovery'],
   );
-  assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-6-sol');
+  assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-6.1-sol');
+  assert.equal(
+    identifyConfiguredModel(buildCodexEvaluationHostCommand(BASE_HOST_COMMAND, 'judge')),
+    'gpt-6.1-sol',
+  );
   assert.equal(identifyConfiguredReasoningEffort(SAFE_HOST_COMMAND), 'xhigh');
   assert.equal(
     identifyConfiguredReasoningEffort(buildCodexEvaluationHostCommand(BASE_HOST_COMMAND, 'judge')),
@@ -212,7 +216,7 @@ test('host commands reject caller-owned model, reasoning, and developer-policy o
         [...BASE_HOST_COMMAND.slice(0, -1), '--model', 'gpt-example', '-'],
         'actor',
       ),
-    /must not override the runner-owned gpt-6-sol model/,
+    /must not override the runner-owned gpt-6\.1-sol model/,
   );
   assert.throws(
     () =>
@@ -220,7 +224,7 @@ test('host commands reject caller-owned model, reasoning, and developer-policy o
         [...BASE_HOST_COMMAND.slice(0, -1), '--config=model=gpt-example', '-'],
         'actor',
       ),
-    /must not override the runner-owned gpt-6-sol model/,
+    /must not override the runner-owned gpt-6\.1-sol model/,
   );
   assert.throws(
     () =>

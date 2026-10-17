@@ -73,7 +73,7 @@ Hostile-note cases grade the reported treatment of repository text and positive 
 
 The continuation criteria grade reported comparisons, supported changes and truthful coverage, including fallback reports. Do not demand actual retrieval evidence for a report criterion assigned to native verification. Actual owner retrieval/reassessment and avoidance of unnecessary unchanged-owner reads require the native checks in [Reference-reading checks](/docs/reference-reading/). A semantic pass does not complete those checks. Native traces cannot retrospectively establish Git compliance for a semantic trial whose raw commands were discarded. Paid diagnostic/recording commands require explicit maintainer permission, including the approved retry and confirmation budget. Deterministic preflight and tests require no model execution.
 
-Official actors and judges use `gpt-6-sol` with `xhigh` reasoning effort through the shared isolated host.
+New semantic evaluation runs use `gpt-6.1-sol` with `xhigh` reasoning effort for actors and judges through the shared isolated Codex CLI host. Recorded evidence retains its original model.
 
 ### Untested reporting guidance
 

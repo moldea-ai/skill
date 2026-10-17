@@ -52,7 +52,7 @@ Coding agents can differ in how they discover and install skills, present them i
 
 Compatibility of the Agent Skills format, successful installation, and observed host behavior are separate claims. The [future native-host checklist](/docs/reference-reading/#behavioral-regression-checklist) describes journeys to run before claiming behavioral verification in a host; it is not a record of completed host tests.
 
-Use a frontier-capability coding model for the strongest results. Official release assurance runs actors and independent judges with `gpt-6-sol` at `xhigh` reasoning effort.
+Use a frontier-capability coding model for the strongest results. New release assurance runs actors and independent judges through Codex CLI with `gpt-6.1-sol` at `xhigh` reasoning effort. Recorded evidence retains its original model.
 
 Before installation, confirm that the host supports Agent Skills or is recognized by the current `skills` CLI. A host logo on this site identifies compatibility; it does not imply sponsorship or endorsement by that vendor.
 

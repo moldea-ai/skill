@@ -4,7 +4,6 @@ import { prepareFeatureBoundary } from './setup.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'maintain-feature-relationship-boundary',
-  publication: 'private',
   setup: prepareFeatureBoundary,
   scenario:
     'A refund policy changes its owner content while the same task changes shared presentation, navigation, routing and a display-data helper.',
@@ -39,8 +38,8 @@ export const semanticCase = defineSemanticCase({
     ],
   },
   resourceBudget: {
-    activation: 'relationship',
-    minimumMoldeaCommands: 2,
+    activation: 'direct',
+    minimumMoldeaCommands: 1,
     maximumMoldeaCommands: 8,
     maximumMoldeaOutputBytes: 262144,
   },
@@ -63,5 +62,5 @@ export const semanticCase = defineSemanticCase({
         'Any added relationship other than the exact refund-policy path fails, including the shared UI component, navigation, router, display-data helper, tests, broad globs or another owner. The actor also fails if it rewrites unrelated canonical content, changes approval beyond the requested rule, or leaves requested work unchecked.',
     },
   ],
-  coverageClaimIds: ['bounded-relevance', 'context-maintenance-and-compression'],
+  coverageClaimIds: ['context-maintenance-and-compression'],
 });

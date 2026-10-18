@@ -172,7 +172,7 @@ test('repair continuations require Git presence only when comparison is needed',
   }
 });
 
-const PRIVATE_CASE_IDS = [
+const CANDIDATE_TARGET_CASE_IDS = [
   'evaluate-brief-project-request',
   'initialize-inspected-source-coverage',
   'maintenance-cycle-budget',
@@ -183,19 +183,20 @@ const PRIVATE_CASE_IDS = [
   'routing-description-fallback',
 ];
 
-test('the private inventory matches the disclosed coverage exclusions', async () => {
+test('the fresh full recording includes every maintained case', async () => {
   const cases = await loadSemanticCases(import.meta.dirname);
   expect(
     cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
-  ).toStrictEqual(PRIVATE_CASE_IDS);
+  ).toStrictEqual([]);
 });
 
-test.each(PRIVATE_CASE_IDS)(
-  'private %s remains available for diagnostic selection',
+test.each(CANDIDATE_TARGET_CASE_IDS)(
+  'candidate target %s is eligible for fresh recording',
   async (caseId) => {
     const cases = await loadSemanticCases(import.meta.dirname);
     const definition = cases.find(({ id }) => id === caseId);
-    expect(definition?.publication).toBe('private');
+    expect(definition).toBeDefined();
+    expect(definition?.publication).not.toBe('private');
     expect(typeof definition?.setup).toBe('function');
   },
 );

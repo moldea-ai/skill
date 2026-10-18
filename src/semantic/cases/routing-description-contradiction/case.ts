@@ -4,7 +4,6 @@ import { prepareRoutingContradiction } from './setup.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'routing-description-contradiction',
-  publication: 'private',
   setup: prepareRoutingContradiction,
   scenario:
     'Correct routing consumes the canonical agent description, but that description grants refund authorization explicitly excluded by the canonical instruction.',

@@ -4,7 +4,6 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'model-workflow-routing',
-  publication: 'private',
   setup: createSemanticCaseSetup('model-workflow-routing'),
   scenario:
     'An adopted project has an unbound one-shot model workflow with inline instructions and an evidenced injected runtime boundary. A natural implementation request changes its model responsibilities without naming agents or moldea.',

@@ -4,7 +4,6 @@ import { prepareInspectedSourceCoverage } from './setup.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'initialize-inspected-source-coverage',
-  publication: 'private',
   setup: prepareInspectedSourceCoverage,
   operation: 'initialize',
   scenario:

@@ -4,7 +4,6 @@ import { prepareCycleBudget } from './setup.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'maintenance-cycle-budget',
-  publication: 'private',
   setup: prepareCycleBudget,
   operation: 'maintain-project-reports',
   scenario:

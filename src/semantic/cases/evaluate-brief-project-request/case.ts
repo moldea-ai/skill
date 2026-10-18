@@ -4,7 +4,6 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'evaluate-brief-project-request',
-  publication: 'private',
   setup: createSemanticCaseSetup('evaluate-brief-project-request'),
   scenario:
     'A brief natural project-evaluation request is made in an adopted repository with no declared implementation relationship.',

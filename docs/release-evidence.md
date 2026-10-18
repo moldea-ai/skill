@@ -102,6 +102,10 @@ Skill 8.2.7 keeps the same 8.2.3 selection. It corrects installation and repair 
 
 These changes were not re-evaluated. The package-manager harness covers Yarn installation mechanics: release-candidate CI now runs Yarn Classic 1.22.22 alongside npm, pnpm and Yarn 4, it was also run locally with Yarn 3.8.7 for this release, and every run proves that root and dependency lifecycle scripts never execute. Whether a coding agent chooses the correct Yarn command is not evaluated. Deterministic conformance and installation checks do not prove model adherence to the new wording.
 
+## Evaluation protocol 49
+
+Protocol 49 meets the pre-run counting and final-validation requirements stated above: it grades each cycle on moldea's own work and recognizes the ordinary final-validation exception from ordered Codex events, as described in [resource accounting](/docs/semantic-evaluation/#resource-accounting). It changes no selected evidence; it applies to the next recording.
+
 ## Check a release
 
 ```bash

@@ -7,11 +7,14 @@ import { isApprovedRepairGitArguments } from './git-command-policy-boundary.ts';
 import { CliInvocationEventSchema, type ICliInvocation } from './cli-invocations/index.ts';
 
 import type {
+  ICodexEvaluationCommandOwnership,
   ICodexEvaluationCommandPolicyEvidence,
   ICodexEvaluationCommandPolicyReason,
   ICodexEvaluationCommandPolicyReasonCode,
   ICodexEvaluationCommandPolicyStatus,
   ICodexEvaluationExecutionEvidence,
+  ICodexEvaluationMoldeaEvent,
+  ICodexEvaluationOwnedCommandTotals,
   IMoldeaCliOperation,
   IMoldeaCliLauncherMissReasonCode,
   IRepositoryTestCommandKind,
@@ -29,7 +32,10 @@ interface IAccessClassification {
 interface ICommandClassification {
   moldeaCommandCount: number;
   moldeaLauncherMissReasonCodes: IMoldeaCliLauncherMissReasonCode[];
+  // the launcher operation of a placeable cli command, otherwise null
+  moldeaOperation: IMoldeaCliOperation | null;
   networkAccess: ICodexEvaluationCommandPolicyStatus;
+  ownership: ICodexEvaluationCommandOwnership;
   networkReasonCode?: ICodexEvaluationCommandPolicyReasonCode;
   sensitiveAccess: ICodexEvaluationCommandPolicyStatus;
   sensitiveReasonCode?: ICodexEvaluationCommandPolicyReasonCode;
@@ -89,6 +95,28 @@ const MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxModelVisibleToolOutputBytes;
 const MAX_MOLDEA_COMMAND_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaCommandCount;
 const MAX_MOLDEA_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaOutputBytes;
+// patch writes share the completed-command ceiling, so ordered events stay bounded
+const MAX_FILE_CHANGE_COUNT = MAX_COMPLETED_COMMAND_COUNT;
+const COMMAND_OWNERSHIPS: readonly ICodexEvaluationCommandOwnership[] = [
+  'canonical',
+  'cli',
+  'helper',
+  'project',
+  'source',
+];
+const MOLDEA_EVENT_OWNERSHIPS = new Set<ICodexEvaluationCommandOwnership>([
+  'canonical',
+  'cli',
+  'helper',
+]);
+// bundled skill scripts, matched by word or, for unparseable commands, anywhere in the text
+const MOLDEA_SKILL_SCRIPT_WORD_PATTERN = /(?:^|\/)\.agents\/skills\/moldea\/scripts\/[^/]+$/u;
+const MOLDEA_SKILL_SCRIPT_TEXT_PATTERN = /\.agents\/skills\/moldea\/scripts\/([A-Za-z0-9._-]+)/gu;
+// the repository's own moldea/ directory, never the installed skill's moldea/ path segment
+const REPOSITORY_MOLDEA_WORD_PATTERN = /(?:^|[=:,])(?:\/mnt\/|\.\/)?moldea\//u;
+const REPOSITORY_MOLDEA_TEXT_PATTERN =
+  /(?:^|[\s'"=:,;|&()<>])(?:\/mnt\/|\.\/)?moldea(?:\/|(?=[\s'";|&()<>]|$))/u;
+const PROJECT_EXECUTABLES = new Set(['git', 'npm', 'npx', 'pnpm', 'tsc', 'yarn']);
 const MOLDEA_LAUNCHER_MISS_REASON_CODES: IMoldeaCliLauncherMissReasonCode[] = [
   'unrecognized-launcher-path',
   'unrecognized-node-path',
@@ -1533,6 +1561,116 @@ const classifyUntokenizedSensitiveAccess = (source: string): IAccessClassificati
   return { status: 'indeterminate', reasonCode: 'dynamic-execution' };
 };
 
+/** Checks whether one path names the repository's moldea/ directory or a path beneath it. */
+const isRepositoryMoldeaPath = (candidate: string): boolean => {
+  if (candidate === '' || candidate.startsWith('-')) return false;
+  const resolvedPath = posix.resolve('/mnt', candidate);
+  return resolvedPath === '/mnt/moldea' || resolvedPath.startsWith('/mnt/moldea/');
+};
+
+/** Names the bundled skill script one static command runs, directly or through Node. */
+const identifyMoldeaSkillScript = (words: readonly string[]): string | null => {
+  const executableIndex = identifyExecutableWordIndex(words);
+  if (executableIndex === null) return null;
+  const executableWord = words[executableIndex]!;
+  const scriptWord =
+    getExecutableName(executableWord) === 'node' ? words[executableIndex + 1] : executableWord;
+  return scriptWord !== undefined && MOLDEA_SKILL_SCRIPT_WORD_PATTERN.test(scriptWord)
+    ? posix.basename(scriptWord)
+    : null;
+};
+
+/** Recognizes a project test, build, Git, package-manager or Node version command. */
+const isProjectCommand = (words: readonly string[]): boolean => {
+  const executableIndex = identifyExecutableWordIndex(words);
+  if (executableIndex === null) return false;
+  const commandWords = words.slice(executableIndex);
+  return (
+    PROJECT_EXECUTABLES.has(getExecutableName(commandWords[0]!)) ||
+    identifyRepositoryTestCommandKindsFromWords(commandWords) !== null ||
+    isSafeNodeVersionCommand(commandWords)
+  );
+};
+
+/**
+ * Assigns one completed command to the owner whose work it performs, in precedence order:
+ * the launcher, a bundled helper, the repository's moldea/ directory, the project, then source.
+ */
+const classifyCommandOwnership = (
+  commands: readonly (readonly string[])[] | null,
+  commandText: string,
+): Pick<ICommandClassification, 'moldeaOperation' | 'ownership'> => {
+  if (commands === null) {
+    // an unparseable command takes the highest owner its text could reach
+    const scriptNames = [...commandText.matchAll(MOLDEA_SKILL_SCRIPT_TEXT_PATTERN)].map(
+      ([, scriptName]) => scriptName,
+    );
+    return {
+      moldeaOperation: null,
+      ownership: scriptNames.includes('moldea-cli.mjs')
+        ? 'cli'
+        : scriptNames.length > 0
+          ? 'helper'
+          : REPOSITORY_MOLDEA_TEXT_PATTERN.test(commandText)
+            ? 'canonical'
+            : 'source',
+    };
+  }
+  const scriptNames = commands.map(identifyMoldeaSkillScript).filter((name) => name !== null);
+  if (scriptNames.includes('moldea-cli.mjs')) {
+    const operations = commands.flatMap((words) => {
+      const executableIndex = identifyExecutableWordIndex(words);
+      const operation =
+        executableIndex === null
+          ? null
+          : identifyMoldeaCliLauncherOperationFromWords(words.slice(executableIndex));
+      return operation === null ? [] : [operation];
+    });
+    // only one recognizable launcher call can be placed in the ordered event stream
+    const isPlaceable =
+      operations.length === 1 &&
+      scriptNames.filter((scriptName) => scriptName === 'moldea-cli.mjs').length === 1;
+    return { moldeaOperation: isPlaceable ? operations[0]! : null, ownership: 'cli' };
+  }
+  if (scriptNames.length > 0) return { moldeaOperation: null, ownership: 'helper' };
+  if (
+    commands.some(
+      (words) =>
+        identifyFilesystemTargets(words).some(isRepositoryMoldeaPath) ||
+        words.some((word) => REPOSITORY_MOLDEA_WORD_PATTERN.test(word)),
+    )
+  ) {
+    return { moldeaOperation: null, ownership: 'canonical' };
+  }
+  const substantiveCommands = commands.filter((words) => {
+    const executableIndex = identifyExecutableWordIndex(words);
+    return executableIndex !== null && getExecutableName(words[executableIndex]!) !== 'cd';
+  });
+  return {
+    moldeaOperation: null,
+    ownership:
+      substantiveCommands.length > 0 && substantiveCommands.every(isProjectCommand)
+        ? 'project'
+        : 'source',
+  };
+};
+
+/** Reports whether one completed Codex patch touched the repository's moldea/ directory. */
+const classifyFileChangeMoldeaPath = (
+  item: IPlainRecord,
+): Extract<ICodexEvaluationMoldeaEvent, { kind: 'file-change' }>['moldeaPath'] => {
+  const changes = item['changes'];
+  if (!Array.isArray(changes) || changes.length === 0) return 'unreadable';
+  let isTouching = false;
+  for (const change of changes as unknown[]) {
+    if (!isPlainRecord(change) || typeof change['path'] !== 'string' || change['path'] === '') {
+      return 'unreadable';
+    }
+    if (isRepositoryMoldeaPath(change['path'])) isTouching = true;
+  }
+  return isTouching ? 'touching' : 'not-touching';
+};
+
 /** Classifies one complete command without retaining its content. */
 const classifyCommand = (command: string): ICommandClassification => {
   if (Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
@@ -1543,6 +1681,7 @@ const classifyCommand = (command: string): ICommandClassification => {
       networkReasonCode: 'oversized-command',
       sensitiveAccess: 'indeterminate',
       sensitiveReasonCode: 'oversized-command',
+      ...classifyCommandOwnership(null, command),
     };
   }
   const directCommand = unwrapCodexShellCommand(command);
@@ -1561,6 +1700,7 @@ const classifyCommand = (command: string): ICommandClassification => {
       networkReasonCode: 'dynamic-execution',
       sensitiveAccess: sensitiveClassification?.status ?? 'indeterminate',
       sensitiveReasonCode: sensitiveClassification?.reasonCode ?? 'dynamic-execution',
+      ...classifyCommandOwnership(null, directCommand ?? command),
     };
   }
   const sensitiveClassification = classifyDecodedSensitiveAccess(commands);
@@ -1601,6 +1741,7 @@ const classifyCommand = (command: string): ICommandClassification => {
       : networkAccess === 'indeterminate' && networkReasonCode !== undefined
         ? { sensitiveReasonCode: networkReasonCode }
         : {}),
+    ...classifyCommandOwnership(commands, command),
   };
 };
 
@@ -1782,6 +1923,84 @@ const hasValidCommandPolicyObservation = (
   );
 };
 
+/** Checks one ownership class's completed-command totals. */
+const hasValidOwnedCommandTotals = (
+  totals: unknown,
+): totals is ICodexEvaluationOwnedCommandTotals =>
+  hasExactKeys(totals, ['commandCount', 'maximumOutputByteCount', 'outputByteCount']) &&
+  isBoundedNonNegativeInteger(totals['commandCount'], MAX_COMPLETED_COMMAND_COUNT) &&
+  isBoundedNonNegativeInteger(totals['outputByteCount'], MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES) &&
+  isBoundedNonNegativeInteger(totals['maximumOutputByteCount'], totals['outputByteCount']) &&
+  (totals['commandCount'] > 0 || totals['outputByteCount'] === 0);
+
+/** Checks one ordered moldea event without accepting raw commands or paths. */
+const hasValidMoldeaEvent = (event: unknown): event is ICodexEvaluationMoldeaEvent => {
+  if (hasExactKeys(event, ['kind', 'moldeaPath'])) {
+    return (
+      event['kind'] === 'file-change' &&
+      ['not-touching', 'touching', 'unreadable'].includes(event['moldeaPath'] as string)
+    );
+  }
+  if (!hasExactKeys(event, ['kind', 'operation', 'outputByteCount', 'ownership'])) return false;
+  const operation = event['operation'];
+  return (
+    event['kind'] === 'command' &&
+    MOLDEA_EVENT_OWNERSHIPS.has(event['ownership'] as ICodexEvaluationCommandOwnership) &&
+    isBoundedNonNegativeInteger(event['outputByteCount'], MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES) &&
+    (operation === null ||
+      (event['ownership'] === 'cli' &&
+        typeof operation === 'string' &&
+        MOLDEA_CLI_OPERATIONS.has(operation)))
+  );
+};
+
+/** Checks that ownership totals and ordered moldea events agree with the command aggregate. */
+const hasValidCommandOwnership = (
+  commandOwnership: unknown,
+  moldeaEvents: unknown,
+  aggregate: {
+    completedCommandCount: number;
+    maximumCommandOutputByteCount: number;
+    modelVisibleToolOutputByteCount: number;
+  },
+): boolean => {
+  if (
+    !hasExactKeys(commandOwnership, COMMAND_OWNERSHIPS) ||
+    !COMMAND_OWNERSHIPS.every((ownership) =>
+      hasValidOwnedCommandTotals(commandOwnership[ownership]),
+    ) ||
+    !Array.isArray(moldeaEvents) ||
+    moldeaEvents.length > MAX_COMPLETED_COMMAND_COUNT + MAX_FILE_CHANGE_COUNT ||
+    !moldeaEvents.every(hasValidMoldeaEvent)
+  ) {
+    return false;
+  }
+  const totals = COMMAND_OWNERSHIPS.map(
+    (ownership) => commandOwnership[ownership] as ICodexEvaluationOwnedCommandTotals,
+  );
+  const commandEvents = moldeaEvents.filter((event) => event.kind === 'command');
+  return (
+    totals.reduce((total, { commandCount }) => total + commandCount, 0) ===
+      aggregate.completedCommandCount &&
+    totals.reduce((total, { outputByteCount }) => total + outputByteCount, 0) ===
+      aggregate.modelVisibleToolOutputByteCount &&
+    Math.max(0, ...totals.map(({ maximumOutputByteCount }) => maximumOutputByteCount)) ===
+      aggregate.maximumCommandOutputByteCount &&
+    moldeaEvents.length - commandEvents.length <= MAX_FILE_CHANGE_COUNT &&
+    [...MOLDEA_EVENT_OWNERSHIPS].every((ownership) => {
+      const ownedEvents = commandEvents.filter((event) => event.ownership === ownership);
+      const ownedTotals = commandOwnership[ownership] as ICodexEvaluationOwnedCommandTotals;
+      return (
+        ownedEvents.length === ownedTotals.commandCount &&
+        ownedEvents.reduce((total, event) => total + event.outputByteCount, 0) ===
+          ownedTotals.outputByteCount &&
+        Math.max(0, ...ownedEvents.map(({ outputByteCount }) => outputByteCount)) ===
+          ownedTotals.maximumOutputByteCount
+      );
+    })
+  );
+};
+
 /**
  * Checks the complete privacy-safe command-policy aggregate shared by evaluation workflows.
  * @param evidence The prospective aggregate.
@@ -1792,11 +2011,13 @@ export const hasValidCodexEvaluationCommandPolicy = (
 ): evidence is ICodexEvaluationCommandPolicyEvidence => {
   if (
     !hasExactKeys(evidence, [
+      'commandOwnership',
       'completedCommandCount',
       'credentialExposure',
       'maximumCommandOutputByteCount',
       'modelVisibleToolOutputByteCount',
       'moldeaCommandCount',
+      'moldeaEvents',
       'moldeaLauncherMissReasons',
       'moldeaOutputByteCount',
       'networkAccess',
@@ -1826,7 +2047,12 @@ export const hasValidCodexEvaluationCommandPolicy = (
     !isBoundedNonNegativeInteger(moldeaOutputByteCount, MAX_MOLDEA_OUTPUT_BYTES) ||
     maximumCommandOutputByteCount > modelVisibleToolOutputByteCount ||
     (completedCommandCount === 0 && maximumCommandOutputByteCount !== 0) ||
-    (moldeaCommandCount === 0 && moldeaOutputByteCount !== 0)
+    (moldeaCommandCount === 0 && moldeaOutputByteCount !== 0) ||
+    !hasValidCommandOwnership(evidence['commandOwnership'], evidence['moldeaEvents'], {
+      completedCommandCount,
+      maximumCommandOutputByteCount,
+      modelVisibleToolOutputByteCount,
+    })
   ) {
     return false;
   }
@@ -1921,6 +2147,14 @@ export const projectCodexEvaluationExecutionEvidence = (
     status: 'completed' | 'failed';
   }> = [];
   const classifications: ICommandClassification[] = [];
+  const commandOwnership = Object.fromEntries(
+    COMMAND_OWNERSHIPS.map((ownership) => [
+      ownership,
+      { commandCount: 0, maximumOutputByteCount: 0, outputByteCount: 0 },
+    ]),
+  ) as ICodexEvaluationCommandPolicyEvidence['commandOwnership'];
+  const moldeaEvents: ICodexEvaluationMoldeaEvent[] = [];
+  let fileChangeCount = 0;
   let credentialExposureCount = 0;
   let maximumCommandOutputByteCount = 0;
   let modelVisibleToolOutputByteCount = 0;
@@ -1949,6 +2183,26 @@ export const projectCodexEvaluationExecutionEvidence = (
     }
     const eventUsage = extractUsageCandidate(event);
     if (eventUsage !== null) usage = eventUsage;
+
+    // patch writes are not commands, but their order decides the final-validation exception
+    if (
+      event['type'] === 'item.completed' &&
+      isPlainRecord(event['item']) &&
+      event['item']['type'] === 'file_change'
+    ) {
+      fileChangeCount += 1;
+      assertWithinResourceLimit(
+        'file change count',
+        'changes',
+        fileChangeCount,
+        MAX_FILE_CHANGE_COUNT,
+      );
+      moldeaEvents.push({
+        kind: 'file-change',
+        moldeaPath: classifyFileChangeMoldeaPath(event['item']),
+      });
+      continue;
+    }
 
     if (
       event['type'] !== 'item.completed' ||
@@ -1982,6 +2236,25 @@ export const projectCodexEvaluationExecutionEvidence = (
     modelVisibleToolOutputByteCount += outputByteCount;
     moldeaCommandCount += classification.moldeaCommandCount;
     if (classification.moldeaCommandCount > 0) moldeaOutputByteCount += outputByteCount;
+    const ownedTotals = commandOwnership[classification.ownership];
+    ownedTotals.commandCount += 1;
+    ownedTotals.outputByteCount += outputByteCount;
+    ownedTotals.maximumOutputByteCount = Math.max(
+      ownedTotals.maximumOutputByteCount,
+      outputByteCount,
+    );
+    if (
+      classification.ownership === 'canonical' ||
+      classification.ownership === 'cli' ||
+      classification.ownership === 'helper'
+    ) {
+      moldeaEvents.push({
+        kind: 'command',
+        operation: classification.moldeaOperation,
+        outputByteCount,
+        ownership: classification.ownership,
+      });
+    }
     assertWithinResourceLimit(
       'model-visible tool output',
       'bytes',
@@ -2020,6 +2293,7 @@ export const projectCodexEvaluationExecutionEvidence = (
   const networkAccess = summarizePolicy(classifications, 'networkAccess');
   const sensitiveAccess = summarizePolicy(classifications, 'sensitiveAccess');
   const commandPolicy: ICodexEvaluationCommandPolicyEvidence = {
+    commandOwnership,
     completedCommandCount: classifications.length,
     credentialExposure:
       credentialExposureCount > 0
@@ -2032,6 +2306,7 @@ export const projectCodexEvaluationExecutionEvidence = (
     maximumCommandOutputByteCount,
     modelVisibleToolOutputByteCount,
     moldeaCommandCount,
+    moldeaEvents,
     moldeaLauncherMissReasons: MOLDEA_LAUNCHER_MISS_REASON_CODES.map((code) => ({
       code,
       count: classifications.reduce(

@@ -54,7 +54,33 @@ export interface IMoldeaCliLauncherMissReason {
   count: number;
 }
 
+/*
+ * who a completed host command works for: the moldea launcher, a bundled skill helper, a read or
+ * write of the repository's moldea/ directory, a project test/build/Git/package-manager command,
+ * or any other source read; resource profiles decide which of these count as moldea's own work
+ */
+export type ICodexEvaluationCommandOwnership =
+  'canonical' | 'cli' | 'helper' | 'project' | 'source';
+
+// completed-command totals for one ownership class
+export interface ICodexEvaluationOwnedCommandTotals {
+  commandCount: number;
+  maximumOutputByteCount: number;
+  outputByteCount: number;
+}
+
+// one content-free moldea event, in the order Codex completed it
+export type ICodexEvaluationMoldeaEvent =
+  | {
+      kind: 'command';
+      operation: IMoldeaCliOperation | null;
+      outputByteCount: number;
+      ownership: 'canonical' | 'cli' | 'helper';
+    }
+  | { kind: 'file-change'; moldeaPath: 'not-touching' | 'touching' | 'unreadable' };
+
 export interface ICodexEvaluationCommandPolicyEvidence {
+  commandOwnership: Record<ICodexEvaluationCommandOwnership, ICodexEvaluationOwnedCommandTotals>;
   completedCommandCount: number;
   credentialExposure: {
     status: 'not-observed' | 'observed';
@@ -64,6 +90,7 @@ export interface ICodexEvaluationCommandPolicyEvidence {
   maximumCommandOutputByteCount: number;
   modelVisibleToolOutputByteCount: number;
   moldeaCommandCount: number;
+  moldeaEvents: ICodexEvaluationMoldeaEvent[];
   moldeaLauncherMissReasons: IMoldeaCliLauncherMissReason[];
   moldeaOutputByteCount: number;
   networkAccess: {

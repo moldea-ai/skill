@@ -34,7 +34,7 @@ export const semanticCase = defineSemanticCase({
     activation: 'direct',
     minimumMoldeaCommands: 2,
     maximumMoldeaCommands: 8,
-    maximumMoldeaOutputBytes: 262144,
+    maximumMoldeaOutputBytes: 524288,
   },
   expected: [
     {

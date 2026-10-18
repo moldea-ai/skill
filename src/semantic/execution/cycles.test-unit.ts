@@ -151,6 +151,23 @@ test('an earlier exceeded cycle stays failed despite later requests and actor-au
   expect(dimensionsFor(cycles).repositoryControl).toBe(false);
 });
 
+test.each([
+  [1_625_000, true],
+  [1_625_001, false],
+  [null, false],
+])('per-cycle token usage %s -> resource %s', (tokens, passing) => {
+  const first = createCycle(0, 0);
+  first.usage =
+    tokens === null
+      ? null
+      : { inputTokens: tokens - 100, cachedInputTokens: 800_000, outputTokens: 100 };
+  const cycles = [first, createCycle(1, 0)];
+  const dimensions = dimensionsFor(cycles);
+  expect(dimensions.resource).toBe(passing);
+  expect(dimensions.semantic).toBe(true);
+  expect(dimensions.commandPolicy).toBe(true);
+});
+
 test('rejects missing, reordered and forged per-cycle evidence', () => {
   const options = { cliVersion: '11.0.6', jsonSchemaVersion: 7 };
   expect(hasValidSemanticCycles([], options)).toBe(false);

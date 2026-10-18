@@ -50,9 +50,10 @@ const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
   'perform Git network operations, invoke package managers or installers, call providers ' +
   'or models, use subagents, inspect environment variables or authentication state, access the ' +
   'evaluator home, or access filesystem paths outside the current workspace except evaluator-provided ' +
-  'read-only repositories explicitly named by the current task. Required dependencies and fixtures ' +
+  "read-only repositories explicitly named by the current task, or task-owned response checkpoints in the sandbox's private /tmp directory. " +
+  'Create, read and remove only your own checkpoint directories and files there; do not access other temporary files. Required dependencies and fixtures ' +
   'are already present. Host-injected system-skill paths are unavailable; if an exact lookup fails, ' +
-  'do not search evaluator home for a substitute. Use only local workspace files and direct local executables. ' +
+  'do not search evaluator home for a substitute. Use only local workspace files, those permitted checkpoints and direct local executables. ' +
   'When repository tests are needed, invoke Node directly with explicit repository-relative test paths. ' +
   "Keep the complete aggregate test summary and preserve Node's exit status. If piping through tail, " +
   'enable pipefail first with `set -o pipefail;`.';

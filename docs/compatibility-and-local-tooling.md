@@ -62,7 +62,9 @@ When the host truncates or loses a response saved with `--save-response`, read t
 
 ## Resource profiles
 
-Ordinary work uses 65,536-byte pages and stops when the relevant record or diagnostic is available. Aggregate `moldea` output should remain at or below 262,144 bytes per maintenance cycle, as defined in the installed skill's `references/local-tooling.md` Resource limits section. Large repositories use deterministic metadata pagination; an explicitly required large traversal may use more pages, but each CLI invocation remains at or below 1 MiB and stays task-scoped. Page limits bound encoded responses, not source parsing. The isolated Node inspection has fixed memory and elapsed-time safeguards. Verified heap exhaustion (`RESOURCE_LIMIT_EXCEEDED`) and elapsed timeout (`INSPECTION_TIMEOUT`) leave verification incomplete; neither establishes faulty application code. Capacity contention (`INSPECTION_BUSY`) and process failure (`INSPECTION_PROCESS_FAILED`) also provide no inspection conclusion. Preserve earlier changes and report remaining checks; do not retry unchanged failures repeatedly or split healthy source automatically.
+Ordinary work uses 65,536-byte pages and stops when the relevant record or diagnostic is available. Aggregate `moldea` output should remain at or below 524,288 bytes per maintenance cycle, as defined in the installed skill's `references/local-tooling.md` Resource limits section. Large repositories use deterministic metadata pagination; an explicitly required large traversal may use more pages, but each CLI invocation remains at or below 1 MiB and stays task-scoped. Page limits bound encoded responses, not source parsing. The isolated Node inspection has fixed memory and elapsed-time safeguards. Verified heap exhaustion (`RESOURCE_LIMIT_EXCEEDED`) and elapsed timeout (`INSPECTION_TIMEOUT`) leave verification incomplete; neither establishes faulty application code. Capacity contention (`INSPECTION_BUSY`) and process failure (`INSPECTION_PROCESS_FAILED`) also provide no inspection conclusion. Preserve earlier changes and report remaining checks; do not retry unchanged failures repeatedly or split healthy source automatically.
+
+When ordinary work reaches a limit, the coding agent completes the developer's task without further moldea reads and briefly names canonical checks deferred to the next request. Explicit moldea operations stop and report progress at their limit.
 
 For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
 
@@ -73,7 +75,7 @@ The following profiles constrain release-assurance trials, not users’ reposito
 | One completed command     |    256 KiB |          256 KiB |
 | Completed commands        |         64 |               64 |
 | `moldea` calls            |         16 |               16 |
-| `moldea` output           |    256 KiB |            1 MiB |
+| `moldea` output           |    512 KiB |            1 MiB |
 | Model-visible tool output |      1 MiB |            4 MiB |
 | Input plus output tokens  |  1,625,000 |        1,625,000 |
 
@@ -81,7 +83,7 @@ The isolated model-stage runner retains absolute ceilings of 128 completed comma
 
 Crossing an operating dimension fails with its profile, dimension, observed value, and limit. A safe cumulative command, moldea-call, or token overage may still reach semantic judging for calibration, but the trial remains failed. Missing token usage and output-volume, deterministic, workspace, runner-owned, or command-policy failures skip judging. Duration and peak memory are diagnostics rather than brittle pass/fail thresholds.
 
-`src/resources/profiles.ts` is the numeric authority. `fixtures/resource-calibration.json` contains reproducible measurements for ordinary, 1,024-path, large-Unicode, diagnostic-heavy, and adversarial CLI and repository inputs, with at least 25% cumulative headroom for non-attack cases. `fixtures/model-stage-resource-calibration.json` contains privacy-safe accepted actor and judge aggregates and proves at least 25% cumulative operating headroom; these recorded observations establish calibration integrity, not current behavioral assurance.
+`src/resources/profiles.ts` is the numeric authority. The ordinary moldea-output allowance is 512 KiB because a real Platform implementation cycle consumed 261,014 bytes, leaving little room under the 256 KiB allowance. The per-host-command cap and every other profile limit remain unchanged. `fixtures/resource-calibration.json` contains reproducible measurements for ordinary, 1,024-path, large-Unicode, diagnostic-heavy, and adversarial CLI and repository inputs, with at least 25% cumulative headroom for non-attack cases. `fixtures/model-stage-resource-calibration.json` contains privacy-safe accepted actor and judge aggregates and proves at least 25% cumulative operating headroom; these recorded observations establish calibration integrity, not current behavioral assurance.
 
 Use these checks after changing resource behavior:
 

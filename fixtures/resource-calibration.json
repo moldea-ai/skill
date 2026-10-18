@@ -12,7 +12,7 @@
       "maxCommandOutputBytes": 262144,
       "maxHostTokenCount": 1625000,
       "maxModelVisibleToolOutputBytes": 1048576,
-      "maxAggregateMoldeaOutputBytes": 262144,
+      "maxAggregateMoldeaOutputBytes": 524288,
       "maxMoldeaCommandCount": 16,
       "maxOutputPageBytes": 65536
     },
@@ -47,7 +47,8 @@
       "The host token ceiling bounds cumulative input plus output for one completed Codex stage.",
       "Temporary fixture trees are deleted after every run.",
       "CLI page limits apply to one encoded response and never to repository size.",
-      "Deterministic calibration does not substitute for complete model-stage evidence."
+      "Deterministic calibration does not substitute for complete model-stage evidence.",
+      "The ordinary moldea-output allowance is 524,288 bytes because a real Platform implementation cycle consumed 261,014 bytes; the per-host-command cap and all other limits remain unchanged."
     ]
   },
   "cases": [

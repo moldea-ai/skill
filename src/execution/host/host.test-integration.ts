@@ -475,6 +475,55 @@ test('Bubblewrap exposes the exact host Node runtime through its isolated PATH',
   }
 });
 
+test('Bubblewrap supports private response checkpoints without changing repository files', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-checkpoint-mount-'));
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  try {
+    mkdirSync(repositoryPath);
+    await prepareEmptyCodexEvaluationHome(sandboxHome, evaluationRoot);
+    for (const name of ['response-directory.mjs', 'repository-files.mjs']) {
+      writeFileSync(
+        join(repositoryPath, name),
+        readFileSync(join(process.cwd(), 'moldea', 'scripts', name)),
+      );
+    }
+    const probe = `
+      const assert = require('node:assert/strict');
+      const { spawnSync } = require('node:child_process');
+      const { writeFileSync, readFileSync, rmSync, readdirSync } = require('node:fs');
+      const { join } = require('node:path');
+      const result = spawnSync('node', ['/mnt/response-directory.mjs', '--repository', '/mnt'], { encoding: 'utf8' });
+      assert.equal(result.status, 0, result.stderr);
+      const directory = result.stdout.trim();
+      assert.match(directory, /^\\/tmp\\/moldea-response-/);
+      try {
+        const checkpoint = join(directory, 'response.json');
+        writeFileSync(checkpoint, '{"cursor":"next-page"}');
+        assert.equal(readFileSync(checkpoint, 'utf8'), '{"cursor":"next-page"}');
+      } finally {
+        rmSync(directory, { recursive: true });
+      }
+      assert.deepEqual(readdirSync('/tmp'), []);
+      assert.deepEqual(readdirSync('/mnt').sort(), ['repository-files.mjs', 'response-directory.mjs']);
+    `;
+    const result = spawnSync(
+      'bwrap',
+      buildCodexEvaluationBwrapArguments({
+        command: ['codex', '--eval', probe],
+        cwd: repositoryPath,
+        hostExecutable: process.execPath,
+        nodeExecutable: process.execPath,
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 5_000 },
+    );
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
 test('Bubblewrap cannot observe host state or connect to host localhost', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-sandbox-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');

@@ -82,8 +82,11 @@ export const createSemanticResultDimensions = (options: {
       cycle === undefined ? [] : [cycle],
     );
     const allCycles = [...completedCycles.slice(0, -cycles.length), ...cycles];
-    const results = allCycles.map((cycle) =>
-      createSemanticResultDimensions({
+    const tokenLimit =
+      MOLDEA_SKILL_RESOURCE_PROFILES[options.caseDefinition.resourceBudget.profile ?? 'ordinary']
+        .maxHostTokenCount;
+    const results = allCycles.map((cycle) => {
+      const result = createSemanticResultDimensions({
         ...common,
         actorCommandPolicy: cycle.commandPolicyEvidence,
         actorExecutionEvidence: cycle.actorExecutionEvidence,
@@ -91,8 +94,11 @@ export const createSemanticResultDimensions = (options: {
         gitInvocationEvidence: cycle.gitInvocationEvidence,
         isMountIntegrityPassing: cycle.isMountIntegrityPassing,
         isRepositoryControlPassing: cycle.isRepositoryControlPassing,
-      }),
-    );
+      });
+      result.resource &&=
+        cycle.usage !== null && cycle.usage.inputTokens + cycle.usage.outputTokens <= tokenLimit;
+      return result;
+    });
     return Object.fromEntries(
       SEMANTIC_RESULT_DIMENSION_NAMES.map((name) => [
         name,

@@ -466,6 +466,7 @@ const collectCalibration = async (sampleCount: number): Promise<ICalibrationArti
           'Temporary fixture trees are deleted after every run.',
           'CLI page limits apply to one encoded response and never to repository size.',
           'Deterministic calibration does not substitute for complete model-stage evidence.',
+          'The ordinary moldea-output allowance is 524,288 bytes because a real Platform implementation cycle consumed 261,014 bytes; the per-host-command cap and all other limits remain unchanged.',
         ],
       },
       cases: cases.sort((left, right) => left.id.localeCompare(right.id)),

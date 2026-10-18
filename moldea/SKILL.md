@@ -72,7 +72,7 @@ After relevance, read references.
 - Warnings and acceptance: `references/continuous-maintenance.md`.
 - CLI proof or machine contracts: `references/local-tooling.md`. Only authorized installation uses `references/tooling-installation.md`.
 
-Aim for four ordinary CLI calls, including scope and final validation. Explicit repair uses `references/local-tooling.md`'s large-traversal profile and may exceed four calls. Keep 65,536-byte raw pages and 262,144-byte output per cycle for ordinary work. Never reset budgets within a cycle or reconstruct a project dump.
+Aim for four ordinary CLI calls, including scope and final validation. Explicit repair uses `references/local-tooling.md`'s large-traversal profile and may exceed four calls. Keep 65,536-byte raw pages and 524,288-byte output per cycle for ordinary work. Never reset budgets within a cycle or reconstruct a project dump.
 
 After authorized canonical writes and native checks, run final launcher-backed validation. On failure, follow `references/local-tooling.md`'s bounded recovery procedure. Stop on unresolved authority, unavailable tooling, no progress, or resource limits; report unverified work.
 

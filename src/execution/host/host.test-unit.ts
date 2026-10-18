@@ -194,6 +194,15 @@ test('host commands carry one neutral runner-owned developer policy and exact di
   assert.match(instruction, /invoke package managers or installers/u);
   assert.match(instruction, /access filesystem paths outside the current workspace/u);
   assert.match(instruction, /read-only repositories explicitly named by the current task/u);
+  assert.match(
+    instruction,
+    /task-owned response checkpoints in the sandbox's private \/tmp directory/u,
+  );
+  assert.match(
+    instruction,
+    /Create, read and remove only your own checkpoint directories and files/u,
+  );
+  assert.match(instruction, /do not access other temporary files/u);
   assert.match(instruction, /Host-injected system-skill paths are unavailable/u);
   assert.match(instruction, /do not search evaluator home for a substitute/u);
   assert.doesNotMatch(instruction, /moldea|scenario|criterion/u);

@@ -77,7 +77,7 @@ const createTrial = (
         role: 'actor',
         version: '1.0.0',
       },
-      actorUsage: null,
+      actorUsage: { inputTokens: 100, cachedInputTokens: 0, outputTokens: 10 },
       confirmationEligible: !options.passed,
       confirmationIndex: null,
       dimensions: {

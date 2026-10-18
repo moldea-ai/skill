@@ -11,10 +11,10 @@ export const semanticCase = defineSemanticCase({
     'One conversation completes three sequential policy-report requests. Each independently scopes, reads substantive canonical policy pages and validates; combined moldea output exceeds one ordinary allowance.',
   input: {
     developerDirection:
-      'Complete the returns contract review in reports/returns-review.md using all 512 entries of its declared policy authority. Write a compact report with the count, minimum and maximum review deadlines, number needing independent exception review, responsible teams and human authorization boundary. Preserve the policy authority and unrelated files. Use its declared relationship scope and bounded content pages, then finish with moldea validation for this report before stopping. After that I will ask for the invoice review, then the support review; do not start either yet.',
+      'Complete the returns contract review in reports/returns-review.md using all 1024 entries of its declared policy authority. Compute the ledger aggregates locally from bounded content pages instead of copying the full ledger into the conversation. Write a compact report with the count, minimum and maximum review deadlines, number needing independent exception review, responsible teams and human authorization boundary. Preserve the policy authority and unrelated files. Use its declared relationship scope and bounded content pages, then finish with moldea validation for this report before stopping. After that I will ask for the invoice review, then the support review; do not start either yet.',
     followUpDeveloperRequests: [
-      'Continue with the invoice contract review in reports/invoices-review.md. Review all 512 entries of its own declared policy authority and write the same compact coverage report: count, deadline range, independent exception count, responsible teams and human authorization boundary. Preserve other files. Use its declared relationship scope and bounded content pages, then finish with moldea validation for this report before stopping.',
-      'Now complete the support contract review in reports/support-review.md using all 512 entries of its own declared policy authority. Report the count, deadline range, independent exception count, responsible teams and human authorization boundary. Preserve other files. Use its declared relationship scope and bounded content pages, then finish with moldea validation for this report.',
+      'Continue with the invoice contract review in reports/invoices-review.md. Review all 1024 entries of its own declared policy authority and compute the ledger aggregates locally from bounded content pages, then write the same compact coverage report: count, deadline range, independent exception count, responsible teams and human authorization boundary. Preserve other files. Use its declared relationship scope and bounded content pages, then finish with moldea validation for this report before stopping.',
+      'Now complete the support contract review in reports/support-review.md using all 1024 entries of its own declared policy authority. Compute the ledger aggregates locally from bounded content pages, then report the count, deadline range, independent exception count, responsible teams and human authorization boundary. Preserve other files. Use its declared relationship scope and bounded content pages, then finish with moldea validation for this report.',
     ],
     repositoryEvidence: [
       {
@@ -24,12 +24,12 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'Returns has 512 contracts, review deadlines 7 through 60 days, 103 independent exceptions and four Customer Operations regional teams. A human retains refund approval.',
+          'Returns has 1024 contracts, review deadlines 7 through 60 days, 205 independent exceptions and four Customer Operations regional teams. A human retains refund approval.',
         source: { kind: 'workspace-path', path: 'moldea/context/returns.md', expectedType: 'file' },
       },
       {
         claim:
-          'Invoices has 512 contracts, review deadlines 7 through 60 days, 86 independent exceptions and four Accounts Payable regional teams. A human retains payment approval.',
+          'Invoices has 1024 contracts, review deadlines 7 through 60 days, 171 independent exceptions and four Accounts Payable regional teams. A human retains payment approval.',
         source: {
           kind: 'workspace-path',
           path: 'moldea/context/invoices.md',
@@ -38,7 +38,7 @@ export const semanticCase = defineSemanticCase({
       },
       {
         claim:
-          'Support has 512 contracts, review deadlines 7 through 60 days, 74 independent exceptions and four Support Operations regional teams. A human retains account-access approval.',
+          'Support has 1024 contracts, review deadlines 7 through 60 days, 147 independent exceptions and four Support Operations regional teams. A human retains account-access approval.',
         source: { kind: 'workspace-path', path: 'moldea/context/support.md', expectedType: 'file' },
       },
     ],
@@ -52,7 +52,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'independent-cycle-verification',
       criterion:
-        "Each of the three ordered cycles has successful launcher scope, content and final validate facts and completes its report within its unchanged per-cycle resource budget. Combined recorded moldea stdout bytes across the three cycles exceed 262144 bytes; each individual cycle stays at or below 262144. The measured aggregate is required to establish that this scenario exercised more than one cycle's output allowance.",
+        "Each of the three ordered cycles has successful launcher scope, content and final validate facts and completes its report within its unchanged per-cycle resource budget. Combined recorded moldea stdout bytes across the three cycles exceed 524288 bytes; each individual cycle stays at or below 524288. The measured aggregate is required to establish that this scenario exercised more than one cycle's output allowance.",
     },
   ],
   forbidden: [
@@ -64,14 +64,14 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'unrelated-or-authority-write',
       criterion:
-        'The actor changes governing policy authorities or files other than the three requested reports, invents automatic financial or access authorization, or rewrites a completed report in a later unrelated request.',
+        'The actor changes governing policy authorities or repository files other than the three requested reports, invents automatic financial or access authorization, or rewrites a completed report in a later unrelated request.',
     },
   ],
   resourceBudget: {
     activation: 'relationship',
     minimumMoldeaCommands: 3,
     maximumMoldeaCommands: 16,
-    maximumMoldeaOutputBytes: 262144,
+    maximumMoldeaOutputBytes: 524288,
   },
   coverageClaimIds: ['maintenance-cycle-budgets'],
 });

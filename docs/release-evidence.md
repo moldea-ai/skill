@@ -66,7 +66,7 @@ The website serves semantic downloads under `/evidence-assets/semantic/records/`
 
 Development checks exercise the current semantic catalog without recorded results and isolated synthetic evidence. Production `website:build` and Pages deployment require a prepared official selection. Pages skips deployment when the semantic selection is null. After selection and Pages configuration succeed, synthetic and clean-development verification runs alongside the official build using identical site settings. Deployment requires both verification and the production build to succeed; fixture output is never uploaded.
 
-Skill tags require deterministic conformance, synchronized release identity, and installation checks. Tagged CI does not prepare selected evidence or run a model. A passing tag does not establish semantic behavior. The selected historical semantic snapshot remains presentation-only until fresh evaluation establishes current behavior.
+Skill tags require deterministic conformance, synchronized release identity, and installation checks. Tagged CI does not prepare selected evidence or run a model. A passing tag does not establish semantic behavior. The selected 8.2.3 snapshot records fresh and exactly reused passing observations. Historical presentation-only snapshots remain separate and do not establish current behavior.
 
 ## Check a release
 

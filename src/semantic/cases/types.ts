@@ -50,6 +50,7 @@ export type ISemanticCaseDefinition = {
   id: string;
   input: {
     developerDirection: string;
+    followUpDeveloperRequests?: string[];
     repositoryEvidence: ISemanticRepositoryEvidenceDeclaration[];
   };
   operation: string;

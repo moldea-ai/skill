@@ -172,27 +172,31 @@ test('repair continuations require Git presence only when comparison is needed',
   }
 });
 
-const PRIVATE_CASE_IDS = [
+const CANDIDATE_TARGET_CASE_IDS = [
   'evaluate-brief-project-request',
+  'initialize-inspected-source-coverage',
+  'maintenance-cycle-budget',
   'model-workflow-routing',
   'pnpm-pnp-local-cli-provider',
   'repair-continuation-manifest-change',
+  'routing-description-contradiction',
   'routing-description-fallback',
 ];
 
-test('the private inventory matches the disclosed coverage exclusions', async () => {
+test('the release selection excludes only the two retained reserve failures', async () => {
   const cases = await loadSemanticCases(import.meta.dirname);
   expect(
     cases.filter(({ publication }) => publication === 'private').map(({ id }) => id),
-  ).toStrictEqual(PRIVATE_CASE_IDS);
+  ).toStrictEqual(['exact-binding-relevance', 'read-only-git-helper-suppression']);
 });
 
-test.each(PRIVATE_CASE_IDS)(
-  'private %s remains available for diagnostic selection',
+test.each(CANDIDATE_TARGET_CASE_IDS)(
+  'candidate target %s is eligible for fresh recording',
   async (caseId) => {
     const cases = await loadSemanticCases(import.meta.dirname);
     const definition = cases.find(({ id }) => id === caseId);
-    expect(definition?.publication).toBe('private');
+    expect(definition).toBeDefined();
+    expect(definition?.publication).not.toBe('private');
     expect(typeof definition?.setup).toBe('function');
   },
 );

@@ -301,7 +301,7 @@ var renderManagedAgentsBlock = async (repositoryRoot) => {
   assertManagedBlock(block, "AGENTS.md", false);
   return block;
 };
-var isDirectExecution = process.argv[1] !== void 0 && await realpath(resolve2(process.argv[1])) === fileURLToPath(import.meta.url);
+var isDirectExecution = process.argv[1] !== void 0 && await realpath(resolve2(process.argv[1])) === await realpath(fileURLToPath(import.meta.url));
 if (isDirectExecution) {
   try {
     const arguments_ = process.argv.slice(2);

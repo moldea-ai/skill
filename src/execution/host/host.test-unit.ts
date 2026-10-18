@@ -20,6 +20,7 @@ import {
   identifyConfiguredReasoningEffort,
   isRetryableCodexEvaluationHostError,
   resolveCodeModeHostPath,
+  runCodexEvaluationHost,
   stopCodexEvaluationProxyProcess,
   validateCodexEvaluationHostCommand,
 } from './host.ts';
@@ -152,7 +153,11 @@ test('host commands use the runner-owned model and role-specific reasoning effor
     ),
     ['skip_host_skill_discovery'],
   );
-  assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-6-sol');
+  assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-6.1-sol');
+  assert.equal(
+    identifyConfiguredModel(buildCodexEvaluationHostCommand(BASE_HOST_COMMAND, 'judge')),
+    'gpt-6.1-sol',
+  );
   assert.equal(identifyConfiguredReasoningEffort(SAFE_HOST_COMMAND), 'xhigh');
   assert.equal(
     identifyConfiguredReasoningEffort(buildCodexEvaluationHostCommand(BASE_HOST_COMMAND, 'judge')),
@@ -189,6 +194,15 @@ test('host commands carry one neutral runner-owned developer policy and exact di
   assert.match(instruction, /invoke package managers or installers/u);
   assert.match(instruction, /access filesystem paths outside the current workspace/u);
   assert.match(instruction, /read-only repositories explicitly named by the current task/u);
+  assert.match(
+    instruction,
+    /task-owned response checkpoints in the sandbox's private \/tmp directory/u,
+  );
+  assert.match(
+    instruction,
+    /Create, read and remove only your own checkpoint directories and files/u,
+  );
+  assert.match(instruction, /do not access other temporary files/u);
   assert.match(instruction, /Host-injected system-skill paths are unavailable/u);
   assert.match(instruction, /do not search evaluator home for a substitute/u);
   assert.doesNotMatch(instruction, /moldea|scenario|criterion/u);
@@ -211,7 +225,7 @@ test('host commands reject caller-owned model, reasoning, and developer-policy o
         [...BASE_HOST_COMMAND.slice(0, -1), '--model', 'gpt-example', '-'],
         'actor',
       ),
-    /must not override the runner-owned gpt-6-sol model/,
+    /must not override the runner-owned gpt-6\.1-sol model/,
   );
   assert.throws(
     () =>
@@ -219,7 +233,7 @@ test('host commands reject caller-owned model, reasoning, and developer-policy o
         [...BASE_HOST_COMMAND.slice(0, -1), '--config=model=gpt-example', '-'],
         'actor',
       ),
-    /must not override the runner-owned gpt-6-sol model/,
+    /must not override the runner-owned gpt-6\.1-sol model/,
   );
   assert.throws(
     () =>
@@ -583,5 +597,36 @@ test('model-controlled commands carry a runner-owned provenance marker', () => {
         'actor',
       ),
     /must mark model-controlled commands/,
+  );
+});
+
+test('only runner-selected actor sessions may resume an exact UUID', async () => {
+  for (const selector of ['resume', '--last', '--all']) {
+    assert.throws(
+      () =>
+        validateCodexEvaluationHostCommand(
+          [...SAFE_HOST_COMMAND.slice(0, -1), selector, '-'],
+          'actor',
+        ),
+      /session selection belongs to the runner/u,
+    );
+  }
+  const options = {
+    command: SAFE_HOST_COMMAND,
+    cwd: join(tmpdir(), 'unused-session-test'),
+    prompt: 'unused',
+    sandboxHome: join(tmpdir(), 'unused-session-home'),
+  };
+  await assert.rejects(
+    runCodexEvaluationHost({ ...options, role: 'judge', actorSession: { kind: 'start' } }),
+    /Only actor trials/u,
+  );
+  await assert.rejects(
+    runCodexEvaluationHost({
+      ...options,
+      role: 'actor',
+      actorSession: { kind: 'resume', sessionId: '--last' },
+    }),
+    /exact host session UUID/u,
   );
 });

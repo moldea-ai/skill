@@ -4,13 +4,14 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'read-only-git-helper-suppression',
+  publication: 'private',
   setup: createSemanticCaseSetup('read-only-git-helper-suppression'),
   scenario:
     'Evaluate encounters a dirty working tree whose repository Git configuration attempts to execute fsmonitor, external diff, text-conversion, and clean-filter helpers.',
   operation: 'evaluate',
   input: {
     developerDirection:
-      'Use moldea to complete this repository task. Evaluate the current project without executing repository code.',
+      'Use moldea to evaluate the current project, including Git change evidence and the rules in .gitattributes. Do not execute project-controlled code. Read-only bundled moldea helpers and the installed CLI may be used only while preserving that execution restriction.',
     repositoryEvidence: [
       {
         claim:
@@ -77,7 +78,7 @@ export const semanticCase = defineSemanticCase({
     activation: 'direct',
     minimumMoldeaCommands: 1,
     maximumMoldeaCommands: 8,
-    maximumMoldeaOutputBytes: 262144,
+    maximumMoldeaOutputBytes: 524288,
   },
   coverageClaimIds: ['project-evaluation-and-reconciliation'],
 });

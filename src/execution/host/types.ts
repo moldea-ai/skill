@@ -45,6 +45,15 @@ export interface ICodexEvaluationCommandPolicyReason {
   count: number;
 }
 
+// content-free diagnostics for commands shaped like the bundled CLI launcher
+export type IMoldeaCliLauncherMissReasonCode =
+  'unrecognized-node-path' | 'unrecognized-launcher-path';
+
+export interface IMoldeaCliLauncherMissReason {
+  code: IMoldeaCliLauncherMissReasonCode;
+  count: number;
+}
+
 export interface ICodexEvaluationCommandPolicyEvidence {
   completedCommandCount: number;
   credentialExposure: {
@@ -55,6 +64,7 @@ export interface ICodexEvaluationCommandPolicyEvidence {
   maximumCommandOutputByteCount: number;
   modelVisibleToolOutputByteCount: number;
   moldeaCommandCount: number;
+  moldeaLauncherMissReasons: IMoldeaCliLauncherMissReason[];
   moldeaOutputByteCount: number;
   networkAccess: {
     status: ICodexEvaluationCommandPolicyStatus;
@@ -111,6 +121,8 @@ export interface ICodexEvaluationReadOnlyMount {
 export type ICodexEvaluationWorkspaceAccess = 'read-only' | 'read-write';
 
 export interface ICodexEvaluationHostRunOptions {
+  // only authored multi-request actor trials retain a session
+  actorSession?: { kind: 'start' } | { kind: 'resume'; sessionId: string };
   command: readonly string[];
   cwd: string;
   defaultHostTimeoutMs?: number;

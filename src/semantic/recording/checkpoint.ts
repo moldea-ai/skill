@@ -2,13 +2,27 @@ import path from 'node:path';
 
 import { z } from 'zod';
 
-import { GitInvocationEvidenceSchema } from '../../execution/host/index.ts';
-import { readJsonFile, writeJsonFileAtomically } from '../../filesystem/index.ts';
 import {
-  hasValidActorExecutionEvidence,
+  GitInvocationEvidenceSchema,
+  hasValidCodexEvaluationCommandPolicy,
+} from '../../execution/host/index.ts';
+import {
+  readJsonFile,
+  resolveContainedPath,
+  writeJsonFileAtomically,
+} from '../../filesystem/index.ts';
+import {
+  hasValidSemanticCycles,
+  summarizeSemanticCycles,
+  type ISemanticCycleEvidence,
   type ISemanticActorExecutionEvidenceOptions,
 } from '../execution/index.ts';
-import type { ISemanticCandidateCheckpoint } from './types.ts';
+import { serializeSemanticStageValue } from '../stages/index.ts';
+import type {
+  ISemanticCandidateCheckpoint,
+  ISemanticRecordedTrial,
+  ISemanticActiveTrialActorEvidence,
+} from './types.ts';
 
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
 const HostIdentitySchema = z.strictObject({
@@ -39,6 +53,15 @@ const CommandPolicySchema = z.strictObject({
   maximumCommandOutputByteCount: z.number().int().nonnegative(),
   modelVisibleToolOutputByteCount: z.number().int().nonnegative(),
   moldeaCommandCount: z.number().int().nonnegative(),
+  moldeaLauncherMissReasons: z
+    .array(
+      z.strictObject({
+        code: z.enum(['unrecognized-node-path', 'unrecognized-launcher-path']),
+        count: z.number().int().positive(),
+      }),
+    )
+    .max(2)
+    .refine((reasons) => new Set(reasons.map(({ code }) => code)).size === reasons.length),
   moldeaOutputByteCount: z.number().int().nonnegative(),
   networkAccess: CommandPolicyObservationSchema,
   sensitiveAccess: CommandPolicyObservationSchema,
@@ -49,6 +72,11 @@ const UsageSchema = z
     inputTokens: z.number().int().nonnegative(),
     outputTokens: z.number().int().nonnegative(),
   })
+  .refine(
+    (usage) =>
+      usage.cachedInputTokens <= usage.inputTokens &&
+      Number.isSafeInteger(usage.inputTokens + usage.outputTokens),
+  )
   .nullable();
 const ResourceEvidenceSchema = z.strictObject({
   commandCount: z.number().int().nonnegative(),
@@ -88,17 +116,51 @@ const OperationalRetryStateSchema = z.strictObject({
   judgeFailureCount: z.number().int().nonnegative(),
   lastFailure: OperationalFailureSchema.nullable(),
 });
+const WorkspaceChangesSchema = z.strictObject({
+  created: z.array(WorkspaceEntrySchema),
+  deleted: z.array(WorkspaceEntrySchema),
+  modified: z.array(
+    z.strictObject({
+      after: WorkspaceStateSchema,
+      before: WorkspaceStateSchema,
+      path: z.string().trim().min(1),
+    }),
+  ),
+});
+const CycleSchema = z.strictObject({
+  actorExecutionEvidence: z.array(z.unknown()),
+  gitInvocationEvidence: GitInvocationEvidenceSchema,
+  actorResourceEvidence: ResourceEvidenceSchema,
+  commandPolicyEvidence: CommandPolicySchema,
+  response: z.string().refine((text) => text.trim().length > 0),
+  usage: UsageSchema,
+  developerRequest: z.string().refine((text) => text.trim().length > 0),
+  requestIndex: z.number().int().nonnegative(),
+  isMountIntegrityPassing: z.boolean(),
+  isRepositoryControlPassing: z.boolean(),
+  workspaceChanges: WorkspaceChangesSchema,
+});
+const PaidInvocationSchema = z.strictObject({
+  commandPolicyEvidence: CommandPolicySchema.optional(),
+  stage: z.enum(['actor', 'judge']),
+  usage: UsageSchema,
+  cycle: CycleSchema.optional(),
+});
 const RecordedTrialSchema = z.strictObject({
+  cycles: z.array(CycleSchema).min(1),
+  paidInvocations: z.array(PaidInvocationSchema),
   actorExecutionEvidence: z.array(z.unknown()),
   gitInvocationEvidence: GitInvocationEvidenceSchema,
   actorResponse: z.string(),
-  developerDirection: z.string().trim().min(1),
+  developerDirection: z.string().refine((text) => text.trim().length > 0),
   operationalRetries: OperationalRetryStateSchema,
   stageIdentities: z.strictObject({
     actorSha256: Sha256Schema,
     judgeSha256: Sha256Schema,
   }),
   trial: z.looseObject({
+    cycles: z.array(CycleSchema).min(1),
+    paidInvocations: z.array(PaidInvocationSchema),
     actorCommandPolicyEvidence: CommandPolicySchema,
     actorResourceEvidence: ResourceEvidenceSchema,
     actorHost: HostIdentitySchema.extend({ role: z.literal('actor') }),
@@ -151,17 +213,7 @@ const RecordedTrialSchema = z.strictObject({
     rationale: z.string(),
     stageReuse: z.unknown().nullable(),
   }),
-  workspaceChanges: z.strictObject({
-    created: z.array(WorkspaceEntrySchema),
-    deleted: z.array(WorkspaceEntrySchema),
-    modified: z.array(
-      z.strictObject({
-        after: WorkspaceStateSchema,
-        before: WorkspaceStateSchema,
-        path: z.string().trim().min(1),
-      }),
-    ),
-  }),
+  workspaceChanges: WorkspaceChangesSchema,
 });
 const RecordedCaseSchema = z.strictObject({
   confirmationStatus: z.enum(['not-applicable', 'not-required', 'passed', 'rejected', 'required']),
@@ -170,6 +222,7 @@ const RecordedCaseSchema = z.strictObject({
   trials: z.array(RecordedTrialSchema).min(1).max(4),
 });
 const ActiveTrialActorEvidenceSchema = z.strictObject({
+  cycles: z.array(CycleSchema).min(1),
   actorExecutionEvidence: z.array(z.unknown()),
   gitInvocationEvidence: GitInvocationEvidenceSchema,
   actorResourceEvidence: ResourceEvidenceSchema,
@@ -179,21 +232,13 @@ const ActiveTrialActorEvidenceSchema = z.strictObject({
   isRepositoryControlPassing: z.boolean(),
   response: z.string(),
   usage: UsageSchema,
-  workspaceChanges: z.strictObject({
-    created: z.array(WorkspaceEntrySchema),
-    deleted: z.array(WorkspaceEntrySchema),
-    modified: z.array(
-      z.strictObject({
-        after: WorkspaceStateSchema,
-        before: WorkspaceStateSchema,
-        path: z.string().trim().min(1),
-      }),
-    ),
-  }),
+  workspaceChanges: WorkspaceChangesSchema,
 });
 const ActiveTrialSchema = z
   .strictObject({
     actorEvidence: ActiveTrialActorEvidenceSchema.nullable(),
+    actorCycles: z.array(CycleSchema),
+    paidInvocations: z.array(PaidInvocationSchema),
     confirmationIndex: z.union([z.literal(1), z.literal(2), z.literal(3), z.null()]),
     operationalRetries: OperationalRetryStateSchema,
     phase: z.enum(['actor-pending', 'judge-pending', 'trial-complete']),
@@ -204,6 +249,16 @@ const ActiveTrialSchema = z
   .superRefine((trial, context) => {
     const hasActorEvidence = trial.actorEvidence !== null;
     const hasRecordedTrial = trial.recordedTrial !== null;
+    if (
+      trial.actorEvidence !== null &&
+      serializeSemanticStageValue(trial.actorCycles) !==
+        serializeSemanticStageValue(trial.actorEvidence.cycles)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Semantic active cycle evidence does not match the completed actor session.',
+      });
+    }
     if (
       (trial.phase === 'actor-pending' && (hasActorEvidence || hasRecordedTrial)) ||
       (trial.phase === 'judge-pending' && (!hasActorEvidence || hasRecordedTrial)) ||
@@ -269,6 +324,66 @@ const CliIdentitySchema = z.strictObject({
   version: z.string().trim().min(1),
 });
 
+const hasValidActorSummary = (
+  evidence: Pick<
+    ISemanticActiveTrialActorEvidence,
+    | 'cycles'
+    | 'actorExecutionEvidence'
+    | 'actorResourceEvidence'
+    | 'commandPolicyEvidence'
+    | 'gitInvocationEvidence'
+    | 'response'
+    | 'usage'
+  >,
+  options: ISemanticActorExecutionEvidenceOptions,
+): boolean => {
+  if (!hasValidSemanticCycles(evidence.cycles, options)) return false;
+  const summary = summarizeSemanticCycles(evidence.cycles);
+  return (Object.keys(summary) as Array<keyof typeof summary>).every(
+    (key) =>
+      serializeSemanticStageValue(summary[key]) === serializeSemanticStageValue(evidence[key]),
+  );
+};
+
+const hasValidPaidCycles = (
+  invocations: ISemanticRecordedTrial['paidInvocations'],
+  options: ISemanticActorExecutionEvidenceOptions,
+): boolean =>
+  invocations.every(
+    ({ stage, usage, cycle, commandPolicyEvidence }) =>
+      (commandPolicyEvidence === undefined ||
+        hasValidCodexEvaluationCommandPolicy(commandPolicyEvidence)) &&
+      (cycle === undefined ||
+        (stage === 'actor' &&
+          serializeSemanticStageValue(usage) === serializeSemanticStageValue(cycle.usage) &&
+          hasValidSemanticCycles([{ ...cycle, requestIndex: 0 }], options))),
+  );
+
+const hasValidRecordedTrial = (
+  recorded: ISemanticRecordedTrial,
+  options: ISemanticActorExecutionEvidenceOptions,
+): boolean =>
+  hasValidPaidCycles(recorded.paidInvocations, options) &&
+  hasValidActorSummary(
+    {
+      cycles: recorded.cycles,
+      actorExecutionEvidence: recorded.actorExecutionEvidence,
+      actorResourceEvidence: recorded.trial.actorResourceEvidence,
+      commandPolicyEvidence: recorded.trial.actorCommandPolicyEvidence,
+      gitInvocationEvidence: recorded.gitInvocationEvidence,
+      response: recorded.actorResponse,
+      usage: recorded.trial.actorUsage,
+    },
+    options,
+  ) &&
+  serializeSemanticStageValue(recorded.cycles) ===
+    serializeSemanticStageValue(recorded.trial.cycles) &&
+  serializeSemanticStageValue(recorded.paidInvocations) ===
+    serializeSemanticStageValue(recorded.trial.paidInvocations) &&
+  recorded.paidInvocations.filter(({ stage }) => stage === 'actor').length >=
+    recorded.cycles.length &&
+  recorded.paidInvocations.some(({ stage }) => stage === 'judge');
+
 const CandidateCheckpointSchema = z
   .strictObject({
     actorHost: HostIdentitySchema.extend({ role: z.literal('actor') }),
@@ -282,7 +397,7 @@ const CandidateCheckpointSchema = z
     createdAt: z.iso.datetime(),
     judgeHost: HostIdentitySchema.extend({ role: z.literal('judge') }),
     mode: z.enum(['diagnostic', 'official']),
-    schemaVersion: z.literal(2),
+    schemaVersion: z.literal(3),
     selectedCaseIds: z.array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)).min(1),
     updatedAt: z.iso.datetime(),
   })
@@ -334,13 +449,33 @@ const CandidateCheckpointSchema = z
       .map(({ activeTrial }) => activeTrial?.actorEvidence)
       .filter((evidence) => evidence !== null && evidence !== undefined);
     if (
+      Object.values(checkpoint.caseCheckpoints).some(
+        ({ activeTrial }) =>
+          activeTrial !== null &&
+          !hasValidPaidCycles(
+            activeTrial.paidInvocations as ISemanticRecordedTrial['paidInvocations'],
+            actorEvidenceOptions,
+          ),
+      ) ||
       recordedTrials.some(
-        ({ actorExecutionEvidence }) =>
-          !hasValidActorExecutionEvidence(actorExecutionEvidence, actorEvidenceOptions),
+        (trial) =>
+          !hasValidRecordedTrial(trial as unknown as ISemanticRecordedTrial, actorEvidenceOptions),
+      ) ||
+      Object.values(checkpoint.caseCheckpoints).some(
+        ({ activeTrial }) =>
+          activeTrial !== null &&
+          activeTrial.actorCycles.length > 0 &&
+          !hasValidSemanticCycles(
+            activeTrial.actorCycles as ISemanticCycleEvidence[],
+            actorEvidenceOptions,
+          ),
       ) ||
       activeActorEvidence.some(
-        ({ actorExecutionEvidence }) =>
-          !hasValidActorExecutionEvidence(actorExecutionEvidence, actorEvidenceOptions),
+        (evidence) =>
+          !hasValidActorSummary(
+            evidence as unknown as ISemanticActiveTrialActorEvidence,
+            actorEvidenceOptions,
+          ),
       )
     ) {
       context.addIssue({
@@ -359,8 +494,8 @@ export const parseSemanticRecordedCases = (
   if (
     recordedCases.some(({ trials }) =>
       trials.some(
-        ({ actorExecutionEvidence }) =>
-          !hasValidActorExecutionEvidence(actorExecutionEvidence, actorEvidenceOptions),
+        (trial) =>
+          !hasValidRecordedTrial(trial as unknown as ISemanticRecordedTrial, actorEvidenceOptions),
       ),
     )
   ) {
@@ -380,6 +515,38 @@ export const writeSemanticCheckpoint = async (
 ): Promise<void> => {
   CandidateCheckpointSchema.parse(checkpoint);
   await writeJsonFileAtomically(getSemanticCheckpointPath(repositoryRoot), checkpoint);
+};
+
+/**
+ * Archives a completed diagnostic while leaving active-checkpoint cleanup to its caller.
+ * @returns The private archive path; these records are never official reusable evidence.
+ * @throws
+ * - Semantic diagnostic attempt identity is not a safe archive component.
+ * - Semantic diagnostic archive requires a complete terminal selection.
+ */
+export const archiveSemanticDiagnosticCheckpoint = async (
+  repositoryRoot: string,
+  checkpoint: ISemanticCandidateCheckpoint,
+): Promise<string> => {
+  CandidateCheckpointSchema.parse(checkpoint);
+  if (
+    !/^sem-[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(checkpoint.attemptId) ||
+    checkpoint.attemptId.length > 64
+  )
+    throw new Error('Semantic diagnostic attempt identity is not a safe archive component.');
+  if (
+    checkpoint.mode !== 'diagnostic' ||
+    checkpoint.cases.length !== checkpoint.selectedCaseIds.length ||
+    Object.keys(checkpoint.caseCheckpoints).length !== 0 ||
+    checkpoint.cases.some(({ status, trials }) => status === 'pending' || trials.length === 0)
+  )
+    throw new Error('Semantic diagnostic archive requires a complete terminal selection.');
+  const archivePath = resolveContainedPath(
+    repositoryRoot,
+    path.join('.evidence', 'semantic', 'diagnostics', checkpoint.attemptId, 'checkpoint.json'),
+  );
+  await writeJsonFileAtomically(archivePath, checkpoint);
+  return archivePath;
 };
 
 /** Reads one semantic checkpoint whose detailed cases are validated during resume. */

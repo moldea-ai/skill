@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 // src/portable/managed-readme.ts
+import { realpath } from "node:fs/promises";
 import { resolve as resolve2 } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 // src/portable/managed-block/managed-block.ts
 import { randomUUID } from "node:crypto";
@@ -311,7 +312,7 @@ var parseArguments = (argumentsList) => {
   }
   return argumentsList[1];
 };
-var isDirectExecution = process.argv[1] !== void 0 && pathToFileURL(resolve2(process.argv[1])).href === import.meta.url;
+var isDirectExecution = process.argv[1] !== void 0 && await realpath(resolve2(process.argv[1])) === await realpath(fileURLToPath(import.meta.url));
 if (isDirectExecution) {
   try {
     const repositoryRoot = parseArguments(process.argv.slice(2));

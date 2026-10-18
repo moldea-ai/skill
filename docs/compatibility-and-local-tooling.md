@@ -8,7 +8,7 @@ order: 180
 
 # Compatibility and local tooling
 
-Release `8.2.2` supports exactly:
+Release `8.2.3` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.17.0`
@@ -52,9 +52,9 @@ Command boundaries stay explicit:
 - `scope` accepts one `--path` or one NUL-delimited UTF-8 path set of at most 2 MiB and returns relationship matches after the two-byte gate establishes relevance.
 - `content` returns chunks only for one explicit canonical `/moldea/**` path. CLI/Core still reject noncanonical targets.
 
-Release `8.2.2` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
+Release `8.2.3` accepts bare repository-relative and leading-slash repository-logical paths. The development scripts also normalize leading `./` and native absolute paths contained beneath the supplied or physically resolved repository root. The gate's argv and stdin modes and the launcher's `scope` and `content` use the same normalization. Relative paths always start at the repository root, regardless of the working directory. Normalization preserves input order, duplicates, casing, and Unicode, with the same raw 2 MiB batch allowance and no target-file lookup.
 
-On POSIX, contained absolute paths take precedence; other leading-slash paths retain their repository-logical meaning. On Windows, only contained drive-absolute paths are converted. Traversal, internal dot segments, repeated separators, repository-root-only selections, drive-relative paths, UNC/device forms, and relative backslash paths remain errors. Normalization does not replace canonical filesystem checks.
+On POSIX, contained absolute paths take precedence; other leading-slash paths retain their repository-logical meaning, and backslashes remain errors. Windows paths accept either separator in relative paths and convert contained drive-absolute paths. Traversal, internal dot segments, repeated separators, repository-root-only selections, drive-relative paths, and UNC/device forms remain errors. Normalization does not replace canonical filesystem checks.
 
 Paged commands accept launcher-only `--save-response <absolute-temporary-file>` and `--cursor-from-response <absolute-temporary-file>` options. Create the private task directory with `node <installed-skill-root>/scripts/response-directory.mjs --repository <absolute-repository-root>`. It returns an absolute path beneath the resolved host temporary root, outside the repository, with owner-only POSIX access. Windows uses the host temporary storage permissions. The directory holds one exact raw response. The next call extracts its opaque cursor mechanically and fetches one page with unchanged filters and budget. File and directory links are rejected; new targets must be unused unless replacing the explicitly loaded checkpoint. `composition` does not support these options, and a saved cursor cannot be combined with `--cursor`. Complete valid/invalid pages can be saved; error and interrupted output cannot replace a checkpoint. The coding agent removes owned scratch files when finished. Hosts that prohibit scratch writes retain that constraint.
 
@@ -62,7 +62,9 @@ When the host truncates or loses a response saved with `--save-response`, read t
 
 ## Resource profiles
 
-Ordinary work uses 65,536-byte pages and stops when the relevant record or diagnostic is available. Aggregate `moldea` output should remain at or below 262,144 bytes per maintenance cycle, as defined in the installed skill's `references/local-tooling.md` Resource limits section. Large repositories use deterministic metadata pagination; an explicitly required large traversal may use more pages, but each CLI invocation remains at or below 1 MiB and stays task-scoped. Page limits bound encoded responses, not source parsing. The isolated Node inspection has fixed memory and elapsed-time safeguards. Verified heap exhaustion (`RESOURCE_LIMIT_EXCEEDED`) and elapsed timeout (`INSPECTION_TIMEOUT`) leave verification incomplete; neither establishes faulty application code. Capacity contention (`INSPECTION_BUSY`) and process failure (`INSPECTION_PROCESS_FAILED`) also provide no inspection conclusion. Preserve earlier changes and report remaining checks; do not retry unchanged failures repeatedly or split healthy source automatically.
+Ordinary work uses 65,536-byte pages and stops when the relevant record or diagnostic is available. Aggregate `moldea` output should remain at or below 524,288 bytes per maintenance cycle, as defined in the installed skill's `references/local-tooling.md` Resource limits section. Large repositories use deterministic metadata pagination; an explicitly required large traversal may use more pages, but each CLI invocation remains at or below 1 MiB and stays task-scoped. Page limits bound encoded responses, not source parsing. The isolated Node inspection has fixed memory and elapsed-time safeguards. Verified heap exhaustion (`RESOURCE_LIMIT_EXCEEDED`) and elapsed timeout (`INSPECTION_TIMEOUT`) leave verification incomplete; neither establishes faulty application code. Capacity contention (`INSPECTION_BUSY`) and process failure (`INSPECTION_PROCESS_FAILED`) also provide no inspection conclusion. Preserve earlier changes and report remaining checks; do not retry unchanged failures repeatedly or split healthy source automatically.
+
+When ordinary work reaches a limit, the coding agent completes the developer's task without further moldea reads and briefly names canonical checks deferred to the next request. Explicit moldea operations stop and report progress at their limit.
 
 For practical handling, start with [Limitations](/docs/limitations/). Detailed input and worker defaults belong to the [Core resource reference](https://packages.moldea.ai/packages/core/repository-inspection/#resource-limits) and [CLI budgets](https://packages.moldea.ai/packages/cli/output-and-operations/#resource-budgets).
 
@@ -73,15 +75,15 @@ The following profiles constrain release-assurance trials, not users’ reposito
 | One completed command     |    256 KiB |          256 KiB |
 | Completed commands        |         64 |               64 |
 | `moldea` calls            |         16 |               16 |
-| `moldea` output           |    256 KiB |            1 MiB |
+| `moldea` output           |    512 KiB |            1 MiB |
 | Model-visible tool output |      1 MiB |            4 MiB |
-| Input plus output tokens  |  1,625,000 |        1,625,000 |
+| Tokens (accounting below) |  1,625,000 |        1,625,000 |
 
 The isolated model-stage runner retains absolute ceilings of 128 completed commands, 32 `moldea` calls, 8 MiB of `moldea` output, 16 MiB of complete-stage model-visible tool output, 32 KiB of raw command text, and 2,097,152 tokens. These are failure containment, not operating targets. The 256 KiB peak applies to one completed command and is distinct from the 32 KiB raw-command ceiling.
 
-Crossing an operating dimension fails with its profile, dimension, observed value, and limit. A safe cumulative command, moldea-call, or token overage may still reach semantic judging for calibration, but the trial remains failed. Missing token usage and output-volume, deterministic, workspace, runner-owned, or command-policy failures skip judging. Duration and peak memory are diagnostics rather than brittle pass/fail thresholds.
+Token grading counts input plus output, including cached input, for single-request trials and first cycles. For resumed cycles it counts uncached input plus output against both token limits. Campaign usage accounting still includes cached input. A complete token counter above either limit remains valid evidence and records a resource failure for that trial; it does not abort parsing or the campaign. Safe command and moldea-call overages may also reach semantic judging, but the trial remains failed. Missing cycle usage cannot establish a resource pass. Absolute output and evidence-containment violations still stop parsing. Duration and peak memory are diagnostics rather than brittle pass/fail thresholds.
 
-`src/resources/profiles.ts` is the numeric authority. `fixtures/resource-calibration.json` contains reproducible measurements for ordinary, 1,024-path, large-Unicode, diagnostic-heavy, and adversarial CLI and repository inputs, with at least 25% cumulative headroom for non-attack cases. `fixtures/model-stage-resource-calibration.json` contains privacy-safe accepted actor and judge aggregates and proves at least 25% cumulative operating headroom; these recorded observations establish calibration integrity, not current behavioral assurance.
+`src/resources/profiles.ts` is the numeric authority. The ordinary moldea-output allowance is 512 KiB because a real Platform implementation cycle consumed 261,014 bytes, leaving little room under the 256 KiB allowance. The per-host-command cap and every other profile limit remain unchanged. `fixtures/resource-calibration.json` contains reproducible measurements for ordinary, 1,024-path, large-Unicode, diagnostic-heavy, and adversarial CLI and repository inputs, with at least 25% cumulative headroom for non-attack cases. `fixtures/model-stage-resource-calibration.json` contains privacy-safe accepted actor and judge aggregates and proves at least 25% cumulative operating headroom; these recorded observations establish calibration integrity, not current behavioral assurance.
 
 Use these checks after changing resource behavior:
 
@@ -117,3 +119,5 @@ Inventory stops at 16,384 entries or 64 directory levels and retains at most 128
 Explicit repair uses the bundled `repair-git.mjs` helper for checkpoint, continuation and written-file review. It pins Git to the supplied worktree, refuses stored attribute-tree configuration, inspects bounded attributes before worktree-aware reads, uses literal pathspecs, and does not write Git state. Its internal index listing is bounded to 4 MiB and 65,536 attribute paths; that listing is never shown to the model. The single response remains bounded to 65,536 bytes. Oversized evidence remains unavailable and cannot establish a current checkpoint. Executable filters, unseen indexed attribute fallbacks, unsafe links and oversized evidence produce explicit limitations.
 
 Attribute inspection conservatively refuses any attribute file containing `filter`, including Git LFS declarations, macros and comments. LFS configuration is disabled as additional protection, not an exception to that refusal. These limitations stop Git-dependent repair; they are not evidence of project drift or permission to bypass repository controls. An unborn repository instead returns unavailable commit evidence and uses conservative owner reassessment.
+
+Failed Git reads, including reads during attribute inspection, return `git-read` with Git's first error line in a reason capped at 512 characters. Attribute-safety limitations remain distinct. The helper uses Git's `/dev/null` spelling for global configuration and attributes on every supported platform, including Windows.

@@ -67,6 +67,7 @@ const assertCommandPolicy = (
       maximumCommandOutputByteCount: actual.maximumCommandOutputByteCount,
       modelVisibleToolOutputByteCount: actual.modelVisibleToolOutputByteCount,
       moldeaCommandCount: actual.moldeaCommandCount,
+      moldeaLauncherMissReasons: [],
       moldeaOutputByteCount: actual.moldeaOutputByteCount,
     },
   );
@@ -158,6 +159,100 @@ test('execution evidence projects local command facts without retaining commands
     status: 'completed',
   });
   assert.doesNotMatch(result.projectedEvents, /git status|README/u);
+});
+
+test.each([
+  ['/opt/node', '/mnt'],
+  ['/opt/node', '/mnt/.'],
+  ['/opt/node', '.'],
+  ['node', './'],
+  ['/usr/bin/node', '/mnt/child/..'],
+  ['node', '../mnt'],
+  ['node', '/mnt/../mnt'],
+])('recognizes launcher Node %s and normalized repository %s', (nodePath, repository) => {
+  const command =
+    `${nodePath} /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs ` +
+    `--repository ${repository} -- inspect --json --max-output-bytes 65536`;
+  assert.equal(identifyMoldeaCliLauncherOperation(command), 'inspect');
+  const evidence = projectCodexEvaluationExecutionEvidence(
+    createCommandEvent(`ls moldea && ${command}`, 'bounded response'),
+  );
+  assert.equal(evidence.commandPolicy.moldeaCommandCount, 1);
+  assert.equal(evidence.commandPolicy.moldeaOutputByteCount, Buffer.byteLength('bounded response'));
+  assert.deepEqual(evidence.commandPolicy.moldeaLauncherMissReasons, []);
+  assert.ok(hasValidCodexEvaluationCommandPolicy(evidence.commandPolicy));
+  assert.ok(hasPassingCodexEvaluationCommandPolicy(evidence.commandPolicy));
+});
+
+test.each(['/tmp', '/', '/mnt/child', '/mnt/../outside'])(
+  'rejects a launcher repository resolving outside the sandbox root: %s',
+  (repository) => {
+    const command =
+      '/opt/node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs ' +
+      `--repository ${repository} -- inspect --json --max-output-bytes 65536`;
+    assert.equal(identifyMoldeaCliLauncherOperation(command), null);
+    assert.equal(
+      projectCodexEvaluationExecutionEvidence(createCommandEvent(command)).commandPolicy
+        .moldeaCommandCount,
+      0,
+    );
+  },
+);
+
+test('records separate content-free launcher miss counts without changing policy or CLI credit', () => {
+  const validScript = '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs';
+  const suffix = '--repository /mnt -- inspect --json --max-output-bytes 65536';
+  const evidence = projectCodexEvaluationExecutionEvidence(
+    [
+      createCommandEvent(`/untrusted/node ${validScript} ${suffix}`, 'private output'),
+      createCommandEvent(`/opt/node /mnt/src/wrong-launcher.mjs ${suffix}`),
+      createCommandEvent(`/untrusted/node ${validScript} ${suffix}`),
+      createCommandEvent('/opt/node --test src/task.test-unit.js'),
+    ].join('\n'),
+  );
+  assert.deepEqual(evidence.commandPolicy.moldeaLauncherMissReasons, [
+    { code: 'unrecognized-launcher-path', count: 1 },
+    { code: 'unrecognized-node-path', count: 2 },
+  ]);
+  assert.equal(evidence.commandPolicy.moldeaCommandCount, 0);
+  assert.equal(evidence.commandPolicy.moldeaOutputByteCount, 0);
+  assert.ok(hasValidCodexEvaluationCommandPolicy(evidence.commandPolicy));
+  assert.ok(hasPassingCodexEvaluationCommandPolicy(evidence.commandPolicy));
+  assert.doesNotMatch(JSON.stringify(evidence), /untrusted|wrong-launcher|private output/u);
+});
+
+test('validates the closed launcher diagnostic codes and positive unique counts', () => {
+  const evidence = projectCodexEvaluationExecutionEvidence(createCommandEvent('ls')).commandPolicy;
+  for (const reasons of [
+    [{ code: 'raw-path', count: 1 }],
+    [{ code: 'unrecognized-node-path', count: 0 }],
+    [{ code: 'unrecognized-node-path', count: -1 }],
+    [{ code: 'unrecognized-node-path', count: 1, path: '/private/node' }],
+    [
+      { code: 'unrecognized-node-path', count: 1 },
+      { code: 'unrecognized-node-path', count: 1 },
+    ],
+  ]) {
+    assert.equal(
+      hasValidCodexEvaluationCommandPolicy({ ...evidence, moldeaLauncherMissReasons: reasons }),
+      false,
+    );
+  }
+});
+
+test('uses the same immutable sandbox Node identity for helper and correctness-test recognition', () => {
+  const prefix = '/opt/node /mnt/.agents/skills/moldea/scripts/';
+  assert.equal(
+    identifyMoldeaRelevanceGateMode(
+      `${prefix}relevance-gate.mjs --repository /mnt/. --adoption-only`,
+    ),
+    'adoption-only',
+  );
+  const repair = `${prefix}repair-git.mjs --repository /mnt/child/.. -- checkpoint`;
+  assert.equal(identifyMoldeaRepairGitMode(repair), 'checkpoint');
+  assert.equal(projectRepairGitCommandEvidence(repair).compliantCount, 1);
+  assert.equal(isRepositoryTestCommand('/opt/node --test src/task.test-unit.js'), true);
+  assert.equal(isRepositoryTestCommand('/opt/private/node --test src/task.test-unit.js'), false);
 });
 
 test('execution evidence recognizes exact evaluator-owned local tooling checks', () => {
@@ -607,7 +702,12 @@ test('command-policy validation rejects incomplete and contradictory aggregates'
     hasValidCodexEvaluationCommandPolicy({ ...evidence, completedCommandCount: 129 }),
     false,
   );
-  assert.equal(hasValidCodexEvaluationCommandPolicy({ ...evidence, moldeaCommandCount: 1 }), false);
+  // actual launcher observations are independent of host-command observations
+  assert.equal(hasValidCodexEvaluationCommandPolicy({ ...evidence, moldeaCommandCount: 1 }), true);
+  assert.equal(
+    hasValidCodexEvaluationCommandPolicy({ ...evidence, moldeaCommandCount: 33 }),
+    false,
+  );
   assert.equal(
     hasValidCodexEvaluationCommandPolicy({
       ...evidence,
@@ -1001,16 +1101,70 @@ test('execution evidence records the largest completed-command output without re
   assert.doesNotMatch(JSON.stringify(result), /x{32}|y{7}/u);
 });
 
-test('execution evidence rejects model token usage above the host ceiling', () => {
+test('execution evidence retains model token usage above the host ceiling for resource grading', () => {
   const source = `${JSON.stringify({
     type: 'turn.completed',
     usage: { input_tokens: 2_000_000, cached_input_tokens: 1_900_000, output_tokens: 97_153 },
   })}\n`;
 
-  assert.throws(
-    () => projectCodexEvaluationExecutionEvidence(source),
-    /total model token usage is 2097153 tokens; the limit is 2097152 tokens/u,
+  assert.deepEqual(projectCodexEvaluationExecutionEvidence(source).usage, {
+    inputTokens: 2_000_000,
+    cachedInputTokens: 1_900_000,
+    outputTokens: 97_153,
+  });
+});
+
+test('execution evidence retains resumed request deltas separately from session totals', () => {
+  const source = JSON.stringify({
+    type: 'turn.completed',
+    usage: { input_tokens: 3_000_000, cached_input_tokens: 2_000_000, output_tokens: 1_200 },
+  });
+  const result = projectCodexEvaluationExecutionEvidence(source, {
+    inputTokens: 1_900_000,
+    cachedInputTokens: 1_500_000,
+    outputTokens: 1_000,
+  });
+  assert.deepEqual(result.usage, {
+    inputTokens: 1_100_000,
+    cachedInputTokens: 500_000,
+    outputTokens: 200,
+  });
+  assert.deepEqual(projectCodexEvaluationExecutionEvidence(source).usage, {
+    inputTokens: 3_000_000,
+    cachedInputTokens: 2_000_000,
+    outputTokens: 1_200,
+  });
+  assert.deepEqual(
+    projectCodexEvaluationExecutionEvidence(source, {
+      inputTokens: 1,
+      cachedInputTokens: 0,
+      outputTokens: 0,
+    }).usage,
+    { inputTokens: 2_999_999, cachedInputTokens: 2_000_000, outputTokens: 1_200 },
   );
+});
+
+test('execution evidence rejects missing or inconsistent resumed-session counters', () => {
+  const baseline = { inputTokens: 100, cachedInputTokens: 50, outputTokens: 20 };
+  assert.throws(
+    () => projectCodexEvaluationExecutionEvidence('', baseline),
+    /resumed-session token usage is missing/u,
+  );
+  for (const usage of [
+    { input_tokens: 99, cached_input_tokens: 50, output_tokens: 20 },
+    { input_tokens: 100, cached_input_tokens: 49, output_tokens: 20 },
+    { input_tokens: 100, cached_input_tokens: 50, output_tokens: 19 },
+    { input_tokens: 101, cached_input_tokens: 52, output_tokens: 20 },
+  ]) {
+    assert.throws(
+      () =>
+        projectCodexEvaluationExecutionEvidence(
+          JSON.stringify({ type: 'turn.completed', usage }),
+          baseline,
+        ),
+      /resumed-session token usage is inconsistent/u,
+    );
+  }
 });
 
 test('launcher identification counts mechanical continuation and capture as one call', () => {

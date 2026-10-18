@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
 
 import { executeProcess } from '../process/index.ts';
@@ -36,6 +36,31 @@ const createRepository = async () => {
   const baseSha = await commit();
   return { root, git, write, commit, baseSha };
 };
+
+test('CLI classification uses the candidate SHA when the GitHub merge object is unavailable', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'moldea-ci-output-'));
+  roots.push(root);
+  const repositoryRoot = resolve(import.meta.dirname, '../..');
+  const testedSha = (
+    await executeProcess({ command: 'git', args: ['rev-parse', 'HEAD'], cwd: repositoryRoot })
+  ).stdout.trim();
+  const output = join(root, 'output');
+  await executeProcess({
+    command: process.execPath,
+    args: [join(import.meta.dirname, 'changes.ts')],
+    cwd: repositoryRoot,
+    environment: {
+      ...process.env,
+      GITHUB_EVENT_NAME: 'pull_request',
+      GITHUB_REF_TYPE: 'branch',
+      GITHUB_SHA: 'f'.repeat(40),
+      CI_TESTED_SHA: testedSha,
+      CI_BASE_SHA: testedSha,
+      GITHUB_OUTPUT: output,
+    },
+  });
+  expect(await readFile(output, 'utf8')).toBe('full=true\n');
+});
 
 test.each(['presentation', 'mixed', 'rename-out', 'rename-in', 'copy-out', 'copy-in'])(
   'classifies a real %s Git diff conservatively',

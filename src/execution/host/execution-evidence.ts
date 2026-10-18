@@ -4,6 +4,7 @@ import { normalizeScopePath } from '../../portable/index.ts';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
 import { isApprovedRepairGitArguments } from './git-command-policy-boundary.ts';
+import { CliInvocationEventSchema, type ICliInvocation } from './cli-invocations/index.ts';
 
 import type {
   ICodexEvaluationCommandPolicyEvidence,
@@ -12,6 +13,7 @@ import type {
   ICodexEvaluationCommandPolicyStatus,
   ICodexEvaluationExecutionEvidence,
   IMoldeaCliOperation,
+  IMoldeaCliLauncherMissReasonCode,
   IRepositoryTestCommandKind,
   IRepairGitCommandEvidence,
   IRepairGitReasonCode,
@@ -26,6 +28,7 @@ interface IAccessClassification {
 
 interface ICommandClassification {
   moldeaCommandCount: number;
+  moldeaLauncherMissReasonCodes: IMoldeaCliLauncherMissReasonCode[];
   networkAccess: ICodexEvaluationCommandPolicyStatus;
   networkReasonCode?: ICodexEvaluationCommandPolicyReasonCode;
   sensitiveAccess: ICodexEvaluationCommandPolicyStatus;
@@ -82,11 +85,14 @@ const SENSITIVE_INDETERMINATE_REASON_CODES = new Set<ICodexEvaluationCommandPoli
 const MAX_COMPLETED_COMMAND_COUNT =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCompletedCommandCount;
 const MAX_COMMAND_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCommandTextBytes;
-const MAX_HOST_TOKEN_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
 const MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxModelVisibleToolOutputBytes;
 const MAX_MOLDEA_COMMAND_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaCommandCount;
 const MAX_MOLDEA_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaOutputBytes;
+const MOLDEA_LAUNCHER_MISS_REASON_CODES: IMoldeaCliLauncherMissReasonCode[] = [
+  'unrecognized-launcher-path',
+  'unrecognized-node-path',
+];
 
 const NETWORK_EXECUTABLES = new Set([
   'corepack',
@@ -734,6 +740,7 @@ const isTrustedLocalExecutable = (word: string | undefined, executable: string):
   if (workspacePaths !== undefined) return workspacePaths.has(word);
   return (
     word === executable ||
+    (executable === 'node' && word === '/opt/node') ||
     TRUSTED_SYSTEM_EXECUTABLE_DIRECTORIES.some(
       (directory) => word === posix.join(directory, executable),
     )
@@ -741,7 +748,7 @@ const isTrustedLocalExecutable = (word: string | undefined, executable: string):
 };
 
 const isSandboxRepositoryRoot = (candidate: string | undefined): boolean =>
-  candidate === '/mnt' || candidate === '/mnt/';
+  candidate !== undefined && candidate !== '' && posix.resolve('/mnt', candidate) === '/mnt';
 
 /** Applies the launcher's path normalization without accessing repository files. */
 const normalizeSandboxTaskPath = (candidate: string | undefined): string | null => {
@@ -980,6 +987,7 @@ const parseMoldeaCliOperationArguments = (
 const isMoldeaCliOperation = (value: string | undefined): value is IMoldeaCliOperation =>
   value !== undefined && MOLDEA_CLI_OPERATIONS.has(value);
 
+/** Returns the supported operation for one exact launcher command word sequence. */
 const identifyMoldeaCliLauncherOperationFromWords = (
   words: readonly string[],
 ): IMoldeaCliOperation | null => {
@@ -997,6 +1005,20 @@ const identifyMoldeaCliLauncherOperationFromWords = (
   }
 
   return parseMoldeaCliOperationArguments(operation, words.slice(6));
+};
+
+/** Diagnoses only launcher-shaped attempts, without retaining executable or script paths. */
+const identifyMoldeaCliLauncherMissReason = (
+  words: readonly string[],
+): IMoldeaCliLauncherMissReasonCode | null => {
+  const executableIndex = identifyExecutableWordIndex(words);
+  if (executableIndex === null) return null;
+  const command = words.slice(executableIndex);
+  if (command[2] !== '--repository' || command[4] !== '--' || !isMoldeaCliOperation(command[5]))
+    return null;
+  if (!isTrustedLocalExecutable(command[0], 'node')) return 'unrecognized-node-path';
+  if (!SAFE_MOLDEA_CLI_LAUNCHER_PATHS.has(command[1] ?? '')) return 'unrecognized-launcher-path';
+  return null;
 };
 
 /**
@@ -1516,6 +1538,7 @@ const classifyCommand = (command: string): ICommandClassification => {
   if (Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
     return {
       moldeaCommandCount: 0,
+      moldeaLauncherMissReasonCodes: [],
       networkAccess: 'indeterminate',
       networkReasonCode: 'oversized-command',
       sensitiveAccess: 'indeterminate',
@@ -1533,6 +1556,7 @@ const classifyCommand = (command: string): ICommandClassification => {
     const sensitiveClassification = classifyUntokenizedSensitiveAccess(directCommand ?? command);
     return {
       moldeaCommandCount: 0,
+      moldeaLauncherMissReasonCodes: [],
       networkAccess: 'indeterminate',
       networkReasonCode: 'dynamic-execution',
       sensitiveAccess: sensitiveClassification?.status ?? 'indeterminate',
@@ -1564,6 +1588,9 @@ const classifyCommand = (command: string): ICommandClassification => {
   }).length;
   return {
     moldeaCommandCount,
+    moldeaLauncherMissReasonCodes: commands
+      .map(identifyMoldeaCliLauncherMissReason)
+      .filter((code) => code !== null),
     networkAccess,
     ...(networkReasonCode === undefined ? {} : { networkReasonCode }),
     sensitiveAccess:
@@ -1770,6 +1797,7 @@ export const hasValidCodexEvaluationCommandPolicy = (
       'maximumCommandOutputByteCount',
       'modelVisibleToolOutputByteCount',
       'moldeaCommandCount',
+      'moldeaLauncherMissReasons',
       'moldeaOutputByteCount',
       'networkAccess',
       'sensitiveAccess',
@@ -1783,6 +1811,7 @@ export const hasValidCodexEvaluationCommandPolicy = (
   const modelVisibleToolOutputByteCount = evidence['modelVisibleToolOutputByteCount'];
   const moldeaCommandCount = evidence['moldeaCommandCount'];
   const moldeaOutputByteCount = evidence['moldeaOutputByteCount'];
+  const launcherMissReasons = evidence['moldeaLauncherMissReasons'];
   if (
     !isBoundedNonNegativeInteger(completedCommandCount, MAX_COMPLETED_COMMAND_COUNT) ||
     !isBoundedNonNegativeInteger(
@@ -1797,12 +1826,28 @@ export const hasValidCodexEvaluationCommandPolicy = (
     !isBoundedNonNegativeInteger(moldeaOutputByteCount, MAX_MOLDEA_OUTPUT_BYTES) ||
     maximumCommandOutputByteCount > modelVisibleToolOutputByteCount ||
     (completedCommandCount === 0 && maximumCommandOutputByteCount !== 0) ||
-    moldeaCommandCount > completedCommandCount ||
-    (moldeaCommandCount === 0 && moldeaOutputByteCount !== 0) ||
-    moldeaOutputByteCount > modelVisibleToolOutputByteCount
+    (moldeaCommandCount === 0 && moldeaOutputByteCount !== 0)
   ) {
     return false;
   }
+
+  if (
+    !Array.isArray(launcherMissReasons) ||
+    launcherMissReasons.length > MOLDEA_LAUNCHER_MISS_REASON_CODES.length ||
+    launcherMissReasons.some(
+      (reason: unknown) =>
+        !hasExactKeys(reason, ['code', 'count']) ||
+        !MOLDEA_LAUNCHER_MISS_REASON_CODES.includes(
+          reason['code'] as IMoldeaCliLauncherMissReasonCode,
+        ) ||
+        !isBoundedNonNegativeInteger(reason['count'], MAX_COMMAND_BYTES * completedCommandCount) ||
+        reason['count'] === 0,
+    ) ||
+    new Set(
+      launcherMissReasons.map((reason: unknown) => (isPlainRecord(reason) ? reason['code'] : null)),
+    ).size !== launcherMissReasons.length
+  )
+    return false;
 
   const credentialExposure = evidence['credentialExposure'];
   if (!hasExactKeys(credentialExposure, ['status', 'observedCount', 'reasons'])) {
@@ -1859,11 +1904,13 @@ export const hasPassingCodexEvaluationCommandPolicy = (evidence: unknown): boole
 /**
  * Projects Codex JSONL into bounded execution facts and discards raw commands and output.
  * @param source The complete successful Codex JSONL stream.
+ * @param sessionUsageBeforeRequest The cumulative counter before this resumed request, or null for a fresh session.
  * @returns Safe projected events, token usage, and command-policy evidence.
- * @throws If the stream or a completed command event has an unsupported shape.
+ * @throws If the stream, command evidence, usage counters or resource consumption is invalid.
  */
 export const projectCodexEvaluationExecutionEvidence = (
   source: unknown,
+  sessionUsageBeforeRequest: IUsage | null = null,
 ): ICodexEvaluationExecutionEvidence => {
   if (typeof source !== 'string') throw new TypeError('Codex execution evidence must be JSONL.');
   const projectedEvents: Array<{
@@ -1880,6 +1927,7 @@ export const projectCodexEvaluationExecutionEvidence = (
   let moldeaCommandCount = 0;
   let moldeaOutputByteCount = 0;
   let usage: IUsage | null = null;
+  let cliInvocations: ICliInvocation[] | null = null;
 
   for (const eventLine of source.split('\n')) {
     if (eventLine.trim() === '') continue;
@@ -1895,6 +1943,10 @@ export const projectCodexEvaluationExecutionEvidence = (
       throw new Error('Codex execution evidence contains an unsupported event.');
     }
     if (hasCredentialExposureInEvent(event)) credentialExposureCount += 1;
+    if (event['type'] === 'moldea.cli-invocations') {
+      if (cliInvocations !== null) throw new Error('CLI invocation capture is duplicated.');
+      cliInvocations = CliInvocationEventSchema.parse(event).invocations;
+    }
     const eventUsage = extractUsageCandidate(event);
     if (eventUsage !== null) usage = eventUsage;
 
@@ -1936,18 +1988,6 @@ export const projectCodexEvaluationExecutionEvidence = (
       modelVisibleToolOutputByteCount,
       MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES,
     );
-    assertWithinResourceLimit(
-      'moldea command count',
-      'commands',
-      moldeaCommandCount,
-      MAX_MOLDEA_COMMAND_COUNT,
-    );
-    assertWithinResourceLimit(
-      'moldea command output',
-      'bytes',
-      moldeaOutputByteCount,
-      MAX_MOLDEA_OUTPUT_BYTES,
-    );
     classifications.push(classification);
     projectedEvents.push({
       eventType: 'command.completed',
@@ -1958,6 +1998,25 @@ export const projectCodexEvaluationExecutionEvidence = (
     });
   }
 
+  if (cliInvocations !== null) {
+    moldeaCommandCount = cliInvocations.length;
+    moldeaOutputByteCount = cliInvocations.reduce(
+      (total, invocation) => total + invocation.outputByteCount,
+      0,
+    );
+  }
+  assertWithinResourceLimit(
+    'moldea command count',
+    'commands',
+    moldeaCommandCount,
+    MAX_MOLDEA_COMMAND_COUNT,
+  );
+  assertWithinResourceLimit(
+    'moldea command output',
+    'bytes',
+    moldeaOutputByteCount,
+    MAX_MOLDEA_OUTPUT_BYTES,
+  );
   const networkAccess = summarizePolicy(classifications, 'networkAccess');
   const sensitiveAccess = summarizePolicy(classifications, 'sensitiveAccess');
   const commandPolicy: ICodexEvaluationCommandPolicyEvidence = {
@@ -1973,6 +2032,15 @@ export const projectCodexEvaluationExecutionEvidence = (
     maximumCommandOutputByteCount,
     modelVisibleToolOutputByteCount,
     moldeaCommandCount,
+    moldeaLauncherMissReasons: MOLDEA_LAUNCHER_MISS_REASON_CODES.map((code) => ({
+      code,
+      count: classifications.reduce(
+        (total, classification) =>
+          total +
+          classification.moldeaLauncherMissReasonCodes.filter((reason) => reason === code).length,
+        0,
+      ),
+    })).filter(({ count }) => count > 0),
     moldeaOutputByteCount,
     networkAccess,
     sensitiveAccess,
@@ -1983,15 +2051,27 @@ export const projectCodexEvaluationExecutionEvidence = (
   ) {
     throw new Error('Codex execution command policy could not be derived.');
   }
-  if (usage !== null) {
-    assertWithinResourceLimit(
-      'total model token usage',
-      'tokens',
-      usage.inputTokens + usage.outputTokens,
-      MAX_HOST_TOKEN_COUNT,
-    );
+  if (sessionUsageBeforeRequest !== null) {
+    if (usage === null) throw new Error('Codex resumed-session token usage is missing.');
+    const fields = ['inputTokens', 'cachedInputTokens', 'outputTokens'] as const;
+    for (const field of fields) {
+      if (
+        !isBoundedNonNegativeInteger(sessionUsageBeforeRequest[field], Number.MAX_SAFE_INTEGER) ||
+        usage[field] < sessionUsageBeforeRequest[field]
+      ) {
+        throw new Error('Codex resumed-session token usage is inconsistent.');
+      }
+    }
+    usage = {
+      inputTokens: usage.inputTokens - sessionUsageBeforeRequest.inputTokens,
+      cachedInputTokens: usage.cachedInputTokens - sessionUsageBeforeRequest.cachedInputTokens,
+      outputTokens: usage.outputTokens - sessionUsageBeforeRequest.outputTokens,
+    };
+    if (usage.cachedInputTokens > usage.inputTokens) {
+      throw new Error('Codex resumed-session token usage is inconsistent.');
+    }
   }
-
+  // token overages remain evidence for the trial's resource verdict, not parsing failures
   return {
     commandPolicy,
     projectedEvents:

@@ -8,7 +8,7 @@ export const MOLDEA_SKILL_RESOURCE_PROFILES: Readonly<IMoldeaSkillResourceProfil
       maxCommandOutputBytes: 262_144,
       maxHostTokenCount: 1_625_000,
       maxModelVisibleToolOutputBytes: 1_048_576,
-      maxAggregateMoldeaOutputBytes: 262_144,
+      maxAggregateMoldeaOutputBytes: 524_288,
       maxMoldeaCommandCount: 16,
       maxOutputPageBytes: 65_536,
     }),

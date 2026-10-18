@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../resources/index.ts';
 
 import { readGitInvocationEvidence } from './git-invocations.ts';
+import { readCliInvocations } from './cli-invocations/index.ts';
 
 import type {
   ICodexEvaluationBwrapOptions,
@@ -39,7 +40,7 @@ type IGitCommandPolicyBoundaryModule = {
 };
 
 // fixed model contract shared by local evaluation workflows
-export const CODEX_EVALUATION_MODEL = 'gpt-6-sol';
+export const CODEX_EVALUATION_MODEL = 'gpt-6.1-sol';
 export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
 export const CODEX_EVALUATION_ACTOR_REASONING_EFFORT = 'xhigh';
 export const CODEX_EVALUATION_JUDGE_REASONING_EFFORT = 'xhigh';
@@ -49,9 +50,10 @@ const CODEX_EVALUATION_DEVELOPER_INSTRUCTIONS =
   'perform Git network operations, invoke package managers or installers, call providers ' +
   'or models, use subagents, inspect environment variables or authentication state, access the ' +
   'evaluator home, or access filesystem paths outside the current workspace except evaluator-provided ' +
-  'read-only repositories explicitly named by the current task. Required dependencies and fixtures ' +
+  "read-only repositories explicitly named by the current task, or task-owned response checkpoints in the sandbox's private /tmp directory. " +
+  'Create, read and remove only your own checkpoint directories and files there; do not access other temporary files. Required dependencies and fixtures ' +
   'are already present. Host-injected system-skill paths are unavailable; if an exact lookup fails, ' +
-  'do not search evaluator home for a substitute. Use only local workspace files and direct local executables. ' +
+  'do not search evaluator home for a substitute. Use only local workspace files, those permitted checkpoints and direct local executables. ' +
   'When repository tests are needed, invoke Node directly with explicit repository-relative test paths. ' +
   "Keep the complete aggregate test summary and preserve Node's exit status. If piping through tail, " +
   'enable pipefail first with `set -o pipefail;`.';
@@ -85,6 +87,8 @@ const RETRYABLE_CODEX_EVALUATION_HOST_FAILURE_KINDS = new Set<ICodexEvaluationHo
 const RUNTIME_DIRECTORY = fileURLToPath(new URL('../../../dist/runtime/', import.meta.url));
 const EGRESS_PROXY_PATH = join(RUNTIME_DIRECTORY, 'codex-evaluation-proxy.mjs');
 const GIT_COMMAND_POLICY_BOUNDARY_PATH = join(RUNTIME_DIRECTORY, 'git-command-policy-boundary.mjs');
+const CLI_INVOCATION_PRELOAD_PATH = join(RUNTIME_DIRECTORY, 'cli-invocation-preload.mjs');
+const SANDBOX_NODE_OPTIONS = '--import=file:///home/evaluator/bin/cli-invocation-preload.mjs';
 const EGRESS_PROXY_PORT = 3128;
 const EGRESS_PROXY_SHUTDOWN_TIMEOUT_MS = 5_000;
 const MAX_HOST_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostOutputBytes;
@@ -230,6 +234,10 @@ export const parseCodexEvaluationHostCommand = (
 const validateBaseHostCommand = (command: readonly string[]): void => {
   if (basename(command[0] ?? '') !== 'codex' || command[1] !== 'exec') {
     throw new Error('Codex evaluation requires a Codex exec host command.');
+  }
+
+  if (command.slice(2).some((part) => ['resume', '--last', '--all'].includes(part))) {
+    throw new Error('Evaluation session selection belongs to the runner.');
   }
 
   for (const requiredFlag of REQUIRED_CODEX_FLAGS) {
@@ -571,6 +579,10 @@ export const prepareCodexEvaluationHome = async (sandboxHome: string): Promise<v
   const sandboxBinDirectory = join(sandboxHome, 'bin');
   const npmProbePath = join(sandboxBinDirectory, 'npm');
   await mkdir(sandboxBinDirectory, { recursive: true, mode: 0o700 });
+  await copyFile(
+    CLI_INVOCATION_PRELOAD_PATH,
+    join(sandboxBinDirectory, 'cli-invocation-preload.mjs'),
+  );
   const { prepareGitCommandPolicyBoundary } = await loadGitCommandPolicyBoundary();
   await prepareGitCommandPolicyBoundary(sandboxBinDirectory, {
     realGitExecutable: '/opt/moldea-real-git/git',
@@ -797,6 +809,9 @@ export const buildCodexEvaluationBwrapArguments = ({
     '--setenv',
     'PATH',
     getSandboxPath(includeWorkspaceBinaryDirectory),
+    '--setenv',
+    'NODE_OPTIONS',
+    SANDBOX_NODE_OPTIONS,
     '--setenv',
     'TMPDIR',
     '/tmp',
@@ -1085,8 +1100,10 @@ export const stopCodexEvaluationProxyProcess = async (
  * @throws
  * - If defaultHostTimeoutMs is not a positive integer and no environment override is present
  * - If MOLDEA_EVAL_HOST_TIMEOUT_MS is not a positive integer
+ * - If a retained session is requested for a judge or a continuation lacks an exact UUID
  */
 export const runCodexEvaluationHost = async ({
+  actorSession,
   command,
   cwd,
   defaultHostTimeoutMs = CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
@@ -1100,6 +1117,20 @@ export const runCodexEvaluationHost = async ({
   workspaceAccess = 'read-write',
 }: ICodexEvaluationHostRunOptions): Promise<string> => {
   validateCodexEvaluationHostCommand(command, role);
+  if (actorSession !== undefined && role !== 'actor') {
+    throw new Error('Only actor trials may retain a Codex session.');
+  }
+  if (actorSession?.kind === 'resume' && !z.guid().safeParse(actorSession.sessionId).success) {
+    throw new Error('Actor continuation requires an exact host session UUID.');
+  }
+  const invocationCommand =
+    actorSession === undefined
+      ? command
+      : [
+          ...command.slice(0, 2),
+          ...(actorSession.kind === 'resume' ? ['resume', actorSession.sessionId] : []),
+          ...command.slice(2).filter((part) => part !== '--ephemeral'),
+        ];
   if (!['read-only', 'read-write'].includes(workspaceAccess)) {
     throw new Error(`Unsupported evaluation workspace access: ${workspaceAccess}`);
   }
@@ -1115,13 +1146,17 @@ export const runCodexEvaluationHost = async ({
     invocationLogPath: '/home/evaluator/git-invocations.jsonl',
   });
   const gitInvocationLogPath = join(sandboxHome, 'git-invocations.jsonl');
+  const cliInvocationLogPath = join(sandboxHome, 'cli-invocations.jsonl');
   await writeFile(gitInvocationLogPath, '', { mode: 0o600 });
+  await writeFile(cliInvocationLogPath, '', { mode: 0o600 });
   const hostExecutable = resolveExecutablePath(command[0] ?? '');
   const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);
   const sandboxCommand = [
-    ...command.slice(0, -1),
+    ...invocationCommand.slice(0, -1),
     '-c',
     `shell_environment_policy.set.PATH=${JSON.stringify(getSandboxPath(includeWorkspaceBinaryDirectory))}`,
+    '-c',
+    `shell_environment_policy.set.NODE_OPTIONS=${JSON.stringify(SANDBOX_NODE_OPTIONS)}`,
     '-',
   ];
   const hostConfiguration = identifyCodexEvaluationHostConfiguration({
@@ -1157,11 +1192,12 @@ export const runCodexEvaluationHost = async ({
     });
     try {
       const evidence = await readGitInvocationEvidence(gitInvocationLogPath);
-      return `${output}\n${JSON.stringify({ type: 'moldea.git-invocations', evidence })}`;
+      const invocations = await readCliInvocations(cliInvocationLogPath);
+      return `${output}\n${JSON.stringify({ type: 'moldea.git-invocations', evidence })}\n${JSON.stringify({ type: 'moldea.cli-invocations', invocations })}`;
     } catch (error) {
       throw new CodexEvaluationHostError(
         CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
-        'Evaluation Git invocation capture was unavailable or incomplete.',
+        'Evaluation invocation capture was unavailable or incomplete.',
         { cause: error },
       );
     }
@@ -1170,6 +1206,7 @@ export const runCodexEvaluationHost = async ({
       await stopCodexEvaluationProxyProcess(proxyProcess);
     } finally {
       await rm(gitInvocationLogPath, { force: true });
+      await rm(cliInvocationLogPath, { force: true });
     }
   }
 };

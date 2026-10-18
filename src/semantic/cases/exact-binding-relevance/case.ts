@@ -4,11 +4,13 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'exact-binding-relevance',
+  publication: 'private',
   setup: createSemanticCaseSetup('exact-binding-relevance'),
   scenario: 'The changed path is an exact agent binding declared in the canonical manifest.',
   operation: 'exact-binding-relevance',
   input: {
-    developerDirection: 'Review the current change to src/support-agent.js. Do not edit files.',
+    developerDirection:
+      'Review the current change to src/support-agent.js. The returned object gained enabled: true alongside its existing id; no other source changed. Do not edit files.',
     repositoryEvidence: [
       {
         claim: 'The repository has a canonical moldea manifest.',
@@ -32,7 +34,7 @@ export const semanticCase = defineSemanticCase({
     activation: 'relationship',
     minimumMoldeaCommands: 1,
     maximumMoldeaCommands: 8,
-    maximumMoldeaOutputBytes: 262144,
+    maximumMoldeaOutputBytes: 524288,
   },
   expected: [
     {

@@ -1,7 +1,10 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
-import type { ICodexEvaluationCommandPolicyEvidence } from '../../execution/host/index.ts';
+import {
+  projectCodexEvaluationExecutionEvidence,
+  type ICodexEvaluationCommandPolicyEvidence,
+} from '../../execution/host/index.ts';
 import { resolveRepairCheckpointRequest, type ISemanticCase } from '../cases/index.ts';
 import { semanticCase as checkpointCase } from '../cases/repair-continuation-after-change/case.ts';
 import type {
@@ -20,6 +23,7 @@ const COMMAND_POLICY: ICodexEvaluationCommandPolicyEvidence = {
   maximumCommandOutputByteCount: 0,
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
+  moldeaLauncherMissReasons: [],
   moldeaOutputByteCount: 0,
   networkAccess: { indeterminateCount: 0, observedCount: 0, reasons: [], status: 'not-observed' },
   sensitiveAccess: { indeterminateCount: 0, observedCount: 0, reasons: [], status: 'not-observed' },
@@ -44,67 +48,94 @@ const createCase = (id: string, commandLimit = 8): ISemanticCase => ({
 const createTrial = (
   definition: ISemanticCase,
   options: { commandCount?: number; passed: boolean },
-): ISemanticRecordedTrial => ({
-  gitInvocationEvidence: {
-    invocationCount: 0,
-    hostInvocationCount: 0,
-    repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
-  },
-  actorExecutionEvidence: [],
-  actorResponse: 'Synthetic actor response.',
-  developerDirection: definition.input.developerDirection,
-  operationalRetries: { actorFailureCount: 0, judgeFailureCount: 0, lastFailure: null },
-  stageIdentities: { actorSha256: SHA256, judgeSha256: SHA256 },
-  trial: {
-    actorCommandPolicyEvidence: COMMAND_POLICY,
-    actorResourceEvidence: {
-      commandCount: options.commandCount ?? 0,
-      maximumInvocationByteCount: 0,
-      modelVisibleToolOutputByteCount: 0,
-      operations: Array.from({ length: options.commandCount ?? 0 }, () => 'content' as const),
-      stdoutByteCount: 0,
+): ISemanticRecordedTrial => {
+  const recorded: Omit<ISemanticRecordedTrial, 'cycles' | 'paidInvocations'> = {
+    gitInvocationEvidence: {
+      invocationCount: 0,
+      hostInvocationCount: 0,
+      repair: { compliantCount: 0, noncompliantCount: 0, unverifiedCount: 0, reasons: [] },
     },
-    actorHost: {
-      developerInstructionsSha256: SHA256,
-      model: 'synthetic-model',
-      name: 'synthetic-host',
-      reasoningEffort: 'high',
-      role: 'actor',
-      version: '1.0.0',
+    actorExecutionEvidence: [],
+    actorResponse: 'Synthetic actor response.',
+    developerDirection: definition.input.developerDirection,
+    operationalRetries: { actorFailureCount: 0, judgeFailureCount: 0, lastFailure: null },
+    stageIdentities: { actorSha256: SHA256, judgeSha256: SHA256 },
+    trial: {
+      actorCommandPolicyEvidence: COMMAND_POLICY,
+      actorResourceEvidence: {
+        commandCount: options.commandCount ?? 0,
+        maximumInvocationByteCount: 0,
+        modelVisibleToolOutputByteCount: 0,
+        operations: Array.from({ length: options.commandCount ?? 0 }, () => 'content' as const),
+        stdoutByteCount: 0,
+      },
+      actorHost: {
+        developerInstructionsSha256: SHA256,
+        model: 'synthetic-model',
+        name: 'synthetic-host',
+        reasoningEffort: 'high',
+        role: 'actor',
+        version: '1.0.0',
+      },
+      actorUsage: { inputTokens: 100, cachedInputTokens: 0, outputTokens: 10 },
+      confirmationEligible: !options.passed,
+      confirmationIndex: null,
+      dimensions: {
+        commandPolicy: true,
+        mountIntegrity: true,
+        operational: true,
+        repositoryControl: true,
+        resource: options.passed,
+        semantic: options.passed,
+      },
+      evaluatedAt: '2026-09-29T00:00:00.000Z',
+      executionOrigin: 'executed',
+      failureClassifications: options.passed ? [] : ['semantic'],
+      forbidden: [],
+      judgeCommandPolicyEvidence: COMMAND_POLICY,
+      judgeHost: {
+        developerInstructionsSha256: SHA256,
+        model: 'synthetic-model',
+        name: 'synthetic-host',
+        reasoningEffort: 'high',
+        role: 'judge',
+        version: '1.0.0',
+      },
+      judgeUsage: null,
+      kind: 'initial',
+      observed: options.passed ? ['report-result'] : [],
+      passed: options.passed,
+      rationale: options.passed ? 'Original passing judgment.' : 'Original failing judgment.',
+      stageReuse: null,
     },
-    actorUsage: null,
-    confirmationEligible: !options.passed,
-    confirmationIndex: null,
-    dimensions: {
-      commandPolicy: true,
-      mountIntegrity: true,
-      operational: true,
-      repositoryControl: true,
-      resource: options.passed,
-      semantic: options.passed,
+    workspaceChanges: { created: [], deleted: [], modified: [] },
+  };
+  const cycles = [
+    {
+      actorExecutionEvidence: recorded.actorExecutionEvidence,
+      actorResourceEvidence: recorded.trial.actorResourceEvidence,
+      commandPolicyEvidence: recorded.trial.actorCommandPolicyEvidence,
+      gitInvocationEvidence: recorded.gitInvocationEvidence,
+      response: recorded.actorResponse,
+      usage: recorded.trial.actorUsage,
+      developerRequest: recorded.developerDirection,
+      requestIndex: 0,
+      isMountIntegrityPassing: recorded.trial.dimensions.mountIntegrity,
+      isRepositoryControlPassing: recorded.trial.dimensions.repositoryControl,
+      workspaceChanges: recorded.workspaceChanges,
     },
-    evaluatedAt: '2026-09-29T00:00:00.000Z',
-    executionOrigin: 'executed',
-    failureClassifications: options.passed ? [] : ['semantic'],
-    forbidden: [],
-    judgeCommandPolicyEvidence: COMMAND_POLICY,
-    judgeHost: {
-      developerInstructionsSha256: SHA256,
-      model: 'synthetic-model',
-      name: 'synthetic-host',
-      reasoningEffort: 'high',
-      role: 'judge',
-      version: '1.0.0',
-    },
-    judgeUsage: null,
-    kind: 'initial',
-    observed: options.passed ? ['report-result'] : [],
-    passed: options.passed,
-    rationale: options.passed ? 'Original passing judgment.' : 'Original failing judgment.',
-    stageReuse: null,
-  },
-  workspaceChanges: { created: [], deleted: [], modified: [] },
-});
+  ];
+  const paidInvocations = [
+    { stage: 'actor' as const, usage: recorded.trial.actorUsage },
+    { stage: 'judge' as const, usage: recorded.trial.judgeUsage },
+  ];
+  return {
+    ...recorded,
+    cycles,
+    paidInvocations,
+    trial: { ...recorded.trial, cycles, paidInvocations },
+  };
+};
 
 const createSource = (
   definitions: ISemanticCase[],
@@ -140,6 +171,42 @@ const createSource = (
 };
 
 describe('semantic composition', () => {
+  test('preserves a policy failure from a malformed judge call during recomputation', () => {
+    const definition = createCase('policy-retry');
+    const source = createSource([definition], [{ passed: false }], 'sem-policy-retry');
+    const recorded = source.cases.get(definition.id)!.trials[0]!;
+    const policy = projectCodexEvaluationExecutionEvidence(
+      JSON.stringify({
+        type: 'item.completed',
+        item: {
+          type: 'command_execution',
+          command: 'curl https://example.com',
+          aggregated_output: '',
+          exit_code: 1,
+          status: 'failed',
+        },
+      }),
+    ).commandPolicy;
+    recorded.paidInvocations.unshift({
+      stage: 'judge',
+      usage: null,
+      commandPolicyEvidence: policy,
+    });
+    const result = composeSemanticRecordedCases({
+      definitions: [definition],
+      review: {
+        acceptedCriteria: [],
+        caseSources: [],
+        formatVersion: 1,
+        inputReview: 'Task evidence reviewed.',
+        reassessments: [{ caseId: definition.id, rationale: 'The task outcome is established.' }],
+      },
+      sources: [source],
+    });
+    expect(result.cases[0]?.trials[0]?.trial.dimensions.commandPolicy).toBe(false);
+    expect(result.cases[0]?.status).toBe('failed');
+  });
+
   test('recognizes a resolved fixture checkpoint while rejecting other request changes', () => {
     const source = createSource([checkpointCase], [{ passed: false }], 'sem-checkpoint');
     const sourceModel = source.caseModels.get(checkpointCase.id)!;

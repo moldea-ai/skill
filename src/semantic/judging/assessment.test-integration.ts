@@ -72,6 +72,7 @@ test.each([false, true])(
       },
       operation: async () => {
         await admission.reserve(definition.id);
+        checkpoint.activeTrial!.paidInvocations.push({ stage: 'judge', usage: null });
         calls += 1;
         return assessSemanticJudgeOutput(
           definition,
@@ -93,6 +94,7 @@ test.each([false, true])(
       expect(charges).toStrictEqual([MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount]);
     }
     expect(calls).toBe(2);
+    expect(consumed()).toBe(2 * MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount);
     expect(checkpoint.trials).toStrictEqual([]);
     expect(checkpoint.completedCase).toBeNull();
   },

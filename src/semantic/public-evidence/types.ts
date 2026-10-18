@@ -2,6 +2,7 @@ import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-re
 
 import type { ICodexEvaluationCommandPolicyEvidence } from '../../execution/host/index.ts';
 import type { ISemanticStageReuseRecord } from '../stages/index.ts';
+import type { ISemanticCycleEvidence, ISemanticPaidInvocation } from '../execution/index.ts';
 
 type ISemanticCriterionContract = { criterion: string; label: string };
 type ISemanticCaseContract = {
@@ -9,7 +10,11 @@ type ISemanticCaseContract = {
   forbidden: ISemanticCriterionContract[];
   hostInstructions?: string;
   id: string;
-  input: { developerDirection: string; repositoryEvidence: unknown[] };
+  input: {
+    developerDirection: string;
+    followUpDeveloperRequests?: string[];
+    repositoryEvidence: unknown[];
+  };
   operation: string;
   resourceBudget: {
     activation: 'abstain' | 'blocked' | 'direct' | 'informational' | 'relationship';
@@ -88,6 +93,9 @@ export type ISemanticHostUsage = {
 
 // exact current trial provenance shown on public attempt pages
 export interface ISemanticAttemptTrialModel {
+  // absent on historical immutable bundles, which contain no request-cycle proof
+  cycles?: ISemanticCycleEvidence[];
+  paidInvocations?: ISemanticPaidInvocation[];
   actorCommandPolicyEvidence: ICodexEvaluationCommandPolicyEvidence;
   actorResourceEvidence: {
     commandCount: number;

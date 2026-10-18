@@ -15,6 +15,8 @@ export const createSemanticActiveTrial = (
   confirmationIndex: 1 | 2 | 3 | null,
   startedAt: string,
 ): ISemanticActiveTrialCheckpoint => ({
+  actorCycles: [],
+  paidInvocations: [],
   actorEvidence: null,
   confirmationIndex,
   operationalRetries: {
@@ -126,6 +128,7 @@ export const attachSemanticActorEvidence = (
   return {
     ...resumedTrial,
     actorEvidence,
+    actorCycles: actorEvidence.cycles,
     phase: 'judge-pending',
     updatedAt,
   };

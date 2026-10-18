@@ -15,6 +15,11 @@ const createChargedCase = (
   ({
     trials: [
       {
+        paidInvocations: [
+          { stage: 'actor', usage: null },
+          { stage: 'actor', usage: { cachedInputTokens: 50, inputTokens: 100, outputTokens: 25 } },
+          { stage: 'judge', usage: { cachedInputTokens: 25, inputTokens: 80, outputTokens: 20 } },
+        ],
         operationalRetries: {
           actorFailureCount: 1,
           judgeFailureCount: 0,
@@ -42,7 +47,13 @@ describe('semantic token admission', () => {
   test('counts durable actor work retained at a judge boundary', () => {
     const checkpoint = {
       activeTrial: {
+        actorCycles: [],
+        paidInvocations: [
+          { stage: 'actor', usage: null },
+          { stage: 'actor', usage: { cachedInputTokens: 20, inputTokens: 100, outputTokens: 25 } },
+        ],
         actorEvidence: {
+          cycles: [],
           gitInvocationEvidence: {
             invocationCount: 0,
             hostInvocationCount: 0,
@@ -63,6 +74,7 @@ describe('semantic token admission', () => {
             maximumCommandOutputByteCount: 0,
             modelVisibleToolOutputByteCount: 0,
             moldeaCommandCount: 0,
+            moldeaLauncherMissReasons: [],
             moldeaOutputByteCount: 0,
             networkAccess: {
               indeterminateCount: 0,

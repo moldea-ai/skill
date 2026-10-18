@@ -4,7 +4,6 @@ import { defineSemanticCase } from '../define.ts';
 
 export const semanticCase = defineSemanticCase({
   id: 'routing-description-fallback',
-  publication: 'private',
   setup: createSemanticCaseSetup('routing-description-fallback'),
   scenario:
     "An adopted custom-runtime agent has no handoff description because no dedicated routing hint is needed, and its routing-facing metadata consumes a canonical agent description aligned with the agent's responsibility and authorization boundary.",
@@ -58,7 +57,7 @@ export const semanticCase = defineSemanticCase({
     {
       label: 'recognize-aligned-routing-metadata',
       criterion:
-        "The actor reports that the routing metadata aligns with the agent's role and permissions without treating the absent optional handoff description as a defect; it need not restate every matching instruction.",
+        'The actor concludes that the routing-facing metadata correctly uses the agent description and needs no change, without treating the absent optional handoff description as a defect; it need not assess or restate the description content.',
     },
     {
       label: 'report-no-writes',
@@ -87,7 +86,7 @@ export const semanticCase = defineSemanticCase({
     activation: 'direct',
     minimumMoldeaCommands: 1,
     maximumMoldeaCommands: 8,
-    maximumMoldeaOutputBytes: 262144,
+    maximumMoldeaOutputBytes: 524288,
   },
   coverageClaimIds: ['routing-description-ownership'],
 });

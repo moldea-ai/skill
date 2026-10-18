@@ -41,6 +41,8 @@ test.each([
   ['D:/work/project/src\\agent.ts', '/src/agent.ts'],
   ['src/agent.ts', '/src/agent.ts'],
   ['./src/agent.ts', '/src/agent.ts'],
+  ['src\\agent.ts', '/src/agent.ts'],
+  ['.\\src\\agent.ts', '/src/agent.ts'],
   ['/src/agent.ts', '/src/agent.ts'],
 ])('normalizes Windows context path %s -> %s', (input, expected) => {
   assert.equal(normalizeScopePath(input, WINDOWS_CONTEXT), expected);
@@ -87,7 +89,10 @@ test.each([
   '\\\\server\\share\\agent.ts',
   '\\\\?\\C:\\real\\project\\agent.ts',
   '\\\\.\\C:\\real\\project\\agent.ts',
-  'src\\agent.ts',
+  '..\\src\\agent.ts',
+  'src\\..\\agent.ts',
+  'src\\.\\agent.ts',
+  'src\\\\agent.ts',
 ])('rejects unsafe Windows context path %s', (input) => {
   assert.throws(() => normalizeScopePath(input, WINDOWS_CONTEXT), /Invalid scope path input/u);
 });

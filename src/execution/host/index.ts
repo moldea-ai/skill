@@ -19,6 +19,8 @@ export type {
   ICodexEvaluationRole,
   ICodexEvaluationWorkspaceAccess,
   IMoldeaCliOperation,
+  IMoldeaCliLauncherMissReason,
+  IMoldeaCliLauncherMissReasonCode,
   IRepositoryTestCommandKind,
   IRepairGitCommandEvidence,
   IRepairGitReasonCode,
@@ -90,3 +92,7 @@ export { isPublicIpAddress, parseConnectAuthority, runCodexEvaluationProxy } fro
 // cooperative Git invocation capture
 export { GitInvocationEventSchema, GitInvocationEvidenceSchema } from './git-invocations.ts';
 export type { IGitInvocationEvidence } from './git-invocations.ts';
+
+// cooperative Node-startup CLI capture
+export { CliInvocationEventSchema } from './cli-invocations/index.ts';
+export type { ICliInvocation } from './cli-invocations/index.ts';

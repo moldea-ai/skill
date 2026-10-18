@@ -1,11 +1,13 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import {
   existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -31,7 +33,7 @@ const PUBLISHED_CLI_URL = pathToFileURL(
 const scopeFixtureRoots: string[] = [];
 
 const createScopeFixture = () => {
-  const root = mkdtempSync(join(tmpdir(), 'moldea-scope-'));
+  const root = realpathSync.native(mkdtempSync(join(tmpdir(), 'moldea-scope-')));
   scopeFixtureRoots.push(root);
   const git = spawnSync('git', ['init', '--quiet', root], { encoding: 'utf8' });
   if (git.error) throw git.error;
@@ -200,18 +202,31 @@ test.each(['moldea/project.md', 'moldea/context/Éclair plan.md'])(
   },
 );
 
-test.each([
-  'C:project.md',
-  '\\\\host\\share',
-  'moldea\\project.md',
-  'moldea/../README.md',
-  '//host/share',
-])('rejects unsafe content path %s before repository code', (path) => {
+test.each(['C:project.md', '\\\\host\\share', 'moldea/../README.md', '//host/share'])(
+  'rejects unsafe content path %s before repository code',
+  (path) => {
+    const { root, invokedPath } = createScopeFixture();
+    const result = runPage(root, 'content', ['--path', path]);
+    assert.equal(result.status, 3);
+    assert.equal(result.stdout, '');
+    assert.equal(existsSync(invokedPath), false);
+  },
+);
+
+test('content accepts relative backslashes only for Windows repository roots', () => {
   const { root, invokedPath } = createScopeFixture();
-  const result = runPage(root, 'content', ['--path', path]);
-  assert.equal(result.status, 3);
-  assert.equal(result.stdout, '');
-  assert.equal(existsSync(invokedPath), false);
+  const canonical = runPage(root, 'content', ['--path', 'moldea/project.md']);
+  assert.equal(canonical.status, 0, canonical.stderr || canonical.stdout);
+  rmSync(invokedPath);
+  const result = runPage(root, 'content', ['--path', 'moldea\\project.md']);
+  if (process.platform === 'win32') {
+    assert.deepEqual(result, canonical);
+    assert.equal(existsSync(invokedPath), true);
+  } else {
+    assert.equal(result.status, 3);
+    assert.equal(result.stdout, '');
+    assert.equal(existsSync(invokedPath), false);
+  }
 });
 
 test('retains CLI rejection for noncanonical content', () => {
@@ -237,7 +252,7 @@ test('suppresses success when the child closes its scope input pipe early', () =
   assert.equal(result.stderr, 'moldea CLI scope input could not be delivered.\n');
 });
 
-test.each(['src/../refund.ts', 'src/./refund.ts', 'src\\refund.ts', '//host/share', './'])(
+test.each(['src/../refund.ts', 'src/./refund.ts', '//host/share', './'])(
   'rejects unsafe scope paths before repository code for %s',
   (path) => {
     const { root, invokedPath } = createScopeFixture();
@@ -250,6 +265,23 @@ test.each(['src/../refund.ts', 'src/./refund.ts', 'src\\refund.ts', '//host/shar
     }
   },
 );
+
+test('scope stdin accepts relative backslashes only on Windows', () => {
+  const { root, invokedPath } = createScopeFixture();
+  const canonical = runScope(root, ['/src/refund.ts']);
+  for (const path of ['src\\refund.ts', '.\\src\\refund.ts']) {
+    rmSync(invokedPath, { force: true });
+    const actual = runScope(root, [path]);
+    if (process.platform === 'win32') {
+      assert.deepEqual(actual, canonical);
+      assert.equal(existsSync(invokedPath), true);
+    } else {
+      assert.equal(actual.status, 3);
+      assert.equal(actual.stdout, '');
+      assert.equal(existsSync(invokedPath), false);
+    }
+  }
+});
 
 test('normalizes supplied and resolved root spellings through the real CLI', () => {
   const { root } = createScopeFixture();
@@ -292,6 +324,121 @@ const stopFixtureChild = (pid: number): void => {
     if (!(error instanceof Error) || !('code' in error) || error.code !== 'ESRCH') throw error;
   }
 };
+
+test('stopping the launcher also stops its active CLI child', async () => {
+  const { root, cliRoot } = createScopeFixture();
+  const ready = join(root, 'ready.json');
+  writeFileSync(
+    join(cliRoot, 'dist/moldea.js'),
+    `import fs from 'node:fs/promises';
+import { writeFileSync } from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+import { setTimeout } from 'node:timers/promises';
+const read = fs.readFile;
+let delayed = false;
+fs.readFile = async (...args) => {
+  if (!delayed) {
+    delayed = true;
+    writeFileSync(${JSON.stringify(ready)}, JSON.stringify({pid:process.pid}));
+    while(process.connected) await setTimeout(10);
+  }
+  return read(...args);
+};
+syncBuiltinESMExports();
+await import(${JSON.stringify(PUBLISHED_CLI_URL)});`,
+  );
+  const launcher = spawn(
+    TEST_NODE_EXECUTABLE,
+    [
+      LAUNCHER_PATH,
+      '--repository',
+      root,
+      '--',
+      'validate',
+      '--json',
+      '--max-output-bytes',
+      '65536',
+    ],
+    { stdio: ['ignore', 'ignore', 'pipe'] },
+  );
+  let stderr = '';
+  launcher.stderr.on('data', (chunk: Buffer) => {
+    stderr += chunk.toString('utf8');
+  });
+  const closed = once(launcher, 'close');
+  let cliPid: number | undefined;
+  try {
+    cliPid = await vi.waitFor(
+      () => {
+        assert.equal(existsSync(ready), true, stderr);
+        const { pid } = JSON.parse(readFileSync(ready, 'utf8')) as { pid: number };
+        assert.ok(Number.isSafeInteger(pid) && pid > 0);
+        return pid;
+      },
+      { timeout: 5_000 },
+    );
+    assert.equal(launcher.kill('SIGKILL'), true);
+    await closed;
+    await vi.waitFor(() => assert.throws(() => process.kill(cliPid!, 0), /ESRCH/u), {
+      timeout: 5_000,
+    });
+  } finally {
+    if (launcher.exitCode === null && launcher.signalCode === null) launcher.kill('SIGKILL');
+    if (cliPid !== undefined) stopFixtureChild(cliPid);
+    await closed;
+  }
+});
+
+test('manifest relationships retain exact case on case-insensitive filesystems', () => {
+  const { root } = createScopeFixture();
+  mkdirSync(join(root, 'src'));
+  writeFileSync(join(root, 'src/Refund.ts'), 'export {};\n');
+  writeFileSync(
+    join(root, 'moldea/moldea.yaml'),
+    'version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/refund.ts\n',
+  );
+  const result = runPage(root, 'validate', []);
+  assert.equal(result.status, 1, result.stdout || result.stderr);
+  const envelope = JSON.parse(result.stdout) as {
+    result: { page: { records: Array<{ code: string }> } };
+  };
+  assert.ok(envelope.result.page.records.some((r) => r.code === 'MOLDEA_IMPACT_PATH_MISSING'));
+  if (process.platform === 'win32') assert.equal(existsSync(join(root, 'src/refund.ts')), true);
+  const gate = spawnSync(
+    TEST_NODE_EXECUTABLE,
+    [GATE_PATH, '--repository', root, '--path', 'src/Refund.ts'],
+    { encoding: 'utf8' },
+  );
+  assert.equal(gate.stdout, '0\n');
+});
+
+test('decomposed accented filenames preserve their exact Unicode relationship spelling', () => {
+  const { root } = createScopeFixture();
+  const name = 'cafe\u0301.ts';
+  const git = spawnSync('git', ['config', 'core.precomposeunicode', 'false'], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.equal(git.status, 0, git.stderr);
+  mkdirSync(join(root, 'src'));
+  writeFileSync(join(root, 'src', name), 'export {};\n');
+  writeFileSync(
+    join(root, 'moldea/moldea.yaml'),
+    `version: 1\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/${name}\n`,
+  );
+  assert.equal(runPage(root, 'validate', []).status, 0);
+  for (const [path, expected] of [
+    [`src/${name}`, true],
+    [`src/${name.normalize('NFC')}`, false],
+  ] as const) {
+    const result = runScope(root, [path]);
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.equal(
+      (JSON.parse(result.stdout) as { result: { relevant: boolean } }).result.relevant,
+      expected,
+    );
+  }
+});
 
 /** Exercises the generated launcher against a real child with controlled termination behavior. */
 const runFixture = async (
@@ -545,7 +692,17 @@ test.each([1, 2, 3])('preserves raw diagnostic/error output with exit %d', (exit
 
 test('continues real Unicode content one page at a time and preserves CLI snapshot/filter errors', () => {
   const { root, cliRoot } = createScopeFixture();
-  const scratch = mkdtempSync(join(tmpdir(), 'moldea-pages-'));
+  const directory = spawnSync(
+    TEST_NODE_EXECUTABLE,
+    [
+      resolve(import.meta.dirname, '../../moldea/scripts/response-directory.mjs'),
+      '--repository',
+      root,
+    ],
+    { encoding: 'utf8', timeout: 10_000 },
+  );
+  assert.equal(directory.status, 0, directory.stderr);
+  const scratch = directory.stdout.trim();
   scopeFixtureRoots.push(scratch);
   const checkpoint = join(scratch, 'page.json');
   const content = `# Project\n\n${'Éclair 🌍 中文\n'.repeat(500)}`;

@@ -14,6 +14,7 @@ import {
   hasValidActorExecutionEvidence,
   hasValidMoldeaResourceEvidence,
   hasVerifiedManagedAgentsHandoff,
+  projectCliInvocationEvidence,
   projectActorExecutionEvidenceEvent as projectActorExecutionEvidenceEventRaw,
 } from './actor-evidence.ts';
 import type {
@@ -73,6 +74,25 @@ const createErrorEnvelope = (command: string): string =>
       source: 'input',
     },
   });
+
+test.each(['/mnt', '/mnt/', '/mnt/.', '.', './', '../mnt', '/mnt/child/..'])(
+  'startup capture recognizes the sandbox root spelling %s',
+  (repository) => {
+    const stdout = createEnvelope('validate', {});
+    const evidence = projectCliInvocationEvidence(
+      {
+        arguments: ['--repository', repository, '--', 'validate', '--json'],
+        stdout,
+        exitCode: 0,
+        outputByteCount: Buffer.byteLength(stdout),
+      },
+      OPTIONS,
+    );
+    assert.equal(evidence.item.outputEvidence.facts.length, 1);
+    assert.equal(evidence.item.outputEvidence.disposition, 'projected');
+    assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
+  },
+);
 
 const createEvent = (
   command: string,

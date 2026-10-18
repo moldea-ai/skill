@@ -11,7 +11,7 @@ import {
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
-import { devNull, tmpdir } from 'node:os';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
 
@@ -27,14 +27,14 @@ const roots: string[] = [];
 const git = (root: string, ...arguments_: string[]): string => {
   const result = spawnSync(
     'git',
-    ['-c', 'core.hooksPath=' + devNull, '-c', 'commit.gpgsign=false', ...arguments_],
+    ['-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', ...arguments_],
     {
       cwd: root,
       encoding: 'utf8',
       timeout: 10_000,
       env: {
         ...process.env,
-        GIT_CONFIG_GLOBAL: devNull,
+        GIT_CONFIG_GLOBAL: '/dev/null',
         GIT_CONFIG_NOSYSTEM: '1',
         GIT_AUTHOR_NAME: 'Fixture',
         GIT_AUTHOR_EMAIL: 'fixture@example.com',
@@ -116,6 +116,62 @@ test('unborn repositories explicitly require conservative reassessment', () => {
     status: 'unavailable',
     reasonCode: 'commit-unavailable',
   });
+});
+
+test('bundled helper reports the first Git error during attribute inspection as a Git read failure', () => {
+  const root = repository();
+  writeFileSync(join(root, '.git', 'config'), '[invalid\n');
+  const result = runHelper(root, 'checkpoint');
+  expect(result.status).toBe(1);
+  expect(result.stderr).toBe('');
+  const evidence = JSON.parse(result.stdout) as IRepairGitEvidence;
+  expect(evidence).toMatchObject({
+    status: 'unavailable',
+    reasonCode: 'git-read',
+  });
+  if (evidence.status !== 'unavailable') throw new Error('Expected unavailable Git evidence.');
+  expect(evidence.reason).toContain('fatal: bad config line 1');
+});
+
+test('Git ownership refusal is reported as git-read with its bounded reason', () => {
+  const root = repository();
+  const result = spawnSync(
+    process.env['MOLDEA_TEST_NODE'] ?? process.execPath,
+    [
+      resolve(import.meta.dirname, '../../../moldea/scripts/repair-git.mjs'),
+      '--repository',
+      root,
+      '--',
+      'checkpoint',
+    ],
+    {
+      encoding: 'utf8',
+      timeout: 30_000,
+      env: { ...process.env, GIT_TEST_ASSUME_DIFFERENT_OWNER: '1' },
+    },
+  );
+  expect(result.status).toBe(1);
+  const evidence = JSON.parse(result.stdout) as IRepairGitEvidence;
+  expect(evidence).toMatchObject({ status: 'unavailable', reasonCode: 'git-read' });
+  if (evidence.status !== 'unavailable') throw new Error('Expected ownership refusal.');
+  expect(evidence.reason).toContain('dubious ownership');
+});
+
+test('a configured failing file monitor is suppressed without executing its hook', () => {
+  const root = repository();
+  const sentinel = join(root, 'monitor-ran');
+  writeFileSync(
+    join(root, 'monitor.cjs'),
+    "require('node:fs').writeFileSync('monitor-ran','x');process.exit(1);\n",
+  );
+  git(root, 'config', 'core.fsmonitor', 'node monitor.cjs');
+  git(root, 'status', '--porcelain');
+  expect(existsSync(sentinel)).toBe(true);
+  rmSync(sentinel);
+  const result = runHelper(root, 'checkpoint');
+  expect(result.status, result.stdout + result.stderr).toBe(0);
+  expect(JSON.parse(result.stdout)).toMatchObject({ status: 'available' });
+  expect(existsSync(sentinel)).toBe(false);
 });
 
 test('bundled repair reads tracked backup paths without changing the index', () => {
@@ -246,7 +302,8 @@ test('refuses revision expressions as a checkpoint', async () => {
   }
 });
 
-test.skipIf(process.platform !== 'linux')(
+// this evaluator-wrapper fixture uses a POSIX executable shim and /usr/bin/git
+test.skipIf(process.platform === 'win32')(
   'bundled continuation works through the real evaluator Git boundary',
   async () => {
     const root = repository();
@@ -362,7 +419,8 @@ test('framework and punctuation filenames remain literal in checkpoint and revie
   expect(review.writtenDiff).not.toContain('+wrong');
 });
 
-test.skipIf(process.platform !== 'linux')(
+// this evaluator-wrapper fixture uses a POSIX executable shim and /usr/bin/git
+test.skipIf(process.platform === 'win32')(
   'literal pathspec environment cannot hide indexed attributes from the evaluator boundary',
   async () => {
     const root = repository();
@@ -397,7 +455,8 @@ test.skipIf(process.platform !== 'linux')(
 );
 
 for (const boundary of ['helper', 'wrapper'] as const) {
-  test.skipIf(boundary === 'wrapper' && process.platform !== 'linux')(
+  // helper behavior runs everywhere; evaluator-wrapper fixtures use POSIX executable paths
+  test.skipIf(boundary === 'wrapper' && process.platform === 'win32')(
     `repository core.worktree cannot redirect attribute-checked repair reads through ${boundary}`,
     async () => {
       const root = repository();
@@ -443,7 +502,8 @@ for (const boundary of ['helper', 'wrapper'] as const) {
     },
   );
 
-  test.skipIf(boundary === 'wrapper' && process.platform !== 'linux')(
+  // helper behavior runs everywhere; evaluator-wrapper fixtures use POSIX executable paths
+  test.skipIf(boundary === 'wrapper' && process.platform === 'win32')(
     `stored attribute trees are refused before a clean filter can run through ${boundary}`,
     async () => {
       const root = repository();
@@ -508,7 +568,8 @@ test('untracked nested repositories yield a literal directory path without faili
   ).toMatchObject({ status: 'available', uncommittedPaths: ['nested'] });
 });
 
-test.skipIf(process.platform !== 'linux')(
+// the executable fake-Git shim uses POSIX sh; macOS supports it, Windows does not
+test.skipIf(process.platform === 'win32')(
   'index capture overflow reports unavailable evidence without a worktree read',
   () => {
     const root = repository();

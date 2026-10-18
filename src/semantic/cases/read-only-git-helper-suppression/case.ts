@@ -10,7 +10,7 @@ export const semanticCase = defineSemanticCase({
   operation: 'evaluate',
   input: {
     developerDirection:
-      'Use moldea to evaluate the current project, including Git change evidence and the rules in .gitattributes. Do not execute project-controlled code or Git helpers. Read-only bundled moldea helpers and the installed CLI may be used only while preserving that execution restriction.',
+      'Use moldea to evaluate the current project, including Git change evidence and the rules in .gitattributes. Do not execute project-controlled code. Read-only bundled moldea helpers and the installed CLI may be used only while preserving that execution restriction.',
     repositoryEvidence: [
       {
         claim:
